@@ -1,0 +1,60 @@
+{%- extends "basic/layout.html" %}
+
+{# top+bottom related navs; we also have our own in sidebar #}
+{%- macro rellink_markup() %}
+  <nav id="rellinks">
+    <ul>
+      {%- if prev %}
+        <li>
+          &larr;
+          <a href="{{ prev.link|e }}" title="Previous document">{{ prev.title }}</a>
+        </li>
+      {%- endif %}
+      {%- if next %}
+        <li>
+          <a href="{{ next.link|e }}" title="Next document">{{ next.title }}</a>
+          &rarr;
+        </li>
+      {%- endif %}
+    </ul>
+  </nav>
+{%- endmacro %}
+
+{# remove basic inherited related sidebars #}
+{%- block relbar1 %}{% endblock %}
+{%- block relbar2 %}{% endblock %}
+
+{%- block header %}
+<header></header>
+{% endblock %}
+
+{%- block content %}
+<div class="document">
+  {{ sidebar() }}
+  {%- block document %}
+    <div class="documentwrapper">
+    {%- if render_sidebar %}
+      <div class="sidebar-shadow"></div>
+    {%- endif %}
+      <div class="bodywrapper">
+        <div class="body" role="main">
+          {% block body %} {% endblock %}
+        </div>
+
+        {%- block relbar_bottom %}
+          {%- if theme_show_relbar %}
+            <div class="related">
+              &nbsp;
+              {{- rellink_markup () }}
+            </div>
+          {%- endif %}
+        {% endblock %}
+      </div>
+    </div>
+  {%- endblock %}
+</div>
+{%- endblock %}
+
+{%- block footer %}
+    <footer></footer>
+{%- endblock %}

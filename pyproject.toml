@@ -1,0 +1,55 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "adi-doctools"
+description = "ADI's sphinx extensions and theme"
+readme = "README.rst"
+authors = [
+    {name = "Jorge Marques", email="jorge.marques@analog.com"}
+]
+license = {text = "BSD-3-Clause"}
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "Framework :: Sphinx",
+    "Framework :: Sphinx :: Theme",
+    "Framework :: Sphinx :: Extension",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Topic :: Software Development :: Documentation",
+    "Topic :: Text Processing :: Markup",
+    "Topic :: Text Processing :: Markup :: reStructuredText",
+]
+dependencies = [
+    "docutils",
+    "sphinx",
+    "lxml",
+    "aiohttp",
+    "aiodns",
+    "click",
+]
+requires-python = ">=3.8"
+dynamic = ["version"]
+
+[project.optional-dependencies]
+ci = [
+    "selenium"
+]
+
+[tool.setuptools.packages.find]
+where = [""]
+include = ["adi_doctools*"]
+namespaces = false
+
+[tool.setuptools.dynamic]
+version = {attr = "adi_doctools.__version__"}
+
+[project.entry-points."sphinx.html_themes"]
+adi-common = 'adi_doctools'
+
+[project.scripts]
+adoc = "adi_doctools.cli:entry_point"
