@@ -1,0 +1,13 @@
+*.egg-info/
+build/
+dist/
+docs/_build
+*.egg-info
+*.py[cod]
+*.vim
+node_modules
+*.umd.js
+*.js.map
+*.min.css
+*.css.map
+*.json
