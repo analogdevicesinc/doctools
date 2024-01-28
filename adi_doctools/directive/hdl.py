@@ -166,12 +166,9 @@ class directive_regmap(directive_base):
         rows = []
         for reg in obj['regmap']:
             self.column_entries(rows, [
-                [reg['address'][0], 'literal'],
-                [reg['address'][1], 'literal'],
-                ['', 'literal'],
-                [reg['name'], 'literal'],
-                ['', 'literal'],
-                ['', 'literal'],
+                [reg['address'][0], 'literal', ['bold']],
+                [reg['address'][1], 'literal', ['bold']],
+                [reg['name'], 'literal', ['bold'], 3],
                 [reg['description'], 'reST', ['description']],
             ])
 

@@ -71,7 +71,7 @@ def author_mode(directory, port, dev, no_selenium):
     watch_file_src = {}
     watch_file_rst = {}
     if dev:
-        src_dir = os.path.dirname(os.path.abspath(__file__))
+        src_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir)
         par_dir = os.path.abspath(os.path.join(src_dir, os.pardir))
 
         rollup_ci_file = "ci/rollup.config.app.mjs"
@@ -89,10 +89,10 @@ def author_mode(directory, port, dev, no_selenium):
         # Check if minified files exists, if not, run rollup once
         rollup_cache = True
         for f in source_files:
-            w_files.append(os.path.join(src_dir, f"theme/adi-common/static/{f}"))
-            if not os.path.isfile(source_files[-1]):
+            f_ = os.path.abspath(os.path.join(src_dir, f"theme/adi-common/static/{f}"))
+            w_files.append(f_)
+            if not os.path.isfile(w_files[-1]):
                 rollup_cache = False
-                break
         if not rollup_cache:
             subprocess.call(f"{rollup_node_file} -c {rollup_ci_file}", shell=True, cwd=par_dir)
         for f in w_files:

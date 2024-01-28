@@ -82,6 +82,24 @@ For resources without a particular source code file/folder, prefer hyphen ``-``
 separation, for example, ``spi_engine control-interface`` instead of
 ``spi_engine control_interface``.
 
+External references
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For references to other Sphinx documentations, the ``sphinx.ext.intershinx`` is used.
+It has the syntax :code:`:ref:\`external:label\``,
+e.g. :code:`:ref:\`hdl:spi_engine control-interface\``.
+It is also possible to customize the text, e.g.
+:code:`:ref:\`Custom text <hdl:spi_engine control-interface>\``.
+
+When a external reference is not found, it will throw a warning.
+
+To show all links of an InterSphinx mapping file, use:
+
+.. code:: bash
+
+   python -m sphinx.ext.intersphinx https://analogdevicesinc.github.io/hdl/objects.inv
+
+
 Text width
 --------------------------------------------------------------------------------
 
@@ -201,6 +219,30 @@ Instead of overly complicated paths like:
    .. image: ../../project/images/ad2234_sdz/ad2234_sdz_schematic.svg
 
 In general, this avoids dangling artifacts and keeps the documentation simple.
+
+.. _git-lfs:
+
+Git Large File Storage
+--------------------------------------------------------------------------------
+
+Where applicable, Git Large File Storage (LFS) is used to replace large files
+with text pointers inside Git, reducing cloning time.
+
+To setup, install from your package manager and init:
+
+.. code:: bash
+
+   apt install git-lfs
+   git lfs install
+
+The files that will use Git LFS are tracked at ``.gitattributes``, to add new
+files use a pattern at the repo root, for example:
+
+.. code:: bash
+
+   git lfs track *.jpg
+
+Or edit ``.gitattributes`` directly.
 
 .. _vivado block-diagrams:
 

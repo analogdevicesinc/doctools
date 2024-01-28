@@ -41,8 +41,11 @@ class directive_base(Directive):
             items[key] = ' '.join(items[key]).replace('-', '', 1).strip()
         return items
 
-    def column_entry(self, row, text, node_type, classes=[]):
-        entry = nodes.entry(classes=classes)
+    def column_entry(self, row, text, node_type:str, classes:list=[], morecols:int=0):
+        attributes = {}
+        if morecols != 0:
+            attributes['morecols'] = morecols
+        entry = nodes.entry(classes=classes, **attributes)
         if node_type == 'literal':
             entry += nodes.literal(text=text)
         elif node_type == 'paragraph':
@@ -63,6 +66,8 @@ class directive_base(Directive):
         for item in items:
             if len(item) == 3:
                 self.column_entry(row, item[0], item[1], classes=item[2])
+            elif len(item) == 4:
+                self.column_entry(row, item[0], item[1], classes=item[2], morecols=item[3])
             else:
                 self.column_entry(row, item[0], item[1])
         rows.append(row)
