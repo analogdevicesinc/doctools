@@ -1,0 +1,46 @@
+@import "variable";
+
+.sphinxsidebar {
+    z-index: 1;
+}
+
+@media (max-width: 85em) {
+    .sphinxsidebar#panel {
+        position: fixed;
+        height: calc(100vh - 3.5em);
+        overflow-y: auto;
+        top: 3.5em;
+        background: var(--bg-color1);
+        transition: .25s ease left, .25s ease background-color;
+        border-right: $border-panel;
+    }
+
+    .sphinxsidebar#panel.on {
+        left: 0;
+    }
+
+    .sphinxsidebar#panel .toctree {
+        max-width: 18em;
+        margin: 1em auto 0;
+    }
+}
+
+@media (min-width: 40em) and (max-width: 85em) {
+    .sphinxsidebar#panel {
+        width: 18em;
+        left: -19em;
+    }
+
+    .sphinxsidebar#panel.on {
+        box-shadow: $box-shadow-panel;
+    }
+}
+
+@media (max-width: 40em) {
+    .sphinxsidebar#panel {
+        width: 100vw;
+        left: -100vw;
+    }
+}
+
+

@@ -84,7 +84,7 @@ def author_mode(directory, port, dev, no_selenium):
         if symbolic_assert(rollup_node_dir, f"Could not find {rollup_node_dir}, please you install the npm tools locally."):
             return
 
-        source_files = ['app.umd.js', 'app.umd.js.map', 'style.min.css', 'style.min.css.map']
+        source_files = ['app.umd.js', 'app.umd.js.map', 'style.min.css', 'style.min.css.map', 'icons.svg']
         w_files = []
         # Check if minified files exists, if not, run rollup once
         rollup_cache = True

@@ -1,0 +1,30 @@
+input, textarea, select, button, summary {
+    background: none;
+    outline: none;
+    border: none;
+    font-size: 1em;
+}
+
+a, input, textarea, select, button, summary {
+    -webkit-tap-highlight-color: transparent;
+}
+
+a {
+    user-select: none;
+    text-decoration: none;
+    color: inherit;
+}
+
+video {
+    max-width: 100%;
+}
+
+:is(h1, h2, h3, h4, h5, h6) a {
+    margin-left: .25em;
+    opacity: 0;
+    transition: opacity ease .125s;
+}
+
+:is(h1, h2, h3, h4, h5, h6):hover a {
+    opacity: 1;
+}

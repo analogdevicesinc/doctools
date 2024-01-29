@@ -5,7 +5,7 @@ from .theme import navigation_tree
 from .directive import setup as directive_setup
 from .role import setup as role_setup
 
-__version__ = "0.2.3"
+__version__ = "0.2.4"
 
 dft_is_system_top = False
 
@@ -45,6 +45,7 @@ def builder_inited(app):
         # Add bundled JavaScript if current theme is from this extension.
         if app.env.config.html_theme in theme_names:
             app.add_js_file("app.umd.js", priority=500, defer="")
+            app.config.values["html_permalinks_icon"] = ("#", *app.config.values["html_permalinks_icon"][1:])
         else:
             app.add_css_file("third-party.css", priority=500, defer="")
 

@@ -9,10 +9,9 @@ function handleResize (){
 }
 /* Handle navigation, specially the hamburguer menu */
 class Navigation {
-  constructor (){
+    constructor (){
     this.portrait = false
     this.isLocal = 'file:' == window.location.protocol
-    this.prefersDarkTheme = window.matchMedia("(prefers-color-scheme: dark)")
     this.currentTheme = localStorage.getItem('theme')
 
     let $ = this.$ = {}
@@ -23,11 +22,10 @@ class Navigation {
     $.nav.id = "panel"
 
     if (this.currentTheme === null)
-        this.currentTheme = this.prefersDarkTheme.matches ? 'dark' : 'light'
-    $.body.classList.add(
-        this.currentTheme === 'dark' ? 'dark' : 'light',
-        "js-on"
-    )
+      this.currentTheme = this.getOSTheme()
+    $.body.classList.add('js-on')
+    if (this.currentTheme !== this.getOSTheme())
+      $.body.classList.add(this.currentTheme)
 
     $.showSidebar = new DOM('button', {id:"show-sidebar"}).onclick(this, () => {
       DOM.switchState(this.$.nav)
@@ -39,22 +37,40 @@ class Navigation {
       DOM.switchState(this.$.showOnThisPage)
     })
     $.changeTheme = new DOM('button', {
-        className: this.currentTheme === 'dark' ? 'icon on' : 'icon',
-        id:'theme',
-      }).onclick(this, () => {
-        $.body.classList.remove(this.currentTheme)
-        this.currentTheme = this.currentTheme === 'dark' ? 'light' : 'dark'
+      className: this.currentTheme === 'dark' ? 'icon on' : 'icon',
+      id:'theme',
+    }).onclick(this, () => {
+      $.body.classList.remove(this.currentTheme)
+      this.currentTheme = this.currentTheme === 'dark' ? 'light' : 'dark'
+      if (this.getOSTheme() == this.currentTheme)
+        localStorage.removeItem('theme')
+      else {
         localStorage.setItem('theme', this.currentTheme)
         $.body.classList.add(this.currentTheme)
-      })
+      }
+    })
+    $.logo = new DOM('div', {id:'logo'})
 
-    $.header.append([$.showSidebar, $.showOnThisPage, $.changeTheme])
+    $.leftHeader = new DOM('div', {
+      id:'left'
+    }).append([$.showSidebar])
+    $.rightHeader = new DOM('div', {
+      id:'right'
+    }).append([$.logo, new DOM('div').append([$.changeTheme, $.showOnThisPage])])
+    $.header.append([$.leftHeader, $.rightHeader])
   }
   /**
    * Init navigation.
    */
   init () {
     onresize = () => {handleResize()}
+  }
+  /**
+   * Get OS Theme
+   */
+  getOSTheme () {
+    console.log(window.matchMedia("(prefers-color-scheme: dark)").matches ? 'dark' : 'light')
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? 'dark' : 'light'
   }
 }
 

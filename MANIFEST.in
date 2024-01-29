@@ -5,6 +5,7 @@ include adi_doctools/theme/adi-common/static/*.umd.js
 include adi_doctools/theme/adi-common/static/*.js.map
 include adi_doctools/theme/adi-common/static/*.min.css
 include adi_doctools/theme/adi-common/static/*.css.map
+include adi_doctools/theme/adi-common/static/*.svg
 include adi_doctools/theme/adi-common/sidebar/*.html
 include adi_doctools/theme/adi-common/*.html
 include adi_doctools/theme/adi-common/*.conf

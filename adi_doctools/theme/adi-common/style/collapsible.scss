@@ -1,0 +1,69 @@
+@import "variable";
+
+.collapsible {
+    border: $border-panel;
+    border-radius: .25em;
+    margin-bottom: -1px;
+}
+
+.collapsible_input {
+    display: none;
+}
+
+.collapsible_content {
+    border-top: $border-panel;
+    overflow: hidden;
+    height: 0;
+    padding: 0 .75em !important;
+    transition: ease opacity .25s;
+    opacity: 0;
+}
+
+.collapsible label {
+    width: 100%;
+    padding: 0.75em 1em 0.75em .75em;
+    user-select: none;
+    box-sizing: border-box;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.collapsible label .icon {
+    border: $border-panel;
+    border-width: 0 2px 2px 0;
+    display: block;
+    transition: transform ease .125s, margin-top ease .125s;
+    width: .6em;
+    height: .6em;
+    transform: rotate(-45deg);
+}
+
+.collapsible label p {
+    margin: 0;
+}
+
+.collapsible label, .collapsible div {
+    transition: box-shadow ease .25s;
+}
+
+.collapsible label:hover ~ div, .collapsible label:hover {
+    box-shadow: $box-shadow-raised;
+}
+
+.collapsible_input:checked ~ label .icon {
+    transform: rotate(45deg);
+    margin-top: -.5em;
+}
+
+.collapsible_content {
+    overflow: auto;
+}
+
+.collapsible_input:checked ~ .collapsible_content {
+    height: 100%;
+    opacity: 1;
+}
+
+
