@@ -22,4 +22,8 @@ source_suffix = '.rst'
 
 # -- Options for HTML output --------------------------------------------------
 
-html_theme = 'furo'
+html_theme = 'adi-common'
+
+html_theme_options = {
+    "no_index": True
+}

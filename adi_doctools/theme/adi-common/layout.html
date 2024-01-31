@@ -1,5 +1,12 @@
 {%- extends "basic/layout.html" %}
 
+{%- block extrahead %}
+  {{ super() }}
+  {% if theme_no_index %}
+    <meta name="robots" content="noindex">
+  {% endif %}
+{% endblock %}
+
 {# top+bottom related navs; we also have our own in sidebar #}
 {%- macro rellink_markup() %}
   <nav id="rellinks">
