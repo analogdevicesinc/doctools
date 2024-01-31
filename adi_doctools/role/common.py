@@ -26,6 +26,8 @@ git_repos = [
     ['libiio',           "libiio"],
     ['scopy',            "Scopy"],
     ['iio-oscilloscope', "IIO Oscilloscope"],
+    ['doctools',         "ADI Doc Tools"],
+    ['documentation',    "System Level Documentation"],
     ['pyadi-iio',        "PyADI-IIO"]
 ]
 vendors = ['xilinx', 'intel', 'mw']
