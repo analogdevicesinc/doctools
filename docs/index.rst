@@ -7,7 +7,7 @@ ADI Doc Tools
    :caption: User guide
    :hidden:
 
-   user_guide/docs_guidelines
+   docs_guidelines
 
 `Analog Devices Inc. <https://www.analog.com>`_
 documentation extensions, themes, and tools for multiple repositories in the
