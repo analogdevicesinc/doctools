@@ -38,10 +38,14 @@ jobs:
         node_modules/.bin/rollup -c
         ci/rollup.config.app.mjs
 
-    - name: Install build
+    - name: Install build tool
       run: >-
         python3 -m
         pip install build --user
+
+    - name: Fetch third-party fonts
+      run: >-
+        ./ci/fetch-fonts.sh
 
     - name: Build a binary wheel and a source tarball
       run: python3 -m build

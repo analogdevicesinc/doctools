@@ -103,8 +103,6 @@ def author_mode(directory, port, dev, no_selenium):
         subprocess.call(f"cd {directory} ; {devpool_js} make html", shell=True)
         for f, s in zip(w_files, source_files):
             watch_file_src[f] = os.path.getctime(f)
-            # Create symbolic link to build
-            subprocess.call(f"ln -sf {f} {directory}/_build/html/_static/{s}", shell=True)
         # Run rollup in watch mode
         rollup_p = subprocess.Popen(f"{rollup_node_file} -c {rollup_ci_file} --watch", shell=True, cwd=par_dir, stdout=subprocess.DEVNULL)
     else:
@@ -192,6 +190,9 @@ def author_mode(directory, port, dev, no_selenium):
 
         if update_sphinx:
             subprocess.call(f"cd {directory} ; {devpool_js} make html", shell=True)
+        if update_page:
+            for f, s in zip(w_files, source_files):
+                subprocess.call(f"cp {f} {directory}/_build/html/_static/{s}", shell=True)
         if update_sphinx or update_page:
             if with_selenium:
                 try:

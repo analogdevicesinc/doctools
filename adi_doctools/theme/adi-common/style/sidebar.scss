@@ -1,0 +1,160 @@
+@import "variable";
+
+.sphinxsidebar {
+    z-index: 1;
+}
+
+@media (max-width: 85em) {
+    .sphinxsidebar#panel {
+        position: fixed;
+        height: calc(100vh - 3.5em);
+        overflow-y: auto;
+        top: 3.5em;
+        background: var(--bg-color1);
+        transition: .25s ease left;
+        border-right: $border-panel;
+    }
+
+    .sphinxsidebar#panel.on {
+        left: 0;
+    }
+
+    .sphinxsidebar#panel .toctree {
+        max-width: 18em;
+        margin: 1em auto 0;
+    }
+}
+
+@media (min-width: 40em) and (max-width: 85em) {
+    .sphinxsidebar#panel {
+        width: 18em;
+        left: -19em;
+    }
+
+    .sphinxsidebar#panel.on {
+        box-shadow: $box-shadow-panel;
+    }
+}
+
+@media (max-width: 40em) {
+    .sphinxsidebar#panel {
+        width: 100vw;
+        left: -100vw;
+    }
+}
+
+.sphinxsidebar ul {
+    list-style-type: none;
+    padding: 0 0 0 .5em;
+}
+
+.sphinxsidebar .caption-text {
+    color: var(--text-color2);
+}
+
+.sidebar-tree > ul {
+    padding: 0;
+}
+
+.sidebar-tree label {
+    cursor: pointer;
+    display: block;
+    padding: .6em .5em;
+    height: 2em;
+    width: 2em;
+}
+
+.toctree-collapse:checked ~ label {
+    background: #f00;
+}
+
+.sidebar-tree {
+    margin-bottom: 10em;
+}
+
+.sidebar-tree .toctree-collapse ~ ul {
+    display: none;
+}
+
+.sidebar-tree .toctree-collapse:checked ~ ul {
+    display: block;
+}
+
+.toctree-collapse {
+    display: none;
+}
+
+@media (min-width: 85em) {
+    button#show-sidebar {
+      display: none;
+    }
+
+    .sphinxsidebar {
+        position: sticky;
+        top: 0;
+        height: 0;
+    }
+
+    .sphinxsidebarwrapper {
+	    box-sizing: content-box;
+        padding: 1.5em calc(10vw - 9em) 0em calc(30vw - 21em);
+        overflow-y: auto;
+        height: 100vh;
+	    width: 15em;
+    }
+}
+
+@media (max-width: 85em) {
+    .sphinxsidebarwrapper {
+        padding: 1em;
+    }
+}
+
+.sidebar-tree .collapse {
+    display: flex;
+}
+
+.sidebar-tree a {
+    display: inline-block;
+    line-height: 2em;
+    width: 100%;
+    padding-left: .5em;
+    margin-left: -.5em;
+    border-radius: $border-radius;
+    border: 1px solid var(--bg-color1);
+}
+
+.sidebar-tree a:hover {
+    color: var(--accent-color);
+}
+
+.sidebar-tree label:hover .icon {
+    border-color: var(--accent-color) !important;
+}
+
+.sidebar-tree label:hover,
+.sidebar-tree a:hover {
+    background-color: var(--bg-color2);
+}
+
+.sidebar-tree .collapse label .icon {
+    border: 1px solid var(--text-color1);
+    border-width: 0 2px 2px 0;
+    display: block;
+    transition: transform ease .125s, margin ease .125s;
+    width: .6em;
+    height: .6em;
+    transform: rotate(-45deg);
+    margin-top: 1px;
+}
+
+.sidebar-tree .toctree-collapse:checked ~ .collapse .icon {
+    transform: rotate(45deg);
+    margin-top: -1px;
+    margin-left: 1px;
+}
+
+.sidebar-tree label {
+    border: 1px solid var(--bg-color1);
+    border-radius: $border-radius;
+}

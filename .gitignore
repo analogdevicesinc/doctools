@@ -11,3 +11,5 @@ node_modules
 *.min.css
 *.css.map
 *.json
+*.woff2
+adi_doctools/theme/adi-common/static/fonts

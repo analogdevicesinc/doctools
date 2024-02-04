@@ -1,0 +1,42 @@
+@font-face {
+    font-family: "Barlow";
+    src: url('fonts/barlow/Barlow-Medium.woff2') format('woff2');
+    font-weight: 500;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Barlow";
+    src: url('fonts/barlow/Barlow-SemiBold.woff2') format('woff2');
+    font-weight: 600;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Inter";
+    src: url('fonts/inter/Inter-Regular.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Inter";
+    src: url('fonts/inter/Inter-SemiBold.woff2') format('woff2');
+    font-weight: 600;
+    font-style: normal;
+}
+
+body {
+    font-family: Inter, Arial, sans-serif;
+}
+
+.body h1, .body h2, .body h3, .body h4, .body h5, .body h6 {
+    font-family: Barlow, Arial, sans-serif;
+    font-weight: 500;
+}
+
+.sphinxsidebar .caption-text {
+    font-family: Barlow, Arial, sans-serif;
+    font-weight: 600;
+    font-size: 1.1em;
+}

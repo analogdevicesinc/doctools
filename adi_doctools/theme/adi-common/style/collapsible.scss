@@ -14,7 +14,6 @@
     border-top: $border-panel;
     overflow: hidden;
     height: 0;
-    padding: 0 .75em !important;
     transition: ease opacity .25s;
     opacity: 0;
 }
@@ -31,7 +30,7 @@
 }
 
 .collapsible label .icon {
-    border: $border-panel;
+    border: 1px solid var(--text-color1);
     border-width: 0 2px 2px 0;
     display: block;
     transition: transform ease .125s, margin-top ease .125s;

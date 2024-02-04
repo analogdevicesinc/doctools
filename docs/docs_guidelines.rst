@@ -209,14 +209,14 @@ The idea is to have simpler relative paths, for example, e.g.:
 
 .. code:: rst
 
-   .. image: ad2234_sdz_schematic.svg
+   .. image:: ad2234_sdz_schematic.svg
 
 
-Instead of overly complicated paths like:
+Instead of over complicated paths like:
 
 .. code:: rst
 
-   .. image: ../../project/images/ad2234_sdz/ad2234_sdz_schematic.svg
+   .. image:: ../../project/images/ad2234_sdz/ad2234_sdz_schematic.svg
 
 In general, this avoids dangling artifacts and keeps the documentation simple.
 

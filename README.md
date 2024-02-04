@@ -9,7 +9,7 @@ All tools, directives and roles are documented in this repository documentation.
 
 ## Release install
 
-Ensure pip newer than 23.0 [1]:
+Ensure pip is newer than 23.0 [1]:
 ```
 pip install pip --upgrade
 ```
@@ -44,13 +44,18 @@ Also extends Author Mode to watch changes on the webpage source code
 Before getting started, install `npm`.
 It is required due to the web scripts (`js modules`) and style sheets (`sass`).
 
-Then, at this path, install the `npm` dependencies locally:
+At this path, install the `npm` dependencies locally:
 ```
 npm install rollup \
     @rollup/plugin-terser \
     rollup-plugin-scss \
     sass \
     --save-dev
+```
+
+Fetch third-party fonts:
+```
+./ci/fetch-fonts.sh
 ```
 
 Finally, do a symbolic install of this repo:

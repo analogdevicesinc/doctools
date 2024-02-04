@@ -32,7 +32,12 @@
 {%- block relbar2 %}{% endblock %}
 
 {%- block header %}
-<header></header>
+<header>
+  <div class="header"></div>
+  <div class="subdomain-tree">
+    {{ subdomain_tree }}
+  </div>
+</header>
 {% endblock %}
 
 {%- block content %}
@@ -40,9 +45,6 @@
   {{ sidebar() }}
   {%- block document %}
     <div class="documentwrapper">
-    {%- if render_sidebar %}
-      <div class="sidebar-shadow"></div>
-    {%- endif %}
       <div class="bodywrapper">
         <div class="body" role="main">
           {% block body %} {% endblock %}
@@ -60,6 +62,7 @@
     </div>
   {%- endblock %}
 </div>
+<div id="vertical-border"></div>
 {%- endblock %}
 
 {%- block footer %}

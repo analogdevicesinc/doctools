@@ -33,49 +33,91 @@ header #theme:before {
     }
 }
 
+header #show-sidebar:before {
+    background-position: left calc(-1.5rem*0) top;
+    transition: .25s ease background-position;
+}
+
+header #show-sidebar.on:before {
+    background-position: left calc(-1.5rem*0) bottom;
+}
+
 header {
-    background: var(--bg-color1);
     z-index: 2;
     width: 100%;
+}
+
+.header {
+    background: var(--bg-color1);
     height: 3.5em;
-    border-bottom: $border-panel;
-    display: flex;
 }
 
 @media (max-width: 85em) {
-    .js-on header {
-          position: fixed;
-          top: 0;
-    }
-
-    header {
-        justify-content: space-between;
+    .js-on .header {
+        display: flex;
+        width: 100%;
+        position: fixed;
+        top: 0;
+        border-bottom: $border-panel;
     }
 }
 
-header #right {
+.header #right {
     display: flex;
     justify-content: space-between;
     width: 100%;
 }
 
 @media (min-width: 85em) {
-    header {
-        justify-content: space-around;
+    .header #left{
+        display: none;
     }
-    header #left{
-        width: 10em;
-    }
-    header #right {
-        margin: 0 auto;
+    .header #right {
+        margin-left: calc(40vw - 13em);
         text-align: right;
         max-width: 60rem;
     }
 }
 
-header #logo {
+.header #logo {
     display: inline-block;
-    width: 8rem;
-    height: 3.5rem;
-    background: $accent-color;
+    width: 6rem;
+    height: 2rem;
+    margin: .75em 0;
+    background: var(--accent-color);
+}
+
+.subdomain-tree {
+    background: var(--bg-color1);
+    height: 2.5em;
+}
+
+header .subdomain-tree {
+    padding-left: calc(40vw - 13em - 1em);
+    border-bottom: $border-panel;
+}
+
+@media (max-width: 85em) {
+    .header .subdomain-tree {
+        display: none;
+    }
+}
+
+@media (min-width: 85em) {
+    .sphinxsidebar .subdomain-tree {
+        display: none;
+    }
+}
+
+.subdomain-tree a {
+    cursor: pointer;
+    display: inline-block;
+    padding: .5em .5em .625em .5em;
+    margin: 0 .5em;
+    border-bottom: .125em solid rgba(0,0,0,0);
+}
+
+.subdomain-tree a:hover {
+    color: var(--accent-color);
+    border-color: var(--accent-color);
 }

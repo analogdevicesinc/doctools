@@ -16,7 +16,7 @@ class Navigation {
 
     let $ = this.$ = {}
     $.body = new DOM(DOM.get('body'))
-    $.header = new DOM(DOM.get('header'))
+    $.header = new DOM(DOM.get('.header'))
     $.nav = new DOM(DOM.get('.sphinxsidebar'))
     $.toctree = new DOM(DOM.get('.sphinxsidebarwrapper'))
     $.nav.id = "panel"
