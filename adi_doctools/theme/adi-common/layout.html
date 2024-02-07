@@ -32,37 +32,67 @@
 {%- block relbar2 %}{% endblock %}
 
 {%- block header %}
-<header>
-  <div class="header"></div>
-  <div class="subdomain-tree">
-    {{ subdomain_tree }}
-  </div>
-</header>
+  <input type="checkbox" id="input-showsidebar">
+  <input type="checkbox" id="input-showonthispage">
+  <header>
+    <div class="header">
+      <div id="left">
+        <label id="show-sidebar" for="input-showsidebar"></label>
+      </div>
+      <div id="right">
+        <div id="logo"></div>
+        <span>
+          <label id="show-onthispage" for="input-showonthispage"></label>
+        </span>
+      </div>
+    </div>
+    <div class="subdomain-tree">
+      {{ subdomain_tree }}
+    </div>
+  </header>
 {% endblock %}
 
 {%- block content %}
-<div class="document">
-  {{ sidebar() }}
-  {%- block document %}
-    <div class="documentwrapper">
-      <div class="bodywrapper">
-        <div class="body" role="main">
-          {% block body %} {% endblock %}
-        </div>
 
-        {%- block relbar_bottom %}
-          {%- if theme_show_relbar %}
-            <div class="related">
-              &nbsp;
-              {{- rellink_markup () }}
-            </div>
-          {%- endif %}
-        {% endblock %}
+  {%- block toc %}
+    <div class="localtoc">
+      <div class="tocwrapper">
+        <div class="onthispage">On this page</div>
+          <nav>
+            {{ toc }}
+          </nav>
+        </div>
       </div>
     </div>
   {%- endblock %}
-</div>
-<div id="vertical-border"></div>
+
+  {{ sidebar() }}
+
+  <div class="document">
+    {%- block document %}
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            {% block body %} {% endblock %}
+          </div>
+
+          {%- block relbar_bottom %}
+            {%- if theme_show_relbar %}
+              <div class="related">
+                &nbsp;
+                {{- rellink_markup () }}
+              </div>
+            {%- endif %}
+          {% endblock %}
+        </div>
+      </div>
+    {%- endblock %}
+  </div>
+
+  <div id="vertical-border"></div>
+
+  <label id="cancel-area-showsidebar" for="input-showsidebar"></label>
+  <label id="cancel-area-showonthispage" for="input-showonthispage"></label>
 {%- endblock %}
 
 {%- block footer %}

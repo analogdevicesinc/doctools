@@ -5,11 +5,11 @@ from .theme import setup as theme_setup, names as theme_names
 from .directive import setup as directive_setup
 from .role import setup as role_setup
 
-__version__ = "0.2.7"
+__version__ = "0.2.8"
 
 dft_is_system_top = False
 
-def get_navigation_tree(env, context):
+def get_navigation_tree(context, repo):
     # The navigation tree, generated from the sphinx-provided ToC tree.
     if "toctree" in context:
         toctree = context["toctree"]
@@ -22,18 +22,10 @@ def get_navigation_tree(env, context):
     else:
         toctree_html = ""
 
-    return navigation_tree(env, toctree_html)
+    return navigation_tree(toctree_html, context['content_root'], repo)
 
 def html_page_context(app, pagename, templatename, context, doctree):
-    # TODO see https://github.com/sphinx-doc/sphinx/pull/11415
-    # and how it would affect a serviceworker.js
-    #if "css_files" in context:
-        #    print(context["css_files"])
-    #
-    #if "scripts" in context:
-    #    print(context["scripts"])
-
-    context["sidebar_tree"], context["subdomain_tree"] = get_navigation_tree(app, context);
+    context["sidebar_tree"], context["subdomain_tree"] = get_navigation_tree(context, app.env.config.repository);
 
 def builder_inited(app):
     if app.builder.format == 'html':

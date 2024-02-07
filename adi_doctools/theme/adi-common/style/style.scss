@@ -1,12 +1,24 @@
 @import "variable";
+@import "mixin_admonition";
+@import "mixin_icons";
 
 :root {
     --subtle-box-shadow: 0 .2rem .5rem rgba(0,0,0,.05),0 0 .0625rem rgba(0,0,0,.1);
     --subtle-box-shadow-button: 0 .2rem .5rem rgba(0,0,0,.1),0 0 .0625rem rgba(0,0,0,.15);
-    --subtle-box-shadow-hover: 0 .3rem .6rem rgba(0,0,0,.2),0 0 .075rem rgba(0,0,0,.2);
+    --subtle-box-shadow-hover: 0 .3rem .6rem rgba(0,0,0,.2),0 0 .085rem rgba(0,0,0,.2);
     color-scheme: light dark;
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    @include icons;
+    @include admonitions;
+    @include default-admonition(#651fff, "abstract");
+    @include default-topic(#14B8A6, "pencil");
+}
 body {
     --dark-true: 0;
     --dark-false: 1;
@@ -14,6 +26,7 @@ body {
     --bg-color2: #{$bg-light2};
     --text-color1: #{$text-color-light1};
     --text-color2: #{$text-color-light2};
+    --text-color3: #{$text-color-light3};
     --accent-color: #{$accent-color-light};
 }
 
@@ -24,6 +37,7 @@ body.dark {
     --bg-color2: #{$bg-dark2};
     --text-color1: #{$text-color-dark1};
     --text-color2: #{$text-color-dark2};
+    --text-color3: #{$text-color-dark3};
     --accent-color: #{$accent-color-dark};
 }
 
@@ -33,39 +47,28 @@ body.dark {
         --dark-false: 0;
         --bg-color1: #{$bg-dark1};
         --bg-color2: #{$bg-dark2};
-	--text-color1: #{$text-color-dark1};
-	--text-color2: #{$text-color-dark2};
-	--accent-color: #{$accent-color-dark};
+        --text-color1: #{$text-color-dark1};
+        --text-color2: #{$text-color-dark2};
+        --text-color3: #{$text-color-dark3};
+        --accent-color: #{$accent-color-dark};
     }
     body.light {
         --dark-true: 0;
         --dark-false: 1;
         --bg-color1: #{$bg-light1};
         --bg-color2: #{$bg-light2};
-	--text-color1: #{$text-color-light1};
-	--text-color2: #{$text-color-light2};
-	--accent-color: #{$accent-color-light};
+        --text-color1: #{$text-color-light1};
+        --text-color2: #{$text-color-light2};
+        --text-color3: #{$text-color-light3};
+        --accent-color: #{$accent-color-light};
     }
 }
-
-/*
-    --wide-screen: 85em;
-    --narrow-screen: 40em;
-@media (min-width: 85em) {
-}
-
-@media (min-width: 40em and max-width: 85em) {
-}
-
-@media (max-width: 40em) {
-}
-*/
-
 
 body {
     margin: 0;
     background-color: var(--bg-color1);
     color: var(--text-color1);
+    overflow-x: hidden;
 }
 
 * {
@@ -75,36 +78,38 @@ body {
 
 
 .body {
-    max-width: 60rem;
     width: 100%;
     padding: 0 1em;
 }
 
-@media (min-width: 85em) {
+@media (min-width: $width-wide) {
+  .bodywrapper > div {
+      max-width: 60rem;
+  }
+}
+
+@media (max-width: $width-wide) {
+    .bodywrapper > div {
+        margin: 0 auto;
+    }
+}
+
+@media (min-width: $width-narrow) {
     #vertical-border {
-	position: fixed;
-	height: 100vh;
-	border-left: $border-panel;
-	top: 0;
-	left: calc(40vw - 15em);
+        position: fixed;
+        height: 100vh;
+        border-left: $border-panel;
+        top: 0;
+        left: calc(40vw - 15em);
+        z-index: 5;
     }
 
     .bodywrapper {
-	margin-left: calc(40vw - 14em);
+        margin-left: calc(40vw - 14em);
     }
 }
 
-@media (min-width: 40em) and (max-width: 85em) {
-}
-
-@media (max-width: 40em) {
-}
-
-footer {
-    height: 10em;
-}
-
-@media (min-width: 85em) {
+@media (min-width: $width-narrow) {
     button#show-sidebar {
       display: none;
     }
@@ -127,28 +132,16 @@ svg {
     margin: 0 auto;
 }
 
-@media (min-width: 85em) {
-    #hdl-parameters table {
-        margin: 0 0 0 -2.5vw;
-        width: calc(100% + 5vw);
-    }
-
+@media (min-width: $width-narrow) {
     #hdl-component-diagram svg {
         float: right;
-        margin: -5em -5vw 0 0;
+        margin: -5em -2em 0 0;
         max-width: 30rem;
     }
 }
 
-@media (max-width: 85em) {
+@media (max-width: $width-narrow) {
     svg {
         max-width: 100%;
     }
-}
-
-@media (min-width: 40em) and (max-width: 85em) {
-}
-
-@media (max-width: 40em) {
-
 }

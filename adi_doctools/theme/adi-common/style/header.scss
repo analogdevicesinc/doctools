@@ -1,22 +1,55 @@
-header button {
-    cursor: pointer;
+header {
+    z-index: 4;
+    position: relative;
+    width: 100%;
+
+    label, button {
+        cursor: pointer;
+    }
+
+    #right span {
+        display: flex;
+    }
+
+    label:before, button:before {
+        content: '';
+        display: block;
+        width: 1.5rem;
+        height: 1.5rem;
+        margin: 1rem;
+        background: url('./icons.svg');
+    }
+
+    label, button {
+      filter: invert(var(--dark-true));
+    }
+
+    #theme:before {
+        background-position: left calc(-1.5rem*1) bottom;
+    }
+
+    #show-sidebar:before {
+        background-position: left calc(-1.5rem*0) top;
+        transition: .25s ease background-position;
+    }
+
+    #show-onthispage:before {
+        background-position: left calc(-1.5rem*2) top;
+        transition: .25s ease background-position;
+    }
+
+    .subdomain-tree {
+        padding-left: calc(40vw - 13em - 1em);
+        border-bottom: $border-panel;
+    }
 }
 
-header button:before {
-    content: '';
-    display: block;
-    width: 1.5rem;
-    height: 1.5rem;
-    margin: 1rem;
-    background: url('./icons.svg');
+#input-showsidebar:checked ~ header #show-sidebar:before {
+    background-position: left calc(-1.5rem*0) bottom;
 }
 
-header button {
-  filter: invert(var(--dark-true));
-}
-
-header #theme:before {
-    background-position: left calc(-1.5rem*1) bottom;
+#input-showonthispage:checked ~ header #show-onthispage:before {
+    background-position: left calc(-1.5rem*2) bottom;
 }
 
 .dark header #theme:before {
@@ -33,27 +66,14 @@ header #theme:before {
     }
 }
 
-header #show-sidebar:before {
-    background-position: left calc(-1.5rem*0) top;
-    transition: .25s ease background-position;
+@media (min-width: $width-wide) {
+    header #show-onthispage {
+        display: none;
+    }
 }
 
-header #show-sidebar.on:before {
-    background-position: left calc(-1.5rem*0) bottom;
-}
-
-header {
-    z-index: 2;
-    width: 100%;
-}
-
-.header {
-    background: var(--bg-color1);
-    height: 3.5em;
-}
-
-@media (max-width: 85em) {
-    .js-on .header {
+@media (max-width: $width-narrow) {
+    .header {
         display: flex;
         width: 100%;
         position: fixed;
@@ -62,62 +82,69 @@ header {
     }
 }
 
-.header #right {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
+.header {
+    background: var(--bg-color1);
+    height: 3.5em;
+
+    #right {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    #logo {
+        display: inline-block;
+        width: 6rem;
+        height: 2rem;
+        margin: .75em 0;
+        background: url('./adi-logo.svg') no-repeat center center;
+    }
 }
 
-@media (min-width: 85em) {
+@media (max-width: $width-narrow) {
+    .header #right {
+        width: 100%;
+    }
+}
+@media (min-width: $width-narrow) {
     .header #left{
         display: none;
     }
     .header #right {
         margin-left: calc(40vw - 13em);
         text-align: right;
-        max-width: 60rem;
     }
 }
 
-.header #logo {
-    display: inline-block;
-    width: 6rem;
-    height: 2rem;
-    margin: .75em 0;
-    background: var(--accent-color);
+@media (min-width: $width-wide) {
+    .header #right {
+        max-width: 60rem;
+    }
 }
 
 .subdomain-tree {
     background: var(--bg-color1);
     height: 2.5em;
-}
 
-header .subdomain-tree {
-    padding-left: calc(40vw - 13em - 1em);
-    border-bottom: $border-panel;
-}
+    a {
+        cursor: pointer;
+        display: inline-block;
+        padding: .5em .5em .625em .5em;
+        margin: 0 .5em;
+        border-bottom: .125em solid rgba(0,0,0,0);
+    }
 
-@media (max-width: 85em) {
-    .header .subdomain-tree {
-        display: none;
+    a:hover {
+        color: var(--accent-color);
+        border-color: var(--accent-color);
+    }
+
+    a.current {
+        border-color: var(--font-color1);
     }
 }
 
-@media (min-width: 85em) {
-    .sphinxsidebar .subdomain-tree {
+@media (max-width: $width-narrow) {
+    header .subdomain-tree {
         display: none;
     }
-}
-
-.subdomain-tree a {
-    cursor: pointer;
-    display: inline-block;
-    padding: .5em .5em .625em .5em;
-    margin: 0 .5em;
-    border-bottom: .125em solid rgba(0,0,0,0);
-}
-
-.subdomain-tree a:hover {
-    color: var(--accent-color);
-    border-color: var(--accent-color);
 }

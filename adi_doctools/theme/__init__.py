@@ -10,17 +10,16 @@ from sphinx.highlighting import PygmentsBridge
 
 from .adi_common import adi_common_setup
 
-dft_url_documentation  = ''
-
 subdomains = [
     # url_path           name
     ['documentation',    "System Level"],
     ['hdl',              "HDL"],
     ['no-os',            "no-OS"],
+    ['pyadi-iio',        "pyadi-iio"],
 ]
 
 def theme_config_setup(app):
-    app.add_config_value('url_documentation', dft_url_documentation, 'env')
+    app.add_config_value('repository', None, 'env')
 
 setup = [
     adi_common_setup,
@@ -29,17 +28,28 @@ setup = [
 
 names = ['adi-common']
 
-def subdomain_tree(app):
+def subdomain_tree(content_root, repo):
+    """
+    Create the subdomain tree linking to other repos documentations.
+    From the 'repository' config value, a 'current' class is added to
+    the link targeting the current doc.
+    The links are functional with at least 1 level of depth, for example:
+    docs.example.com/hdl -> ../no-os -> docs.example.com/no-os
+    docs.example.com/v0.1/hdl -> ../no-os -> docs.example.com/v0.1/no-os
+    While something with 0 depth is improper:
+    hdl-docs.example.com -> ../no-os -XXX-> hdl-docs.example.com/no-os
+    """
     root = etree.Element("root")
     for sd in subdomains:
         link = etree.Element("a", attrib = {
-            'href': f"{app.config.url_documentation}/{sd[0]}"
+            'href': f"{content_root}../{sd[0]}",
+            'class': 'current' if sd[0] == repo else ''
         })
         link.text = sd[1]
         root.append(link)
     return etree.tostring(root, pretty_print=True, encoding='unicode')
 
-def navigation_tree(app, toctree_html):
+def navigation_tree(toctree_html, content_root, repo):
     """
     Add collapsible sections to the navigation tree.
     Adapted from
@@ -98,7 +108,7 @@ def navigation_tree(app, toctree_html):
             iterate(li)
 
     _sidebar_tree = etree.tostring(root, pretty_print=True, encoding='unicode')
-    _subdomain_tree = subdomain_tree(app)
+    _subdomain_tree = subdomain_tree(content_root, repo)
     return (_sidebar_tree, _subdomain_tree)
 
 def get_pygments_theme(app):

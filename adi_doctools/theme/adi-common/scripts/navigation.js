@@ -7,7 +7,7 @@ import {Toolbox} from './toolbox.js'
 function handleResize (){
   navigation.portrait = window.innerHeight > window.innerWidth ? true : false
 }
-/* Handle navigation, specially the hamburguer menu */
+/* Handle navigation, theming */
 class Navigation {
     constructor (){
     this.portrait = false
@@ -16,10 +16,6 @@ class Navigation {
 
     let $ = this.$ = {}
     $.body = new DOM(DOM.get('body'))
-    $.header = new DOM(DOM.get('.header'))
-    $.nav = new DOM(DOM.get('.sphinxsidebar'))
-    $.toctree = new DOM(DOM.get('.sphinxsidebarwrapper'))
-    $.nav.id = "panel"
 
     if (this.currentTheme === null)
       this.currentTheme = this.getOSTheme()
@@ -27,16 +23,7 @@ class Navigation {
     if (this.currentTheme !== this.getOSTheme())
       $.body.classList.add(this.currentTheme)
 
-    $.showSidebar = new DOM('button', {id:"show-sidebar"}).onclick(this, () => {
-      DOM.switchState(this.$.nav)
-      DOM.switchState(this.$.showSidebar)
-    })
-    $.showOnThisPage = new DOM('button', {id:"show-on-this-page"}).onclick(this, () => {
-      // TODO show on this page sidebar
-      //DOM.switchState(this.$.nav)
-      DOM.switchState(this.$.showOnThisPage)
-    })
-    $.changeTheme = new DOM('button', {
+	$.changeTheme = new DOM('button', {
       className: this.currentTheme === 'dark' ? 'icon on' : 'icon',
       id:'theme',
     }).onclick(this, () => {
@@ -49,21 +36,27 @@ class Navigation {
         $.body.classList.add(this.currentTheme)
       }
     })
-    $.logo = new DOM('div', {id:'logo'})
-
-    $.leftHeader = new DOM('div', {
-      id:'left'
-    }).append([$.showSidebar])
-    $.rightHeader = new DOM('div', {
-      id:'right'
-    }).append([$.logo, new DOM('div').append([$.changeTheme, $.showOnThisPage])])
-    $.header.append([$.leftHeader, $.rightHeader])
+    $.rightHeader = new DOM(DOM.get('.header #right span')).append([$.changeTheme])
   }
   /**
    * Init navigation.
    */
   init () {
     onresize = () => {handleResize()}
+  }
+  /**
+   * Set items state.
+   * @param state - True for open, false for closed.
+   */
+  setState (items, state) {
+    console.log(items)
+    items.forEach((elem) => {
+      if (state) {
+        elem.classList.add('on')
+      } else {
+        elem.classList.remove('on')
+      }
+    })
   }
   /**
    * Get OS Theme

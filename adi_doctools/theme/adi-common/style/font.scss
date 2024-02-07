@@ -30,9 +30,10 @@ body {
     font-family: Inter, Arial, sans-serif;
 }
 
-.body h1, .body h2, .body h3, .body h4, .body h5, .body h6 {
+.body :is(h1, h2, h3, h4, h5, h6) {
     font-family: Barlow, Arial, sans-serif;
     font-weight: 500;
+    margin: 1em 0 0 0;
 }
 
 .sphinxsidebar .caption-text {

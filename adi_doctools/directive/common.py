@@ -46,6 +46,10 @@ class directive_base(Directive):
         if morecols != 0:
             attributes['morecols'] = morecols
         entry = nodes.entry(classes=classes, **attributes)
+        if text == '':
+            entry += nodes.paragraph(text=text)
+            row += entry
+            return
         if node_type == 'literal':
             entry += nodes.literal(text=text)
         elif node_type == 'paragraph':

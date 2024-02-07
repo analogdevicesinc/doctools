@@ -1,14 +1,23 @@
 $bg-light1: #f9f9f9;
 $bg-light2: #f4f4f4;
-$bg-dark1: #111;
+$bg-dark1: #1a1a1a;
 $bg-dark2: #222;
 $text-color-dark1: #fff;
 $text-color-dark2: #ccc;
+$text-color-dark3: #aaa;
 $text-color-light1: #000;
 $text-color-light2: #555;
-$box-shadow-panel: .3rem 0 .6rem rgba(0,0,0,.1), 0 0 .075rem rgba(0,0,0,.15);
+$text-color-light3: #888;
+$box-shadow-left-sidebar: .3rem 0 .3rem rgba(0,0,0,.1), 0 0 .075rem rgba(0,0,0,.15);
+$box-shadow-right-sidebar: -0.3rem 0 .3rem rgba(0,0,0,.1), 0 0 .075rem rgba(0,0,0,.15);
 $box-shadow-raised: 0 .2rem .5rem rgba(0,0,0,.05),0 0 .0625rem rgba(0,0,0,.1);
 $border-panel: 1px solid rgba(125, 125, 125, 0.5);
+$border-th: 1px solid rgba(125, 125, 125, 0.5);
+$border-td: 1px solid rgba(125, 125, 125, 0.25);
 $accent-color-light: #0067b9;
 $accent-color-dark: #0076d6;
 $border-radius: .25em;
+
+$width-wide: 105em;
+$width-narrow: 85em;
+$width-narrowest: 40em;
