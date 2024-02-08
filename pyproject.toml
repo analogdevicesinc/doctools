@@ -50,7 +50,7 @@ namespaces = false
 version = {attr = "adi_doctools.__version__"}
 
 [project.entry-points."sphinx.html_themes"]
-adi-common = 'adi_doctools'
+cosmic = 'adi_doctools'
 
 [project.scripts]
 adoc = "adi_doctools.cli:entry_point"

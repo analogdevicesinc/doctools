@@ -5,7 +5,7 @@ input, textarea, select, button, summary {
     font-size: 1em;
 }
 
-a, input, textarea, select, button, summary {
+a, input, textarea, select, button, summary, label {
     -webkit-tap-highlight-color: transparent;
 }
 
@@ -28,6 +28,18 @@ video {
     max-width: 100%;
 }
 
+@media (max-width: $width-wide) {
+    section, #top-anchor {
+        scroll-margin-top: 3.5rem;
+    }
+}
+
+@media (min-width: $width-wide) {
+    #top-anchor {
+        scroll-margin-top: 7.5rem;
+    }
+}
+
 :is(h1, h2, h3, h4, h5, h6) a {
     margin-left: .25em;
     opacity: 0;
@@ -45,6 +57,10 @@ code.literal {
     padding: .1em .2em;
 }
 
+a {
+    overflow-wrap: anywhere;
+}
+
 .highlight {
     padding: .75em;
     border-radius: $border-radius;
@@ -59,15 +75,15 @@ code.literal {
     padding: 0 .75rem;
 }
 
-.table-wrapper {
+.math-wrapper, .table-wrapper {
     width: 100%;
     overflow-x: auto;
 }
 
 table.docutils {
+    border-spacing: 0;
     border-radius: $border-radius;
     border: $border-td;
-    border-spacing: 0;
 
     thead {
         background-color: var(--bg-color2);
@@ -98,4 +114,9 @@ table.docutils {
 img {
     display: block;
     margin: 0 auto;
+    max-width: 100%;
+}
+
+.toctree-wrapper li {
+    margin: .5em 0;
 }

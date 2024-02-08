@@ -7,7 +7,7 @@ import {Toolbox} from './toolbox.js'
 function handleResize (){
   navigation.portrait = window.innerHeight > window.innerWidth ? true : false
 }
-/* Handle navigation, theming */
+/* Handle navigation, theming, search */
 class Navigation {
     constructor (){
     this.portrait = false
@@ -23,9 +23,19 @@ class Navigation {
     if (this.currentTheme !== this.getOSTheme())
       $.body.classList.add(this.currentTheme)
 
+	$.searchButton = new DOM('button', {
+    id:'search',
+    title:'Search'
+  }).onclick(this, () => {
+    DOM.switchState($.searchArea)
+    DOM.switchState($.searchAreaBg)
+    $.searchBox.focus()
+    $.searchBox.$.select()
+  })
 	$.changeTheme = new DOM('button', {
       className: this.currentTheme === 'dark' ? 'icon on' : 'icon',
       id:'theme',
+      title:'Switch theme'
     }).onclick(this, () => {
       $.body.classList.remove(this.currentTheme)
       this.currentTheme = this.currentTheme === 'dark' ? 'light' : 'dark'
@@ -36,20 +46,45 @@ class Navigation {
         $.body.classList.add(this.currentTheme)
       }
     })
-    $.rightHeader = new DOM(DOM.get('.header #right span')).append([$.changeTheme])
+
+    $.searchAreaBg = new DOM('div', {
+      className:'search-area-bg'
+    }).onclick(this, () => {
+      DOM.switchState($.searchArea)
+      DOM.switchState($.searchAreaBg)
+    })
+    $.searchArea = new DOM(DOM.get('form.search-area'))
+    $.searchBox = new DOM(DOM.get('form.search-area input'))
+    $.searchArea.$['action'] = DOM.get('link[rel="search"]').href
+    $.body.append([$.searchAreaBg])
+
+    $.rightHeader = new DOM(DOM.get('.header #right span')).append([$.changeTheme, $.searchButton])
+  }
+  search (e) {
+    if (e.code === 'IntlRo' && !this.$.searchArea.classList.contains('on')) {
+      DOM.switchState(this.$.searchArea)
+      DOM.switchState(this.$.searchAreaBg)
+      this.$.searchBox.focus()
+      this.$.searchBox.$.select()
+    } else if (e.code === 'Escape') {
+      if (this.$.searchArea.classList.contains('on')) {
+        DOM.switchState(this.$.searchArea)
+        DOM.switchState(this.$.searchAreaBg)
+      }
+    }
   }
   /**
    * Init navigation.
    */
   init () {
     onresize = () => {handleResize()}
+    document.addEventListener('keyup', (e) => {this.search(e)}, false);
   }
   /**
    * Set items state.
    * @param state - True for open, false for closed.
    */
   setState (items, state) {
-    console.log(items)
     items.forEach((elem) => {
       if (state) {
         elem.classList.add('on')
@@ -62,7 +97,6 @@ class Navigation {
    * Get OS Theme
    */
   getOSTheme () {
-    console.log(window.matchMedia("(prefers-color-scheme: dark)").matches ? 'dark' : 'light')
     return window.matchMedia("(prefers-color-scheme: dark)").matches ? 'dark' : 'light'
   }
 }

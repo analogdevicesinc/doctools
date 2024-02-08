@@ -69,17 +69,17 @@ class hdl_component():
                 })
 
         def create_text(items, side):
-            y_pos = margin*4
+            y_pos = margin*3
             if side == 'out':
                 text_anchor = 'end'
-                x_pos = margin*4 + aux_width
+                x_pos = margin*3 + aux_width
                 line_x1 = x_pos+(margin)
                 line_x2 = x_pos+(margin+line_length)
                 x_pos_group = x_pos+margin
                 scale_group = 'scale(1,1)'
             else:
                 text_anchor = 'start'
-                x_pos = margin*3
+                x_pos = margin*2
                 line_x1 = x_pos-(margin+line_length)
                 line_x2 = x_pos-(margin)
                 x_pos_group = x_pos-margin
@@ -143,7 +143,7 @@ class hdl_component():
         ip_width = aux_width + margin*3
         ip_height = max_num*(font_size+text_vertical_margin) + margin*2
         etree.SubElement(root, "rect", attrib={
-            'x':str(margin*2), 'y':str(margin*2),
+            'x':str(margin), 'y':str(margin),
             'width':str(ip_width), 'height':str(ip_height),
             'rx':str(margin),
             'fill':'url(#ip_background)'
@@ -152,14 +152,14 @@ class hdl_component():
         create_text(ins,'in')
         create_text(outs,'out')
 
-        viewbox_x = margin*7 + aux_width
-        viewbox_y = margin*7 + max_num*(font_size+text_vertical_margin)
+        viewbox_x = margin*5 + aux_width
+        viewbox_y = margin*5 + max_num*(font_size+text_vertical_margin)
         root.set('viewBox', f"0 0 {viewbox_x} {viewbox_y}")
         root.set('width', str(viewbox_x))
         root.set('height', str(viewbox_y))
 
         etree.SubElement(root, "rect", attrib={
-            'x':str(margin*2), 'y':str(margin*2),
+            'x':str(margin), 'y':str(margin),
             'width':str(ip_width), 'height':str(ip_height),
             'rx':str(margin),
             'fill':'none',
@@ -167,7 +167,7 @@ class hdl_component():
             'stroke-width':str(stroke_width)
         })
 
-        ipname_y = viewbox_y-font_size-margin
+        ipname_y = viewbox_y-font_size
         ipname_x = viewbox_x/2
         etree.SubElement(root, "text", attrib={
             'style':f"font: {font_size}px sans-serif",
@@ -195,7 +195,7 @@ class hdl_component():
         ip_width = font_size*30
         ip_height = font_size*15
         etree.SubElement(root, "rect", attrib={
-            'x':str(margin*2), 'y':str(margin*2),
+            'x':str(margin), 'y':str(margin),
             'width':str(ip_width), 'height':str(ip_height),
             'rx':str(margin),
             'stroke':'#666',
@@ -205,15 +205,15 @@ class hdl_component():
             'stroke-linecap':'round'
         })
 
-        viewbox_x = ip_width + 4*margin
-        viewbox_y = ip_height + 4*margin
+        viewbox_x = ip_width + margin*2
+        viewbox_y = ip_height + margin*2
         root.set('viewBox', f"0 0 {viewbox_x} {viewbox_y}")
         root.set('width', str(viewbox_x))
         root.set('height', str(viewbox_y))
 
         text_y = viewbox_y/2.5
         text_x = viewbox_x/2
-        text_element("🧐", 4, text_x, text_y-text_vertical_margin*2)
+        text_element("?", 4, text_x, text_y-text_vertical_margin*2)
         text_element(f"{lib_name[lib_name.rfind('/')+1:]} IP-XACT not found.",
                 1, text_x, text_y+font_size*2+text_vertical_margin)
         text_element("Generate it and the documentation:",
@@ -223,5 +223,4 @@ class hdl_component():
         text_element("(cd docs; make html)",
                 .75, text_x, text_y+font_size*5+text_vertical_margin*3.5, 'monospace')
 
-        tree = etree.ElementTree(root)
-        return etree.tostring(tree, encoding="utf-8", method="xml").decode("utf-8")
+        return etree.ElementTree(root)

@@ -12,4 +12,4 @@ node_modules
 *.css.map
 *.json
 *.woff2
-adi_doctools/theme/adi-common/static/fonts
+adi_doctools/theme/*/static/fonts

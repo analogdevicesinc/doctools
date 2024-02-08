@@ -13,7 +13,7 @@ class DOM {
       'innerText', 'className', 'id', 'title', 'innerText',
       'value', 'tabIndex', 'role', 'href', 'ariaPressed', 'preload', 'controls',
       'autoplay', 'src', 'placeholder', 'htmlFor', 'type', 'autocomplete',
-      'name', 'accept', 'disabled', 'innerHTML'
+      'name', 'accept', 'disabled', 'innerHTML', 'action'
     ]
     this.$ = document.createElement (dom);
     if (typeof tags == 'object') for (const tag in tags) {
@@ -33,7 +33,7 @@ class DOM {
   /**
    * Get DOM innerText.
    */
-   get innerText(){
+  get innerText(){
     return this.$.innerText
   }
   /** Get DOM offset height */

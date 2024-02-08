@@ -1,0 +1,64 @@
+.search-area, .search-area-bg {
+    display: none;
+    position: fixed;
+    top: 0;
+}
+.search-area-bg.on {
+    display: block;
+}
+
+.search-area-bg {
+    z-index: 9;
+    background: rgba(0, 0, 0, .35);
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.search-area {
+    z-index: 10;
+    width: 100%;
+    background: var(--bg-color1);
+    padding: .5rem;
+    height: 3.5rem;
+
+    &.on {
+        display: flex;
+    }
+
+    input {
+        color: var(--text-color1);
+        width: 100%;
+        padding-left: .5em;
+    }
+
+    button {
+        cursor: pointer;
+    }
+
+    button:before {
+        content: '';
+        display: block;
+        width: 1.5rem;
+        height: 1.5rem;
+        margin: .25rem;
+        background: url('./icons.svg');
+        filter: invert(var(--dark-true));
+    }
+
+    button:before {
+        background-position: left calc(-1.5rem*4) top;
+    }
+}
+
+@media (min-width: $width-narrow) {
+    .search-area {
+        left: calc(40vw - 15rem);
+    }
+}
+
+@media (min-width: $width-wide) {
+    .search-area {
+        max-width: 62rem;
+    }
+}

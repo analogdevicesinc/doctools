@@ -13,6 +13,7 @@ from ..tool.hdl_render import hdl_component
     is_flag=False,
     type=click.Path(exists=True),
     default=None,
+    required=True,
     help="Path to the library folder."
 )
 @click.option(
@@ -43,13 +44,16 @@ def hdl_render(input_, output, open_):
     file = os.path.join(input_, "component.xml")
     out_file = os.path.join(output, "component.svg")
 
+    lib_name = os.path.basename(input_)
     if not os.path.isfile(file):
         click.echo(f"Component {file} not found!")
-        return
-
-    lib_name = os.path.basename(input_)
-    lib = parse_hdl_component(file, os.path.getctime(file))
-    tree = hdl_component.render(lib_name, lib)
+        if open_:
+            tree = hdl_component.render_placeholder(file)
+        else:
+            return
+    else:
+        lib = parse_hdl_component(file, os.path.getctime(file))
+        tree = hdl_component.render(lib_name, lib)
 
     if not os.path.exists(output):
         os.makedirs(output)

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-target=../adi_doctools/theme/adi-common/static/fonts
+target=../adi_doctools/theme/cosmic/static/fonts
 
 declare -A url
 url[barlow]="https://github.com/jpt/barlow/archive/refs/tags/1.422.tar.gz"

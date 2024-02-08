@@ -3,10 +3,12 @@ import os
 from lxml import etree
 from lxml import html
 
+from docutils import nodes
 from pygments.formatters import HtmlFormatter
 from pygments.style import Style
 from pygments.token import Text
 from sphinx.highlighting import PygmentsBridge
+from sphinx.transforms.post_transforms import SphinxPostTransform
 
 from .adi_common import adi_common_setup
 
@@ -26,7 +28,7 @@ setup = [
     theme_config_setup
 ]
 
-names = ['adi-common']
+names = ['cosmic']
 
 def subdomain_tree(content_root, repo):
     """
@@ -41,10 +43,15 @@ def subdomain_tree(content_root, repo):
     """
     root = etree.Element("root")
     for sd in subdomains:
-        link = etree.Element("a", attrib = {
-            'href': f"{content_root}../{sd[0]}",
-            'class': 'current' if sd[0] == repo else ''
-        })
+        if sd[0] == repo:
+            link = etree.Element("a", attrib = {
+                'href': content_root,
+                'class': 'current'
+            })
+        else:
+            link = etree.Element("a", attrib = {
+                'href': f"{content_root}../{sd[0]}",
+            })
         link.text = sd[1]
         root.append(link)
     return etree.tostring(root, pretty_print=True, encoding='unicode')
@@ -147,3 +154,36 @@ def write_pygments_css(app):
         encoding="utf-8",
     ) as f:
         f.write("\n".join(lines))
+
+class wrap_elements(SphinxPostTransform):
+    """A Sphinx post-transform that wraps `table` and `div.math` in a container `div`.
+
+    This makes it possible to handle these overflowing the content-width, which is
+    necessary in a responsive theme.
+    from: https://github.com/pradyunsg/furo/blob/main/src/furo/__init__.py
+    """
+
+    formats = ("html",)
+    default_priority = 500
+
+    def run(self, **kwargs) -> None:
+        """Perform the post-transform on `self.document`."""
+        if self.env.config.html_theme not in names:
+            return
+
+        get_nodes = (
+            self.document.findall  # docutils 0.18+
+            if hasattr(self.document, "findall")
+            else self.document.traverse  # docutils <= 0.17.x
+        )
+        for node in list(get_nodes(nodes.table)):
+            new_node = nodes.container(classes=["table-wrapper"])
+            new_node.update_all_atts(node)
+            node.parent.replace(node, new_node)
+            new_node.append(node)
+
+        for node in list(get_nodes(nodes.math_block)):
+            new_node = nodes.container(classes=["math-wrapper"])
+            new_node.update_all_atts(node)
+            node.parent.replace(node, new_node)
+            new_node.append(node)

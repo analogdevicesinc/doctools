@@ -1,7 +1,7 @@
 import terser from '@rollup/plugin-terser'
 import scss from "rollup-plugin-scss"
 
-let path = "adi_doctools/theme/adi-common/"
+let path = "adi_doctools/theme/cosmic/"
 
 export default [{
   input: `${path}/scripts/app.js`,

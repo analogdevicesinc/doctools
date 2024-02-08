@@ -1,0 +1,18 @@
+footer {
+    background: var(--bg-color1);
+    border-top: $border-panel;
+    padding: 1em;
+}
+
+
+@media (min-width: $width-narrow) {
+    footer {
+        margin-left: calc(40vw - 14em);
+    }
+}
+
+@media (min-width: $width-wide) {
+    footer {
+        max-width: 60rem;
+    }
+}

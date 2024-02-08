@@ -1,0 +1,43 @@
+.related {
+    padding: 1.5em .5em 1em .5em;
+    display: flex;
+    justify-content: space-between;
+
+    a:hover {
+        color: var(--accent-color);
+    }
+
+    a {
+        display: flex;
+        align-items: center;
+    }
+
+    .prev {
+        margin: 0 auto 0 .5em;
+    }
+
+    .next {
+        margin: 0 .5em 0 auto;
+    }
+
+    .prev:before, .next:after {
+        content: '';
+        border: 1px solid var(--text-color2);
+        border-width: 0 2px 2px 0;
+        display: block;
+        transition: transform ease .125s, margin-top ease .125s;
+        width: .6em;
+        height: .6em;
+        z-index: -1;
+    }
+
+    .prev:before {
+        transform: rotate(135deg);
+        margin-right: .5em;
+    }
+
+    .next:after {
+        transform: rotate(-45deg);
+        margin-left: .5em;
+    }
+}

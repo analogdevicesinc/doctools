@@ -1,5 +1,6 @@
 # -- Project information -----------------------------------------------------
 
+repository = 'doctools'
 project = 'ADI Doc Tools'
 copyright = '2024, Analog Devices Inc.'
 author = 'Analog Devices Inc.'
@@ -22,7 +23,7 @@ source_suffix = '.rst'
 
 # -- Options for HTML output --------------------------------------------------
 
-html_theme = 'adi-common'
+html_theme = 'cosmic'
 
 html_theme_options = {
     "no_index": True

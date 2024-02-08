@@ -338,7 +338,8 @@ class directive_component_diagram(directive_base):
     optional_arguments = 0
 
     def missing_diagram(self):
-        svg_raw = hdl_component.render_placeholder(self.options['path'])
+        tree = hdl_component.render_placeholder(self.options['path'])
+        svg_raw = etree.tostring(tree, encoding="utf-8", method="xml").decode("utf-8")
 
         svg = nodes.raw('', svg_raw, format='html')
         return [ svg ]

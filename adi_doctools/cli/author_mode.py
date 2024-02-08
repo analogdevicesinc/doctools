@@ -89,7 +89,7 @@ def author_mode(directory, port, dev, no_selenium):
         # Check if minified files exists, if not, run rollup once
         rollup_cache = True
         for f in source_files:
-            f_ = os.path.abspath(os.path.join(src_dir, f"theme/adi-common/static/{f}"))
+            f_ = os.path.abspath(os.path.join(src_dir, f"theme/cosmic/static/{f}"))
             w_files.append(f_)
             if not os.path.isfile(w_files[-1]):
                 rollup_cache = False

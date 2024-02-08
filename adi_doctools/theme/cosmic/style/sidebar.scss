@@ -22,7 +22,8 @@
         height: calc(100vh - 3.5em);
         overflow-y: auto;
         top: 3.5em;
-        background: var(--bg-color1);
+        background: var(--bg-color1-faded2);
+        backdrop-filter: blur(1em);
         transition: .25s ease left;
         border-right: $border-panel;
     }
@@ -143,7 +144,6 @@
         padding-left: .5em;
         margin-left: -.5em;
         border-radius: $border-radius;
-        border: 1px solid var(--bg-color1);
     }
 
     a:hover, a.current {
@@ -173,11 +173,10 @@
     .toctree-collapse:checked ~ .collapse .icon {
         transform: rotate(45deg);
         margin-top: -1px;
-        margin-left: 1px;
+       margin-left: 2px;
     }
 
     label {
-        border: 1px solid var(--bg-color1);
         border-radius: $border-radius;
     }
 }
@@ -190,11 +189,11 @@
 }
 
 .tocwrapper {
-    background-color: var(--bg-color1);
+    background: var(--bg-color1-faded2);
     box-sizing: content-box;
-    padding-top: 1.5rem;
+    padding-top: 1rem;
     font-size: 0.9em;
-    overflow: scroll;
+    overflow-y: auto;
 
     ul {
         list-style-type: none;
@@ -214,13 +213,38 @@
     }
 
     .onthispage {
-        padding-left: .5rem;
+        padding-left: 1rem;
         color: var(--text-color3);
     }
 
     nav > ul > li:first-child > a
     {
       display: none;
+    }
+
+    > div {
+        display: flex;
+        align-items: center;
+    }
+
+    #scroll-up {
+      cursor: pointer;
+      filter: invert(var(--dark-true));
+      margin-left: .25rem;
+      opacity: 0.75
+    }
+
+    #scroll-up:before {
+        content: '';
+        display: block;
+        width: 1.5rem;
+        height: 1.5rem;
+        margin: .25rem;
+        background: url('./icons.svg');
+    }
+
+    #scroll-up:before {
+        background-position: left calc(-1.5rem*3) top;
     }
 }
 
@@ -273,6 +297,7 @@
 
     .tocwrapper {
         width: 20rem;
+        backdrop-filter: blur(1em);
     }
 }
 

@@ -9,22 +9,16 @@
 
 {# top+bottom related navs; we also have our own in sidebar #}
 {%- macro rellink_markup() %}
-  <nav id="rellinks">
-    <ul>
-      {%- if prev %}
-        <li>
-          &larr;
-          <a href="{{ prev.link|e }}" title="Previous document">{{ prev.title }}</a>
-        </li>
-      {%- endif %}
-      {%- if next %}
-        <li>
-          <a href="{{ next.link|e }}" title="Next document">{{ next.title }}</a>
-          &rarr;
-        </li>
-      {%- endif %}
-    </ul>
-  </nav>
+  {%- if prev %}
+    <a href="{{ prev.link|e }}" title="Previous document" class="prev">{{ prev.title }}</a>
+  {%- else %}
+    <div></div>
+  {%- endif %}
+  {%- if next %}
+    <a href="{{ next.link|e }}" title="Next document" class="next">{{ next.title }}</a>
+  {%- else %}
+    <div></div>
+  {%- endif %}
 {%- endmacro %}
 
 {# remove basic inherited related sidebars #}
@@ -37,12 +31,12 @@
   <header>
     <div class="header">
       <div id="left">
-        <label id="show-sidebar" for="input-showsidebar"></label>
+        <label id="show-sidebar" for="input-showsidebar" title="Show/hide index"></label>
       </div>
       <div id="right">
         <div id="logo"></div>
         <span>
-          <label id="show-onthispage" for="input-showonthispage"></label>
+          <label id="show-onthispage" for="input-showonthispage" title="Show/hide contents"></label>
         </span>
       </div>
     </div>
@@ -57,11 +51,13 @@
   {%- block toc %}
     <div class="localtoc">
       <div class="tocwrapper">
-        <div class="onthispage">On this page</div>
-          <nav>
-            {{ toc }}
-          </nav>
+        <div>
+          <div class="onthispage">On this page</div>
+          <a id="scroll-up" href="#top-anchor" title="Back to top"></a>
         </div>
+        <nav>
+          {{ toc }}
+        </nav>
       </div>
     </div>
   {%- endblock %}
@@ -71,7 +67,7 @@
   <div class="document">
     {%- block document %}
       <div class="documentwrapper">
-        <div class="bodywrapper">
+        <div class="bodywrapper" id="top-anchor">
           <div class="body" role="main">
             {% block body %} {% endblock %}
           </div>
@@ -93,8 +89,23 @@
 
   <label id="cancel-area-showsidebar" for="input-showsidebar"></label>
   <label id="cancel-area-showonthispage" for="input-showonthispage"></label>
+
+  {% block searchbox %}
+  <form action="" method="get" class="search-area">
+    <input type="text" name="q" aria-labelledby="search-documentation" value="" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" role="search" placeholder="Search"/>
+    <button value="{{ _('search') }}"></button>
+    <span id="search-progress"></span>
+  </form>
+  {% endblock %}
 {%- endblock %}
 
 {%- block footer %}
-    <footer></footer>
+    <footer>
+      {% if show_copyright %}&#169;{{ copyright }}{% endif %}
+      {% if show_sphinx %}
+      {% if show_copyright %}|{% endif %}
+      Made with <a href="https://www.sphinx-doc.org/">Sphinx</a>
+      &amp; <a href="https://github.com/analogdevicesinc/doctools">Doctools</a>
+      {% endif %}
+    </footer>
 {%- endblock %}

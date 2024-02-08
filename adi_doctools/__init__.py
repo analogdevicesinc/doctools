@@ -1,11 +1,11 @@
 import os
 
-from .theme import navigation_tree, get_pygments_theme, write_pygments_css
+from .theme import navigation_tree, get_pygments_theme, write_pygments_css, wrap_elements
 from .theme import setup as theme_setup, names as theme_names
 from .directive import setup as directive_setup
 from .role import setup as role_setup
 
-__version__ = "0.2.8"
+__version__ = "0.3.0"
 
 dft_is_system_top = False
 
@@ -78,6 +78,8 @@ def setup(app):
         setup(app)
 
     app.add_config_value('is_system_top', dft_is_system_top, 'env')
+
+    app.add_post_transform(wrap_elements)
 
     app.connect("html-page-context", html_page_context)
     app.connect("builder-inited", builder_inited)

@@ -19,11 +19,14 @@ body {
     @include default-admonition(#651fff, "abstract");
     @include default-topic(#14B8A6, "pencil");
 }
+
 body {
     --dark-true: 0;
     --dark-false: 1;
     --bg-color1: #{$bg-light1};
     --bg-color2: #{$bg-light2};
+    --bg-color1-faded1: #{$bg-light1}99;
+    --bg-color1-faded2: #{$bg-light1}aa;
     --text-color1: #{$text-color-light1};
     --text-color2: #{$text-color-light2};
     --text-color3: #{$text-color-light3};
@@ -35,6 +38,8 @@ body.dark {
     --dark-false: 0;
     --bg-color1: #{$bg-dark1};
     --bg-color2: #{$bg-dark2};
+    --bg-color1-faded1: #{$bg-dark1}aa;
+    --bg-color1-faded2: #{$bg-dark1}cc;
     --text-color1: #{$text-color-dark1};
     --text-color2: #{$text-color-dark2};
     --text-color3: #{$text-color-dark3};
@@ -47,6 +52,8 @@ body.dark {
         --dark-false: 0;
         --bg-color1: #{$bg-dark1};
         --bg-color2: #{$bg-dark2};
+        --bg-color1-faded1: #{$bg-dark1}99;
+        --bg-color1-faded2: #{$bg-dark1}aa;
         --text-color1: #{$text-color-dark1};
         --text-color2: #{$text-color-dark2};
         --text-color3: #{$text-color-dark3};
@@ -57,6 +64,8 @@ body.dark {
         --dark-false: 1;
         --bg-color1: #{$bg-light1};
         --bg-color2: #{$bg-light2};
+        --bg-color1-faded1: #{$bg-light1}aa;
+        --bg-color1-faded2: #{$bg-light1}cc;
         --text-color1: #{$text-color-light1};
         --text-color2: #{$text-color-light2};
         --text-color3: #{$text-color-light3};
@@ -80,6 +89,7 @@ body {
 .body {
     width: 100%;
     padding: 0 1em;
+    overflow-x: auto;
 }
 
 @media (min-width: $width-wide) {
@@ -89,6 +99,10 @@ body {
 }
 
 @media (max-width: $width-wide) {
+    .documentwrapper {
+        margin-top: 3.5rem;
+    }
+
     .bodywrapper > div {
         margin: 0 auto;
     }
@@ -114,13 +128,25 @@ body {
       display: none;
     }
 
-    .documentwrapper {
-        min-height: calc(100vh - 4.5em);
+    .body {
+        min-height: calc(100vh - 10em);
+    }
+}
+
+@media (max-width: $width-narrow) {
+    .body {
+        min-height: calc(100vh - 10.25rem);
     }
 }
 
 .body p {
+    line-height: 1.5em;
     text-align: justify;
+    margin: .25em 0 .75em 0;
+}
+
+.body ol p, .body ul p {
+    margin: .25em 0;
 }
 
 svg {
@@ -135,7 +161,7 @@ svg {
 @media (min-width: $width-narrow) {
     #hdl-component-diagram svg {
         float: right;
-        margin: -5em -2em 0 0;
+        margin: -3em 0 0 1em;
         max-width: 30rem;
     }
 }
