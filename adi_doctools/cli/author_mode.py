@@ -4,12 +4,12 @@ import click
 import importlib
 import datetime
 
-error_msg = {
-    'no_mk': 'f"File Makefile not found, is {directory} a docs folder?"',
-    'inv_mk': 'f"Failed parse Makefile, is {directory} a docs folder?"',
-    'inv_f': 'f"Could not find {f}, check rollup output."',
-    'inv_bdir': 'f"Could not find BUILDDIR {builddir}."',
-    'inv_srcdir': 'f"Could not find SOURCEDIR {sourcedir}."'
+string = {
+    'no_mk': "File Makefile not found, is {} a docs folder?",
+    'inv_mk': "Failed parse Makefile, is {} a docs folder?",
+    'inv_f': "Could not find {}, check rollup output.",
+    'inv_bdir': "Could not find BUILDDIR {}.",
+    'inv_srcdir': "Could not find SOURCEDIR {}."
 }
 
 # Hall of shame of poorly managed artifacts
@@ -23,6 +23,7 @@ end_of_times = datetime.datetime.max.timestamp()
     is_flag=False,
     type=click.Path(exists=True),
     default=None,
+    required=True,
     help="Path to the docs folder with the Makefile."
 )
 @click.option(
@@ -77,21 +78,21 @@ def author_mode(directory, port, dev, no_selenium):
 
     def symbolic_assert(file, msg):
         if not os.path.isfile(file):
-            click.echo(msg)
+            click.echo(msg.format(file))
             return True
         else:
             return False
 
     def dir_assert(file, msg):
         if not os.path.isdir(file):
-            click.echo(msg)
+            click.echo(msg.format(file))
             return True
         else:
             return False
 
     directory = os.path.abspath(directory)
     makefile = os.path.join(directory, 'Makefile')
-    if symbolic_assert(makefile, eval(error_msg['no_mk'])):
+    if symbolic_assert(makefile, string['no_mk']):
         return
 
     # Get builddir and sourcedir, to ensure working with any doc
@@ -103,11 +104,11 @@ def author_mode(directory, port, dev, no_selenium):
     builddir_ = builddir_.group(1).strip() if builddir_ else None
     sourcedir_ = sourcedir_.group(1).strip() if sourcedir_ else None
     if builddir_ is None or sourcedir_ is None:
-        click.echo(eval(error_msg['inv_mk']))
+        click.echo(string['inv_mk'].format(directory))
         return
     builddir = os.path.join(directory, f"{builddir_}/html")
     sourcedir = os.path.join(directory, sourcedir_)
-    if dir_assert(sourcedir, eval(error_msg['inv_srcdir'])):
+    if dir_assert(sourcedir, string['inv_srcdir']):
         return
 
     devpool_js = "ADOC_DEVPOOL= " if not with_selenium else ""
@@ -145,7 +146,7 @@ def author_mode(directory, port, dev, no_selenium):
             subprocess.call(f"{rollup_node_file} -c {rollup_ci_file}",
                             shell=True, cwd=par_dir)
         for f in w_files:
-            if symbolic_assert(f, eval(error_msg['inv_f'])):
+            if symbolic_assert(f, string['inv_f']):
                 return
 
         # Build doc the first time

@@ -2,6 +2,7 @@ import click
 
 from .author_mode import author_mode
 from .hdl_render import hdl_render
+from .aggregate import aggregate
 
 @click.group()
 def entry_point():
@@ -12,7 +13,8 @@ def entry_point():
 
 commands = [
     author_mode,
-    hdl_render
+    hdl_render,
+    aggregate
 ]
 
 for cmd in commands:

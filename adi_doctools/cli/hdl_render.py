@@ -1,8 +1,7 @@
 import os
 import click
-from lxml import etree
 
-from ..tool.hdl_parser import parse_hdl_component, parse_hdl_regmap
+from ..tool.hdl_parser import parse_hdl_component
 from ..tool.hdl_render import hdl_component
 
 @click.command()
