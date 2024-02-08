@@ -161,22 +161,21 @@ class directive_regmap(directive_base):
         table = nodes.table(classes=['regmap'])
         table += tgroup
 
-        self.table_header(tgroup, ["DWORD", "BYTE", "BITS", "Name", "Type", "Default Value", "Description"])
+        self.table_header(tgroup, ["DWORD", "BYTE", "Reg Name", "", "", "Description"])
+        self.table_header(tgroup, ["BITS", "", "Field Name", "Type", "Default Value", "Description"])
 
         rows = []
         for reg in obj['regmap']:
             self.column_entries(rows, [
                 [reg['address'][0], 'literal', ['bold']],
                 [reg['address'][1], 'literal', ['bold']],
-                [reg['name'], 'literal', ['bold'], 3],
-                [reg['description'], 'reST', ['description']],
+                [reg['name'], 'literal', ['bold'], 2],
+                [reg['description'], 'reST', ['description', 'bold']],
             ])
 
             for field in reg['fields']:
                 self.column_entries(rows, [
-                    ['', 'literal'],
-                    ['', 'literal'],
-                    [f"[{field['bits']}]", 'literal'],
+                    [f"[{field['bits']}]", 'literal', [''], 1],
                     [field['name'], 'literal'],
                     [field['rw'], 'literal'],
                     [field['default'], 'default_value', ['default']],

@@ -4,7 +4,6 @@ repository = 'doctools'
 project = 'ADI Doc Tools'
 copyright = '2024, Analog Devices Inc.'
 author = 'Analog Devices Inc.'
-release = 'v0.1'
 
 # -- General configuration ---------------------------------------------------
 
@@ -13,7 +12,7 @@ extensions = [
 ]
 
 needs_extensions = {
-    'adi_doctools':'0.1'
+    'adi_doctools':'0.3'
 }
 
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']

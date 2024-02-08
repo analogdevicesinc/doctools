@@ -51,10 +51,11 @@ video {
 }
 
 code.literal {
-    border: 1px solid rgba(125, 125, 125, 0.25);
-    background: rgba(125, 125, 125, 0.1);
+    border: 1px solid rgba(125, 125, 125, 0.15);
+    background: rgba(125, 125, 125, 0.05);
     border-radius: $border-radius;
     padding: .1em .2em;
+    font-size: 1.1em;
 }
 
 a {
@@ -108,6 +109,10 @@ table.docutils {
 
     tr:last-child td {
         border: none;
+    }
+
+    thead:not(:first-child) th {
+        font-weight: normal;
     }
 }
 

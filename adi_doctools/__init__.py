@@ -5,7 +5,7 @@ from .theme import setup as theme_setup, names as theme_names
 from .directive import setup as directive_setup
 from .role import setup as role_setup
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 
 dft_is_system_top = False
 
