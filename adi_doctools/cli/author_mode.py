@@ -1,6 +1,20 @@
 import os
+import re
 import click
 import importlib
+import datetime
+
+error_msg = {
+    'no_mk': 'f"File Makefile not found, is {directory} a docs folder?"',
+    'inv_mk': 'f"Failed parse Makefile, is {directory} a docs folder?"',
+    'inv_f': 'f"Could not find {f}, check rollup output."',
+    'inv_bdir': 'f"Could not find BUILDDIR {builddir}."',
+    'inv_srcdir': 'f"Could not find SOURCEDIR {sourcedir}."'
+}
+
+# Hall of shame of poorly managed artifacts
+unmanaged = ["PyADI-IIO_Logo"]
+end_of_times = datetime.datetime.max.timestamp()
 
 @click.command()
 @click.option(
@@ -9,7 +23,7 @@ import importlib
     is_flag=False,
     type=click.Path(exists=True),
     default=None,
-    help="Path to the docs folder."
+    help="Path to the docs folder with the Makefile."
 )
 @click.option(
     '--port',
@@ -30,7 +44,7 @@ import importlib
     '--no-selenium',
     is_flag=True,
     default=False,
-    help="Force alternative pooling method for refresh instead of selenium/Firefox."
+    help="Force alternative pooling method instead of selenium/Firefox."
 )
 def author_mode(directory, port, dev, no_selenium):
     """
@@ -47,15 +61,19 @@ def author_mode(directory, port, dev, no_selenium):
         if importlib.util.find_spec("selenium"):
             with_selenium = True
         else:
-            click.echo("Package 'selenium' is not installed, pooling strategy enabled.")
+            click.echo("Package 'selenium' is not installed, \
+                       pooling strategy enabled.")
 
     import glob
-    import sched, time
+    import sched
+    import time
     import threading
     import signal
     import http.server
     import socketserver
     import subprocess
+
+    global builddir
 
     def symbolic_assert(file, msg):
         if not os.path.isfile(file):
@@ -64,14 +82,40 @@ def author_mode(directory, port, dev, no_selenium):
         else:
             return False
 
-    if symbolic_assert(os.path.join(directory, 'conf.py'), f"File conf.py not found, are you sure {os.path.abspath(directory)} is a docs folder?"):
+    def dir_assert(file, msg):
+        if not os.path.isdir(file):
+            click.echo(msg)
+            return True
+        else:
+            return False
+
+    directory = os.path.abspath(directory)
+    makefile = os.path.join(directory, 'Makefile')
+    if symbolic_assert(makefile, eval(error_msg['no_mk'])):
+        return
+
+    # Get builddir and sourcedir, to ensure working with any doc
+    with open(makefile, 'r') as f:
+        data = f.read()
+
+    builddir_ = re.search(r'^BUILDDIR\s*=\s*(.*)$', data, re.MULTILINE)
+    sourcedir_ = re.search(r'^SOURCEDIR\s*=\s*(.*)$', data, re.MULTILINE)
+    builddir_ = builddir_.group(1).strip() if builddir_ else None
+    sourcedir_ = sourcedir_.group(1).strip() if sourcedir_ else None
+    if builddir_ is None or sourcedir_ is None:
+        click.echo(eval(error_msg['inv_mk']))
+        return
+    builddir = os.path.join(directory, f"{builddir_}/html")
+    sourcedir = os.path.join(directory, sourcedir_)
+    if dir_assert(sourcedir, eval(error_msg['inv_srcdir'])):
         return
 
     devpool_js = "ADOC_DEVPOOL= " if not with_selenium else ""
     watch_file_src = {}
     watch_file_rst = {}
     if dev:
-        src_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir)
+        src_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                               os.pardir)
         par_dir = os.path.abspath(os.path.join(src_dir, os.pardir))
 
         rollup_ci_file = "ci/rollup.config.app.mjs"
@@ -79,24 +123,29 @@ def author_mode(directory, port, dev, no_selenium):
         rollup_node_file = "node_modules/.bin/rollup"
         rollup_node_dir = os.path.join(par_dir, rollup_node_file)
 
-        if symbolic_assert(rollup_ci_dir, f"Could not find {rollup_ci_dir}, ensure this a symbolic install."):
+        if symbolic_assert(rollup_ci_dir, f"Couldn't find {rollup_ci_dir}, \
+                           ensure this a symbolic install."):
             return
-        if symbolic_assert(rollup_node_dir, f"Could not find {rollup_node_dir}, please you install the npm tools locally."):
+        if symbolic_assert(rollup_node_dir, f"Couldn't find {rollup_node_dir},\
+                           please you install the npm tools locally."):
             return
 
-        source_files = ['app.umd.js', 'app.umd.js.map', 'style.min.css', 'style.min.css.map', 'icons.svg']
+        source_files = ['app.umd.js', 'app.umd.js.map', 'style.min.css',
+                        'style.min.css.map', 'icons.svg']
         w_files = []
         # Check if minified files exists, if not, run rollup once
         rollup_cache = True
         for f in source_files:
-            f_ = os.path.abspath(os.path.join(src_dir, f"theme/cosmic/static/{f}"))
+            f_ = os.path.abspath(os.path.join(src_dir,
+                                              f"theme/cosmic/static/{f}"))
             w_files.append(f_)
             if not os.path.isfile(w_files[-1]):
                 rollup_cache = False
         if not rollup_cache:
-            subprocess.call(f"{rollup_node_file} -c {rollup_ci_file}", shell=True, cwd=par_dir)
+            subprocess.call(f"{rollup_node_file} -c {rollup_ci_file}",
+                            shell=True, cwd=par_dir)
         for f in w_files:
-            if symbolic_assert(f, f"Could not find {f}, check rollup output."):
+            if symbolic_assert(f, eval(error_msg['inv_f'])):
                 return
 
         # Build doc the first time
@@ -104,14 +153,18 @@ def author_mode(directory, port, dev, no_selenium):
         for f, s in zip(w_files, source_files):
             watch_file_src[f] = os.path.getctime(f)
         # Run rollup in watch mode
-        rollup_p = subprocess.Popen(f"{rollup_node_file} -c {rollup_ci_file} --watch", shell=True, cwd=par_dir, stdout=subprocess.DEVNULL)
+        cmd = f"{rollup_node_file} -c {rollup_ci_file} --watch"
+        rollup_p = subprocess.Popen(cmd, shell=True, cwd=par_dir,
+                                    stdout=subprocess.DEVNULL)
     else:
         # Build doc the first time
         subprocess.call(f"cd {directory} ; {devpool_js} make html", shell=True)
 
     class Handler(http.server.SimpleHTTPRequestHandler):
         def __init__(self, *args, **kwargs):
-            super().__init__(*args, directory=os.path.join(directory, '_build/html'), **kwargs)
+            global builddir
+            super().__init__(*args, directory=builddir, **kwargs)
+
         def log_message(self, format, *args):
             return
 
@@ -121,14 +174,15 @@ def author_mode(directory, port, dev, no_selenium):
         http_thread = threading.Thread(target=http.serve_forever)
         http_thread.daemon = True
         http_thread.start()
-    except:
-        click.echo(f"Could not start server on http://0.0.0.0:{port}");
+    except Exception:
+        click.echo(f"Could not start server on http://0.0.0.0:{port}")
         if dev:
             os.killpg(os.getpgid(rollup_p.pid), signal.SIGTERM)
 
         return
 
-    dev_pool = os.path.join(directory, '_build/html/.dev-pool')
+    dev_pool = os.path.join(builddir, '.dev-pool')
+
     def update_dev_pool():
         dev_f = open(dev_pool, 'w')
         dev_f.write(str(time.time()))
@@ -136,8 +190,6 @@ def author_mode(directory, port, dev, no_selenium):
 
     if with_selenium:
         from selenium import webdriver
-        from selenium.webdriver.common.by import By
-        from selenium.webdriver.common.keys import Keys
 
         # Remove pooling method flag
         if os.path.isfile(dev_pool):
@@ -153,20 +205,19 @@ def author_mode(directory, port, dev, no_selenium):
         types = ['*.rst', '*.svg', '*.txt', '*.png', '*.jpg', '*.jpeg', '*.py']
         files = []
         ctime = []
-        update = False
         for typ in types:
-            _files = glob.glob(f"{directory}/{typ}")
+            _files = glob.glob(f"{sourcedir}/{typ}")
             __files = [os.path.abspath(f) for f in _files]
             files.extend(__files)
             for f in __files:
                 ctime.append(os.path.getctime(f))
-        dirs = [d for d in os.listdir(directory)
-            if os.path.isdir(os.path.join(directory, d))]
-        if '_build' in dirs:
-            dirs.remove('_build')
+        dirs = [d for d in os.listdir(sourcedir)
+                if os.path.isdir(os.path.join(sourcedir, d))]
+        if builddir_ in dirs:
+            dirs.remove(builddir_)
         for d in dirs:
             for typ in types:
-                _files = glob.glob(f"{directory}/{d}/**/{typ}", recursive=True)
+                _files = glob.glob(f"{sourcedir}/{d}/**/{typ}", recursive=True)
                 __files = [os.path.abspath(f) for f in _files]
                 files.extend(__files)
                 for f in __files:
@@ -180,6 +231,11 @@ def author_mode(directory, port, dev, no_selenium):
             if file not in watch_file_rst or ctime > watch_file_rst[file]:
                 update_sphinx = True
                 watch_file_rst[file] = ctime
+                for u in unmanaged:
+                    if u in file:
+                        watch_file_rst[file] = end_of_times
+                        update_sphinx = False
+                        break
         for file in watch_file_src:
             if not os.path.isfile(file):
                 continue
@@ -189,16 +245,18 @@ def author_mode(directory, port, dev, no_selenium):
                 watch_file_src[file] = ctime
 
         if update_sphinx:
-            subprocess.call(f"cd {directory} ; {devpool_js} make html", shell=True)
+            subprocess.call(f"cd {directory} ; {devpool_js} make html",
+                            shell=True)
         if update_page:
             for f, s in zip(w_files, source_files):
-                subprocess.call(f"cp {f} {directory}/_build/html/_static/{s}", shell=True)
+                subprocess.call(f"cp {f} {builddir}/_static/{s}",
+                                shell=True)
         if update_sphinx or update_page:
             if with_selenium:
                 try:
                     driver.execute_script("location.reload();")
-                except:
-                    click.echo(f"Browser disconnected");
+                except Exception:
+                    click.echo("Browser disconnected")
                     if dev:
                         os.killpg(os.getpgid(rollup_p.pid), signal.SIGTERM)
                     with lock:

@@ -4,13 +4,10 @@ from lxml import etree
 from lxml import html
 
 from docutils import nodes
-from pygments.formatters import HtmlFormatter
-from pygments.style import Style
-from pygments.token import Text
 from sphinx.highlighting import PygmentsBridge
 from sphinx.transforms.post_transforms import SphinxPostTransform
 
-from .adi_common import adi_common_setup
+from .cosmic import cosmic_setup
 
 subdomains = [
     # url_path           name
@@ -20,15 +17,18 @@ subdomains = [
     ['pyadi-iio',        "pyadi-iio"],
 ]
 
+
 def theme_config_setup(app):
     app.add_config_value('repository', None, 'env')
 
+
 setup = [
-    adi_common_setup,
+    cosmic_setup,
     theme_config_setup
 ]
 
 names = ['cosmic']
+
 
 def subdomain_tree(content_root, repo):
     """
@@ -42,19 +42,21 @@ def subdomain_tree(content_root, repo):
     hdl-docs.example.com -> ../no-os -XXX-> hdl-docs.example.com/no-os
     """
     root = etree.Element("root")
+    home = "index.html"
     for sd in subdomains:
         if sd[0] == repo:
-            link = etree.Element("a", attrib = {
-                'href': content_root,
+            link = etree.Element("a", attrib={
+                'href': f"{content_root}{home}",
                 'class': 'current'
             })
         else:
-            link = etree.Element("a", attrib = {
-                'href': f"{content_root}../{sd[0]}",
+            link = etree.Element("a", attrib={
+                'href': f"{content_root}../{sd[0]}/{home}",
             })
         link.text = sd[1]
         root.append(link)
     return etree.tostring(root, pretty_print=True, encoding='unicode')
+
 
 def navigation_tree(toctree_html, content_root, repo):
     """
@@ -62,7 +64,8 @@ def navigation_tree(toctree_html, content_root, repo):
     Adapted from
     https://github.com/pradyunsg/furo/blob/main/src/furo/navigation.py
     Parse html similar to directive/hdl_parser.py:parse_hdl_component.
-    Uses checkbox~label trick, similar to directive/common.py:directive_base:collapsible.
+    Uses checkbox~label trick, similar to
+    directive/common.py:directive_base:collapsible.
     Add elements, similar to toos/hdl_render.py:hdl_component.py
     """
     if not toctree_html:
@@ -72,32 +75,33 @@ def navigation_tree(toctree_html, content_root, repo):
     root = etree.fromstring(toctree_html, parser)
 
     lvl = [0]
+
     def iterate(elem):
         for ul in elem.findall('./ul'):
             lvl[-1] += 1
-            tag = '-'.join(map(str,lvl))
-            _input = html.Element('input', attrib = {
-                'class':'toctree-collapse',
-                'type':'checkbox',
-                'name':f"toctree-collapse-{tag}",
-                'id':f"toctree-collapse-{tag}"
+            tag = '-'.join(map(str, lvl))
+            _input = html.Element('input', attrib={
+                'class': 'toctree-collapse',
+                'type': 'checkbox',
+                'name': f"toctree-collapse-{tag}",
+                'id': f"toctree-collapse-{tag}"
             })
             _class = elem.get("class")
             if _class is not None and 'current' in _class:
                 _input.set('checked')
-            label = etree.Element("label", attrib = {
-                'for':f"toctree-collapse-{tag}"
+            label = etree.Element("label", attrib={
+                'for': f"toctree-collapse-{tag}"
             })
             label.text = ''
 
             for a in elem.findall('./a'):
                 elem.remove(a)
 
-            div = etree.Element("div", attrib = {
-                'class':'collapse'
+            div = etree.Element("div", attrib={
+                'class': 'collapse'
             })
-            icon = etree.Element("div", attrib = {
-                'class':'icon'
+            icon = etree.Element("div", attrib={
+                'class': 'icon'
             })
             icon.text = ''
             label.append(icon)
@@ -118,17 +122,22 @@ def navigation_tree(toctree_html, content_root, repo):
     _subdomain_tree = subdomain_tree(content_root, repo)
     return (_sidebar_tree, _subdomain_tree)
 
+
 def get_pygments_theme(app):
     if app.config.pygments_style is None:
         app.config.pygments_style = 'friendly'
+    light_ = app.config.pygments_style
     app.env.pygments_theme = {
-        "light": PygmentsBridge("html", app.config.pygments_style).formatter_args["style"],
+        "light": PygmentsBridge("html", light_).formatter_args["style"],
         "dark": PygmentsBridge("html", "native").formatter_args["style"],
     }
 
+
 def write_pygments_css(app):
-    light_formatter = PygmentsBridge.html_formatter(style=app.env.pygments_theme["light"])
-    dark_formatter = PygmentsBridge.html_formatter(style=app.env.pygments_theme["dark"])
+    light_formatter = PygmentsBridge.html_formatter(
+            style=app.env.pygments_theme["light"])
+    dark_formatter = PygmentsBridge.html_formatter(
+            style=app.env.pygments_theme["dark"])
 
     def get_styles(formatter, *, prefix):
         for line in formatter.get_linenos_style_defs():
@@ -139,13 +148,17 @@ def write_pygments_css(app):
     lines = []
 
     lines.append("@media (prefers-color-scheme: light) {")
-    lines.extend(get_styles(light_formatter, prefix="body:not(.dark) .highlight"))
-    lines.extend(get_styles(dark_formatter, prefix="body.dark .highlight"))
+    lines.extend(get_styles(light_formatter,
+                            prefix="body:not(.dark) .highlight"))
+    lines.extend(get_styles(dark_formatter,
+                            prefix="body.dark .highlight"))
     lines.append("}")
 
     lines.append("@media (prefers-color-scheme: dark) {")
-    lines.extend(get_styles(light_formatter, prefix="body.light .highlight"))
-    lines.extend(get_styles(dark_formatter, prefix="body:not(.light) .highlight"))
+    lines.extend(get_styles(light_formatter,
+                            prefix="body.light .highlight"))
+    lines.extend(get_styles(dark_formatter,
+                            prefix="body:not(.light) .highlight"))
     lines.append("}")
 
     with open(
@@ -155,11 +168,12 @@ def write_pygments_css(app):
     ) as f:
         f.write("\n".join(lines))
 
-class wrap_elements(SphinxPostTransform):
-    """A Sphinx post-transform that wraps `table` and `div.math` in a container `div`.
 
-    This makes it possible to handle these overflowing the content-width, which is
-    necessary in a responsive theme.
+class wrap_elements(SphinxPostTransform):
+    """A Sphinx post-transform that wraps table and div.math in a container.
+
+    This makes it possible to handle these overflowing the content-width,
+    which is necessary in a responsive theme.
     from: https://github.com/pradyunsg/furo/blob/main/src/furo/__init__.py
     """
 

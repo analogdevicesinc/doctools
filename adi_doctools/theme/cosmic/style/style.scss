@@ -98,11 +98,13 @@ body {
   }
 }
 
-@media (max-width: $width-wide) {
+@media (max-width: $width-narrowest) {
     .documentwrapper {
         margin-top: 3.5rem;
     }
+}
 
+@media (max-width: $width-wide) {
     .bodywrapper > div {
         margin: 0 auto;
     }
