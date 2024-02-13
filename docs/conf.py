@@ -8,17 +8,17 @@ author = 'Analog Devices Inc.'
 # -- General configuration ---------------------------------------------------
 
 extensions = [
-	"adi_doctools",
+    "adi_doctools",
 ]
 
 needs_extensions = {
-    'adi_doctools':'0.3'
+    'adi_doctools': '0.3'
 }
 
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 source_suffix = '.rst'
 
-# -- Custom extensions configuration -------------------------------------------
+# -- Custom extensions configuration ------------------------------------------
 
 # -- Options for HTML output --------------------------------------------------
 

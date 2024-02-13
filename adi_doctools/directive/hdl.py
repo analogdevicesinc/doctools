@@ -9,10 +9,11 @@ from .node import node_div
 from .common import logger
 from .common import directive_base
 from .common import parse_rst
-from .common import node_div
 from .string import string_hdl
-from ..tool.hdl_parser import parse_hdl_component, parse_hdl_regmap, parse_hdl_build_status
+from ..tool.hdl_parser import parse_hdl_component, parse_hdl_regmap
+from ..tool.hdl_parser import parse_hdl_build_status
 from ..tool.hdl_render import hdl_component
+
 
 class directive_interfaces(directive_base):
     option_spec = {'path': directives.unchanged}
@@ -22,7 +23,7 @@ class directive_interfaces(directive_base):
     def pretty_dep(self, string):
         if string is None:
             return ''
-        return string.replace("'MODELPARAM_VALUE.",'').replace("'",'')
+        return string.replace("'MODELPARAM_VALUE.", '').replace("'", '')
 
     def tables(self, subnode, content, component):
         description = self.get_descriptions(content)
@@ -40,7 +41,7 @@ class directive_interfaces(directive_base):
 
             if bs[tag]['dependency'] is not None:
                 caption += [nodes.inline(text="Enabled if "),
-                    nodes.literal(text=self.pretty_dep(bs[tag]['dependency']))]
+                            nodes.literal(text=self.pretty_dep(bs[tag]['dependency']))]
                 if 'index' in bs[tag]:
                     caption += nodes.inline(text=f", where '*' is the instance (up to {bs[tag]['index'][1]})")
                 caption += nodes.inline(text=".")
@@ -161,21 +162,22 @@ class directive_regmap(directive_base):
         table = nodes.table(classes=['regmap'])
         table += tgroup
 
-        self.table_header(tgroup, ["DWORD", "BYTE", "Reg Name", "", "", "Description"])
-        self.table_header(tgroup, ["BITS", "", "Field Name", "Type", "Default Value", "Description"])
+        self.table_header(tgroup, ["DWORD", "BYTE", ["Reg Name", 3], "Description"])
+        self.table_header(tgroup, [["", 1], "BITS", "Field Name", "Type", "Default Value", "Description"])
 
         rows = []
         for reg in obj['regmap']:
             self.column_entries(rows, [
                 [reg['address'][0], 'literal', ['bold']],
                 [reg['address'][1], 'literal', ['bold']],
-                [reg['name'], 'literal', ['bold'], 2],
+                [reg['name'], 'literal', ['bold'], 3],
                 [reg['description'], 'reST', ['description', 'bold']],
             ])
 
             for field in reg['fields']:
                 self.column_entries(rows, [
-                    [f"[{field['bits']}]", 'literal', [''], 1],
+                    ["", 'literal', [''], 1],
+                    [f"[{field['bits']}]", 'literal'],
                     [field['name'], 'literal'],
                     [field['rw'], 'literal'],
                     [field['default'], 'default_value', ['default']],
@@ -229,7 +231,7 @@ class directive_regmap(directive_base):
             lib_name = self.options['name']
         else:
             logger.warning("hdl-regmap directive without name option, skipped!")
-            return [ node ]
+            return [node]
 
         subnode = nodes.section(ids=["hdl-regmap"])
 
@@ -242,14 +244,14 @@ class directive_regmap(directive_base):
 
         if file is None:
             logger.warning(f"Title {lib_name} not-found in any regmap file, skipped!")
-            return [ node ]
+            return [node]
 
         if owner not in env.regmaps[f]['owners']:
             env.regmaps[f]['owners'].append(owner)
         self.tables(subnode, env.regmaps[f]['subregmap'][lib_name])
 
         node += subnode
-        return [ node ]
+        return [node]
 
 class directive_parameters(directive_base):
     option_spec = {'path': directives.unchanged}
@@ -306,7 +308,7 @@ class directive_parameters(directive_base):
 
         for tag in description:
             if tag not in parameter:
-                    logger.warning(f"{tag} defined in the directive does not exist in the IP-XACT (component.xml)!")
+                logger.warning(f"{tag} defined in the directive does not exist in the IP-XACT (component.xml)!")
 
         return table
 
@@ -329,7 +331,7 @@ class directive_parameters(directive_base):
 
         node += subnode
 
-        return [ node ]
+        return [node]
 
 class directive_component_diagram(directive_base):
     option_spec = {'path': directives.unchanged}
@@ -341,7 +343,7 @@ class directive_component_diagram(directive_base):
         svg_raw = etree.tostring(tree, encoding="utf-8", method="xml").decode("utf-8")
 
         svg = nodes.raw('', svg_raw, format='html')
-        return [ svg ]
+        return [svg]
 
     def diagram(self):
         name = hdl_component.get_name(self.options['path'])
@@ -350,7 +352,7 @@ class directive_component_diagram(directive_base):
         svg_raw = f.read()
 
         svg = nodes.raw('', svg_raw, format='html')
-        return [ svg ]
+        return [svg]
 
     def run(self):
         env = self.state.document.settings.env
@@ -372,7 +374,7 @@ class directive_component_diagram(directive_base):
 
         node += subnode
 
-        return [ node ]
+        return [node]
 
 class directive_build_status(directive_base):
     option_spec = {'file': directives.unchanged}
@@ -441,7 +443,7 @@ def manage_hdl_component_late(env, lib):
     if lib in env.component:
         return
 
-    prefix = "../repos/hdl" if env.config.is_system_top else ".."
+    prefix = "../repos/hdl" if env.config.monolithic else ".."
     f = f"{prefix}/{lib}/component.xml"
     if not os.path.isfile(f):
         return
@@ -458,7 +460,7 @@ def manage_hdl_components(env, docnames, libraries):
     if not hasattr(env, 'component'):
         env.component = {}
 
-    prefix = "../repos" if env.config.is_system_top else ".."
+    prefix = "../repos" if env.config.monolithic else ".."
     cp = env.component
     for lib in list(cp):
         f = f"{prefix}/{lib}/component.xml"
@@ -482,7 +484,7 @@ def manage_hdl_regmaps(env, docnames):
     if not hasattr(env, 'regmaps'):
         env.regmaps = {}
 
-    prefix = "../repos/hdl/docs" if env.config.is_system_top else "."
+    prefix = "../repos/hdl/docs" if env.config.monolithic else "."
     rm = env.regmaps
     for lib in list(rm):
         f = f"{prefix}/regmap/adi_regmap_{lib}.txt"
@@ -509,7 +511,7 @@ def manage_hdl_regmaps(env, docnames):
                     logger.warning(m)
 
 def manage_hdl_artifacts(app, env, docnames):
-    prefix = "hdl/" if env.config.is_system_top else ""
+    prefix = "hdl/" if env.config.monolithic else ""
     libraries = [[k.replace('/index',''), k] for k in env.found_docs if k.find(f"{prefix}library/") == 0]
 
     manage_hdl_components(env, docnames, libraries)

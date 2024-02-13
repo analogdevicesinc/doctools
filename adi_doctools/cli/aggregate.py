@@ -16,9 +16,9 @@ lut = {
         'branch': 'mv-doctools'
     },
     'no-os': {
-        'doc_folder': 'doc/sphinx',
+        'doc_folder': 'doc/sphinx/source',
         'name': 'no-OS',
-        'branch': 'main'
+        'branch': 'sphinx-mk'
     },
     'documentation': {
         'doc_folder': 'docs',
@@ -29,18 +29,66 @@ lut = {
         'doc_folder': 'docs',
         'name': 'Doc Tools',
         'branch': 'main'
-    }
+    },
+    'pyadi-iio': {
+        'doc_folder': 'doc',
+        'name': 'pyadi-iio',
+        'branch': 'main'
+    },
 }
 
+dry_run = True
+no_parallel = True
 
-def patch_index(name, sourcedir, indexfile, dry_run):
-    file = os.path.join(sourcedir, 'index.rst')
+
+class pr:
+    @staticmethod
+    def popen(cmd, cwd=None):
+        global dry_run, no_parallel
+        p = []
+        if not dry_run:
+            p__ = subprocess.Popen(cmd, cwd=cwd)
+            p__.wait() if no_parallel else p.append(p__)
+        elif cwd is not None:
+            click.echo(f"cd {cwd}; {' '.join(cmd)}")
+        else:
+            click.echo(' '.join(cmd))
+        return p
+
+    @staticmethod
+    def run(cmd, cwd=None):
+        global dry_run, no_parallel
+        if not dry_run:
+            subprocess.run(cmd, shell=True, cwd=cwd)
+        elif cwd is not None:
+            click.echo(f"cd {cwd}; {cmd}")
+        else:
+            click.echo(f"{cmd}")
+
+    @staticmethod
+    def wait(p):
+        for p_ in p:
+            p_.wait()
+
+    @staticmethod
+    def mkdir(d):
+        global dry_run
+        if not dry_run:
+            os.mkdir(d)
+        else:
+            click.echo(f"mkdir {d}")
+
+
+def patch_index(name, docsdir, indexfile):
+    global dry_run
+    file = os.path.join(os.path.join(docsdir, name), 'index.rst')
     toctree = []
 
     with open(file, "r") as f:
         data = f.readlines()
         if ".. toctree::\n" not in data:
             return
+        data_ = data.copy()
         in_toc = False
         for i in range(0, len(data)):
             if in_toc:
@@ -66,6 +114,12 @@ def patch_index(name, sourcedir, indexfile, dry_run):
                 if data[i] == ".. toctree::\n":
                     toctree.append([i, i])
                     in_toc = True
+
+    # Add orphan flag to indexes, since toctree is expanded at /index.rst
+    with open(file, 'w') as f:
+        f.write(':orphan:\n\n')
+        for line in data_:
+            f.write(line)
 
     if dry_run:
         return
@@ -125,81 +179,63 @@ def get_sphinx_dirs(cwd) -> tuple[bool, str, str]:
     return [False, builddir, sourcedir]
 
 
-def do_extra_steps(repo_dir, no_parallel, dry_run):
+def do_extra_steps(repo_dir):
+    global dry_run, no_parallel
     for l_ in lut:
         if 'extra' in lut[l_]:
             cwd, cmd, no_p = lut[l_]['extra']
             cwd = os.path.join(repo_dir, f"{l_}/{cwd}")
             nproc = 1 if no_parallel or no_p else 4
-            if not dry_run:
-                if cmd[0] == 'make':
-                    subprocess.call(f"cd {cwd}; {' '.join(cmd)} -j{nproc}",
-                                    shell=True)
-                else:
-                    # Unknown cmd, do not append nproc
-                    subprocess.call(f"cd {cwd}; {' '.join(cmd)}",
-                                    shell=True)
+            if cmd[0] == 'make':
+                pr.run(f"{' '.join(cmd)} -j{nproc}", cwd)
             else:
-                if cmd[0] == 'make':
-                    click.echo(f"cd {cwd}; {' '.join(cmd)} -j{nproc}")
-                else:
-                    click.echo(f"cd {cwd}; {' '.join(cmd)}")
+                # Unknown cmd, do not append nproc
+                pr.run(f"{' '.join(cmd)}", cwd)
 
 
-def gen_symbolic_doc(repo_dir, no_parallel, dry_run):
-    p = []
+def gen_symbolic_doc(repo_dir):
     mk = []
     for r in lut:
-        sphinx_cmd = ["make", "html"]
         cwd = os.path.join(repo_dir, f"{r}/{lut[r]['doc_folder']}")
         mk.append(get_sphinx_dirs(cwd))
         if mk[-1][0]:
             continue
-        if not dry_run:
-            p__ = subprocess.Popen(sphinx_cmd, cwd=cwd)
-            p__.wait() if no_parallel else p.append(p__)
-        else:
-            click.echo(f"cd {cwd}; {' '.join(sphinx_cmd)}")
-    for p_ in p:
-        p_.wait()
+        p = pr.popen(['make', 'html'], cwd)
+    pr.wait(p)
 
     d_ = os.path.abspath(os.path.join(repo_dir, os.pardir))
     out = os.path.join(d_, 'html')
-    if not dry_run:
-        os.mkdir(out)
-    else:
-        click.echo(f"mkdir {out}")
+    pr.mkdir(out)
     for r, m in zip(lut, mk):
         if m[0]:
             continue
         d_ = os.path.join(out, r)
-        cp_cmd = ["cp", "-r", m[1], d_]
-        if not dry_run:
-            p__ = subprocess.Popen(cp_cmd)
-            p__.wait()
+        p = pr.popen(['ln', '-sf', m[1], d_])
+    pr.wait(p)
+
+
+def gen_monolithic_doc(repo_dir):
+    def add_pyadi_iio_to_path():
+        """
+        To allow importing adi.<module> for autodoc.
+        """
+        name = os.path.join(repo_dir, 'pyadi-iio')
+        if 'PYTHONPATH' in os.environ:
+            os.environ['PYTHONPATH'] += os.pathsep + name
         else:
-            click.echo(' '.join(cp_cmd))
+            os.environ['PYTHONPATH'] = name
+    add_pyadi_iio_to_path()
 
-
-def gen_monolithic_doc(repo_dir, no_parallel, dry_run):
     d_ = os.path.abspath(os.path.join(repo_dir, os.pardir))
     docs_dir = os.path.join(d_, 'docs')
     indexfile = os.path.join(docs_dir, 'index.rst')
     if os.path.isdir(docs_dir):
-        cmd = f"rm -r {docs_dir}"
-        if not dry_run:
-            subprocess.call(cmd, shell=True)
-        else:
-            click.echo(cmd)
+        pr.run(f"rm -r {docs_dir}")
     # Copy template
     src_dir = os.path.abspath(os.path.join(os.path.dirname(__file__),
                               os.pardir))
     sphinx_template = os.path.join(src_dir, 'miscellaneous/sphinx-template')
-    cp_cmd = f"cp -r {sphinx_template} {docs_dir}"
-    if not dry_run:
-        subprocess.run(cp_cmd, shell=True)
-    else:
-        click.echo(cp_cmd)
+    pr.run(f"cp -r {sphinx_template} {docs_dir}")
 
     mk = []
     for r in lut:
@@ -207,10 +243,7 @@ def gen_monolithic_doc(repo_dir, no_parallel, dry_run):
         mk.append(get_sphinx_dirs(cwd))
         if mk[-1][0]:
             continue
-        if not dry_run:
-            os.mkdir(os.path.join(docs_dir, r))
-        else:
-            click.echo(f"mkdir {os.path.join(docs_dir, r)}")
+        pr.mkdir(os.path.join(docs_dir, r))
         cp_cmd = f"""\
         for dir in */; do
             dir="${{dir%/}}"
@@ -223,10 +256,7 @@ def gen_monolithic_doc(repo_dir, no_parallel, dry_run):
         done\
         """
         cwd = mk[-1][2]
-        if not dry_run:
-            subprocess.run(cp_cmd, shell=True, cwd=cwd)
-        else:
-            click.echo(f"cd {cwd}; {cp_cmd}")
+        pr.run(cp_cmd, cwd)
 
         # Prefixes references with repo name, expect already external
         # references :ref:`repo:str`
@@ -242,24 +272,18 @@ def gen_monolithic_doc(repo_dir, no_parallel, dry_run):
         find . -type f -exec sed -i -E \
             "s/^(.. _)([^:]+)(:)\\$/\\1{r} \\2\\3/g" {{}} \\;\
         """.format(r=r)
-        if not dry_run:
-            subprocess.run(patch_cmd, shell=True, cwd=cwd)
-        else:
-            click.echo(f"cd {cwd}; {patch_cmd}")
+        pr.run(patch_cmd, cwd)
 
         # Patch includes outside the docs source,
         # e.g. no-OS include README.rst
-        depth = '../' * (3 + lut[r]['doc_folder'].count('/'))
+        depth = '../' * (2 + lut[r]['doc_folder'].count('/'))
         include_cmd = """
         find . -type f -exec sed -i -E \
         "s|^(.. include:: )({depth})(.*)|\\1../../../repos/{r}/\\3|g" {{}} \\;\
         """.format(r=r, depth=depth)
-        if not dry_run:
-            subprocess.run(include_cmd, shell=True, cwd=cwd)
-        else:
-            click.echo(f"cd {cwd}; {include_cmd}")
+        pr.run(include_cmd, cwd)
 
-        patch_index(r, mk[-1][2], indexfile, dry_run)
+        patch_index(r, docs_dir, indexfile)
 
     # Convert external references into local prefixed
     cwd = docs_dir
@@ -267,31 +291,16 @@ def gen_monolithic_doc(repo_dir, no_parallel, dry_run):
         ref_cmd = """\
         find . -type f -exec sed -i "s|ref:\\`{r}:|ref:\\`{r} |g" {{}} \\;\
         """.format(r=r)
-        if not dry_run:
-            subprocess.run(ref_cmd, shell=True, cwd=cwd)
-        else:
-            click.echo(f"cd {cwd}; {ref_cmd}")
+        pr.run(ref_cmd, cwd)
     ref_cmd = """\
     find . -type f -exec sed -i "s|<|<|g" {} \\;
     """
-    if not dry_run:
-        subprocess.run(ref_cmd, shell=True, cwd=cwd)
-    else:
-        click.echo(f"cd {cwd}; {ref_cmd}")
+    pr.run(ref_cmd, cwd)
 
-    sphinx_cmd = ["make", "html"]
-    cwd = docs_dir
-    if not dry_run:
-        subprocess.run(sphinx_cmd, cwd=cwd)
-    else:
-        click.echo(f"cd {cwd}; {' '.join(sphinx_cmd)}")
+    pr.run("make html", docs_dir)
 
-    cp_cmd = ["cp", "-r", '_build/html', '../html_mono']
-    if not dry_run:
-        p__ = subprocess.Popen(cp_cmd, cwd=cwd)
-        p__.wait()
-    else:
-        click.echo(f"cd {cwd}; {' '.join(cp_cmd)}")
+    cwd = d_
+    pr.run("ln -sf docs/_build/html html_mono", cwd)
 
 
 @click.command()
@@ -321,6 +330,7 @@ def gen_monolithic_doc(repo_dir, no_parallel, dry_run):
 @click.option(
     '--no-parallel',
     '-t',
+    'no_parallel_',
     is_flag=True,
     default=False,
     help="Run all steps in sequence."
@@ -328,15 +338,27 @@ def gen_monolithic_doc(repo_dir, no_parallel, dry_run):
 @click.option(
     '--dry-run',
     '-n',
+    'dry_run_',
     is_flag=True,
     default=False,
     help="Don't actually run; just print them."
 )
-def aggregate(directory, symbolic, extra, no_parallel, dry_run):
+@click.option(
+    '--open',
+    '-x',
+    'open_',
+    is_flag=True,
+    default=False,
+    help="Open after generation (xdg-open)."
+)
+def aggregate(directory, symbolic, extra, no_parallel_, dry_run_, open_):
     """
     Creates an aggregated documentation out of every repo documentation,
     by default, will conjoin/patch each into a single Sphinx build.
     """
+    global dry_run, no_parallel
+    no_parallel = no_parallel_
+    dry_run = dry_run_
     directory = os.path.abspath(directory)
 
     if not extra:
@@ -345,49 +367,38 @@ def aggregate(directory, symbolic, extra, no_parallel, dry_run):
     repos_dir = os.path.join(directory, 'repos')
     if not dry_run:
         if not os.path.isdir(directory):
-            os.mkdir(directory)
+            pr.mkdir(directory)
         if not os.path.isdir(repos_dir):
-            os.mkdir(repos_dir)
+            pr.mkdir(repos_dir)
 
     d = 'html' if symbolic else 'html_mono'
     d__ = os.path.join(directory, d)
     if os.path.isdir(d__):
-        cmd = f"rm -r {d__}"
-        if not dry_run:
-            subprocess.call(cmd, shell=True)
-        else:
-            click.echo(cmd)
+        pr.run(f"rm -r {d__}")
 
-    p = []
     for r in lut:
         r_ = remote.format(r)
         cwd = os.path.join(repos_dir, r)
         if not os.path.isdir(cwd):
             git_cmd = ["git", "clone", r_, "--depth=1", "-b",
                        lut[r]['branch'], '--', cwd]
-            if not dry_run:
-                p__ = subprocess.Popen(git_cmd)
-                p__.wait() if no_parallel else p.append(p__)
-            else:
-                click.echo(' '.join(git_cmd))
+            p = pr.popen(git_cmd)
         else:
             git_cmd = ["git", "pull"]
-            if not dry_run:
-                p__ = subprocess.Popen(git_cmd, cwd=cwd)
-                p__.wait() if no_parallel else p.append(p__)
-            else:
-                click.echo(f"cd {cwd}; {' '.join(git_cmd)}")
-    for p_ in p:
-        p_.wait()
+            p = pr.popen(git_cmd, cwd)
+    pr.wait(p)
 
     if extra:
-        do_extra_steps(repos_dir, no_parallel, dry_run)
+        do_extra_steps(repos_dir)
 
     if symbolic:
-        gen_symbolic_doc(repos_dir, no_parallel, dry_run)
+        gen_symbolic_doc(repos_dir)
     else:
-        gen_monolithic_doc(repos_dir, no_parallel, dry_run)
+        gen_monolithic_doc(repos_dir)
 
     type_ = "symbolic" if symbolic else "monolithic"
     out_ = "html" if symbolic else "html_mono"
     click.echo(f"Done, {type_} documentation written to {directory}/{out_}")
+
+    if open_ and not dry_run:
+        subprocess.call(f"xdg-open {directory}/{out_}/index.html", shell=True)

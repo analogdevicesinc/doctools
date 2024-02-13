@@ -41,7 +41,7 @@ class directive_base(Directive):
             items[key] = ' '.join(items[key]).replace('-', '', 1).strip()
         return items
 
-    def column_entry(self, row, text, node_type:str, classes:list=[], morecols:int=0):
+    def column_entry(self, row, text, node_type: str, classes: list = [], morecols: int = 0):
         attributes = {}
         if morecols != 0:
             attributes['morecols'] = morecols
@@ -119,7 +119,11 @@ class directive_base(Directive):
         row = nodes.row()
 
         for header_name in columns:
-            entry = nodes.entry()
+            attributes = {}
+            if type(header_name) is not str:
+                attributes['morecols'] = header_name[1]
+                header_name = header_name[0]
+            entry = nodes.entry(**attributes)
             entry += nodes.paragraph(text=header_name)
             row += entry
 

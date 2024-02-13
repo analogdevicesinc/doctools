@@ -47,7 +47,14 @@ end_of_times = datetime.datetime.max.timestamp()
     default=False,
     help="Force alternative pooling method instead of selenium/Firefox."
 )
-def author_mode(directory, port, dev, no_selenium):
+@click.option(
+    '--just-regen',
+    '-g',
+    is_flag=True,
+    default=False,
+    help="Just regerate minified files and exit."
+)
+def author_mode(directory, port, dev, no_selenium, just_regen):
     """
     Watch the docs and source code to rebuild it on edit.
     Two live update strategies are available:
@@ -114,7 +121,7 @@ def author_mode(directory, port, dev, no_selenium):
     devpool_js = "ADOC_DEVPOOL= " if not with_selenium else ""
     watch_file_src = {}
     watch_file_rst = {}
-    if dev:
+    if dev or just_regen:
         src_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                os.pardir)
         par_dir = os.path.abspath(os.path.join(src_dir, os.pardir))
@@ -142,9 +149,11 @@ def author_mode(directory, port, dev, no_selenium):
             w_files.append(f_)
             if not os.path.isfile(w_files[-1]):
                 rollup_cache = False
-        if not rollup_cache:
+        if not rollup_cache or just_regen:
             subprocess.call(f"{rollup_node_file} -c {rollup_ci_file}",
                             shell=True, cwd=par_dir)
+        if just_regen:
+            return
         for f in w_files:
             if symbolic_assert(f, string['inv_f']):
                 return

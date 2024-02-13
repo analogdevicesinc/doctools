@@ -657,7 +657,7 @@ These links are not managed, that means, only links from changed files are check
 You can run a build with it set to False, then touch the desired files to check
 the links of only these files.
 
-Set ``is_system_top`` to ``True`` prefix paths with *repos/<repo>*.
+Set ``monolithic`` to ``True`` prefix paths with *repos/<repo>*.
 This is meant for the System Top Documentation repository only.
 
 Common sections

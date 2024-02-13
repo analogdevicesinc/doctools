@@ -9,13 +9,13 @@ from sphinx.transforms.post_transforms import SphinxPostTransform
 
 from .cosmic import cosmic_setup
 
-subdomains = [
-    # url_path           name
-    ['documentation',    "System Level"],
-    ['hdl',              "HDL"],
-    ['no-os',            "no-OS"],
-    ['pyadi-iio',        "pyadi-iio"],
-]
+repository = {
+    # url_path          name
+    'documentation':    "System Level",
+    'hdl':              "HDL",
+    'no-os':            "no-OS",
+    'pyadi-iio':        "pyadi-iio",
+}
 
 
 def theme_config_setup(app):
@@ -30,7 +30,7 @@ setup = [
 names = ['cosmic']
 
 
-def subdomain_tree(content_root, repo):
+def subdomain_tree(content_root, repo, monolithic, pagename):
     """
     Create the subdomain tree linking to other repos documentations.
     From the 'repository' config value, a 'current' class is added to
@@ -43,22 +43,27 @@ def subdomain_tree(content_root, repo):
     """
     root = etree.Element("root")
     home = "index.html"
-    for sd in subdomains:
-        if sd[0] == repo:
+    if monolithic:
+        depth = ''
+    else:
+        depth = '../'
+
+    for sd in repository:
+        if sd == repo:
             link = etree.Element("a", attrib={
                 'href': f"{content_root}{home}",
                 'class': 'current'
             })
         else:
             link = etree.Element("a", attrib={
-                'href': f"{content_root}../{sd[0]}/{home}",
+                'href': f"{content_root}{depth}{sd}/{home}",
             })
-        link.text = sd[1]
+        link.text = repository[sd]
         root.append(link)
     return etree.tostring(root, pretty_print=True, encoding='unicode')
 
 
-def navigation_tree(toctree_html, content_root, repo):
+def navigation_tree(toctree_html, content_root, repo, monolithic, pagename):
     """
     Add collapsible sections to the navigation tree.
     Adapted from
@@ -75,6 +80,28 @@ def navigation_tree(toctree_html, content_root, repo):
     root = etree.fromstring(toctree_html, parser)
 
     lvl = [0]
+
+    def get_repo(pagename):
+        i = pagename.find('/')
+        return pagename[0:i] if i != -1 else ''
+
+    def monolithic_tree(root, repo, monolithic, pagename):
+        # Keep unchanged for standalone pages (e.g. /index.html, /search.html)
+        if repo not in repository:
+            return
+
+        # Pop toctrees that are not from the current repo
+        title = repository[repo]
+        body = root.find('./body')
+        txt = ''
+        for e in body.getchildren():
+            if e.tag == 'p':
+                span = e.find('./span')
+                if span is not None:
+                    txt = span.text
+                body.remove(e)
+            elif txt != title:
+                body.remove(e)
 
     def iterate(elem):
         for ul in elem.findall('./ul'):
@@ -114,12 +141,16 @@ def navigation_tree(toctree_html, content_root, repo):
                 iterate(li)
             lvl.pop()
 
+    if monolithic:
+        repo = get_repo(pagename)
+        monolithic_tree(root, repo, monolithic, pagename)
+
     for ul in root.findall('./body/ul'):
         for li in ul.findall('./li[@class]'):
             iterate(li)
 
     _sidebar_tree = etree.tostring(root, pretty_print=True, encoding='unicode')
-    _subdomain_tree = subdomain_tree(content_root, repo)
+    _subdomain_tree = subdomain_tree(content_root, repo, monolithic, pagename)
     return (_sidebar_tree, _subdomain_tree)
 
 
