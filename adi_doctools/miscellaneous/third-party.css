@@ -114,3 +114,9 @@ video {
     background: url(esd-warning.svg);
     background-size: contain;
 }
+
+#hdl-parameters table p,
+#hdl-interfaces table p,
+#hdl-regmap table p {
+    white-space: break-spaces;
+}

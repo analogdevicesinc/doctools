@@ -36,9 +36,14 @@ class directive_base(Directive):
                 key = line[line.find('* -')+3:].split()[0]
                 items[key] = []
             else:
+                if line.startswith('  - '):
+                    line.replace('  - ', '', 1)
+                line = line.strip()
+                if line.find('| ') != -1:
+                    line = line.replace('| ', '\n', 1)
                 items[key].append(line)
         for key in items:
-            items[key] = ' '.join(items[key]).replace('-', '', 1).strip()
+            items[key] = ''.join(items[key]).replace('-', '', 1).strip()
         return items
 
     def column_entry(self, row, text, node_type: str, classes: list = [], morecols: int = 0):

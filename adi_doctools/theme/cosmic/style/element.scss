@@ -129,3 +129,8 @@ img {
 table.regmap {
     font-size: 0.8rem;
 }
+
+#hdl-parameters table p,
+#hdl-interfaces table p {
+    white-space: break-spaces;
+}

@@ -25,12 +25,20 @@ The generated documentation will be available at `docs/_build/html`.
 
 Use Author Mode to live update the page while editing:
 ```
-adoc author-mode --d docs
+adoc author-mode -d docs
 ```
 See all options with
 ```
 adoc author-mode --help
 ```
+
+Use Aggregate to generate an aggregated version of the multiple repositories:
+```
+adoc aggregate -d output
+```
+See all options with the `-help` option, such as the difference between symbolic
+and monolithic outputs.
+
 [1] There is a [known bug](https://github.com/pypa/setuptools/issues/3269)
 with pip shipped with Ubuntu 22.04
 

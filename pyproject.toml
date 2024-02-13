@@ -44,7 +44,7 @@ ci = [
 [tool.setuptools.packages.find]
 where = [""]
 include = ["adi_doctools*"]
-namespaces = false
+namespaces = true
 
 [tool.setuptools.dynamic]
 version = {attr = "adi_doctools.__version__"}

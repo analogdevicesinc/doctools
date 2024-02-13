@@ -144,7 +144,8 @@ class directive_interfaces(directive_base):
         else:
             self.tables(node, self.content, None)
 
-        return [ node ]
+        return [node]
+
 
 class directive_regmap(directive_base):
     option_spec = {'name': directives.unchanged, 'no-type-info': directives.unchanged}
@@ -253,6 +254,7 @@ class directive_regmap(directive_base):
         node += subnode
         return [node]
 
+
 class directive_parameters(directive_base):
     option_spec = {'path': directives.unchanged}
     required_arguments = 0
@@ -333,6 +335,7 @@ class directive_parameters(directive_base):
 
         return [node]
 
+
 class directive_component_diagram(directive_base):
     option_spec = {'path': directives.unchanged}
     required_arguments = 0
@@ -375,6 +378,7 @@ class directive_component_diagram(directive_base):
         node += subnode
 
         return [node]
+
 
 class directive_build_status(directive_base):
     option_spec = {'file': directives.unchanged}
@@ -423,7 +427,8 @@ class directive_build_status(directive_base):
         title, messages = self.make_title(f"Project Build Status #{build_number}")
         table.insert(0, title)
 
-        return [ table ] + messages
+        return [table] + messages
+
 
 def hdl_component_write_managed(env, tree, lib):
     dest_dir = os.path.join(env.srcdir, '_build/managed')
@@ -432,6 +437,7 @@ def hdl_component_write_managed(env, tree, lib):
     if not os.path.exists(dest_dir):
         os.makedirs(dest_dir)
     tree.write(dest_file)
+
 
 def manage_hdl_component_late(env, lib):
     """
@@ -455,6 +461,7 @@ def manage_hdl_component_late(env, lib):
     cp[lib] = parse_hdl_component(f, ctime)
     tree = hdl_component.render(lib, cp[lib])
     hdl_component_write_managed(env, tree, lib)
+
 
 def manage_hdl_components(env, docnames, libraries):
     if not hasattr(env, 'component'):
@@ -480,6 +487,7 @@ def manage_hdl_components(env, docnames, libraries):
             hdl_component_write_managed(env, tree, lib)
             docnames.append(doc)
 
+
 def manage_hdl_regmaps(env, docnames):
     if not hasattr(env, 'regmaps'):
         env.regmaps = {}
@@ -493,7 +501,7 @@ def manage_hdl_regmaps(env, docnames):
     # Inconsistent naming convention, need to parse all in directory.
     for (dirpath, dirnames, filenames) in os.walk(f"{prefix}/regmap"):
         for file in filenames:
-            m = re.search("adi_regmap_(\w+)\.txt", file)
+            m = re.search("adi_regmap_(\\w+)\\.txt", file)
             if not bool(m):
                 continue
 
@@ -510,9 +518,11 @@ def manage_hdl_regmaps(env, docnames):
                 for m in msg:
                     logger.warning(m)
 
+
 def manage_hdl_artifacts(app, env, docnames):
     prefix = "hdl/" if env.config.monolithic else ""
-    libraries = [[k.replace('/index',''), k] for k in env.found_docs if k.find(f"{prefix}library/") == 0]
+    libraries = [[k.replace('/index', ''), k]
+                 for k in env.found_docs if k.find(f"{prefix}library/") == 0]
 
     manage_hdl_components(env, docnames, libraries)
     manage_hdl_regmaps(env, docnames)
