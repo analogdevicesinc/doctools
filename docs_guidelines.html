@@ -5,9 +5,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Documentation guidelines &#8212; ADI Doc Tools  documentation</title>
+    <title>Documentation guidelines &#8212; Doctools  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8e8a900e" />
-    <link rel="stylesheet" type="text/css" href="_static/style.min.css?v=6bdb6112" />
+    <link rel="stylesheet" type="text/css" href="_static/style.min.css?v=63ac747a" />
     <script src="_static/documentation_options.js?v=5929fcd5"></script>
     <script src="_static/doctools.js?v=888ff710"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
@@ -208,14 +208,29 @@ separation, for example, <code class="docutils literal notranslate"><span class=
 <code class="docutils literal notranslate"><span class="pre">spi_engine</span> <span class="pre">control_interface</span></code>.</p>
 <section id="external-references">
 <h3>External references<a class="headerlink" href="#external-references" title="Link to this heading">#</a></h3>
-<p>For references to other Sphinx documentations, the <code class="docutils literal notranslate"><span class="pre">sphinx.ext.intershinx</span></code> is used.
-It has the syntax <code class="code docutils literal notranslate"><span class="pre">:ref:`external:label`</span></code>,
-e.g. <code class="code docutils literal notranslate"><span class="pre">:ref:`hdl:spi_engine</span> <span class="pre">control-interface`</span></code>.
+<p>For references to other Sphinx documentations, the <code class="docutils literal notranslate"><span class="pre">sphinx.ext.intersphinx</span></code> is used.
+The syntax is <code class="code docutils literal notranslate"><span class="pre">:ref:`external:label`</span></code>, where <code class="docutils literal notranslate"><span class="pre">external</span></code> is a mapped source,
+for example, <code class="code docutils literal notranslate"><span class="pre">:ref:`hdl:spi_engine</span> <span class="pre">control-interface`</span></code>.
 It is also possible to customize the text, e.g.
 <code class="code docutils literal notranslate"><span class="pre">:ref:`Custom</span> <span class="pre">text</span> <span class="pre">&lt;hdl:spi_engine</span> <span class="pre">control-interface&gt;`</span></code>.</p>
-<p>When a external reference is not found, it will throw a warning.</p>
-<p>To show all links of an InterSphinx mapping file, use:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>sphinx.ext.intersphinx<span class="w"> </span>https://analogdevicesinc.github.io/hdl/objects.inv
+<p>A warning is thrown when an external reference is not found.</p>
+<p>Mappings are included to the <cite>conf.py</cite> file with the following format:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">intersphinx_mapping</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;&lt;name&gt;&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;&lt;path/to/external&gt;&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>For example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">intersphinx_mapping</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;doctools&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;https://analogdevicesinc.github.io/doctools&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>And new mappings can be included as needed.</p>
+<p>For simplicity, usually the mapping path is the hosted documentation on GitHub pages,
+which either follows the main branch or is the latest stable release.</p>
+<p>To show all links of an InterSphinx mapping file, use, for example:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>sphinx.ext.intersphinx<span class="w"> </span>https://analogdevicesinc.github.io/hdl/objects.inv
 </pre></div>
 </div>
 </section>
@@ -715,7 +730,7 @@ they’re not included in any toctree.</p>
   </form>
   
     <footer>
-      &#169;2024, Analog Devices Inc.
+      &#169;2024, Analog Devices, Inc.
       
       |
       Made with <a href="https://www.sphinx-doc.org/">Sphinx</a>
