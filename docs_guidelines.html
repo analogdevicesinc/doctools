@@ -3,18 +3,19 @@
 <html lang="en" data-content_root="./">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Documentation guidelines &#8212; ADI Doc Tools  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8e8a900e" />
-    <link rel="stylesheet" type="text/css" href="_static/style.min.css?v=012cee92" />
+    <link rel="stylesheet" type="text/css" href="_static/style.min.css?v=6bdb6112" />
     <script src="_static/documentation_options.js?v=5929fcd5"></script>
     <script src="_static/doctools.js?v=888ff710"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script defer="" src="_static/app.umd.js?v=37ac5827"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="ADI Doc Tools" href="index.html" />
+    <link rel="next" title="Command line interface" href="cli.html" />
+    <link rel="prev" title="Installing" href="install.html" />
    
   
     <meta name="robots" content="noindex">
@@ -37,10 +38,10 @@
     </div>
     <div class="subdomain-tree">
       <root>
-  <a href="./../documentation">System Level</a>
-  <a href="./../hdl">HDL</a>
-  <a href="./../no-os">no-OS</a>
-  <a href="./../pyadi-iio">pyadi-iio</a>
+  <a href="./../documentation/index.html">System Level</a>
+  <a href="./../hdl/index.html">HDL</a>
+  <a href="./../no-os/index.html">no-OS</a>
+  <a href="./../pyadi-iio/index.html">pyadi-iio</a>
 </root>
 
     </div>
@@ -110,18 +111,19 @@
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper"><div class="subdomain-tree">
   <root>
-  <a href="./../documentation">System Level</a>
-  <a href="./../hdl">HDL</a>
-  <a href="./../no-os">no-OS</a>
-  <a href="./../pyadi-iio">pyadi-iio</a>
+  <a href="./../documentation/index.html">System Level</a>
+  <a href="./../hdl/index.html">HDL</a>
+  <a href="./../no-os/index.html">no-OS</a>
+  <a href="./../pyadi-iio/index.html">pyadi-iio</a>
 </root>
 
 </div>
 <div class="sidebar-tree">
   <html>
-  <body><p class="caption" role="heading"><span class="caption-text">User guide</span></p>
-<ul class="current">
+  <body><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installing</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Documentation guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command line interface</a></li>
 </ul>
 </body>
 </html>
@@ -663,7 +665,7 @@ Although the boards feature ESD protection circuitry, permanent damage may occur
 These links are not managed, that means, only links from changed files are checked.
 You can run a build with it set to False, then touch the desired files to check
 the links of only these files.</p>
-<p>Set <code class="docutils literal notranslate"><span class="pre">is_system_top</span></code> to <code class="docutils literal notranslate"><span class="pre">True</span></code> prefix paths with <em>repos/&lt;repo&gt;</em>.
+<p>Set <code class="docutils literal notranslate"><span class="pre">monolithic</span></code> to <code class="docutils literal notranslate"><span class="pre">True</span></code> prefix paths with <em>repos/&lt;repo&gt;</em>.
 This is meant for the System Top Documentation repository only.</p>
 </section>
 <section id="common-sections">
@@ -692,8 +694,8 @@ they’re not included in any toctree.</p>
           </div>
               <div class="related">
                 &nbsp;
-    <a href="index.html" title="Previous document" class="prev">ADI Doc Tools</a>
-    <div></div>
+    <a href="install.html" title="Previous document" class="prev">Installing</a>
+    <a href="cli.html" title="Next document" class="next">Command line interface</a>
               </div>
           
         </div>

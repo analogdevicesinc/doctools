@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Installing &#8212; ADI Doc Tools  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8e8a900e" />
+    <link rel="stylesheet" type="text/css" href="_static/style.min.css?v=6bdb6112" />
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script defer="" src="_static/app.umd.js?v=37ac5827"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Documentation guidelines" href="docs_guidelines.html" />
+    <link rel="prev" title="Analog Devices Doctools" href="index.html" />
+   
+  
+    <meta name="robots" content="noindex">
+  
+
+  </head><body>
+  <input type="checkbox" id="input-showsidebar">
+  <input type="checkbox" id="input-showonthispage">
+  <header>
+    <div class="header">
+      <div id="left">
+        <label id="show-sidebar" for="input-showsidebar" title="Show/hide index"></label>
+      </div>
+      <div id="right">
+        <div id="logo"></div>
+        <span>
+          <label id="show-onthispage" for="input-showonthispage" title="Show/hide contents"></label>
+        </span>
+      </div>
+    </div>
+    <div class="subdomain-tree">
+      <root>
+  <a href="./../documentation/index.html">System Level</a>
+  <a href="./../hdl/index.html">HDL</a>
+  <a href="./../no-os/index.html">no-OS</a>
+  <a href="./../pyadi-iio/index.html">pyadi-iio</a>
+</root>
+
+    </div>
+  </header>
+
+    <div class="localtoc">
+      <div class="tocwrapper">
+        <div>
+          <div class="onthispage">On this page</div>
+          <a id="scroll-up" href="#top-anchor" title="Back to top"></a>
+        </div>
+        <nav>
+          <ul>
+<li><a class="reference internal" href="#">Installing</a><ul>
+<li><a class="reference internal" href="#release-install">Release install</a></li>
+<li><a class="reference internal" href="#development-install">Development install</a></li>
+<li><a class="reference internal" href="#removing">Removing</a></li>
+</ul>
+</li>
+</ul>
+
+        </nav>
+      </div>
+    </div>
+
+  
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="subdomain-tree">
+  <root>
+  <a href="./../documentation/index.html">System Level</a>
+  <a href="./../hdl/index.html">HDL</a>
+  <a href="./../no-os/index.html">no-OS</a>
+  <a href="./../pyadi-iio/index.html">pyadi-iio</a>
+</root>
+
+</div>
+<div class="sidebar-tree">
+  <html>
+  <body><ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="docs_guidelines.html">Documentation guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command line interface</a></li>
+</ul>
+</body>
+</html>
+
+</div>
+        </div>
+      </div>
+
+  <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper" id="top-anchor">
+          <div class="body" role="main">
+            
+  <section id="installing">
+<h1>Installing<a class="headerlink" href="#installing" title="Link to this heading">#</a></h1>
+<p>Below is described how to do a release install and a development install of Doctools.</p>
+<section id="release-install">
+<span id="id1"></span><h2>Release install<a class="headerlink" href="#release-install" title="Link to this heading">#</a></h2>
+<p>Ensure pip is newer than 23.0 <a class="footnote-reference brackets" href="#f1" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">pip</span> <span class="o">--</span><span class="n">upgrade</span>
+</pre></div>
+</div>
+<p>Install the documentation tools, which will fetch this repository release:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">cd</span> <span class="n">docs</span> <span class="p">;</span> <span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Test it building this documentation:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">cd</span> <span class="n">docs</span> <span class="p">;</span> <span class="n">make</span> <span class="n">html</span><span class="p">)</span>
+</pre></div>
+</div>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="f1" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">1</a><span class="fn-bracket">]</span></span>
+<p>There is a <a class="reference external" href="https://github.com/pypa/setuptools/issues/3269">known bug</a>
+with pip shipped with Ubuntu 22.04.</p>
+</aside>
+</aside>
+</section>
+<section id="development-install">
+<span id="id3"></span><h2>Development install<a class="headerlink" href="#development-install" title="Link to this heading">#</a></h2>
+<p>Development install allows to edit the source code and apply the changes without
+reinstalling.
+Also extends Author Mode to watch changes on the webpage source code
+(use <cite>–dev</cite>/<cite>-r</cite> option to enable this).</p>
+<p>Before getting started, install <cite>npm</cite>.
+It is required due to the web scripts (<cite>js modules</cite>) and style sheets (<cite>sass</cite>).</p>
+<p>At the repository root, install the <cite>npm</cite> dependencies locally:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">npm</span> <span class="n">install</span> <span class="n">rollup</span> \
+    <span class="nd">@rollup</span><span class="o">/</span><span class="n">plugin</span><span class="o">-</span><span class="n">terser</span> \
+    <span class="n">rollup</span><span class="o">-</span><span class="n">plugin</span><span class="o">-</span><span class="n">scss</span> \
+    <span class="n">sass</span> \
+    <span class="o">--</span><span class="n">save</span><span class="o">-</span><span class="n">dev</span>
+</pre></div>
+</div>
+<p>Fetch third-party fonts:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">ci</span><span class="o">/</span><span class="n">fetch</span><span class="o">-</span><span class="n">fonts</span><span class="o">.</span><span class="n">sh</span>
+</pre></div>
+</div>
+<p>Finally, do a symbolic install of this repo:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">e</span> <span class="o">.</span> <span class="o">--</span><span class="n">upgrade</span>
+</pre></div>
+</div>
+</section>
+<section id="removing">
+<span id="id4"></span><h2>Removing<a class="headerlink" href="#removing" title="Link to this heading">#</a></h2>
+<p>To remove, either release or development, do:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">uninstall</span> <span class="n">adi</span><span class="o">-</span><span class="n">doctools</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+          </div>
+              <div class="related">
+                &nbsp;
+    <a href="index.html" title="Previous document" class="prev">Analog Devices Doctools</a>
+    <a href="docs_guidelines.html" title="Next document" class="next">Documentation guidelines</a>
+              </div>
+          
+        </div>
+      </div>
+  </div>
+
+  <div id="vertical-border"></div>
+
+  <label id="cancel-area-showsidebar" for="input-showsidebar"></label>
+  <label id="cancel-area-showonthispage" for="input-showonthispage"></label>
+
+  
+  <form action="" method="get" class="search-area">
+    <input type="text" name="q" aria-labelledby="search-documentation" value="" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" role="search" placeholder="Search"/>
+    <button value="search"></button>
+    <span id="search-progress"></span>
+  </form>
+  
+    <footer>
+      &#169;2024, Analog Devices Inc.
+      
+      |
+      Made with <a href="https://www.sphinx-doc.org/">Sphinx</a>
+      &amp; <a href="https://github.com/analogdevicesinc/doctools">Doctools</a>
+      
+    </footer>
+  </body>
+</html>
