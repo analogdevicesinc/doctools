@@ -1,4 +1,4 @@
-# ADI Doc Tools
+# Analog Devices Doctools
 
 [Analog Devices Inc.](http://www.analog.com/en/index.html)
 central repository to host tooling for automated documentation builds.
@@ -21,23 +21,13 @@ Build the documentation with Sphinx:
 ```
 (cd docs ; make html)
 ```
-The generated documentation will be available at `docs/_build/html`.
+The generated documentation will be available at `docs/_build/html` and it
+provides information about the `adoc` command line tool and general documentation
+guidelines.
 
-Use Author Mode to live update the page while editing:
-```
-adoc author-mode -d docs
-```
-See all options with
-```
-adoc author-mode --help
-```
-
-Use Aggregate to generate an aggregated version of the multiple repositories:
-```
-adoc aggregate -d output
-```
-See all options with the `-help` option, such as the difference between symbolic
-and monolithic outputs.
+In summary, the `author-mode` allows to live reload the documentation when editing
+the docs, and `aggregate` to generate an aggregated documentation of the multiple
+repositories.
 
 [1] There is a [known bug](https://github.com/pypa/setuptools/issues/3269)
 with pip shipped with Ubuntu 22.04
