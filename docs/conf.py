@@ -1,9 +1,9 @@
 # -- Project information -----------------------------------------------------
 
 repository = 'doctools'
-project = 'ADI Doc Tools'
-copyright = '2024, Analog Devices Inc.'
-author = 'Analog Devices Inc.'
+project = 'Doctools'
+copyright = '2024, Analog Devices, Inc.'
+author = 'Analog Devices, Inc.'
 
 # -- General configuration ---------------------------------------------------
 

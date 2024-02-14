@@ -43,6 +43,12 @@ Also extends Author Mode to watch changes on the webpage source code
 Before getting started, install `npm`.
 It is required due to the web scripts (`js modules`) and style sheets (`sass`).
 
+.. note::
+
+   If the ``npm`` provided by your package manager is too old and updating with
+   ``npm install npm -g`` fails, consider installing with
+   `NodeSource <https://github.com/nodesource/distributions>`_.
+
 At the repository root, install the `npm` dependencies locally:
 
 .. code::

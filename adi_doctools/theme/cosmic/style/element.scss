@@ -138,3 +138,12 @@ pre {
 #hdl-interfaces table p {
     white-space: break-spaces;
 }
+
+aside.footnote {
+    display: flex;
+    align-items: center;
+
+    p {
+        margin: 0.5em;
+    }
+}

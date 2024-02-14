@@ -94,7 +94,7 @@
 	    box-sizing: content-box;
         padding: 1.5rem calc(10vw - 9rem) 0em calc(30vw - 21rem);
         overflow-y: auto;
-        height: calc(100vh - 1rem);
+        height: calc(100vh - 1.5rem);
 	    width: 15em;
     }
 }
@@ -268,7 +268,7 @@
     }
 
     .tocwrapper {
-        height: calc(100vh - 1.5rem);
+        height: calc(100vh - 1rem);
     }
 }
 
@@ -303,8 +303,18 @@
 }
 
 @media (max-width: $width-wide) {
-    #input-showsidebar:checked ~ #cancel-area-showsidebar,
     #input-showonthispage:checked ~ #cancel-area-showonthispage {
+        position: fixed;
+        background: rgba(0, 0, 0, .05);
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+    }
+}
+
+@media (max-width: $width-narrow) {
+    #input-showsidebar:checked ~ #cancel-area-showsidebar {
         position: fixed;
         background: rgba(0, 0, 0, .05);
         top: 0;

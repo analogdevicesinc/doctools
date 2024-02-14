@@ -4,7 +4,7 @@ Command line interface
 ================================================================================
 
 The Doctools bundles a command line interface called ``adoc`` meant to ease both
-continuous integration integration and local builds of the documentation.
+continuous integration and local builds of the documentation.
 
 Below, it is briefly described each command, and it is worth noting that every
 command supports the ``--help`` option for quick look up.
@@ -45,6 +45,7 @@ Generates all documentations of the watched repositories, which currently are:
 * :git-hdl:`/`
 * :git-no-os:`/`
 * :git-pyadi-iio:`/`
+* :git-doctools:`/`
 
 Two generation strategies are available:
 

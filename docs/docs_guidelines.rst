@@ -85,19 +85,40 @@ separation, for example, ``spi_engine control-interface`` instead of
 External references
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For references to other Sphinx documentations, the ``sphinx.ext.intershinx`` is used.
-It has the syntax :code:`:ref:\`external:label\``,
-e.g. :code:`:ref:\`hdl:spi_engine control-interface\``.
+For references to other Sphinx documentations, the ``sphinx.ext.intersphinx`` is used.
+The syntax is :code:`:ref:\`external:label\``, where ``external`` is a mapped source,
+for example, :code:`:ref:\`hdl:spi_engine control-interface\``.
 It is also possible to customize the text, e.g.
 :code:`:ref:\`Custom text <hdl:spi_engine control-interface>\``.
 
-When a external reference is not found, it will throw a warning.
+A warning is thrown when an external reference is not found.
 
-To show all links of an InterSphinx mapping file, use:
+Mappings are included to the `conf.py` file with the following format:
+
+.. code:: python
+
+   intersphinx_mapping = {
+       '<name>': ('<path/to/external>', None)
+   }
+
+For example:
+
+.. code:: python
+
+   intersphinx_mapping = {
+       'doctools': ('https://analogdevicesinc.github.io/doctools', None)
+   }
+
+And new mappings can be included as needed.
+
+For simplicity, usually the mapping path is the hosted documentation on GitHub pages,
+which either follows the main branch or is the latest stable release.
+
+To show all links of an InterSphinx mapping file, use, for example:
 
 .. code:: bash
 
-   python -m sphinx.ext.intersphinx https://analogdevicesinc.github.io/hdl/objects.inv
+   python3 -m sphinx.ext.intersphinx https://analogdevicesinc.github.io/hdl/objects.inv
 
 
 Text width

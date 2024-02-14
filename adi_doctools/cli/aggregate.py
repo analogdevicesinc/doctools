@@ -27,7 +27,7 @@ lut = {
     },
     'doctools': {
         'doc_folder': 'docs',
-        'name': 'Doc Tools',
+        'name': 'Doctools',
         'branch': 'main'
     },
     'pyadi-iio': {
