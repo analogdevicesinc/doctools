@@ -19,7 +19,9 @@ repository = {
 
 
 def theme_config_setup(app):
-    app.add_config_value('repository', None, 'env')
+    app.add_config_value('repository', '', 'env')
+    app.add_config_value('pseudo_subdomains', {}, 'env')
+    app.add_config_value('monolithic', False, 'env')
 
 
 setup = [
@@ -30,7 +32,7 @@ setup = [
 names = ['cosmic']
 
 
-def subdomain_tree(content_root, repo, monolithic, pagename):
+def subdomain_tree(content_root, conf_vars, pagename):
     """
     Create the subdomain tree linking to other repos documentations.
     From the 'repository' config value, a 'current' class is added to
@@ -41,6 +43,7 @@ def subdomain_tree(content_root, repo, monolithic, pagename):
     While something with 0 depth is improper:
     hdl-docs.example.com -> ../no-os -XXX-> hdl-docs.example.com/no-os
     """
+    repo, monolithic, pseudo_subdomains = conf_vars
     root = etree.Element("root")
     home = "index.html"
     if monolithic:
@@ -48,22 +51,28 @@ def subdomain_tree(content_root, repo, monolithic, pagename):
     else:
         depth = '../'
 
-    for sd in repository:
+    if monolithic:
+        subdomains = {**pseudo_subdomains, **repository}
+        del subdomains['documentation']
+    else:
+        subdomains = repository
+    for sd in subdomains:
+        href = f"{content_root}{depth}{sd}/{home}"
+        attrib = {}
         if sd == repo:
-            link = etree.Element("a", attrib={
-                'href': f"{content_root}{home}",
-                'class': 'current'
-            })
-        else:
-            link = etree.Element("a", attrib={
-                'href': f"{content_root}{depth}{sd}/{home}",
-            })
-        link.text = repository[sd]
+            if not monolithic:
+                href = f"{content_root}{home}"
+            attrib = {'class': 'current'}
+        link = etree.Element("a", attrib={
+            'href': href,
+            **attrib
+        })
+        link.text = subdomains[sd]
         root.append(link)
     return etree.tostring(root, pretty_print=True, encoding='unicode')
 
 
-def navigation_tree(toctree_html, content_root, repo, monolithic, pagename):
+def navigation_tree(app, toctree_html, content_root, pagename):
     """
     Add collapsible sections to the navigation tree.
     Adapted from
@@ -79,19 +88,28 @@ def navigation_tree(toctree_html, content_root, repo, monolithic, pagename):
     parser = etree.HTMLParser()
     root = etree.fromstring(toctree_html, parser)
 
+    conf_vars = (
+        app.env.config.repository.lower(),
+        app.env.config.monolithic,
+        app.env.config.pseudo_subdomains
+    )
+    _, monolithic, _ = conf_vars
+
     lvl = [0]
 
     def get_repo(pagename):
         i = pagename.find('/')
         return pagename[0:i] if i != -1 else ''
 
-    def monolithic_tree(root, repo, monolithic, pagename):
+    def monolithic_tree(root, conf_vars, pagename):
+        repo, _, pseudo_subdomains = conf_vars
         # Keep unchanged for standalone pages (e.g. /index.html, /search.html)
-        if repo not in repository:
+        subdomains = {**pseudo_subdomains, **repository}
+        if repo not in subdomains:
             return
 
         # Pop toctrees that are not from the current repo
-        title = repository[repo]
+        title = subdomains[repo]
         body = root.find('./body')
         txt = ''
         for e in body.getchildren():
@@ -142,15 +160,15 @@ def navigation_tree(toctree_html, content_root, repo, monolithic, pagename):
             lvl.pop()
 
     if monolithic:
-        repo = get_repo(pagename)
-        monolithic_tree(root, repo, monolithic, pagename)
+        conf_vars = (get_repo(pagename), *conf_vars[1:])
+        monolithic_tree(root, conf_vars, pagename)
 
     for ul in root.findall('./body/ul'):
         for li in ul.findall('./li[@class]'):
             iterate(li)
 
     _sidebar_tree = etree.tostring(root, pretty_print=True, encoding='unicode')
-    _subdomain_tree = subdomain_tree(content_root, repo, monolithic, pagename)
+    _subdomain_tree = subdomain_tree(content_root, conf_vars, pagename)
     return (_sidebar_tree, _subdomain_tree)
 
 

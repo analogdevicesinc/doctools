@@ -6,12 +6,10 @@ from .theme import setup as theme_setup, names as theme_names
 from .directive import setup as directive_setup
 from .role import setup as role_setup
 
-__version__ = "0.3.7"
-
-dft_monolithic = False
+__version__ = "0.3.8"
 
 
-def get_navigation_tree(context, repo, monolithic, pagename):
+def get_navigation_tree(app, context, pagename):
     # The navigation tree, generated from the sphinx-provided ToC tree.
     if "toctree" in context:
         toctree = context["toctree"]
@@ -24,14 +22,12 @@ def get_navigation_tree(context, repo, monolithic, pagename):
     else:
         toctree_html = ""
 
-    return navigation_tree(toctree_html, context['content_root'], repo,
-                           monolithic, pagename)
+    return navigation_tree(app, toctree_html, context['content_root'],
+                           pagename)
 
 
 def html_page_context(app, pagename, templatename, context, doctree):
-    repository = app.env.config.repository
-    monolithic = app.env.config.monolithic
-    ret = get_navigation_tree(context, repository, monolithic, pagename)
+    ret = get_navigation_tree(app, context, pagename)
     context["sidebar_tree"], context["subdomain_tree"] = ret
 
 
@@ -87,8 +83,6 @@ def setup(app):
         setup(app)
     for setup in role_setup:
         setup(app)
-
-    app.add_config_value('monolithic', dft_monolithic, 'env')
 
     app.add_post_transform(wrap_elements)
 

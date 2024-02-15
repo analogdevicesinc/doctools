@@ -1,9 +1,6 @@
 include adi_doctools/miscellaneous/*.js
 include adi_doctools/miscellaneous/*.svg
 include adi_doctools/miscellaneous/*.css
-include adi_doctools/miscellaneous/sphinx-template/conf.py
-include adi_doctools/miscellaneous/sphinx-template/Makefile
-include adi_doctools/miscellaneous/sphinx-template/index.rst
 include adi_doctools/theme/cosmic/static/*.umd.js
 include adi_doctools/theme/cosmic/static/*.js.map
 include adi_doctools/theme/cosmic/static/*.min.css

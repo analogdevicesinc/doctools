@@ -147,3 +147,30 @@ aside.footnote {
         margin: 0.5em;
     }
 }
+
+iframe {
+    border: none;
+}
+
+.iframe-video {
+    iframe {
+        box-shadow: $box-shadow-raised;
+        border-radius: $border-radius;
+        overflow: hidden;
+        display: block;
+        margin: 0 auto;
+        width: 59rem;
+        height: 33.1875rem;
+    }
+}
+
+@media (max-width: $width-narrow) {
+    .iframe-video {
+        width: 100%;
+        overflow: hidden;
+    }
+    .iframe-video iframe {
+        width: calc(100vw - 2rem);
+        height: calc(56.25vw - 1.125rem);
+    }
+}

@@ -23,13 +23,22 @@ Table of contents
 
 The relation between pages are created with the ``toctree`` directive,
 which allows to generate the table of contents and navigation bars.
+
+Each page may have only one toctree, since they are the equivalent of the
+volumes of a book, and it does not make sense to have multiple "volumes" at
+the repository level.
+
+The only exception is the :git-documentation:`/`, which indeed contains various
+types of documentation (eval-boards, university program, Linux drivers, etc.);
+and it uses the ``pseudo_subdomains`` variable at ``conf.py`` to keep track of
+each.
+
 The ``toctree`` directive has the following format:
 
 .. code:: rst
 
    .. toctree::
-      :caption: Caption
-      :hidden:
+      :maxdepth: <depth>
 
       Custom title <path/to/page>
 
@@ -39,8 +48,6 @@ the page itself, for example:
 .. code:: rst
 
    .. toctree::
-      :caption: Libraries
-      :hidden:
 
       library/axi_dmac/index
       library/spi_engine/index
@@ -51,13 +58,22 @@ a custom title, e.g:
 .. code:: rst
 
    .. toctree::
-      :caption: Projects
-      :hidden:
 
       AD7616-SDZ <projects/ad7616_sdz/index>
 
 This way, only "AD7616-SDZ" will be displayed in the page navigation bar instead
 of "AD7616-SDZ HDL project".
+
+Also, it is recommended to wrap the toctree in a "Contents" section:
+
+.. code:: rst
+
+   Contents
+   ========
+
+   .. toctree::
+
+      some_page
 
 References
 --------------------------------------------------------------------------------

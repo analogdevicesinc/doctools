@@ -6,6 +6,11 @@ import re
 remote = "git@github.com:analogdevicesinc/{}.git"
 
 lut = {
+    'documentation': {
+        'doc_folder': 'docs',
+        'name': 'System Level',
+        'branch': 'main'
+    },
     'hdl': {
         'doc_folder': 'docs',
         'extra': (
@@ -20,19 +25,14 @@ lut = {
         'name': 'no-OS',
         'branch': 'sphinx-mk'
     },
-    'documentation': {
-        'doc_folder': 'docs',
-        'name': 'System Level',
+    'pyadi-iio': {
+        'doc_folder': 'doc',
+        'name': 'pyadi-iio',
         'branch': 'main'
     },
     'doctools': {
         'doc_folder': 'docs',
         'name': 'Doctools',
-        'branch': 'main'
-    },
-    'pyadi-iio': {
-        'doc_folder': 'doc',
-        'name': 'pyadi-iio',
         'branch': 'main'
     },
 }
@@ -99,9 +99,10 @@ def patch_index(name, docsdir, indexfile):
                 if data[i][0:3] == '   ' and data[i][0:4] != '   :':
                     pos = data[i].find('<')
                     if pos == -1:
-                        data[i] = f"   {name}/{data[i][3:]}"
+                        str_ = f"   {name}/{data[i][3:]}"
                     else:
-                        data[i] = f"{data[i][:pos+1]}{name}/{data[i][pos+1:]}"
+                        str_ = f"   {data[i][:pos+1]}{name}/{data[i][pos+1:]}"
+                    data[i] = str_
 
                 if data[i][0:3] != '   ' and data[i] != '\n':
                     toctree[-1] = [toctree[-1][0], i - 1]
@@ -110,6 +111,10 @@ def patch_index(name, docsdir, indexfile):
                     else:
                         in_toc = False
                     continue
+                elif i == len(data) - 1 and in_toc:
+                    toctree[-1] = [toctree[-1][0], i + 1]
+                    in_toc = False
+                    break
             else:
                 if data[i] == ".. toctree::\n":
                     toctree.append([i, i])
@@ -126,17 +131,19 @@ def patch_index(name, docsdir, indexfile):
 
     with open(indexfile, "r") as f:
         data_ = f.readlines()
-        # Find end of toctree
+        # Find end of last toctree
         if ".. toctree::\n" in data_:
-            i = data_.index(".. toctree::\n")
+            i = len(data_) - 1 - data_[::-1].index(".. toctree::\n")
             for i in range(i + 1, len(data_)):
                 if data_[i][0:3] != '   ' and data_[i] != '\n':
                     break
         else:
             i = len(data_)
 
-        header = data_[:i]
-        body = data_[i:]
+        header = data_[:i+1]
+        if i == len(data_)-1:
+            header.append('\n')
+        body = data_[i+1:]
 
         if len(toctree) > 1:
             click.echo(click.style(f"Repo {name} containes multiple toctrees!",
@@ -231,17 +238,13 @@ def gen_monolithic_doc(repo_dir):
     indexfile = os.path.join(docs_dir, 'index.rst')
     if os.path.isdir(docs_dir):
         pr.run(f"rm -r {docs_dir}")
-    # Copy template
-    src_dir = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                              os.pardir))
-    sphinx_template = os.path.join(src_dir, 'miscellaneous/sphinx-template')
-    pr.run(f"cp -r {sphinx_template} {docs_dir}")
+    pr.mkdir(docs_dir)
 
-    mk = []
+    mk = {}
     for r in lut:
         cwd = os.path.join(repo_dir, f"{r}/{lut[r]['doc_folder']}")
-        mk.append(get_sphinx_dirs(cwd))
-        if mk[-1][0]:
+        mk[r] = get_sphinx_dirs(cwd)
+        if mk[r][0]:
             continue
         pr.mkdir(os.path.join(docs_dir, r))
         cp_cmd = f"""\
@@ -255,7 +258,7 @@ def gen_monolithic_doc(repo_dir):
             cp $file {d_}/docs/{r}
         done\
         """
-        cwd = mk[-1][2]
+        cwd = mk[r][2]
         pr.run(cp_cmd, cwd)
 
         # Prefixes references with repo name, expect already external
@@ -283,7 +286,15 @@ def gen_monolithic_doc(repo_dir):
         """.format(r=r, depth=depth)
         pr.run(include_cmd, cwd)
 
-        patch_index(r, docs_dir, indexfile)
+    # Convert documentation into top-level
+    cwd = f"{docs_dir}/documentation"
+    pr.run(f"mv {cwd}/* {docs_dir} ; rmdir {cwd}")
+    pr.run(f"cp -r {mk['documentation'][2]}/conf.py {docs_dir}")
+    pr.run(f"echo monolithic = True >> {docs_dir}/conf.py")
+
+    for r in lut:
+        if r != 'documentation':
+            patch_index(r, docs_dir, indexfile)
 
     # Convert external references into local prefixed
     cwd = docs_dir
@@ -297,7 +308,7 @@ def gen_monolithic_doc(repo_dir):
     """
     pr.run(ref_cmd, cwd)
 
-    pr.run("make html", docs_dir)
+    pr.run("sphinx-build . _build", docs_dir)
 
     cwd = d_
     pr.run("ln -sf docs/_build/html html_mono", cwd)
@@ -377,7 +388,8 @@ def aggregate(directory, symbolic, extra, no_parallel_, dry_run_, open_):
         pr.run(f"rm -r {d__}")
 
     for r in lut:
-        r_ = remote.format(r)
+        r__ = remote if 'remote' not in lut[r] else lut[r]['remote']
+        r_ = r__.format(r)
         cwd = os.path.join(repos_dir, r)
         if not os.path.isdir(cwd):
             git_cmd = ["git", "clone", r_, "--depth=1", "-b",
