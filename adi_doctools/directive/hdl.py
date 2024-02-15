@@ -25,7 +25,7 @@ class directive_interfaces(directive_base):
             return ''
         return string.replace("'MODELPARAM_VALUE.", '').replace("'", '')
 
-    def tables(self, subnode, content, component):
+    def tables(self, subnode, content, component, lib_name):
         description = self.get_descriptions(content)
 
         if component is None:
@@ -123,7 +123,7 @@ class directive_interfaces(directive_base):
 
         for tag in description:
             if tag not in bs and tag not in pr:
-                logger.warning(f"Signal {tag} defined in the directive does not exist in the IP-XACT (component.xml)!")
+                logger.warning(f"Signal {tag} defined in the hdl-interfaces directive does not exist in the IP-XACT ({lib_name}/component.xml)!")
 
         return subnode
 
@@ -140,9 +140,9 @@ class directive_interfaces(directive_base):
 
         manage_hdl_component_late(env, lib_name)
         if lib_name in env.component:
-            self.tables(node, self.content, env.component[lib_name])
+            self.tables(node, self.content, env.component[lib_name], lib_name)
         else:
-            self.tables(node, self.content, None)
+            self.tables(node, self.content, None, lib_name)
 
         return [node]
 
@@ -266,7 +266,7 @@ class directive_parameters(directive_base):
         else:
             return string
 
-    def tables(self, content, parameter):
+    def tables(self, content, parameter, lib_name):
         description = self.get_descriptions(content)
 
         if parameter is None:
@@ -310,7 +310,7 @@ class directive_parameters(directive_base):
 
         for tag in description:
             if tag not in parameter:
-                logger.warning(f"{tag} defined in the directive does not exist in the IP-XACT (component.xml)!")
+                logger.warning(f"{tag} defined in the hdl-parameters directive does not exist in the IP-XACT ({lib_name}/component.xml)!")
 
         return table
 
@@ -327,9 +327,9 @@ class directive_parameters(directive_base):
         manage_hdl_component_late(env, lib_name)
         subnode = nodes.section(ids=["hdl-parameters"])
         if lib_name in env.component:
-            subnode += self.tables(self.content, env.component[lib_name]['parameters'])
+            subnode += self.tables(self.content, env.component[lib_name]['parameters'], lib_name)
         else:
-            subnode += self.tables(self.content, None)
+            subnode += self.tables(self.content, None, lib_name)
 
         node += subnode
 
