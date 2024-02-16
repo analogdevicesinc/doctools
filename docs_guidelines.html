@@ -7,7 +7,7 @@
 
     <title>Documentation guidelines &#8212; Doctools  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8e8a900e" />
-    <link rel="stylesheet" type="text/css" href="_static/style.min.css?v=63ac747a" />
+    <link rel="stylesheet" type="text/css" href="_static/style.min.css?v=84b5089d" />
     <script src="_static/documentation_options.js?v=5929fcd5"></script>
     <script src="_static/doctools.js?v=888ff710"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
@@ -30,7 +30,7 @@
         <label id="show-sidebar" for="input-showsidebar" title="Show/hide index"></label>
       </div>
       <div id="right">
-        <div id="logo"></div>
+        <a id="logo" href="./index.html"></a>
         <span>
           <label id="show-onthispage" for="input-showonthispage" title="Show/hide contents"></label>
         </span>
@@ -156,11 +156,17 @@ instruct Sphinx the beginning and end of the code directive.</p>
 <section id="table-of-contents">
 <h2>Table of contents<a class="headerlink" href="#table-of-contents" title="Link to this heading">#</a></h2>
 <p>The relation between pages are created with the <code class="docutils literal notranslate"><span class="pre">toctree</span></code> directive,
-which allows to generate the table of contents and navigation bars.
-The <code class="docutils literal notranslate"><span class="pre">toctree</span></code> directive has the following format:</p>
+which allows to generate the table of contents and navigation bars.</p>
+<p>Each page may have only one toctree, since they are the equivalent of the
+volumes of a book, and it does not make sense to have multiple “volumes” at
+the repository level.</p>
+<p>The only exception is the <a class="reference external" href="https://github.com/analogdevicesinc/documentation">ADI System Level Documentation repository</a>, which indeed contains various
+types of documentation (eval-boards, university program, Linux drivers, etc.);
+and it uses the <code class="docutils literal notranslate"><span class="pre">pseudo_subdomains</span></code> variable at <code class="docutils literal notranslate"><span class="pre">conf.py</span></code> to keep track of
+each.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">toctree</span></code> directive has the following format:</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">toctree</span><span class="p">::</span>
-   <span class="nc">:caption:</span> Caption
-   <span class="nc">:hidden:</span>
+   <span class="nc">:maxdepth:</span> <span class="nt">&lt;depth&gt;</span>
 
    Custom title &lt;path/to/page&gt;
 </pre></div>
@@ -168,8 +174,6 @@ The <code class="docutils literal notranslate"><span class="pre">toctree</span><
 <p>For pages with shorter titles, such as libraries, the label is inherited from
 the page itself, for example:</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">toctree</span><span class="p">::</span>
-   <span class="nc">:caption:</span> Libraries
-   <span class="nc">:hidden:</span>
 
    library/axi_dmac/index
    library/spi_engine/index
@@ -178,14 +182,21 @@ the page itself, for example:</p>
 <p>And for pages with long titles, such as projects, overwrite the full title with
 a custom title, e.g:</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">toctree</span><span class="p">::</span>
-   <span class="nc">:caption:</span> Projects
-   <span class="nc">:hidden:</span>
 
    AD7616-SDZ &lt;projects/ad7616_sdz/index&gt;
 </pre></div>
 </div>
 <p>This way, only “AD7616-SDZ” will be displayed in the page navigation bar instead
 of “AD7616-SDZ HDL project”.</p>
+<p>Also, it is recommended to wrap the toctree in a “Contents” section:</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="gh">Contents</span>
+<span class="gh">========</span>
+
+<span class="p">..</span> <span class="ow">toctree</span><span class="p">::</span>
+
+   some_page
+</pre></div>
+</div>
 </section>
 <section id="references">
 <h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
