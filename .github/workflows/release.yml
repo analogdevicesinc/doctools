@@ -2,8 +2,8 @@ name: Build Python Package
 
 on:
   push:
-     branches:
-       - main
+    branches:
+      - main
 
 jobs:
   build:

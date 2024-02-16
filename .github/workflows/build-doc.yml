@@ -1,0 +1,60 @@
+name: Build Doc
+
+on:
+  workflow_run:
+    workflows: [Build Python Package]
+    types: [completed]
+
+jobs:
+  on-success:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    permissions:
+      contents: write
+    steps:
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.x"
+
+    - uses: actions/checkout@v4
+
+    - name: Install pip packages
+      working-directory: docs
+      run: |
+        pip install pip --upgrade
+        pip install -r requirements.txt --upgrade
+
+    - name: Build doc
+      working-directory: docs
+      run: |
+        make html SPHINXOPTS='-W'
+
+    - name: Commit
+      run: |
+        author=$(git log -1 --pretty=format:'%an')
+        email=$(git log -1 --pretty=format:'%ae')
+        commit=$(git rev-parse --short HEAD)
+
+        mkdir /tmp/sphinx_doc
+        rm -r docs/_build/html/_sources
+        cp -r docs/_build/html/* /tmp/sphinx_doc
+        git stash --all
+        git fetch origin
+        git checkout -b gh-pages origin/gh-pages
+        git rm -r . --quiet
+        cp -r /tmp/sphinx_doc/* .
+        touch .nojekyll
+
+        git add . >> /dev/null
+        git config --global user.name "$author"
+        git config --global user.email "$email"
+        git commit -m "deploy: $commit"
+
+    - name: Push to gh-pages
+      run: >-
+        git push origin gh-pages:gh-pages
+
+    - name: Clean-up
+      run: >-
+        rm -r /tmp/sphinx_doc

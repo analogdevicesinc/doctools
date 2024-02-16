@@ -14,6 +14,14 @@ from ..tool.hdl_parser import parse_hdl_component, parse_hdl_regmap
 from ..tool.hdl_parser import parse_hdl_build_status
 from ..tool.hdl_render import hdl_component
 
+log = {
+    'signal': "Signal {signal} defined in the hdl-interfaces directive does not exist in the IP-XACT ({lib}/component.xml)!",  # noqa: E501
+    'path': "Inconsistent paths, {cwd} not in {doc}",
+    'regmap-no-name': "hdl-regmap directive without name option, skipped!",
+    'non-hier': "Discouraged non-hierarchical relation between {lib} library and {doc}.rst doc page.",  # noqa: E501
+    'param': "{param} defined in the hdl-parameters directive does not exist in the IP-XACT ({lib}/component.xml)!"  # noqa: E501
+}
+
 
 class directive_interfaces(directive_base):
     option_spec = {'path': directives.unchanged}
@@ -48,7 +56,6 @@ class directive_interfaces(directive_base):
             if tag in description:
                 caption += parse_rst(self.state, description[tag])
 
-
             content, _ = self.collapsible(section, tag, caption)
 
             tgroup = nodes.tgroup(cols=3)
@@ -76,8 +83,8 @@ class directive_interfaces(directive_base):
 
             subnode += section
 
-        section = nodes.section(ids=[f"ports"])
-        content, _ = self.collapsible(section, f"Ports")
+        section = nodes.section(ids=["ports"])
+        content, _ = self.collapsible(section, "Ports")
 
         tgroup = nodes.tgroup(cols=4)
         for _ in range(4):
@@ -123,7 +130,7 @@ class directive_interfaces(directive_base):
 
         for tag in description:
             if tag not in bs and tag not in pr:
-                logger.warning(f"Signal {tag} defined in the hdl-interfaces directive does not exist in the IP-XACT ({lib_name}/component.xml)!")
+                logger.warning(log['signal'].format(signal=tag, lib=lib_name))
 
         return subnode
 
@@ -223,7 +230,7 @@ class directive_regmap(directive_base):
         env = self.state.document.settings.env
         self.current_doc = env.doc2path(env.docname)
         if os.getcwd() not in self.current_doc:
-            raise Exception(f"Inconsistent paths, {os.getcwd()} not in {self.current_doc}")
+            raise Exception(log['path'].format(cwd=os.getcwd(), doc=self.current_doc))
         owner = self.current_doc[len(os.getcwd())+1:-4]
 
         node = node_div()
@@ -231,12 +238,12 @@ class directive_regmap(directive_base):
         if 'name' in self.options:
             lib_name = self.options['name']
         else:
-            logger.warning("hdl-regmap directive without name option, skipped!")
+            logger.warning(log['regmap-no-name'])
             return [node]
 
         subnode = nodes.section(ids=["hdl-regmap"])
 
-        # Have to search all because it is allowed to have more than one regmap per file...
+        # Search all because on file can have more than one regmap.
         file = None
         for f in env.regmaps:
             if lib_name in env.regmaps[f]['subregmap']:
@@ -310,7 +317,7 @@ class directive_parameters(directive_base):
 
         for tag in description:
             if tag not in parameter:
-                logger.warning(f"{tag} defined in the hdl-parameters directive does not exist in the IP-XACT ({lib_name}/component.xml)!")
+                logger.warning(log['param'].format(param=tag, lib=lib_name))
 
         return table
 
@@ -442,8 +449,8 @@ def hdl_component_write_managed(env, tree, lib):
 def manage_hdl_component_late(env, lib):
     """
     Special case when the doc page does not match the library hierarchically.
-    This is discouraged, but IPs inside hdl/library/xilinx and hdl/library/intel
-    require this.
+    This is discouraged, but IPs inside hdl/library/xilinx and
+    hdl/library/intel require this.
     These artifacts will not be properly managed!
     """
     if lib in env.component:
@@ -454,7 +461,7 @@ def manage_hdl_component_late(env, lib):
     if not os.path.isfile(f):
         return
 
-    logger.info(f"Discouraged non-hierarchical relation between {lib} library and {env.docname}.rst doc page.")
+    logger.info(log['non-hier'].format(lib=lib, doc=env.docname))
 
     ctime = os.path.getctime(f)
     cp = env.component

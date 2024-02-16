@@ -1,20 +1,19 @@
 import os
-import re
 import click
 import importlib
-import datetime
 
-string = {
+log = {
     'no_mk': "File Makefile not found, is {} a docs folder?",
     'inv_mk': "Failed parse Makefile, is {} a docs folder?",
     'inv_f': "Could not find {}, check rollup output.",
     'inv_bdir': "Could not find BUILDDIR {}.",
-    'inv_srcdir': "Could not find SOURCEDIR {}."
+    'inv_srcdir': "Could not find SOURCEDIR {}.",
+    'no-selenium': "Package 'selenium' is not installed, pooling enabled."
 }
 
 # Hall of shame of poorly managed artifacts
 unmanaged = ["PyADI-IIO_Logo"]
-end_of_times = datetime.datetime.max.timestamp()
+
 
 @click.command()
 @click.option(
@@ -69,10 +68,10 @@ def author_mode(directory, port, dev, no_selenium, just_regen):
         if importlib.util.find_spec("selenium"):
             with_selenium = True
         else:
-            click.echo("Package 'selenium' is not installed, \
-                       pooling strategy enabled.")
+            click.echo(log['no-selenium'])
 
     import glob
+    import re
     import sched
     import time
     import threading
@@ -80,6 +79,7 @@ def author_mode(directory, port, dev, no_selenium, just_regen):
     import http.server
     import socketserver
     import subprocess
+    import sys
 
     global builddir
 
@@ -99,7 +99,7 @@ def author_mode(directory, port, dev, no_selenium, just_regen):
 
     directory = os.path.abspath(directory)
     makefile = os.path.join(directory, 'Makefile')
-    if symbolic_assert(makefile, string['no_mk']):
+    if symbolic_assert(makefile, log['no_mk']):
         return
 
     # Get builddir and sourcedir, to ensure working with any doc
@@ -111,11 +111,11 @@ def author_mode(directory, port, dev, no_selenium, just_regen):
     builddir_ = builddir_.group(1).strip() if builddir_ else None
     sourcedir_ = sourcedir_.group(1).strip() if sourcedir_ else None
     if builddir_ is None or sourcedir_ is None:
-        click.echo(string['inv_mk'].format(directory))
+        click.echo(log['inv_mk'].format(directory))
         return
     builddir = os.path.join(directory, f"{builddir_}/html")
     sourcedir = os.path.join(directory, sourcedir_)
-    if dir_assert(sourcedir, string['inv_srcdir']):
+    if dir_assert(sourcedir, log['inv_srcdir']):
         return
 
     devpool_js = "ADOC_DEVPOOL= " if not with_selenium else ""
@@ -155,7 +155,7 @@ def author_mode(directory, port, dev, no_selenium, just_regen):
         if just_regen:
             return
         for f in w_files:
-            if symbolic_assert(f, string['inv_f']):
+            if symbolic_assert(f, log['inv_f']):
                 return
 
         # Build doc the first time
@@ -243,7 +243,7 @@ def author_mode(directory, port, dev, no_selenium, just_regen):
                 watch_file_rst[file] = ctime
                 for u in unmanaged:
                     if u in file:
-                        watch_file_rst[file] = end_of_times
+                        watch_file_rst[file] = sys.float_info.max
                         update_sphinx = False
                         break
         for file in watch_file_src:
