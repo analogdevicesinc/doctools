@@ -32,6 +32,22 @@ repositories.
 [1] There is a [known bug](https://github.com/pypa/setuptools/issues/3269)
 with pip shipped with Ubuntu 22.04
 
+### Using a Python virtual environment
+
+Installing packages at user level through pip is not always recommended, instead,
+consider using a Python virtual environment (``python3-venv`` on ubuntu 22.04).
+To create and activate the environment, do before the previous instructions:
+```
+python3 -m venv ./venv
+source ./venv/bin/activate
+```
+Use ``deactivate`` to exit the virtual environment.
+
+For next builds, just activate the virtual environment:
+```
+source ./venv/bin/activate
+```
+
 ## Development install
 
 Development mode allows to edit the source code and apply the changes without
