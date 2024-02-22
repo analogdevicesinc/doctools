@@ -148,8 +148,9 @@ def parse_hdl_regmap(reg: str, ctime: float, prefix: str) -> tuple[dict, list[st
 
 def parse_hdl_component(path: str, ctime: float) -> dict:
     component = {
-        'bus_interface':{},
-        'bus_domain':{},
+        'name': "",
+        'bus_interface': {},
+        'bus_domain': {},
         'ports': {},
         'parameters': {},
         'ctime': ctime
@@ -239,13 +240,14 @@ def parse_hdl_component(path: str, ctime: float) -> dict:
         """
         Merge generated sequencial signals/buses, for example:
         {data_tx_12, data_tx_23_p} -> data_tx_*_p
+        {data_phy3, data_phy4} -> data_phy*
         """
-        re_expr = r"(_)([0-9]+)(_|$)"
+        re_expr = r"([a-zA-Z]+|_)([0-9]+)(_|$)"
         for key in list(items):
             m = re.search(re_expr, key)
 
             if not bool(m):
-                    continue
+                continue
 
             index = int(m.group(2))
             key_ = re.sub(re_expr, r"\1*\3", key)
@@ -255,13 +257,12 @@ def parse_hdl_component(path: str, ctime: float) -> dict:
 
                 dep = items[key_]['dependency']
                 if dep is not None:
-                    re_dep = f"\s+({index})(\s+|$|\))"
+                    re_dep = f"\\s+({index})(\\s+|$|\\))"
                     m = re.search(re_dep, dep)
                     if bool(m):
                         items[key_]['dependency'] = re.sub(re_dep, " * ", dep)
 
                 if 'port_map' in items[key_]:
-                    re_port = f"(_)({index})(_|$)"
                     for inner_key in list(items[key_]['port_map']):
                         inner_key_ = re.sub(re_expr, r"\1*\3", inner_key)
                         if (inner_key_ != inner_key):
@@ -278,9 +279,9 @@ def parse_hdl_component(path: str, ctime: float) -> dict:
 
     root = etree.parse(path).getroot()
     spirit, xilinx, _ = get_namespaces(root)
-    vendor = get(root, 'vendor').text
     name = get(root, 'name').text
 
+    component['name'] = name
     bs = component['bus_interface']
     dm = component['bus_domain']
     for bus_interface in get_all(root, 'busInterfaces/busInterface'):
@@ -329,16 +330,18 @@ def parse_hdl_component(path: str, ctime: float) -> dict:
             if port_name in bs[bus]['port_map']:
                 found = True
                 bs[bus]['port_map'][port_name]['direction'] = port_direction
-                break;
+                break
 
-        if found == False:
+        if found is False:
             lport[port_name] = {
                 'direction': port_direction,
                 'dependency': get_dependency(port, 'port')
             }
 
-    merge_sequential(lport)
-    merge_sequential(bs)
+    for i in range(0, 2):
+        # Run twice for depth 2 (signal_*_*) signals
+        merge_sequential(lport)
+        merge_sequential(bs)
 
     pr = component['parameters']
     for parameter in get_all(root, 'parameters/parameter'):

@@ -56,7 +56,8 @@ class directive_interfaces(directive_base):
             if tag in description:
                 caption += parse_rst(self.state, description[tag])
 
-            content, _ = self.collapsible(section, tag, caption)
+            content, _ = self.collapsible(section, (component['name'], tag),
+                                          caption)
 
             tgroup = nodes.tgroup(cols=3)
             for _ in range(3):
@@ -84,7 +85,7 @@ class directive_interfaces(directive_base):
             subnode += section
 
         section = nodes.section(ids=["ports"])
-        content, _ = self.collapsible(section, "Ports")
+        content, _ = self.collapsible(section, (component['name'], "Ports"))
 
         tgroup = nodes.tgroup(cols=4)
         for _ in range(4):

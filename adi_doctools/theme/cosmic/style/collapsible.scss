@@ -53,6 +53,7 @@
 
     label p {
         margin: 0;
+        white-space: pre;
     }
 
     label, div {
@@ -69,6 +70,7 @@
 
     table.docutils {
         border: none;
+        width: 100%;
     }
 }
 

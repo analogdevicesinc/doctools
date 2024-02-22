@@ -6,6 +6,7 @@ from sphinx.util import logging
 import re
 from uuid import uuid4
 from hashlib import sha1
+from typing import Tuple
 
 from .node import node_div, node_input, node_label, node_icon, node_source, node_iframe, node_video
 
@@ -41,6 +42,8 @@ class directive_base(Directive):
                 line = line.strip()
                 if line.find('| ') != -1:
                     line = line.replace('| ', '\n', 1)
+                else:
+                    line += ' '
                 items[key].append(line)
         for key in items:
             items[key] = ''.join(items[key]).replace('-', '', 1).strip()
@@ -134,10 +137,21 @@ class directive_base(Directive):
 
         thead.append(row)
 
-    def collapsible(self, section, text="", node=None):
+    def collapsible(self, section,
+                    text: [str, Tuple[str, str]] = "", node=None):
+        """
+        Creates a collapsible content.
+        text: When a tuple, the first string is a unique id, useful when the
+              collapsible title is not guarantee to be unique on the page.
+        """
         env = self.state.document.settings.env
+        if type(text) is tuple:
+            text_id = "".join(text)
+            text = text[1]
+        else:
+            text_id = text
 
-        _id = sha1(text.encode('utf-8')).hexdigest()
+        _id = sha1(text_id.encode('utf-8')).hexdigest()
         container = nodes.container(
             "",
             is_div=True,
