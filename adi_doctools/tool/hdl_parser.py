@@ -1,3 +1,5 @@
+from typing import List, Tuple, Dict
+
 import re
 import os
 import contextlib
@@ -6,7 +8,7 @@ from lxml import etree
 from ..directive.string import string_hdl
 
 # From https://github.com/tfcollins/vger/blob/main/vger/hdl_reg_map.py
-def parse_hdl_regmap(reg: str, ctime: float, prefix: str) -> tuple[dict, list[str]]:
+def parse_hdl_regmap(reg: str, ctime: float, prefix: str) -> Tuple[Dict, List[str]]:
     regmap = {
         'subregmap': {},
         'owners':[],
@@ -130,7 +132,7 @@ def parse_hdl_regmap(reg: str, ctime: float, prefix: str) -> tuple[dict, list[st
                     reg_addr_ = int(reg_addr, 16)
                     reg_addr_dword = f"{hex(reg_addr_)}"
                     reg_addr_byte = f"{hex(reg_addr_<<2)}"
-            except:
+            except Exception:
                 warning.append(f"Got malformed register address {reg_addr} for register {reg_name}, file {prefix}/regmap/adi_regmap_{reg}.txt.")
                 reg_addr_dword = ""
                 reg_addr_byte = ""
@@ -146,7 +148,8 @@ def parse_hdl_regmap(reg: str, ctime: float, prefix: str) -> tuple[dict, list[st
         regmap['subregmap'][title_tool]['access_type'] = access_type
     return (regmap, warning)
 
-def parse_hdl_component(path: str, ctime: float) -> dict:
+
+def parse_hdl_component(path: str, ctime: float) -> Dict:
     component = {
         'name': "",
         'bus_interface': {},
@@ -392,7 +395,7 @@ def parse_hdl_component(path: str, ctime: float) -> dict:
 
     return component
 
-def parse_hdl_build_status(file: str) -> tuple[list, int, list[str]]:
+def parse_hdl_build_status(file: str) -> Tuple[List, int, List[str]]:
     warning = []
 
     if not os.path.isfile(file):

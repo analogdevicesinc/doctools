@@ -6,7 +6,7 @@ from .theme import setup as theme_setup, names as theme_names
 from .directive import setup as directive_setup
 from .role import setup as role_setup
 
-__version__ = "0.3.12"
+__version__ = "0.3.13"
 
 
 def get_navigation_tree(app, context, pagename):
@@ -22,8 +22,16 @@ def get_navigation_tree(app, context, pagename):
     else:
         toctree_html = ""
 
-    return navigation_tree(app, toctree_html, context['content_root'],
-                           pagename)
+    if 'content_root' not in context:
+        # Sphinx < 7.2.0
+        from sphinx.util.osutil import SEP
+        from urllib.parse import quote
+
+        url = quote(pagename)
+        context['content_root'] = (f'..{SEP}' * url.count(SEP)) or f'.{SEP}'
+
+    return navigation_tree(app, toctree_html,
+                           context['content_root'], pagename)
 
 
 def html_page_context(app, pagename, templatename, context, doctree):

@@ -32,9 +32,11 @@ git_repos = [
 ]
 vendors = ['xilinx', 'intel', 'mw']
 
+
 def get_url_config(name, inliner):
     app = inliner.document.settings.env.app
     return getattr(app.config, "url_"+name)
+
 
 def get_outer_inner(text):
     """
@@ -46,6 +48,7 @@ def get_outer_inner(text):
     else:
         return (None, text)
 
+
 def color(class_name):
     def role(name, rawtext, text, lineno, inliner, options={}, content=[]):
         node = nodes.inline(text=text, classes=[class_name])
@@ -53,10 +56,11 @@ def color(class_name):
 
     return role
 
+
 def datasheet():
     def role(name, rawtext, text, lineno, inliner, options={}, content=[]):
-        if text.find(':') in [0, -1]:
-            url = get_url_config('datasheet', inliner) + '/' + part_id + '.pdf'
+        if text.find(':') == -1:
+            url = get_url_config('datasheet', inliner) + '/' + text + '.pdf'
         else:
             anchor = text[text.find(':')+1:]
             part_id = text[0:text.find(':')]
@@ -66,6 +70,7 @@ def datasheet():
         return [node], []
 
     return role
+
 
 def dokuwiki():
     def role(name, rawtext, text, lineno, inliner, options={}, content=[]):
@@ -78,6 +83,7 @@ def dokuwiki():
         return [node], []
 
     return role
+
 
 def ez():
     def role(name, rawtext, text, lineno, inliner, options={}, content=[]):
@@ -93,9 +99,16 @@ def ez():
 
     return role
 
+
 def get_active_branch_name():
-    branch = subprocess.run(['git', 'branch', '--show-current'], capture_output=True)
-    return branch.stdout.decode('utf-8').replace('\n','')
+    try:
+        branch = subprocess.run(['git', 'branch',
+                                 '--show-current'], capture_output=True)
+        return branch.stdout.decode('utf-8').replace('\n', '')
+    except Exception:
+        # Return placeholder is git is unreachable, e.g. container
+        return "<unknown>"
+
 
 def git(repo, alt_name):
     def role(name, rawtext, text, lineno, inliner, options={}, content=[]):
@@ -105,8 +118,11 @@ def git(repo, alt_name):
             node = nodes.reference(rawtext, name, refuri=url, **options)
         else:
             text, path = get_outer_inner(text)
-            pos = path.find(':')
-            branch = get_active_branch_name() if pos in [0, -1] else path[0:pos]
+            pos = path.find(':i')
+            if pos in [0, -1]:
+                branch = get_active_branch_name()
+            else:
+                branch = path[0:pos]
             path = path[pos+1:]
             if path == '/':
                 path = ''
@@ -118,6 +134,7 @@ def git(repo, alt_name):
         return [node], []
 
     return role
+
 
 def adi():
     def role(name, rawtext, text, lineno, inliner, options={}, content=[]):
@@ -131,6 +148,7 @@ def adi():
 
     return role
 
+
 def vendor(vendor_name):
     def role(name, rawtext, text, lineno, inliner, options={}, content=[]):
         text, path = get_outer_inner(text)
@@ -143,12 +161,14 @@ def vendor(vendor_name):
 
     return role
 
+
 def prepare_validade_links(app, env, docnames):
     # Not managing links, so checking only changed files per build.
     # A user can run a build with validate_links False, touch the
     # desired files then run with validate_links True to check the links
     # from only these files.
     env.links = {}
+
 
 def validate_links(app, env):
     if not env.config.validate_links:
@@ -163,16 +183,19 @@ def validate_links(app, env):
         async_validate_links(app, env)
     )
 
+
 async def validate_link(link, headers):
-    session_timeout = aiohttp.ClientTimeout(total=None, sock_connect=10, sock_read=10)
+    session_timeout = aiohttp.ClientTimeout(total=None, sock_connect=10,
+                                            sock_read=10)
     try:
         async with aiohttp.ClientSession(timeout=session_timeout) as session:
-            async with session.get(link, headers=headers, timeout=10) as response:
-                return link, response.status
+            async with session.get(link, headers=headers, timeout=10) as resp:
+                return link, resp.status
     except aiohttp.ClientError as e:
         return link, e
     except asyncio.TimeoutError as e:
         return link, e
+
 
 async def async_validate_links(app, env):
     headers = {'User-Agent': validate_links_user_agent}
@@ -180,16 +203,16 @@ async def async_validate_links(app, env):
     fail_count = 0
     total = len(env.links)
     completed = 0
-    tasks = []
     results = []
     step = 25
 
     links = list(env.links)
-    leng = int(total/step)+1 if total%step != 0 else int(total/step)
+    leng = int(total/step)+1 if total % step != 0 else int(total/step)
     for i in range(0, leng):
         cur = i*step
         end = total if (i+1)*step > total else (i+1)*step
         _links = links[cur:end]
+        tasks = []
         for link in _links:
             task = asyncio.create_task(validate_link(link, headers))
             tasks.append(task)
@@ -199,7 +222,6 @@ async def async_validate_links(app, env):
             completed += 1
             print(f'Validated URL {completed} out of {total}, bundle {i+1} of {leng}...', end='\r')
         del tasks
-        tasks = []
 
     for link, error in results:
         if isinstance(error, asyncio.TimeoutError):
@@ -224,11 +246,12 @@ async def async_validate_links(app, env):
 
 def add_link(inliner, lineno, link):
     links = inliner.document.settings.env.links
-    docname = (inliner.document.current_source[:-4],lineno)
+    docname = (inliner.document.current_source[:-4], lineno)
     if link not in links:
         links[link] = [docname]
     else:
         links[link].append(docname)
+
 
 def common_setup(app):
     app.add_role("red",             color('red'))
@@ -254,4 +277,4 @@ def common_setup(app):
     app.add_config_value('url_xilinx',    dft_url_xilinx,    'env')
     app.add_config_value('url_intel',     dft_url_intel,     'env')
 
-    app.add_config_value('validate_links',dft_validate_links,'env')
+    app.add_config_value('validate_links', dft_validate_links, 'env')

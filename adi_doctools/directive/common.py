@@ -1,8 +1,11 @@
+from typing import List
+
 from docutils import nodes
 from docutils.statemachine import ViewList
 from docutils.parsers.rst import Directive, directives
 from sphinx.util.nodes import nested_parse_with_titles
 from sphinx.util import logging
+
 import re
 from uuid import uuid4
 from hashlib import sha1
@@ -49,7 +52,7 @@ class directive_base(Directive):
             items[key] = ''.join(items[key]).replace('-', '', 1).strip()
         return items
 
-    def column_entry(self, row, text, node_type: str, classes: list = [], morecols: int = 0):
+    def column_entry(self, row, text, node_type: str, classes: List = [], morecols: int = 0):
         attributes = {}
         if morecols != 0:
             attributes['morecols'] = morecols

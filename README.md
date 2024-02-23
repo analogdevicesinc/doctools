@@ -7,6 +7,9 @@ the organization.
 
 All tools, directives and roles are documented in this repository documentation.
 
+Guarantee to work with Python newer than 3.8 and distros released on or after 20H1
+(e.g. Ubuntu 20.04 LTS).
+
 ## Release install
 
 Ensure pip is newer than 23.0 [1]:

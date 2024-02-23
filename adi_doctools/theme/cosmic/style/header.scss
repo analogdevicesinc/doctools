@@ -107,6 +107,7 @@ header {
         height: 2rem;
         margin: .75em 0;
         background: url('./adi-logo.svg') no-repeat center center;
+        filter: grayscale(var(--dark-true)) brightness(calc(1 + 4*var(--dark-true)));
     }
 }
 

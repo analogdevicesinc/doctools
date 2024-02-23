@@ -1,3 +1,5 @@
+from typing import Tuple
+
 import os
 import click
 import subprocess
@@ -161,7 +163,7 @@ def patch_index(name, docsdir, indexfile):
             f.write(line)
 
 
-def get_sphinx_dirs(cwd) -> tuple[bool, str, str]:
+def get_sphinx_dirs(cwd) -> Tuple[bool, str, str]:
     mk = os.path.join(cwd, 'Makefile')
     if not os.path.isfile(mk):
         click.echo(click.style(f"{mk} does not exist, skipped!", fg='red'))
@@ -261,7 +263,7 @@ def gen_monolithic_doc(repo_dir):
         cwd = mk[r][2]
         pr.run(cp_cmd, cwd)
 
-        # Prefixes references with repo name, expect already external
+        # Prefixes references with repo name, except already external
         # references :ref:`repo:str`
         cwd = f"{d_}/docs/{r}"
         patch_cmd = """\

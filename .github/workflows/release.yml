@@ -13,17 +13,13 @@ jobs:
       contents: write
 
     steps:
-    - name: Set up npm for bundler
-      uses: actions/setup-node@v4
-      with:
-        node-version: "lts/*"
-
-    - name: Set up Python
-      uses: actions/setup-python@v4
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v4
       with:
         python-version: "3.x"
-
-    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: "lts/*"
 
     - name: Install bundler dependencies
       run: >-

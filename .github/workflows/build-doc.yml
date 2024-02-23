@@ -1,4 +1,4 @@
-name: Build Doc
+name: Build Doc & Deploy
 
 on:
   workflow_run:
@@ -6,20 +6,18 @@ on:
     types: [completed]
 
 jobs:
-  on-success:
-    name: Deploy doc
+  build-doc-deploy:
+    name: Build doc and deploy
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     permissions:
       contents: write
 
     steps:
-    - name: Set up Python
-      uses: actions/setup-python@v4
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v4
       with:
         python-version: "3.x"
-
-    - uses: actions/checkout@v4
 
     - name: Install pip packages
       working-directory: docs
@@ -30,9 +28,9 @@ jobs:
     - name: Build doc
       working-directory: docs
       run: |
-        make html SPHINXOPTS='-W'
+        make html SPHINXOPTS='-W --keep-going'
 
-    - name: Commit
+    - name: Commit doc to gh-pages
       run: |
         author=$(git log -1 --pretty=format:'%an')
         email=$(git log -1 --pretty=format:'%ae')
@@ -60,3 +58,26 @@ jobs:
     - name: Clean-up
       run: >-
         rm -r /tmp/doc
+
+  build-doc-min:
+    name: Build doc on min requirements
+    runs-on: ubuntu-20.04
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v4
+      with:
+        python-version: "3.8"
+
+
+    - name: Install pip packages
+      working-directory: docs
+      run: |
+        pip install pip --upgrade
+        pip install -r requirements.txt --upgrade
+
+    - name: Build doc
+      working-directory: docs
+      run: |
+        make html SPHINXOPTS='-W --keep-going'

@@ -122,6 +122,38 @@ img {
     max-width: 100%;
 }
 
+@media (min-width: $width-narrow) {
+    img {
+        display: block;
+        margin: 0 auto;
+        max-width: 100%;
+        padding: .5em;
+
+        &.align-left {
+            float: left;
+            clear: left;
+            margin-right: .5em;
+        }
+
+        &.align-right {
+            float: right;
+            clear: right;
+            margin-left: .5em;
+        }
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    body:not(.light) img {
+        background: #fff;
+        border-radius: $border-radius;
+    }
+}
+body.dark img {
+    background: #fff;
+    border-radius: $border-radius;
+}
+
 .toctree-wrapper li {
     margin: .5em 0;
 }
