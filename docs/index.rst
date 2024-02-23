@@ -20,3 +20,4 @@ Contents
    install
    docs_guidelines
    cli
+   ci

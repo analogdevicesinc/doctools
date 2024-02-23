@@ -1,0 +1,17 @@
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-package:
+    uses: ./.github/workflows/build-package.yml
+    secrets: inherit
+  build-doc:
+    uses: ./.github/workflows/build-doc.yml
+    needs: [build-package]
+    secrets: inherit
+  deploy:
+    uses: ./.github/workflows/deploy.yml
+    needs: [build-doc]
+    secrets: inherit

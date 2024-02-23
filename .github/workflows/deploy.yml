@@ -1,71 +1,38 @@
-name: Build Python Package
-
-on:
-  push:
-    branches:
-      - main
-
+on: workflow_call
 jobs:
-  build:
-    name: Build release
+  deploy:
     runs-on: ubuntu-latest
     permissions:
       contents: write
 
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/setup-python@v4
+
+    - uses: actions/download-artifact@v4
       with:
-        python-version: "3.x"
-    - uses: actions/setup-node@v4
-      with:
-        node-version: "lts/*"
+        name: dist
+        path: dist
 
-    - name: Install bundler dependencies
-      run: >-
-        npm install
-        rollup
-        @rollup/plugin-terser
-        rollup-plugin-scss
-        sass
-
-    - name: Bundle web scripts and styles
-      run: >-
-        node_modules/.bin/rollup -c
-        ci/rollup.config.app.mjs
-
-    - name: Install build tool
-      run: >-
-        python3 -m
-        pip install build --user
-
-    - name: Fetch third-party fonts
-      run: >-
-        ./ci/fetch-fonts.sh
-
-    - name: Build a binary wheel and a source tarball
-      run: python3 -m build
-
-    - name: Store the distribution packages
-      uses: actions/upload-artifact@v3
-      with:
-        name: python-package-distributions
-        path: dist/
-
-    - name: Get vars
-      id: get_vars
+    - name: Get vars and set env
       run: |
+        tag=$(sed -n 's/^__version__ = "\(.*\)"/\1/p' adi_doctools/__init__.py)
+        echo "tag=$tag" >> "$GITHUB_ENV"
+        if git rev-parse "v$tag" >/dev/null 2>&1; then
+          release=pre-release
+        else
+          echo "new_tag=" >> "$GITHUB_ENV"
+          release=latest
+        fi
+        echo "release=$release" >> "$GITHUB_ENV"
+
         asset_name=adi-doctools.tar.gz
         echo "asset_name=$asset_name" >> "$GITHUB_ENV"
-
-        tag=latest
-        echo "tag=$tag" >> "$GITHUB_ENV"
 
         release_id=$(curl -L \
           -H "Accept: application/vnd.github+json" \
           -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
           -H "X-GitHub-Api-Version: 2022-11-28" \
-          https://api.github.com/repos/${{ github.repository }}/releases/tags/latest \
+          https://api.github.com/repos/${{ github.repository }}/releases/tags/$release \
           | jq -r .id)
         echo "release_id=$release_id" >> "$GITHUB_ENV"
 
@@ -77,8 +44,44 @@ jobs:
           jq -r ".[] | select(.name==\"$asset_name\") | .id")
         echo "asset_id=$asset_id" >> "$GITHUB_ENV"
 
-    - name: Update latest target commitish
-      id: update_commitish
+        full_asset_name=$(ls dist/adi-doctools-*.tar.gz)
+        echo "full_asset_name=$full_asset_name" >> "$GITHUB_ENV"
+
+    - name: Create new tag
+      run: |
+        if [ -v new_tag ]; then
+          git tag v$tag
+          git push origin v$tag
+        fi
+
+    - name: Create tag release
+      run: |
+        if [ -v new_tag ]; then
+          release_id_new_tag=$(curl -L \
+            -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${{ github.repository }}/releases" \
+            -d "{\"tag_name\":\"v$tag\",\"name\":\"v$tag\",\"make_latest\":\"true\"}" \
+            | jq -r .id)
+          echo "release_id_new_tag=$release_id_new_tag" >> "$GITHUB_ENV"
+        fi
+
+    - name: Upload tag release asset
+      run: |
+        if [ -v new_tag ]; then
+          curl -L \
+            -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            -H "Content-Type: application/octet-stream" \
+            "https://uploads.github.com/repos/${{ github.repository }}/releases/$release_id_new_tag/assets?name=$asset_name" \
+            --data-binary "@$full_asset_name"
+        fi
+
+    - name: Update release target commitish
       run: |
         curl -s \
           -X PATCH \
@@ -88,10 +91,8 @@ jobs:
           -d '{"target_commitish": "${{ github.sha }}"}' \
           "https://api.github.com/repos/${{ github.repository }}/releases/$release_id"
 
-    - name: Upload artifact
-      id: upload_artifact
+    - name: Upload release asset
       run: |
-        full_asset_name=$(ls dist/adi-doctools-*.tar.gz)
         if [[ ! "$asset_id" == "" ]]; then
           curl -L \
             -X DELETE \

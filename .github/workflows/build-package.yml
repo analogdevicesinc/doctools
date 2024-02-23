@@ -1,0 +1,46 @@
+on: workflow_call
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.x"
+    - uses: actions/setup-node@v4
+      with:
+        node-version: "lts/*"
+
+    - name: Install bundler dependencies
+      run: >-
+        npm install
+        rollup
+        @rollup/plugin-terser
+        rollup-plugin-scss
+        sass
+
+    - name: Bundle web scripts and styles
+      run: >-
+        node_modules/.bin/rollup -c
+        ci/rollup.config.app.mjs
+
+    - name: Install build tool
+      run: >-
+        python3 -m
+        pip install build --user
+
+    - name: Fetch third-party fonts
+      run: >-
+        ./ci/fetch-fonts.sh
+
+    - name: Build a binary wheel and a source tarball
+      run: python3 -m build
+
+    - name: Store the distribution packages
+      uses: actions/upload-artifact@v4
+      with:
+        name: dist
+        path: dist/

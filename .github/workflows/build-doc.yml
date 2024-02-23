@@ -1,29 +1,25 @@
-name: Build Doc & Deploy
-
-on:
-  workflow_run:
-    workflows: [Build Python Package]
-    types: [completed]
-
+on: workflow_call
 jobs:
   build-doc-deploy:
-    name: Build doc and deploy
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     permissions:
       contents: write
 
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/setup-python@v4
+    - uses: actions/setup-python@v5
       with:
         python-version: "3.x"
 
+    - uses: actions/download-artifact@v4
+      with:
+        name: dist
+        path: dist
+
     - name: Install pip packages
-      working-directory: docs
       run: |
-        pip install pip --upgrade
-        pip install -r requirements.txt --upgrade
+        pip install pip sphinx --upgrade
+        pip install dist/adi-doctools-*.tar.gz
 
     - name: Build doc
       working-directory: docs
@@ -60,22 +56,23 @@ jobs:
         rm -r /tmp/doc
 
   build-doc-min:
-    name: Build doc on min requirements
     runs-on: ubuntu-20.04
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/setup-python@v4
+    - uses: actions/setup-python@v5
       with:
         python-version: "3.8"
 
+    - uses: actions/download-artifact@v4
+      with:
+        name: dist
+        path: dist
 
     - name: Install pip packages
-      working-directory: docs
       run: |
-        pip install pip --upgrade
-        pip install -r requirements.txt --upgrade
+        pip install pip sphinx --upgrade
+        pip install dist/adi-doctools-*.tar.gz
 
     - name: Build doc
       working-directory: docs
