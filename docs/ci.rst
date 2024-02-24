@@ -7,21 +7,21 @@ Doctools has a continuous integration pipeline that works as follows:
 
 .. code::
 
-                      ┌──────────────────┐
-                    ┌►│Build Doc & Deploy├─┐
-   ┌─────────────┐  │ └──────────────────┘ │  ┌──────────────┐
-   │Build Package├──┤                      ├─►│Deploy Package│
-   └─────────────┘  │ ┌────────────────┐   │  └──────────────┘
-                    └►│Build Doc on Min├───┘
-                      └────────────────┘
+                      ┌────────────────┐
+                    ┌►│Build Doc Latest├─┐
+   ┌─────────────┐  │ └────────────────┘ │  ┌──────────────┐
+   │Build Package├──┤                    ├─►│Deploy Package│
+   └─────────────┘  │ ┌─────────────┐    │  └──────────────┘
+                    └►│Build Doc Min├────┘
+                      └─────────────┘
 
 The Build Package step "compiles" JavaScript and SASS, fetches third-party
 assets and licenses and generates the Python package.
 
 Then, in the middle-stage, two parallel runs are launched:
 
-* *Build Doc & Deploy*: uses the latest stable dependencies releases to
-  generate this documentation and deploy to the branch ``gh-pages``.
+* *Build Doc Latest*: uses the latest stable dependencies releases to
+  generate this documentation, and store as an artifact..
 * *Build Doc on Min*: uses the minimum requirements dependencies to generate
   this documentation, but the output is discarded.
 
@@ -42,6 +42,14 @@ Finally, the Deploy Package:
 
 * Upload the artifact to the symbolic release (``pre-release``, ``latest``).
 
+* Finally, the *Build Doc Latest* artifact is downloaded and deployed to the
+  branch ``gh-pages``
+
+By design, the live page on *github.io* follows the pre-release/latest commit-ish;
+properly versioned live documentation should be managed by an external system
+that watches the git tags (e.g.
+`readthedocs <https://github.com/readthedocs/readthedocs.org>`_).
+
 This approach allows to have a single defined version on ``adi_doctools/__init__.py``,
 and have the tags created and releases created/updated without much fuzz.
 
@@ -54,8 +62,3 @@ Non-handled corner-cases mitigations:
 
 * Release ``pre-release`` and ``latest`` must exist prior the first run.
 * Branch ``gh-pages`` must exist with at least one commit.
-
-Short-comings:
-
-* If *Build Doc on Min* fails but *Build Doc & Deploy* doesn't, the ``gh-pages``
-  is updated but the ``Deploy Package`` doesn't run.

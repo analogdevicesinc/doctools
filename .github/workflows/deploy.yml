@@ -17,6 +17,7 @@ jobs:
       run: |
         tag=$(sed -n 's/^__version__ = "\(.*\)"/\1/p' adi_doctools/__init__.py)
         echo "tag=$tag" >> "$GITHUB_ENV"
+        git fetch --tags
         if git rev-parse "v$tag" >/dev/null 2>&1; then
           release=pre-release
         else
@@ -109,3 +110,36 @@ jobs:
           -H "Content-Type: application/octet-stream" \
           "https://uploads.github.com/repos/${{ github.repository }}/releases/$release_id/assets?name=$asset_name" \
           --data-binary "@$full_asset_name"
+
+    - name: Switch to gh-pages and empty it
+      run: |
+        git reset --hard
+        git clean -fdx
+        git fetch origin gh-pages
+        git checkout -b gh-pages origin/gh-pages
+        git rm -r . --quiet
+
+    - uses: actions/download-artifact@v4
+      with:
+        name: html
+
+    - name: Patch doc build
+      run: |
+        rm -r _sources
+        touch .nojekyll
+
+    - name: Commit gh-pages
+      run: |
+        author=$(git log -1 --pretty=format:'%an')
+        email=$(git log -1 --pretty=format:'%ae')
+        commit=$(git rev-parse --short HEAD)
+
+        git add . >> /dev/null
+        git config --global user.name "$author"
+        git config --global user.email "$email"
+        git commit -m "deploy: $commit" --allow-empty
+
+
+    - name: Push to gh-pages
+      run: >-
+        git push origin gh-pages:gh-pages

@@ -1,6 +1,6 @@
 on: workflow_call
 jobs:
-  build-doc-deploy:
+  build-doc-latest:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -26,34 +26,11 @@ jobs:
       run: |
         make html SPHINXOPTS='-W --keep-going'
 
-    - name: Commit doc to gh-pages
-      run: |
-        author=$(git log -1 --pretty=format:'%an')
-        email=$(git log -1 --pretty=format:'%ae')
-        commit=$(git rev-parse --short HEAD)
-
-        mkdir /tmp/doc
-        rm -r docs/_build/html/_sources
-        cp -r docs/_build/html/* /tmp/doc
-        git stash --all
-        git fetch origin gh-pages
-        git checkout -b gh-pages origin/gh-pages
-        git rm -r . --quiet
-        cp -r /tmp/doc/* .
-        touch .nojekyll
-
-        git add . >> /dev/null
-        git config --global user.name "$author"
-        git config --global user.email "$email"
-        git commit -m "deploy: $commit" --allow-empty
-
-    - name: Push to gh-pages
-      run: >-
-        git push origin gh-pages:gh-pages
-
-    - name: Clean-up
-      run: >-
-        rm -r /tmp/doc
+    - name: Store the generated doc
+      uses: actions/upload-artifact@v4
+      with:
+        name: html
+        path: docs/_build/html
 
   build-doc-min:
     runs-on: ubuntu-20.04
