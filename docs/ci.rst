@@ -21,7 +21,7 @@ assets and licenses and generates the Python package.
 Then, in the middle-stage, two parallel runs are launched:
 
 * *Build Doc Latest*: uses the latest stable dependencies releases to
-  generate this documentation, and store as an artifact..
+  generate this documentation, and store as an artifact.
 * *Build Doc on Min*: uses the minimum requirements dependencies to generate
   this documentation, but the output is discarded.
 

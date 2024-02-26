@@ -118,7 +118,7 @@ def git(repo, alt_name):
             node = nodes.reference(rawtext, name, refuri=url, **options)
         else:
             text, path = get_outer_inner(text)
-            pos = path.find(':i')
+            pos = path.find(':')
             if pos in [0, -1]:
                 branch = get_active_branch_name()
             else:

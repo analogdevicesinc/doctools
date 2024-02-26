@@ -61,6 +61,10 @@ Also extends Author Mode to watch changes on the webpage source code
 Before getting started, install `npm`.
 It is required due to the web scripts (`js modules`) and style sheets (`sass`).
 
+> **_NOTE:_** If the ``npm`` provided by your package manager is too old and
+> updating with `npm install npm -g` fails, consider installing with
+> [NodeSource](https://github.com/nodesource/distributions).
+
 At this path, install the `npm` dependencies locally:
 ```
 npm install rollup \
@@ -79,15 +83,6 @@ Finally, do a symbolic install of this repo:
 ```
 pip install -e . --upgrade
 ```
-
-### Why is the Python source code of this repo not watched?
-
-Since a Python change would affect rebuilding the whole documentation,
-those files are not watched by design.
-Extensions at the doc itself are, however.
-
-Alternatively, touch the source doc of the open page to rebuild only it
-with the edited Python code.
 
 ## Removing
 

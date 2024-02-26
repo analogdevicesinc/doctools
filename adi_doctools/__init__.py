@@ -6,7 +6,7 @@ from .theme import setup as theme_setup, names as theme_names
 from .directive import setup as directive_setup
 from .role import setup as role_setup
 
-__version__ = "0.3.14"
+__version__ = "0.3.15"
 
 
 def get_navigation_tree(app, context, pagename):

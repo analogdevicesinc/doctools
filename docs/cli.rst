@@ -36,6 +36,16 @@ For all options, do:
 
    adoc author-mode --help
 
+Why is the Python source code of this repo not watched?
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Since a Python scripts change would affect rebuilding the whole documentation,
+those files are not watched by design even with the ``--dev`` option.
+Extensions at the doc itself are, however.
+
+Alternatively, touch the source doc of the open page to rebuild only it
+with the edited Python code.
+
 Aggregate
 --------------------------------------------------------------------------------
 
