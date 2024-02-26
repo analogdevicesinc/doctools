@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Continuous integration &#8212; Doctools  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8e8a900e" />
+    <link rel="stylesheet" type="text/css" href="_static/style.min.css?v=8dde5eb3" />
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script defer="" src="_static/app.umd.js?v=37ac5827"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Command line interface" href="cli.html" />
+   
+  
+    <meta name="robots" content="noindex">
+  
+
+  </head><body>
+  <input type="checkbox" id="input-showsidebar">
+  <input type="checkbox" id="input-showonthispage">
+  <header>
+    <div class="header">
+      <div id="left">
+        <label id="show-sidebar" for="input-showsidebar" title="Show/hide index"></label>
+      </div>
+      <div id="right">
+        <a id="logo" href="./index.html"></a>
+        <span>
+          <label id="show-onthispage" for="input-showonthispage" title="Show/hide contents"></label>
+        </span>
+      </div>
+    </div>
+    <div class="subdomain-tree">
+      <root>
+  <a href="./../documentation/index.html">System Level</a>
+  <a href="./../hdl/index.html">HDL</a>
+  <a href="./../no-os/index.html">no-OS</a>
+  <a href="./../pyadi-iio/index.html">pyadi-iio</a>
+</root>
+
+    </div>
+  </header>
+
+    <div class="localtoc">
+      <div class="tocwrapper">
+        <div>
+          <div class="onthispage">On this page</div>
+          <a id="scroll-up" href="#top-anchor" title="Back to top"></a>
+        </div>
+        <nav>
+          <ul>
+<li><a class="reference internal" href="#">Continuous integration</a></li>
+</ul>
+
+        </nav>
+      </div>
+    </div>
+
+  
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="subdomain-tree">
+  <root>
+  <a href="./../documentation/index.html">System Level</a>
+  <a href="./../hdl/index.html">HDL</a>
+  <a href="./../no-os/index.html">no-OS</a>
+  <a href="./../pyadi-iio/index.html">pyadi-iio</a>
+</root>
+
+</div>
+<div class="sidebar-tree">
+  <html>
+  <body><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="docs_guidelines.html">Documentation guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command line interface</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Continuous integration</a></li>
+</ul>
+</body>
+</html>
+
+</div>
+        </div>
+      </div>
+
+  <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper" id="top-anchor">
+          <div class="body" role="main">
+            
+  <section id="continuous-integration">
+<span id="ci"></span><h1>Continuous integration<a class="headerlink" href="#continuous-integration" title="Link to this heading">#</a></h1>
+<p>Doctools has a continuous integration pipeline that works as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>                   ┌────────────────┐
+                 ┌►│Build Doc Latest├─┐
+┌─────────────┐  │ └────────────────┘ │  ┌──────────────┐
+│Build Package├──┤                    ├─►│Deploy Package│
+└─────────────┘  │ ┌─────────────┐    │  └──────────────┘
+                 └►│Build Doc Min├────┘
+                   └─────────────┘
+</pre></div>
+</div>
+<p>The Build Package step “compiles” JavaScript and SASS, fetches third-party
+assets and licenses and generates the Python package.</p>
+<p>Then, in the middle-stage, two parallel runs are launched:</p>
+<ul class="simple">
+<li><p><em>Build Doc Latest</em>: uses the latest stable dependencies releases to
+generate this documentation, and store as an artifact..</p></li>
+<li><p><em>Build Doc on Min</em>: uses the minimum requirements dependencies to generate
+this documentation, but the output is discarded.</p></li>
+</ul>
+<p>Both of them are set to fail-on-warning during the documentation generation.</p>
+<p>Finally, the Deploy Package:</p>
+<ul class="simple">
+<li><p>Grabs the version and checks if the tag version already exists:</p>
+<ul>
+<li><p>If so, set to update the symbolic <code class="docutils literal notranslate"><span class="pre">pre-release</span></code> release.</p></li>
+<li><p>If not, set to update the symbolic <code class="docutils literal notranslate"><span class="pre">latest</span></code> release.</p></li>
+</ul>
+</li>
+<li><p>Still if a new version:</p>
+<ul>
+<li><p>Create the git tag and push to origin.</p></li>
+<li><p>Create the tagged release.</p></li>
+<li><p>Upload the artifact to the tagged release.</p></li>
+</ul>
+</li>
+<li><p>Upload the artifact to the symbolic release (<code class="docutils literal notranslate"><span class="pre">pre-release</span></code>, <code class="docutils literal notranslate"><span class="pre">latest</span></code>).</p></li>
+<li><p>Finally, the <em>Build Doc Latest</em> artifact is downloaded and deployed to the
+branch <code class="docutils literal notranslate"><span class="pre">gh-pages</span></code></p></li>
+</ul>
+<p>By design, the live page on <em>github.io</em> follows the pre-release/latest commit-ish;
+properly versioned live documentation should be managed by an external system
+that watches the git tags (e.g.
+<a class="reference external" href="https://github.com/readthedocs/readthedocs.org">readthedocs</a>).</p>
+<p>This approach allows to have a single defined version on <code class="docutils literal notranslate"><span class="pre">adi_doctools/__init__.py</span></code>,
+and have the tags created and releases created/updated without much fuzz.</p>
+<p>The philosophy is to have <code class="docutils literal notranslate"><span class="pre">latest</span></code> updated on tag increment and first
+successful run, and <code class="docutils literal notranslate"><span class="pre">pre-relese</span></code> updated on successful run without tag change.
+These releases exist to provide a pointer to the latest/pre-release packages, e.g.
+<a class="reference external" href="https://github.com/analogdevicesinc/doctools/releases/download/latest/adi-doctools.tar.gz">releases/download/latest/adi-doctools.tar.gz</a>.</p>
+<p>Non-handled corner-cases mitigations:</p>
+<ul class="simple">
+<li><p>Release <code class="docutils literal notranslate"><span class="pre">pre-release</span></code> and <code class="docutils literal notranslate"><span class="pre">latest</span></code> must exist prior the first run.</p></li>
+<li><p>Branch <code class="docutils literal notranslate"><span class="pre">gh-pages</span></code> must exist with at least one commit.</p></li>
+</ul>
+</section>
+
+
+          </div>
+              <div class="related">
+                &nbsp;
+    <a href="cli.html" title="Previous document" class="prev">Command line interface</a>
+    <div></div>
+              </div>
+          
+        </div>
+      </div>
+  </div>
+
+  <div id="vertical-border"></div>
+
+  <label id="cancel-area-showsidebar" for="input-showsidebar"></label>
+  <label id="cancel-area-showonthispage" for="input-showonthispage"></label>
+
+  
+  <form action="" method="get" class="search-area">
+    <input type="text" name="q" aria-labelledby="search-documentation" value="" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" role="search" placeholder="Search"/>
+    <button value="search"></button>
+    <span id="search-progress"></span>
+  </form>
+  
+    <footer>
+      &#169;2024, Analog Devices, Inc.
+      
+      |
+      Made with <a href="https://www.sphinx-doc.org/">Sphinx</a>
+      &amp; <a href="https://github.com/analogdevicesinc/doctools">Doctools</a>
+      
+    </footer>
+  </body>
+</html>
