@@ -56,7 +56,10 @@
         <nav>
           <ul>
 <li><a class="reference internal" href="#">Command line interface</a><ul>
-<li><a class="reference internal" href="#author-mode">Author Mode</a></li>
+<li><a class="reference internal" href="#author-mode">Author Mode</a><ul>
+<li><a class="reference internal" href="#why-is-the-python-source-code-of-this-repo-not-watched">Why is the Python source code of this repo not watched?</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#aggregate">Aggregate</a></li>
 <li><a class="reference internal" href="#hdl-render">HDL Render</a></li>
 </ul>
@@ -123,6 +126,14 @@ sure to have Doctools as <a class="reference internal" href="install.html#develo
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">adoc</span> <span class="n">author</span><span class="o">-</span><span class="n">mode</span> <span class="o">--</span><span class="n">help</span>
 </pre></div>
 </div>
+<section id="why-is-the-python-source-code-of-this-repo-not-watched">
+<h3>Why is the Python source code of this repo not watched?<a class="headerlink" href="#why-is-the-python-source-code-of-this-repo-not-watched" title="Link to this heading">#</a></h3>
+<p>Since a Python scripts change would affect rebuilding the whole documentation,
+those files are not watched by design even with the <code class="docutils literal notranslate"><span class="pre">--dev</span></code> option.
+Extensions at the doc itself are, however.</p>
+<p>Alternatively, touch the source doc of the open page to rebuild only it
+with the edited Python code.</p>
+</section>
 </section>
 <section id="aggregate">
 <h2>Aggregate<a class="headerlink" href="#aggregate" title="Link to this heading">#</a></h2>
