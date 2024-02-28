@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, List
 
 import os
 import click
@@ -20,12 +20,12 @@ lut = {
             "library", ["make", "all"], False
         ),
         'name': 'HDL',
-        'branch': 'mv-doctools'
+        'branch': 'main'
     },
-    'no-os': {
+    'no-OS': {
         'doc_folder': 'doc/sphinx/source',
         'name': 'no-OS',
-        'branch': 'sphinx-mk'
+        'branch': 'main'
     },
     'pyadi-iio': {
         'doc_folder': 'doc',
@@ -45,9 +45,8 @@ no_parallel = True
 
 class pr:
     @staticmethod
-    def popen(cmd, cwd=None):
+    def popen(cmd, p: List, cwd: [str, None] = None):
         global dry_run, no_parallel
-        p = []
         if not dry_run:
             p__ = subprocess.Popen(cmd, cwd=cwd)
             p__.wait() if no_parallel else p.append(p__)
@@ -204,12 +203,13 @@ def do_extra_steps(repo_dir):
 
 def gen_symbolic_doc(repo_dir):
     mk = []
+    p = []
     for r in lut:
         cwd = os.path.join(repo_dir, f"{r}/{lut[r]['doc_folder']}")
         mk.append(get_sphinx_dirs(cwd))
         if mk[-1][0]:
             continue
-        p = pr.popen(['make', 'html'], cwd)
+        pr.popen(['make', 'html'], p, cwd)
     pr.wait(p)
 
     d_ = os.path.abspath(os.path.join(repo_dir, os.pardir))
@@ -219,7 +219,7 @@ def gen_symbolic_doc(repo_dir):
         if m[0]:
             continue
         d_ = os.path.join(out, r)
-        p = pr.popen(['ln', '-sf', m[1], d_])
+        pr.popen(['ln', '-sf', m[1], d_], p)
     pr.wait(p)
 
 
@@ -389,6 +389,7 @@ def aggregate(directory, symbolic, extra, no_parallel_, dry_run_, open_):
     if os.path.isdir(d__):
         pr.run(f"rm -r {d__}")
 
+    p = []
     for r in lut:
         r__ = remote if 'remote' not in lut[r] else lut[r]['remote']
         r_ = r__.format(r)
@@ -396,10 +397,10 @@ def aggregate(directory, symbolic, extra, no_parallel_, dry_run_, open_):
         if not os.path.isdir(cwd):
             git_cmd = ["git", "clone", r_, "--depth=1", "-b",
                        lut[r]['branch'], '--', cwd]
-            p = pr.popen(git_cmd)
+            pr.popen(git_cmd, p)
         else:
             git_cmd = ["git", "pull"]
-            p = pr.popen(git_cmd, cwd)
+            pr.popen(git_cmd, p, cwd)
     pr.wait(p)
 
     if extra:

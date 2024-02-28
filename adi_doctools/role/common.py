@@ -22,7 +22,7 @@ git_repos = [
     ['hdl',              "HDL"],
     ['testbenches',      "Testbenches"],
     ['linux',            "Linux"],
-    ['no-os',            "no-OS"],
+    ['no-OS',            "no-OS"],
     ['libiio',           "libiio"],
     ['scopy',            "Scopy"],
     ['iio-oscilloscope', "IIO Oscilloscope"],

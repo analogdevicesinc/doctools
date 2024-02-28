@@ -13,7 +13,7 @@ repository = {
     # url_path          name
     'documentation':    "System Level",
     'hdl':              "HDL",
-    'no-os':            "no-OS",
+    'no-OS':            "no-OS",
     'pyadi-iio':        "pyadi-iio",
 }
 
@@ -38,10 +38,10 @@ def subdomain_tree(content_root, conf_vars, pagename):
     From the 'repository' config value, a 'current' class is added to
     the link targeting the current doc.
     The links are functional with at least 1 level of depth, for example:
-    docs.example.com/hdl -> ../no-os -> docs.example.com/no-os
-    docs.example.com/v0.1/hdl -> ../no-os -> docs.example.com/v0.1/no-os
+    docs.example.com/hdl -> ../no-OS -> docs.example.com/no-OS
+    docs.example.com/v0.1/hdl -> ../no-OS -> docs.example.com/v0.1/no-OS
     While something with 0 depth is improper:
-    hdl-docs.example.com -> ../no-os -XXX-> hdl-docs.example.com/no-os
+    hdl-docs.example.com -> ../no-OS -XXX-> hdl-docs.example.com/no-OS
     """
     repo, monolithic, pseudo_subdomains = conf_vars
     root = etree.Element("root")
@@ -89,7 +89,7 @@ def navigation_tree(app, toctree_html, content_root, pagename):
     root = etree.fromstring(toctree_html, parser)
 
     conf_vars = (
-        app.env.config.repository.lower(),
+        app.env.config.repository,
         app.env.config.monolithic,
         app.env.config.pseudo_subdomains
     )

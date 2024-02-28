@@ -8,7 +8,9 @@ log = {
     'inv_f': "Could not find {}, check rollup output.",
     'inv_bdir': "Could not find BUILDDIR {}.",
     'inv_srcdir': "Could not find SOURCEDIR {}.",
-    'no-selenium': "Package 'selenium' is not installed, pooling enabled."
+    'no_selenium': "Package 'selenium' is not installed, pooling enabled.",
+    'rollup': "Couldn't find {}, ensure this a symbolic install",
+    'node': "Couldn't find {}, please you install the npm tools locally."
 }
 
 # Hall of shame of poorly managed artifacts
@@ -22,7 +24,6 @@ unmanaged = ["PyADI-IIO_Logo"]
     is_flag=False,
     type=click.Path(exists=True),
     default=None,
-    required=True,
     help="Path to the docs folder with the Makefile."
 )
 @click.option(
@@ -60,15 +61,6 @@ def author_mode(directory, port, dev, no_selenium, just_regen):
     Selenium: Page reloads through Firefox's API.
     Pooling: The webpage pools timestamp changes on the .dev-pool file.
     """
-    if directory is None:
-        click.echo("Please provide a --directory.")
-        return
-    with_selenium = False
-    if not no_selenium:
-        if importlib.util.find_spec("selenium"):
-            with_selenium = True
-        else:
-            click.echo(log['no-selenium'])
 
     import glob
     import re
@@ -97,6 +89,36 @@ def author_mode(directory, port, dev, no_selenium, just_regen):
         else:
             return False
 
+    if just_regen:
+        src_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                               os.pardir)
+        par_dir = os.path.abspath(os.path.join(src_dir, os.pardir))
+
+        rollup_ci_file = "ci/rollup.config.app.mjs"
+        rollup_ci_dir = os.path.join(par_dir, rollup_ci_file)
+        rollup_file = "node_modules/.bin/rollup"
+        rollup_dir = os.path.join(par_dir, rollup_file)
+
+        if symbolic_assert(rollup_ci_dir, log['rollup'].format(rollup_ci_dir)):
+            return
+        if symbolic_assert(rollup_dir, log['node'].format(rollup_dir)):
+            return
+
+        subprocess.call(f"{rollup_file} -c {rollup_ci_file}",
+                        shell=True, cwd=par_dir)
+        return
+
+    if directory is None:
+        click.echo("Please provide a --directory.")
+        return
+
+    with_selenium = False
+    if not no_selenium:
+        if importlib.util.find_spec("selenium"):
+            with_selenium = True
+        else:
+            click.echo(log['no_selenium'])
+
     directory = os.path.abspath(directory)
     makefile = os.path.join(directory, 'Makefile')
     if symbolic_assert(makefile, log['no_mk']):
@@ -121,21 +143,19 @@ def author_mode(directory, port, dev, no_selenium, just_regen):
     devpool_js = "ADOC_DEVPOOL= " if not with_selenium else ""
     watch_file_src = {}
     watch_file_rst = {}
-    if dev or just_regen:
+    if dev:
         src_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                os.pardir)
         par_dir = os.path.abspath(os.path.join(src_dir, os.pardir))
 
         rollup_ci_file = "ci/rollup.config.app.mjs"
         rollup_ci_dir = os.path.join(par_dir, rollup_ci_file)
-        rollup_node_file = "node_modules/.bin/rollup"
-        rollup_node_dir = os.path.join(par_dir, rollup_node_file)
+        rollup_file = "node_modules/.bin/rollup"
+        rollup_dir = os.path.join(par_dir, rollup_file)
 
-        if symbolic_assert(rollup_ci_dir, f"Couldn't find {rollup_ci_dir}, \
-                           ensure this a symbolic install."):
+        if symbolic_assert(rollup_ci_dir, log['rollup'].format(rollup_ci_dir)):
             return
-        if symbolic_assert(rollup_node_dir, f"Couldn't find {rollup_node_dir},\
-                           please you install the npm tools locally."):
+        if symbolic_assert(rollup_dir, log['node'].format(rollup_dir)):
             return
 
         source_files = ['app.umd.js', 'app.umd.js.map', 'style.min.css',
@@ -150,10 +170,8 @@ def author_mode(directory, port, dev, no_selenium, just_regen):
             if not os.path.isfile(w_files[-1]):
                 rollup_cache = False
         if not rollup_cache or just_regen:
-            subprocess.call(f"{rollup_node_file} -c {rollup_ci_file}",
+            subprocess.call(f"{rollup_file} -c {rollup_ci_file}",
                             shell=True, cwd=par_dir)
-        if just_regen:
-            return
         for f in w_files:
             if symbolic_assert(f, log['inv_f']):
                 return
@@ -163,7 +181,7 @@ def author_mode(directory, port, dev, no_selenium, just_regen):
         for f, s in zip(w_files, source_files):
             watch_file_src[f] = os.path.getctime(f)
         # Run rollup in watch mode
-        cmd = f"{rollup_node_file} -c {rollup_ci_file} --watch"
+        cmd = f"{rollup_file} -c {rollup_ci_file} --watch"
         rollup_p = subprocess.Popen(cmd, shell=True, cwd=par_dir,
                                     stdout=subprocess.DEVNULL)
     else:

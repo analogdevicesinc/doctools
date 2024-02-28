@@ -355,6 +355,10 @@ The role syntax is :code:`:git-repo:\`text <branch:path>\``, for example:
 * :code:`:git-hdl:\`Guidelines <docs/user_guide/docs_guidelines.rst>\``
   renders as :git-hdl:`Guidelines <docs/user_guide/docs_guidelines.rst>`.
 
+.. important::
+
+   The repository name is case sensitive.
+
 When the branch field is not present, it will be filled with the current branch.
 It is recommended to not provide this field when it is a link to its own repository,
 because it is useful to auto-fill it for documentation releases
