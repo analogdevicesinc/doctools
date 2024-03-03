@@ -9,14 +9,6 @@ from sphinx.transforms.post_transforms import SphinxPostTransform
 
 from .cosmic import cosmic_setup
 
-repository = {
-    # url_path          name
-    'documentation':    "System Level",
-    'hdl':              "HDL",
-    'no-OS':            "no-OS",
-    'pyadi-iio':        "pyadi-iio",
-}
-
 
 def theme_config_setup(app):
     app.add_config_value('repository', '', 'env')
@@ -43,13 +35,18 @@ def subdomain_tree(content_root, conf_vars, pagename):
     While something with 0 depth is improper:
     hdl-docs.example.com -> ../no-OS -XXX-> hdl-docs.example.com/no-OS
     """
-    repo, monolithic, pseudo_subdomains = conf_vars
+    repo, monolithic, pseudo_subdomains, lut = conf_vars
     root = etree.Element("root")
     home = "index.html"
     if monolithic:
         depth = ''
     else:
         depth = '../'
+
+    repository = {}
+    for key in lut:
+        if lut[key]['visibility'] == 'public':
+            repository[key] = lut[key]['name']
 
     if monolithic:
         subdomains = {**pseudo_subdomains, **repository}
@@ -91,9 +88,10 @@ def navigation_tree(app, toctree_html, content_root, pagename):
     conf_vars = (
         app.env.config.repository,
         app.env.config.monolithic,
-        app.env.config.pseudo_subdomains
+        app.env.config.pseudo_subdomains,
+        app.lut
     )
-    _, monolithic, _ = conf_vars
+    _, monolithic, _, _ = conf_vars
 
     lvl = [0]
 

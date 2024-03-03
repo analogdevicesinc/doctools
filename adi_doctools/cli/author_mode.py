@@ -52,7 +52,7 @@ unmanaged = ["PyADI-IIO_Logo"]
     '-g',
     is_flag=True,
     default=False,
-    help="Just regerate minified files and exit."
+    help="Just regenerate minified files and exit."
 )
 def author_mode(directory, port, dev, no_selenium, just_regen):
     """

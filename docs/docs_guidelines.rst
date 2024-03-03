@@ -75,6 +75,22 @@ Also, it is recommended to wrap the toctree in a "Contents" section:
 
       some_page
 
+Version
+--------------------------------------------------------------------------------
+
+To avoid having the version set in multiple places or having to tweak ``conf.py``
+to obtain it from somewhere else, continuous integration can set the environment
+variable ``ADOC_DOC_VERSION`` to set the version value.
+
+Still, the ``version`` value on ``conf.py`` has higher precedence, and
+``ADOC_DOC_VERSION`` will be ignored if the variable is already set.
+
+The CI, in general, should set ``ADOC_DOC_VERSION`` as the current checkout branch
+in the pipeline (e.g. ``main``, ``v1.0.0``).
+
+If both environment variable and ``version`` on ``conf.py`` are unset, it defaults
+to a empty string.
+
 References
 --------------------------------------------------------------------------------
 
@@ -98,16 +114,74 @@ For resources without a particular source code file/folder, prefer hyphen ``-``
 separation, for example, ``spi_engine control-interface`` instead of
 ``spi_engine control_interface``.
 
-External references
+In organization Sphinx references
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For references to other Sphinx documentations, the ``sphinx.ext.intersphinx`` is used.
-The syntax is :code:`:ref:\`external:label\``, where ``external`` is a mapped source,
-for example, :code:`:ref:\`hdl:spi_engine control-interface\``.
+For references to in-org Sphinx docs, the ``ref`` role is extended with the syntax
+:code:`:ref-<external>:\`label\`` where ``external`` is a mapped source,
+for example, :code:`:ref-hdl:\`spi_engine control-interface\``.
 It is also possible to customize the text, e.g.
-:code:`:ref:\`Custom text <hdl:spi_engine control-interface>\``.
+:code:`:ref-hdl:\`Custom text <spi_engine control-interface>\``.
 
-A warning is thrown when an external reference is not found.
+A warning is thrown when a reference is not found.
+
+Repository mappings are enabled to the `conf.py` file with the following format:
+
+.. code:: python
+
+   interref_mapping = [external, ...]
+
+For example:
+
+.. code:: python
+
+   interref_mapping = [hdl, no-OS]
+
+Version handling is done with the ``ADOC_INTERREF_TAGGED`` and
+``ADOC_INTERREF_RELEASE`` environment variables values, where:
+
+* ``ADOC_INTERREF_TAG``: adds the tag as a suffix to the uri, e.g. ``main``,
+  ``v2.1.0``, set to enable.
+* ``ADOC_INTERREF_RELEASE``: unset to use the default branch (e.g. ``main``)
+  or set to use the latest release (e.g. ``v3.0.0``) as the tag.
+
+Tracked repositories, default branch is obtained from lookup table (lut), and the
+latest release from ``latest.txt`` file at the root of the hosted version, e.g.
+``hdl/latest.txt``, if not found, will fallback to the default branch.
+Resolved the path, the mappings are obtained from the InterSphinx mapping file.
+
+To show all links of an InterSphinx mapping file, use the built-in tool:
+
+.. code:: bash
+
+   python3 -m sphinx.ext.intersphinx https://analogdevicesinc.github.io/hdl/objects.inv
+
+The previous syntax applies only for references/label links (domain ``ref``/``label``),
+for every other domain, set it explicitly,
+e.g. :code:`:ref-hdl:doc:\`user_guide/docs_guidelines\``.
+The domains are also listed in the ``sphinx.ext.intersphinx`` output.
+
+Others options:
+
+* ``ADOC_INTERREF_URI``: uri for the inventory and links, default is
+  ``https://analogdevicesinc.github.io/``; it can be a local path, e.g.
+  ``/path/to/www``, in this case, the rendered href is always relative and
+  expects the builds to be stored in the same path, e.g ``/path/to/www``.
+
+
+
+Outside organization Sphinx references
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To create references to other Sphinx documentations, ``sphinx.ext.intersphinx``
+can be added to the ``conf.py`` extension list.
+The syntax is :code:`:external+<external>:<domain>:\`label\``, where ``external``
+is a mapped source and the domain is the reference type,
+for example, :code:`:external+sphinx:doc:\`development/theming\``.
+It is also possible to customize the text, e.g.
+:code:`:external+sphinx:ref:\`Custom text <examples>\``.
+
+A warning is thrown when a reference is not found.
 
 Mappings are included to the `conf.py` file with the following format:
 
@@ -122,19 +196,16 @@ For example:
 .. code:: python
 
    intersphinx_mapping = {
-       'doctools': ('https://analogdevicesinc.github.io/doctools', None)
+       'sphinx': ('https://www.sphinx-doc.org/en/master', None)
    }
 
 And new mappings can be included as needed.
 
-For simplicity, usually the mapping path is the hosted documentation on GitHub pages,
-which either follows the main branch or is the latest stable release.
-
-To show all links of an InterSphinx mapping file, use, for example:
+To show all links of an InterSphinx mapping file, use the built-in tool:
 
 .. code:: bash
 
-   python3 -m sphinx.ext.intersphinx https://analogdevicesinc.github.io/hdl/objects.inv
+   python3 -m sphinx.ext.intersphinx https://www.sphinx-doc.org/en/master/objects.inv
 
 
 Text width

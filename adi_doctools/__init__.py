@@ -1,13 +1,17 @@
-import os
+from os import path, getenv
+
+from sphinx.util import logging
 
 from .theme import (navigation_tree, get_pygments_theme,
                     write_pygments_css, wrap_elements)
 from .theme import setup as theme_setup, names as theme_names
 from .directive import setup as directive_setup
 from .role import setup as role_setup
+from .lut import get_lut
 
-__version__ = "0.3.16"
+__version__ = "0.3.17"
 
+logger = logging.getLogger(__name__)
 
 def get_navigation_tree(app, context, pagename):
     # The navigation tree, generated from the sphinx-provided ToC tree.
@@ -39,10 +43,22 @@ def html_page_context(app, pagename, templatename, context, doctree):
     context["sidebar_tree"], context["subdomain_tree"] = ret
 
 
+def config_inited(app, config):
+    app.lut = get_lut()
+
+    if 'version' not in config:
+        config.version = getenv("ADOC_DOC_VERSION", default='')
+        if config.version == '':
+            msg = (
+                "Unset/empty environment variable ADOC_DOC_VERSION."
+            )
+            logger.info(msg)
+
+
 def builder_inited(app):
     if app.builder.format == 'html':
-        # Add include regarless of theme.
-        if os.getenv("ADOC_DEVPOOL") is not None:
+        # Add include regardless of theme.
+        if getenv("ADOC_DEVPOOL") is not None:
             app.add_js_file("dev-pool.js", priority=500, defer="")
         # Add bundled JavaScript if current theme is from this extension.
         if app.env.config.html_theme in theme_names:
@@ -67,13 +83,13 @@ def build_finished(app, exc):
     def copy_asset(app, uri):
         from sphinx.util.fileutil import copy_asset_file
 
-        src_uri = os.path.join(os.path.dirname(__file__),
+        src_uri = path.join(path.dirname(__file__),
                                f"miscellaneous/{uri}")
-        build_uri = os.path.join(app.builder.outdir, '_static', uri)
+        build_uri = path.join(app.builder.outdir, '_static', uri)
         copy_asset_file(src_uri, build_uri)
 
     if app.builder.format == 'html' and not exc:
-        if os.getenv("ADOC_DEVPOOL") is not None:
+        if getenv("ADOC_DEVPOOL") is not None:
             copy_asset(app, "dev-pool.js")
 
         if app.env.config.html_theme not in theme_names:
@@ -95,6 +111,7 @@ def setup(app):
     app.add_post_transform(wrap_elements)
 
     app.connect("html-page-context", html_page_context)
+    app.connect("config-inited", config_inited)
     app.connect("builder-inited", builder_inited)
     app.connect("build-finished", build_finished)
 

@@ -5,43 +5,11 @@ import click
 import subprocess
 import re
 
-remote = "git@github.com:analogdevicesinc/{}.git"
-
-lut = {
-    'documentation': {
-        'doc_folder': 'docs',
-        'name': 'System Level',
-        'branch': 'main'
-    },
-    'hdl': {
-        'doc_folder': 'docs',
-        'extra': (
-            # cwd      # cmd            # no_parallel
-            "library", ["make", "all"], False
-        ),
-        'name': 'HDL',
-        'branch': 'main'
-    },
-    'no-OS': {
-        'doc_folder': 'doc/sphinx/source',
-        'name': 'no-OS',
-        'branch': 'main'
-    },
-    'pyadi-iio': {
-        'doc_folder': 'doc',
-        'name': 'pyadi-iio',
-        'branch': 'main'
-    },
-    'doctools': {
-        'doc_folder': 'docs',
-        'name': 'Doctools',
-        'branch': 'main'
-    },
-}
+from ..lut import get_lut, remote
 
 dry_run = True
 no_parallel = True
-
+lut = get_lut()
 
 class pr:
     @staticmethod
@@ -313,7 +281,6 @@ def gen_monolithic_doc(repo_dir):
     pr.run("sphinx-build . _build", docs_dir)
 
     cwd = d_
-    pr.run("ln -sf docs/_build/html html_mono", cwd)
 
 
 @click.command()
@@ -412,7 +379,7 @@ def aggregate(directory, symbolic, extra, no_parallel_, dry_run_, open_):
         gen_monolithic_doc(repos_dir)
 
     type_ = "symbolic" if symbolic else "monolithic"
-    out_ = "html" if symbolic else "html_mono"
+    out_ = "html" if symbolic else "docs/_build"
     click.echo(f"Done, {type_} documentation written to {directory}/{out_}")
 
     if open_ and not dry_run:
