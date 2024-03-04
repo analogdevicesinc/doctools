@@ -58,8 +58,10 @@
 <li><a class="reference internal" href="#">Documentation guidelines</a><ul>
 <li><a class="reference internal" href="#indentation">Indentation</a></li>
 <li><a class="reference internal" href="#table-of-contents">Table of contents</a></li>
+<li><a class="reference internal" href="#version">Version</a></li>
 <li><a class="reference internal" href="#references">References</a><ul>
-<li><a class="reference internal" href="#external-references">External references</a></li>
+<li><a class="reference internal" href="#in-organization-sphinx-references">In organization Sphinx references</a></li>
+<li><a class="reference internal" href="#outside-organization-sphinx-references">Outside organization Sphinx references</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#text-width">Text width</a></li>
@@ -199,6 +201,18 @@ of “AD7616-SDZ HDL project”.</p>
 </pre></div>
 </div>
 </section>
+<section id="version">
+<h2>Version<a class="headerlink" href="#version" title="Link to this heading">#</a></h2>
+<p>To avoid having the version set in multiple places or having to tweak <code class="docutils literal notranslate"><span class="pre">conf.py</span></code>
+to obtain it from somewhere else, continuous integration can set the environment
+variable <code class="docutils literal notranslate"><span class="pre">ADOC_DOC_VERSION</span></code> to set the version value.</p>
+<p>Still, the <code class="docutils literal notranslate"><span class="pre">version</span></code> value on <code class="docutils literal notranslate"><span class="pre">conf.py</span></code> has higher precedence, and
+<code class="docutils literal notranslate"><span class="pre">ADOC_DOC_VERSION</span></code> will be ignored if the variable is already set.</p>
+<p>The CI, in general, should set <code class="docutils literal notranslate"><span class="pre">ADOC_DOC_VERSION</span></code> as the current checkout branch
+in the pipeline (e.g. <code class="docutils literal notranslate"><span class="pre">main</span></code>, <code class="docutils literal notranslate"><span class="pre">v1.0.0</span></code>).</p>
+<p>If both environment variable and <code class="docutils literal notranslate"><span class="pre">version</span></code> on <code class="docutils literal notranslate"><span class="pre">conf.py</span></code> are unset, it defaults
+to a empty string.</p>
+</section>
 <section id="references">
 <h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
 <p>References have the format <code class="docutils literal notranslate"><span class="pre">library/project</span> <span class="pre">context</span></code>, e.g.
@@ -218,14 +232,60 @@ it makes pattern matching really hard.</p>
 <p>For resources without a particular source code file/folder, prefer hyphen <code class="docutils literal notranslate"><span class="pre">-</span></code>
 separation, for example, <code class="docutils literal notranslate"><span class="pre">spi_engine</span> <span class="pre">control-interface</span></code> instead of
 <code class="docutils literal notranslate"><span class="pre">spi_engine</span> <span class="pre">control_interface</span></code>.</p>
-<section id="external-references">
-<h3>External references<a class="headerlink" href="#external-references" title="Link to this heading">#</a></h3>
-<p>For references to other Sphinx documentations, the <code class="docutils literal notranslate"><span class="pre">sphinx.ext.intersphinx</span></code> is used.
-The syntax is <code class="code docutils literal notranslate"><span class="pre">:ref:`external:label`</span></code>, where <code class="docutils literal notranslate"><span class="pre">external</span></code> is a mapped source,
-for example, <code class="code docutils literal notranslate"><span class="pre">:ref:`hdl:spi_engine</span> <span class="pre">control-interface`</span></code>.
+<section id="in-organization-sphinx-references">
+<h3>In organization Sphinx references<a class="headerlink" href="#in-organization-sphinx-references" title="Link to this heading">#</a></h3>
+<p>For references to in-org Sphinx docs, the <code class="docutils literal notranslate"><span class="pre">ref</span></code> role is extended with the syntax
+<code class="code docutils literal notranslate"><span class="pre">:ref-&lt;external&gt;:`label`</span></code> where <code class="docutils literal notranslate"><span class="pre">external</span></code> is a mapped source,
+for example, <code class="code docutils literal notranslate"><span class="pre">:ref-hdl:`spi_engine</span> <span class="pre">control-interface`</span></code>.
 It is also possible to customize the text, e.g.
-<code class="code docutils literal notranslate"><span class="pre">:ref:`Custom</span> <span class="pre">text</span> <span class="pre">&lt;hdl:spi_engine</span> <span class="pre">control-interface&gt;`</span></code>.</p>
-<p>A warning is thrown when an external reference is not found.</p>
+<code class="code docutils literal notranslate"><span class="pre">:ref-hdl:`Custom</span> <span class="pre">text</span> <span class="pre">&lt;spi_engine</span> <span class="pre">control-interface&gt;`</span></code>.</p>
+<p>A warning is thrown when a reference is not found.</p>
+<p>Repository mappings are enabled to the <cite>conf.py</cite> file with the following format:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">interref_mapping</span> <span class="o">=</span> <span class="p">[</span><span class="n">external</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>For example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">interref_mapping</span> <span class="o">=</span> <span class="p">[</span><span class="n">hdl</span><span class="p">,</span> <span class="n">no</span><span class="o">-</span><span class="n">OS</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Version handling is done with the <code class="docutils literal notranslate"><span class="pre">ADOC_INTERREF_TAGGED</span></code> and
+<code class="docutils literal notranslate"><span class="pre">ADOC_INTERREF_RELEASE</span></code> environment variables values, where:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">ADOC_INTERREF_TAG</span></code>: adds the tag as a suffix to the uri, e.g. <code class="docutils literal notranslate"><span class="pre">main</span></code>,
+<code class="docutils literal notranslate"><span class="pre">v2.1.0</span></code>, set to enable.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ADOC_INTERREF_RELEASE</span></code>: unset to use the default branch (e.g. <code class="docutils literal notranslate"><span class="pre">main</span></code>)
+or set to use the latest release (e.g. <code class="docutils literal notranslate"><span class="pre">v3.0.0</span></code>) as the tag.</p></li>
+</ul>
+<p>Tracked repositories, default branch is obtained from lookup table (lut), and the
+latest release from <code class="docutils literal notranslate"><span class="pre">latest.txt</span></code> file at the root of the hosted version, e.g.
+<code class="docutils literal notranslate"><span class="pre">hdl/latest.txt</span></code>, if not found, will fallback to the default branch.
+Resolved the path, the mappings are obtained from the InterSphinx mapping file.</p>
+<p>To show all links of an InterSphinx mapping file, use the built-in tool:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>sphinx.ext.intersphinx<span class="w"> </span>https://analogdevicesinc.github.io/hdl/objects.inv
+</pre></div>
+</div>
+<p>The previous syntax applies only for references/label links (domain <code class="docutils literal notranslate"><span class="pre">ref</span></code>/<code class="docutils literal notranslate"><span class="pre">label</span></code>),
+for every other domain, set it explicitly,
+e.g. <code class="code docutils literal notranslate"><span class="pre">:ref-hdl:doc:`user_guide/docs_guidelines`</span></code>.
+The domains are also listed in the <code class="docutils literal notranslate"><span class="pre">sphinx.ext.intersphinx</span></code> output.</p>
+<p>Others options:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">ADOC_INTERREF_URI</span></code>: uri for the inventory and links, default is
+<code class="docutils literal notranslate"><span class="pre">https://analogdevicesinc.github.io/</span></code>; it can be a local path, e.g.
+<code class="docutils literal notranslate"><span class="pre">/path/to/www</span></code>, in this case, the rendered href is always relative and
+expects the builds to be stored in the same path, e.g <code class="docutils literal notranslate"><span class="pre">/path/to/www</span></code>.</p></li>
+</ul>
+</section>
+<section id="outside-organization-sphinx-references">
+<h3>Outside organization Sphinx references<a class="headerlink" href="#outside-organization-sphinx-references" title="Link to this heading">#</a></h3>
+<p>To create references to other Sphinx documentations, <code class="docutils literal notranslate"><span class="pre">sphinx.ext.intersphinx</span></code>
+can be added to the <code class="docutils literal notranslate"><span class="pre">conf.py</span></code> extension list.
+The syntax is <code class="code docutils literal notranslate"><span class="pre">:external+&lt;external&gt;:&lt;domain&gt;:`label`</span></code>, where <code class="docutils literal notranslate"><span class="pre">external</span></code>
+is a mapped source and the domain is the reference type,
+for example, <code class="code docutils literal notranslate"><span class="pre">:external+sphinx:doc:`development/theming`</span></code>.
+It is also possible to customize the text, e.g.
+<code class="code docutils literal notranslate"><span class="pre">:external+sphinx:ref:`Custom</span> <span class="pre">text</span> <span class="pre">&lt;examples&gt;`</span></code>.</p>
+<p>A warning is thrown when a reference is not found.</p>
 <p>Mappings are included to the <cite>conf.py</cite> file with the following format:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">intersphinx_mapping</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s1">&#39;&lt;name&gt;&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;&lt;path/to/external&gt;&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
@@ -234,15 +294,13 @@ It is also possible to customize the text, e.g.
 </div>
 <p>For example:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">intersphinx_mapping</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;doctools&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;https://analogdevicesinc.github.io/doctools&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="s1">&#39;sphinx&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;https://www.sphinx-doc.org/en/master&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p>And new mappings can be included as needed.</p>
-<p>For simplicity, usually the mapping path is the hosted documentation on GitHub pages,
-which either follows the main branch or is the latest stable release.</p>
-<p>To show all links of an InterSphinx mapping file, use, for example:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>sphinx.ext.intersphinx<span class="w"> </span>https://analogdevicesinc.github.io/hdl/objects.inv
+<p>To show all links of an InterSphinx mapping file, use the built-in tool:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>sphinx.ext.intersphinx<span class="w"> </span>https://www.sphinx-doc.org/en/master/objects.inv
 </pre></div>
 </div>
 </section>
