@@ -1,0 +1,27 @@
+{#
+  From: https://github.com/pradyunsg/furo/blob/main/src/furo/theme/furo/partials/_head_css_variables.html
+  This is where user-provided CSS variables get converted into actual values.
+#}
+{% macro declare_css_variables(user_customisations) -%}
+  {% if user_customisations -%}
+  {% for name, value in user_customisations.items() -%}
+    --{{ name }}: {{ value }};
+  {% endfor %}
+  {%- endif %}
+{%- endmacro %}
+
+<style>
+  body {
+    {{ declare_css_variables(theme_light_css_variables) }}
+  }
+
+  body.dark {
+    {{ declare_css_variables(theme_dark_css_variables) }}
+  }
+
+  @media (prefers-color-scheme: dark) {
+    body:not(.light) {
+      {{ declare_css_variables(theme_dark_css_variables) }}
+    }
+  }
+</style>

@@ -43,7 +43,7 @@
         height: 1.5rem;
         margin: .25rem;
         background: url('./icons.svg');
-        filter: invert(var(--dark-true));
+        filter: invert(var(--is-dark-theme));
     }
 
     button:before {

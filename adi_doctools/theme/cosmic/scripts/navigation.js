@@ -58,7 +58,7 @@ class Navigation {
     $.searchArea.$['action'] = DOM.get('link[rel="search"]').href
     $.body.append([$.searchAreaBg])
 
-    $.rightHeader = new DOM(DOM.get('.header #right span')).append([$.changeTheme, $.searchButton])
+    $.rightHeader = new DOM(DOM.get('.header #right span.reverse')).append([$.changeTheme, $.searchButton])
   }
   search (e) {
     if (e.code === 'IntlRo' && !this.$.searchArea.classList.contains('on')) {

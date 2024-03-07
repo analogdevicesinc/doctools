@@ -100,8 +100,12 @@ def navigation_tree(app, toctree_html, content_root, pagename):
         return pagename[0:i] if i != -1 else ''
 
     def monolithic_tree(root, conf_vars, pagename):
-        repo, _, pseudo_subdomains = conf_vars
+        repo, _, pseudo_subdomains, lut = conf_vars
         # Keep unchanged for standalone pages (e.g. /index.html, /search.html)
+        repository = {}
+        for key in lut:
+            if lut[key]['visibility'] == 'public':
+                repository[key] = lut[key]['name']
         subdomains = {**pseudo_subdomains, **repository}
         if repo not in subdomains:
             return

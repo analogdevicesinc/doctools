@@ -36,6 +36,20 @@
         max-width: 18em;
         margin: 1em auto 0;
     }
+
+    .sphinxsidebar #logo img, .sphinxsidebar #no-logo {
+        display: none !important;
+    }
+}
+
+.sphinxsidebar #logo, .sphinxsidebar #no-logo {
+    display: block;
+    max-width: 13rem;
+}
+
+.sphinxsidebar #no-logo {
+    font-size: 1.5em;
+    margin-bottom: .5rem;
 }
 
 @media (min-width: $width-narrowest) and (max-width: $width-narrow) {
@@ -92,7 +106,7 @@
 
     .sphinxsidebarwrapper {
 	    box-sizing: content-box;
-        padding: 1.5rem calc(10vw - 9rem) 0em calc(30vw - 21rem);
+        padding: 1.5rem 1rem 0em calc(40vw - 31rem);
         overflow-y: auto;
         height: calc(100vh - 1.5rem);
 	    width: 15em;
@@ -100,12 +114,12 @@
 }
 
 @media (max-width: $width-narrow) {
-    .sphinxsidebarwrapper {
+    .sidebar-tree, .subdomain-tree {
         padding: 1em;
     }
 }
 
-.sidebar-tree {
+.sidebar-tree, .sphinxsidebar .subdomain-tree {
     margin-bottom: 10em;
 
     p.caption {
@@ -174,7 +188,7 @@
     .toctree-collapse:checked ~ .collapse .icon {
         transform: rotate(45deg);
         margin-top: -1px;
-       margin-left: 2px;
+        margin-left: 2px;
     }
 
     label {
@@ -208,7 +222,7 @@
 
     nav {
         max-width: 20rem;
-        border-left: 1px solid rgba(125,125,125,.25);
+        border-left: 1px solid rgba(125,125,125,.5);
         color: var(--text-color2);
         margin-bottom: 10em;
     }
@@ -230,7 +244,7 @@
 
     #scroll-up {
       cursor: pointer;
-      filter: invert(var(--dark-true));
+      filter: invert(var(--is-dark-theme));
       margin-left: .25rem;
       opacity: 0.75
     }
@@ -270,6 +284,36 @@
     .tocwrapper {
         height: calc(100vh - 1rem);
     }
+
+    #showsubdomain-1, #showsubdomain-2 {
+        display: none;
+    }
+}
+
+#showsubdomain-1, #showsubdomain-2 {
+    cursor: pointer;
+    user-select: none;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 0.5rem 0.5rem 0.5em;
+    background: var(--bg-color2);
+}
+
+#showsubdomain-1:before, #showsubdomain-2:after {
+    content: '';
+    display: block;
+    width: 1.5rem;
+    height: 1.5rem;
+    background: url('./icons.svg');
+    filter: invert(var(--is-dark-theme));
+}
+
+#showsubdomain-1:before {
+    background-position: left calc(-1.5rem*5) bottom;
+}
+
+#showsubdomain-2:after {
+    background-position: left calc(-1.5rem*5) top;
 }
 
 @media (max-width: $width-narrow) {
@@ -281,6 +325,32 @@
     .tocwrapper {
         height: calc(100vh - 3.5rem);
     }
+
+    #input-showsubdomain:checked ~ .subdomain-tree {
+        display: block;
+    }
+
+    #input-showsubdomain:checked ~ .sidebar-tree {
+        display: none;
+    }
+
+    #showsubdomain-2 {
+        display: none;
+    }
+
+    #showsubdomain-1,
+    #input-showsubdomain:checked ~ #showsubdomain-2 {
+        display: flex;
+        justify-content: start;
+    }
+
+    #input-showsubdomain:checked ~ #showsubdomain-1 {
+        display: none;
+    }
+}
+
+.sphinxsidebar .subdomain-tree {
+    display: none;
 }
 
 @media (max-width: $width-wide) {
@@ -325,14 +395,7 @@
 }
 
 #input-showsidebar,
-#input-showonthispage {
+#input-showonthispage,
+#input-showsubdomain {
     display: none
-}
-
-.sphinxsidebar {
-    .subdomain-tree root {
-        display: flex;
-        flex-direction: column;
-        border-bottom: $border-panel;
-    }
 }

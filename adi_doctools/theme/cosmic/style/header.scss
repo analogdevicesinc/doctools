@@ -9,6 +9,10 @@ header {
 
     #right span {
         display: flex;
+        align-items: center;
+    }
+
+    #right span.reverse {
         flex-direction: row-reverse;
     }
 
@@ -19,7 +23,7 @@ header {
         height: 1.5rem;
         margin: 1rem .5rem;
         background: url('./icons.svg');
-        filter: invert(var(--dark-true));
+        filter: invert(var(--is-dark-theme));
     }
 
     #search:before {
@@ -51,6 +55,25 @@ header {
     .subdomain-tree {
         padding-left: calc(40vw - 13em - 1em);
         border-bottom: $border-panel;
+        background: var(--bg-color1);
+        height: 2.5em;
+
+        a {
+            cursor: pointer;
+            display: inline-block;
+            padding: .5em .5em .625em .5em;
+            margin: 0 .5em;
+            border-bottom: .125em solid rgba(0,0,0,0);
+        }
+
+        a:hover {
+            color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        a.current {
+            border-color: var(--font-color1);
+        }
     }
 }
 
@@ -101,13 +124,35 @@ header {
         justify-content: space-between;
     }
 
+    #logo-org {
+        display: inline-block;
+        width: 5.375rem;
+        height: 1.5rem;
+        margin: .75em 0;
+        background: url('./logo-org.svg') no-repeat center top;
+    }
+
     #logo {
         display: inline-block;
         width: 6rem;
         height: 2rem;
-        margin: .75em 0;
-        background: url('./adi-logo.svg') no-repeat center center;
-        filter: grayscale(var(--dark-true)) brightness(calc(1 + 4*var(--dark-true)));
+        margin: .75em 0.5em;
+    }
+
+    #logo, #no-logo {
+        border-left: $border-panel;
+        margin-left: 0.5em;
+        padding-left: 0.5em;
+    }
+}
+
+body.dark #logo-org {
+    background-position: center bottom;
+}
+
+@media (prefers-color-scheme: dark) {
+    body:not(.light) #logo-org {
+        background-position: center bottom;
     }
 }
 
@@ -119,44 +164,29 @@ header {
         width: 100%;
     }
 }
+
 @media (min-width: $width-narrow) {
     .header {
         background: var(--bg-color1);
     }
+
     .header #left{
         display: none;
     }
+
     .header #right {
         margin-left: calc(40vw - 13em);
         text-align: right;
+    }
+
+    .header #logo, .header #no-logo {
+        display: none !important;
     }
 }
 
 @media (min-width: $width-wide) {
     .header #right {
         max-width: 60rem;
-    }
-}
-
-.subdomain-tree {
-    background: var(--bg-color1);
-    height: 2.5em;
-
-    a {
-        cursor: pointer;
-        display: inline-block;
-        padding: .5em .5em .625em .5em;
-        margin: 0 .5em;
-        border-bottom: .125em solid rgba(0,0,0,0);
-    }
-
-    a:hover {
-        color: var(--accent-color);
-        border-color: var(--accent-color);
-    }
-
-    a.current {
-        border-color: var(--font-color1);
     }
 }
 

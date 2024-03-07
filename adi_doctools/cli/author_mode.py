@@ -1,4 +1,6 @@
-import os
+from os import path, listdir, remove
+from os import pardir, killpg, getpgid
+from shutil import copy
 import click
 import importlib
 
@@ -76,35 +78,33 @@ def author_mode(directory, port, dev, no_selenium, just_regen):
     global builddir
 
     def symbolic_assert(file, msg):
-        if not os.path.isfile(file):
+        if not path.isfile(file):
             click.echo(msg.format(file))
             return True
         else:
             return False
 
     def dir_assert(file, msg):
-        if not os.path.isdir(file):
+        if not path.isdir(file):
             click.echo(msg.format(file))
             return True
         else:
             return False
 
+    if just_regen or dev:
+        src_dir = path.join(path.dirname(path.abspath(__file__)), pardir)
+        par_dir = path.abspath(path.join(src_dir, pardir))
+
+        rollup_conf = path.join(par_dir, 'ci', 'rollup.config.app.mjs')
+        rollup_bin = path.join(par_dir, 'node_modules', '.bin', 'rollup')
+
+        if symbolic_assert(rollup_conf, log['rollup'].format(rollup_conf)):
+            return
+        if symbolic_assert(rollup_bin, log['node'].format(rollup_bin)):
+            return
+
     if just_regen:
-        src_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                               os.pardir)
-        par_dir = os.path.abspath(os.path.join(src_dir, os.pardir))
-
-        rollup_ci_file = "ci/rollup.config.app.mjs"
-        rollup_ci_dir = os.path.join(par_dir, rollup_ci_file)
-        rollup_file = "node_modules/.bin/rollup"
-        rollup_dir = os.path.join(par_dir, rollup_file)
-
-        if symbolic_assert(rollup_ci_dir, log['rollup'].format(rollup_ci_dir)):
-            return
-        if symbolic_assert(rollup_dir, log['node'].format(rollup_dir)):
-            return
-
-        subprocess.call(f"{rollup_file} -c {rollup_ci_file}",
+        subprocess.call(f"{rollup_bin} -c {rollup_conf}",
                         shell=True, cwd=par_dir)
         return
 
@@ -119,8 +119,8 @@ def author_mode(directory, port, dev, no_selenium, just_regen):
         else:
             click.echo(log['no_selenium'])
 
-    directory = os.path.abspath(directory)
-    makefile = os.path.join(directory, 'Makefile')
+    directory = path.abspath(directory)
+    makefile = path.join(directory, 'Makefile')
     if symbolic_assert(makefile, log['no_mk']):
         return
 
@@ -135,8 +135,8 @@ def author_mode(directory, port, dev, no_selenium, just_regen):
     if builddir_ is None or sourcedir_ is None:
         click.echo(log['inv_mk'].format(directory))
         return
-    builddir = os.path.join(directory, f"{builddir_}/html")
-    sourcedir = os.path.join(directory, sourcedir_)
+    builddir = path.join(directory, builddir_, 'html')
+    sourcedir = path.join(directory, sourcedir_)
     if dir_assert(sourcedir, log['inv_srcdir']):
         return
 
@@ -144,49 +144,35 @@ def author_mode(directory, port, dev, no_selenium, just_regen):
     watch_file_src = {}
     watch_file_rst = {}
     if dev:
-        src_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                               os.pardir)
-        par_dir = os.path.abspath(os.path.join(src_dir, os.pardir))
-
-        rollup_ci_file = "ci/rollup.config.app.mjs"
-        rollup_ci_dir = os.path.join(par_dir, rollup_ci_file)
-        rollup_file = "node_modules/.bin/rollup"
-        rollup_dir = os.path.join(par_dir, rollup_file)
-
-        if symbolic_assert(rollup_ci_dir, log['rollup'].format(rollup_ci_dir)):
-            return
-        if symbolic_assert(rollup_dir, log['node'].format(rollup_dir)):
-            return
-
         source_files = ['app.umd.js', 'app.umd.js.map', 'style.min.css',
                         'style.min.css.map', 'icons.svg']
         w_files = []
         # Check if minified files exists, if not, run rollup once
         rollup_cache = True
         for f in source_files:
-            f_ = os.path.abspath(os.path.join(src_dir,
-                                              f"theme/cosmic/static/{f}"))
+            f_ = path.abspath(path.join(src_dir, 'theme',
+                                        'cosmic', 'static', f))
             w_files.append(f_)
-            if not os.path.isfile(w_files[-1]):
+            if not path.isfile(w_files[-1]):
                 rollup_cache = False
-        if not rollup_cache or just_regen:
-            subprocess.call(f"{rollup_file} -c {rollup_ci_file}",
+        if not rollup_cache:
+            subprocess.call(f"{rollup_bin} -c {rollup_conf}",
                             shell=True, cwd=par_dir)
         for f in w_files:
             if symbolic_assert(f, log['inv_f']):
                 return
 
         # Build doc the first time
-        subprocess.call(f"cd {directory} ; {devpool_js} make html", shell=True)
+        subprocess.call(f"{devpool_js} make html", shell=True, cwd=directory)
         for f, s in zip(w_files, source_files):
-            watch_file_src[f] = os.path.getctime(f)
+            watch_file_src[f] = path.getctime(f)
         # Run rollup in watch mode
-        cmd = f"{rollup_file} -c {rollup_ci_file} --watch"
+        cmd = f"{rollup_bin} -c {rollup_conf} --watch"
         rollup_p = subprocess.Popen(cmd, shell=True, cwd=par_dir,
                                     stdout=subprocess.DEVNULL)
     else:
         # Build doc the first time
-        subprocess.call(f"cd {directory} ; {devpool_js} make html", shell=True)
+        subprocess.call(f"{devpool_js} make html", shell=True, cwd=directory)
 
     class Handler(http.server.SimpleHTTPRequestHandler):
         def __init__(self, *args, **kwargs):
@@ -205,11 +191,11 @@ def author_mode(directory, port, dev, no_selenium, just_regen):
     except Exception:
         click.echo(f"Could not start server on http://0.0.0.0:{port}")
         if dev:
-            os.killpg(os.getpgid(rollup_p.pid), signal.SIGTERM)
+            killpg(getpgid(rollup_p.pid), signal.SIGTERM)
 
         return
 
-    dev_pool = os.path.join(builddir, '.dev-pool')
+    dev_pool = path.join(builddir, '.dev-pool')
 
     def update_dev_pool():
         dev_f = open(dev_pool, 'w')
@@ -220,8 +206,8 @@ def author_mode(directory, port, dev, no_selenium, just_regen):
         from selenium import webdriver
 
         # Remove pooling method flag
-        if os.path.isfile(dev_pool):
-            os.remove(dev_pool)
+        if path.isfile(dev_pool):
+            remove(dev_pool)
 
         driver = webdriver.Firefox()
 
@@ -234,22 +220,24 @@ def author_mode(directory, port, dev, no_selenium, just_regen):
         files = []
         ctime = []
         for typ in types:
-            _files = glob.glob(f"{sourcedir}/{typ}")
-            __files = [os.path.abspath(f) for f in _files]
+            glob_ = path.join(sourcedir, typ)
+            _files = glob.glob(glob_)
+            __files = [path.abspath(f) for f in _files]
             files.extend(__files)
             for f in __files:
-                ctime.append(os.path.getctime(f))
-        dirs = [d for d in os.listdir(sourcedir)
-                if os.path.isdir(os.path.join(sourcedir, d))]
+                ctime.append(path.getctime(f))
+        dirs = [d for d in listdir(sourcedir)
+                if path.isdir(path.join(sourcedir, d))]
         if builddir_ in dirs:
             dirs.remove(builddir_)
         for d in dirs:
             for typ in types:
-                _files = glob.glob(f"{sourcedir}/{d}/**/{typ}", recursive=True)
-                __files = [os.path.abspath(f) for f in _files]
+                glob_ = path.join(sourcedir, d, '**', typ)
+                _files = glob.glob(glob_, recursive=True)
+                __files = [path.abspath(f) for f in _files]
                 files.extend(__files)
                 for f in __files:
-                    ctime.append(os.path.getctime(f))
+                    ctime.append(path.getctime(f))
         return (files, ctime)
 
     def check_files(scheduler):
@@ -265,20 +253,19 @@ def author_mode(directory, port, dev, no_selenium, just_regen):
                         update_sphinx = False
                         break
         for file in watch_file_src:
-            if not os.path.isfile(file):
+            if not path.isfile(file):
                 continue
-            ctime = os.path.getctime(file)
+            ctime = path.getctime(file)
             if ctime > watch_file_src[file]:
                 update_page = True
                 watch_file_src[file] = ctime
 
         if update_sphinx:
-            subprocess.call(f"cd {directory} ; {devpool_js} make html",
-                            shell=True)
+            subprocess.call(f"{devpool_js} make html",
+                            shell=True, cwd=directory)
         if update_page:
             for f, s in zip(w_files, source_files):
-                subprocess.call(f"cp {f} {builddir}/_static/{s}",
-                                shell=True)
+                copy(f, path.join(builddir, '_static', s))
         if update_sphinx or update_page:
             if with_selenium:
                 try:
@@ -286,7 +273,7 @@ def author_mode(directory, port, dev, no_selenium, just_regen):
                 except Exception:
                     click.echo("Browser disconnected")
                     if dev:
-                        os.killpg(os.getpgid(rollup_p.pid), signal.SIGTERM)
+                        killpg(getpgid(rollup_p.pid), signal.SIGTERM)
                     with lock:
                         http.shutdown()
                     http_thread._stop()

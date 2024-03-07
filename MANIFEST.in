@@ -10,6 +10,6 @@ include adi_doctools/theme/cosmic/static/fonts/barlow/*.woff2
 include adi_doctools/theme/cosmic/static/fonts/barlow/*.txt
 include adi_doctools/theme/cosmic/static/fonts/inter/*.woff2
 include adi_doctools/theme/cosmic/static/fonts/inter/*.txt
-include adi_doctools/theme/cosmic/sidebar/*.html
+include adi_doctools/theme/cosmic/section/*.html
 include adi_doctools/theme/cosmic/*.html
 include adi_doctools/theme/cosmic/*.conf

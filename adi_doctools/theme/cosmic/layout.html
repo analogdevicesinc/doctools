@@ -5,6 +5,11 @@
   {% if theme_no_index %}
     <meta name="robots" content="noindex">
   {% endif %}
+
+  {%- block theme_styles %}
+  {% include "section/css_variables.html" with context %}
+  {%- endblock -%}
+
 {% endblock %}
 
 {# top+bottom related navs; we also have our own in sidebar #}
@@ -21,7 +26,7 @@
   {%- endif %}
 {%- endmacro %}
 
-{# remove basic inherited related sidebars #}
+{# remove basic inherited related elements #}
 {%- block relbar1 %}{% endblock %}
 {%- block relbar2 %}{% endblock %}
 
@@ -34,8 +39,26 @@
         <label id="show-sidebar" for="input-showsidebar" title="Show/hide index"></label>
       </div>
       <div id="right">
-        <a id="logo" href="{{ content_root }}index.html"></a>
         <span>
+          <a id="logo-org" href="{{ theme_org_url }}"></a>
+          {%- block sidebarlogo %}
+            {%- if theme_light_logo and theme_dark_logo %}
+              <a id="logo" href="{{ pathto(master_doc) }}">
+                <img class="only-light" src="{{ pathto('_static/' + theme_light_logo, 1) }}"/>
+                <img class="only-dark" src="{{ pathto('_static/' + theme_dark_logo, 1) }}"/>
+              </a>
+            {%- elif theme_light_logo %}
+              <a id="logo" href="{{ pathto(master_doc) }}">
+                <img src="{{ pathto('_static/' + theme_light_logo, 1) }}"/>
+              </a>
+            {%- else %}
+              <a id="no-logo" href="{{ pathto(master_doc) }}">
+                {{ project }}
+              </a>
+            {%- endif %}
+          {%- endblock %}
+        </span>
+        <span class="reverse">
           <label id="show-onthispage" for="input-showonthispage" title="Show/hide contents"></label>
         </span>
       </div>

@@ -15,12 +15,12 @@ a {
     color: inherit;
 }
 
-.body a {
+.body p a {
     color: var(--accent-color);
     border-bottom: 1px solid rgba(125, 125, 125, .25);
 }
 
-.body a:hover {
+.body p a:hover {
     border-color: var(--text-color2);
 }
 
@@ -123,7 +123,7 @@ img {
 }
 
 @media (min-width: $width-narrow) {
-    img {
+    .body img {
         display: block;
         margin: 0 auto;
         max-width: 100%;
@@ -144,12 +144,12 @@ img {
 }
 
 @media (prefers-color-scheme: dark) {
-    body:not(.light) img {
+    body:not(.light) .body img {
         background: #fff;
         border-radius: $border-radius;
     }
 }
-body.dark img {
+body.dark .body img {
     background: #fff;
     border-radius: $border-radius;
 }
@@ -225,4 +225,12 @@ iframe {
         background: url(esd-warning.svg);
         background-size: contain;
     }
+}
+
+.only-light {
+    display: var(--display-light);
+}
+
+.only-dark {
+    display: var(--display-dark);
 }

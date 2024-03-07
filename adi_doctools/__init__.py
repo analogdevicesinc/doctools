@@ -9,9 +9,10 @@ from .directive import setup as directive_setup
 from .role import setup as role_setup
 from .lut import get_lut
 
-__version__ = "0.3.17"
+__version__ = "0.3.18"
 
 logger = logging.getLogger(__name__)
+
 
 def get_navigation_tree(app, context, pagename):
     # The navigation tree, generated from the sphinx-provided ToC tree.
@@ -83,8 +84,7 @@ def build_finished(app, exc):
     def copy_asset(app, uri):
         from sphinx.util.fileutil import copy_asset_file
 
-        src_uri = path.join(path.dirname(__file__),
-                               f"miscellaneous/{uri}")
+        src_uri = path.join(path.dirname(__file__), 'miscellaneous', uri)
         build_uri = path.join(app.builder.outdir, '_static', uri)
         copy_asset_file(src_uri, build_uri)
 
