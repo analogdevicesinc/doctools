@@ -7,11 +7,12 @@ from lxml import etree
 
 from ..directive.string import string_hdl
 
+
 # From https://github.com/tfcollins/vger/blob/main/vger/hdl_reg_map.py
 def parse_hdl_regmap(reg: str, ctime: float, prefix: str) -> Tuple[Dict, List[str]]:
     regmap = {
         'subregmap': {},
-        'owners':[],
+        'owners': [],
         'ctime': ctime
     }
     warning = []
@@ -31,7 +32,7 @@ def parse_hdl_regmap(reg: str, ctime: float, prefix: str) -> Tuple[Dict, List[st
 
         title = str(data[tit + 1].strip())
         title_tool = str(data[tit + 2].strip())
-        data = data[tit + 2 :]
+        data = data[tit + 2:]
 
         if 'ENDTITLE' in [title_tool, title]:
             warning.append(f"Malformed title fields at file {prefix}/regmap/adi_regmap_{reg}.txt, skipped!")
@@ -58,11 +59,12 @@ def parse_hdl_regmap(reg: str, ctime: float, prefix: str) -> Tuple[Dict, List[st
             reg_desc = " ".join(reg_desc)
 
             with contextlib.suppress(ValueError):
-                if tet := data.index("TITLE"):
+                tet = data.index("TITLE") if "TITLE" in data else -1
+                if tet != -1:
                     if regi > tet:
                         # into next regmap
                         break
-            data = data[regi + 1 :]
+            data = data[regi + 1:]
 
             # Get fields
             fields = []
@@ -74,7 +76,8 @@ def parse_hdl_regmap(reg: str, ctime: float, prefix: str) -> Tuple[Dict, List[st
                     break
 
                 with contextlib.suppress(ValueError):
-                    if rege := data.index("REG"):
+                    rege = data.index("REG") if "REG" in data else -1
+                    if rege != -1:
                         if fi > rege:
                             # into next register
                             break
