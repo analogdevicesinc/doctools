@@ -9,7 +9,7 @@ from .directive import setup as directive_setup
 from .role import setup as role_setup
 from .lut import get_lut
 
-__version__ = "0.3.18"
+__version__ = "0.3.19"
 
 logger = logging.getLogger(__name__)
 
