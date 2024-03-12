@@ -33,6 +33,7 @@ body {
     --text-color2: #{$text-color-light2};
     --text-color3: #{$text-color-light3};
     --accent-color: #{$accent-color-light};
+    --accent-color-code: #{$accent-color-code-light};
 }
 
 body.dark {
@@ -48,6 +49,7 @@ body.dark {
     --text-color2: #{$text-color-dark2};
     --text-color3: #{$text-color-dark3};
     --accent-color: #{$accent-color-dark};
+    --accent-color-code: #{$accent-color-code-dark};
 }
 
 @media (prefers-color-scheme: dark) {
@@ -64,6 +66,7 @@ body.dark {
         --text-color2: #{$text-color-dark2};
         --text-color3: #{$text-color-dark3};
         --accent-color: #{$accent-color-dark};
+        --accent-color-code: #{$accent-color-code-dark};
     }
 }
 

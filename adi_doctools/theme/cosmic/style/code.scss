@@ -1,0 +1,38 @@
+.sig-object {
+    font-family: monospace;
+    font-size: 1rem;
+}
+
+.sig-prename, .sig-name {
+    color: var(--accent-color-code);
+}
+
+.sig-name, em.property {
+    font-weight: 600;
+}
+
+em.sig-param, em.property {
+    font-style: normal;
+}
+
+.headerlink {
+    color: var(--accent-color);
+    opacity: 0;
+    transition: ease opacity .25s;
+    padding-left: .25em;
+}
+
+.sig-object {
+    transition: ease background-color .25s;
+    background-color: rgba(125, 125, 125, 0);
+    padding: .25em .5rem;
+    border-radius: 1rem;
+}
+
+.sig-object:hover {
+    background-color: rgba(125, 125, 125, 0.1);
+}
+
+.sig-object:hover .headerlink {
+    opacity: 1;
+}

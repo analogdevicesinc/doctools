@@ -15,12 +15,12 @@ a {
     color: inherit;
 }
 
-.body p a {
+.body p a, .body a.reference.internal {
     color: var(--accent-color);
     border-bottom: 1px solid rgba(125, 125, 125, .25);
 }
 
-.body p a:hover {
+.body p a:hover, .body a.reference.internal:hover {
     border-color: var(--text-color2);
 }
 
