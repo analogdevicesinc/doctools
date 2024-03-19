@@ -47,12 +47,12 @@ header {
         transition: .25s ease background-position;
     }
 
-    #show-onthispage:before {
+    #show-localtoc:before {
         background-position: left calc(-1.5rem*2) top;
         transition: .25s ease background-position;
     }
 
-    .subdomain-tree {
+    .repotoc-tree {
         padding-left: calc(40vw - 13em - 1em);
         border-bottom: $border-panel;
         background: var(--bg-color1);
@@ -77,11 +77,11 @@ header {
     }
 }
 
-#input-showsidebar:checked ~ header #show-sidebar:before {
+#input-show-toc:checked ~ header #show-sidebar:before {
     background-position: left calc(-1.5rem*0) bottom;
 }
 
-#input-showonthispage:checked ~ header #show-onthispage:before {
+#input-show-localtoc:checked ~ header #show-localtoc:before {
     background-position: left calc(-1.5rem*2) bottom;
 }
 
@@ -100,7 +100,7 @@ header {
 }
 
 @media (min-width: $width-wide) {
-    header #show-onthispage {
+    header #show-localtoc {
         display: none;
     }
 }
@@ -191,7 +191,7 @@ body.dark #logo-org {
 }
 
 @media (max-width: $width-narrow) {
-    header .subdomain-tree {
+    header .repotoc-tree {
         display: none;
     }
 }

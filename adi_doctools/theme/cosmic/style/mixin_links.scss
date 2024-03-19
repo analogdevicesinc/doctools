@@ -1,0 +1,23 @@
+$links: (
+    "adi":    #0067b9 "adi",
+    "ez":     #2eb251 "ez",
+    "git":    #f05133 "git",
+    "other":  #666666 "external",
+);
+
+@mixin default-link($color, $icon-name) {
+    --color-link-title: #{$color};
+    --color-link-title-background: #{rgba($color, 0.2)};
+
+    --icon-link-default: var(--icon-#{$icon-name});
+}
+
+@mixin links {
+    @each $name, $values in $links {
+        --color-link-title--#{$name}: #{nth($values, 1)};
+        --color-link-title-background--#{$name}: #{rgba(
+                nth($values, 1),
+                0.2
+            )};
+    }
+}

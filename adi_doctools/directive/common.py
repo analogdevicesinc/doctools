@@ -11,11 +11,13 @@ from uuid import uuid4
 from hashlib import sha1
 from typing import Tuple
 
-from .node import node_div, node_input, node_label, node_icon, node_source, node_iframe, node_video
+from .node import node_div, node_input, node_label, node_icon, node_source
+from .node import node_iframe, node_video
 
 logger = logging.getLogger(__name__)
 
 dft_hide_collapsible_content = True
+
 
 def parse_rst(state, tag):
     rst = ViewList()
@@ -24,6 +26,7 @@ def parse_rst(state, tag):
     node.document = state.document
     nested_parse_with_titles(state, rst, node)
     return node
+
 
 class directive_base(Directive):
     has_content = True
@@ -52,7 +55,8 @@ class directive_base(Directive):
             items[key] = ''.join(items[key]).replace('-', '', 1).strip()
         return items
 
-    def column_entry(self, row, text, node_type: str, classes: List = [], morecols: int = 0):
+    def column_entry(self, row, text, node_type: str, classes: List = [],
+                     morecols: int = 0):
         attributes = {}
         if morecols != 0:
             attributes['morecols'] = morecols
@@ -82,7 +86,8 @@ class directive_base(Directive):
             if len(item) == 3:
                 self.column_entry(row, item[0], item[1], classes=item[2])
             elif len(item) == 4:
-                self.column_entry(row, item[0], item[1], classes=item[2], morecols=item[3])
+                self.column_entry(row, item[0], item[1], classes=item[2],
+                                  morecols=item[3])
             else:
                 self.column_entry(row, item[0], item[1])
         rows.append(row)
@@ -193,6 +198,7 @@ class directive_base(Directive):
 
         return (content, label)
 
+
 class directive_collapsible(directive_base):
     option_spec = {'path': directives.unchanged}
     required_arguments = 1
@@ -209,7 +215,8 @@ class directive_collapsible(directive_base):
         content, _ = self.collapsible(node, self.arguments[0].strip())
         self.state.nested_parse(self.content, self.content_offset, content)
 
-        return [ node ]
+        return [node]
+
 
 class directive_video(directive_base):
     option_spec = {'path': directives.unchanged}
@@ -217,7 +224,8 @@ class directive_video(directive_base):
     optional_arguments = 0
 
     yt_pattern = r'(https?://)?(www\.)?youtube\.com/watch\?v=([a-zA-Z0-9_-]+)'
-    def run (self):
+
+    def run(self):
         url = self.arguments[0].strip()
 
         yt_match = re.search(self.yt_pattern, url)
@@ -242,7 +250,8 @@ class directive_video(directive_base):
             video += source
             node += video
 
-        return [ node ]
+        return [node]
+
 
 def common_setup(app):
     app.add_directive('collapsible', directive_collapsible)

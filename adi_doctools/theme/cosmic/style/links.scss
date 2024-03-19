@@ -1,0 +1,40 @@
+@import "mixin_links";
+
+a.icon {
+    margin: 0;
+    position: relative;
+    margin-top: 0;
+    padding-left: 1.5rem;
+    padding-top: .5rem;
+
+    /* Our fancy icon */
+    &::before {
+        content: "";
+        position: absolute;
+        left: 0rem;
+        top: .25rem;
+        width: 1.5rem;
+        height: 1.5rem;
+    }
+}
+
+/* Default styles */
+a.icon {
+    &::before {
+        background-color: var(--color-link-title);
+        mask-image: var(--icon-link-default);
+        mask-repeat: no-repeat;
+    }
+}
+
+/* Variants */
+a.icon {
+    @each $type, $value in $links {
+        &.#{$type} {
+            &::before {
+                background-color: var(--color-link-title--#{$type});
+                mask-image: var(--icon-#{nth($value, 2)});
+            }
+        }
+    }
+}

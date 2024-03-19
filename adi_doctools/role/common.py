@@ -6,14 +6,13 @@ logger = logging.getLogger(__name__)
 validate_links_user_agent = 'Status resolver (Python/Sphinx)'
 
 # Default values
-dft_url_datasheet = 'https://www.analog.com/media/en/technical-documentation/data-sheets/'
-dft_url_dokuwiki  = 'https://wiki.analog.com'
-dft_url_ez        = 'https://ez.analog.com'
-dft_url_mw        = 'https://www.mathworks.com'
-dft_url_git       = 'https://github.com/analogdevicesinc'
-dft_url_adi       = 'https://www.analog.com'
-dft_url_xilinx    = 'https://www.xilinx.com'
-dft_url_intel     = 'https://www.intel.com'
+dft_url_dokuwiki = 'https://wiki.analog.com'
+dft_url_ez = 'https://ez.analog.com'
+dft_url_mw = 'https://www.mathworks.com'
+dft_url_git = 'https://github.com/analogdevicesinc'
+dft_url_adi = 'https://www.analog.com'
+dft_url_xilinx = 'https://www.xilinx.com'
+dft_url_intel = 'https://www.intel.com'
 
 dft_validate_links = False
 
@@ -59,15 +58,10 @@ def color(class_name):
 
 def datasheet():
     def role(name, rawtext, text, lineno, inliner, options={}, content=[]):
-        if text.find(':') == -1:
-            url = get_url_config('datasheet', inliner) + '/' + text + '.pdf'
-        else:
-            anchor = text[text.find(':')+1:]
-            part_id = text[0:text.find(':')]
-            url = get_url_config('datasheet', inliner) + '/' + part_id + '.pdf#' + anchor
-        node = nodes.reference(rawtext, part_id + " datasheet", refuri=url, **options)
-        add_link(inliner, lineno, url)
-        return [node], []
+        # DEPRECATED
+        logger.info("The datasheet role has been deprecated, use the adi role"
+                    "instead.")
+        return [], []
 
     return role
 
@@ -93,7 +87,8 @@ def ez():
         url = get_url_config('ez', inliner) + '/' + path
         if text is None:
             text = "EngineerZone"
-        node = nodes.reference(rawtext, text, refuri=url, **options)
+        node = nodes.reference(rawtext, text, refuri=url,
+                               classes=['icon', 'ez'], **options)
         add_link(inliner, lineno, url)
         return [node], []
 
@@ -115,7 +110,8 @@ def git(repo, alt_name):
         url = get_url_config('git', inliner) + '/' + repo
         if text == '/':
             name = "ADI " + alt_name + " repository"
-            node = nodes.reference(rawtext, name, refuri=url, **options)
+            node = nodes.reference(rawtext, name, refuri=url,
+                                   classes=['icon', 'git'], **options)
         else:
             text, path = get_outer_inner(text)
             pos = path.find(':')
@@ -129,7 +125,8 @@ def git(repo, alt_name):
             if text is None:
                 text = path
             url = url + '/blob/' + branch + '/' + path
-            node = nodes.reference(rawtext, text, refuri=url, **options)
+            node = nodes.reference(rawtext, text, refuri=url,
+                                   classes=['icon', 'git'], **options)
         add_link(inliner, lineno, url)
         return [node], []
 
@@ -142,7 +139,8 @@ def adi():
         if name is None:
             name = adi_id
         url = get_url_config('adi', inliner) + '/' + adi_id
-        node = nodes.reference(rawtext, name, refuri=url, **options)
+        node = nodes.reference(rawtext, name, refuri=url,
+                               classes=['icon', 'adi'], **options)
         add_link(inliner, lineno, url)
         return [node], []
 
@@ -172,7 +170,8 @@ def prepare_validade_links(app, env, docnames):
 
 def validate_links(app, env):
     if not env.config.validate_links:
-        logger.info(f"Skipping {len(env.links)} URLs checks-ups. Set validate_links to True to enable this.")
+        logger.info(f"Skipping {len(env.links)} URLs checks-ups."
+                    "Set validate_links to True to enable this.")
         return
 
     global asyncio, aiohttp
@@ -220,7 +219,8 @@ async def async_validate_links(app, env):
         for task in asyncio.as_completed(tasks):
             results.append(await task)
             completed += 1
-            print(f'Validated URL {completed} out of {total}, bundle {i+1} of {leng}...', end='\r')
+            logger.info(f"Validated URL {completed} out of {total}, "
+                        "bundle {i+1} of {leng}...", end='\r')
         del tasks
 
     for link, error in results:
@@ -229,16 +229,22 @@ async def async_validate_links(app, env):
         if error != 200:
             fail_count += 1
             if len(env.links[link]) > 1:
-                extended_error = f"Resolved {len(env.links[link])} times, path shown is the first instance."
+                extended_error = (f"Resolved {len(env.links[link])} times, "
+                                  "path shown is the first instance.")
             else:
                 extended_error = ""
-            logger.warning(f"URL {link} returned {error}! {extended_error}", location=env.links[link][0])
+            logger.warning(f"URL {link} returned {error}! {extended_error}",
+                           location=env.links[link][0])
 
     if fail_count:
-        logger.warning(f"{fail_count} out of {len(env.links)} URLs resolved with an error ({fail_count/(len(env.links))*100:0.2f}%)!")
+        c_ = fail_count/(len(env.links))*100
+        logger.warning(f"{fail_count} out of {len(env.links)} URLs resolved "
+                       f"with an error ({c_:0.2f}%)!")
     else:
         if total == 0:
-            extended_info = "\nAt every build, only the links at files that changed are checked, consider touching them to re-check."
+            extended_info = ("\nAt every build, only the links at files that "
+                             "changed are checked, consider touching them to "
+                             "re-check.")
         else:
             extended_info = ""
         logger.info(f"All {total} URLs resolved successfully.{extended_info}")
@@ -268,7 +274,6 @@ def common_setup(app):
     app.connect('env-before-read-docs', prepare_validade_links)
     app.connect('env-updated', validate_links)
 
-    app.add_config_value('url_datasheet', dft_url_datasheet, 'env')
     app.add_config_value('url_dokuwiki',  dft_url_dokuwiki,  'env')
     app.add_config_value('url_ez',        dft_url_ez,        'env')
     app.add_config_value('url_mw',        dft_url_mw,        'env')

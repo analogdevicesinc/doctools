@@ -18,6 +18,7 @@ Contents
    :maxdepth: 1
 
    install
+   fundamentals
    docs_guidelines
    cli
    ci

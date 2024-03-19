@@ -8,7 +8,12 @@ lut = {
         'branch': 'main',
         'release_format': 'const:latest',
         'default_branch': 'main',
-        'visibility': 'public'
+        'visibility': 'public',
+        'topic': {
+            'eval': 'Evaluation Boards',
+            'university': 'University Program',
+        }
+
     },
     'hdl': {
         'doc_folder': 'docs',

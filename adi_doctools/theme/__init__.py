@@ -1,4 +1,4 @@
-import os
+from os import path
 
 from lxml import etree
 from lxml import html
@@ -12,8 +12,10 @@ from .cosmic import cosmic_setup
 
 def theme_config_setup(app):
     app.add_config_value('repository', '', 'env')
-    app.add_config_value('pseudo_subdomains', {}, 'env')
     app.add_config_value('monolithic', False, 'env')
+    app.add_config_value('doctools_export_metadata', False, 'env')
+
+    app.connect("build-finished", build_finished)
 
 
 setup = [
@@ -24,9 +26,28 @@ setup = [
 names = ['cosmic']
 
 
-def subdomain_tree(content_root, conf_vars, pagename):
+def build_finished(app, exc):
+    if app.builder.format == 'html' and not exc:
+        if app.env.config.doctools_export_metadata:
+            import json
+
+            repos = {}
+            for key in app.lut:
+                repos[key] = {
+                    'name': app.lut[key]['name'],
+                    'visibility': app.lut[key]['visibility']
+                }
+                if 'topic' in app.lut[key]:
+                    repos[key]['topic'] = app.lut[key]['topic']
+            metadata = {'repotoc': repos}
+            file = path.join(app.builder.outdir, 'metadata.json')
+            with open(file, 'w') as f:
+                json.dump(metadata, f, indent=4)
+
+
+def repotoc_tree(content_root, conf_vars, pagename):
     """
-    Create the subdomain tree linking to other repos documentations.
+    Create the repotoc tree linking to other repos documentations.
     From the 'repository' config value, a 'current' class is added to
     the link targeting the current doc.
     The links are functional with at least 1 level of depth, for example:
@@ -35,36 +56,39 @@ def subdomain_tree(content_root, conf_vars, pagename):
     While something with 0 depth is improper:
     hdl-docs.example.com -> ../no-OS -XXX-> hdl-docs.example.com/no-OS
     """
-    repo, monolithic, pseudo_subdomains, lut = conf_vars
+    repo, lut = conf_vars
     root = etree.Element("root")
     home = "index.html"
-    if monolithic:
-        depth = ''
-    else:
-        depth = '../'
+    depth = '../'
 
     repository = {}
+    topics = {}
     for key in lut:
         if lut[key]['visibility'] == 'public':
-            repository[key] = lut[key]['name']
+            if 'topic' in lut[key]:
+                for k in lut[key]['topic']:
+                    topics[f"{key}/{k}"] = lut[key]['topic'][k]
+            else:
+                repository[key] = lut[key]['name']
 
-    if monolithic:
-        subdomains = {**pseudo_subdomains, **repository}
-        del subdomains['documentation']
-    else:
-        subdomains = repository
-    for sd in subdomains:
-        href = f"{content_root}{depth}{sd}/{home}"
+    repotoc = {**topics, **repository}
+    for item in repotoc:
+        href = f"{content_root}{depth}{item}/{home}"
         attrib = {}
-        if sd == repo:
-            if not monolithic:
+        if item.startswith(repo):
+            if '/' in item:
+                sub = item[item.find('/')+1:]
+                href = f"{content_root}{sub}/{home}"
+                if pagename.startswith(sub):
+                    attrib = {'class': 'current'}
+            else:
                 href = f"{content_root}{home}"
-            attrib = {'class': 'current'}
+                attrib = {'class': 'current'}
         link = etree.Element("a", attrib={
             'href': href,
             **attrib
         })
-        link.text = subdomains[sd]
+        link.text = repotoc[item]
         root.append(link)
     return etree.tostring(root, pretty_print=True, encoding='unicode')
 
@@ -87,31 +111,32 @@ def navigation_tree(app, toctree_html, content_root, pagename):
 
     conf_vars = (
         app.env.config.repository,
-        app.env.config.monolithic,
-        app.env.config.pseudo_subdomains,
         app.lut
     )
-    _, monolithic, _, _ = conf_vars
 
     lvl = [0]
 
-    def get_repo(pagename):
+    def get_topic(pagename):
         i = pagename.find('/')
         return pagename[0:i] if i != -1 else ''
 
-    def monolithic_tree(root, conf_vars, pagename):
-        repo, _, pseudo_subdomains, lut = conf_vars
+    def filter_tree(root, conf_vars, pagename):
+        repo, lut = conf_vars
         # Keep unchanged for standalone pages (e.g. /index.html, /search.html)
         repository = {}
+        topics = {}
         for key in lut:
             if lut[key]['visibility'] == 'public':
-                repository[key] = lut[key]['name']
-        subdomains = {**pseudo_subdomains, **repository}
-        if repo not in subdomains:
+                if 'topic' in lut[key]:
+                    topics.update(lut[key]['topic'])
+                else:
+                    repository[key] = lut[key]['name']
+        repotoc = {**topics, **repository}
+        if repo not in repotoc:
             return
 
         # Pop toctrees that are not from the current repo
-        title = subdomains[repo]
+        title = repotoc[repo]
         body = root.find('./body')
         txt = ''
         for e in body.getchildren():
@@ -161,17 +186,17 @@ def navigation_tree(app, toctree_html, content_root, pagename):
                 iterate(li)
             lvl.pop()
 
-    if monolithic:
-        conf_vars = (get_repo(pagename), *conf_vars[1:])
-        monolithic_tree(root, conf_vars, pagename)
+    if "topic" in app.lut[app.env.config.repository]:
+        conf_vars_ = (get_topic(pagename), *conf_vars[1:])
+        filter_tree(root, conf_vars_, pagename)
 
     for ul in root.findall('./body/ul'):
         for li in ul.findall('./li[@class]'):
             iterate(li)
 
-    _sidebar_tree = etree.tostring(root, pretty_print=True, encoding='unicode')
-    _subdomain_tree = subdomain_tree(content_root, conf_vars, pagename)
-    return (_sidebar_tree, _subdomain_tree)
+    _toc_tree = etree.tostring(root, pretty_print=True, encoding='unicode')
+    _repotoc_tree = repotoc_tree(content_root, conf_vars, pagename)
+    return (_toc_tree, _repotoc_tree)
 
 
 def get_pygments_theme(app):
@@ -213,7 +238,7 @@ def write_pygments_css(app):
     lines.append("}")
 
     with open(
-        os.path.join(app.builder.outdir, "_static", "pygments.css"),
+        path.join(app.builder.outdir, "_static", "pygments.css"),
         "w",
         encoding="utf-8",
     ) as f:

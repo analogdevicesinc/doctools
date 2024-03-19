@@ -30,7 +30,7 @@ the repository level.
 
 The only exception is the :git-documentation:`/`, which indeed contains various
 types of documentation (eval-boards, university program, Linux drivers, etc.);
-and it uses the ``pseudo_subdomains`` variable at ``conf.py`` to keep track of
+and it uses the ``topic`` field at ``lut.py`` to keep track of
 each.
 
 The ``toctree`` directive has the following format:
@@ -114,10 +114,13 @@ For resources without a particular source code file/folder, prefer hyphen ``-``
 separation, for example, ``spi_engine control-interface`` instead of
 ``spi_engine control_interface``.
 
-In organization Sphinx references
+.. _in-org-ref:
+
+In organization references
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For references to in-org Sphinx docs, the ``ref`` role is extended with the syntax
+For references to Sphinx docs inside the organization (repos listed in the repotoc),
+the ``ref`` role is extended with the syntax
 :code:`:ref-<external>:\`label\`` where ``external`` is a mapped source,
 for example, :code:`:ref-hdl:\`spi_engine control-interface\``.
 It is also possible to customize the text, e.g.
@@ -145,9 +148,10 @@ Version handling is done with the ``ADOC_INTERREF_TAGGED`` and
 * ``ADOC_INTERREF_RELEASE``: unset to use the default branch (e.g. ``main``)
   or set to use the latest release (e.g. ``v3.0.0``) as the tag.
 
-Tracked repositories, default branch is obtained from lookup table (lut), and the
-latest release from ``latest.txt`` file at the root of the hosted version, e.g.
-``hdl/latest.txt``, if not found, will fallback to the default branch.
+The default branch is obtained from :git-doctools:`adi_doctools/lut.py`, and the
+latest release from ``latest.txt`` at the root of the hosted version, e.g.
+``hdl/latest.txt``.
+If not found, it will fallback to the default branch.
 Resolved the path, the mappings are obtained from the InterSphinx mapping file.
 
 To show all links of an InterSphinx mapping file, use the built-in tool:
@@ -453,23 +457,6 @@ The role syntax is :code:`:adi:\`text <webpage>\``, for example,
 Since links are case insensitive, you can also reduce it to
 :code:`:adi:\`AD7175-2\``, when *webpage* is the same as *text* and will render
 as :adi:`AD7175-2`.
-
-Datasheet role
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-The datasheet role creates links for a datasheet in the Analog Devices Inc. website.
-
-The role syntax is :code:`:datasheet:\`part_id:anchor\``, for example,
-:code:`:datasheet:\`AD7984:[{"num"%3A51%2C"gen"%3A0}%2C{"name"%3A"XYZ"}%2C52%2C713%2C0]\``
-is rendered as
-:datasheet:`AD7984:[{"num"%3A51%2C"gen"%3A0}%2C{"name"%3A"XYZ"}%2C52%2C713%2C0]`.
-The anchor is optional and is a link to a section of the PDF, and can be obtained
-by just copying the link in the table of contents.
-
-.. caution::
-
-   Since not all PDF readers support anchors, always provide the page and/or
-   figure number!
 
 Dokuwiki role
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

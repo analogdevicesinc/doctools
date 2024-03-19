@@ -9,7 +9,7 @@ from .directive import setup as directive_setup
 from .role import setup as role_setup
 from .lut import get_lut
 
-__version__ = "0.3.21"
+__version__ = "0.3.22"
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +41,7 @@ def get_navigation_tree(app, context, pagename):
 
 def html_page_context(app, pagename, templatename, context, doctree):
     ret = get_navigation_tree(app, context, pagename)
-    context["sidebar_tree"], context["subdomain_tree"] = ret
+    context["toc_tree"], context["repotoc_tree"] = ret
 
 
 def config_inited(app, config):

@@ -356,9 +356,9 @@ class directive_component_diagram(directive_base):
         svg = nodes.raw('', svg_raw, format='html')
         return [svg]
 
-    def diagram(self):
+    def diagram(self, outdir):
         name = hdl_component.get_name(self.options['path'])
-        path = '_build/managed'
+        path = os.path.abspath(os.path.join(outdir, os.pardir, 'managed'))
         f = open(os.path.join(path, name))
         svg_raw = f.read()
 
@@ -379,7 +379,7 @@ class directive_component_diagram(directive_base):
 
         manage_hdl_component_late(env, lib_name)
         if lib_name in env.component:
-            subnode += self.diagram()
+            subnode += self.diagram(env.app.builder.outdir)
         else:
             subnode += self.missing_diagram()
 
@@ -439,7 +439,8 @@ class directive_build_status(directive_base):
 
 
 def hdl_component_write_managed(env, tree, lib):
-    dest_dir = os.path.join(env.srcdir, '_build/managed')
+    dest_dir = os.path.abspath(os.path.join(env.app.builder.outdir, os.pardir,
+                                            'managed'))
     dest_file = os.path.join(dest_dir, hdl_component.get_name(lib))
 
     if not os.path.exists(dest_dir):

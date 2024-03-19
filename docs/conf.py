@@ -20,6 +20,8 @@ source_suffix = '.rst'
 
 # -- Custom extensions configuration ------------------------------------------
 
+doctools_export_metadata = True
+
 # -- Options for HTML output --------------------------------------------------
 
 html_theme = 'cosmic'

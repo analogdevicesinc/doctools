@@ -5,13 +5,13 @@
 }
 
 @media (max-width: $width-narrow) {
-    .sphinxsidebar .subdomain-tree {
+    .sphinxsidebar .repotoc-tree {
         display: contents;
     }
 }
 
 @media (min-width: $width-narrow) {
-    .sphinxsidebar .subdomain-tree {
+    .sphinxsidebar .repotoc-tree {
         display: none;
     }
 }
@@ -28,7 +28,7 @@
         border-right: $border-panel;
     }
 
-    #input-showsidebar:checked ~ .sphinxsidebar {
+    #input-show-toc:checked ~ .sphinxsidebar {
         left: 0;
     }
 
@@ -58,18 +58,18 @@
         left: -19em;
     }
 
-    #input-showsidebar:checked ~ .sphinxsidebar {
+    #input-show-toc:checked ~ .sphinxsidebar {
         box-shadow: $box-shadow-left-sidebar;
     }
 }
 
-#input-showsidebar:checked ~ #cancel-area-showsidebar,
-#input-showonthispage:checked ~ #cancel-area-showonthispage {
+#input-show-toc:checked ~ #cancel-area-show-toc,
+#input-show-localtoc:checked ~ #cancel-area-show-localtoc {
     z-index: 3;
 }
 
-#input-showonthispage:checked ~ .localtoc,
-#input-showsidebar:checked ~ .sphinxsidebar {
+#input-show-localtoc:checked ~ .localtoc,
+#input-show-toc:checked ~ .sphinxsidebar {
     z-index: 5;
 }
 
@@ -114,12 +114,12 @@
 }
 
 @media (max-width: $width-narrow) {
-    .sidebar-tree, .subdomain-tree {
+    .toc-tree, .repotoc-tree {
         padding: 1em;
     }
 }
 
-.sidebar-tree, .sphinxsidebar .subdomain-tree {
+.toc-tree, .sphinxsidebar .repotoc-tree {
     margin-bottom: 10em;
 
     p.caption {
@@ -227,7 +227,7 @@
         margin-bottom: 10em;
     }
 
-    .onthispage {
+    .localtoc-header {
         padding-left: 1rem;
         color: var(--text-color3);
     }
@@ -285,21 +285,28 @@
         height: calc(100vh - 1rem);
     }
 
-    #showsubdomain-1, #showsubdomain-2 {
+    #show-repotoc, #show-toc {
         display: none;
     }
 }
 
-#showsubdomain-1, #showsubdomain-2 {
+#show-repotoc, #show-toc {
     cursor: pointer;
     user-select: none;
     justify-content: space-between;
     align-items: center;
-    padding: 1.5rem 0.5rem 0.5rem 0.5em;
     background: var(--bg-color2);
 }
 
-#showsubdomain-1:before, #showsubdomain-2:after {
+#show-repotoc {
+    padding: 1.5rem 0.5rem 0.5rem 0.5em;
+}
+
+#show-toc {
+    padding: 1.5rem 0.5rem 0.5rem 1em;
+}
+
+#show-repotoc:before, #show-toc:after {
     content: '';
     display: block;
     width: 1.5rem;
@@ -308,11 +315,11 @@
     filter: invert(var(--is-dark-theme));
 }
 
-#showsubdomain-1:before {
+#show-repotoc:before {
     background-position: left calc(-1.5rem*5) bottom;
 }
 
-#showsubdomain-2:after {
+#show-toc:after {
     background-position: left calc(-1.5rem*5) top;
 }
 
@@ -326,30 +333,30 @@
         height: calc(100vh - 3.5rem);
     }
 
-    #input-showsubdomain:checked ~ .subdomain-tree {
+    #input-switch-toc:checked ~ .repotoc-tree {
         display: block;
     }
 
-    #input-showsubdomain:checked ~ .sidebar-tree {
+    #input-switch-toc:checked ~ .toc-tree {
         display: none;
     }
 
-    #showsubdomain-2 {
+    #show-toc {
         display: none;
     }
 
-    #showsubdomain-1,
-    #input-showsubdomain:checked ~ #showsubdomain-2 {
+    #show-repotoc,
+    #input-switch-toc:checked ~ #show-toc {
         display: flex;
         justify-content: start;
     }
 
-    #input-showsubdomain:checked ~ #showsubdomain-1 {
+    #input-switch-toc:checked ~ #show-repotoc {
         display: none;
     }
 }
 
-.sphinxsidebar .subdomain-tree {
+.sphinxsidebar .repotoc-tree {
     display: none;
 }
 
@@ -358,11 +365,11 @@
         transition: .25s ease left;
     }
 
-    #input-showonthispage:checked ~ .localtoc {
+    #input-show-localtoc:checked ~ .localtoc {
         left: calc(100vw - 20rem);
     }
 
-    #input-showonthispage:checked ~ .localtoc .tocwrapper {
+    #input-show-localtoc:checked ~ .localtoc .tocwrapper {
         box-shadow: $box-shadow-right-sidebar;
     }
 
@@ -373,7 +380,7 @@
 }
 
 @media (max-width: $width-wide) {
-    #input-showonthispage:checked ~ #cancel-area-showonthispage {
+    #input-show-localtoc:checked ~ #cancel-area-show-localtoc {
         position: fixed;
         background: rgba(0, 0, 0, .05);
         top: 0;
@@ -384,7 +391,7 @@
 }
 
 @media (max-width: $width-narrow) {
-    #input-showsidebar:checked ~ #cancel-area-showsidebar {
+    #input-show-toc:checked ~ #cancel-area-show-toc {
         position: fixed;
         background: rgba(0, 0, 0, .05);
         top: 0;
@@ -394,8 +401,8 @@
     }
 }
 
-#input-showsidebar,
-#input-showonthispage,
-#input-showsubdomain {
+#input-show-toc,
+#input-show-localtoc,
+#input-switch-toc {
     display: none
 }

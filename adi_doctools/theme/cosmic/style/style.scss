@@ -1,6 +1,7 @@
 @import "variable";
-@import "mixin_admonition";
 @import "mixin_icons";
+@import "mixin_admonition";
+@import "mixin_links";
 
 :root {
     --subtle-box-shadow: 0 .2rem .5rem rgba(0,0,0,.05),0 0 .0625rem rgba(0,0,0,.1);
@@ -18,6 +19,8 @@ body {
     @include admonitions;
     @include default-admonition(#651fff, "abstract");
     @include default-topic(#14B8A6, "pencil");
+    @include links;
+    @include default-link(#14B8A6, "adi");
 }
 
 body {
