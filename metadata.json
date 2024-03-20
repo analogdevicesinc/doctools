@@ -1,0 +1,28 @@
+{
+    "repotoc": {
+        "documentation": {
+            "name": "System Level",
+            "visibility": "public",
+            "topic": {
+                "eval": "Evaluation Boards",
+                "university": "University Program"
+            }
+        },
+        "hdl": {
+            "name": "HDL",
+            "visibility": "public"
+        },
+        "no-OS": {
+            "name": "no-OS",
+            "visibility": "public"
+        },
+        "pyadi-iio": {
+            "name": "pyadi-iio",
+            "visibility": "public"
+        },
+        "doctools": {
+            "name": "Doctools",
+            "visibility": "public-hidden"
+        }
+    }
+}

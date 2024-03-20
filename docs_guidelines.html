@@ -7,7 +7,7 @@
 
     <title>Documentation guidelines &#8212; Doctools  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8e8a900e" />
-    <link rel="stylesheet" type="text/css" href="_static/style.min.css?v=fbec5f67" />
+    <link rel="stylesheet" type="text/css" href="_static/style.min.css?v=f3ecb7d0" />
     <script src="_static/documentation_options.js?v=5929fcd5"></script>
     <script src="_static/doctools.js?v=888ff710"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
@@ -15,7 +15,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Command line interface" href="cli.html" />
-    <link rel="prev" title="Installing" href="install.html" />
+    <link rel="prev" title="Fundamentals" href="fundamentals.html" />
    
   
     <meta name="robots" content="noindex">
@@ -39,12 +39,12 @@
   }
 </style>
   </head><body>
-  <input type="checkbox" id="input-showsidebar">
-  <input type="checkbox" id="input-showonthispage">
+  <input type="checkbox" id="input-show-toc">
+  <input type="checkbox" id="input-show-localtoc">
   <header>
     <div class="header">
       <div id="left">
-        <label id="show-sidebar" for="input-showsidebar" title="Show/hide index"></label>
+        <label id="show-sidebar" for="input-show-toc" title="Show/hide index"></label>
       </div>
       <div id="right">
         <span>
@@ -54,13 +54,14 @@
               </a>
         </span>
         <span class="reverse">
-          <label id="show-onthispage" for="input-showonthispage" title="Show/hide contents"></label>
+          <label id="show-localtoc" for="input-show-localtoc" title="Show/hide contents"></label>
         </span>
       </div>
     </div>
-    <div class="subdomain-tree">
+    <div class="repotoc-tree">
       <root>
-  <a href="./../documentation/index.html">System Level</a>
+  <a href="./../documentation/eval/index.html">Evaluation Boards</a>
+  <a href="./../documentation/university/index.html">University Program</a>
   <a href="./../hdl/index.html">HDL</a>
   <a href="./../no-OS/index.html">no-OS</a>
   <a href="./../pyadi-iio/index.html">pyadi-iio</a>
@@ -72,7 +73,7 @@
     <div class="localtoc">
       <div class="tocwrapper">
         <div>
-          <div class="onthispage">On this page</div>
+          <div class="localtoc-header">On this page</div>
           <a id="scroll-up" href="#top-anchor" title="Back to top"></a>
         </div>
         <nav>
@@ -82,7 +83,7 @@
 <li><a class="reference internal" href="#table-of-contents">Table of contents</a></li>
 <li><a class="reference internal" href="#version">Version</a></li>
 <li><a class="reference internal" href="#references">References</a><ul>
-<li><a class="reference internal" href="#in-organization-sphinx-references">In organization Sphinx references</a></li>
+<li><a class="reference internal" href="#in-organization-references">In organization references</a></li>
 <li><a class="reference internal" href="#outside-organization-sphinx-references">Outside organization Sphinx references</a></li>
 </ul>
 </li>
@@ -102,7 +103,6 @@
 <li><a class="reference internal" href="#link-roles">Link roles</a><ul>
 <li><a class="reference internal" href="#git-role">Git role</a></li>
 <li><a class="reference internal" href="#adi-role">ADI role</a></li>
-<li><a class="reference internal" href="#datasheet-role">Datasheet role</a></li>
 <li><a class="reference internal" href="#dokuwiki-role">Dokuwiki role</a></li>
 <li><a class="reference internal" href="#engineerzone-role">EngineerZone role</a></li>
 <li><a class="reference internal" href="#vendor-role">Vendor role</a></li>
@@ -136,26 +136,28 @@
         <div class="sphinxsidebarwrapper">
               <a id="no-logo" href="index.html">
                 Doctools
-              </a><input id="input-showsubdomain" type="checkbox">
-<label id="showsubdomain-1" for="input-showsubdomain">
+              </a><input id="input-switch-toc" type="checkbox">
+<label id="show-repotoc" for="input-switch-toc">
 All content
 </label>
-<label id="showsubdomain-2" for="input-showsubdomain">
+<label id="show-toc" for="input-switch-toc">
 Content on this topic
 </label>
-<div class="subdomain-tree">
+<div class="repotoc-tree">
   <root>
-  <a href="./../documentation/index.html">System Level</a>
+  <a href="./../documentation/eval/index.html">Evaluation Boards</a>
+  <a href="./../documentation/university/index.html">University Program</a>
   <a href="./../hdl/index.html">HDL</a>
   <a href="./../no-OS/index.html">no-OS</a>
   <a href="./../pyadi-iio/index.html">pyadi-iio</a>
 </root>
 
 </div>
-<div class="sidebar-tree">
+<div class="toc-tree">
   <html>
   <body><ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fundamentals.html">Fundamentals</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Documentation guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cli.html">Command line interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ci.html">Continuous integration</a></li>
@@ -195,9 +197,9 @@ which allows to generate the table of contents and navigation bars.</p>
 <p>Each page may have only one toctree, since they are the equivalent of the
 volumes of a book, and it does not make sense to have multiple “volumes” at
 the repository level.</p>
-<p>The only exception is the <a class="reference external" href="https://github.com/analogdevicesinc/documentation">ADI System Level Documentation repository</a>, which indeed contains various
+<p>The only exception is the <a class="icon git reference external" href="https://github.com/analogdevicesinc/documentation">ADI System Level Documentation repository</a>, which indeed contains various
 types of documentation (eval-boards, university program, Linux drivers, etc.);
-and it uses the <code class="docutils literal notranslate"><span class="pre">pseudo_subdomains</span></code> variable at <code class="docutils literal notranslate"><span class="pre">conf.py</span></code> to keep track of
+and it uses the <code class="docutils literal notranslate"><span class="pre">topic</span></code> field at <code class="docutils literal notranslate"><span class="pre">lut.py</span></code> to keep track of
 each.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">toctree</span></code> directive has the following format:</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">toctree</span><span class="p">::</span>
@@ -264,9 +266,10 @@ it makes pattern matching really hard.</p>
 <p>For resources without a particular source code file/folder, prefer hyphen <code class="docutils literal notranslate"><span class="pre">-</span></code>
 separation, for example, <code class="docutils literal notranslate"><span class="pre">spi_engine</span> <span class="pre">control-interface</span></code> instead of
 <code class="docutils literal notranslate"><span class="pre">spi_engine</span> <span class="pre">control_interface</span></code>.</p>
-<section id="in-organization-sphinx-references">
-<h3>In organization Sphinx references<a class="headerlink" href="#in-organization-sphinx-references" title="Link to this heading">#</a></h3>
-<p>For references to in-org Sphinx docs, the <code class="docutils literal notranslate"><span class="pre">ref</span></code> role is extended with the syntax
+<section id="in-organization-references">
+<span id="in-org-ref"></span><h3>In organization references<a class="headerlink" href="#in-organization-references" title="Link to this heading">#</a></h3>
+<p>For references to Sphinx docs inside the organization (repos listed in the repotoc),
+the <code class="docutils literal notranslate"><span class="pre">ref</span></code> role is extended with the syntax
 <code class="code docutils literal notranslate"><span class="pre">:ref-&lt;external&gt;:`label`</span></code> where <code class="docutils literal notranslate"><span class="pre">external</span></code> is a mapped source,
 for example, <code class="code docutils literal notranslate"><span class="pre">:ref-hdl:`spi_engine</span> <span class="pre">control-interface`</span></code>.
 It is also possible to customize the text, e.g.
@@ -288,9 +291,10 @@ It is also possible to customize the text, e.g.
 <li><p><code class="docutils literal notranslate"><span class="pre">ADOC_INTERREF_RELEASE</span></code>: unset to use the default branch (e.g. <code class="docutils literal notranslate"><span class="pre">main</span></code>)
 or set to use the latest release (e.g. <code class="docutils literal notranslate"><span class="pre">v3.0.0</span></code>) as the tag.</p></li>
 </ul>
-<p>Tracked repositories, default branch is obtained from lookup table (lut), and the
-latest release from <code class="docutils literal notranslate"><span class="pre">latest.txt</span></code> file at the root of the hosted version, e.g.
-<code class="docutils literal notranslate"><span class="pre">hdl/latest.txt</span></code>, if not found, will fallback to the default branch.
+<p>The default branch is obtained from <a class="icon git reference external" href="https://github.com/analogdevicesinc/doctools/blob/main/adi_doctools/lut.py">adi_doctools/lut.py</a>, and the
+latest release from <code class="docutils literal notranslate"><span class="pre">latest.txt</span></code> at the root of the hosted version, e.g.
+<code class="docutils literal notranslate"><span class="pre">hdl/latest.txt</span></code>.
+If not found, it will fallback to the default branch.
 Resolved the path, the mappings are obtained from the InterSphinx mapping file.</p>
 <p>To show all links of an InterSphinx mapping file, use the built-in tool:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>sphinx.ext.intersphinx<span class="w"> </span>https://analogdevicesinc.github.io/hdl/objects.inv
@@ -506,9 +510,9 @@ the links of only these files.</p>
 The role syntax is <code class="code docutils literal notranslate"><span class="pre">:git-repo:`text</span> <span class="pre">&lt;branch:path&gt;`</span></code>, for example:</p>
 <ul class="simple">
 <li><p><code class="code docutils literal notranslate"><span class="pre">:git-hdl:`main:docs/user_guide/docs_guidelines.rst`</span></code>
-renders as <a class="reference external" href="https://github.com/analogdevicesinc/hdl/blob/main/docs/user_guide/docs_guidelines.rst">docs/user_guide/docs_guidelines.rst</a>.</p></li>
+renders as <a class="icon git reference external" href="https://github.com/analogdevicesinc/hdl/blob/main/docs/user_guide/docs_guidelines.rst">docs/user_guide/docs_guidelines.rst</a>.</p></li>
 <li><p><code class="code docutils literal notranslate"><span class="pre">:git-hdl:`Guidelines</span> <span class="pre">&lt;docs/user_guide/docs_guidelines.rst&gt;`</span></code>
-renders as <a class="reference external" href="https://github.com/analogdevicesinc/hdl/blob/main/docs/user_guide/docs_guidelines.rst">Guidelines</a>.</p></li>
+renders as <a class="icon git reference external" href="https://github.com/analogdevicesinc/hdl/blob/main/docs/user_guide/docs_guidelines.rst">Guidelines</a>.</p></li>
 </ul>
 <div class="admonition important">
 <p class="admonition-title">Important</p>
@@ -523,7 +527,7 @@ repositories.</p>
 <p>The text field is optional and will be filled with the full path.</p>
 <p>Finally, you can do <code class="code docutils literal notranslate"><span class="pre">:git-repo:`/`</span></code> for a link to the root of the
 repository with pretty naming, for example, <code class="code docutils literal notranslate"><span class="pre">:git-hdl:`/`</span></code> is rendered
-as <a class="reference external" href="https://github.com/analogdevicesinc/hdl">ADI HDL repository</a>.</p>
+as <a class="icon git reference external" href="https://github.com/analogdevicesinc/hdl">ADI HDL repository</a>.</p>
 </section>
 <section id="adi-role">
 <h4>ADI role<a class="headerlink" href="#adi-role" title="Link to this heading">#</a></h4>
@@ -532,22 +536,7 @@ as <a class="reference external" href="https://github.com/analogdevicesinc/hdl">
 <code class="code docutils literal notranslate"><span class="pre">:adi:`AD7175-2</span> <span class="pre">&lt;ad7175-2&gt;`</span></code>.
 Since links are case insensitive, you can also reduce it to
 <code class="code docutils literal notranslate"><span class="pre">:adi:`AD7175-2`</span></code>, when <em>webpage</em> is the same as <em>text</em> and will render
-as <a class="reference external" href="https://www.analog.com/AD7175-2">AD7175-2</a>.</p>
-</section>
-<section id="datasheet-role">
-<h4>Datasheet role<a class="headerlink" href="#datasheet-role" title="Link to this heading">#</a></h4>
-<p>The datasheet role creates links for a datasheet in the Analog Devices Inc. website.</p>
-<p>The role syntax is <code class="code docutils literal notranslate"><span class="pre">:datasheet:`part_id:anchor`</span></code>, for example,
-<code class="code docutils literal notranslate"><span class="pre">:datasheet:`AD7984:[{&quot;num&quot;%3A51%2C&quot;gen&quot;%3A0}%2C{&quot;name&quot;%3A&quot;XYZ&quot;}%2C52%2C713%2C0]`</span></code>
-is rendered as
-<a class="reference external" href="https://www.analog.com/media/en/technical-documentation/data-sheets//AD7984.pdf#[{&quot;num&quot;%3A51%2C&quot;gen&quot;%3A0}%2C{&quot;name&quot;%3A&quot;XYZ&quot;}%2C52%2C713%2C0]">AD7984 datasheet</a>.
-The anchor is optional and is a link to a section of the PDF, and can be obtained
-by just copying the link in the table of contents.</p>
-<div class="admonition caution">
-<p class="admonition-title">Caution</p>
-<p>Since not all PDF readers support anchors, always provide the page and/or
-figure number!</p>
-</div>
+as <a class="icon adi reference external" href="https://www.analog.com/AD7175-2">AD7175-2</a>.</p>
 </section>
 <section id="dokuwiki-role">
 <h4>Dokuwiki role<a class="headerlink" href="#dokuwiki-role" title="Link to this heading">#</a></h4>
@@ -561,7 +550,7 @@ gets rendered as
 <h4>EngineerZone role<a class="headerlink" href="#engineerzone-role" title="Link to this heading">#</a></h4>
 <p>The ez role creates links to the Analog Devices Inc. EngineerZone support website.
 The role syntax is <code class="code docutils literal notranslate"><span class="pre">:ez:`community`</span></code>, for example, <code class="code docutils literal notranslate"><span class="pre">:ez:`fpga`</span></code>
-gets rendered as <a class="reference external" href="https://ez.analog.com/fpga">EngineerZone</a>.</p>
+gets rendered as <a class="icon ez reference external" href="https://ez.analog.com/fpga">EngineerZone</a>.</p>
 <p>For Linux Software Drivers, it is <code class="code docutils literal notranslate"><span class="pre">:ez:`linux-software-drivers`</span></code>.</p>
 <p>For Microcontroller no-OS Drivers it is <code class="code docutils literal notranslate"><span class="pre">:ez:`microcontroller-no-os-drivers`</span></code>.</p>
 </section>
@@ -815,7 +804,7 @@ they’re not included in any toctree.</p>
           </div>
               <div class="related">
                 &nbsp;
-    <a href="install.html" title="Previous document" class="prev">Installing</a>
+    <a href="fundamentals.html" title="Previous document" class="prev">Fundamentals</a>
     <a href="cli.html" title="Next document" class="next">Command line interface</a>
               </div>
           
@@ -825,8 +814,8 @@ they’re not included in any toctree.</p>
 
   <div id="vertical-border"></div>
 
-  <label id="cancel-area-showsidebar" for="input-showsidebar"></label>
-  <label id="cancel-area-showonthispage" for="input-showonthispage"></label>
+  <label id="cancel-area-show-toc" for="input-show-toc"></label>
+  <label id="cancel-area-show-localtoc" for="input-show-localtoc"></label>
 
   
   <form action="" method="get" class="search-area">
