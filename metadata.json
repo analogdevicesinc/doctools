@@ -20,6 +20,10 @@
             "name": "pyadi-iio",
             "visibility": "public"
         },
+        "precision-converters-firmware": {
+            "name": "Precision Converters Firmware",
+            "visibility": "public"
+        },
         "doctools": {
             "name": "Doctools",
             "visibility": "public-hidden"
