@@ -59,7 +59,7 @@ def color(class_name):
 def datasheet():
     def role(name, rawtext, text, lineno, inliner, options={}, content=[]):
         # DEPRECATED
-        logger.info("The datasheet role has been deprecated, use the adi role"
+        logger.info("The datasheet role has been deprecated, use the adi role "
                     "instead.")
         return [], []
 

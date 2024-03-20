@@ -11,7 +11,7 @@ from .cosmic import cosmic_setup
 
 
 def theme_config_setup(app):
-    app.add_config_value('repository', '', 'env')
+    app.add_config_value('repository', None, 'env')
     app.add_config_value('monolithic', False, 'env')
     app.add_config_value('doctools_export_metadata', False, 'env')
 
@@ -75,7 +75,7 @@ def repotoc_tree(content_root, conf_vars, pagename):
     for item in repotoc:
         href = f"{content_root}{depth}{item}/{home}"
         attrib = {}
-        if item.startswith(repo):
+        if repo is not None and item.startswith(repo):
             if '/' in item:
                 sub = item[item.find('/')+1:]
                 href = f"{content_root}{sub}/{home}"
@@ -186,7 +186,8 @@ def navigation_tree(app, toctree_html, content_root, pagename):
                 iterate(li)
             lvl.pop()
 
-    if "topic" in app.lut[app.env.config.repository]:
+    repo = app.env.config.repository
+    if repo in app.lut and "topic" in app.lut[repo]:
         conf_vars_ = (get_topic(pagename), *conf_vars[1:])
         filter_tree(root, conf_vars_, pagename)
 

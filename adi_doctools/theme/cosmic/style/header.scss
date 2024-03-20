@@ -53,10 +53,17 @@ header {
     }
 
     .repotoc-tree {
-        padding-left: calc(40vw - 13em - 1em);
+        padding-left: calc(40vw - 15em);
         border-bottom: $border-panel;
         background: var(--bg-color1);
         height: 2.5em;
+
+        root {
+            padding-left: 1em;
+            display: block;
+            white-space: nowrap;
+            overflow-x: auto;
+        }
 
         a {
             cursor: pointer;

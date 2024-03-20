@@ -7,7 +7,6 @@ lut = {
         'name': 'System Level',
         'branch': 'main',
         'release_format': 'const:latest',
-        'default_branch': 'main',
         'visibility': 'public',
         'topic': {
             'eval': 'Evaluation Boards',
@@ -24,7 +23,6 @@ lut = {
         'name': 'HDL',
         'branch': 'main',
         'release_format': 'halves',
-        'default_branch': 'main',
         'visibility': 'public'
     },
     'no-OS': {
@@ -32,7 +30,6 @@ lut = {
         'name': 'no-OS',
         'branch': 'main',
         'release_format': 'const:latest_commit',
-        'default_branch': 'main',
         'visibility': 'public'
     },
     'pyadi-iio': {
@@ -40,7 +37,13 @@ lut = {
         'name': 'pyadi-iio',
         'branch': 'main',
         'release_format': 'semantic',
-        'default_branch': 'main',
+        'visibility': 'public'
+    },
+    'precision-converters-firmware': {
+        'doc_folder': 'doc/sphinx',
+        'name': 'Precision Converters Firmware',
+        'branch': 'main',
+        'release_format': 'const:latest',
         'visibility': 'public'
     },
     'doctools': {
@@ -48,7 +51,6 @@ lut = {
         'name': 'Doctools',
         'branch': 'main',
         'release_format': 'semantic',
-        'default_branch': 'main',
         'visibility': 'public-hidden'
     },
 }

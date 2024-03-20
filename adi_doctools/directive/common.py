@@ -212,7 +212,8 @@ class directive_collapsible(directive_base):
 
         node = node_div()
 
-        content, _ = self.collapsible(node, self.arguments[0].strip())
+        _id = sha1("".join(self.content).encode('utf-8')).hexdigest()
+        content, _ = self.collapsible(node, (_id, self.arguments[0].strip()))
         self.state.nested_parse(self.content, self.content_offset, content)
 
         return [node]
