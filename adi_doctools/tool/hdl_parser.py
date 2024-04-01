@@ -108,7 +108,8 @@ def parse_hdl_regmap(reg: str, ctime: float, prefix: str) -> Tuple[Dict, List[st
                 field_desc = " ".join(field_desc)
 
                 # TODO Remove dokuwiki scaping support
-                # Temporary dokuwiki scaping convert to not break current dokuwiki tables
+                # Temporary dokuwiki scaping convert to not break current
+                # dokuwiki tables
                 field_default = field_default.replace("''", "``")
                 field_desc = field_desc.replace("''", "``")
 
@@ -122,7 +123,7 @@ def parse_hdl_regmap(reg: str, ctime: float, prefix: str) -> Tuple[Dict, List[st
                     }
                 )
 
-                data = data[efi + 1 :]
+                data = data[efi + 1:]
 
             try:
                 if '+' in reg_addr:
@@ -192,21 +193,22 @@ def parse_hdl_component(path: str, ctime: float) -> Dict:
 
     def stag(item):
         nonlocal spirit
-        return item.tag.replace(f"{{{spirit}}}",'')
+        return item.tag.replace(f"{{{spirit}}}", '')
 
     def xtag(item):
         nonlocal xilinx
-        return item.tag.replace(f"{{{xilinx}}}",'')
+        return item.tag.replace(f"{{{xilinx}}}", '')
 
     def clean_dependency(string):
         expr = r"spirit:decode\(id\(((.*?))\)\)"
-        return re.sub(expr, r"\1", string).replace(')','').replace('(','')
+        return re.sub(expr, r"\1", string).replace(')', '').replace('(', '')
 
     def get_dependency(item, type_=None):
         if type_ is None:
             type_ = stag(item)
 
-        dependency = get(item, f"vendorExtensions/{type_}Info/enablement/isEnabled")
+        dependency = get(item,
+                         f"vendorExtensions/{type_}Info/enablement/isEnabled")
         if dependency is None:
             return None
         else:
@@ -215,7 +217,7 @@ def parse_hdl_component(path: str, ctime: float) -> Dict:
     def get_range(item):
         min_ = sattrib(item, 'minimum')
         max_ = sattrib(item, 'maximum')
-        if max_ == None or min_ == None:
+        if max_ is None or min_ is None:
             return None
         else:
             return f"From {min_} to {max_}."
@@ -247,16 +249,30 @@ def parse_hdl_component(path: str, ctime: float) -> Dict:
         Merge generated sequencial signals/buses, for example:
         {data_tx_12, data_tx_23_p} -> data_tx_*_p
         {data_phy3, data_phy4} -> data_phy*
+        Requires dependency to contain a " > *" with * being the to be merged
+        value (e.g "PARAMETER > 12").
         """
-        re_expr = r"([a-zA-Z]+|_)([0-9]+)(_|$)"
+        re_expr1 = r"(^|_)([0-9]+)([a-zA-Z]+|_)"  # reversed regex
+        re_expr2 = "> {}"
         for key in list(items):
-            m = re.search(re_expr, key)
+            m = re.search(re_expr1, key[::-1])
 
             if not bool(m):
                 continue
 
+            dep_ = items[key]['dependency']
+
+            if dep_ is None:
+                continue
+
+            index = m.group(2)[::-1]
+            n = re.search(re_expr2.format(index), dep_)
+
+            if not bool(n):
+                continue
+
             index = int(m.group(2))
-            key_ = re.sub(re_expr, r"\1*\3", key)
+            key_ = (re.sub(re_expr1, r"\1*\3", key[::-1]))[::-1]
             if key_ not in items:
                 items[key_] = items[key]
                 items[key_]['index'] = [index, index]
@@ -270,7 +286,7 @@ def parse_hdl_component(path: str, ctime: float) -> Dict:
 
                 if 'port_map' in items[key_]:
                     for inner_key in list(items[key_]['port_map']):
-                        inner_key_ = re.sub(re_expr, r"\1*\3", inner_key)
+                        inner_key_ = (re.sub(re_expr1, r"\1*\3", inner_key[::-1]))[::-1]
                         if (inner_key_ != inner_key):
                             items[key_]['port_map'][inner_key_] = items[key_]['port_map'][inner_key]
                             del items[key_]['port_map'][inner_key]
@@ -330,24 +346,32 @@ def parse_hdl_component(path: str, ctime: float) -> Dict:
     for port in get_all(root, 'model/ports/port'):
         port_name = get(port, 'name').text
         port_direction = get(port, 'wire/direction').text
+        port_left = get(port, 'wire/vector/left')
+        port_right = get(port, 'wire/vector/right')
+
+        if port_left is not None and port_right is not None:
+            port_direction += f" [{port_left.text}:{port_right.text}]"
+
+        dependency = get_dependency(port, 'port')
 
         found = False
         for bus in bs:
             if port_name in bs[bus]['port_map']:
                 found = True
                 bs[bus]['port_map'][port_name]['direction'] = port_direction
+                # portInfo dependency is more complete than busInterfaceInfo
+                if dependency is not None:
+                    bs[bus]['dependency'] = dependency
                 break
 
         if found is False:
             lport[port_name] = {
                 'direction': port_direction,
-                'dependency': get_dependency(port, 'port')
+                'dependency': dependency
             }
 
-    for i in range(0, 2):
-        # Run twice for depth 2 (signal_*_*) signals
-        merge_sequential(lport)
-        merge_sequential(bs)
+    merge_sequential(lport)
+    merge_sequential(bs)
 
     pr = component['parameters']
     for parameter in get_all(root, 'parameters/parameter'):
