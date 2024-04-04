@@ -7,7 +7,7 @@
 
     <title>Documentation guidelines &#8212; Doctools  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8e8a900e" />
-    <link rel="stylesheet" type="text/css" href="_static/style.min.css?v=7196d5a4" />
+    <link rel="stylesheet" type="text/css" href="_static/style.min.css?v=cf8483f0" />
     <script src="_static/documentation_options.js?v=5929fcd5"></script>
     <script src="_static/doctools.js?v=888ff710"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
@@ -368,8 +368,9 @@ and the 80 column-width rule can be respected with list-tables.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pandoc<span class="w"> </span>imported.txt<span class="w"> </span>-f<span class="w"> </span>dokuwiki<span class="w"> </span>-t<span class="w"> </span>rst<span class="w"> </span>--columns<span class="o">=</span><span class="m">80</span><span class="w"> </span>-s<span class="w"> </span>-o<span class="w"> </span>imported.rst<span class="w"> </span>--list-tables
 </pre></div>
 </div>
-<p>The <code class="code docutils literal notranslate"><span class="pre">list-tables</span></code> parameter requires <em>pandoc-types</em> &gt;= 1.23, if it is not
-an option, you shall remove it and export in the <em>grid</em> table format.</p>
+<p>The <code class="code docutils literal notranslate"><span class="pre">list-tables</span></code> parameter requires <em>pandoc-types</em> &gt;= 1.23, included in any
+recent <a class="reference external" href="https://github.com/jgm/pandoc/releases">pandoc release</a>;
+if it is not an option, you shall remove it and export in the <em>grid</em> table format.</p>
 <p>Now you only have to adjust the widths and give the final touches, like using
 the correct directives and roles.</p>
 </section>
