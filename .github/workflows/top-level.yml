@@ -1,4 +1,7 @@
 on:
+  push:
+    branches:
+      - main
   pull_request:
 
 jobs:
@@ -8,4 +11,9 @@ jobs:
   build-doc:
     uses: ./.github/workflows/build-doc.yml
     needs: [build-package]
+    secrets: inherit
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/deploy.yml
+    needs: [build-doc]
     secrets: inherit
