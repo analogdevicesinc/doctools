@@ -3,7 +3,6 @@ from typing import List
 from docutils import nodes
 from docutils.statemachine import ViewList
 from docutils.parsers.rst import Directive, directives
-from sphinx.util.nodes import nested_parse_with_titles
 from sphinx.util import logging
 
 import re
@@ -24,7 +23,7 @@ def parse_rst(state, tag):
     rst.append(tag, f"virtual_{str(uuid4())}", 0)
     node = nodes.section()
     node.document = state.document
-    nested_parse_with_titles(state, rst, node)
+    state.nested_parse(rst, 0, node)
     return node
 
 
@@ -39,6 +38,7 @@ class directive_base(Directive):
         items = {}
         key = ''
         for line in content:
+            # TODO match any delimiter (*,-)
             if line.startswith('* -'):
                 key = line[line.find('* -')+3:].split()[0]
                 items[key] = []

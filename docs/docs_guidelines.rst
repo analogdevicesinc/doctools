@@ -246,8 +246,9 @@ You can use the following command:
 
    pandoc imported.txt -f dokuwiki -t rst --columns=80 -s -o imported.rst --list-tables
 
-The :code:`list-tables` parameter requires *pandoc-types* >= 1.23, if it is not
-an option, you shall remove it and export in the *grid* table format.
+The :code:`list-tables` parameter requires *pandoc-types* >= 1.23, included in any
+recent `pandoc release <https://github.com/jgm/pandoc/releases>`_;
+if it is not an option, you shall remove it and export in the *grid* table format.
 
 Now you only have to adjust the widths and give the final touches, like using
 the correct directives and roles.

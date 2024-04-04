@@ -28,10 +28,23 @@ class directive_interfaces(directive_base):
     required_arguments = 0
     optional_arguments = 0
 
-    def pretty_dep(self, string):
-        if string is None:
-            return ''
-        return string.replace("'MODELPARAM_VALUE.", '').replace("'", '')
+    def pretty_dep(self, string, parent):
+        def minimize(dep):
+            return dep.replace("'MODELPARAM_VALUE.", '').replace("'", '')
+
+        elem = []
+        for key in string:
+            if string[key] is None:
+                continue
+            if key == 'self':
+                elem += [nodes.inline(text="Enabled if "),
+                         nodes.literal(text=minimize(string[key]))]
+            else:
+                elem += [nodes.literal(text=key),
+                         nodes.inline(text=" is enabled if "),
+                         nodes.literal(text=minimize(string[key]))]
+            elem += nodes.literal(text='. ')
+        return elem if len(elem) > 0 else ''
 
     def tables(self, subnode, content, component, lib_name):
         description = self.get_descriptions(content)
@@ -48,11 +61,9 @@ class directive_interfaces(directive_base):
             caption += nodes.paragraph(text=tag)
 
             if bs[tag]['dependency'] is not None:
-                caption += [nodes.inline(text="Enabled if "),
-                            nodes.literal(text=self.pretty_dep(bs[tag]['dependency']))]
+                caption += self.pretty_dep(bs[tag]['dependency'], tag)
                 if 'index' in bs[tag]:
                     caption += nodes.inline(text=f", where '*' is the instance (up to {bs[tag]['index'][1]})")
-                caption += nodes.inline(text=".")
             if tag in description:
                 caption += parse_rst(self.state, description[tag])
 
@@ -103,7 +114,7 @@ class directive_interfaces(directive_base):
             row = nodes.row()
             self.column_entry(row, key, 'literal')
             self.column_entry(row, pr[key]['direction'], 'paragraph')
-            self.column_entry(row, self.pretty_dep(pr[key]['dependency']), 'literal')
+            self.column_entry(row, self.pretty_dep(pr[key]['dependency'], key), 'literal')
             if 'clk' in key or 'clock' in key:
                 domain = 'clock domain'
             elif 'reset':

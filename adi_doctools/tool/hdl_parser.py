@@ -260,7 +260,7 @@ def parse_hdl_component(path: str, ctime: float) -> Dict:
             if not bool(m):
                 continue
 
-            dep_ = items[key]['dependency']
+            dep_ = items[key]['dependency']['self']
 
             if dep_ is None:
                 continue
@@ -278,11 +278,13 @@ def parse_hdl_component(path: str, ctime: float) -> Dict:
                 items[key_]['index'] = [index, index]
 
                 dep = items[key_]['dependency']
-                if dep is not None:
+
+                for k in dep:
                     re_dep = f"\\s+({index})(\\s+|$|\\))"
-                    m = re.search(re_dep, dep)
-                    if bool(m):
-                        items[key_]['dependency'] = re.sub(re_dep, " * ", dep)
+                    if dep[k] is not None:
+                        m = re.search(re_dep, dep[k])
+                        if bool(m):
+                            items[key_]['dependency'][k] = re.sub(re_dep, " * ", dep[k])
 
                 if 'port_map' in items[key_]:
                     for inner_key in list(items[key_]['port_map']):
@@ -331,7 +333,7 @@ def parse_hdl_component(path: str, ctime: float) -> Dict:
         bs[bus_name] = {
             'name': sattrib(get(bus_interface, 'busType'), 'name'),
             'role': bus_role,
-            'dependency': get_dependency(bus_interface, 'busInterface'),
+            'dependency': {'self': get_dependency(bus_interface, 'busInterface')},
             'port_map': {}
         }
 
@@ -359,15 +361,18 @@ def parse_hdl_component(path: str, ctime: float) -> Dict:
             if port_name in bs[bus]['port_map']:
                 found = True
                 bs[bus]['port_map'][port_name]['direction'] = port_direction
-                # portInfo dependency is more complete than busInterfaceInfo
                 if dependency is not None:
-                    bs[bus]['dependency'] = dependency
-                break
+                    if port_name == bus:
+                        bs[bus]['dependency']['self'] = dependency
+                    elif dependency != bs[bus]['dependency']['self']:
+                        bs[bus]['dependency'][port_name] = dependency
+                # Can't break because the port_name might be used in more than
+                # one bus, e.g. BUS0 enabled if CFG=1 and BUS 2 if CFG=1.
 
         if found is False:
             lport[port_name] = {
                 'direction': port_direction,
-                'dependency': dependency
+                'dependency': {'self': dependency},
             }
 
     merge_sequential(lport)
