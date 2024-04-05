@@ -13,76 +13,120 @@ jobs:
         name: dist
         path: dist
 
-    - name: Get vars and set env
+    - name: Get head tag and if it is new
       run: |
         tag=$(sed -n 's/^__version__ = "\(.*\)"/\1/p' adi_doctools/__init__.py)
         echo "tag=$tag" >> "$GITHUB_ENV"
         git fetch --tags
-        if git rev-parse "v$tag" >/dev/null 2>&1; then
-          release=pre-release
-        else
-          echo "new_tag=" >> "$GITHUB_ENV"
-          release=latest
+        if ! [ $(git tag -l "v$tag") ] ; then
+          echo "new_tag=1" >> "$GITHUB_ENV"
         fi
-        echo "release=$release" >> "$GITHUB_ENV"
 
         asset_name=adi-doctools.tar.gz
         echo "asset_name=$asset_name" >> "$GITHUB_ENV"
 
+    - name: Get pre-release vars
+      run: |
+        pre_release_id=$(curl -L \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          https://api.github.com/repos/${{ github.repository }}/releases/tags/pre-release \
+          | jq -r .id)
+        echo "pre_release_id=$pre_release_id" >> "$GITHUB_ENV"
+
+        pre_release_asset_id=$(curl -L \
+          -H "Accept: application/vnd.github+json"  \
+          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}"  \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          https://api.github.com/repos/${{ github.repository }}/releases/$pre_release_id/assets | \
+          jq -r ".[] | select(.name==\"$asset_name\") | .id")
+        echo "pre_release_asset_id=$pre_release_asset_id" >> "$GITHUB_ENV"
+
+        full_asset_name=$(ls dist/adi-doctools-*.tar.gz)
+        echo "full_asset_name=$full_asset_name" >> "$GITHUB_ENV"
+
+    - name: Get latest vars
+      if: ${{ env.new_tag == '1' }}
+      run: |
         release_id=$(curl -L \
           -H "Accept: application/vnd.github+json" \
           -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
           -H "X-GitHub-Api-Version: 2022-11-28" \
-          https://api.github.com/repos/${{ github.repository }}/releases/tags/$release \
+          https://api.github.com/repos/${{ github.repository }}/releases/tags/latest \
           | jq -r .id)
         echo "release_id=$release_id" >> "$GITHUB_ENV"
 
-        asset_id=$(curl -L \
+        release_asset_id=$(curl -L \
           -H "Accept: application/vnd.github+json"  \
           -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}"  \
           -H "X-GitHub-Api-Version: 2022-11-28" \
           https://api.github.com/repos/${{ github.repository }}/releases/$release_id/assets | \
           jq -r ".[] | select(.name==\"$asset_name\") | .id")
-        echo "asset_id=$asset_id" >> "$GITHUB_ENV"
-
-        full_asset_name=$(ls dist/adi-doctools-*.tar.gz)
-        echo "full_asset_name=$full_asset_name" >> "$GITHUB_ENV"
+        echo "release_asset_id=$release_asset_id" >> "$GITHUB_ENV"
 
     - name: Create new tag
+      if: ${{ env.new_tag == '1' }}
       run: |
-        if [ -v new_tag ]; then
-          git tag v$tag
-          git push origin v$tag
-        fi
+         git tag v$tag
+         git push origin v$tag
 
     - name: Create tag release
+      if: ${{ env.new_tag == '1' }}
       run: |
-        if [ -v new_tag ]; then
-          release_id_new_tag=$(curl -L \
-            -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            "https://api.github.com/repos/${{ github.repository }}/releases" \
-            -d "{\"tag_name\":\"v$tag\",\"name\":\"v$tag\",\"make_latest\":\"true\"}" \
-            | jq -r .id)
-          echo "release_id_new_tag=$release_id_new_tag" >> "$GITHUB_ENV"
-        fi
+         release_id_new_tag=$(curl -L \
+          -X POST \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          "https://api.github.com/repos/${{ github.repository }}/releases" \
+          -d "{\"tag_name\":\"v$tag\",\"name\":\"v$tag\",\"make_latest\":\"true\"}" \
+          | jq -r .id)
+         echo "release_id_new_tag=$release_id_new_tag" >> "$GITHUB_ENV"
 
     - name: Upload tag release asset
+      if: ${{ env.new_tag == '1' }}
       run: |
-        if [ -v new_tag ]; then
+        curl -L \
+          -X POST \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          -H "Content-Type: application/octet-stream" \
+          "https://uploads.github.com/repos/${{ github.repository }}/releases/$release_id_new_tag/assets?name=$asset_name" \
+          --data-binary "@$full_asset_name"
+
+    - name: Update pre-release target commitish
+      run: |
+        curl -s \
+          -X PATCH \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          -d '{"target_commitish": "${{ github.sha }}"}' \
+          "https://api.github.com/repos/${{ github.repository }}/releases/$pre_release_id"
+
+    - name: Upload pre-release asset
+      run: |
+        if [[ ! "$pre_release_asset_id" == "" ]]; then
           curl -L \
-            -X POST \
+            -X DELETE \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            -H "Content-Type: application/octet-stream" \
-            "https://uploads.github.com/repos/${{ github.repository }}/releases/$release_id_new_tag/assets?name=$asset_name" \
-            --data-binary "@$full_asset_name"
+            "https://api.github.com/repos/${{ github.repository }}/releases/assets/$pre_release_asset_id"
         fi
+        curl -L \
+          -X POST \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          -H "Content-Type: application/octet-stream" \
+          "https://uploads.github.com/repos/${{ github.repository }}/releases/$pre_release_id/assets?name=$asset_name" \
+          --data-binary "@$full_asset_name"
 
-    - name: Update release target commitish
+    - name: Update latest target commitish
+      if: ${{ env.new_tag == '1' }}
       run: |
         curl -s \
           -X PATCH \
@@ -92,15 +136,16 @@ jobs:
           -d '{"target_commitish": "${{ github.sha }}"}' \
           "https://api.github.com/repos/${{ github.repository }}/releases/$release_id"
 
-    - name: Upload release asset
+    - name: Upload latest asset
+      if: ${{ env.new_tag == '1' }}
       run: |
-        if [[ ! "$asset_id" == "" ]]; then
+        if [[ ! "$release_asset_id" == "" ]]; then
           curl -L \
             -X DELETE \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            "https://api.github.com/repos/${{ github.repository }}/releases/assets/$asset_id"
+            "https://api.github.com/repos/${{ github.repository }}/releases/assets/$release_asset_id"
         fi
         curl -L \
           -X POST \
@@ -138,7 +183,6 @@ jobs:
         git config --global user.name "$author"
         git config --global user.email "$email"
         git commit -m "deploy: $commit" --allow-empty
-
 
     - name: Push to gh-pages
       run: >-
