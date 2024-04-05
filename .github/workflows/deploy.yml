@@ -13,7 +13,7 @@ jobs:
         name: dist
         path: dist
 
-    - name: Get head tag and if it is new
+    - name: Get head tag, if it is new and others vars
       run: |
         tag=$(sed -n 's/^__version__ = "\(.*\)"/\1/p' adi_doctools/__init__.py)
         echo "tag=$tag" >> "$GITHUB_ENV"
@@ -25,45 +25,43 @@ jobs:
         asset_name=adi-doctools.tar.gz
         echo "asset_name=$asset_name" >> "$GITHUB_ENV"
 
-    - name: Get pre-release vars
-      run: |
-        pre_release_id=$(curl -L \
-          -H "Accept: application/vnd.github+json" \
-          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-          -H "X-GitHub-Api-Version: 2022-11-28" \
-          https://api.github.com/repos/${{ github.repository }}/releases/tags/pre-release \
-          | jq -r .id)
-        echo "pre_release_id=$pre_release_id" >> "$GITHUB_ENV"
-
-        pre_release_asset_id=$(curl -L \
-          -H "Accept: application/vnd.github+json"  \
-          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}"  \
-          -H "X-GitHub-Api-Version: 2022-11-28" \
-          https://api.github.com/repos/${{ github.repository }}/releases/$pre_release_id/assets | \
-          jq -r ".[] | select(.name==\"$asset_name\") | .id")
-        echo "pre_release_asset_id=$pre_release_asset_id" >> "$GITHUB_ENV"
-
         full_asset_name=$(ls dist/adi-doctools-*.tar.gz)
         echo "full_asset_name=$full_asset_name" >> "$GITHUB_ENV"
+
+    - name: Get pre-release vars
+      run: |
+        source ci/github-api.sh
+        release_id=$(
+          gh-get-release-id ${{ secrets.GITHUB_TOKEN }} \
+                            ${{ github.repository }} \
+                            pre-release \
+                            pre_release_id
+        )
+
+        asset_id=$(
+          gh-get-asset-id ${{ secrets.GITHUB_TOKEN }} \
+                          ${{ github.repository }} \
+                          $release_id \
+                          pre_release_asset_id
+        )
 
     - name: Get latest vars
       if: ${{ env.new_tag == '1' }}
       run: |
-        release_id=$(curl -L \
-          -H "Accept: application/vnd.github+json" \
-          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-          -H "X-GitHub-Api-Version: 2022-11-28" \
-          https://api.github.com/repos/${{ github.repository }}/releases/tags/latest \
-          | jq -r .id)
-        echo "release_id=$release_id" >> "$GITHUB_ENV"
+        source ci/github-api.sh
+        release_id=$(
+          gh-get-release-id ${{ secrets.GITHUB_TOKEN }} \
+                            ${{ github.repository }} \
+                            latest \
+                            latest_id
+        )
 
-        release_asset_id=$(curl -L \
-          -H "Accept: application/vnd.github+json"  \
-          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}"  \
-          -H "X-GitHub-Api-Version: 2022-11-28" \
-          https://api.github.com/repos/${{ github.repository }}/releases/$release_id/assets | \
-          jq -r ".[] | select(.name==\"$asset_name\") | .id")
-        echo "release_asset_id=$release_asset_id" >> "$GITHUB_ENV"
+        asset_id=$(
+          gh-get-asset-id ${{ secrets.GITHUB_TOKEN }} \
+                          ${{ github.repository }} \
+                          $release_id \
+                          latest_asset_id
+        )
 
     - name: Create new tag
       if: ${{ env.new_tag == '1' }}
@@ -71,90 +69,70 @@ jobs:
          git tag v$tag
          git push origin v$tag
 
-    - name: Create tag release
+    - name: Create tag release and upload asset
       if: ${{ env.new_tag == '1' }}
       run: |
-         release_id_new_tag=$(curl -L \
-          -X POST \
-          -H "Accept: application/vnd.github+json" \
-          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-          -H "X-GitHub-Api-Version: 2022-11-28" \
-          "https://api.github.com/repos/${{ github.repository }}/releases" \
-          -d "{\"tag_name\":\"v$tag\",\"name\":\"v$tag\",\"make_latest\":\"true\"}" \
-          | jq -r .id)
-         echo "release_id_new_tag=$release_id_new_tag" >> "$GITHUB_ENV"
+        source ci/github-api.sh
+        release_id=$(
+          gh-create-release ${{ secrets.GITHUB_TOKEN }} \
+                            ${{ github.repository }} \
+                            $tag \
+                            new_tag_release_id
+        )
 
-    - name: Upload tag release asset
-      if: ${{ env.new_tag == '1' }}
-      run: |
-        curl -L \
-          -X POST \
-          -H "Accept: application/vnd.github+json" \
-          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-          -H "X-GitHub-Api-Version: 2022-11-28" \
-          -H "Content-Type: application/octet-stream" \
-          "https://uploads.github.com/repos/${{ github.repository }}/releases/$release_id_new_tag/assets?name=$asset_name" \
-          --data-binary "@$full_asset_name"
+        gh-upload-asset ${{ secrets.GITHUB_TOKEN }} \
+                        ${{ github.repository }} \
+                        $release_id \
+                        $asset_name \
+                        $full_asset_name
 
     - name: Update pre-release target commitish
       run: |
-        curl -s \
-          -X PATCH \
-          -H "Accept: application/vnd.github+json" \
-          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-          -H "X-GitHub-Api-Version: 2022-11-28" \
-          -d '{"target_commitish": "${{ github.sha }}"}' \
-          "https://api.github.com/repos/${{ github.repository }}/releases/$pre_release_id"
+        source ci/github-api.sh
+        gh-update-commitish ${{ secrets.GITHUB_TOKEN }} \
+                            ${{ github.repository }} \
+                            ${{ github.sha }} \
+                            $pre_release_id
 
     - name: Upload pre-release asset
       run: |
+        source ci/github-api.sh
         if [[ ! "$pre_release_asset_id" == "" ]]; then
-          curl -L \
-            -X DELETE \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            "https://api.github.com/repos/${{ github.repository }}/releases/assets/$pre_release_asset_id"
+          gh-delete-asset ${{ secrets.GITHUB_TOKEN }} \
+                          ${{ github.repository }} \
+                          $pre_release_asset_id
         fi
-        curl -L \
-          -X POST \
-          -H "Accept: application/vnd.github+json" \
-          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-          -H "X-GitHub-Api-Version: 2022-11-28" \
-          -H "Content-Type: application/octet-stream" \
-          "https://uploads.github.com/repos/${{ github.repository }}/releases/$pre_release_id/assets?name=$asset_name" \
-          --data-binary "@$full_asset_name"
+
+        gh-upload-asset ${{ secrets.GITHUB_TOKEN }} \
+                        ${{ github.repository }} \
+                        $pre_release_id \
+                        $asset_name \
+                        $full_asset_name
 
     - name: Update latest target commitish
       if: ${{ env.new_tag == '1' }}
       run: |
-        curl -s \
-          -X PATCH \
-          -H "Accept: application/vnd.github+json" \
-          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-          -H "X-GitHub-Api-Version: 2022-11-28" \
-          -d '{"target_commitish": "${{ github.sha }}"}' \
-          "https://api.github.com/repos/${{ github.repository }}/releases/$release_id"
+        source ci/github-api.sh
+        gh-update-commitish ${{ secrets.GITHUB_TOKEN }} \
+                            ${{ github.repository }} \
+                            ${{ github.sha }} \
+                            $latest_id
 
     - name: Upload latest asset
       if: ${{ env.new_tag == '1' }}
       run: |
-        if [[ ! "$release_asset_id" == "" ]]; then
-          curl -L \
-            -X DELETE \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            "https://api.github.com/repos/${{ github.repository }}/releases/assets/$release_asset_id"
+        source ci/github-api.sh
+        if [[ ! "$latest_asset_id" == "" ]]; then
+          gh-delete-asset ${{ secrets.GITHUB_TOKEN }} \
+                          ${{ github.repository }} \
+                          $latest_asset_id
         fi
-        curl -L \
-          -X POST \
-          -H "Accept: application/vnd.github+json" \
-          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-          -H "X-GitHub-Api-Version: 2022-11-28" \
-          -H "Content-Type: application/octet-stream" \
-          "https://uploads.github.com/repos/${{ github.repository }}/releases/$release_id/assets?name=$asset_name" \
-          --data-binary "@$full_asset_name"
+
+        gh-upload-asset ${{ secrets.GITHUB_TOKEN }} \
+                        ${{ github.repository }} \
+                        $latest_id \
+                        $asset_name \
+                        $full_asset_name
 
     - name: Switch to gh-pages and empty it
       run: |
