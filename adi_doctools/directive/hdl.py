@@ -29,22 +29,12 @@ class directive_interfaces(directive_base):
     optional_arguments = 0
 
     def pretty_dep(self, string, parent):
-        def minimize(dep):
-            return dep.replace("'MODELPARAM_VALUE.", '').replace("'", '')
-
-        elem = []
-        for key in string:
-            if string[key] is None:
-                continue
-            if key == 'self':
-                elem += [nodes.inline(text="Enabled if "),
-                         nodes.literal(text=minimize(string[key]))]
-            else:
-                elem += [nodes.literal(text=key),
-                         nodes.inline(text=" is enabled if "),
-                         nodes.literal(text=minimize(string[key]))]
-            elem += nodes.literal(text='. ')
-        return elem if len(elem) > 0 else ''
+        if string is None:
+            return ''
+        elif string == 'false':
+            return 'Disabled'
+        else:
+            return string.replace("'MODELPARAM_VALUE.", '').replace("'", '')
 
     def tables(self, subnode, content, component, lib_name):
         description = self.get_descriptions(content)
@@ -61,7 +51,9 @@ class directive_interfaces(directive_base):
             caption += nodes.paragraph(text=tag)
 
             if bs[tag]['dependency'] is not None:
-                caption += self.pretty_dep(bs[tag]['dependency'], tag)
+                caption += [nodes.inline(text="Enabled if "),
+                            nodes.literal(text=self.pretty_dep(bs[tag]['dependency'], tag)),
+                            nodes.inline(text='. ')]
                 if 'index' in bs[tag]:
                     caption += nodes.inline(text=f", where '*' is the instance (up to {bs[tag]['index'][1]})")
             if tag in description:
@@ -70,14 +62,14 @@ class directive_interfaces(directive_base):
             content, _ = self.collapsible(section, (component['name'], tag),
                                           caption)
 
-            tgroup = nodes.tgroup(cols=3)
-            for _ in range(3):
+            tgroup = nodes.tgroup(cols=4)
+            for _ in range(4):
                 colspec = nodes.colspec(colwidth=1)
                 tgroup.append(colspec)
             table = nodes.table()
             table += tgroup
 
-            self.table_header(tgroup, ["Physical Port", "Logical Port", "Direction"])
+            self.table_header(tgroup, ["Physical Port", "Logical Port", "Direction", "Dependency"])
 
             rows = []
             pm = bs[tag]['port_map']
@@ -86,6 +78,7 @@ class directive_interfaces(directive_base):
                     [key, 'literal'],
                     [pm[key]['logical_port'], 'literal'],
                     [pm[key]['direction'], 'paragraph'],
+                    [self.pretty_dep(pm[key]['dependency'], key), 'literal'],
                 ])
 
             tbody = nodes.tbody()

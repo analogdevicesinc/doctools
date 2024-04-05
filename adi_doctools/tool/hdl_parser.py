@@ -260,7 +260,7 @@ def parse_hdl_component(path: str, ctime: float) -> Dict:
             if not bool(m):
                 continue
 
-            dep_ = items[key]['dependency']['self']
+            dep_ = items[key]['dependency']
 
             if dep_ is None:
                 continue
@@ -277,16 +277,15 @@ def parse_hdl_component(path: str, ctime: float) -> Dict:
                 items[key_] = items[key]
                 items[key_]['index'] = [index, index]
 
-                dep = items[key_]['dependency']
-
-                for k in dep:
-                    re_dep = f"\\s+({index})(\\s+|$|\\))"
-                    if dep[k] is not None:
-                        m = re.search(re_dep, dep[k])
-                        if bool(m):
-                            items[key_]['dependency'][k] = re.sub(re_dep, " * ", dep[k])
-
                 if 'port_map' in items[key_]:
+                    pm = items[key_]['port_map']
+                    for k in pm:
+                        re_dep = f"\\s+({index})(\\s+|$|\\))"
+                        if pm[k]['dependency'] is not None:
+                            m = re.search(re_dep, pm[k]['dependency'])
+                            if bool(m):
+                                pm[k]['dependency'] = re.sub(re_dep, " * ", pm[k]['dependency'])
+
                     for inner_key in list(items[key_]['port_map']):
                         inner_key_ = (re.sub(re_expr1, r"\1*\3", inner_key[::-1]))[::-1]
                         if (inner_key_ != inner_key):
@@ -333,7 +332,7 @@ def parse_hdl_component(path: str, ctime: float) -> Dict:
         bs[bus_name] = {
             'name': sattrib(get(bus_interface, 'busType'), 'name'),
             'role': bus_role,
-            'dependency': {'self': get_dependency(bus_interface, 'busInterface')},
+            'dependency': get_dependency(bus_interface, 'busInterface'),
             'port_map': {}
         }
 
@@ -341,7 +340,8 @@ def parse_hdl_component(path: str, ctime: float) -> Dict:
         for port_map in get_all(bus_interface, 'portMaps/portMap'):
             pm[get(port_map, 'physicalPort/name').text] = {
                 'logical_port': get(port_map, 'logicalPort/name').text,
-                'direction': ''
+                'direction': None,
+                'dependency': None,
             }
 
     lport = component['ports']
@@ -361,18 +361,14 @@ def parse_hdl_component(path: str, ctime: float) -> Dict:
             if port_name in bs[bus]['port_map']:
                 found = True
                 bs[bus]['port_map'][port_name]['direction'] = port_direction
-                if dependency is not None:
-                    if port_name == bus:
-                        bs[bus]['dependency']['self'] = dependency
-                    elif dependency != bs[bus]['dependency']['self']:
-                        bs[bus]['dependency'][port_name] = dependency
+                bs[bus]['port_map'][port_name]['dependency'] = dependency
                 # Can't break because the port_name might be used in more than
                 # one bus, e.g. BUS0 enabled if CFG=1 and BUS 2 if CFG=1.
 
         if found is False:
             lport[port_name] = {
                 'direction': port_direction,
-                'dependency': {'self': dependency},
+                'dependency': dependency,
             }
 
     merge_sequential(lport)

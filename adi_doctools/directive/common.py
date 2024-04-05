@@ -65,7 +65,9 @@ class directive_base(Directive):
             entry += nodes.paragraph(text=text)
             row += entry
             return
-        if node_type == 'literal':
+        if node_type == 'nodes':
+            entry += text
+        elif node_type == 'literal':
             entry += nodes.literal(text=text)
         elif node_type == 'paragraph':
             entry += nodes.paragraph(text=text)
