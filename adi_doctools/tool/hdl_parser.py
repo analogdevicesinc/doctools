@@ -29,17 +29,26 @@ def parse_hdl_regmap(reg: str, ctime: float, prefix: str) -> Tuple[Dict, List[st
     while "TITLE" in data:
         # Get title
         tit = data.index("TITLE")
+        if data[tit + 1].strip().startswith('USING'):
+            using = data[tit + 1][6:]
+            tit += 1
+            if len(using) == 0:
+                warning.append("Malformed using in title entry, skipped!")
+                continue
+        else:
+            using = None
 
         title = str(data[tit + 1].strip())
         title_tool = str(data[tit + 2].strip())
         data = data[tit + 2:]
 
         if 'ENDTITLE' in [title_tool, title]:
-            warning.append(f"Malformed title fields at file {prefix}/regmap/adi_regmap_{reg}.txt, skipped!")
+            warning.append("Malformed title entry, skipped!")
             continue
 
         regmap['subregmap'][title_tool] = {
             'title': title,
+            'using': using,
             'regmap': [],
             'access_type': []
         }
@@ -53,10 +62,34 @@ def parse_hdl_regmap(reg: str, ctime: float, prefix: str) -> Tuple[Dict, List[st
             if not regi:
                 break
 
-            reg_addr = data[regi + 1].strip()
-            reg_name = data[regi + 2].strip()
-            reg_desc = [data[f_].strip() for f_ in range(regi + 3, rfi)]
-            reg_desc = " ".join(reg_desc)
+            if data[regi + 1].startswith("0x"):
+                reg_import = False
+                reg_addr = data[regi + 1].strip()
+                reg_name = data[regi + 2].strip()
+                reg_desc = [data[f_].strip() for f_ in range(regi + 3, rfi)]
+                reg_desc = " ".join(reg_desc)
+                try:
+                    if '+' in reg_addr:
+                        reg_addr_ = reg_addr.split('+')
+                        reg_addr_[0] = int(reg_addr_[0], 16)
+                        reg_addr_[1] = int(reg_addr_[1].replace('*n', ''), 16)
+                        reg_addr_dword = f"{hex(reg_addr_[0])} + {hex(reg_addr_[1])}*n"
+                        reg_addr_byte = f"{hex(reg_addr_[0]<<2)} + {hex(reg_addr_[1]<<2)}*n"
+                    else:
+                        reg_addr_ = int(reg_addr, 16)
+                        reg_addr_dword = f"{hex(reg_addr_)}"
+                        reg_addr_byte = f"{hex(reg_addr_<<2)}"
+                except Exception:
+                    warning.append(f"Got malformed register address {reg_addr}"
+                                   f"for register {reg_name}.")
+                    reg_addr_dword = ""
+                    reg_addr_byte = ""
+            else:
+                reg_import = True
+                reg_addr_dword = None
+                reg_addr_byte = None
+                reg_name = data[regi + 1].strip()
+                reg_desc = None
 
             with contextlib.suppress(ValueError):
                 tet = data.index("TITLE") if "TITLE" in data else -1
@@ -64,7 +97,7 @@ def parse_hdl_regmap(reg: str, ctime: float, prefix: str) -> Tuple[Dict, List[st
                     if regi > tet:
                         # into next regmap
                         break
-            data = data[regi + 1:]
+            data = data[rfi + 1:]
 
             # Get fields
             fields = []
@@ -76,81 +109,130 @@ def parse_hdl_regmap(reg: str, ctime: float, prefix: str) -> Tuple[Dict, List[st
                     break
 
                 with contextlib.suppress(ValueError):
-                    rege = data.index("REG") if "REG" in data else -1
-                    if rege != -1:
-                        if fi > rege:
-                            # into next register
-                            break
-
-                field_loc = data[fi + 1].strip()
-                field_loc = field_loc.split(" ")
-                field_bits = field_loc[0].replace("[", "").replace("]", "")
-                field_default = ' '.join(field_loc[1:]) if len(field_loc) > 1 else "NA"
-
-                field_name = data[fi + 2].strip()
-                field_rw = data[fi + 3].strip()
-
-                if field_rw == 'R':
-                    field_rw = 'RO'
-                elif field_rw == 'W':
-                    field_rw = 'WO'
-                if '-V' in field_rw:
-                    if 'V' not in access_type:
-                        access_type.append('V')
-                field_rw_ = field_rw.replace('-V','')
-                if field_rw_ not in access_type:
-                    if field_rw_ not in string_hdl.access_type:
-                        warning.append(f"Malformed access type {field_rw} for register {field_name}, file {prefix}/regmap/adi_regmap_{reg}.txt.")
+                    if "REG" in data:
+                        rege = data.index("REG")
                     else:
-                        access_type.append(field_rw)
+                        rege = -1
+                    if rege != -1 and fi > rege:
+                        # into next register
+                        break
+                if data[fi + 1].startswith('['):
+                    field_import = False
+                    field_loc = data[fi + 1].strip()
+                    field_loc = field_loc.split(" ")
+                    field_bits = field_loc[0].replace("[", "").replace("]", "")
+                    if len(field_loc) > 1:
+                        field_default = ' '.join(field_loc[1:])
+                    else:
+                        field_default = "NA"
 
-                field_desc = [data[f_].strip() for f_ in range(fi + 4, efi)]
-                field_desc = " ".join(field_desc)
+                    field_name = data[fi + 2].strip()
+                    field_rw = data[fi + 3].strip()
 
-                # TODO Remove dokuwiki scaping support
-                # Temporary dokuwiki scaping convert to not break current
-                # dokuwiki tables
-                field_default = field_default.replace("''", "``")
-                field_desc = field_desc.replace("''", "``")
+                    if field_rw == 'R':
+                        field_rw = 'RO'
+                    elif field_rw == 'W':
+                        field_rw = 'WO'
+                    if '-V' in field_rw:
+                        if 'V' not in access_type:
+                            access_type.append('V')
+                    field_rw_ = field_rw.replace('-V', '')
+                    if field_rw_ not in access_type:
+                        if field_rw_ not in string_hdl.access_type:
+                            warning.append(f"Malformed access type {field_rw}"
+                                           f"for reg {field_name}")
+                        else:
+                            access_type.append(field_rw)
 
-                fields.append(
-                    {
+                    field_desc = [data[f_].strip() for f_ in range(fi + 4, efi)]
+                    field_desc = " ".join(field_desc)
+
+                    # TODO Remove dokuwiki scaping support
+                    # Temporary dokuwiki scaping convert to not break current
+                    # dokuwiki tables
+                    field_default = field_default.replace("''", "``")
+                    field_desc = field_desc.replace("''", "``")
+                    fields.append({
+                        "import": field_import,
                         "name": field_name,
                         "bits": field_bits,
                         "default": field_default,
                         "rw": field_rw,
                         "description": field_desc,
-                    }
-                )
+                    })
+                else:
+                    for i in range(fi + 1, efi):
+                        field_name = data[i].strip()
+                        fields.append({
+                            "import": True,
+                            "name": data[i].strip(),
+                            "bits": None,
+                            "default": None,
+                            "rw": None,
+                            "description": None,
+                        })
 
                 data = data[efi + 1:]
 
-            try:
-                if '+' in reg_addr:
-                    reg_addr_ = reg_addr.split('+')
-                    reg_addr_[0] = int(reg_addr_[0], 16)
-                    reg_addr_[1] = int(reg_addr_[1].replace('*n',''), 16)
-                    reg_addr_dword = f"{hex(reg_addr_[0])} + {hex(reg_addr_[1])}*n"
-                    reg_addr_byte = f"{hex(reg_addr_[0]<<2)} + {hex(reg_addr_[1]<<2)}*n"
-                else:
-                    reg_addr_ = int(reg_addr, 16)
-                    reg_addr_dword = f"{hex(reg_addr_)}"
-                    reg_addr_byte = f"{hex(reg_addr_<<2)}"
-            except Exception:
-                warning.append(f"Got malformed register address {reg_addr} for register {reg_name}, file {prefix}/regmap/adi_regmap_{reg}.txt.")
-                reg_addr_dword = ""
-                reg_addr_byte = ""
-
             regmap['subregmap'][title_tool]['regmap'].append(
                 {
+                    'import': reg_import,
                     'name': reg_name,
-                    'address': [reg_addr_dword,    reg_addr_byte],
+                    'address': [reg_addr_dword, reg_addr_byte],
                     'description': reg_desc,
                     'fields': fields
                 }
             )
         regmap['subregmap'][title_tool]['access_type'] = access_type
+
     return (regmap, warning)
+
+
+def resolve_hdl_regmap(rm: Dict) -> List[str]:
+    warning = []
+
+    def patch_field(r, p, r_, p_name):
+        for i, j in enumerate(r):
+            if j['import']:
+                for p_ in p:
+                    if j['name'] == p_['name']:
+                        r[i] = p_.copy()
+            if r[i]['import']:
+                warning.append(f"Field {j['name']} in reg {p_name} "
+                               f"from import {r_} not found!")
+
+    def patch_reg(r, p, r_):
+        for j in r:
+            if j['import']:
+                for p_ in p:
+                    if j['name'] == p_['name']:
+                        j['import'] = False
+                        j['address'] = p_['address']
+                        j['description'] = p_['description']
+                        patch_field(j['fields'], p_['fields'], r_, p_['name'])
+            if j['import']:
+                warning.append(f"Reg {j['name']} in import {r_} not found!")
+
+    def resolve(k, r):
+        using = None
+        if r['using'] is not None:
+            for i in rm:
+                for k in rm[i]['subregmap']:
+                    if r['using'] == k:
+                        using = rm[i]['subregmap'][k]
+                        break
+            if using is None:
+                warning.append(f"Couldn't find regmap {r['using']}!")
+
+        if using is not None:
+            patch_reg(r['regmap'], using['regmap'], r['using'])
+            r['using'] = None
+
+    for i in rm:
+        for k in rm[i]['subregmap']:
+            resolve(k, rm[i]['subregmap'][k])
+
+    return warning
 
 
 def parse_hdl_component(path: str, ctime: float) -> Dict:

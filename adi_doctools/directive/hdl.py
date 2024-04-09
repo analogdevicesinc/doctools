@@ -10,7 +10,8 @@ from .common import logger
 from .common import directive_base
 from .common import parse_rst
 from .string import string_hdl
-from ..tool.hdl_parser import parse_hdl_component, parse_hdl_regmap
+from ..tool.hdl_parser import parse_hdl_component
+from ..tool.hdl_parser import parse_hdl_regmap, resolve_hdl_regmap
 from ..tool.hdl_parser import parse_hdl_build_status
 from ..tool.hdl_render import hdl_component
 
@@ -248,7 +249,7 @@ class directive_regmap(directive_base):
 
         subnode = nodes.section(ids=["hdl-regmap"])
 
-        # Search all because on file can have more than one regmap.
+        # Search all because one file can have more than one regmap.
         file = None
         for f in env.regmaps:
             if lib_name in env.regmaps[f]['subregmap']:
@@ -529,7 +530,10 @@ def manage_hdl_regmaps(env, docnames):
             else:
                 rm[reg_name], msg = parse_hdl_regmap(reg_name, ctime, prefix)
                 for m in msg:
-                    logger.warning(m)
+                    logger.warning(f"{prefix}/regmap/{file}: {m}")
+    msg = resolve_hdl_regmap(rm)
+    for m in msg:
+        logger.warning(m)
 
 
 def manage_hdl_artifacts(app, env, docnames):
