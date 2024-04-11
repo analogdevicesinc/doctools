@@ -27,6 +27,10 @@
         "doctools": {
             "name": "Doctools",
             "visibility": "public-hidden"
+        },
+        "PrecisionToolbox": {
+            "name": "Precision Toolbox",
+            "visibility": "public"
         }
     }
 }
