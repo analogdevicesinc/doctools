@@ -278,11 +278,11 @@ It is also possible to customize the text, e.g.
 <code class="code docutils literal notranslate"><span class="pre">:ref-hdl:`Custom</span> <span class="pre">text</span> <span class="pre">&lt;spi_engine</span> <span class="pre">control-interface&gt;`</span></code>.</p>
 <p>A warning is thrown when a reference is not found.</p>
 <p>Repository mappings are enabled to the <cite>conf.py</cite> file with the following format:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">interref_mapping</span> <span class="o">=</span> <span class="p">[</span><span class="n">external</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">interref_repos</span> <span class="o">=</span> <span class="p">[</span><span class="n">external</span><span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
 <p>For example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">interref_mapping</span> <span class="o">=</span> <span class="p">[</span><span class="n">hdl</span><span class="p">,</span> <span class="n">no</span><span class="o">-</span><span class="n">OS</span><span class="p">]</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">interref_repos</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;hdl&#39;</span><span class="p">,</span> <span class="s1">&#39;no-OS&#39;</span><span class="p">]</span>
 </pre></div>
 </div>
 <p>Version handling is done with the <code class="docutils literal notranslate"><span class="pre">ADOC_INTERREF_TAGGED</span></code> and
@@ -650,8 +650,21 @@ and not by the documentation tooling.</p>
 file.
 You can provide description to a port or a bus, but not for a bus port.
 Ports/buses that are consecutive are squashed into a single instance
-(e.g. <code class="docutils literal notranslate"><span class="pre">tx_0</span> <span class="pre">...</span> <span class="pre">tx_31</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">tx_*</span></code>) to avoid repetition, so to provide a
-description to those, write <code class="docutils literal notranslate"><span class="pre">tx_*</span></code> once instead of the original name of all.</p>
+to avoid repetition, for example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="n">data_tx_12_p</span><span class="p">,</span> <span class="n">data_tx_23_p</span><span class="p">}</span> <span class="o">-&gt;</span> <span class="n">data_tx_</span><span class="o">*</span><span class="n">_p</span>
+<span class="p">{</span><span class="n">data_tx_12</span><span class="p">,</span> <span class="n">data_tx_23</span><span class="p">}</span> <span class="o">-&gt;</span> <span class="n">data_tx_</span><span class="o">*</span>
+<span class="p">{</span><span class="n">adc_data_i0</span><span class="p">,</span> <span class="n">adc_data_i0</span><span class="p">}</span> <span class="o">-&gt;</span> <span class="n">adc_data_i</span><span class="o">*</span>
+<span class="p">{</span><span class="n">adc_data_q0</span><span class="p">,</span> <span class="n">adc_data_q0</span><span class="p">}</span> <span class="o">-&gt;</span> <span class="n">adc_data_q</span><span class="o">*</span>
+<span class="p">{</span><span class="n">rx_phy2</span><span class="p">,</span> <span class="n">rx_phy4</span><span class="p">}</span> <span class="o">-&gt;</span> <span class="n">rx_phy</span><span class="o">*</span>
+</pre></div>
+</div>
+<p>To provide a description to the squashed signals/buses, write, for example,
+<code class="docutils literal notranslate"><span class="pre">data_tx_*</span></code> once instead of the original name of all.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Do not create new IP with signals named as <code class="docutils literal notranslate"><span class="pre">_phy*</span></code>, it was added for
+legacy puporses, instead suffix with <code class="docutils literal notranslate"><span class="pre">_*</span></code>, e.g. <code class="docutils literal notranslate"><span class="pre">mysignal_phy_4</span></code>.</p>
+</div>
 <p>The <code class="docutils literal notranslate"><span class="pre">:path:</span></code> option is optional, and should <strong>not</strong> be included if the
 documentation file path matches the <em>component.xml</em> hierarchically.</p>
 </section>
