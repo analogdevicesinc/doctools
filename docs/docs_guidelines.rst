@@ -132,13 +132,13 @@ Repository mappings are enabled to the `conf.py` file with the following format:
 
 .. code:: python
 
-   interref_mapping = [external, ...]
+   interref_repos = [external...]
 
 For example:
 
 .. code:: python
 
-   interref_mapping = [hdl, no-OS]
+   interref_repos = ['hdl', 'no-OS']
 
 Version handling is done with the ``ADOC_INTERREF_TAGGED`` and
 ``ADOC_INTERREF_RELEASE`` environment variables values, where:
