@@ -53,6 +53,13 @@ lut = {
         'release_format': 'semantic',
         'visibility': 'public-hidden'
     },
+    'PrecisionToolbox': {
+        'doc_folder': 'docs',
+        'name': 'Precision Toolbox',
+        'branch': 'main',
+        'release_format': 'const:latest',
+        'visibility': 'public'
+    },
 }
 
 
