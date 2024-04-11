@@ -16,11 +16,11 @@ from ..tool.hdl_parser import parse_hdl_build_status
 from ..tool.hdl_render import hdl_component
 
 log = {
-    'signal': "Signal {signal} defined in the hdl-interfaces directive does not exist in the IP-XACT ({lib}/component.xml)!",  # noqa: E501
+    'signal': "{lib}/component.xml: Signal {signal} defined in the hdl-interfaces directive does not exist in the IP-XACT!",  # noqa: E501
     'path': "Inconsistent paths, {cwd} not in {doc}",
     'regmap-no-name': "hdl-regmap directive without name option, skipped!",
     'non-hier': "Discouraged non-hierarchical relation between {lib} library and {doc}.rst doc page.",  # noqa: E501
-    'param': "{param} defined in the hdl-parameters directive does not exist in the IP-XACT ({lib}/component.xml)!"  # noqa: E501
+    'param': "{lib}/component.xml: {param} defined in the hdl-parameters directive does not exist in the IP-XACT!"  # noqa: E501
 }
 
 
@@ -52,11 +52,14 @@ class directive_interfaces(directive_base):
             caption += nodes.paragraph(text=tag)
 
             if bs[tag]['dependency'] is not None:
+                pd = self.pretty_dep(bs[tag]['dependency'], tag)
                 caption += [nodes.inline(text="Enabled if "),
-                            nodes.literal(text=self.pretty_dep(bs[tag]['dependency'], tag)),
-                            nodes.inline(text='. ')]
+                            nodes.literal(text=pd)]
                 if 'index' in bs[tag]:
-                    caption += nodes.inline(text=f", where '*' is the instance (up to {bs[tag]['index'][1]})")
+                    txt = (", where '*' is the instance "
+                           f"(up to {bs[tag]['index'][1]})")
+                    caption += nodes.inline(text=txt)
+                caption += nodes.inline(text='.')
             if tag in description:
                 caption += parse_rst(self.state, description[tag])
 
@@ -70,7 +73,7 @@ class directive_interfaces(directive_base):
             table = nodes.table()
             table += tgroup
 
-            self.table_header(tgroup, ["Physical Port", "Logical Port", "Direction", "Dependency"])
+            self.table_header(tgroup, ["Physical Port", "Logical Port", "Direction", "Dependency"])  # noqa: E501
 
             rows = []
             pm = bs[tag]['port_map']
@@ -99,7 +102,7 @@ class directive_interfaces(directive_base):
         table = nodes.table()
         table += tgroup
 
-        self.table_header(tgroup, ["Physical Port", "Direction", "Dependency", "Description"])
+        self.table_header(tgroup, ["Physical Port", "Direction", "Dependency", "Description"])  # noqa: E501
 
         rows = []
         pr = component['ports']
@@ -108,7 +111,8 @@ class directive_interfaces(directive_base):
             row = nodes.row()
             self.column_entry(row, key, 'literal')
             self.column_entry(row, pr[key]['direction'], 'paragraph')
-            self.column_entry(row, self.pretty_dep(pr[key]['dependency'], key), 'literal')
+            self.column_entry(row, self.pretty_dep(pr[key]['dependency'], key),
+                              'literal')
             if 'clk' in key or 'clock' in key:
                 domain = 'clock domain'
             elif 'reset':
@@ -118,13 +122,16 @@ class directive_interfaces(directive_base):
             if key in dm:
                 bus = 'Buses' if len(dm[key]) > 1 else 'Bus'
                 plr = 'are' if len(dm[key]) > 1 else 'is'
-                in_domain = f"{bus} ``{'``, ``'.join(dm[key])}`` {plr} synchronous to this {domain}."
+                in_domain = (f"{bus} ``{'``, ``'.join(dm[key])}`` {plr} "
+                             f"synchronous to this {domain}.")
             else:
                 in_domain = ""
             if key in description:
-                self.column_entry(row, " ".join([description[key], in_domain]), 'reST', classes=['description'])
+                self.column_entry(row, " ".join([description[key], in_domain]),
+                                  'reST', classes=['description'])
             else:
-                self.column_entry(row, in_domain, 'reST', classes=['description'])
+                self.column_entry(row, in_domain,
+                                  'reST', classes=['description'])
             rows.append(row)
 
         tbody = nodes.tbody()
@@ -161,12 +168,14 @@ class directive_interfaces(directive_base):
 
 
 class directive_regmap(directive_base):
-    option_spec = {'name': directives.unchanged, 'no-type-info': directives.unchanged}
+    option_spec = {'name': directives.unchanged,
+                   'no-type-info': directives.unchanged}
     required_arguments = 0
     optional_arguments = 0
 
-    def tables(self, subnode, obj):
-        section = nodes.section(ids=[f"register-map-{obj['title']}"])
+    def tables(self, subnode, obj, key):
+        id_ = "hdl-regmap-" + key
+        section = nodes.section(ids=[id_])
 
         content, _ = self.collapsible(section, f"{obj['title']} register map")
         tgroup = nodes.tgroup(cols=7)
@@ -176,8 +185,8 @@ class directive_regmap(directive_base):
         table = nodes.table(classes=['regmap'])
         table += tgroup
 
-        self.table_header(tgroup, ["DWORD", "BYTE", ["Reg Name", 3], "Description"])
-        self.table_header(tgroup, [["", 1], "BITS", "Field Name", "Type", "Default Value", "Description"])
+        self.table_header(tgroup, ["DWORD", "BYTE", ["Reg Name", 3], "Description"])  # noqa: E501
+        self.table_header(tgroup, [["", 1], "BITS", "Field Name", "Type", "Default Value", "Description"])  # noqa: E501
 
         rows = []
         for reg in obj['regmap']:
@@ -236,7 +245,8 @@ class directive_regmap(directive_base):
         env = self.state.document.settings.env
         self.current_doc = env.doc2path(env.docname)
         if os.getcwd() not in self.current_doc:
-            raise Exception(log['path'].format(cwd=os.getcwd(), doc=self.current_doc))
+            raise Exception(log['path'].format(cwd=os.getcwd(),
+                            doc=self.current_doc))
         owner = self.current_doc[len(os.getcwd())+1:-4]
 
         node = node_div()
@@ -257,12 +267,12 @@ class directive_regmap(directive_base):
                 break
 
         if file is None:
-            logger.warning(f"Title {lib_name} not-found in any regmap file, skipped!")
+            logger.warning(f"{lib_name} not-found in any regmap, skipped!")
             return [node]
 
         if owner not in env.regmaps[f]['owners']:
             env.regmaps[f]['owners'].append(owner)
-        self.tables(subnode, env.regmaps[f]['subregmap'][lib_name])
+        self.tables(subnode, env.regmaps[f]['subregmap'][lib_name], lib_name)
 
         node += subnode
         return [node]
@@ -292,19 +302,23 @@ class directive_parameters(directive_base):
         table = nodes.table()
         table += tgroup
 
-        self.table_header(tgroup, ["Name", "Description", "Default Value", "Choices/Range"])
+        self.table_header(tgroup, ["Name", "Description", "Default Value", "Choices/Range"])  # noqa: E501
 
         rows = []
         for key in parameter:
             row = nodes.row()
             self.column_entry(row, "{:s}".format(key), 'literal')
             if key in description:
-                self.column_entry(row, description[key], 'reST', classes=['description'])
+                self.column_entry(row, description[key],
+                                  'reST', classes=['description'])
             else:
-                self.column_entry(row, self.dot_fix(parameter[key]['description']), 'paragraph', classes=['description'])
+                desc = self.dot_fix(parameter[key]['description'])
+                self.column_entry(row, desc, 'paragraph',
+                                  classes=['description'])
             for tag, ty in zip(['default'], ['literal']):
                 if parameter[key][tag] is not None:
-                    self.column_entry(row, parameter[key][tag], ty, classes=[tag])
+                    self.column_entry(row, parameter[key][tag], ty,
+                                      classes=[tag])
                 else:
                     logger.warning(f"Got empty {tag} at parameter {key}!")
                     self.column_entry(row, "", 'paragraph')
@@ -340,7 +354,9 @@ class directive_parameters(directive_base):
         manage_hdl_component_late(env, lib_name)
         subnode = nodes.section(ids=["hdl-parameters"])
         if lib_name in env.component:
-            subnode += self.tables(self.content, env.component[lib_name]['parameters'], lib_name)
+            subnode += self.tables(self.content,
+                                   env.component[lib_name]['parameters'],
+                                   lib_name)
         else:
             subnode += self.tables(self.content, None, lib_name)
 
@@ -356,7 +372,8 @@ class directive_component_diagram(directive_base):
 
     def missing_diagram(self):
         tree = hdl_component.render_placeholder(self.options['path'])
-        svg_raw = etree.tostring(tree, encoding="utf-8", method="xml").decode("utf-8")
+        svg_raw = etree.tostring(tree, encoding="utf-8", method="xml")
+        svg_raw = svg_raw.decode("utf-8")
 
         svg = nodes.raw('', svg_raw, format='html')
         return [svg]
@@ -413,7 +430,9 @@ class directive_build_status(directive_base):
         for item in obj:
             row = nodes.row()
             self.column_entry(row, item[0], 'literal')
-            self.column_entry(row, 'Failure' if item[1] else 'Success', 'paragraph', ['red'] if item[1] else ['green'])
+            state = 'Failure' if item[1] else 'Success'
+            color = ['red'] if item[1] else ['green']
+            self.column_entry(row, state, 'paragraph', color)
             rows.append(row)
 
         tbody = nodes.tbody()
@@ -437,7 +456,8 @@ class directive_build_status(directive_base):
             logger.warning(m)
 
         table = self.tables(item)
-        title, messages = self.make_title(f"Project Build Status #{build_number}")
+        t = f"Project Build Status #{build_number}"
+        title, messages = self.make_title(t)
         table.insert(0, title)
 
         return [table] + messages
@@ -499,7 +519,8 @@ def manage_hdl_components(env, docnames, libraries):
             cp[lib] = parse_hdl_component(f, ctime)
             tree = hdl_component.render(lib, cp[lib])
             hdl_component_write_managed(env, tree, lib)
-            docnames.append(doc)
+            if doc not in docnames:
+                docnames.append(doc)
 
 
 def manage_hdl_regmaps(env, docnames):

@@ -593,8 +593,23 @@ Descriptions in the directive have higher precedence than in the *component.xml*
 file.
 You can provide description to a port or a bus, but not for a bus port.
 Ports/buses that are consecutive are squashed into a single instance
-(e.g. ``tx_0 ... tx_31`` -> ``tx_*``) to avoid repetition, so to provide a
-description to those, write ``tx_*`` once instead of the original name of all.
+to avoid repetition, for example:
+
+.. code-block::
+
+   {data_tx_12_p, data_tx_23_p} -> data_tx_*_p
+   {data_tx_12, data_tx_23} -> data_tx_*
+   {adc_data_i0, adc_data_i0} -> adc_data_i*
+   {adc_data_q0, adc_data_q0} -> adc_data_q*
+   {rx_phy2, rx_phy4} -> rx_phy*
+
+To provide a description to the squashed signals/buses, write, for example,
+``data_tx_*`` once instead of the original name of all.
+
+.. warning::
+
+   Do not create new IP with signals named as ``_phy*``, it was added for
+   legacy puporses, instead suffix with ``_*``, e.g. ``mysignal_phy_4``.
 
 The ``:path:`` option is optional, and should **not** be included if the
 documentation file path matches the *component.xml* hierarchically.

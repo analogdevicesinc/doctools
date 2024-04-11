@@ -147,9 +147,7 @@ def parse_hdl_regmap(reg: str, ctime: float, prefix: str) -> Tuple[Dict, List[st
                     field_desc = [data[f_].strip() for f_ in range(fi + 4, efi)]
                     field_desc = " ".join(field_desc)
 
-                    # TODO Remove dokuwiki scaping support
-                    # Temporary dokuwiki scaping convert to not break current
-                    # dokuwiki tables
+                    # Convert parameter delimiter into Sphinx literal
                     field_default = field_default.replace("''", "``")
                     field_desc = field_desc.replace("''", "``")
                     fields.append({
@@ -328,48 +326,44 @@ def parse_hdl_component(path: str, ctime: float) -> Dict:
 
     def merge_sequential(items):
         """
-        Merge generated sequencial signals/buses, for example:
-        {data_tx_12, data_tx_23_p} -> data_tx_*_p
-        {data_phy3, data_phy4} -> data_phy*
-        Requires dependency to contain a " > *" with * being the to be merged
-        value (e.g "PARAMETER > 12").
+        Merge generated sequencial signals/buses ending with
+        _[qi]?([0-9]+)$ or _([0-9]+)_[pn]$ or _phy([0-9]+)$,
+        for example:
+          {data_tx_12_p, data_tx_23_p} -> data_tx_*_p
+          {data_tx_12, data_tx_23} -> data_tx_*
+          {adc_data_i0, adc_data_i0} -> adc_data_i*
+          {adc_data_q0, adc_data_q0} -> adc_data_q*
+          {rx_phy2, rx_phy4} -> rx_phy*
+        However, do not create new IP using _phy*, instead use _*, e.g. phy_*.
         """
-        re_expr1 = r"(^|_)([0-9]+)([a-zA-Z]+|_)"  # reversed regex
-        re_expr2 = "> {}"
+        re_expr = r"^([pn]_)?([0-9]+)([iq]|yhp)?(_.*)"  # reversed regex
         for key in list(items):
-            m = re.search(re_expr1, key[::-1])
+            m = re.search(re_expr, key[::-1])
 
             if not bool(m):
                 continue
 
-            dep_ = items[key]['dependency']
-
-            if dep_ is None:
-                continue
-
             index = m.group(2)[::-1]
-            n = re.search(re_expr2.format(index), dep_)
 
-            if not bool(n):
-                continue
-
-            index = int(m.group(2))
-            key_ = (re.sub(re_expr1, r"\1*\3", key[::-1]))[::-1]
+            key_ = re.sub(re_expr, r"\1*\3\4", key[::-1])[::-1]
             if key_ not in items:
                 items[key_] = items[key]
                 items[key_]['index'] = [index, index]
 
+                re_dep = f"\\s+({index})(\\s+|$|\\))"
+                if items[key_]['dependency'] is not None:
+                    items[key_]['dependency'] = re.sub(re_dep, " * ", items[key_]['dependency'])
+
                 if 'port_map' in items[key_]:
                     pm = items[key_]['port_map']
                     for k in pm:
-                        re_dep = f"\\s+({index})(\\s+|$|\\))"
                         if pm[k]['dependency'] is not None:
                             m = re.search(re_dep, pm[k]['dependency'])
                             if bool(m):
                                 pm[k]['dependency'] = re.sub(re_dep, " * ", pm[k]['dependency'])
 
                     for inner_key in list(items[key_]['port_map']):
-                        inner_key_ = (re.sub(re_expr1, r"\1*\3", inner_key[::-1]))[::-1]
+                        inner_key_ = (re.sub(re_expr, r"\1*\3", inner_key[::-1]))[::-1]
                         if (inner_key_ != inner_key):
                             items[key_]['port_map'][inner_key_] = items[key_]['port_map'][inner_key]
                             del items[key_]['port_map'][inner_key]
