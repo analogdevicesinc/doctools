@@ -17,6 +17,22 @@ def parse_hdl_regmap(reg: str, ctime: float, prefix: str) -> Tuple[Dict, List[st
     }
     warning = []
 
+    def get_where_desc(desc, warn, reg, fi=None):
+        re_expr = r"FROM ([0-9]+) TO ([0-9]+)$"
+
+        m = re.search(re_expr, desc)
+        if not bool(m):
+            if fi is not None:
+                warn.append(f"Got malformed where {desc} in field bits {fi}"
+                            f" at reg {reg}!")
+            else:
+                warn.append(f"Got malformed where {desc} in reg address"
+                            f"{reg}!")
+
+            return ''
+
+        return f" Where n is from {m.group(1)} to {m.group(2)}."
+
     file = f"{prefix}/regmap/adi_regmap_{reg}.txt"
     if not os.path.isfile(file):
         warning.append(f"File {file} doesn't exist!")
@@ -29,7 +45,7 @@ def parse_hdl_regmap(reg: str, ctime: float, prefix: str) -> Tuple[Dict, List[st
     while "TITLE" in data:
         # Get title
         tit = data.index("TITLE")
-        if data[tit + 1].strip().startswith('USING'):
+        if data[tit + 1].startswith('USING'):
             using = data[tit + 1][6:]
             tit += 1
             if len(using) == 0:
@@ -38,8 +54,8 @@ def parse_hdl_regmap(reg: str, ctime: float, prefix: str) -> Tuple[Dict, List[st
         else:
             using = None
 
-        title = str(data[tit + 1].strip())
-        title_tool = str(data[tit + 2].strip())
+        title = str(data[tit + 1])
+        title_tool = str(data[tit + 2])
         data = data[tit + 2:]
 
         if 'ENDTITLE' in [title_tool, title]:
@@ -64,23 +80,40 @@ def parse_hdl_regmap(reg: str, ctime: float, prefix: str) -> Tuple[Dict, List[st
 
             if data[regi + 1].startswith("0x"):
                 reg_import = False
-                reg_addr = data[regi + 1].strip()
-                reg_name = data[regi + 2].strip()
-                reg_desc = [data[f_].strip() for f_ in range(regi + 3, rfi)]
-                reg_desc = " ".join(reg_desc)
+
+                reg_addr = data[regi + 1]
+
+                reg_d = data[regi + 2]
+                where_desc = ''
+                if reg_d.startswith("WHERE n IS"):
+                    where_desc = get_where_desc(reg_d[10:], warning, reg_addr)
+                    regi = regi + 1
+
+                reg_name = data[regi + 2]
+                reg_desc = [data[f_] for f_ in range(regi + 3, rfi)]
+                reg_desc = " ".join(reg_desc) + where_desc
                 try:
                     if '+' in reg_addr:
                         reg_addr_ = reg_addr.split('+')
-                        reg_addr_[0] = int(reg_addr_[0], 16)
-                        reg_addr_[1] = int(reg_addr_[1].replace('*n', ''), 16)
-                        reg_addr_dword = f"{hex(reg_addr_[0])} + {hex(reg_addr_[1])}*n"
-                        reg_addr_byte = f"{hex(reg_addr_[0]<<2)} + {hex(reg_addr_[1]<<2)}*n"
+                        reg_0 = int(reg_addr_[0], 16)
+                        if reg_addr_[1].strip() == 'n':
+                            reg_1 = 1
+                        else:
+                            reg_1 = int(reg_addr_[1].replace('*n', ''), 16)
+                        reg_addr_dword = f"{hex(reg_0)} + {hex(reg_1)}*n"
+                        reg_addr_byte = f"{hex(reg_0<<2)} + {hex(reg_1<<2)}*n"
+                        if where_desc == '':
+                            warning.append(f"Ranged addr {reg_addr} without "
+                                           f"where method at {reg_name}!")
                     else:
                         reg_addr_ = int(reg_addr, 16)
                         reg_addr_dword = f"{hex(reg_addr_)}"
                         reg_addr_byte = f"{hex(reg_addr_<<2)}"
+                        if where_desc != '':
+                            warning.append(f"Static addr {reg_addr} "
+                                           f"with where method at {reg_name}!")
                 except Exception:
-                    warning.append(f"Got malformed register address {reg_addr}"
+                    warning.append(f"Malformed register address {reg_addr} "
                                    f"for register {reg_name}.")
                     reg_addr_dword = ""
                     reg_addr_byte = ""
@@ -88,7 +121,7 @@ def parse_hdl_regmap(reg: str, ctime: float, prefix: str) -> Tuple[Dict, List[st
                 reg_import = True
                 reg_addr_dword = None
                 reg_addr_byte = None
-                reg_name = data[regi + 1].strip()
+                reg_name = data[regi + 1]
                 reg_desc = None
 
             with contextlib.suppress(ValueError):
@@ -118,7 +151,7 @@ def parse_hdl_regmap(reg: str, ctime: float, prefix: str) -> Tuple[Dict, List[st
                         break
                 if data[fi + 1].startswith('['):
                     field_import = False
-                    field_loc = data[fi + 1].strip()
+                    field_loc = data[fi + 1]
                     field_loc = field_loc.split(" ")
                     field_bits = field_loc[0].replace("[", "").replace("]", "")
                     if len(field_loc) > 1:
@@ -126,8 +159,22 @@ def parse_hdl_regmap(reg: str, ctime: float, prefix: str) -> Tuple[Dict, List[st
                     else:
                         field_default = "NA"
 
-                    field_name = data[fi + 2].strip()
-                    field_rw = data[fi + 3].strip()
+                    fi_d = data[fi + 2]
+                    where_desc = ''
+                    if fi_d.startswith("WHERE n IS"):
+                        where_desc = get_where_desc(fi_d[10:], warning,
+                                                    reg_name, field_bits)
+                        fi = fi + 1
+                        if field_bits != 'n':
+                            warning.append("Where method with field bits "
+                                           f"{field_bits} instead of n "
+                                           f"at reg {reg_name}!")
+                    elif field_bits == 'n':
+                        warning.append("No where method for ranged field "
+                                       f"n at reg {reg_name}!")
+
+                    field_name = data[fi + 2]
+                    field_rw = data[fi + 3]
 
                     if field_rw == 'R':
                         field_rw = 'RO'
@@ -139,13 +186,13 @@ def parse_hdl_regmap(reg: str, ctime: float, prefix: str) -> Tuple[Dict, List[st
                     field_rw_ = field_rw.replace('-V', '')
                     if field_rw_ not in access_type:
                         if field_rw_ not in string_hdl.access_type:
-                            warning.append(f"Malformed access type {field_rw}"
+                            warning.append(f"Malformed access type {field_rw} "
                                            f"for reg {field_name}")
                         else:
                             access_type.append(field_rw)
 
-                    field_desc = [data[f_].strip() for f_ in range(fi + 4, efi)]
-                    field_desc = " ".join(field_desc)
+                    field_desc = [data[f_] for f_ in range(fi + 4, efi)]
+                    field_desc = " ".join(field_desc) + where_desc
 
                     # Convert parameter delimiter into Sphinx literal
                     field_default = field_default.replace("''", "``")
@@ -160,10 +207,10 @@ def parse_hdl_regmap(reg: str, ctime: float, prefix: str) -> Tuple[Dict, List[st
                     })
                 else:
                     for i in range(fi + 1, efi):
-                        field_name = data[i].strip()
+                        field_name = data[i]
                         fields.append({
                             "import": True,
-                            "name": data[i].strip(),
+                            "name": data[i],
                             "bits": None,
                             "default": None,
                             "rw": None,

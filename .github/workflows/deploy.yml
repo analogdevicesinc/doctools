@@ -25,7 +25,7 @@ jobs:
         asset_name=adi-doctools.tar.gz
         echo "asset_name=$asset_name" >> "$GITHUB_ENV"
 
-        full_asset_name=$(ls dist/adi-doctools-*.tar.gz)
+        full_asset_name=$(ls dist/adi_doctools-*.tar.gz)
         echo "full_asset_name=$full_asset_name" >> "$GITHUB_ENV"
 
     - name: Get pre-release vars

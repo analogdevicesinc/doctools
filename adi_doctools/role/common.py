@@ -170,7 +170,7 @@ def prepare_validade_links(app, env, docnames):
 
 def validate_links(app, env):
     if not env.config.validate_links:
-        logger.info(f"Skipping {len(env.links)} URLs checks-ups."
+        logger.info(f"Skipping {len(env.links)} URLs checks-ups. "
                     "Set validate_links to True to enable this feature.")
         return
 
