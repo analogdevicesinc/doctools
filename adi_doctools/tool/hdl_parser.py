@@ -23,10 +23,10 @@ def parse_hdl_regmap(reg: str, ctime: float, prefix: str) -> Tuple[Dict, List[st
         m = re.search(re_expr, desc)
         if not bool(m):
             if fi is not None:
-                warn.append(f"Got malformed where {desc} in field bits {fi}"
-                            f" at reg {reg}!")
+                warn.append(f"Malformed where {desc} in field bits {fi }"
+                            f"at reg {reg}!")
             else:
-                warn.append(f"Got malformed where {desc} in reg address"
+                warn.append(f"Malformed where {desc} in reg address "
                             f"{reg}!")
 
             return ''
