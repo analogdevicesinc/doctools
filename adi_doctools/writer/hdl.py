@@ -1,9 +1,7 @@
-
 from typing import Dict
 
 from datetime import datetime
 from os import path
-
 
 svpkg_fn_new0 = """
       function new(
@@ -108,9 +106,11 @@ def svpkg_head(f, key: str):
     f.write("  import regmap_pkg::*;\n\n")
     f.write(f"  class {classname} #();\n\n")
 
+
 def svpkg_footer(f):
     f.write("  endclass;\n")
     f.write("endpackage;\n")
+
 
 def write_hdl_regmap(path_: str, regmap: Dict, key: str):
     fname = f"adi_regmap_{key}_pkg.sv"

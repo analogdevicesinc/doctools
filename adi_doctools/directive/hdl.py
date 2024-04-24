@@ -11,10 +11,10 @@ from .common import logger
 from .common import directive_base
 from .common import parse_rst
 from .string import string_hdl
-from ..tool.hdl_parser import parse_hdl_component
-from ..tool.hdl_parser import parse_hdl_regmap, resolve_hdl_regmap
-from ..tool.hdl_parser import parse_hdl_build_status
-from ..tool.hdl_render import hdl_component
+from ..parser.hdl import parse_hdl_component
+from ..parser.hdl import parse_hdl_regmap, resolve_hdl_regmap
+from ..parser.hdl import parse_hdl_build_status
+from ..writer.hdl_component import hdl_component
 
 log = {
     'signal': "{lib}/component.xml: Signal {signal} defined in the hdl-interfaces directive does not exist in the IP-XACT!",  # noqa: E501
