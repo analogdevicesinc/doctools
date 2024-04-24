@@ -16,7 +16,7 @@ log = {
 }
 
 # Hall of shame of poorly managed artifacts
-unmanaged = ["PyADI-IIO_Logo"]
+unmanaged = []
 
 
 @click.command()

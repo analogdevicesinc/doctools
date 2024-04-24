@@ -29,7 +29,8 @@ class directive_interfaces(directive_base):
     required_arguments = 0
     optional_arguments = 0
 
-    def pretty_dep(self, string, parent):
+    @staticmethod
+    def pretty_dep(string, parent):
         if string is None:
             return ''
         elif string == 'false':
@@ -172,6 +173,17 @@ class directive_regmap(directive_base):
     required_arguments = 0
     optional_arguments = 0
 
+    @staticmethod
+    def get_hex_addr(addr: int, addr_incr: int):
+        if addr_incr == 0:
+            dword = f"{hex(addr)}"
+            byte = f"{hex(addr<<2)}"
+        else:
+            dword = f"{hex(addr)} + {hex(addr_incr)}*n"
+            byte = f"{hex(addr<<2)} + {hex(addr_incr<<2)}*n"
+
+        return (dword, byte)
+
     def tables(self, subnode, obj, key):
         id_ = "hdl-regmap-" + key
         section = nodes.section(ids=[id_])
@@ -189,9 +201,10 @@ class directive_regmap(directive_base):
 
         rows = []
         for reg in obj['regmap']:
+            dword, byte = self.get_hex_addr(reg['address'], reg['addr_incr'])
             self.column_entries(rows, [
-                [reg['address'][0], 'literal', ['bold']],
-                [reg['address'][1], 'literal', ['bold']],
+                [dword, 'literal', ['bold']],
+                [byte, 'literal', ['bold']],
                 [reg['name'], 'literal', ['bold'], 3],
                 [reg['description'], 'reST', ['description', 'bold']],
             ])
@@ -534,7 +547,8 @@ def manage_hdl_regmaps(env, docnames):
                 continue
 
             reg_name = m.group(1)
-            ctime = path.getctime(f"{prefix}/regmap/{file}")
+            file_ = path.join(prefix, "regmap", file)
+            ctime = path.getctime(file_)
             if reg_name in rm and rm[reg_name]['ctime'] < ctime:
                 for o in rm[reg_name]['owners']:
                     if o not in docnames:
@@ -545,11 +559,10 @@ def manage_hdl_regmaps(env, docnames):
             if reg_name in rm and rm[reg_name]['ctime'] >= ctime:
                 pass
             else:
-                rm[reg_name], msg = parse_hdl_regmap(reg_name, ctime, prefix)
+                rm[reg_name], msg = parse_hdl_regmap(ctime, file_)
                 for m in msg:
-                    logger.warning(f"{prefix}/regmap/{file}: {m}")
-    msg = resolve_hdl_regmap(rm)
-    for m in msg:
+                    logger.warning(m)
+    for m in resolve_hdl_regmap(rm):
         logger.warning(m)
 
 

@@ -4,6 +4,7 @@ import click
 from ..tool.hdl_parser import parse_hdl_component
 from ..tool.hdl_render import hdl_component
 
+
 @click.command()
 @click.option(
     '--input',
