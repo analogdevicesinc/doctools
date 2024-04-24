@@ -210,12 +210,14 @@ class directive_regmap(directive_base):
             ])
 
             for field in reg['fields']:
+                default = field['default']
+                default = default if type(default) is str else hex(default)
                 self.column_entries(rows, [
                     ["", 'literal', [''], 1],
                     [f"[{field['bits']}]", 'literal'],
                     [field['name'], 'literal'],
                     [field['rw'], 'literal'],
-                    [field['default'], 'default_value', ['default']],
+                    [default, 'default_value', ['default']],
                     [field['description'], 'reST', ['description']],
                 ])
 

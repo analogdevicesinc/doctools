@@ -167,6 +167,11 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
                     field_bits = field_loc[0].replace("[", "").replace("]", "")
                     if len(field_loc) > 1:
                         field_default = ' '.join(field_loc[1:])
+                        try:
+                            field_default = int(field_default, 16)
+                        except Exception:
+                            # Convert parameter delimiter into Sphinx literal
+                            field_default = field_default.replace("''", "``")
                     else:
                         field_default = "NA"
 
@@ -205,8 +210,6 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
                     field_desc = [data[f_] for f_ in range(fi + 4, efi)]
                     field_desc = " ".join(field_desc) + where_desc
 
-                    # Convert parameter delimiter into Sphinx literal
-                    field_default = field_default.replace("''", "``")
                     field_desc = field_desc.replace("''", "``")
                     fields.append({
                         "import": field_import,

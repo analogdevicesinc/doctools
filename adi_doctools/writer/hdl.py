@@ -33,11 +33,12 @@ def svpkg_regmap(f, regmap: Dict, key: str):
             bits = field['bits']
             bits = ', '.join(bits.split(':') if ':' in bits else [bits, bits])
             default = field['default']
-            if default.startswith('``'):
+            if type(default) is str:
+                # ''ID'', NA, formulas, invalid values
                 # TODO implement parameter replacement
                 default = "'hXX"
             else:
-                default = field['default'].replace("0x", "'h")
+                default = hex(field['default']).replace("0x", "'h")
             row += '"'f", {bits}, {field['rw']}, {default}, this);""\n"
             f.write(row)
 
