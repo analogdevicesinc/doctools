@@ -30,9 +30,9 @@ def svpkg_regmap(f, regmap: Dict, key: str):
         f.write(svpkg_fn_new0)
         for field in reg['fields']:
             row = f"        this.{field['name']} = "'new("'f"{field['name']}"
-            bits = field['bits']
+            bits = '' if field['bits'] is None else field['bits']
             bits = ', '.join(bits.split(':') if ':' in bits else [bits, bits])
-            default = field['default']
+            default = 'NA' if field['default'] is None else field['default']
             if type(default) is str:
                 # ''ID'', NA, formulas, invalid values
                 # TODO implement parameter replacement

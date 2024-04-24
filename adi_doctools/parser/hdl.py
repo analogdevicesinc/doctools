@@ -173,7 +173,7 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
                             # Convert parameter delimiter into Sphinx literal
                             field_default = field_default.replace("''", "``")
                     else:
-                        field_default = "NA"
+                        field_default = None
 
                     fi_d = data[fi + 2]
                     where_desc = ''

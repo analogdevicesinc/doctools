@@ -210,11 +210,13 @@ class directive_regmap(directive_base):
             ])
 
             for field in reg['fields']:
-                default = field['default']
+                default = '' if field['default'] is None else field['default']
                 default = default if type(default) is str else hex(default)
+                bits = "" if field['bits'] is None else field['bits']
+
                 self.column_entries(rows, [
                     ["", 'literal', [''], 1],
-                    [f"[{field['bits']}]", 'literal'],
+                    [f"[{bits}]", 'literal'],
                     [field['name'], 'literal'],
                     [field['rw'], 'literal'],
                     [default, 'default_value', ['default']],
@@ -550,7 +552,11 @@ def manage_hdl_regmaps(env, docnames):
 
             reg_name = m.group(1)
             file_ = path.join(prefix, "regmap", file)
-            ctime = path.getctime(file_)
+            if path.isfile(file_):
+                ctime = path.getctime(file_)
+            else:
+                continue
+
             if reg_name in rm and rm[reg_name]['ctime'] < ctime:
                 for o in rm[reg_name]['owners']:
                     if o not in docnames:
