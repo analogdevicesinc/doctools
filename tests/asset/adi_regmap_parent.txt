@@ -40,7 +40,7 @@ ENDFIELD
 ############################################################################################
 
 REG
-0x010A + 0x16*n
+0x010A + 0x2*n
 WHERE n IS FROM 0 TO 15
 MOCK_CHANn
 Mock channel register

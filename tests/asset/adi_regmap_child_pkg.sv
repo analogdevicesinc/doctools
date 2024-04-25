@@ -42,26 +42,26 @@ package adi_regmap_child_pkg;
 
     /* Child (child) */
     class MOCK_0 #() extends register_base;
-      field_base SECOND;
+      field_base SECOND_F;
 
       function new(
         input string name,
         input int address);
 
         super.new(name, address);
-        this.SECOND = new("SECOND", 1, 1, RW, 'h0, this);
+        this.SECOND_F = new("SECOND", 1, 1, RW, 'h0, this);
       endfunction: new
     endclass
 
     class MOCK_CHANn #() extends register_base;
-      field_base RESERVED;
+      field_base CONFIGURE_F;
 
       function new(
         input string name,
         input int address);
 
         super.new(name, address);
-        this.RESERVED = new("RESERVED", 31, 3, RO, 'h0, this);
+        this.CONFIGURE_F = new("CONFIGURE", 2, 0, RW, 'h7, this);
       endfunction: new
     endclass
 
@@ -69,8 +69,8 @@ package adi_regmap_child_pkg;
     MOCK_CHANn #() MOCK_CHANn_R;
 
     function new();
-        this.MOCK_0_R = new("MOCK_0", 'h10);
-        this.MOCK_CHANn_R = new("MOCK_CHANn", 'h10a);
+      this.MOCK_0_R = new("MOCK_0", 'h40);
+      this.MOCK_CHANn_R = new("MOCK_CHANn", 'h428);
     endfunction: new;
 
   endclass;

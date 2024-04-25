@@ -24,23 +24,25 @@ def svpkg_regmap(f, regmap: Dict, key: str):
         f.write(row)
 
         for field in reg['fields']:
-            row = f"      field_base {field['name']}_F;""\n"
-            f.write(row)
+            if field['name'] != 'RESERVED':
+                row = f"      field_base {field['name']}_F;""\n"
+                f.write(row)
 
         f.write(svpkg_fn_new0)
         for field in reg['fields']:
-            row = f"        this.{field['name']}_F = "'new("'f"{field['name']}"
-            bits = '' if field['bits'] is None else field['bits']
-            bits = ', '.join(bits.split(':') if ':' in bits else [bits, bits])
-            default = 'NA' if field['default'] is None else field['default']
-            if type(default) is str:
-                # ''ID'', NA, formulas, invalid values
-                # TODO implement parameter replacement
-                default = "'hXXXXXXXX"
-            else:
-                default = hex(field['default']).replace("0x", "'h")
-            row += '"'f", {bits}, {field['rw']}, {default}, this);""\n"
-            f.write(row)
+            if field['name'] != 'RESERVED':
+                row = f"        this.{field['name']}_F = "'new("'f"{field['name']}"
+                bits = '' if field['bits'] is None else field['bits']
+                bits = ', '.join(bits.split(':') if ':' in bits else [bits, bits])
+                default = 'NA' if field['default'] is None else field['default']
+                if type(default) is str:
+                    # ''ID'', NA, formulas, invalid values
+                    # TODO implement parameter replacement
+                    default = "'hXXXXXXXX"
+                else:
+                    default = hex(field['default']).replace("0x", "'h")
+                row += '"'f", {bits}, {field['rw']}, {default}, this);""\n"
+                f.write(row)
 
         f.write(svpkg_fn_new1)
         f.write("    endclass\n\n")
