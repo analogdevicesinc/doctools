@@ -42,7 +42,7 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
             return ''
 
         return (f" Where n is from {m.group(1)} to {m.group(2)}.",
-                (int(m.group(1)), int(m.group(2))))
+                (int(m.group(1)), int(m.group(2))+1))
 
     if not os.path.isfile(file):
         warning.append(f"File {file} doesn't exist!")
@@ -342,7 +342,6 @@ def expand_hdl_regmap(rm: Dict) -> List[str]:
     for i in rm:
         for k in rm[i]['subregmap']:
             expand_fields(rm[i]['subregmap'][k])
-            expand_registers(rm[i]['subregmap'][k])
 
     return warning
 

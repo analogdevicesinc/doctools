@@ -24,19 +24,19 @@ def svpkg_regmap(f, regmap: Dict, key: str):
         f.write(row)
 
         for field in reg['fields']:
-            row = f"      field_base {field['name']};""\n"
+            row = f"      field_base {field['name']}_F;""\n"
             f.write(row)
 
         f.write(svpkg_fn_new0)
         for field in reg['fields']:
-            row = f"        this.{field['name']} = "'new("'f"{field['name']}"
+            row = f"        this.{field['name']}_F = "'new("'f"{field['name']}"
             bits = '' if field['bits'] is None else field['bits']
             bits = ', '.join(bits.split(':') if ':' in bits else [bits, bits])
             default = 'NA' if field['default'] is None else field['default']
             if type(default) is str:
                 # ''ID'', NA, formulas, invalid values
                 # TODO implement parameter replacement
-                default = "'hXX"
+                default = "'hXXXXXXXX"
             else:
                 default = hex(field['default']).replace("0x", "'h")
             row += '"'f", {bits}, {field['rw']}, {default}, this);""\n"
@@ -44,19 +44,6 @@ def svpkg_regmap(f, regmap: Dict, key: str):
 
         f.write(svpkg_fn_new1)
         f.write("    endclass\n\n")
-
-    for reg in regmap['regmap']:
-        row = f"    {reg['name']} #() {reg['name']}_R;\n"
-        f.write(row)
-
-    f.write("\n    function new();\n")
-    for reg in regmap['regmap']:
-        addr = hex(reg['address']).replace("0x", "'h")
-        row = f"        this.{reg['name']}_R = new("
-        row += '"' + reg['name'] + '"'
-        row += f", {addr});\n"
-        f.write(row)
-    f.write("    endfunction: new;\n\n")
 
 
 def svpkg_head(f, key: str):
@@ -108,6 +95,40 @@ def svpkg_head(f, key: str):
     f.write(f"  class {classname} #();\n\n")
 
 
+def svpkg_reg_decl(f, regmap: Dict):
+    for reg in regmap['regmap']:
+        if reg['where'] is not None:
+            for n in range(*reg['where']):
+                reg_ = reg.copy()
+                reg_['name'] = reg_['name'].replace('n', str(n))
+                row = f"    {reg['name']} #() {reg_['name']}_R;\n"
+                f.write(row)
+        else:
+            row = f"    {reg['name']} #() {reg['name']}_R;\n"
+            f.write(row)
+    
+
+def svpkg_reg_inst(f, regmap: Dict):
+    for reg in regmap['regmap']:
+        if reg['where'] is not None:
+            for n in range(*reg['where']):
+                reg_ = reg.copy()
+                reg_['name'] = reg_['name'].replace('n', str(n))
+                reg_['address'] = (reg_['address'] + reg_['addr_incr'] * n) * 4
+                addr = hex(reg_['address']).replace("0x", "'h")
+                row = f"      this.{reg_['name']}_R = new("
+                row += '"' + reg_['name'] + '"'
+                row += f", {addr});\n"
+                f.write(row)
+        else:
+            reg['address'] = reg['address'] * 4
+            addr = hex(reg['address']).replace("0x", "'h")
+            row = f"      this.{reg['name']}_R = new("
+            row += '"' + reg['name'] + '"'
+            row += f", {addr});\n"
+            f.write(row)
+
+        
 def svpkg_footer(f):
     f.write("  endclass;\n")
     f.write("endpackage;\n")
@@ -118,8 +139,18 @@ def write_hdl_regmap(path_: str, regmap: Dict, key: str):
     file = path.join(path_, fname)
     f = open(file, "w")
     svpkg_head(f, key)
+
     for rm in regmap:
         svpkg_regmap(f, regmap[rm], rm)
+
+    for rm in regmap:
+        svpkg_reg_decl(f, regmap[rm])
+
+    f.write("\n    function new();\n")
+    for rm in regmap:
+        svpkg_reg_inst(f, regmap[rm])
+    f.write("    endfunction: new;\n\n")
+
     svpkg_footer(f)
 
     f.close()
