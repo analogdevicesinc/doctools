@@ -3,7 +3,8 @@ import subprocess
 import re
 from os import path, walk
 
-from ..parser.hdl import parse_hdl_regmap, resolve_hdl_regmap
+from ..parser.hdl import parse_hdl_regmap
+from ..parser.hdl import resolve_hdl_regmap
 from ..parser.hdl import expand_hdl_regmap
 from ..writer.hdl import write_hdl_regmap
 

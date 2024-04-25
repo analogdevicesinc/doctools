@@ -289,7 +289,7 @@ def resolve_hdl_regmap(rm: Dict) -> List[str]:
                         using = rm[i]['subregmap'][k]
                         break
             if using is None:
-                warning.append(f"Couldn't find regmap {r['using']}!")
+                warning.append(f"Couldn't find regmap '{r['using']}'!")
 
         if using is not None:
             patch_reg(r['regmap'], using['regmap'], r['using'])

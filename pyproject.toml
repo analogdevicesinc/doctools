@@ -54,3 +54,8 @@ cosmic = 'adi_doctools'
 
 [project.scripts]
 adoc = "adi_doctools.cli:entry_point"
+
+[tool.pytest.ini_options]
+addopts = [
+    "--import-mode=importlib",
+]
