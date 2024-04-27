@@ -54,6 +54,7 @@
 @media (min-width: $width-narrow) {
     .search-area {
         left: calc(40vw - 15rem);
+        width: calc(60vw + 15rem);
     }
 }
 

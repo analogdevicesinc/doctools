@@ -1,7 +1,8 @@
 header {
-    z-index: 6;
+    z-index: 7;
     position: relative;
     width: 100%;
+    border-bottom: $border-panel;
 
     label, button {
       cursor: pointer;
@@ -16,12 +17,12 @@ header {
         flex-direction: row-reverse;
     }
 
-    label:before, button:before {
+    .icon:before {
         content: '';
         display: block;
         width: 1.5rem;
         height: 1.5rem;
-        margin: 1rem .5rem;
+        margin: .5rem;
         background: url('./icons.svg');
         filter: invert(var(--is-dark-theme));
     }
@@ -35,7 +36,9 @@ header {
     }
 
     #left {
-        margin-left: .25rem;
+        margin: 0 .25rem;
+        display: flex;
+        align-items: center;
     }
 
     #right {
@@ -51,38 +54,44 @@ header {
         background-position: left calc(-1.5rem*2) top;
         transition: .25s ease background-position;
     }
+}
 
-    .repotoc-tree {
-        padding-left: calc(40vw - 15em);
-        border-bottom: $border-panel;
-        background: var(--bg-color1);
-        height: 2.5em;
+.repotoc-tree.overlay {
+    background: var(--bg-color1);
+    position: absolute;
+    top: -100vh;
+    opacity: 0;
+    height: calc(100vh - 3.5em);
+    z-index: 6;
+    width: 100%;
+    overflow-y: auto;
+    padding-top: 1em;
+    transition: top ease .25s, opacity .25s ease;
 
-        root {
-            padding-left: 1em;
-            display: block;
-            white-space: nowrap;
-            overflow-x: auto;
-        }
+    root {
+        padding-left: calc(40vw - 14em);
+        display: flex;
+        flex-direction: column;
+    }
 
-        a {
-            cursor: pointer;
-            display: inline-block;
-            padding: .5em .5em .625em .5em;
-            margin: 0 .5em;
-            border-bottom: .125em solid rgba(0,0,0,0);
-        }
+    a {
+        cursor: pointer;
+        display: block;
+        width: fit-content;
+        padding: .5em .5em .625em .5em;
+        margin: 0 .5em;
+    }
 
-        a:hover {
-            color: var(--accent-color);
-            border-color: var(--accent-color);
-        }
+    a:hover {
+        color: var(--accent-color);
+        border-color: var(--accent-color);
+    }
 
-        a.current {
-            border-color: var(--font-color1);
-        }
+    a.current {
+        color: var(--accent-color);
     }
 }
+
 
 #input-show-toc:checked ~ header #show-sidebar:before {
     background-position: left calc(-1.5rem*0) bottom;
@@ -113,7 +122,7 @@ header {
 }
 
 @media (max-width: $width-narrow) {
-    .header {
+    header {
         display: flex;
         width: 100%;
         position: fixed;
@@ -123,7 +132,7 @@ header {
     }
 }
 
-.header {
+header {
     height: 3.5em;
 
     #right {
@@ -137,19 +146,26 @@ header {
         height: 1.5rem;
         margin: .75em 0;
         background: url('./logo-org.svg') no-repeat center top;
+        flex-shrink: 0;
+    }
+
+    .vertical-divider {
+        padding: 0 0.25em 0 .75em;
+        border-right: $border-panel;
+        height: 1.75em;
     }
 
     #logo {
-        display: inline-block;
-        width: 6rem;
-        height: 2rem;
-        margin: .75em 0.5em;
+        padding-left: 0.25em;
+        height: 3.5em;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        line-height: 1em;
     }
 
-    #logo, #no-logo {
-        border-left: $border-panel;
-        margin-left: 0.5em;
-        padding-left: 0.5em;
+    #logo div {
+        transition: margin .25s ease, opacity .25s ease;
     }
 }
 
@@ -164,41 +180,99 @@ body.dark #logo-org {
 }
 
 @media (max-width: $width-narrow) {
-    .header {
+    header {
         backdrop-filter: blur(1em);
     }
-    .header #right {
+    header #right {
         width: 100%;
     }
 }
 
 @media (min-width: $width-narrow) {
-    .header {
+    header {
         background: var(--bg-color1);
     }
 
-    .header #left{
+    header #left{
         display: none;
     }
 
-    .header #right {
+    header #right {
         margin-left: calc(40vw - 13em);
         text-align: right;
-    }
-
-    .header #logo, .header #no-logo {
-        display: none !important;
     }
 }
 
 @media (min-width: $width-wide) {
-    .header #right {
+    header #right {
         max-width: 60rem;
     }
 }
 
 @media (max-width: $width-narrow) {
-    header .repotoc-tree {
+    .repotoc-tree.overlay {
         display: none;
     }
+}
+
+header {
+    #show-repotoc {
+        display: flex;
+        margin: 0 .25em;
+        align-items: center;
+        border-radius: 2em;
+        padding: .5em .75em;
+        border: 1px solid rgba(125, 125, 125, 0);
+        user-select: none;
+    }
+
+    #show-repotoc:hover {
+        border: $border-panel;
+    }
+
+    #show-repotoc:after {
+        border: 1px solid var(--text-color1);
+        border-width: 0 1px 1px 0;
+        display: block;
+        content: '';
+        transition: transform ease .125s, margin ease .125s;
+        width: .6em;
+        height: .6em;
+        transform: rotate(-45deg);
+        margin-top: 1px;
+        margin-left: .5em;
+    }
+
+}
+
+@media (max-width: $width-narrow) {
+    header #show-repotoc {
+        display: none;
+    }
+    header #logo {
+        margin-left: .5em;
+    }
+}
+
+#input-show-repotoc:checked ~ header #show-repotoc:after {
+    transform: rotate(45deg);
+    margin-top: -5px;
+    margin-left: calc(.5em + 2px);
+    margin-right: -2px;
+}
+
+@media (min-width: $width-narrow) {
+    #input-show-repotoc:checked ~ header #logo div {
+        margin-top: 6em;
+        opacity: 0;
+    }
+}
+
+#input-show-repotoc:checked ~ div.repotoc-tree {
+    top: 3.5em;
+    opacity: 1;
+}
+
+body:has(> #input-show-repotoc:checked) {
+    overflow-y: hidden;
 }

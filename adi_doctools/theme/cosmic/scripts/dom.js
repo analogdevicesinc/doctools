@@ -399,34 +399,3 @@ class DOM {
     }
   }
 }
-
-/** Creates basic CSS3 animations in the DOM Node element by switching CSS classes*/
-class Animate {
-  constructor (){}
-  /**
-  * Add CSS classes with delay to a DOM Node
-  * @param {Object} dom - DOM Node to add `ani` and `on` classes with 250ms delay.
-  * @param {function} callback - Function to call after the animation finished.
-  */
-  static off (dom, callback, duration){
-    dom.classList.remove('on')
-    if (!duration)
-      duration = 250
-    setTimeout(()=>{
-      dom.classList.remove('ani', 'on')
-      if (callback != undefined)
-        callback ()
-      }, duration)
-  }
-  /**
-  * Remove CSS classes with delay to a DOM Node
-  * @param {Object} dom - DOM node to remove `ani` and `on` classes with 250ms delay.
-  */
-  static on (dom, duration){
-    dom.classList.add('ani')
-    if (!duration)
-      duration = 250
-    setTimeout(()=>{dom.classList.add('ani', 'on')}, duration)
-  }
-}
-

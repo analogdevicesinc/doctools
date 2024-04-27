@@ -285,42 +285,45 @@
         height: calc(100vh - 1rem);
     }
 
-    #show-repotoc, #show-toc {
-        display: none;
+    .sphinxsidebar {
+        #show-repotoc, #show-toc {
+            display: none;
+        }
     }
 }
 
-#show-repotoc, #show-toc {
-    cursor: pointer;
-    user-select: none;
-    justify-content: space-between;
-    align-items: center;
-    background: var(--bg-color2);
-}
+.sphinxsidebar {
+    #show-repotoc, #show-toc {
+        cursor: pointer;
+        user-select: none;
+        align-items: center;
+        background: var(--bg-color2);
+    }
 
-#show-repotoc {
-    padding: 1.5rem 0.5rem 0.5rem 0.5em;
-}
+    #show-repotoc {
+        padding: 1.5rem 0.5rem 0.5rem 0.5em;
+    }
 
-#show-toc {
-    padding: 1.5rem 0.5rem 0.5rem 1em;
-}
+    #show-toc {
+        padding: 1.5rem 0.5rem 0.5rem 1em;
+    }
 
-#show-repotoc:before, #show-toc:after {
-    content: '';
-    display: block;
-    width: 1.5rem;
-    height: 1.5rem;
-    background: url('./icons.svg');
-    filter: invert(var(--is-dark-theme));
-}
+    #show-repotoc:before, #show-toc:after {
+        content: '';
+        display: block;
+        width: 1.5rem;
+        height: 1.5rem;
+        background: url('./icons.svg');
+        filter: invert(var(--is-dark-theme));
+    }
 
-#show-repotoc:before {
-    background-position: left calc(-1.5rem*5) bottom;
-}
+    #show-repotoc:before {
+        background-position: left calc(-1.5rem*5) bottom;
+    }
 
-#show-toc:after {
-    background-position: left calc(-1.5rem*5) top;
+    #show-toc:after {
+        background-position: left calc(-1.5rem*5) top;
+    }
 }
 
 @media (max-width: $width-narrow) {
@@ -403,6 +406,7 @@
 
 #input-show-toc,
 #input-show-localtoc,
+#input-show-repotoc,
 #input-switch-toc {
     display: none
 }

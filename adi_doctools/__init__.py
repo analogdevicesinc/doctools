@@ -41,7 +41,9 @@ def get_navigation_tree(app, context, pagename):
 
 def html_page_context(app, pagename, templatename, context, doctree):
     ret = get_navigation_tree(app, context, pagename)
-    context["toc_tree"], context["repotoc_tree"] = ret
+    (context["toc_tree"],
+     context["repotoc_tree"],
+     context["repotoc_current"]) = ret
 
 
 def config_inited(app, config):

@@ -34,7 +34,7 @@ lut = {
     },
     'pyadi-iio': {
         'doc_folder': 'doc',
-        'name': 'pyadi-iio',
+        'name': 'Hardware Python Interfaces',
         'branch': 'main',
         'release_format': 'semantic',
         'visibility': 'public'
@@ -51,7 +51,7 @@ lut = {
         'name': 'Doctools',
         'branch': 'main',
         'release_format': 'semantic',
-        'visibility': 'public-hidden'
+        'visibility': 'public'
     },
     'PrecisionToolbox': {
         'doc_folder': 'docs',

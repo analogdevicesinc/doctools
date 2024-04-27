@@ -9,10 +9,11 @@ function handleResize (){
 }
 /* Handle navigation, theming, search */
 class Navigation {
-    constructor (){
+  constructor (){
     this.portrait = false
     this.isLocal = 'file:' == window.location.protocol
     this.currentTheme = localStorage.getItem('theme')
+    this.ctrlPressed = localStorage.getItem('ctrlPressed')
 
     let $ = this.$ = {}
     $.body = new DOM(DOM.get('body'))
@@ -23,16 +24,17 @@ class Navigation {
     if (this.currentTheme !== this.getOSTheme())
       $.body.classList.add(this.currentTheme)
 
-	$.searchButton = new DOM('button', {
-    id:'search',
-    title:'Search'
-  }).onclick(this, () => {
-    DOM.switchState($.searchArea)
-    DOM.switchState($.searchAreaBg)
-    $.searchBox.focus()
-    $.searchBox.$.select()
-  })
-	$.changeTheme = new DOM('button', {
+	  $.searchButton = new DOM('button', {
+      id:'search',
+      className:'icon',
+      title:'Search (/)'
+    }).onclick(this, () => {
+      DOM.switchState($.searchArea)
+      DOM.switchState($.searchAreaBg)
+      $.searchBox.focus()
+      $.searchBox.$.select()
+    })
+	  $.changeTheme = new DOM('button', {
       className: this.currentTheme === 'dark' ? 'icon on' : 'icon',
       id:'theme',
       title:'Switch theme'
@@ -58,8 +60,12 @@ class Navigation {
     $.searchArea.$['action'] = DOM.get('link[rel="search"]').href
     $.body.append([$.searchAreaBg])
 
-    $.rightHeader = new DOM(DOM.get('.header #right span.reverse')).append([$.changeTheme, $.searchButton])
+    $.rightHeader = new DOM(DOM.get('header #right span.reverse')).append([$.changeTheme, $.searchButton])
+
+    this.relatedNext = DOM.get('.related .next')
+    this.relatedPrev = DOM.get('.related .prev')
   }
+  /* Search shortcut */
   search (e) {
     if (e.code === 'IntlRo' && !this.$.searchArea.classList.contains('on')) {
       DOM.switchState(this.$.searchArea)
@@ -73,12 +79,46 @@ class Navigation {
       }
     }
   }
+  /* Related shortcut */
+  related (e) {
+    if (!localStorage.getItem('ctrlPressed'))
+      return
+
+    if (e.code == 'ArrowLeft' && this.relatedPrev !== null)
+      location.href=this.relatedPrev.href
+    else if (e.code == 'ArrowRight' && this.relatedNext !== null)
+      location.href=this.relatedNext.href
+  }
+
+  keyDown (e) {
+    if (e.key == 'Control')
+      localStorage.setItem('ctrlPressed', true)
+  }
+
+  keyUp (e) {
+    console.log(e.key)
+    switch (e.key) {
+      case 'Control':
+        localStorage.removeItem('ctrlPressed')
+        break
+      case 'ArrowLeft':
+      case 'ArrowRight':
+        this.related(e)
+        break
+      case '/':
+        this.search(e)
+    }
+
+    if (e.code === 'Escape')
+      this.search(e)
+  }
   /**
    * Init navigation.
    */
   init () {
     onresize = () => {handleResize()}
-    document.addEventListener('keyup', (e) => {this.search(e)}, false);
+    document.addEventListener('keyup', (e) => {this.keyUp(e)}, false);
+    document.addEventListener('keydown', (e) => {this.keyDown(e)}, false);
   }
   /**
    * Set items state.
