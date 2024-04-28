@@ -52,11 +52,10 @@ def config_inited(app, config):
 
     if 'version' not in config:
         config.version = getenv("ADOC_DOC_VERSION", default='')
-        if config.version == '':
-            msg = (
-                "Unset/empty environment variable ADOC_DOC_VERSION."
-            )
-            logger.info(msg)
+
+    if config.version == '':
+        logger.info("Unset environment variable ADOC_DOC_VERSION (preferred) "
+                    "and unset in conf.py")
 
 
 def builder_inited(app):

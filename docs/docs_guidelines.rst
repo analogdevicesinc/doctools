@@ -89,7 +89,7 @@ The CI, in general, should set ``ADOC_DOC_VERSION`` as the current checkout bran
 in the pipeline (e.g. ``main``, ``v1.0.0``).
 
 If both environment variable and ``version`` on ``conf.py`` are unset, it defaults
-to a empty string.
+to an empty string.
 
 References
 --------------------------------------------------------------------------------
@@ -798,11 +798,12 @@ They are inserted like this:
 
 And will be rendered as sections of the page.
 
-Reactive elements
+Dynamic elements
 --------------------------------------------------------------------------------
 
-Reactive elements refer to sections of the generated webpage that updates when
-loaded online from source of truth, in general, ``doctools/*.json`` files.
+Dynamic elements refer to sections of the generated webpage that updates when
+loaded online from a source of truth, in general, ``doctools/*.json`` files;
+it uses a concept similar to "react components".
 
 For example the navigation bar at the top, is updated using the ``repotoc`` entry
 in ``doctools/metadata.json``.
@@ -816,8 +817,3 @@ From the JavaScript side, it fetches from
 
    path ``version`` is present and set if ``latest`` exists at
    ``{content_root}/../doctools`` and the stored version can be extracted.
-
-.. todo::
-
-   Implement [versioned], probably write versioned to documentation_options.js
-   instead of "latest" file
