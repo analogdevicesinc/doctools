@@ -18,7 +18,7 @@ class DOM {
     this.$ = document.createElement (dom);
     if (typeof tags == 'object') for (const tag in tags) {
       if (known_tags.includes(tag))
-       this.$[tag] = tags[tag]
+        this.$[tag] = tags[tag]
       else
         this.$.dataset[tag] = tags[tag]
     }

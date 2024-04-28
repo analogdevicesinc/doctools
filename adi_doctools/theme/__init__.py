@@ -60,6 +60,7 @@ def repotoc_tree(content_root, conf_vars, pagename):
     root = etree.Element("root")
     home = "index.html"
     depth = '../'
+    current = ''
 
     repository = {}
     topics = {}
@@ -81,16 +82,20 @@ def repotoc_tree(content_root, conf_vars, pagename):
                 href = f"{content_root}{sub}/{home}"
                 if pagename.startswith(sub):
                     attrib = {'class': 'current'}
+                    current = item
             else:
                 href = f"{content_root}{home}"
                 attrib = {'class': 'current'}
+                current = repo
         link = etree.Element("a", attrib={
             'href': href,
             **attrib
         })
         link.text = repotoc[item]
         root.append(link)
-    return etree.tostring(root, pretty_print=True, encoding='unicode')
+
+    return (etree.tostring(root, pretty_print=True, encoding='unicode'),
+            current)
 
 
 def navigation_tree(app, toctree_html, content_root, pagename):
@@ -196,9 +201,9 @@ def navigation_tree(app, toctree_html, content_root, pagename):
             iterate(li)
 
     _toc_tree = etree.tostring(root, pretty_print=True, encoding='unicode')
-    _repotoc_tree = repotoc_tree(content_root, conf_vars, pagename)
+    _repotoc_tree, _current = repotoc_tree(content_root, conf_vars, pagename)
     name = conf_vars[1][conf_vars[0]]['name']
-    return (_toc_tree, _repotoc_tree, name)
+    return (_toc_tree, _repotoc_tree, name, _current)
 
 
 def get_pygments_theme(app):

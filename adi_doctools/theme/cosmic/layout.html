@@ -5,6 +5,7 @@
   {% if theme_no_index %}
     <meta name="robots" content="noindex">
   {% endif %}
+  <meta name="repo" content="{{ repotoc_current }}">
 
   {%- block theme_styles %}
   {% include "section/css_variables.html" with context %}
@@ -44,7 +45,7 @@
         <div class="vertical-divider"></div>
         <label id="show-repotoc" for="input-show-repotoc" title="Show/hide docs" tabindex="0">Docs</label>
         <a id="logo" href="{{ pathto(master_doc) }}">
-          <div>{{ repotoc_current }}</div>
+          <div>{{ repotoc_current_name }}</div>
         </a>
       </span>
       <span class="reverse">

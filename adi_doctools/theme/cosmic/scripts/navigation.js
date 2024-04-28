@@ -3,17 +3,17 @@
 import {DOM} from './dom.js'
 import {Toolbox} from './toolbox.js'
 
-/* Update GUI based on resize event */
-function handleResize (){
-  navigation.portrait = window.innerHeight > window.innerWidth ? true : false
-}
-/* Handle navigation, theming, search */
+/* Handle navigation, theming, search, shortcuts */
 class Navigation {
-  constructor (){
+  constructor () {
     this.portrait = false
     this.isLocal = 'file:' == window.location.protocol
     this.currentTheme = localStorage.getItem('theme')
     this.ctrlPressed = localStorage.getItem('ctrlPressed')
+    this.contentRoot = DOM.get('html').dataset['content_root']
+
+    let metaRepo = document.querySelector('meta[name="repo"]')
+    this.repo = metaRepo ? metaRepo.content.split('/') : ['']
 
     let $ = this.$ = {}
     $.body = new DOM(DOM.get('body'))
@@ -62,8 +62,12 @@ class Navigation {
 
     $.rightHeader = new DOM(DOM.get('header #right span.reverse')).append([$.changeTheme, $.searchButton])
 
-    this.relatedNext = DOM.get('.related .next')
-    this.relatedPrev = DOM.get('.related .prev')
+    $.relatedNext = DOM.get('.related .next')
+    $.relatedPrev = DOM.get('.related .prev')
+  }
+  /* Update GUI based on resize event */
+  handleResize () {
+    this.portrait = window.innerHeight > window.innerWidth ? true : false
   }
   /* Search shortcut */
   search (e) {
@@ -84,10 +88,10 @@ class Navigation {
     if (!localStorage.getItem('ctrlPressed'))
       return
 
-    if (e.code == 'ArrowLeft' && this.relatedPrev !== null)
-      location.href=this.relatedPrev.href
-    else if (e.code == 'ArrowRight' && this.relatedNext !== null)
-      location.href=this.relatedNext.href
+    if (e.code == 'ArrowLeft' && this.$.relatedPrev)
+      location.href = this.$.relatedPrev.href
+    else if (e.code == 'ArrowRight' && this.$.relatedNext)
+      location.href = this.$.relatedNext.href
   }
 
   keyDown (e) {
@@ -96,7 +100,6 @@ class Navigation {
   }
 
   keyUp (e) {
-    console.log(e.key)
     switch (e.key) {
       case 'Control':
         localStorage.removeItem('ctrlPressed')
@@ -116,9 +119,93 @@ class Navigation {
    * Init navigation.
    */
   init () {
-    onresize = () => {handleResize()}
+    onresize = () => {this.handleResize()}
     document.addEventListener('keyup', (e) => {this.keyUp(e)}, false);
     document.addEventListener('keydown', (e) => {this.keyDown(e)}, false);
+    this.react()
+  }
+  /**
+   * Updates elements in a reactive manner,
+   * fetching from the main doctools/metadata.js,
+   * that contain the most up-to-date metadata
+   */
+  react () {
+    /* Get react elements */
+    let $ = this.$
+    $.repotocTreeOverlay = new DOM(DOM.get('.repotoc-tree.overlay root'))
+    $.repotocTreeSidebar = new DOM(DOM.get('.sphinxsidebar .repotoc-tree root'))
+
+    /* Fetch metadata */
+    let metadata = `${this.contentRoot}../doctools/metadata.json`
+
+    let promise = fetch(metadata, {
+      method: 'Get',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+
+    promise.then((response) => {
+      if (response.ok !== true) {
+        let err = "navigation: unable to get metadata"
+        if (location.hostname !== "analogdevicesinc.github.io")
+          console.log(`${err} (expected for local and offline installs)`)
+        else
+          console.warn(err)
+        return
+      }
+
+      return response.json()
+    }).then((json) => {
+      if (!json)
+        return
+
+      if ('repotoc' in json) {
+        this.reactRepoToc(json['repotoc'])
+      }
+    })
+  }
+  reactRepoToc (obj) {
+    let $ = this.$
+
+    let home = "index.html"
+    let links = []
+    for (const [key, value] of Object.entries(obj)) {
+      if (!('name' in value))
+        continue
+
+      let base = key == this.repo[0] ?
+                 `${this.contentRoot}` :
+                 `${this.contentRoot}../${key}/`
+      if ('topic' in value) {
+        for (const [key_, value_] of Object.entries(value['topic'])) {
+          if (typeof(value_) !== "string")
+            continue
+
+          let a = new DOM('a', {
+            'href': `${base}${key_}/${home}`,
+            'className': this.repo.join('/') === `${key}/${key_}` ? 'current' : ''
+          })
+          a.innerText = value_
+
+          links.push(a.$)
+        }
+      } else {
+        let a = new DOM('a', {
+          'href': `${base}${home}`,
+          'className': this.repo[0] === key ? 'current' : ''
+        })
+        a.innerText = value['name']
+        links.push(a.$)
+      }
+    }
+
+    if ($.repotocTreeOverlay.$)
+      $.repotocTreeOverlay.removeChilds(),
+      $.repotocTreeOverlay.append(links)
+    if ($.repotocTreeSidebar.$)
+      $.repotocTreeSidebar.removeChilds(),
+      $.repotocTreeOverlay.append(links)
   }
   /**
    * Set items state.
