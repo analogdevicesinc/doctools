@@ -24,6 +24,15 @@ class DOM {
     }
   }
   /**
+   * Clone node
+   * @param {bool} deep - If true, then the node and its whole subtree,
+   * including text that may be in child Text nodes, is also copied.
+   */
+  cloneNode (deep){
+    let node = new DOM(this.$.cloneNode(deep))
+    return node
+  }
+  /**
    * Set DOM innerText.
    * @param {string} str - Text to apply.
    */
@@ -185,7 +194,8 @@ class DOM {
     DOMS.forEach ((item) => {
       if (/HTML(.*)Element/.test(item.constructor.name))
         this.$.appendChild(item)
-      else if (typeof item == 'object' && (/HTML(.*)Element/.test(item.$)))
+      else if (typeof item == 'object' &&
+               /HTML(.*)Element/.test(item.$.constructor.name))
         this.$.appendChild(item.$)
     })
 

@@ -7,7 +7,7 @@ import {Toolbox} from './toolbox.js'
 class Navigation {
   constructor () {
     this.portrait = false
-    this.isLocal = 'file:' == window.location.protocol
+    this.offline = 'file:' == window.location.protocol
     this.currentTheme = localStorage.getItem('theme')
     this.ctrlPressed = localStorage.getItem('ctrlPressed')
     this.contentRoot = DOM.get('html').dataset['content_root']
@@ -71,7 +71,7 @@ class Navigation {
   }
   /* Search shortcut */
   search (e) {
-    if (e.code === 'IntlRo' && !this.$.searchArea.classList.contains('on')) {
+    if (e.key === '/' && !this.$.searchArea.classList.contains('on')) {
       DOM.switchState(this.$.searchArea)
       DOM.switchState(this.$.searchAreaBg)
       this.$.searchBox.focus()
@@ -85,7 +85,7 @@ class Navigation {
   }
   /* Related shortcut */
   related (e) {
-    if (!localStorage.getItem('ctrlPressed'))
+    if (!e.ctrlKey)
       return
 
     if (e.code == 'ArrowLeft' && this.$.relatedPrev)
@@ -94,16 +94,8 @@ class Navigation {
       location.href = this.$.relatedNext.href
   }
 
-  keyDown (e) {
-    if (e.key == 'Control')
-      localStorage.setItem('ctrlPressed', true)
-  }
-
   keyUp (e) {
     switch (e.key) {
-      case 'Control':
-        localStorage.removeItem('ctrlPressed')
-        break
       case 'ArrowLeft':
       case 'ArrowRight':
         this.related(e)
@@ -121,15 +113,19 @@ class Navigation {
   init () {
     onresize = () => {this.handleResize()}
     document.addEventListener('keyup', (e) => {this.keyUp(e)}, false);
-    document.addEventListener('keydown', (e) => {this.keyDown(e)}, false);
     this.dynamic()
   }
   /**
    * Updates elements in a reactive manner,
    * fetching from the main doctools/metadata.js,
    * that contain the most up-to-date metadata
+   * TODO consider versioned depth
    */
   dynamic () {
+    if (this.offline)
+      console.log("navigation: dynamic features are not available in offline mode")
+      return
+
     /* Get dynamic elements */
     let $ = this.$
     $.repotocTreeOverlay = new DOM(DOM.get('.repotoc-tree.overlay root'))
@@ -138,20 +134,13 @@ class Navigation {
     /* Fetch metadata */
     let metadata = `${this.contentRoot}../doctools/metadata.json`
 
-    let promise = fetch(metadata, {
+    fetch(metadata, {
       method: 'Get',
       headers: {
         'Content-Type': 'application/json'
       }
-    })
-
-    promise.then((response) => {
+    }).then((response) => {
       if (response.ok !== true) {
-        let err = "navigation: unable to get metadata"
-        if (location.hostname !== "analogdevicesinc.github.io")
-          console.log(`${err} (expected for local and offline installs)`)
-        else
-          console.warn(err)
         return
       }
 
@@ -163,13 +152,17 @@ class Navigation {
       if ('repotoc' in json) {
         this.dynamicRepoToc(json['repotoc'])
       }
+    }).catch((e) => {
+      return
     })
   }
+
   dynamicRepoToc (obj) {
     let $ = this.$
 
     let home = "index.html"
-    let links = []
+    let linksOverlay = [],
+        linksSidebar = []
     for (const [key, value] of Object.entries(obj)) {
       if (!('name' in value))
         continue
@@ -188,7 +181,7 @@ class Navigation {
           })
           a.innerText = value_
 
-          links.push(a.$)
+          linksSidebar.push(a)
         }
       } else {
         let a = new DOM('a', {
@@ -196,16 +189,20 @@ class Navigation {
           'className': this.repo[0] === key ? 'current' : ''
         })
         a.innerText = value['name']
-        links.push(a.$)
+        linksSidebar.push(a)
       }
     }
 
+    linksSidebar.forEach((elem) => {
+      linksOverlay.push(elem.cloneNode(true))
+    })
+
     if ($.repotocTreeOverlay.$)
       $.repotocTreeOverlay.removeChilds(),
-      $.repotocTreeOverlay.append(links)
+      $.repotocTreeOverlay.append(linksOverlay)
     if ($.repotocTreeSidebar.$)
       $.repotocTreeSidebar.removeChilds(),
-      $.repotocTreeOverlay.append(links)
+      $.repotocTreeSidebar.append(linksSidebar)
   }
   /**
    * Set items state.

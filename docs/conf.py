@@ -1,3 +1,5 @@
+from os import path
+
 # -- Project information -----------------------------------------------------
 
 repository = 'doctools'
@@ -29,3 +31,5 @@ html_theme = 'cosmic'
 html_theme_options = {
     "no_index": True
 }
+
+html_favicon = path.join("sources", "icon.svg")
