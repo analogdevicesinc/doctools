@@ -9,6 +9,8 @@ continuous integration and local builds of the documentation.
 Below, it is briefly described each command, and it is worth noting that every
 command supports the ``--help`` option for quick look up.
 
+.. _author-mode:
+
 Author Mode
 --------------------------------------------------------------------------------
 
@@ -48,6 +50,10 @@ with the edited Python code.
 
 Aggregate
 --------------------------------------------------------------------------------
+
+.. warning::
+
+   This feature is under elaboration.
 
 Generates all documentations of the watched repositories, which currently are:
 

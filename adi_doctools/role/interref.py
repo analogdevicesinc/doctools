@@ -559,7 +559,7 @@ def normalize_interref_mapping(app: Sphinx, config: Config) -> None:
             "ADOC_INTERREF_RELEASE set require ADOC_INTERREF_TAG also set; "
             "implicitely setting interref_tag"
         )
-        logger.info(msg)
+        logger.warning(msg)
         interref_tag = True
     for repo in config.interref_repos:
         if not isinstance(repo, str):
@@ -579,6 +579,9 @@ def normalize_interref_mapping(app: Sphinx, config: Config) -> None:
         if interref_tag:
             if interref_release:
                 # Get latest tag from latest.txt file (local or remote URI)
+                # TODO: update to tags.json, as described in the documentation;
+                #       grab the newest tag in the file.
+                # TODO: Absolute link for non-versioned, symbolic for versioned
                 latest_txt = interref_uri + f"{repo}/latest.txt"
                 try:
                     if '://' in latest_txt:

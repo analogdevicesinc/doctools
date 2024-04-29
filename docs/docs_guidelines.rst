@@ -75,7 +75,9 @@ Also, it is recommended to wrap the toctree in a "Contents" section:
 
       some_page
 
-Version
+.. _version:
+
+Versioning
 --------------------------------------------------------------------------------
 
 To avoid having the version set in multiple places or having to tweak ``conf.py``
@@ -148,9 +150,15 @@ Version handling is done with the ``ADOC_INTERREF_TAGGED`` and
 * ``ADOC_INTERREF_RELEASE``: unset to use the default branch (e.g. ``main``)
   or set to use the latest release (e.g. ``v3.0.0``) as the tag.
 
+Links are absolute if  version handling is disabled and symbolic if enabled,
+for example
+``www.analogdevicesinc.github.io/repo_b/other_topic/sub_topic/index.html#anchor``
+and
+``../../../repo_b/v3.7/other_topic/sub_topic/index.html#anchor``, respectively.
+
 The default branch is obtained from :git-doctools:`adi_doctools/lut.py`, and the
-latest release from ``latest.txt`` at the root of the hosted version, e.g.
-``hdl/latest.txt``.
+latest release from ``tags.json`` at the root of the hosted version, e.g.
+``www/hdl/tags.json``.
 If not found, it will fallback to the default branch.
 Resolved the path, the mappings are obtained from the InterSphinx mapping file.
 

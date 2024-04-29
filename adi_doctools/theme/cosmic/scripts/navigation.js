@@ -122,15 +122,15 @@ class Navigation {
     onresize = () => {this.handleResize()}
     document.addEventListener('keyup', (e) => {this.keyUp(e)}, false);
     document.addEventListener('keydown', (e) => {this.keyDown(e)}, false);
-    this.react()
+    this.dynamic()
   }
   /**
    * Updates elements in a reactive manner,
    * fetching from the main doctools/metadata.js,
    * that contain the most up-to-date metadata
    */
-  react () {
-    /* Get react elements */
+  dynamic () {
+    /* Get dynamic elements */
     let $ = this.$
     $.repotocTreeOverlay = new DOM(DOM.get('.repotoc-tree.overlay root'))
     $.repotocTreeSidebar = new DOM(DOM.get('.sphinxsidebar .repotoc-tree root'))
@@ -161,11 +161,11 @@ class Navigation {
         return
 
       if ('repotoc' in json) {
-        this.reactRepoToc(json['repotoc'])
+        this.dynamicRepoToc(json['repotoc'])
       }
     })
   }
-  reactRepoToc (obj) {
+  dynamicRepoToc (obj) {
     let $ = this.$
 
     let home = "index.html"

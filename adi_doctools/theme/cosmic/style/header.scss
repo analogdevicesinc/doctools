@@ -78,7 +78,8 @@ header {
         cursor: pointer;
         display: block;
         width: fit-content;
-        padding: .5em .5em .625em .5em;
+        padding: 0 .5em 0 .5em;
+        transition: padding .5s ease;
         margin: 0 .5em;
     }
 
@@ -271,6 +272,10 @@ header {
 #input-show-repotoc:checked ~ div.repotoc-tree {
     top: 3.5em;
     opacity: 1;
+}
+
+#input-show-repotoc:checked ~ div.repotoc-tree a {
+    padding: .75em .5em;
 }
 
 body:has(> #input-show-repotoc:checked) {
