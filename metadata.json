@@ -17,7 +17,7 @@
             "visibility": "public"
         },
         "pyadi-iio": {
-            "name": "pyadi-iio",
+            "name": "Hardware Python Interfaces",
             "visibility": "public"
         },
         "precision-converters-firmware": {
@@ -26,7 +26,7 @@
         },
         "doctools": {
             "name": "Doctools",
-            "visibility": "public-hidden"
+            "visibility": "public"
         },
         "PrecisionToolbox": {
             "name": "Precision Toolbox",

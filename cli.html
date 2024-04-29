@@ -7,11 +7,11 @@
 
     <title>Command line interface &#8212; Doctools  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8e8a900e" />
-    <link rel="stylesheet" type="text/css" href="_static/style.min.css?v=cf8483f0" />
+    <link rel="stylesheet" type="text/css" href="_static/style.min.css?v=bc0470c1" />
     <script src="_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script defer="" src="_static/app.umd.js?v=96350458"></script>
+    <script defer="" src="_static/app.umd.js?v=764cb9c3"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Continuous integration" href="ci.html" />
@@ -20,6 +20,7 @@
   
     <meta name="robots" content="noindex">
   
+  <meta name="repo" content="doctools">
   
 
 
@@ -41,37 +42,40 @@
   </head><body>
   <input type="checkbox" id="input-show-toc">
   <input type="checkbox" id="input-show-localtoc">
+  <input type="checkbox" id="input-show-repotoc">
   <header>
-    <div class="header">
-      <div id="left">
-        <label id="show-sidebar" for="input-show-toc" title="Show/hide index"></label>
-      </div>
-      <div id="right">
-        <span>
-          <a id="logo-org" href="https://analog.com"></a>
-              <a id="no-logo" href="index.html">
-                Doctools
-              </a>
-        </span>
-        <span class="reverse">
-          <label id="show-localtoc" for="input-show-localtoc" title="Show/hide contents"></label>
-        </span>
-      </div>
+    <div id="left">
+      <label id="show-sidebar" class="icon" for="input-show-toc" title="Show/hide index"></label>
     </div>
-    <div class="repotoc-tree">
-      <root>
+    <div id="right">
+      <span>
+        <a id="logo-org" href="https://analog.com"></a>
+        <div class="vertical-divider"></div>
+        <label id="show-repotoc" for="input-show-repotoc" title="Show/hide docs" tabindex="0">Docs</label>
+        <a id="logo" href="index.html">
+          <div>Doctools</div>
+        </a>
+      </span>
+      <span class="reverse">
+        <label id="show-localtoc" class="icon" for="input-show-localtoc" title="Show/hide contents"></label>
+      </span>
+    </div>
+  </header>
+
+
+  <div class="repotoc-tree overlay">
+    <root>
   <a href="./../documentation/eval/index.html">Evaluation Boards</a>
   <a href="./../documentation/university/index.html">University Program</a>
   <a href="./../hdl/index.html">HDL</a>
   <a href="./../no-OS/index.html">no-OS</a>
-  <a href="./../pyadi-iio/index.html">pyadi-iio</a>
+  <a href="./../pyadi-iio/index.html">Hardware Python Interfaces</a>
   <a href="./../precision-converters-firmware/index.html">Precision Converters Firmware</a>
+  <a href="./index.html" class="current">Doctools</a>
   <a href="./../PrecisionToolbox/index.html">Precision Toolbox</a>
 </root>
 
-    </div>
-  </header>
-
+  </div>
     <div class="localtoc">
       <div class="tocwrapper">
         <div>
@@ -98,9 +102,9 @@
   
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-              <a id="no-logo" href="index.html">
-                Doctools
-              </a><input id="input-switch-toc" type="checkbox">
+    <a id="no-logo" href="index.html">
+      Doctools
+    </a><input id="input-switch-toc" type="checkbox">
 <label id="show-repotoc" for="input-switch-toc">
 All content
 </label>
@@ -113,8 +117,9 @@ Content on this topic
   <a href="./../documentation/university/index.html">University Program</a>
   <a href="./../hdl/index.html">HDL</a>
   <a href="./../no-OS/index.html">no-OS</a>
-  <a href="./../pyadi-iio/index.html">pyadi-iio</a>
+  <a href="./../pyadi-iio/index.html">Hardware Python Interfaces</a>
   <a href="./../precision-converters-firmware/index.html">Precision Converters Firmware</a>
+  <a href="./index.html" class="current">Doctools</a>
   <a href="./../PrecisionToolbox/index.html">Precision Toolbox</a>
 </root>
 
@@ -141,13 +146,13 @@ Content on this topic
           <div class="body" role="main">
             
   <section id="command-line-interface">
-<span id="cli"></span><h1>Command line interface<a class="headerlink" href="#command-line-interface" title="Link to this heading">#</a></h1>
+<span id="cli"></span><h1>Command line interface<a class="headerlink" href="#command-line-interface" title="Link to this heading">¶</a></h1>
 <p>The Doctools bundles a command line interface called <code class="docutils literal notranslate"><span class="pre">adoc</span></code> meant to ease both
 continuous integration and local builds of the documentation.</p>
 <p>Below, it is briefly described each command, and it is worth noting that every
 command supports the <code class="docutils literal notranslate"><span class="pre">--help</span></code> option for quick look up.</p>
 <section id="author-mode">
-<h2>Author Mode<a class="headerlink" href="#author-mode" title="Link to this heading">#</a></h2>
+<span id="id1"></span><h2>Author Mode<a class="headerlink" href="#author-mode" title="Link to this heading">¶</a></h2>
 <p>Watches the docs and source code to rebuild it on edit.</p>
 <p>Two live update strategies are available:</p>
 <ul class="simple">
@@ -166,7 +171,7 @@ sure to have Doctools as <a class="reference internal" href="install.html#develo
 </pre></div>
 </div>
 <section id="why-is-the-python-source-code-of-this-repo-not-watched">
-<h3>Why is the Python source code of this repo not watched?<a class="headerlink" href="#why-is-the-python-source-code-of-this-repo-not-watched" title="Link to this heading">#</a></h3>
+<h3>Why is the Python source code of this repo not watched?<a class="headerlink" href="#why-is-the-python-source-code-of-this-repo-not-watched" title="Link to this heading">¶</a></h3>
 <p>Since a Python scripts change would affect rebuilding the whole documentation,
 those files are not watched by design even with the <code class="docutils literal notranslate"><span class="pre">--dev</span></code> option.
 Extensions at the doc itself are, however.</p>
@@ -175,7 +180,11 @@ with the edited Python code.</p>
 </section>
 </section>
 <section id="aggregate">
-<h2>Aggregate<a class="headerlink" href="#aggregate" title="Link to this heading">#</a></h2>
+<h2>Aggregate<a class="headerlink" href="#aggregate" title="Link to this heading">¶</a></h2>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This feature is under elaboration.</p>
+</div>
 <p>Generates all documentations of the watched repositories, which currently are:</p>
 <ul class="simple">
 <li><p><a class="icon git reference external" href="https://github.com/analogdevicesinc/documentation">ADI System Level Documentation repository</a></p></li>
@@ -204,7 +213,7 @@ included, but in summary, they are just a sequence of bash commands wrapped on p
 </div>
 </section>
 <section id="hdl-render">
-<h2>HDL Render<a class="headerlink" href="#hdl-render" title="Link to this heading">#</a></h2>
+<h2>HDL Render<a class="headerlink" href="#hdl-render" title="Link to this heading">¶</a></h2>
 <p>Exposes the HDL component diagram generator as a CLI.
 It converts IP-XACT files into SVGs.</p>
 <p>To generate and open the diagram, provide the path containing the IP-XACT and use
@@ -227,8 +236,8 @@ the <code class="docutils literal notranslate"><span class="pre">--open</span></
           </div>
               <div class="related">
                 &nbsp;
-    <a href="docs_guidelines.html" title="Previous document" class="prev">Documentation guidelines</a>
-    <a href="ci.html" title="Next document" class="next">Continuous integration</a>
+    <a href="docs_guidelines.html" title="Previous document (Ctrl+LeftArrow)" class="prev">Documentation guidelines</a>
+    <a href="ci.html" title="Next document (Ctrl+RightArrow)" class="next">Continuous integration</a>
               </div>
           
         </div>
@@ -243,7 +252,7 @@ the <code class="docutils literal notranslate"><span class="pre">--open</span></
   
   <form action="" method="get" class="search-area">
     <input type="text" name="q" aria-labelledby="search-documentation" value="" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" role="search" placeholder="Search"/>
-    <button value="search"></button>
+    <button value="search" class="icon"></button>
     <span id="search-progress"></span>
   </form>
   
