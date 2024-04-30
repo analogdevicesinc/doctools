@@ -2,7 +2,8 @@ from docutils import nodes
 from docutils.parsers.rst import directives
 
 import re
-import os.path
+from os import path, walk, getcwd
+from os import pardir, makedirs
 from lxml import etree
 
 from .node import node_div
@@ -19,7 +20,6 @@ log = {
     'signal': "{lib}/component.xml: Signal {signal} defined in the hdl-interfaces directive does not exist in the IP-XACT!",  # noqa: E501
     'path': "Inconsistent paths, {cwd} not in {doc}",
     'regmap-no-name': "hdl-regmap directive without name option, skipped!",
-    'non-hier': "Discouraged non-hierarchical relation between {lib} library and {doc}.rst doc page.",  # noqa: E501
     'param': "{lib}/component.xml: {param} defined in the hdl-parameters directive does not exist in the IP-XACT!"  # noqa: E501
 }
 
@@ -149,7 +149,6 @@ class directive_interfaces(directive_base):
 
     def run(self):
         env = self.state.document.settings.env
-        self.current_doc = env.doc2path(env.docname)
 
         node = node_div()
 
@@ -158,7 +157,7 @@ class directive_interfaces(directive_base):
         else:
             lib_name = env.docname.replace('/index', '')
 
-        manage_hdl_component_late(env, lib_name)
+        discover_hdl_component(env, lib_name)
         if lib_name in env.component:
             self.tables(node, self.content, env.component[lib_name], lib_name)
         else:
@@ -243,11 +242,7 @@ class directive_regmap(directive_base):
 
     def run(self):
         env = self.state.document.settings.env
-        self.current_doc = env.doc2path(env.docname)
-        if os.getcwd() not in self.current_doc:
-            raise Exception(log['path'].format(cwd=os.getcwd(),
-                            doc=self.current_doc))
-        owner = self.current_doc[len(os.getcwd())+1:-4]
+        owner = env.docname
 
         node = node_div()
 
@@ -343,7 +338,6 @@ class directive_parameters(directive_base):
 
     def run(self):
         env = self.state.document.settings.env
-        self.current_doc = env.doc2path(env.docname)
 
         node = node_div()
 
@@ -351,7 +345,7 @@ class directive_parameters(directive_base):
             self.options['path'] = env.docname.replace('/index', '')
         lib_name = self.options['path']
 
-        manage_hdl_component_late(env, lib_name)
+        discover_hdl_component(env, lib_name)
         subnode = nodes.section(ids=["hdl-parameters"])
         if lib_name in env.component:
             subnode += self.tables(self.content,
@@ -380,8 +374,8 @@ class directive_component_diagram(directive_base):
 
     def diagram(self, outdir):
         name = hdl_component.get_name(self.options['path'])
-        path = os.path.abspath(os.path.join(outdir, os.pardir, 'managed'))
-        f = open(os.path.join(path, name))
+        p = path.abspath(path.join(outdir, pardir, 'managed'))
+        f = open(path.join(p, name))
         svg_raw = f.read()
 
         svg = nodes.raw('', svg_raw, format='html')
@@ -389,7 +383,6 @@ class directive_component_diagram(directive_base):
 
     def run(self):
         env = self.state.document.settings.env
-        self.current_doc = env.doc2path(env.docname)
 
         node = node_div()
 
@@ -399,7 +392,7 @@ class directive_component_diagram(directive_base):
 
         subnode = nodes.section(ids=["hdl-component-diagram"])
 
-        manage_hdl_component_late(env, lib_name)
+        discover_hdl_component(env, lib_name)
         if lib_name in env.component:
             subnode += self.diagram(env.app.builder.outdir)
         else:
@@ -447,7 +440,7 @@ class directive_build_status(directive_base):
 
         file = self.options['file']
 
-        if not os.path.isfile(file):
+        if not path.isfile(file):
             logger.warning(f"Build status file {file} does not exist!")
             return []
 
@@ -464,35 +457,34 @@ class directive_build_status(directive_base):
 
 
 def hdl_component_write_managed(env, tree, lib):
-    dest_dir = os.path.abspath(os.path.join(env.app.builder.outdir, os.pardir,
-                                            'managed'))
-    dest_file = os.path.join(dest_dir, hdl_component.get_name(lib))
+    dest_dir = path.abspath(path.join(env.app.builder.outdir, pardir,
+                                      'managed'))
+    dest_file = path.join(dest_dir, hdl_component.get_name(lib))
 
-    if not os.path.exists(dest_dir):
-        os.makedirs(dest_dir)
+    if not path.exists(dest_dir):
+        makedirs(dest_dir)
     tree.write(dest_file)
 
 
-def manage_hdl_component_late(env, lib):
+def discover_hdl_component(env, lib):
     """
-    Special case when the doc page does not match the library hierarchically.
-    This is discouraged, but IPs inside hdl/library/xilinx and
-    hdl/library/intel require this.
-    These artifacts will not be properly managed!
+    Component discovery.
+    On the first run, parses, subsequent runs grabs from the cache.
     """
-    if lib in env.component:
+    cp = env.component
+    if lib in cp:
+        if env.docname not in cp[lib]['owners']:
+            cp[lib]['owners'].append(env.docname)
         return
 
     prefix = "../repos/hdl" if env.config.monolithic else ".."
     f = f"{prefix}/{lib}/component.xml"
-    if not os.path.isfile(f):
+    if not path.isfile(f):
         return
 
-    logger.info(log['non-hier'].format(lib=lib, doc=env.docname))
-
-    ctime = os.path.getctime(f)
-    cp = env.component
+    ctime = path.getctime(f)
     cp[lib] = parse_hdl_component(f, ctime)
+    cp[lib]['owners'].append(env.docname)
     tree = hdl_component.render(lib, cp[lib])
     hdl_component_write_managed(env, tree, lib)
 
@@ -505,22 +497,23 @@ def manage_hdl_components(env, docnames, libraries):
     cp = env.component
     for lib in list(cp):
         f = f"{prefix}/{lib}/component.xml"
-        if not os.path.isfile(f):
+        if not path.isfile(f):
             del cp[lib]
-
-    for lib, doc in libraries:
-        f = f"{prefix}/{lib}/component.xml"
-        if not os.path.isfile(f):
             continue
-        ctime = os.path.getctime(f)
-        if lib in cp and cp[lib]['ctime'] >= ctime:
-            pass
-        else:
-            cp[lib] = parse_hdl_component(f, ctime)
-            tree = hdl_component.render(lib, cp[lib])
-            hdl_component_write_managed(env, tree, lib)
-            if doc not in docnames:
-                docnames.append(doc)
+
+        ctime = path.getctime(f)
+        if ctime <= cp[lib]['ctime']:
+            continue
+
+        cp[lib] = parse_hdl_component(f, ctime, cp[lib]['owners'])
+        tree = hdl_component.render(lib, cp[lib])
+        hdl_component_write_managed(env, tree, lib)
+        for d in cp[lib]['owners']:
+            if d not in docnames:
+                if d in env.found_docs:
+                    docnames.append(d)
+                else:
+                    cp[lib]['owners'].remove(d)
 
 
 def manage_hdl_regmaps(env, docnames):
@@ -531,21 +524,24 @@ def manage_hdl_regmaps(env, docnames):
     rm = env.regmaps
     for lib in list(rm):
         f = f"{prefix}/regmap/adi_regmap_{lib}.txt"
-        if not os.path.isfile(f):
+        if not path.isfile(f):
             del rm[lib]
     # Inconsistent naming convention, need to parse all in directory.
-    for (dirpath, dirnames, filenames) in os.walk(f"{prefix}/regmap"):
+    for (dirpath, dirnames, filenames) in walk(f"{prefix}/regmap"):
         for file in filenames:
             m = re.search("adi_regmap_(\\w+)\\.txt", file)
             if not bool(m):
                 continue
 
             reg_name = m.group(1)
-            ctime = os.path.getctime(f"{prefix}/regmap/{file}")
+            ctime = path.getctime(f"{prefix}/regmap/{file}")
             if reg_name in rm and rm[reg_name]['ctime'] < ctime:
                 for o in rm[reg_name]['owners']:
                     if o not in docnames:
-                        docnames.append(o)
+                        if o in env.found_docs:
+                            docnames.append(o)
+                        else:
+                            rm[reg_name]['owners'].remove(o)
             if reg_name in rm and rm[reg_name]['ctime'] >= ctime:
                 pass
             else:
@@ -559,7 +555,7 @@ def manage_hdl_regmaps(env, docnames):
 
 def manage_hdl_artifacts(app, env, docnames):
     prefix = "hdl/" if env.config.monolithic else ""
-    libraries = [[k.replace('/index', ''), k]
+    libraries = [[k.replace('/index', ''), [k]]
                  for k in env.found_docs if k.find(f"{prefix}library/") == 0]
 
     manage_hdl_components(env, docnames, libraries)

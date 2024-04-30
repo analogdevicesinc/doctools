@@ -50,12 +50,12 @@ def html_page_context(app, pagename, templatename, context, doctree):
 def config_inited(app, config):
     app.lut = get_lut()
 
+    doc_version = getenv("ADOC_DOC_VERSION", default=None)
     if 'version' not in config:
-        config.version = getenv("ADOC_DOC_VERSION", default='')
-
-    if config.version == '':
-        logger.info("Unset environment variable ADOC_DOC_VERSION (preferred) "
-                    "and unset in conf.py")
+        config.version = doc_version
+    elif doc_version is not None:
+        logger.warn("ADOC_DOC_VERSION set but ignored due to "
+                    "conf.py version entry")
 
 
 def builder_inited(app):

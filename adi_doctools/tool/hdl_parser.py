@@ -280,14 +280,15 @@ def resolve_hdl_regmap(rm: Dict) -> List[str]:
     return warning
 
 
-def parse_hdl_component(path: str, ctime: float) -> Dict:
+def parse_hdl_component(path: str, ctime: float, owners: List = []) -> Dict:
     component = {
         'name': "",
         'bus_interface': {},
         'bus_domain': {},
         'ports': {},
         'parameters': {},
-        'ctime': ctime
+        'ctime': ctime,
+        'owners': owners.copy()
     }
 
     def get_namespaces(item):
