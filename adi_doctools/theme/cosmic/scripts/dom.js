@@ -9,15 +9,9 @@ class DOM {
       this.$ = dom
       return
     }
-    let known_tags = [
-      'innerText', 'className', 'id', 'title', 'innerText',
-      'value', 'tabIndex', 'role', 'href', 'ariaPressed', 'preload', 'controls',
-      'autoplay', 'src', 'placeholder', 'htmlFor', 'type', 'autocomplete',
-      'name', 'accept', 'disabled', 'innerHTML', 'action'
-    ]
-    this.$ = document.createElement (dom);
+    this.$ = document.createElement(dom);
     if (typeof tags == 'object') for (const tag in tags) {
-      if (known_tags.includes(tag))
+      if (tag in this.$)
         this.$[tag] = tags[tag]
       else
         this.$.dataset[tag] = tags[tag]

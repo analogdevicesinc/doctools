@@ -1,5 +1,5 @@
 .banner {
-    line-height: 1.5em;
+    line-height: 2em;
     background-color: var(--bg-banner);
     color: var(--text-color-banner);
     text-align: center;
@@ -8,6 +8,8 @@
 }
 
 .banner a {
+    padding-left: .25em;
+    font-weight: 600;
     border-bottom: 1px solid rgba(125,125,125,.25);
 }
 

@@ -1,8 +1,19 @@
 .search-area, .search-area-bg {
-    display: none;
-    position: fixed;
     top: 0;
 }
+
+.search-area {
+    position: sticky;
+}
+.search-area form {
+    display: none;
+}
+
+.search-area-bg {
+    position: fixed;
+    display: none;
+}
+
 .search-area-bg.on {
     display: block;
 }
@@ -16,15 +27,22 @@
 }
 
 .search-area {
+    width: 0;
+    height: 0;
     z-index: 10;
-    width: 100%;
+    overflow: visible;
+}
+
+.search-area.on form {
+    display: flex;
+}
+
+.search-area form {
+    width: 100vw;
     background: var(--bg-color1);
     padding: .5rem;
     height: 3.5rem;
 
-    &.on {
-        display: flex;
-    }
 
     input {
         color: var(--text-color1);
@@ -52,14 +70,14 @@
 }
 
 @media (min-width: $width-narrow) {
-    .search-area {
-        left: calc(40vw - 15rem);
+    .search-area form {
+        margin-left: calc(40vw - 15rem);
         width: calc(60vw + 15rem);
     }
 }
 
 @media (min-width: $width-wide) {
-    .search-area {
+    .search-area form {
         max-width: 62rem;
     }
 }

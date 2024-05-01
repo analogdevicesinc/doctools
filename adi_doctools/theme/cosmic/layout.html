@@ -36,6 +36,17 @@
   <input type="checkbox" id="input-show-toc">
   <input type="checkbox" id="input-show-localtoc">
   <input type="checkbox" id="input-show-repotoc">
+
+  {% block searchbox %}
+  <div class="search-area">
+    <form action="" method="get">
+      <input type="text" name="q" aria-labelledby="search-documentation" value="" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" role="search" placeholder="Search"/>
+      <button value="{{ _('search') }}" class="icon"></button>
+      <span id="search-progress"></span>
+    </form>
+  </div>
+  {% endblock %}
+
   <header>
     <div id="left">
       <label id="show-sidebar" class="icon" for="input-show-toc" title="Show/hide index"></label>
@@ -121,13 +132,6 @@
   <label id="cancel-area-show-toc" for="input-show-toc"></label>
   <label id="cancel-area-show-localtoc" for="input-show-localtoc"></label>
 
-  {% block searchbox %}
-  <form action="" method="get" class="search-area">
-    <input type="text" name="q" aria-labelledby="search-documentation" value="" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" role="search" placeholder="Search"/>
-    <button value="{{ _('search') }}" class="icon"></button>
-    <span id="search-progress"></span>
-  </form>
-  {% endblock %}
 {%- endblock %}
 
 {%- block footer %}

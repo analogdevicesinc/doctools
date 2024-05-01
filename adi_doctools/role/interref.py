@@ -569,7 +569,7 @@ def normalize_interref_mapping(app: Sphinx, config: Config) -> None:
             )
             logger.warning(msg)
             continue
-        if repo not in app.lut:
+        if repo not in app.lut['repos']:
             msg = (
                 f"Unknown interref_repos entry \"{repo}\", skipped."
             )
@@ -590,15 +590,18 @@ def normalize_interref_mapping(app: Sphinx, config: Config) -> None:
                         f = open(path.join(app.srcdir, latest_txt), 'rb')  # NoQA: SIM115
                     release = f.readline().decode()
                     if release == "":
-                        logger.info(f"{repo} latest.txt is empty, setting release to \"{app.lut[repo]['branch']}\".")
-                        release = app.lut[repo]['branch']
+                        logger.info(f"{repo} latest.txt is empty, "
+                                    "setting release to "
+                                    f"'{app.lut['repos'][repo]['branch']}'.")
+                        release = app.lut['repos'][repo]['branch']
                 except Exception as err:
                     logger.warning(__('%r not fetchable due to %s: %s; setting release to \"%s\"'),
-                              latest_txt, err.__class__, str(err), app.lut[repo]['branch'])
-                    release = app.lut[repo]['branch']
+                                   latest_txt, err.__class__, str(err),
+                                   app.lut['repos'][repo]['branch'])
+                    release = app.lut['repos'][repo]['branch']
 
             else:
-                release = app.lut[repo]['branch']
+                release = app.lut['repos'][repo]['branch']
             uri = interref_uri + f"{repo}/{release}"
         else:
             uri = interref_uri + repo

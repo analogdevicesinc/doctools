@@ -5,11 +5,14 @@ import click
 import subprocess
 import re
 
-from ..lut import get_lut, remote
+from ..lut import get_lut
 
 dry_run = True
 no_parallel = True
 lut = get_lut()
+repos = lut['repos']
+remote = lut['remote']
+
 
 class pr:
     @staticmethod
@@ -119,7 +122,7 @@ def patch_index(name, docsdir, indexfile):
                                    fg='red'))
         for tc in toctree:
             header.append(".. toctree::\n")
-            header.append(f"   :caption: {lut[name]['name']}\n")
+            header.append(f"   :caption: {repos[name]['name']}\n")
             header.extend(data[tc[0]+1:tc[1]])
             header.append('\n')
 
@@ -157,9 +160,9 @@ def get_sphinx_dirs(cwd) -> Tuple[bool, str, str]:
 
 def do_extra_steps(repo_dir):
     global dry_run, no_parallel
-    for l_ in lut:
-        if 'extra' in lut[l_]:
-            cwd, cmd, no_p = lut[l_]['extra']
+    for l_ in repos:
+        if 'extra' in repos[l_]:
+            cwd, cmd, no_p = repos[l_]['extra']
             cwd = os.path.join(repo_dir, f"{l_}/{cwd}")
             nproc = 1 if no_parallel or no_p else 4
             if cmd[0] == 'make':
@@ -172,8 +175,8 @@ def do_extra_steps(repo_dir):
 def gen_symbolic_doc(repo_dir):
     mk = []
     p = []
-    for r in lut:
-        cwd = os.path.join(repo_dir, f"{r}/{lut[r]['doc_folder']}")
+    for r in repos:
+        cwd = os.path.join(repo_dir, f"{r}/{repos[r]['doc_folder']}")
         mk.append(get_sphinx_dirs(cwd))
         if mk[-1][0]:
             continue
@@ -183,7 +186,7 @@ def gen_symbolic_doc(repo_dir):
     d_ = os.path.abspath(os.path.join(repo_dir, os.pardir))
     out = os.path.join(d_, 'html')
     pr.mkdir(out)
-    for r, m in zip(lut, mk):
+    for r, m in zip(repos, mk):
         if m[0]:
             continue
         d_ = os.path.join(out, r)
@@ -211,8 +214,8 @@ def gen_monolithic_doc(repo_dir):
     pr.mkdir(docs_dir)
 
     mk = {}
-    for r in lut:
-        cwd = os.path.join(repo_dir, f"{r}/{lut[r]['doc_folder']}")
+    for r in repos:
+        cwd = os.path.join(repo_dir, f"{r}/{repos[r]['doc_folder']}")
         mk[r] = get_sphinx_dirs(cwd)
         if mk[r][0]:
             continue
@@ -249,7 +252,7 @@ def gen_monolithic_doc(repo_dir):
 
         # Patch includes outside the docs source,
         # e.g. no-OS include README.rst
-        depth = '../' * (2 + lut[r]['doc_folder'].count('/'))
+        depth = '../' * (2 + repos[r]['doc_folder'].count('/'))
         include_cmd = """
         find . -type f -exec sed -i -E \
         "s|^(.. include:: )({depth})(.*)|\\1../../../repos/{r}/\\3|g" {{}} \\;\
@@ -262,13 +265,13 @@ def gen_monolithic_doc(repo_dir):
     pr.run(f"cp -r {mk['documentation'][2]}/conf.py {docs_dir}")
     pr.run(f"echo monolithic = True >> {docs_dir}/conf.py")
 
-    for r in lut:
+    for r in repos:
         if r != 'documentation':
             patch_index(r, docs_dir, indexfile)
 
     # Convert external references into local prefixed
     cwd = docs_dir
-    for r in lut:
+    for r in repos:
         ref_cmd = """\
         find . -type f -exec sed -i "s|ref:\\`{r}:|ref:\\`{r} |g" {{}} \\;\
         """.format(r=r)
@@ -358,12 +361,12 @@ def aggregate(directory, symbolic, extra, no_parallel_, dry_run_, open_):
 
     p = []
     for r in lut:
-        r__ = remote if 'remote' not in lut[r] else lut[r]['remote']
+        r__ = remote if 'remote' not in repos[r] else repos[r]['remote']
         r_ = r__.format(r)
         cwd = os.path.join(repos_dir, r)
         if not os.path.isdir(cwd):
             git_cmd = ["git", "clone", r_, "--depth=1", "-b",
-                       lut[r]['branch'], '--', cwd]
+                       repos[r]['branch'], '--', cwd]
             pr.popen(git_cmd, p)
         else:
             git_cmd = ["git", "pull"]

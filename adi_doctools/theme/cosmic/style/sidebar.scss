@@ -209,7 +209,7 @@
 }
 
 .tocwrapper {
-    background: var(--bg-color1-faded2);
+    background: var(--bg-color1);
     box-sizing: content-box;
     padding-top: 1rem;
     font-size: 0.9em;
@@ -353,20 +353,31 @@
 
 @media (max-width: $width-wide) {
     .localtoc {
-        transition: .25s ease left;
+        transition: .125s ease opacity;
+        pointer-events: none;
+        opacity: 0;
+        direction: rtl;
+
+        .tocwrapper {
+            direction: ltr;
+            transition: .25s ease width;
+            box-shadow: $box-shadow-right-sidebar;
+            overflow-x: hidden;
+            width: 15rem;
+        }
+
+        .tocwrapper > div, .tocwrapper > nav {
+            width: 20rem;
+        }
     }
 
     #input-show-localtoc:checked ~ .localtoc {
-        left: calc(100vw - 20rem);
+        pointer-events: initial;
+        opacity: 1;
     }
 
     #input-show-localtoc:checked ~ .localtoc .tocwrapper {
-        box-shadow: $box-shadow-right-sidebar;
-    }
-
-    .tocwrapper {
         width: 20rem;
-        backdrop-filter: blur(1em);
     }
 }
 

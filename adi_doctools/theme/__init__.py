@@ -32,14 +32,16 @@ def build_finished(app, exc):
             import json
 
             repos = {}
-            for key in app.lut:
+            for key in app.lut['repos']:
                 repos[key] = {
-                    'name': app.lut[key]['name'],
-                    'visibility': app.lut[key]['visibility']
+                    'name': app.lut['repos'][key]['name'],
+                    'visibility': app.lut['repos'][key]['visibility']
                 }
-                if 'topic' in app.lut[key]:
-                    repos[key]['topic'] = app.lut[key]['topic']
+                if 'topic' in app.lut['repos'][key]:
+                    repos[key]['topic'] = app.lut['repos'][key]['topic']
             metadata = {'repotoc': repos}
+            if app.lut['banner']['msg'] is not None:
+                metadata['banner'] = app.lut['banner']
             file = path.join(app.builder.outdir, 'metadata.json')
             with open(file, 'w') as f:
                 json.dump(metadata, f, indent=4)
@@ -56,7 +58,7 @@ def repotoc_tree(content_root, conf_vars, pagename):
     While something with 0 depth is improper:
     hdl-docs.example.com -> ../no-OS -XXX-> hdl-docs.example.com/no-OS
     """
-    repo, lut = conf_vars
+    repo, repos = conf_vars
     root = etree.Element("root")
     home = "index.html"
     depth = '../'
@@ -64,13 +66,13 @@ def repotoc_tree(content_root, conf_vars, pagename):
 
     repository = {}
     topics = {}
-    for key in lut:
-        if lut[key]['visibility'] == 'public':
-            if 'topic' in lut[key]:
-                for k in lut[key]['topic']:
-                    topics[f"{key}/{k}"] = lut[key]['topic'][k]
+    for key in repos:
+        if repos[key]['visibility'] == 'public':
+            if 'topic' in repos[key]:
+                for k in repos[key]['topic']:
+                    topics[f"{key}/{k}"] = repos[key]['topic'][k]
             else:
-                repository[key] = lut[key]['name']
+                repository[key] = repos[key]['name']
 
     repotoc = {**topics, **repository}
     for item in repotoc:
@@ -116,7 +118,7 @@ def navigation_tree(app, toctree_html, content_root, pagename):
 
     conf_vars = (
         app.env.config.repository,
-        app.lut
+        app.lut['repos']
     )
 
     lvl = [0]
@@ -126,16 +128,16 @@ def navigation_tree(app, toctree_html, content_root, pagename):
         return pagename[0:i] if i != -1 else ''
 
     def filter_tree(root, conf_vars, pagename):
-        repo, lut = conf_vars
+        repo, repos = conf_vars
         # Keep unchanged for standalone pages (e.g. /index.html, /search.html)
         repository = {}
         topics = {}
-        for key in lut:
-            if lut[key]['visibility'] == 'public':
-                if 'topic' in lut[key]:
-                    topics.update(lut[key]['topic'])
+        for key in repos:
+            if repos[key]['visibility'] == 'public':
+                if 'topic' in repos[key]:
+                    topics.update(repos[key]['topic'])
                 else:
-                    repository[key] = lut[key]['name']
+                    repository[key] = repos[key]['name']
         repotoc = {**topics, **repository}
         if repo not in repotoc:
             return
@@ -192,7 +194,7 @@ def navigation_tree(app, toctree_html, content_root, pagename):
             lvl.pop()
 
     repo = app.env.config.repository
-    if repo in app.lut and "topic" in app.lut[repo]:
+    if repo in app.lut['repos'] and "topic" in app.lut['repos'][repo]:
         conf_vars_ = (get_topic(pagename), *conf_vars[1:])
         filter_tree(root, conf_vars_, pagename)
 

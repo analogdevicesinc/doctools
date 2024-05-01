@@ -9,7 +9,6 @@ class Navigation {
     this.portrait = false
     this.offline = 'file:' == window.location.protocol
     this.currentTheme = localStorage.getItem('theme')
-    this.ctrlPressed = localStorage.getItem('ctrlPressed')
     this.contentRoot = DOM.get('html').dataset['content_root']
 
     let metaRepo = document.querySelector('meta[name="repo"]')
@@ -55,8 +54,8 @@ class Navigation {
       DOM.switchState($.searchArea)
       DOM.switchState($.searchAreaBg)
     })
-    $.searchArea = new DOM(DOM.get('form.search-area'))
-    $.searchBox = new DOM(DOM.get('form.search-area input'))
+    $.searchArea = new DOM(DOM.get('.search-area'))
+    $.searchBox = new DOM(DOM.get('.search-area input'))
     $.searchArea.$['action'] = DOM.get('link[rel="search"]').href
     $.body.append([$.searchAreaBg])
 
@@ -122,39 +121,58 @@ class Navigation {
    * TODO consider versioned depth
    */
   dynamic () {
-    if (this.offline)
+    if (this.offline) {
       console.log("navigation: dynamic features are not available in offline mode")
       return
+    }
 
     /* Get dynamic elements */
     let $ = this.$
     $.repotocTreeOverlay = new DOM(DOM.get('.repotoc-tree.overlay root'))
     $.repotocTreeSidebar = new DOM(DOM.get('.sphinxsidebar .repotoc-tree root'))
+    $.banner = new DOM(DOM.get('.banner'))
+
+    let resolveJSON = (j) => {
+        if ('repotoc' in j)
+          this.dynamicRepoToc(j['repotoc'])
+        if ('banner' in j)
+          this.dynamicBanner(j['banner'])
+    }
 
     /* Fetch metadata */
-    let metadata = `${this.contentRoot}../doctools/metadata.json`
+    let json = localStorage.getItem('metadata')
+    if (json !== null)
+      json = JSON.parse(json)
 
-    fetch(metadata, {
-      method: 'Get',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    }).then((response) => {
-      if (response.ok !== true) {
+    let unix_day = new Date(0)
+    unix_day.setHours(24)
+    if (json === null || json['timestamp'] + unix_day < Date.now()) {
+      let metadata = `${this.contentRoot}../doctools/metadata.json`
+
+      fetch(metadata, {
+        method: 'Get',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }).then((response) => {
+        if (response.ok !== true) {
+          return
+        }
+
+        return response.json()
+      }).then((obj) => {
+        if (!obj)
+          return
+
+        resolveJSON(obj)
+        obj['timestamp'] = Date.now()
+        localStorage.setItem('metadata', JSON.stringify(obj))
+      }).catch((e) => {
         return
-      }
-
-      return response.json()
-    }).then((json) => {
-      if (!json)
-        return
-
-      if ('repotoc' in json) {
-        this.dynamicRepoToc(json['repotoc'])
-      }
-    }).catch((e) => {
-      return
-    })
+      })
+    } else {
+      resolveJSON(json)
+    }
   }
 
   dynamicRepoToc (obj) {
@@ -184,12 +202,11 @@ class Navigation {
           linksSidebar.push(a)
         }
       } else {
-        let a = new DOM('a', {
+        linksSidebar.push(new DOM('a', {
           'href': `${base}${home}`,
-          'className': this.repo[0] === key ? 'current' : ''
-        })
-        a.innerText = value['name']
-        linksSidebar.push(a)
+          'className': this.repo[0] === key ? 'current' : '',
+          'innerText': value['name']
+        }))
       }
     }
 
@@ -203,6 +220,22 @@ class Navigation {
     if ($.repotocTreeSidebar.$)
       $.repotocTreeSidebar.removeChilds(),
       $.repotocTreeSidebar.append(linksSidebar)
+  }
+
+  dynamicBanner (obj) {
+    let $ = this.$
+
+    if ('msg' in obj)
+      $.banner.append(new DOM('span', {
+        'innerText': obj['msg']
+      }))
+
+    if ('a_href' in obj && 'a_text' in obj)
+      $.banner.append(new DOM('a', {
+        'href': obj['a_href'],
+        'innerText': obj['a_text'],
+        'target': '_blank'
+      }))
   }
   /**
    * Set items state.

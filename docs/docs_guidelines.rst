@@ -813,9 +813,6 @@ Dynamic elements refer to sections of the generated webpage that updates when
 loaded online from a source of truth, in general, ``doctools/*.json`` files;
 it uses a concept similar to "react components".
 
-For example the navigation bar at the top, is updated using the ``repotoc`` entry
-in ``doctools/metadata.json``.
-
 These ``*.json`` files are generated when ``doctools_export_metadata`` is true
 in the ``conf.py``.
 From the JavaScript side, it fetches from
@@ -825,3 +822,10 @@ From the JavaScript side, it fetches from
 
    path ``version`` is present and set if ``latest`` exists at
    ``{content_root}/../doctools`` and the stored version can be extracted.
+
+The dynamic elements are:
+
+* The navigation bar at the top is updated using the ``repotoc`` entry
+  in ``doctools/metadata.json``.
+* A banner at the top is present/updated when the ``banner`` entry
+  in ``doctools/metadata.json`` exists.
