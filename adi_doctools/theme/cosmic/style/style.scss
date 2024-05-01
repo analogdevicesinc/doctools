@@ -37,6 +37,8 @@ body {
     --text-color3: #{$text-color-light3};
     --accent-color: #{$accent-color-light};
     --accent-color-code: #{$accent-color-code-light};
+    --bg-banner: #{$bg-banner-light};
+    --text-color-banner: #{$text-color-banner-light};
 }
 
 body.dark {
@@ -53,6 +55,8 @@ body.dark {
     --text-color3: #{$text-color-dark3};
     --accent-color: #{$accent-color-dark};
     --accent-color-code: #{$accent-color-code-dark};
+    --bg-banner: #{$bg-banner-dark};
+    --text-color-banner: #{$text-color-banner-dark};
 }
 
 @media (prefers-color-scheme: dark) {
@@ -70,6 +74,8 @@ body.dark {
         --text-color3: #{$text-color-dark3};
         --accent-color: #{$accent-color-dark};
         --accent-color-code: #{$accent-color-code-dark};
+        --bg-banner: #{$bg-banner-dark};
+        --text-color-banner: #{$text-color-banner-dark};
     }
 }
 
@@ -94,12 +100,6 @@ body {
   .bodywrapper > div {
       max-width: 60rem;
   }
-}
-
-@media (max-width: $width-narrow) {
-    .documentwrapper {
-        margin-top: 3.5rem;
-    }
 }
 
 @media (max-width: $width-wide) {

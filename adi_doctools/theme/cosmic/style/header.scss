@@ -1,8 +1,30 @@
+.banner {
+    line-height: 1.5em;
+    background-color: var(--bg-banner);
+    color: var(--text-color-banner);
+    text-align: center;
+    z-index: 11;
+    position: relative
+}
+
+.banner a {
+    border-bottom: 1px solid rgba(125,125,125,.25);
+}
+
+.banner a:hover {
+    border-color: var(--text-color-banner);
+}
+
+.banner.on {
+    display: block;
+}
+
 header {
     z-index: 7;
-    position: relative;
+    position: sticky;
     width: 100%;
     border-bottom: $border-panel;
+    top: 0;
 
     label, button {
       cursor: pointer;
@@ -57,18 +79,22 @@ header {
 }
 
 .repotoc-tree.overlay {
-    background: var(--bg-color1);
-    position: absolute;
-    top: -100vh;
+    position: sticky;
+    top: 3.5rem;
+    pointer-events: none;
+    height: 0;
     opacity: 0;
-    height: calc(100vh - 3.5em);
     z-index: 6;
-    width: 100%;
-    overflow-y: auto;
-    padding-top: 1em;
-    transition: top ease .25s, opacity .25s ease;
+    width: 0;
+    transition: opacity .25s ease;
+    overflow-y: visible;
 
     root {
+        background: var(--bg-color1);
+        overflow-y: auto;
+        padding-top: 1em;
+        height: calc(100vh - 3.5em);
+        width: 100vw;
         padding-left: calc(40vw - 14em);
         display: flex;
         flex-direction: column;
@@ -79,7 +105,7 @@ header {
         display: block;
         width: fit-content;
         padding: 0 .5em 0 .5em;
-        transition: padding .5s ease;
+        transition: padding .4s ease;
         margin: 0 .5em;
     }
 
@@ -126,8 +152,6 @@ header {
     header {
         display: flex;
         width: 100%;
-        position: fixed;
-        top: 0;
         border-bottom: $border-panel;
         background: var(--bg-color1-faded1);
     }
@@ -270,7 +294,7 @@ header {
 }
 
 #input-show-repotoc:checked ~ div.repotoc-tree {
-    top: 3.5em;
+    pointer-events: initial;
     opacity: 1;
 }
 
