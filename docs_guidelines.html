@@ -7,11 +7,11 @@
 
     <title>Documentation guidelines &#8212; Doctools  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8e8a900e" />
-    <link rel="stylesheet" type="text/css" href="_static/style.min.css?v=bc0470c1" />
+    <link rel="stylesheet" type="text/css" href="_static/style.min.css?v=b4b07c60" />
     <script src="_static/documentation_options.js?v=5929fcd5"></script>
     <script src="_static/doctools.js?v=9a2dae69"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script defer="" src="_static/app.umd.js?v=06a356eb"></script>
+    <script defer="" src="_static/app.umd.js?v=18e99e78"></script>
     <link rel="icon" href="_static/icon.svg"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -41,9 +41,21 @@
   }
 </style>
   </head><body>
+  <div class="banner"></div>
   <input type="checkbox" id="input-show-toc">
   <input type="checkbox" id="input-show-localtoc">
   <input type="checkbox" id="input-show-repotoc">
+
+  
+  <div class="search-area">
+    <form action="" method="get">
+      <input type="text" name="q" aria-labelledby="search-documentation" value="" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" role="search" placeholder="Search"/>
+      <button value="search" class="icon"></button>
+      <span id="search-progress"></span>
+    </form>
+  </div>
+  
+
   <header>
     <div id="left">
       <label id="show-sidebar" class="icon" for="input-show-toc" title="Show/hide index"></label>
@@ -833,8 +845,6 @@ they’re not included in any toctree.</p>
 <p>Dynamic elements refer to sections of the generated webpage that updates when
 loaded online from a source of truth, in general, <code class="docutils literal notranslate"><span class="pre">doctools/*.json</span></code> files;
 it uses a concept similar to “react components”.</p>
-<p>For example the navigation bar at the top, is updated using the <code class="docutils literal notranslate"><span class="pre">repotoc</span></code> entry
-in <code class="docutils literal notranslate"><span class="pre">doctools/metadata.json</span></code>.</p>
 <p>These <code class="docutils literal notranslate"><span class="pre">*.json</span></code> files are generated when <code class="docutils literal notranslate"><span class="pre">doctools_export_metadata</span></code> is true
 in the <code class="docutils literal notranslate"><span class="pre">conf.py</span></code>.
 From the JavaScript side, it fetches from
@@ -844,6 +854,13 @@ From the JavaScript side, it fetches from
 <p>path <code class="docutils literal notranslate"><span class="pre">version</span></code> is present and set if <code class="docutils literal notranslate"><span class="pre">latest</span></code> exists at
 <code class="docutils literal notranslate"><span class="pre">{content_root}/../doctools</span></code> and the stored version can be extracted.</p>
 </div>
+<p>The dynamic elements are:</p>
+<ul class="simple">
+<li><p>The navigation bar at the top is updated using the <code class="docutils literal notranslate"><span class="pre">repotoc</span></code> entry
+in <code class="docutils literal notranslate"><span class="pre">doctools/metadata.json</span></code>.</p></li>
+<li><p>A banner at the top is present/updated when the <code class="docutils literal notranslate"><span class="pre">banner</span></code> entry
+in <code class="docutils literal notranslate"><span class="pre">doctools/metadata.json</span></code> exists.</p></li>
+</ul>
 </section>
 </section>
 
@@ -863,14 +880,6 @@ From the JavaScript side, it fetches from
 
   <label id="cancel-area-show-toc" for="input-show-toc"></label>
   <label id="cancel-area-show-localtoc" for="input-show-localtoc"></label>
-
-  
-  <form action="" method="get" class="search-area">
-    <input type="text" name="q" aria-labelledby="search-documentation" value="" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" role="search" placeholder="Search"/>
-    <button value="search" class="icon"></button>
-    <span id="search-progress"></span>
-  </form>
-  
     <footer>
       &#169;2024, Analog Devices, Inc.
       
