@@ -30,8 +30,8 @@ class Navigation {
     }).onclick(this, () => {
       DOM.switchState($.searchArea)
       DOM.switchState($.searchAreaBg)
-      $.searchBox.focus()
-      $.searchBox.$.select()
+      $.searchInput.focus()
+      $.searchInput.$.select()
     })
 	  $.changeTheme = new DOM('button', {
       className: this.currentTheme === 'dark' ? 'icon on' : 'icon',
@@ -55,8 +55,9 @@ class Navigation {
       DOM.switchState($.searchAreaBg)
     })
     $.searchArea = new DOM(DOM.get('.search-area'))
-    $.searchBox = new DOM(DOM.get('.search-area input'))
-    $.searchArea.$['action'] = DOM.get('link[rel="search"]').href
+    $.searchForm = new DOM(DOM.get('form', $.searchArea))
+    $.searchInput = new DOM(DOM.get('input', $.searchForm))
+    $.searchForm.$['action'] = DOM.get('link[rel="search"]').href
     $.body.append([$.searchAreaBg])
 
     $.rightHeader = new DOM(DOM.get('header #right span.reverse')).append([$.changeTheme, $.searchButton])
@@ -73,8 +74,8 @@ class Navigation {
     if (e.key === '/' && !this.$.searchArea.classList.contains('on')) {
       DOM.switchState(this.$.searchArea)
       DOM.switchState(this.$.searchAreaBg)
-      this.$.searchBox.focus()
-      this.$.searchBox.$.select()
+      this.$.searchInput.focus()
+      this.$.searchInput.$.select()
     } else if (e.code === 'Escape') {
       if (this.$.searchArea.classList.contains('on')) {
         DOM.switchState(this.$.searchArea)
