@@ -32,15 +32,24 @@ def svpkg_regmap(f, regmap: Dict, key: str):
         for field in reg['fields']:
             if field['name'] != 'RESERVED':
                 row = f"        this.{field['name']}_F = "'new("'f"{field['name']}"
-                bits = '' if field['bits'] is None else field['bits']
-                bits = ', '.join(bits.split(':') if ':' in bits else [bits, bits])
-                default = 'NA' if field['default'] is None else field['default']
-                if type(default) is str:
+                if field['bits'] is tuple:
+                    bits = f"{field['bits'][0]}, {field['bits'][1]}"
+                else:
+                    # TODO implement parameter replacement,
+                    # such as [LANE_NUMBER-1:0]
+                    bits = '0, 0'
+
+                if field['default'] is None:
+                    default = 'NA'
+                else:
+                    default = field['default']
+
+                if type(default) is int:
+                    default = hex(field['default']).replace("0x", "'h")
+                else:
                     # ''ID'', NA, formulas, invalid values
                     # TODO implement parameter replacement
                     default = "'hXXXXXXXX"
-                else:
-                    default = hex(field['default']).replace("0x", "'h")
                 row += '"'f", {bits}, {field['rw']}, {default}, this);""\n"
                 f.write(row)
 

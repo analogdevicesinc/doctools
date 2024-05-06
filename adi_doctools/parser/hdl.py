@@ -129,7 +129,7 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
                     reg_addr_incr = 0
             else:
                 reg_import = True
-                reg_addr = 0 
+                reg_addr = 0
                 reg_addr_incr = 0
                 reg_name = data[regi + 1]
                 reg_desc = None
@@ -165,10 +165,37 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
                     field_loc = data[fi + 1]
                     field_loc = field_loc.split(" ")
                     field_bits = field_loc[0].replace("[", "").replace("]", "")
+                    if field_bits != 'n':
+                        if ':' in field_bits:
+                            bits_ = field_bits.split(':')
+                        else:
+                            bits_ = [field_bits, field_bits]
+                        try:
+                            bits_ = [int(x) for x in bits_]
+                            field_bits = tuple(bits_)
+                        except Exception:
+                            # TODO: Parametric are not supported yet.
+                            # Will pass through the hdl regmap directive
+                            # but will (0, 0) for .sv
+                            warning.append("Improper field width "
+                                           f"{field_loc[0]} at reg "
+                                           f"'{reg_name}'!")
+
                     if len(field_loc) > 1:
                         field_default = ' '.join(field_loc[1:])
                         try:
-                            field_default = int(field_default, 16)
+                            fd_ = int(field_default, 16)
+                            if type(field_bits) is tuple:
+                                len_f = (field_bits[0] - field_bits[1] + 1)
+                                len_d = len(bin(fd_)[2:])
+                                if len_d > len_f:
+                                    warning.append("Default value "
+                                                   f"'{field_default}' "
+                                                   f"overflows field width "
+                                                   f"{field_loc[0]} at reg "
+                                                   f"'{reg_name}'!")
+                            field_default = fd_
+
                         except Exception:
                             # Convert parameter delimiter into Sphinx literal
                             field_default = field_default.replace("''", "``")
@@ -183,11 +210,11 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
                         fi = fi + 1
                         if field_bits != 'n':
                             warning.append("Where method with field bits "
-                                           f"{field_bits} instead of n "
-                                           f"at reg {reg_name}!")
+                                           f"{field_loc[0]} instead of n "
+                                           f"at reg '{reg_name}'!")
                     elif field_bits == 'n':
                         warning.append("No where method for ranged field "
-                                       f"n at reg {reg_name}!")
+                                       f"n at reg '{reg_name}'!")
 
                     field_name = data[fi + 2]
                     field_rw = data[fi + 3]
@@ -318,7 +345,7 @@ def expand_hdl_regmap(rm: Dict) -> List[str]:
                     for n in range(*f['where']):
                         f_ = f.copy()
                         f_['name'] = f_['name'].replace('n', str(n))
-                        f_['bits'] = str(n)
+                        f_['bits'] = (n, n)
                         expanded.append(f_)
                 else:
                     expanded.append(f)

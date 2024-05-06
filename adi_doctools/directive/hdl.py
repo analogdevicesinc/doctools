@@ -2,8 +2,9 @@ from docutils import nodes
 from docutils.parsers.rst import directives
 
 import re
-from os import path, walk, getcwd
+from os import path, walk
 from os import pardir, makedirs
+from math import ceil
 from lxml import etree
 
 from .node import node_div
@@ -210,9 +211,19 @@ class directive_regmap(directive_base):
             ])
 
             for field in reg['fields']:
-                default = '' if field['default'] is None else field['default']
-                default = default if type(default) is str else hex(default)
                 bits = "" if field['bits'] is None else field['bits']
+                default = '' if field['default'] is None else field['default']
+
+                if type(default) is int:
+                    if type(bits) is tuple:
+                        len_ = ceil((bits[0] - bits[1] + 1) / 4)
+                        default = hex(default)[2:]
+                        default = '0x' + '0'*(len_ - len(default)) + default
+                    else:
+                        default = hex(default)
+
+                if type(bits) is tuple:
+                    bits = f"{bits[0]}:{bits[1]}"
 
                 self.column_entries(rows, [
                     ["", 'literal', [''], 1],
