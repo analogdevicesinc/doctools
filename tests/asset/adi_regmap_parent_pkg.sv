@@ -69,6 +69,32 @@ package adi_regmap_parent_pkg;
       endfunction: new
     endclass
 
+    class EXPAND_FIELDS #() extends register_base;
+      field_base CONFIGURE0_F;
+      field_base CONFIGURE1_F;
+      field_base CONFIGURE2_F;
+      field_base CONFIGURE3_F;
+      field_base CONFIGURE4_F;
+      field_base CONFIGURE5_F;
+      field_base CONFIGURE6_F;
+      field_base CONFIGURE7_F;
+
+      function new(
+        input string name,
+        input int address);
+
+        super.new(name, address);
+        this.CONFIGURE0_F = new("CONFIGURE0", 0, 0, RW, 'h0, this);
+        this.CONFIGURE1_F = new("CONFIGURE1", 1, 1, RW, 'h0, this);
+        this.CONFIGURE2_F = new("CONFIGURE2", 2, 2, RW, 'h0, this);
+        this.CONFIGURE3_F = new("CONFIGURE3", 3, 3, RW, 'h0, this);
+        this.CONFIGURE4_F = new("CONFIGURE4", 4, 4, RW, 'h0, this);
+        this.CONFIGURE5_F = new("CONFIGURE5", 5, 5, RW, 'h0, this);
+        this.CONFIGURE6_F = new("CONFIGURE6", 6, 6, RW, 'h0, this);
+        this.CONFIGURE7_F = new("CONFIGURE7", 7, 7, RW, 'h0, this);
+      endfunction: new
+    endclass
+
     MOCK_0 #() MOCK_0_R;
     MOCK_CHANn #() MOCK_CHAN0_R;
     MOCK_CHANn #() MOCK_CHAN1_R;
@@ -86,6 +112,7 @@ package adi_regmap_parent_pkg;
     MOCK_CHANn #() MOCK_CHAN13_R;
     MOCK_CHANn #() MOCK_CHAN14_R;
     MOCK_CHANn #() MOCK_CHAN15_R;
+    EXPAND_FIELDS #() EXPAND_FIELDS_R;
 
     function new();
       this.MOCK_0_R = new("MOCK_0", 'h40);
@@ -105,6 +132,7 @@ package adi_regmap_parent_pkg;
       this.MOCK_CHAN13_R = new("MOCK_CHAN13", 'h490);
       this.MOCK_CHAN14_R = new("MOCK_CHAN14", 'h498);
       this.MOCK_CHAN15_R = new("MOCK_CHAN15", 'h4a0);
+      this.EXPAND_FIELDS_R = new("EXPAND_FIELDS", 'h80);
     endfunction: new;
 
   endclass;
