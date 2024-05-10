@@ -9,7 +9,7 @@ class Navigation {
     this.portrait = false
     this.offline = 'file:' == window.location.protocol
     this.currentTheme = localStorage.getItem('theme')
-    this.contentRoot = DOM.get('html').dataset['content_root']
+    this.contentRoot = this.getContentRoot()
 
     let metaRepo = document.querySelector('meta[name="repo"]')
     this.repo = metaRepo ? metaRepo.content.split('/') : ['']
@@ -68,6 +68,28 @@ class Navigation {
   /* Update GUI based on resize event */
   handleResize () {
     this.portrait = window.innerHeight > window.innerWidth ? true : false
+  }
+  /*
+   * Get relative path to the root
+   * Dual fallback to support multiple Sphinx versions.
+   */
+  getContentRoot () {
+    let content_root
+    let dom = new DOM(DOM.get('script#documentation_options'))
+    if (dom.$ !== null)
+      content_root = dom.$.dataset['url_root'];
+    if (content_root == undefined)
+      content_root = DOM.get('html').dataset['content_root']
+    if (content_root == undefined) {
+      dom =  new DOM(DOM.get('.repotoc-tree .current'))
+      if (dom.$ !== null)
+        content_root = dom.$.getAttribute('href').replace('index.html', '')
+    }
+    if (content_root == undefined) {
+      console.warn("Failed to get content root.")
+      content_root = ''
+    }
+    return content_root
   }
   /* Search shortcut */
   search (e) {
