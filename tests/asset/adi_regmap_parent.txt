@@ -1,0 +1,102 @@
+TITLE
+Parent (parent)
+PARENT
+ENDTITLE
+
+############################################################################################
+############################################################################################
+
+REG
+0x0010
+MOCK_0
+Mock register 0
+ENDREG
+
+FIELD
+[2] 0x00000000
+THIRD
+RW
+Something.
+Something.
+Something.
+ENDFIELD
+
+FIELD
+[1] 0x00000000
+SECOND
+RW
+Something.
+Something.
+ENDFIELD
+
+FIELD
+[0] 0x00000000
+FIRST
+RW
+Something.
+ENDFIELD
+
+############################################################################################
+############################################################################################
+
+REG
+0x010A + 0x2*n
+WHERE n IS FROM 0 TO 15
+MOCK_CHANn
+Mock channel register
+ENDREG
+
+FIELD
+[31:A] VAL1
+FIRST
+RO
+Reserved.
+ENDFIELD
+
+FIELD
+[A-1:B] VAL2+VAL1-VAL3
+SECOND
+RO
+Reserved.
+ENDFIELD
+
+FIELD
+[B-1:3] (log2(VAL3^9)-VAL4)*7^2
+THIRD
+RO
+Reserved.
+ENDFIELD
+
+FIELD
+[2:0] 0x00000007
+CONFIGURE
+RW
+Configuration.
+ENDFIELD
+
+############################################################################################
+############################################################################################
+
+REG
+0x0020
+EXPAND_FIELDS
+Parameters register
+ENDREG
+
+FIELD
+[31:8] 0x00000000
+RESERVED
+RO
+Reserved.
+ENDFIELD
+
+FIELD
+[n] 0x00000000
+WHERE n IS FROM 0 TO 7
+CONFIGUREn
+RW
+Configuration.
+ENDFIELD
+
+############################################################################################
+############################################################################################

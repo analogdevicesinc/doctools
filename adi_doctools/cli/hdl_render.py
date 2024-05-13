@@ -1,8 +1,9 @@
 import os
 import click
 
-from ..tool.hdl_parser import parse_hdl_component
-from ..tool.hdl_render import hdl_component
+from ..parser.hdl import parse_hdl_component
+from ..writer.hdl_component import hdl_component
+
 
 @click.command()
 @click.option(

@@ -1,0 +1,25 @@
+on: workflow_call
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.x"
+
+    - uses: actions/download-artifact@v4
+      with:
+        name: dist
+        path: dist
+
+    - name: Install pip packages
+      run: |
+        pip install pip sphinx pytest --upgrade
+        pip install dist/adi_doctools-*.tar.gz
+
+    - name: Run tests
+      working-directory: tests
+      run: |
+        pytest

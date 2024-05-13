@@ -2,8 +2,9 @@ from docutils import nodes
 from docutils.parsers.rst import directives
 
 import re
-from os import path, walk, getcwd
+from os import path, walk
 from os import pardir, makedirs
+from math import ceil
 from lxml import etree
 
 from .node import node_div
@@ -11,10 +12,10 @@ from .common import logger
 from .common import directive_base
 from .common import parse_rst
 from .string import string_hdl
-from ..tool.hdl_parser import parse_hdl_component
-from ..tool.hdl_parser import parse_hdl_regmap, resolve_hdl_regmap
-from ..tool.hdl_parser import parse_hdl_build_status
-from ..tool.hdl_render import hdl_component
+from ..parser.hdl import parse_hdl_component
+from ..parser.hdl import parse_hdl_regmap, resolve_hdl_regmap
+from ..parser.hdl import parse_hdl_build_status
+from ..writer.hdl_component import hdl_component
 
 log = {
     'signal': "{lib}/component.xml: Signal {signal} defined in the hdl-interfaces directive does not exist in the IP-XACT!",  # noqa: E501
@@ -29,7 +30,8 @@ class directive_interfaces(directive_base):
     required_arguments = 0
     optional_arguments = 0
 
-    def pretty_dep(self, string, parent):
+    @staticmethod
+    def pretty_dep(string, parent):
         if string is None:
             return ''
         elif string == 'false':
@@ -172,6 +174,17 @@ class directive_regmap(directive_base):
     required_arguments = 0
     optional_arguments = 0
 
+    @staticmethod
+    def get_hex_addr(addr: int, addr_incr: int):
+        if addr_incr == 0:
+            dword = f"{hex(addr)}"
+            byte = f"{hex(addr<<2)}"
+        else:
+            dword = f"{hex(addr)} + {hex(addr_incr)}*n"
+            byte = f"{hex(addr<<2)} + {hex(addr_incr<<2)}*n"
+
+        return (dword, byte)
+
     def tables(self, subnode, obj, key):
         id_ = "hdl-regmap-" + key
         section = nodes.section(ids=[id_])
@@ -189,20 +202,35 @@ class directive_regmap(directive_base):
 
         rows = []
         for reg in obj['regmap']:
+            dword, byte = self.get_hex_addr(reg['address'], reg['addr_incr'])
             self.column_entries(rows, [
-                [reg['address'][0], 'literal', ['bold']],
-                [reg['address'][1], 'literal', ['bold']],
+                [dword, 'literal', ['bold']],
+                [byte, 'literal', ['bold']],
                 [reg['name'], 'literal', ['bold'], 3],
                 [reg['description'], 'reST', ['description', 'bold']],
             ])
 
             for field in reg['fields']:
+                bits = "" if field['bits'] is None else field['bits']
+                default = '' if field['default'] is None else field['default']
+
+                if type(default) is int:
+                    if type(bits) is tuple:
+                        len_ = ceil((bits[0] - bits[1] + 1) / 4)
+                        default = hex(default)[2:]
+                        default = '0x' + '0'*(len_ - len(default)) + default
+                    else:
+                        default = hex(default)
+
+                if type(bits) is tuple:
+                    bits = f"{bits[0]}:{bits[1]}"
+
                 self.column_entries(rows, [
                     ["", 'literal', [''], 1],
-                    [f"[{field['bits']}]", 'literal'],
+                    [f"[{bits}]", 'literal'],
                     [field['name'], 'literal'],
                     [field['rw'], 'literal'],
-                    [field['default'], 'default_value', ['default']],
+                    [default, 'default_value', ['default']],
                     [field['description'], 'reST', ['description']],
                 ])
 
@@ -534,7 +562,12 @@ def manage_hdl_regmaps(env, docnames):
                 continue
 
             reg_name = m.group(1)
-            ctime = path.getctime(f"{prefix}/regmap/{file}")
+            file_ = path.join(prefix, "regmap", file)
+            if path.isfile(file_):
+                ctime = path.getctime(file_)
+            else:
+                continue
+
             if reg_name in rm and rm[reg_name]['ctime'] < ctime:
                 for o in rm[reg_name]['owners']:
                     if o not in docnames:
@@ -545,11 +578,10 @@ def manage_hdl_regmaps(env, docnames):
             if reg_name in rm and rm[reg_name]['ctime'] >= ctime:
                 pass
             else:
-                rm[reg_name], msg = parse_hdl_regmap(reg_name, ctime, prefix)
+                rm[reg_name], msg = parse_hdl_regmap(ctime, file_)
                 for m in msg:
-                    logger.warning(f"{prefix}/regmap/{file}: {m}")
-    msg = resolve_hdl_regmap(rm)
-    for m in msg:
+                    logger.warning(m)
+    for m in resolve_hdl_regmap(rm):
         logger.warning(m)
 
 

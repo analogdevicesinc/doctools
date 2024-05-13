@@ -14,6 +14,7 @@ repos = lut['repos']
 remote = lut['remote']
 
 
+
 class pr:
     @staticmethod
     def popen(cmd, p: List, cwd: [str, None] = None):
@@ -343,6 +344,8 @@ def aggregate(directory, symbolic, extra, no_parallel_, dry_run_, open_):
     no_parallel = no_parallel_
     dry_run = dry_run_
     directory = os.path.abspath(directory)
+    click.echo("This feature is currently disabled")
+    return
 
     if not extra:
         click.echo("Extra features disabled, use --extra to enable.")
