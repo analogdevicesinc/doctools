@@ -38,10 +38,10 @@
 package adi_regmap_child_pkg;
   import regmap_pkg::*;
 
-  class adi_regmap_child #();
+  class adi_regmap_child;
 
     /* Child (child) */
-    class MOCK_0 #() extends register_base;
+    class MOCK_0 extends register_base;
       field_base SECOND_F;
 
       function new(
@@ -53,7 +53,7 @@ package adi_regmap_child_pkg;
       endfunction: new
     endclass
 
-    class MOCK_CHANn #() extends register_base;
+    class MOCK_CHANn extends register_base;
       field_base CONFIGURE_F;
 
       function new(
@@ -65,8 +65,8 @@ package adi_regmap_child_pkg;
       endfunction: new
     endclass
 
-    MOCK_0 #() MOCK_0_R;
-    MOCK_CHANn #() MOCK_CHANn_R;
+    MOCK_0 MOCK_0_R;
+    MOCK_CHANn MOCK_CHANn_R;
 
     function new();
       this.MOCK_0_R = new("MOCK_0", 'h40);

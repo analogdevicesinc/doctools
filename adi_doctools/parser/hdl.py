@@ -84,6 +84,7 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
         while "REG" in data:
             regi = data.index("REG")
             rfi = data.index("ENDREG")
+            reg_deps = []
 
             if not regi:
                 break
@@ -133,6 +134,7 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
                 reg_addr_incr = 0
                 reg_name = data[regi + 1]
                 reg_desc = None
+                reg_deps = []
 
             with contextlib.suppress(ValueError):
                 tet = data.index("TITLE") if "TITLE" in data else -1
@@ -166,20 +168,36 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
                     field_loc = field_loc.split(" ")
                     field_bits = field_loc[0].replace("[", "").replace("]", "")
                     if field_bits != 'n':
+                        delimiters = ["+", "-", "*", "/"]
                         if ':' in field_bits:
                             bits_ = field_bits.split(':')
                         else:
                             bits_ = [field_bits, field_bits]
                         try:
-                            bits_ = [int(x) for x in bits_]
-                            field_bits = tuple(bits_)
+                            bit0_ = int(bits_[0])
                         except Exception:
-                            # TODO: Parametric are not supported yet.
-                            # Will pass through the hdl regmap directive
-                            # but will (0, 0) for .sv
-                            warning.append("Improper field width "
-                                           f"{field_loc[0]} at reg "
-                                           f"'{reg_name}'!")
+                            bit0_ = bits_[0]
+                            bit_str = bit0_
+                            for delimiter in delimiters:
+                                bit_str = " ".join(bit_str.split(delimiter))
+                            for str_part in bit_str.split():
+                                try:
+                                    bit_tmp = int(str_part)
+                                except Exception:
+                                    reg_deps.append(str_part)
+                        try:
+                            bit1_ = int(bits_[1])
+                        except Exception:
+                            bit1_ = bits_[1]
+                            bit_str = bit1_
+                            for delimiter in delimiters:
+                                bit_str = " ".join(bit_str.split(delimiter))
+                            for str_part in bit_str.split():
+                                try:
+                                    bit_tmp = int(str_part)
+                                except Exception:
+                                    reg_deps.append(str_part)
+                        field_bits = (bit0_, bit1_)
 
                     if len(field_loc) > 1:
                         field_default = ' '.join(field_loc[1:])
@@ -199,6 +217,21 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
                         except Exception:
                             # Convert parameter delimiter into Sphinx literal
                             field_default = field_default.replace("''", "``")
+
+                            if "0xX" not in field_default:
+                                default_str = field_default
+                                default_str = default_str.replace("``", "")
+                                default_str = default_str.replace("log2", "")
+                                default_str = default_str.replace("max", "")
+                                default_str = default_str.replace("min", "")
+                                delimiters = ["+", "-", "*", "/", "^", "(", ")", ","]
+                                for delimiter in delimiters:
+                                    default_str = " ".join(default_str.split(delimiter))
+                                for str_part in default_str.split():
+                                    try:
+                                        default_tmp = int(str_part)
+                                    except Exception:
+                                        reg_deps.append(str_part)
                     else:
                         field_default = None
 
@@ -217,6 +250,7 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
                                        f"n at reg '{reg_name}'!")
 
                     field_name = data[fi + 2]
+                    field_name = field_name.replace("/", "or")
                     field_rw = data[fi + 3]
 
                     if field_rw == 'R':
@@ -262,6 +296,10 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
 
                 data = data[efi + 1:]
 
+            if len(reg_deps):
+                reg_deps_set = set(reg_deps)
+                reg_deps = list(reg_deps_set)
+                reg_deps.sort()
             regmap['subregmap'][title_tool]['regmap'].append(
                 {
                     'import': reg_import,
@@ -270,7 +308,8 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
                     'address': reg_addr,
                     'addr_incr': reg_addr_incr,
                     'description': reg_desc,
-                    'fields': fields
+                    'fields': fields,
+                    'dependencies': reg_deps
                 }
             )
         regmap['subregmap'][title_tool]['access_type'] = access_type

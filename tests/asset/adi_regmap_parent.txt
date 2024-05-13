@@ -47,8 +47,22 @@ Mock channel register
 ENDREG
 
 FIELD
-[31:3] 0x00000000
-RESERVED
+[31:A] VAL1
+FIRST
+RO
+Reserved.
+ENDFIELD
+
+FIELD
+[A-1:B] VAL2+VAL1-VAL3
+SECOND
+RO
+Reserved.
+ENDFIELD
+
+FIELD
+[B-1:3] (log2(VAL3^9)-VAL4)*7^2
+THIRD
 RO
 Reserved.
 ENDFIELD

@@ -38,10 +38,10 @@
 package adi_regmap_parent_pkg;
   import regmap_pkg::*;
 
-  class adi_regmap_parent #();
+  class adi_regmap_parent #(int A, int B, int VAL1, int VAL2, int VAL3, int VAL4);
 
     /* Parent (parent) */
-    class MOCK_0 #() extends register_base;
+    class MOCK_0 extends register_base;
       field_base THIRD_F;
       field_base SECOND_F;
       field_base FIRST_F;
@@ -57,7 +57,10 @@ package adi_regmap_parent_pkg;
       endfunction: new
     endclass
 
-    class MOCK_CHANn #() extends register_base;
+    class MOCK_CHANn #(int A, int B, int VAL1, int VAL2, int VAL3, int VAL4) extends register_base;
+      field_base FIRST_F;
+      field_base SECOND_F;
+      field_base THIRD_F;
       field_base CONFIGURE_F;
 
       function new(
@@ -65,11 +68,14 @@ package adi_regmap_parent_pkg;
         input int address);
 
         super.new(name, address);
+        this.FIRST_F = new("FIRST", 31, A, RO, VAL1, this);
+        this.SECOND_F = new("SECOND", A-1, B, RO, VAL2+VAL1-VAL3, this);
+        this.THIRD_F = new("THIRD", B-1, 3, RO, ($clog2(VAL3**9)-VAL4)*7**2, this);
         this.CONFIGURE_F = new("CONFIGURE", 2, 0, RW, 'h7, this);
       endfunction: new
     endclass
 
-    class EXPAND_FIELDS #() extends register_base;
+    class EXPAND_FIELDS extends register_base;
       field_base CONFIGURE0_F;
       field_base CONFIGURE1_F;
       field_base CONFIGURE2_F;
@@ -95,24 +101,24 @@ package adi_regmap_parent_pkg;
       endfunction: new
     endclass
 
-    MOCK_0 #() MOCK_0_R;
-    MOCK_CHANn #() MOCK_CHAN0_R;
-    MOCK_CHANn #() MOCK_CHAN1_R;
-    MOCK_CHANn #() MOCK_CHAN2_R;
-    MOCK_CHANn #() MOCK_CHAN3_R;
-    MOCK_CHANn #() MOCK_CHAN4_R;
-    MOCK_CHANn #() MOCK_CHAN5_R;
-    MOCK_CHANn #() MOCK_CHAN6_R;
-    MOCK_CHANn #() MOCK_CHAN7_R;
-    MOCK_CHANn #() MOCK_CHAN8_R;
-    MOCK_CHANn #() MOCK_CHAN9_R;
-    MOCK_CHANn #() MOCK_CHAN10_R;
-    MOCK_CHANn #() MOCK_CHAN11_R;
-    MOCK_CHANn #() MOCK_CHAN12_R;
-    MOCK_CHANn #() MOCK_CHAN13_R;
-    MOCK_CHANn #() MOCK_CHAN14_R;
-    MOCK_CHANn #() MOCK_CHAN15_R;
-    EXPAND_FIELDS #() EXPAND_FIELDS_R;
+    MOCK_0 MOCK_0_R;
+    MOCK_CHANn #(A, B, VAL1, VAL2, VAL3, VAL4) MOCK_CHAN0_R;
+    MOCK_CHANn #(A, B, VAL1, VAL2, VAL3, VAL4) MOCK_CHAN1_R;
+    MOCK_CHANn #(A, B, VAL1, VAL2, VAL3, VAL4) MOCK_CHAN2_R;
+    MOCK_CHANn #(A, B, VAL1, VAL2, VAL3, VAL4) MOCK_CHAN3_R;
+    MOCK_CHANn #(A, B, VAL1, VAL2, VAL3, VAL4) MOCK_CHAN4_R;
+    MOCK_CHANn #(A, B, VAL1, VAL2, VAL3, VAL4) MOCK_CHAN5_R;
+    MOCK_CHANn #(A, B, VAL1, VAL2, VAL3, VAL4) MOCK_CHAN6_R;
+    MOCK_CHANn #(A, B, VAL1, VAL2, VAL3, VAL4) MOCK_CHAN7_R;
+    MOCK_CHANn #(A, B, VAL1, VAL2, VAL3, VAL4) MOCK_CHAN8_R;
+    MOCK_CHANn #(A, B, VAL1, VAL2, VAL3, VAL4) MOCK_CHAN9_R;
+    MOCK_CHANn #(A, B, VAL1, VAL2, VAL3, VAL4) MOCK_CHAN10_R;
+    MOCK_CHANn #(A, B, VAL1, VAL2, VAL3, VAL4) MOCK_CHAN11_R;
+    MOCK_CHANn #(A, B, VAL1, VAL2, VAL3, VAL4) MOCK_CHAN12_R;
+    MOCK_CHANn #(A, B, VAL1, VAL2, VAL3, VAL4) MOCK_CHAN13_R;
+    MOCK_CHANn #(A, B, VAL1, VAL2, VAL3, VAL4) MOCK_CHAN14_R;
+    MOCK_CHANn #(A, B, VAL1, VAL2, VAL3, VAL4) MOCK_CHAN15_R;
+    EXPAND_FIELDS EXPAND_FIELDS_R;
 
     function new();
       this.MOCK_0_R = new("MOCK_0", 'h40);
