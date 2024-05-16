@@ -58,6 +58,7 @@ def svpkg_regmap(f, regmap: Dict, key: str):
                             default = default.replace("min", "`MIN")
                             default = default.replace("max", "`MAX")
                             default = default.replace("^", "**")
+                            default = default.replace("if", "")
 
                 row += '"'f", {bits}, {field['rw']}, {default}, this);""\n"
                 f.write(row)

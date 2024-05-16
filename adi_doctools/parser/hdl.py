@@ -224,7 +224,14 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
                                 default_str = default_str.replace("log2", "")
                                 default_str = default_str.replace("max", "")
                                 default_str = default_str.replace("min", "")
-                                delimiters = ["+", "-", "*", "/", "^", "(", ")", ","]
+                                default_str = default_str.replace("if", "")
+                                default_str = default_str.replace("==", " ")
+                                default_str = default_str.replace("!=", " ")
+                                default_str = default_str.replace(">", " ")
+                                default_str = default_str.replace("<", " ")
+                                default_str = default_str.replace(">=", " ")
+                                default_str = default_str.replace("<=", " ")
+                                delimiters = ["+", "-", "*", "/", "^", "(", ")", ",", "?", ":"]
                                 for delimiter in delimiters:
                                     default_str = " ".join(default_str.split(delimiter))
                                 for str_part in default_str.split():
