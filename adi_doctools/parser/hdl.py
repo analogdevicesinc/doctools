@@ -84,7 +84,7 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
         while "REG" in data:
             regi = data.index("REG")
             rfi = data.index("ENDREG")
-            reg_deps = []
+            reg_params = []
 
             if not regi:
                 break
@@ -134,7 +134,7 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
                 reg_addr_incr = 0
                 reg_name = data[regi + 1]
                 reg_desc = None
-                reg_deps = []
+                reg_params = []
 
             with contextlib.suppress(ValueError):
                 tet = data.index("TITLE") if "TITLE" in data else -1
@@ -184,7 +184,7 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
                                 try:
                                     bit_tmp = int(str_part)
                                 except Exception:
-                                    reg_deps.append(str_part)
+                                    reg_params.append(str_part)
                         try:
                             bit1_ = int(bits_[1])
                         except Exception:
@@ -196,7 +196,7 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
                                 try:
                                     bit_tmp = int(str_part)
                                 except Exception:
-                                    reg_deps.append(str_part)
+                                    reg_params.append(str_part)
                         field_bits = (bit0_, bit1_)
 
                     if len(field_loc) > 1:
@@ -238,7 +238,8 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
                                     try:
                                         default_tmp = int(str_part)
                                     except Exception:
-                                        reg_deps.append(str_part)
+                                        reg_params.append(str_part)
+                                        # TODO: Check if parameter exist in the parameters dict from the parsed pkg.ttcl (when it gets implemented)
                     else:
                         field_default = None
 
@@ -303,10 +304,10 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
 
                 data = data[efi + 1:]
 
-            if len(reg_deps):
-                reg_deps_set = set(reg_deps)
-                reg_deps = list(reg_deps_set)
-                reg_deps.sort()
+            if len(reg_params):
+                reg_params_set = set(reg_params)
+                reg_params = list(reg_params_set)
+                reg_params.sort()
             regmap['subregmap'][title_tool]['regmap'].append(
                 {
                     'import': reg_import,
@@ -316,7 +317,7 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
                     'addr_incr': reg_addr_incr,
                     'description': reg_desc,
                     'fields': fields,
-                    'dependencies': reg_deps
+                    'parameters': reg_params
                 }
             )
         regmap['subregmap'][title_tool]['access_type'] = access_type
