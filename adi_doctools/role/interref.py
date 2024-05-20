@@ -153,7 +153,7 @@ def fetch_inventory(app: Sphinx, uri: str, inv: str) -> Inventory:
         else:
             f = open(path.join(app.srcdir, inv), 'rb')  # NoQA: SIM115
     except Exception as err:
-        err.args = ('intersphinx inventory %r not fetchable due to %s: %s',
+        err.args = ('source %r not fetchable due to %s: %s',
                     inv, err.__class__, str(err))
         raise
     try:
@@ -170,7 +170,7 @@ def fetch_inventory(app: Sphinx, uri: str, inv: str) -> Inventory:
             except ValueError as exc:
                 raise ValueError('unknown or unsupported inventory version: %r' % exc) from exc
     except Exception as err:
-        err.args = ('intersphinx inventory %r not readable due to %s: %s',
+        err.args = ("interref inventory '%r' not readable due to %s: %s",
                     inv, err.__class__.__name__, str(err))
         raise
     else:
@@ -194,7 +194,7 @@ def fetch_inventory_group(
             # decide whether the inventory must be read: always read local
             # files; remote ones only if the cache time is expired
             if '://' not in inv or uri not in cache or cache[uri][1] < cache_time:
-                logger.info(__('Fetching %s ref inventory...'), name)
+                logger.info(__("Fetching '%s' ref inventory..."), name)
                 try:
                     invdata = fetch_inventory(app, uri, inv)
                 except Exception as err:
@@ -208,14 +208,15 @@ def fetch_inventory_group(
         if failures == []:
             pass
         elif len(failures) < len(invs):
-            logger.info(__("encountered some issues with some of the inventories,"
-                           " but they had working alternatives:"))
+            logger.info(__("interref: encountered some issues with some of '{name}',"
+                           " inventories but they had working alternatives:"))
             for fail in failures:
                 logger.info(*fail)
         else:
             issues = '\n'.join(f[0] % f[1:] for f in failures)
-            logger.warning(__("failed to reach any of the inventories "
-                              "with the following issues:") + "\n" + issues)
+            logger.warning(__(f"interref: failed to reach any '{name}' inventory "
+                              "with the following issues:") + "\n" + issues + "\n"
+                              "Note: Do you only care about this repo? Then ignore this warning.")
 
 
 def load_mappings(app: Sphinx) -> None:
@@ -431,7 +432,7 @@ class IntersphinxRole(SphinxRole):
         assert self.name == self.orig_name.lower()
         inventory, name_suffix = self.get_inventory_and_name_suffix(self.orig_name)
         if inventory and not inventory_exists(self.env, inventory):
-            logger.warning(__('inventory for cross-reference not found: %s'),
+            logger.info(__("inventory '%s' not available"),
                            inventory, location=(self.env.docname, self.lineno))
             return [], []
 
