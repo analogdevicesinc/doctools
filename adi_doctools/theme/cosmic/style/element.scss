@@ -15,20 +15,22 @@ a {
     color: inherit;
 }
 
-.body p a, .body a.reference.internal {
-    color: var(--accent-color);
-    border-bottom: 1px solid rgba(125, 125, 125, .25);
-}
+.body {
+    p a, a.reference.internal, aside a {
+        color: var(--accent-color);
+        border-bottom: 1px solid rgba(125, 125, 125, .25);
+    }
 
-.body p a:hover, .body a.reference.internal:hover {
-    border-color: var(--text-color2);
+    p a:hover, a.reference.internal:hover, aside a:hover {
+        border-color: var(--text-color2);
+    }
 }
 
 video {
     max-width: 100%;
 }
 
-section, #top-anchor {
+section, #top-anchor, aside, a {
     scroll-margin-top: 3.5rem;
 }
 
@@ -166,11 +168,15 @@ pre {
 }
 
 aside.footnote {
-    display: flex;
-    align-items: center;
 
     p {
-        margin: 0.5em;
+        margin: .5em 0 0 0;
+    }
+
+    .label {
+        padding: .15em .3em 0 0;
+        white-space: nowrap;
+        float: left;
     }
 }
 

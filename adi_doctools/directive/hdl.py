@@ -43,7 +43,8 @@ class directive_interfaces(directive_base):
         description = self.get_descriptions(content)
 
         if component is None:
-            return self.generic_table(description)
+            subnode += self.generic_table(description)
+            return subnode
 
         bs = component['bus_interface']
         for tag in bs:

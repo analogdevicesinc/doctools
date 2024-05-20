@@ -1,9 +1,9 @@
 from typing import List, Tuple, Dict
 
 import re
-import os
 import contextlib
 from lxml import etree
+from os import path
 
 from ..directive.string import string_hdl
 
@@ -44,7 +44,7 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
         return (f" Where n is from {m.group(1)} to {m.group(2)}.",
                 (int(m.group(1)), int(m.group(2))+1))
 
-    if not os.path.isfile(file):
+    if not path.isfile(file):
         warning.append(f"File {file} doesn't exist!")
         return (regmap, warning)
 
@@ -412,7 +412,7 @@ def expand_hdl_regmap(rm: Dict) -> List[str]:
     return warning
 
 
-def parse_hdl_component(path: str, ctime: float, owners: List = []) -> Dict:
+def parse_hdl_component(file: str, ctime: float, owners: List = []) -> Dict:
     component = {
         'name': "",
         'bus_interface': {},
@@ -556,7 +556,7 @@ def parse_hdl_component(path: str, ctime: float, owners: List = []) -> Dict:
 
             del items[key]
 
-    root = etree.parse(path).getroot()
+    root = etree.parse(file).getroot()
     spirit, xilinx, _ = get_namespaces(root)
     name = get(root, 'name').text
 
@@ -679,10 +679,11 @@ def parse_hdl_component(path: str, ctime: float, owners: List = []) -> Dict:
 
     return component
 
+
 def parse_hdl_build_status(file: str) -> Tuple[List, int, List[str]]:
     warning = []
 
-    if not os.path.isfile(file):
+    if not path.isfile(file):
         warning.append(f"File {file} doesn't exist!")
         return ([], None, warning)
 
@@ -703,7 +704,7 @@ def parse_hdl_build_status(file: str) -> Tuple[List, int, List[str]]:
         warning.append(f"Couldn't get the build number from the first line of {file}.")
 
     project = []
-    for i in range (5, len(data) - 2):
+    for i in range(5, len(data) - 2):
         split = data[i].split('|')
         if len(split) < 4:
             warning.append(f"Malformed line at {file}:{i}.")
