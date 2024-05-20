@@ -35,17 +35,13 @@ from __future__ import annotations
 import concurrent.futures
 import functools
 import posixpath
-import re
-import sys
 import time
 from os import path, getenv
 from typing import TYPE_CHECKING, cast
-from urllib.parse import urlsplit, urlunsplit
 
 from docutils import nodes
 from docutils.utils import relative_path
 
-import sphinx
 from sphinx.addnodes import pending_xref
 from sphinx.builders.html import INVENTORY_FILENAME
 from sphinx.errors import ExtensionError
@@ -130,9 +126,16 @@ def _read_from_url(url: str, *, config: Config) -> IO:
     :return: data read from resource described by *url*
     :rtype: ``file``-like object
     """
-    r = requests.get(url, stream=True, timeout=config.interref_timeout,
-                     _user_agent=config.user_agent,
-                     _tls_info=(config.tls_verify, config.tls_cacerts))
+    from packaging.version import Version
+    from sphinx import __version__ as __sphinx_version__
+
+    if Version(__sphinx_version__) > Version('7.0.0'):
+        r = requests.get(url, stream=True, timeout=config.interref_timeout,
+                         _user_agent=config.user_agent,
+                         _tls_info=(config.tls_verify, config.tls_cacerts))
+    else:
+        r = requests.get(url, stream=True, timeout=config.interref_timeout)
+
     r.raise_for_status()
     r.raw.url = r.url
     # decode content-body based on the header.

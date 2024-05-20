@@ -27,8 +27,10 @@ def get_navigation_tree(app, context, pagename):
     else:
         toctree_html = ""
 
-    if 'content_root' not in context:
-        # Sphinx < 7.2.0
+    from packaging.version import Version
+    from sphinx import __version__ as __sphinx_version__
+
+    if Version(__sphinx_version__) < Version('7.2.0'):
         from sphinx.util.osutil import SEP
         from urllib.parse import quote
 
