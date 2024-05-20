@@ -1,11 +1,16 @@
+from typing import TypedDict, Dict, List
+
 import click
 import subprocess
 import re
 from os import path, walk
+from glob import glob
 
 from ..parser.hdl import parse_hdl_regmap
 from ..parser.hdl import resolve_hdl_regmap
 from ..parser.hdl import expand_hdl_regmap
+from ..parser.hdl import parse_hdl_vendor
+from ..parser.hdl import parse_hdl_library
 from ..writer.hdl import write_hdl_regmap
 
 
@@ -58,6 +63,25 @@ def hdl_gen(input_):
     tbdir = path.join(hdldir, 'testbenches')
     has_tb = False if dir_assert(tbdir, log['hdl_tb']) else True
 
+    # Generate HDL carrier dictionary
+    carrier = {}
+    path_ = path.join(hdldir, 'projects', 'scripts')
+    glob_ = path.join(path_, "adi_project_*.tcl")
+    filenames = glob(glob_)
+    for file_ in filenames:
+        m = re.search("adi_project_(\\w+)\\.tcl", file_)
+        if not bool(m):
+            continue
+
+        vendor_name = m.group(1)
+        carrier[vendor_name], msg = parse_hdl_vendor(file_)
+        for m in msg:
+            click.echo(f"{file_}: {m}")
+
+    # TODO do something with the parsed carriers, like get/validate library and
+    # project dicts
+
+    # Generate HDL Register Map dictionary
     rm = {}
     regdir = path.join(hdldir, 'docs', 'regmap')
     for (dirpath, dirnames, filenames) in walk(regdir):

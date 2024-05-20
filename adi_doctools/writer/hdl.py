@@ -3,6 +3,8 @@ from typing import Dict
 from datetime import datetime
 from os import path
 
+from ..__init__ import __version__
+
 svpkg_fn_new0 = """
       function new(
         input string name,
@@ -105,7 +107,7 @@ def svpkg_head(f, key: str, regmap: Dict):
 // ***************************************************************************
 """)
     f.write("/* Auto generated Register Map */\n")
-    f.write(f"/* {run_time} */\n")
+    f.write(f"/* {run_time} v{__version__} */\n")
     f.write("\n")
 
     f.write(f"package {pkgname};\n")

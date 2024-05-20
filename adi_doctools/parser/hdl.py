@@ -713,3 +713,26 @@ def parse_hdl_build_status(file: str) -> Tuple[List, int, List[str]]:
         project.append([split[1].strip(), 0 if split[3].strip() == "SUCCESS" else 1])
 
     return (project, build_number, warning)
+
+
+def parse_hdl_vendor(file: str, owners: List = []) -> Tuple[Tuple[str], List[str]]:
+    """
+    Obtain the carrier from the project vendor file.
+    """
+    carrier = set()
+    if not path.isfile(file):
+        return ((), ["File doesn't exist!"])
+
+    with open(file, "r") as f:
+        data = f.readlines()
+
+    for line in data:
+        line = ' '.join(line.split())
+        if line.startswith("if [regexp \""):
+            m = re.search("if \\[regexp \"_(\\w+)\" \\$project_name", line)
+            if not bool(m):
+                continue
+
+            carrier.add(m.group(1))
+
+    return (tuple(carrier), [])
