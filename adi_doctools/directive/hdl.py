@@ -223,6 +223,12 @@ class directive_regmap(directive_base):
                     else:
                         default = hex(default)
 
+                # Underscore with word-breaking 0 width space
+                default = default.replace("_", "_\u200B")
+                # Ensure `` parsed as pre in formulas
+                for a in ['+', '-', '/', '*', '^']:
+                    default = default.replace(a + "``", a + " ``")
+
                 if type(bits) is tuple:
                     bits = f"{bits[0]}:{bits[1]}"
 
