@@ -102,7 +102,12 @@
 <li><a class="reference internal" href="#using-a-python-virtual-environment">Using a Python virtual environment</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#development-install">Development install</a></li>
+<li><a class="reference internal" href="#development-install">Development install</a><ul>
+<li><a class="reference internal" href="#install-the-web-compiler">Install the web compiler</a></li>
+<li><a class="reference internal" href="#fetch-third-party-resources">Fetch third-party resources</a></li>
+<li><a class="reference internal" href="#install-the-repository">Install the repository</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#removing">Removing</a></li>
 </ul>
 </li>
@@ -206,8 +211,10 @@ consider using a Python virtual environment (<code class="docutils literal notra
 reinstalling.
 Also extends Author Mode to watch changes on the webpage source code
 (use <cite>–dev</cite>/<cite>-r</cite> option to enable this).</p>
-<p>Before getting started, install <cite>npm</cite>.
-It is required due to the web scripts (<cite>js modules</cite>) and style sheets (<cite>sass</cite>).</p>
+<section id="install-the-web-compiler">
+<h3>Install the web compiler<a class="headerlink" href="#install-the-web-compiler" title="Link to this heading">¶</a></h3>
+<p>If you care about the web scripts (<cite>js modules</cite>) and style sheets (<cite>sass</cite>),
+install <code class="docutils literal notranslate"><span class="pre">npm</span></code> first, if not, just skip this section.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>If the <code class="docutils literal notranslate"><span class="pre">npm</span></code> provided by your package manager is too old and updating with
@@ -222,14 +229,21 @@ It is required due to the web scripts (<cite>js modules</cite>) and style sheets
     <span class="o">--</span><span class="n">save</span><span class="o">-</span><span class="n">dev</span>
 </pre></div>
 </div>
+</section>
+<section id="fetch-third-party-resources">
+<h3>Fetch third-party resources<a class="headerlink" href="#fetch-third-party-resources" title="Link to this heading">¶</a></h3>
 <p>Fetch third-party fonts:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">ci</span><span class="o">/</span><span class="n">fetch</span><span class="o">-</span><span class="n">fonts</span><span class="o">.</span><span class="n">sh</span>
 </pre></div>
 </div>
+</section>
+<section id="install-the-repository">
+<h3>Install the repository<a class="headerlink" href="#install-the-repository" title="Link to this heading">¶</a></h3>
 <p>Finally, do a symbolic install of this repo:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">e</span> <span class="o">.</span> <span class="o">--</span><span class="n">upgrade</span>
 </pre></div>
 </div>
+</section>
 </section>
 <section id="removing">
 <span id="id4"></span><h2>Removing<a class="headerlink" href="#removing" title="Link to this heading">¶</a></h2>
