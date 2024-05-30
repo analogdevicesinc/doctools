@@ -45,12 +45,12 @@ def svpkg_regmap(f, regmap: Dict, key: str):
                 row = f"        this.{field['name']}_F = "'new("'f"{field['name']}"
                 bits = f"{field['bits'][0]}, {field['bits'][1]}"
 
-                if field['default'] is None:
+                if field['default_long'] is None:
                     default = "'hXXXXXXXX"
                 else:
-                    default = field['default']
+                    default = field['default_long']
                     if type(default) is int:
-                        default = hex(field['default']).replace("0x", "'h")
+                        default = hex(field['default_long']).replace("0x", "'h")
                     else:
                         if "0xX" not in default:
                             default = default.replace("``", "")

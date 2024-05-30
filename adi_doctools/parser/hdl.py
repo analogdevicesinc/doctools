@@ -201,6 +201,7 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
 
                     if len(field_loc) > 1:
                         field_default = ' '.join(field_loc[1:])
+                        field_default_long = ' '.join(field_loc[1:])
                         try:
                             fd_ = int(field_default, 16)
                             if type(field_bits) is tuple:
@@ -213,13 +214,22 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
                                                    f"{field_loc[0]} at reg "
                                                    f"'{reg_name}'!")
                             field_default = fd_
+                            field_default_long = fd_
 
                         except Exception:
                             # Convert parameter delimiter into Sphinx literal
                             field_default = field_default.replace("''", "``")
+                            split_field = field_default.split(" = ", 1)
+                            field_default = split_field[0]
+                            field_default_long = split_field[0]
 
                             if "0xX" not in field_default:
-                                default_str = field_default
+                                try:
+                                    default_str = split_field[1]
+                                    field_default_long = split_field[1]
+                                    field_default = split_field[0] + " (*)"
+                                except Exception:
+                                    default_str = split_field[0]
                                 default_str = default_str.replace("``", "")
                                 default_str = default_str.replace("log2", "")
                                 default_str = default_str.replace("max", "")
@@ -242,6 +252,7 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
                                         # TODO: Check if parameter exist in the parameters dict from the parsed pkg.ttcl (when it gets implemented)
                     else:
                         field_default = None
+                        field_default_long = None
 
                     fi_d = data[fi + 2]
                     where_desc = ''
@@ -286,6 +297,7 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
                         "name": field_name,
                         "bits": field_bits,
                         "default": field_default,
+                        "default_long": field_default_long,
                         "rw": field_rw,
                         "description": field_desc,
                     })
@@ -298,6 +310,7 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
                             "name": data[i],
                             "bits": None,
                             "default": None,
+                            "default_long": None,
                             "rw": None,
                             "description": None,
                         })
