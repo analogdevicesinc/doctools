@@ -1,4 +1,4 @@
-from os import path, listdir, remove
+from os import path, listdir, remove, mkdir
 from os import pardir, killpg, getpgid
 from shutil import copy
 import click
@@ -11,8 +11,12 @@ log = {
     'inv_bdir': "Could not find BUILDDIR {}.",
     'inv_srcdir': "Could not find SOURCEDIR {}.",
     'no_selenium': "Package 'selenium' is not installed, pooling enabled.",
-    'rollup': "Couldn't find {}, ensure this a symbolic install",
-    'node': "Couldn't find {}, please you install the npm tools locally."
+    'rollup': "Couldn't find {}, ensure this a symbolic install.",
+    'node': "Couldn't find {}, please install the npm tools locally.",
+    'comp': "Couldn't find the minified web files ",
+    'no_npm': "and the npm tools are not installed.",
+    'with_npm': "run with the --just-regen flag (npm detected).",
+    'fetch': "Do you want to fetch from the release?"
 }
 
 # Hall of shame of poorly managed artifacts
@@ -41,7 +45,7 @@ unmanaged = []
     '-r',
     is_flag=True,
     default=False,
-    help="Watch source code (requires symbolic install)."
+    help="Watch web source code (requires symbolic install)."
 )
 @click.option(
     '--no-selenium',
@@ -54,7 +58,7 @@ unmanaged = []
     '-g',
     is_flag=True,
     default=False,
-    help="Just regenerate minified files and exit."
+    help="Just regenerate the web minified files and exit."
 )
 def author_mode(directory, port, dev, no_selenium, just_regen):
     """
@@ -91,17 +95,61 @@ def author_mode(directory, port, dev, no_selenium, just_regen):
         else:
             return False
 
+    source_files = {'app.umd.js', 'app.umd.js.map', 'style.min.css',
+                    'style.min.css.map'}
+
+    def fetch_compiled(path_):
+        req = path.join(path_, 'docs', 'requirements.txt')
+        dist = path.join(path_, '.dist')
+        file = "adi_doctools.tar.gz"
+
+        f = open(req, 'r')
+        for line in f:
+            if 'adi-doctools' in line:
+                break
+        f.close()
+
+        from urllib.request import urlretrieve
+        from shutil import rmtree
+        if not path.isdir(dist):
+            mkdir(dist)
+        urlretrieve(line, path.join(dist, file))
+        subprocess.call(f"tar -xf {file}",
+                        shell=True, cwd=dist)
+        remove(path.join(dist, file))
+        for d in listdir(dist):
+            break
+        base = path.join('adi_doctools', 'theme', 'cosmic', 'static')
+        for f in source_files:
+            src = path.join(dist, d, base, f)
+            dest = path.join(path_, base, f)
+            copy(src, dest)
+        rmtree(dist)
+        click.echo("Success fetching the pre-compiled files!")
+
+    src_dir = path.abspath(path.join(path.dirname(__file__), pardir))
+    par_dir = path.abspath(path.join(src_dir, pardir))
+    rollup_bin = path.join(par_dir, 'node_modules', '.bin', 'rollup')
+    rollup_conf = path.join(par_dir, 'ci', 'rollup.config.app.mjs')
     if just_regen or dev:
-        src_dir = path.join(path.dirname(path.abspath(__file__)), pardir)
-        par_dir = path.abspath(path.join(src_dir, pardir))
-
-        rollup_conf = path.join(par_dir, 'ci', 'rollup.config.app.mjs')
-        rollup_bin = path.join(par_dir, 'node_modules', '.bin', 'rollup')
-
         if symbolic_assert(rollup_conf, log['rollup'].format(rollup_conf)):
             return
         if symbolic_assert(rollup_bin, log['node'].format(rollup_bin)):
             return
+    else:
+        compiled = path.join(src_dir, 'theme', 'cosmic', 'static')
+        compiled = path.abspath(path.join(compiled, 'app.umd.js'))
+        if not path.isfile(compiled):
+            if symbolic_assert(rollup_bin, log['comp'] + log['no_npm']):
+                pass
+            else:
+                click.echo(log['comp'] + log['with_npm'])
+                return
+            if click.confirm(log['fetch']):
+                if fetch_compiled(par_dir):
+                    return
+            else:
+                return
 
     if just_regen:
         subprocess.call(f"{rollup_bin} -c {rollup_conf}",
@@ -144,8 +192,7 @@ def author_mode(directory, port, dev, no_selenium, just_regen):
     watch_file_src = {}
     watch_file_rst = {}
     if dev:
-        source_files = ['app.umd.js', 'app.umd.js.map', 'style.min.css',
-                        'style.min.css.map', 'icons.svg']
+        source_files.add('icons.svg')
         w_files = []
         # Check if minified files exists, if not, run rollup once
         rollup_cache = True

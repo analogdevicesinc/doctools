@@ -58,14 +58,16 @@ reinstalling.
 Also extends Author Mode to watch changes on the webpage source code
 (use `--dev`/`-r` option to enable this).
 
-Before getting started, install `npm`.
-It is required due to the web scripts (`js modules`) and style sheets (`sass`).
+### Install the web compiler
+
+If you care about the web scripts (`js modules`) and style sheets (`sass`),
+install `npm` first, if not, just skip this section.
 
 > **_NOTE:_** If the ``npm`` provided by your package manager is too old and
 > updating with `npm install npm -g` fails, consider installing with
 > [NodeSource](https://github.com/nodesource/distributions).
 
-At this path, install the `npm` dependencies locally:
+At the repository root, install the `npm` dependencies locally:
 ```
 npm install rollup \
     @rollup/plugin-terser \
@@ -74,10 +76,14 @@ npm install rollup \
     --save-dev
 ```
 
+### Fetch third-party resources
+
 Fetch third-party fonts:
 ```
 ./ci/fetch-fonts.sh
 ```
+
+### Install the repository
 
 Finally, do a symbolic install of this repo:
 ```

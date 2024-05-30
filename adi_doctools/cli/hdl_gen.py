@@ -1,5 +1,3 @@
-from typing import TypedDict, Dict, List
-
 import click
 import subprocess
 import re
@@ -10,7 +8,6 @@ from ..parser.hdl import parse_hdl_regmap
 from ..parser.hdl import resolve_hdl_regmap
 from ..parser.hdl import expand_hdl_regmap
 from ..parser.hdl import parse_hdl_vendor
-from ..parser.hdl import parse_hdl_library
 from ..writer.hdl import write_hdl_regmap
 
 
