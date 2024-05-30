@@ -226,7 +226,7 @@ class directive_regmap(directive_base):
                 # Underscore with word-breaking 0 width space
                 default = default.replace("_", "_\u200B")
                 # Ensure `` parsed as pre in formulas
-                for a in ['+', '-', '/', '*', '^']:
+                for a in ['+', '-', '/', '*', '^', '~', '!']:
                     default = default.replace(a + "``", a + " ``")
 
                 if type(bits) is tuple:

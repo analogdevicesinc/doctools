@@ -1,10 +1,12 @@
-from typing import List, Tuple, Dict
+from typing import TypedDict, Optional, List, Tuple, Dict
 
 import re
 import contextlib
 from lxml import etree
 from os import path
 
+from ..typings.hdl import Intf, IntfPort
+from ..typings.hdl import LibraryVendor
 from ..directive.string import string_hdl
 
 
@@ -165,7 +167,7 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
                     field_where = None
                     field_import = False
                     field_loc = data[fi + 1]
-                    field_loc = field_loc.split(" ")
+                    field_loc = field_loc.split()
                     field_bits = field_loc[0].replace("[", "").replace("]", "")
                     if field_bits != 'n':
                         delimiters = ["+", "-", "*", "/"]
@@ -233,7 +235,7 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
                                 default_str = re.findall("[A-Z0-9_]+", default_str)
                                 for str_part in default_str:
                                     try:
-                                        default_tmp = int(str_part)
+                                        int(str_part)
                                     except Exception:
                                         reg_params.append(re.sub('\[[0-9:]+\]', ' ', str_part))
                                         # TODO: Check if parameter exist in the parameters dict from the parsed pkg.ttcl (when it gets implemented)
@@ -707,9 +709,10 @@ def parse_hdl_build_status(file: str) -> Tuple[List, int, List[str]]:
     try:
         s = 'build number'
         build_number = int(data[0][data[0].find(s)+len(s)+1:])
-    except:
+    except Exception as e:
         build_number = -1
-        warning.append(f"Couldn't get the build number from the first line of {file}.")
+        warning.append("Couldn't get the build number from the first line "
+                       f"of '{file}', exception: {e}.")
 
     project = []
     for i in range(5, len(data) - 2):
@@ -723,11 +726,13 @@ def parse_hdl_build_status(file: str) -> Tuple[List, int, List[str]]:
     return (project, build_number, warning)
 
 
-def parse_hdl_vendor(file: str, owners: List = []) -> Tuple[Tuple[str], List[str]]:
+def parse_hdl_vendor(
+    file: str
+) -> Tuple[Tuple[str], List[str]]:
     """
     Obtain the carrier from the project vendor file.
     """
-    carrier = set()
+    obj = set()
     if not path.isfile(file):
         return ((), ["File doesn't exist!"])
 
@@ -740,7 +745,217 @@ def parse_hdl_vendor(file: str, owners: List = []) -> Tuple[Tuple[str], List[str
             m = re.search("if \\[regexp \"_(\\w+)\" \\$project_name", line)
             if not bool(m):
                 continue
+            obj.add(m.group(1))
 
-            carrier.add(m.group(1))
+    return (tuple(obj), [])
 
-    return (tuple(carrier), [])
+
+def parse_hdl_library(
+    file: str,
+    key: str,
+) -> Tuple[Optional[LibraryVendor], List[str]]:
+    """
+    Obtain the library dependencies and interfaces from the library file.
+    Vendor agnostic, even though we use:
+    * adi_ip_files: xilinx
+    * ad_ip_file: intel
+    Would be better to switch to the same method in the future.
+    """
+    # TODO get parameters
+    warning = []
+
+    if not path.isfile(file):
+        warning.append("File doesn't exist!")
+        return (None, warning)
+
+    with open(file, "r") as f:
+        data = f.readlines()
+
+    # Check library name against key
+    for i, line in enumerate(data):
+        for m in ['adi_ip_create', 'ad_ip_create']:
+            if line.startswith(m):
+                line_ = line.split()
+                if key != line_[1]:
+                    warning.append(f"'{m}' IP name '{line_[1]}' does not "
+                                   f"match name '{key}', line {i}")
+            break
+
+    # Obtain the file dependencies
+    deps = set()
+    i = -1
+    for i, line in enumerate(data):
+        # Xilinx
+        if (line.startswith('adi_ip_files')) and key in line:
+            break
+        # Altera
+        if (line.startswith('ad_ip_files')) and key in line:
+            break
+        # Without wrapper (improper)
+        if (line.startswith('add_files')):
+            break
+    if i != 0:
+        i += 1
+        while (i != len(data) and len(data[i]) != 1):
+            dep = data[i]
+            for char in ['\n', '"', ']', '\\']:
+                dep = dep.replace(char, '')
+            dep = dep.strip()
+            if len(dep) > 0:
+                deps.add(dep)
+            if data[i][-2] != '\\':
+                break
+            i += 1
+    # Add itself as a dependency
+    deps.add(path.basename(file))
+
+    def in_method_match(expr, start):
+        """
+        Try to match group inside a tcl method accross multiple lines.
+        """
+        v = set()
+        for i in range(0, len(data)):
+            if data[i].startswith(start):
+                while (i != len(data) and len(data[i]) != 1):
+                    m = re.search(expr, data[i])
+                    i += 1
+                    if m is False or m is None:
+                        continue
+                    v_ = m.group(1)
+                    v.add(v_)
+                    if data[i-1][-2] != '\\':
+                        break
+        return v
+
+    # Obtain the library dependencies
+    lib_deps = in_method_match("analog\\.com:\\$VIVADO_IP_LIBRARY:(\\w+)",
+                               "adi_ip_add_core_dependencies")
+
+    # Obtain the interface dependencies
+    intf = in_method_match("analog\\.com:(?:interface|user):(\\w+)",
+                           "adi_add_bus")
+    # Remove _rtl suffixed
+    intf = [e for e in intf if not e.endswith('_rtl')]
+
+    lib = LibraryVendor(
+        path=file,
+        dependencies=tuple(deps),
+        library_dependencies=tuple(sorted(lib_deps)),
+        interfaces=tuple(intf)
+    )
+    return (lib, warning)
+
+
+def resolve_hdl_library(
+    library: str,
+    intf_lut: str,
+    root_path: str,
+    path_: str
+) -> List[str]:
+    """
+    Resolve a library by extracting generic dependencies, resolving paths
+    and checking interfaces
+    """
+    warning = []
+
+    # Filter generic deps
+    deps = {}
+    for v in library['vendor']:
+        deps[v] = set(library['vendor'][v]['dependencies'])
+    deps['generic'] = set.intersection(*[deps[v] for v in deps])
+
+    # Expand $ad_hdl_dir and make it relative
+    for v in deps:
+        for k in deps[v]:
+            if k.startswith('$ad_hdl_dir/'):
+                deps[v].add(path.relpath(path.join(root_path, k[12:]), path_))
+                deps[v].remove(k)
+
+    for v in library['vendor']:
+        library['vendor'][v]['dependencies'] = sorted(deps[v] - deps['generic'])
+    library['generic']['dependencies'] = sorted(deps['generic'])
+
+    # Find interfaces_ip.tcl source for intf db and obtain
+    # Effectively, Xilinx
+    for v in library['vendor']:
+        deps_intf = set()
+        interface_deps = set()
+        for intf in library['vendor'][v]['interfaces']:
+            if intf not in intf_lut:
+                warning.append(f"Interface {intf} does not exist in any "
+                               "interfaces_ip.tcl file.")
+            else:
+                base = path.relpath(path.join(intf_lut[intf], intf), path_)
+                deps_intf.add(base + '.xml')
+                deps_intf.add(base + "_rtl.xml")
+                # XILINX_INTERFACE_DEPS are relative to the library folder
+                p_ = path.join(root_path, 'library')
+                interface_deps.add(path.relpath(intf_lut[intf], p_))
+        library['vendor'][v]['interfaces'] = tuple(deps_intf)
+        library['vendor'][v]['interfaces_tcl'] = tuple(interface_deps)
+
+    return warning
+
+
+def parse_hdl_interfaces(
+    file: str,
+) -> Tuple[Tuple[Intf], List[str]]:
+    """
+    Obtain the interfaces from the interfaces file.
+    """
+    warning = []
+    obj = []
+
+    if not path.isfile(file):
+        warning.append("File doesn't exist!")
+        return ((), warning)
+
+    with open(file, "r") as f:
+        data = f.readlines()
+
+    intf = None
+    descr = None
+    for i, line in enumerate(data):
+        line = line.strip()
+        if len(line) > 0 and line[0] == '#':
+            descr = line[1:].strip()
+        if line.startswith('adi_if_define'):
+            intf = line.split()[1].replace('"', '')
+            obj.append(Intf(
+                description=descr,
+                name=intf,
+                ports=[]
+            ))
+            descr = None
+
+        if line.startswith('adi_if_ports'):
+            if len(obj) == 0:
+                warning.append(f"'adi_if_ports' at line {i+1} "
+                               "without precending adi_if_ports")
+                continue
+            ports = line.split()
+            try:
+                if len(ports) < 4:
+                    raise Exception(f"too few arguments, got {len(ports)}")
+                if ports[1] not in ['input', 'output']:
+                    raise Exception(f"unknown direction '{ports[1]}'")
+                direction = ports[3]
+                width = int(ports[2])
+                name = ports[3]
+                domain = 'none' if len(ports) < 5 else ports[4]
+                domain = None if domain == 'none' else domain
+                default = None if len(ports) < 6 else int(ports[5])
+
+                obj[-1]['ports'].append(IntfPort(
+                    direction=direction,
+                    width=width,
+                    name=name,
+                    domain=domain,
+                    default=default,
+                ))
+            except Exception as e:
+                warning.append(f"Malformed 'adi_if_ports' at line {i+1}, "
+                               f"exception: {e}")
+    for o in obj:
+        o['ports'] = tuple(o['ports'])
+    return (tuple(obj), warning)

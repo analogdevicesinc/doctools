@@ -17,6 +17,7 @@ def test_hdl_regmap(tmp_path):
     file = path.join('asset', "adi_project_vendor.tcl")
 
     carrier, msg = parse_hdl_vendor(file)
+    logger.info(carrier)
     log_assert(msg)
 
     assert sorted(carrier) == sorted(('dev_0', 'dev_1', 'dev_2'))

@@ -1,9 +1,10 @@
-from typing import Dict
+from typing import Dict, Tuple
 
 from datetime import datetime
 from os import path
 
 from ..__init__ import __version__
+from ..typings.hdl import vendors, Library
 
 svpkg_fn_new0 = """
       function new(
@@ -143,7 +144,7 @@ def svpkg_reg_decl(f, regmap: Dict):
                 row += ")"
             row += f" {reg['name']}_R;\n"
             f.write(row)
-    
+
 
 def svpkg_reg_inst(f, regmap: Dict):
     for reg in regmap['regmap']:
@@ -165,13 +166,17 @@ def svpkg_reg_inst(f, regmap: Dict):
             row += f", {addr});\n"
             f.write(row)
 
-        
+
 def svpkg_footer(f):
     f.write("  endclass;\n")
     f.write("endpackage;\n")
 
 
-def write_hdl_regmap(path_: str, regmap: Dict, key: str):
+def write_hdl_regmap(
+    path_: str,
+    regmap: Dict,
+    key: str
+) -> None:
     fname = f"adi_regmap_{key}_pkg.sv"
     file = path.join(path_, fname)
     f = open(file, "w")
@@ -190,4 +195,53 @@ def write_hdl_regmap(path_: str, regmap: Dict, key: str):
 
     svpkg_footer(f)
 
+    f.close()
+
+
+def write_hdl_library_makefile(
+    path_: str,
+    root_path: str,
+    library: Library
+) -> Tuple[str]:
+    fname = "Makefile"
+    file = path.join(path_, fname)
+    f = open(file, "w")
+    f.write(f"""\
+####################################################################################
+## Copyright (c) 2018 - {datetime.now().year} Analog Devices, Inc.
+### SPDX short identifier: BSD-1-Clause
+## Auto-generated v{__version__}, do not modify!
+####################################################################################
+""")
+    f.write("\n")
+    f.write(f"LIBRARY_NAME := {library['name']}\n")
+    f.write("\n")
+    for d in library['generic']['dependencies']:
+        f.write(f"GENERIC_DEPS += {d}\n")
+    f.write("\n")
+    for v in library['vendor']:
+        r = library['vendor'][v]
+        for d in r['dependencies']:
+            f.write(f"{v.upper()}_DEPS += {d}\n")
+        if len(r['dependencies']) > 0:
+            f.write("\n")
+
+        for x in r['interfaces']:
+            f.write(f"{v.upper()}_DEPS += {x}\n")
+        if len(r['interfaces']) > 0:
+            f.write("\n")
+
+        for d in r['library_dependencies']:
+            f.write(f"{v.upper()}_LIB_DEPS += {d}\n")
+        if len(r['library_dependencies']) > 0:
+            f.write("\n")
+
+        for x in r['interfaces_tcl']:
+            f.write(f"{v.upper()}_INTERFACE_DEPS += {x}\n")
+        if len(r['interfaces_tcl']) > 0:
+            f.write("\n")
+
+    p_ = path.join(root_path, 'library', 'scripts', 'library.mk')
+    p_ = path.relpath(p_, path_)
+    f.write(f"include {p_}\n")
     f.close()
