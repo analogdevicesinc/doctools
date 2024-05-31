@@ -229,8 +229,8 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
                                     field_default = split_field[0] + " (*)"
                                 except Exception:
                                     default_str = split_field[0]
-                                default_str = re.sub("`[A-Z_]+", "", default_str)
-                                default_str = re.findall("[A-Z_]+", default_str)
+                                default_str = re.sub("`[A-Z0-9_]+", "", default_str)
+                                default_str = re.findall("[A-Z0-9_]+", default_str)
                                 for str_part in default_str:
                                     try:
                                         default_tmp = int(str_part)
