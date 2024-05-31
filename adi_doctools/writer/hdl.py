@@ -51,14 +51,6 @@ def svpkg_regmap(f, regmap: Dict, key: str):
                     default = field['default_long']
                     if type(default) is int:
                         default = hex(field['default_long']).replace("0x", "'h")
-                    else:
-                        if "0xX" not in default:
-                            default = default.replace("``", "")
-                            default = default.replace("log2", "$clog2")
-                            default = default.replace("min", "`MIN")
-                            default = default.replace("max", "`MAX")
-                            default = default.replace("^", "**")
-                            default = default.replace("if", "")
 
                 row += '"'f", {bits}, {field['rw']}, {default}, this);""\n"
                 f.write(row)

@@ -218,7 +218,6 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
 
                         except Exception:
                             # Convert parameter delimiter into Sphinx literal
-                            field_default = field_default.replace("''", "``")
                             split_field = field_default.split(" = ", 1)
                             field_default = split_field[0]
                             field_default_long = split_field[0]
@@ -230,21 +229,9 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
                                     field_default = split_field[0] + " (*)"
                                 except Exception:
                                     default_str = split_field[0]
-                                default_str = default_str.replace("``", "")
-                                default_str = default_str.replace("log2", "")
-                                default_str = default_str.replace("max", "")
-                                default_str = default_str.replace("min", "")
-                                default_str = default_str.replace("if", "")
-                                default_str = default_str.replace("==", " ")
-                                default_str = default_str.replace("!=", " ")
-                                default_str = default_str.replace(">", " ")
-                                default_str = default_str.replace("<", " ")
-                                default_str = default_str.replace(">=", " ")
-                                default_str = default_str.replace("<=", " ")
-                                delimiters = ["+", "-", "*", "/", "^", "(", ")", ",", "?", "::"]
-                                for delimiter in delimiters:
-                                    default_str = " ".join(default_str.split(delimiter))
-                                for str_part in default_str.split():
+                                default_str = re.sub("`[A-Z_]+", "", default_str)
+                                default_str = re.findall("[A-Z_]+", default_str)
+                                for str_part in default_str:
                                     try:
                                         default_tmp = int(str_part)
                                     except Exception:
