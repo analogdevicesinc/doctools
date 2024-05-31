@@ -16,7 +16,7 @@ a {
 }
 
 .body {
-    p a, a.reference.internal, aside a {
+    p a, a.reference.internal:not(.image-reference), aside a {
         color: var(--accent-color);
         border-bottom: 1px solid rgba(125, 125, 125, .25);
     }
@@ -231,12 +231,24 @@ iframe {
     }
 }
 
+.image-reference {
+    text-align: center;
+}
+
+.only-dark, .only-light, #badges img {
+    background: none !important;
+}
+
+#badges img {
+    display: inline-block !important;
+}
+
 .only-light {
-    display: var(--display-light);
+    display: var(--display-light) !important;
 }
 
 .only-dark {
-    display: var(--display-dark);
+    display: var(--display-dark) !important;
 }
 
 figcaption p {
