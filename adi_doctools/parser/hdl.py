@@ -241,14 +241,14 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
                                 default_str = default_str.replace("<", " ")
                                 default_str = default_str.replace(">=", " ")
                                 default_str = default_str.replace("<=", " ")
-                                delimiters = ["+", "-", "*", "/", "^", "(", ")", ",", "?", ":"]
+                                delimiters = ["+", "-", "*", "/", "^", "(", ")", ",", "?", "::"]
                                 for delimiter in delimiters:
                                     default_str = " ".join(default_str.split(delimiter))
                                 for str_part in default_str.split():
                                     try:
                                         default_tmp = int(str_part)
                                     except Exception:
-                                        reg_params.append(str_part)
+                                        reg_params.append(re.sub('\[[0-9:]+\]', ' ', str_part))
                                         # TODO: Check if parameter exist in the parameters dict from the parsed pkg.ttcl (when it gets implemented)
                     else:
                         field_default = None
