@@ -84,7 +84,7 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
         while "REG" in data:
             regi = data.index("REG")
             rfi = data.index("ENDREG")
-            reg_deps = []
+            reg_params = []
 
             if not regi:
                 break
@@ -134,7 +134,7 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
                 reg_addr_incr = 0
                 reg_name = data[regi + 1]
                 reg_desc = None
-                reg_deps = []
+                reg_params = []
 
             with contextlib.suppress(ValueError):
                 tet = data.index("TITLE") if "TITLE" in data else -1
@@ -184,7 +184,7 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
                                 try:
                                     bit_tmp = int(str_part)
                                 except Exception:
-                                    reg_deps.append(str_part)
+                                    reg_params.append(str_part)
                         try:
                             bit1_ = int(bits_[1])
                         except Exception:
@@ -196,11 +196,12 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
                                 try:
                                     bit_tmp = int(str_part)
                                 except Exception:
-                                    reg_deps.append(str_part)
+                                    reg_params.append(str_part)
                         field_bits = (bit0_, bit1_)
 
                     if len(field_loc) > 1:
                         field_default = ' '.join(field_loc[1:])
+                        field_default_long = ' '.join(field_loc[1:])
                         try:
                             fd_ = int(field_default, 16)
                             if type(field_bits) is tuple:
@@ -213,27 +214,32 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
                                                    f"{field_loc[0]} at reg "
                                                    f"'{reg_name}'!")
                             field_default = fd_
+                            field_default_long = fd_
 
                         except Exception:
                             # Convert parameter delimiter into Sphinx literal
-                            field_default = field_default.replace("''", "``")
+                            split_field = field_default.split(" = ", 1)
+                            field_default = split_field[0]
+                            field_default_long = split_field[0]
 
                             if "0xX" not in field_default:
-                                default_str = field_default
-                                default_str = default_str.replace("``", "")
-                                default_str = default_str.replace("log2", "")
-                                default_str = default_str.replace("max", "")
-                                default_str = default_str.replace("min", "")
-                                delimiters = ["+", "-", "*", "/", "^", "(", ")", ","]
-                                for delimiter in delimiters:
-                                    default_str = " ".join(default_str.split(delimiter))
-                                for str_part in default_str.split():
+                                try:
+                                    default_str = split_field[1]
+                                    field_default_long = split_field[1]
+                                    field_default = split_field[0] + " (*)"
+                                except Exception:
+                                    default_str = split_field[0]
+                                default_str = re.sub("`[A-Z0-9_]+", "", default_str)
+                                default_str = re.findall("[A-Z0-9_]+", default_str)
+                                for str_part in default_str:
                                     try:
                                         default_tmp = int(str_part)
                                     except Exception:
-                                        reg_deps.append(str_part)
+                                        reg_params.append(re.sub('\[[0-9:]+\]', ' ', str_part))
+                                        # TODO: Check if parameter exist in the parameters dict from the parsed pkg.ttcl (when it gets implemented)
                     else:
                         field_default = None
+                        field_default_long = None
 
                     fi_d = data[fi + 2]
                     where_desc = ''
@@ -278,6 +284,7 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
                         "name": field_name,
                         "bits": field_bits,
                         "default": field_default,
+                        "default_long": field_default_long,
                         "rw": field_rw,
                         "description": field_desc,
                     })
@@ -290,16 +297,17 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
                             "name": data[i],
                             "bits": None,
                             "default": None,
+                            "default_long": None,
                             "rw": None,
                             "description": None,
                         })
 
                 data = data[efi + 1:]
 
-            if len(reg_deps):
-                reg_deps_set = set(reg_deps)
-                reg_deps = list(reg_deps_set)
-                reg_deps.sort()
+            if len(reg_params):
+                reg_params_set = set(reg_params)
+                reg_params = list(reg_params_set)
+                reg_params.sort()
             regmap['subregmap'][title_tool]['regmap'].append(
                 {
                     'import': reg_import,
@@ -309,7 +317,7 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
                     'addr_incr': reg_addr_incr,
                     'description': reg_desc,
                     'fields': fields,
-                    'dependencies': reg_deps
+                    'parameters': reg_params
                 }
             )
         regmap['subregmap'][title_tool]['access_type'] = access_type

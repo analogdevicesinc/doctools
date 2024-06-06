@@ -23,13 +23,13 @@ def svpkg_regmap(f, regmap: Dict, key: str):
 
     for reg in regmap['regmap']:
         row = f"    class {reg['name']}"
-        reg_dep_dec = []
-        for reg_dep in reg['dependencies']:
-            reg_dep_dec.append("int " + reg_dep)
-            reg_dep_dec.sort()
-        if len(reg_dep_dec):
+        reg_param_dec = []
+        for reg_param in reg['parameters']:
+            reg_param_dec.append("int " + reg_param)
+            reg_param_dec.sort()
+        if len(reg_param_dec):
             row += " #("
-            row += ", ".join(reg_dep_dec)
+            row += ", ".join(reg_param_dec)
             row += ")"
         row += " extends register_base;""\n"
         f.write(row)
@@ -45,19 +45,12 @@ def svpkg_regmap(f, regmap: Dict, key: str):
                 row = f"        this.{field['name']}_F = "'new("'f"{field['name']}"
                 bits = f"{field['bits'][0]}, {field['bits'][1]}"
 
-                if field['default'] is None:
+                if field['default_long'] is None:
                     default = "'hXXXXXXXX"
                 else:
-                    default = field['default']
+                    default = field['default_long']
                     if type(default) is int:
-                        default = hex(field['default']).replace("0x", "'h")
-                    else:
-                        if "0xX" not in default:
-                            default = default.replace("``", "")
-                            default = default.replace("log2", "$clog2")
-                            default = default.replace("min", "`MIN")
-                            default = default.replace("max", "`MAX")
-                            default = default.replace("^", "**")
+                        default = hex(field['default_long']).replace("0x", "'h")
 
                 row += '"'f", {bits}, {field['rw']}, {default}, this);""\n"
                 f.write(row)
@@ -113,18 +106,18 @@ def svpkg_head(f, key: str, regmap: Dict):
     f.write(f"package {pkgname};\n")
     f.write("  import regmap_pkg::*;\n\n")
     f.write(f"  class {classname}")
-    reg_dep_dec = []
+    reg_param_dec = []
     for rm in regmap:
         for reg in regmap[rm]['regmap']:
-            for reg_dep in reg['dependencies']:
-                reg_dep_dec.append("int " + reg_dep)
-    if len(reg_dep_dec):
-        reg_deps_set = set(reg_dep_dec)
-        reg_dep_dec = list(reg_deps_set)
-        reg_dep_dec.sort()
-    if len(reg_dep_dec):
+            for reg_param in reg['parameters']:
+                reg_param_dec.append("int " + reg_param)
+    if len(reg_param_dec):
+        reg_params_set = set(reg_param_dec)
+        reg_param_dec = list(reg_params_set)
+        reg_param_dec.sort()
+    if len(reg_param_dec):
         f.write(f" #(")
-        f.write(f", ".join(reg_dep_dec))
+        f.write(f", ".join(reg_param_dec))
         f.write(f")")
     f.write(f";\n\n")
 
@@ -136,17 +129,17 @@ def svpkg_reg_decl(f, regmap: Dict):
                 reg_ = reg.copy()
                 reg_['name'] = reg_['name'].replace('n', str(n))
                 row = f"    {reg['name']}"
-                if len(reg['dependencies']):
+                if len(reg['parameters']):
                     row += " #("
-                    row += ", ".join(reg['dependencies'])
+                    row += ", ".join(reg['parameters'])
                     row += ")"
                 row += f" {reg_['name']}_R;\n"
                 f.write(row)
         else:
             row = f"    {reg['name']}"
-            if len(reg['dependencies']):
+            if len(reg['parameters']):
                 row += " #("
-                row += ", ".join(reg['dependencies'])
+                row += ", ".join(reg['parameters'])
                 row += ")"
             row += f" {reg['name']}_R;\n"
             f.write(row)
