@@ -791,8 +791,8 @@ def parse_hdl_library(
         # Altera
         if (line.startswith('ad_ip_files')) and key in line:
             break
-        # Without wrapper (improper)
-        if (line.startswith('add_files')):
+        # Without wrapper 1 (improper)
+        if (line.startswith('add_files ')):
             break
     if i != 0:
         i += 1
@@ -806,6 +806,14 @@ def parse_hdl_library(
             if data[i][-2] != '\\':
                 break
             i += 1
+    # Without wrapper 2 (improper)
+    i = -1
+    for i, line in enumerate(data):
+        if (line.startswith('add_fileset_file')):
+            line_ = line.split()
+            if len(line_) >= 5:
+                deps.add(line_[4])
+
     # Add itself as a dependency
     deps.add(path.basename(file))
 
