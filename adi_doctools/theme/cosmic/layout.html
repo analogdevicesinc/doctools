@@ -16,12 +16,12 @@
 {# top+bottom related navs; we also have our own in sidebar #}
 {%- macro rellink_markup() %}
   {%- if prev %}
-    <a href="{{ prev.link|e }}" title="Previous document (Ctrl+LeftArrow)" class="prev">{{ prev.title }}</a>
+    <a href="{{ prev.link|e }}" title="Previous document (Alt+Shift+LeftArrow)" class="prev">{{ prev.title }}</a>
   {%- else %}
     <div></div>
   {%- endif %}
   {%- if next %}
-    <a href="{{ next.link|e }}" title="Next document (Ctrl+RightArrow)" class="next">{{ next.title }}</a>
+    <a href="{{ next.link|e }}" title="Next document (Alt+Shift+RightArrow)" class="next">{{ next.title }}</a>
   {%- else %}
     <div></div>
   {%- endif %}

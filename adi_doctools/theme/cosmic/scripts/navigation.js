@@ -107,13 +107,17 @@ class Navigation {
   }
   /* Related shortcut */
   related (e) {
-    if (!e.ctrlKey)
+    if (!e.altKey || !e.shiftKey)
       return
 
+    /* Try to anchor to same section */
+    let anchor = (e.ctrlKey && location.href.split('#').length > 1) ?
+                 `#${location.href.split('#')[1]}` : ""
+
     if (e.code == 'ArrowLeft' && this.$.relatedPrev)
-      location.href = this.$.relatedPrev.href
+      location.href = this.$.relatedPrev.href + anchor
     else if (e.code == 'ArrowRight' && this.$.relatedNext)
-      location.href = this.$.relatedNext.href
+      location.href = this.$.relatedNext.href + anchor
   }
 
   keyUp (e) {

@@ -22,3 +22,4 @@ Contents
    docs_guidelines
    cli
    ci
+   theme
