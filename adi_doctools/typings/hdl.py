@@ -23,6 +23,7 @@ class LibraryGeneric(TypedDict):
 
 class LibraryVendor(TypedDict):
     path: str
+    lib_path: str
     dependencies: Tuple[str]
     library_dependencies: Tuple[str]
     interfaces: Tuple[str]

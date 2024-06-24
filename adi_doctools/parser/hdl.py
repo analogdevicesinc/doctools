@@ -6,7 +6,7 @@ from lxml import etree
 from os import path
 
 from ..typings.hdl import Intf, IntfPort
-from ..typings.hdl import LibraryVendor
+from ..typings.hdl import Library, LibraryVendor
 from ..directive.string import string_hdl
 
 
@@ -219,7 +219,6 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
                             field_default_long = fd_
 
                         except Exception:
-                            # Convert parameter delimiter into Sphinx literal
                             split_field = field_default.split(" = ", 1)
                             field_default = split_field[0]
                             field_default_long = split_field[0]
@@ -228,7 +227,7 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
                                 try:
                                     default_str = split_field[1]
                                     field_default_long = split_field[1]
-                                    field_default = split_field[0] + " (*)"
+                                    field_default = f"``{split_field[0]}`` (*)"
                                 except Exception:
                                     default_str = split_field[0]
                                 default_str = re.sub("`[A-Z0-9_]+", "", default_str)
@@ -751,6 +750,7 @@ def parse_hdl_vendor(
 
 
 def parse_hdl_library(
+    base_path: str,
     file: str,
     key: str,
 ) -> Tuple[Optional[LibraryVendor], List[str]]:
@@ -763,6 +763,8 @@ def parse_hdl_library(
     """
     # TODO get parameters
     warning = []
+
+    lib_path = path.dirname(path.relpath(file, base_path))
 
     if not path.isfile(file):
         warning.append("File doesn't exist!")
@@ -791,7 +793,7 @@ def parse_hdl_library(
         # Altera
         if (line.startswith('ad_ip_files')) and key in line:
             break
-        # Without wrapper 1 (improper)
+        # Without wrapper 1
         if (line.startswith('add_files ')):
             break
     if i != 0:
@@ -803,10 +805,10 @@ def parse_hdl_library(
             dep = dep.strip()
             if len(dep) > 0:
                 deps.add(dep)
-            if data[i][-2] != '\\':
+            if data[i][-2] != '\\' or ']' in data[i]:
                 break
             i += 1
-    # Without wrapper 2 (improper)
+    # Without wrapper 2
     i = -1
     for i, line in enumerate(data):
         if (line.startswith('add_fileset_file')):
@@ -847,6 +849,7 @@ def parse_hdl_library(
 
     lib = LibraryVendor(
         path=file,
+        lib_path=lib_path,
         dependencies=tuple(deps),
         library_dependencies=tuple(sorted(lib_deps)),
         interfaces=tuple(intf)
@@ -855,8 +858,9 @@ def parse_hdl_library(
 
 
 def resolve_hdl_library(
-    library: str,
-    intf_lut: str,
+    libraries: List[Library],
+    library: Library,
+    intf_lut: Intf,
     root_path: str,
     path_: str
 ) -> List[str]:
@@ -866,11 +870,24 @@ def resolve_hdl_library(
     """
     warning = []
 
-    # Filter generic deps
+    # Filter generic deps, if:
+    # * more than one vendor, the generic files are the intersection
+    # * a single vendor, mark as generic if common endings
     deps = {}
-    for v in library['vendor']:
-        deps[v] = set(library['vendor'][v]['dependencies'])
-    deps['generic'] = set.intersection(*[deps[v] for v in deps])
+    if len(library['vendor']) > 1:
+        for v in library['vendor']:
+            deps[v] = set(library['vendor'][v]['dependencies'])
+        deps['generic'] = set.intersection(*[deps[v] for v in deps])
+    else:
+        v = list(library['vendor'].keys())[0]
+        deps['generic'] = set()
+        deps[v] = set()
+        for dep in library['vendor'][v]['dependencies']:
+            if (dep.endswith(('.v', '.vh', '.sv', 'tcl')) and not
+                dep.endswith(('_ip.tcl', '_hw.tcl'))):
+                deps['generic'].add(dep)
+            else:
+                deps[v].add(dep)
 
     # Expand $ad_hdl_dir and make it relative
     for v in deps:
@@ -882,6 +899,20 @@ def resolve_hdl_library(
     for v in library['vendor']:
         library['vendor'][v]['dependencies'] = sorted(deps[v] - deps['generic'])
     library['generic']['dependencies'] = sorted(deps['generic'])
+
+    # Find path (relative to hdl/library) to library dependencies
+    def resolve_lib_dep(dep):
+        for lib in libraries:
+            if v in libraries[lib]['vendor']:
+                if libraries[lib]['name'] == dep:
+                    return libraries[lib]['vendor'][v]['lib_path']
+        warning.append(f"Library dependency key '{dep}' not found!")
+        return dep
+    for v in library['vendor']:
+        lib_deps = set()
+        for dep in library['vendor'][v]['library_dependencies']:
+            lib_deps.add(resolve_lib_dep(dep))
+        library['vendor'][v]['library_dependencies'] = tuple(lib_deps)
 
     # Find interfaces_ip.tcl source for intf db and obtain
     # Effectively, Xilinx

@@ -113,7 +113,7 @@ def hdl_gen(input_):
             if lib != lib2:
                 click.echo(f"{f}: path basename '{lib}' does not match "
                            f"filename '{lib2}'")
-            lib_, msg = parse_hdl_library(f, lib2)
+            lib_, msg = parse_hdl_library(path.join(hdldir, 'library'), f, lib2)
             for m in msg:
                 click.echo(f"{f}: {m}")
             if lib_:
@@ -126,7 +126,7 @@ def hdl_gen(input_):
                 library[key]['vendor'][v] = lib_
 
     for key in library:
-        resolve_hdl_library(library[key], intf_key_file, hdldir, key)
+        resolve_hdl_library(library, library[key], intf_key_file, hdldir, key)
 
     for key in library:
         write_hdl_library_makefile(key, hdldir, library[key])

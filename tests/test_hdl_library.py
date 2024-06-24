@@ -20,7 +20,7 @@ def test_hdl_library(tmp_path):
 
     file = path.join("asset", "core_ip.tcl")
 
-    obj, msg = parse_hdl_library(file, "core")
+    obj, msg = parse_hdl_library("asset", file, "core")
     log_info(obj)
     log_assert(msg)
 
