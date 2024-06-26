@@ -28,6 +28,7 @@ class LibraryVendor(TypedDict):
     library_dependencies: Tuple[str]
     interfaces: Tuple[str]
     interfaces_tcl: Tuple[str]
+    parameters: Tuple[str]
 
 
 class Library(TypedDict):

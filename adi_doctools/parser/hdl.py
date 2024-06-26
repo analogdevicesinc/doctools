@@ -761,7 +761,6 @@ def parse_hdl_library(
     * ad_ip_file: intel
     Would be better to switch to the same method in the future.
     """
-    # TODO get parameters
     warning = []
 
     lib_path = path.dirname(path.relpath(file, base_path))
@@ -783,15 +782,18 @@ def parse_hdl_library(
                                    f"match name '{key}', line {i}")
             break
 
-    # Obtain the file dependencies
+    # Obtain the file dependencies and top module candidate
     deps = set()
     i = -1
+    top_mod_ = None
     for i, line in enumerate(data):
         # Xilinx
         if (line.startswith('adi_ip_files')) and key in line:
+            top_mod_ = line.split()[1]
             break
         # Altera
         if (line.startswith('ad_ip_files')) and key in line:
+            top_mod_ = line.split()[1]
             break
         # Without wrapper 1
         if (line.startswith('add_files ')):
@@ -815,6 +817,11 @@ def parse_hdl_library(
             line_ = line.split()
             if len(line_) >= 5:
                 deps.add(line_[4])
+
+    if top_mod_ == None:
+        warning.append(f"Unable to find top module name for library '{key}',"
+                        " will use the lib name instead")
+        top_mod_ = key
 
     # Add itself as a dependency
     deps.add(path.basename(file))
@@ -847,12 +854,35 @@ def parse_hdl_library(
     # Remove _rtl suffixed
     intf = [e for e in intf if not e.endswith('_rtl')]
 
+    # Find top module name with type
+    top_mod = None
+    for d in deps:
+        if d.startswith(top_mod_) and d[len(top_mod_):] in [".v", ".sv"]:
+            top_mod = d
+            break
+
+    # Obtain parameters from the top module
+    param = set()
+    def get_parameters(mod):
+        f = path.join(base_path, lib_path, mod)
+        if not path.isfile(f):
+            warning.append(f"Top module '{f}' from library '{key}' does not exist")
+            return None
+        # TODO do parameters parser here
+        #print(f)
+
+    if top_mod is not None:
+        get_parameters(top_mod)
+    else:
+        warning.append(f"Failed to find top module for IP '{key}'")
+
     lib = LibraryVendor(
         path=file,
         lib_path=lib_path,
         dependencies=tuple(deps),
         library_dependencies=tuple(sorted(lib_deps)),
-        interfaces=tuple(intf)
+        interfaces=tuple(intf),
+        parameters=tuple(param)
     )
     return (lib, warning)
 
