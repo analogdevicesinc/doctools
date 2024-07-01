@@ -27,3 +27,4 @@ def test_hdl_library(tmp_path):
     assert len(obj["dependencies"]) == 4
     assert len(obj["interfaces"]) == 2
     assert len(obj["library_dependencies"]) == 3
+    assert len(obj["parameters"]) == 6

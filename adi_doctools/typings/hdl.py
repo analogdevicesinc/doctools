@@ -28,7 +28,7 @@ class LibraryVendor(TypedDict):
     library_dependencies: Tuple[str]
     interfaces: Tuple[str]
     interfaces_tcl: Tuple[str]
-    parameters: Tuple[str]
+    parameters: Optional[Tuple[Tuple[str, str]]]
 
 
 class Library(TypedDict):

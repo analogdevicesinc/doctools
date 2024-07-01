@@ -236,8 +236,8 @@ def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
                                     try:
                                         int(str_part)
                                     except Exception:
-                                        reg_params.append(re.sub('\[[0-9:]+\]', ' ', str_part))
-                                        # TODO: Check if parameter exist in the parameters dict from the parsed pkg.ttcl (when it gets implemented)
+                                        reg_params.append(re.sub('\\[[0-9:]+\\]', ' ', str_part))
+                                        # TODO: Match parse_hdl_library extracted parameters
                     else:
                         field_default = None
                         field_default_long = None
@@ -862,18 +862,49 @@ def parse_hdl_library(
             break
 
     # Obtain parameters from the top module
-    param = set()
     def get_parameters(mod):
         f = path.join(base_path, lib_path, mod)
         if not path.isfile(f):
             warning.append(f"Top module '{f}' from library '{key}' does not exist")
             return None
-        # TODO do parameters parser here
-        #print(f)
+
+        with open(f, "r") as f_:
+            data = f_.readlines()
+
+        for i, line in enumerate(data):
+            if line.strip().startswith("module "):
+                break
+
+        if i == len(data) - 1:
+            warning.append(f"Failed to find 'module' in '{f}'")
+            return None
+
+        data = data[i+1:]
+        params = []
+        for j, line in enumerate(data):
+            line = line.replace('\n', '').strip()
+            if line.startswith("parameter "):
+                line = re.sub('\\[[0-9:]+:[0-9]+\\]', '', line)
+                idx = line.index('=')
+                line = [line[:idx-1], line[idx+1:].strip()]
+                if len(line) != 2:
+                    warning.append(f"Malformed parameter at line {i+j+2} of module '{f}'")
+                    continue
+                name = line[0].split()[-1]
+                value = line[1].replace(',', '')
+
+                params.append((name, value))
+
+            elif line.startswith(')') and line.endswith('('):
+                break
+
+        return tuple(params)
+
 
     if top_mod is not None:
-        get_parameters(top_mod)
+        param = get_parameters(top_mod)
     else:
+        param = None
         warning.append(f"Failed to find top module for IP '{key}'")
 
     lib = LibraryVendor(
@@ -882,7 +913,7 @@ def parse_hdl_library(
         dependencies=tuple(deps),
         library_dependencies=tuple(sorted(lib_deps)),
         interfaces=tuple(intf),
-        parameters=tuple(param)
+        parameters=param
     )
     return (lib, warning)
 
