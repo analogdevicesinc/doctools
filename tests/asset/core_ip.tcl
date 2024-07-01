@@ -4,6 +4,7 @@ adi_ip_files core [list \
   $special/file/path.v \
   "core.v" \
   "core_sub.v" \
+  "core_pkg_sv.ttcl" \
 ]
 
 ## Interface definitions

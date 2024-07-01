@@ -1,0 +1,14 @@
+<: :>
+<: set ComponentName [getComponentNameString] :>
+<: setOutputDirectory "./sim/" :>
+<: setFileName ${ComponentName}_pkg :>
+<: setFileExtension ".sv" :>
+<: set one             [get_property MODELPARAM_VALUE.ONE] :>
+<: set two             [get_property MODELPARAM_VALUE.TWO] :>
+
+///////////////////////////////////////////////////////////////////////////
+  parameter <=: ComponentName :>_ONE                = <=: $one :>;
+  parameter <=: ComponentName :>_TWO                = <=: b2i $two :>;
+//////////////////////////////////////////////////////////////////////////
+
+endpackage : <=: ComponentName :>_pkgndpackage : <=: ComponentName :>_pkg

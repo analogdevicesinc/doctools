@@ -24,7 +24,7 @@ def test_hdl_library(tmp_path):
     log_info(obj)
     log_assert(msg)
 
-    assert len(obj["dependencies"]) == 4
+    assert len(obj["dependencies"]) == 5
     assert len(obj["interfaces"]) == 2
     assert len(obj["library_dependencies"]) == 3
     assert len(obj["parameters"]) == 6

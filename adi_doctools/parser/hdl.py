@@ -886,7 +886,7 @@ def parse_hdl_library(
             if line.startswith("parameter "):
                 line = re.sub('\\[[0-9:]+:[0-9]+\\]', '', line)
                 idx = line.index('=')
-                line = [line[:idx-1], line[idx+1:].strip()]
+                line = [line[:idx], line[idx+1:].strip()]
                 if len(line) != 2:
                     warning.append(f"Malformed parameter at line {i+j+2} of module '{f}'")
                     continue
@@ -906,6 +906,43 @@ def parse_hdl_library(
     else:
         param = None
         warning.append(f"Failed to find top module for IP '{key}'")
+
+    # Obtain parameters from the top module
+    def get_parameters_ttcl(mod):
+        f = path.join(base_path, lib_path, mod)
+        if not path.isfile(f):
+            warning.append(f"TTcl '{f}' from library '{key}' does not exist")
+            return None
+
+        with open(f, "r") as f_:
+            data = f_.readlines()
+
+        param = set()
+        for i, line in enumerate(data):
+            line = line.split()
+            m = "MODELPARAM_VALUE."
+            if len(line) == 6 and line[4].startswith(m):
+                line = line[4][len(m):-1]
+                param.add(line)
+
+        return tuple(param)
+
+    # Find pkg_sv-ttcl, if any
+    pkg_sv_ttcl = f"{top_mod_}_pkg_sv.ttcl"
+    if pkg_sv_ttcl in deps:
+        param_ttcl = get_parameters_ttcl(pkg_sv_ttcl)
+    else:
+        param_ttcl = None
+
+    if param_ttcl is not None and param is not None:
+        # compare
+        params_ = [p[0] for p in param]
+        print(param)
+        for p in param_ttcl:
+            if p not in params_:
+                warning.append(f"Parameter '{p}' in the '{pkg_sv_ttcl}' file "
+                               f"not found in the top module '{top_mod}'")
+        pass
 
     lib = LibraryVendor(
         path=file,
