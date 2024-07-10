@@ -204,7 +204,11 @@ def navigation_tree(app, toctree_html, content_root, pagename):
 
     _toc_tree = etree.tostring(root, pretty_print=True, encoding='unicode')
     _repotoc_tree, _current = repotoc_tree(content_root, conf_vars, pagename)
-    name = conf_vars[1][conf_vars[0]]['name']
+    if conf_vars[0] in conf_vars[1]:
+        name = conf_vars[1][conf_vars[0]]['name']
+    else:
+        # If repository entry is not in the lut.py, use the project entry
+        name = app.env.config.project
     return (_toc_tree, _repotoc_tree, name, _current)
 
 
