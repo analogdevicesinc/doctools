@@ -148,13 +148,30 @@ With GitHub Actions, the following workflow file is recommended:
        if: github.ref == 'refs/heads/main'
 
        steps:
+       - run: |
+           git config --global user.name "${{ github.event.head_commit.committer.name }}"
+           git config --global user.email "${{ github.event.head_commit.committer.email }}"
+
+       - uses: actions/checkout@v4
+       - name: Create gh-pages branch
+         run: >
+           git ls-remote --exit-code --heads origin refs/heads/gh-pages ||
+           (
+             git reset --hard ;
+             git clean -fdx ;
+             git checkout --orphan gh-pages ;
+             git reset --hard;
+             git commit -m "empty" --allow-empty ;
+             git push origin gh-pages:gh-pages
+           )
+
        - uses: actions/checkout@v4
          with:
            ref: 'gh-pages'
 
        - name: Empty gh-pages
          run: |
-           git rm -r . --quiet
+           git rm -r . --quiet || true
 
        - uses: actions/download-artifact@v4
          with:
@@ -168,8 +185,6 @@ With GitHub Actions, the following workflow file is recommended:
        - name: Commit gh-pages
          run: |
            git add . >> /dev/null
-           git config --global user.name "${{ github.event.head_commit.committer.name }}"
-           git config --global user.email "${{ github.event.head_commit.committer.email }}"
            git commit -m "deploy: ${GITHUB_SHA}" --allow-empty
 
        - name: Push to gh-pages

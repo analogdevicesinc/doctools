@@ -2,8 +2,6 @@ on: workflow_call
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
 
     steps:
     - uses: actions/checkout@v4
@@ -134,13 +132,24 @@ jobs:
                         $asset_name \
                         $full_asset_name
 
-    - name: Switch to gh-pages and empty it
-      run: |
-        git reset --hard
-        git clean -fdx
-        git fetch origin gh-pages
-        git checkout -b gh-pages origin/gh-pages
-        git rm -r . --quiet
+    - run: |
+        git config --global user.name "${{ github.event.head_commit.committer.name }}"
+        git config --global user.email "${{ github.event.head_commit.committer.email }}"
+
+    - name: Prepare gh-pages branch
+      run: >
+        git reset --hard ;
+        git clean -fdx ;
+        git ls-remote --exit-code --heads origin refs/heads/gh-pages &&
+        (
+          git fetch origin gh-pages ;
+          git checkout -b gh-pages origin/gh-pages ;
+          git rm -r . --quiet || true
+        ) || (
+          git checkout --orphan gh-pages ;
+          git reset --hard ;
+          git commit -m "empty" --allow-empty
+        )
 
     - uses: actions/download-artifact@v4
       with:
@@ -154,8 +163,6 @@ jobs:
     - name: Commit gh-pages
       run: |
         git add . >> /dev/null
-        git config --global user.name "${{ github.event.head_commit.committer.name }}"
-        git config --global user.email "${{ github.event.head_commit.committer.email }}"
         git commit -m "deploy: ${GITHUB_SHA}" --allow-empty
 
 
