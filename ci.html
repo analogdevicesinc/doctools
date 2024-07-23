@@ -114,7 +114,7 @@
     </div>
 
   
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper">
     <a id="no-logo" href="index.html">
       Doctools
@@ -285,13 +285,30 @@ documentation.</p>
 <span class="w">    </span><span class="nt">if</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">github.ref == &#39;refs/heads/main&#39;</span>
 
 <span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">        </span><span class="no">git config --global user.name &quot;${{ github.event.head_commit.committer.name }}&quot;</span>
+<span class="w">        </span><span class="no">git config --global user.email &quot;${{ github.event.head_commit.committer.email }}&quot;</span>
+
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/checkout@v4</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Create gh-pages branch</span>
+<span class="w">      </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">&gt;</span>
+<span class="w">        </span><span class="no">git ls-remote --exit-code --heads origin refs/heads/gh-pages ||</span>
+<span class="w">        </span><span class="no">(</span>
+<span class="w">          </span><span class="no">git reset --hard ;</span>
+<span class="w">          </span><span class="no">git clean -fdx ;</span>
+<span class="w">          </span><span class="no">git checkout --orphan gh-pages ;</span>
+<span class="w">          </span><span class="no">git reset --hard;</span>
+<span class="w">          </span><span class="no">git commit -m &quot;empty&quot; --allow-empty ;</span>
+<span class="w">          </span><span class="no">git push origin gh-pages:gh-pages</span>
+<span class="w">        </span><span class="no">)</span>
+
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/checkout@v4</span>
 <span class="w">      </span><span class="nt">with</span><span class="p">:</span>
 <span class="w">        </span><span class="nt">ref</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;gh-pages&#39;</span>
 
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Empty gh-pages</span>
 <span class="w">      </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<span class="w">        </span><span class="no">git rm -r . --quiet</span>
+<span class="w">        </span><span class="no">git rm -r . --quiet || true</span>
 
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/download-artifact@v4</span>
 <span class="w">      </span><span class="nt">with</span><span class="p">:</span>
@@ -305,8 +322,6 @@ documentation.</p>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Commit gh-pages</span>
 <span class="w">      </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
 <span class="w">        </span><span class="no">git add . &gt;&gt; /dev/null</span>
-<span class="w">        </span><span class="no">git config --global user.name &quot;${{ github.event.head_commit.committer.name }}&quot;</span>
-<span class="w">        </span><span class="no">git config --global user.email &quot;${{ github.event.head_commit.committer.email }}&quot;</span>
 <span class="w">        </span><span class="no">git commit -m &quot;deploy: ${GITHUB_SHA}&quot; --allow-empty</span>
 
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Push to gh-pages</span>
