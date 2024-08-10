@@ -127,33 +127,25 @@ def navigation_tree(app, toctree_html, content_root, pagename):
         i = pagename.find('/')
         return pagename[0:i] if i != -1 else ''
 
-    def filter_tree(root, conf_vars, pagename):
-        repo, repos = conf_vars
-        # Keep unchanged for standalone pages (e.g. /index.html, /search.html)
-        repository = {}
-        topics = {}
-        for key in repos:
-            if repos[key]['visibility'] == 'public':
-                if 'topic' in repos[key]:
-                    topics.update(repos[key]['topic'])
-                else:
-                    repository[key] = repos[key]['name']
-        repotoc = {**topics, **repository}
-        if repo not in repotoc:
+    def filter_tree(root, pagename):
+        body = root.find('./body')
+        # Keep unchanged for standalone pages (e.g. /index.html, /search.html) and pages not in a toctree
+        found = False
+        for e in body.getchildren():
+            if e.tag == 'ul' and e.get("class") == "current":
+                found = True
+        if not found:
             return
 
-        # Pop toctrees that are not from the current repo
-        title = repotoc[repo]
-        body = root.find('./body')
-        txt = ''
+        # Pop toctrees that do not include current page
+        e_ = None
         for e in body.getchildren():
-            if e.tag == 'p':
-                span = e.find('./span')
-                if span is not None:
-                    txt = span.text
-                body.remove(e)
-            elif txt != title:
-                body.remove(e)
+            if e.tag == 'ul':
+                if e.get("class") != "current":
+                    body.remove(e)
+                    if e_ is not None and e_.tag == 'p':
+                        body.remove(e_)
+            e_ = e
 
     def iterate(elem):
         for ul in elem.findall('./ul'):
@@ -193,10 +185,7 @@ def navigation_tree(app, toctree_html, content_root, pagename):
                 iterate(li)
             lvl.pop()
 
-    repo = app.env.config.repository
-    if repo in app.lut['repos'] and "topic" in app.lut['repos'][repo]:
-        conf_vars_ = (get_topic(pagename), *conf_vars[1:])
-        filter_tree(root, conf_vars_, pagename)
+    filter_tree(root, pagename)
 
     for ul in root.findall('./body/ul'):
         for li in ul.findall('./li[@class]'):

@@ -12,14 +12,15 @@ The content is organized in three levels:
 
 * repotoc: Listing of repositories in the same organization that contain
   documentations.
-  In general, a repository contains only one topic, e.g. the pyadi-iio doc is only
-  about the libiio python bindings.
-  If a repo stores more than one topic, the ``topic`` attribute is used to split
-  each topic on its own repotoc entry, as if they were stored in multiple
+  In general, a repository contains only one topic (toctree), e.g. the pyadi-iio
+  doc is only about the libiio python bindings.
+  If a repo stores more than one toctree/topic, the ``topic`` attribute is used to
+  split each toctree on its own repotoc entry, as if they were stored in multiple
   repositories.
-  The ``topic`` entry must match the folder name containing the content, e.g.
-  if ``topic: {'eval':..., 'university':...}``, then a folder named ``eval`` and
-  other named ``university`` must exist in the doc source root.
+  The ``topic`` entry must contain one landing page associated with the toctree title,
+  e.g. ``topic: {'eval': 'Evaluation Boards', 'university': 'University Program'}``,
+  then the *index.rst* must a toctree titled ``Evaluation Boards`` and the page
+  ``eval/index.rst`` must exist.
   In the html output, is displayed on the top header.
 * toc: Table of contents of a repository documentation; the displayed depth
   is customizable, but in general a doc page (``.rst``, ``.md``) generates one toc
