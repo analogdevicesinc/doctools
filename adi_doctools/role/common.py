@@ -124,7 +124,7 @@ def git(repo, alt_name):
                 path = ''
             if text is None:
                 text = path
-            url = url + '/blob/' + branch + '/' + path
+            url = url + '/tree/' + branch + '/' + path
             node = nodes.reference(rawtext, text, refuri=url,
                                    classes=['icon', 'git'], **options)
         add_link(inliner, lineno, url)
