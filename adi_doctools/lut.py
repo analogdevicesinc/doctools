@@ -11,7 +11,6 @@ class Repo(TypedDict):
     doc_folder: str
     name: str
     branch: str
-    release_format: str
     visibility: str
     topic: Optional[Dict[str, str]]
     extra: Optional[Tuple[str, List[str], bool]]
@@ -30,7 +29,6 @@ repos = {
         doc_folder='docs',
         name='System Level',
         branch='main',
-        release_format='const:latest',
         visibility='public',
         topic={
             'eval': 'Evaluation Boards',
@@ -45,42 +43,36 @@ repos = {
         ),
         name='HDL',
         branch='main',
-        release_format='halves',
-        visibility='public'
-    ),
-    'no-OS': Repo(
-        doc_folder='doc/sphinx/source',
-        name='no-OS',
-        branch='main',
-        release_format='const:latest_commit',
         visibility='public'
     ),
     'pyadi-iio': Repo(
         doc_folder='doc',
         name='Hardware Python Interfaces',
         branch='main',
-        release_format='semantic',
+        visibility='public'
+    ),
+    'no-OS': Repo(
+        doc_folder='doc/sphinx/source',
+        name='no-OS',
+        branch='main',
         visibility='public'
     ),
     'precision-converters-firmware': Repo(
         doc_folder='doc/sphinx',
         name='Precision Converters Firmware',
         branch='main',
-        release_format='const:latest',
-        visibility='public'
-    ),
-    'doctools': Repo(
-        doc_folder='docs',
-        name='Doctools',
-        branch='main',
-        release_format='semantic',
         visibility='public'
     ),
     'PrecisionToolbox': Repo(
         doc_folder='docs',
         name='Precision Toolbox',
         branch='main',
-        release_format='const:latest',
+        visibility='public'
+    ),
+    'doctools': Repo(
+        doc_folder='docs',
+        name='Doctools',
+        branch='main',
         visibility='public'
     ),
 }

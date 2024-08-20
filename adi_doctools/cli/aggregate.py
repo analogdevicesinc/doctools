@@ -1,4 +1,5 @@
 from typing import Tuple, List
+from sphinx.util.osutil import SEP
 
 import os
 import click
@@ -11,16 +12,14 @@ dry_run = True
 no_parallel = True
 lut = get_lut()
 repos = lut['repos']
-remote = lut['remote']
-
 
 
 class pr:
     @staticmethod
-    def popen(cmd, p: List, cwd: [str, None] = None):
+    def popen(cmd, p: List, cwd: [str, None] = None, env = None):
         global dry_run, no_parallel
         if not dry_run:
-            p__ = subprocess.Popen(cmd, cwd=cwd)
+            p__ = subprocess.Popen(cmd, cwd=cwd, env=env)
             p__.wait() if no_parallel else p.append(p__)
         elif cwd is not None:
             click.echo(f"cd {cwd}; {' '.join(cmd)}")
@@ -178,20 +177,26 @@ def gen_symbolic_doc(repo_dir):
     p = []
     for r in repos:
         cwd = os.path.join(repo_dir, f"{r}/{repos[r]['doc_folder']}")
+        click.echo(f"Starting sphinx for {r}")
         mk.append(get_sphinx_dirs(cwd))
         if mk[-1][0]:
             continue
-        pr.popen(['make', 'html'], p, cwd)
+
+        env = os.environ.copy()
+        env["ADOC_INTERREF_URI"] = os.path.abspath(os.path.join(os.getcwd(), "html")) + SEP
+        pr.popen(['make', 'html'], p, cwd, env=env)
     pr.wait(p)
 
     d_ = os.path.abspath(os.path.join(repo_dir, os.pardir))
+
     out = os.path.join(d_, 'html')
+    pr.run(f"rm -r {out}")
     pr.mkdir(out)
     for r, m in zip(repos, mk):
         if m[0]:
             continue
         d_ = os.path.join(out, r)
-        pr.popen(['ln', '-sf', m[1], d_], p)
+        pr.popen(['cp', '-r', m[1], d_], p)
     pr.wait(p)
 
 
@@ -339,13 +344,16 @@ def aggregate(directory, symbolic, extra, no_parallel_, dry_run_, open_):
     """
     Creates an aggregated documentation out of every repo documentation,
     by default, will conjoin/patch each into a single Sphinx build.
+    To resolve inter-repo-references in symbolic mode, run twice.
     """
     global dry_run, no_parallel
     no_parallel = no_parallel_
     dry_run = dry_run_
     directory = os.path.abspath(directory)
-    click.echo("This feature is currently disabled")
-    return
+
+    if not symbolic:
+        click.echo("Currently, monolithic output is disabled")
+        return
 
     if not extra:
         click.echo("Extra features disabled, use --extra to enable.")
@@ -357,18 +365,11 @@ def aggregate(directory, symbolic, extra, no_parallel_, dry_run_, open_):
         if not os.path.isdir(repos_dir):
             pr.mkdir(repos_dir)
 
-    d = 'html' if symbolic else 'html_mono'
-    d__ = os.path.join(directory, d)
-    if os.path.isdir(d__):
-        pr.run(f"rm -r {d__}")
-
     p = []
-    for r in lut:
-        r__ = remote if 'remote' not in repos[r] else repos[r]['remote']
-        r_ = r__.format(r)
+    for r in repos:
         cwd = os.path.join(repos_dir, r)
         if not os.path.isdir(cwd):
-            git_cmd = ["git", "clone", r_, "--depth=1", "-b",
+            git_cmd = ["git", "clone", lut['remote'].format(r), "--depth=1", "-b",
                        repos[r]['branch'], '--', cwd]
             pr.popen(git_cmd, p)
         else:

@@ -58,10 +58,9 @@ def repotoc_tree(content_root, conf_vars, pagename):
     While something with 0 depth is improper:
     hdl-docs.example.com -> ../no-OS -XXX-> hdl-docs.example.com/no-OS
     """
-    repo, repos = conf_vars
+    repo, repos, depth = conf_vars
     root = etree.Element("root")
     home = "index.html"
-    depth = '../'
     current = ''
 
     repository = {}
@@ -76,7 +75,7 @@ def repotoc_tree(content_root, conf_vars, pagename):
 
     repotoc = {**topics, **repository}
     for item in repotoc:
-        href = f"{content_root}{depth}{item}/{home}"
+        href = path.join(content_root, depth, item, home)
         attrib = {}
         if repo is not None and item.startswith(repo):
             if '/' in item:
@@ -118,7 +117,8 @@ def navigation_tree(app, toctree_html, content_root, pagename):
 
     conf_vars = (
         app.env.config.repository,
-        app.lut['repos']
+        app.lut['repos'],
+        app.env.target_depth
     )
 
     lvl = [0]
@@ -128,24 +128,44 @@ def navigation_tree(app, toctree_html, content_root, pagename):
         return pagename[0:i] if i != -1 else ''
 
     def filter_tree(root, pagename):
+        """
+        Filter-out non-current topics/"toctrees-titles".
+        Non-titled toctrees are squashed with the last toctree, e.g.
+         toctrees                          |  visible
+         1, 2, 3 (current)                 -> 1, 2, 3
+         1 (current), 2 Info, 3, 4 User, 5 -> 1
+         1, 2 Info, 3, 4 User (current), 5 -> 4, 5
+         1, 2 Info, 3, 4 User, 5 (current) -> 4, 5
+         1, 2 Info, 3, 4 User, 5           -> 1, 2, 3, 4, 5
+
+        It is done like this because one reason to have multiple toctrees
+        is to tweak the max depth option depending on the content,
+        but still on the same topic.
+        Only the System Level Documentation should have toctrees with captions.
+        """
         body = root.find('./body')
-        # Keep unchanged for standalone pages (e.g. /index.html, /search.html) and pages not in a toctree
+
         found = False
+        #      Current, Elements
+        tocs = [[False, []]]
         for e in body.getchildren():
-            if e.tag == 'ul' and e.get("class") == "current":
-                found = True
+            if e.tag == 'ul':
+                if e.get("class") == "current":
+                    tocs[-1][0] = True
+                    found = True
+            elif e.tag == 'p':
+                tocs.append([False,[]])
+            tocs[-1][1].append(e)
+
+        # If page not on toctree, do not filter
+        # e.g. /index.html, /search.html, orphan
         if not found:
             return
 
-        # Pop toctrees that do not include current page
-        e_ = None
-        for e in body.getchildren():
-            if e.tag == 'ul':
-                if e.get("class") != "current":
+        for t in tocs:
+            if t[0] == False:
+                for e in t[1]:
                     body.remove(e)
-                    if e_ is not None and e_.tag == 'p':
-                        body.remove(e_)
-            e_ = e
 
     def iterate(elem):
         for ul in elem.findall('./ul'):

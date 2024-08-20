@@ -13,10 +13,10 @@ jobs:
 
     - name: Get head tag, if it is new and others vars
       run: |
-        tag=$(sed -n 's/^__version__ = "\(.*\)"/\1/p' adi_doctools/__init__.py)
+        tag=v$(sed -n 's/^__version__ = "\(.*\)"/\1/p' adi_doctools/__init__.py)
         echo "tag=$tag" >> "$GITHUB_ENV"
         git fetch --tags
-        if ! [ $(git tag -l "v$tag") ] ; then
+        if ! [ $(git tag -l "$tag") ] ; then
           echo "new_tag=1" >> "$GITHUB_ENV"
         fi
 
@@ -64,8 +64,8 @@ jobs:
     - name: Create new tag
       if: ${{ env.new_tag == '1' }}
       run: |
-         git tag v$tag
-         git push origin v$tag
+         git tag $tag
+         git push origin $tag
 
     - name: Create tag release and upload asset
       if: ${{ env.new_tag == '1' }}
@@ -144,28 +144,41 @@ jobs:
         (
           git fetch origin gh-pages ;
           git checkout -b gh-pages origin/gh-pages ;
-          git rm -r . --quiet || true
+          DOC_BUILDS=$(find . -mindepth 2 -name objects.inv -exec sh -c 'dirname {}' ';') ;
+          git rm -r . --quiet || true ;
+          printf "Detected doc builds: $DOC_BUILDS" ;
+          if ! [ -z "$DOC_BUILDS" ]; then
+            git checkout @ -- $DOC_BUILDS ;
+          fi ;
+          if [[ "$new_tag" == "1" ]]; then
+            git rm -r $tag --quiet || true ;
+          fi ;
         ) || (
           git checkout --orphan gh-pages ;
           git reset --hard ;
-          git commit -m "empty" --allow-empty
+          git commit -m "initial commit" --allow-empty
         )
 
     - uses: actions/download-artifact@v4
       with:
         name: html
 
-    - name: Patch doc build
-      run: |
-        rm -r _sources
-        touch .nojekyll
+    - uses: actions/download-artifact@v4
+      if: ${{ env.new_tag == '1' }}
+      with:
+        name: html-tagged
+        path: ${{ env.tag }}
 
-    - name: Commit gh-pages
+    - name: Generate aux files
+      run: >
+        touch .nojekyll ;
+        find . -name objects.inv -exec sh -c 'dirname {}' ';' |
+        cut -c 3- |
+        jq --raw-input . |
+        jq --slurp . > tags.json
+
+    - name: Commit and push to gh-pages
       run: |
         git add . >> /dev/null
         git commit -m "deploy: ${GITHUB_SHA}" --allow-empty
-
-
-    - name: Push to gh-pages
-      run: |
         git push origin gh-pages:gh-pages

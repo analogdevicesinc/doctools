@@ -11,6 +11,7 @@ Changes:
   e.g. :ref:ref:`spi_engine axi`
 * Remove _get_safe_url logging, log name instead (any other auth method would
   log, which is unsafe).
+* Resolve versioning, by looking at tags.json file.
 
 Insert links to objects documented in remote Sphinx documentation.
 
@@ -23,11 +24,6 @@ This works as follows:
   to mapping files in the `interref_repos` config value.
   The mapping will then be used to resolve otherwise missing references to
   objects into links to the other documentation.
-
-* The ADOC_INTERREF_TAG and ADOC_INTERREF_RELEASE allow to add a "tag" depth
-  to the url,
-  e.g. "hdl/main" and "pyadi-iio/v0.1.12" .
-  With both disabled, linking is to the root of the repo, e.g. "hdl"
 """
 
 from __future__ import annotations
@@ -551,64 +547,19 @@ def install_dispatcher(app: Sphinx, docname: str, source: list[str]) -> None:
 
 
 def normalize_interref_mapping(app: Sphinx, config: Config) -> None:
-    interref_tag = True
-    if getenv("ADOC_INTERREF_TAG") is None:
-        interref_tag = False
-    interref_release = True
-    if getenv("ADOC_INTERREF_RELEASE") is None:
-        interref_release = False
     interref_uri = getenv("ADOC_INTERREF_URI", default=dft_interref_uri)
-    if interref_tag is False and interref_release is True:
-        msg = (
-            "ADOC_INTERREF_RELEASE set require ADOC_INTERREF_TAG also set; "
-            "implicitely setting interref_tag"
-        )
-        logger.warning(msg)
-        interref_tag = True
-    for repo in config.interref_repos:
-        if not isinstance(repo, str):
+    for entry in config.interref_repos:
+        if not isinstance(entry, str):
             msg = (
                 "Wrong interref_repos entry format."
-                "Hint: \"interref_repos = ['<repo_name>', ...]\"."
+                "Hint: \"interref_repos = ['<repo_name>', '<repo_name>/<version>', ...]\"."
             )
             logger.warning(msg)
             continue
-        if repo not in app.lut['repos']:
-            msg = (
-                f"Unknown interref_repos entry \"{repo}\", skipped."
-            )
-            logger.warning(msg)
-            continue
+        repo = entry.split("/")[0]
+        ver = "/".join(entry.split("/")[1:])
 
-        if interref_tag:
-            if interref_release:
-                # Get latest tag from latest.txt file (local or remote URI)
-                # TODO: update to tags.json, as described in the documentation;
-                #       grab the newest tag in the file.
-                # TODO: Absolute link for non-versioned, symbolic for versioned
-                latest_txt = interref_uri + f"{repo}/latest.txt"
-                try:
-                    if '://' in latest_txt:
-                        f = _read_from_url(latest_txt, config=config)
-                    else:
-                        f = open(path.join(app.srcdir, latest_txt), 'rb')  # NoQA: SIM115
-                    release = f.readline().decode()
-                    if release == "":
-                        logger.info(f"{repo} latest.txt is empty, "
-                                    "setting release to "
-                                    f"'{app.lut['repos'][repo]['branch']}'.")
-                        release = app.lut['repos'][repo]['branch']
-                except Exception as err:
-                    logger.warning(__('%r not fetchable due to %s: %s; setting release to \"%s\"'),
-                                   latest_txt, err.__class__, str(err),
-                                   app.lut['repos'][repo]['branch'])
-                    release = app.lut['repos'][repo]['branch']
-
-            else:
-                release = app.lut['repos'][repo]['branch']
-            uri = interref_uri + f"{repo}/{release}"
-        else:
-            uri = interref_uri + repo
+        uri = interref_uri + entry
 
         app.config.interref_mapping[repo] = (uri, None)
 

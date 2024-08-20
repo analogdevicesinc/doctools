@@ -214,34 +214,54 @@ The *requirements.txt* file should contain:
 Versioned
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. warning::
+The live versioned version requires additional orchestration than the
+:ref:`ci-rolling-release`.
+Store each version in separated folders in the root path, e.g.
+``v1.1``, ``v2.2``, ``main``, ``dev`` and generate a ``tags.json``
+containing a plain array with each version on the root path,
+e.g. ``["v1.1", "v2.2", "main", "dev"]``
+(a empty string means there is a built doc on the root).
+This ``tags.json`` is used solely by the opened live page to show a dropdown to
+switch between versions.
 
-   This feature is under elaboration.
+.. tip::
 
-The live versioned version requires additional web hooks, orchestration and read
-access than the :ref:`ci-rolling-release`.
-It combines :ref:`version` and :ref:`in-org-ref` with version handling to properly
-link the repositories
-documentation against each other.
+   See this repo's :git-doctools:`.github/workflows/deploy.yml` for a suggestion on
+   how to implement it.
 
-:ref:`in-org-ref` are always linked against the latest build, for example,
-suppose *Repo A* has built versions ``v0.1``, ``v0.2`` and is now building ``v0.3``,
-and *Repo B* has built versions ``v1.3``, ``v2.2``, ``v3.7``.
-Thus, build ``repo_a/v0.3`` will link against ``repo_b/v3.7`` since it is the latest
-(obtained from ``www/repo_b/tags.json``).
+For :ref:`in-org-ref`, the doc shall target a specific version by suffixing
+the target the version on the ``interref_repos`` variable, e.g.
+``interref_repos = ['pyadi-iio/dev', 'other-repo/v1.1']``.
 
-The versioned links are always symbolic, to enable portability and redundancy.
-This behaviour differs from :ref:`ci-local` and :ref:`ci-rolling-release` because
-for these it is expected that the links are valid even offline, without building
-every repository documentation.
+A basic ``tags.json`` can be obtained with:
 
-It is forbidden to re-run the documentation workflow except if it is the latest tag.
-The restriction is to avoid rewriting history, and the exception is due to:
+.. code::
 
-* If two repos add labels and cross-reference each other in the same tag change,
-  it may be necessary to run the pipeline twice
-  (similar how LaTeX requires two runs to resolve cross-references).
-* The workflow may fail due to unexpected reasons or the build may be incomplete.
+   ls -d */ | cut -f1 -d'/' | jq --raw-input . | jq --slurp . > tags.json
 
-After the sphinx build, the CI shall copy the build to server path
-(e.g. ``www/repo_a/vX.X``) and update the ``tags.json`` to include the new tag.
+That means, take all directories in the root path and store as JSON.
+
+If the root does not contain any built doc, add a redirect HTML file pointing
+to the main/stable version:
+
+.. code::
+
+   <!DOCTYPE html>
+   <html>
+     <head>
+       <meta http-equiv="refresh" content="0; url=main/index.html" />
+     </head>
+   </html>
+
+If the root does contain a built doc, add an empty string ``""`` to
+``tags.json``.
+This entry will be named ``latest`` in the version selector dropdown.
+
+Finally, set the depth of the destination path during doc generation
+with ``ADOC_TARGET_DEPTH``, for example, if the target directory is:
+
+* *./*: ``0`` or unset
+* *./v2.2*: ``1``
+* *./prs/1234*: ``2``
+
+e.g. ``ADOC_TARGET_DEPTH=2 make html``

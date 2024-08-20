@@ -90,8 +90,21 @@ Still, the ``version`` value on ``conf.py`` has higher precedence, and
 The CI, in general, should set ``ADOC_DOC_VERSION`` as the current checkout branch
 in the pipeline (e.g. ``main``, ``v1.0.0``).
 
+.. tip::
+
+   If creating a branch or PR output, consider using GitHub short reference
+   ``${{ github.ref_name }}``.
+
 If both environment variable and ``version`` on ``conf.py`` are unset, it defaults
 to an empty string.
+
+Also, set ``ADOC_TARGET_DEPTH`` to match the final destination depth, for example,
+if the target directory is:
+
+* *./*: ``0`` or unset
+* *./v2.2*: ``1``
+* *./prs/1234*: ``2``
+* *./staging/user/branch*: ``3``
 
 References
 --------------------------------------------------------------------------------
@@ -140,26 +153,13 @@ For example:
 
 .. code:: python
 
-   interref_repos = ['hdl', 'no-OS']
+   interref_repos = ['hdl', 'no-OS', 'pyadi-iio/main']
 
-Version handling is done with the ``ADOC_INTERREF_TAGGED`` and
-``ADOC_INTERREF_RELEASE`` environment variables values, where:
+Notice that in the example ``main`` suffixes ``pyadi-iio``, this means that will
+look for the build at path ``main`` of this repo instead of at root.
+This can be used to target a specific version, if the target repository stores
+multiple, for example, ``v1.1``, more about that :ref:`ci-versioned`.
 
-* ``ADOC_INTERREF_TAG``: adds the tag as a suffix to the uri, e.g. ``main``,
-  ``v2.1.0``, set to enable.
-* ``ADOC_INTERREF_RELEASE``: unset to use the default branch (e.g. ``main``)
-  or set to use the latest release (e.g. ``v3.0.0``) as the tag.
-
-Links are absolute if  version handling is disabled and symbolic if enabled,
-for example
-``www.analogdevicesinc.github.io/repo_b/other_topic/sub_topic/index.html#anchor``
-and
-``../../../repo_b/v3.7/other_topic/sub_topic/index.html#anchor``, respectively.
-
-The default branch is obtained from :git-doctools:`adi_doctools/lut.py`, and the
-latest release from ``tags.json`` at the root of the hosted version, e.g.
-``www/hdl/tags.json``.
-If not found, it will fallback to the default branch.
 Resolved the path, the mappings are obtained from the InterSphinx mapping file.
 
 To show all links of an InterSphinx mapping file, use the built-in tool:
@@ -176,11 +176,8 @@ The domains are also listed in the ``sphinx.ext.intersphinx`` output.
 Others options:
 
 * ``ADOC_INTERREF_URI``: uri for the inventory and links, default is
-  ``https://analogdevicesinc.github.io/``; it can be a local path, e.g.
-  ``/path/to/www``, in this case, the rendered href is always relative and
-  expects the builds to be stored in the same path, e.g ``/path/to/www``.
-
-
+  ``https://analogdevicesinc.github.io/``; it can be set to a local path, e.g.
+  ``../../``.
 
 Outside organization Sphinx references
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

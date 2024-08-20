@@ -10,6 +10,7 @@ class Navigation {
     this.offline = 'file:' == window.location.protocol
     this.currentTheme = localStorage.getItem('theme')
     this.contentRoot = this.getContentRoot()
+    this.globalRoot = this.getGlobalRoot()
 
     let metaRepo = document.querySelector('meta[name="repo"]')
     this.repo = metaRepo ? metaRepo.content.split('/') : ['']
@@ -91,6 +92,12 @@ class Navigation {
     }
     return content_root
   }
+  /*
+   * Get relative path to the global root
+   */
+  getGlobalRoot () {
+    return document.querySelector('meta[name="global_root"]').content
+  }
   /* Search shortcut */
   search (e) {
     if (e.key === '/' && !this.$.searchArea.classList.contains('on')) {
@@ -145,7 +152,6 @@ class Navigation {
    * Updates elements in a reactive manner,
    * fetching from the main doctools/metadata.js,
    * that contain the most up-to-date metadata
-   * TODO consider versioned depth
    */
   dynamic () {
     if (this.offline) {
@@ -174,7 +180,7 @@ class Navigation {
     let unix_day = new Date(0)
     unix_day.setHours(24)
     if (json === null || json['timestamp'] + unix_day < Date.now()) {
-      let metadata = `${this.contentRoot}../doctools/metadata.json`
+      let metadata = `${this.globalRoot}doctools/metadata.json`
 
       fetch(metadata, {
         method: 'Get',
@@ -213,8 +219,8 @@ class Navigation {
         continue
 
       let base = key == this.repo[0] ?
-                 `${this.contentRoot}` :
-                 `${this.contentRoot}../${key}/`
+                 this.contentRoot :
+                 `${this.globalRoot}${key}/`
       if ('topic' in value) {
         for (const [key_, value_] of Object.entries(value['topic'])) {
           if (typeof(value_) !== "string")
