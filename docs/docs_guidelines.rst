@@ -772,11 +772,6 @@ Global options for directives
 
 Set ``hide_collapsible_content`` to ``True`` to hide the *collapsibles* by default.
 
-Set ``validate_links`` to ``True`` to validate each link during build.
-These links are not managed, that means, only links from changed files are checked.
-You can run a build with it set to False, then touch the desired files to check
-the links of only these files.
-
 Set ``monolithic`` to ``True`` prefix paths with *repos/<repo>*.
 This is meant for the System Top Documentation repository only.
 

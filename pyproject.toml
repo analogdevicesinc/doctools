@@ -28,8 +28,6 @@ dependencies = [
     "docutils",
     "sphinx",
     "lxml",
-    "aiohttp",
-    "aiodns",
     "click",
     "pygments >= 2.7",
 ]
