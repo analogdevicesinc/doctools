@@ -190,7 +190,8 @@ def gen_symbolic_doc(repo_dir):
     d_ = os.path.abspath(os.path.join(repo_dir, os.pardir))
 
     out = os.path.join(d_, 'html')
-    pr.run(f"rm -r {out}")
+    if os.path.isdir(out):
+      pr.run(f"rm -r {out}")
     pr.mkdir(out)
     for r, m in zip(repos, mk):
         if m[0]:
