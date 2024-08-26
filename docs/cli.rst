@@ -38,6 +38,15 @@ For all options, do:
 
    adoc author-mode --help
 
+Why the output missing styling (CSS stylesheet)?
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+You probably did a :ref:`development-install` without :ref:`web-compiler`
+and you are building directly (``make html``) instead of using Author Mode.
+
+If you don't want to install ``npm``, use Author Mode and accept the prompt to
+fetch the pre-built web-scripts from the latest release.
+
 Why is the Python source code of this repo not watched?
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 

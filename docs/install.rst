@@ -65,11 +65,14 @@ reinstalling.
 Also extends Author Mode to watch changes on the webpage source code
 (use `--dev`/`-r` option to enable this).
 
+.. _web-compiler:
+
 Install the web compiler
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you care about the web scripts (`js modules`) and style sheets (`sass`),
-install ``npm`` first, if not, just skip this section.
+install ``npm`` and the ``npm`` packages below, if not, read this section's
+last paragraph.
 
 .. note::
 
@@ -86,6 +89,11 @@ At the repository root, install the `npm` dependencies locally:
        rollup-plugin-scss \
        sass \
        --save-dev
+
+If you choose to not use ``npm``, you can obtain pre-built web-scripts from the
+latest release.
+For that, just run :ref:`author-mode` after the repository is installed and
+confirm the prompt that will appear.
 
 Fetch third-party resources
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
