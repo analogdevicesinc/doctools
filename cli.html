@@ -100,6 +100,7 @@
           <ul>
 <li><a class="reference internal" href="#">Command line interface</a><ul>
 <li><a class="reference internal" href="#author-mode">Author Mode</a><ul>
+<li><a class="reference internal" href="#why-the-output-missing-styling-css-stylesheet">Why the output missing styling (CSS stylesheet)?</a></li>
 <li><a class="reference internal" href="#why-is-the-python-source-code-of-this-repo-not-watched">Why is the Python source code of this repo not watched?</a></li>
 </ul>
 </li>
@@ -185,6 +186,13 @@ sure to have Doctools as <a class="reference internal" href="install.html#develo
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">adoc</span> <span class="n">author</span><span class="o">-</span><span class="n">mode</span> <span class="o">--</span><span class="n">help</span>
 </pre></div>
 </div>
+<section id="why-the-output-missing-styling-css-stylesheet">
+<h3>Why the output missing styling (CSS stylesheet)?<a class="headerlink" href="#why-the-output-missing-styling-css-stylesheet" title="Link to this heading">¶</a></h3>
+<p>You probably did a <a class="reference internal" href="install.html#development-install"><span class="std std-ref">Development install</span></a> without <a class="reference internal" href="install.html#web-compiler"><span class="std std-ref">Install the web compiler</span></a>
+and you are building directly (<code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">html</span></code>) instead of using Author Mode.</p>
+<p>If you don’t want to install <code class="docutils literal notranslate"><span class="pre">npm</span></code>, use Author Mode and accept the prompt to
+fetch the pre-built web-scripts from the latest release.</p>
+</section>
 <section id="why-is-the-python-source-code-of-this-repo-not-watched">
 <h3>Why is the Python source code of this repo not watched?<a class="headerlink" href="#why-is-the-python-source-code-of-this-repo-not-watched" title="Link to this heading">¶</a></h3>
 <p>Since a Python scripts change would affect rebuilding the whole documentation,
