@@ -1,6 +1,6 @@
 # ...
 
-adi_ip_files core [list \
+adi_ip_files core [ list \
   $special/file/path.v \
   "core.v" \
   "core_sub.v" \
@@ -28,7 +28,7 @@ adi_add_bus "bus_1" "slave" \
 adi_add_bus_clock "clk" "bus_1" "reset_n"
 
 adi_ip_add_core_dependencies [list \
-        analog.com:$VIVADO_IP_LIBRARY:util_a:1.0 \
-        analog.com:$VIVADO_IP_LIBRARY:util_b:1.0 \
-        analog.com:$VIVADO_IP_LIBRARY:util_c:1.0 \
+  analog.com:$VIVADO_IP_LIBRARY:util_a:1.0 \
+  analog.com:$VIVADO_IP_LIBRARY:util_b:1.0 \
+  analog.com:$VIVADO_IP_LIBRARY:util_c:1.0 \
 ]

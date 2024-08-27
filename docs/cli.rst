@@ -38,7 +38,7 @@ For all options, do:
 
    adoc author-mode --help
 
-Why the output missing styling (CSS stylesheet)?
+Why is the output missing styling (CSS stylesheet)?
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 You probably did a :ref:`development-install` without :ref:`web-compiler`

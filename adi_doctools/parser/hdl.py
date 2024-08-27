@@ -8,6 +8,7 @@ from os import path
 from ..typings.hdl import Intf, IntfPort
 from ..typings.hdl import Library, LibraryVendor
 from ..directive.string import string_hdl
+from .tcl import tcl
 
 
 def parse_hdl_regmap(ctime: float, file: str) -> Tuple[Dict, List[str]]:
@@ -769,11 +770,10 @@ def parse_hdl_library(
         warning.append("File doesn't exist!")
         return (None, warning)
 
-    with open(file, "r") as f:
-        data = f.readlines()
+    tcl_ = tcl(file)
 
     # Check library name against key
-    for i, line in enumerate(data):
+    for line in tcl_:
         for m in ['adi_ip_create', 'ad_ip_create']:
             if line.startswith(m):
                 line_ = line.split()
@@ -784,35 +784,17 @@ def parse_hdl_library(
 
     # Obtain the file dependencies and top module candidate
     deps = set()
-    i = -1
-    top_mod_ = None
-    for i, line in enumerate(data):
-        # Xilinx
-        if (line.startswith('adi_ip_files')) and key in line:
-            top_mod_ = line.split()[1]
-            break
-        # Altera
-        if (line.startswith('ad_ip_files')) and key in line:
-            top_mod_ = line.split()[1]
-            break
-        # Without wrapper 1
-        if (line.startswith('add_files ')):
-            break
-    if i != 0:
-        i += 1
-        while (i != len(data) and len(data[i]) != 1):
-            dep = data[i]
-            for char in ['\n', '"', ']', '\\']:
-                dep = dep.replace(char, '')
-            dep = dep.strip()
-            if len(dep) > 0:
-                deps.add(dep)
-            if data[i][-2] != '\\' or ']' in data[i]:
-                break
-            i += 1
-    # Without wrapper 2
-    i = -1
-    for i, line in enumerate(data):
+    line = tcl_.line_startswith(["adi_ip_files", "ad_ip_files"])
+    if line is None:
+        line = tcl_.line_startswith("add_files ")
+        top_mod_ = None
+    else:
+        top_mod_ = line.split()[1]
+
+    if line is not None:
+        deps.update(tcl.get_list_items(line))
+
+    for line in tcl_:
         if (line.startswith('add_fileset_file')):
             line_ = line.split()
             if len(line_) >= 5:
@@ -826,31 +808,14 @@ def parse_hdl_library(
     # Add itself as a dependency
     deps.add(path.basename(file))
 
-    def in_method_match(expr, start):
-        """
-        Try to match group inside a tcl method accross multiple lines.
-        """
-        v = set()
-        for i in range(0, len(data)):
-            if data[i].startswith(start):
-                while (i != len(data) and len(data[i]) != 1):
-                    m = re.search(expr, data[i])
-                    i += 1
-                    if m is False or m is None:
-                        continue
-                    v_ = m.group(1)
-                    v.add(v_)
-                    if data[i-1][-2] != '\\':
-                        break
-        return v
-
     # Obtain the library dependencies
-    lib_deps = in_method_match("analog\\.com:\\$VIVADO_IP_LIBRARY:(\\w+)",
-                               "adi_ip_add_core_dependencies")
+    lib_deps = tcl_.in_method_match("analog\\.com:\\$VIVADO_IP_LIBRARY:(\\w+)",
+                                    "adi_ip_add_core_dependencies")
 
     # Obtain the interface dependencies
-    intf = in_method_match("analog\\.com:(?:interface|user):(\\w+)",
-                           "adi_add_bus")
+    intf = tcl_.in_method_match("analog\\.com:(?:interface|user):(\\w+)",
+                                "adi_add_bus")
+
     # Remove _rtl suffixed
     intf = [e for e in intf if not e.endswith('_rtl')]
 
@@ -882,7 +847,7 @@ def parse_hdl_library(
         data = data[i+1:]
         params = []
         for j, line in enumerate(data):
-            line = line.replace('\n', '').strip()
+            line = line.strip()
             if line.startswith("parameter "):
                 line = re.sub('\\[[0-9:]+:[0-9]+\\]', '', line)
                 idx = line.index('=')
@@ -937,7 +902,6 @@ def parse_hdl_library(
     if param_ttcl is not None and param is not None:
         # compare
         params_ = [p[0] for p in param]
-        print(param)
         for p in param_ttcl:
             if p not in params_:
                 warning.append(f"Parameter '{p}' in the '{pkg_sv_ttcl}' file "
