@@ -1,7 +1,8 @@
-from typing import List, Set
+from typing import List, Set, Optional, Union, Tuple
 
+import warnings
 import re
-
+from os import path, chdir, getcwd
 
 class tcl:
     def __init__(self, file: str):
@@ -20,11 +21,11 @@ class tcl:
                 elif any(line.lstrip().startswith(x) for x in [']', '}']) and line_ == '':
                     data[-1] = data[-1] + ' ' + line[:-1]
                 else:
-                    line_ += line[:-1]
+                    line_ += line.replace('\n', '')
                     data.append(line_)
                     line_ = ''
         data = [' '.join(l.replace("\t", " ").strip().split()) for l in data]
-        for m in ["list"]:
+        for m in ["list", "info"]:
             data = [l.replace("[ "+m, "["+m) for l in data]
         self.data = data
 
@@ -32,7 +33,9 @@ class tcl:
         return iter(self.data)
 
     @staticmethod
-    def get_list_items(line: str) -> List[str]:
+    def get_list_items(
+        line: str
+    ) -> List[str]:
         i1 = line.find("[list")
         if i1 != -1:
             i2 = line.index("]")
@@ -52,7 +55,10 @@ class tcl:
 
         return items
 
-    def line_startswith(self, start: List[str]|str) -> str|None:
+    def line_startswith(
+        self,
+        start: Union[List[str], str]
+    ) -> Optional[str]:
         start = [start] if type(start) is str else start
         for line in self.data:
             for s in start:
@@ -60,9 +66,13 @@ class tcl:
                     return line
         return None
 
-    def in_method_match(self, expr: str, start: str) -> Set|None:
+    def in_method_match(
+        self,
+        expr: str,
+        start: str
+    ) -> Optional[Set]:
         """
-        Try to match group inside a tcl method accross multiple lines.
+        Try to match all inside a tcl method.
         """
         v = set()
         for line in self.data:
@@ -72,3 +82,47 @@ class tcl:
                     return None
                 v.update(m)
         return v
+
+    @staticmethod
+    def get_sourced_files(
+        file: str,
+        include_self: bool = True
+    ) -> Tuple[List['tcl'], List[str]]:
+        """
+        Recursively get a list of sourced files.
+        Returns a list of tcl objects
+        """
+        file = path.abspath(file)
+        files = [file] if include_self else []
+        tcls = []
+
+        def parse(file_):
+            if not path.isfile(file_):
+                warnings.warn(f"{file_}: File doesn't exist!")
+                return
+            tcl_ = tcl(file_)
+            tcls.append(tcl_)
+            skip_list = ["adi_env.tcl", "adi_project_xilinx.tcl", "adi_project_intel.tcl", "adi_board.tcl"]
+
+            for i, line in enumerate(tcl_):
+                if line.startswith("source "):
+                    item = line.split()[1]
+                    if any([item.endswith(i) for i in skip_list]):
+                       continue
+                    if item.startswith("$ad_hdl_dir/"):
+                        item = path.abspath(item[12:])
+                    elif tcl_.data[i-1].startswith("if [info exists ad_project_dir"):
+                        # Skip the alternative path
+                        continue
+                    else:
+                        item = path.abspath(path.join(path.dirname(file_), item))
+                    if item not in files:
+                        files.append(item)
+                        parse(item)
+        parse(file)
+
+        # Convert to relative to file dir
+        dir_ = path.dirname(file)
+        files = [path.relpath(f, dir_)  for f in files]
+
+        return tcls, files

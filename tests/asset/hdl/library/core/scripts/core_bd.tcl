@@ -1,0 +1,1 @@
+ad_ip_instance core_ip core_ip_0

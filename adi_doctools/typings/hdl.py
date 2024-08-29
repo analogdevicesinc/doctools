@@ -22,8 +22,6 @@ class LibraryGeneric(TypedDict):
 
 
 class LibraryVendor(TypedDict):
-    path: str
-    lib_path: str
     dependencies: Tuple[str]
     library_dependencies: Tuple[str]
     interfaces: Tuple[str]
@@ -32,6 +30,10 @@ class LibraryVendor(TypedDict):
 
 
 class Library(TypedDict):
+    """
+    __key__: xilinx/some_ip
+    name: adi_jesd204_glue, axi_spi_engine
+    """
     name: str
     vendor: Dict[str, LibraryVendor]
     generic: LibraryGeneric
@@ -40,3 +42,16 @@ class Library(TypedDict):
 class Carrier(TypedDict):
     xilinx: Tuple[str]
     intel: Tuple[str]
+
+
+class Project(TypedDict):
+    """
+    __key__: some_project/carrier, some_project
+    name: some_project_carrier
+    lib_deps: my_ip, framework/framework_core
+    m_deps: some_constr.xdc
+    """
+    name: str
+    vendor: str
+    lib_deps: Tuple[str]
+    m_deps: Tuple[str]

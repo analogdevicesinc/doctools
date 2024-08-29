@@ -1,10 +1,7 @@
-import logging
 from os import path
 
 from adi_doctools.parser.hdl import parse_hdl_interfaces
 from adi_doctools.typings.hdl import Intf
-
-logger = logging.getLogger(__name__)
 
 intf_0 = Intf(
     description=None,
@@ -28,26 +25,17 @@ intf_3 = Intf(
 
 intfs = [intf_0, intf_1, intf_2, intf_3]
 
-logger = logging.getLogger(__name__)
-
 
 def test_hdl_interfaces(tmp_path):
 
-    def log_assert(msg):
-        for m in msg:
-            logger.warning(m)
-
-        assert len(msg) == 0
-
     def log_info(obj):
         import json
-        logger.info(json.dumps(obj, indent=4))
+        print(json.dumps(obj, indent=4))
 
     file = path.join("asset", "interfaces_ip.tcl")
 
-    interfaces, msg = parse_hdl_interfaces(file)
+    interfaces = parse_hdl_interfaces(file)
     log_info(interfaces)
-    log_assert(msg)
 
     assert len(interfaces) == 4
 

@@ -4,7 +4,7 @@ from datetime import datetime
 from os import path
 
 from ..__init__ import __version__
-from ..typings.hdl import vendors, Library
+from ..typings.hdl import vendors, Library, Project
 
 svpkg_fn_new0 = """
       function new(
@@ -18,6 +18,50 @@ svpkg_fn_new1 = """\
       endfunction: new
 """
 
+license_makefile = f"""\
+####################################################################################
+## Copyright (c) 2018 - {datetime.now().year} Analog Devices, Inc.
+### SPDX short identifier: BSD-1-Clause
+## Auto-generated v{__version__}, do not modify!
+####################################################################################
+"""
+
+license_sv = f"""\
+// ***************************************************************************
+// ***************************************************************************
+// Copyright 2014 - 2024 (c) Analog Devices, Inc. All rights reserved.
+//
+// In this HDL repository, there are many different and unique modules, consisting
+// of various HDL (Verilog or VHDL) components. The individual modules are
+// developed independently, and may be accompanied by separate and unique license
+// terms.
+//
+// The user should read each of these license terms, and understand the
+// freedoms and responsabilities that he or she has by using this source/core.
+//
+// This core is distributed in the hope that it will be useful, but WITHOUT ANY
+// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+// A PARTICULAR PURPOSE.
+//
+// Redistribution and use of source or resulting binaries, with or without modification
+// of this file, are permitted under one of the following two license terms:
+//
+//   1. The GNU General Public License version 2 as published by the
+//      Free Software Foundation, which can be found in the top level directory
+//      of this repository (LICENSE_GPL2), and also online at:
+//      <https://www.gnu.org/licenses/old-licenses/gpl-2.0.html>
+//
+// OR
+//
+//   2. An ADI specific BSD license, which can be found in the top level directory
+//      of this repository (LICENSE_ADIBSD), and also on-line at:
+//      https://github.com/analogdevicesinc/hdl/blob/main/LICENSE_ADIBSD
+//      This will allow to generate bit files and not release the source code,
+//      as long as it attaches to an ADI device.
+//
+// ***************************************************************************
+// ***************************************************************************
+"""
 
 def svpkg_regmap(f, regmap: Dict, key: str):
     f.write(f"    /* {regmap['title']} */\n")
@@ -64,42 +108,7 @@ def svpkg_head(f, key: str, regmap: Dict):
     run_time = datetime.now().strftime('%b %d %H:%M:%S %Y')
     pkgname = f"adi_regmap_{key}_pkg"
     classname = f"adi_regmap_{key}"
-    f.write("""\
-// ***************************************************************************
-// ***************************************************************************
-// Copyright 2014 - 2024 (c) Analog Devices, Inc. All rights reserved.
-//
-// In this HDL repository, there are many different and unique modules, consisting
-// of various HDL (Verilog or VHDL) components. The individual modules are
-// developed independently, and may be accompanied by separate and unique license
-// terms.
-//
-// The user should read each of these license terms, and understand the
-// freedoms and responsabilities that he or she has by using this source/core.
-//
-// This core is distributed in the hope that it will be useful, but WITHOUT ANY
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-// A PARTICULAR PURPOSE.
-//
-// Redistribution and use of source or resulting binaries, with or without modification
-// of this file, are permitted under one of the following two license terms:
-//
-//   1. The GNU General Public License version 2 as published by the
-//      Free Software Foundation, which can be found in the top level directory
-//      of this repository (LICENSE_GPL2), and also online at:
-//      <https://www.gnu.org/licenses/old-licenses/gpl-2.0.html>
-//
-// OR
-//
-//   2. An ADI specific BSD license, which can be found in the top level directory
-//      of this repository (LICENSE_ADIBSD), and also on-line at:
-//      https://github.com/analogdevicesinc/hdl/blob/main/LICENSE_ADIBSD
-//      This will allow to generate bit files and not release the source code,
-//      as long as it attaches to an ADI device.
-//
-// ***************************************************************************
-// ***************************************************************************
-""")
+    f.write(license_sv)
     f.write("/* Auto generated Register Map */\n")
     f.write(f"/* {run_time} v{__version__} */\n")
     f.write("\n")
@@ -199,20 +208,14 @@ def write_hdl_regmap(
 
 
 def write_hdl_library_makefile(
-    path_: str,
-    root_path: str,
-    library: Library
+    libraries: Dict[str, Library],
+    path_: str
 ) -> Tuple[str]:
+    library = libraries[path_]
     fname = "Makefile"
-    file = path.join(path_, fname)
+    file = path.join('library', path_, fname)
     f = open(file, "w")
-    f.write(f"""\
-####################################################################################
-## Copyright (c) 2018 - {datetime.now().year} Analog Devices, Inc.
-### SPDX short identifier: BSD-1-Clause
-## Auto-generated v{__version__}, do not modify!
-####################################################################################
-""")
+    f.write(license_makefile)
     f.write("\n")
     f.write(f"LIBRARY_NAME := {library['name']}\n")
     f.write("\n")
@@ -241,7 +244,31 @@ def write_hdl_library_makefile(
         if len(r['interfaces_tcl']) > 0:
             f.write("\n")
 
-    p_ = path.join(root_path, 'library', 'scripts', 'library.mk')
+    p_ = path.join('scripts', 'library.mk')
+    p_ = path.relpath(p_, path_)
+    f.write(f"include {p_}\n")
+    f.close()
+
+
+def write_hdl_project_makefile(
+    project: Dict[str, Project],
+    path_: str
+) -> Tuple[str]:
+    project = project[path_]
+    fname = "Makefile"
+    file = path.join('projects', path_, fname)
+    f = open(file, "w")
+    f.write(license_makefile)
+    f.write("\n")
+    f.write(f"PROJECT_NAME := {project['name']}\n")
+    f.write("\n")
+    for d in project['m_deps']:
+        f.write(f"M_DEPS += {d}\n")
+    f.write("\n")
+    for d in project['lib_deps']:
+        f.write(f"LIB_DEPS += {d}\n")
+    f.write("\n")
+    p_ = f"scripts/project-{project['vendor']}.mk"
     p_ = path.relpath(p_, path_)
     f.write(f"include {p_}\n")
     f.close()

@@ -585,11 +585,8 @@ def manage_hdl_regmaps(env, docnames):
             if reg_name in rm and rm[reg_name]['ctime'] >= ctime:
                 pass
             else:
-                rm[reg_name], msg = parse_hdl_regmap(ctime, file_)
-                for m in msg:
-                    logger.warning(m)
-    for m in resolve_hdl_regmap(rm):
-        logger.warning(m)
+                rm[reg_name] = parse_hdl_regmap(ctime, file_)
+    resolve_hdl_regmap(rm)
 
 
 def manage_hdl_artifacts(app, env, docnames):

@@ -1,7 +1,7 @@
 import click
 import subprocess
 import re
-from os import path, walk, pardir
+from os import path, walk, pardir, chdir, getcwd
 from glob import glob
 
 from ..typings.hdl import vendors, Library, Carrier
@@ -11,14 +11,12 @@ from ..parser.hdl import expand_hdl_regmap
 from ..parser.hdl import parse_hdl_vendor
 from ..parser.hdl import parse_hdl_library
 from ..parser.hdl import resolve_hdl_library
+from ..parser.hdl import parse_hdl_project
+from ..parser.hdl import resolve_hdl_project
 from ..parser.hdl import parse_hdl_interfaces
 from ..writer.hdl import write_hdl_regmap
 from ..writer.hdl import write_hdl_library_makefile
-
-log = {
-    'hdl_f': "{} not found, are you sure this is the HDL repo?",
-    'hdl_tb': "{} not found, tb files will be skipped.",
-}
+from ..writer.hdl import write_hdl_project_makefile
 
 
 @click.command()
@@ -35,20 +33,6 @@ def hdl_gen(input_):
 
     global has_tb
 
-    def symbolic_assert(file, msg):
-        if not path.isfile(file):
-            click.echo(msg.format(file))
-            return True
-        else:
-            return False
-
-    def dir_assert(file, msg):
-        if not path.isdir(file):
-            click.echo(msg.format(file))
-            return True
-        else:
-            return False
-
     p_ = subprocess.run("git rev-parse --show-toplevel", shell=True,
                         capture_output=True, cwd=input_)
     if p_.returncode != 0:
@@ -56,19 +40,21 @@ def hdl_gen(input_):
         return
 
     hdldir = p_.stdout.decode("utf-8").strip().replace('/testbenches', '')
-    f_ = path.join(hdldir, 'LICENSE_ADIJESD204')
+    call_dir = getcwd()
+    chdir(hdldir)
 
-    if symbolic_assert(f_, log['hdl_f']):
+    if not path.isfile('LICENSE_ADIJESD204'):
+        click.echo("'LICENSE_ADIJESD204' not found,"
+                   " are you sure this is the HDL repo?")
         return
 
-    tbdir = path.join(hdldir, 'testbenches')
-    has_tb = False if dir_assert(tbdir, log['hdl_tb']) else True
+    if not (has_tb := path.isdir('testbenches')):
+        click.echo("'testbenches' not found, tb files will be skipped.")
 
     # Generate HDL carrier dictionary
     carrier = Carrier()
-    path_ = path.join(hdldir, 'projects', 'scripts')
     for v in vendors:
-        file_ = path.join(path_, f"adi_project_{v}.tcl")
+        file_ = path.join('projects', 'scripts', f"adi_project_{v}.tcl")
         carrier[v], msg = parse_hdl_vendor(file_)
         for m in msg:
             click.echo(f"{file_}: {m}")
@@ -80,11 +66,12 @@ def hdl_gen(input_):
     types = ['*_ip.tcl', '*_hw.tcl']
     files = {}
     library = {}
+    project = {}
     interfaces_ip_files = []
     for v in vendors:
         files[v] = []
     for typ, v in zip(types, vendors):
-        glob_ = path.join(hdldir, 'library', '**', typ)
+        glob_ = path.join('library', '**', typ)
         files[v].extend(glob(glob_, recursive=True))
 
     for v in files:
@@ -96,50 +83,59 @@ def hdl_gen(input_):
     # Generate the HDL interfaces dictionary
     interfaces_ip = {}
     for f in interfaces_ip_files:
-        interfaces_ip[path.dirname(f)], msg = parse_hdl_interfaces(f)
-        for m in msg:
-            click.echo(f"{f}: {m}")
+        interfaces_ip[path.dirname(f)] = parse_hdl_interfaces(f)
 
     intf_key_file = {}
     for f in interfaces_ip:
         for k in interfaces_ip[f]:
             intf_key_file[k['name']] = f
 
+    # Generate the HDL library dictionary
+    # A folder may contain variants of the lib per vendor
     for typ, v in zip(types, files):
         for f in files[v]:
-            key = path.dirname(f)
-            lib = path.basename(key)
-            lib2 = path.basename(f)[:-len(typ)+1]
-            if lib != lib2:
-                click.echo(f"{f}: path basename '{lib}' does not match "
-                           f"filename '{lib2}'")
-            lib_, msg = parse_hdl_library(path.join(hdldir, 'library'), f, lib2)
-            for m in msg:
-                click.echo(f"{f}: {m}")
+            lib_, path_, ip_name = parse_hdl_library(f)
             if lib_:
-                if key not in library:
-                    library[key] = Library(
-                        name=lib2,
+                if path_ not in library:
+                    library[path_] = Library(
+                        name=ip_name,
                         vendor={},
                         generic={}
                     )
-                library[key]['vendor'][v] = lib_
+                library[path_]['vendor'][v] = lib_
 
     for key in library:
-        resolve_hdl_library(library, library[key], intf_key_file, hdldir, key)
+        resolve_hdl_library(library, key, intf_key_file)
 
     for key in library:
-        write_hdl_library_makefile(key, hdldir, library[key])
+        write_hdl_library_makefile(library, key)
 
     # Generate HDL Project dictionary
-    files = []
-    glob_ = path.join(hdldir, 'projects', '**', 'system_project.tcl')
-    files.extend(glob(glob_, recursive=True))
-    # TODO parse HDL Project, write Project Makefile
+    # A folder contains only one project/vendor
+    types = ['system_bd.tcl', 'system_qsys.tcl']
+    files = {}
+    for v in vendors:
+        files[v] = []
+    for typ, v in zip(types, vendors):
+        glob_ = path.join('projects', '**', typ)
+        files[v].extend(glob(glob_, recursive=True))
+
+    for typ, v in zip(types, files):
+        for f in files[v]:
+            prj_, path_ = parse_hdl_project(f)
+            if prj_:
+                prj_['vendor'] = v
+                project[path_] = prj_
+
+    for key in project:
+        resolve_hdl_project(project[key], library)
+
+    for key in project:
+        write_hdl_project_makefile(project, key)
 
     # Generate HDL Register Map dictionary
     rm = {}
-    regdir = path.join(hdldir, 'docs', 'regmap')
+    regdir = path.join('docs', 'regmap')
     for (dirpath, dirnames, filenames) in walk(regdir):
         for file in filenames:
             file_ = path.join(dirpath, file)
@@ -149,15 +145,13 @@ def hdl_gen(input_):
 
             reg_name = m.group(1)
             ctime = path.getctime(file_)
-            rm[reg_name], msg = parse_hdl_regmap(ctime, file_)
-            for m in msg:
-                click.echo(f"{file_}: {m}")
-    for m in resolve_hdl_regmap(rm):
-        click.echo(m)
-    for m in expand_hdl_regmap(rm):
-        click.echo(m)
+            rm[reg_name] = parse_hdl_regmap(ctime, file_)
+    resolve_hdl_regmap(rm)
+    expand_hdl_regmap(rm)
 
     if has_tb:
-        f_ = path.join(tbdir, 'common', 'sv')
+        f_ = path.join('testbenches', 'common', 'sv')
         for m in rm:
             write_hdl_regmap(f_, rm[m]['subregmap'], m)
+
+    chdir(call_dir)
