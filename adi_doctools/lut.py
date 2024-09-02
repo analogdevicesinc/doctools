@@ -69,6 +69,12 @@ repos = {
         branch='main',
         visibility='public'
     ),
+    'scopy': Repo(
+        doc_folder='docs',
+        name='Scopy',
+        branch='dev',
+        visibility='public'
+    ),
     'doctools': Repo(
         doc_folder='docs',
         name='Doctools',
