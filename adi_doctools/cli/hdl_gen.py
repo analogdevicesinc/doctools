@@ -1,10 +1,12 @@
+from typing import Dict, Tuple
+
 import click
 import subprocess
 import re
 from os import path, walk, pardir, chdir, getcwd
 from glob import glob
 
-from ..typings.hdl import vendors, Library, Carrier
+from ..typings.hdl import vendors, Library, Carrier, Project
 from ..parser.hdl import parse_hdl_regmap
 from ..parser.hdl import resolve_hdl_regmap
 from ..parser.hdl import expand_hdl_regmap
@@ -29,10 +31,34 @@ from ..writer.hdl import write_hdl_project_makefile
     default='.',
     help="Path to any folder in the HDL repo."
 )
-def hdl_gen(input_):
+@click.option(
+    '--no-regmap',
+    is_flag=True,
+    default=False,
+    help="Disable SystemVerilog RegisterMap generation, also disables RegMap parsing."
+)
+@click.option(
+    '--no-makefile',
+    is_flag=True,
+    default=False,
+    help="Disable Makefile generation, also disables Library, Project and Carrier parsing."
+)
+@click.option(
+    '--no-write',
+    is_flag=True,
+    default=False,
+    help="Disable file generation, useful to run only the parsing."
+)
+def hdl_gen(input_, no_regmap, no_makefile, no_write):
+    """
+    Generate HDL auxiliary files.
 
-    global has_tb
+    These files are:
+    Library and projects makefiles,
+    SystemVerilog Register Map classes.
 
+    Run from any path at hdl, including hdl/testbenches.
+    """
     p_ = subprocess.run("git rev-parse --show-toplevel", shell=True,
                         capture_output=True, cwd=input_)
     if p_.returncode != 0:
@@ -51,6 +77,22 @@ def hdl_gen(input_):
     if not (has_tb := path.isdir('testbenches')):
         click.echo("'testbenches' not found, tb files will be skipped.")
 
+    if not no_makefile:
+        project, library = makefile_pre()
+
+    if not no_regmap:
+        regmap = regmap_pre()
+
+    if not no_makefile and not no_write:
+        makefile_post(library, project)
+
+    if has_tb and not no_regmap and not no_write:
+        regmap_post(regmap)
+
+    chdir(call_dir)
+
+
+def makefile_pre() -> Tuple[Dict[str, Project], Dict[str, Library]]:
     # Generate HDL carrier dictionary
     carrier = Carrier()
     for v in vendors:
@@ -59,8 +101,8 @@ def hdl_gen(input_):
         for m in msg:
             click.echo(f"{file_}: {m}")
 
-    # TODO do something with the parsed carriers, like get/validate library and
-    # project dicts
+    # TODO do something with the parsed carriers,
+    # like get/validate library and project dicts
 
     # Generate HDL Library dictionary
     types = ['*_ip.tcl', '*_hw.tcl']
@@ -107,9 +149,6 @@ def hdl_gen(input_):
     for key in library:
         resolve_hdl_library(library, key, intf_key_file)
 
-    for key in library:
-        write_hdl_library_makefile(library, key)
-
     # Generate HDL Project dictionary
     # A folder contains only one project/vendor
     types = ['system_bd.tcl', 'system_qsys.tcl']
@@ -126,14 +165,27 @@ def hdl_gen(input_):
             if prj_:
                 prj_['vendor'] = v
                 project[path_] = prj_
-
     for key in project:
         resolve_hdl_project(project[key], library)
+
+    return project, library
+
+
+def makefile_post(
+        library: Dict[str, Library],
+        project: Dict[str, Project]
+    ) -> None:
+    for key in library:
+        write_hdl_library_makefile(library, key)
 
     for key in project:
         write_hdl_project_makefile(project, key)
 
-    # Generate HDL Register Map dictionary
+
+def regmap_pre() -> Dict:
+    """
+    Generate HDL Register Map dictionary
+    """
     rm = {}
     regdir = path.join('docs', 'regmap')
     for (dirpath, dirnames, filenames) in walk(regdir):
@@ -148,10 +200,10 @@ def hdl_gen(input_):
             rm[reg_name] = parse_hdl_regmap(ctime, file_)
     resolve_hdl_regmap(rm)
     expand_hdl_regmap(rm)
+    return rm
 
-    if has_tb:
-        f_ = path.join('testbenches', 'common', 'sv')
-        for m in rm:
-            write_hdl_regmap(f_, rm[m]['subregmap'], m)
 
-    chdir(call_dir)
+def regmap_post(rm: Dict) -> None:
+    f_ = path.join('testbenches', 'common', 'sv')
+    for m in rm:
+        write_hdl_regmap(f_, rm[m]['subregmap'], m)

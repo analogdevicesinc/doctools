@@ -918,7 +918,7 @@ def parse_hdl_library(
 
     obj = LibraryVendor(
         dependencies=tuple(deps),
-        library_dependencies=tuple(sorted(lib_deps)),
+        library_dependencies=tuple(lib_deps),
         interfaces=tuple(intf),
         parameters=param
     )
@@ -966,8 +966,11 @@ def resolve_hdl_library(
                 deps[v].remove(k)
 
     for v in library['vendor']:
-        library['vendor'][v]['dependencies'] = sorted(deps[v] - deps['generic'])
-    library['generic']['dependencies'] = sorted(deps['generic'])
+        deps_ = deps[v] - deps['generic']
+        library['vendor'][v]['dependencies'] = tuple(sorted(deps_))
+    deps_ = tuple(deps['generic'])
+    library['generic']['dependencies'] = tuple(sorted(deps_))
+
 
     # Find path (relative to hdl/library) of library dependencies
     def resolve_lib_dep(dep):
@@ -981,7 +984,7 @@ def resolve_hdl_library(
         lib_deps = set()
         for dep in library['vendor'][v]['library_dependencies']:
             lib_deps.add(resolve_lib_dep(dep))
-        library['vendor'][v]['library_dependencies'] = tuple(lib_deps)
+        library['vendor'][v]['library_dependencies'] = tuple(sorted(lib_deps))
 
     # Find interfaces_ip.tcl source for intf db and obtain
     # Effectively, Xilinx
@@ -999,8 +1002,8 @@ def resolve_hdl_library(
                 deps_intf.add(base + "_rtl.xml")
                 # XILINX_INTERFACE_DEPS are relative to the library folder
                 interface_deps.add(path.relpath(intf_lut[intf], 'library'))
-        library['vendor'][v]['interfaces'] = tuple(deps_intf)
-        library['vendor'][v]['interfaces_tcl'] = tuple(interface_deps)
+        library['vendor'][v]['interfaces'] = tuple(sorted(deps_intf))
+        library['vendor'][v]['interfaces_tcl'] = tuple(sorted(interface_deps))
 
     return
 
