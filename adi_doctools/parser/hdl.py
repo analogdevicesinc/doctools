@@ -56,17 +56,18 @@ def parse_hdl_regmap(ctime: float, file: str) -> Dict:
         data = f.readlines()
     data = [d.replace("\n", "") for d in data]
 
+    using = []
     while "TITLE" in data:
         # Get title
         tit = data.index("TITLE")
         if data[tit + 1].startswith('USING'):
-            using = data[tit + 1][6:]
-            tit += 1
-            if len(using) == 0:
-                warnings.warn("Malformed using in title entry, skipped!")
-                continue
-        else:
-            using = None
+            while data[tit + 1].startswith('USING'):
+                using_ = data[tit + 1][6:]
+                tit += 1
+                if len(using_) == 0:
+                    warnings.warn("Malformed using in title entry, skipped!")
+                    continue
+                using.append(using_)
 
         title = str(data[tit + 1])
         title_tool = str(data[tit + 2])
@@ -339,36 +340,62 @@ def resolve_hdl_regmap(rm: Dict) -> None:
                 for p_ in p:
                     if j['name'] == p_['name']:
                         r[i] = p_.copy()
-            if r[i]['import']:
-                warnings.warn(f"Field {j['name']} in reg {p_name} "
-                              f"from import {r_} not found!")
+                        break
+                else:
+                    warnings.warn(f"Field {j['name']} in reg {p_name} "
+                                  f"from import {r_} not found!")
 
     def patch_reg(r, p, r_):
+        def patch_reg_(j, p):
+            for p_ in p['regmap']:
+                if j['name'] == p_['name']:
+                    j['import'] = False
+                    j['address'] = p_['address']
+                    j['description'] = p_['description']
+                    j['where'] = p_['where']
+                    patch_field(j['fields'], p_['fields'], r_, p_['name'])
+                    return True
+            return False
+
         for j in r:
             if j['import']:
-                for p_ in p:
-                    if j['name'] == p_['name']:
-                        j['import'] = False
-                        j['address'] = p_['address']
-                        j['description'] = p_['description']
-                        patch_field(j['fields'], p_['fields'], r_, p_['name'])
+                # The imported register may have two formats:
+                # * implicit, no period (e.g. CTRL):
+                #   search all imported register maps
+                # * explicit, w/ period (e.g. COMMON.CTRL):
+                #   left side is the regmap key, and the right side the reg key
+                idx = j['name'].find('.')
+                if idx != -1:
+                    p_ = j['name'][:idx]
+                    j['name'] = j['name'][idx+1:]
+                    if p_ in p:
+                        patch_reg_(j, p[p_])
+                else:
+                    for p_ in p:
+                        if patch_reg_(j, p[p_]):
+                            break
             if j['import']:
                 warnings.warn(f"Reg {j['name']} in import {r_} not found!")
 
     def resolve(r):
-        using = None
-        if r['using'] is not None:
+        using = {}
+        for use in r['using']:
+            use_ = None
             for i in rm:
                 for k in rm[i]['subregmap']:
-                    if r['using'] == k:
-                        using = rm[i]['subregmap'][k]
+                    if use == k:
+                        use_ = rm[i]['subregmap'][k]
                         break
-            if using is None:
-                warnings.warn(f"Couldn't find regmap '{r['using']}'!")
+                else:
+                    continue
+                break
+            if use_ is None:
+                warnings.warn(f"Couldn't find regmap '{use}'!")
+            else:
+                using[k] = use_
 
-        if using is not None:
-            patch_reg(r['regmap'], using['regmap'], r['using'])
-            r['using'] = None
+        patch_reg(r['regmap'], using, r['using'])
+        r['using'] = []
 
     for i in rm:
         for k in rm[i]['subregmap']:
@@ -379,9 +406,10 @@ def resolve_hdl_regmap(rm: Dict) -> None:
 
 def expand_hdl_regmap(rm: Dict) -> None:
     """
-    Expand registers and fields with the "WHERE n IS FROM {} TO {}" method.
+    Expand fields with the "WHERE n IS FROM {} TO {}" method.
     resolve_hdl_regmap must be called first.
     This method is not called in the doc generation to avoid clutter.
+    Register expansion is done in the SV PKG writer.
     """
 
     def expand_fields(regmap):
@@ -397,21 +425,6 @@ def expand_hdl_regmap(rm: Dict) -> None:
                 else:
                     expanded.append(f)
             r['fields'] = expanded
-
-    def expand_registers(regmap):
-        expanded = []
-        for r in regmap['regmap']:
-            if r['where'] is not None:
-                for n in range(*r['where']):
-                    r_ = r.copy()
-                    r_['name'] = r_['name'].replace('n', str(n))
-                    r_['address'] = r_['addr_incr'] * n
-                    r_['addr_incr'] = 0
-                    expanded.append(r_)
-            else:
-                expanded.append(r)
-
-        regmap['regmap'] = expanded
 
     for i in rm:
         for k in rm[i]['subregmap']:

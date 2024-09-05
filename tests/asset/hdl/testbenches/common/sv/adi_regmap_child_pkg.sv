@@ -33,7 +33,7 @@
 // ***************************************************************************
 // ***************************************************************************
 /* Auto generated Register Map */
-/* Apr 25 10:13:43 2024 */
+/* Sep 05 16:39:34 2024 v0.3.39 */
 
 package adi_regmap_child_pkg;
   import regmap_pkg::*;
@@ -66,11 +66,41 @@ package adi_regmap_child_pkg;
     endclass
 
     MOCK_0 MOCK_0_R;
-    MOCK_CHANn MOCK_CHANn_R;
+    MOCK_CHANn MOCK_CHAN0_R;
+    MOCK_CHANn MOCK_CHAN1_R;
+    MOCK_CHANn MOCK_CHAN2_R;
+    MOCK_CHANn MOCK_CHAN3_R;
+    MOCK_CHANn MOCK_CHAN4_R;
+    MOCK_CHANn MOCK_CHAN5_R;
+    MOCK_CHANn MOCK_CHAN6_R;
+    MOCK_CHANn MOCK_CHAN7_R;
+    MOCK_CHANn MOCK_CHAN8_R;
+    MOCK_CHANn MOCK_CHAN9_R;
+    MOCK_CHANn MOCK_CHAN10_R;
+    MOCK_CHANn MOCK_CHAN11_R;
+    MOCK_CHANn MOCK_CHAN12_R;
+    MOCK_CHANn MOCK_CHAN13_R;
+    MOCK_CHANn MOCK_CHAN14_R;
+    MOCK_CHANn MOCK_CHAN15_R;
 
     function new();
       this.MOCK_0_R = new("MOCK_0", 'h40);
-      this.MOCK_CHANn_R = new("MOCK_CHANn", 'h428);
+      this.MOCK_CHAN0_R = new("MOCK_CHAN0", 'h428);
+      this.MOCK_CHAN1_R = new("MOCK_CHAN1", 'h428);
+      this.MOCK_CHAN2_R = new("MOCK_CHAN2", 'h428);
+      this.MOCK_CHAN3_R = new("MOCK_CHAN3", 'h428);
+      this.MOCK_CHAN4_R = new("MOCK_CHAN4", 'h428);
+      this.MOCK_CHAN5_R = new("MOCK_CHAN5", 'h428);
+      this.MOCK_CHAN6_R = new("MOCK_CHAN6", 'h428);
+      this.MOCK_CHAN7_R = new("MOCK_CHAN7", 'h428);
+      this.MOCK_CHAN8_R = new("MOCK_CHAN8", 'h428);
+      this.MOCK_CHAN9_R = new("MOCK_CHAN9", 'h428);
+      this.MOCK_CHAN10_R = new("MOCK_CHAN10", 'h428);
+      this.MOCK_CHAN11_R = new("MOCK_CHAN11", 'h428);
+      this.MOCK_CHAN12_R = new("MOCK_CHAN12", 'h428);
+      this.MOCK_CHAN13_R = new("MOCK_CHAN13", 'h428);
+      this.MOCK_CHAN14_R = new("MOCK_CHAN14", 'h428);
+      this.MOCK_CHAN15_R = new("MOCK_CHAN15", 'h428);
     endfunction: new;
 
   endclass;
