@@ -18,9 +18,15 @@ logger = logging.getLogger(__name__)
 dft_hide_collapsible_content = True
 
 
-def parse_rst(state, tag):
-    rst = ViewList()
-    rst.append(tag, f"virtual_{str(uuid4())}", 0)
+def parse_rst(state, content):
+    """
+    Parses rst markup, content can be:
+    * String
+    * List: ["my", "line", "", "my other line"]
+    * Docutils ViewList
+    """
+    content = [content] if isinstance(content, str) else content
+    rst = ViewList(source=f"virtual_{str(uuid4())}", initlist=content)
     node = nodes.section()
     node.document = state.document
     state.nested_parse(rst, 0, node)
@@ -61,7 +67,7 @@ class directive_base(Directive):
         if morecols != 0:
             attributes['morecols'] = morecols
         entry = nodes.entry(classes=classes, **attributes)
-        if text == '' or text is None:
+        if text is None or len(text) == 0:
             entry += nodes.paragraph(text='')
             row += entry
             return
@@ -72,12 +78,8 @@ class directive_base(Directive):
         elif node_type == 'paragraph':
             entry += nodes.paragraph(text=text)
         elif node_type == 'reST':
+            # text can be a String, List, or ViewList.
             entry += parse_rst(self.state, text)
-        elif node_type == 'default_value':
-            if text[0:2] != '0x':
-                entry += parse_rst(self.state, text)
-            else:
-                entry += nodes.literal(text=text)
         else:
             return
         row += entry

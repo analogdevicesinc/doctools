@@ -237,7 +237,7 @@ class directive_regmap(directive_base):
                     [f"[{bits}]", 'literal'],
                     [field['name'], 'literal'],
                     [field['rw'], 'literal'],
-                    [default, 'default_value', ['default']],
+                    [default, 'literal', ['default']],
                     [field['description'], 'reST', ['description']],
                 ])
 

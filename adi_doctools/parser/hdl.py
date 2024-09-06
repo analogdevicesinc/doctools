@@ -45,7 +45,7 @@ def parse_hdl_regmap(ctime: float, file: str) -> Dict:
                         f"{reg}!")
             return ''
 
-        return (f" Where n is from {m.group(1)} to {m.group(2)}.",
+        return (f"Where n is from {m.group(1)} to {m.group(2)}.",
                 (int(m.group(1)), int(m.group(2))+1))
 
     if not path.isfile(file):
@@ -107,8 +107,10 @@ def parse_hdl_regmap(ctime: float, file: str) -> Dict:
                     regi = regi + 1
 
                 reg_name = data[regi + 2].strip()
-                reg_desc = [data[f_] for f_ in range(regi + 3, rfi)]
-                reg_desc = " ".join(reg_desc) + where_desc
+                reg_desc = [data[f_].replace("''", "``") for f_ in range(regi + 3, rfi)]
+                if where_desc != "":
+                    reg_desc.append(where_desc)
+
                 try:
                     if '+' in reg_addr:
                         reg_addr = reg_addr.split('+')
@@ -222,14 +224,14 @@ def parse_hdl_regmap(ctime: float, file: str) -> Dict:
 
                         except Exception:
                             split_field = field_default.split(" = ", 1)
-                            field_default = split_field[0]
-                            field_default_long = split_field[0]
+                            field_default = split_field[0].replace("''", "")
+                            field_default_long = field_default
 
                             if "0xX" not in field_default:
                                 try:
                                     default_str = split_field[1]
                                     field_default_long = split_field[1]
-                                    field_default = f"``{split_field[0]}`` (*)"
+                                    field_default = f"{split_field[0]}"
                                 except Exception:
                                     default_str = split_field[0]
                                 default_str = re.sub("`[A-Z0-9_]+", "", default_str)
@@ -277,10 +279,12 @@ def parse_hdl_regmap(ctime: float, file: str) -> Dict:
                         else:
                             access_type.append(field_rw)
 
-                    field_desc = [data[f_] for f_ in range(fi + 4, efi)]
-                    field_desc = " ".join(field_desc) + where_desc
+                    field_desc = [data[f_].replace("''", "``") for f_ in range(fi + 4, efi)]
+                    if where_desc != '':
+                        field_desc.append(where_desc)
+                    if field_default_long is not None and field_default_long != field_default:
+                        field_desc.append(f"``{field_default} = {field_default_long}``")
 
-                    field_desc = field_desc.replace("''", "``")
                     fields.append({
                         "import": field_import,
                         "where": field_where,
