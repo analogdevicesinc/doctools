@@ -67,6 +67,9 @@ def svpkg_regmap(f, regmap: Dict, key: str):
     f.write(f"    /* {regmap['title']} */\n")
 
     for reg in regmap['regmap']:
+        # Skip unresolved
+        if reg['import']:
+            continue
         row = f"    class {reg['name']}"
         reg_param_dec = []
         for reg_param in reg['parameters']:
@@ -80,13 +83,13 @@ def svpkg_regmap(f, regmap: Dict, key: str):
         f.write(row)
 
         for field in reg['fields']:
-            if field['name'] != 'RESERVED':
+            if field['name'] != 'RESERVED' and not field['import']:
                 row = f"      field_base {field['name']}_F;""\n"
                 f.write(row)
 
         f.write(svpkg_fn_new0)
         for field in reg['fields']:
-            if field['name'] != 'RESERVED':
+            if field['name'] != 'RESERVED' and not field['import']:
                 row = f"        this.{field['name']}_F = "'new("'f"{field['name']}"
                 bits = f"{field['bits'][0]}, {field['bits'][1]}"
 

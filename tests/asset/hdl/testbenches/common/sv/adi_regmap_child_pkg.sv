@@ -33,7 +33,7 @@
 // ***************************************************************************
 // ***************************************************************************
 /* Auto generated Register Map */
-/* Sep 05 16:39:34 2024 v0.3.39 */
+/* Sep 06 11:19:22 2024 v0.3.40 */
 
 package adi_regmap_child_pkg;
   import regmap_pkg::*;
@@ -86,21 +86,21 @@ package adi_regmap_child_pkg;
     function new();
       this.MOCK_0_R = new("MOCK_0", 'h40);
       this.MOCK_CHAN0_R = new("MOCK_CHAN0", 'h428);
-      this.MOCK_CHAN1_R = new("MOCK_CHAN1", 'h428);
-      this.MOCK_CHAN2_R = new("MOCK_CHAN2", 'h428);
-      this.MOCK_CHAN3_R = new("MOCK_CHAN3", 'h428);
-      this.MOCK_CHAN4_R = new("MOCK_CHAN4", 'h428);
-      this.MOCK_CHAN5_R = new("MOCK_CHAN5", 'h428);
-      this.MOCK_CHAN6_R = new("MOCK_CHAN6", 'h428);
-      this.MOCK_CHAN7_R = new("MOCK_CHAN7", 'h428);
-      this.MOCK_CHAN8_R = new("MOCK_CHAN8", 'h428);
-      this.MOCK_CHAN9_R = new("MOCK_CHAN9", 'h428);
-      this.MOCK_CHAN10_R = new("MOCK_CHAN10", 'h428);
-      this.MOCK_CHAN11_R = new("MOCK_CHAN11", 'h428);
-      this.MOCK_CHAN12_R = new("MOCK_CHAN12", 'h428);
-      this.MOCK_CHAN13_R = new("MOCK_CHAN13", 'h428);
-      this.MOCK_CHAN14_R = new("MOCK_CHAN14", 'h428);
-      this.MOCK_CHAN15_R = new("MOCK_CHAN15", 'h428);
+      this.MOCK_CHAN1_R = new("MOCK_CHAN1", 'h430);
+      this.MOCK_CHAN2_R = new("MOCK_CHAN2", 'h438);
+      this.MOCK_CHAN3_R = new("MOCK_CHAN3", 'h440);
+      this.MOCK_CHAN4_R = new("MOCK_CHAN4", 'h448);
+      this.MOCK_CHAN5_R = new("MOCK_CHAN5", 'h450);
+      this.MOCK_CHAN6_R = new("MOCK_CHAN6", 'h458);
+      this.MOCK_CHAN7_R = new("MOCK_CHAN7", 'h460);
+      this.MOCK_CHAN8_R = new("MOCK_CHAN8", 'h468);
+      this.MOCK_CHAN9_R = new("MOCK_CHAN9", 'h470);
+      this.MOCK_CHAN10_R = new("MOCK_CHAN10", 'h478);
+      this.MOCK_CHAN11_R = new("MOCK_CHAN11", 'h480);
+      this.MOCK_CHAN12_R = new("MOCK_CHAN12", 'h488);
+      this.MOCK_CHAN13_R = new("MOCK_CHAN13", 'h490);
+      this.MOCK_CHAN14_R = new("MOCK_CHAN14", 'h498);
+      this.MOCK_CHAN15_R = new("MOCK_CHAN15", 'h4a0);
     endfunction: new;
 
   endclass;

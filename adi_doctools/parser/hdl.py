@@ -62,14 +62,14 @@ def parse_hdl_regmap(ctime: float, file: str) -> Dict:
         tit = data.index("TITLE")
         if data[tit + 1].startswith('USING'):
             while data[tit + 1].startswith('USING'):
-                using_ = data[tit + 1][6:]
+                using_ = data[tit + 1][6:].strip()
                 tit += 1
                 if len(using_) == 0:
                     warnings.warn("Malformed using in title entry, skipped!")
                     continue
                 using.append(using_)
 
-        title = str(data[tit + 1])
+        title = str(data[tit + 1]).strip()
         title_tool = str(data[tit + 2])
         data = data[tit + 2:]
 
@@ -106,7 +106,7 @@ def parse_hdl_regmap(ctime: float, file: str) -> Dict:
                     where_desc, reg_where = get_where(reg_d[10:], reg_addr)
                     regi = regi + 1
 
-                reg_name = data[regi + 2]
+                reg_name = data[regi + 2].strip()
                 reg_desc = [data[f_] for f_ in range(regi + 3, rfi)]
                 reg_desc = " ".join(reg_desc) + where_desc
                 try:
@@ -136,7 +136,7 @@ def parse_hdl_regmap(ctime: float, file: str) -> Dict:
                 reg_import = True
                 reg_addr = 0
                 reg_addr_incr = 0
-                reg_name = data[regi + 1]
+                reg_name = data[regi + 1].strip()
                 reg_desc = None
                 reg_params = []
 
@@ -258,7 +258,7 @@ def parse_hdl_regmap(ctime: float, file: str) -> Dict:
                         warnings.warn("No where method for ranged field "
                                       f"n at reg '{reg_name}'!")
 
-                    field_name = data[fi + 2]
+                    field_name = data[fi + 2].strip()
                     field_name = field_name.replace("/", "or")
                     field_rw = data[fi + 3]
 
@@ -293,11 +293,10 @@ def parse_hdl_regmap(ctime: float, file: str) -> Dict:
                     })
                 else:
                     for i in range(fi + 1, efi):
-                        field_name = data[i]
                         fields.append({
                             "import": True,
                             "where": None,
-                            "name": data[i],
+                            "name": data[i].strip(),
                             "bits": None,
                             "default": None,
                             "default_long": None,
@@ -350,9 +349,10 @@ def resolve_hdl_regmap(rm: Dict) -> None:
             for p_ in p['regmap']:
                 if j['name'] == p_['name']:
                     j['import'] = False
-                    j['address'] = p_['address']
-                    j['description'] = p_['description']
                     j['where'] = p_['where']
+                    j['address'] = p_['address']
+                    j['addr_incr'] = p_['addr_incr']
+                    j['description'] = p_['description']
                     patch_field(j['fields'], p_['fields'], r_, p_['name'])
                     return True
             return False
