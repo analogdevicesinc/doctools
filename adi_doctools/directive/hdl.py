@@ -64,7 +64,8 @@ class directive_interfaces(directive_base):
                     caption += nodes.inline(text=txt)
                 caption += nodes.inline(text='.')
             if tag in description:
-                caption += parse_rst(self.state, description[tag])
+                caption += parse_rst(self.state, description[tag],
+                                     f"hdl-interfaces_{lib_name}")
 
             content, _ = self.collapsible(section, (component['name'], tag),
                                           caption)
@@ -187,8 +188,8 @@ class directive_regmap(directive_base):
         return (dword, byte)
 
     def tables(self, subnode, obj, key):
-        id_ = "hdl-regmap-" + key
-        section = nodes.section(ids=[id_])
+        uid = "hdl-regmap-" + key
+        section = nodes.section(ids=[uid])
 
         content, _ = self.collapsible(section, f"{obj['title']} register map")
         tgroup = nodes.tgroup(cols=7)
@@ -209,7 +210,7 @@ class directive_regmap(directive_base):
                 [byte, 'literal', ['bold']],
                 [reg['name'], 'literal', ['bold'], 3],
                 [reg['description'], 'reST', ['description', 'bold']],
-            ])
+            ], uid=uid)
 
             for field in reg['fields']:
                 bits = "" if field['bits'] is None else field['bits']
@@ -239,7 +240,7 @@ class directive_regmap(directive_base):
                     [field['rw'], 'literal'],
                     [default, 'literal', ['default']],
                     [field['description'], 'reST', ['description']],
-                ])
+                ], uid=uid)
 
         tbody = nodes.tbody()
         tbody.extend(rows)
@@ -266,7 +267,7 @@ class directive_regmap(directive_base):
                 [at, 'paragraph'],
                 [string_hdl.access_type[at]['name'], 'paragraph'],
                 [string_hdl.access_type[at]['description'], 'paragraph']
-            ])
+            ], uid=uid)
 
         tbody = nodes.tbody()
         tbody.extend(rows)

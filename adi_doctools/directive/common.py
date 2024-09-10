@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from docutils import nodes
 from docutils.statemachine import ViewList
@@ -18,15 +18,17 @@ logger = logging.getLogger(__name__)
 dft_hide_collapsible_content = True
 
 
-def parse_rst(state, content):
+def parse_rst(state, content, uid: Optional[str]=None):
     """
     Parses rst markup, content can be:
     * String
     * List: ["my", "line", "", "my other line"]
     * Docutils ViewList
     """
+    if uid is None:
+        uid = f"virtual_{str(uuid4())}"
     content = [content] if isinstance(content, str) else content
-    rst = ViewList(source=f"virtual_{str(uuid4())}", initlist=content)
+    rst = ViewList(source=uid, initlist=content)
     node = nodes.section()
     node.document = state.document
     state.nested_parse(rst, 0, node)
@@ -62,7 +64,7 @@ class directive_base(Directive):
         return items
 
     def column_entry(self, row, text, node_type: str, classes: List = [],
-                     morecols: int = 0):
+                     morecols: int = 0, uid: Optional[str]=None):
         attributes = {}
         if morecols != 0:
             attributes['morecols'] = morecols
@@ -79,24 +81,27 @@ class directive_base(Directive):
             entry += nodes.paragraph(text=text)
         elif node_type == 'reST':
             # text can be a String, List, or ViewList.
-            entry += parse_rst(self.state, text)
+            entry += parse_rst(self.state, text, uid)
         else:
             return
         row += entry
 
-    def column_entries(self, rows, items):
+    def column_entries(self, rows, items, uid: Optional[str]=None):
         row = nodes.row()
         for item in items:
             if len(item) == 3:
-                self.column_entry(row, item[0], item[1], classes=item[2])
+                self.column_entry(row, item[0], item[1], classes=item[2],
+                                  uid=uid)
             elif len(item) == 4:
                 self.column_entry(row, item[0], item[1], classes=item[2],
-                                  morecols=item[3])
+                                  morecols=item[3],
+                                  uid=uid)
             else:
-                self.column_entry(row, item[0], item[1])
+                self.column_entry(row, item[0], item[1],
+                                  uid=uid)
         rows.append(row)
 
-    def generic_table(self, description):
+    def generic_table(self, description, uid: Optional[str]=None):
         tgroup = nodes.tgroup(cols=2)
         for _ in range(2):
             colspec = nodes.colspec(colwidth=1)
@@ -113,7 +118,7 @@ class directive_base(Directive):
             entry += nodes.literal(text="{:s}".format(key))
             row += entry
             entry = nodes.entry()
-            entry += parse_rst(self.state, description[key])
+            entry += parse_rst(self.state, description[key], uid=uid)
             row += entry
             rows.append(row)
 
