@@ -47,6 +47,12 @@ repos = {
         branch='main',
         visibility='public'
     ),
+    'libiio': Repo(
+        doc_folder='doc',
+        name='libiio',
+        branch='main',
+        visibility='public'
+    ),
     'no-OS': Repo(
         doc_folder='doc/sphinx/source',
         name='no-OS',
