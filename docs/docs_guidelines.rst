@@ -745,15 +745,24 @@ The directive syntax is:
 
    .. video:: <url>
 
+      <caption>
+
+Always add a caption to the video, since a PDF output won't contain the embed
+video, but a link to it.
+
 For example:
 
 .. code:: rst
 
    .. video:: http://ftp.fau.de/fosdem/2015/devroom-software_defined_radio/iiosdr.mp4
 
+      **Linux Industrial IO framework** - Lars-Peter Clausen, Analog Devices Inc
+
 Renders as:
 
 .. video:: http://ftp.fau.de/fosdem/2015/devroom-software_defined_radio/iiosdr.mp4
+
+   **Linux Industrial IO framework** - Lars-Peter Clausen, Analog Devices Inc
 
 And:
 
@@ -761,9 +770,13 @@ And:
 
    .. video:: https://www.youtube.com/watch?v=p_VntEwUe24
 
+      **LibIIO - A Library for Interfacing with Linux IIO Devices** - Dan Nechita, Analog Devices Inc
+
 Renders as:
 
 .. video:: https://www.youtube.com/watch?v=p_VntEwUe24
+
+   **LibIIO - A Library for Interfacing with Linux IIO Devices** - Dan Nechita, Analog Devices Inc
 
 ESD warning directive
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

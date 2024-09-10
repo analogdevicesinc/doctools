@@ -57,8 +57,12 @@ class node_iframe(node_base):
     tagname = 'iframe'
     endtag = 'false'
 
+class node_a(node_base):
+    tagname = 'a'
+    endtag = 'true'
+
 def node_setup(app):
-    for node in [node_div, node_input, node_label, node_icon, node_video, node_source, node_iframe]:
+    for node in [node_div, node_input, node_label, node_icon, node_video, node_source, node_iframe, node_a]:
         app.add_node(node,
                 html =(node.visit, node.depart),
                 latex=(node.visit, node.depart),

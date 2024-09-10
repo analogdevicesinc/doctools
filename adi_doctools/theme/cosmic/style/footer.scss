@@ -1,9 +1,13 @@
 footer {
-    background: var(--bg-color1);
     border-top: $border-panel;
     padding: 1em;
 }
 
+@media screen {
+    footer {
+        background: var(--bg-color1);
+    }
+}
 
 @media (min-width: $width-narrow) {
     footer {

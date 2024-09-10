@@ -81,9 +81,14 @@ body.dark {
 
 body {
     margin: 0;
-    background-color: var(--bg-color1);
     color: var(--text-color1);
     overflow-x: hidden;
+}
+
+@media screen {
+    body {
+        background-color: var(--bg-color1);
+    }
 }
 
 * {
@@ -158,7 +163,7 @@ svg {
     margin: 0 auto;
 }
 
-@media (min-width: $width-narrow) {
+@media (min-width: $width-content) {
     #hdl-component-diagram svg {
         float: right;
         margin: -3em 0 0 1em;

@@ -10,8 +10,9 @@ $admonitions: (
     "tip":             #00c852 "info",
     "important":       #00bfa5 "flame",
     "note":            #00b0ff "pencil",
+    "video":           #00b0ff "video",
     "seealso":         #448aff "info",
-    "admonition-todo": #808080 "pencil"
+    "admonition-todo": #808080 "pencil",
 );
 
 @mixin default-admonition($color, $icon-name) {

@@ -122,7 +122,7 @@ img {
     max-width: 100%;
 }
 
-@media (min-width: $width-narrow) {
+@media (min-width: $width-content) {
     .body img {
         display: block;
         margin: 0 auto;
@@ -190,6 +190,12 @@ aside.footnote {
 
 iframe {
     border: none;
+}
+
+@media screen {
+    .iframe-video p, .embed-video p {
+        text-align: center;
+    }
 }
 
 .iframe-video {

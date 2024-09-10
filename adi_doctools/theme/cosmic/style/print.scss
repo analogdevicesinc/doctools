@@ -1,0 +1,25 @@
+@media not print {
+    .only-print {
+        display: none !important;
+    }
+}
+
+@media print {
+    .only-screen {
+        display: none !important;
+    }
+
+    header #left, header .reverse {
+        display: none !important;
+    }
+
+    body.light .highlight {
+        background: none;
+        border: 1px solid var(--text-color3);
+    }
+
+    .body {
+        padding: 0;
+    }
+
+}

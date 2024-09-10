@@ -6,12 +6,51 @@
 
 .collapsible_content {
     overflow: auto;
-    border-top: $border-panel;
     overflow: hidden;
-    height: 0;
     transition: ease opacity .25s;
-    opacity: 0;
 }
+
+@media not print {
+    .collapsible_content {
+        height: 0;
+        opacity: 0;
+    }
+
+    .collapsible {
+        border: $border-panel;
+        margin-bottom: .5em;
+
+        label {
+            padding: 0.75em 1em 0.75em .75em;
+        }
+
+        label .icon {
+            display: block;
+        }
+
+        table.docutils {
+            border: none;
+            width: 100%;
+        }
+    }
+
+    .collapsible_content {
+        border-top: $border-panel;
+    }
+}
+
+@media print {
+    .collapsible {
+        label {
+            padding: 0.5em 0 0.5em 0;
+        }
+
+        label .icon {
+            display: none;
+        }
+    }
+}
+
 
 .collapsible_input:checked ~ label .icon {
     transform: rotate(45deg);
@@ -24,17 +63,10 @@
 }
 
 .collapsible {
-    border: $border-panel;
     border-radius: .25em;
-    margin-bottom: .5em;
-
-    .collapsible {
-        margin: .25em;
-    }
 
     label {
         width: 100%;
-        padding: 0.75em 1em 0.75em .75em;
         user-select: none;
         box-sizing: border-box;
         cursor: pointer;
@@ -46,7 +78,6 @@
     label .icon {
         border: 1px solid var(--text-color1);
         border-width: 0 2px 2px 0;
-        display: block;
         transition: transform ease .125s, margin-top ease .125s;
         width: .6em;
         height: .6em;
@@ -70,11 +101,6 @@
 
     label div > p:first-child {
         font-weight: 600;
-    }
-
-    table.docutils {
-        border: none;
-        width: 100%;
     }
 
     .container > p {

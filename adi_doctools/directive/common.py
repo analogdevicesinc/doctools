@@ -10,7 +10,7 @@ from uuid import uuid4
 from hashlib import sha1
 from typing import Tuple
 
-from .node import node_div, node_input, node_label, node_icon, node_source
+from .node import node_div, node_input, node_label, node_icon, node_source, node_a
 from .node import node_iframe, node_video
 
 logger = logging.getLogger(__name__)
@@ -245,13 +245,17 @@ class directive_video(directive_base):
             )
             yt_id = yt_match.group(3)
             iframe = node_iframe(
-                src=f"https://www.youtube-nocookie.com/embed/{yt_id}"
+                src=f"https://www.youtube-nocookie.com/embed/{yt_id}",
+                classes=['only-screen']
             )
             node += iframe
         else:
-            node = node_div()
+            node = node_div(
+                classes=['embed-video']
+            )
             video = node_video(
-                controls="controls"
+                controls="controls",
+                classes=['only-screen']
             )
             source = node_source(
                 type="video/mp4",
@@ -259,6 +263,30 @@ class directive_video(directive_base):
             )
             video += source
             node += video
+
+        node_ = nodes.inline(
+            classes=['only-screen']
+        )
+        self.state.nested_parse(self.content, self.content_offset, node_)
+        node += node_
+
+        # Generate a video admonition for print
+        adm = node_div(
+            classes=['admonition', 'video', 'only-print']
+        )
+        adm += nodes.paragraph(
+            text="Video",
+            classes=["admonition-title"]
+        )
+
+        video_link = node_a(href=url)
+        video_link += nodes.inline(text=url)
+
+        self.state.nested_parse(self.content, self.content_offset, adm)
+        node_ = nodes.paragraph()
+        node_ += video_link
+        adm += node_
+        node += adm
 
         return [node]
 

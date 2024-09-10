@@ -25,7 +25,6 @@ header {
     z-index: 7;
     position: sticky;
     width: 100%;
-    border-bottom: $border-panel;
     top: 0;
 
     label, button {
@@ -77,6 +76,12 @@ header {
     #show-localtoc:before {
         background-position: left calc(-1.5rem*2) top;
         transition: .25s ease background-position;
+    }
+}
+
+@media screen {
+    header {
+        border-bottom: $border-panel;
     }
 }
 
@@ -151,11 +156,23 @@ header {
 }
 
 @media (max-width: $width-narrow) {
+    @media screen {
+        header {
+            border-bottom: $border-panel;
+        }
+    }
+
     header {
         display: flex;
         width: 100%;
-        border-bottom: $border-panel;
-        background: var(--bg-color1-faded1);
+    }
+}
+
+@media screen {
+    @media (max-width: $width-narrow) {
+        header {
+            background: var(--bg-color1-faded1);
+        }
     }
 }
 
