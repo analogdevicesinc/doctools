@@ -49,22 +49,20 @@ def html_page_context(app, pagename, templatename, context, doctree):
      context["repotoc_current_name"],
      context["repotoc_current"]) = ret
     context["global_root"] = path.join(context["content_root"],
-                                       app.env.target_depth) + SEP
+                                       app.env.config.target_depth) + SEP
 
 
 def config_inited(app, config):
     app.lut = get_lut()
 
-    doc_version = getenv("ADOC_DOC_VERSION", default="")
-    if 'version' not in config or config.version == "":
+    # Inject version value, config entry has higher precedence
+    if 'version' not in config:
+        doc_version = getenv("ADOC_DOC_VERSION", default="")
         try:
             doc_version = str(Version(doc_version))
         except Exception as err:
             pass
         config.version = doc_version
-    elif doc_version != "":
-        logger.warn("ADOC_DOC_VERSION set but ignored due to "
-                    "conf.py version entry")
 
 
 def builder_inited(app):
@@ -72,6 +70,7 @@ def builder_inited(app):
         # Add include regardless of theme.
         if getenv("ADOC_DEVPOOL") is not None:
             app.add_js_file("dev-pool.js", priority=500, defer="")
+
         # Add bundled JavaScript if current theme is from this extension.
         if app.env.config.html_theme in theme_names:
             app.add_js_file("app.umd.js", priority=500, defer="")
@@ -80,14 +79,7 @@ def builder_inited(app):
             get_pygments_theme(app)
         else:
             app.add_css_file("third-party.css", priority=500, defer="")
-        # Setup meta tag with target depth
-        target_depth = getenv("ADOC_TARGET_DEPTH", default=0)
-        try:
-            target_depth_ = int(target_depth)
-            app.env.target_depth = path.join('..', *[".."]*target_depth_)
-        except Exception as err:
-            logger.warn(f"ADOC_TARGET_DEPTH '{target_depth}' is not an int, ignored")
-            app.env.target_depth = '..'
+
 
 def build_finished(app, exc):
     """

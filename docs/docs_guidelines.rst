@@ -29,9 +29,7 @@ volumes of a book, and it does not make sense to have multiple "volumes" at
 the repository level.
 
 The only exception is the :git-documentation:`/`, which indeed contains various
-types of documentation (eval-boards, university program, Linux drivers, etc.);
-and it uses the ``topic`` field at ``lut.py`` to keep track of
-each.
+types of documentation (eval-boards, university program, Linux drivers, etc.).
 
 The ``toctree`` directive has the following format:
 
@@ -74,6 +72,19 @@ Also, it is recommended to wrap the toctree in a "Contents" section:
    .. toctree::
 
       some_page
+
+For extensive documentation with different topics, it makes sense to filter
+the toctree based on the current topic/toctree title.
+This is possible by setting the environment variable ``ADOC_FILTER_TOCTREE`` to
+``1``.
+Alternatively, setting ``filter_toctree`` on ``conf.py`` has higher precedence
+than ``ADOC_FILTER_TOCTREE``.
+And is supposed to be used alongside the ``topic`` field at ``lut.py`` to
+preserve high level links for each topic.
+
+Enable this environment variable only on the release build, since writing pages
+with it enabled may be obnoxious and confusing prior the final structure/location
+of them.
 
 .. _version:
 
@@ -805,8 +816,8 @@ Dynamic elements refer to sections of the generated webpage that updates when
 loaded online from a source of truth, in general, ``doctools/*.json`` files;
 it uses a concept similar to "react components".
 
-These ``*.json`` files are generated when ``doctools_export_metadata`` is true
-in the ``conf.py``.
+These ``*.json`` files are generated when ``export_metadata`` is true in the
+``conf.py``.
 From the JavaScript side, it fetches from
 ``{content_root}[../versioned]/../doctools/[versioned]/metadata.json``.
 

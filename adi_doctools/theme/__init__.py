@@ -1,4 +1,4 @@
-from os import path
+from os import path, getenv
 
 from lxml import etree
 from lxml import html
@@ -11,10 +11,18 @@ from .cosmic import cosmic_setup
 
 
 def theme_config_setup(app):
-    app.add_config_value('repository', None, 'env')
-    app.add_config_value('monolithic', False, 'env')
-    app.add_config_value('doctools_export_metadata', False, 'env')
+    # Name of the repository that this doc belong to
+    app.add_config_value('repository', None, 'env', [str])
+    # Prefix paths with *repos/<repo>*
+    app.add_config_value('monolithic', False, 'env', [bool])
+    # Generate auxiliary metadata files
+    app.add_config_value('export_metadata', False, 'env', [bool])
+    # Hide topics from the toctree expect the current one
+    app.add_config_value('filter_toctree', None, 'env', [bool])
+    # Setup meta tag with target depth
+    app.add_config_value('target_depth', None, 'env', [str])
 
+    app.connect("config-inited", config_inited)
     app.connect("build-finished", build_finished)
 
 
@@ -26,9 +34,32 @@ setup = [
 names = ['cosmic']
 
 
+def config_inited(app, config):
+    """
+    Overwrite theme options with enviroment variables.
+    Config values have higher precedance.
+    Meant for value injection during CI.
+    """
+    if config.filter_toctree is None:
+        ftoc = getenv("ADOC_FILTER_TOCTREE", default="0")
+        config.filter_toctree = True if ftoc == "1" else False
+    else:
+        config.filter_toctree = config.filter_toctree == True
+
+    target_depth = config.target_depth
+    if config.target_depth is None:
+        target_depth = getenv("ADOC_TARGET_DEPTH", default="0")
+        try:
+            target_depth = int(target_depth)
+        except Exception as err:
+            logger.warn(f"ADOC_TARGET_DEPTH '{target_depth}' is not an int.")
+            target_depth = 0
+    config.target_depth = path.join('..', *[".."]*target_depth)
+
+
 def build_finished(app, exc):
     if app.builder.format == 'html' and not exc:
-        if app.env.config.doctools_export_metadata:
+        if app.env.config.export_metadata:
             import json
 
             repos = {}
@@ -113,7 +144,7 @@ def navigation_tree(app, toctree_html, content_root, pagename):
     conf_vars = (
         app.env.config.repository,
         app.lut['repos'],
-        app.env.target_depth
+        app.env.config.target_depth
     )
 
     lvl = [0]
@@ -122,7 +153,7 @@ def navigation_tree(app, toctree_html, content_root, pagename):
         i = pagename.find('/')
         return pagename[0:i] if i != -1 else ''
 
-    def filter_tree(root, pagename):
+    def filter_toctree(root, pagename):
         """
         Filter-out non-current topics/"toctrees-titles".
         Non-titled toctrees are squashed with the last toctree, e.g.
@@ -204,7 +235,8 @@ def navigation_tree(app, toctree_html, content_root, pagename):
         parser = etree.HTMLParser()
         root = etree.fromstring(toctree_html, parser)
 
-        filter_tree(root, pagename)
+        if app.env.config.filter_toctree:
+            filter_toctree(root, pagename)
         for ul in root.findall('./body/ul'):
             for li in ul.findall('./li[@class]'):
                 iterate(li)
