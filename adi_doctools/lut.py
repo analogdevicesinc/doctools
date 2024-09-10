@@ -29,11 +29,7 @@ repos = {
         doc_folder='docs',
         name='System Level',
         branch='main',
-        visibility='public',
-        topic={
-            'eval': 'Evaluation Boards',
-            'university': 'University Program',
-        }
+        visibility='public'
     ),
     'hdl': Repo(
         doc_folder='docs',
