@@ -21,6 +21,7 @@
 
 .admonition p.admonition-title,
 p.topic-title {
+    print-color-adjust: exact;
     margin: 0;
     position: relative;
     margin-top: 0;
@@ -43,8 +44,12 @@ p.topic-title {
 }
 
 /* Default styles */
+@media screen {
+    p.admonition-title {
+        background-color: var(--color-admonition-title-background);
+    }
+}
 p.admonition-title {
-    background-color: var(--color-admonition-title-background);
     &::before {
         background-color: var(--color-admonition-title);
         mask-image: var(--icon-admonition-default);
@@ -67,6 +72,38 @@ p.topic-title {
 }
 
 /* Variants */
+@media screen {
+    .admonition {
+        @each $type, $value in $admonitions {
+            &.#{$type} {
+                border-color: var(--color-admonition-title--#{$type});
+                > .admonition-title {
+                    background-color: var(--color-admonition-title-background--#{$type});
+                }
+            }
+        }
+    }
+}
+
+@media print {
+    .admonition-title {
+        border-bottom: 1px solid var(--color-admonition-title-background);
+    }
+
+    .admonition {
+        break-inside: avoid;
+
+        @each $type, $value in $admonitions {
+            &.#{$type} {
+                > .admonition-title {
+                    border-color: var(--color-admonition-title-background--#{$type});
+                    color: var(--color-admonition-title--#{$type});
+                }
+            }
+        }
+    }
+}
+
 .admonition {
     border: 1px solid var(--color-admonition-title);
 
@@ -75,7 +112,6 @@ p.topic-title {
             border-color: var(--color-admonition-title--#{$type});
             > .admonition-title {
                 border-color: var(--color-admonition-title--#{$type});
-                background-color: var(--color-admonition-title-background--#{$type});
                 &::before {
                     background-color: var(--color-admonition-title--#{$type});
                     mask-image: var(--icon-#{nth($value, 2)});
