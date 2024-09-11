@@ -10,6 +10,7 @@ a.icon {
     /* Our fancy icon */
     &::before {
         print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
         content: "";
         position: absolute;
         left: 0rem;

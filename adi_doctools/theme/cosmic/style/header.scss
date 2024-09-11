@@ -27,6 +27,7 @@ header {
     width: 100%;
     top: 0;
     print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
 
     label, button {
       cursor: pointer;

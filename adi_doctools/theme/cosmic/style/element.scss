@@ -235,6 +235,7 @@ iframe {
         flex-shrink: 0;
         background: url(esd-warning.svg);
         print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
         background-size: contain;
     }
 }

@@ -22,6 +22,7 @@
 .admonition p.admonition-title,
 p.topic-title {
     print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
     margin: 0;
     position: relative;
     margin-top: 0;
