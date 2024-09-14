@@ -8,7 +8,8 @@ logger = logging.getLogger(__name__)
 dft_url_dokuwiki = 'https://wiki.analog.com'
 dft_url_ez = 'https://ez.analog.com'
 dft_url_mw = 'https://www.mathworks.com'
-dft_url_git = 'https://github.com/analogdevicesinc'
+dft_url_git_gui = 'https://github.com/analogdevicesinc/{repo}/tree'
+dft_url_git_raw = 'https://raw.githubusercontent.com/analogdevicesinc/{repo}'
 dft_url_adi = 'https://www.analog.com'
 dft_url_xilinx = 'https://www.xilinx.com'
 dft_url_intel = 'https://www.intel.com'
@@ -24,7 +25,9 @@ git_repos = [
     ['iio-oscilloscope', "IIO Oscilloscope"],
     ['doctools',         "Doctools"],
     ['documentation',    "System Level Documentation"],
-    ['pyadi-iio',        "PyADI-IIO"]
+    ['pyadi-iio',        "PyADI-IIO"],
+    ['meta-adi',         "META-ADI"],
+    ['wiki-scripts',     "Wiki Scripts"]
 ]
 vendors = ['xilinx', 'intel', 'mw']
 
@@ -90,38 +93,47 @@ def ez():
     return role
 
 
-def get_active_branch_name():
-    try:
-        branch = subprocess.run(['git', 'branch',
-                                 '--show-current'], capture_output=True)
-        return branch.stdout.decode('utf-8').replace('\n', '')
-    except Exception:
-        # Return placeholder is git is unreachable, e.g. container
-        return "<unknown>"
+def get_default_brach(repo, inliner):
+    """
+    Get default branch for each repo.
+    If it is not known, returns 'main'
+    """
+    app = inliner.document.settings.env.app
+    if repo in app.lut['repos']:
+        return app.lut['repos'][repo]['branch']
+    else:
+        return 'main'
 
 
 def git(repo, alt_name):
     def role(name, rawtext, text, lineno, inliner, options={}, content=[]):
-        url = get_url_config('git', inliner) + '/' + repo
-        if text == '/':
-            name = "ADI " + alt_name + " repository"
-            node = nodes.reference(rawtext, name, refuri=url,
-                                   classes=['icon', 'git'], **options)
+        text, path = get_outer_inner(text)
+
+        pos = path.find('+')
+        if path[0:pos] == "raw":
+            type_ = path[0:pos]
         else:
-            text, path = get_outer_inner(text)
-            pos = path.find(':')
-            if pos in [0, -1]:
-                branch = get_active_branch_name()
-            else:
-                branch = path[0:pos]
-            path = path[pos+1:]
+            type_ = "gui"
+        path = path[pos+1:]
+
+        pos = path.find(':')
+        if pos in [0, -1]:
+            branch = get_default_brach(repo, inliner)
+        else:
+            branch = path[0:pos]
+        path = path[pos+1:]
+        if text is None:
             if path == '/':
-                path = ''
-            if text is None:
+                text = "ADI " + alt_name + " repository"
+            else:
                 text = path
-            url = url + '/tree/' + branch + '/' + path
-            node = nodes.reference(rawtext, text, refuri=url,
-                                   classes=['icon', 'git'], **options)
+        if path == '/':
+            path = ''
+
+        url = get_url_config('git_'+type_, inliner).format(repo=repo)
+        url = url + '/' + branch + '/' + path
+        node = nodes.reference(rawtext, text, refuri=url,
+                               classes=['icon', 'git'], **options)
         return [node], []
 
     return role
@@ -167,7 +179,8 @@ def common_setup(app):
     app.add_config_value('url_dokuwiki',  dft_url_dokuwiki,  'env')
     app.add_config_value('url_ez',        dft_url_ez,        'env')
     app.add_config_value('url_mw',        dft_url_mw,        'env')
-    app.add_config_value('url_git',       dft_url_git,       'env')
+    app.add_config_value('url_git_gui',   dft_url_git_gui,   'env')
+    app.add_config_value('url_git_raw',   dft_url_git_raw,   'env')
     app.add_config_value('url_adi',       dft_url_adi,       'env')
     app.add_config_value('url_xilinx',    dft_url_xilinx,    'env')
     app.add_config_value('url_intel',     dft_url_intel,     'env')

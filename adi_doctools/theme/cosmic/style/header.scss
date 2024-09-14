@@ -86,6 +86,17 @@ header {
         border-bottom: $border-panel;
     }
 }
+@media (min-width: $screen-1) and (max-width: $screen-2) {
+    .repotoc-tree.overlay root {
+        padding-left: 18em;
+    }
+}
+
+@media (min-width: $screen-2) {
+    .repotoc-tree.overlay root {
+        padding-left: calc(40vw - 14em);
+    }
+}
 
 .repotoc-tree.overlay {
     position: sticky;
@@ -104,7 +115,6 @@ header {
         padding-top: 1em;
         height: calc(100vh - 3.5em);
         width: 100vw;
-        padding-left: calc(40vw - 14em);
         display: flex;
         flex-direction: column;
     }
@@ -151,13 +161,13 @@ header {
     }
 }
 
-@media (min-width: $width-wide) {
+@media (min-width: $screen-3) {
     header #show-localtoc {
         display: none;
     }
 }
 
-@media (max-width: $width-narrow) {
+@media (max-width: $screen-1) {
     @media screen {
         header {
             border-bottom: $border-panel;
@@ -171,7 +181,7 @@ header {
 }
 
 @media screen {
-    @media (max-width: $width-narrow) {
+    @media (max-width: $screen-1) {
         header {
             background: var(--bg-color1-faded1);
         }
@@ -179,7 +189,7 @@ header {
 }
 
 header {
-    height: 3.5em;
+    height: 3.5rem;
 
     #right {
         display: flex;
@@ -190,24 +200,24 @@ header {
         display: inline-block;
         width: 5.375rem;
         height: 1.5rem;
-        margin: .75em 0;
+        margin: .75rem 0;
         background: url('./logo-org.svg') no-repeat center top;
         flex-shrink: 0;
     }
 
     .vertical-divider {
-        padding: 0 0.25em 0 .75em;
+        padding: 0 0.25rem 0 .75rem;
         border-right: $border-panel;
-        height: 1.75em;
+        height: 1.75rem;
     }
 
     #logo {
-        padding-left: 0.25em;
-        height: 3.5em;
+        padding-left: 0.25rem;
+        height: 3.5rem;
         overflow: hidden;
         display: flex;
         align-items: center;
-        line-height: 1em;
+        line-height: 1rem;
     }
 
     #logo div {
@@ -225,7 +235,7 @@ body.dark #logo-org {
     }
 }
 
-@media (max-width: $width-narrow) {
+@media (max-width: $screen-1) {
     header {
         backdrop-filter: blur(1em);
     }
@@ -234,7 +244,7 @@ body.dark #logo-org {
     }
 }
 
-@media (min-width: $width-narrow) {
+@media (min-width: $screen-1) {
     header {
         background: var(--bg-color1);
     }
@@ -244,18 +254,29 @@ body.dark #logo-org {
     }
 
     header #right {
-        margin-left: calc(40vw - 13em);
         text-align: right;
     }
 }
 
-@media (min-width: $width-wide) {
+@media (min-width: $screen-1) and (max-width: $screen-2) {
+    header #right {
+        margin-left: 19rem;
+    }
+}
+
+@media (min-width: $screen-2) {
+    header #right {
+        margin-left: calc(40vw - 13rem);
+    }
+}
+
+@media (min-width: $screen-3) {
     header #right {
         max-width: 60rem;
     }
 }
 
-@media (max-width: $width-narrow) {
+@media (max-width: $screen-1) {
     .repotoc-tree.overlay {
         display: none;
     }
@@ -291,7 +312,7 @@ header {
 
 }
 
-@media (max-width: $width-narrow) {
+@media (max-width: $screen-1) {
     header #show-repotoc {
         display: none;
     }
@@ -307,7 +328,7 @@ header {
     margin-right: -2px;
 }
 
-@media (min-width: $width-narrow) {
+@media (min-width: $screen-1) {
     #input-show-repotoc:checked ~ header #logo div {
         margin-top: 6em;
         opacity: 0;

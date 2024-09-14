@@ -81,13 +81,13 @@ body.dark {
 
 body {
     margin: 0;
-    color: var(--text-color1);
     overflow-x: hidden;
 }
 
 @media screen {
     body {
         background-color: var(--bg-color1);
+        color: var(--text-color1);
     }
 }
 
@@ -101,44 +101,59 @@ body {
     overflow-x: auto;
 }
 
-@media (min-width: $width-wide) {
+@media (min-width: $screen-3) {
   .bodywrapper > div {
       max-width: 60rem;
   }
 }
 
-@media (max-width: $width-wide) {
+@media (max-width: $screen-3) {
     .bodywrapper > div {
         margin: 0 auto;
     }
 }
 
-@media (min-width: $width-narrow) {
+@media (min-width: $screen-1) {
     #vertical-border {
         position: fixed;
         height: 100vh;
         border-left: $border-panel;
         top: 0;
-        left: calc(40vw - 15em);
         z-index: 10;
-    }
-
-    .bodywrapper {
-        margin-left: calc(40vw - 14em);
     }
 }
 
-@media (min-width: $width-narrow) {
+@media (min-width: $screen-1) and (max-width: $screen-2) {
+    #vertical-border {
+        left: 17rem;
+    }
+
+    .bodywrapper {
+        margin-left: 18rem;
+    }
+}
+
+@media (min-width: $screen-2) {
+    #vertical-border {
+        left: calc(40vw - 15rem);
+    }
+
+    .bodywrapper {
+        margin-left: calc(40vw - 14rem);
+    }
+}
+
+@media (min-width: $screen-1) {
     button#show-sidebar {
       display: none;
     }
 
     .body {
-        min-height: calc(100vh - 7em);
+        min-height: calc(100vh - 7rem);
     }
 }
 
-@media (max-width: $width-narrow) {
+@media (max-width: $screen-1) {
     .body {
         min-height: calc(100vh - 11.25rem);
     }
@@ -161,9 +176,10 @@ svg {
 
 .body table {
     margin: 0 auto;
+    line-height: 1.5em;
 }
 
-@media (min-width: $width-content) {
+@media (min-width: $screen-1) {
     #hdl-component-diagram svg {
         float: right;
         margin: -3em 0 0 1em;
@@ -171,7 +187,7 @@ svg {
     }
 }
 
-@media (max-width: $width-narrow) {
+@media (max-width: $screen-1) {
     svg {
         max-width: 100%;
     }

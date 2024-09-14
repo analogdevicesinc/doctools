@@ -9,13 +9,19 @@ footer {
     }
 }
 
-@media (min-width: $width-narrow) {
+@media (min-width: $screen-1) and (max-width: $screen-2) {
+    footer {
+        margin-left: 18rem;
+    }
+}
+
+@media (min-width: $screen-2) {
     footer {
         margin-left: calc(40vw - 14em);
     }
 }
 
-@media (min-width: $width-wide) {
+@media (min-width: $screen-3) {
     footer {
         max-width: 60rem;
     }

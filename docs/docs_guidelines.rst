@@ -10,6 +10,23 @@ A brief set-of-rules for the documentation.
    importing text from there, consider the automated options that are provided
    in this page to convert it to reST.
 
+Importing from DokuWiki to Sphinx
+--------------------------------------------------------------------------------
+
+Use the following command to import a DokuWiki page (old *wiki.analog.com*):
+
+.. code:: bash
+
+   pandoc imported.txt -f dokuwiki -t rst --columns=80 -s -o imported.rst --list-tables
+
+The :code:`list-tables` parameter requires *pandoc-types* >= 1.23, included in any
+recent `pandoc release <https://github.com/jgm/pandoc/releases>`__;
+if it is not an option, you shall remove it and export in the *grid* table
+format (see :ref:`tables` for more information).
+
+After converting, update it to better conform with the guidelines below, and
+make sure to use our directives and roles, for example, the :ref:`role git`.
+
 Indentation
 --------------------------------------------------------------------------------
 
@@ -239,35 +256,29 @@ while respecting word-breaks:
 
    cat imported.txt | fold -sw 80 > imported.rst
 
-Or use :code:`pandoc`:
+The header divide ("`---`" shall be either 80 characters wide or end at the
+title character, that means, this is also valid:
 
-.. code:: bash
+.. code::
 
-   pandoc imported.txt -f dokuwiki -t rst --columns=80 -s -o imported.rst
+   My title
+   ========
 
+.. _tables:
 
 Tables
 --------------------------------------------------------------------------------
 
 Prefer
-`list-tables <https://docutils.sourceforge.io/docs/ref/rst/directives.html#list-table>`_
+`list-tables <https://docutils.sourceforge.io/docs/ref/rst/directives.html#list-table>`__
 and imported
-`csv-tables <https://docutils.sourceforge.io/docs/ref/rst/directives.html#csv-table-1>`_
+`csv-tables <https://docutils.sourceforge.io/docs/ref/rst/directives.html#csv-table-1>`__
 (using the file option), because they are faster to create, easier to maintain
 and the 80 column-width rule can be respected with list-tables.
 
-You can use the following command:
-
-.. code:: bash
-
-   pandoc imported.txt -f dokuwiki -t rst --columns=80 -s -o imported.rst --list-tables
-
-The :code:`list-tables` parameter requires *pandoc-types* >= 1.23, included in any
-recent `pandoc release <https://github.com/jgm/pandoc/releases>`_;
-if it is not an option, you shall remove it and export in the *grid* table format.
-
-Now you only have to adjust the widths and give the final touches, like using
-the correct directives and roles.
+Only use
+`grid tables <https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html#tables>`__
+if strictly necessary, since they are hard to update.
 
 Lists
 --------------------------------------------------------------------------------
@@ -436,16 +447,20 @@ These links are not managed, that means, only links from changed files are check
 You can run a build with it set to False, then touch the desired files to check
 the links of only these files.
 
+.. _role git:
+
 Git role
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 The Git role allows to create links to the Git repository with a shorter syntax.
-The role syntax is :code:`:git-repo:\`text <branch:path>\``, for example:
+The role syntax is :code:`:git-repo:\`text <type+branch:path>\``, for example:
 
 * :code:`:git-hdl:\`main:docs/user_guide/docs_guidelines.rst\``
   renders as :git-hdl:`main:docs/user_guide/docs_guidelines.rst`.
 * :code:`:git-hdl:\`Guidelines <docs/user_guide/docs_guidelines.rst>\``
   renders as :git-hdl:`Guidelines <docs/user_guide/docs_guidelines.rst>`.
+* :code:`:git-wiki-scripts:\`raw+linux/build_zynq_kernel_image.sh`\``
+  renders as :git-wiki-scripts:`raw+linux/build_zynq_kernel_image.sh`.
 
 .. important::
 
@@ -457,6 +472,11 @@ because it is useful to auto-fill it for documentation releases
 (e.g. ``hdl_2023_r2``).
 A scenario where it is recommended to provide the branch is when linking others
 repositories.
+
+They type field is also optional and the values are:
+
+* *gui*: To view rendered on the Git server web GUI [default].
+* *raw*: To download/view as raw.
 
 The text field is optional and will be filled with the full path.
 

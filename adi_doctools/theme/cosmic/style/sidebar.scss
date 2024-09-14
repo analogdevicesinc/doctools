@@ -17,33 +17,37 @@
     height: 0;
 }
 
-@media (max-width: $width-narrow) {
+@media (max-width: $screen-1) {
     .sphinxsidebar .repotoc-tree {
         display: contents;
     }
 }
 
-@media (min-width: $width-narrow) {
+@media (min-width: $screen-1) {
     .sphinxsidebar .repotoc-tree {
         display: none;
     }
 }
 
-@media (max-width: $width-narrow) {
+@media (max-width: $screen-1) {
     .sphinxsidebar {
-        transition: .25s ease margin;
-        margin-left: calc(-18rem - 1px);
+        transition: .125s ease opacity, .25s ease margin;
+        pointer-events: none;
+        margin-left: -5rem;
+        opacity: 0;
     }
 
     .sphinxsidebarwrapper {
         backdrop-filter: blur(1em);
         background: var(--bg-color1-faded2);
-        border-right: $border-panel;
-        width: 18em;
+        box-shadow: $box-shadow-left-sidebar;
+        width: 18rem;
     }
 
     #input-show-toc:checked ~ .sphinxsidebar {
+        pointer-events: initial;
         margin-left: 0;
+        opacity: 1;
     }
 
     .sphinxsidebar .toctree {
@@ -65,7 +69,7 @@
     margin-bottom: .5rem;
 }
 
-@media (min-width: $width-narrowest) and (max-width: $width-narrow) {
+@media (min-width: $screen-0) and (max-width: $screen-1) {
     .sphinxsidebar {
         width: 18em;
         left: -19em;
@@ -86,7 +90,7 @@
     z-index: 5;
 }
 
-@media (max-width: $width-narrowest) {
+@media (max-width: $screen-0) {
     .sphinxsidebar {
         width: 100vw;
         left: -100vw;
@@ -106,19 +110,29 @@
     display: none;
 }
 
-@media (min-width: $width-narrow) {
+@media (min-width: $screen-1) {
     button#show-sidebar {
       display: none;
     }
 
     .sphinxsidebarwrapper {
-        padding: 1.5rem 1rem 0em calc(40vw - 31rem);
         height: calc(100vh - 5rem);
-	    width: 15em;
+	    width: 15rem;
+    }
+}
+@media (min-width: $screen-1) and (max-width: $screen-2) {
+    .sphinxsidebarwrapper {
+        padding: 1.5rem 1rem 0em 1rem;
     }
 }
 
-@media (max-width: $width-narrow) {
+@media (min-width: $screen-2) {
+    .sphinxsidebarwrapper {
+        padding: 1.5rem 1rem 0em calc(40vw - 31rem);
+    }
+}
+
+@media (max-width: $screen-1) {
     .toc-tree, .repotoc-tree {
         padding: 1em;
     }
@@ -140,8 +154,8 @@
         cursor: pointer;
         display: block;
         padding: .6em .5em;
-        height: 2em;
-        width: 2em;
+        height: 1.75em;
+        width: 1.75em;
     }
 
     .toctree-collapse ~ ul {
@@ -158,15 +172,21 @@
 
     a {
         display: inline-block;
-        line-height: 2em;
+        line-height: 1.75em;
         width: 100%;
-        padding-left: .5em;
-        margin-left: -.5em;
-        border-radius: $border-radius;
+        padding-left: .75em;
+        margin-left: -.75em;
+        border-radius: $border-radius-extra;
         font-size: .9em;
+        border: 1px solid rgba(0, 0, 0, 0);
     }
 
-    a:hover, a.current {
+    a:hover {
+        color: var(--accent-color);
+    }
+
+    a.current {
+        border-color: var(--accent-color);
         color: var(--accent-color);
     }
 
@@ -187,17 +207,18 @@
         width: .6em;
         height: .6em;
         transform: rotate(-45deg);
-        margin-top: 1px;
+        margin-top: 0px;
+        margin-left: -1px;
     }
 
     .toctree-collapse:checked ~ .collapse .icon {
         transform: rotate(45deg);
-        margin-top: -1px;
-        margin-left: 2px;
+        margin-top: -2px;
+        margin-left: 1px;
     }
 
     label {
-        border-radius: $border-radius;
+        border-radius: $border-radius-extra;
     }
 }
 
@@ -271,7 +292,7 @@
 
 
 
-@media (min-width: $width-wide) {
+@media (min-width: $screen-3) {
     .tocwrapper {
         width: calc(60vw - 60rem + 13rem);
     }
@@ -281,7 +302,7 @@
     }
 }
 
-@media (min-width: $width-narrow) {
+@media (min-width: $screen-1) {
     .sphinxsidebar {
         #show-repotoc, #show-toc {
             display: none;
@@ -323,7 +344,7 @@
     }
 }
 
-@media (max-width: $width-narrow) {
+@media (max-width: $screen-1) {
     #input-switch-toc:checked ~ .repotoc-tree {
         display: block;
     }
@@ -351,7 +372,7 @@
     display: none;
 }
 
-@media (max-width: $width-wide) {
+@media (max-width: $screen-3) {
     .localtoc {
         transition: .125s ease opacity;
         pointer-events: none;
@@ -381,7 +402,7 @@
     }
 }
 
-@media (max-width: $width-wide) {
+@media (max-width: $screen-3) {
     #input-show-localtoc:checked ~ #cancel-area-show-localtoc {
         position: fixed;
         background: rgba(0, 0, 0, .05);
@@ -392,7 +413,7 @@
     }
 }
 
-@media (max-width: $width-narrow) {
+@media (max-width: $screen-1) {
     #input-show-toc:checked ~ #cancel-area-show-toc {
         position: fixed;
         background: rgba(0, 0, 0, .05);

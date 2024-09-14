@@ -28,8 +28,6 @@ export_metadata = True
 
 html_theme = 'cosmic'
 
-html_theme_options = {
-    "no_index": True
-}
+html_theme_options = {}
 
 html_favicon = path.join("sources", "icon.svg")

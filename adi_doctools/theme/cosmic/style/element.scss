@@ -9,23 +9,6 @@ a, input, textarea, select, button, summary, label {
     -webkit-tap-highlight-color: transparent;
 }
 
-a {
-    user-select: none;
-    text-decoration: none;
-    color: inherit;
-}
-
-.body {
-    p a, a.reference.internal:not(.image-reference), aside a {
-        color: var(--accent-color);
-        border-bottom: 1px solid rgba(125, 125, 125, .25);
-    }
-
-    p a:hover, a.reference.internal:hover, aside a:hover {
-        border-color: var(--text-color2);
-    }
-}
-
 video {
     max-width: 100%;
 }
@@ -54,7 +37,7 @@ code.literal {
     border: 1px solid rgba(125, 125, 125, 0.15);
     background: rgba(125, 125, 125, 0.05);
     border-radius: $border-radius;
-    padding: .1em .2em;
+    padding: 0em .2em 0.1em .2em;
     font-size: 1.1em;
 }
 
@@ -64,6 +47,7 @@ a {
 
 .highlight {
     padding: .75em;
+    margin-bottom: .5em;
     border-radius: $border-radius;
     overflow-x: auto;
 }
@@ -79,6 +63,10 @@ a {
 .math-wrapper, .table-wrapper {
     width: 100%;
     overflow-x: auto;
+}
+
+.table-wrapper {
+    margin-bottom: .5em;
 }
 
 table.docutils {
@@ -122,7 +110,13 @@ img {
     max-width: 100%;
 }
 
-@media (min-width: $width-content) {
+@media print {
+    img {
+        break-inside: avoid;
+    }
+}
+
+@media (min-width: $screen-1) {
     .body img {
         display: block;
         margin: 0 auto;
@@ -159,10 +153,12 @@ body.dark .body img {
 }
 
 table.regmap {
-    font-size: 0.8rem;
+    td.description {
+        font-size: 0.8em;
+    }
 
-    .pre {
-        line-height: 1.8em;
+    td:not(.description) code.literal {
+        font-size: 1em;
     }
 }
 
@@ -210,7 +206,7 @@ iframe {
     }
 }
 
-@media (max-width: $width-narrow) {
+@media (max-width: $screen-1) {
     .iframe-video {
         width: 100%;
         overflow: hidden;
@@ -240,13 +236,13 @@ iframe {
     }
 }
 
-@media (min-width: $width-narrowest) {
+@media (min-width: $screen-0) {
     .esd-warning {
         display: flex;
     }
 }
 
-@media (max-width: $width-narrowest) {
+@media (max-width: $screen-0) {
     .esd-warning .icon {
         margin: 0 auto;
     }

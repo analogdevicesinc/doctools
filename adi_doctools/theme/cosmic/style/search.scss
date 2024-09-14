@@ -69,14 +69,14 @@
     }
 }
 
-@media (min-width: $width-narrow) {
+@media (min-width: $screen-1) {
     .search-area form {
         margin-left: calc(40vw - 15rem);
         width: calc(60vw + 15rem);
     }
 }
 
-@media (min-width: $width-wide) {
+@media (min-width: $screen-3) {
     .search-area form {
         max-width: 62rem;
     }

@@ -408,7 +408,7 @@ def resolve_reference_in_inventory(env: BuildEnvironment,
 class IntersphinxDispatcher(CustomReSTDispatcher):
     """Custom dispatcher for ref role.
 
-    This enables :ref+***: roles on parsing reST document.
+    This enables :ref-***: roles on parsing reST document.
     """
 
     def role(

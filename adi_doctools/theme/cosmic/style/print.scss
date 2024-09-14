@@ -5,6 +5,10 @@
 }
 
 @media print {
+    body {
+        font-size: .8rem;
+    }
+
     .only-screen {
         display: none !important;
     }

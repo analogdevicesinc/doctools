@@ -1,11 +1,27 @@
 @import "mixin_links";
 
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.body {
+    p a, a.reference.internal:not(.image-reference), aside a, .line-block a {
+        color: var(--accent-color);
+        border-bottom: 1px solid rgba(125, 125, 125, .25);
+    }
+
+    p a:hover, a.reference.internal:hover, aside a:hover, .line-block a:hover {
+        border-color: var(--text-color2);
+    }
+}
+
 a.icon {
     margin: 0;
     position: relative;
     margin-top: 0;
-    padding-left: 1.5rem;
-    padding-top: .5rem;
+    padding-left: 1.5em;
+    padding-top: .5em;
 
     /* Our fancy icon */
     &::before {
@@ -13,10 +29,10 @@ a.icon {
         -webkit-print-color-adjust: exact;
         content: "";
         position: absolute;
-        left: 0rem;
-        top: .25rem;
-        width: 1.5rem;
-        height: 1.5rem;
+        left: 0em;
+        top: .25em;
+        width: 1.5em;
+        height: 1.5em;
     }
 }
 
