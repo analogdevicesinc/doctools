@@ -247,6 +247,16 @@
         padding: .25em 0;
     }
 
+    a:not(.current) {
+      letter-spacing: .025em;
+    }
+
+    a.current {
+      color: var(--accent-color);
+      font-weight: bold;
+      letter-spacing: -.01em;
+    }
+
     nav {
         max-width: 20rem;
         border-left: 1px solid rgba(125,125,125,.5);

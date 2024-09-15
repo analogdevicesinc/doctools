@@ -78,7 +78,8 @@ def builder_inited(app):
             app.config.values["html_permalinks_icon"] = conf_
             get_pygments_theme(app)
         else:
-            app.add_css_file("third-party.css", priority=500, defer="")
+            pass
+            #app.add_css_file("third-party.css", priority=500, defer="")
 
 
 def build_finished(app, exc):

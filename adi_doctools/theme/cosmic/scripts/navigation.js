@@ -11,12 +11,19 @@ class Navigation {
     this.currentTheme = localStorage.getItem('theme')
     this.contentRoot = this.getContentRoot()
     this.globalRoot = this.getGlobalRoot()
+    this.scrollSpy = {
+      localtoc: new Map(),
+      currentLocaltoc: undefined
+    }
 
     let metaRepo = document.querySelector('meta[name="repo"]')
     this.repo = metaRepo ? metaRepo.content.split('/') : ['']
 
     let $ = this.$ = {}
     $.body = new DOM(DOM.get('body'))
+    $.content = new DOM(DOM.get('.body section'))
+    $.localtoc = new DOM(DOM.get('.tocwrapper > nav > ul > li'))
+    this.initScrollSpy()
 
     if (this.currentTheme === null)
       this.currentTheme = this.getOSTheme()
@@ -66,9 +73,90 @@ class Navigation {
     $.relatedNext = DOM.get('.related .next')
     $.relatedPrev = DOM.get('.related .prev')
   }
+  /*
+   * Initates scroll spy elements.
+   */
+  initScrollSpy () {
+    if (this.$.localtoc.$ !== null) {
+      this.prepareLocaltocMap()
+    }
+  }
+  /*
+   * Prepare map for localtoc elements to be used by the scroll spy.
+   */
+  prepareLocaltocMap (){
+    let key = ""
+    let lt = this.scrollSpy.localtoc
+    let i = 0
+    DOM.getAll('.reference.internal', this.$.localtoc).forEach((elem) => {
+      key = `${i}_${elem.textContent}`
+      lt.set(key, [elem, undefined])
+      i += 1
+    })
+
+    let entries = []
+    for (let i = 0; i < 7; i++) {
+      entries.push(...DOM.getAll(`section > h${i}`, this.$.content))
+    }
+    // Sort entries in distance to the top
+    entries = entries.sort((a, b) => a.getBoundingClientRect().y - b.getBoundingClientRect().y)
+    i = 0
+    entries.forEach((elem) => {
+      key = elem.textContent
+      key = `${i}_${key.substring(0, key.length-1)}` // Remove anchor # char
+      if (lt.has(key)) {
+        lt.set(key, [lt.get(key)[0], elem])
+        i += 1
+      }
+    })
+    // Remove not found entries
+    lt.forEach((value, key, map) => {
+      if (value[1] === undefined)
+        map.delete(key)
+    })
+  }
   /* Update GUI based on resize event */
   handleResize () {
     this.portrait = window.innerHeight > window.innerWidth ? true : false
+  }
+  /* Update GUI based on scroll event */
+  handleScroll () {
+    if (this.$.localtoc.$ !== null) {
+      // Highlight localtoc entry
+      let key_neg, key_pos, key, dist
+      let dist_pos = Number.MAX_SAFE_INTEGER
+      let dist_neg = Number.MIN_SAFE_INTEGER
+      let lt = this.scrollSpy.localtoc
+      lt.forEach((value, key_, map) => {
+        dist = value[1].getBoundingClientRect().y
+        if (dist <= 0) {
+          if (dist > dist_neg) {
+            dist_neg = dist
+            key_neg  = key_
+          }
+        } else {
+          if (dist < dist_pos) {
+            dist_pos = dist
+            key_pos  = key_
+          }
+        }
+      })
+      if (dist_pos < 5*16)
+        key = key_pos
+      else
+        key = key_neg
+
+      if (key !== undefined) {
+        let clt_key = this.scrollSpy.currentLocaltoc
+        if (key !== clt_key) {
+          lt.get(key)[0].classList.add("current")
+          if (clt_key !== undefined) {
+            lt.get(clt_key)[0].classList.remove("current")
+          }
+          this.scrollSpy.currentLocaltoc = key
+        }
+      }
+    }
   }
   /*
    * Get relative path to the root
@@ -145,6 +233,7 @@ class Navigation {
    */
   init () {
     onresize = () => {this.handleResize()}
+    onscroll = () => {this.handleScroll()}
     document.addEventListener('keyup', (e) => {this.keyUp(e)}, false);
     this.dynamic()
   }
