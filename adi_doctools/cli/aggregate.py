@@ -183,7 +183,7 @@ def gen_symbolic_doc(repo_dir):
             continue
 
         env = os.environ.copy()
-        env["ADOC_INTERREF_URI"] = os.path.abspath(os.path.join(os.getcwd(), "html")) + SEP
+        env["ADOC_INTERREF_URI"] = os.path.abspath(os.path.join(repo_dir, "..", "html")) + SEP
         pr.popen(['make', 'html'], p, cwd, env=env)
     pr.wait(p)
 
@@ -304,11 +304,11 @@ def gen_monolithic_doc(repo_dir):
     help="Path to create aggregated output."
 )
 @click.option(
-    '--symbolic',
-    '-s',
+    '--monolithic',
+    '-m',
     is_flag=True,
     default=False,
-    help="Keep each repo doc independent."
+    help="Generate a single Sphinx build."
 )
 @click.option(
     '--extra',
@@ -341,10 +341,10 @@ def gen_monolithic_doc(repo_dir):
     default=False,
     help="Open after generation (xdg-open)."
 )
-def aggregate(directory, symbolic, extra, no_parallel_, dry_run_, open_):
+def aggregate(directory, monolithic, extra, no_parallel_, dry_run_, open_):
     """
     Creates an aggregated documentation out of every repo documentation,
-    by default, will conjoin/patch each into a single Sphinx build.
+    by deafult, generate independent Sphinx builds for each repo.
     To resolve inter-repo-references in symbolic mode, run twice.
     """
     global dry_run, no_parallel
@@ -352,7 +352,7 @@ def aggregate(directory, symbolic, extra, no_parallel_, dry_run_, open_):
     dry_run = dry_run_
     directory = os.path.abspath(directory)
 
-    if not symbolic:
+    if monolithic:
         click.echo("Currently, monolithic output is disabled")
         return
 
@@ -381,13 +381,13 @@ def aggregate(directory, symbolic, extra, no_parallel_, dry_run_, open_):
     if extra:
         do_extra_steps(repos_dir)
 
-    if symbolic:
-        gen_symbolic_doc(repos_dir)
-    else:
+    if monolithic:
         gen_monolithic_doc(repos_dir)
+    else:
+        gen_symbolic_doc(repos_dir)
 
-    type_ = "symbolic" if symbolic else "monolithic"
-    out_ = "html" if symbolic else "docs/_build"
+    type_ = "monolithic" if monolithic else "symbolic"
+    out_ = "docs/_build" if monolithic else "html"
     click.echo(f"Done, {type_} documentation written to {directory}/{out_}")
 
     if open_ and not dry_run:
