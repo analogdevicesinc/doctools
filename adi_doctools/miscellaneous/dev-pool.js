@@ -6,8 +6,10 @@
  */
 
 /* Global variable to store timestamp and interval handler */
-var poolTimestamp;
-var poolInterval;
+var poolTimestamp
+var poolInterval
+/* Keep track of last error to reduce log clutter */
+var lastErrorName
 
 /**
  * Pool changes, return a text on success and true on error.
@@ -18,10 +20,13 @@ class PoolChanges {
    * @param {string} url - URL to file.
   */
   static async do (url){
-    const response = await fetch(url)
+    const response = await fetch(url, {
+      signal: AbortSignal.timeout(250),
+      cache: "no-store"
+    })
 
     if (!response.ok)
-      throw new Error(response.status)
+      return Promise.reject(response)
     return await response.text()
   }
 }
@@ -35,13 +40,21 @@ PoolChanges.do('/.dev-pool').then(obj => {
   poolTimestamp = Number(obj)
   poolInterval = setInterval(() => {
     PoolChanges.do('/.dev-pool').then(obj => {
-      if (this.poolTimestamp < Number(obj))
+      if (this.poolTimestamp < Number(obj)) {
         location.reload()
+      }
     }).catch(e => {
-        console.error("File .dev-pool was removed, pooling interface disabled.")
+      if (e.statusText === "File not found") {
+        console.error(`${e.statusText}: File .dev-pool was removed, pooling interface disabled.`)
         clearInterval(this.poolInterval)
+      } else {
+        if (e.name !== lastErrorName) {
+          console.log(`${e.name}: Failed to fetch .dev-pool, but still trying.`)
+          lastErrorName = e.name
+        }
+      }
     })
-  }, 1000)
+  }, 500)
 }).catch(e => {
   console.log("File .dev-pool is absent, pooling interface disabled.")
 })
