@@ -16,7 +16,9 @@ log = {
     'comp': "Couldn't find the minified web files ",
     'no_npm': "and the npm tools are not installed.",
     'with_npm': "run with the --just-regen flag (npm detected).",
-    'fetch': "Do you want to fetch from the release?"
+    'fetch': "Do you want to fetch from the release?",
+    'builder': "Unknown builder '{}', valid options are: html, pdf.",
+    'no_weasyprint': "Package 'weasyprint' required for PDF generation is not installed.",
 }
 
 # Hall of shame of poorly managed artifacts
@@ -51,7 +53,7 @@ unmanaged = []
     '--no-selenium',
     is_flag=True,
     default=False,
-    help="Force alternative pooling method instead of selenium/Firefox."
+    help="Force pooling method instead of selenium/Firefox (html builder only)."
 )
 @click.option(
     '--just-regen',
@@ -60,10 +62,17 @@ unmanaged = []
     default=False,
     help="Just regenerate the web minified files and exit."
 )
-def author_mode(directory, port, dev, no_selenium, just_regen):
+@click.option(
+    '--builder',
+    '-b',
+    is_flag=False,
+    default="html",
+    help="Builder to use, valid options are: html, pdf (WeasyPrint) (default: html)."
+)
+def author_mode(directory, port, dev, no_selenium, just_regen, builder):
     """
     Watch the docs and source code to rebuild it on edit.
-    Two live update strategies are available:
+    Two html live update strategies are available:
     Selenium: Page reloads through Firefox's API.
     Pooling: The webpage pools timestamp changes on the .dev-pool file.
     """
@@ -95,9 +104,32 @@ def author_mode(directory, port, dev, no_selenium, just_regen):
         else:
             return False
 
+    if builder not in ['html', 'pdf']:
+        click.echo(log['builder'].format(builder))
+        return
+    if builder == 'pdf':
+        if not importlib.util.find_spec("weasyprint"):
+            click.echo(log['no_weasyprint'])
+            return
+        from weasyprint import HTML, CSS
+        from weasyprint.text.fonts import FontConfiguration
+        builder = 'singlehtml'
+
     source_files = {'app.umd.js', 'app.umd.js.map', 'style.min.css',
                     'style.min.css.map'}
 
+    def signal_handler(sig, frame):
+        if builder == 'html':
+            with lock:
+                http.shutdown()
+                http.server_close()
+            http_thread._stop()
+        if dev:
+            killpg(getpgid(rollup_p.pid), signal.SIGTERM)
+        click.echo("Terminated")
+        return
+
+    cosmic_static = path.join('adi_doctools', 'theme', 'cosmic', 'static')
     def fetch_compiled(path_):
         req = path.join(path_, 'docs', 'requirements.txt')
         dist = path.join(path_, '.dist')
@@ -119,10 +151,9 @@ def author_mode(directory, port, dev, no_selenium, just_regen):
         remove(path.join(dist, file))
         for d in listdir(dist):
             break
-        base = path.join('adi_doctools', 'theme', 'cosmic', 'static')
         for f in source_files:
-            src = path.join(dist, d, base, f)
-            dest = path.join(path_, base, f)
+            src = path.join(dist, d, cosmic_static, f)
+            dest = path.join(path_, cosmic_static, f)
             copy(src, dest)
         rmtree(dist)
         click.echo("Success fetching the pre-compiled files!")
@@ -161,7 +192,7 @@ def author_mode(directory, port, dev, no_selenium, just_regen):
         return
 
     with_selenium = False
-    if not no_selenium:
+    if not no_selenium and dev and builder == 'html':
         if importlib.util.find_spec("selenium"):
             with_selenium = True
         else:
@@ -183,12 +214,15 @@ def author_mode(directory, port, dev, no_selenium, just_regen):
     if builddir_ is None or sourcedir_ is None:
         click.echo(log['inv_mk'].format(directory))
         return
-    builddir = path.join(directory, builddir_, 'html')
+    builddir = path.join(directory, builddir_, builder)
     sourcedir = path.join(directory, sourcedir_)
     if dir_assert(sourcedir, log['inv_srcdir']):
         return
 
-    devpool_js = "ADOC_DEVPOOL= " if not with_selenium else ""
+    if not with_selenium and dev and builder == 'html':
+        devpool_js = "ADOC_DEVPOOL= "
+    else:
+        devpool_js = ""
     watch_file_src = {}
     watch_file_rst = {}
     if dev:
@@ -210,7 +244,7 @@ def author_mode(directory, port, dev, no_selenium, just_regen):
                 return
 
         # Build doc the first time
-        subprocess.call(f"{devpool_js} make html", shell=True, cwd=directory)
+        subprocess.call(f"{devpool_js} make {builder}", shell=True, cwd=directory)
         for f, s in zip(w_files, source_files):
             watch_file_src[f] = path.getctime(f)
         # Run rollup in watch mode
@@ -219,7 +253,7 @@ def author_mode(directory, port, dev, no_selenium, just_regen):
                                     stdout=subprocess.DEVNULL)
     else:
         # Build doc the first time
-        subprocess.call(f"{devpool_js} make html", shell=True, cwd=directory)
+        subprocess.call(f"{devpool_js} make {builder}", shell=True, cwd=directory)
 
     class Handler(http.server.SimpleHTTPRequestHandler):
         def __init__(self, *args, **kwargs):
@@ -229,18 +263,19 @@ def author_mode(directory, port, dev, no_selenium, just_regen):
         def log_message(self, format, *args):
             return
 
-    try:
-        http = socketserver.TCPServer(("", port), Handler)
-        lock = threading.Lock()
-        http_thread = threading.Thread(target=http.serve_forever)
-        http_thread.daemon = True
-        http_thread.start()
-    except Exception:
-        click.echo(f"Could not start server on http://0.0.0.0:{port}")
-        if dev:
-            killpg(getpgid(rollup_p.pid), signal.SIGTERM)
-
-        return
+    if builder == "html":
+        try:
+            http = socketserver.TCPServer(("", port), Handler)
+            lock = threading.Lock()
+            http_thread = threading.Thread(target=http.serve_forever)
+            http_thread.daemon = True
+            http_thread.start()
+            signal.signal(signal.SIGINT, signal_handler)
+        except Exception:
+            click.echo(f"Could not start server on http://0.0.0.0:{port}")
+            if dev:
+                killpg(getpgid(rollup_p.pid), signal.SIGTERM)
+            return
 
     dev_pool = path.join(builddir, '.dev-pool')
 
@@ -259,7 +294,7 @@ def author_mode(directory, port, dev, no_selenium, just_regen):
         driver = webdriver.Firefox()
 
         driver.get(f"http://0.0.0.0:{port}")
-    else:
+    elif builder == "html":
         update_dev_pool()
 
     def get_doc_sources():
@@ -287,6 +322,15 @@ def author_mode(directory, port, dev, no_selenium, just_regen):
                     ctime.append(path.getctime(f))
         return (files, ctime)
 
+    if builder == 'singlehtml':
+        font_config = FontConfiguration()
+        singlehtml_file = path.join(builddir, 'index.html')
+    def update_pdf():
+        document = HTML(filename=singlehtml_file)
+        document.write_pdf(path.join(builddir, '..', 'raw.pdf'),
+                           font_config=font_config)
+
+
     def check_files(scheduler):
         update_sphinx = False
         update_page = False
@@ -308,7 +352,7 @@ def author_mode(directory, port, dev, no_selenium, just_regen):
                 watch_file_src[file] = ctime
 
         if update_sphinx:
-            subprocess.call(f"{devpool_js} make html",
+            subprocess.call(f"{devpool_js} make {builder}",
                             shell=True, cwd=directory)
         if update_page:
             for f, s in zip(w_files, source_files):
@@ -323,10 +367,13 @@ def author_mode(directory, port, dev, no_selenium, just_regen):
                         killpg(getpgid(rollup_p.pid), signal.SIGTERM)
                     with lock:
                         http.shutdown()
+                        http.server_close()
                     http_thread._stop()
                     return
-            else:
+            elif builder == "html":
                 update_dev_pool()
+            elif builder == 'singlehtml':
+                update_pdf()
 
         scheduler.enter(1, 1, check_files, (scheduler,))
 

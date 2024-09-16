@@ -16,7 +16,7 @@ Author Mode
 
 Watches the docs and source code to rebuild it on edit.
 
-Two live update strategies are available:
+Two HTML live update strategies are available:
 
 * selenium: Page reloads through Firefox's API (default).
 * pooling: The webpage pools timestamp changes on the ``.dev-pool`` file (fallback).
@@ -32,7 +32,16 @@ Where ``/path/to/docs`` is the path to the folder contain the Sphinx's ``Makefil
 To also watch changes made to theme itself, use the ``--dev`` option, just make
 sure to have Doctools as :ref:`development-install`.
 
-For all options, do:
+For PDF output, do:
+
+.. code::
+
+   adoc author-mode --directory /path/to/docs --builder pdf
+
+Make sure to use an PDF viewer that watches the file timestamp
+and automatically reloads, such as Gnome PDF (Evince).
+
+All options can be listed with:
 
 .. code::
 
