@@ -23,7 +23,8 @@ log = {
 
 # Hall of shame of poorly managed artifacts
 unmanaged = []
-
+# Avoid
+first_run = True
 
 @click.command()
 @click.option(
@@ -56,11 +57,11 @@ unmanaged = []
     help="Force pooling method instead of selenium/Firefox (html builder only)."
 )
 @click.option(
-    '--just-regen',
-    '-g',
+    '--once',
+    '-o',
     is_flag=True,
     default=False,
-    help="Just regenerate the web minified files and exit."
+    help="Generate the build and exit."
 )
 @click.option(
     '--builder',
@@ -69,7 +70,7 @@ unmanaged = []
     default="html",
     help="Builder to use, valid options are: html, pdf (WeasyPrint) (default: html)."
 )
-def author_mode(directory, port, dev, no_selenium, just_regen, builder):
+def author_mode(directory, port, dev, no_selenium, once, builder):
     """
     Watch the docs and source code to rebuild it on edit.
     Two html live update strategies are available:
@@ -120,6 +121,7 @@ def author_mode(directory, port, dev, no_selenium, just_regen, builder):
 
     def signal_handler(sig, frame):
         if builder == 'html':
+            click.echo("Shutting down server")
             with lock:
                 http.shutdown()
                 http.server_close()
@@ -127,7 +129,7 @@ def author_mode(directory, port, dev, no_selenium, just_regen, builder):
         if dev:
             killpg(getpgid(rollup_p.pid), signal.SIGTERM)
         click.echo("Terminated")
-        return
+        sys.exit()
 
     cosmic_static = path.join('adi_doctools', 'theme', 'cosmic', 'static')
     def fetch_compiled(path_):
@@ -162,7 +164,7 @@ def author_mode(directory, port, dev, no_selenium, just_regen, builder):
     par_dir = path.abspath(path.join(src_dir, pardir))
     rollup_bin = path.join(par_dir, 'node_modules', '.bin', 'rollup')
     rollup_conf = path.join(par_dir, 'ci', 'rollup.config.app.mjs')
-    if just_regen or dev:
+    if dev:
         if symbolic_assert(rollup_conf, log['rollup'].format(rollup_conf)):
             return
         if symbolic_assert(rollup_bin, log['node'].format(rollup_bin)):
@@ -181,11 +183,6 @@ def author_mode(directory, port, dev, no_selenium, just_regen, builder):
                     return
             else:
                 return
-
-    if just_regen:
-        subprocess.call(f"{rollup_bin} -c {rollup_conf}",
-                        shell=True, cwd=par_dir)
-        return
 
     if directory is None:
         click.echo("Please provide a --directory.")
@@ -219,7 +216,42 @@ def author_mode(directory, port, dev, no_selenium, just_regen, builder):
     if dir_assert(sourcedir, log['inv_srcdir']):
         return
 
-    if not with_selenium and dev and builder == 'html':
+    # Define PDF generation
+    def generate_toctree(bookmarks, indent=0):
+        """
+        Generate table of contents
+        from: https://github.com/Kozea/WeasyPrint/issues/23#issuecomment-312447974
+        """
+        outline_str = ""
+        for i, (label, (page, _, _), children, _) in enumerate(bookmarks, 1):
+            outline_str += ('<p>%s %s <span class="page">%d</span></p>' % (
+                ' ' * indent, label.lstrip('0123456789. ').rstrip('# '), page))
+            outline_str += generate_toctree(children, indent + 2)
+        return outline_str
+
+
+    if builder == 'singlehtml':
+        singlehtml_file = path.join(builddir, 'index.html')
+        font_config = FontConfiguration()
+    def update_pdf():
+        html = HTML(filename=singlehtml_file)
+        document = html.render()
+
+        css = CSS(path.join(par_dir, cosmic_static, 'style.min.css'),
+                  font_config=font_config)
+        contents_str = generate_toctree(document.make_bookmark_tree())
+        contents_str = f"<div class='pdf-toctree'>{contents_str}</div>"
+        contents_doc = HTML(string=contents_str)
+        contents_doc = contents_doc.render(stylesheets=[css],
+                                           font_config=font_config)
+        for page in reversed(contents_doc.pages):
+            document.pages.insert(1, page)
+
+        document.write_pdf(path.join(builddir, '..', 'output.pdf'))
+        click.echo("The PDF is at _build/output.pdf")
+
+
+    if not with_selenium and builder == 'html':
         devpool_js = "ADOC_DEVPOOL= "
     else:
         devpool_js = ""
@@ -247,13 +279,19 @@ def author_mode(directory, port, dev, no_selenium, just_regen, builder):
         subprocess.call(f"{devpool_js} make {builder}", shell=True, cwd=directory)
         for f, s in zip(w_files, source_files):
             watch_file_src[f] = path.getctime(f)
-        # Run rollup in watch mode
-        cmd = f"{rollup_bin} -c {rollup_conf} --watch"
-        rollup_p = subprocess.Popen(cmd, shell=True, cwd=par_dir,
-                                    stdout=subprocess.DEVNULL)
+        if not once:
+            # Run rollup in watch mode
+            cmd = f"{rollup_bin} -c {rollup_conf} --watch"
+            rollup_p = subprocess.Popen(cmd, shell=True, cwd=par_dir,
+                                        stdout=subprocess.DEVNULL)
     else:
         # Build doc the first time
         subprocess.call(f"{devpool_js} make {builder}", shell=True, cwd=directory)
+        if builder == "singlehtml":
+            update_pdf()
+
+    if once:
+        return
 
     class Handler(http.server.SimpleHTTPRequestHandler):
         def __init__(self, *args, **kwargs):
@@ -270,12 +308,12 @@ def author_mode(directory, port, dev, no_selenium, just_regen, builder):
             http_thread = threading.Thread(target=http.serve_forever)
             http_thread.daemon = True
             http_thread.start()
-            signal.signal(signal.SIGINT, signal_handler)
         except Exception:
             click.echo(f"Could not start server on http://0.0.0.0:{port}")
             if dev:
                 killpg(getpgid(rollup_p.pid), signal.SIGTERM)
             return
+    signal.signal(signal.SIGINT, signal_handler)
 
     dev_pool = path.join(builddir, '.dev-pool')
 
@@ -322,16 +360,9 @@ def author_mode(directory, port, dev, no_selenium, just_regen, builder):
                     ctime.append(path.getctime(f))
         return (files, ctime)
 
-    if builder == 'singlehtml':
-        font_config = FontConfiguration()
-        singlehtml_file = path.join(builddir, 'index.html')
-    def update_pdf():
-        document = HTML(filename=singlehtml_file)
-        document.write_pdf(path.join(builddir, '..', 'raw.pdf'),
-                           font_config=font_config)
-
 
     def check_files(scheduler):
+        global first_run
         update_sphinx = False
         update_page = False
         for file, ctime in zip(*get_doc_sources()):
@@ -350,6 +381,11 @@ def author_mode(directory, port, dev, no_selenium, just_regen, builder):
             if ctime > watch_file_src[file]:
                 update_page = True
                 watch_file_src[file] = ctime
+
+        if first_run is True:
+            first_run = False
+            update_page = False
+            update_sphinx = False
 
         if update_sphinx:
             subprocess.call(f"{devpool_js} make {builder}",

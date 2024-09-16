@@ -397,7 +397,7 @@ Vivado waveform data
 
 There is no way to export Vivado waveform data as vectors.
 Therefore, the recommended method is to take a PNG screenshot and use
-`GIMP <gimp.org>`_ to export as **8bpc RGB** with all metadata options
+`GIMP <https://gimp.org>`__ to export as **8bpc RGB** with all metadata options
 disabled.
 
 .. note::

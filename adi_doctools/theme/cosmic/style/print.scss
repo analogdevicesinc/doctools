@@ -26,4 +26,22 @@
         padding: 0;
     }
 
+    .localtoc, .sphinxsidebar,
+    .banner, .search-area, .reverse {
+        display: none;
+    }
+    #right > span {
+        width: 100%;
+    }
+}
+
+@media print {
+    .pdf-toctree {
+        white-space: pre-wrap;
+
+        .page {
+            font-weight: bold;
+            float: right;
+        }
+    }
 }

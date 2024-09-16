@@ -37,21 +37,45 @@ a.icon {
 }
 
 /* Default styles */
-a.icon {
-    &::before {
-        background-color: var(--color-link-title);
-        mask-image: var(--icon-link-default);
-        mask-repeat: no-repeat;
+@media screen {
+    a.icon {
+        &::before {
+            background-color: var(--color-link-title);
+            mask-image: var(--icon-link-default);
+            mask-repeat: no-repeat;
+        }
+    }
+}
+
+@media print {
+    a.icon {
+        &::before {
+            background-image: var(--icon-link-default);
+        }
     }
 }
 
 /* Variants */
-a.icon {
-    @each $type, $value in $links {
-        &.#{$type} {
-            &::before {
-                background-color: var(--color-link-title--#{$type});
-                mask-image: var(--icon-#{nth($value, 2)});
+@media screen {
+    a.icon {
+        @each $type, $value in $links {
+            &.#{$type} {
+                &::before {
+                    background-color: var(--color-link-title--#{$type});
+                    mask-image: var(--icon-#{nth($value, 2)});
+                }
+            }
+        }
+    }
+}
+
+@media print {
+    a.icon {
+        @each $type, $value in $links {
+            &.#{$type} {
+                &::before {
+                    background-image: var(--icon-#{nth($value, 2)});
+                }
             }
         }
     }

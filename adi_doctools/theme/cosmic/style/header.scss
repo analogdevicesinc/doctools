@@ -312,6 +312,15 @@ header {
 
 }
 
+@media print {
+    header #show-repotoc {
+        display: none;
+    }
+    header #logo {
+        margin-left: .5em;
+    }
+}
+
 @media (max-width: $screen-1) {
     header #show-repotoc {
         display: none;
