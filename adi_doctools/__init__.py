@@ -58,12 +58,22 @@ def config_inited(app, config):
     # Inject version value, config entry has higher precedence
     if 'version' not in config:
         doc_version = getenv("ADOC_DOC_VERSION", default="")
+    doc_version = getenv("ADOC_DOC_VERSION", default="")
+
+    # parameter used for PDF output mode
+    media_print = getenv("ADOC_MEDIA_PRINT", default=0)
+    media_print = True if media_print == '1' else False
+    config.media_print = media_print
+
+    if 'version' not in config or config.version == "":
         try:
             doc_version = str(Version(doc_version))
         except Exception as err:
             pass
         config.version = doc_version
-
+    elif doc_version != "":
+        logger.warning("ADOC_DOC_VERSION set but ignored due to "
+                    "conf.py version entry")
 
 def builder_inited(app):
     if app.builder.format == 'html':

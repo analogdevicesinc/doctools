@@ -134,6 +134,29 @@ if the target directory is:
 * *./prs/1234*: ``2``
 * *./staging/user/branch*: ``3``
 
+Exporting to PDF
+--------------------------------------------------------------------------------
+
+The whole documentation can be exported to a PDF document for a more compact 
+format. This is done by setting the enviroment variable called 
+``ADOC_MEDIA_PRINT`` to 1 (default it's 0) and building the documentation using 
+this command:
+
+.. code-block::
+
+   user@analog:~/doctools/docs$ sphinx-build -b pdf .  _build/pdfbuild
+
+In the output folder, you’ll find a PDF document named after the repository 
+(e.g. Doctools.pdf). This document includes an auto-generated cover, followed by
+the remaining pages. Note that an HTML build of the documentation is not
+required for the PDF build.
+
+.. warning::
+
+   The enviroment variable ``ADOC_MEDIA_PRINT`` should be set to 0 when building
+   the HTML pages of documentation. If not set, some components of the pages
+   may not render properly. 
+
 References
 --------------------------------------------------------------------------------
 

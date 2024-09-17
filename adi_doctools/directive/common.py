@@ -101,7 +101,7 @@ class directive_base(Directive):
                                   uid=uid)
         rows.append(row)
 
-    def generic_table(self, description, uid: Optional[str]=None):
+    def generic_table(self, description, uid: Optional[str]=None, media_print=False):
         tgroup = nodes.tgroup(cols=2)
         for _ in range(2):
             colspec = nodes.colspec(colwidth=1)
@@ -109,17 +109,24 @@ class directive_base(Directive):
         table = nodes.table()
         table += tgroup
 
+        # example: self.table_header(tgroup, ["Bear with me", "Description"])
         self.table_header(tgroup, ["Name", "Description"])
 
         rows = []
         for key in description:
             row = nodes.row()
+            
             entry = nodes.entry()
-            entry += nodes.literal(text="{:s}".format(key))
+            if not media_print:  # Check if not in PDF mode
+                entry += nodes.literal(text="{:s}".format(key))
+            else:
+                entry += nodes.paragraph(text="{:s}".format(key))  # Use paragraph for PDF mode
             row += entry
+            
             entry = nodes.entry()
             entry += parse_rst(self.state, description[key], uid=uid)
             row += entry
+            
             rows.append(row)
 
         tbody = nodes.tbody()
@@ -154,8 +161,7 @@ class directive_base(Directive):
 
         thead.append(row)
 
-    def collapsible(self, section,
-                    text: [str, Tuple[str, str]] = "", node=None):
+    def collapsible(self, section, text: [str, Tuple[str, str]] = "", node=None):
         """
         Creates a collapsible content.
         text: When a tuple, the first string is a unique id, useful when the
