@@ -16,7 +16,7 @@ jobs:
 
     - name: Install pip packages
       run: |
-        pip install pip sphinx --upgrade
+        pip install $(tail --lines=+2 docs/requirements.txt) --upgrade
         pip install dist/adi_doctools-*.tar.gz
 
     - name: Build doc
@@ -72,7 +72,7 @@ jobs:
 
     - name: Install pip packages
       run: |
-        pip install pip sphinx --upgrade
+        pip install $(tail --lines=+2 docs/requirements.txt) --upgrade
         pip install dist/adi_doctools-*.tar.gz
 
     - name: Build doc
