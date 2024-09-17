@@ -63,7 +63,10 @@ def config_inited(app, config):
         except Exception as err:
             pass
         config.version = doc_version
-
+    # Parameter to enable PDF output tweaks
+    media_print = getenv("ADOC_MEDIA_PRINT", default="0")
+    media_print = True if media_print == "1" else False
+    config.media_print = media_print
 
 def builder_inited(app):
     if app.builder.format == 'html':

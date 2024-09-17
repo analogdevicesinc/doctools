@@ -6,11 +6,16 @@ repository = 'doctools'
 project = 'Doctools'
 copyright = '2024, Analog Devices, Inc.'
 author = 'Analog Devices, Inc.'
+version = '0.3'
+
+locale_dirs = ['locales/']  # path is relative to the source directory
+language = 'en'
 
 # -- General configuration ---------------------------------------------------
 
 extensions = [
-    "adi_doctools",
+    'adi_doctools',
+    'rst2pdf.pdfbuilder'
 ]
 
 needs_extensions = {
@@ -23,6 +28,9 @@ source_suffix = '.rst'
 # -- Custom extensions configuration ------------------------------------------
 
 export_metadata = True
+
+#  -- Options for PDF output --------------------------------------------------
+# draft comment, future options for exporting to PDF
 
 # -- Options for HTML output --------------------------------------------------
 
