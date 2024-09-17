@@ -4,7 +4,6 @@ from docutils.parsers.rst import directives
 import re
 from os import path, walk
 from os import pardir, makedirs
-from typing import Final
 from math import ceil
 from lxml import etree
 
