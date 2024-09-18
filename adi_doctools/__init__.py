@@ -77,12 +77,10 @@ def builder_inited(app):
         # Add bundled JavaScript if current theme is from this extension.
         if app.env.config.html_theme in theme_names:
             app.add_js_file("app.umd.js", priority=500, defer="")
-            conf_ = ("#", *app.config.values["html_permalinks_icon"][1:])
-            app.config.values["html_permalinks_icon"] = conf_
+            app.config.html_permalinks_icon = "#"
             get_pygments_theme(app)
         else:
-            pass
-            #app.add_css_file("third-party.css", priority=500, defer="")
+            app.add_css_file("third-party.css", priority=500, defer="")
 
 
 def build_finished(app, exc):
