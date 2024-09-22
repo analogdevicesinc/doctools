@@ -225,7 +225,7 @@ def author_mode(directory, port, dev, no_selenium, once, builder):
         outline_str = ""
         for i, (label, (page, _, _), children, _) in enumerate(bookmarks, 1):
             outline_str += ('<p>%s %s <span class="page">%d</span></p>' % (
-                ' ' * indent, label.lstrip('0123456789. ').rstrip('# '), page))
+                ' ' * indent, label.lstrip('0123456789. ').rstrip('¶# '), page))
             outline_str += generate_toctree(children, indent + 2)
         return outline_str
 
