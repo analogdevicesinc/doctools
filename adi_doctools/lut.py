@@ -14,6 +14,7 @@ class Repo(TypedDict):
     visibility: str
     topic: Optional[Dict[str, str]]
     extra: Optional[Tuple[str, List[str], bool]]
+    parent: Optional[str]
 
 
 class LUT(TypedDict):
@@ -40,6 +41,13 @@ repos = {
         name='HDL',
         branch='main',
         visibility='public'
+    ),
+    'testbenches': Repo(
+        doc_folder='docs',
+        name='HDL Testbenches',
+        branch='main',
+        visibility='public',
+        parent='hdl'
     ),
     'pyadi-iio': Repo(
         doc_folder='doc',
