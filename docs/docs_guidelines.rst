@@ -500,6 +500,7 @@ They type field is also optional and the values are:
 
 * *gui*: To view rendered on the Git server web GUI [default].
 * *raw*: To download/view as raw.
+* *{}*: Any other Git server web GUI link, e.g. :code:`:git-hdl:\`releases+\``.
 
 The text field is optional and will be filled with the full path.
 

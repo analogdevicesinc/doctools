@@ -10,24 +10,26 @@ dft_url_ez = 'https://ez.analog.com'
 dft_url_mw = 'https://www.mathworks.com'
 dft_url_git_gui = 'https://github.com/analogdevicesinc/{repo}/tree'
 dft_url_git_raw = 'https://raw.githubusercontent.com/analogdevicesinc/{repo}'
+dft_url_git_other = 'https://github.com/analogdevicesinc/{repo}/{other}'
 dft_url_adi = 'https://www.analog.com'
 dft_url_xilinx = 'https://www.xilinx.com'
 dft_url_intel = 'https://www.intel.com'
 
 git_repos = [
-    # url_path           name
-    ['hdl',              "HDL"],
-    ['testbenches',      "Testbenches"],
-    ['linux',            "Linux"],
-    ['no-OS',            "no-OS"],
-    ['libiio',           "libiio"],
-    ['scopy',            "Scopy"],
-    ['iio-oscilloscope', "IIO Oscilloscope"],
-    ['doctools',         "Doctools"],
-    ['documentation',    "System Level Documentation"],
-    ['pyadi-iio',        "PyADI-IIO"],
-    ['meta-adi',         "META-ADI"],
-    ['wiki-scripts',     "Wiki Scripts"]
+    # url_path                  name
+    ['hdl',                     "HDL"],
+    ['testbenches',             "Testbenches"],
+    ['linux',                   "Linux"],
+    ['no-OS',                   "no-OS"],
+    ['libiio',                  "libiio"],
+    ['scopy',                   "Scopy"],
+    ['iio-oscilloscope',        "IIO Oscilloscope"],
+    ['doctools',                "Doctools"],
+    ['documentation',           "System Level Documentation"],
+    ['pyadi-iio',               "PyADI-IIO"],
+    ['meta-adi',                "META-ADI"],
+    ['wiki-scripts',            "Wiki Scripts"],
+    ['linux_image_ADI-scripts', "ADI Scripts for Linux images"]
 ]
 vendors = ['xilinx', 'intel', 'mw']
 
@@ -59,8 +61,9 @@ def color(class_name):
 def datasheet():
     def role(name, rawtext, text, lineno, inliner, options={}, content=[]):
         # DEPRECATED
-        logger.info("The datasheet role has been deprecated, use the adi role "
-                    "instead.")
+        logger.warning("The datasheet role has been deprecated, use the adi role "
+                       "instead.",
+                       location=(inliner.document.settings.env.docname, lineno))
         return [], []
 
     return role
@@ -111,27 +114,40 @@ def git(repo, alt_name):
 
         pos = path.find('+')
         if path[0:pos] == "raw":
+            type_ = "raw"
+        elif pos != -1:
             type_ = path[0:pos]
         else:
             type_ = "gui"
         path = path[pos+1:]
 
-        pos = path.find(':')
-        if pos in [0, -1]:
-            branch = get_default_brach(repo, inliner)
-        else:
-            branch = path[0:pos]
-        path = path[pos+1:]
-        if text is None:
-            if path == '/':
-                text = "ADI " + alt_name + " repository"
+        if type_ in ['raw', 'gui']:
+            pos = path.find(':')
+            if pos in [0, -1]:
+                branch = get_default_brach(repo, inliner)
             else:
-                text = path
-        if path == '/':
-            path = ''
+                branch = path[0:pos]
+            path = path[pos+1:]
+            if text is None:
+                if path == '/' or path == '':
+                    text = "ADI " + alt_name + " repository"
+                    if branch != 'main':
+                        text += "'s branch " + branch
+                else:
+                    text = path
+            if path == '/':
+                path = ''
 
-        url = get_url_config('git_'+type_, inliner).format(repo=repo)
-        url = url + '/' + branch + '/' + path
+            url = get_url_config('git_'+type_, inliner).format(repo=repo)
+            url = url + '/' + branch + '/' + path
+        else:
+            if path != "":
+                logger.warning("Custom Git role type does not take arguments, did you mean: "
+                               f":git-{repo}:`{type_}/{path}+`?",
+                               location=(inliner.document.settings.env.docname, lineno))
+
+            url = get_url_config('git_other', inliner).format(repo=repo, other=type_)
+
         node = nodes.reference(rawtext, text, refuri=url,
                                classes=['icon', 'git'], **options)
         return [node], []
@@ -181,6 +197,7 @@ def common_setup(app):
     app.add_config_value('url_mw',        dft_url_mw,        'env')
     app.add_config_value('url_git_gui',   dft_url_git_gui,   'env')
     app.add_config_value('url_git_raw',   dft_url_git_raw,   'env')
+    app.add_config_value('url_git_other', dft_url_git_other, 'env')
     app.add_config_value('url_adi',       dft_url_adi,       'env')
     app.add_config_value('url_xilinx',    dft_url_xilinx,    'env')
     app.add_config_value('url_intel',     dft_url_intel,     'env')
