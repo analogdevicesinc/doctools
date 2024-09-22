@@ -47,6 +47,14 @@ All options can be listed with:
 
    adoc author-mode --help
 
+How can I rebuild the whole documentation within Author Mode?
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Run ``make clean`` in another tab and then touch any file.
+
+Do **not** do ``make clean html`` since it will generate a build without the
+proper Author Mode environment and live reload won't work properly.
+
 Why is the output missing styling (CSS stylesheet)?
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
