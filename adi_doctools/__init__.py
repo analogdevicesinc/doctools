@@ -10,6 +10,7 @@ from .theme import setup as theme_setup, names as theme_names
 from .directive import setup as directive_setup
 from .role import setup as role_setup
 from .lut import get_lut
+from .role.interref import interref_repos_apply
 
 __version__ = "0.3.43"
 
@@ -54,6 +55,8 @@ def html_page_context(app, pagename, templatename, context, doctree):
 
 def config_inited(app, config):
     app.lut = get_lut()
+
+    interref_repos_apply(app)
 
     # Inject version value, config entry has higher precedence
     if 'version' not in config:
@@ -122,9 +125,9 @@ def setup(app):
 
     app.add_post_transform(wrap_elements)
 
-    app.connect("html-page-context", html_page_context)
     app.connect("config-inited", config_inited)
     app.connect("builder-inited", builder_inited)
+    app.connect("html-page-context", html_page_context)
     app.connect("build-finished", build_finished)
 
     return {

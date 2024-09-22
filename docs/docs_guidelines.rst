@@ -180,21 +180,50 @@ For resources without a particular source code file/folder, prefer hyphen ``-``
 separation, for example, ``spi_engine control-interface`` instead of
 ``spi_engine control_interface``.
 
-.. _in-org-ref:
+.. _inter-refs:
 
-In organization references
+External references
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For references to Sphinx docs inside the organization (repos listed in the repotoc),
-the ``ref`` role is extended with the syntax
-:code:`:ref-<external>:\`label\`` where ``external`` is a mapped source,
+External references to other Sphinx documentation are created using the built-in
+``sphinx.ext.intersphinx`` extension.
+
+To setup in-organization references read the :ref:`section below <in-org-ref>`,
+and for third-party docs, the section :ref:`that follows <out-org-ref>`.
+
+For either, to create a reference, use the syntax
+:code:`:ref-<inv>:\`label\``, where ``inv`` is a mapped source,
 for example, :code:`:ref-hdl:\`spi_engine control-interface\``.
+
 It is also possible to customize the text, e.g.
 :code:`:ref-hdl:\`Custom text <spi_engine control-interface>\``.
 
 A warning is thrown when a reference is not found.
 
-Repository mappings are enabled to the `conf.py` file with the following format:
+External references work with
+*ref*, *doc*, *envvar*, *token*, *term*, *numref* and *keywordd* roles.
+
+.. note::
+
+   Sphinx 8 allows the syntax :code:`:ref:\`<inv>:label\``,
+   which allows local references to have higher precedence than external
+   refs, useful for generating custom docs like user guides.
+   However, since some users may require Sphinx 7, use the former syntax,
+   and let :ref:`adoc <cli>` patch it when necessary.
+
+To show all links of an InterSphinx mapping file, use the built-in tool:
+
+.. code:: bash
+
+   python3 -m sphinx.ext.intersphinx https://analogdevicesinc.github.io/hdl/objects.inv
+
+.. _in-org-ref:
+
+In organization reference
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+To create references to Sphinx docs inside the organization add the repositories
+of interest to the `conf.py` file with the following format:
 
 .. code:: python
 
@@ -211,39 +240,38 @@ look for the build at path ``main`` of this repo instead of at root.
 This can be used to target a specific version, if the target repository stores
 multiple, for example, ``v1.1``, more about that :ref:`ci-versioned`.
 
-Resolved the path, the mappings are obtained from the InterSphinx mapping file.
+.. tip::
 
-To show all links of an InterSphinx mapping file, use the built-in tool:
+   For even more freedom, you can setup with an explicit path as
+   an :ref:`out-org-ref`.
 
-.. code:: bash
+It is possible to customize the target URL with the ``interref_uri`` config or
+``ADOC_INTERREF_URI`` environment variables.
+The default value is *https://analogdevicesinc.github.io/* and can be set to a
+local path like *../../*.
 
-   python3 -m sphinx.ext.intersphinx https://analogdevicesinc.github.io/hdl/objects.inv
+Beyond the main target dictated by *interref_uri*, a secondary target is
+inferred foreseeing a local copy of the target external documentation alongside
+the current repository:
 
-The previous syntax applies only for references/label links (domain ``ref``/``label``),
-for every other domain, set it explicitly,
-e.g. :code:`:ref-hdl:doc:\`user_guide/docs_guidelines\``.
-The domains are also listed in the ``sphinx.ext.intersphinx`` output.
+.. code::
 
-Others options:
+   /data/work
+   ├─my-repo-0/doc/sources
+   │
+   ├─my-repo-1/docs
+   │
+   └─my-repo-2/doc
 
-* ``ADOC_INTERREF_URI``: uri for the inventory and links, default is
-  ``https://analogdevicesinc.github.io/``; it can be set to a local path, e.g.
-  ``../../``.
+The correct relative paths are resolved looking into the ``lut.py``.
 
-Outside organization Sphinx references
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _out-org-ref:
 
-To create references to other Sphinx documentations, ``sphinx.ext.intersphinx``
-can be added to the ``conf.py`` extension list.
-The syntax is :code:`:external+<external>:<domain>:\`label\``, where ``external``
-is a mapped source and the domain is the reference type,
-for example, :code:`:external+sphinx:doc:\`development/theming\``.
-It is also possible to customize the text, e.g.
-:code:`:external+sphinx:ref:\`Custom text <examples>\``.
+Outside organization Sphinx reference
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-A warning is thrown when a reference is not found.
-
-Mappings are included to the `conf.py` file with the following format:
+To create references to third-party Sphinx documentations, add the mappings to
+to the `conf.py` file with the following format:
 
 .. code:: python
 
@@ -258,15 +286,6 @@ For example:
    intersphinx_mapping = {
        'sphinx': ('https://www.sphinx-doc.org/en/master', None)
    }
-
-And new mappings can be included as needed.
-
-To show all links of an InterSphinx mapping file, use the built-in tool:
-
-.. code:: bash
-
-   python3 -m sphinx.ext.intersphinx https://www.sphinx-doc.org/en/master/objects.inv
-
 
 Text width
 --------------------------------------------------------------------------------
