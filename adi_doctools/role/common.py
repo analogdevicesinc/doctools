@@ -115,11 +115,15 @@ def git(repo, alt_name):
         pos = path.find('+')
         if path[0:pos] == "raw":
             type_ = "raw"
-        elif pos != -1:
-            type_ = path[0:pos]
+            path = path[pos+1:]
+        elif path[0:pos] == "gui":
+            type_ = "gui"
+            path = path[pos+1:]
+        elif pos == len(path)-1:
+            type_ = path[:-1]
+            path = ''
         else:
             type_ = "gui"
-        path = path[pos+1:]
 
         if type_ in ['raw', 'gui']:
             pos = path.find(':')
@@ -141,11 +145,6 @@ def git(repo, alt_name):
             url = get_url_config('git_'+type_, inliner).format(repo=repo)
             url = url + '/' + branch + '/' + path
         else:
-            if path != "":
-                logger.warning("Custom Git role type does not take arguments, did you mean: "
-                               f":git-{repo}:`{type_}/{path}+`?",
-                               location=(inliner.document.settings.env.docname, lineno))
-
             url = get_url_config('git_other', inliner).format(repo=repo, other=type_)
 
         node = nodes.reference(rawtext, text, refuri=url,
