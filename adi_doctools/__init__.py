@@ -12,7 +12,7 @@ from .role import setup as role_setup
 from .lut import get_lut
 from .role.interref import interref_repos_apply
 
-__version__ = "0.3.43"
+__version__ = "0.3.44"
 
 logger = logging.getLogger(__name__)
 

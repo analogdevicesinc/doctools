@@ -221,11 +221,21 @@ iframe {
     }
 }
 
-@media (max-width: $screen-1) {
+@media (max-width: $screen-2) {
     .iframe-video {
         width: 100%;
         overflow: hidden;
     }
+}
+
+@media (min-width: $screen-1) and (max-width: $screen-2) {
+    .iframe-video iframe {
+        width: calc(100vw - 20rem);
+        height: calc(56.25vw - 11.25rem);
+    }
+}
+
+@media (max-width: $screen-1) {
     .iframe-video iframe {
         width: calc(100vw - 2rem);
         height: calc(56.25vw - 1.125rem);

@@ -17,7 +17,7 @@
         display: none !important;
     }
 
-    body.light .highlight {
+    body .highlight {
         background: none;
         border: 1px solid var(--text-color3);
     }
@@ -30,6 +30,7 @@
     .banner, .search-area, .reverse {
         display: none;
     }
+
     #right > span {
         width: 100%;
     }
