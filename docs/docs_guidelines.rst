@@ -250,9 +250,10 @@ It is possible to customize the target URL with the ``interref_uri`` config or
 The default value is *https://analogdevicesinc.github.io/* and can be set to a
 local path like *../../*.
 
-Beyond the main target dictated by *interref_uri*, a secondary target is
-inferred foreseeing a local copy of the target external documentation alongside
-the current repository:
+Beyond the main target dictated by *interref_uri*,
+by setting the config ``interref_local`` as true, a secondary target is inferred
+foreseeing a local copy of the target external documentation alongside the
+current repository:
 
 .. code::
 

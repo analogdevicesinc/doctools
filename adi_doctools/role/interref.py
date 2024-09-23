@@ -33,7 +33,8 @@ def interref_repos_apply(app):
     Expands the repository name into targets, with the main one being:
     interref_uri + repo, e.g.
         docs.app.com/my-repo
-    And a secondary relative to the current doc considering the target repo
+    If interref_local is True, add
+    a secondary relative to the current doc considering the target repo
     is alongside the current doc, e.g.
     - /data/my-repo-0/docs
       /data/my-repo-1/doc/sphinx/source
@@ -52,7 +53,7 @@ def interref_repos_apply(app):
 
     if 'interref_repos' in app.config:
         t_ = None
-        if 'repository' in app.config:
+        if 'repository' in app.config and app.config.interref_local:
             t_ = repo_apply_(app.config.repository)
         for r in app.config.interref_repos:
             if t_ is not None and r in repos:
@@ -133,6 +134,7 @@ def install_dispatcher(app: Sphinx, docname: str, source: List[str]) -> None:
 def interref_setup(app: Sphinx) -> Dict[str, Any]:
     app.add_config_value('interref_repos', [], 'env')
     app.add_config_value('interref_uri', None, 'env')
+    app.add_config_value('interref_local', False, 'env')
 
     if not isinstance(app.config.interref_repos, list):
         logger.warning(f"Config 'interref_repos' must be a list.")
