@@ -250,7 +250,7 @@ class directive_regmap(directive_base):
                     [f"[{bits}]", literal_],
                     [field['name'], literal_],
                     [field['rw'], literal_],
-                    [default, 'default_value' if not media_print else 'paragraph', ['default']],
+                    [default, literal_, ['default']],
                     [field['description'], 'reST' if not media_print else 'paragraph', ['description']],
                 ], uid=uid)
 
