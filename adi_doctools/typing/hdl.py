@@ -47,7 +47,7 @@ class Carrier(TypedDict):
 class Project(TypedDict):
     """
     __key__: some_project/carrier, some_project
-    name: some_project_carrier
+    name: some_project_carrier, some_project
     lib_deps: my_ip, framework/framework_core
     m_deps: some_constr.xdc
     """

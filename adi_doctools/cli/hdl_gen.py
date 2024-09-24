@@ -6,7 +6,7 @@ import re
 from os import path, walk, pardir, chdir, getcwd
 from glob import glob
 
-from ..typings.hdl import vendors, Library, Carrier, Project
+from ..typing.hdl import vendors, Library, Carrier, Project
 from ..parser.hdl import parse_hdl_regmap
 from ..parser.hdl import resolve_hdl_regmap
 from ..parser.hdl import expand_hdl_regmap

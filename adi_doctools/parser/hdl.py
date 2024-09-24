@@ -6,9 +6,9 @@ import warnings
 from lxml import etree
 from os import path
 
-from ..typings.hdl import Intf, IntfPort
-from ..typings.hdl import Library, LibraryVendor
-from ..typings.hdl import Project
+from ..typing.hdl import Intf, IntfPort
+from ..typing.hdl import Library, LibraryVendor
+from ..typing.hdl import Project
 from ..directive.string import string_hdl
 from .tcl import tcl
 

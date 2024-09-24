@@ -1,7 +1,7 @@
 from os import path
 
 from adi_doctools.parser.hdl import parse_hdl_interfaces
-from adi_doctools.typings.hdl import Intf
+from adi_doctools.typing.hdl import Intf
 
 intf_0 = Intf(
     description=None,

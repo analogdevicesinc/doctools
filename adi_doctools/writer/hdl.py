@@ -4,7 +4,7 @@ from datetime import datetime
 from os import path
 
 from ..__init__ import __version__
-from ..typings.hdl import vendors, Library, Project
+from ..typing.hdl import vendors, Library, Project
 
 svpkg_fn_new0 = """
       function new(
@@ -213,7 +213,7 @@ def write_hdl_regmap(
 def write_hdl_library_makefile(
     libraries: Dict[str, Library],
     path_: str
-) -> Tuple[str]:
+) -> None:
     library = libraries[path_]
     fname = "Makefile"
     file = path.join('library', path_, fname)
@@ -256,7 +256,7 @@ def write_hdl_library_makefile(
 def write_hdl_project_makefile(
     project: Dict[str, Project],
     path_: str
-) -> Tuple[str]:
+) -> None:
     project = project[path_]
     fname = "Makefile"
     file = path.join('projects', path_, fname)
