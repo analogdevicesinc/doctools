@@ -27,6 +27,19 @@ format (see :ref:`tables` for more information).
 After converting, update it to better conform with the guidelines below, and
 make sure to use our directives and roles, for example, the :ref:`role git`.
 
+To speed thing up, combine with wget:
+
+.. code:: bash
+
+   wikifile=resources/eval/user-guides/adrv9009/adrv9009
+   outfile=output.rst
+
+   wget -O - https://wiki.analog.com/$wikifile?do=export_raw --no-verbose | \
+     pandoc -f dokuwiki -t rst --columns=80 -s -o $outfile --list-tables
+
+Also, consider recording macros in your favorite text editor to automate
+repetitive steps.
+
 Indentation
 --------------------------------------------------------------------------------
 
@@ -299,7 +312,7 @@ while respecting word-breaks:
 
    cat imported.txt | fold -sw 80 > imported.rst
 
-The header divide ("`---`" shall be either 80 characters wide or end at the
+The header divider "``---``" shall be either 80 characters wide or end at the
 title character, that means, this is also valid:
 
 .. code::
