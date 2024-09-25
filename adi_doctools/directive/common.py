@@ -234,7 +234,11 @@ class directive_collapsible(directive_base):
         return [node]
 
 
-class directive_video(directive_base):
+class directive_video(Directive):
+    has_content = True
+    add_index = True
+    final_argument_whitespace = True
+
     option_spec = {'path': directives.unchanged}
     required_arguments = 1
     optional_arguments = 0
@@ -297,8 +301,40 @@ class directive_video(directive_base):
         return [node]
 
 
+class directive_clear_content(Directive):
+    option_spec = {
+        'side': directives.unchanged_required,
+        'break': directives.flag
+    }
+    has_content = False
+    final_argument_whitespace = True
+
+    required_arguments = 0
+    optional_arguments = 0
+
+    def run(self):
+        side = self.options.get('side')
+        side = self.options.get('break')
+        if side not in ['left', 'right', 'both']:
+            if side is not None:
+                docname = self.state.document.current_source
+                logger.warning("clear directive option '%s' is invalid",
+                               side, location=(docname, self.lineno))
+            side = 'both'
+
+        classes = [f"clear-{side}"]
+        if 'break' in self.options:
+            classes.append('break-after')
+        node = node_div(
+            classes=classes
+        )
+
+        return [node]
+
+
 def common_setup(app):
     app.add_directive('collapsible', directive_collapsible)
     app.add_directive('video', directive_video)
+    app.add_directive('clear-content', directive_clear_content)
 
     app.add_config_value('hide_collapsible_content', dft_hide_collapsible_content, 'env')

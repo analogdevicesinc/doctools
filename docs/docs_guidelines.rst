@@ -593,6 +593,29 @@ gets rendered
 Supported vendors are: ``xilinx`` (AMD Xilinx), ``intel`` (Intel Altera) and
 ``mw`` (MathWorks).
 
+Clear content directive
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A simple directive to
+`clear <https://developer.mozilla.org/en-US/docs/Web/CSS/clear>`__
+the content, forcing any following content to be moved below any preceding
+content.
+It is useful when working with images
+aligned/`float <https://developer.mozilla.org/en-US/docs/Web/CSS/float>`__
+left/right and wants to ensure the next section does not also gets "squashed".
+
+.. code:: rst
+
+   .. clear-content::
+      :side: <both,left,right>
+      :break:
+
+It can clear content to it's ``left``, ``right`` or ``both`` sides.
+By default, it clear ``both`` sides.
+
+With the ``break`` option, it will break the page when generating a PDF
+(behaves similar to LaTeX *cleardoublepage*).
+
 .. _hdl build-status-directive:
 
 HDL build status directive

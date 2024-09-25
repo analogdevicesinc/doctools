@@ -61,6 +61,11 @@ p.topic-title {
             opacity: .8;
         }
     }
+    p.admonition-title {
+        &::before {
+            background-image: var(--icon-admonition-default);
+        }
+    }
 }
 
 p.topic-title {

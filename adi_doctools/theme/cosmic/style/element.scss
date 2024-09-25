@@ -127,7 +127,7 @@ img {
     }
 }
 
-@media (min-width: $screen-1) {
+@media print, (min-width: $screen-1) {
     .body img {
         display: block;
         margin: 0 auto;
@@ -138,13 +138,33 @@ img {
             float: left;
             clear: left;
             margin-right: .5em;
+            max-width: 45%;
         }
 
         &.align-right {
             float: right;
             clear: right;
             margin-left: .5em;
+            max-width: 45%;
         }
+    }
+}
+
+.clear-both {
+    clear: both;
+}
+
+.clear-left {
+    clear: both;
+}
+
+.clear-right {
+    clear: both;
+}
+
+@media print {
+    .break-after {
+        break-after: always;
     }
 }
 
@@ -289,6 +309,15 @@ iframe {
 
 .image-reference {
     text-align: center;
+}
+
+.image-reference:not(:has(.align-left, .align-right)) {
+    display: inline-block;
+    width: 100%;
+}
+
+img {
+    page-break-inside: avoid;
 }
 
 .only-dark, .only-light, #badges img {
