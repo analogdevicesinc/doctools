@@ -641,7 +641,7 @@ That means, each line is prefixed by character to:
 
 Anything that does not match the previous characters will default to output print,
 but please be careful, since you may accidentally mark a working directory or
-command, if not denting the output by one space.
+command, if not identing the output by one space.
 
 The bash type defaults to ``bash``, user to ``user``, group to ``analog``
 and the working directory as "doesn't matter" (hidden), so, for
