@@ -30,6 +30,7 @@ body {
     --display-light: inline-block;
     --bg-color1: #{$bg-light1};
     --bg-color2: #{$bg-light2};
+    --bg-color3: #{$bg-light3};
     --bg-color1-faded1: #{$bg-light1}99;
     --bg-color1-faded2: #{$bg-light1}aa;
     --text-color1: #{$text-color-light1};
@@ -48,6 +49,7 @@ body.dark {
     --display-light: none;
     --bg-color1: #{$bg-dark1};
     --bg-color2: #{$bg-dark2};
+    --bg-color3: #{$bg-dark3};
     --bg-color1-faded1: #{$bg-dark1}aa;
     --bg-color1-faded2: #{$bg-dark1}cc;
     --text-color1: #{$text-color-dark1};
@@ -67,6 +69,7 @@ body.dark {
         --display-light: none;
         --bg-color1: #{$bg-dark1};
         --bg-color2: #{$bg-dark2};
+        --bg-color3: #{$bg-dark3};
         --bg-color1-faded1: #{$bg-dark1}99;
         --bg-color1-faded2: #{$bg-dark1}aa;
         --text-color1: #{$text-color-dark1};
@@ -159,10 +162,20 @@ body {
     }
 }
 
-.body p {
-    line-height: 1.5em;
-    text-align: justify;
-    margin: .25em 0 .75em 0;
+.body {
+    p, div.line {
+        line-height: 1.5em;
+        text-align: justify;
+        margin: .25em 0 .75em 0;
+    }
+
+    p {
+        margin: .25em 0 .75em 0;
+    }
+
+    div.line{
+        margin: .25em 0;
+    }
 }
 
 .body ol p, .body ul p {
@@ -179,11 +192,11 @@ svg {
     line-height: 1.5em;
 }
 
-@media (min-width: $screen-1) {
+@media print, (min-width: $screen-1) {
     #hdl-component-diagram svg {
         float: right;
         margin: -3em 0 0 1em;
-        max-width: 30rem;
+        max-width: 45%;
     }
 }
 

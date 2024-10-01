@@ -4,13 +4,16 @@ from docutils import nodes
 from docutils.statemachine import ViewList
 from docutils.parsers.rst import Directive, directives
 from sphinx.util import logging
+from sphinx.util.docutils import SphinxDirective
+from sphinx.directives.code import container_wrapper
 
 import re
+from os import path
 from uuid import uuid4
 from hashlib import sha1
 from typing import Tuple
 
-from .node import node_div, node_input, node_label, node_icon, node_source, node_a
+from .node import node_div, node_input, node_label, node_icon, node_source, node_a, node_pre
 from .node import node_iframe, node_video
 
 logger = logging.getLogger(__name__)
@@ -115,18 +118,18 @@ class directive_base(Directive):
         rows = []
         for key in description:
             row = nodes.row()
-            
+
             entry = nodes.entry()
             if not media_print:  # Check if not in PDF mode
                 entry += nodes.literal(text="{:s}".format(key))
             else:
                 entry += nodes.paragraph(text="{:s}".format(key))  # Use paragraph for PDF mode
             row += entry
-            
+
             entry = nodes.entry()
             entry += parse_rst(self.state, description[key], uid=uid)
             row += entry
-            
+
             rows.append(row)
 
         tbody = nodes.tbody()
@@ -314,12 +317,13 @@ class directive_clear_content(Directive):
 
     def run(self):
         side = self.options.get('side')
-        side = self.options.get('break')
-        if side not in ['left', 'right', 'both']:
+        values = ['left', 'right', 'both']
+        if side not in values:
             if side is not None:
-                docname = self.state.document.current_source
-                logger.warning("clear directive option '%s' is invalid",
-                               side, location=(docname, self.lineno))
+                location = self.state_machine.get_source_and_line(self.lineno)
+                logger.warning(("clear-content option '%s' is invalid, valid ",
+                                f"values are [{', '.join(values)}]."),
+                               side, location=location)
             side = 'both'
 
         classes = [f"clear-{side}"]
@@ -332,9 +336,140 @@ class directive_clear_content(Directive):
         return [node]
 
 
+class directive_shell(SphinxDirective):
+    option_spec = {
+        'user': directives.unchanged_required,
+        'group': directives.unchanged_required,
+        'caption': directives.unchanged_required,
+        'showuser': directives.flag
+    }
+    has_content = True
+    final_argument_whitespace = True
+
+    required_arguments = 0
+    optional_arguments = 1
+
+    def run(self):
+        self.assert_has_content()
+
+        shells = ['bash', 'sh', 'zsh', 'ps1']
+        types = ['$', '/', '~', '#', ' ']
+
+        user = self.options.get('user')
+        group = self.options.get('group')
+        caption = self.options.get('caption')
+        language = self.arguments[0].strip() if len(self.arguments) > 0 else None
+        if user is None:
+            user = "user"
+        if group is None:
+            group = "analog"
+        if language not in shells:
+            if language is not None:
+                location = self.state_machine.get_source_and_line(self.lineno)
+                logger.warning(("shell '%s' is invalid, valid values are "
+                                f"[{', '.join(shells)}]."),
+                               language, location=location)
+            language = "bash"
+        if 'showuser' in self.options:
+            if language != 'ps1':
+                wd_p = f"{user}@{group}:"
+            else:
+                wd_p = f"[{group}:{user}] "
+        else:
+            wd_p = ""
+
+        def resolve_block(l_, l, wd, lang):
+            if l in ['/', '~']:
+                return None
+
+            sep = '$' if lang != 'ps1' else '>'
+            lit = node_div()
+            if l in ['$', '#']:
+                if wd is not None:
+                    sep = wd + sep
+                lit += nodes.literal_block(sep, sep,
+                                           classes=['no-select', 'float-left'])
+
+            if l == '$':
+                lit_ = nodes.literal_block(l_, l_, classes=['bold'])
+                lit_['language'] = language
+                lit += lit_
+            elif l == '#':
+                lit_ = nodes.literal_block('#'+l_,'#'+l_)
+                lit_['language'] = language
+                lit += lit_
+            elif l == ' ':
+                lit += nodes.literal_block(l_, l_, classes=['no-select'])
+            else:
+                lit += nodes.literal_block(l_, l_, classes=['no-select'])
+
+            lit += node_div(
+                classes = [f"clear-left"]
+            )
+            return lit
+
+        literals = node_div(
+            classes=['code-shell']
+        )
+        ll = None
+        if language == 'ps1':
+            wd = wd_ = '/C:/'
+        else:
+            wd = wd_ = '~'
+        block = []
+        cd_flush = False
+        l__ = ''
+        for line in self.content:
+            if l__.startswith("cd "):
+                if language != 'ps1':
+                    wd = path.abspath(path.join(wd, l__[3:]))
+                else:
+                    l__ = l__.replace('\\', '/')
+                    if l__[4] == ':':
+                        wd = '/'+l__[3:]
+                    else:
+                        wd = path.abspath(path.join(path.sep, wd, l__[3:]))
+                if len(wd) > 1 and wd[-1] == "/":
+                    wd = wd[:-1]
+
+            l = line[0] if len(line) > 0 else ' '
+            l_ = line[1:] if l in types else line
+            l__ = l_.strip()
+
+            if language != 'ps1':
+                if l == '/':
+                    wd = line
+                elif l == '~':
+                    wd = line
+            if ((ll != l and ll is not None) or (ll == '$' and block[-1][-1] != '\\') or
+                ll == '#' and len(block) > 0):
+                wd__ = wd_ if language != 'ps1' else wd_.replace('/', '\\')[1:]
+                literals += resolve_block('\n'.join(block), ll,
+                                          wd_p+wd__, language)
+                if l not in ['/', '~']:
+                    block = [l_]
+                wd_ = wd
+            else:
+                block.append(l_)
+            ll = l
+        literals += resolve_block('\n'.join(block), ll, wd, language)
+
+        caption = self.options.get('caption')
+        if caption:
+            try:
+                literals = container_wrapper(self, literals, caption)
+            except ValueError as exc:
+                return [document.reporter.warning(exc, line=self.lineno)]
+
+        self.add_name(literals)
+
+        return [literals]
+
+
 def common_setup(app):
     app.add_directive('collapsible', directive_collapsible)
     app.add_directive('video', directive_video)
     app.add_directive('clear-content', directive_clear_content)
+    app.add_directive('shell', directive_shell)
 
     app.add_config_value('hide_collapsible_content', dft_hide_collapsible_content, 'env')

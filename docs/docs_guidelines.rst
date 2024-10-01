@@ -150,16 +150,16 @@ if the target directory is:
 Exporting to PDF
 --------------------------------------------------------------------------------
 
-The whole documentation can be exported to a PDF document for a more compact 
-format. This is done by setting the enviroment variable called 
-``ADOC_MEDIA_PRINT`` to 1 (default it's 0) and building the documentation using 
+The whole documentation can be exported to a PDF document for a more compact
+format. This is done by setting the environment variable called
+``ADOC_MEDIA_PRINT`` to 1 (default it's 0) and building the documentation using
 this command:
 
 .. code-block::
 
    user@analog:~/doctools/docs$ sphinx-build -b pdf .  _build/pdfbuild
 
-In the output folder, you’ll find a PDF document named after the repository 
+In the output folder, you’ll find a PDF document named after the repository
 (e.g. Doctools.pdf). This document includes an auto-generated cover, followed by
 the remaining pages. Note that an HTML build of the documentation is not
 required for the PDF build.
@@ -168,53 +168,75 @@ required for the PDF build.
 
    The enviroment variable ``ADOC_MEDIA_PRINT`` should be set to 0 when building
    the HTML pages of documentation. If not set, some components of the pages
-   may not render properly. 
+   may not render properly.
 
-References
+.. _local_refs:
+
+Local references
 --------------------------------------------------------------------------------
 
-References have the format ``library/project context``, e.g.
-:code:`:ref:\`vivado block-diagrams\`` renders as :ref:`vivado block-diagrams`.
-Notice how neither *library* nor *project* are present in the label, since there is no
-naming collision between libraries or projects (no project will ever be named
-*axi_dmac*).
+References to labels have the format :code:`:ref:\`context topic\``, e.g.
+:code:`:ref:\`role git\`` renders as :ref:`role git`.
 
-Also, for project, libraries and IPs, the names should be exactly the
-name of its folders, e.g. ``axi_pwm_gen`` and not ``axi-pwm-gen`` or ``AXI_PWM_GEN``,
-this helps avoid broken references.
+Labels are created for any content with the syntax
+(dot-dot underscore<label>two-dots):
+
+.. code:: rst
+
+   .. _context topic:
+
+.. hint::
+
+   Add labels to any content that may be linked, locally or
+   :ref:`externally <inter-refs>`.
+
+References to docs have the format :code:`:doc:\`path/to/doc\``, e.g.
+:code:`:doc:\`docs_guidelines\`` for *docs_guidelines.rst*.
 
 .. attention::
 
-   Do not break reference role between lines!
+   Do not break reference roles between lines!
    Even though Sphinx allows breaking line inside the reference role,
-   it makes pattern matching really hard.
+   it makes pattern matching hard.
 
-For resources without a particular source code file/folder, prefer hyphen ``-``
-separation, for example, ``spi_engine control-interface`` instead of
-``spi_engine control_interface``.
+Prefer hyphen separation ``-`` over undeline ``_`` for the "title" section,
+and always lower case,
+for example
+``my_code control-interface`` instead of ``MY_CODE Control_Interface``.
 
 .. _inter-refs:
 
 External references
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------------------------------------------------------------
 
 External references to other Sphinx documentation are created using the built-in
 ``sphinx.ext.intersphinx`` extension.
 
-To setup in-organization references read the :ref:`section below <in-org-ref>`,
-and for third-party docs, the section :ref:`that follows <out-org-ref>`.
+To setup **in-organization** references read the :ref:`section below <in-org-ref>`,
+and for **third-party** docs, the section :ref:`that follows <out-org-ref>`.
 
-For either, to create a reference, use the syntax
-:code:`:ref-<inv>:\`label\``, where ``inv`` is a mapped source,
-for example, :code:`:ref-hdl:\`spi_engine control-interface\``.
+| For either, to create a reference to a **label**, use:
+| :code:`:external+inv:ref:\`label\``, where ``inv`` is a mapped source,
+  for example, :code:`:external+hdl:ref:\`spi_engine control-interface\``.
 
-It is also possible to customize the text, e.g.
-:code:`:ref-hdl:\`Custom text <spi_engine control-interface>\``.
+| To create a reference to a **doc**, use:
+| :code:`:external+inv:doc:\`label\``, where ``inv`` is a mapped source,
+  for example, :code:`:external+hdl:doc:\`library/spi_engine/index\``.
 
-A warning is thrown when a reference is not found.
+As the other roles, it is possible to customize the text, e.g.
+:code:`:external+hdl:ref:\`Custom text <spi_engine control-interface>\``.
 
-External references work with
-*ref*, *doc*, *envvar*, *token*, *term*, *numref* and *keywordd* roles.
+.. tip::
+
+    Pay attention to the log output, since
+    a warnings is thrown for each reference not found.
+
+External references work with any kind of references, such as
+*ref*, *doc*, *envvar*, *token*, *term*, *numref* and *keyword*.
+
+| For references to **labels** it is possible to use the short form:
+| :code:`:ref-inv:\`label\`` (equivalent to :code:`:external+inv:ref:\`label\``),
+  but is discouraged.
 
 .. note::
 
@@ -233,7 +255,7 @@ To show all links of an InterSphinx mapping file, use the built-in tool:
 .. _in-org-ref:
 
 In organization reference
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To create references to Sphinx docs inside the organization add the repositories
 of interest to the `conf.py` file with the following format:
@@ -282,7 +304,7 @@ The correct relative paths are resolved looking into the ``lut.py``.
 .. _out-org-ref:
 
 Outside organization Sphinx reference
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To create references to third-party Sphinx documentations, add the mappings to
 to the `conf.py` file with the following format:
@@ -440,31 +462,6 @@ files use a pattern at the repo root, for example:
 
 Or edit ``.gitattributes`` directly.
 
-.. _vivado block-diagrams:
-
-Vivado block-diagrams
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Vivado block-diagrams can be exported as PDF and then converted to SVG with
-Inkscape.
-
-Vivado waveform data
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-There is no way to export Vivado waveform data as vectors.
-Therefore, the recommended method is to take a PNG screenshot and use
-`GIMP <https://gimp.org>`__ to export as **8bpc RGB** with all metadata options
-disabled.
-
-.. note::
-
-   Always use the *Export As..* ``Ctrl+Shift+E`` option.
-
-To reduce even further the size, you can use *Color > Dither..* to reduce the
-number of colors in the PNG.
-Saving as greyscale also reduces the PNG size, but might reduce readability and
-it is not recommended.
-
 Third-party directives and roles
 --------------------------------------------------------------------------------
 
@@ -607,7 +604,7 @@ left/right and wants to ensure the next section does not also gets "squashed".
 .. code:: rst
 
    .. clear-content::
-      :side: <both,left,right>
+      :side: [both,left,right]
       :break:
 
 It can clear content to it's ``left``, ``right`` or ``both`` sides.
@@ -615,6 +612,160 @@ By default, it clear ``both`` sides.
 
 With the ``break`` option, it will break the page when generating a PDF
 (behaves similar to LaTeX *cleardoublepage*).
+
+Shell directive
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The shell directive allows to embed shell code in a standard way.
+
+.. code:: rst
+
+   .. shell:: [bash,sh,zsh,ps1]
+      :user: <user>
+      :group: <group>
+      :caption: <caption>
+      :showuser:
+
+      /path_absolute
+      ~path_relative_to_home
+      $command
+       output
+
+That means, each line is prefixed by character to:
+
+* ``$``: bash commands.
+* :code:`\ ` (one space): command output.
+* ``#``: bash comments
+* ``/``: set absolute working directory (unix only).
+* ``~``: set relative to "home" working directory (unix only).
+
+Anything that does not match the previous characters will default to output print,
+but please be careful, since you may accidentally mark a working directory or
+command, if not denting the output by one space.
+
+The bash type defaults to ``bash``, user to ``user``, group to ``analog``
+and the working directory as "doesn't matter" (hidden), so, for
+example:
+
+.. code:: rst
+
+   .. shell::
+      :caption: iio_reg help
+
+      $iio_reg -h
+       Usage:
+
+       iio_reg <device> <register> [<value>]
+
+Renders as:
+
+.. shell::
+   :caption: iio_reg help
+   :showuser:
+
+   $iio_reg -h
+    Usage:
+
+    iio_reg <device> <register> [<value>]
+
+.. admonition:: Insight
+   :class: caution
+
+   To make it super easy for the user to copy only the command,
+   the current directory and output cannot be selected.
+
+To show the user and user group, add the ``:showuser:`` flag.
+
+For Windows, set bash type as ``ps1`` (PowerShell), for example:
+
+.. code:: rst
+
+   .. shell:: ps1
+
+      $cd C:\Users
+      $ls
+       Mode  LastWriteTime      Name
+       ----  -------------      ----
+       d---- 6/14/2024 10:30 AM user1
+       d---- 6/14/2024 10:30 AM user2
+      $cd ..\Other\Folder
+      $echo HelloWindows
+       HelloWindows
+
+Renders as:
+
+.. shell:: ps1
+
+   $cd C:\Users
+   $ls
+    Mode  LastWriteTime      Name
+    ----  -------------      ----
+    d---- 6/14/2024 10:30 AM user1
+    d---- 6/14/2024 10:30 AM user2
+   $cd ..\Other\Folder
+   $echo HelloWindows
+    HelloWindows
+
+To make things more interesting, basic ``$cd`` commands change the working
+directory accordingly, for example:
+
+.. code:: rst
+
+   .. shell::
+
+      $cd /sys/bus/iio/devices/
+      $ls
+       iio:device0  iio:device3  iio:device2  iio:device3  iio:device4  iio:device5  iio:device6
+      $cd iio:device3
+      $ls -al
+       total 0
+       drwxr-xr-x 3 root root     0 May 16 14:21 .
+       -rw-rw-rw- 1 root root  4096 May 16 14:22 calibrate
+       -rw-rw-rw- 1 root root  4096 May 16 14:22 calibrate_frm_en
+
+Renders as:
+
+.. shell::
+
+   $cd /sys/bus/iio/devices/
+   $ls
+    iio:device0  iio:device3  iio:device2  iio:device3  iio:device4  iio:device5  iio:device6
+   $cd iio:device3
+   $ls -al
+    total 0
+    drwxr-xr-x 3 root root     0 May 16 14:21 .
+    -rw-rw-rw- 1 root root  4096 May 16 14:22 calibrate
+    -rw-rw-rw- 1 root root  4096 May 16 14:22 calibrate_frm_en
+
+Finally, be mindful of the command legibility, break long commands and sugar coat
+with indent:
+
+
+.. code:: rst
+
+   .. shell::
+
+      # Write the file to the storage devices
+      $time sudo dd \
+      $  if=2021-07-28-ADI-Kuiper-full.img \
+      $  of=/dev/mmcblk0 \
+      $  bs=4194304
+       [sudo] password for user:
+       0+60640 records in 0+60640 records out 7948206080 bytes (7.9 GB) copied, 571.766 s, 13.9 MB/s
+       real 7m54.11s user 0.29s sys 8.94s
+
+Renders to:
+
+.. shell::
+
+   # Write the file to the storage device
+   $time sudo dd \
+   $  if=2021-07-28-ADI-Kuiper-full.img \
+   $  of=/dev/mmcblk0 \
+   $  bs=4194304
+    [sudo] password for user:
+    0+60640 records in 0+60640 records out 7948206080 bytes (7.9 GB) copied, 571.766 s, 13.9 MB/s
+    real 7m54.11s user 0.29s sys 8.94s
 
 .. _hdl build-status-directive:
 

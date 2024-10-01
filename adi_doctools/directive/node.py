@@ -61,8 +61,12 @@ class node_a(node_base):
     tagname = 'a'
     endtag = 'true'
 
+class node_pre(node_base):
+    tagname = 'pre'
+    endtag = 'true'
+
 def node_setup(app):
-    for node in [node_div, node_input, node_label, node_icon, node_video, node_source, node_iframe, node_a]:
+    for node in [node_div, node_input, node_label, node_icon, node_video, node_source, node_iframe, node_a, node_pre]:
         app.add_node(node,
                 html =(node.visit, node.depart),
                 latex=(node.visit, node.depart),

@@ -33,6 +33,49 @@ em.sig-param, em.property {
     background-color: rgba(125, 125, 125, 0.1);
 }
 
-.sig-object:hover .headerlink {
+.sig-object:hover .headerlink, .literal-block-wrapper:hover .headerlink {
     opacity: 1;
 }
+
+.code-block-caption {
+    text-align: center;
+    padding-bottom: .25em;
+}
+
+// TODO Port to third-party themes
+.code-shell {
+    background-color: var(--bg-color3);
+    border-radius: $border-radius;
+    padding: .75em;
+    margin-bottom: .5em;
+    user-select: text;
+
+    .highlight {
+        padding: 0;
+        white-space: collapse;
+        margin: 0;
+        background: none !important;
+        overflow: visible;
+    }
+
+    .float-left {
+        float: left;
+        clear: left;
+        display: inline-block;
+        margin-right: .25em;
+    }
+
+    .bold {
+        font-weight: bold;
+    }
+
+    pre {
+        margin: 0;
+    }
+
+    .no-select {
+        opacity: 0.8;
+        user-select: none;
+    }
+}
+
