@@ -145,6 +145,8 @@ def git(repo, alt_name):
             url = get_url_config('git_'+type_, inliner).format(repo=repo)
             url = url + '/' + branch + '/' + path
         else:
+            if text is None:
+                    text = "ADI " + alt_name + " repository " + f"({type_})"
             url = get_url_config('git_other', inliner).format(repo=repo, other=type_)
 
         node = nodes.reference(rawtext, text, refuri=url,
