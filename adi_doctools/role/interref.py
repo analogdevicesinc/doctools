@@ -21,7 +21,7 @@ from sphinx.application import Sphinx
 from sphinx.util.typing import RoleFunction
 from .common import get_outer_inner
 
-DEPRECATED_REF_MINUS = False # Unclear if we should drop ref-* syntax
+DEPRECATED_REF_MINUS = False
 
 logger = logging.getLogger(__name__)
 
@@ -87,18 +87,22 @@ class InterrefRole(IntersphinxRole):
     """
 
     def run(self) -> Tuple[List[Node], List[system_message]]:
+        assert self.name == self.orig_name.lower()
+        inventory, name_suffix = self.get_inventory_and_name_suffix(self.orig_name)
+        text, ref_ = get_outer_inner(self.text)
+        if text is not None:
+            to_ = f":external+{inventory}:ref:`{text} <{ref_}>`"
+        else:
+            to_ = f":external+{inventory}:ref:`{ref_}`"
+        message = (f"References 'ref-*' are deprecated,\n"
+                   f"  update {self.rawtext} "
+                   f"to {to_} ")
         if DEPRECATED_REF_MINUS == True:
-            assert self.name == self.orig_name.lower()
-            inventory, name_suffix = self.get_inventory_and_name_suffix(self.orig_name)
-            text, ref_ = get_outer_inner(self.text)
-            if text is not None:
-                to_ = f":ref:`{text} <{inventory}:{ref_}>`"
-            else:
-                to_ = f":ref:`{inventory}:{ref_}`"
-            logger.warning(f"References 'ref-*' are deprecated, "
-                           f"update {self.rawtext} "
-                           f"to {to_} ",
+            logger.warning(message,
                            location=(self.env.docname, self.lineno))
+        else:
+            logger.info(message,
+                        location=(self.env.docname, self.lineno))
 
         return super().run()
 
