@@ -369,6 +369,7 @@ class directive_shell(SphinxDirective):
         parsed = []
         content = list(self.content)
         content.append('/')
+        quotes = 0
         for line in content:
             typ = line[0] if len(line) > 0 else ' '
             line_ = line[1:] if typ in types else line
@@ -379,22 +380,29 @@ class directive_shell(SphinxDirective):
             # Path overwrite
             if typ == '/':
                 wd = line
-            elif typ == '~' and line_[0] == '/':
-                wd = self.homedir+line[1:]
+            elif typ == '~':
+                if len(line_) > 0 and line_[0] == '/':
+                    wd = self.homedir+line[1:]
+                else:
+                    wd = self.homedir
 
             # Block flush condition
             # * If the line type change or
-            # * Is command type and not scaped
+            # * Is command type and not scaped and quotes closed
             # * Is command comment
             if ((ll != typ and ll is not None) or
-               (ll == '$' and block[-1][-1] != self.esc) or
+               (ll == '$' and block[-1][-1] != self.esc and not(quotes % 2)) or
                (ll == '#' and len(block) > 0)):
                 parsed.append((wd_, '\n'.join(block), ll))
                 if typ not in ['/', '~']:
                     block = [line_]
+                    quotes = line_.count("'")
+                    quotes += line_.count('"')
                 wd_ = wd
             else:
                 block.append(line_)
+                quotes += line_.count("'")
+                quotes += line_.count('"')
             ll = typ
 
         literals = node_div(
@@ -470,6 +478,8 @@ class directive_shell(SphinxDirective):
                 continue
 
             p_ = line[i]
+            if p_[0] in ['"', "'"] and p_[-1] in ['"', "'"]:
+                p_ = p_[1:-2]
             if self.win:
                 p_ = p_.replace('\\', '/')
 
@@ -496,6 +506,8 @@ class directive_shell(SphinxDirective):
 
         if self.win:
             wd = (wd[1].upper()+':'+wd[2:]).replace('/', '\\')
+        else:
+            wd = wd.replace('\\','')
 
         if not self.win:
             sep = '$'
