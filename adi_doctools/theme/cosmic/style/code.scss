@@ -49,6 +49,7 @@ em.sig-param, em.property {
     padding: .75em;
     margin-bottom: .5em;
     user-select: text;
+    overflow-x: scroll;
 
     .highlight {
         padding: 0;
@@ -63,6 +64,7 @@ em.sig-param, em.property {
         clear: left;
         display: inline-block;
         margin-right: .25em;
+        color: var(--accent-color);
     }
 
     .bold {

@@ -13,7 +13,7 @@ from uuid import uuid4
 from hashlib import sha1
 from typing import Tuple
 
-from .node import node_div, node_input, node_label, node_icon, node_source, node_a, node_pre
+from .node import node_div, node_input, node_label, node_icon, node_source, node_a
 from .node import node_iframe, node_video
 
 logger = logging.getLogger(__name__)
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 dft_hide_collapsible_content = True
 
 
-def parse_rst(state, content, uid: Optional[str]=None):
+def parse_rst(state, content, uid: Optional[str] = None):
     """
     Parses rst markup, content can be:
     * String
@@ -67,7 +67,7 @@ class directive_base(Directive):
         return items
 
     def column_entry(self, row, text, node_type: str, classes: List = [],
-                     morecols: int = 0, uid: Optional[str]=None):
+                     morecols: int = 0, uid: Optional[str] = None):
         attributes = {}
         if morecols != 0:
             attributes['morecols'] = morecols
@@ -89,7 +89,7 @@ class directive_base(Directive):
             return
         row += entry
 
-    def column_entries(self, rows, items, uid: Optional[str]=None):
+    def column_entries(self, rows, items, uid: Optional[str] = None):
         row = nodes.row()
         for item in items:
             if len(item) == 3:
@@ -104,7 +104,7 @@ class directive_base(Directive):
                                   uid=uid)
         rows.append(row)
 
-    def generic_table(self, description, uid: Optional[str]=None, media_print=False):
+    def generic_table(self, description, uid: Optional[str] = None, media_print=False):
         tgroup = nodes.tgroup(cols=2)
         for _ in range(2):
             colspec = nodes.colspec(colwidth=1)
@@ -349,121 +349,188 @@ class directive_shell(SphinxDirective):
     required_arguments = 0
     optional_arguments = 1
 
+    usr_prefix = None
+    homedir = None
+    language = None
+    win = False
+    esc = None
+
     def run(self):
         self.assert_has_content()
 
-        shells = ['bash', 'sh', 'zsh', 'ps1']
         types = ['$', '/', '~', '#', ' ']
 
-        user = self.options.get('user')
-        group = self.options.get('group')
-        caption = self.options.get('caption')
-        language = self.arguments[0].strip() if len(self.arguments) > 0 else None
-        if user is None:
-            user = "user"
-        if group is None:
-            group = "analog"
-        if language not in shells:
-            if language is not None:
-                location = self.state_machine.get_source_and_line(self.lineno)
-                logger.warning(("shell '%s' is invalid, valid values are "
-                                f"[{', '.join(shells)}]."),
-                               language, location=location)
-            language = "bash"
-        if 'showuser' in self.options:
-            if language != 'ps1':
-                wd_p = f"{user}@{group}:"
+        wd = self.get_opts()
+        wd_ = wd
+
+        line_strip = ''
+        ll = None
+        block = []
+        parsed = []
+        content = list(self.content)
+        content.append('/')
+        for line in content:
+            typ = line[0] if len(line) > 0 else ' '
+            line_ = line[1:] if typ in types else line
+
+            wd = self.parse_path(line_strip, wd)
+            line_strip = line_.strip()
+
+            # Path overwrite
+            if typ == '/':
+                wd = line
+            elif typ == '~' and line_[0] == '/':
+                wd = self.homedir+line[1:]
+
+            # Block flush condition
+            # * If the line type change or
+            # * Is command type and not scaped
+            # * Is command comment
+            if ((ll != typ and ll is not None) or
+               (ll == '$' and block[-1][-1] != self.esc) or
+               (ll == '#' and len(block) > 0)):
+                parsed.append((wd_, '\n'.join(block), ll))
+                if typ not in ['/', '~']:
+                    block = [line_]
+                wd_ = wd
             else:
-                wd_p = f"[{group}:{user}] "
-        else:
-            wd_p = ""
-
-        def resolve_block(l_, l, wd, lang):
-            if l in ['/', '~']:
-                return None
-
-            sep = '$' if lang != 'ps1' else '>'
-            lit = node_div()
-            if l in ['$', '#']:
-                if wd is not None:
-                    sep = wd + sep
-                lit += nodes.literal_block(sep, sep,
-                                           classes=['no-select', 'float-left'])
-
-            if l == '$':
-                lit_ = nodes.literal_block(l_, l_, classes=['bold'])
-                lit_['language'] = language
-                lit += lit_
-            elif l == '#':
-                lit_ = nodes.literal_block('#'+l_,'#'+l_)
-                lit_['language'] = language
-                lit += lit_
-            elif l == ' ':
-                lit += nodes.literal_block(l_, l_, classes=['no-select'])
-            else:
-                lit += nodes.literal_block(l_, l_, classes=['no-select'])
-
-            lit += node_div(
-                classes = [f"clear-left"]
-            )
-            return lit
+                block.append(line_)
+            ll = typ
 
         literals = node_div(
             classes=['code-shell']
         )
-        ll = None
-        if language == 'ps1':
-            wd = wd_ = '/C:/'
-        else:
-            wd = wd_ = '~'
-        block = []
-        cd_flush = False
-        l__ = ''
-        for line in self.content:
-            if l__.startswith("cd "):
-                if language != 'ps1':
-                    wd = path.abspath(path.join(wd, l__[3:]))
-                else:
-                    l__ = l__.replace('\\', '/')
-                    if l__[4] == ':':
-                        wd = '/'+l__[3:]
-                    else:
-                        wd = path.abspath(path.join(path.sep, wd, l__[3:]))
-                if len(wd) > 1 and wd[-1] == "/":
-                    wd = wd[:-1]
-
-            l = line[0] if len(line) > 0 else ' '
-            l_ = line[1:] if l in types else line
-            l__ = l_.strip()
-
-            if language != 'ps1':
-                if l == '/':
-                    wd = line
-                elif l == '~':
-                    wd = line
-            if ((ll != l and ll is not None) or (ll == '$' and block[-1][-1] != '\\') or
-                ll == '#' and len(block) > 0):
-                wd__ = wd_ if language != 'ps1' else wd_.replace('/', '\\')[1:]
-                literals += resolve_block('\n'.join(block), ll,
-                                          wd_p+wd__, language)
-                if l not in ['/', '~']:
-                    block = [l_]
-                wd_ = wd
-            else:
-                block.append(l_)
-            ll = l
-        literals += resolve_block('\n'.join(block), ll, wd, language)
+        for entry in parsed:
+            literals += self.block2node(*entry)
 
         caption = self.options.get('caption')
         if caption:
             try:
                 literals = container_wrapper(self, literals, caption)
             except ValueError as exc:
+                document = self.state.document
                 return [document.reporter.warning(exc, line=self.lineno)]
 
         self.add_name(literals)
 
         return [literals]
+
+    def get_opts(self):
+        """
+        Get and sanitize options
+        """
+        shells = ['bash', 'sh', 'zsh', 'ps1']
+
+        user = self.options.get('user')
+        group = self.options.get('group')
+        if len(self.arguments) > 0:
+            self.language = self.arguments[0].strip()
+        if user is None:
+            user = "user"
+        if group is None:
+            group = "analog"
+        if self.language not in shells:
+            if self.language is not None:
+                location = self.state_machine.get_source_and_line(self.lineno)
+                logger.warning(("shell '%s' is invalid, valid values are "
+                                f"[{', '.join(shells)}]."),
+                               self.language, location=location)
+            self.language = "bash"
+        # Generate static vars
+        if self.language == 'ps1':
+            self.win = True
+            wd = "/c"
+            self.homedir = f"/c/Users/{user}"
+            self.esc = '`'
+        else:
+            wd = f"/home/{user}"
+            self.homedir = wd
+            self.esc = '\\'
+
+        if 'showuser' in self.options:
+            if not self.win:
+                self.usr_prefix = f"{user}@{group}:"
+            else:
+                self.usr_prefix = f"{user}.{group} "
+        else:
+            self.usr_prefix = ""
+        return wd
+
+    def parse_path(self, line, wd):
+        """
+        Covert "cd" commands into paths.
+        For windows, do a fake to bash conversion, similar to cygpath
+        """
+        line = line.split()
+        if len(line) < 2:
+            return wd
+
+        for i in range(0, len(line)):
+            if line[i-1] != "cd":
+                continue
+
+            p_ = line[i]
+            if self.win:
+                p_ = p_.replace('\\', '/')
+
+            if p_[0] == '~':
+                wd = self.homedir + p_[1:]
+            elif self.win and p_[1] == ':':
+                wd = '/'+p_[0]+p_[2:]
+            else:
+                wd = path.abspath(path.join(wd, p_))
+                if self.win and wd == '/':
+                    wd = "/c"
+
+            if len(wd) > 1 and wd[-1] in ['/', ';']:
+                wd = wd[:-1]
+            i += 1
+        return wd
+
+    def block2node(self, wd, line, typ):
+        """
+        Convert block into node objects
+        """
+        if typ in ['/', '~']:
+            return None
+
+        if self.win:
+            wd = (wd[1].upper()+':'+wd[2:]).replace('/', '\\')
+
+        if not self.win:
+            sep = '$'
+        elif len(wd) == 2:
+            sep = '\\>'
+        else:
+            sep = '>'
+
+        lit = node_div()
+        if typ in ['$', '#']:
+            if wd is not None:
+                if wd.startswith(self.homedir):
+                    wd = '~' + wd[len(self.homedir):]
+                sep = self.usr_prefix + wd + sep
+            lit += nodes.literal_block(sep, sep,
+                                       classes=['no-select', 'float-left'])
+
+        if typ == '$':
+            lit_ = nodes.literal_block(line, line, classes=['bold'])
+            lit_['language'] = self.language
+        elif typ == '#':
+            lit_ = nodes.literal_block('#'+line, '#'+line)
+            lit_['language'] = self.language
+        elif typ == ' ':
+            lit_ = nodes.literal_block(line, line, classes=['no-select'])
+            lit_['language'] = 'text'
+        else:
+            lit_ = nodes.literal_block(line, line, classes=['no-select'])
+            lit_['language'] = 'text'
+        lit += lit_
+
+        lit += node_div(
+            classes=["clear-left"]
+        )
+        return lit
 
 
 def common_setup(app):
@@ -472,4 +539,5 @@ def common_setup(app):
     app.add_directive('clear-content', directive_clear_content)
     app.add_directive('shell', directive_shell)
 
-    app.add_config_value('hide_collapsible_content', dft_hide_collapsible_content, 'env')
+    app.add_config_value('hide_collapsible_content',
+                         dft_hide_collapsible_content, 'env')

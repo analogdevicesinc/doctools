@@ -636,8 +636,8 @@ That means, each line is prefixed by character to:
 * ``$``: bash commands.
 * :code:`\ ` (one space): command output.
 * ``#``: bash comments
-* ``/``: set absolute working directory (unix only).
-* ``~``: set relative to "home" working directory (unix only).
+* ``/``: set absolute working directory (cygpath-formatted for ps1).
+* ``~``: set relative to "home" working directory (cygpath-formatted for ps1).
 
 Anything that does not match the previous characters will default to output print,
 but please be careful, since you may accidentally mark a working directory or
@@ -681,13 +681,15 @@ For Windows, set bash type as ``ps1`` (PowerShell), for example:
 .. code:: rst
 
    .. shell:: ps1
+      :user: Analog
 
-      $cd C:\Users
+      /e/MyData
+      $cd ~/Documents
       $ls
        Mode  LastWriteTime      Name
        ----  -------------      ----
-       d---- 6/14/2024 10:30 AM user1
-       d---- 6/14/2024 10:30 AM user2
+       d---- 6/14/2024 10:30 AM ImportantFiles
+       d---- 6/14/2024 10:30 AM LessImportantFiles
       $cd ..\Other\Folder
       $echo HelloWindows
        HelloWindows
@@ -695,13 +697,15 @@ For Windows, set bash type as ``ps1`` (PowerShell), for example:
 Renders as:
 
 .. shell:: ps1
+   :user: Analog
 
-   $cd C:\Users
+   /e/MyData
+   $cd ~/Documents
    $ls
     Mode  LastWriteTime      Name
     ----  -------------      ----
-    d---- 6/14/2024 10:30 AM user1
-    d---- 6/14/2024 10:30 AM user2
+    d---- 6/14/2024 10:30 AM ImportantFiles
+    d---- 6/14/2024 10:30 AM LessImportantFiles
    $cd ..\Other\Folder
    $echo HelloWindows
     HelloWindows
