@@ -41,7 +41,7 @@ code.literal {
 }
 
 @media screen {
-    code.literal {
+    code.literal, .highlight pre {
         font-size: 1.1em;
     }
 }

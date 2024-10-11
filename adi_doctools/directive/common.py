@@ -341,7 +341,9 @@ class directive_shell(SphinxDirective):
         'user': directives.unchanged_required,
         'group': directives.unchanged_required,
         'caption': directives.unchanged_required,
-        'showuser': directives.flag
+        'no-path': directives.flag,
+        'show-user': directives.flag,
+        'showuser': directives.flag # DEPRECATED
     }
     has_content = True
     final_argument_whitespace = True
@@ -354,6 +356,7 @@ class directive_shell(SphinxDirective):
     language = None
     win = False
     esc = None
+    no_path = False
 
     def run(self):
         self.assert_has_content()
@@ -455,13 +458,18 @@ class directive_shell(SphinxDirective):
             self.homedir = wd
             self.esc = '\\'
 
-        if 'showuser' in self.options:
+        # DEPRECATED: showuser
+        if 'showuser' in self.options or 'show-user' in self.options:
             if not self.win:
                 self.usr_prefix = f"{user}@{group}:"
             else:
                 self.usr_prefix = f"{user}.{group} "
         else:
             self.usr_prefix = ""
+
+        if 'no-path' in self.options:
+            self.no_path = True
+
         return wd
 
     def parse_path(self, line, wd):
@@ -504,14 +512,20 @@ class directive_shell(SphinxDirective):
         if typ in ['/', '~']:
             return None
 
-        if self.win:
-            wd = (wd[1].upper()+':'+wd[2:]).replace('/', '\\')
+        if self.no_path:
+            wd = None
         else:
-            wd = wd.replace('\\','')
+            if self.win:
+                if len(wd)  == 1:
+                    # Improper case
+                    wd = '/c'
+                wd = (wd[1].upper()+':'+wd[2:]).replace('/', '\\')
+            else:
+                wd = wd.replace('\\','')
 
         if not self.win:
             sep = '$'
-        elif len(wd) == 2:
+        elif wd is not None and len(wd) == 2:
             sep = '\\>'
         else:
             sep = '>'
@@ -522,6 +536,8 @@ class directive_shell(SphinxDirective):
                 if wd.startswith(self.homedir):
                     wd = '~' + wd[len(self.homedir):]
                 sep = self.usr_prefix + wd + sep
+            else:
+                sep = self.usr_prefix[:-1] + sep
             lit += nodes.literal_block(sep, sep,
                                        classes=['no-select', 'float-left'])
 

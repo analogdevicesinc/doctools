@@ -624,7 +624,8 @@ The shell directive allows to embed shell code in a standard way.
       :user: <user>
       :group: <group>
       :caption: <caption>
-      :showuser:
+      :show-user:
+      :no-path:
 
       /path_absolute
       ~path_relative_to_home
@@ -661,7 +662,7 @@ Renders as:
 
 .. shell::
    :caption: iio_reg help
-   :showuser:
+   :show-user:
 
    $iio_reg -h
     Usage:
@@ -674,7 +675,7 @@ Renders as:
    To make it super easy for the user to copy only the command,
    the current directory and output cannot be selected.
 
-To show the user and user group, add the ``:showuser:`` flag.
+To show the user and user group, add the ``:show-user:`` flag.
 
 For Windows, set bash type as ``ps1`` (PowerShell), for example:
 
