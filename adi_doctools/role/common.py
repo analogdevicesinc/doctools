@@ -1,6 +1,13 @@
+from typing import Tuple, List
+from types import ModuleType
+
 import subprocess
 from docutils import nodes
+from docutils.utils import Reporter
+from docutils.nodes import Node, system_message
 from sphinx.util import logging
+from sphinx.util.docutils import SphinxRole, CustomReSTDispatcher
+from sphinx.util.typing import RoleFunction
 
 logger = logging.getLogger(__name__)
 
@@ -15,22 +22,24 @@ dft_url_adi = 'https://www.analog.com'
 dft_url_xilinx = 'https://www.xilinx.com'
 dft_url_intel = 'https://www.intel.com'
 
-git_repos = [
-    # url_path                  name
-    ['hdl',                     "HDL"],
-    ['testbenches',             "Testbenches"],
-    ['linux',                   "Linux"],
-    ['no-OS',                   "no-OS"],
-    ['libiio',                  "libiio"],
-    ['scopy',                   "Scopy"],
-    ['iio-oscilloscope',        "IIO Oscilloscope"],
-    ['doctools',                "Doctools"],
-    ['documentation',           "System Level Documentation"],
-    ['pyadi-iio',               "PyADI-IIO"],
-    ['meta-adi',                "META-ADI"],
-    ['wiki-scripts',            "Wiki Scripts"],
-    ['linux_image_ADI-scripts', "ADI Scripts for Linux images"]
-]
+git_repos = {
+    # case insensitive            url_path                     name
+    'hdl':                       ['hdl',                       "HDL"],
+    'testbenches':               ['testbenches',               "Testbenches"],
+    'linux':                     ['linux',                     "Linux"],
+    'no-os':                     ['no-OS',                     "no-OS"],
+    'libiio':                    ['libiio',                    "libiio"],
+    'scopy':                     ['scopy',                     "Scopy"],
+    'iio-oscilloscope':          ['iio-oscilloscope',          "IIO Oscilloscope"],
+    'doctools':                  ['doctools',                  "Doctools"],
+    'documentation':             ['documentation',             "System Level Documentation"],
+    'pyadi-iio':                 ['pyadi-iio',                 "PyADI-IIO"],
+    'meta-adi':                  ['meta-adi',                  "META-ADI"],
+    'wiki-scripts':              ['wiki-scripts',              "Wiki Scripts"],
+    'linux_image_adi-scripts':   ['linux_image_ADI-scripts',   "ADI Scripts for Linux images"],
+    'highspeedconvertertoolbox': ['HighSpeedConverterToolbox', "High Speed Converter Toolbox"],
+    'transceivertoolbox':        ['TransceiverToolbox',        "Transceiver Toolbox"]
+}
 vendors = ['xilinx', 'intel', 'mw']
 
 
@@ -109,10 +118,46 @@ def get_default_brach(repo, inliner):
     else:
         return 'main'
 
+class GitRoleDispatcher(CustomReSTDispatcher):
+    """Custom dispatcher for git role.
 
-def git(repo, alt_name):
-    def role(name, rawtext, text, lineno, inliner, options={}, content=[]):
-        text, path = get_outer_inner(text)
+    This enables :git-***: roles on parsing reST document.
+    """
+
+    def role(
+        self, role_name: str, language_module: ModuleType, lineno: int, reporter: Reporter,
+    ) -> Tuple[RoleFunction, List[system_message]]:
+        if len(role_name) > 4 and role_name.startswith(('git-')):
+            return GitRole(role_name), []
+        else:
+            return super().role(role_name, language_module, lineno, reporter)
+
+
+class GitRole(SphinxRole):
+    """
+    Create links to git upstream.
+    Prefers knowns repositories, but will generate for other repositories
+    with a info note
+    """
+    message = ("Repository '{repo}' is not tracked and has no metadata, "
+               "considering informing the adi_doctools maintainers.")
+    def __init__(self, orig_name: str) -> None:
+        self.orig_name = orig_name
+
+    def run(self) -> Tuple[List[Node], List[system_message]]:
+        assert self.name == self.orig_name.lower()
+        assert self.name.startswith('git-')
+        repo = self.name[4:]
+        text, path = get_outer_inner(self.text)
+
+        if repo not in git_repos:
+            logger.info(self.message.format(repo=repo),
+                        location=(self.env.docname, self.lineno))
+            alt_name = repo
+            repo = self.orig_name[4:]
+        else:
+            alt_name = git_repos[repo][1]
+            repo = git_repos[repo][0]
 
         pos = path.find('+')
         if path[0:pos] == "raw":
@@ -130,7 +175,7 @@ def git(repo, alt_name):
         if type_ in ['raw', 'gui']:
             pos = path.find(':')
             if pos in [0, -1]:
-                branch = get_default_brach(repo, inliner)
+                branch = get_default_brach(repo, self.inliner)
             else:
                 branch = path[0:pos]
             path = path[pos+1:]
@@ -144,18 +189,16 @@ def git(repo, alt_name):
             if path == '/':
                 path = ''
 
-            url = get_url_config('git_'+type_, inliner).format(repo=repo)
+            url = get_url_config('git_'+type_, self.inliner).format(repo=repo)
             url = url + '/' + branch + '/' + path
         else:
             if text is None:
                     text = "ADI " + alt_name + " repository " + f"({type_})"
-            url = get_url_config('git_other', inliner).format(repo=repo, other=type_)
+            url = get_url_config('git_other', self.inliner).format(repo=repo, other=type_)
 
-        node = nodes.reference(rawtext, text, refuri=url,
-                               classes=['icon', 'git'], **options)
+        node = nodes.reference(self.rawtext, text, refuri=url,
+                               classes=['icon', 'git'], **self.options)
         return [node], []
-
-    return role
 
 
 def adi():
@@ -182,20 +225,25 @@ def vendor(vendor_name):
 
     return role
 
+def install_dispatcher(app, docname: str, source: List[str]) -> None:
+    """Enable GitRoleDispatcher.
+
+    .. note:: The installed dispatcher will be uninstalled on disabling sphinx_domain
+              automatically.
+    """
+    dispatcher = GitRoleDispatcher()
+    dispatcher.enable()
 
 def common_setup(app):
     app.add_role("red",             color('red'))
     app.add_role("green",           color('green'))
     app.add_role("datasheet",       datasheet())
-    app.add_role("dokuwiki",        dokuwiki())
     app.add_role("ez",              ez())
     app.add_role("adi",             adi())
     app.add_role("dokuwiki",            dokuwiki())
     app.add_role("dokuwiki+deprecated", dokuwiki())
     for name in vendors:
         app.add_role(name,          vendor(name))
-    for path, name in git_repos:
-        app.add_role("git-"+path,   git(path, name))
 
     app.add_config_value('url_dokuwiki',  dft_url_dokuwiki,  'env')
     app.add_config_value('url_ez',        dft_url_ez,        'env')
@@ -206,3 +254,5 @@ def common_setup(app):
     app.add_config_value('url_adi',       dft_url_adi,       'env')
     app.add_config_value('url_xilinx',    dft_url_xilinx,    'env')
     app.add_config_value('url_intel',     dft_url_intel,     'env')
+
+    app.connect('source-read', install_dispatcher)
