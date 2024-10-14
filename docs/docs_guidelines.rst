@@ -551,6 +551,8 @@ Since links are case insensitive, you can also reduce it to
 :code:`:adi:\`AD7175-2\``, when *webpage* is the same as *text* and will render
 as :adi:`AD7175-2`.
 
+.. _role dokuwiki:
+
 Dokuwiki role
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -559,6 +561,13 @@ The role syntax is :code:`:dokuwiki:\`text <path>\``, for example,
 :code:`:dokuwiki:\`pulsar-adc-pmods <resources/eval/user-guides/circuits-from-the-lab/pulsar-adc-pmods>\``
 gets rendered as
 :dokuwiki:`pulsar-adc-pmods <resources/eval/user-guides/circuits-from-the-lab/pulsar-adc-pmods>`.
+
+For intentional deprecated links, add the ``deprecated`` qualifier, e.g.:
+:code:`:dokuwiki+deprecated:\`ADS-B Airplane Tracking Example <resources/tools-software/linux-software/libiio/clients/adsb_example>\``
+gets rendered as
+:dokuwiki+deprecated:`ADS-B Airplane Tracking Example <resources/tools-software/linux-software/libiio/clients/adsb_example>`.
+The sole intend of this qualifier is to distinct pending import pages from won't
+import pages.
 
 EngineerZone role
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

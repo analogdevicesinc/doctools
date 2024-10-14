@@ -74,6 +74,8 @@ def dokuwiki():
         text, path = get_outer_inner(text)
         if text is None:
             text = path[path.rfind('/')+1:]
+        if len(path) > 0 and path[0] == '/':
+            path = path[1:]
         url = get_url_config('dokuwiki', inliner) + '/' + path
         node = nodes.reference(rawtext, text, refuri=url, **options)
         return [node], []
@@ -188,6 +190,8 @@ def common_setup(app):
     app.add_role("dokuwiki",        dokuwiki())
     app.add_role("ez",              ez())
     app.add_role("adi",             adi())
+    app.add_role("dokuwiki",            dokuwiki())
+    app.add_role("dokuwiki+deprecated", dokuwiki())
     for name in vendors:
         app.add_role(name,          vendor(name))
     for path, name in git_repos:
