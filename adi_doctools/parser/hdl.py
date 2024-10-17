@@ -226,6 +226,9 @@ def parse_hdl_regmap(ctime: float, file: str) -> Dict:
                             split_field = field_default.split(" = ", 1)
                             field_default = split_field[0].replace("''", "")
                             field_default_long = field_default
+                            field_default_long = field_default_long.replace("min", "`MIN")
+                            field_default_long = field_default_long.replace("max", "`MAX")
+                            field_default_long = field_default_long.replace("log2", "$clog2")
 
                             if "0xX" not in field_default:
                                 try:
@@ -271,6 +274,7 @@ def parse_hdl_regmap(ctime: float, file: str) -> Dict:
                     if '-V' in field_rw:
                         if 'V' not in access_type:
                             access_type.append('V')
+                    field_rw = field_rw.replace('-V', 'V')
                     field_rw_ = field_rw.replace('-V', '')
                     if field_rw_ not in access_type:
                         if field_rw_ not in string_hdl.access_type:
