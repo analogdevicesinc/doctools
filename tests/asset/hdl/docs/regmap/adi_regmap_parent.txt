@@ -61,7 +61,7 @@ Reserved.
 ENDFIELD
 
 FIELD
-[B-1:3] ($clog2(VAL3**9)-VAL4)*7**2
+[B-1:3] (log2(VAL3**9)-VAL4)*7**2
 THIRD
 RO
 Reserved.
