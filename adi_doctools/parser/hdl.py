@@ -223,7 +223,11 @@ def parse_hdl_regmap(ctime: float, file: str) -> Dict:
                             field_default_long = fd_
 
                         except Exception:
-                            split_field = field_default.split(" = ", 1)
+                            split_field = field_default.split(" = ", 2)
+                            if "''" in field_default:
+                                warnings.warn("Default value "
+                                              f"'{field_default}' "
+                                              f"contains ''!")
                             field_default = split_field[0].replace("''", "")
                             field_default_long = field_default
 
@@ -272,6 +276,7 @@ def parse_hdl_regmap(ctime: float, file: str) -> Dict:
                         if 'V' not in access_type:
                             access_type.append('V')
                     field_rw_ = field_rw.replace('-V', '')
+                    field_rw = field_rw.replace('-V', 'V')
                     if field_rw_ not in access_type:
                         if field_rw_ not in string_hdl.access_type:
                             warnings.warn(f"Malformed access type {field_rw} "

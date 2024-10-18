@@ -41,7 +41,7 @@ package adi_regmap_parent_ops_pkg;
   class adi_regmap_parent_ops;
 
     /* Parent OPS (parent ops) */
-    class MOCK_0 extends register_base;
+    class MOCK_0_CLASS extends register_base;
       field_base FOURTH_F;
 
       function new(
@@ -53,7 +53,7 @@ package adi_regmap_parent_ops_pkg;
       endfunction: new
     endclass
 
-    class MOCK_1 extends register_base;
+    class MOCK_1_CLASS extends register_base;
       field_base CONFIGURE0_F;
       field_base CONFIGURE1_F;
       field_base CONFIGURE2_F;
@@ -79,8 +79,8 @@ package adi_regmap_parent_ops_pkg;
       endfunction: new
     endclass
 
-    MOCK_0 MOCK_0_R;
-    MOCK_1 MOCK_1_R;
+    MOCK_0_CLASS MOCK_0_R;
+    MOCK_1_CLASS MOCK_1_R;
 
     function new();
       this.MOCK_0_R = new("MOCK_0", 'h40);

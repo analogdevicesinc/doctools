@@ -41,7 +41,7 @@ package adi_regmap_child_ops_pkg;
   class adi_regmap_child_ops;
 
     /* Child ops (child ops) */
-    class MOCK_0 extends register_base;
+    class MOCK_0_CLASS extends register_base;
       field_base FOURTH_F;
 
       function new(
@@ -53,7 +53,7 @@ package adi_regmap_child_ops_pkg;
       endfunction: new
     endclass
 
-    class MOCK_3 extends register_base;
+    class MOCK_3_CLASS extends register_base;
       field_base FIRST_F;
 
       function new(
@@ -65,8 +65,8 @@ package adi_regmap_child_ops_pkg;
       endfunction: new
     endclass
 
-    MOCK_0 MOCK_0_R;
-    MOCK_3 MOCK_3_R;
+    MOCK_0_CLASS MOCK_0_R;
+    MOCK_3_CLASS MOCK_3_R;
 
     function new();
       this.MOCK_0_R = new("MOCK_0", 'h40);

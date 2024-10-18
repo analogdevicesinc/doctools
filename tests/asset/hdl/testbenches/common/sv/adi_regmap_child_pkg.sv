@@ -41,7 +41,7 @@ package adi_regmap_child_pkg;
   class adi_regmap_child;
 
     /* Child (child) */
-    class MOCK_0 extends register_base;
+    class MOCK_0_CLASS extends register_base;
       field_base SECOND_F;
 
       function new(
@@ -53,7 +53,7 @@ package adi_regmap_child_pkg;
       endfunction: new
     endclass
 
-    class MOCK_CHANn extends register_base;
+    class MOCK_CHANn_CLASS extends register_base;
       field_base CONFIGURE_F;
 
       function new(
@@ -65,23 +65,23 @@ package adi_regmap_child_pkg;
       endfunction: new
     endclass
 
-    MOCK_0 MOCK_0_R;
-    MOCK_CHANn MOCK_CHAN0_R;
-    MOCK_CHANn MOCK_CHAN1_R;
-    MOCK_CHANn MOCK_CHAN2_R;
-    MOCK_CHANn MOCK_CHAN3_R;
-    MOCK_CHANn MOCK_CHAN4_R;
-    MOCK_CHANn MOCK_CHAN5_R;
-    MOCK_CHANn MOCK_CHAN6_R;
-    MOCK_CHANn MOCK_CHAN7_R;
-    MOCK_CHANn MOCK_CHAN8_R;
-    MOCK_CHANn MOCK_CHAN9_R;
-    MOCK_CHANn MOCK_CHAN10_R;
-    MOCK_CHANn MOCK_CHAN11_R;
-    MOCK_CHANn MOCK_CHAN12_R;
-    MOCK_CHANn MOCK_CHAN13_R;
-    MOCK_CHANn MOCK_CHAN14_R;
-    MOCK_CHANn MOCK_CHAN15_R;
+    MOCK_0_CLASS MOCK_0_R;
+    MOCK_CHANn_CLASS MOCK_CHAN0_R;
+    MOCK_CHANn_CLASS MOCK_CHAN1_R;
+    MOCK_CHANn_CLASS MOCK_CHAN2_R;
+    MOCK_CHANn_CLASS MOCK_CHAN3_R;
+    MOCK_CHANn_CLASS MOCK_CHAN4_R;
+    MOCK_CHANn_CLASS MOCK_CHAN5_R;
+    MOCK_CHANn_CLASS MOCK_CHAN6_R;
+    MOCK_CHANn_CLASS MOCK_CHAN7_R;
+    MOCK_CHANn_CLASS MOCK_CHAN8_R;
+    MOCK_CHANn_CLASS MOCK_CHAN9_R;
+    MOCK_CHANn_CLASS MOCK_CHAN10_R;
+    MOCK_CHANn_CLASS MOCK_CHAN11_R;
+    MOCK_CHANn_CLASS MOCK_CHAN12_R;
+    MOCK_CHANn_CLASS MOCK_CHAN13_R;
+    MOCK_CHANn_CLASS MOCK_CHAN14_R;
+    MOCK_CHANn_CLASS MOCK_CHAN15_R;
 
     function new();
       this.MOCK_0_R = new("MOCK_0", 'h40);

@@ -70,7 +70,7 @@ def svpkg_regmap(f, regmap: Dict, key: str):
         # Skip unresolved
         if reg['import']:
             continue
-        row = f"    class {reg['name']}"
+        row = f"    class {reg['name']}_CLASS"
         reg_param_dec = []
         for reg_param in reg['parameters']:
             reg_param_dec.append("int " + reg_param)
@@ -141,7 +141,7 @@ def svpkg_reg_decl(f, regmap: Dict):
             for n in range(*reg['where']):
                 reg_ = reg.copy()
                 reg_['name'] = reg_['name'].replace('n', str(n))
-                row = f"    {reg['name']}"
+                row = f"    {reg['name']}_CLASS"
                 if len(reg['parameters']):
                     row += " #("
                     row += ", ".join(reg['parameters'])
@@ -149,7 +149,7 @@ def svpkg_reg_decl(f, regmap: Dict):
                 row += f" {reg_['name']}_R;\n"
                 f.write(row)
         else:
-            row = f"    {reg['name']}"
+            row = f"    {reg['name']}_CLASS"
             if len(reg['parameters']):
                 row += " #("
                 row += ", ".join(reg['parameters'])
