@@ -21,19 +21,6 @@ span {
     scroll-margin-top: 2.5rem;
 }
 
-:is(h1, h2, h3, h4, h5, h6) .headerlink,
-figure .headerlink {
-    user-select: none;
-    margin-left: .25em;
-    opacity: 0;
-    transition: opacity ease .125s;
-}
-
-:is(h1, h2, h3, h4, h5, h6):hover .headerlink,
-figure:hover .headerlink {
-    opacity: 1;
-}
-
 code.literal {
     border: 1px solid rgba(125, 125, 125, 0.15);
     background: rgba(125, 125, 125, 0.05);

@@ -15,13 +15,6 @@ em.sig-param, em.property {
     font-style: normal;
 }
 
-.headerlink {
-    color: var(--accent-color);
-    opacity: 0;
-    transition: ease opacity .25s;
-    padding-left: .25em;
-}
-
 .sig-object {
     transition: ease background-color .25s;
     background-color: rgba(125, 125, 125, 0);
@@ -31,10 +24,6 @@ em.sig-param, em.property {
 
 .sig-object:hover {
     background-color: rgba(125, 125, 125, 0.1);
-}
-
-.sig-object:hover .headerlink, .literal-block-wrapper:hover .headerlink {
-    opacity: 1;
 }
 
 .code-block-caption {

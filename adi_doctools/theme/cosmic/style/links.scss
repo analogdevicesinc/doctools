@@ -80,3 +80,20 @@ a.icon {
         }
     }
 }
+
+/* Headerlinks */
+.headerlink {
+    color: var(--accent-color);
+    transition: opacity ease .125s;
+    margin-left: .25em;
+    user-select: none;
+    opacity: 0;
+}
+
+:is(h1, h2, h3, h4, h5, h6):hover .headerlink,
+.literal-block-wrapper:hover .headerlink,
+.sig-object:hover .headerlink,
+figure:hover .headerlink,
+table:hover .headerlink {
+    opacity: 1;
+}

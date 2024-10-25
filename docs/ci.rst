@@ -88,15 +88,15 @@ documentation.
 
 To serve the build in a local server, Python built-in server can be used:
 
-.. code:: bash
+.. shell::
 
-   python -m http.server -d /path/to/docs/_build/html
+   $python -m http.server -d /path/to/docs/_build/html
 
 Or with hot reload using :ref:`author-mode`:
 
-.. code:: bash
+.. shell::
 
-   adoc author-mode -d /path/to/docs
+   $adoc author-mode -d /path/to/docs
 
 .. _ci-rolling-release:
 
@@ -235,9 +235,9 @@ the target the version on the ``interref_repos`` variable, e.g.
 
 A basic ``tags.json`` can be obtained with:
 
-.. code::
+.. shell::
 
-   ls -d */ | cut -f1 -d'/' | jq --raw-input . | jq --slurp . > tags.json
+   $ls -d */ | cut -f1 -d'/' | jq --raw-input . | jq --slurp . > tags.json
 
 That means, take all directories in the root path and store as JSON.
 

@@ -13,21 +13,21 @@ Release install
 
 Ensure pip is newer than 23.0 [#f1]_:
 
-.. code::
+.. shell::
 
-   pip install pip --upgrade
+   $pip install pip --upgrade
 
 Install the documentation tools, which will fetch this repository release:
 
-.. code::
+.. shell::
 
-   (cd docs ; pip install -r requirements.txt)
+   $(cd docs ; pip install -r requirements.txt)
 
 Test it building this documentation:
 
-.. code::
+.. shell::
 
-   (cd docs ; make html)
+   $(cd docs ; make html)
 
 
 .. [#f1] There is a `known bug <https://github.com/pypa/setuptools/issues/3269>`_
@@ -42,18 +42,18 @@ consider using a Python virtual environment (``python3-venv`` on ubuntu 22.04).
 
 To create and activate the environment, do before the previous instructions:
 
-.. code::
+.. shell::
 
-   python3 -m venv ./venv
-   source ./venv/bin/activate
+   $python3 -m venv ./venv
+   $source ./venv/bin/activate
 
 Use ``deactivate`` to exit the virtual environment.
 
 For next builds, just activate the virtual environment:
 
-.. code::
+.. shell::
 
-   source ./venv/bin/activate
+   $source ./venv/bin/activate
 
 .. _development-install:
 
@@ -82,13 +82,13 @@ last paragraph.
 
 At the repository root, install the `npm` dependencies locally:
 
-.. code::
+.. shell::
 
-   npm install rollup \
-       @rollup/plugin-terser \
-       rollup-plugin-scss \
-       sass \
-       --save-dev
+   $npm install rollup \
+   $    @rollup/plugin-terser \
+   $    rollup-plugin-scss \
+   $    sass \
+   $    --save-dev
 
 If you choose to not use ``npm``, you can obtain pre-built web-scripts from the
 latest release.
@@ -100,18 +100,18 @@ Fetch third-party resources
 
 Fetch third-party fonts:
 
-.. code::
+.. shell::
 
-   ./ci/fetch-fonts.sh
+   $./ci/fetch-fonts.sh
 
 Install the repository
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Finally, do a symbolic install of this repo:
 
-.. code::
+.. shell::
 
-   pip install -e . --upgrade
+   $pip install -e . --upgrade
 
 .. _removing:
 
@@ -120,6 +120,6 @@ Removing
 
 To remove, either release or development, do:
 
-.. code::
+.. shell::
 
-   pip uninstall adi-doctools
+   $pip uninstall adi-doctools

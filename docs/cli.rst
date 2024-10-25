@@ -23,9 +23,9 @@ Two HTML live update strategies are available:
 
 To launch a watched instance, do:
 
-.. code::
+.. shell::
 
-   adoc author-mode --directory /path/to/docs
+   $adoc author-mode --directory /path/to/docs
 
 Where ``/path/to/docs`` is the path to the folder contain the Sphinx's ``Makefile``.
 
@@ -34,27 +34,27 @@ sure to have Doctools as :ref:`development-install`.
 
 For PDF output, do:
 
-.. code::
+.. shell::
 
-   adoc author-mode --directory /path/to/docs --builder pdf
+   $adoc author-mode --directory /path/to/docs --builder pdf
 
 Make sure to use an PDF viewer that watches the file timestamp
 and automatically reloads, such as Gnome PDF (Evince).
 
 All options can be listed with:
 
-.. code::
+.. shell::
 
-   adoc author-mode --help
+   $adoc author-mode --help
 
 How can I rebuild the whole documentation within Author Mode?
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 Run ``make clean`` in another tab and then touch any file, for example:
 
-::
+.. shell::
 
-   make clean ; touch conf.rst
+   $make clean ; touch conf.rst
 
 Do **not** do ``make clean html`` since it will generate a build without the
 proper Author Mode environment and live reload won't work properly.
@@ -85,13 +85,8 @@ Aggregate
 
    This feature is under elaboration.
 
-Generates all documentations of the watched repositories, which currently are:
-
-* :git-documentation:`/`
-* :git-hdl:`/`
-* :git-no-os:`/`
-* :git-pyadi-iio:`/`
-* :git-doctools:`/`
+Generates all documentations of the watched repositories
+(see :git-doctools:`adi_doctools/lut.py`).
 
 Two generation strategies are available:
 
@@ -100,9 +95,9 @@ Two generation strategies are available:
 
 For the monolithic output, do:
 
-.. code::
+.. shell::
 
-   adoc aggregate --directory output
+   $adoc aggregate --directory output
 
 Some documentations depend on auto generated sections and extra features, use
 the ``--extra`` option to enable those; it considers that the environment has all
@@ -112,9 +107,9 @@ included, but in summary, they are just a sequence of bash commands wrapped on p
 
 For all options, do:
 
-.. code::
+.. shell::
 
-   adoc aggregate --help
+   $adoc aggregate --help
 
 HDL Render
 --------------------------------------------------------------------------------
@@ -125,18 +120,18 @@ It converts IP-XACT files into SVGs.
 To generate and open the diagram, provide the path containing the IP-XACT and use
 the ``--open`` option:
 
-.. code::
+.. shell::
 
-   adoc hdl-render --input PATH --open
+   $adoc hdl-render --input PATH --open
 
 For example:
 
-.. code::
+.. shell::
 
-   adoc hdl-render --input hdl/library/axi_dmac --open
+   $adoc hdl-render --input hdl/library/axi_dmac --open
 
 For all options, do:
 
-.. code::
+.. shell::
 
-   adoc hdl-render --help
+   $adoc hdl-render --help
