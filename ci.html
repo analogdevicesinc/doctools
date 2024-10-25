@@ -7,7 +7,7 @@
 
     <title>Continuous integration &#8212; Doctools  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8e8a900e" />
-    <link rel="stylesheet" type="text/css" href="_static/style.min.css?v=95305861" />
+    <link rel="stylesheet" type="text/css" href="_static/style.min.css?v=db3fb6d9" />
     <script src="_static/documentation_options.js?v=5929fcd5"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
@@ -237,14 +237,20 @@ These releases exist to provide a pointer to the latest/pre-release packages, e.
 <p>For offline and local server, a <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">html</span></code> suffice to generate the
 documentation.</p>
 <p>To serve the build in a local server, Python built-in server can be used:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>http.server<span class="w"> </span>-d<span class="w"> </span>/path/to/docs/_build/html
+<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
 </pre></div>
 </div>
-<p>Or with hot reload using <a class="reference internal" href="cli.html#author-mode"><span class="std std-ref">Author Mode</span></a>:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>adoc<span class="w"> </span>author-mode<span class="w"> </span>-d<span class="w"> </span>/path/to/docs
+<div class="bold highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>http.server<span class="w"> </span>-d<span class="w"> </span>/path/to/docs/_build/html
 </pre></div>
 </div>
-</section>
+<div class="clear-left"></div></div></div><p>Or with hot reload using <a class="reference internal" href="cli.html#author-mode"><span class="std std-ref">Author Mode</span></a>:</p>
+<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
+</pre></div>
+</div>
+<div class="bold highlight-bash notranslate"><div class="highlight"><pre><span></span>adoc<span class="w"> </span>author-mode<span class="w"> </span>-d<span class="w"> </span>/path/to/docs
+</pre></div>
+</div>
+<div class="clear-left"></div></div></div></section>
 <section id="rolling-release">
 <span id="ci-rolling-release"></span><h3>Rolling release<a class="headerlink" href="#rolling-release" title="Link to this heading">#</a></h3>
 <p>For a rolling release, a workflow file is used.</p>
@@ -367,10 +373,13 @@ how to implement it.</p>
 the target the version on the <code class="docutils literal notranslate"><span class="pre">interref_repos</span></code> variable, e.g.
 <code class="docutils literal notranslate"><span class="pre">interref_repos</span> <span class="pre">=</span> <span class="pre">['pyadi-iio/dev',</span> <span class="pre">'other-repo/v1.1']</span></code>.</p>
 <p>A basic <code class="docutils literal notranslate"><span class="pre">tags.json</span></code> can be obtained with:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ls</span> <span class="o">-</span><span class="n">d</span> <span class="o">*/</span> <span class="o">|</span> <span class="n">cut</span> <span class="o">-</span><span class="n">f1</span> <span class="o">-</span><span class="n">d</span><span class="s1">&#39;/&#39;</span> <span class="o">|</span> <span class="n">jq</span> <span class="o">--</span><span class="n">raw</span><span class="o">-</span><span class="nb">input</span> <span class="o">.</span> <span class="o">|</span> <span class="n">jq</span> <span class="o">--</span><span class="n">slurp</span> <span class="o">.</span> <span class="o">&gt;</span> <span class="n">tags</span><span class="o">.</span><span class="n">json</span>
+<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
 </pre></div>
 </div>
-<p>That means, take all directories in the root path and store as JSON.</p>
+<div class="bold highlight-bash notranslate"><div class="highlight"><pre><span></span>ls<span class="w"> </span>-d<span class="w"> </span>*/<span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-f1<span class="w"> </span>-d<span class="s1">&#39;/&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>--raw-input<span class="w"> </span>.<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>--slurp<span class="w"> </span>.<span class="w"> </span>&gt;<span class="w"> </span>tags.json
+</pre></div>
+</div>
+<div class="clear-left"></div></div></div><p>That means, take all directories in the root path and store as JSON.</p>
 <p>If the root does not contain any built doc, add a redirect HTML file pointing
 to the main/stable version:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&lt;!DOCTYPE html&gt;

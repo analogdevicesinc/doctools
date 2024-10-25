@@ -7,7 +7,7 @@
 
     <title>Command line interface &#8212; Doctools  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8e8a900e" />
-    <link rel="stylesheet" type="text/css" href="_static/style.min.css?v=95305861" />
+    <link rel="stylesheet" type="text/css" href="_static/style.min.css?v=db3fb6d9" />
     <script src="_static/documentation_options.js?v=5929fcd5"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
@@ -179,29 +179,41 @@ command supports the <code class="docutils literal notranslate"><span class="pre
 <li><p>pooling: The webpage pools timestamp changes on the <code class="docutils literal notranslate"><span class="pre">.dev-pool</span></code> file (fallback).</p></li>
 </ul>
 <p>To launch a watched instance, do:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">adoc</span> <span class="n">author</span><span class="o">-</span><span class="n">mode</span> <span class="o">--</span><span class="n">directory</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">docs</span>
+<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
 </pre></div>
 </div>
-<p>Where <code class="docutils literal notranslate"><span class="pre">/path/to/docs</span></code> is the path to the folder contain the Sphinx’s <code class="docutils literal notranslate"><span class="pre">Makefile</span></code>.</p>
+<div class="bold highlight-bash notranslate"><div class="highlight"><pre><span></span>adoc<span class="w"> </span>author-mode<span class="w"> </span>--directory<span class="w"> </span>/path/to/docs
+</pre></div>
+</div>
+<div class="clear-left"></div></div></div><p>Where <code class="docutils literal notranslate"><span class="pre">/path/to/docs</span></code> is the path to the folder contain the Sphinx’s <code class="docutils literal notranslate"><span class="pre">Makefile</span></code>.</p>
 <p>To also watch changes made to theme itself, use the <code class="docutils literal notranslate"><span class="pre">--dev</span></code> option, just make
 sure to have Doctools as <a class="reference internal" href="install.html#development-install"><span class="std std-ref">Development install</span></a>.</p>
 <p>For PDF output, do:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">adoc</span> <span class="n">author</span><span class="o">-</span><span class="n">mode</span> <span class="o">--</span><span class="n">directory</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">docs</span> <span class="o">--</span><span class="n">builder</span> <span class="n">pdf</span>
+<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
 </pre></div>
 </div>
-<p>Make sure to use an PDF viewer that watches the file timestamp
+<div class="bold highlight-bash notranslate"><div class="highlight"><pre><span></span>adoc<span class="w"> </span>author-mode<span class="w"> </span>--directory<span class="w"> </span>/path/to/docs<span class="w"> </span>--builder<span class="w"> </span>pdf
+</pre></div>
+</div>
+<div class="clear-left"></div></div></div><p>Make sure to use an PDF viewer that watches the file timestamp
 and automatically reloads, such as Gnome PDF (Evince).</p>
 <p>All options can be listed with:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">adoc</span> <span class="n">author</span><span class="o">-</span><span class="n">mode</span> <span class="o">--</span><span class="n">help</span>
+<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
 </pre></div>
 </div>
-<section id="how-can-i-rebuild-the-whole-documentation-within-author-mode">
+<div class="bold highlight-bash notranslate"><div class="highlight"><pre><span></span>adoc<span class="w"> </span>author-mode<span class="w"> </span>--help
+</pre></div>
+</div>
+<div class="clear-left"></div></div></div><section id="how-can-i-rebuild-the-whole-documentation-within-author-mode">
 <h3>How can I rebuild the whole documentation within Author Mode?<a class="headerlink" href="#how-can-i-rebuild-the-whole-documentation-within-author-mode" title="Link to this heading">#</a></h3>
 <p>Run <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">clean</span></code> in another tab and then touch any file, for example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">clean</span> <span class="p">;</span> <span class="n">touch</span> <span class="n">conf</span><span class="o">.</span><span class="n">rst</span>
+<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
 </pre></div>
 </div>
-<p>Do <strong>not</strong> do <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">clean</span> <span class="pre">html</span></code> since it will generate a build without the
+<div class="bold highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>clean<span class="w"> </span><span class="p">;</span><span class="w"> </span>touch<span class="w"> </span>conf.rst
+</pre></div>
+</div>
+<div class="clear-left"></div></div></div><p>Do <strong>not</strong> do <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">clean</span> <span class="pre">html</span></code> since it will generate a build without the
 proper Author Mode environment and live reload won’t work properly.</p>
 </section>
 <section id="why-is-the-output-missing-styling-css-stylesheet">
@@ -226,51 +238,60 @@ with the edited Python code.</p>
 <p class="admonition-title">Warning</p>
 <p>This feature is under elaboration.</p>
 </div>
-<p>Generates all documentations of the watched repositories, which currently are:</p>
-<ul class="simple">
-<li><p><a class="icon git reference external" href="https://github.com/analogdevicesinc/documentation/tree/main/">ADI System Level Documentation repository</a></p></li>
-<li><p><a class="icon git reference external" href="https://github.com/analogdevicesinc/hdl/tree/main/">ADI HDL repository</a></p></li>
-<li><p><a class="icon git reference external" href="https://github.com/analogdevicesinc/no-OS/tree/main/">ADI no-OS repository</a></p></li>
-<li><p><a class="icon git reference external" href="https://github.com/analogdevicesinc/pyadi-iio/tree/main/">ADI PyADI-IIO repository</a></p></li>
-<li><p><a class="icon git reference external" href="https://github.com/analogdevicesinc/doctools/tree/main/">ADI Doctools repository</a></p></li>
-</ul>
+<p>Generates all documentations of the watched repositories
+(see <a class="icon git reference external" href="https://github.com/analogdevicesinc/doctools/tree/main/adi_doctools/lut.py">adi_doctools/lut.py</a>).</p>
 <p>Two generation strategies are available:</p>
 <ul class="simple">
 <li><p>monolithic: patches all docs together into a single monolithic output (default).</p></li>
 <li><p>symbolic: generate each doc independently, just save them together (<code class="docutils literal notranslate"><span class="pre">--symbolic</span></code>).</p></li>
 </ul>
 <p>For the monolithic output, do:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">adoc</span> <span class="n">aggregate</span> <span class="o">--</span><span class="n">directory</span> <span class="n">output</span>
+<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
 </pre></div>
 </div>
-<p>Some documentations depend on auto generated sections and extra features, use
+<div class="bold highlight-bash notranslate"><div class="highlight"><pre><span></span>adoc<span class="w"> </span>aggregate<span class="w"> </span>--directory<span class="w"> </span>output
+</pre></div>
+</div>
+<div class="clear-left"></div></div></div><p>Some documentations depend on auto generated sections and extra features, use
 the <code class="docutils literal notranslate"><span class="pre">--extra</span></code> option to enable those; it considers that the environment has all
 the tools needed, for example, <code class="docutils literal notranslate"><span class="pre">vivado</span></code> is accessible for the HDL documentation.
 See <a class="icon git reference external" href="https://github.com/analogdevicesinc/doctools/tree/main/adi_doctools/cli/aggregate.py">adi_doctools/cli/aggregate.py</a> to understand how the extra steps are
 included, but in summary, they are just a sequence of bash commands wrapped on python.</p>
 <p>For all options, do:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">adoc</span> <span class="n">aggregate</span> <span class="o">--</span><span class="n">help</span>
+<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
 </pre></div>
 </div>
-</section>
+<div class="bold highlight-bash notranslate"><div class="highlight"><pre><span></span>adoc<span class="w"> </span>aggregate<span class="w"> </span>--help
+</pre></div>
+</div>
+<div class="clear-left"></div></div></div></section>
 <section id="hdl-render">
 <h2>HDL Render<a class="headerlink" href="#hdl-render" title="Link to this heading">#</a></h2>
 <p>Exposes the HDL component diagram generator as a CLI.
 It converts IP-XACT files into SVGs.</p>
 <p>To generate and open the diagram, provide the path containing the IP-XACT and use
 the <code class="docutils literal notranslate"><span class="pre">--open</span></code> option:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">adoc</span> <span class="n">hdl</span><span class="o">-</span><span class="n">render</span> <span class="o">--</span><span class="nb">input</span> <span class="n">PATH</span> <span class="o">--</span><span class="nb">open</span>
+<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
 </pre></div>
 </div>
-<p>For example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">adoc</span> <span class="n">hdl</span><span class="o">-</span><span class="n">render</span> <span class="o">--</span><span class="nb">input</span> <span class="n">hdl</span><span class="o">/</span><span class="n">library</span><span class="o">/</span><span class="n">axi_dmac</span> <span class="o">--</span><span class="nb">open</span>
+<div class="bold highlight-bash notranslate"><div class="highlight"><pre><span></span>adoc<span class="w"> </span>hdl-render<span class="w"> </span>--input<span class="w"> </span>PATH<span class="w"> </span>--open
 </pre></div>
 </div>
-<p>For all options, do:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">adoc</span> <span class="n">hdl</span><span class="o">-</span><span class="n">render</span> <span class="o">--</span><span class="n">help</span>
+<div class="clear-left"></div></div></div><p>For example:</p>
+<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
 </pre></div>
 </div>
-</section>
+<div class="bold highlight-bash notranslate"><div class="highlight"><pre><span></span>adoc<span class="w"> </span>hdl-render<span class="w"> </span>--input<span class="w"> </span>hdl/library/axi_dmac<span class="w"> </span>--open
+</pre></div>
+</div>
+<div class="clear-left"></div></div></div><p>For all options, do:</p>
+<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
+</pre></div>
+</div>
+<div class="bold highlight-bash notranslate"><div class="highlight"><pre><span></span>adoc<span class="w"> </span>hdl-render<span class="w"> </span>--help
+</pre></div>
+</div>
+<div class="clear-left"></div></div></div></section>
 </section>
 
 
