@@ -11,8 +11,9 @@ from .directive import setup as directive_setup
 from .role import setup as role_setup
 from .lut import get_lut
 from .role.interref import interref_repos_apply
+from .monkeypatch import monkeypatch_figure_numbers
 
-__version__ = "0.3.48"
+__version__ = "0.3.49"
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +55,10 @@ def html_page_context(app, pagename, templatename, context, doctree):
 
 
 def config_inited(app, config):
+
+    if config.numfig_per_doc:
+        monkeypatch_figure_numbers()
+
     app.lut = get_lut()
 
     interref_repos_apply(app)
@@ -129,6 +134,8 @@ def setup(app):
     app.connect("builder-inited", builder_inited)
     app.connect("html-page-context", html_page_context)
     app.connect("build-finished", build_finished)
+
+    app.add_config_value('numfig_per_doc', False, 'env', [str])
 
     return {
         "parallel_read_safe": True,

@@ -23,6 +23,7 @@ span {
 
 :is(h1, h2, h3, h4, h5, h6) .headerlink,
 figure .headerlink {
+    user-select: none;
     margin-left: .25em;
     opacity: 0;
     transition: opacity ease .125s;
@@ -76,45 +77,6 @@ a {
     overflow-x: auto;
 }
 
-.table-wrapper {
-    margin-bottom: .5em;
-}
-
-table.docutils {
-    border-spacing: 0;
-    border-radius: $border-radius;
-    border: $border-td;
-
-    thead {
-        background-color: var(--bg-color2);
-    }
-
-    th {
-        border-bottom: $border-th;
-    }
-
-    td {
-        border-bottom: $border-td;
-    }
-
-    p {
-        margin: 0;
-        text-align: left;
-    }
-
-    th, td {
-        padding: .5em;
-    }
-
-    tr:last-child td {
-        border: none;
-    }
-
-    thead:not(:first-child) th {
-        font-weight: normal;
-    }
-}
-
 img {
     display: block;
     margin: 0 auto;
@@ -128,7 +90,7 @@ img {
 }
 
 @media print, (min-width: $screen-1) {
-    .body img {
+    .body img, .body figure {
         display: block;
         margin: 0 auto;
         max-width: 100%;

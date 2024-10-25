@@ -1,0 +1,44 @@
+.table-wrapper {
+    margin-bottom: .5em;
+}
+
+table.docutils {
+    border-spacing: 0;
+    border-radius: $border-radius;
+    border: $border-td;
+
+    thead {
+        background-color: var(--bg-color2);
+    }
+
+    th {
+        border-bottom: $border-th;
+    }
+
+    td {
+        border-bottom: $border-td;
+    }
+
+    p {
+        margin: 0;
+        text-align: left;
+    }
+
+    th, td {
+        padding: .5em;
+    }
+
+    tr:last-child td {
+        border-bottom: none;
+    }
+
+    thead:not(:first-child) th {
+        font-weight: normal;
+    }
+
+    &.grid {
+        td:not(:first-child), th:not(:first-child) {
+            border-left: $border-td;
+        }
+    }
+}

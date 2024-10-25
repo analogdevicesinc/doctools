@@ -204,6 +204,37 @@ and always lower case,
 for example
 ``my_code control-interface`` instead of ``MY_CODE Control_Interface``.
 
+Numbered references
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+References can be numbered by using
+`numref <https://www.sphinx-doc.org/en/master/usage/referencing.html#role-numref>`__,
+for example, "*see Figure 1*".
+
+To use this feature, enable on the *conf.py*:
+
+.. code-block:: python
+
+   numfig = True
+
+To customize the format, set ``numfig_format``:
+
+.. code-block:: python
+
+   numfig_format = {'figure': 'Figure %s',
+                    'table': 'Table %s',
+                    'code-block': 'Listing %s',
+                    'section': 'Section %s'}
+
+.. tip::
+
+   By default enumeration is global, so if the toctree is not
+   `numbered <https://www.sphinx-doc.org/en/master/usage/restructuredtext/directives.html#directive-option-toctree-numbered>`__ to divide the pages in numbered sections (e.g. *Figure 3.4.4*),
+   the numbering will "propagate" across page which may be counter-intuitive.
+
+   To have the numbering reset at every page, add ``numfig_per_doc = True`` to
+   *conf.py*.
+
 .. _inter-refs:
 
 External references

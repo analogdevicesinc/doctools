@@ -1,0 +1,9 @@
+.caption-number {
+    color: var(--text-color2);
+}
+
+.caption-number:after {
+    content: ':';
+    margin-left: -.3em;
+    margin-right: .2em;
+}
