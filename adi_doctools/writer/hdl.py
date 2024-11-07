@@ -128,7 +128,6 @@ def svpkg_head(f, key: str, regmap: Dict):
         reg_params_set = set(reg_param_dec)
         reg_param_dec = list(reg_params_set)
         reg_param_dec.sort()
-    if len(reg_param_dec):
         f.write(f" #(")
         f.write(f", ".join(reg_param_dec))
         f.write(f")")
@@ -181,7 +180,7 @@ def svpkg_reg_inst(f, regmap: Dict):
 
 def svpkg_footer(f):
     f.write("  endclass;\n")
-    f.write("endpackage;\n")
+    f.write("endpackage\n")
 
 
 def write_hdl_regmap(
@@ -208,6 +207,94 @@ def write_hdl_regmap(
     svpkg_footer(f)
 
     f.close()
+
+def regmap_test_program(
+    path_: str,
+    regmap: Dict
+) -> None:
+    fname = f"test_program.sv"
+    file = path.join(path_, fname)
+    f = open(file, "w")
+
+    f.write("`include \"utils.svh\"\n\n")
+    f.write("import logger_pkg::*;\n")
+    f.write("import regmap_pkg::*;\n\n")
+
+    for m in regmap:
+        row = f"import adi_regmap_" + m + "_pkg::*;\n"
+        f.write(row)
+
+    f.write("\nmodule test_program;\n\n")
+
+    for m in regmap:
+        row = f"  adi_regmap_" + m + " "
+
+        reg_param_dec = []
+        for k in regmap[m]['subregmap']:
+            for reg in regmap[m]['subregmap'][k]['regmap']:
+                for reg_param in reg['parameters']:
+                    reg_param_dec.append(reg_param)
+        if len(reg_param_dec):
+            reg_params_set = set(reg_param_dec)
+            reg_param_dec = list(reg_params_set)
+            reg_param_dec.sort()
+            reg_param_t0 = []
+            for conv in reg_param_dec:
+                reg_param_t0.append("0")
+            row += "#("
+            row += ", ".join(reg_param_t0)
+            row += ") "
+
+        row += f"adi_regmap_" + m + "_rm;\n"
+        f.write(row)
+
+    f.write("\n  initial begin\n\n")
+
+    for m in regmap:
+        row = f"    adi_regmap_" + m + "_rm = new;\n"
+        f.write(row)
+
+    f.write("\n    $finish();\n\n")
+    f.write("  end;\n\n")
+    f.write("endmodule\n")
+
+    f.close()
+
+
+def regmap_bash_script(
+    path_: str,
+    regmap: Dict
+) -> None:
+    fname = f"test_program"
+    file = path.join(path_, fname)
+    f = open(file, "w")
+
+    f.write("#!/bin/bash\n\n")
+
+    f.write("SOURCE=\"utils.svh \"\n")
+    f.write("SOURCE+=\"logger_pkg.sv \"\n")
+    f.write("SOURCE+=\"adi_regmap_pkg.sv \"\n")
+
+    for m in regmap:
+        row = f"SOURCE+=\"adi_regmap_" + m + "_pkg.sv \"\n"
+        f.write(row)
+
+    f.write("SOURCE+=\"test_program.sv\"\n\n")
+
+    f.write("cp ../utilities/utils.svh .\n")
+    f.write("cp ../utilities/logger_pkg.sv .\n")
+    f.write("cd `dirname $0`\n")
+    f.write("source ../../scripts/run_unit_tb.sh")
+
+    f.close()
+
+
+def write_hdl_regmap_test(
+    path_: str,
+    regmap: Dict
+) -> None:
+    regmap_test_program(path_, regmap)
+    regmap_bash_script(path_, regmap)
 
 
 def write_hdl_library_makefile(

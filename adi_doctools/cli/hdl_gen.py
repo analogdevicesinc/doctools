@@ -17,6 +17,7 @@ from ..parser.hdl import parse_hdl_project
 from ..parser.hdl import resolve_hdl_project
 from ..parser.hdl import parse_hdl_interfaces
 from ..writer.hdl import write_hdl_regmap
+from ..writer.hdl import write_hdl_regmap_test
 from ..writer.hdl import write_hdl_library_makefile
 from ..writer.hdl import write_hdl_project_makefile
 
@@ -204,6 +205,7 @@ def regmap_pre() -> Dict:
 
 
 def regmap_post(rm: Dict) -> None:
-    f_ = path.join('testbenches', 'common', 'sv')
+    f_ = path.join('testbenches', 'library', 'regmaps')
     for m in rm:
         write_hdl_regmap(f_, rm[m]['subregmap'], m)
+    write_hdl_regmap_test(f_, rm)
