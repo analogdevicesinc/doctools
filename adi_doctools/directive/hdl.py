@@ -243,7 +243,10 @@ class directive_regmap(directive_base):
                     default = default.replace(a + "``", a + " ``")
 
                 if type(bits) is tuple:
-                    bits = f"{bits[0]}:{bits[1]}"
+                    if bits[0] == bits[1]:
+                        bits = bits[0]
+                    else:
+                        bits = f"{bits[0]}:{bits[1]}"
 
                 self.column_entries(rows, [
                     ["", literal_, [''], 1],

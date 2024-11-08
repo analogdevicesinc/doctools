@@ -159,6 +159,10 @@ def parse_hdl_regmap(ctime: float, file: str) -> Dict:
                 if not fi:
                     break
 
+                if efi < fi:
+                        warnings.warn(f"Got ENDFIELD without FIELD "
+                                      f"for register {reg_name}.")
+
                 with contextlib.suppress(ValueError):
                     if "REG" in data:
                         rege = data.index("REG")
