@@ -1,11 +1,17 @@
-.table-wrapper {
-    margin-bottom: .5em;
+@media screen {
+    table.docutils {
+        box-shadow: var(--subtle-box-shadow);
+    }
 }
 
 table.docutils {
+    margin-top: .25em;
+    margin-bottom: .5em;
     border-spacing: 0;
+    overflow: hidden;
     border-radius: $border-radius;
     border: $border-td;
+    border-bottom: none;
 
     thead {
         background-color: var(--bg-color2);
@@ -28,7 +34,7 @@ table.docutils {
         padding: .5em;
     }
 
-    tr:last-child td {
+    tr:last-child {
         border-bottom: none;
     }
 
@@ -37,7 +43,8 @@ table.docutils {
     }
 
     &.grid {
-        td:not(:first-child), th:not(:first-child) {
+        border-left: none;
+        td, th {
             border-left: $border-td;
         }
     }
