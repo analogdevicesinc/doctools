@@ -1,8 +1,11 @@
 from typing import List, Set, Optional, Union, Tuple
 
-import warnings
 import re
 from os import path, chdir, getcwd
+
+from sphinx.util import logging
+
+logger = logging.getLogger(__name__)
 
 class tcl:
     def __init__(self, file: str):
@@ -98,7 +101,7 @@ class tcl:
 
         def parse(file_):
             if not path.isfile(file_):
-                warnings.warn(f"{file_}: File doesn't exist!")
+                logger.warning(f"{file_}: File doesn't exist!")
                 return
             tcl_ = tcl(file_)
             tcls.append(tcl_)

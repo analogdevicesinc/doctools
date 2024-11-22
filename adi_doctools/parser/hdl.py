@@ -2,15 +2,17 @@ from typing import TypedDict, Optional, List, Tuple, Dict
 
 import re
 import contextlib
-import warnings
 from lxml import etree
 from os import path
+from sphinx.util import logging
 
 from ..typing.hdl import Intf, IntfPort
 from ..typing.hdl import Library, LibraryVendor
 from ..typing.hdl import Project
 from ..directive.string import string_hdl
 from .tcl import tcl
+
+logger = logging.getLogger(__name__)
 
 
 def parse_hdl_regmap(ctime: float, file: str) -> Dict:
@@ -32,24 +34,24 @@ def parse_hdl_regmap(ctime: float, file: str) -> Dict:
         m = re.search(re_expr, desc)
         if not bool(m):
             if fi is not None:
-                warnings.warn(f"Malformed where {desc} in field bits {fi} "
-                            f"at reg {reg}!")
+                logger.warning(f"Malformed where {desc} in field bits {fi} "
+                               f"at reg {reg}!")
             else:
-                warnings.warn(f"Malformed where {desc} in reg address "
-                            f"{reg}!")
+                logger.warning(f"Malformed where {desc} in reg address "
+                               f"{reg}!")
 
             return ''
 
         if not m.group(1).isdigit() or not m.group(2).isdigit():
-            warn.append(f"Non-numerals in where {desc} in reg address "
-                        f"{reg}!")
+            logger.warning(f"Non-numerals in where {desc} in reg address "
+                           f"{reg}!")
             return ''
 
         return (f"Where n is from {m.group(1)} to {m.group(2)}.",
                 (int(m.group(1)), int(m.group(2))+1))
 
     if not path.isfile(file):
-        warnings.warn(f"{file}: File doesn't exist!")
+        logger.warning(f"{file}: File doesn't exist!")
         return regmap
 
     with open(file, "r") as f:
@@ -65,7 +67,7 @@ def parse_hdl_regmap(ctime: float, file: str) -> Dict:
                 using_ = data[tit + 1][6:].strip()
                 tit += 1
                 if len(using_) == 0:
-                    warnings.warn("Malformed using in title entry, skipped!")
+                    logger.warning("Malformed using in title entry, skipped!")
                     continue
                 using.append(using_)
 
@@ -74,7 +76,7 @@ def parse_hdl_regmap(ctime: float, file: str) -> Dict:
         data = data[tit + 2:]
 
         if 'ENDTITLE' in [title_tool, title]:
-            warnings.warn("Malformed title entry, skipped!")
+            logger.warning("Malformed title entry, skipped!")
             continue
 
         regmap['subregmap'][title_tool] = {
@@ -121,17 +123,17 @@ def parse_hdl_regmap(ctime: float, file: str) -> Dict:
                                                 16)
                         reg_addr = int(reg_addr[0], 16)
                         if where_desc == '':
-                            warnings.warn(f"Ranged addr {reg_addr} without "
-                                          f"where method at {reg_name}!")
+                            logger.warning(f"Ranged addr {reg_addr} without "
+                                           f"where method at {reg_name}!")
                     else:
                         reg_addr = int(reg_addr, 16)
                         reg_addr_incr = 0
                         if where_desc != '':
-                            warnings.warn(f"Static addr {reg_addr} "
-                                          f"with where method at {reg_name}!")
+                            logger.warning(f"Static addr {reg_addr} "
+                                           f"with where method at {reg_name}!")
                 except Exception:
-                    warnings.warn(f"Malformed register address {reg_addr} "
-                                  f"for register {reg_name}.")
+                    logger.warning(f"Malformed register address {reg_addr} "
+                                   f"for register {reg_name}.")
                     reg_addr = 0
                     reg_addr_incr = 0
             else:
@@ -160,8 +162,8 @@ def parse_hdl_regmap(ctime: float, file: str) -> Dict:
                     break
 
                 if efi < fi:
-                        warnings.warn(f"Got ENDFIELD without FIELD "
-                                      f"for register {reg_name}.")
+                        logger.warning(f"Got ENDFIELD without FIELD "
+                                       f"for register {reg_name}.")
 
                 with contextlib.suppress(ValueError):
                     if "REG" in data:
@@ -218,20 +220,20 @@ def parse_hdl_regmap(ctime: float, file: str) -> Dict:
                                 len_f = (field_bits[0] - field_bits[1] + 1)
                                 len_d = len(bin(fd_)[2:])
                                 if len_d > len_f:
-                                    warnings.warn("Default value "
-                                                  f"'{field_default}' "
-                                                  f"overflows field width "
-                                                  f"{field_loc[0]} at reg "
-                                                  f"'{reg_name}'!")
+                                    logger.warning("Default value "
+                                                   f"'{field_default}' "
+                                                   f"overflows field width "
+                                                   f"{field_loc[0]} at reg "
+                                                   f"'{reg_name}'!")
                             field_default = fd_
                             field_default_long = fd_
 
                         except Exception:
                             split_field = field_default.split(" = ", 2)
                             if "''" in field_default:
-                                warnings.warn("Default value "
-                                              f"'{field_default}' "
-                                              f"contains ''!")
+                                logger.warning("Default value "
+                                               f"'{field_default}' "
+                                               f"contains ''!")
                             field_default = split_field[0].replace("''", "")
                             field_default_long = field_default
 
@@ -261,12 +263,12 @@ def parse_hdl_regmap(ctime: float, file: str) -> Dict:
                                                             field_bits)
                         fi = fi + 1
                         if field_bits != 'n':
-                            warnings.warn("Where method with field bits "
-                                          f"{field_loc[0]} instead of n "
-                                          f"at reg '{reg_name}'!")
+                            logger.warning("Where method with field bits "
+                                           f"{field_loc[0]} instead of n "
+                                           f"at reg '{reg_name}'!")
                     elif field_bits == 'n':
-                        warnings.warn("No where method for ranged field "
-                                      f"n at reg '{reg_name}'!")
+                        logger.warning("No where method for ranged field "
+                                       f"n at reg '{reg_name}'!")
 
                     field_name = data[fi + 2].strip()
                     field_name = field_name.replace("/", "or")
@@ -283,8 +285,8 @@ def parse_hdl_regmap(ctime: float, file: str) -> Dict:
                     field_rw = field_rw.replace('-V', 'V')
                     if field_rw_ not in access_type:
                         if field_rw_ not in string_hdl.access_type:
-                            warnings.warn(f"Malformed access type {field_rw} "
-                                          f"for reg {field_name}")
+                            logger.warning(f"Malformed access type {field_rw} "
+                                           f"for reg {field_name}")
                         else:
                             access_type.append(field_rw)
 
@@ -307,8 +309,8 @@ def parse_hdl_regmap(ctime: float, file: str) -> Dict:
                 else:
                     for i in range(fi + 1, efi):
                         if any(c in data[i] for c in ('[', ']')) or len(data[i]) == 1:
-                            warnings.warn(f"Suspicious imported field '{data[i]}' "
-                                          f"at imported field group at reg {reg_name}!")
+                            logger.warning(f"Suspicious imported field '{data[i]}' "
+                                           f"at imported field group at reg {reg_name}!")
                         fields.append({
                             "import": True,
                             "where": None,
@@ -357,8 +359,8 @@ def resolve_hdl_regmap(rm: Dict) -> None:
                         r[i] = p_.copy()
                         break
                 else:
-                    warnings.warn(f"Field {j['name']} in reg {p_name} "
-                                  f"from import {r_} not found!")
+                    logger.warning(f"Field {j['name']} in reg {p_name} "
+                                   f"from import {r_} not found!")
 
     def patch_reg(r, p, r_):
         def patch_reg_(j, p):
@@ -391,7 +393,7 @@ def resolve_hdl_regmap(rm: Dict) -> None:
                         if patch_reg_(j, p[p_]):
                             break
             if j['import']:
-                warnings.warn(f"Reg {j['name']} in import {r_} not found!")
+                logger.warning(f"Reg {j['name']} in import {r_} not found!")
 
     def resolve(r):
         using = {}
@@ -406,7 +408,7 @@ def resolve_hdl_regmap(rm: Dict) -> None:
                     continue
                 break
             if use_ is None:
-                warnings.warn(f"Couldn't find regmap '{use}'!")
+                logger.warning(f"Couldn't find regmap '{use}'!")
             else:
                 using[k] = use_
 
@@ -720,7 +722,7 @@ def parse_hdl_component(file: str, ctime: float, owners: List = []) -> Dict:
 def parse_hdl_build_status(file: str) -> Tuple[List, int, List[str]]:
 
     if not path.isfile(file):
-        warnings.warn(f"File {file} doesn't exist!")
+        logger.warning(f"File {file} doesn't exist!")
         return ([], None)
 
     with open(file, "r") as f:
@@ -729,7 +731,7 @@ def parse_hdl_build_status(file: str) -> Tuple[List, int, List[str]]:
     if data[3][0:35] != '| Project | Build number | Status |' \
         or data[4][0:25] != '| --- | --- | --- | --- |' \
         or data[-1][0:11] != '# Finished:':
-        warnings.warn(f"Malformed build status file {file}.")
+        logger.warning(f"Malformed build status file {file}.")
         return ([], None)
 
     try:
@@ -737,14 +739,14 @@ def parse_hdl_build_status(file: str) -> Tuple[List, int, List[str]]:
         build_number = int(data[0][data[0].find(s)+len(s)+1:])
     except Exception as e:
         build_number = -1
-        warnings.warn("Couldn't get the build number from the first line "
-                      f"of '{file}', exception: {e}.")
+        logger.warning("Couldn't get the build number from the first line "
+                       f"of '{file}', exception: {e}.")
 
     project = []
     for i in range(5, len(data) - 2):
         split = data[i].split('|')
         if len(split) < 4:
-            warnings.warn(f"Malformed line at {file}:{i}.")
+            logger.warning(f"Malformed line at {file}:{i}.")
             continue
 
         project.append([split[1].strip(), 0 if split[3].strip() == "SUCCESS" else 1])
@@ -793,17 +795,17 @@ def parse_hdl_library(
     ip_name = basename[:basename.rfind("_")]
     ip_name_ = path.basename(path.dirname(file))
     if ip_name != ip_name_:
-        warnings.warn(f"{file}: Path basename does not match filename format.")
+        logger.warning(f"{file}: Path basename does not match filename format.")
 
     idx = file.find('library')
     if idx != -1:
         path_ = path.dirname(file)[idx+8:]
     else:
-        warnings.warn(f"'library' not found in path to extract long name'")
+        logger.warning(f"'library' not found in path to extract long name'")
         return (None, None, None)
 
     if not path.isfile(file):
-        warnings.warn("File doesn't exist!")
+        logger.warning("File doesn't exist!")
         return (None, None, None)
 
     tcl_ = tcl(file)
@@ -814,8 +816,8 @@ def parse_hdl_library(
             if line.startswith(m):
                 line_ = line.split()
                 if ip_name != line_[1]:
-                    warnings.warn(f"{file}: '{m}' IP name '{line_[1]}' does not "
-                                  f"match name '{ip_name}', line {i}")
+                    logger.warning(f"{file}: '{m}' IP name '{line_[1]}' does not "
+                                   f"match name '{ip_name}', line {i}")
             break
 
     # Obtain the file dependencies and top module candidate
@@ -837,8 +839,8 @@ def parse_hdl_library(
                 deps.add(line_[4])
 
     if top_mod_ == None:
-        warnings.warn(f"{file}: Unable to find top module name for library "
-                      f"'{ip_name}', will use the lib name instead.")
+        logger.warning(f"{file}: Unable to find top module name for library "
+                       f"'{ip_name}', will use the lib name instead.")
         top_mod_ = ip_name
 
     # Add itself as a dependency
@@ -866,8 +868,8 @@ def parse_hdl_library(
     def get_parameters(mod):
         f = path.join(path.dirname(file), mod)
         if not path.isfile(f):
-            warnings.warn(f"{file}: Top module '{f}' from library '{ip_name}'"
-                          " does not exist")
+            logger.warning(f"{file}: Top module '{f}' from library '{ip_name}'"
+                           " does not exist")
             return None
 
         with open(f, "r") as f_:
@@ -878,7 +880,7 @@ def parse_hdl_library(
                 break
 
         if i == len(data) - 1:
-            warnings.warn(f"{file}: Failed to find 'module' in '{f}'")
+            logger.warning(f"{file}: Failed to find 'module' in '{f}'")
             return None
 
         data = data[i+1:]
@@ -890,7 +892,7 @@ def parse_hdl_library(
                 idx = line.index('=')
                 line = [line[:idx], line[idx+1:].strip()]
                 if len(line) != 2:
-                    warnings.warn(f"{file}: Malformed parameter at line {i+j+2} of module '{f}'")
+                    logger.warning(f"{file}: Malformed parameter at line {i+j+2} of module '{f}'")
                     continue
                 name = line[0].split()[-1]
                 value = line[1].replace(',', '')
@@ -907,13 +909,13 @@ def parse_hdl_library(
         param = get_parameters(top_mod)
     else:
         param = None
-        warnings.warn(f"{file}: Failed to find top module for IP '{ip_name}'")
+        logger.warning(f"{file}: Failed to find top module for IP '{ip_name}'")
 
     # Obtain parameters from the top module
     def get_parameters_ttcl(mod):
         f = path.join(path.dirname(file), mod)
         if not path.isfile(f):
-            warnings.warn(f"{file}: TTcl '{f}' from library '{ip_name}' does not exist")
+            logger.warning(f"{file}: TTcl '{f}' from library '{ip_name}' does not exist")
             return None
 
         with open(f, "r") as f_:
@@ -941,8 +943,8 @@ def parse_hdl_library(
         params_ = [p[0] for p in param]
         for p in param_ttcl:
             if p not in params_:
-                warnings.warn(f"{file}: Parameter '{p}' in the '{pkg_sv_ttcl}'"
-                              f" file not found in the top module '{top_mod}'")
+                logger.warning(f"{file}: Parameter '{p}' in the '{pkg_sv_ttcl}'"
+                               f" file not found in the top module '{top_mod}'")
         pass
 
     obj = LibraryVendor(
@@ -1007,7 +1009,7 @@ def resolve_hdl_library(
             if v in libraries[lib]['vendor']:
                 if libraries[lib]['name'] == dep:
                     return lib
-        warnings.warn(f"Library dependency key '{dep}' not found!")
+        logger.warning(f"Library dependency key '{dep}' not found!")
         return dep
     for v in library['vendor']:
         lib_deps = set()
@@ -1022,8 +1024,8 @@ def resolve_hdl_library(
         interface_deps = set()
         for intf in library['vendor'][v]['interfaces']:
             if intf not in intf_lut:
-                warnings.warn(f"Interface {intf} does not exist in any "
-                              "interfaces_ip.tcl file.")
+                logger.warning(f"Interface {intf} does not exist in any "
+                               "interfaces_ip.tcl file.")
             else:
                 abs_path = path.join('library', key)
                 base = path.relpath(path.join(intf_lut[intf], intf), abs_path)
@@ -1049,11 +1051,11 @@ def parse_hdl_project(
     if idx != -1:
         path_ = path.dirname(file)[idx+9:]
     else:
-        warnings.warn(f"'projects' not found in path to extract long name'")
+        logger.warning(f"'projects' not found in path to extract long name'")
         return (None, None)
 
     if not path.isfile(file):
-        warnings.warn(f"{file}: File doesn't exist!")
+        logger.warning(f"{file}: File doesn't exist!")
         return (None, None)
 
     # Get project name and carrier from path
@@ -1067,7 +1069,7 @@ def parse_hdl_project(
     base_path = path.dirname(file)
     sys_path = path.join(base_path, "system_project.tcl")
     if not path.isfile(sys_path):
-        warnings.warn(f"{sys_path}: File doesn't exist!")
+        logger.warning(f"{sys_path}: File doesn't exist!")
         return (None, None)
 
     tcl_ = tcl(sys_path)
@@ -1081,18 +1083,18 @@ def parse_hdl_project(
             if idx > 0:
                 project_ = line_[1][:idx-1]
                 if project_ != project:
-                    warnings.warn(f"{sys_path}: Project '{project_}' in "
-                                  "'adi_project' does not match from path.")
+                    logger.warning(f"{sys_path}: Project '{project_}' in "
+                                   "'adi_project' does not match from path.")
             elif idx == 0:
                 pass
             else:
-                warnings.warn(f"{sys_path}: Carrier from path '{carrier}' "
-                              "not found in 'adi_project'.")
+                logger.warning(f"{sys_path}: Carrier from path '{carrier}' "
+                                "not found in 'adi_project'.")
 
             break
 
     if project_name is None:
-        warnings.warn(f"{sys_path}: 'adi_project' not found.")
+        logger.warning(f"{sys_path}: 'adi_project' not found.")
         return (None, None)
 
     m_deps = set()
@@ -1173,7 +1175,7 @@ def parse_hdl_interfaces(
     obj = []
 
     if not path.isfile(file):
-        warnings.warn(f"{file}: File doesn't exist!")
+        logger.warning(f"{file}: File doesn't exist!")
         return ()
 
     with open(file, "r") as f:
@@ -1196,8 +1198,8 @@ def parse_hdl_interfaces(
 
         if line.startswith('adi_if_ports'):
             if len(obj) == 0:
-                warnings.warn(f"{file}: 'adi_if_ports' at line {i+1} "
-                               "without precending adi_if_ports")
+                logger.warning(f"{file}: 'adi_if_ports' at line {i+1} "
+                                "without precending adi_if_ports")
                 continue
             ports = line.split()
             try:
@@ -1220,8 +1222,8 @@ def parse_hdl_interfaces(
                     default=default,
                 ))
             except Exception as e:
-                warnings.warn(f"{file}: Malformed 'adi_if_ports' at line {i+1}, "
-                              f"exception: {e}")
+                logger.warning(f"{file}: Malformed 'adi_if_ports' at line {i+1}, "
+                               f"exception: {e}")
     for o in obj:
         o['ports'] = tuple(o['ports'])
     return tuple(obj)

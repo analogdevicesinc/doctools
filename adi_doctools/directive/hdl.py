@@ -6,9 +6,9 @@ from os import path, walk
 from os import pardir, makedirs
 from math import ceil
 from lxml import etree
+from sphinx.util import logging
 
 from .node import node_div
-from .common import logger
 from .common import directive_base
 from .common import parse_rst
 from .string import string_hdl
@@ -16,6 +16,8 @@ from ..parser.hdl import parse_hdl_component
 from ..parser.hdl import parse_hdl_regmap, resolve_hdl_regmap
 from ..parser.hdl import parse_hdl_build_status
 from ..writer.hdl_component import hdl_component
+
+logger = logging.getLogger(__name__)
 
 
 log = {

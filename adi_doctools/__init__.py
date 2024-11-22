@@ -1,7 +1,6 @@
 from os import path, getenv
 from packaging.version import Version
 
-from sphinx.util import logging
 from sphinx.util.osutil import SEP
 
 from .theme import (navigation_tree, get_pygments_theme,
@@ -14,8 +13,6 @@ from .role.interref import interref_repos_apply
 from .monkeypatch import monkeypatch_figure_numbers
 
 __version__ = "0.3.49"
-
-logger = logging.getLogger(__name__)
 
 
 def get_navigation_tree(app, context, pagename):

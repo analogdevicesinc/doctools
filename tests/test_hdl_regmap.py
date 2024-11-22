@@ -1,12 +1,14 @@
 from os import path
 
+from logging import WARNING
 from adi_doctools.parser.hdl import parse_hdl_regmap
 from adi_doctools.parser.hdl import resolve_hdl_regmap
 from adi_doctools.parser.hdl import expand_hdl_regmap
 from adi_doctools.writer.hdl import write_hdl_regmap
 
 
-def test_hdl_regmap(tmp_path):
+def test_hdl_regmap(tmp_path, caplog):
+    caplog.set_level(WARNING, logger="adi_doctools.parser.hdl")
 
     regmap = {}
     regnames = ['parent', 'parent_ops', 'child', 'child_ops']
@@ -20,6 +22,8 @@ def test_hdl_regmap(tmp_path):
 
     resolve_hdl_regmap(regmap)
     expand_hdl_regmap(regmap)
+
+    assert not caplog.records
 
     d = tmp_path / "sv"
     d.mkdir()
