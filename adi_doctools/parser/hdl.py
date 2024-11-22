@@ -306,6 +306,9 @@ def parse_hdl_regmap(ctime: float, file: str) -> Dict:
                     })
                 else:
                     for i in range(fi + 1, efi):
+                        if any(c in data[i] for c in ('[', ']')) or len(data[i]) == 1:
+                            warnings.warn(f"Suspicious imported field '{data[i]}' "
+                                          f"at imported field group at reg {reg_name}!")
                         fields.append({
                             "import": True,
                             "where": None,
