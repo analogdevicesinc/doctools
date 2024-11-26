@@ -537,7 +537,7 @@ def discover_hdl_component(env, lib):
             cp[lib]['owners'].append(env.docname)
         return
 
-    prefix = "../repos/hdl" if env.config.monolithic else ".."
+    prefix = "../repos" if env.config.monolithic else ".."
     f = f"{prefix}/{lib}/component.xml"
     if not path.isfile(f):
         return
