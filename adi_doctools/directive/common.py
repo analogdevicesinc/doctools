@@ -34,6 +34,7 @@ def parse_rst(state, content, uid: Optional[str] = None):
     rst = ViewList(source=uid, initlist=content)
     node = nodes.section()
     node.document = state.document
+    # TODO improve nested parse warnings, e.g. manipulate docname, lineno, add label
     state.nested_parse(rst, 0, node)
     return node
 

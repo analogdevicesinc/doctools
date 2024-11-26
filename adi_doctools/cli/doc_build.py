@@ -104,13 +104,6 @@ class SphinxWarnings:
 
 sphinx_warnings = SphinxWarnings()
 
-toctree_template = """
-.. toctree::
-   :caption: {caption}
-   :maxdepth: 2
-
-"""
-
 template_config = """
 from os import path
 # -- Project information -----------------------------------------------------
@@ -175,6 +168,8 @@ config:
 # Include extra extensions
 extensions:
     - sphinx.ext.duration
+
+project: "My Custom Doc"
 """
 
 def get_includes(src_doc_dir, dst_doc_dir, doc):
@@ -261,13 +256,15 @@ def _patch_index(toc_file, repo):
         toctrees = []
         while ".. toctree::\n" in data:
             data  = data[data.index(".. toctree::\n")+1:]
-            toctrees.append([[],[]])
+            toctrees.append([[], [], False])
 
             for i in range(0, len(data)):
                 if data[i] != '\n' and not data[i].startswith('   '):
                     break
-                elif data[i][0:4] == '   :':
+                elif data[i].startswith('   :'):
                     toctrees[-1][0].append(data[i])
+                    if data[i].startswith('   :caption:'):
+                        toctrees[-1][2] = True
                 elif data[i][0:3] == '   ' and data[i][0:4] != '   :':
                     pos = data[i].find('<')
                     if pos == -1:
@@ -306,14 +303,15 @@ def patch_index(doc, tocs, index_file):
     for k in toctrees:
         first = True
 
-        for k_ in toctrees[k]:
+        for options, docs, has_caption in toctrees[k]:
             data.append(".. toctree::\n")
-            if first:
-                data.append(f"   :caption: {repos[k]['name']}\n")
-                first = False
-            data.extend(k_[0])
+            if not has_caption:
+                if first:
+                    data.append(f"   :caption: {repos[k]['name']}\n")
+                    first = False
+            data.extend(options)
             data.append('\n')
-            data.extend(k_[1])
+            data.extend(docs)
             data.append('\n')
 
     index = doc['project'] + '\n'
@@ -359,7 +357,11 @@ def prepare_doc(doc, repos_dir, doc_dir):
         # src_doc_dir : /path/to/hdl/docs
         # dst_doc_dir : doc/hdl
         for d in doc['doc'][r]:
-            pr.run(f"cp -r --parents {d} {dst_doc_dir}", src_doc_dir)
+            d__ = path.abspath(path.join(src_doc_dir, d))
+            if path.isfile(d__) or path.isdir(d__):
+                pr.run(f"cp -r --parents {d} {dst_doc_dir}", src_doc_dir)
+            else:
+                click.echo(f"{r}: source file/dir '{d}' does not exist, skipped.")
 
         # Obtain toctree entries
         cwd_ = getcwd()
@@ -374,15 +376,28 @@ def prepare_doc(doc, repos_dir, doc_dir):
                     click.echo(f"{r}: source dir '{d}' does not contain index.rst, "
                                "won't try to resolve toctree for this folder.")
                     continue
+            elif not path.isfile(d):
+                    continue
+
             d = d[:-4]
             toc_resolve.append(d)
+
+        def is_orphan(d):
+            with open(d+".rst", "r") as f:
+                if f.readline()[:-1].strip() == ":orphan:":
+                    # Handle sphinx trick for sidebar "volumes"
+                    if d.count(SEP) == 1:
+                        also_include.append(f"index.rst")
+                    return True
+            return False
 
         i = 1
         also_include = []
         for d in toc_resolve:
             d_ = d.split(SEP)
-            found = False
             rst_f = []
+            found = is_orphan(d)
+
             while not found:
                 d_right = SEP.join(d_[-i:])
                 d_left = SEP.join(d_[:-i])
@@ -426,7 +441,7 @@ def prepare_doc(doc, repos_dir, doc_dir):
                         break
 
                     i = 1
-                    found = False
+                    found = is_orphan(SEP.join(d_))
 
         chdir(cwd_)
         for f_ in also_include:
@@ -515,6 +530,13 @@ suppress_warnings = [
 """
 
 def patch_doc(doc, repos_dir, doc_dir, doc_patch_dir):
+    """
+    Patches warnings obtained from the first run.
+
+    Sphinx warning line number generally point to the beginning of the
+    paragraph/block/directive, therefore, it is necessary to do a
+    loop looking for the exact match and have a little of faith.
+    """
     if path.isdir(doc_patch_dir):
         pr.run(f"rm -r {doc_patch_dir}")
     pr.run(f"cp -r {doc_dir} {doc_patch_dir}")
@@ -533,7 +555,7 @@ def patch_doc(doc, repos_dir, doc_dir, doc_patch_dir):
         tocs[p[0]].append(SEP.join(p))
 
     # Swap with explicit external references
-    for src, i, _ in sphinx_warnings.ref_ref:
+    for src, i, label in sphinx_warnings.ref_ref:
         i = int(i)-1
         r = path.relpath(src, doc_dir).split(SEP)[0]
         p = path.join(doc_patch_dir, path.relpath(src, doc_dir))
@@ -544,8 +566,14 @@ def patch_doc(doc, repos_dir, doc_dir, doc_patch_dir):
         replacement2 = r'\1:external+\3:ref:`\2<\4>`'
         with open(p, "r") as f:
             data = f.readlines()
-            data[i] = re.sub(pattern2, replacement2, data[i])
-            data[i] = re.sub(pattern1, replacement1, data[i])
+        while i < len(data) and label not in data[i]:
+            i += 1
+        if i == len(data):
+            click.echo(f"{src}: Failed to find '{label}'. "
+                       "Nested parse limitation?")
+            continue
+        data[i] = re.sub(pattern2, replacement2, data[i])
+        data[i] = re.sub(pattern1, replacement1, data[i])
         with open(p, "w") as f:
             f.write(''.join(data))
 
@@ -554,15 +582,21 @@ def patch_doc(doc, repos_dir, doc_dir, doc_patch_dir):
     replacement3 = r'\1:external+\2:doc:`\3`'
     pattern4 = r'(^|\s|\():doc:`([^<]+)<([^/]+)\/([^>]+)>`'
     replacement4 = r'\1:external+\3:doc:`\2<\4>`'
-    for src, i, _ in sphinx_warnings.ref_doc:
-        i = int(i)
+    for src, i, label in sphinx_warnings.ref_doc:
+        i = int(i)-1
         r = path.relpath(src, doc_dir).split(SEP)[0]
         p = path.join(doc_patch_dir, path.relpath(src, doc_dir))
 
         with open(p, "r") as f:
             data = f.readlines()
-            data[i] = re.sub(pattern4, replacement4, data[i])
-            data[i] = re.sub(pattern3, replacement3, data[i])
+        while i < len(data) and label not in data[i]:
+            i += 1
+        if i == len(data):
+            click.echo(f"{src}: Failed to find '{label}'. "
+                       "Nested parse limitation?")
+            continue
+        data[i] = re.sub(pattern4, replacement4, data[i])
+        data[i] = re.sub(pattern3, replacement3, data[i])
         with open(p, "w") as f:
             f.write(''.join(data))
 
