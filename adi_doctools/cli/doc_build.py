@@ -1,20 +1,18 @@
 from typing import Tuple, List
-from sphinx.util.osutil import SEP
 
-import os
 import sys
-from os import path, listdir, chdir, getcwd
-import click
-import subprocess
-import re
-import yaml
+from os import path, listdir, pardir, chdir, getcwd, mkdir
 import importlib.util
+import subprocess
+import click
+import yaml
+import re
 
+from sphinx.util.osutil import SEP
 from sphinx.application import Sphinx
 
 from ..lut import get_lut
 
-dry_run = True
 no_parallel = True
 lut = get_lut()
 repos = lut['repos']
@@ -27,25 +25,15 @@ default_config = {
 class pr:
     @staticmethod
     def popen(cmd, p: List, cwd: [str, None] = None, env = None):
-        global dry_run, no_parallel
-        if not dry_run:
-            p__ = subprocess.Popen(cmd, cwd=cwd, env=env)
-            p__.wait() if no_parallel else p.append(p__)
-        elif cwd is not None:
-            click.echo(f"cd {cwd}; {' '.join(cmd)}")
-        else:
-            click.echo(' '.join(cmd))
+        global no_parallel
+        p__ = subprocess.Popen(cmd, cwd=cwd, env=env)
+        p__.wait() if no_parallel else p.append(p__)
         return p
 
     @staticmethod
     def run(cmd, cwd=None):
-        global dry_run, no_parallel
-        if not dry_run:
-            subprocess.run(cmd, shell=True, cwd=cwd)
-        elif cwd is not None:
-            click.echo(f"cd {cwd}; {cmd}")
-        else:
-            click.echo(f"{cmd}")
+        global no_parallel
+        subprocess.run(cmd, shell=True, cwd=cwd)
 
     @staticmethod
     def wait(p):
@@ -54,11 +42,7 @@ class pr:
 
     @staticmethod
     def mkdir(d):
-        global dry_run
-        if not dry_run:
-            os.mkdir(d)
-        else:
-            click.echo(f"mkdir {d}")
+        mkdir(d)
 
 
 def get_sphinx_dirs(cwd) -> Tuple[bool, str, str]:
@@ -87,7 +71,7 @@ def get_sphinx_dirs(cwd) -> Tuple[bool, str, str]:
 
 
 def do_extra_steps(repo_dir, doc):
-    global dry_run, no_parallel
+    global no_parallel
     for l_ in doc['config']:
         if doc['config'][l_]['extra'] is False:
             continue
@@ -110,37 +94,10 @@ def do_extra_steps(repo_dir, doc):
             pr.run(f"{' '.join(cmd)}", cwd)
 
 
-def gen_symbolic_doc(repo_dir):
-    mk = []
-    p = []
-    for r in repos:
-        cwd = path.join(repo_dir, f"{r}/{repos[r]['doc_folder']}")
-        click.echo(f"Starting sphinx for {r}")
-        mk.append(get_sphinx_dirs(cwd))
-        if mk[-1][0]:
-            continue
-
-        env = os.environ.copy()
-        env["ADOC_INTERREF_URI"] = path.abspath(path.join(repo_dir, "..", "html")) + SEP
-        pr.popen(['make', 'html'], p, cwd, env=env)
-    pr.wait(p)
-
-    d_ = path.abspath(path.join(repo_dir, os.pardir))
-
-    out = path.join(d_, 'html')
-    if path.isdir(out):
-      pr.run(f"rm -r {out}")
-    pr.mkdir(out)
-    for r, m in zip(repos, mk):
-        if m[0]:
-            continue
-        d_ = path.join(out, r)
-        pr.popen(['cp', '-r', m[1], d_], p)
-    pr.wait(p)
-
 class SphinxWarnings:
     orphan: List = [] # srcfile
     ref_ref: List = [] # docname lineno label
+    ref_doc: List = [] # docname lineno label
     toc_not_readable: List = [] # docname lineno srcfile
     image_not_readable: List = [] # docname srcfile
     include: List = [] # docname lineno srcfile
@@ -190,6 +147,36 @@ html_favicon = path.join("sources", "icon.svg")
 interref_repos = [$interref_repos$]
 """
 
+template_yaml = """\
+# Custom doc builder template
+# ---------------------------
+
+# Add dirs and files to include per repo
+doc:
+  hdl:
+    - user_guide
+    - projects/ad3552r_evb
+    - projects/ad4110
+    - library/spi_engine
+
+  no-OS:
+    - contributing.rst
+    - projects/eval-adis1657x.rst
+
+# Per repo configuration
+# extra: do steps that require extra software (e.g. vendor sdk)
+# branch: clone from a specific branch, overwrites "main"
+config:
+    hdl:
+      branch: "my-branch"
+    no-OS:
+      extra: true
+
+# Include extra extensions
+extensions:
+    - sphinx.ext.duration
+"""
+
 def get_includes(src_doc_dir, dst_doc_dir, doc):
     """
     Get includes/images that are under the doc_dir depth.
@@ -225,35 +212,41 @@ def get_includes(src_doc_dir, dst_doc_dir, doc):
 def namespace_ref(doc_dir, r):
     """
     Add repository idenfier to every label/reference, e.g:
-    .. _spi_engine:         -> .. _hdl:spi_engine:
-    :ref:`spi_engine`       -> :ref:`hdl:spi_engine`
-    :ref:`Alt <spi_engine>` -> :ref:`Alt <hdl:spi_engine>`
+    .. _spi_engine:         -> .. _hdl+spi_engine:
+    :ref:`spi_engine`       -> :ref:`hdl+spi_engine`
+    :ref:`Alt <spi_engine>` -> :ref:`Alt <hdl+spi_engine>`
 
-    For external references, convert to version with precedence also, e.g.
-    :external+hdl:`spi_engine`       -> :ref:`hdl:spi_engine`
-    :external+hdl:`Alt <spi_engine>` -> :ref:`Alt <hdl:spi_engine>`
+    For external references, convert to local also, e.g.
+    :external+hdl:`spi_engine`       -> :ref:`hdl+spi_engine`
+    :external+hdl:`Alt <spi_engine>` -> :ref:`Alt <hdl+spi_engine>`
+
+    After the first sphinx run, the unresolved references are converted (back)
+    into external refereces.
     """
     # Prefixes references with repo name to create namespace
-    # 1. Patch :ref:`str` into :ref:`{r}:str`
-    # 2. Patch :ref:`Title <str>` into :ref:`Title <{r}:str>`
-    # 3. Patch ^.. _str:$ into .. _{r}:str:
+    # 1. Patch :ref:`str`         into :ref:`{r}+str`
+    # 2. Patch :ref:`Title <str>` into :ref:`Title <{r}+str>`
+    # 3. Patch ^.. _str:$         into .. _{r}+str:
     cwd = path.join(doc_dir, r)
     patch_cmd = """\
     find . -type f -exec sed -i -E \
-        "s/(\s|^|\()(:ref:\\`)([^<>:]+)(\\`)/\\1\\2{r}:\\3\\4/g" {{}} \\;
+        "s/(\s|^|\()(:ref:\\`)([^<>:]+)(\\`)/\\1\\2{r}+\\3\\4/g" {{}} \\;
     find . -type f -exec sed -i -E \
-        "s/(\s|^|\()(:ref:\\`)([^<]+)( <)([^:>]+)(>)/\\1\\2\\3\\4{r}:\\5\\6/g" {{}} \\;
+        "s/(\s|^|\()(:ref:\\`)([^<]+)( <)([^:>]+)(>)/\\1\\2\\3\\4{r}+\\5\\6/g" {{}} \\;
     find . -type f -exec sed -i -E \
-        "s/^(.. _)([^:]+)(:)\\$/\\1{r}:\\2\\3/g" {{}} \\;\
+        "s/^(.. _)([^:]+)(:)\\$/\\1{r}+\\2\\3/g" {{}} \\;\
     """.format(r=r)
     pr.run(patch_cmd, cwd)
 
-    # Convert external references into local prefixed with precedence
-    # 1. Patch :external+r:ref:`str` into :ref:`r:str`
-    # 2. Patch :external+r:ref:`Title <str>` into :ref:`Title <r:str>`
+    # Convert external references (ref&doc) into local
+    # 1. Patch :external+r:ref:`str`         into :ref:`r+str`
+    #          :external+r:ref:`Title <str>` into :ref:`Title <r+str>`
+    # 2. Patch :external+r:doc:`str`         into :doc:`r/str`
+    #          :external+r:doc:`Title <str>` into :doc:`Title <r/str>`
     patch_cmd = """\
     find . -type f -exec sed -i -E \
-        -e "s/(\s|^|\()(:external\+)([^:]+)(:ref:\\`|:doc:\\`)([^<]+)( <)([^:>]+)(>)/\\1\\4\\5\\6\\3:\\7\\8/g" {} \\;\
+        -e "s/(\s|^|\()(:external\+)([^:]+):ref:\\`([^<]+)( <)([^:>]+)(>)/\\1:ref:\\`\\4\\5\\3+\\6\\7/g" \
+        -e "s/(\s|^|\()(:external\+)([^:]+):doc:\\`([^<]+)( <)([^:>]+)(>)/\\1:doc:\\`\\4\\5\\3\/\\6\\7/g" {} \\;\
     """
     pr.run(patch_cmd, cwd)
 
@@ -294,8 +287,6 @@ def _patch_index(toc_file, repo):
 
 
 def patch_index(doc, tocs, index_file):
-    global dry_run
-
     toctrees = {}
     orphan_toc = {}
     for k in tocs:
@@ -412,7 +403,6 @@ def prepare_doc(doc, repos_dir, doc_dir):
 
                         data = data[data.index('.. toctree::\n')+1:]
                         for j in range(0, len(data)):
-                            # TODO Improve toctree search, e.g. support for markdown
                             if data[j].strip('\n') == f"   {d_right}" or f"<{d_right}>" in data[j]:
                                 also_include.append(f)
                                 found = True
@@ -471,6 +461,7 @@ def parse_warnings(doc_dir):
 
     re_orphan   = r"^(.*?): WARNING: document isn't included in any toctree"
     re_ref_ref  = r"^(.*?):(\d+): .* '(.*)' \[ref\.ref\]"
+    re_ref_doc  = r"^(.*?):(\d+): .* '(.*)' \[ref\.doc\]"
     re_toctree  = r"^(.*?):(\d+): .* '(.*)' \[toc\.not_readable\]"
     re_image    = r"^(.*?):: .* (.*) \[image\.not_readable\]"
     re_include0 = r"^(.*?):(\d+): CRITICAL: Problems with \"include\" directive path:"
@@ -487,6 +478,11 @@ def parse_warnings(doc_dir):
         m = re.match(re_ref_ref, e)
         if m:
             sphinx_warnings.ref_ref.append([m.group(1), m.group(2), m.group(3)])
+            continue
+
+        m = re.match(re_ref_doc, e)
+        if m:
+            sphinx_warnings.ref_doc.append([m.group(1), m.group(2), m.group(3)])
             continue
 
         m = re.match(re_toctree, e)
@@ -537,9 +533,38 @@ def patch_doc(doc, repos_dir, doc_dir, doc_patch_dir):
         tocs[p[0]].append(SEP.join(p))
 
     # Swap with explicit external references
-    for e in sphinx_warnings.ref_ref:
-        # Nothing to do for now, since is patched with precedence ref already.
-        continue
+    for src, i, _ in sphinx_warnings.ref_ref:
+        i = int(i)-1
+        r = path.relpath(src, doc_dir).split(SEP)[0]
+        p = path.join(doc_patch_dir, path.relpath(src, doc_dir))
+
+        pattern1 = r'(^|\s|\():ref:`([^+]+)\+([^`]+)`'
+        replacement1 = r'\1:external+\2:ref:`\3`'
+        pattern2 = r'(^|\s|\():ref:`([^`]+)<([^+]+)\+([^>]+)>`'
+        replacement2 = r'\1:external+\3:ref:`\2<\4>`'
+        with open(p, "r") as f:
+            data = f.readlines()
+            data[i] = re.sub(pattern2, replacement2, data[i])
+            data[i] = re.sub(pattern1, replacement1, data[i])
+        with open(p, "w") as f:
+            f.write(''.join(data))
+
+    # Swap with explicit external documents
+    pattern3 = r'(^|\s|\():doc:`([^/]+)\/([^`]+)`'
+    replacement3 = r'\1:external+\2:doc:`\3`'
+    pattern4 = r'(^|\s|\():doc:`([^<]+)<([^/]+)\/([^>]+)>`'
+    replacement4 = r'\1:external+\3:doc:`\2<\4>`'
+    for src, i, _ in sphinx_warnings.ref_doc:
+        i = int(i)
+        r = path.relpath(src, doc_dir).split(SEP)[0]
+        p = path.join(doc_patch_dir, path.relpath(src, doc_dir))
+
+        with open(p, "r") as f:
+            data = f.readlines()
+            data[i] = re.sub(pattern4, replacement4, data[i])
+            data[i] = re.sub(pattern3, replacement3, data[i])
+        with open(p, "w") as f:
+            f.write(''.join(data))
 
     # Grab missing images
     for e in sphinx_warnings.image_not_readable:
@@ -635,14 +660,6 @@ def patch_doc(doc, repos_dir, doc_dir, doc_patch_dir):
     help="Run all steps in sequence."
 )
 @click.option(
-    '--dry-run',
-    '-n',
-    'dry_run_',
-    is_flag=True,
-    default=False,
-    help="Don't actually run; just print them."
-)
-@click.option(
     '--open',
     '-x',
     'open_',
@@ -650,31 +667,31 @@ def patch_doc(doc, repos_dir, doc_dir, doc_patch_dir):
     default=False,
     help="Open after generation (xdg-open)."
 )
-def doc_build(directory, extra, no_parallel_, dry_run_, open_):
+def doc_build(directory, extra, no_parallel_, open_):
     """
     Creates an aggregated documentation out the repos
     int the doc.yaml file.
     The tool runs Sphinx twice to resolve interrepo-refereces,
     watching for warnings and patching accordingly.
     """
-    global dry_run, no_parallel
+    global no_parallel
     no_parallel = no_parallel_
-    dry_run = dry_run_
     directory = path.abspath(directory)
 
     repos_dir = path.join(directory, 'repos')
     doc_dir = path.join(directory, 'doc')
     doc_yaml = path.join(directory, 'doc.yaml')
-    if not dry_run:
-        if not path.isdir(directory):
-            pr.mkdir(directory)
-        if not path.isdir(repos_dir):
-            pr.mkdir(repos_dir)
-        if not path.isfile(doc_yaml):
-            click.echo("Metafile doc.yaml not found, created template. "
-                       "Please, update it and rerun the tool.")
-            # TODO
-            return
+    if not path.isdir(directory):
+        pr.mkdir(directory)
+    if not path.isdir(repos_dir):
+        pr.mkdir(repos_dir)
+    if not path.isfile(doc_yaml):
+        click.echo("Metafile doc.yaml not found, created template at\n"
+                   f"{doc_yaml}\n"
+                   "Please, update it and rerun the tool.")
+        with open(doc_yaml, "w") as f:
+            f.write(template_yaml)
+        return
 
     with open(doc_yaml) as f:
         doc = yaml.safe_load(f)
@@ -722,5 +739,5 @@ def doc_build(directory, extra, no_parallel_, dry_run_, open_):
     out_ = "docs/_build" if monolithic else "html"
     click.echo(f"Done, {type_} documentation written to {directory}/{out_}")
 
-    if open_ and not dry_run:
+    if open_:
         subprocess.call(f"xdg-open {directory}/{out_}/index.html", shell=True)
