@@ -103,7 +103,7 @@ class Navigation {
     i = 0
     entries.forEach((elem) => {
       key = elem.textContent
-      key = `${i}_${key.substring(0, key.length-1)}` // Remove anchor # char
+      key = `${i}_${key}`
       if (lt.has(key)) {
         lt.set(key, [lt.get(key)[0], elem])
         i += 1

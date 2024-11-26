@@ -13,10 +13,6 @@ table.docutils {
     border: $border-td;
     border-bottom: none;
 
-    thead {
-        background-color: var(--bg-color2);
-    }
-
     th {
         border-bottom: $border-th;
     }
@@ -46,6 +42,14 @@ table.docutils {
         border-left: none;
         td, th {
             border-left: $border-td;
+        }
+    }
+}
+
+@media screen {
+    table.docutils {
+        thead {
+            background-color: var(--bg-color2);
         }
     }
 }

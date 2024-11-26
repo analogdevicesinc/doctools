@@ -31,27 +31,32 @@
         }
     }
 
+    .highlight {
+        pre {
+            font-size: 0.8em;
+        }
+    }
+
     .body {
         padding: 0;
     }
 
-    .localtoc, .sphinxsidebar,
-    .banner, .search-area, .reverse {
+    .sphinxsidebar,
+    .repotoc-tree.overlay,
+    .banner, .search-area, .reverse,
+    #scroll-up {
         display: none;
     }
 
     #right > span {
         width: 100%;
     }
-}
 
-@media print {
-    .pdf-toctree {
-        white-space: pre-wrap;
+    h1 {
+        break-before: always
+    }
 
-        .page {
-            font-weight: bold;
-            float: right;
-        }
+    .tocwrapper ul li a {
+        width: 100%;
     }
 }

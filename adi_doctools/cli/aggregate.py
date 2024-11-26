@@ -201,98 +201,6 @@ def gen_symbolic_doc(repo_dir):
     pr.wait(p)
 
 
-def gen_monolithic_doc(repo_dir):
-    def add_pyadi_iio_to_path():
-        """
-        To allow importing adi.<module> for autodoc.
-        """
-        name = os.path.join(repo_dir, 'pyadi-iio')
-        if 'PYTHONPATH' in os.environ:
-            os.environ['PYTHONPATH'] += os.pathsep + name
-        else:
-            os.environ['PYTHONPATH'] = name
-    add_pyadi_iio_to_path()
-
-    d_ = os.path.abspath(os.path.join(repo_dir, os.pardir))
-    docs_dir = os.path.join(d_, 'docs')
-    indexfile = os.path.join(docs_dir, 'index.rst')
-    if os.path.isdir(docs_dir):
-        pr.run(f"rm -r {docs_dir}")
-    pr.mkdir(docs_dir)
-
-    mk = {}
-    for r in repos:
-        cwd = os.path.join(repo_dir, f"{r}/{repos[r]['doc_folder']}")
-        mk[r] = get_sphinx_dirs(cwd)
-        if mk[r][0]:
-            continue
-        pr.mkdir(os.path.join(docs_dir, r))
-        cp_cmd = f"""\
-        for dir in */; do
-            dir="${{dir%/}}"
-            if [ "$dir" != "_build" ] && [ "$dir" != "extensions" ]; then
-                cp -r $dir {d_}/docs/{r}
-            fi
-        done
-        for file in *.rst; do
-            cp $file {d_}/docs/{r}
-        done\
-        """
-        cwd = mk[r][2]
-        pr.run(cp_cmd, cwd)
-
-        # Prefixes references with repo name, except already external
-        # references :ref:`repo:str`
-        cwd = f"{d_}/docs/{r}"
-        patch_cmd = """\
-        # Patch :ref:`str` into :ref:`{r} str`
-        find . -type f -exec sed -i -E \
-            "s/(:ref:\\`)([^<>:]+)(\\`)/\\1{r} \\2\\3/g" {{}} \\;
-        # Patch:ref:`Title <str>` into :ref:`Title <{r} str>`
-        find . -type f -exec sed -i -E \
-            "s/(:ref:\\`)([^<]+)( <)([^:>]+)(>)/\\1\\2\\3{r} \\4\\5/g" {{}} \\;
-        # Patch ^.. _str:$ into .. _{r} str:
-        find . -type f -exec sed -i -E \
-            "s/^(.. _)([^:]+)(:)\\$/\\1{r} \\2\\3/g" {{}} \\;\
-        """.format(r=r)
-        pr.run(patch_cmd, cwd)
-
-        # Patch includes outside the docs source,
-        # e.g. no-OS include README.rst
-        depth = '../' * (2 + repos[r]['doc_folder'].count('/'))
-        include_cmd = """
-        find . -type f -exec sed -i -E \
-        "s|^(.. include:: )({depth})(.*)|\\1../../../repos/{r}/\\3|g" {{}} \\;\
-        """.format(r=r, depth=depth)
-        pr.run(include_cmd, cwd)
-
-    # Convert documentation into top-level
-    cwd = f"{docs_dir}/documentation"
-    pr.run(f"mv {cwd}/* {docs_dir} ; rmdir {cwd}")
-    pr.run(f"cp -r {mk['documentation'][2]}/conf.py {docs_dir}")
-    pr.run(f"echo monolithic = True >> {docs_dir}/conf.py")
-
-    for r in repos:
-        if r != 'documentation':
-            patch_index(r, docs_dir, indexfile)
-
-    # Convert external references into local prefixed
-    cwd = docs_dir
-    for r in repos:
-        ref_cmd = """\
-        find . -type f -exec sed -i "s|ref:\\`{r}:|ref:\\`{r} |g" {{}} \\;\
-        """.format(r=r)
-        pr.run(ref_cmd, cwd)
-    ref_cmd = """\
-    find . -type f -exec sed -i "s|<|<|g" {} \\;
-    """
-    pr.run(ref_cmd, cwd)
-
-    pr.run("sphinx-build . _build", docs_dir)
-
-    cwd = d_
-
-
 @click.command()
 @click.option(
     '--directory',
@@ -302,13 +210,6 @@ def gen_monolithic_doc(repo_dir):
     default=None,
     required=True,
     help="Path to create aggregated output."
-)
-@click.option(
-    '--monolithic',
-    '-m',
-    is_flag=True,
-    default=False,
-    help="Generate a single Sphinx build."
 )
 @click.option(
     '--extra',
@@ -341,20 +242,16 @@ def gen_monolithic_doc(repo_dir):
     default=False,
     help="Open after generation (xdg-open)."
 )
-def aggregate(directory, monolithic, extra, no_parallel_, dry_run_, open_):
+def aggregate(directory, extra, no_parallel_, dry_run_, open_):
     """
-    Creates an aggregated documentation out of every repo documentation,
-    by deafult, generate independent Sphinx builds for each repo.
-    To resolve inter-repo-references in symbolic mode, run twice.
+    Creates a symbolic-aggregated documentation out of every repo
+    documentation.
+    To resolve interrepo-references, run the tool twice.
     """
     global dry_run, no_parallel
     no_parallel = no_parallel_
     dry_run = dry_run_
     directory = os.path.abspath(directory)
-
-    if monolithic:
-        click.echo("Currently, monolithic output is disabled")
-        return
 
     if not extra:
         click.echo("Extra features disabled, use --extra to enable.")
@@ -370,7 +267,7 @@ def aggregate(directory, monolithic, extra, no_parallel_, dry_run_, open_):
     for r in repos:
         cwd = os.path.join(repos_dir, r)
         if not os.path.isdir(cwd):
-            git_cmd = ["git", "clone", lut['remote'].format(r), "--depth=1", "-b",
+            git_cmd = ["git", "clone", lut['remote_ssh'].format(r), "--depth=1", "-b",
                        repos[r]['branch'], '--', cwd]
             pr.popen(git_cmd, p)
         else:
@@ -381,14 +278,9 @@ def aggregate(directory, monolithic, extra, no_parallel_, dry_run_, open_):
     if extra:
         do_extra_steps(repos_dir)
 
-    if monolithic:
-        gen_monolithic_doc(repos_dir)
-    else:
-        gen_symbolic_doc(repos_dir)
+    gen_symbolic_doc(repos_dir)
 
-    type_ = "monolithic" if monolithic else "symbolic"
-    out_ = "docs/_build" if monolithic else "html"
-    click.echo(f"Done, {type_} documentation written to {directory}/{out_}")
+    click.echo(f"Done, documentation written to {directory}/html")
 
     if open_ and not dry_run:
-        subprocess.call(f"xdg-open {directory}/{out_}/index.html", shell=True)
+        subprocess.call(f"xdg-open {directory}/html/index.html", shell=True)

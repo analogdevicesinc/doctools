@@ -18,12 +18,14 @@ class Repo(TypedDict):
 
 
 class LUT(TypedDict):
-    remote: str
+    remote_ssh: str
+    remote_https: str
     repos: Dict[str, Repo]
     banner: Banner
 
 
-remote = "git@github.com:analogdevicesinc/{}.git"
+remote_ssh = "git@github.com:analogdevicesinc/{}.git"
+remote_https = "https://github.com/analogdevicesinc/{}.git"
 
 repos = {
     'documentation': Repo(
@@ -102,6 +104,7 @@ banner = Banner(
 
 def get_lut():
     # TODO dynamic lut fetch
-    return LUT(remote=remote,
+    return LUT(remote_ssh=remote_ssh,
+               remote_https=remote_https,
                repos=repos,
                banner=banner)

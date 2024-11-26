@@ -1,0 +1,139 @@
+/* CSS rules for WeasyPrint (PDF generation)
+ * And minor adjustments.
+ * General PDF rules should be on the SASS bundle to apply also
+ * to the browser's print feature.
+ * */
+@font-face {
+    font-family: "Barlow";
+    src: url('fonts/barlow/Barlow-Medium.woff2') format('woff2');
+}
+
+@page {
+    size: A4;
+}
+
+@page :left {
+    @bottom-left {
+        font-family: Barlow;
+        font-size: 0.8em;
+        content: counter(page);
+        text-align: center;
+        width: 1cm;
+    }
+
+    @bottom-right {
+        font-family: Barlow;
+        content: string(heading);
+        vertical-align: middle;
+        font-size: 9pt;
+        width: 100%;
+    }
+}
+
+@page :right {
+    @bottom-right {
+        font-family: Barlow;
+        font-size: 0.8em;
+        content: counter(page);
+        text-align: center;
+        width: 1cm;
+    }
+
+    @bottom-left {
+        font-family: Barlow;
+        content: 'analog.com';
+        vertical-align: middle;
+        font-size: 9pt;
+        width: 100%;
+    }
+}
+
+@page no-footer {
+    @bottom-left { content: none }
+    @bottom-center { content: none }
+    @bottom-right { content: none }
+}
+
+@page :blank {
+    @bottom-left { content: '' }
+    @bottom-center { content: none }
+    @bottom-right { content: none }
+}
+
+@page :first {
+    background: #0067b9;
+    background-size: cover;
+    margin: 0;
+    @bottom-left { content: none }
+    @bottom-center { content: none }
+    @bottom-right { content: none }
+}
+
+@page volume {
+    background: #e0e1e6;
+    margin: 0;
+    @bottom-left { content: none }
+    @bottom-center { content: none }
+    @bottom-right { content: none }
+}
+
+h2 {
+    string-set: heading content();
+    break-before: always;
+}
+
+footer {
+    display: none;
+}
+
+.tocwrapper ul li a::after {
+    color: #0067b9;
+    float: right;
+    content: target-counter(attr(href), page);
+}
+
+.tocwrapper {
+    page: no-footer;
+}
+
+.volume {
+    page: volume;
+    height: 297mm;
+    display: flex;
+    font-family: Barlow;
+    margin-left: 4rem;
+    justify-content: start;
+    align-items: center;
+    font-size: 2em;
+}
+
+header {
+    color: #fff;
+}
+
+header #right span {
+    display: block;
+    overflow: visible;
+}
+
+header #logo-org {
+    background-position: center bottom;
+    position: absolute;
+    right: 4em;
+    bottom: 3em;
+}
+
+header #logo {
+    position: absolute;
+    top: 0;
+    left: 5rem;
+    height: 270mm;
+    max-width: 70%;
+    font-family: Barlow;
+    margin-left:0;
+    overflow: visible;
+    font-size: 5em;
+    line-height: 1em;
+    justify-content: center;
+    display: flex;
+}

@@ -88,6 +88,10 @@ a.icon {
     margin-left: .25em;
     user-select: none;
     opacity: 0;
+
+    &:after {
+        content: '#';
+    }
 }
 
 :is(h1, h2, h3, h4, h5, h6):hover .headerlink,

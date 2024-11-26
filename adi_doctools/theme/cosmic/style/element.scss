@@ -76,7 +76,30 @@ img {
     }
 }
 
-@media print, (min-width: $screen-1) {
+@media (min-width: $screen-1) {
+    .body img, .body figure {
+        display: block;
+        margin: 0 auto;
+        max-width: 100%;
+        padding: .5em;
+
+        &.align-left {
+            float: left;
+            clear: left;
+            margin-right: .5em;
+            max-width: 45%;
+        }
+
+        &.align-right {
+            float: right;
+            clear: right;
+            margin-left: .5em;
+            max-width: 45%;
+        }
+    }
+}
+
+@media print {
     .body img, .body figure {
         display: block;
         margin: 0 auto;
@@ -114,6 +137,9 @@ img {
 @media print {
     .break-after {
         break-after: always;
+    }
+    .break-before {
+        break-before: always;
     }
 }
 
@@ -295,4 +321,9 @@ figcaption p {
 
 .green {
     color: green;
+}
+
+hr {
+    border-top: 1px dashed var(--text-color2);
+    border-bottom: None;
 }

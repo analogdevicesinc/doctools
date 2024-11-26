@@ -165,7 +165,6 @@ body {
 .body {
     p, div.line {
         line-height: 1.5em;
-        text-align: justify;
         margin: .25em 0 .75em 0;
     }
 
@@ -175,6 +174,14 @@ body {
 
     div.line{
         margin: .25em 0;
+    }
+}
+
+@media screen {
+    .body {
+        p, div.line {
+            text-align: justify;
+        }
     }
 }
 
@@ -192,7 +199,7 @@ svg {
     line-height: 1.5em;
 }
 
-@media print, (min-width: $screen-1) {
+@media (min-width: $screen-1) {
     #hdl-component-diagram svg {
         float: right;
         margin: -3em 0 0 1em;
@@ -201,6 +208,20 @@ svg {
 }
 
 @media (max-width: $screen-1) {
+    svg {
+        max-width: 100%;
+    }
+}
+
+@media print {
+    #hdl-component-diagram svg {
+        float: right;
+        margin: -3em 0 0 1em;
+        max-width: 45%;
+    }
+}
+
+@media print {
     svg {
         max-width: 100%;
     }

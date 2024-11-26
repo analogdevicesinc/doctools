@@ -7,6 +7,7 @@ from os import pardir, makedirs
 from math import ceil
 from lxml import etree
 from sphinx.util import logging
+from sphinx.util.osutil import SEP
 
 from .node import node_div
 from .common import directive_base
@@ -537,8 +538,7 @@ def discover_hdl_component(env, lib):
             cp[lib]['owners'].append(env.docname)
         return
 
-    prefix = "../repos/hdl" if env.config.monolithic else ".."
-    f = f"{prefix}/{lib}/component.xml"
+    f = f"..{SEP}{lib}{SEP}component.xml"
     if not path.isfile(f):
         return
 
@@ -553,10 +553,9 @@ def manage_hdl_components(env, docnames, libraries):
     if not hasattr(env, 'component'):
         env.component = {}
 
-    prefix = "../repos" if env.config.monolithic else ".."
     cp = env.component
     for lib in list(cp):
-        f = f"{prefix}/{lib}/component.xml"
+        f = f"..{SEP}{lib}{SEP}component.xml"
         if not path.isfile(f):
             del cp[lib]
             continue
@@ -580,10 +579,10 @@ def manage_hdl_regmaps(env, docnames):
     if not hasattr(env, 'regmaps'):
         env.regmaps = {}
 
-    prefix = "../repos/hdl/docs" if env.config.monolithic else "."
+    prefix = f"..{SEP}hdl{SEP}docs" if env.config.monolithic else "."
     rm = env.regmaps
     for lib in list(rm):
-        f = f"{prefix}/regmap/adi_regmap_{lib}.txt"
+        f = f"{prefix}{SEP}regmap{SEP}adi_regmap_{lib}.txt"
         if not path.isfile(f):
             del rm[lib]
     # Inconsistent naming convention, need to parse all in directory.
@@ -615,9 +614,9 @@ def manage_hdl_regmaps(env, docnames):
 
 
 def manage_hdl_artifacts(app, env, docnames):
-    prefix = "hdl/" if env.config.monolithic else ""
+    prefix = "hdl" if env.config.monolithic else "."
     libraries = [[k.replace('/index', ''), [k]]
-                 for k in env.found_docs if k.find(f"{prefix}library/") == 0]
+                 for k in env.found_docs if k.find(f"{prefix}{SEP}library{SEP}") == 0]
 
     manage_hdl_components(env, docnames, libraries)
     manage_hdl_regmaps(env, docnames)
