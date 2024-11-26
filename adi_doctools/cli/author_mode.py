@@ -1,8 +1,12 @@
 from os import path, listdir, remove, mkdir
 from os import pardir, killpg, getpgid
+from os import environ
+from os import chdir, getcwd
 from shutil import copy
 import click
 import importlib
+
+from sphinx.application import Sphinx
 
 log = {
     'no_mk': "File Makefile not found, is {} a docs folder?",
@@ -109,6 +113,7 @@ def author_mode(directory, port, dev, no_selenium, once, builder):
         click.echo(log['builder'].format(builder))
         return
     if builder == 'pdf':
+        environ["ADOC_MEDIA_PRINT"] = ""
         if not importlib.util.find_spec("weasyprint"):
             click.echo(log['no_weasyprint'])
             return
@@ -118,6 +123,7 @@ def author_mode(directory, port, dev, no_selenium, once, builder):
 
     source_files = {'app.umd.js', 'app.umd.js.map', 'style.min.css',
                     'style.min.css.map'}
+    cwd_ = getcwd()
 
     def signal_handler(sig, frame):
         if builder == 'html':
@@ -212,6 +218,7 @@ def author_mode(directory, port, dev, no_selenium, once, builder):
         click.echo(log['inv_mk'].format(directory))
         return
     builddir = path.join(directory, builddir_, builder)
+    doctreedir = path.join(builddir_, "doctrees")
     sourcedir = path.join(directory, sourcedir_)
     if dir_assert(sourcedir, log['inv_srcdir']):
         return
@@ -233,28 +240,34 @@ def author_mode(directory, port, dev, no_selenium, once, builder):
     if builder == 'singlehtml':
         singlehtml_file = path.join(builddir, 'index.html')
         font_config = FontConfiguration()
+        from .aux_print import sanitize_singlehtml
+
     def update_pdf():
-        html = HTML(filename=singlehtml_file)
-        document = html.render()
+        html_ = sanitize_singlehtml(singlehtml_file)
 
-        css = CSS(path.join(par_dir, cosmic_static, 'style.min.css'),
+        click.echo("preparing pdf styles...")
+
+        font_config = FontConfiguration()
+        src_dir = path.abspath(path.join(path.dirname(__file__), pardir, pardir))
+        cosmic = path.join('adi_doctools', 'theme', 'cosmic')
+        css = CSS(path.join(src_dir, cosmic, 'static', 'style.min.css'),
                   font_config=font_config)
-        contents_str = generate_toctree(document.make_bookmark_tree())
-        contents_str = f"<div class='pdf-toctree'>{contents_str}</div>"
-        contents_doc = HTML(string=contents_str)
-        contents_doc = contents_doc.render(stylesheets=[css],
-                                           font_config=font_config)
-        for page in reversed(contents_doc.pages):
-            document.pages.insert(1, page)
+        css_extra = CSS(path.join(src_dir, cosmic, 'style', 'weasyprint.css'),
+                        font_config=font_config)
 
+        click.echo("rendering pdf content...")
+        html = HTML(string=html_, base_url=path.dirname(singlehtml_file))
+
+        document = html.render(stylesheets=[css, css_extra])
+
+        click.echo("writing pdf...")
         document.write_pdf(path.join(builddir, '..', 'output.pdf'))
-        click.echo("The PDF is at _build/output.pdf")
-
 
     if not with_selenium and builder == 'html':
-        devpool_js = "ADOC_DEVPOOL= "
-    else:
-        devpool_js = ""
+        environ["ADOC_DEVPOOL"] = ""
+
+    app = Sphinx(directory, directory,  builddir, doctreedir, builder)
+
     watch_file_src = {}
     watch_file_rst = {}
     if dev:
@@ -276,7 +289,7 @@ def author_mode(directory, port, dev, no_selenium, once, builder):
                 return
 
         # Build doc the first time
-        subprocess.call(f"{devpool_js} make {builder}", shell=True, cwd=directory)
+        app.build()
         for f, s in zip(w_files, source_files):
             watch_file_src[f] = path.getctime(f)
         if not once:
@@ -286,7 +299,7 @@ def author_mode(directory, port, dev, no_selenium, once, builder):
                                         stdout=subprocess.DEVNULL)
     else:
         # Build doc the first time
-        subprocess.call(f"{devpool_js} make {builder}", shell=True, cwd=directory)
+        app.build()
         if builder == "singlehtml":
             update_pdf()
 
@@ -388,8 +401,7 @@ def author_mode(directory, port, dev, no_selenium, once, builder):
             update_sphinx = False
 
         if update_sphinx:
-            subprocess.call(f"{devpool_js} make {builder}",
-                            shell=True, cwd=directory)
+            app.build()
         if update_page:
             for f, s in zip(w_files, source_files):
                 copy(f, path.join(builddir, '_static', s))

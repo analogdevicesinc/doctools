@@ -69,9 +69,7 @@ def config_inited(app, config):
             pass
         config.version = doc_version
     # Parameter to enable PDF output tweaks
-    media_print = getenv("ADOC_MEDIA_PRINT", default="0")
-    media_print = True if media_print == "1" else False
-    config.media_print = media_print
+    config.media_print = True if getenv("ADOC_MEDIA_PRINT") is not None else False
 
 def builder_inited(app):
     if app.builder.format == 'html':
@@ -82,7 +80,7 @@ def builder_inited(app):
         # Add bundled JavaScript if current theme is from this extension.
         if app.env.config.html_theme in theme_names:
             app.add_js_file("app.umd.js", priority=500, defer="")
-            app.config.html_permalinks_icon = "#"
+            app.config.html_permalinks_icon = ""
             get_pygments_theme(app)
         else:
             app.add_css_file("third-party.css", priority=500, defer="")

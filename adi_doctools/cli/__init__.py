@@ -4,6 +4,7 @@ from .author_mode import author_mode
 from .hdl_render import hdl_render
 from .hdl_gen import hdl_gen
 from .aggregate import aggregate
+from .custom_doc import custom_doc
 
 
 @click.group()
@@ -18,7 +19,8 @@ commands = [
     author_mode,
     hdl_render,
     hdl_gen,
-    aggregate
+    aggregate,
+    custom_doc
 ]
 
 for cmd in commands:
