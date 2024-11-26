@@ -21,7 +21,7 @@ repos = lut['repos']
 
 default_config = {
     'extra': False,
-    'branch': 'main'
+    'branch': 'main',
 }
 
 class pr:
@@ -59,88 +59,6 @@ class pr:
             os.mkdir(d)
         else:
             click.echo(f"mkdir {d}")
-
-
-def patch_index(name, docsdir, indexfile):
-    global dry_run
-    file = path.join(path.join(docsdir, name), 'index.rst')
-    toctree = []
-
-    with open(file, "r") as f:
-        data = f.readlines()
-        if ".. toctree::\n" not in data:
-            return
-        data_ = data.copy()
-        in_toc = False
-        for i in range(0, len(data)):
-            if in_toc:
-                if data[i][0:12] == '   :caption:':
-                    data[i] = ""
-                    continue
-
-                if data[i][0:3] == '   ' and data[i][0:4] != '   :':
-                    pos = data[i].find('<')
-                    if pos == -1:
-                        str_ = f"   {name}/{data[i][3:]}"
-                    else:
-                        str_ = f"   {data[i][:pos+1]}{name}/{data[i][pos+1:]}"
-                    data[i] = str_
-
-                if data[i][0:3] != '   ' and data[i] != '\n':
-                    toctree[-1] = [toctree[-1][0], i - 1]
-                    if data[i] == ".. toctree::\n":
-                        toctree.append([i, i])
-                    else:
-                        in_toc = False
-                    continue
-                elif i == len(data) - 1 and in_toc:
-                    toctree[-1] = [toctree[-1][0], i + 1]
-                    in_toc = False
-                    break
-            else:
-                if data[i] == ".. toctree::\n":
-                    toctree.append([i, i])
-                    in_toc = True
-
-    # Add orphan flag to indexes, since toctree is expanded at /index.rst
-    with open(file, 'w') as f:
-        f.write(':orphan:\n\n')
-        for line in data_:
-            f.write(line)
-
-    if dry_run:
-        return
-
-    with open(indexfile, "r") as f:
-        data_ = f.readlines()
-        # Find end of last toctree
-        if ".. toctree::\n" in data_:
-            i = len(data_) - 1 - data_[::-1].index(".. toctree::\n")
-            for i in range(i + 1, len(data_)):
-                if data_[i][0:3] != '   ' and data_[i] != '\n':
-                    break
-        else:
-            i = len(data_)
-
-        header = data_[:i+1]
-        if i == len(data_)-1:
-            header.append('\n')
-        body = data_[i+1:]
-
-        if len(toctree) > 1:
-            click.echo(click.style(f"Repo {name} containes multiple toctrees!",
-                                   fg='red'))
-        for tc in toctree:
-            header.append(".. toctree::\n")
-            header.append(f"   :caption: {repos[name]['name']}\n")
-            header.extend(data[tc[0]+1:tc[1]])
-            header.append('\n')
-
-        header.extend(body)
-
-    with open(indexfile, "w") as f:
-        for line in header:
-            f.write(line)
 
 
 def get_sphinx_dirs(cwd) -> Tuple[bool, str, str]:
@@ -229,11 +147,6 @@ class SphinxWarnings:
 
 sphinx_warnings = SphinxWarnings()
 
-template_index = """
-ADI Doc
-=======
-"""
-
 toctree_template = """
 .. toctree::
    :caption: {caption}
@@ -246,7 +159,7 @@ from os import path
 # -- Project information -----------------------------------------------------
 
 repository = 'custom'
-project = 'Custom'
+project = '$project$'
 copyright = '2024, Analog Devices, Inc.'
 author = 'Analog Devices, Inc.'
 
@@ -277,14 +190,158 @@ html_favicon = path.join("sources", "icon.svg")
 interref_repos = [$interref_repos$]
 """
 
+def get_includes(src_doc_dir, dst_doc_dir, doc):
+    """
+    Get includes/images that are under the doc_dir depth.
+    """
+    cwd = dst_doc_dir
+    # Run include first to solve image for missing included files also
+    for e in ['include', 'image', 'figure']:
+        patch_cmd = "grep -rn '^.. {e}:: '".format(e=e)
+        p = subprocess.Popen(patch_cmd, shell=True, cwd=cwd,
+                             stdout=subprocess.PIPE)
+
+        for line in p.stdout:
+            m = line.decode("utf-8").split('.. {e}:: '.format(e=e))
+            m.append(m[0][m[0].index(':')+1:])
+            m[2] = int(m[2][:m[2].index(':')])
+            m[0] = m[0][:m[0].index(':')].strip()
+            m[1] = m[1].strip()
+            # Inside namespace: copy over
+            if m[0].count(SEP) >= m[1].count('..'+SEP):
+                d = path.join(path.dirname(m[0]), m[1])
+                pr.run(f"cp -r --parents {d} {dst_doc_dir}", src_doc_dir)
+            # Outside namespace: update path
+            else:
+                with open(path.join(dst_doc_dir, m[0]), "r") as f:
+                    data = f.readlines()
+                m_patched = path.abspath(path.join(src_doc_dir, path.dirname(m[0]), m[1]))
+                m_patched = path.relpath(m_patched, path.join(dst_doc_dir, path.dirname(m[0])))
+                data[m[2]-1] = data[m[2]-1].replace(m[1], m_patched)
+                with open(path.join(dst_doc_dir, m[0]), "w") as f:
+                    f.write(''.join(data))
+
+
+def namespace_ref(doc_dir, r):
+    """
+    Add repository idenfier to every label/reference, e.g:
+    .. _spi_engine:         -> .. _hdl:spi_engine:
+    :ref:`spi_engine`       -> :ref:`hdl:spi_engine`
+    :ref:`Alt <spi_engine>` -> :ref:`Alt <hdl:spi_engine>`
+
+    For external references, convert to version with precedence also, e.g.
+    :external+hdl:`spi_engine`       -> :ref:`hdl:spi_engine`
+    :external+hdl:`Alt <spi_engine>` -> :ref:`Alt <hdl:spi_engine>`
+    """
+    # Prefixes references with repo name to create namespace
+    # 1. Patch :ref:`str` into :ref:`{r}:str`
+    # 2. Patch :ref:`Title <str>` into :ref:`Title <{r}:str>`
+    # 3. Patch ^.. _str:$ into .. _{r}:str:
+    cwd = path.join(doc_dir, r)
+    patch_cmd = """\
+    find . -type f -exec sed -i -E \
+        "s/(\s|^|\()(:ref:\\`)([^<>:]+)(\\`)/\\1\\2{r}:\\3\\4/g" {{}} \\;
+    find . -type f -exec sed -i -E \
+        "s/(\s|^|\()(:ref:\\`)([^<]+)( <)([^:>]+)(>)/\\1\\2\\3\\4{r}:\\5\\6/g" {{}} \\;
+    find . -type f -exec sed -i -E \
+        "s/^(.. _)([^:]+)(:)\\$/\\1{r}:\\2\\3/g" {{}} \\;\
+    """.format(r=r)
+    pr.run(patch_cmd, cwd)
+
+    # Convert external references into local prefixed with precedence
+    # 1. Patch :external+r:ref:`str` into :ref:`r:str`
+    # 2. Patch :external+r:ref:`Title <str>` into :ref:`Title <r:str>`
+    patch_cmd = """\
+    find . -type f -exec sed -i -E \
+        -e "s/(\s|^|\()(:external\+)([^:]+)(:ref:\\`|:doc:\\`)([^<]+)( <)([^:>]+)(>)/\\1\\4\\5\\6\\3:\\7\\8/g" {} \\;\
+    """
+    pr.run(patch_cmd, cwd)
+
+
+def _patch_index(toc_file, repo):
+    with open(toc_file, "r") as f:
+        data = f.readlines()
+        if ".. toctree::\n" not in data:
+            return
+        data_ = data.copy()
+
+        toctrees = []
+        while ".. toctree::\n" in data:
+            data  = data[data.index(".. toctree::\n")+1:]
+            toctrees.append([[],[]])
+
+            for i in range(0, len(data)):
+                if data[i] != '\n' and not data[i].startswith('   '):
+                    break
+                elif data[i][0:4] == '   :':
+                    toctrees[-1][0].append(data[i])
+                elif data[i][0:3] == '   ' and data[i][0:4] != '   :':
+                    pos = data[i].find('<')
+                    if pos == -1:
+                        str_ = f"   {repo}/{data[i][3:]}"
+                    else:
+                        str_ = f"   {data[i][:pos+1]}{repo}/{data[i][pos+1:]}"
+                    toctrees[-1][1].append(str_)
+                    data[i] = str_
+
+    # Add orphan flag to indexes, since toctree is expanded at /index.rst
+    with open(toc_file, 'w') as f:
+        f.write(':orphan:\n\n')
+        for line in data_:
+            f.write(line)
+
+    return toctrees
+
+
+def patch_index(doc, tocs, index_file):
+    global dry_run
+
+    toctrees = {}
+    orphan_toc = {}
+    for k in tocs:
+        toctrees[k] = []
+        for k_ in tocs[k]:
+            if f"{k}{SEP}index.rst" == k_:
+                toctrees[k] += _patch_index(path.join(path.dirname(index_file), k, "index.rst"), k)
+            else:
+                # Fallback, just add somewhere
+                if k not in orphan_toc:
+                    orphan_toc[k] = []
+                orphan_toc[k].append(f"   {k_[:-4]}\n")
+        if k in orphan_toc:
+            toctrees[k] += [[], orphan_toc[k]]
+
+    data = []
+    for k in toctrees:
+        first = True
+
+        for k_ in toctrees[k]:
+            data.append(".. toctree::\n")
+            if first:
+                data.append(f"   :caption: {repos[k]['name']}\n")
+                first = False
+            data.extend(k_[0])
+            data.append('\n')
+            data.extend(k_[1])
+            data.append('\n')
+
+    index = doc['project'] + '\n'
+    index += '"'*len(doc['project']) + '\n'
+    index += ''.join(data)
+    with open(index_file, "w") as f:
+        f.write(index)
+
+
 def prepare_doc(doc, repos_dir, doc_dir):
     if path.isdir(doc_dir):
         pr.run(f"rm -r {doc_dir}")
     pr.mkdir(doc_dir)
 
     index_file = path.join(doc_dir, 'index.rst')
+    index = doc['project'] + '\n'
+    index += '"'*len(doc['project']) + '\n'
     with open(index_file, "w") as f:
-        f.write(template_index)
+        f.write(index)
 
     for r in doc['doc']:
         src_doc_dir = path.join(repos_dir, r, repos[r]['doc_folder'])
@@ -385,11 +442,15 @@ def prepare_doc(doc, repos_dir, doc_dir):
         for f_ in also_include:
             pr.run(f"cp --parents {f_} {dst_doc_dir}", src_doc_dir)
 
+        get_includes(src_doc_dir, dst_doc_dir, doc)
+        namespace_ref(doc_dir, r)
+
     conf_file = path.join(doc_dir, 'conf.py')
     config_f = template_config
     for e in ['extensions', 'interref_repos']:
         e_ = ''.join([f"\n    '{e}'," for e in doc[e]]) + '\n'
         config_f = config_f.replace(f"${e}$", e_)
+    config_f = config_f.replace(f"$project$", doc['project'])
     with open(conf_file, "w") as f:
         f.write(config_f)
 
@@ -475,28 +536,15 @@ def patch_doc(doc, repos_dir, doc_dir, doc_patch_dir):
             tocs[p[0]] = []
         tocs[p[0]].append(SEP.join(p))
 
-    # Swap with external references
+    # Swap with explicit external references
     for e in sphinx_warnings.ref_ref:
-        r = path.relpath(e[0], doc_dir).split(SEP)[0]
-        p = path.join(doc_patch_dir, path.relpath(e[0], doc_dir))
-
-        pattern = r':ref:`([^`<]+(?:<[^`]+>)?)`'
-        replacement = rf':external+{r}:ref:`\1`'
-        with open(p, "r") as f:
-            data = f.readlines()
-            data[int(e[1])-1] = re.sub(pattern, replacement, data[int(e[1])-1])
-        with open(p, "w") as f:
-            f.write(''.join(data))
+        # Nothing to do for now, since is patched with precedence ref already.
+        continue
 
     # Grab missing images
-    # Since the Sphinx warning does not provide the lineno,
-    # copy instead of looking for the correct img directive.
     for e in sphinx_warnings.image_not_readable:
-        f__ = SEP.join(e[1].split(SEP)[1:])
-        r = path.relpath(e[0], doc_dir).split(SEP)[0]
-        src_doc_dir = path.join(repos_dir, r, doc['dirs'][r][1])
-        dst_doc_dir = path.join(doc_patch_dir, r)
-        pr.run(f"cp --parents {f__} {dst_doc_dir}", src_doc_dir)
+        # Nothing to do for now, since get_includes should have solved all already.
+        continue
 
     # Update include paths
     for e in sphinx_warnings.include:
@@ -517,14 +565,14 @@ def patch_doc(doc, repos_dir, doc_dir, doc_patch_dir):
     # Remove from toctree
     # lineno points to the toctree directive, not the exact linenumber
     toc_ = {}
-    for src, lineno, doc in sphinx_warnings.toc_not_readable:
+    for src, lineno, doc_ in sphinx_warnings.toc_not_readable:
         src = path.relpath(src, doc_dir)
-        doc = path.relpath(doc, path.dirname(src))
+        doc_ = path.relpath(doc_, path.dirname(src))
         if src not in toc_:
             toc_[src] = {}
         if lineno not in toc_[src]:
             toc_[src][lineno] = []
-        toc_[src][lineno].append(doc)
+        toc_[src][lineno].append(doc_)
 
     for src in toc_:
         data_filter = []
@@ -535,8 +583,8 @@ def patch_doc(doc, repos_dir, doc_dir, doc_patch_dir):
             for i in range(0, len(d)):
                 if d[i] != '\n' and not d[i].startswith('   '):
                     break
-                for doc in toc_[src][lineno]:
-                    if d[i].strip('\n') == f"   {doc}" or f"<{doc}>" in d[i]:
+                for doc_ in toc_[src][lineno]:
+                    if d[i].strip('\n') == f"   {doc_}" or f"<{doc_}>" in d[i]:
                         data_filter.append(d[i])
 
         for d in data_filter:
@@ -544,14 +592,7 @@ def patch_doc(doc, repos_dir, doc_dir, doc_patch_dir):
         with open(path.join(doc_patch_dir, src), "w") as f:
             f.write(''.join(data))
 
-
-    index = template_index
-    for t in tocs:
-        index += toctree_template.format(caption=t)
-        index += ''.join([f"   {e[:-4]}\n" for e in tocs[t]])
-
-    with open(index_file, "w") as f:
-        f.write(index)
+    patch_index(doc, tocs, index_file)
 
     # Second run
     cwd_ = getcwd()
@@ -566,98 +607,6 @@ def patch_doc(doc, repos_dir, doc_dir, doc_patch_dir):
     with open(warnfile, "r") as f:
         click.echo(f.read())
     chdir(cwd_)
-
-
-#def gen_monolithic_doc(repo_dir):
-#    def add_pyadi_iio_to_path():
-#        """
-#        To allow importing adi.<module> for autodoc.
-#        """
-#        name = path.join(repo_dir, 'pyadi-iio')
-#        if 'PYTHONPATH' in os.environ:
-#            os.environ['PYTHONPATH'] += pathsep + name
-#        else:
-#            os.environ['PYTHONPATH'] = name
-#    add_pyadi_iio_to_path()
-#
-#    d_ = path.abspath(path.join(repo_dir, os.pardir))
-#    docs_dir = path.join(d_, 'docs')
-#    indexfile = path.join(docs_dir, 'index.rst')
-#    if path.isdir(docs_dir):
-#        pr.run(f"rm -r {docs_dir}")
-#    pr.mkdir(docs_dir)
-#
-#    mk = {}
-#    for r in repos:
-#        cwd = path.join(repo_dir, f"{r}/{repos[r]['doc_folder']}")
-#        mk[r] = get_sphinx_dirs(cwd)
-#        if mk[r][0]:
-#            continue
-#        pr.mkdir(path.join(docs_dir, r))
-#        cp_cmd = f"""\
-#        for dir in */; do
-#            dir="${{dir%/}}"
-#            if [ "$dir" != "_build" ] && [ "$dir" != "extensions" ]; then
-#                cp -r $dir {d_}/docs/{r}
-#            fi
-#        done
-#        for file in *.rst; do
-#            cp $file {d_}/docs/{r}
-#        done\
-#        """
-#        cwd = mk[r][2]
-#        pr.run(cp_cmd, cwd)
-#
-#        # Prefixes references with repo name, except already external
-#        # references :ref:`repo:str`
-#        cwd = f"{d_}/docs/{r}"
-#        patch_cmd = """\
-#        # Patch :ref:`str` into :ref:`{r} str`
-#        find . -type f -exec sed -i -E \
-#            "s/(:ref:\\`)([^<>:]+)(\\`)/\\1{r} \\2\\3/g" {{}} \\;
-#        # Patch:ref:`Title <str>` into :ref:`Title <{r} str>`
-#        find . -type f -exec sed -i -E \
-#            "s/(:ref:\\`)([^<]+)( <)([^:>]+)(>)/\\1\\2\\3{r} \\4\\5/g" {{}} \\;
-#        # Patch ^.. _str:$ into .. _{r} str:
-#        find . -type f -exec sed -i -E \
-#            "s/^(.. _)([^:]+)(:)\\$/\\1{r} \\2\\3/g" {{}} \\;\
-#        """.format(r=r)
-#        pr.run(patch_cmd, cwd)
-#
-#        # Patch includes outside the docs source,
-#        # e.g. no-OS include README.rst
-#        depth = '../' * (2 + repos[r]['doc_folder'].count('/'))
-#        include_cmd = """
-#        find . -type f -exec sed -i -E \
-#        "s|^(.. include:: )({depth})(.*)|\\1../../../repos/{r}/\\3|g" {{}} \\;\
-#        """.format(r=r, depth=depth)
-#        pr.run(include_cmd, cwd)
-#
-#    # Convert documentation into top-level
-#    cwd = f"{docs_dir}/documentation"
-#    pr.run(f"mv {cwd}/* {docs_dir} ; rmdir {cwd}")
-#    pr.run(f"cp -r {mk['documentation'][2]}/conf.py {docs_dir}")
-#    pr.run(f"echo monolithic = True >> {docs_dir}/conf.py")
-#
-#    for r in repos:
-#        if r != 'documentation':
-#            patch_index(r, docs_dir, indexfile)
-#
-#    # Convert external references into local prefixed
-#    cwd = docs_dir
-#    for r in repos:
-#        ref_cmd = """\
-#        find . -type f -exec sed -i "s|ref:\\`{r}:|ref:\\`{r} |g" {{}} \\;\
-#        """.format(r=r)
-#        pr.run(ref_cmd, cwd)
-#    ref_cmd = """\
-#    find . -type f -exec sed -i "s|<|<|g" {} \\;
-#    """
-#    pr.run(ref_cmd, cwd)
-#
-#    pr.run("sphinx-build . _build", docs_dir)
-#
-#    cwd = d_
 
 
 @click.command()
@@ -742,6 +691,8 @@ def doc_build(directory, extra, no_parallel_, dry_run_, open_):
         if e not in doc:
             doc[e] = []
         doc[e] = set(doc[e])
+    if 'project' not in doc:
+        doc['project'] = 'Custom doc'
     for repo in doc['doc']:
         if repo not in doc['config'] or doc['config'][repo] is None:
             doc['config'][repo] = {}
