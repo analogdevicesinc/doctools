@@ -341,20 +341,16 @@ def gen_monolithic_doc(repo_dir):
     default=False,
     help="Open after generation (xdg-open)."
 )
-def aggregate(directory, monolithic, extra, no_parallel_, dry_run_, open_):
+def aggregate(directory, extra, no_parallel_, dry_run_, open_):
     """
-    Creates an aggregated documentation out of every repo documentation,
-    by deafult, generate independent Sphinx builds for each repo.
-    To resolve inter-repo-references in symbolic mode, run twice.
+    Creates a symbolic-aggregated documentation out of every repo
+    documentation.
+    To resolve interrepo-references, run the tool twice.
     """
     global dry_run, no_parallel
     no_parallel = no_parallel_
     dry_run = dry_run_
     directory = os.path.abspath(directory)
-
-    if monolithic:
-        click.echo("Currently, monolithic output is disabled")
-        return
 
     if not extra:
         click.echo("Extra features disabled, use --extra to enable.")
@@ -381,14 +377,9 @@ def aggregate(directory, monolithic, extra, no_parallel_, dry_run_, open_):
     if extra:
         do_extra_steps(repos_dir)
 
-    if monolithic:
-        gen_monolithic_doc(repos_dir)
-    else:
-        gen_symbolic_doc(repos_dir)
+    gen_symbolic_doc(repos_dir)
 
-    type_ = "monolithic" if monolithic else "symbolic"
-    out_ = "docs/_build" if monolithic else "html"
-    click.echo(f"Done, {type_} documentation written to {directory}/{out_}")
+    click.echo(f"Done, documentation written to {directory}/html")
 
     if open_ and not dry_run:
-        subprocess.call(f"xdg-open {directory}/{out_}/index.html", shell=True)
+        subprocess.call(f"xdg-open {directory}/html/index.html", shell=True)
