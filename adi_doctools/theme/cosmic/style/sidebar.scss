@@ -10,13 +10,6 @@
     height: calc(100vh - 3.5rem);
 }
 
-.sphinxsidebar, .localtoc {
-    z-index: 2;
-    position: sticky;
-    top: 3.5rem;
-    height: 0;
-}
-
 @media (max-width: $screen-1) {
     .sphinxsidebar .repotoc-tree {
         display: contents;
@@ -222,20 +215,51 @@
     }
 }
 
+@media screen {
+    .localtoc {
+        right: auto;
+        left: 100vw;
+        height: 0;
+        width: 0;
+    }
+
+    .tocwrapper {
+        background: var(--bg-color1);
+        height: calc(100vh - 4.5rem);
+        overflow-y: auto;
+
+        nav {
+            border-left: 1px solid rgba(125,125,125,.5);
+            max-width: 20rem;
+            margin-bottom: 10em;
+            color: var(--text-color2);
+
+        }
+
+        nav > ul > li:first-child > a {
+          display: none;
+        }
+
+    }
+    .sphinxsidebar, .localtoc {
+        z-index: 2;
+        position: sticky;
+        top: 3.5rem;
+        height: 0;
+    }
+}
+
 .localtoc {
-    right: auto;
-    height: 0;
-    width: 0;
-    left: 100vw;
+    .caption-text {
+        font-weight: bold;
+        color: var(--text-color2);
+    }
 }
 
 .tocwrapper {
-    background: var(--bg-color1);
     box-sizing: content-box;
     padding-top: 1rem;
     font-size: 0.9em;
-    overflow-y: auto;
-    height: calc(100vh - 4.5rem);
 
     ul {
         list-style-type: none;
@@ -257,21 +281,9 @@
       letter-spacing: -.008em;
     }
 
-    nav {
-        max-width: 20rem;
-        border-left: 1px solid rgba(125,125,125,.5);
-        color: var(--text-color2);
-        margin-bottom: 10em;
-    }
-
     .localtoc-header {
         padding-left: 1rem;
         color: var(--text-color3);
-    }
-
-    nav > ul > li:first-child > a
-    {
-      display: none;
     }
 
     > div {
@@ -300,9 +312,7 @@
     }
 }
 
-
-
-@media (min-width: $screen-3) {
+@media screen and (min-width: $screen-3) {
     .tocwrapper {
         width: calc(60vw - 60rem + 13rem);
     }
@@ -382,7 +392,7 @@
     display: none;
 }
 
-@media (max-width: $screen-3) {
+@media screen and (max-width: $screen-3) {
     .localtoc {
         transition: .125s ease opacity;
         pointer-events: none;

@@ -31,20 +31,32 @@
         }
     }
 
+    .highlight {
+        pre {
+            font-size: 0.8em;
+        }
+    }
+
     .body {
         padding: 0;
     }
 
-    .localtoc, .sphinxsidebar,
-    .banner, .search-area, .reverse {
+    .sphinxsidebar,
+    .banner, .search-area, .reverse,
+    .localtoc-header, #scroll-up {
         display: none;
     }
 
     #right > span {
         width: 100%;
     }
+
+    h1 {
+        break-before: always
+    }
 }
 
+// DEPRECATED
 @media print {
     .pdf-toctree {
         white-space: pre-wrap;

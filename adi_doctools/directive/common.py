@@ -543,7 +543,7 @@ class directive_shell(SphinxDirective):
                                        classes=['no-select', 'float-left'])
 
         if typ == '$':
-            lit_ = nodes.literal_block(line, line, classes=['bold'])
+            lit_ = nodes.literal_block(line, line)
             lit_['language'] = self.language
         elif typ == '#':
             lit_ = nodes.literal_block('#'+line, '#'+line)

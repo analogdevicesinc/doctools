@@ -1,11 +1,12 @@
 from typing import Tuple, List
 
-import sys
 from os import path, listdir, pardir, chdir, getcwd, mkdir
+from io import StringIO
 import importlib.util
 import subprocess
 import click
 import yaml
+import sys
 import re
 
 from sphinx.util.osutil import SEP
@@ -60,7 +61,7 @@ def get_sphinx_dirs(cwd) -> Tuple[bool, str, str]:
     if builddir_ is None or sourcedir_ is None:
         click.echo(click.style(f"Failed to parse {mk}, skipped!", fg='red'))
         return (True, '', '')
-    builddir = path.join(cwd, f"{builddir_}/html")
+    builddir = path.join(cwd, builddir_)
     sourcedir = path.join(cwd, sourcedir_)
     if not path.isdir(sourcedir):
         click.echo(click.style(f"Parsed {sourcedir} does not exist, skipped!",
@@ -335,11 +336,10 @@ def prepare_doc(doc, repos_dir, doc_dir):
     for r in doc['doc']:
         src_doc_dir = path.join(repos_dir, r, repos[r]['doc_folder'])
         dst_doc_dir = path.join(doc_dir, r)
-        mk = get_sphinx_dirs(src_doc_dir)
-        if mk[0]:
+        not_valid, _, src_doc_dic = get_sphinx_dirs(src_doc_dir)
+        if not_valid:
             continue
-        doc['dirs'][r] = mk[1:]
-        src_doc_dir = mk[2]
+        doc['sourcedir'][r] = src_doc_dir
         if not path.isdir(dst_doc_dir):
             pr.mkdir(dst_doc_dir)
 
@@ -465,6 +465,8 @@ def prepare_doc(doc, repos_dir, doc_dir):
     warning = open(warnfile, "w")
     builddir = "_build"
     doctreedir = path.join(builddir, "doctrees")
+
+    # Build with html to build orphanaged docs
     app = Sphinx('.', '.',  builddir, doctreedir, "html",
                  warning=warning)
 
@@ -529,7 +531,7 @@ suppress_warnings = [
 ]
 """
 
-def patch_doc(doc, repos_dir, doc_dir, doc_patch_dir):
+def patch_doc(doc, repos_dir, doc_dir, doc_patch_dir, sphinx_builder):
     """
     Patches warnings obtained from the first run.
 
@@ -616,7 +618,7 @@ def patch_doc(doc, repos_dir, doc_dir, doc_patch_dir):
         with open(p_, "r") as f:
             data = f.readlines()
         inc_file = data[idx].replace(".. include::", "").strip()
-        abs_inc_file = path.abspath(path.join(repos_dir, r, doc['dirs'][r][1], path.dirname(p), inc_file))
+        abs_inc_file = path.abspath(path.join(repos_dir, r, doc['sourcedir'][r], path.dirname(p), inc_file))
         data[idx] = data[idx].replace(inc_file, path.relpath(abs_inc_file, path.dirname(p_)))
         with open(p_, "w") as f:
             f.write(''.join(data))
@@ -660,13 +662,81 @@ def patch_doc(doc, repos_dir, doc_dir, doc_patch_dir):
     warning = open(warnfile, "w")
     builddir = "_build"
     doctreedir = path.join(builddir, "doctrees")
-    app = Sphinx('.', '.',  builddir, doctreedir, "html",
+    app = Sphinx('.', '.',  builddir, doctreedir, sphinx_builder,
                  warning=warning)
     app.build()
     with open(warnfile, "r") as f:
         click.echo(f.read())
     chdir(cwd_)
 
+
+def sanitize_singlehtml(file) -> str:
+    """
+    Alter the singlehtml etree to:
+    * Remove the embed style
+    * Extract custom doc name
+    * Covert toctree caption into "volumes" (H1 header)
+    """
+    from lxml import html, etree
+
+    root = html.parse(file).getroot()
+
+    # Remove full CSS entry to use slimer version
+    link_elements = root.xpath("//head//link[contains(@href, '_static/style.min.css')]")
+    for link in link_elements:
+        link.getparent().remove(link)
+
+    # Obtain toctree caption to use as volume titles
+    toc_tree = root.xpath("//body//div[@class='toc-tree']")[0]
+    cap_ = toc_tree.xpath("./p[@class='caption' and @role='heading']//span[@class='caption-text']")
+    volumes = []
+    for c in cap_:
+        ul_ = c.getparent().getnext()
+        i = ul_.xpath('./li//a')[0]
+        volumes.append([c.text, i.attrib['href'][1:]])
+
+    # Extract title
+    title = root.xpath("//head/title")[0].text
+
+    bwrap = root.xpath("//div[@class='bodywrapper']")[0]
+
+    # Remove first H1
+    h1_ = bwrap.xpath(".//h1")[0]
+    h1_.getparent().remove(h1_)
+
+    # Find indexes and add columes
+    for c, i in volumes:
+        e_ = bwrap.xpath(f".//span[@id='{i}']")[0]
+        ele = etree.Element("h1")
+        ele.text = c
+        e_p = e_.getparent()
+        e_p.insert(e_p.index(e_), ele)
+
+    return html.tostring(root, encoding="utf-8", method="html")
+
+def gen_pdf(index_file):
+    from weasyprint import HTML, CSS
+    from weasyprint.text.fonts import FontConfiguration
+
+    html_ = sanitize_singlehtml(index_file)
+
+    click.echo("preparing pdf styles...")
+
+    font_config = FontConfiguration()
+    src_dir = path.abspath(path.join(path.dirname(__file__), pardir, pardir))
+    cosmic_static = path.join('adi_doctools', 'theme', 'cosmic', 'static')
+    # TODO create slimmer version just for print (maybe?)
+    css = CSS(path.join(src_dir, cosmic_static, 'style.min.css'),
+              font_config=font_config)
+    css_extra = CSS(string="h2 { break-before: always }")
+
+    click.echo("rendering pdf content...")
+    html = HTML(string=html_, base_url=path.dirname(index_file))
+
+    document = html.render(stylesheets=[css, css_extra])
+
+    click.echo("writing pdf...")
+    document.write_pdf(path.abspath(path.join(path.dirname(index_file), '..', 'output.pdf')))
 
 @click.command()
 @click.option(
@@ -701,7 +771,14 @@ def patch_doc(doc, repos_dir, doc_dir, doc_patch_dir):
     default=False,
     help="Open after generation (xdg-open)."
 )
-def doc_build(directory, extra, no_parallel_, open_):
+@click.option(
+    '--builder',
+    '-b',
+    is_flag=False,
+    default="html",
+    help="Builder to use, valid options are: html, pdf (WeasyPrint) (default: html)."
+)
+def doc_build(directory, extra, no_parallel_, open_, builder):
     """
     Creates an aggregated documentation out the repos
     int the doc.yaml file.
@@ -713,8 +790,9 @@ def doc_build(directory, extra, no_parallel_, open_):
     directory = path.abspath(directory)
 
     repos_dir = path.join(directory, 'repos')
-    doc_dir = path.join(directory, 'doc')
     doc_yaml = path.join(directory, 'doc.yaml')
+    doc_dir = path.join(directory, 'doc')
+    doc_patch_dir = path.join(directory, 'doc_patch')
     if not path.isdir(directory):
         pr.mkdir(directory)
     if not path.isdir(repos_dir):
@@ -733,11 +811,23 @@ def doc_build(directory, extra, no_parallel_, open_):
             click.echo("Invalid yaml file, no 'doc' entry.")
             return
 
+    if builder not in ['html', 'pdf']:
+        click.echo(f"Unknown builder '{builder}', valid options are: html, pdf.")
+
+    if builder == 'pdf':
+        if not importlib.util.find_spec("weasyprint"):
+            click.echo("Package 'weasyprint' required for PDF generation is not "
+                       "installed.")
+            return
+        sphinx_builder = 'singlehtml'
+    else:
+        sphinx_builder = 'html'
+
     # Fill gaps
     if 'config' not in doc:
         doc['config'] = {}
-    if 'dirs' not in doc:
-        doc['dirs'] = {}
+    if 'sourcedir' not in doc:
+        doc['sourcedir'] = {}
     for e in ['extensions', 'interref_repos']:
         if e not in doc:
             doc[e] = []
@@ -758,20 +848,20 @@ def doc_build(directory, extra, no_parallel_, open_):
             pr.popen(git_cmd, p)
     pr.wait(p)
 
-    prepare_doc(doc, repos_dir, doc_dir)
-    parse_warnings(doc_dir)
-
-    doc_patch_dir = path.join(directory, 'doc_patch')
-    patch_doc(doc, repos_dir, doc_dir, doc_patch_dir)
-
     do_extra_steps(repos_dir, doc)
 
-    return
-    gen_monolithic_doc(repos_dir)
+    prepare_doc(doc, repos_dir, doc_dir)
+    parse_warnings(doc_dir)
+    patch_doc(doc, repos_dir, doc_dir, doc_patch_dir, sphinx_builder)
 
-    type_ = "monolithic" if monolithic else "symbolic"
-    out_ = "docs/_build" if monolithic else "html"
-    click.echo(f"Done, {type_} documentation written to {directory}/{out_}")
+    if builder == "pdf":
+        singlehtml = path.join(doc_patch_dir, "_build", "index.html")
+        gen_pdf(singlehtml)
+        f__ = "output.pdf"
+    else:
+        f__ = f"_build{SEP}index.html"
+
+    click.echo(f"Done, {builder} documentation written to {doc_patch_dir}{SEP}{f__}")
 
     if open_:
-        subprocess.call(f"xdg-open {directory}/{out_}/index.html", shell=True)
+        subprocess.call(f"xdg-open {doc_patch_dir}{SEP}_build{SEP}{f__}", shell=True)
