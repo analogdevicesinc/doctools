@@ -1094,8 +1094,8 @@ Global options for directives
 
 Set ``hide_collapsible_content`` to ``True`` to hide the *collapsibles* by default.
 
-Set ``monolithic`` to ``True`` prefix paths with *repos/<repo>*.
-This is meant for the System Top Documentation repository only.
+Set ``monolithic`` to ``True`` prefix paths with *<repo>*.
+This is meant for the :ref:`custom-doc` custom documents only.
 
 Common sections
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
