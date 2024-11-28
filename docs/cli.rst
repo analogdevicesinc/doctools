@@ -78,12 +78,55 @@ Extensions at the doc itself are, however.
 Alternatively, touch the source doc of the open page to rebuild only it
 with the edited Python code.
 
+.. _custom-doc:
+
+Custom Doc
+--------------------------------------------------------------------------------
+
+Generates custom documents with filtered content from all documentations of the
+watched repositories (see :git-doctools:`adi_doctools/lut.py`).
+
+For PDF output, `WeasyPrint <https://weasyprint.org/>`__ is used (ensure to install it).
+
+To quick start, run the tool twice in an empty directly.
+
+.. shell::
+
+   $cd /tmp
+   $adoc custom-doc --directory my_doc --builder pdf
+    Configuration file doc.yaml not found, created template at:
+    /tmp/my_doc/doc.yaml
+    Update it with the desired sources and rerun the tool.
+   $adoc custom-doc --directory my_doc --builder pdf
+    [ build output ]
+
+The *doc.yaml* file is a concise human readable markup file to set the desired
+content and some other options.
+Running the tool in a directory without the *doc.yaml* will instantiate a template
+and return.
+If the necessary repositories are not found, the tool will clone for you.
+
+In general, you can first clone and checkout your current work and then run the tool,
+to build the doc with your own changes.
+
+Some documentations depend on auto generated sections and extra features, use
+the ``--extra`` option to enable those; it considers that the environment has all
+the tools needed, for example, ``vivado`` is accessible for the HDL documentation.
+See :git-doctools:`adi_doctools/cli/custom-doc.py` to understand how the extra steps are
+included, but in summary, they are just a sequence of bash commands wrapped on python.
+
+For all options, do:
+
+.. shell::
+
+   $adoc custom-doc --help
+
 Aggregate
 --------------------------------------------------------------------------------
 
-.. warning::
+.. tip::
 
-   This feature is under elaboration.
+   This feature is useful to batch build/test all tracked documentations.
 
 Generates all documentations of the watched repositories
 (see :git-doctools:`adi_doctools/lut.py`).
