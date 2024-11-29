@@ -50,11 +50,7 @@ All options can be listed with:
 How can I rebuild the whole documentation within Author Mode?
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-Run ``make clean`` in another tab and then touch any file, for example:
-
-.. shell::
-
-   $make clean ; touch conf.rst
+Run ``make clean`` in another tab, it will trigger a full rebuild.
 
 Do **not** do ``make clean html`` since it will generate a build without the
 proper Author Mode environment and live reload won't work properly.
