@@ -395,6 +395,10 @@ def author_mode(directory, port, dev, no_selenium, once, builder):
                 update_page = True
                 watch_file_src[file] = ctime
 
+        if not path.isdir(builddir):
+            # User did make clean
+            update_sphinx = True
+
         if first_run is True:
             first_run = False
             update_page = False
