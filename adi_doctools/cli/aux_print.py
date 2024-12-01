@@ -3,6 +3,7 @@ from packaging.version import Version
 from sphinx.__init__ import __version__ as sphinx_version
 from os.path import basename
 from lxml import html, etree
+import importlib.util
 
 def sanitize_singlehtml(file) -> str:
     """
@@ -63,6 +64,43 @@ def sanitize_singlehtml(file) -> str:
         for a__ in a_:
             if a__.attrib['href'].startswith(filename):
                 a__.attrib['href'] = a__.attrib['href'][len_fname:]
+
+    # Render LaTeX math with matplotlib.mathtext
+    if not importlib.util.find_spec("matplotlib"):
+        click.echo("Package 'matplotlib' required to render LaTeX math formulas is not "
+                   "installed, these formulas will show as the LaTeX source code.")
+    else:
+        import matplotlib.pyplot as plt
+        import io
+        m = root.xpath("//div[@class='math notranslate nohighlight']")
+
+
+        def latex_to_svg(expr: str):
+            fig, ax = plt.subplots(figsize=(1, 1))
+            buffer = io.BytesIO()
+            expr = rf"${expr[3:-2]}$"
+            text_box = ax.text(0.5, 0.5, expr,
+                               horizontalalignment='center', verticalalignment='center',
+                               fontsize=12)
+            renderer = fig.canvas.get_renderer()
+            bbox = text_box.get_window_extent(renderer)
+            dpi = fig.dpi
+            width, height = bbox.width / dpi, bbox.height / dpi
+            fig.set_size_inches(width, height)
+
+            ax.axis('off')
+            plt.savefig(buffer, format='svg', bbox_inches='tight')
+            plt.close(fig)
+            buffer.seek(0)
+            svg_content = buffer.getvalue().decode('utf-8')
+            return svg_content.split("?>", 1)[1].strip()
+
+
+        for m_ in m:
+            svg_ = latex_to_svg(m_.text)
+            svg = etree.fromstring(svg_)
+            m_.text=""
+            m_.append(svg)
 
     return html.tostring(root, encoding="utf-8", method="html")
 
