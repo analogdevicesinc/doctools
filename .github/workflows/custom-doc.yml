@@ -17,7 +17,7 @@ jobs:
     - name: Install pip packages
       run: |
         pip install $(tail --lines=+2 docs/requirements.txt) --upgrade
-        pip install weasyprint sphinxcontrib.wavedrom
+        pip install weasyprint sphinxcontrib.wavedrom matplotlib
         pip install dist/adi_doctools-*.tar.gz
 
     - name: Build custom doc
