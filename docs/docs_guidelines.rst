@@ -151,13 +151,16 @@ Exporting to PDF
 --------------------------------------------------------------------------------
 
 The whole documentation can be exported to a PDF document for a more compact
-format. This is done by setting the environment variable called
-``ADOC_MEDIA_PRINT`` to 1 (default it's 0) and building the documentation using
-this command:
+format using either rs2pdf or WeasyPrint.
+This is done by setting the environment variable called
+``ADOC_MEDIA_PRINT`` (the value does not matter) and building the documentation.
 
-.. code-block::
+For rst2pdf, use:
 
-   user@analog:~/doctools/docs$ sphinx-build -b pdf .  _build/pdfbuild
+.. shell::
+
+   ~/some_repository/docs
+   sphinx-build -b pdf . _build/pdfbuild
 
 In the output folder, you’ll find a PDF document named after the repository
 (e.g. Doctools.pdf). This document includes an auto-generated cover, followed by
@@ -166,9 +169,32 @@ required for the PDF build.
 
 .. warning::
 
-   The enviroment variable ``ADOC_MEDIA_PRINT`` should be set to 0 when building
+   The enviroment variable ``ADOC_MEDIA_PRINT`` should be unset when building
    the HTML pages of documentation. If not set, some components of the pages
    may not render properly.
+
+Alternatively, WeasyPrint can be used with :ref:`author-mode` with this command:
+
+.. shell::
+
+   ~/some_repository/docs
+   $adoc author-mode --directory . --builder pdf
+
+The advantage of WeasyPrint is that the design styles (CSS stylesheet) is
+respected.
+
+Inner working
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Internally, ``ADOC_MEDIA_PRINT`` variable is set to ``app.config.media_print``
+and should be used in scenarios where it is explicitly needed to compile the
+content in a different manner than for the **hosted** html.
+For example, to render content during build that would instead be rendered with
+third-party JavaScript libraries in the user browser.
+
+Still, another approach is to patch the generated html, like is done at
+:git-doctools:`adi_doctools/cli/aux_print.py` for :ref:`author-mode` and
+:ref:`custom-doc` with pdf builders.
 
 .. _local_refs:
 
