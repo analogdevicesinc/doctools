@@ -43,11 +43,11 @@ class directive_interfaces(directive_base):
         else:
             return string.replace("'MODELPARAM_VALUE.", '').replace("'", '')
 
-    def tables(self, subnode, content, component, lib_name, media_print = False):
+    def tables(self, subnode, content, component, lib_name):
         description = self.get_descriptions(content)
 
         if component is None:
-            subnode += self.generic_table(description, media_print = media_print)
+            subnode += self.generic_table(description)
             return subnode
 
         bs = component['bus_interface']
@@ -83,17 +83,14 @@ class directive_interfaces(directive_base):
 
             self.table_header(tgroup, ["Physical Port", "Logical Port", "Direction", "Dependency"])  # noqa: E501
 
-            # change type of tables entries when outputing to PDF
-            literal_ = 'literal' if not media_print else 'paragraph' 
-
             rows = []
             pm = bs[tag]['port_map']
             for key in pm:
                 self.column_entries(rows, [
-                    [key, literal_ ],
-                    [pm[key]['logical_port'], literal_],
+                    [key, 'literal' ],
+                    [pm[key]['logical_port'], 'literal'],
                     [pm[key]['direction'], 'paragraph'],
-                    [self.pretty_dep(pm[key]['dependency'], key), literal_],
+                    [self.pretty_dep(pm[key]['dependency'], key), 'literal'],
                 ])
 
             tbody = nodes.tbody()
@@ -115,17 +112,14 @@ class directive_interfaces(directive_base):
 
         self.table_header(tgroup, ["Physical Port", "Direction", "Dependency", "Description"])  # noqa: E501
 
-        # change type of tables entries when outputing to PDF
-        literal_ = 'literal' if not media_print else 'paragraph'  
-
         rows = []
         pr = component['ports']
         dm = component['bus_domain']
         for key in pr:
             row = nodes.row()
-            self.column_entry(row, key, literal_)
+            self.column_entry(row, key, 'literal')
             self.column_entry(row, pr[key]['direction'], 'paragraph')
-            self.column_entry(row, self.pretty_dep(pr[key]['dependency'], key), literal_)
+            self.column_entry(row, self.pretty_dep(pr[key]['dependency'], key), 'literal')
             
             if 'clk' in key or 'clock' in key:
                 domain = 'clock domain'
@@ -164,8 +158,6 @@ class directive_interfaces(directive_base):
     def run(self):
         env = self.state.document.settings.env
 
-        media_print = env.config.media_print
-
         node = node_div()
 
         if 'path' in self.options:
@@ -175,9 +167,9 @@ class directive_interfaces(directive_base):
 
         discover_hdl_component(env, lib_name)
         if lib_name in env.component:
-            self.tables(node, self.content, env.component[lib_name], lib_name, media_print)
+            self.tables(node, self.content, env.component[lib_name], lib_name)
         else:
-            self.tables(node, self.content, None, lib_name, media_print)
+            self.tables(node, self.content, None, lib_name)
 
         return [node]
 
@@ -199,7 +191,7 @@ class directive_regmap(directive_base):
 
         return (dword, byte)
 
-    def tables(self, subnode, obj, key, media_print = False):
+    def tables(self, subnode, obj, key):
         uid = "hdl-regmap-" + key
         section = nodes.section(ids=[uid])
 
@@ -214,17 +206,14 @@ class directive_regmap(directive_base):
         self.table_header(tgroup, ["DWORD", "BYTE", ["Reg Name", 3], "Description"])  # noqa: E501
         self.table_header(tgroup, [["", 1], "BITS", "Field Name", "Type", "Default Value", "Description"])  # noqa: E501
 
-        # change type of tables entries when outputing to PDF
-        literal_ = 'literal' if not media_print else 'paragraph' 
-
         rows = []
         for reg in obj['regmap']:
             dword, byte = self.get_hex_addr(reg['address'], reg['addr_incr'])
             self.column_entries(rows, [
-                [dword, literal_, ['bold']],
-                [byte, literal_, ['bold']],
-                [reg['name'], literal_, ['bold'], 3],
-                [reg['description'], 'reST' if not media_print else 'paragraph', ['description', 'bold']],
+                [dword, 'literal', ['bold']],
+                [byte, 'literal', ['bold']],
+                [reg['name'], 'literal', ['bold'], 3],
+                [reg['description'], 'reST', ['description', 'bold']],
             ], uid=uid)
 
             for field in reg['fields']:
@@ -252,12 +241,12 @@ class directive_regmap(directive_base):
                         bits = f"{bits[0]}:{bits[1]}"
 
                 self.column_entries(rows, [
-                    ["", literal_, [''], 1],
-                    [f"[{bits}]", literal_],
-                    [field['name'], literal_],
-                    [field['rw'], literal_],
-                    [default, literal_, ['default']],
-                    [field['description'], 'reST' if not media_print else 'paragraph', ['description']],
+                    ["", 'literal', [''], 1],
+                    [f"[{bits}]", 'literal'],
+                    [field['name'], 'literal'],
+                    [field['rw'], 'literal'],
+                    [default, 'literal', ['default']],
+                    [field['description'], 'reST', ['description']],
                 ], uid=uid)
 
         tbody = nodes.tbody()
@@ -298,8 +287,6 @@ class directive_regmap(directive_base):
         env = self.state.document.settings.env
         owner = env.docname
 
-        media_print = env.config.media_print
-
         node = node_div()
 
         if 'name' in self.options:
@@ -323,7 +310,7 @@ class directive_regmap(directive_base):
 
         if owner not in env.regmaps[f]['owners']:
             env.regmaps[f]['owners'].append(owner)
-        self.tables(subnode, env.regmaps[f]['subregmap'][lib_name], lib_name, media_print)
+        self.tables(subnode, env.regmaps[f]['subregmap'][lib_name], lib_name)
 
         node += subnode
         return [node]
@@ -340,11 +327,11 @@ class directive_parameters(directive_base):
         else:
             return string
 
-    def tables(self, content, parameter, lib_name, media_print = False):
+    def tables(self, content, parameter, lib_name):
         description = self.get_descriptions(content)
 
         if parameter is None:
-            return self.generic_table(description, media_print = media_print)
+            return self.generic_table(description)
 
         tgroup = nodes.tgroup(cols=5)
         for _ in range(5):
@@ -355,13 +342,10 @@ class directive_parameters(directive_base):
 
         self.table_header(tgroup, ["Name", "Description", "Default Value", "Choices/Range"])  # noqa: E501
         
-        # change type of tables entries when outputing to PDF
-        literal_ = 'literal' if not media_print else 'paragraph' 
-
         rows = []
         for key in parameter:
             row = nodes.row()
-            self.column_entry(row, "{:s}".format(key), literal_)
+            self.column_entry(row, "{:s}".format(key), 'literal')
             if key in description:
                 self.column_entry(row, description[key],
                                   'reST', classes=['description'])
@@ -371,7 +355,7 @@ class directive_parameters(directive_base):
                                   classes=['description'])
             for tag, ty in zip(['default'], ['literal']):
                 if parameter[key][tag] is not None:
-                    self.column_entry(row, parameter[key][tag], ty if not media_print else 'paragraph',
+                    self.column_entry(row, parameter[key][tag], ty,
                                       classes=[tag])
                 else:
                     logger.warning(f"Got empty {tag} at parameter {key}!")
@@ -398,8 +382,6 @@ class directive_parameters(directive_base):
     def run(self):
         env = self.state.document.settings.env
 
-        media_print = env.config.media_print
-
         node = node_div()        
 
         if 'path' not in self.options:
@@ -411,9 +393,9 @@ class directive_parameters(directive_base):
         if lib_name in env.component:
             subnode += self.tables(self.content,
                                    env.component[lib_name]['parameters'],
-                                   lib_name, media_print)
+                                   lib_name)
         else:
-            subnode += self.tables(self.content, None, lib_name, media_print)
+            subnode += self.tables(self.content, None, lib_name)
 
         node += subnode
 
