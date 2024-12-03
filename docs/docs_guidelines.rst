@@ -656,6 +656,47 @@ gets rendered
 Supported vendors are: ``xilinx`` (AMD Xilinx), ``intel`` (Intel Altera) and
 ``mw`` (MathWorks).
 
+Container directives
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To allow disposing content in a tabular manner but still respecting the multiple
+screen sizes and both HTML and PDF output, two container directives are available,
+``flex`` and ``grid``.
+
+.. _directive flex:
+
+Flex directive
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+The grid directive implements a subset of
+`CSS Flex <https://css-tricks.com/snippets/css/a-guide-to-flexbox/>`__.
+And is used to dipose elements without worrying about number of columns and sizes,
+while still obtaining a fairly good result.
+
+.. code:: rst
+
+   .. flex::
+
+.. _directive grid:
+
+Grid directive
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+The grid directive implements a subset of
+`CSS Grids <https://css-tricks.com/snippets/css/complete-guide-grid/>`__.
+And is used to dipose elements with exact number of columns and width control.
+
+.. code:: rst
+
+   .. grid:
+      :widths: 25 25% 150px
+
+The ``widths`` options allow units (``px``, ``%``, etc) and without an explicit
+unit it is inferred percentile.
+This option is required, since it is not possible to infer the number of
+columns in a sane manner.
+
+
 Clear content directive
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1068,6 +1109,7 @@ The directive syntax is:
 .. code:: rst
 
    .. video:: <url>
+      :align: [left,center,right]
 
       <caption>
 
