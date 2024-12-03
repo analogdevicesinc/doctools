@@ -40,6 +40,10 @@ To speed thing up, combine with wget:
 Also, consider recording macros in your favorite text editor to automate
 repetitive steps.
 
+There is also the
+`DokuWiki to Sphinx (bash.sh) <https://gist.github.com/gastmaier/9d9c8281dc3c8551991a857cdb2692cc>`__
+to further help importing.
+
 Indentation
 --------------------------------------------------------------------------------
 
