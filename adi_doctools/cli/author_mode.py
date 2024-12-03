@@ -405,7 +405,18 @@ def author_mode(directory, port, dev, no_selenium, once, builder):
             update_sphinx = False
 
         if update_sphinx:
-            app.build()
+            if dev:
+                # Uses subprocess because creating a new Sphinx class:
+                # * Do not re-eval the roles/directives, but
+                # * Trigger a full rebuild due to env changes
+                # so it is no use for developing purposes.
+                #
+                # Maybe importlib.reload() + monkey patch could be an alternative,
+                # but not triggering full env reload would be tricky, so this is good
+                # enough.
+                subprocess.call(f"make {builder}", shell=True, cwd=directory)
+            else:
+                app.build()
         if update_page:
             for f, s in zip(w_files, source_files):
                 copy(f, path.join(builddir, '_static', s))
