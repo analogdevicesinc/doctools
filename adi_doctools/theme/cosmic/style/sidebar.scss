@@ -273,6 +273,18 @@
     }
 }
 
+@media screen {
+    a:not(.current) {
+      letter-spacing: .005em;
+    }
+
+    a.current {
+      color: var(--accent-color);
+      font-weight: bold;
+      letter-spacing: -.008em;
+    }
+}
+
 .tocwrapper {
     box-sizing: content-box;
     padding-top: 1rem;
@@ -289,16 +301,6 @@
     a {
         display: inline-block;
         padding: .25em 0;
-    }
-
-    a:not(.current) {
-      letter-spacing: .005em;
-    }
-
-    a.current {
-      color: var(--accent-color);
-      font-weight: bold;
-      letter-spacing: -.008em;
     }
 
     .localtoc-header {

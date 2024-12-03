@@ -21,6 +21,21 @@ logger = logging.getLogger(__name__)
 dft_hide_collapsible_content = True
 
 
+def length_or_percentage_or_unitless_list(argument):
+    """
+    Converts a space- or comma-separated list of values into a Python list
+    of a length or percentage unit.
+    (Directive option conversion function.)
+
+    Raises ValueError for non-positive measure of a valid unit.
+    """
+    if ',' in argument:
+        entries = argument.split(',')
+    else:
+        entries = argument.split()
+    return [directives.length_or_percentage_or_unitless(entry) for entry in entries]
+
+
 def parse_rst(state, content, uid: Optional[str] = None):
     """
     Parses rst markup, content can be:
@@ -239,11 +254,23 @@ class directive_collapsible(directive_base):
 
 
 class directive_video(Directive):
+    """
+    Embeds videos (or youtube links).
+    For media print (pdf), hides the html iframe/[video/mp4] and
+    show the link using CSS rules.
+    """
+    def align(argument):
+        return directives.choice(argument, directive_video.align_h_values)
+
     has_content = True
     add_index = True
     final_argument_whitespace = True
 
-    option_spec = {'path': directives.unchanged}
+    align_h_values = ('left', 'center', 'right')
+
+    option_spec = {
+        'align': align
+    }
     required_arguments = 1
     optional_arguments = 0
 
@@ -278,6 +305,11 @@ class directive_video(Directive):
             video += source
             node += video
 
+        align = self.options.pop('align', None)
+        if align is not None:
+            # TODO figure out visit_table to use correct node['align']
+            node['classes'].append('align-' + align)
+
         node_ = nodes.inline(
             classes=['only-screen']
         )
@@ -304,10 +336,73 @@ class directive_video(Directive):
 
         return [node]
 
+class directive_flex(Directive):
+    """
+    Wraps the content in div with the flex class.
+    This class losely sets CSS flex rules to show content side-by-side
+    if enough space is provided.
+    """
+    has_content = True
+    add_index = True
+    final_argument_whitespace = True
+
+    required_arguments = 0
+    optional_arguments = 0
+
+    def run(self):
+        node = node_div(
+            classes=['flex']
+        )
+        self.state.nested_parse(self.content, self.content_offset, node)
+
+        return [node]
+
+class directive_grid(Directive):
+    """
+    Wraps the content in div with the grid class.
+    This class losely sets CSS grid rules to show content side-by-side
+    with defined number of columns.
+    Widths is converted to CSS grid-template-columns.
+    """
+    option_spec = {
+        'widths': length_or_percentage_or_unitless_list,
+    }
+    has_content = False
+    has_content = True
+    add_index = True
+    final_argument_whitespace = True
+
+    required_arguments = 0
+    optional_arguments = 0
+
+    def run(self):
+        widths = self.options.pop('widths', None)
+        if widths is None:
+            raise self.error(
+                'Error in "%s" directive: "widths" option is required.'
+                % (self.name))
+
+        node = node_div(
+            classes=['grid']
+        )
+        widths = ' '.join([(w + '%' if w[-1].isnumeric() else w) for w in widths])
+        node['style'] = f"grid-template-columns: {widths};"
+        self.state.nested_parse(self.content, self.content_offset, node)
+
+        return [node]
+
 
 class directive_clear_content(Directive):
+    """
+    Clear the content on the sides of the elements (adds whitespace).
+    The break flag adds a page break to the print layout,
+    similar to LaTeX's cleardoublepage.
+    """
+    def side(argument):
+        return directives.choice(argument, directive_clear_content.side_values)
+
     option_spec = {
-        'side': directives.unchanged_required,
+        'side': side,
         'break': directives.flag
     }
     has_content = False
@@ -316,15 +411,11 @@ class directive_clear_content(Directive):
     required_arguments = 0
     optional_arguments = 0
 
+    side_values = ('left', 'right', 'both')
+
     def run(self):
-        side = self.options.get('side')
-        values = ['left', 'right', 'both']
-        if side not in values:
-            if side is not None:
-                location = self.state_machine.get_source_and_line(self.lineno)
-                logger.warning(("clear-content option '%s' is invalid, valid ",
-                                f"values are [{', '.join(values)}]."),
-                               side, location=location)
+        side = self.options.pop('side', None)
+        if side is None:
             side = 'both'
 
         classes = [f"clear-{side}"]
@@ -565,6 +656,8 @@ class directive_shell(SphinxDirective):
 def common_setup(app):
     app.add_directive('collapsible', directive_collapsible)
     app.add_directive('video', directive_video)
+    app.add_directive('flex', directive_flex)
+    app.add_directive('grid', directive_grid)
     app.add_directive('clear-content', directive_clear_content)
     app.add_directive('shell', directive_shell)
 
