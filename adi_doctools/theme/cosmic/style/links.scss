@@ -1,4 +1,5 @@
-@import "mixin_links";
+@use "sass:list";
+@use "mixin_links";
 
 a {
     text-decoration: none;
@@ -58,11 +59,11 @@ a.icon {
 /* Variants */
 @media screen {
     a.icon {
-        @each $type, $value in $links {
+        @each $type, $value in mixin_links.$links {
             &.#{$type} {
                 &::before {
                     background-color: var(--color-link-title--#{$type});
-                    mask-image: var(--icon-#{nth($value, 2)});
+                    mask-image: var(--icon-#{list.nth($value, 2)});
                 }
             }
         }
@@ -71,10 +72,10 @@ a.icon {
 
 @media print {
     a.icon {
-        @each $type, $value in $links {
+        @each $type, $value in mixin_links.$links {
             &.#{$type} {
                 &::before {
-                    background-image: var(--icon-#{nth($value, 2)});
+                    background-image: var(--icon-#{list.nth($value, 2)});
                 }
             }
         }

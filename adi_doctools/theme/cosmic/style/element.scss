@@ -1,3 +1,5 @@
+@use "variable";
+
 input, textarea, select, button, summary {
     background: none;
     outline: none;
@@ -24,7 +26,7 @@ span {
 code.literal {
     border: 1px solid rgba(125, 125, 125, 0.15);
     background: rgba(125, 125, 125, 0.05);
-    border-radius: $border-radius;
+    border-radius: variable.$border-radius;
     padding: 0em .2em 0.1em .2em;
 }
 
@@ -47,7 +49,7 @@ a {
 .highlight {
     padding: .75em;
     margin-bottom: .5em;
-    border-radius: $border-radius;
+    border-radius: variable.$border-radius;
     overflow-x: auto;
 }
 
@@ -76,7 +78,7 @@ img {
     }
 }
 
-@media (min-width: $screen-1) {
+@media (min-width: variable.$screen-1) {
     .body img, .body figure {
         display: block;
         margin: 0 auto;
@@ -146,12 +148,12 @@ img {
 @media (prefers-color-scheme: dark) {
     body:not(.light) .body img {
         background: #fff;
-        border-radius: $border-radius;
+        border-radius: variable.$border-radius;
     }
 }
 body.dark .body img {
     background: #fff;
-    border-radius: $border-radius;
+    border-radius: variable.$border-radius;
 }
 
 .toctree-wrapper li {
@@ -206,8 +208,8 @@ iframe {
 
 .iframe-video {
     iframe {
-        box-shadow: $box-shadow-raised;
-        border-radius: $border-radius;
+        box-shadow: variable.$box-shadow-raised;
+        border-radius: variable.$border-radius;
         overflow: hidden;
         display: block;
         margin: 0 auto;
@@ -216,28 +218,28 @@ iframe {
     }
 }
 
-@media (max-width: $screen-2) {
+@media (max-width: variable.$screen-2) {
     .iframe-video {
         width: 100%;
         overflow: hidden;
     }
 }
 
-@media (min-width: $screen-1) and (max-width: $screen-2) {
+@media (min-width: variable.$screen-1) and (max-width: variable.$screen-2) {
     .iframe-video iframe {
         width: calc(100vw - 20rem);
         height: calc(56.25vw - 11.25rem);
     }
 }
 
-@media (max-width: $screen-1) {
+@media (max-width: variable.$screen-1) {
     .iframe-video iframe {
         width: calc(100vw - 2rem);
         height: calc(56.25vw - 1.125rem);
     }
 }
 
-@media (min-width: $screen-2) {
+@media (min-width: variable.$screen-2) {
     .iframe-video {
         &.align-left {
             float: left;
@@ -277,13 +279,13 @@ iframe {
     }
 }
 
-@media (min-width: $screen-0) {
+@media (min-width: variable.$screen-0) {
     .esd-warning {
         display: flex;
     }
 }
 
-@media (max-width: $screen-0) {
+@media (max-width: variable.$screen-0) {
     .esd-warning .icon {
         margin: 0 auto;
     }
@@ -349,7 +351,7 @@ hr {
     border-bottom: None;
 }
 
-@media (min-width: $screen-1) {
+@media (min-width: variable.$screen-1) {
     .body .flex {
         display: flex;
         flex-wrap: wrap;

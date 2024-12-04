@@ -1,3 +1,5 @@
+@use "variable";
+
 .search-area, .search-area-bg {
     top: 0;
 }
@@ -69,14 +71,14 @@
     }
 }
 
-@media (min-width: $screen-1) {
+@media (min-width: variable.$screen-1) {
     .search-area form {
         margin-left: calc(40vw - 15rem);
         width: calc(60vw + 15rem);
     }
 }
 
-@media (min-width: $screen-3) {
+@media (min-width: variable.$screen-3) {
     .search-area form {
         max-width: 62rem;
     }
