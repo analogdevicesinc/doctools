@@ -568,6 +568,7 @@ class directive_shell(SphinxDirective):
         """
         Covert "cd" commands into paths.
         For windows, do a fake to bash conversion, similar to cygpath
+        'line' is a list of the current line whitespace split
         """
         line = line.split()
         if len(line) < 2:
@@ -578,8 +579,11 @@ class directive_shell(SphinxDirective):
                 continue
 
             p_ = line[i]
-            if p_[0] in ['"', "'"] and p_[-1] in ['"', "'"]:
-                p_ = p_[1:-2]
+            if p_[0] in ['"', "'"]:
+                i_ = i
+                while line[i][-1] not in ['"', "'"]:
+                    i += 1
+                p_ = ' '.join(line[i_:i+1])[1:-1]
             if self.win:
                 p_ = p_.replace('\\', '/')
 
