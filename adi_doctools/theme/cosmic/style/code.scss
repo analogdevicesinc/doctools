@@ -1,3 +1,5 @@
+@use "variable";
+
 .sig-object {
     font-family: monospace;
     font-size: 1rem;
@@ -34,7 +36,7 @@ em.sig-param, em.property {
 // TODO Port to third-party themes
 .code-shell {
     background-color: var(--bg-color3);
-    border-radius: $border-radius;
+    border-radius: variable.$border-radius;
     padding: .75em;
     margin-bottom: .5em;
     user-select: text;

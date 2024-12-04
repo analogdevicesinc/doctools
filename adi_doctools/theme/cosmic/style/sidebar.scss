@@ -1,4 +1,4 @@
-@import "variable";
+@use "variable";
 
 .sphinxsidebar {
     width: 0;
@@ -10,19 +10,19 @@
     height: calc(100vh - 3.5rem);
 }
 
-@media (max-width: $screen-1) {
+@media (max-width: variable.$screen-1) {
     .sphinxsidebar .repotoc-tree {
         display: contents;
     }
 }
 
-@media (min-width: $screen-1) {
+@media (min-width: variable.$screen-1) {
     .sphinxsidebar .repotoc-tree {
         display: none;
     }
 }
 
-@media (max-width: $screen-1) {
+@media (max-width: variable.$screen-1) {
     .sphinxsidebar {
         transition: .125s ease opacity, .25s ease margin;
         pointer-events: none;
@@ -33,7 +33,7 @@
     .sphinxsidebarwrapper {
         backdrop-filter: blur(1em);
         background: var(--bg-color1-faded2);
-        box-shadow: $box-shadow-left-sidebar;
+        box-shadow: variable.$box-shadow-left-sidebar;
         width: 18rem;
     }
 
@@ -62,14 +62,14 @@
     margin-bottom: .5rem;
 }
 
-@media (min-width: $screen-0) and (max-width: $screen-1) {
+@media (min-width: variable.$screen-0) and (max-width: variable.$screen-1) {
     .sphinxsidebar {
         width: 18em;
         left: -19em;
     }
 
     #input-show-toc:checked ~ .sphinxsidebar {
-        box-shadow: $box-shadow-left-sidebar;
+        box-shadow: variable.$box-shadow-left-sidebar;
     }
 }
 
@@ -83,7 +83,7 @@
     z-index: 5;
 }
 
-@media (max-width: $screen-0) {
+@media (max-width: variable.$screen-0) {
     .sphinxsidebar {
         width: 100vw;
         left: -100vw;
@@ -103,7 +103,7 @@
     display: none;
 }
 
-@media (min-width: $screen-1) {
+@media (min-width: variable.$screen-1) {
     button#show-sidebar {
       display: none;
     }
@@ -113,19 +113,19 @@
 	    width: 15rem;
     }
 }
-@media (min-width: $screen-1) and (max-width: $screen-2) {
+@media (min-width: variable.$screen-1) and (max-width: variable.$screen-2) {
     .sphinxsidebarwrapper {
         padding: 1.5rem 1rem 0em 1rem;
     }
 }
 
-@media (min-width: $screen-2) {
+@media (min-width: variable.$screen-2) {
     .sphinxsidebarwrapper {
         padding: 1.5rem 1rem 0em calc(40vw - 31rem);
     }
 }
 
-@media (max-width: $screen-1) {
+@media (max-width: variable.$screen-1) {
     .toc-tree, .repotoc-tree {
         padding: 1em;
     }
@@ -169,7 +169,7 @@
         width: 100%;
         padding: 0 .5em 0 .75em;
         margin-left: -.75em;
-        border-radius: $border-radius-extra;
+        border-radius: variable.$border-radius-extra;
         font-size: .9em;
         border: 1px solid rgba(0, 0, 0, 0);
     }
@@ -211,7 +211,7 @@
     }
 
     label {
-        border-radius: $border-radius-extra;
+        border-radius: variable.$border-radius-extra;
     }
 }
 
@@ -353,7 +353,7 @@
     }
 }
 
-@media screen and (min-width: $screen-3) {
+@media screen and (min-width: variable.$screen-3) {
     .tocwrapper {
         width: calc(60vw - 60rem + 13rem);
     }
@@ -363,7 +363,7 @@
     }
 }
 
-@media (min-width: $screen-1) {
+@media (min-width: variable.$screen-1) {
     .sphinxsidebar {
         #show-repotoc, #show-toc {
             display: none;
@@ -405,7 +405,7 @@
     }
 }
 
-@media (max-width: $screen-1) {
+@media (max-width: variable.$screen-1) {
     #input-switch-toc:checked ~ .repotoc-tree {
         display: block;
     }
@@ -433,7 +433,7 @@
     display: none;
 }
 
-@media screen and (max-width: $screen-3) {
+@media screen and (max-width: variable.$screen-3) {
     .localtoc {
         transition: .125s ease opacity;
         pointer-events: none;
@@ -443,7 +443,7 @@
         .tocwrapper {
             direction: ltr;
             transition: .25s ease width;
-            box-shadow: $box-shadow-right-sidebar;
+            box-shadow: variable.$box-shadow-right-sidebar;
             overflow-x: hidden;
             width: 15rem;
         }
@@ -463,7 +463,7 @@
     }
 }
 
-@media (max-width: $screen-3) {
+@media (max-width: variable.$screen-3) {
     #input-show-localtoc:checked ~ #cancel-area-show-localtoc {
         position: fixed;
         background: rgba(0, 0, 0, .05);
@@ -474,7 +474,7 @@
     }
 }
 
-@media (max-width: $screen-1) {
+@media (max-width: variable.$screen-1) {
     #input-show-toc:checked ~ #cancel-area-show-toc {
         position: fixed;
         background: rgba(0, 0, 0, .05);

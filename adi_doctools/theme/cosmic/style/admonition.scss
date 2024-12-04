@@ -1,4 +1,6 @@
-@import "mixin_admonition";
+@use "sass:list";
+@use "mixin_admonition";
+@use "variable";
 
 /* Inspired by: https://github.com/pradyunsg/furo/blob/main/src/furo/assets/styles/content/_admonitions.sass */
 
@@ -8,7 +10,7 @@
 
     background: var(--color-admonition-background);
 
-    border-radius: $border-radius;
+    border-radius: variable.$border-radius;
 
     overflow: hidden;
     page-break-inside: avoid;
@@ -85,7 +87,7 @@ p.topic-title {
 /* Variants */
 @media screen {
     .admonition {
-        @each $type, $value in $admonitions {
+        @each $type, $value in mixin_admonition.$admonitions {
             &.#{$type} {
                 border-color: var(--color-admonition-title--#{$type});
                 > .admonition-title {
@@ -104,7 +106,7 @@ p.topic-title {
     .admonition {
         break-inside: avoid;
 
-        @each $type, $value in $admonitions {
+        @each $type, $value in mixin_admonition.$admonitions {
             &.#{$type} {
                 > .admonition-title {
                     border-color: var(--color-admonition-title-background--#{$type});
@@ -117,7 +119,7 @@ p.topic-title {
 .admonition {
     border: 1px solid var(--color-admonition-title);
 
-    @each $type, $value in $admonitions {
+    @each $type, $value in mixin_admonition.$admonitions {
         &.#{$type} {
             border-color: var(--color-admonition-title--#{$type});
             > .admonition-title {
@@ -129,11 +131,11 @@ p.topic-title {
 
 @media print {
     .admonition {
-        @each $type, $value in $admonitions {
+        @each $type, $value in mixin_admonition.$admonitions {
             &.#{$type} {
                 > .admonition-title {
                     &::before {
-                        background-image: var(--icon-#{nth($value, 2)});
+                        background-image: var(--icon-#{list.nth($value, 2)});
                     }
                 }
             }
@@ -143,12 +145,12 @@ p.topic-title {
 
 @media screen {
     .admonition {
-        @each $type, $value in $admonitions {
+        @each $type, $value in mixin_admonition.$admonitions {
             &.#{$type} {
                 > .admonition-title {
                     &::before {
                         background-color: var(--color-admonition-title--#{$type});
-                        mask-image: var(--icon-#{nth($value, 2)});
+                        mask-image: var(--icon-#{list.nth($value, 2)});
                     }
                 }
             }

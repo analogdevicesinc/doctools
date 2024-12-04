@@ -1,3 +1,4 @@
+@use "sass:list";
 $links: (
     "adi":    #0067b9 "adi",
     "ez":     #2eb251 "ez",
@@ -14,9 +15,9 @@ $links: (
 
 @mixin links {
     @each $name, $values in $links {
-        --color-link-title--#{$name}: #{nth($values, 1)};
+        --color-link-title--#{$name}: #{list.nth($values, 1)};
         --color-link-title-background--#{$name}: #{rgba(
-                nth($values, 1),
+                list.nth($values, 1),
                 0.2
             )};
     }

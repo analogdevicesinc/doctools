@@ -1,4 +1,4 @@
-@import "variable";
+@use "variable";
 
 .collapsible_input {
     display: none;
@@ -17,7 +17,7 @@
     }
 
     .collapsible {
-        border: $border-panel;
+        border: variable.$border-panel;
         margin-bottom: .5em;
 
         label {
@@ -35,7 +35,7 @@
     }
 
     .collapsible_content {
-        border-top: $border-panel;
+        border-top: variable.$border-panel;
     }
 }
 
@@ -63,7 +63,7 @@
 }
 
 .collapsible {
-    border-radius: $border-radius;
+    border-radius: variable.$border-radius;
 
     label {
         width: 100%;
@@ -96,7 +96,7 @@
     }
 
     label:hover ~ div, label:hover {
-        box-shadow: $box-shadow-raised;
+        box-shadow: variable.$box-shadow-raised;
     }
 
     label div > p:first-child {

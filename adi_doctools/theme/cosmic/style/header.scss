@@ -1,3 +1,5 @@
+@use "variable";
+
 .banner {
     line-height: 2em;
     background-color: var(--bg-banner);
@@ -83,16 +85,16 @@ header {
 
 @media screen {
     header {
-        border-bottom: $border-panel;
+        border-bottom: variable.$border-panel;
     }
 }
-@media (min-width: $screen-1) and (max-width: $screen-2) {
+@media (min-width: variable.$screen-1) and (max-width: variable.$screen-2) {
     .repotoc-tree.overlay root {
         padding-left: 18em;
     }
 }
 
-@media (min-width: $screen-2) {
+@media (min-width: variable.$screen-2) {
     .repotoc-tree.overlay root {
         padding-left: calc(40vw - 14em);
     }
@@ -161,16 +163,16 @@ header {
     }
 }
 
-@media (min-width: $screen-3) {
+@media (min-width: variable.$screen-3) {
     header #show-localtoc {
         display: none;
     }
 }
 
-@media (max-width: $screen-1) {
+@media (max-width: variable.$screen-1) {
     @media screen {
         header {
-            border-bottom: $border-panel;
+            border-bottom: variable.$border-panel;
         }
     }
 
@@ -181,7 +183,7 @@ header {
 }
 
 @media screen {
-    @media (max-width: $screen-1) {
+    @media (max-width: variable.$screen-1) {
         header {
             background: var(--bg-color1-faded1);
         }
@@ -207,7 +209,7 @@ header {
 
     .vertical-divider {
         padding: 0 0.25rem 0 .75rem;
-        border-right: $border-panel;
+        border-right: variable.$border-panel;
         height: 1.75rem;
     }
 
@@ -235,7 +237,7 @@ body.dark #logo-org {
     }
 }
 
-@media (max-width: $screen-1) {
+@media (max-width: variable.$screen-1) {
     header {
         backdrop-filter: blur(1em);
     }
@@ -244,7 +246,7 @@ body.dark #logo-org {
     }
 }
 
-@media (min-width: $screen-1) {
+@media (min-width: variable.$screen-1) {
     header {
         background: var(--bg-color1);
     }
@@ -258,25 +260,25 @@ body.dark #logo-org {
     }
 }
 
-@media (min-width: $screen-1) and (max-width: $screen-2) {
+@media (min-width: variable.$screen-1) and (max-width: variable.$screen-2) {
     header #right {
         margin-left: 19rem;
     }
 }
 
-@media (min-width: $screen-2) {
+@media (min-width: variable.$screen-2) {
     header #right {
         margin-left: calc(40vw - 13rem);
     }
 }
 
-@media (min-width: $screen-3) {
+@media (min-width: variable.$screen-3) {
     header #right {
         max-width: 60rem;
     }
 }
 
-@media (max-width: $screen-1) {
+@media (max-width: variable.$screen-1) {
     .repotoc-tree.overlay {
         display: none;
     }
@@ -294,7 +296,7 @@ header {
     }
 
     #show-repotoc:hover {
-        border: $border-panel;
+        border: variable.$border-panel;
     }
 
     #show-repotoc:after {
@@ -321,7 +323,7 @@ header {
     }
 }
 
-@media (max-width: $screen-1) {
+@media (max-width: variable.$screen-1) {
     header #show-repotoc {
         display: none;
     }
@@ -337,7 +339,7 @@ header {
     margin-right: -2px;
 }
 
-@media (min-width: $screen-1) {
+@media (min-width: variable.$screen-1) {
     #input-show-repotoc:checked ~ header #logo div {
         margin-top: 6em;
         opacity: 0;

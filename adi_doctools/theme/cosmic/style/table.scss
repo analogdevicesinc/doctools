@@ -1,3 +1,5 @@
+@use "variable";
+
 @media screen {
     table.docutils {
         box-shadow: var(--subtle-box-shadow);
@@ -9,16 +11,16 @@ table.docutils {
     margin-bottom: .5em;
     border-spacing: 0;
     overflow: hidden;
-    border-radius: $border-radius;
-    border: $border-td;
+    border-radius: variable.$border-radius;
+    border: variable.$border-td;
     border-bottom: none;
 
     th {
-        border-bottom: $border-th;
+        border-bottom: variable.$border-th;
     }
 
     td {
-        border-bottom: $border-td;
+        border-bottom: variable.$border-td;
     }
 
     p {
@@ -41,7 +43,7 @@ table.docutils {
     &.grid {
         border-left: none;
         td, th {
-            border-left: $border-td;
+            border-left: variable.$border-td;
         }
     }
 }
