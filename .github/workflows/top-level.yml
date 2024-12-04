@@ -23,7 +23,7 @@ jobs:
   deploy:
     if: github.ref == 'refs/heads/main'
     uses: ./.github/workflows/deploy.yml
-    needs: [build-doc, tests]
+    needs: [build-doc, tests, custom-doc]
     secrets: inherit
     permissions:
       contents: write
