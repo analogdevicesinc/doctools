@@ -151,8 +151,9 @@ class GitRole(SphinxRole):
         text, path = get_outer_inner(self.text)
 
         if repo not in git_repos:
-            logger.info(self.message.format(repo=repo),
-                        location=(self.env.docname, self.lineno))
+            # TODO add to verbose/strict mode only
+            #logger.info(self.message.format(repo=repo),
+            #            location=(self.env.docname, self.lineno))
             alt_name = repo
             repo = self.orig_name[4:]
         else:
