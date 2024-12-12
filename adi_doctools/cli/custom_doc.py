@@ -4,6 +4,7 @@ from collections import defaultdict
 from os import path, listdir, pardir, chdir, getcwd, mkdir
 from os import environ
 from io import StringIO
+from glob import glob
 import importlib.util
 import subprocess
 import click
@@ -13,6 +14,7 @@ import re
 
 from sphinx.util.osutil import SEP
 from sphinx.application import Sphinx
+from adi_doctools import __version__
 
 from ..lut import get_lut
 
@@ -101,6 +103,7 @@ class SphinxWarnings:
     ref_ref: List = [] # docname lineno label
     ref_doc: List = [] # docname lineno label
     toc_not_readable: List = [] # docname lineno srcfile
+    toc_glob: List = [] # docname lineno srcfile
     image_not_readable: List = [] # docname srcfile
     include: List = [] # docname lineno srcfile
 
@@ -138,30 +141,57 @@ monolithic = True
 html_theme = 'cosmic'
 html_theme_options = {}
 html_favicon = path.join("sources", "icon.svg")
+html_title = '$project$: $description$'
 
 # -- External docs configuration ----------------------------------------------
 
 interref_repos = [$interref_repos$]
 """
 
-template_yaml = """\
+template_yaml = f"""\
 # Custom doc builder template
 # ---------------------------
+# Generated with adi_doctools {__version__}
 
-# Add dirs and files to include per repo
-doc:
-  hdl:
-    - user_guide
-    - projects/ad3552r_evb
-    - projects/ad4110
-    - library/spi_engine
+project: "EVAL-XXXX-XXXX"
+description: "Evaluating the ADXXXX/ADXXXX ... SAR ADCs"
 
-  no-OS:
-    - contributing.rst
-    - projects/eval-adis1657x.rst
+# Dirs and files to include
+# First level is repository name
+include:
+  - documentation/eval/user-guide/adc/ad4052-ardz
+  - documentation/software/libiio/cli.rst
+  - documentation/linux/drivers/iio-adc/ad4052
+  - hdl/projects/ad4052_ardz
+  - no-OS/drivers/ad405x.rst
+  - no-OS/projects/ad405x.rst
 
-  documentation:
-    - linux/kuiper
+# Custom pages
+# Are copied over preserving the path
+custom:
+  - custom-pages/intro.rst
+
+# Create toctree for entry point page
+# Pages without a explicit entry point will be searched and globed
+# until the root of the source doc is reached, which may include
+# undesired additional pages/sections.
+entry-point:
+  - caption:
+    files:
+      - custom-pages/intro.rst
+  - caption: Evaluation board
+    files:
+      - documentation/eval/user-guide/adc/ad4052-ardz/index.rst
+  - caption: Linux IIO driver
+    files:
+      - documentation/linux/drivers/iio-adc/ad4052/index.rst
+  - caption: no-OS driver&project
+    files:
+      - no-OS/projects/ad405x.rst
+      - no-OS/drivers/ad405x.rst
+  - caption: HDL design
+    files:
+      - hdl/projects/ad4052_ardz/index.rst
 
 # Per repo configuration
 # extra: do steps that require extra software (e.g. vendor sdk)
@@ -174,9 +204,7 @@ config:
 
 # Include extra extensions
 extensions:
-    - sphinx.ext.duration
-
-project: "Custom user guide"
+   - sphinx.ext.duration
 """
 
 def get_includes(src_doc_dir, dst_doc_dir, doc):
@@ -213,7 +241,7 @@ def get_includes(src_doc_dir, dst_doc_dir, doc):
 
 def namespace_ref(doc_dir, r):
     """
-    Add repository idenfier to every label/reference, e.g:
+    Add repository identifier to every label/reference, e.g:
     .. _spi_engine:         -> .. _hdl+spi_engine:
     :ref:`spi_engine`       -> :ref:`hdl+spi_engine`
     :ref:`Alt <spi_engine>` -> :ref:`Alt <hdl+spi_engine>`
@@ -223,7 +251,7 @@ def namespace_ref(doc_dir, r):
     :external+hdl:`Alt <spi_engine>` -> :ref:`Alt <hdl+spi_engine>`
 
     After the first sphinx run, the unresolved references are converted (back)
-    into external refereces.
+    into external references.
     """
     # Prefixes references with repo name to create namespace
     # 1. Patch :ref:`str`         into :ref:`{r}+str`
@@ -232,9 +260,9 @@ def namespace_ref(doc_dir, r):
     cwd = path.join(doc_dir, r)
     patch_cmd = """\
     find . -type f -exec sed -i -E \
-        "s/(\s|^|\()(:ref:\\`)([^<>:]+)(\\`)/\\1\\2{r}+\\3\\4/g" {{}} \\;
+        "s/(\s|^|\(|\/)(:ref:\\`)([^<>:]+)(\\`)/\\1\\2{r}+\\3\\4/g" {{}} \\;
     find . -type f -exec sed -i -E \
-        "s/(\s|^|\()(:ref:\\`)([^<]+)( <)([^:>]+)(>)/\\1\\2\\3\\4{r}+\\5\\6/g" {{}} \\;
+        "s/(\s|^|\(|\/)(:ref:\\`)([^<]+)( <)([^:>]+)(>)/\\1\\2\\3\\4{r}+\\5\\6/g" {{}} \\;
     find . -type f -exec sed -i -E \
         "s/^(.. _)([^:]+)(:)\\$/\\1{r}+\\2\\3/g" {{}} \\;\
     """.format(r=r)
@@ -243,12 +271,12 @@ def namespace_ref(doc_dir, r):
     # Convert external references (ref&doc) into local
     # 1. Patch :external+r:ref:`str`         into :ref:`r+str`
     #          :external+r:ref:`Title <str>` into :ref:`Title <r+str>`
-    # 2. Patch :external+r:doc:`str`         into :doc:`r/str`
-    #          :external+r:doc:`Title <str>` into :doc:`Title <r/str>`
+    # 2. Patch :external+r:doc:`str`         into :doc:`/r/str`
+    #          :external+r:doc:`Title <str>` into :doc:`Title </r/str>`
     patch_cmd = """\
     find . -type f -exec sed -i -E \
-        -e "s/(\s|^|\()(:external\+)([^:]+):ref:\\`([^<]+)( <)([^:>]+)(>)/\\1:ref:\\`\\4\\5\\3+\\6\\7/g" \
-        -e "s/(\s|^|\()(:external\+)([^:]+):doc:\\`([^<]+)( <)([^:>]+)(>)/\\1:doc:\\`\\4\\5\\3\/\\6\\7/g" {} \\;\
+        -e "s/(\s|^|\(|\/)(:external\+)([^:]+):ref:\\`([^<]+)( <)([^:>]+)(>)/\\1:ref:\\`\\4\\5\\3+\\6\\7/g" \
+        -e "s/(\s|^|\(|\/)(:external\+)([^:]+):doc:\\`([^<]+)( <)([^:>]+)(>)/\\1:doc:\\`\\4\\5\/\\3\/\\6\\7/g" {} \\;\
     """
     pr.run(patch_cmd, cwd)
 
@@ -266,10 +294,12 @@ def _patch_index(toc_file, repo):
             toctrees.append([[], [], False])
 
             for i in range(0, len(data)):
-                if data[i] != '\n' and not data[i].startswith('   '):
+                if data[i] != '\n' and not data[i].rstrip().startswith('   '):
                     break
                 elif data[i].startswith('   :'):
-                    toctrees[-1][0].append(data[i])
+                    # Ignore maxdepth to generate proper table of contents
+                    if not data[i].startswith('   :maxdepth:'):
+                        toctrees[-1][0].append(data[i])
                     if data[i].startswith('   :caption:'):
                         toctrees[-1][2] = True
                 elif data[i][0:3] == '   ' and data[i][0:4] != '   :':
@@ -281,6 +311,14 @@ def _patch_index(toc_file, repo):
                     toctrees[-1][1].append(str_)
                     data[i] = str_
 
+        # Remove empty toctrees
+        to_remove = []
+        for t in toctrees:
+            if len(t[1]) == 0:
+                to_remove.append(t)
+        for t in to_remove:
+            toctrees.remove(t)
+
     # Add orphan flag to indexes, since toctree is expanded at /index.rst
     with open(toc_file, 'w') as f:
         f.write(':orphan:\n\n')
@@ -291,33 +329,54 @@ def _patch_index(toc_file, repo):
 
 
 def patch_index(doc, tocs, index_file):
-    toctrees = {}
+    toctrees = []
     orphan_toc = {}
+
+    for t in tocs:
+        to_remove = []
+        for e in tocs[t]:
+            for t_ in doc['entry-point']:
+                if e in t_['files']:
+                    to_remove.append(e)
+        for r in to_remove:
+            tocs[t].remove(r)
+
+    toctrees.append([])
+    for t in doc['entry-point']:
+        if t['caption'] is None:
+            toc_ = [[], [], False]
+        else:
+            toc_ = [[f"   :caption: {t['caption']}\n"], [], True]
+        toc_[1] = [f"   {t_[:-4]}\n" for t_ in t['files']]
+        toctrees[-1].append(toc_)
+
     for k in tocs:
-        toctrees[k] = []
+        toctrees.append([])
         for k_ in tocs[k]:
             if f"{k}{SEP}index.rst" == k_:
-                toctrees[k] += _patch_index(path.join(path.dirname(index_file), k, "index.rst"), k)
+                toctrees[-1] += _patch_index(path.join(path.dirname(index_file), k, "index.rst"), k)
+                if not toctrees[-1][0][2]:
+                    toctrees[-1][0][0].append(f"   :caption: {repos[k]['name']}\n")
+                    toctrees[-1][0][2] = True
             else:
                 # Fallback, just add somewhere
                 if k not in orphan_toc:
                     orphan_toc[k] = []
                 orphan_toc[k].append(f"   {k_[:-4]}\n")
         if k in orphan_toc:
-            toctrees[k] += [[[], orphan_toc[k], False]]
+            toctrees[-1] += [[[], orphan_toc[k], False]]
 
     data = []
-    for k in toctrees:
+    for t in toctrees:
         first = True
 
-        for options, docs, has_caption in toctrees[k]:
+        for options, docs, has_caption in t:
             if len(docs) == 0:
                 continue
 
             data.append(".. toctree::\n")
             if not has_caption:
                 if first:
-                    data.append(f"   :caption: {repos[k]['name']}\n")
                     first = False
             data.extend(options)
             data.append('\n')
@@ -342,8 +401,18 @@ def prepare_doc(doc, repos_dir, doc_dir):
     with open(index_file, "w") as f:
         f.write(index)
 
+    # Extract filenames from explicit toctrees
+    entry_points = []
+    for t in doc['entry-point']:
+        entry_points.extend(t['files'])
+    entry_points = [e[:-4] for e in entry_points]
+
     missing_ext = []
-    for r in doc['doc']:
+    for r in doc['include']:
+        if r not in repos:
+            click.echo(f"Unknown repo '{r}', skipped")
+            continue
+
         src_doc_dir = path.join(repos_dir, r, repos[r]['doc_folder'])
         dst_doc_dir = path.join(doc_dir, r)
         not_valid, _, src_doc_dic = get_sphinx_dirs(src_doc_dir)
@@ -369,18 +438,18 @@ def prepare_doc(doc, repos_dir, doc_dir):
 
         # src_doc_dir : /path/to/hdl/docs
         # dst_doc_dir : doc/hdl
-        for d in doc['doc'][r]:
+        for d in doc['include'][r]:
             d__ = path.abspath(path.join(src_doc_dir, d))
             if path.isfile(d__) or path.isdir(d__):
                 pr.run(f"cp -r --parents {d} {dst_doc_dir}", src_doc_dir)
             else:
                 click.echo(f"{r}: source file/dir '{d}' does not exist, skipped.")
 
-        # Obtain toctree entries
+        # Infeer toctree entries
         cwd_ = getcwd()
         chdir(src_doc_dir)
         toc_resolve = []
-        for d in doc['doc'][r]:
+        for d in doc['include'][r]:
             if path.isdir(d):
                 index_ = path.join(d, 'index.rst')
                 if path.isfile(index_):
@@ -395,7 +464,9 @@ def prepare_doc(doc, repos_dir, doc_dir):
             d = d[:-4]
             toc_resolve.append(d)
 
-        def is_orphan(d):
+        def is_orphan_or_explicit_entry(d):
+            if path.join(r, d) in entry_points:
+                return True
             with open(d+".rst", "r") as f:
                 if f.readline()[:-1].strip() == ":orphan:":
                     # Handle sphinx trick for sidebar "volumes"
@@ -408,14 +479,14 @@ def prepare_doc(doc, repos_dir, doc_dir):
         also_include = []
         for d in toc_resolve:
             d_ = d.split(SEP)
-            rst_f = []
-            found = is_orphan(d)
+            found = is_orphan_or_explicit_entry(d)
 
             while not found:
                 d_right = SEP.join(d_[-i:])
                 d_left = SEP.join(d_[:-i])
                 if d_left == '':
                     d_left = '.'
+                rst_f = []
                 for f in listdir(d_left):
                     if path.isfile(path.join(d_left, f)) and f.endswith('.rst'):
                         rst_f.append(path.join(d_left, f))
@@ -423,6 +494,10 @@ def prepare_doc(doc, repos_dir, doc_dir):
                 for f in rst_f:
                     if found:
                         break
+
+                    if SEP.join(d_) == f[:-4]:
+                        # skip self
+                        continue
 
                     data = open(f, "r").readlines()
                     while '.. toctree::\n' in data:
@@ -435,6 +510,25 @@ def prepare_doc(doc, repos_dir, doc_dir):
                                 also_include.append(f)
                                 found = True
                                 break
+                            elif data[j].startswith('   ') and '*' in data[j]:
+                                # Try glob rules like */index
+                                # the/path/to/page
+                                # at the/path/to/index -> *
+                                # at the/path/index -> */page or */*
+                                # at the/index -> path/*/page or */*/page or */to/page or */*/*
+                                # at index -> the/path/*/page or the/*/*/page or ...
+                                s1 = data[j].strip().split('/')
+                                s2 = d_right.split('/')
+                                if len(s1) == len(s2):
+                                    found = True
+                                    for s1_, s2_ in zip(s1, s2):
+                                        if s1_ != s2_ and s1_ != '*':
+                                            found = False
+                                            break
+                                    if found:
+                                        also_include.append(f)
+                                        break
+
                             elif data[j] != '\n' and not data[j].startswith('   '):
                                 break
 
@@ -454,7 +548,7 @@ def prepare_doc(doc, repos_dir, doc_dir):
                         break
 
                     i = 1
-                    found = is_orphan(SEP.join(d_))
+                    found = is_orphan_or_explicit_entry(SEP.join(d_))
 
         chdir(cwd_)
         for f_ in also_include:
@@ -469,12 +563,20 @@ def prepare_doc(doc, repos_dir, doc_dir):
         click.echo(f"Missing inferred extensions: {dict(ext)}")
         sys.exit()
 
+    # Copy over custom pages
+    for c in doc['custom']:
+        if path.isfile(c) or path.isdir(c):
+            pr.run(f"cp -r --parents {c} {doc_dir}", repos_dir)
+        else:
+            click.echo(f"custom source file/dir '{c}' does not exist, skipped.")
+
     conf_file = path.join(doc_dir, 'conf.py')
     config_f = template_config
     for e in ['extensions', 'interref_repos']:
         e_ = ''.join([f"\n    '{e}'," for e in doc[e]]) + '\n'
         config_f = config_f.replace(f"${e}$", e_)
     config_f = config_f.replace(f"$project$", doc['project'])
+    config_f = config_f.replace(f"$description$", doc['description'])
     with open(conf_file, "w") as f:
         f.write(config_f)
 
@@ -492,6 +594,7 @@ def prepare_doc(doc, repos_dir, doc_dir):
     app.build()
     chdir(cwd_)
 
+
 def parse_warnings(doc_dir):
     warnfile = path.join(doc_dir, '..', 'warnings.txt')
 
@@ -502,6 +605,7 @@ def parse_warnings(doc_dir):
     re_image    = r"^(.*?):: .* (.*) \[image\.not_readable\]"
     re_include0 = r"^(.*?):(\d+): CRITICAL: Problems with \"include\" directive path:"
     re_include1 = r"^InputError: \[Errno 2\] .* '(.*)'\. \[docutils\]"
+    re_toc_glob = r"^(.*?):(\d+): WARNING: toctree glob pattern '(.*)' didn't match any documents"
     warning = open(warnfile, "r")
     for e in warning:
         e = e.replace("[91m", "").replace("[39;49;00m", "")
@@ -524,6 +628,11 @@ def parse_warnings(doc_dir):
         m = re.match(re_toctree, e)
         if m:
             sphinx_warnings.toc_not_readable.append([m.group(1), m.group(2), m.group(3)])
+            continue
+
+        m = re.match(re_toc_glob, e)
+        if m:
+            sphinx_warnings.toc_glob.append([m.group(1), m.group(2), m.group(3)])
             continue
 
         m = re.match(re_image, e)
@@ -581,9 +690,9 @@ def patch_doc(doc, repos_dir, doc_dir, doc_patch_dir, sphinx_builder):
         r = path.relpath(src, doc_dir).split(SEP)[0]
         p = path.join(doc_patch_dir, path.relpath(src, doc_dir))
 
-        pattern1 = r'(^|\s|\():ref:`([^+]+)\+([^`]+)`'
+        pattern1 = r'(^|\s|\(|\/):ref:`([^+]+)\+([^`]+)`'
         replacement1 = r'\1:external+\2:ref:`\3`'
-        pattern2 = r'(^|\s|\():ref:`([^`]+)<([^+]+)\+([^>]+)>`'
+        pattern2 = r'(^|\s|\(|\/):ref:`([^`]+)<([^+]+)\+([^>]+)>`'
         replacement2 = r'\1:external+\3:ref:`\2<\4>`'
         with open(p, "r") as f:
             data = f.readlines()
@@ -599,10 +708,14 @@ def patch_doc(doc, repos_dir, doc_dir, doc_patch_dir, sphinx_builder):
             f.write(''.join(data))
 
     # Swap with explicit external documents
-    pattern3 = r'(^|\s|\():doc:`([^/]+)\/([^`]+)`'
+    pattern3 = r'(^|\s|\(|\/):doc:`\/([^/]+)\/([^`]+)`'
     replacement3 = r'\1:external+\2:doc:`\3`'
-    pattern4 = r'(^|\s|\():doc:`([^<]+)<([^/]+)\/([^>]+)>`'
+    pattern4 = r'(^|\s|\(|\/):doc:`([^<]+)<\/([^/]+)\/([^>]+)>`'
     replacement4 = r'\1:external+\3:doc:`\2<\4>`'
+    pattern5 = r'(^|\s|\(|\/):doc:`([^`]+)`'
+    replacement5 = r'\1:external+$repo$:doc:`$label$`'
+    pattern6 = r'(^|\s|\(|\/):doc:`([^<]+)<([^>]+)>`'
+    replacement6 = r'\1:external+$repo$:doc:`$label$<\3>`'
     for src, i, label in sphinx_warnings.ref_doc:
         i = int(i)-1
         r = path.relpath(src, doc_dir).split(SEP)[0]
@@ -616,8 +729,20 @@ def patch_doc(doc, repos_dir, doc_dir, doc_patch_dir, sphinx_builder):
             click.echo(f"{src}: Failed to find '{label}'. "
                        "Nested parse limitation?")
             continue
-        data[i] = re.sub(pattern4, replacement4, data[i])
-        data[i] = re.sub(pattern3, replacement3, data[i])
+        if label[0] == '/':
+            # Absolute path, likely from prior step
+            data[i] = re.sub(pattern4, replacement4, data[i])
+            data[i] = re.sub(pattern3, replacement3, data[i])
+        else:
+            # Relative path, from own doc
+            # Infeer repo from path and patch
+            abs_doc = path.relpath(path.abspath(path.join(src, '..', label)), doc_dir).split(SEP)
+            r = abs_doc[0]
+            l = '/'.join(abs_doc[1:])
+            data[i] = re.sub(pattern6, replacement6, data[i])
+            data[i] = re.sub(pattern5, replacement5, data[i])
+            data[i] = data[i].replace('$repo$', r).replace('$label$', l)
+
         with open(p, "w") as f:
             f.write(''.join(data))
 
@@ -645,9 +770,10 @@ def patch_doc(doc, repos_dir, doc_dir, doc_patch_dir, sphinx_builder):
     # Remove from toctree
     # lineno points to the toctree directive, not the exact linenumber
     toc_ = {}
-    for src, lineno, doc_ in sphinx_warnings.toc_not_readable:
+    for src, lineno, doc_ in (sphinx_warnings.toc_not_readable + sphinx_warnings.toc_glob):
         src = path.relpath(src, doc_dir)
-        doc_ = path.relpath(doc_, path.dirname(src))
+        if '*' not in doc_:
+            doc_ = path.relpath(doc_, path.dirname(src))
         if src not in toc_:
             toc_[src] = {}
         if lineno not in toc_[src]:
@@ -656,15 +782,20 @@ def patch_doc(doc, repos_dir, doc_dir, doc_patch_dir, sphinx_builder):
 
     for src in toc_:
         data_filter = []
-        with open(path.join(doc_dir, src), "r") as f:
+        with open(path.join(doc_patch_dir, src), "r") as f:
             data = f.readlines()
         for lineno in toc_[src]:
             d = data[int(lineno):]
             for i in range(0, len(d)):
                 if d[i] != '\n' and not d[i].startswith('   '):
                     break
+                d_ = d[i].strip()
+                if '<' in d_:
+                    d_ = d_[d_.index('<')+1:-1]
+                if d_.startswith('./'):
+                    d_ = d_[2:]
                 for doc_ in toc_[src][lineno]:
-                    if d[i].strip('\n') == f"   {doc_}" or f"<{doc_}>" in d[i]:
+                    if d_ == doc_:
                         data_filter.append(d[i])
 
         for d in data_filter:
@@ -714,6 +845,15 @@ def gen_pdf(index_file):
 
     click.echo("writing pdf...")
     document.write_pdf(path.abspath(path.join(path.dirname(index_file), '..', 'output.pdf')))
+
+def organize_include(doc):
+    include = {}
+    for i in doc['include']:
+        i_ = i.split(SEP)
+        if i_[0] not in include:
+            include[i_[0]] = []
+        include[i_[0]].append(SEP.join(i_[1:]))
+    doc['include'] = include
 
 @click.command()
 @click.option(
@@ -788,8 +928,8 @@ def custom_doc(directory, extra, no_parallel_, open_, builder, https):
 
     with open(doc_yaml) as f:
         doc = yaml.safe_load(f)
-        if 'doc' not in doc:
-            click.echo("Invalid yaml file, no 'doc' entry.")
+        if 'include' not in doc:
+            click.echo("Invalid yaml file, no 'include' entry.")
             return
 
     if builder not in ['html', 'pdf']:
@@ -805,17 +945,24 @@ def custom_doc(directory, extra, no_parallel_, open_, builder, https):
         sphinx_builder = 'html'
 
     # Fill gaps
+    organize_include(doc)
     if 'config' not in doc:
         doc['config'] = {}
     if 'sourcedir' not in doc:
         doc['sourcedir'] = {}
+    if 'entry-point' not in doc:
+        doc['entry-point'] = {}
+    if 'custom' not in doc:
+        doc['custom'] = []
     for e in ['extensions', 'interref_repos']:
         if e not in doc:
             doc[e] = []
         doc[e] = set(doc[e])
     if 'project' not in doc:
         doc['project'] = 'Custom doc'
-    for repo in doc['doc']:
+    if 'description' not in doc:
+        doc['description'] = ''
+    for repo in doc['include']:
         if repo not in doc['config'] or doc['config'][repo] is None:
             doc['config'][repo] = {}
         doc['config'][repo] = {**default_config, **doc['config'][repo]}
@@ -830,7 +977,7 @@ def custom_doc(directory, extra, no_parallel_, open_, builder, https):
 
     p = []
     remote = lut['remote_https'] if https else lut['remote_ssh']
-    for r in doc['doc']:
+    for r in doc['include']:
         cwd = path.join(directory, r)
         if not path.isdir(cwd):
             git_cmd = ["git", "clone", remote.format(r), "--depth=1", "-b",

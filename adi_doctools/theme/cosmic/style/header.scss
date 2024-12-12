@@ -23,9 +23,14 @@
     display: block;
 }
 
+@media screen {
+    header {
+        position: sticky;
+    }
+}
+
 header {
     z-index: 7;
-    position: sticky;
     width: 100%;
     top: 0;
     print-color-adjust: exact;

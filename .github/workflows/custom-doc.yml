@@ -20,10 +20,17 @@ jobs:
         pip install weasyprint sphinxcontrib.wavedrom matplotlib
         pip install dist/adi_doctools-*.tar.gz
 
+    - name: Prepare custom doc template
+      working-directory: /tmp
+      run: |
+        mkdir -p custom-pages
+        printf "Introduction\n============\n\n" > custom-pages/intro.rst
+        printf $(yes "lorem ipsum dolor sit amet" | head -n 20 | tr '\n' ' ') >> custom-pages/intro.rst
+        adoc custom-doc -d my_pdf --builder pdf --https
+
     - name: Build custom doc
       working-directory: /tmp
       run: |
-        adoc custom-doc -d my_pdf --builder pdf --https
         adoc custom-doc -d my_pdf --builder pdf --https
 
     - name: Store the generated pdf

@@ -3,6 +3,7 @@ from packaging.version import Version
 from sphinx.__init__ import __version__ as sphinx_version
 from os.path import basename
 from lxml import html, etree
+from click import echo
 import importlib.util
 
 def sanitize_singlehtml(file) -> str:
@@ -29,8 +30,12 @@ def sanitize_singlehtml(file) -> str:
         i = ul_.xpath('./li//a')[0]
         volumes.append([c.text, i.attrib['href'][1:]])
 
-    # Extract title
+    # Extract title to extract description
     title = root.xpath("//head/title")[0].text
+    if ':' in title:
+        description = title[title.index(':')+1:].strip()
+    else:
+        description = ''
 
     bwrap = root.xpath("//div[@class='bodywrapper']")[0]
 
@@ -38,7 +43,14 @@ def sanitize_singlehtml(file) -> str:
     h1_ = bwrap.xpath(".//h1")[0]
     h1_.getparent().remove(h1_)
 
-    # Find indexes and add columes
+    # Add description
+    ele_desc = etree.Element("span")
+    ele_desc.attrib['class'] = "description"
+    ele_desc.text = description
+    first_page = root.xpath("//header//a[@id='logo']")[0]
+    first_page.insert(1, ele_desc)
+
+    # Find indexes and add volumes
     for c, i in volumes:
         e_ = bwrap.xpath(f".//span[@id='{i}']")[0]
         ele_ = etree.Element("div")
@@ -67,8 +79,8 @@ def sanitize_singlehtml(file) -> str:
 
     # Render LaTeX math with matplotlib.mathtext
     if not importlib.util.find_spec("matplotlib"):
-        click.echo("Package 'matplotlib' required to render LaTeX math formulas is not "
-                   "installed, these formulas will show as the LaTeX source code.")
+        echo("Package 'matplotlib' required to render LaTeX math formulas is not "
+             "installed, these formulas will show as the LaTeX source code.")
     else:
         import matplotlib.pyplot as plt
         import io

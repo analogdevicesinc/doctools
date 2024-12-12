@@ -692,7 +692,7 @@ And is used to dipose elements with exact number of columns and width control.
 
 .. code:: rst
 
-   .. grid:
+   .. grid::
       :widths: 25 25% 150px
 
 The ``widths`` options allow units (``px``, ``%``, etc) and without an explicit

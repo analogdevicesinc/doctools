@@ -127,13 +127,24 @@ header #logo {
     position: absolute;
     top: 0;
     left: 5rem;
-    height: 270mm;
+    padding-left: 1rem;
+    bottom: 0;
+    height: 100%;
     max-width: 70%;
     font-family: Barlow;
-    margin-left:0;
-    overflow: visible;
-    font-size: 5em;
-    line-height: 1em;
+    flex-direction: column;
     justify-content: center;
     display: flex;
+    overflow: visible;
+    border-left: 1px solid #fff;
+}
+header #logo div {
+    font-size: 4em;
+    line-height: 1em;
+}
+
+header .description {
+    margin-top: .5em;
+    font-size: 2em;
+    line-height: 1em;
 }
