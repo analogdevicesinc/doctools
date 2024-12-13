@@ -9,23 +9,26 @@ continuous integration and local builds of the documentation.
 Below, it is briefly described each command, and it is worth noting that every
 command supports the ``--help`` option for quick look up.
 
-.. _author-mode:
+.. _serve:
 
-Author Mode
+Serve
 --------------------------------------------------------------------------------
 
 Watches the docs and source code to rebuild it on edit.
+Similar to ``mkdocs serve``, ``webpack serve``, ``npm run start``, ``hugo server``,
+and so on.
 
 Two HTML live update strategies are available:
 
-* selenium: Page reloads through Firefox's API (default).
-* pooling: The webpage pools timestamp changes on the ``.dev-pool`` file (fallback).
+* pooling: The webpage pools timestamp changes on the ``.dev-pool`` file (default).
+* selenium: Page reloads through Firefox's API (optional).
 
 To launch a watched instance, do:
 
 .. shell::
 
-   $adoc author-mode --directory /path/to/docs
+   $cd /path/to/docs
+   $adoc serve
 
 Where ``/path/to/docs`` is the path to the folder contain the Sphinx's ``Makefile``.
 
@@ -36,7 +39,8 @@ For PDF output, do:
 
 .. shell::
 
-   $adoc author-mode --directory /path/to/docs --builder pdf
+   /path/to/docs
+   $adoc serve --builder pdf
 
 Make sure to use an PDF viewer that watches the file timestamp
 and automatically reloads, such as Gnome PDF (Evince).
@@ -45,23 +49,23 @@ All options can be listed with:
 
 .. shell::
 
-   $adoc author-mode --help
+   $adoc serve --help
 
-How can I rebuild the whole documentation within Author Mode?
+How can I rebuild the whole documentation within Serve?
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 Run ``make clean`` in another tab, it will trigger a full rebuild.
 
 Do **not** do ``make clean html`` since it will generate a build without the
-proper Author Mode environment and live reload won't work properly.
+proper Serve environment and live reload won't work properly.
 
 Why is the output missing styling (CSS stylesheet)?
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 You probably did a :ref:`development-install` without :ref:`web-compiler`
-and you are building directly (``make html``) instead of using Author Mode.
+and you are building directly (``make html``) instead of using Serve.
 
-If you don't want to install ``npm``, use Author Mode and accept the prompt to
+If you don't want to install ``npm``, use Serve and accept the prompt to
 fetch the pre-built web-scripts from the latest release.
 
 Why is the Python source code of this repo not watched?
@@ -73,6 +77,14 @@ Extensions at the doc itself are, however.
 
 Alternatively, touch the source doc of the open page to rebuild only it
 with the edited Python code.
+
+.. _author-mode:
+
+Why was Author Mode renamed to Serve?
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Solely to match other tools like ``mkdocs serve``, ``webpack serve``,
+``npm run start``, ``hugo server``,
 
 .. _custom-doc:
 

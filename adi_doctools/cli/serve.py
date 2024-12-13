@@ -14,7 +14,7 @@ log = {
     'inv_f': "Could not find {}, check rollup output.",
     'inv_bdir': "Could not find BUILDDIR {}.",
     'inv_srcdir': "Could not find SOURCEDIR {}.",
-    'no_selenium': "Package 'selenium' is not installed, pooling enabled.",
+    'no_selenium': "Package 'selenium' is not installed.",
     'rollup': "Couldn't find {}, ensure this a symbolic install.",
     'node': "Couldn't find {}, please install the npm tools locally.",
     'comp': "Couldn't find the minified web files ",
@@ -55,10 +55,10 @@ first_run = True
     help="Watch web source code (requires symbolic install)."
 )
 @click.option(
-    '--no-selenium',
+    '--selenium',
     is_flag=True,
     default=False,
-    help="Force pooling method instead of selenium/Firefox (html builder only)."
+    help="Use selenium/Firefox instead of pooling method (html builder only)."
 )
 @click.option(
     '--once',
@@ -74,12 +74,12 @@ first_run = True
     default="html",
     help="Builder to use, valid options are: html, pdf (WeasyPrint) (default: html)."
 )
-def author_mode(directory, port, dev, no_selenium, once, builder):
+def serve(directory, port, dev, selenium, once, builder):
     """
     Watch the docs and source code to rebuild it on edit.
     Two html live update strategies are available:
-    Selenium: Page reloads through Firefox's API.
     Pooling: The webpage pools timestamp changes on the .dev-pool file.
+    Selenium: Page reloads through Firefox's API.
     """
 
     import glob
@@ -195,11 +195,12 @@ def author_mode(directory, port, dev, no_selenium, once, builder):
         return
 
     with_selenium = False
-    if not no_selenium and dev and builder == 'html':
+    if selenium and builder == 'html':
         if importlib.util.find_spec("selenium"):
             with_selenium = True
         else:
             click.echo(log['no_selenium'])
+            return
 
     directory = path.abspath(directory)
     makefile = path.join(directory, 'Makefile')
@@ -443,3 +444,15 @@ def author_mode(directory, port, dev, no_selenium, once, builder):
     scheduler = sched.scheduler(time.time, time.sleep)
     scheduler.enter(1, 1, check_files, (scheduler,))
     scheduler.run()
+
+@click.command()
+@click.option(
+    '--directory',
+    '-d',
+    is_flag=False,
+    type=click.Path(exists=True),
+    default='.'
+)
+def author_mode(directory):
+    # DEPRECATED
+    click.echo("Deprecated: To match other live-editing tools, this command was renamed to 'serve'.")
