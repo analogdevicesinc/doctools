@@ -117,6 +117,69 @@ For all options, do:
 
    $adoc custom-doc --help
 
+Here is a minimal *doc.yaml*:
+
+.. code-block:: yaml
+
+   project: Custom user guide
+   description: Subtitle of the user guide
+
+   include:
+     - documentation/software/libiio/cli.rst
+
+   custom:
+     - custom-pages/index.rst
+
+   entry-point:
+     - caption: My custom index
+       files:
+         - custom-pages/index.rst
+
+   config:
+       documentation:
+         branch: "my-branch"
+
+   extensions:
+      - sphinx.ext.duration
+
+The ``include`` option contains the list of files to include in the custom
+document, with the first level of the path the repository name.
+
+During generation, the tool will resolve the hierarchy of the included docs,
+adding pages until the repository top-level page is reached.
+This may result in unwanted content being added and empty "category" sections.
+
+To resolve that, it is possible to create custom top-level toctrees with the
+``entry-point`` option.
+In summary, this:
+
+.. code:: yaml
+
+   entry-point:
+     - caption: HDL design
+       files:
+         - some/custom/intro.rst
+         - hdl/some/project.rst
+
+Resolves at *index.rst* into:
+
+.. code:: reST
+
+   .. toctree::
+      :caption: HDL design
+
+      some/custom/intro
+      hdl/some/project
+
+Additional configuration can be added to the ``config`` option:
+
+* ``branch``: Clone the repository from a specific branch, overwrite "main".
+  If the repository is already present, this option has no effect.
+* ``extra``: Do steps that require extra software, for example, some vendor SDK.
+
+The option ``extensions`` allow to append extra Sphinx extensions, beyond the
+automatically imported from the sourced documentations.
+
 Aggregate
 --------------------------------------------------------------------------------
 
