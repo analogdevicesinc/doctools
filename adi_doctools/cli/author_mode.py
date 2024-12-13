@@ -36,7 +36,7 @@ first_run = True
     '-d',
     is_flag=False,
     type=click.Path(exists=True),
-    default=None,
+    default='.',
     help="Path to the docs folder with the Makefile."
 )
 @click.option(

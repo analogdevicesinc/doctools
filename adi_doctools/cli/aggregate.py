@@ -207,7 +207,7 @@ def gen_symbolic_doc(repo_dir):
     '-d',
     is_flag=False,
     type=click.Path(exists=False),
-    default=None,
+    default='.',
     required=True,
     help="Path to create aggregated output."
 )

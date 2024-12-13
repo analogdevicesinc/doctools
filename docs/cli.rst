@@ -88,12 +88,12 @@ To quick start, run the tool twice in an empty directly.
 
 .. shell::
 
-   $cd /tmp
-   $adoc custom-doc --directory my_doc --builder pdf
+   $cd /tmp/my_doc
+   $adoc custom-doc
     Configuration file doc.yaml not found, created template at:
     /tmp/my_doc/doc.yaml
     Update it with the desired sources and rerun the tool.
-   $adoc custom-doc --directory my_doc --builder pdf
+   $adoc custom-doc --builder pdf
     [ build output ]
 
 The *doc.yaml* file is a concise human readable markup file to set the desired
@@ -199,7 +199,8 @@ For the monolithic output, do:
 
 .. shell::
 
-   $adoc aggregate --directory output
+   /tmp/all-docs
+   $adoc aggregate
 
 Some documentations depend on auto generated sections and extra features, use
 the ``--extra`` option to enable those; it considers that the environment has all

@@ -861,7 +861,7 @@ def organize_include(doc):
     '-d',
     is_flag=False,
     type=click.Path(exists=False),
-    default=None,
+    default='.',
     required=True,
     help="Path to host custom doc, contain the repositories and doc (_build)."
 )
