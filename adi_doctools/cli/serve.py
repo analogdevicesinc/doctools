@@ -298,6 +298,8 @@ def serve(directory, port, dev, selenium, once, builder):
             cmd = f"{rollup_bin} -c {rollup_conf} --watch"
             rollup_p = subprocess.Popen(cmd, shell=True, cwd=par_dir,
                                         stdout=subprocess.DEVNULL)
+        else:
+            update_pdf()
     else:
         # Build doc the first time
         app.build()
