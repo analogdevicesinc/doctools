@@ -12,15 +12,18 @@ from sphinx.util.typing import RoleFunction
 logger = logging.getLogger(__name__)
 
 # Default values
-dft_url_dokuwiki = 'https://wiki.analog.com'
-dft_url_ez = 'https://ez.analog.com'
-dft_url_mw = 'https://www.mathworks.com'
-dft_url_git_gui = 'https://github.com/analogdevicesinc/{repo}/tree'
-dft_url_git_raw = 'https://raw.githubusercontent.com/analogdevicesinc/{repo}'
-dft_url_git_other = 'https://github.com/analogdevicesinc/{repo}/{other}'
-dft_url_adi = 'https://www.analog.com'
-dft_url_xilinx = 'https://www.xilinx.com'
-dft_url_intel = 'https://www.intel.com'
+dft_url = {
+    'dokuwiki': 'https://wiki.analog.com',
+    'ez': 'https://ez.analog.com',
+    'mw': 'https://www.mathworks.com',
+    'git_gui': 'https://github.com/analogdevicesinc/{repo}/tree',
+    'git_raw': 'https://raw.githubusercontent.com/analogdevicesinc/{repo}',
+    'git_other': 'https://github.com/analogdevicesinc/{repo}/{other}',
+    'git_down': 'https://analogdevicesinc.github.io/DownGit/#/home?url={url}',
+    'adi': 'https://www.analog.com',
+    'xilinx': 'https://www.xilinx.com',
+    'intel': 'https://www.intel.com',
+}
 
 git_repos = {
     # case insensitive            url_path                     name
@@ -119,16 +122,17 @@ def get_default_brach(repo, inliner):
         return 'main'
 
 class GitRoleDispatcher(CustomReSTDispatcher):
-    """Custom dispatcher for git role.
+    """Custom dispatcher for (down)git role.
 
-    This enables :git-***: roles on parsing reST document.
+    This enables :git-***: and :downgit-***: roles on parsing reST document.
     """
-
     def role(
         self, role_name: str, language_module: ModuleType, lineno: int, reporter: Reporter,
     ) -> Tuple[RoleFunction, List[system_message]]:
         if len(role_name) > 4 and role_name.startswith(('git-')):
-            return GitRole(role_name), []
+            return GitRole(role_name, False), []
+        elif len(role_name) > 8 and role_name.startswith(('downgit-')):
+            return GitRole(role_name, True), []
         else:
             return super().role(role_name, language_module, lineno, reporter)
 
@@ -139,22 +143,19 @@ class GitRole(SphinxRole):
     Prefers knowns repositories, but will generate for other repositories
     with a info note
     """
-    message = ("Repository '{repo}' is not tracked and has no metadata, "
-               "considering informing the adi_doctools maintainers.")
-    def __init__(self, orig_name: str) -> None:
+    def __init__(self, orig_name: str, down: bool) -> None:
         self.orig_name = orig_name
+        self.down = down
 
     def run(self) -> Tuple[List[Node], List[system_message]]:
         assert self.name == self.orig_name.lower()
-        assert self.name.startswith('git-')
-        repo = self.name[4:]
+        assert self.name.startswith('downgit-' if self.down else 'git-')
+        repo_ = self.orig_name[8 if self.down else 4:]
+        repo = repo_.lower()
         text, path = get_outer_inner(self.text)
 
         if repo not in git_repos:
-            # TODO add to verbose/strict mode only
-            #logger.info(self.message.format(repo=repo),
-            #            location=(self.env.docname, self.lineno))
-            alt_name = repo
+            alt_name = repo_
             repo = self.orig_name[4:]
         else:
             alt_name = git_repos[repo][1]
@@ -192,9 +193,13 @@ class GitRole(SphinxRole):
 
             url = get_url_config('git_'+type_, self.inliner).format(repo=repo)
             url = url + '/' + branch + '/' + path
+            if self.down:
+                url = get_url_config('git_down', self.inliner).format(url=url)
         else:
             if text is None:
-                    text = "ADI " + alt_name + " repository " + f"({type_})"
+                    text = "ADI " + alt_name + " repository"
+                    if type_ != '':
+                        text += f" ({type_})"
             url = get_url_config('git_other', self.inliner).format(repo=repo, other=type_)
 
         node = nodes.reference(self.rawtext, text, refuri=url,
@@ -246,14 +251,7 @@ def common_setup(app):
     for name in vendors:
         app.add_role(name,          vendor(name))
 
-    app.add_config_value('url_dokuwiki',  dft_url_dokuwiki,  'env')
-    app.add_config_value('url_ez',        dft_url_ez,        'env')
-    app.add_config_value('url_mw',        dft_url_mw,        'env')
-    app.add_config_value('url_git_gui',   dft_url_git_gui,   'env')
-    app.add_config_value('url_git_raw',   dft_url_git_raw,   'env')
-    app.add_config_value('url_git_other', dft_url_git_other, 'env')
-    app.add_config_value('url_adi',       dft_url_adi,       'env')
-    app.add_config_value('url_xilinx',    dft_url_xilinx,    'env')
-    app.add_config_value('url_intel',     dft_url_intel,     'env')
+    for key in dft_url:
+        app.add_config_value('url_' + key, dft_url[key], 'env')
 
     app.connect('source-read', install_dispatcher)
