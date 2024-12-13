@@ -666,6 +666,20 @@ gets rendered
 Supported vendors are: ``xilinx`` (AMD Xilinx), ``intel`` (Intel Altera) and
 ``mw`` (MathWorks).
 
+Supplier role
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+The supplier role creates links to a vendor's website search.
+The role syntax is :code:`:vendor:\`text <path>\``, for example,
+:code:`:digikey:\`AD9081-FMCA-EBZ\``
+gets rendered
+:digikey:`AD9081-FMCA-EBZ`.
+
+The text parameter is optional.
+
+Supported vendors are: ``digikey`` (Digikey), ``mouser`` (Mouser) and
+``arrow`` (Arrow).
+
 Container directives
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

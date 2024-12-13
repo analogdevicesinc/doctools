@@ -16,6 +16,9 @@ dft_url = {
     'dokuwiki': 'https://wiki.analog.com',
     'ez': 'https://ez.analog.com',
     'mw': 'https://www.mathworks.com',
+    'digikey': 'https://www.digikey.com/scripts/DkSearch/dksus.dll?KeywordSearch?Site=US&Keywords=',
+    'mouser': 'https://www.mouser.com/c/?q=',
+    'arrow': 'https://www.arrow.com/en/products/search?q=',
     'git_gui': 'https://github.com/analogdevicesinc/{repo}/tree',
     'git_raw': 'https://raw.githubusercontent.com/analogdevicesinc/{repo}',
     'git_other': 'https://github.com/analogdevicesinc/{repo}/{other}',
@@ -44,6 +47,7 @@ git_repos = {
     'transceivertoolbox':        ['TransceiverToolbox',        "Transceiver Toolbox"]
 }
 vendors = ['xilinx', 'intel', 'mw']
+suppliers = ['digikey', 'mouser', 'arrow']
 
 
 def get_url_config(name, inliner):
@@ -231,6 +235,19 @@ def vendor(vendor_name):
 
     return role
 
+
+def supplier(supplier_name):
+    def role(name, rawtext, text, lineno, inliner, options={}, content=[]):
+        text, path = get_outer_inner(text)
+        if text is None:
+            text = path
+        url = get_url_config(supplier_name, inliner) + path
+        node = nodes.reference(rawtext, text, refuri=url, **options)
+        return [node], []
+
+    return role
+
+
 def install_dispatcher(app, docname: str, source: List[str]) -> None:
     """Enable GitRoleDispatcher.
 
@@ -249,7 +266,9 @@ def common_setup(app):
     app.add_role("dokuwiki",            dokuwiki())
     app.add_role("dokuwiki+deprecated", dokuwiki())
     for name in vendors:
-        app.add_role(name,          vendor(name))
+        app.add_role(name, vendor(name))
+    for name in suppliers:
+        app.add_role(name, supplier(name))
 
     for key in dft_url:
         app.add_config_value('url_' + key, dft_url[key], 'env')
