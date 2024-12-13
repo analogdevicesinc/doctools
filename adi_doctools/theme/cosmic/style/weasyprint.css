@@ -134,6 +134,7 @@ header #logo {
     font-family: Barlow;
     flex-direction: column;
     justify-content: center;
+    align-items: flex-start;
     display: flex;
     overflow: visible;
     border-left: 1px solid #fff;
@@ -146,5 +147,5 @@ header #logo div {
 header .description {
     margin-top: .5em;
     font-size: 2em;
-    line-height: 1em;
+    line-height: 1.1em;
 }

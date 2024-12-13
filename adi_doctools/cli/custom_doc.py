@@ -140,7 +140,6 @@ monolithic = True
 
 html_theme = 'cosmic'
 html_theme_options = {}
-html_favicon = path.join("sources", "icon.svg")
 html_title = '$project$: $description$'
 
 # -- External docs configuration ----------------------------------------------
