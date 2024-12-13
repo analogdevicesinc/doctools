@@ -79,7 +79,6 @@
 
 h2 {
     string-set: heading content();
-    break-before: always;
 }
 
 footer {

@@ -11,9 +11,6 @@ on the directives and roles packaged on this repository.
 And read the :ref:`cli` for information about the command line interface
 provided by Doctools.
 
-Contents
-===============================================================================
-
 .. toctree::
    :maxdepth: 1
 

@@ -39,9 +39,20 @@ def sanitize_singlehtml(file) -> str:
 
     bwrap = root.xpath("//div[@class='bodywrapper']")[0]
 
-    # Remove first H1
+    # Remove first H1 and replace with break-before
+    # if next if not a section (e.g. introduction)
     h1_ = bwrap.xpath(".//h1")[0]
-    h1_.getparent().remove(h1_)
+    e_p = h1_.getparent()
+    e_n = h1_.getnext()
+    if e_n.tag != 'section':
+        if 'class' in e_n.attrib and "toctree-wrapper" in e_n.attrib['class']:
+            pass
+        else:
+            ele_break = etree.Element("span")
+            ele_break.attrib['class'] = "break-before"
+            e_p.insert(e_p.index(h1_), ele_break)
+    e_p.remove(h1_)
+
 
     # Add description
     ele_desc = etree.Element("span")
