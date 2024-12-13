@@ -1,0 +1,44 @@
+{
+    "repotoc": {
+        "documentation": {
+            "name": "System Level",
+            "visibility": "public"
+        },
+        "hdl": {
+            "name": "HDL",
+            "visibility": "public"
+        },
+        "testbenches": {
+            "name": "HDL Testbenches",
+            "visibility": "public"
+        },
+        "pyadi-iio": {
+            "name": "Hardware Python Interfaces",
+            "visibility": "public"
+        },
+        "libiio": {
+            "name": "libiio",
+            "visibility": "public"
+        },
+        "no-OS": {
+            "name": "no-OS",
+            "visibility": "public"
+        },
+        "precision-converters-firmware": {
+            "name": "Precision Converters Firmware",
+            "visibility": "public"
+        },
+        "PrecisionToolbox": {
+            "name": "Precision Toolbox",
+            "visibility": "public"
+        },
+        "scopy": {
+            "name": "Scopy",
+            "visibility": "public"
+        },
+        "doctools": {
+            "name": "Doctools",
+            "visibility": "public"
+        }
+    }
+}
