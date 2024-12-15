@@ -3,7 +3,6 @@ from collections import defaultdict
 
 from os import path, listdir, pardir, chdir, getcwd, mkdir
 from os import environ
-from io import StringIO
 from glob import glob
 import importlib.util
 import subprocess
@@ -27,9 +26,10 @@ default_config = {
     'branch': 'main',
 }
 
+
 class pr:
     @staticmethod
-    def popen(cmd, p: List, cwd: [str, None] = None, env = None):
+    def popen(cmd, p: List, cwd: [str, None] = None, env=None):
         global no_parallel
         p__ = subprocess.Popen(cmd, cwd=cwd, env=env)
         p__.wait() if no_parallel else p.append(p__)
@@ -81,12 +81,13 @@ def do_extra_steps(repo_dir, doc):
             continue
 
         if l_ not in repos:
-               click.echo(f"Requested extra steps for unmapped repo '{l_}'.")
-               continue
+            click.echo(f"Requested extra steps for unmapped repo '{l_}'.")
+            continue
 
         if 'extra' not in repos[l_]:
-               click.echo(f"Requested extra steps for repo '{l_}', but there aren't any.")
-               continue
+            click.echo(f"Requested extra steps for repo '{l_}',"
+                       "but there aren't any.")
+            continue
 
         cwd, cmd, no_p = repos[l_]['extra']
         cwd = path.join(repo_dir, l_, cwd)
@@ -99,13 +100,14 @@ def do_extra_steps(repo_dir, doc):
 
 
 class SphinxWarnings:
-    orphan: List = [] # srcfile
-    ref_ref: List = [] # docname lineno label
-    ref_doc: List = [] # docname lineno label
-    toc_not_readable: List = [] # docname lineno srcfile
-    toc_glob: List = [] # docname lineno srcfile
-    image_not_readable: List = [] # docname srcfile
-    include: List = [] # docname lineno srcfile
+    orphan: List = []  # srcfile
+    ref_ref: List = []  # docname lineno label
+    ref_doc: List = []  # docname lineno label
+    toc_not_readable: List = []  # docname lineno srcfile
+    toc_glob: List = []  # docname lineno srcfile
+    image_not_readable: List = []  # docname srcfile
+    include: List = []  # docname lineno srcfile
+
 
 sphinx_warnings = SphinxWarnings()
 
@@ -206,6 +208,7 @@ extensions:
    - sphinx.ext.duration
 """
 
+
 def get_includes(src_doc_dir, dst_doc_dir, doc):
     """
     Get includes/images that are under the doc_dir depth.
@@ -231,8 +234,10 @@ def get_includes(src_doc_dir, dst_doc_dir, doc):
             else:
                 with open(path.join(dst_doc_dir, m[0]), "r") as f:
                     data = f.readlines()
-                m_patched = path.abspath(path.join(src_doc_dir, path.dirname(m[0]), m[1]))
-                m_patched = path.relpath(m_patched, path.join(dst_doc_dir, path.dirname(m[0])))
+                p_ = path.join(src_doc_dir, path.dirname(m[0]), m[1])
+                m_patched = path.abspath(p_)
+                p_ = path.join(dst_doc_dir, path.dirname(m[0]))
+                m_patched = path.relpath(m_patched, p_)
                 data[m[2]-1] = data[m[2]-1].replace(m[1], m_patched)
                 with open(path.join(dst_doc_dir, m[0]), "w") as f:
                     f.write(''.join(data))
@@ -259,9 +264,9 @@ def namespace_ref(doc_dir, r):
     cwd = path.join(doc_dir, r)
     patch_cmd = """\
     find . -type f -exec sed -i -E \
-        "s/(\s|^|\(|\/)(:ref:\\`)([^<>:]+)(\\`)/\\1\\2{r}+\\3\\4/g" {{}} \\;
+        "s/(\\s|^|\\(|\\/)(:ref:\\`)([^<>:]+)(\\`)/\\1\\2{r}+\\3\\4/g" {{}} \\;
     find . -type f -exec sed -i -E \
-        "s/(\s|^|\(|\/)(:ref:\\`)([^<]+)( <)([^:>]+)(>)/\\1\\2\\3\\4{r}+\\5\\6/g" {{}} \\;
+        "s/(\\s|^|\\(|\\/)(:ref:\\`)([^<]+)( <)([^:>]+)(>)/\\1\\2\\3\\4{r}+\\5\\6/g" {{}} \\;
     find . -type f -exec sed -i -E \
         "s/^(.. _)([^:]+)(:)\\$/\\1{r}+\\2\\3/g" {{}} \\;\
     """.format(r=r)
@@ -274,8 +279,8 @@ def namespace_ref(doc_dir, r):
     #          :external+r:doc:`Title <str>` into :doc:`Title </r/str>`
     patch_cmd = """\
     find . -type f -exec sed -i -E \
-        -e "s/(\s|^|\(|\/)(:external\+)([^:]+):ref:\\`([^<]+)( <)([^:>]+)(>)/\\1:ref:\\`\\4\\5\\3+\\6\\7/g" \
-        -e "s/(\s|^|\(|\/)(:external\+)([^:]+):doc:\\`([^<]+)( <)([^:>]+)(>)/\\1:doc:\\`\\4\\5\/\\3\/\\6\\7/g" {} \\;\
+        -e "s/(\\s|^|\\(|\\/)(:external\\+)([^:]+):ref:\\`([^<]+)( <)([^:>]+)(>)/\\1:ref:\\`\\4\\5\\3+\\6\\7/g" \
+        -e "s/(\\s|^|\\(|\\/)(:external\\+)([^:]+):doc:\\`([^<]+)( <)([^:>]+)(>)/\\1:doc:\\`\\4\\5\\/\\3\\/\\6\\7/g" {} \\;\
     """
     pr.run(patch_cmd, cwd)
 
@@ -289,7 +294,7 @@ def _patch_index(toc_file, repo):
 
         toctrees = []
         while ".. toctree::\n" in data:
-            data  = data[data.index(".. toctree::\n")+1:]
+            data = data[data.index(".. toctree::\n")+1:]
             toctrees.append([[], [], False])
 
             for i in range(0, len(data)):
@@ -366,6 +371,9 @@ def patch_index(doc, tocs, index_file):
             toctrees[-1] += [[[], orphan_toc[k], False]]
 
     data = []
+
+    resolve_glob(toctrees, index_file)
+
     for t in toctrees:
         first = True
 
@@ -387,6 +395,37 @@ def patch_index(doc, tocs, index_file):
     index += ''.join(data)
     with open(index_file, "w") as f:
         f.write(index)
+
+
+def resolve_glob(toctrees, index_file):
+    """
+    Expand glob rules, then remove entries already included in other toctrees.
+    """
+    dir_name = path.dirname(index_file)
+
+    # Expand globs
+    for t in toctrees:
+        for t_ in t:
+            if '   :glob:\n' in t_[0]:
+                t_[0].remove('   :glob:\n')
+                n_docs = []
+                for d in t_[1]:
+                    d = path.join(dir_name, d.strip()+'.rst')
+                    d_ = ['   '+path.relpath(d__, dir_name)[:-4]+'\n' for d__ in glob(d)]
+                    n_docs.extend(d_)
+                t_[1] = n_docs
+
+    # Remove duplicated entries
+    f_ = set()
+    for t in toctrees:
+        for _, docs, _ in t:
+            for d in docs:
+                to_remove = []
+                if d in f_:
+                    to_remove.append(d)
+                for d__ in to_remove:
+                    docs.remove(d__)
+            f_.update(docs)
 
 
 def prepare_doc(doc, repos_dir, doc_dir):
@@ -458,7 +497,7 @@ def prepare_doc(doc, repos_dir, doc_dir):
                                "won't try to resolve toctree for this folder.")
                     continue
             elif not path.isfile(d):
-                    continue
+                continue
 
             d = d[:-4]
             toc_resolve.append(d)
@@ -470,7 +509,7 @@ def prepare_doc(doc, repos_dir, doc_dir):
                 if f.readline()[:-1].strip() == ":orphan:":
                     # Handle sphinx trick for sidebar "volumes"
                     if d.count(SEP) == 1:
-                        also_include.append(f"index.rst")
+                        also_include.append("index.rst")
                     return True
             return False
 
@@ -574,8 +613,8 @@ def prepare_doc(doc, repos_dir, doc_dir):
     for e in ['extensions', 'interref_repos']:
         e_ = ''.join([f"\n    '{e}'," for e in doc[e]]) + '\n'
         config_f = config_f.replace(f"${e}$", e_)
-    config_f = config_f.replace(f"$project$", doc['project'])
-    config_f = config_f.replace(f"$description$", doc['description'])
+    config_f = config_f.replace("$project$", doc['project'])
+    config_f = config_f.replace("$description$", doc['description'])
     with open(conf_file, "w") as f:
         f.write(config_f)
 
@@ -597,11 +636,11 @@ def prepare_doc(doc, repos_dir, doc_dir):
 def parse_warnings(doc_dir):
     warnfile = path.join(doc_dir, '..', 'warnings.txt')
 
-    re_orphan   = r"^(.*?): WARNING: document isn't included in any toctree"
-    re_ref_ref  = r"^(.*?):(\d+): .* '(.*)' \[ref\.ref\]"
-    re_ref_doc  = r"^(.*?):(\d+): .* '(.*)' \[ref\.doc\]"
-    re_toctree  = r"^(.*?):(\d+): .* '(.*)' \[toc\.not_readable\]"
-    re_image    = r"^(.*?):: .* (.*) \[image\.not_readable\]"
+    re_orphan = r"^(.*?): WARNING: document isn't included in any toctree"
+    re_ref_ref = r"^(.*?):(\d+): .* '(.*)' \[ref\.ref\]"
+    re_ref_doc = r"^(.*?):(\d+): .* '(.*)' \[ref\.doc\]"
+    re_toctree = r"^(.*?):(\d+): .* '(.*)' \[toc\.not_readable\]"
+    re_image = r"^(.*?):: .* (.*) \[image\.not_readable\]"
     re_include0 = r"^(.*?):(\d+): CRITICAL: Problems with \"include\" directive path:"
     re_include1 = r"^InputError: \[Errno 2\] .* '(.*)'\. \[docutils\]"
     re_toc_glob = r"^(.*?):(\d+): WARNING: toctree glob pattern '(.*)' didn't match any documents"
@@ -649,6 +688,7 @@ def parse_warnings(doc_dir):
             sphinx_warnings.include[-1][2] = m.group(1)
             continue
 
+
 suppress_warnings = """
 suppress_warnings = [
     'app.add_node',
@@ -657,6 +697,7 @@ suppress_warnings = [
     'app.add_generic_role',
 ]
 """
+
 
 def patch_doc(doc, repos_dir, doc_dir, doc_patch_dir, sphinx_builder):
     """
@@ -737,10 +778,10 @@ def patch_doc(doc, repos_dir, doc_dir, doc_patch_dir, sphinx_builder):
             # Infeer repo from path and patch
             abs_doc = path.relpath(path.abspath(path.join(src, '..', label)), doc_dir).split(SEP)
             r = abs_doc[0]
-            l = '/'.join(abs_doc[1:])
+            l_ = '/'.join(abs_doc[1:])
             data[i] = re.sub(pattern6, replacement6, data[i])
             data[i] = re.sub(pattern5, replacement5, data[i])
-            data[i] = data[i].replace('$repo$', r).replace('$label$', l)
+            data[i] = data[i].replace('$repo$', r).replace('$label$', l_)
 
         with open(p, "w") as f:
             f.write(''.join(data))
@@ -845,6 +886,7 @@ def gen_pdf(index_file):
     click.echo("writing pdf...")
     document.write_pdf(path.abspath(path.join(path.dirname(index_file), '..', 'output.pdf')))
 
+
 def organize_include(doc):
     include = {}
     for i in doc['include']:
@@ -853,6 +895,7 @@ def organize_include(doc):
             include[i_[0]] = []
         include[i_[0]].append(SEP.join(i_[1:]))
     doc['include'] = include
+
 
 @click.command()
 @click.option(
