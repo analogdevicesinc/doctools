@@ -160,7 +160,7 @@ class GitRole(SphinxRole):
 
         if repo not in git_repos:
             alt_name = repo_
-            repo = self.orig_name[4:]
+            repo = self.orig_name[8 if self.down else 4:]
         else:
             alt_name = git_repos[repo][1]
             repo = git_repos[repo][0]
