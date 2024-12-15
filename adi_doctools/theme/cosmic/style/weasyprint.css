@@ -148,3 +148,7 @@ header .description {
     font-size: 2em;
     line-height: 1.1em;
 }
+
+h2 {
+    break-before: always;
+}
