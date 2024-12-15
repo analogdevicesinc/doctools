@@ -31,7 +31,7 @@ setup = [
     theme_config_setup
 ]
 
-names = ['cosmic']
+names = ['cosmic', 'harmonic']
 
 
 def config_inited(app, config):

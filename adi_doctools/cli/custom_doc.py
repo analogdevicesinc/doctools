@@ -140,7 +140,7 @@ monolithic = True
 
 # -- Options for HTML output --------------------------------------------------
 
-html_theme = 'cosmic'
+html_theme = 'harmonic'
 html_theme_options = {}
 html_title = '$project$: $description$'
 

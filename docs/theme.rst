@@ -1,7 +1,7 @@
 Sphinx theme
 ===============================================================================
 
-A Sphinx themed called *cosmic* is available.
+A Sphinx themed called *harmonic* (old *cosmic*) is available.
 It is deeply based on ADI's *harmonic* design language.
 
 Shortcuts

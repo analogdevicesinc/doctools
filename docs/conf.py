@@ -34,7 +34,7 @@ export_metadata = True
 
 # -- Options for HTML output --------------------------------------------------
 
-html_theme = 'cosmic'
+html_theme = 'harmonic'
 
 html_theme_options = {}
 
