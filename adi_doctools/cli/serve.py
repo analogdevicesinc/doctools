@@ -371,9 +371,12 @@ def serve(directory, port, dev, selenium, once, builder):
                 glob_ = path.join(sourcedir, d, '**', typ)
                 _files = glob.glob(glob_, recursive=True)
                 __files = [path.abspath(f) for f in _files]
-                files.extend(__files)
                 for f in __files:
-                    ctime.append(path.getctime(f))
+                    if not path.isfile(f):
+                        continue
+                    ctime_ = path.getctime(f)
+                    ctime.append(ctime_)
+                    files.append(f)
         return (files, ctime)
 
 
