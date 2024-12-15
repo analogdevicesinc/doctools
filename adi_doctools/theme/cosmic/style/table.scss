@@ -36,15 +36,16 @@ table.docutils {
         border-bottom: none;
     }
 
-    thead:not(:first-child) th {
-        font-weight: normal;
-    }
-
     &.grid {
         border-left: none;
         td, th {
             border-left: variable.$border-td;
         }
+    }
+
+    &.bold-header thead,
+    &.bold-first-column tbody tr td:first-child {
+        font-weight: bold;
     }
 }
 

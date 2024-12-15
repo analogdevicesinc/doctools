@@ -419,6 +419,11 @@ Only use
 `grid tables <https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html#tables>`__
 if strictly necessary, since they are hard to update.
 
+To tune styling, the following classes are available:
+
+* *bold-header*: Make the header bold.
+* *bold-first-column*: Make the first column bold.
+
 Lists
 --------------------------------------------------------------------------------
 
