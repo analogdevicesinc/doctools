@@ -278,6 +278,7 @@ iframe {
         print-color-adjust: exact;
         -webkit-print-color-adjust: exact;
         background-size: contain;
+        margin: 0 auto;
     }
 }
 
@@ -287,9 +288,9 @@ iframe {
     }
 }
 
-@media (max-width: variable.$screen-0) {
-    .esd-warning .icon {
-        margin: 0 auto;
+@media print {
+    .esd-warning {
+        display: flex;
     }
 }
 

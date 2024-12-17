@@ -872,14 +872,14 @@ def gen_pdf(index_file):
     font_config = FontConfiguration()
     src_dir = path.abspath(path.join(path.dirname(__file__), pardir, pardir))
     cosmic = path.join('adi_doctools', 'theme', 'cosmic')
-    # TODO create slimmer version just for print (maybe?)
+    base_url = path.dirname(index_file)
     css = CSS(path.join(src_dir, cosmic, 'static', 'style.min.css'),
-              font_config=font_config)
+              font_config=font_config, base_url=(path.join(base_url, '_static')))
     css_extra = CSS(path.join(src_dir, cosmic, 'style', 'weasyprint.css'),
                     font_config=font_config)
 
     click.echo("rendering pdf content...")
-    html = HTML(string=html_, base_url=path.dirname(index_file))
+    html = HTML(string=html_, base_url=base_url)
 
     document = html.render(stylesheets=[css, css_extra])
 
