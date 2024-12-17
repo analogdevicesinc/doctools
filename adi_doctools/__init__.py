@@ -1,7 +1,10 @@
+from typing import Any
 from os import path, getenv
 from packaging.version import Version
+from docutils import nodes
 
 from sphinx.util.osutil import SEP
+from sphinx.transforms import SphinxTransform
 
 from .theme import (navigation_tree, get_pygments_theme,
                     write_pygments_css, wrap_elements)
@@ -115,6 +118,33 @@ def build_finished(app, exc):
         copy_asset(app, "esd-warning.svg")
 
 
+class unique_ids(SphinxTransform):
+    """
+    Suffix IDs/anchors to make them unique, e.g.
+    {overview, features, ..., overview} ->
+    {overview, features, ..., overview-1}
+    """
+    default_priority = 500
+    used_ids = set()
+
+    def apply(self, **kwargs: Any) -> None:
+        if self.app.builder.name != "singlehtml":
+            return
+
+        def make_unique_id(node, id_):
+            counter = 1
+            id__ = id_
+            while id__ in self.used_ids:
+                id__ = f"{id_}-{counter}"
+                counter += 1
+            self.used_ids.add(id__)
+            node['ids'] = [id__]
+
+        for node in self.document.traverse(nodes.section):
+            if 'ids' in node and node['ids']:
+                make_unique_id(node, node['ids'][0])
+
+
 def setup(app):
     for setup in theme_setup:
         setup(app)
@@ -123,6 +153,7 @@ def setup(app):
     for setup in role_setup:
         setup(app)
 
+    app.add_transform(unique_ids)
     app.add_post_transform(wrap_elements)
 
     app.connect("config-inited", config_inited)
