@@ -26,6 +26,7 @@ class LUT(TypedDict):
 
 remote_ssh = "git@github.com:analogdevicesinc/{}.git"
 remote_https = "https://github.com/analogdevicesinc/{}.git"
+remote_doc = "https://analogdevicesinc.github.io/"
 
 repos = {
     'documentation': Repo(

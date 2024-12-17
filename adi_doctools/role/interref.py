@@ -8,7 +8,7 @@ from packaging.version import Version
 from sphinx.__init__ import __version__ as sphinx_version
 from sphinx.util.osutil import SEP
 
-from ..lut import repos
+from ..lut import repos, remote_doc
 
 # For deprecation handling
 from sphinx.util import logging
@@ -25,7 +25,7 @@ DEPRECATED_REF_MINUS = False
 
 logger = logging.getLogger(__name__)
 
-dft_interref_uri = "https://analogdevicesinc.github.io/"
+dft_interref_uri = remote_doc
 
 def interref_repos_apply(app):
     """

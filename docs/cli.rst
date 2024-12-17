@@ -1,7 +1,7 @@
 .. _cli:
 
 Command line interface
-================================================================================
+======================
 
 The Doctools bundles a command line interface called ``adoc`` meant to ease both
 continuous integration and local builds of the documentation.
@@ -12,7 +12,7 @@ command supports the ``--help`` option for quick look up.
 .. _serve:
 
 Serve
---------------------------------------------------------------------------------
+-----
 
 Watches the docs and source code to rebuild it on edit.
 Similar to ``mkdocs serve``, ``webpack serve``, ``npm run start``, ``hugo server``,
@@ -52,7 +52,7 @@ All options can be listed with:
    $adoc serve --help
 
 How can I rebuild the whole documentation within Serve?
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 Run ``make clean`` in another tab, it will trigger a full rebuild.
 
@@ -60,7 +60,7 @@ Do **not** do ``make clean html`` since it will generate a build without the
 proper Serve environment and live reload won't work properly.
 
 Why is the output missing styling (CSS stylesheet)?
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 You probably did a :ref:`development-install` without :ref:`web-compiler`
 and you are building directly (``make html``) instead of using Serve.
@@ -69,7 +69,7 @@ If you don't want to install ``npm``, use Serve and accept the prompt to
 fetch the pre-built web-scripts from the latest release.
 
 Why is the Python source code of this repo not watched?
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 Since a Python scripts change would affect rebuilding the whole documentation,
 those files are not watched by design even with the ``--dev`` option.
@@ -81,7 +81,7 @@ with the edited Python code.
 .. _author-mode:
 
 Why was Author Mode renamed to Serve?
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++++++++++++++++++++++++++++++++++++++
 
 Solely to match other tools like ``mkdocs serve``, ``webpack serve``,
 ``npm run start``, ``hugo server``,
@@ -89,7 +89,7 @@ Solely to match other tools like ``mkdocs serve``, ``webpack serve``,
 .. _custom-doc:
 
 Custom Doc
---------------------------------------------------------------------------------
+----------
 
 Generates custom documents with filtered content from all documentations of the
 watched repositories (see :git-doctools:`adi_doctools/lut.py`).
@@ -192,8 +192,43 @@ Additional configuration can be added to the ``config`` option:
 The option ``extensions`` allow to append extra Sphinx extensions, beyond the
 automatically imported from the sourced documentations.
 
+Working with multiple docs
+++++++++++++++++++++++++++
+
+Suppose you edited and tested multiple docs together, it could be useful
+helpful to try a local inventory file first, to check references before publication.
+
+Having this in mind, if you build the edited documentation first, and then execute
+``custom-doc``, it will consider the local inventory *objects.inv* also.
+
+Here is a example of auto-resolved *intersphinx_mapping* by ``custom-doc``, at the
+*_build/conf.py*:
+
+.. code:: py
+
+   # -- External docs configuration ----------------------------------------------
+
+   intersphinx_mapping = {
+       # Docs locally edited and referenced
+       'hdl':
+           ('https://analogdevicesinc.github.io/hdl',
+            ('/path/to/my_project/hdl/docs/_build/html/objects.inv', None)),
+       'documentation':
+           ('https://analogdevicesinc.github.io/documentation',
+            ('/path/to/my_project/documentation/docs/_build/html/objects.inv', None)),
+       # Doc not locally edited, but referenced
+       'scopy':
+           ('https://analogdevicesinc.github.io/scopy', None),
+   }
+
+Learn more about the core of this behaviour at
+`Multiple targets for the inventory, intersphinx_mapping <https://www.sphinx-doc.org/en/master/usage/extensions/intersphinx.html#confval-intersphinx_mapping>`__.
+
+For a single doc, without ``custom-doc``, there is also ``interref_local`` described
+at :ref:`in-org-ref`.
+
 Aggregate
---------------------------------------------------------------------------------
+---------
 
 .. tip::
 
@@ -227,7 +262,7 @@ For all options, do:
    $adoc aggregate --help
 
 HDL Render
---------------------------------------------------------------------------------
+----------
 
 Exposes the HDL component diagram generator as a CLI.
 It converts IP-XACT files into SVGs.

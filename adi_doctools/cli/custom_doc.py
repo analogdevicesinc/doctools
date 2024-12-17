@@ -15,7 +15,7 @@ from sphinx.util.osutil import SEP
 from sphinx.application import Sphinx
 from adi_doctools import __version__
 
-from ..lut import get_lut
+from ..lut import get_lut, remote_doc
 
 no_parallel = True
 lut = get_lut()
@@ -146,7 +146,9 @@ html_title = '$project$: $description$'
 
 # -- External docs configuration ----------------------------------------------
 
-interref_repos = [$interref_repos$]
+intersphinx_mapping = {
+$intersphinx_mapping$
+}
 """
 
 template_yaml = f"""\
@@ -209,11 +211,11 @@ extensions:
 """
 
 
-def get_includes(src_doc_dir, dst_doc_dir, doc):
+def get_includes(sourcedir, dstdir, doc):
     """
     Get includes/images that are under the doc_dir depth.
     """
-    cwd = dst_doc_dir
+    cwd = dstdir
     # Run include first to solve image for missing included files also
     for e in ['include', 'image', 'figure']:
         patch_cmd = "grep -rn '^.. {e}:: '".format(e=e)
@@ -229,17 +231,17 @@ def get_includes(src_doc_dir, dst_doc_dir, doc):
             # Inside namespace: copy over
             if m[0].count(SEP) >= m[1].count('..'+SEP):
                 d = path.join(path.dirname(m[0]), m[1])
-                pr.run(f"cp -r --parents {d} {dst_doc_dir}", src_doc_dir)
+                pr.run(f"cp -r --parents {d} {dstdir}", sourcedir)
             # Outside namespace: update path
             else:
-                with open(path.join(dst_doc_dir, m[0]), "r") as f:
+                with open(path.join(dstdir, m[0]), "r") as f:
                     data = f.readlines()
-                p_ = path.join(src_doc_dir, path.dirname(m[0]), m[1])
+                p_ = path.join(sourcedir, path.dirname(m[0]), m[1])
                 m_patched = path.abspath(p_)
-                p_ = path.join(dst_doc_dir, path.dirname(m[0]))
+                p_ = path.join(dstdir, path.dirname(m[0]))
                 m_patched = path.relpath(m_patched, p_)
                 data[m[2]-1] = data[m[2]-1].replace(m[1], m_patched)
-                with open(path.join(dst_doc_dir, m[0]), "w") as f:
+                with open(path.join(dstdir, m[0]), "w") as f:
                     f.write(''.join(data))
 
 
@@ -451,17 +453,18 @@ def prepare_doc(doc, repos_dir, doc_dir):
             click.echo(f"Unknown repo '{r}', skipped")
             continue
 
-        src_doc_dir = path.join(repos_dir, r, repos[r]['doc_folder'])
-        dst_doc_dir = path.join(doc_dir, r)
-        not_valid, _, src_doc_dic = get_sphinx_dirs(src_doc_dir)
+        makedir = path.join(repos_dir, r, repos[r]['doc_folder'])
+        dstdir = path.join(doc_dir, r)
+        not_valid, builddir, sourcedir = get_sphinx_dirs(makedir)
         if not_valid:
             continue
-        doc['sourcedir'][r] = src_doc_dir
-        if not path.isdir(dst_doc_dir):
-            mkdir(dst_doc_dir)
+        doc['sourcedir'][r] = sourcedir
+        doc['builddir'][r] = builddir
+        if not path.isdir(dstdir):
+            mkdir(dstdir)
 
         # Get configs
-        spec = importlib.util.spec_from_file_location("sphinx_conf", path.join(src_doc_dir, "conf.py"))
+        spec = importlib.util.spec_from_file_location("sphinx_conf", path.join(sourcedir, "conf.py"))
         __c = importlib.util.module_from_spec(spec)
         sys.modules["sphinx_conf"] = __c
         spec.loader.exec_module(__c)
@@ -470,22 +473,23 @@ def prepare_doc(doc, repos_dir, doc_dir):
                 if not importlib.util.find_spec(ext):
                     missing_ext.append((r, ext))
             doc['extensions'].update(__c.extensions)
+        doc['extensions'].add('sphinx.ext.intersphinx')
         if hasattr(__c, 'interref_repos'):
             doc['interref_repos'].update(__c.interref_repos)
         doc['interref_repos'].add(r)
 
-        # src_doc_dir : /path/to/hdl/docs
-        # dst_doc_dir : doc/hdl
+        # sourcedir : /path/to/hdl/docs
+        # dstdir : doc/hdl
         for d in doc['include'][r]:
-            d__ = path.abspath(path.join(src_doc_dir, d))
+            d__ = path.abspath(path.join(sourcedir, d))
             if path.isfile(d__) or path.isdir(d__):
-                pr.run(f"cp -r --parents {d} {dst_doc_dir}", src_doc_dir)
+                pr.run(f"cp -r --parents {d} {dstdir}", sourcedir)
             else:
                 click.echo(f"{r}: source file/dir '{d}' does not exist, skipped.")
 
         # Infeer toctree entries
         cwd_ = getcwd()
-        chdir(src_doc_dir)
+        chdir(sourcedir)
         toc_resolve = []
         for d in doc['include'][r]:
             if path.isdir(d):
@@ -590,9 +594,9 @@ def prepare_doc(doc, repos_dir, doc_dir):
 
         chdir(cwd_)
         for f_ in also_include:
-            pr.run(f"cp --parents {f_} {dst_doc_dir}", src_doc_dir)
+            pr.run(f"cp --parents {f_} {dstdir}", sourcedir)
 
-        get_includes(src_doc_dir, dst_doc_dir, doc)
+        get_includes(sourcedir, dstdir, doc)
         namespace_ref(doc_dir, r)
 
     if len(missing_ext) > 0:
@@ -610,9 +614,25 @@ def prepare_doc(doc, repos_dir, doc_dir):
 
     conf_file = path.join(doc_dir, 'conf.py')
     config_f = template_config
-    for e in ['extensions', 'interref_repos']:
-        e_ = ''.join([f"\n    '{e}'," for e in doc[e]]) + '\n'
-        config_f = config_f.replace(f"${e}$", e_)
+
+    e_ = ''.join([f"\n    '{e}'," for e in doc['extensions']]) + '\n'
+    config_f = config_f.replace(f"$extensions$", e_)
+
+    # Add local alternative inventory
+    # Allows to edit the set of repos and test locally and then publish together,
+    # trying the local inventory file first, to check references before publication
+    str_inter= ""
+    for interref in doc['interref_repos']:
+        url = remote_doc + interref
+        str_inter += f"    '{interref}':\n"
+        str_inter += f"        ('{url}',"
+        if interref in doc['builddir']:
+            url = path.abspath(path.join(doc['builddir'][interref], "html", "objects.inv"))
+            str_inter += f"\n         ('{url}', None)),\n"
+        else:
+            str_inter += " None),\n"
+    config_f = config_f.replace(f"$intersphinx_mapping$", str_inter)
+
     config_f = config_f.replace("$project$", doc['project'])
     config_f = config_f.replace("$description$", doc['description'])
     with open(conf_file, "w") as f:
@@ -992,6 +1012,8 @@ def custom_doc(directory, extra, no_parallel_, open_, builder, https):
         doc['config'] = {}
     if 'sourcedir' not in doc:
         doc['sourcedir'] = {}
+    if 'builddir' not in doc:
+        doc['builddir'] = {}
     if 'entry-point' not in doc:
         doc['entry-point'] = {}
     if 'custom' not in doc:
