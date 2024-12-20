@@ -158,7 +158,8 @@ class unique_ids(SphinxTransform):
         # and deprecates traverse (returns a list).
         # Sphinx 7.1.2 requires Docutils >= 0.18.1
         for node in self.document.findall():
-            if 'ids' in node and node['ids']:
+            if (not isinstance(node, nodes.Text) and
+                'ids' in node and node['ids']):
                 make_unique_id(node, node['ids'][0])
 
 
