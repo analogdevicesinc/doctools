@@ -92,11 +92,11 @@ To serve the build in a local server, Python built-in server can be used:
 
    $python -m http.server -d /path/to/docs/_build/html
 
-Or with hot reload using :ref:`author-mode`:
+Or with hot reload using :ref:`serve`:
 
 .. shell::
 
-   $adoc author-mode -d /path/to/docs
+   $adoc serve -d /path/to/docs
 
 .. _ci-rolling-release:
 

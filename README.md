@@ -28,7 +28,7 @@ The generated documentation will be available at `docs/_build/html` and it
 provides information about the `adoc` command line tool and general documentation
 guidelines.
 
-In summary, the `author-mode` allows to live reload the documentation when editing
+In summary, the `serve` allows to live reload the documentation when editing
 the docs, and `aggregate` to generate an aggregated documentation of the multiple
 repositories.
 

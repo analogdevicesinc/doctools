@@ -177,12 +177,12 @@ required for the PDF build.
    the HTML pages of documentation. If not set, some components of the pages
    may not render properly.
 
-Alternatively, WeasyPrint can be used with :ref:`author-mode` with this command:
+Alternatively, WeasyPrint can be used with :ref:`serve` with this command:
 
 .. shell::
 
    ~/some_repository/docs
-   $adoc author-mode --directory . --builder pdf
+   $adoc serve --directory . --builder pdf
 
 The advantage of WeasyPrint is that the design styles (CSS stylesheet) is
 respected.
@@ -197,7 +197,7 @@ For example, to render content during build that would instead be rendered with
 third-party JavaScript libraries in the user browser.
 
 Still, another approach is to patch the generated html, like is done at
-:git-doctools:`adi_doctools/cli/aux_print.py` for :ref:`author-mode` and
+:git-doctools:`adi_doctools/cli/aux_print.py` for :ref:`serve` and
 :ref:`custom-doc` with pdf builders.
 
 .. _local_refs:

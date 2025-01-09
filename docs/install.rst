@@ -92,7 +92,7 @@ At the repository root, install the `npm` dependencies locally:
 
 If you choose to not use ``npm``, you can obtain pre-built web-scripts from the
 latest release.
-For that, just run :ref:`author-mode` after the repository is installed and
+For that, just run :ref:`serve` after the repository is installed and
 confirm the prompt that will appear.
 
 Fetch third-party resources
