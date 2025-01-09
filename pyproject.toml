@@ -30,6 +30,7 @@ dependencies = [
     "lxml",
     "click",
     "pygments >= 2.7",
+    "PyYAML",
 ]
 requires-python = ">=3.8"
 dynamic = ["version"]
