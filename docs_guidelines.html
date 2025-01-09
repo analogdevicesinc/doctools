@@ -7,7 +7,7 @@
 
     <title>Documentation guidelines &#8212; Doctools  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8e8a900e" />
-    <link rel="stylesheet" type="text/css" href="_static/style.min.css?v=7f94efc5" />
+    <link rel="stylesheet" type="text/css" href="_static/style.min.css?v=a9555194" />
     <script src="_static/documentation_options.js?v=5929fcd5"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
@@ -142,6 +142,7 @@
 </li>
 <li><a class="reference internal" href="#clear-content-directive">Clear content directive</a></li>
 <li><a class="reference internal" href="#shell-directive">Shell directive</a></li>
+<li><a class="reference internal" href="#svg-directive">SVG directive</a></li>
 <li><a class="reference internal" href="#hdl-build-status-directive">HDL build status directive</a></li>
 <li><a class="reference internal" href="#hdl-parameters-directive">HDL parameters directive</a></li>
 <li><a class="reference internal" href="#hdl-interface-directive">HDL interface directive</a></li>
@@ -604,7 +605,7 @@ and emphasizing lines.</p>
 </pre></div>
 </div>
 <p>Renders as</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span><span class="k">def</span> <span class="nf">hello_world</span><span class="p">():</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span><span class="k">def</span><span class="w"> </span><span class="nf">hello_world</span><span class="p">():</span>
 <span class="hll"><span class="linenos">2</span>    <span class="n">string</span> <span class="o">=</span> <span class="s2">&quot;Hello world&quot;</span>
 </span><span class="linenos">3</span>    <span class="nb">print</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
 </pre></div>
@@ -859,8 +860,8 @@ example:</p>
 </pre></div>
 </div>
 <p>Renders as:</p>
-<div class="literal-block-wrapper docutils container" id="id4">
-<div class="code-block-caption"><span class="caption-text">iio_reg help</span><a class="headerlink" href="#id4" title="Link to this code"></a></div>
+<div class="literal-block-wrapper docutils container" id="id5">
+<div class="code-block-caption"><span class="caption-text">iio_reg help</span><a class="headerlink" href="#id5" title="Link to this code"></a></div>
 <div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>user@analog:~$
 </pre></div>
 </div>
@@ -1014,8 +1015,28 @@ real 7m54.11s user 0.29s sys 8.94s
 </pre></div>
 </div>
 <div class="clear-left"></div></div></div></section>
+<section id="svg-directive">
+<span id="id3"></span><h3>SVG directive<a class="headerlink" href="#svg-directive" title="Link to this heading"></a></h3>
+<p>The SVG directive embeds a SVG image directly onto the page, having it share
+the same DOM sandbox as the page.</p>
+<p>This allows the SVG image to contain links and interactive content, such as
+hover effects.</p>
+<p>The syntax is:</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="c">.. svg: &lt;file&gt;</span>
+<span class="c">   :align: [left,center,right]</span>
+
+<span class="c">   &lt;caption&gt;</span>
+</pre></div>
+</div>
+<p>At it’s core, for the HTML builder, it is somewhat equivalent to:</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="c">.. raw: html</span>
+<span class="c">   :file: path</span>
+</pre></div>
+</div>
+<p>But have the proper hooks for future implementation for other outputs (LaTeX, etc.).</p>
+</section>
 <section id="hdl-build-status-directive">
-<span id="id3"></span><h3>HDL build status directive<a class="headerlink" href="#hdl-build-status-directive" title="Link to this heading"></a></h3>
+<span id="id4"></span><h3>HDL build status directive<a class="headerlink" href="#hdl-build-status-directive" title="Link to this heading"></a></h3>
 <p>The HDL build status directive gets information from a markdown formatted status
 table (<em>output.md</em>) and generates a table with the build statuses.</p>
 <p>The directive syntax is:</p>
