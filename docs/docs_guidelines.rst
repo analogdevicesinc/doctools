@@ -908,6 +908,35 @@ Renders to:
     0+60640 records in 0+60640 records out 7948206080 bytes (7.9 GB) copied, 571.766 s, 13.9 MB/s
     real 7m54.11s user 0.29s sys 8.94s
 
+.. _svg-directive:
+
+SVG directive
+~~~~~~~~~~~~~
+
+The SVG directive embeds a SVG image directly onto the page, having it share
+the same DOM sandbox as the page.
+
+This allows the SVG image to contain links and interactive content, such as
+hover effects.
+
+The syntax is:
+
+.. code:: rst
+
+   .. svg: <file>
+      :align: [left,center,right]
+
+      <caption>
+
+At it's core, for the HTML builder, it is somewhat equivalent to:
+
+.. code:: rst
+
+   .. raw: html
+      :file: path
+
+But have the proper hooks for future implementation for other outputs (LaTeX, etc.).
+
 .. _hdl build-status-directive:
 
 HDL build status directive

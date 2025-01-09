@@ -657,6 +657,76 @@ class directive_shell(SphinxDirective):
         return lit
 
 
+class directive_svg(SphinxDirective):
+    """
+    Embeds a svg image source code onto the page.
+    The advantage is that the svg and the page share the same DOM sandbox,
+    allowing the svg to contain links, and interactive elements such as
+    hover effects.
+    """
+    def align(argument):
+        return directives.choice(argument, directive_video.align_h_values)
+
+    has_content = True
+    add_index = True
+    final_argument_whitespace = True
+
+    align_h_values = ('left', 'center', 'right')
+
+    option_spec = {
+        'align': align
+    }
+    required_arguments = 1
+    optional_arguments = 0
+
+    def run(self):
+        figure_node = node_div(
+            classes=['svg']
+        )
+        if self.state.document.settings.file_insertion_enabled:
+            try:
+                f = open(self.arguments[0].strip())
+                svg_raw = f.read()
+                svg = nodes.raw('fsdf', svg_raw, format='html')
+                figure_node += svg
+            except Exception as e:
+                logger.warning(e)
+
+        align = self.options.pop('align', None)
+        if align is not None:
+            # TODO figure out visit_table to use correct node['align']
+            figure_node['classes'].append('align-' + align)
+
+        # From: https://sourceforge.net/p/docutils/code/HEAD/tree/trunk/docutils/docutils/parsers/rst/directives/images.py#l110
+        if self.content:
+            # optional caption (single paragraph or empty comment)
+            # + optional legend (arbitrary body elements).
+            node = nodes.Element()          # anonymous container for parsing
+            self.state.nested_parse(self.content, self.content_offset, node)
+            for i, child in enumerate(node):
+                # skip temporary nodes that will be removed by transforms
+                if isinstance(child, (nodes.target, nodes.pending)):
+                    figure_node += child
+                    continue
+                if isinstance(child, nodes.paragraph):
+                    caption = nodes.caption(child.rawsource, '',
+                                            *child.children)
+                    caption.source = child.source
+                    caption.line = child.line
+                    figure_node += caption
+                    break
+                if isinstance(child, nodes.comment) and len(child) == 0:
+                    break
+                error = self.reporter.error(
+                    'SVG caption must be a paragraph or empty comment.',
+                    nodes.literal_block(self.block_text, self.block_text),
+                    line=self.lineno)
+                return [figure_node, error]
+            if len(node) > i+1:
+                figure_node += nodes.legend('', *node[i+1:])
+
+        return [figure_node]
+
 def common_setup(app):
     app.add_directive('collapsible', directive_collapsible)
     app.add_directive('video', directive_video)
@@ -664,6 +734,7 @@ def common_setup(app):
     app.add_directive('grid', directive_grid)
     app.add_directive('clear-content', directive_clear_content)
     app.add_directive('shell', directive_shell)
+    app.add_directive('svg', directive_svg)
 
     app.add_config_value('hide_collapsible_content',
                          dft_hide_collapsible_content, 'env')

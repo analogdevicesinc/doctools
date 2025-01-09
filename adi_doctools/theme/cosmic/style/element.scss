@@ -81,7 +81,7 @@ img {
 }
 
 @media (min-width: variable.$screen-1) {
-    .body img, .body figure {
+    .body img, .body figure, .body .svg {
         display: block;
         margin: 0 auto;
         max-width: 100%;
@@ -104,7 +104,7 @@ img {
 }
 
 @media print {
-    .body img, .body figure {
+    .body img, .body figure, .body .svg {
         display: block;
         margin: 0 auto;
         max-width: 100%;
@@ -148,12 +148,14 @@ img {
 }
 
 @media (prefers-color-scheme: dark) {
-    body:not(.light) .body img {
+    body:not(.light) .body img,
+    body:not(.light) .body svg {
         background: #fff;
         border-radius: variable.$border-radius;
     }
 }
-body.dark .body img {
+body.dark .body img,
+body.dark .body svg {
     background: #fff;
     border-radius: variable.$border-radius;
 }
@@ -308,7 +310,7 @@ iframe {
     }
 }
 
-.image-reference {
+.image-reference, .svg p {
     text-align: center;
 }
 

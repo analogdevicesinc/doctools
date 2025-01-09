@@ -192,6 +192,7 @@ body {
 svg {
     display: block;
     margin: 0 auto;
+    max-width: 100%;
 }
 
 .body table {
@@ -207,22 +208,10 @@ svg {
     }
 }
 
-@media (max-width: variable.$screen-1) {
-    svg {
-        max-width: 100%;
-    }
-}
-
 @media print {
     #hdl-component-diagram svg {
         float: right;
         margin: -3em 0 0 1em;
         max-width: 45%;
-    }
-}
-
-@media print {
-    svg {
-        max-width: 100%;
     }
 }
