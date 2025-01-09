@@ -923,7 +923,7 @@ The syntax is:
 
 .. code:: rst
 
-   .. svg: <file>
+   .. svg:: <file>
       :align: [left,center,right]
 
       <caption>
@@ -932,7 +932,7 @@ At it's core, for the HTML builder, it is somewhat equivalent to:
 
 .. code:: rst
 
-   .. raw: html
+   .. raw:: html
       :file: path
 
 But have the proper hooks for future implementation for other outputs (LaTeX, etc.).
