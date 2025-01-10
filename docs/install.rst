@@ -71,8 +71,8 @@ Install the web compiler
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you care about the web scripts (`js modules`) and style sheets (`sass`),
-install ``npm`` and the ``npm`` packages below, if not, read this section's
-last paragraph.
+install ``node.js``, ``npm`` and the ``npm`` packages below, if not, read this
+section's last paragraph.
 
 .. note::
 

@@ -2,7 +2,7 @@ from os import path, listdir, remove, mkdir
 from os import pardir, killpg, getpgid
 from os import environ
 from os import chdir, getcwd
-from shutil import copy
+from shutil import copy, which
 import click
 import importlib
 
@@ -16,10 +16,11 @@ log = {
     'inv_srcdir': "Could not find SOURCEDIR {}.",
     'no_selenium': "Package 'selenium' is not installed.",
     'rollup': "Couldn't find {}, ensure this a symbolic install.",
-    'node': "Couldn't find {}, please install the npm tools locally.",
+    'node': "Couldn't find the node executable, please install node.js/npm.",
+    'node_': "Couldn't find {}, please install the node tools locally.",
     'comp': "Couldn't find the minified web files ",
-    'no_npm': "and the npm tools are not installed.",
-    'with_npm': "run with the --just-regen flag (npm detected).",
+    'no_npm': "and the node.js tools are not installed.",
+    'with_npm': "run with the --just-regen flag (node.js detected).",
     'fetch': "Do you want to fetch from the release?",
     'builder': "Unknown builder '{}', valid options are: html, pdf.",
     'no_weasyprint': "Package 'weasyprint' required for PDF generation is not installed.",
@@ -171,9 +172,12 @@ def serve(directory, port, dev, selenium, once, builder):
     rollup_bin = path.join(par_dir, 'node_modules', '.bin', 'rollup')
     rollup_conf = path.join(par_dir, 'ci', 'rollup.config.app.mjs')
     if dev:
+        if which("node") is None:
+            click.echo(log['npm'])
+            return
         if symbolic_assert(rollup_conf, log['rollup'].format(rollup_conf)):
             return
-        if symbolic_assert(rollup_bin, log['node'].format(rollup_bin)):
+        if symbolic_assert(rollup_bin, log['node_'].format(rollup_bin)):
             return
     else:
         compiled = path.join(src_dir, 'theme', 'cosmic', 'static')
