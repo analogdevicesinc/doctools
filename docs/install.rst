@@ -44,8 +44,8 @@ To create and activate the environment, do before the previous instructions:
 
 .. shell::
 
-   $python3 -m venv ./venv
-   $source ./venv/bin/activate
+   $python3 -m venv venv
+   $source venv/bin/activate
 
 Use ``deactivate`` to exit the virtual environment.
 
@@ -53,7 +53,7 @@ For next builds, just activate the virtual environment:
 
 .. shell::
 
-   $source ./venv/bin/activate
+   $source venv/bin/activate
 
 .. _development-install:
 
@@ -112,6 +112,15 @@ Finally, do a symbolic install of this repo:
 .. shell::
 
    $pip install -e . --upgrade
+
+.. caution::
+
+   If using a python virtual enviroment for the *requirements.txt* packages.
+   do this command with the virtual enviroment already activated.
+
+   Mixing pip packages inside and outside the virtual enviroment will cause
+   packages outside of the enviroment to not have access to the packages inside
+   of it, breaking most CLIs.
 
 .. _removing:
 
