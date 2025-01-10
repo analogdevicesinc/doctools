@@ -211,7 +211,6 @@ class hdl_component():
         viewbox_y = ip_height + margin*2
         root.set('viewBox', f"0 0 {viewbox_x} {viewbox_y}")
         root.set('width', str(viewbox_x))
-        root.set('height', str(viewbox_y))
 
         text_y = viewbox_y/2.5
         text_x = viewbox_x/2
