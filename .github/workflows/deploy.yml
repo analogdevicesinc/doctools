@@ -175,7 +175,8 @@ jobs:
         find . -name objects.inv -exec sh -c 'dirname {}' ';' |
         cut -c 3- |
         jq --raw-input . |
-        jq --slurp . > tags.json
+        jq --slurp . |
+        sort > tags.json
 
     - name: Commit and push to gh-pages
       run: |
