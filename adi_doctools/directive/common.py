@@ -234,7 +234,6 @@ class directive_base(Directive):
 
 
 class directive_collapsible(directive_base):
-    option_spec = {'path': directives.unchanged}
     required_arguments = 1
     optional_arguments = 0
 
