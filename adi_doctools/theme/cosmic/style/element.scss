@@ -154,8 +154,8 @@ img {
         border-radius: variable.$border-radius;
     }
 }
-body.dark .body img,
-body.dark .body svg {
+body.dark .body img:not(.no-background),
+body.dark .body svg:not(.no-background) {
     background: #fff;
     border-radius: variable.$border-radius;
 }

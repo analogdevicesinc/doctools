@@ -158,7 +158,7 @@ class hdl_component():
         viewbox_y = margin*5 + max_num*(font_size+text_vertical_margin)
         root.set('viewBox', f"0 0 {viewbox_x} {viewbox_y}")
         root.set('width', str(viewbox_x))
-        root.set('height', str(viewbox_y))
+        root.set('class', 'no-background')
 
         etree.SubElement(root, "rect", attrib={
             'x': str(margin), 'y': str(margin),
@@ -211,6 +211,7 @@ class hdl_component():
         viewbox_y = ip_height + margin*2
         root.set('viewBox', f"0 0 {viewbox_x} {viewbox_y}")
         root.set('width', str(viewbox_x))
+        root.set('class', 'no-background')
 
         text_y = viewbox_y/2.5
         text_x = viewbox_x/2
