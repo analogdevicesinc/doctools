@@ -16,11 +16,12 @@ log = {
     'inv_srcdir': "Could not find SOURCEDIR {}.",
     'no_selenium': "Package 'selenium' is not installed.",
     'rollup': "Couldn't find {}, ensure this a symbolic install.",
-    'node': "Couldn't find the node executable, please install node.js/npm.",
-    'node_': "Couldn't find {}, please install the node tools locally.",
-    'comp': "Couldn't find the minified web files ",
-    'no_npm': "and the node.js tools are not installed.",
-    'with_npm': "run with the --just-regen flag (node.js detected).",
+    'node': "Couldn't find the node executable, please install nodejs.",
+    'node_alt': "And the node executable is not installed.",
+    'node_': "Couldn't find {}, please install the node_modules at doctools repo root.",
+    'comp': "Couldn't find the minified web files.",
+    'no_node_modules': "The node_modules tools are not installed to generate them.",
+    'with_node_modules': "node_modules tools are installed, run with the --dev --once flags to generate them.",
     'fetch': "Do you want to fetch from the release?",
     'builder': "Unknown builder '{}', valid options are: html, pdf.",
     'no_weasyprint': "Package 'weasyprint' required for PDF generation is not installed.",
@@ -173,7 +174,7 @@ def serve(directory, port, dev, selenium, once, builder):
     rollup_conf = path.join(par_dir, 'ci', 'rollup.config.app.mjs')
     if dev:
         if which("node") is None:
-            click.echo(log['npm'])
+            click.echo(log['node'])
             return
         if symbolic_assert(rollup_conf, log['rollup'].format(rollup_conf)):
             return
@@ -181,12 +182,16 @@ def serve(directory, port, dev, selenium, once, builder):
             return
     else:
         compiled = path.join(src_dir, 'theme', 'cosmic', 'static')
-        compiled = path.abspath(path.join(compiled, 'app.umd.js'))
-        if not path.isfile(compiled):
-            if symbolic_assert(rollup_bin, log['comp'] + log['no_npm']):
+        comp_js = path.abspath(path.join(compiled, 'app.umd.js'))
+        comp_css = path.abspath(path.join(compiled, 'style.min.css'))
+        if not path.isfile(comp_js) or not path.isfile(comp_css):
+            click.echo(log['comp'])
+            if which("node") is None:
+                click.echo(log['node_alt'])
+            elif symbolic_assert(rollup_bin, log['no_node_modules']):
                 pass
             else:
-                click.echo(log['comp'] + log['with_npm'])
+                click.echo(log['with_node_modules'])
                 return
             if click.confirm(log['fetch']):
                 if fetch_compiled(par_dir):
