@@ -15,8 +15,8 @@ def theme_config_setup(app):
     app.add_config_value('repository', None, 'env', [str])
     # Prefix paths with *repos/<repo>*
     app.add_config_value('monolithic', False, 'env', [bool])
-    # Generate auxiliary metadata files
-    app.add_config_value('export_metadata', False, 'env', [bool])
+    # Include sources of metadata, scripts, and styles
+    app.add_config_value('core_repo', False, 'env', [bool])
     # Hide topics from the toctree expect the current one
     app.add_config_value('filter_toctree', None, 'env', [bool])
     # Setup meta tag with target depth
@@ -59,7 +59,8 @@ def config_inited(app, config):
 
 def build_finished(app, exc):
     if app.builder.format == 'html' and not exc:
-        if app.env.config.export_metadata:
+        if app.env.config.core_repo:
+            from sphinx.util.fileutil import copy_asset_file
             import json
 
             repos = {}
@@ -73,6 +74,25 @@ def build_finished(app, exc):
             metadata = {'repotoc': repos}
             if app.lut['banner']['msg'] is not None:
                 metadata['banner'] = app.lut['banner']
+
+            # Extra JavaScript modules
+            build_uri = path.join(app.builder.outdir, '_static')
+            src_uri = path.join(path.dirname(__file__), 'cosmic', 'static')
+            if app.lut['modules']['javascript'] is not None:
+                if 'modules' not in metadata:
+                    metadata['modules'] = {}
+                metadata['modules']['javascript'] = app.lut['modules']['javascript']
+                for m in app.lut['modules']['javascript']:
+                    copy_asset_file(path.join(src_uri, m),
+                                    path.join(build_uri, m))
+            if app.lut['modules']['stylesheet'] is not None:
+                if 'modules' not in metadata:
+                    metadata['modules'] = {}
+                metadata['modules']['stylesheet'] = app.lut['modules']['stylesheet']
+                for m in app.lut['modules']['stylesheet']:
+                    copy_asset_file(path.join(src_uri, m),
+                                    path.join(build_uri, m))
+
             file = path.join(app.builder.outdir, 'metadata.json')
             with open(file, 'w') as f:
                 json.dump(metadata, f, indent=4)

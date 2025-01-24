@@ -11,6 +11,7 @@ class Navigation {
     this.currentTheme = localStorage.getItem('theme')
     this.contentRoot = this.getContentRoot()
     this.globalRoot = this.getGlobalRoot()
+    this.subHosted = this.validateGlobalRoot()
     this.scrollSpy = {
       localtoc: new Map(),
       currentLocaltoc: undefined
@@ -21,6 +22,7 @@ class Navigation {
 
     let $ = this.$ = {}
     $.body = new DOM(DOM.get('body'))
+    $.head = new DOM(DOM.get('head'))
     $.content = new DOM(DOM.get('.body section'))
     $.localtoc = new DOM(DOM.get('.tocwrapper > nav > ul > li'))
     this.initScrollSpy()
@@ -184,7 +186,20 @@ class Navigation {
    * Get relative path to the global root
    */
   getGlobalRoot () {
-    return document.querySelector('meta[name="global_root"]').content
+    let root = document.querySelector('meta[name="global_root"]').content
+    if (root.startsWith('./'))
+      root = root.substring(2)
+    return root
+  }
+  /*
+   * Checks if applying the global root depth it doesn't "overflow",
+   * e.g., this is ok:
+   * hdl/../doctools -> doctools
+   * and this is not
+   * ./../doctools !-> doctools
+   */
+  validateGlobalRoot () {
+    return Toolbox.getDepth(this.globalRoot) < Toolbox.getDepth(Toolbox.cleanPathname(location.pathname))
   }
   /* Search shortcut */
   search (e) {
@@ -248,6 +263,11 @@ class Navigation {
       return
     }
 
+    if (!this.subHosted) {
+      console.log("navigation: dynamic features are not available for single hosted doc")
+      return
+    }
+
     /* Get dynamic elements */
     let $ = this.$
     $.repotocTreeOverlay = new DOM(DOM.get('.repotoc-tree.overlay root'))
@@ -259,6 +279,8 @@ class Navigation {
           this.dynamicRepoToc(j['repotoc'])
         if ('banner' in j)
           this.dynamicBanner(j['banner'])
+        if ('modules' in j)
+          this.dynamicModules(j['modules'])
     }
 
     /* Fetch metadata */
@@ -358,6 +380,32 @@ class Navigation {
         'innerText': obj['a_text'],
         'target': '_blank'
       }))
+  }
+
+  /**
+   * Inject any JavaScript and CSS StyleSheet listed on the metadata.
+   * The advantage is to load the latest and greatest scripts, regardless
+   * of the tools' built doc version.
+   */
+  dynamicModules (obj) {
+    if ('javascript' in obj) {
+      obj['javascript'].forEach((elem) => {
+        let script = new DOM('script', {
+          'src': `${this.globalRoot}doctools/_static/${elem}`
+        });
+        this.$.head.append(script)
+      })
+    }
+    if ('stylesheet' in obj) {
+      obj['stylesheet'].forEach((elem) => {
+        let style = new DOM('link', {
+          'rel': 'stylesheet',
+          'type': 'text/css',
+          'href': `${this.globalRoot}doctools/_static/${elem}`
+        });
+        this.$.head.append(style)
+      })
+    }
   }
   /**
    * Set items state.

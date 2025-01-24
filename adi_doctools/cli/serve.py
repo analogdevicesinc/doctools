@@ -18,7 +18,12 @@ log = {
     'rollup': "Couldn't find {}, ensure this a symbolic install.",
     'node': "Couldn't find the node executable, please install nodejs.",
     'node_alt': "And the node executable is not installed.",
-    'node_': "Couldn't find {}, please install the node_modules at doctools repo root.",
+    'node_': """Couldn't find {}, please install the node_modules at doctools repo root, e.g.:
+    npm install rollup \\
+        @rollup/plugin-terser \\
+        rollup-plugin-scss \\
+        sass \\
+        --save-dev""",
     'comp': "Couldn't find the minified web files.",
     'no_node_modules': "The node_modules tools are not installed to generate them.",
     'with_node_modules': "node_modules tools are installed, run with the --dev --once flags to generate them.",

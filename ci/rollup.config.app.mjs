@@ -1,7 +1,7 @@
 import terser from '@rollup/plugin-terser'
 import scss from "rollup-plugin-scss"
 
-let path = "adi_doctools/theme/cosmic/"
+let path = "adi_doctools/theme/cosmic"
 
 export default [{
   input: `${path}/scripts/app.js`,
@@ -20,4 +20,20 @@ export default [{
       sourceMap: true
     })
   ]
-}]
+},
+/*
+ * Example of extra module
+ * See also: adi_doctools/lut.py
+ {
+  input: `${path}/scripts/extra.js`,
+  output: {
+    file: `${path}/static/extra.umd.js`,
+    format: "umd",
+    name: "Extra",
+    sourcemap: true
+  },
+  plugins: [
+    terser()
+  ]
+}*/
+]

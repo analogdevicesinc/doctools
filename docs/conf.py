@@ -27,7 +27,7 @@ source_suffix = '.rst'
 
 # -- Custom extensions configuration ------------------------------------------
 
-export_metadata = True
+core_repo = True
 
 #  -- Options for PDF output --------------------------------------------------
 # draft comment, future options for exporting to PDF

@@ -6,16 +6,23 @@ export {Toolbox}
  * Provides useful generic functions.
  */
 class Toolbox {
+  /**
+   * Get random char.
+   */
+  static randomChar () {
+    const alphabet = "abcdefghijklmnopqrstuvwxyz"
+    return alphabet[Math.floor(Math.random() * alphabet.length)]
+  }
  /**
   * Generate a unique identifier.
   */
-  static UID (){
+  static UID () {
     return this.randomChar() + (+new Date).toString(36) + Math.random().toString(36).substring(3)
   }
  /**
   * Generate a small non-timed identifier.
   */
-  static SID (){
+  static SID () {
     return this.randomChar() + (Math.random()).toString(36).substring(3,8)
   }
   /**
@@ -23,7 +30,7 @@ class Toolbox {
    * @param {string} _param - Parameter to search in the array.
    * @return Requested parameter.
    */
-  static fromUrl (_param){
+  static fromUrl (_param) {
     let param = new URLSearchParams(document.location.search)
     return param.get(_param) == null ?
       this.urlDefaults(_param) : this.urlValidParams(_param, param.get(_param))
@@ -33,7 +40,7 @@ class Toolbox {
    * @param {string} _param - Parameter to return the default.
    * @return Default parameter.
    */
-  static urlDefaults (_param){
+  static urlDefaults (_param) {
     switch (_param) {
       case 'theme':
         return 'light'
@@ -42,10 +49,20 @@ class Toolbox {
   /**
    * Valid parameters, if a invalid is passed, will return the default.
    */
-  static urlValidParams (_param, value){
+  static urlValidParams (_param, value) {
     switch (_param) {
       case 'theme':
         return ['dark', 'light'].includes(value) ? value : this.urlDefaults(_param)
     }
   }
+  static cleanPathname (_pathname) {
+    return _pathname.replace(/([^:]\/)\/+/g, "$1").replace(/[^:]\.\//g, "$1")
+  }
+  /**
+   * Get the depth of a path name.
+   */
+  static getDepth (_pathname) {
+    return (_pathname.match(/\//g)||[]).length
+  }
+
 }

@@ -135,7 +135,6 @@ source_suffix = '.rst'
 
 # -- Custom extensions configuration ------------------------------------------
 
-export_metadata = True
 monolithic = True
 
 # -- Options for HTML output --------------------------------------------------

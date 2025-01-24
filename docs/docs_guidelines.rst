@@ -1249,23 +1249,41 @@ And will be rendered as sections of the page.
 Dynamic elements
 --------------------------------------------------------------------------------
 
-Dynamic elements refer to sections of the generated webpage that updates when
-loaded online from a source of truth, in general, ``doctools/*.json`` files;
-it uses a concept similar to "react components".
+Dynamic elements refer to sections of the documentation that are updated using
+dynamically loaded metadata, scripts, and styles (modules).
 
-These ``*.json`` files are generated when ``export_metadata`` is true in the
+The dynamic elements implemented:
+
+* ``doctools/metadata.json``:
+
+   - The navigation bar at the top (``repotoc`` entry).
+   - A banner at the top (``banner`` entry).
+
+The metadata/modules files are generated when ``core_repo`` is true in the
 ``conf.py``.
-From the JavaScript side, it fetches from
-``{content_root}[../versioned]/../doctools/[versioned]/metadata.json``.
+From the JavaScript side, it fetches first
+``{content_root}[../versioned]/../doctools/[versioned]/metadata.json``,
+which contains the basic metadata and the list of the extra scripts and styles.
 
 .. note::
 
    path ``version`` is present and set if ``latest`` exists at
    ``{content_root}/../doctools`` and the stored version can be extracted.
 
-The dynamic elements are:
+.. tip::
 
-* The navigation bar at the top is updated using the ``repotoc`` entry
-  in ``doctools/metadata.json``.
-* A banner at the top is present/updated when the ``banner`` entry
-  in ``doctools/metadata.json`` exists.
+   To keep the documentation lean, the metadata file is cached on localStorage
+   and is only fetched again after the threshold time expires.
+
+To add new JavaScript modules and CSS styles:
+
+* Update :git-doctools:`ci/rollup.config.app.mjs`.
+* Add the list of modules to :git-doctools:`adi_doctools/lut.py`.
+
+The rollup should always output to the ``static`` directory, the same as the
+base ``app.umd.js`` and ``style.min.css``.
+
+Example use cases/suggestions:
+
+* An ever improving ``search.umd.js``, that follows the natural evolution of the doc.
+* A unified footer accross releases, using DOM manipulation by a ``footer.umd.js``.

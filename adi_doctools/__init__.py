@@ -117,7 +117,6 @@ def build_finished(app, exc):
 
         copy_asset(app, "esd-warning.svg")
 
-
 class unique_ids(SphinxTransform):
     """
     Suffix IDs/anchors to make them unique, e.g.

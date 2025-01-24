@@ -7,6 +7,11 @@ class Banner(TypedDict):
     a_text: str
 
 
+class Modules(TypedDict):
+    javascript: Optional[List[str]]
+    stylesheet: Optional[List[str]]
+
+
 class Repo(TypedDict):
     doc_folder: str
     name: str
@@ -22,6 +27,7 @@ class LUT(TypedDict):
     remote_https: str
     repos: Dict[str, Repo]
     banner: Banner
+    modules: Modules
 
 
 remote_ssh = "git@github.com:analogdevicesinc/{}.git"
@@ -102,10 +108,25 @@ banner = Banner(
     a_text=''
 )
 
+"""
+Allows to inject extra scripts and stylesheets on the hosted documentation.
+The app.js looks the metadata.json and insert tags to load each module of the array.
+All files must be (generated) at the theme static folder, to be copied over the
+documentation build.
+The advantage of this approach is that regardless of the tools' built doc version,
+it will always fetch the latest and greatest.
+See also: ci/rollup.config.app.mjs
+"""
+modules = Modules(
+    javascript=None, # ['extra.umd.js'],
+    stylesheet=None
+)
+
 
 def get_lut():
     # TODO dynamic lut fetch
     return LUT(remote_ssh=remote_ssh,
                remote_https=remote_https,
                repos=repos,
-               banner=banner)
+               banner=banner,
+               modules=modules)
