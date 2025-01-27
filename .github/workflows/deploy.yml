@@ -173,10 +173,9 @@ jobs:
       run: >
         touch .nojekyll ;
         find . -name objects.inv -exec sh -c 'dirname {}' ';' |
-        cut -c 3- |
+        cut -c 3- | sort |
         jq --raw-input . |
-        jq --slurp . |
-        sort > tags.json
+        jq --slurp . > tags.json
 
     - name: Commit and push to gh-pages
       run: |
