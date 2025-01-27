@@ -104,7 +104,8 @@ def svpkg_regmap(f, regmap: Dict, key: str):
                 f.write(row)
 
         f.write(svpkg_fn_new1)
-        f.write("    endclass\n\n")
+        row = f"    endclass: {reg['name']}_CLASS\n\n"
+        f.write(row)
 
 
 def svpkg_head(f, key: str, regmap: Dict):
@@ -178,9 +179,11 @@ def svpkg_reg_inst(f, regmap: Dict):
             f.write(row)
 
 
-def svpkg_footer(f):
-    f.write("  endclass;\n")
-    f.write("endpackage\n")
+def svpkg_footer(f, key: str, regmap: Dict):
+    pkgname = f"adi_regmap_{key}_pkg"
+    classname = f"adi_regmap_{key}"
+    f.write(f"  endclass: {classname}\n\n")
+    f.write(f"endpackage: {pkgname}\n")
 
 
 def write_hdl_regmap(
@@ -202,9 +205,9 @@ def write_hdl_regmap(
     f.write("\n    function new();\n")
     for rm in regmap:
         svpkg_reg_inst(f, regmap[rm])
-    f.write("    endfunction: new;\n\n")
+    f.write("    endfunction: new\n\n")
 
-    svpkg_footer(f)
+    svpkg_footer(f, regmap[rm], rm)
 
     f.close()
 
@@ -255,7 +258,7 @@ def regmap_test_program(
         f.write(row)
 
     f.write("\n    $finish();\n\n")
-    f.write("  end;\n\n")
+    f.write("  end\n\n")
     f.write("endmodule\n")
 
     f.close()
