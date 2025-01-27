@@ -16,6 +16,7 @@ class Navigation {
       localtoc: new Map(),
       currentLocaltoc: undefined
     }
+    this.reloaded = this.isPageReloaded()
 
     let metaRepo = document.querySelector('meta[name="repo"]')
     this.repo = metaRepo ? metaRepo.content.split('/') : ['']
@@ -201,6 +202,16 @@ class Navigation {
   validateGlobalRoot () {
     return Toolbox.getDepth(this.globalRoot) < Toolbox.getDepth(Toolbox.cleanPathname(location.pathname))
   }
+  /*
+   * Detects if the page was reloaded by the user.
+   * This information is to use to force reload of cached content.
+   */
+  isPageReloaded () {
+    if (!window.performance)
+      return false
+
+    return (performance.navigation.type == performance.navigation.TYPE_RELOAD)
+  }
   /* Search shortcut */
   search (e) {
     if (e.key === '/' && !this.$.searchArea.classList.contains('on')) {
@@ -288,12 +299,12 @@ class Navigation {
     if (json !== null)
       json = JSON.parse(json)
 
-    let unix_day = new Date(0)
-    unix_day.setHours(3)
-    if (json === null || json['timestamp'] + unix_day.valueOf() < Date.now()) {
-      let metadata = `${this.globalRoot}doctools/metadata.json`
+    let cache_timeout = new Date(0)
+    cache_timeout.setHours(24)
+    if (this.reloaded || json === null || json['timestamp'] + cache_timeout.valueOf() < Date.now()) {
+      let fetch_url = `${this.globalRoot}doctools/metadata.json`
 
-      fetch(metadata, {
+      fetch(fetch_url, {
         method: 'Get',
         headers: {
           'Content-Type': 'application/json'
