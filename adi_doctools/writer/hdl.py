@@ -95,7 +95,7 @@ def svpkg_regmap(f, regmap: Dict, key: str):
 
                 row += '"'f", {bits}, {field['rw']}, {default}, this);""\n"
                 f.write(row)
-                
+
         row = "\n        this.initialization_done = 1;""\n"
         f.write(row)
 
@@ -210,6 +210,7 @@ def write_hdl_regmap(
 
     f.write("\n    function new(\n")
     f.write("      input string name,\n")
+    f.write("      input int address,\n")
     reg_param_dec = []
     for rm in regmap:
         for reg in regmap[rm]['regmap']:
@@ -222,7 +223,7 @@ def write_hdl_regmap(
         for reg_param in reg_param_dec:
             f.write(f"      input int {reg_param},\n")
     f.write("      input adi_api parent = null);\n\n")
-    f.write("      super.new(name, parent);\n\n")
+    f.write("      super.new(name, address, parent);\n\n")
     for rm in regmap:
         svpkg_reg_inst(f, regmap[rm])
     f.write("\n")
@@ -261,6 +262,7 @@ def regmap_test_program(
 
     for m in regmap:
         row = f"    adi_regmap_" + m + "_rm = new(\"" + m + "\""
+        row += f", 0"
         reg_param_dec = []
         for k in regmap[m]['subregmap']:
             for reg in regmap[m]['subregmap'][k]['regmap']:
