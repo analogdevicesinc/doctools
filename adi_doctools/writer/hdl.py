@@ -260,6 +260,8 @@ def regmap_test_program(
 
     f.write("\n  initial begin\n\n")
 
+    f.write("\n    setLoggerVerbosity(ADI_VERBOSITY_NONE);\n\n")
+
     for m in regmap:
         row = f"    adi_regmap_" + m + "_rm = new(\"" + m + "\""
         row += f", 0"
