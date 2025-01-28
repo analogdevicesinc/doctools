@@ -291,21 +291,21 @@ def serve(directory, port, dev, selenium, once, builder):
         # Check if minified files exists, if not, run rollup once
         rollup_cache = True
         for f in source_files:
-            f_ = path.abspath(path.join(src_dir, 'theme',
-                                        'cosmic', 'static', f))
-            w_files.append(f_)
-            if not path.isfile(w_files[-1]):
+            if not path.isfile(f):
                 rollup_cache = False
         if not rollup_cache:
             subprocess.call(f"{rollup_bin} -c {rollup_conf}",
                             shell=True, cwd=par_dir)
+        for t in ['*.umd.js*', '*.min.css*']:
+            f = glob.glob(path.join(src_dir, 'theme', 'cosmic', 'static', t))
+            w_files.extend(f)
         for f in w_files:
             if symbolic_assert(f, log['inv_f']):
                 return
 
         # Build doc the first time
         app.build()
-        for f, s in zip(w_files, source_files):
+        for f in w_files:
             watch_file_src[f] = path.getctime(f)
         if not once:
             # Run rollup in watch mode
@@ -438,8 +438,8 @@ def serve(directory, port, dev, selenium, once, builder):
             else:
                 app.build()
         if update_page:
-            for f, s in zip(w_files, source_files):
-                copy(f, path.join(builddir, '_static', s))
+            for f in w_files:
+                copy(f, path.join(builddir, '_static', path.basename(f)))
         if update_sphinx or update_page:
             if with_selenium:
                 try:

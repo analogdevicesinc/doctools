@@ -78,6 +78,13 @@
     }
 }
 
+@media (min-width: variable.$screen-1) and (max-width: variable.$screen-2) {
+    .search-area form {
+        margin-left: 17rem;
+        width: calc(100vw - 17rem);
+    }
+}
+
 @media (min-width: variable.$screen-3) {
     .search-area form {
         max-width: 62rem;

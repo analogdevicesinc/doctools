@@ -4,35 +4,28 @@ import {DOM} from './dom.js'
 import {Toolbox} from './toolbox.js'
 
 /* Handle navigation, theming, search, shortcuts */
-class Navigation {
-  constructor () {
+export class Navigation {
+  constructor (app) {
+    this.parent = app
+
     this.portrait = false
-    this.offline = 'file:' == window.location.protocol
-    this.currentTheme = localStorage.getItem('theme')
-    this.contentRoot = this.getContentRoot()
-    this.globalRoot = this.getGlobalRoot()
-    this.subHosted = this.validateGlobalRoot()
     this.scrollSpy = {
       localtoc: new Map(),
       currentLocaltoc: undefined
     }
-    this.reloaded = this.isPageReloaded()
-
-    let metaRepo = document.querySelector('meta[name="repo"]')
-    this.repo = metaRepo ? metaRepo.content.split('/') : ['']
 
     let $ = this.$ = {}
     $.body = new DOM(DOM.get('body'))
     $.head = new DOM(DOM.get('head'))
     $.content = new DOM(DOM.get('.body section'))
     $.localtoc = new DOM(DOM.get('.tocwrapper > nav > ul > li'))
-    this.initScrollSpy()
+    this.scroll_spy()
 
-    if (this.currentTheme === null)
-      this.currentTheme = this.getOSTheme()
+    if (this.parent.state.theme === null)
+      this.parent.state.theme = this.os_theme()
     $.body.classList.add('js-on')
-    if (this.currentTheme !== this.getOSTheme())
-      $.body.classList.add(this.currentTheme)
+    if (this.parent.state.theme !== this.os_theme())
+      $.body.classList.add(this.parent.state.theme)
 
 	  $.searchButton = new DOM('button', {
       id:'search',
@@ -45,17 +38,17 @@ class Navigation {
       $.searchInput.$.select()
     })
 	  $.changeTheme = new DOM('button', {
-      className: this.currentTheme === 'dark' ? 'icon on' : 'icon',
+      className: this.parent.state.theme === 'dark' ? 'icon on' : 'icon',
       id:'theme',
       title:'Switch theme'
     }).onclick(this, () => {
-      $.body.classList.remove(this.currentTheme)
-      this.currentTheme = this.currentTheme === 'dark' ? 'light' : 'dark'
-      if (this.getOSTheme() == this.currentTheme)
+      $.body.classList.remove(this.parent.state.theme)
+      this.parent.state.theme = this.parent.state.theme === 'dark' ? 'light' : 'dark'
+      if (this.os_theme() == this.parent.state.theme)
         localStorage.removeItem('theme')
       else {
-        localStorage.setItem('theme', this.currentTheme)
-        $.body.classList.add(this.currentTheme)
+        localStorage.setItem('theme', this.parent.state.theme)
+        $.body.classList.add(this.parent.state.theme)
       }
     })
 
@@ -75,11 +68,15 @@ class Navigation {
 
     $.relatedNext = DOM.get('.related .next')
     $.relatedPrev = DOM.get('.related .prev')
+
+    this.init()
+
+    app.navigation = this
   }
   /*
    * Initates scroll spy elements.
    */
-  initScrollSpy () {
+  scroll_spy () {
     if (this.$.localtoc.$ !== null) {
       this.prepareLocaltocMap()
     }
@@ -161,57 +158,6 @@ class Navigation {
       }
     }
   }
-  /*
-   * Get relative path to the root
-   * Dual fallback to support multiple Sphinx versions.
-   */
-  getContentRoot () {
-    let content_root
-    let dom = new DOM(DOM.get('script#documentation_options'))
-    if (dom.$ !== null)
-      content_root = dom.$.dataset['url_root'];
-    if (content_root == undefined)
-      content_root = DOM.get('html').dataset['content_root']
-    if (content_root == undefined) {
-      dom =  new DOM(DOM.get('.repotoc-tree .current'))
-      if (dom.$ !== null)
-        content_root = dom.$.getAttribute('href').replace('index.html', '')
-    }
-    if (content_root == undefined) {
-      console.warn("Failed to get content root.")
-      content_root = ''
-    }
-    return content_root
-  }
-  /*
-   * Get relative path to the global root
-   */
-  getGlobalRoot () {
-    let root = document.querySelector('meta[name="global_root"]').content
-    if (root.startsWith('./'))
-      root = root.substring(2)
-    return root
-  }
-  /*
-   * Checks if applying the global root depth it doesn't "overflow",
-   * e.g., this is ok:
-   * hdl/../doctools -> doctools
-   * and this is not
-   * ./../doctools !-> doctools
-   */
-  validateGlobalRoot () {
-    return Toolbox.getDepth(this.globalRoot) < Toolbox.getDepth(Toolbox.cleanPathname(location.pathname))
-  }
-  /*
-   * Detects if the page was reloaded by the user.
-   * This information is to use to force reload of cached content.
-   */
-  isPageReloaded () {
-    if (!window.performance)
-      return false
-
-    return (performance.navigation.type == performance.navigation.TYPE_RELOAD)
-  }
   /* Search shortcut */
   search (e) {
     if (e.key === '/' && !this.$.searchArea.classList.contains('on')) {
@@ -230,38 +176,42 @@ class Navigation {
   related (e) {
     if (!e.altKey || !e.shiftKey)
       return
+    e.preventDefault()
 
     /* Try to anchor to same section */
     let anchor = (e.ctrlKey && location.href.split('#').length > 1) ?
                  `#${location.href.split('#')[1]}` : ""
 
-    if (e.code == 'ArrowLeft' && this.$.relatedPrev)
+    if ((e.code == 'ArrowLeft' || e.code == 'KeyA') && this.$.relatedPrev)
       location.href = this.$.relatedPrev.href + anchor
-    else if (e.code == 'ArrowRight' && this.$.relatedNext)
+    else if ((e.code == 'ArrowRight' || e.code == 'KeyD') && this.$.relatedNext)
       location.href = this.$.relatedNext.href + anchor
   }
 
-  keyUp (e) {
-    switch (e.key) {
+  keyup (e) {
+    switch (e.code) {
       case 'ArrowLeft':
       case 'ArrowRight':
+      case 'KeyA':
+      case 'KeyD':
         this.related(e)
         break
-      case '/':
+      case 'IntlRo':
+      case 'Escape':
         this.search(e)
+        break
     }
-
-    if (e.code === 'Escape')
-      this.search(e)
   }
-  /**
-   * Init navigation.
-   */
-  init () {
-    onresize = () => {this.handleResize()}
-    onscroll = () => {this.handleScroll()}
-    document.addEventListener('keyup', (e) => {this.keyUp(e)}, false);
-    this.dynamic()
+  keydown (e) {
+    if (!e.altKey || !e.shiftKey)
+      return
+    switch (e.code) {
+      case 'ArrowLeft':
+      case 'ArrowRight':
+      case 'KeyA':
+      case 'KeyD':
+        e.preventDefault()
+    }
   }
   /**
    * Updates elements in a reactive manner,
@@ -269,12 +219,10 @@ class Navigation {
    * that contain the most up-to-date metadata
    */
   dynamic () {
-    if (this.offline) {
+    if (this.parent.state.offline === true) {
       console.log("navigation: dynamic features are not available in offline mode")
       return
-    }
-
-    if (!this.subHosted) {
+    } else if (this.parent.state.sub_hosted === false) {
       console.log("navigation: dynamic features are not available for single hosted doc")
       return
     }
@@ -286,51 +234,19 @@ class Navigation {
     $.banner = new DOM(DOM.get('.banner'))
 
     let resolveJSON = (j) => {
-        if ('repotoc' in j)
-          this.dynamicRepoToc(j['repotoc'])
-        if ('banner' in j)
-          this.dynamicBanner(j['banner'])
-        if ('modules' in j)
-          this.dynamicModules(j['modules'])
+      if ('repotoc' in j)
+        this.update_repotoc(j['repotoc'])
+      if ('banner' in j)
+        this.update_banner(j['banner'])
+      if ('modules' in j)
+        this.load_modules(j['modules'])
     }
 
-    /* Fetch metadata */
-    let json = localStorage.getItem('metadata')
-    if (json !== null)
-      json = JSON.parse(json)
-
-    let cache_timeout = new Date(0)
-    cache_timeout.setHours(24)
-    if (this.reloaded || json === null || json['timestamp'] + cache_timeout.valueOf() < Date.now()) {
-      let fetch_url = `${this.globalRoot}doctools/metadata.json`
-
-      fetch(fetch_url, {
-        method: 'Get',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }).then((response) => {
-        if (response.ok !== true) {
-          return
-        }
-
-        return response.json()
-      }).then((obj) => {
-        if (!obj)
-          return
-
-        resolveJSON(obj)
-        obj['timestamp'] = Date.now()
-        localStorage.setItem('metadata', JSON.stringify(obj))
-      }).catch((e) => {
-        return
-      })
-    } else {
-      resolveJSON(json)
-    }
+    Toolbox.cache_check(this.parent.state, '/doctools/metadata.json', 24,
+                        (obj) => {resolveJSON(obj)})
   }
 
-  dynamicRepoToc (obj) {
+  update_repotoc (obj) {
     let $ = this.$
 
     let home = "index.html"
@@ -340,29 +256,14 @@ class Navigation {
       if (!('name' in value))
         continue
 
-      let base = key == this.repo[0] ?
-                 this.contentRoot :
-                 `${this.globalRoot}${key}/`
-      if ('topic' in value) {
-        for (const [key_, value_] of Object.entries(value['topic'])) {
-          if (typeof(value_) !== "string")
-            continue
-
-          let a = new DOM('a', {
-            'href': `${base}${key_}/${home}`,
-            'className': this.repo.join('/') === `${key}/${key_}` ? 'current' : ''
-          })
-          a.innerText = value_
-
-          linksSidebar.push(a)
-        }
-      } else {
-        linksSidebar.push(new DOM('a', {
-          'href': `${base}${home}`,
-          'className': this.repo[0] === key ? 'current' : '',
-          'innerText': value['name']
-        }))
-      }
+      let base = key == this.parent.state.repository ?
+                 this.parent.state.content_root :
+                 `/${key}/`
+      linksSidebar.push(new DOM('a', {
+        'href': `${base}${home}`,
+        'className': this.parent.state.repository === key ? 'current' : '',
+        'innerText': value['name']
+      }))
     }
 
     linksSidebar.forEach((elem) => {
@@ -377,7 +278,7 @@ class Navigation {
       $.repotocTreeSidebar.append(linksSidebar)
   }
 
-  dynamicBanner (obj) {
+  update_banner (obj) {
     let $ = this.$
 
     if ('msg' in obj)
@@ -398,11 +299,11 @@ class Navigation {
    * The advantage is to load the latest and greatest scripts, regardless
    * of the tools' built doc version.
    */
-  dynamicModules (obj) {
+  load_modules (obj) {
     if ('javascript' in obj) {
       obj['javascript'].forEach((elem) => {
         let script = new DOM('script', {
-          'src': `${this.globalRoot}doctools/_static/${elem}`
+          'src': `/doctools/_static/${elem}`
         });
         this.$.head.append(script)
       })
@@ -412,7 +313,7 @@ class Navigation {
         let style = new DOM('link', {
           'rel': 'stylesheet',
           'type': 'text/css',
-          'href': `${this.globalRoot}doctools/_static/${elem}`
+          'href': `/doctools/_static/${elem}`
         });
         this.$.head.append(style)
       })
@@ -434,9 +335,17 @@ class Navigation {
   /**
    * Get OS Theme
    */
-  getOSTheme () {
+  os_theme () {
     return window.matchMedia("(prefers-color-scheme: dark)").matches ? 'dark' : 'light'
   }
+  /**
+   * Init navigation.
+   */
+  init () {
+    onresize = () => {this.handleResize()}
+    onscroll = () => {this.handleScroll()}
+    document.addEventListener('keyup', (e) => {this.keyup(e)}, false);
+    document.addEventListener('keydown', (e) => {this.keydown(e)}, false);
+    this.dynamic()
+  }
 }
-
-export let navigation = new Navigation()

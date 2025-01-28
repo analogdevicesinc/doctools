@@ -3,37 +3,35 @@ import scss from "rollup-plugin-scss"
 
 let path = "adi_doctools/theme/cosmic"
 
-export default [{
-  input: `${path}/scripts/app.js`,
-  output: {
-    file: `${path}/static/app.umd.js`,
-    format: "umd",
-    name: "App",
-    sourcemap: true
+export default [
+  {
+    input: `${path}/scripts/app.js`,
+    output: {
+      file: `${path}/static/app.umd.js`,
+      format: "umd",
+      name: "App",
+      sourcemap: true
+    },
+    plugins: [
+      terser(),
+      scss({
+        fileName: `style.min.css`,
+        watch: `${path}/style`,
+        outputStyle: 'compressed',
+        sourceMap: true
+      })
+    ]
   },
-  plugins: [
-    terser(),
-    scss({
-      fileName: `style.min.css`,
-      watch: `${path}/style`,
-      outputStyle: 'compressed',
-      sourceMap: true
-    })
-  ]
-},
-/*
- * Example of extra module
- * See also: adi_doctools/lut.py
- {
-  input: `${path}/scripts/extra.js`,
-  output: {
-    file: `${path}/static/extra.umd.js`,
-    format: "umd",
-    name: "Extra",
-    sourcemap: true
+  {
+    input: `${path}/scripts/extra.js`,
+    output: {
+      file: `${path}/static/extra.umd.js`,
+      format: "umd",
+      name: "Extra",
+      sourcemap: true
+    },
+    plugins: [
+      terser()
+    ]
   },
-  plugins: [
-    terser()
-  ]
-}*/
 ]

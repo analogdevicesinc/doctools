@@ -167,11 +167,11 @@
         display: inline-block;
         line-height: 1.75em;
         width: 100%;
-        padding: 0 .5em 0 .75em;
-        margin-left: -.75em;
-        border-radius: variable.$border-radius-extra;
+        padding: 0 .5em 0 .5em;
+        margin-left: -.5em;
+        border-radius: variable.$border-radius;
         font-size: .9em;
-        border: 1px solid rgba(0, 0, 0, 0);
+        border-left: 2px solid rgba(0, 0, 0, 0);
     }
 
     a:hover {
@@ -181,6 +181,7 @@
     a.current {
         border-color: var(--accent-color);
         color: var(--accent-color);
+        border-radius: 0  variable.$border-radius  variable.$border-radius 0;
     }
 
     label:hover .icon {

@@ -64,5 +64,42 @@ class Toolbox {
   static getDepth (_pathname) {
     return (_pathname.match(/\//g)||[]).length
   }
+  /*
+   *
+   */
+  static cache_check (state, fetch_url, hours, callback) {
+    let json = localStorage.getItem(fetch_url)
+    if (json !== null)
+      json = JSON.parse(json)
 
+    let cache_timeout = new Date(0)
+    cache_timeout.setHours(hours)
+    if (state.reloaded === true || json === null || json['timestamp'] + cache_timeout.valueOf() < Date.now()) {
+      fetch(fetch_url, {
+        method: 'Get',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }).then((response) => {
+        if (response.ok !== true) {
+          return
+        }
+
+        return response.json()
+      }).then((obj) => {
+        if (!obj)
+          return
+
+        json = {'obj': obj}
+        json['timestamp'] = Date.now()
+        callback(obj)
+        localStorage.setItem(fetch_url, JSON.stringify(json))
+      }).catch((e) => {
+        console.error(`Failed to resolve ${fetch_url}, due to:`, e)
+        return
+      })
+    } else {
+      callback(json['obj'])
+    }
+  }
 }

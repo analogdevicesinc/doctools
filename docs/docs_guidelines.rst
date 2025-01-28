@@ -129,8 +129,8 @@ To avoid having the version set in multiple places or having to tweak ``conf.py`
 to obtain it from somewhere else, continuous integration can set the environment
 variable ``ADOC_DOC_VERSION`` to set the version value.
 
-Still, the ``version`` value on ``conf.py`` has higher precedence, and
-``ADOC_DOC_VERSION`` will be ignored if the variable is already set.
+The ``version`` value on ``conf.py`` has lower precedence, and
+will be overwritten if ``ADOC_DOC_VERSION`` is set.
 
 The CI, in general, should set ``ADOC_DOC_VERSION`` as the current checkout branch
 in the pipeline (e.g. ``main``, ``v1.0.0``).

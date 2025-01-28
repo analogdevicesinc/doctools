@@ -118,7 +118,7 @@ it will always fetch the latest and greatest.
 See also: ci/rollup.config.app.mjs
 """
 modules = Modules(
-    javascript=None, # ['extra.umd.js'],
+    javascript=['extra.umd.js'],
     stylesheet=None
 )
 

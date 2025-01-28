@@ -63,11 +63,11 @@ def config_inited(app, config):
 
     interref_repos_apply(app)
 
-    # Inject version value, config entry has higher precedence
-    if 'version' not in config:
-        doc_version = getenv("ADOC_DOC_VERSION", default="")
+    # Inject version value, enviroment entry has higher precedence
+    doc_version = getenv("ADOC_DOC_VERSION", default=None)
+    if doc_version is not None:
         try:
-            doc_version = str(Version(doc_version))
+            doc_version = 'v'+str(Version(doc_version))
         except Exception as err:
             pass
         config.version = doc_version
