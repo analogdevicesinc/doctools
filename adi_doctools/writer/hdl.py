@@ -67,13 +67,20 @@ def svpkg_regmap(f, regmap: Dict, key: str):
                 row = f"      field_base {field['name']}_F;""\n"
                 f.write(row)
 
-        f.write("      function new(\n")
+        f.write("\n      function new(\n")
         f.write("        input string name,\n")
         f.write("        input int address,\n")
+        reg_param_dec = []
         for reg_param in reg['parameters']:
-            f.write(f"        input int {reg_param},\n")
+            reg_param_dec.append(reg_param)
+        if len(reg_param_dec):
+            reg_params_set = set(reg_param_dec)
+            reg_param_dec = list(reg_params_set)
+            reg_param_dec.sort()
+            for reg_param in reg_param_dec:
+                f.write(f"        input int {reg_param},\n")
         f.write("        input adi_regmap parent = null);\n\n")
-        f.write("        super.new(name, address);\n")
+        f.write("        super.new(name, address, parent);\n\n")
         for field in reg['fields']:
             if field['name'] != 'RESERVED' and not field['import']:
                 row = f"        this.{field['name']}_F = "'new("'f"{field['name']}"
@@ -89,7 +96,7 @@ def svpkg_regmap(f, regmap: Dict, key: str):
                 row += '"'f", {bits}, {field['rw']}, {default}, this);""\n"
                 f.write(row)
 
-        f.write("      endfunction: new")
+        f.write("      endfunction: new\n")
         row = f"    endclass: {reg['name']}_CLASS\n\n"
         f.write(row)
 
@@ -105,9 +112,8 @@ def svpkg_head(f, key: str, regmap: Dict):
 
     f.write(f"package {pkgname};\n")
     f.write("  import logger_pkg::*;\n")
-    f.write("  import adi_api_pkg::*;\n")
-    f.write("  import adi_regmap_pkg::*;\n\n")
-    f.write(f"  class {classname}")
+    f.write("  import adi_api_pkg::*;\n\n")
+    f.write(f"  class {classname} extends adi_regmap")
     f.write(f";\n\n")
 
 
@@ -136,9 +142,25 @@ def svpkg_reg_inst(f, regmap: Dict):
                 addr = hex(reg_['address']).replace("0x", "'h")
                 row = f"      this.{reg_['name']}_R = new("
                 row += '"' + reg_['name'] + '"'
-                row += f", {addr};\n"
-                if len(reg['parameters']):
-                    row += ", ".join(reg['parameters'])
+                row += f", {addr}"
+                reg_param_dec = []
+                # for reg_param in reg['parameters']:
+                #     reg_params_set = set(reg_param_dec)
+                #     reg_param_dec = list(reg_params_set)
+                #     reg_param_dec.sort()
+                # if len(reg_param_dec):
+                #     row += ", "
+                #     row += ", ".join(reg_param_dec)
+
+                for reg_param in reg['parameters']:
+                    reg_param_dec.append(reg_param)
+                if len(reg_param_dec):
+                    reg_params_set = set(reg_param_dec)
+                    reg_param_dec = list(reg_params_set)
+                    reg_param_dec.sort()
+                    row += ", "
+                    row += ", ".join(reg_param_dec)
+
                 row += f", this);\n"
                 f.write(row)
         else:
@@ -146,9 +168,16 @@ def svpkg_reg_inst(f, regmap: Dict):
             addr = hex(reg['address']).replace("0x", "'h")
             row = f"      this.{reg['name']}_R = new("
             row += '"' + reg['name'] + '"'
-            row += f", {addr};\n"
-            if len(reg['parameters']):
-                row += ", ".join(reg['parameters'])
+            row += f", {addr}"
+            reg_param_dec = []
+            for reg_param in reg['parameters']:
+                reg_param_dec.append(reg_param)
+            if len(reg_param_dec):
+                reg_params_set = set(reg_param_dec)
+                reg_param_dec = list(reg_params_set)
+                reg_param_dec.sort()
+                row += ", "
+                row += ", ".join(reg_param_dec)
             row += f", this);\n"
             f.write(row)
 
@@ -178,19 +207,26 @@ def write_hdl_regmap(
 
     f.write("\n    function new(\n")
     f.write("      input string name,\n")
+    reg_param_dec = []
     for rm in regmap:
         for reg in regmap[rm]['regmap']:
             for reg_param in reg['parameters']:
-                f.write(f"      input int {reg_param},\n")
+                reg_param_dec.append(reg_param)
+    if len(reg_param_dec):
+        reg_params_set = set(reg_param_dec)
+        reg_param_dec = list(reg_params_set)
+        reg_param_dec.sort()
+        for reg_param in reg_param_dec:
+            f.write(f"      input int {reg_param},\n")
     f.write("      input adi_api parent = null);\n\n")
     f.write("      super.new(name, parent);\n\n")
     for rm in regmap:
         svpkg_reg_inst(f, regmap[rm])
     f.write("\n")
-    f.write("      this.info($sformatf("Initialized"), ADI_VERBOSITY_HIGH);\n")
+    f.write("      this.info($sformatf(\"Initialized\"), ADI_VERBOSITY_HIGH);\n")
     f.write("    endfunction: new\n\n")
 
-    svpkg_footer(f, regmap[rm], rm)
+    svpkg_footer(f, key, rm)
 
     f.close()
 
@@ -234,8 +270,9 @@ def regmap_test_program(
             reg_param_t0 = []
             for conv in reg_param_dec:
                 reg_param_t0.append("0")
+            row += ", "
             row += ", ".join(reg_param_t0)
-            row += ");\n"
+        row += ");\n"
         f.write(row)
 
     f.write("\n    $finish();\n\n")
@@ -257,7 +294,12 @@ def regmap_bash_script(
 
     f.write("SOURCE=\"utils.svh \"\n")
     f.write("SOURCE+=\"logger_pkg.sv \"\n")
-    f.write("SOURCE+=\"adi_regmap_pkg.sv \"\n")
+    f.write("SOURCE+=\"adi_common_pkg.sv \"\n")
+    f.write("SOURCE+=\"adi_environment_pkg.sv \"\n")
+    f.write("SOURCE+=\"adi_vip_pkg.sv \"\n")
+    f.write("SOURCE+=\"axi_definitions.svh \"\n")
+    f.write("SOURCE+=\"m_axi_sequencer.sv \"\n")
+    f.write("SOURCE+=\"adi_api_pkg.sv \"\n")
 
     for m in regmap:
         row = f"SOURCE+=\"adi_regmap_" + m + "_pkg.sv \"\n"
@@ -267,7 +309,12 @@ def regmap_bash_script(
 
     f.write("cp ../utilities/utils.svh .\n")
     f.write("cp ../utilities/logger_pkg.sv .\n")
-    f.write("cd `dirname $0`\n")
+    f.write("cp ../utilities/adi_common_pkg.sv .\n")
+    f.write("cp ../utilities/adi_environment_pkg.sv .\n")
+    f.write("cp ../utilities/adi_api_pkg.sv .\n")
+    f.write("cp ../utilities/adi_vip_pkg.sv .\n")
+    f.write("cp ../vip/amd/axi/m_axi_sequencer.sv .\n")
+    f.write("cp ../vip/amd/axi/axi_definitions.svh .\n")
     f.write("source ../../scripts/run_unit_tb.sh")
 
     f.close()
