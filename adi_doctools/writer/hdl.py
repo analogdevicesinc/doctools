@@ -95,6 +95,9 @@ def svpkg_regmap(f, regmap: Dict, key: str):
 
                 row += '"'f", {bits}, {field['rw']}, {default}, this);""\n"
                 f.write(row)
+                
+        row = "\n        this.initialization_done = 1;""\n"
+        f.write(row)
 
         f.write("      endfunction: new\n")
         row = f"    endclass: {reg['name']}_CLASS\n\n"
