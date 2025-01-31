@@ -100,16 +100,14 @@ def build_finished(app, exc):
 
 def repotoc_tree(content_root, conf_vars, pagename):
     """
-    Create the repotoc tree linking to other repos documentations.
+    Create the empty repotoc tree linking with links of only
+    the current documentation.
+    Later on, with metadata.json available, the space with filled with links
+    to other repos documentations.
     From the 'repository' config value, a 'current' class is added to
     the link targeting the current doc.
-    The links are functional with at least 1 level of depth, for example:
-    docs.example.com/hdl -> ../no-OS -> docs.example.com/no-OS
-    docs.example.com/v0.1/hdl -> ../no-OS -> docs.example.com/v0.1/no-OS
-    While something with 0 depth is improper:
-    hdl-docs.example.com -> ../no-OS -XXX-> hdl-docs.example.com/no-OS
     """
-    repo, repos, depth = conf_vars
+    repo, repos, _ = conf_vars
     root = etree.Element("root")
     home = "index.html"
     current = ''
@@ -125,26 +123,26 @@ def repotoc_tree(content_root, conf_vars, pagename):
                 repository[key] = repos[key]['name']
 
     repotoc = {**topics, **repository}
-    for item in repotoc:
-        href = path.join(content_root, depth, item, home)
-        attrib = {}
-        if repo is not None and item.startswith(repo):
-            if '/' in item:
-                sub = item[item.find('/')+1:]
-                href = f"{content_root}{sub}/{home}"
-                if pagename.startswith(sub):
+    if repo is not None:
+        for item in repotoc:
+            attrib = {}
+            if item.startswith(repo):
+                if '/' in item:
+                    sub = item[item.find('/')+1:]
+                    href = f"{content_root}{sub}/{home}"
+                    if pagename.startswith(sub):
+                        attrib = {'class': 'current'}
+                        current = item
+                else:
+                    href = f"{content_root}{home}"
                     attrib = {'class': 'current'}
-                    current = item
-            else:
-                href = f"{content_root}{home}"
-                attrib = {'class': 'current'}
-                current = repo
-        link = etree.Element("a", attrib={
-            'href': href,
-            **attrib
-        })
-        link.text = repotoc[item]
-        root.append(link)
+                    current = repo
+                link = etree.Element("a", attrib={
+                    'href': href,
+                    **attrib
+                })
+                link.text = repotoc[item]
+                root.append(link)
 
     return (etree.tostring(root, pretty_print=True, encoding='unicode'),
             current)
