@@ -271,14 +271,13 @@ header {
         display: flex;
         margin: 0 .25em;
         align-items: center;
-        border-radius: 2em;
+        border-radius: variable.$border-radius;
         padding: .5em .75em;
-        border: 1px solid rgba(125, 125, 125, 0);
         user-select: none;
     }
 
     #show-repotoc:hover {
-        border: variable.$border-panel;
+        background-color: var(--bg-color2);
     }
 
     #show-repotoc:after {
