@@ -227,73 +227,18 @@ export class Navigation {
       return
     }
 
-    /* Get dynamic elements */
-    let $ = this.$
-    $.repotocTreeOverlay = new DOM(DOM.get('.repotoc-tree.overlay root'))
-    $.repotocTreeSidebar = new DOM(DOM.get('.sphinxsidebar .repotoc-tree root'))
-    $.banner = new DOM(DOM.get('.banner'))
-
-    let resolveJSON = (j) => {
-      if ('repotoc' in j)
-        this.update_repotoc(j['repotoc'])
-      if ('banner' in j)
-        this.update_banner(j['banner'])
-      if ('modules' in j)
-        this.load_modules(j['modules'])
-    }
-
     Toolbox.cache_check(this.parent.state, '/doctools/metadata.json', 24,
-                        (obj) => {resolveJSON(obj)})
+                        (obj) => {this.init_metadata(obj)})
   }
+  /**
+   * Attach metadata to this and call to inject extra modules.
+   */
+  init_metadata (obj) {
+    this.metadata = obj
 
-  update_repotoc (obj) {
-    let $ = this.$
-
-    let home = "index.html"
-    let linksOverlay = [],
-        linksSidebar = []
-    for (const [key, value] of Object.entries(obj)) {
-      if (!('name' in value))
-        continue
-
-      let base = key == this.parent.state.repository ?
-                 this.parent.state.content_root :
-                 `/${key}/`
-      linksSidebar.push(new DOM('a', {
-        'href': `${base}${home}`,
-        'className': this.parent.state.repository === key ? 'current' : '',
-        'innerText': value['name']
-      }))
-    }
-
-    linksSidebar.forEach((elem) => {
-      linksOverlay.push(elem.cloneNode(true))
-    })
-
-    if ($.repotocTreeOverlay.$)
-      $.repotocTreeOverlay.removeChilds(),
-      $.repotocTreeOverlay.append(linksOverlay)
-    if ($.repotocTreeSidebar.$)
-      $.repotocTreeSidebar.removeChilds(),
-      $.repotocTreeSidebar.append(linksSidebar)
+    if ('modules' in obj)
+      this.load_modules(obj['modules'])
   }
-
-  update_banner (obj) {
-    let $ = this.$
-
-    if ('msg' in obj)
-      $.banner.append(new DOM('span', {
-        'innerText': obj['msg']
-      }))
-
-    if ('a_href' in obj && 'a_text' in obj)
-      $.banner.append(new DOM('a', {
-        'href': obj['a_href'],
-        'innerText': obj['a_text'],
-        'target': '_blank'
-      }))
-  }
-
   /**
    * Inject any JavaScript and CSS StyleSheet listed on the metadata.
    * The advantage is to load the latest and greatest scripts, regardless
@@ -318,19 +263,6 @@ export class Navigation {
         this.$.head.append(style)
       })
     }
-  }
-  /**
-   * Set items state.
-   * @param state - True for open, false for closed.
-   */
-  setState (items, state) {
-    items.forEach((elem) => {
-      if (state) {
-        elem.classList.add('on')
-      } else {
-        elem.classList.remove('on')
-      }
-    })
   }
   /**
    * Get OS Theme

@@ -5,7 +5,7 @@ import {Toolbox} from './toolbox.js'
 /**
  * Fetches the tags.json file and renders a dropdown.
  */
-export class VersionDropdown{
+export class VersionDropdown {
   constructor (app) {
     this.$ = {}
 
