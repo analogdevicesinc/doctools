@@ -12,7 +12,7 @@ export class Links {
     this.set_doms()
     this.parent = app
 
-    let m = app.navigation.metadata
+    let m = app.state.metadata
     if ('repotoc' in m)
       this.update_repotoc(m['repotoc'])
     if ('banner' in m)
@@ -76,6 +76,4 @@ export class Links {
         'target': '_blank'
       }))
   }
-
-
 }

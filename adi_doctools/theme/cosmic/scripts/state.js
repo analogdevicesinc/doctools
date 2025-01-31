@@ -2,6 +2,7 @@
 
 /**
  * version: v0.0.1, main, staging/new_feature
+ * metadata: fetched by fetch.js
  */
 const state = {
   repository: undefined,
@@ -11,6 +12,7 @@ const state = {
   content_root: undefined,
   sub_hosted: undefined,
   reloaded: undefined,
+  metadata: undefined
 }
 
 export class State {

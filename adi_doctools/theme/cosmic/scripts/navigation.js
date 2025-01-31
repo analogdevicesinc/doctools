@@ -1,7 +1,6 @@
 "use strict";
 
 import {DOM} from './dom.js'
-import {Toolbox} from './toolbox.js'
 
 /* Handle navigation, theming, search, shortcuts */
 export class Navigation {
@@ -16,7 +15,6 @@ export class Navigation {
 
     let $ = this.$ = {}
     $.body = new DOM(DOM.get('body'))
-    $.head = new DOM(DOM.get('head'))
     $.content = new DOM(DOM.get('.body section'))
     $.localtoc = new DOM(DOM.get('.tocwrapper > nav > ul > li'))
     this.scroll_spy()
@@ -213,57 +211,7 @@ export class Navigation {
         e.preventDefault()
     }
   }
-  /**
-   * Updates elements in a reactive manner,
-   * fetching from the main doctools/metadata.js,
-   * that contain the most up-to-date metadata
-   */
-  dynamic () {
-    if (this.parent.state.offline === true) {
-      console.log("navigation: dynamic features are not available in offline mode")
-      return
-    } else if (this.parent.state.sub_hosted === false) {
-      console.log("navigation: dynamic features are not available for single hosted doc")
-      return
-    }
 
-    Toolbox.cache_check(this.parent.state, '/doctools/metadata.json', 24,
-                        (obj) => {this.init_metadata(obj)})
-  }
-  /**
-   * Attach metadata to this and call to inject extra modules.
-   */
-  init_metadata (obj) {
-    this.metadata = obj
-
-    if ('modules' in obj)
-      this.load_modules(obj['modules'])
-  }
-  /**
-   * Inject any JavaScript and CSS StyleSheet listed on the metadata.
-   * The advantage is to load the latest and greatest scripts, regardless
-   * of the tools' built doc version.
-   */
-  load_modules (obj) {
-    if ('javascript' in obj) {
-      obj['javascript'].forEach((elem) => {
-        let script = new DOM('script', {
-          'src': `/doctools/_static/${elem}`
-        });
-        this.$.head.append(script)
-      })
-    }
-    if ('stylesheet' in obj) {
-      obj['stylesheet'].forEach((elem) => {
-        let style = new DOM('link', {
-          'rel': 'stylesheet',
-          'type': 'text/css',
-          'href': `/doctools/_static/${elem}`
-        });
-        this.$.head.append(style)
-      })
-    }
-  }
   /**
    * Get OS Theme
    */
@@ -278,6 +226,5 @@ export class Navigation {
     onscroll = () => {this.handleScroll()}
     document.addEventListener('keyup', (e) => {this.keyup(e)}, false);
     document.addEventListener('keydown', (e) => {this.keydown(e)}, false);
-    this.dynamic()
   }
 }
