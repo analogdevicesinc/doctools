@@ -119,7 +119,7 @@ See also: ci/rollup.config.app.mjs
 """
 modules = Modules(
     javascript=['extra.umd.js'],
-    stylesheet=None
+    stylesheet=['extra.min.css']
 )
 
 

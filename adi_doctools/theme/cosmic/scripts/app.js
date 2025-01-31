@@ -1,4 +1,3 @@
-import '../style/bundle.scss'
 import { State } from './state.js'
 import { Fetch } from './fetch.js'
 import { Navigation } from './navigation.js'

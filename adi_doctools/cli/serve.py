@@ -21,7 +21,6 @@ log = {
     'node_': """Couldn't find {}, please install the node_modules at doctools repo root, e.g.:
     npm install rollup \\
         @rollup/plugin-terser \\
-        rollup-plugin-scss \\
         sass \\
         --save-dev""",
     'comp': "Couldn't find the minified web files.",
@@ -36,6 +35,10 @@ log = {
 unmanaged = []
 # Avoid
 first_run = True
+
+theme_path = path.join('adi_doctools', 'theme', 'cosmic')
+style_path = path.join(theme_path, 'style')
+static_path = path.join(theme_path, 'static')
 
 @click.command()
 @click.option(
@@ -128,8 +131,8 @@ def serve(directory, port, dev, selenium, once, builder):
         from weasyprint.text.fonts import FontConfiguration
         builder = 'singlehtml'
 
-    source_files = {'app.umd.js', 'app.umd.js.map', 'style.min.css',
-                    'style.min.css.map'}
+    source_files = {'app.umd.js', 'app.umd.js.map', 'app.min.css',
+                    'app.min.css.map'}
     cwd_ = getcwd()
 
     def signal_handler(sig, frame):
@@ -141,10 +144,10 @@ def serve(directory, port, dev, selenium, once, builder):
             http_thread._stop()
         if dev:
             killpg(getpgid(rollup_p.pid), signal.SIGTERM)
+            killpg(getpgid(sass_p.pid), signal.SIGTERM)
         click.echo("Terminated")
         sys.exit()
 
-    cosmic_static = path.join('adi_doctools', 'theme', 'cosmic', 'static')
     def fetch_compiled(path_):
         req = path.join(path_, 'docs', 'requirements.txt')
         dist = path.join(path_, '.dist')
@@ -177,6 +180,11 @@ def serve(directory, port, dev, selenium, once, builder):
     par_dir = path.abspath(path.join(src_dir, pardir))
     rollup_bin = path.join(par_dir, 'node_modules', '.bin', 'rollup')
     rollup_conf = path.join(par_dir, 'ci', 'rollup.config.app.mjs')
+    sass_bin = path.join(par_dir, 'node_modules', '.bin', 'sass')
+
+    sass_conf_1 = path.join(style_path, 'app.bundle.scss') + ':' + path.join(static_path, 'app.min.css')
+    sass_conf_2 = path.join(style_path, 'extra.bundle.scss') + ':' + path.join(static_path, 'extra.min.css')
+    sass_conf = sass_conf_1 + ' ' +  sass_conf_2
     if dev:
         if which("node") is None:
             click.echo(log['node'])
@@ -186,9 +194,8 @@ def serve(directory, port, dev, selenium, once, builder):
         if symbolic_assert(rollup_bin, log['node_'].format(rollup_bin)):
             return
     else:
-        compiled = path.join(src_dir, 'theme', 'cosmic', 'static')
-        comp_js = path.abspath(path.join(compiled, 'app.umd.js'))
-        comp_css = path.abspath(path.join(compiled, 'style.min.css'))
+        comp_js = path.abspath(path.join(static_path, 'app.umd.js'))
+        comp_css = path.abspath(path.join(static_path, 'app.min.css'))
         if not path.isfile(comp_js) or not path.isfile(comp_css):
             click.echo(log['comp'])
             if which("node") is None:
@@ -264,8 +271,7 @@ def serve(directory, port, dev, selenium, once, builder):
 
         font_config = FontConfiguration()
         src_dir = path.abspath(path.join(path.dirname(__file__), pardir, pardir))
-        cosmic = path.join('adi_doctools', 'theme', 'cosmic')
-        css = CSS(path.join(src_dir, cosmic, 'static', 'style.min.css'),
+        css = CSS(path.join(src_dir, cosmic, 'static', 'app.min.css'),
                   font_config=font_config)
         css_extra = CSS(path.join(src_dir, cosmic, 'style', 'weasyprint.css'),
                         font_config=font_config)
@@ -296,6 +302,8 @@ def serve(directory, port, dev, selenium, once, builder):
         if not rollup_cache:
             subprocess.call(f"{rollup_bin} -c {rollup_conf}",
                             shell=True, cwd=par_dir)
+            subprocess.call(f"{sass_bin} --style compressed {sass_conf}",
+                            shell=True, cwd=par_dir)
         for t in ['*.umd.js*', '*.min.css*']:
             f = glob.glob(path.join(src_dir, 'theme', 'cosmic', 'static', t))
             w_files.extend(f)
@@ -308,10 +316,13 @@ def serve(directory, port, dev, selenium, once, builder):
         for f in w_files:
             watch_file_src[f] = path.getctime(f)
         if not once:
-            # Run rollup in watch mode
-            cmd = f"{rollup_bin} -c {rollup_conf} --watch"
-            rollup_p = subprocess.Popen(cmd, shell=True, cwd=par_dir,
+            # Run rollup and sass in watch mode
+            cmd_rollup = f"{rollup_bin} -c {rollup_conf} --watch"
+            cmd_sass = f"{sass_bin} --style compressed --watch {sass_conf}"
+            rollup_p = subprocess.Popen(cmd_rollup, shell=True, cwd=par_dir,
                                         stdout=subprocess.DEVNULL)
+            sass_p = subprocess.Popen(cmd_sass, shell=True, cwd=par_dir,
+                                      stdout=subprocess.DEVNULL)
         elif builder == "singlehtml":
             update_pdf()
     else:
@@ -342,6 +353,7 @@ def serve(directory, port, dev, selenium, once, builder):
             click.echo(f"Could not start server on http://0.0.0.0:{port}")
             if dev:
                 killpg(getpgid(rollup_p.pid), signal.SIGTERM)
+                killpg(getpgid(sass_p.pid), signal.SIGTERM)
             return
     signal.signal(signal.SIGINT, signal_handler)
 
@@ -448,6 +460,7 @@ def serve(directory, port, dev, selenium, once, builder):
                     click.echo("Browser disconnected")
                     if dev:
                         killpg(getpgid(rollup_p.pid), signal.SIGTERM)
+                        killpg(getpgid(sass_p.pid), signal.SIGTERM)
                     with lock:
                         http.shutdown()
                         http.server_close()

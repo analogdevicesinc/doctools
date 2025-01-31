@@ -1,5 +1,4 @@
 import terser from '@rollup/plugin-terser'
-import scss from "rollup-plugin-scss"
 
 let path = "adi_doctools/theme/cosmic"
 
@@ -13,13 +12,7 @@ export default [
       sourcemap: true
     },
     plugins: [
-      terser(),
-      scss({
-        fileName: `style.min.css`,
-        watch: `${path}/style`,
-        outputStyle: 'compressed',
-        sourceMap: true
-      })
+      terser()
     ]
   },
   {

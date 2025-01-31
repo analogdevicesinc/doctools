@@ -52,8 +52,11 @@ export class VersionDropdown{
     let nav_bar = DOM.get('header #right .reverse')
     let body = DOM.get('body')
 
+    let i = Object.keys(obj).length > 10 ? 4 : 2
+    let cols = " auto".repeat(i)
     let container2 = new DOM('div', {
       'className': 'version-dropdown-list',
+      'style': `grid-template-columns:${cols}`
     })
 
     if (obj.hasOwnProperty(version)) {
@@ -65,12 +68,16 @@ export class VersionDropdown{
       let entry = new DOM('a', {
         'href': `/${this.parent.state.repository}/${key}`
       })
-      entry.innerText = obj[key][0]
-      if (obj[key][1] !== '') {
-        let label = new DOM('span')
-        label.innerText = obj[key][1]
-        entry.append(label)
-      }
+      let entry_ = new DOM('div')
+      let label_ = new DOM('div')
+      entry_.innerText = obj[key][0]
+      let label = new DOM('span', {
+        'className': obj[key][1] === '' ? "" : "label"
+      })
+      label.innerText = obj[key][1]
+      label_.append(label)
+      entry.append(entry_)
+      entry.append(label_)
       container2.append(entry)
     }
     let cancel_dropdown = new DOM('dev', {
@@ -83,11 +90,11 @@ export class VersionDropdown{
       'className': 'version-dropdown',
     })
     container.innerText = version
-    if (label !== '') {
-      let label_ = new DOM('span')
-      label_.innerText = label
-      container.append(label_)
-    }
+    let label_ = new DOM('span', {
+      'className': label === '' ? "" : "label"
+    })
+    label_.innerText = label
+    container.append(label_)
 
     toc_tree.insertAdjacentElement('afterbegin', container.$)
     let container3 = new DOM(container.$.cloneNode(true))

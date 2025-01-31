@@ -1281,7 +1281,7 @@ To add new JavaScript modules and CSS styles:
 * Add the list of modules to :git-doctools:`adi_doctools/lut.py`.
 
 The rollup should always output to the ``static`` directory, the same as the
-base ``app.umd.js`` and ``style.min.css``.
+base ``app.umd.js`` and ``app.min.css``.
 
 Example use cases/suggestions:
 

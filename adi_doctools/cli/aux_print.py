@@ -17,7 +17,7 @@ def sanitize_singlehtml(file) -> str:
     root = html.parse(file).getroot()
 
     # Remove full CSS entry to use slimer version
-    link_elements = root.xpath("//head//link[contains(@href, '_static/style.min.css')]")
+    link_elements = root.xpath("//head//link[contains(@href, '_static/app.min.css')]")
     for link in link_elements:
         link.getparent().remove(link)
 
