@@ -44,7 +44,6 @@ jobs:
       if: ${{ env.new_tag == '1' }}
       working-directory: docs
       run: >
-        ADOC_TARGET_DEPTH=1
         ADOC_DOC_VERSION=$tag
         make clean html SPHINXOPTS='-W --keep-going' ;
         rm -rf _build/html/_sources
