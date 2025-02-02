@@ -17,13 +17,19 @@ jobs:
         npm install
         rollup
         @rollup/plugin-terser
-        rollup-plugin-scss
         sass
 
-    - name: Bundle web scripts and styles
+    - name: Bundle web scripts
       run: >-
         node_modules/.bin/rollup -c
         ci/rollup.config.app.mjs
+
+    - name: Bundle web styles
+      run: >-
+        node_modules/.bin/sass
+        adi_doctools/theme/cosmic/style/app.bundle.scss:adi_doctools/theme/cosmic/static/app.min.css
+        adi_doctools/theme/cosmic/style/extra.bundle.scss:adi_doctools/theme/cosmic/static/extra.min.css
+        --style compressed
 
     - name: Install build tool
       run: >-
