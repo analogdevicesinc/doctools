@@ -7,7 +7,7 @@
 }
 
 header {
-    z-index: 7;
+    z-index: 8;
     width: 100%;
     top: 0;
     print-color-adjust: exact;
@@ -88,7 +88,7 @@ header {
     pointer-events: none;
     height: 0;
     opacity: 0;
-    z-index: 6;
+    z-index: 7;
     width: 0;
     transition: opacity .25s ease;
     overflow-y: visible;

@@ -73,14 +73,20 @@
     }
 }
 
-#input-show-toc:checked ~ #cancel-area-show-toc,
 #input-show-localtoc:checked ~ #cancel-area-show-localtoc {
     z-index: 3;
 }
 
-#input-show-localtoc:checked ~ .localtoc,
-#input-show-toc:checked ~ .sphinxsidebar {
+#input-show-localtoc:checked ~ .localtoc {
+    z-index: 4;
+}
+
+#input-show-toc:checked ~ #cancel-area-show-toc {
     z-index: 5;
+}
+
+#input-show-toc:checked ~ .sphinxsidebar {
+    z-index: 6;
 }
 
 @media (max-width: variable.$screen-0) {
