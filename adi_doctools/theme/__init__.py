@@ -6,9 +6,11 @@ from lxml import html
 from docutils import nodes
 from sphinx.highlighting import PygmentsBridge
 from sphinx.transforms.post_transforms import SphinxPostTransform
+from sphinx.util import logging
 
 from .cosmic import cosmic_setup
 
+logger = logging.getLogger(__name__)
 
 def theme_config_setup(app):
     # Name of the repository that this doc belong to
