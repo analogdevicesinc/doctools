@@ -16,7 +16,7 @@ provided by Doctools.
 
    install
    fundamentals
-   docs_guidelines
+   docs_guidelines/index
    cli
    ci
    theme
