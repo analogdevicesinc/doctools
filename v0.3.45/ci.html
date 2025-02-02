@@ -7,11 +7,11 @@
 
     <title>Continuous integration &#8212; Doctools  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8e8a900e" />
-    <link rel="stylesheet" type="text/css" href="_static/style.min.css?v=990931db" />
+    <link rel="stylesheet" type="text/css" href="_static/app.min.css?v=baa58904" />
     <script src="_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script defer="" src="_static/app.umd.js?v=c93eadd1"></script>
+    <script defer="" src="_static/app.umd.js?v=2e023412"></script>
     <link rel="icon" href="_static/icon.svg"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -19,8 +19,8 @@
     <link rel="prev" title="Command line interface" href="cli.html" />
    
   
-  <meta name="global_root" content="./../../">
-  <meta name="repo" content="doctools">
+  <meta name="repository" content="doctools">
+  <meta name="version" content="v0.3.45">
   
 
 
@@ -40,7 +40,6 @@
   }
 </style>
   </head><body>
-  <div class="banner"></div>
   <input type="checkbox" id="input-show-toc">
   <input type="checkbox" id="input-show-localtoc">
   <input type="checkbox" id="input-show-repotoc">
@@ -77,15 +76,6 @@
 
   <div class="repotoc-tree overlay">
     <root>
-  <a href="./../../documentation/index.html">System Level</a>
-  <a href="./../../hdl/index.html">HDL</a>
-  <a href="./../../testbenches/index.html">HDL Testbenches</a>
-  <a href="./../../pyadi-iio/index.html">Hardware Python Interfaces</a>
-  <a href="./../../libiio/index.html">libiio</a>
-  <a href="./../../no-OS/index.html">no-OS</a>
-  <a href="./../../precision-converters-firmware/index.html">Precision Converters Firmware</a>
-  <a href="./../../PrecisionToolbox/index.html">Precision Toolbox</a>
-  <a href="./../../scopy/index.html">Scopy</a>
   <a href="./index.html" class="current">Doctools</a>
 </root>
 
@@ -93,7 +83,7 @@
     <div class="localtoc">
       <div class="tocwrapper">
         <div>
-          <div class="localtoc-header">On this page</div>
+          <div class="localtoc-header"></div>
           <a id="scroll-up" href="#top-anchor" title="Back to top"></a>
         </div>
         <nav>
@@ -128,15 +118,6 @@ Content on this topic
 </label>
 <div class="repotoc-tree">
   <root>
-  <a href="./../../documentation/index.html">System Level</a>
-  <a href="./../../hdl/index.html">HDL</a>
-  <a href="./../../testbenches/index.html">HDL Testbenches</a>
-  <a href="./../../pyadi-iio/index.html">Hardware Python Interfaces</a>
-  <a href="./../../libiio/index.html">libiio</a>
-  <a href="./../../no-OS/index.html">no-OS</a>
-  <a href="./../../precision-converters-firmware/index.html">Precision Converters Firmware</a>
-  <a href="./../../PrecisionToolbox/index.html">Precision Toolbox</a>
-  <a href="./../../scopy/index.html">Scopy</a>
   <a href="./index.html" class="current">Doctools</a>
 </root>
 
@@ -164,9 +145,9 @@ Content on this topic
           <div class="body" role="main">
             
   <section id="continuous-integration">
-<span id="ci"></span><h1>Continuous integration<a class="headerlink" href="#continuous-integration" title="Link to this heading">#</a></h1>
+<span id="ci"></span><h1>Continuous integration<a class="headerlink" href="#continuous-integration" title="Link to this heading"></a></h1>
 <section id="doctools-package-pipeline">
-<h2>Doctools package pipeline<a class="headerlink" href="#doctools-package-pipeline" title="Link to this heading">#</a></h2>
+<h2>Doctools package pipeline<a class="headerlink" href="#doctools-package-pipeline" title="Link to this heading"></a></h2>
 <p>Doctools has a continuous deployment integration pipeline that works as follows:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>                   ┌──────────────────┐
                 ┌─►│Build Doc &amp; Deploy├─┐
@@ -229,11 +210,11 @@ These releases exist to provide a pointer to the latest/pre-release packages, e.
 </ul>
 </section>
 <section id="documentation-build-and-deployment">
-<h2>Documentation build and deployment<a class="headerlink" href="#documentation-build-and-deployment" title="Link to this heading">#</a></h2>
+<h2>Documentation build and deployment<a class="headerlink" href="#documentation-build-and-deployment" title="Link to this heading"></a></h2>
 <p>Doctools is developed to work offline, in a local server, as a rolling release
 (e.g. on GitHub Page)s and versioned in a dedicated server (with orchestration).</p>
 <section id="local">
-<span id="ci-local"></span><h3>Local<a class="headerlink" href="#local" title="Link to this heading">#</a></h3>
+<span id="ci-local"></span><h3>Local<a class="headerlink" href="#local" title="Link to this heading"></a></h3>
 <p>For offline and local server, a <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">html</span></code> suffice to generate the
 documentation.</p>
 <p>To serve the build in a local server, Python built-in server can be used:</p>
@@ -246,7 +227,7 @@ documentation.</p>
 </div>
 </section>
 <section id="rolling-release">
-<span id="ci-rolling-release"></span><h3>Rolling release<a class="headerlink" href="#rolling-release" title="Link to this heading">#</a></h3>
+<span id="ci-rolling-release"></span><h3>Rolling release<a class="headerlink" href="#rolling-release" title="Link to this heading"></a></h3>
 <p>For a rolling release, a workflow file is used.</p>
 <p>With GitHub Actions, the following workflow file is recommended:</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">on</span><span class="p">:</span>
@@ -348,7 +329,7 @@ please be aware of GitHub events values if implementing something else.</p>
 </div>
 </section>
 <section id="versioned">
-<span id="ci-versioned"></span><h3>Versioned<a class="headerlink" href="#versioned" title="Link to this heading">#</a></h3>
+<span id="ci-versioned"></span><h3>Versioned<a class="headerlink" href="#versioned" title="Link to this heading"></a></h3>
 <p>The live versioned version requires additional orchestration than the
 <a class="reference internal" href="#ci-rolling-release"><span class="std std-ref">Rolling release</span></a>.
 Store each version in separated folders in the root path, e.g.

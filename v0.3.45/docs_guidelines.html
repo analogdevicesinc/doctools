@@ -7,11 +7,11 @@
 
     <title>Documentation guidelines &#8212; Doctools  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8e8a900e" />
-    <link rel="stylesheet" type="text/css" href="_static/style.min.css?v=990931db" />
+    <link rel="stylesheet" type="text/css" href="_static/app.min.css?v=baa58904" />
     <script src="_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script defer="" src="_static/app.umd.js?v=c93eadd1"></script>
+    <script defer="" src="_static/app.umd.js?v=2e023412"></script>
     <link rel="icon" href="_static/icon.svg"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -19,8 +19,8 @@
     <link rel="prev" title="Fundamentals" href="fundamentals.html" />
    
   
-  <meta name="global_root" content="./../../">
-  <meta name="repo" content="doctools">
+  <meta name="repository" content="doctools">
+  <meta name="version" content="v0.3.45">
   
 
 
@@ -40,7 +40,6 @@
   }
 </style>
   </head><body>
-  <div class="banner"></div>
   <input type="checkbox" id="input-show-toc">
   <input type="checkbox" id="input-show-localtoc">
   <input type="checkbox" id="input-show-repotoc">
@@ -77,15 +76,6 @@
 
   <div class="repotoc-tree overlay">
     <root>
-  <a href="./../../documentation/index.html">System Level</a>
-  <a href="./../../hdl/index.html">HDL</a>
-  <a href="./../../testbenches/index.html">HDL Testbenches</a>
-  <a href="./../../pyadi-iio/index.html">Hardware Python Interfaces</a>
-  <a href="./../../libiio/index.html">libiio</a>
-  <a href="./../../no-OS/index.html">no-OS</a>
-  <a href="./../../precision-converters-firmware/index.html">Precision Converters Firmware</a>
-  <a href="./../../PrecisionToolbox/index.html">Precision Toolbox</a>
-  <a href="./../../scopy/index.html">Scopy</a>
   <a href="./index.html" class="current">Doctools</a>
 </root>
 
@@ -93,7 +83,7 @@
     <div class="localtoc">
       <div class="tocwrapper">
         <div>
-          <div class="localtoc-header">On this page</div>
+          <div class="localtoc-header"></div>
           <a id="scroll-up" href="#top-anchor" title="Back to top"></a>
         </div>
         <nav>
@@ -171,15 +161,6 @@ Content on this topic
 </label>
 <div class="repotoc-tree">
   <root>
-  <a href="./../../documentation/index.html">System Level</a>
-  <a href="./../../hdl/index.html">HDL</a>
-  <a href="./../../testbenches/index.html">HDL Testbenches</a>
-  <a href="./../../pyadi-iio/index.html">Hardware Python Interfaces</a>
-  <a href="./../../libiio/index.html">libiio</a>
-  <a href="./../../no-OS/index.html">no-OS</a>
-  <a href="./../../precision-converters-firmware/index.html">Precision Converters Firmware</a>
-  <a href="./../../PrecisionToolbox/index.html">Precision Toolbox</a>
-  <a href="./../../scopy/index.html">Scopy</a>
   <a href="./index.html" class="current">Doctools</a>
 </root>
 
@@ -207,7 +188,7 @@ Content on this topic
           <div class="body" role="main">
             
   <section id="documentation-guidelines">
-<span id="docs-guidelines"></span><h1>Documentation guidelines<a class="headerlink" href="#documentation-guidelines" title="Link to this heading">#</a></h1>
+<span id="docs-guidelines"></span><h1>Documentation guidelines<a class="headerlink" href="#documentation-guidelines" title="Link to this heading"></a></h1>
 <p>A brief set-of-rules for the documentation.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -216,7 +197,7 @@ importing text from there, consider the automated options that are provided
 in this page to convert it to reST.</p>
 </div>
 <section id="importing-from-dokuwiki-to-sphinx">
-<h2>Importing from DokuWiki to Sphinx<a class="headerlink" href="#importing-from-dokuwiki-to-sphinx" title="Link to this heading">#</a></h2>
+<h2>Importing from DokuWiki to Sphinx<a class="headerlink" href="#importing-from-dokuwiki-to-sphinx" title="Link to this heading"></a></h2>
 <p>Use the following command to import a DokuWiki page (old <em>wiki.analog.com</em>):</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pandoc<span class="w"> </span>imported.txt<span class="w"> </span>-f<span class="w"> </span>dokuwiki<span class="w"> </span>-t<span class="w"> </span>rst<span class="w"> </span>--columns<span class="o">=</span><span class="m">80</span><span class="w"> </span>-s<span class="w"> </span>-o<span class="w"> </span>imported.rst<span class="w"> </span>--list-tables
 </pre></div>
@@ -239,14 +220,14 @@ wget<span class="w"> </span>-O<span class="w"> </span>-<span class="w"> </span>h
 repetitive steps.</p>
 </section>
 <section id="indentation">
-<h2>Indentation<a class="headerlink" href="#indentation" title="Link to this heading">#</a></h2>
+<h2>Indentation<a class="headerlink" href="#indentation" title="Link to this heading"></a></h2>
 <p>Directives are indented with 3 space, which is Sphinx’s default.
 At code directives, the code keeps its original indentation (e.g. 2 spaces for
 Verilog code), but is offset by 3 spaces at the beginning of every line, to
 instruct Sphinx the beginning and end of the code directive.</p>
 </section>
 <section id="table-of-contents">
-<h2>Table of contents<a class="headerlink" href="#table-of-contents" title="Link to this heading">#</a></h2>
+<h2>Table of contents<a class="headerlink" href="#table-of-contents" title="Link to this heading"></a></h2>
 <p>The relation between pages are created with the <code class="docutils literal notranslate"><span class="pre">toctree</span></code> directive,
 which allows to generate the table of contents and navigation bars.</p>
 <p>Each page may have only one toctree, since they are the equivalent of the
@@ -300,7 +281,7 @@ with it enabled may be obnoxious and confusing prior the final structure/locatio
 of them.</p>
 </section>
 <section id="versioning">
-<span id="version"></span><h2>Versioning<a class="headerlink" href="#versioning" title="Link to this heading">#</a></h2>
+<span id="version"></span><h2>Versioning<a class="headerlink" href="#versioning" title="Link to this heading"></a></h2>
 <p>To avoid having the version set in multiple places or having to tweak <code class="docutils literal notranslate"><span class="pre">conf.py</span></code>
 to obtain it from somewhere else, continuous integration can set the environment
 variable <code class="docutils literal notranslate"><span class="pre">ADOC_DOC_VERSION</span></code> to set the version value.</p>
@@ -325,7 +306,7 @@ if the target directory is:</p>
 </ul>
 </section>
 <section id="exporting-to-pdf">
-<h2>Exporting to PDF<a class="headerlink" href="#exporting-to-pdf" title="Link to this heading">#</a></h2>
+<h2>Exporting to PDF<a class="headerlink" href="#exporting-to-pdf" title="Link to this heading"></a></h2>
 <p>The whole documentation can be exported to a PDF document for a more compact
 format. This is done by setting the enviroment variable called
 <code class="docutils literal notranslate"><span class="pre">ADOC_MEDIA_PRINT</span></code> to 1 (default it’s 0) and building the documentation using
@@ -345,7 +326,7 @@ may not render properly.</p>
 </div>
 </section>
 <section id="references">
-<h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
 <p>References have the format <code class="docutils literal notranslate"><span class="pre">library/project</span> <span class="pre">context</span></code>, e.g.
 <code class="code docutils literal notranslate"><span class="pre">:ref:`vivado</span> <span class="pre">block-diagrams`</span></code> renders as <a class="reference internal" href="#vivado-block-diagrams"><span class="std std-ref">Vivado block-diagrams</span></a>.
 Notice how neither <em>library</em> nor <em>project</em> are present in the label, since there is no
@@ -364,7 +345,7 @@ it makes pattern matching really hard.</p>
 separation, for example, <code class="docutils literal notranslate"><span class="pre">spi_engine</span> <span class="pre">control-interface</span></code> instead of
 <code class="docutils literal notranslate"><span class="pre">spi_engine</span> <span class="pre">control_interface</span></code>.</p>
 <section id="external-references">
-<span id="inter-refs"></span><h3>External references<a class="headerlink" href="#external-references" title="Link to this heading">#</a></h3>
+<span id="inter-refs"></span><h3>External references<a class="headerlink" href="#external-references" title="Link to this heading"></a></h3>
 <p>External references to other Sphinx documentation are created using the built-in
 <code class="docutils literal notranslate"><span class="pre">sphinx.ext.intersphinx</span></code> extension.</p>
 <p>To setup in-organization references read the <a class="reference internal" href="#in-org-ref"><span class="std std-ref">section below</span></a>,
@@ -390,7 +371,7 @@ and let <a class="reference internal" href="cli.html#cli"><span class="std std-r
 </pre></div>
 </div>
 <section id="in-organization-reference">
-<span id="in-org-ref"></span><h4>In organization reference<a class="headerlink" href="#in-organization-reference" title="Link to this heading">#</a></h4>
+<span id="in-org-ref"></span><h4>In organization reference<a class="headerlink" href="#in-organization-reference" title="Link to this heading"></a></h4>
 <p>To create references to Sphinx docs inside the organization add the repositories
 of interest to the <cite>conf.py</cite> file with the following format:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">interref_repos</span> <span class="o">=</span> <span class="p">[</span><span class="n">external</span><span class="o">...</span><span class="p">]</span>
@@ -428,7 +409,7 @@ current repository:</p>
 <p>The correct relative paths are resolved looking into the <code class="docutils literal notranslate"><span class="pre">lut.py</span></code>.</p>
 </section>
 <section id="outside-organization-sphinx-reference">
-<span id="out-org-ref"></span><h4>Outside organization Sphinx reference<a class="headerlink" href="#outside-organization-sphinx-reference" title="Link to this heading">#</a></h4>
+<span id="out-org-ref"></span><h4>Outside organization Sphinx reference<a class="headerlink" href="#outside-organization-sphinx-reference" title="Link to this heading"></a></h4>
 <p>To create references to third-party Sphinx documentations, add the mappings to
 to the <cite>conf.py</cite> file with the following format:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">intersphinx_mapping</span> <span class="o">=</span> <span class="p">{</span>
@@ -446,7 +427,7 @@ to the <cite>conf.py</cite> file with the following format:</p>
 </section>
 </section>
 <section id="text-width">
-<h2>Text width<a class="headerlink" href="#text-width" title="Link to this heading">#</a></h2>
+<h2>Text width<a class="headerlink" href="#text-width" title="Link to this heading"></a></h2>
 <p>Each line must be less than 80 columns wide.
 You can use the <code class="code docutils literal notranslate"><span class="pre">fold</span></code> command to break the lines of the imported text
 while respecting word-breaks:</p>
@@ -461,7 +442,7 @@ title character, that means, this is also valid:</p>
 </div>
 </section>
 <section id="tables">
-<span id="id1"></span><h2>Tables<a class="headerlink" href="#tables" title="Link to this heading">#</a></h2>
+<span id="id1"></span><h2>Tables<a class="headerlink" href="#tables" title="Link to this heading"></a></h2>
 <p>Prefer
 <a class="reference external" href="https://docutils.sourceforge.io/docs/ref/rst/directives.html#list-table">list-tables</a>
 and imported
@@ -473,7 +454,7 @@ and the 80 column-width rule can be respected with list-tables.</p>
 if strictly necessary, since they are hard to update.</p>
 </section>
 <section id="lists">
-<h2>Lists<a class="headerlink" href="#lists" title="Link to this heading">#</a></h2>
+<h2>Lists<a class="headerlink" href="#lists" title="Link to this heading"></a></h2>
 <p>Unordered lists use <code class="docutils literal notranslate"><span class="pre">*</span></code> or <code class="docutils literal notranslate"><span class="pre">-</span></code> and ordered lists <code class="docutils literal notranslate"><span class="pre">#.</span></code>.</p>
 <p>Child items must be aligned with the first letter of the parent item, that means,
 2 spaces for unordered list and 3 spaces for ordered lists, for example:</p>
@@ -500,7 +481,7 @@ if strictly necessary, since they are hard to update.</p>
 </ol>
 </section>
 <section id="code">
-<h2>Code<a class="headerlink" href="#code" title="Link to this heading">#</a></h2>
+<h2>Code<a class="headerlink" href="#code" title="Link to this heading"></a></h2>
 <p>Prefer
 <a class="reference external" href="https://www.sphinx-doc.org/en/master/usage/restructuredtext/directives.html#directive-code-block">code-blocks</a>
 to
@@ -518,14 +499,14 @@ and emphasizing lines.</p>
 </pre></div>
 </div>
 <p>Renders as</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span><span class="k">def</span> <span class="nf">hello_world</span><span class="p">():</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span><span class="k">def</span><span class="w"> </span><span class="nf">hello_world</span><span class="p">():</span>
 <span class="hll"><span class="linenos">2</span>    <span class="n">string</span> <span class="o">=</span> <span class="s2">&quot;Hello world&quot;</span>
 </span><span class="linenos">3</span>    <span class="nb">print</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
 <section id="images">
-<h2>Images<a class="headerlink" href="#images" title="Link to this heading">#</a></h2>
+<h2>Images<a class="headerlink" href="#images" title="Link to this heading"></a></h2>
 <p>Prefer the SVG format for images, and save it as <em>Optimized SVG</em> in
 <a class="reference external" href="https://inkscape.org/">inkscape</a> to use less space.</p>
 <p>Store them in a hierarchically, do not use <code class="docutils literal notranslate"><span class="pre">images</span></code> subdirectories.
@@ -540,7 +521,7 @@ The idea is to have simpler relative paths, for example, e.g.:</p>
 <p>In general, this avoids dangling artifacts and keeps the documentation simple.</p>
 </section>
 <section id="git-large-file-storage">
-<span id="git-lfs"></span><h2>Git Large File Storage<a class="headerlink" href="#git-large-file-storage" title="Link to this heading">#</a></h2>
+<span id="git-lfs"></span><h2>Git Large File Storage<a class="headerlink" href="#git-large-file-storage" title="Link to this heading"></a></h2>
 <p>Where applicable, Git Large File Storage (LFS) is used to replace large files
 with text pointers inside Git, reducing cloning time.</p>
 <p>To setup, install from your package manager and init:</p>
@@ -555,12 +536,12 @@ files use a pattern at the repo root, for example:</p>
 </div>
 <p>Or edit <code class="docutils literal notranslate"><span class="pre">.gitattributes</span></code> directly.</p>
 <section id="vivado-block-diagrams">
-<span id="id3"></span><h3>Vivado block-diagrams<a class="headerlink" href="#vivado-block-diagrams" title="Link to this heading">#</a></h3>
+<span id="id3"></span><h3>Vivado block-diagrams<a class="headerlink" href="#vivado-block-diagrams" title="Link to this heading"></a></h3>
 <p>Vivado block-diagrams can be exported as PDF and then converted to SVG with
 Inkscape.</p>
 </section>
 <section id="vivado-waveform-data">
-<h3>Vivado waveform data<a class="headerlink" href="#vivado-waveform-data" title="Link to this heading">#</a></h3>
+<h3>Vivado waveform data<a class="headerlink" href="#vivado-waveform-data" title="Link to this heading"></a></h3>
 <p>There is no way to export Vivado waveform data as vectors.
 Therefore, the recommended method is to take a PNG screenshot and use
 <a class="reference external" href="https://gimp.org">GIMP</a> to export as <strong>8bpc RGB</strong> with all metadata options
@@ -576,7 +557,7 @@ it is not recommended.</p>
 </section>
 </section>
 <section id="third-party-directives-and-roles">
-<h2>Third-party directives and roles<a class="headerlink" href="#third-party-directives-and-roles" title="Link to this heading">#</a></h2>
+<h2>Third-party directives and roles<a class="headerlink" href="#third-party-directives-and-roles" title="Link to this heading"></a></h2>
 <p>Third-party tools are used to expand Sphinx functionality, if you haven’t already,
 do:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
@@ -584,7 +565,7 @@ do:</p>
 </div>
 </section>
 <section id="custom-directives-and-roles">
-<h2>Custom directives and roles<a class="headerlink" href="#custom-directives-and-roles" title="Link to this heading">#</a></h2>
+<h2>Custom directives and roles<a class="headerlink" href="#custom-directives-and-roles" title="Link to this heading"></a></h2>
 <p>To expand Sphinx functionality beyond existing tools, custom directives and roles
 have been written, which are located in the <em>docs/extensions</em> folder.
 Extensions are straight forward to create, if some functionality is missing,
@@ -595,18 +576,18 @@ consider requesting or creating one.</p>
 links, but without the undescore in the end.</p>
 </div>
 <section id="color-role">
-<h3>Color role<a class="headerlink" href="#color-role" title="Link to this heading">#</a></h3>
+<h3>Color role<a class="headerlink" href="#color-role" title="Link to this heading"></a></h3>
 <p>To print text in red or green, use <code class="code docutils literal notranslate"><span class="pre">:red:`text`</span></code> and <code class="code docutils literal notranslate"><span class="pre">:green:`text`</span></code>.</p>
 </section>
 <section id="link-roles">
-<h3>Link roles<a class="headerlink" href="#link-roles" title="Link to this heading">#</a></h3>
+<h3>Link roles<a class="headerlink" href="#link-roles" title="Link to this heading"></a></h3>
 <p>The link roles are a group of roles defined by <code class="docutils literal notranslate"><span class="pre">adi_links.py</span></code>.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">validate_links</span></code> global option is used to validate each link during build.
 These links are not managed, that means, only links from changed files are checked.
 You can run a build with it set to False, then touch the desired files to check
 the links of only these files.</p>
 <section id="git-role">
-<span id="role-git"></span><h4>Git role<a class="headerlink" href="#git-role" title="Link to this heading">#</a></h4>
+<span id="role-git"></span><h4>Git role<a class="headerlink" href="#git-role" title="Link to this heading"></a></h4>
 <p>The Git role allows to create links to the Git repository with a shorter syntax.
 The role syntax is <code class="code docutils literal notranslate"><span class="pre">:git-repo:`text</span> <span class="pre">&lt;type+branch:path&gt;`</span></code>, for example:</p>
 <ul class="simple">
@@ -641,7 +622,7 @@ repository with pretty naming, for example, <code class="code docutils literal n
 as <a class="icon git reference external" href="https://github.com/analogdevicesinc/hdl/tree/main/">ADI HDL repository</a>.</p>
 </section>
 <section id="adi-role">
-<h4>ADI role<a class="headerlink" href="#adi-role" title="Link to this heading">#</a></h4>
+<h4>ADI role<a class="headerlink" href="#adi-role" title="Link to this heading"></a></h4>
 <p>The adi role creates links for a webpage to the Analog Devices Inc. website.</p>
 <p>The role syntax is <code class="code docutils literal notranslate"><span class="pre">:adi:`text</span> <span class="pre">&lt;webpage&gt;`</span></code>, for example,
 <code class="code docutils literal notranslate"><span class="pre">:adi:`AD7175-2</span> <span class="pre">&lt;ad7175-2&gt;`</span></code>.
@@ -650,7 +631,7 @@ Since links are case insensitive, you can also reduce it to
 as <a class="icon adi reference external" href="https://www.analog.com/AD7175-2">AD7175-2</a>.</p>
 </section>
 <section id="dokuwiki-role">
-<h4>Dokuwiki role<a class="headerlink" href="#dokuwiki-role" title="Link to this heading">#</a></h4>
+<h4>Dokuwiki role<a class="headerlink" href="#dokuwiki-role" title="Link to this heading"></a></h4>
 <p>The dokuwiki role creates links to the Analog Devices Inc. wiki website.
 The role syntax is <code class="code docutils literal notranslate"><span class="pre">:dokuwiki:`text</span> <span class="pre">&lt;path&gt;`</span></code>, for example,
 <code class="code docutils literal notranslate"><span class="pre">:dokuwiki:`pulsar-adc-pmods</span> <span class="pre">&lt;resources/eval/user-guides/circuits-from-the-lab/pulsar-adc-pmods&gt;`</span></code>
@@ -658,7 +639,7 @@ gets rendered as
 <a class="reference external" href="https://wiki.analog.com/resources/eval/user-guides/circuits-from-the-lab/pulsar-adc-pmods">pulsar-adc-pmods</a>.</p>
 </section>
 <section id="engineerzone-role">
-<h4>EngineerZone role<a class="headerlink" href="#engineerzone-role" title="Link to this heading">#</a></h4>
+<h4>EngineerZone role<a class="headerlink" href="#engineerzone-role" title="Link to this heading"></a></h4>
 <p>The ez role creates links to the Analog Devices Inc. EngineerZone support website.
 The role syntax is <code class="code docutils literal notranslate"><span class="pre">:ez:`community`</span></code>, for example, <code class="code docutils literal notranslate"><span class="pre">:ez:`fpga`</span></code>
 gets rendered as <a class="icon ez reference external" href="https://ez.analog.com/fpga">EngineerZone</a>.</p>
@@ -666,7 +647,7 @@ gets rendered as <a class="icon ez reference external" href="https://ez.analog.c
 <p>For Microcontroller no-OS Drivers it is <code class="code docutils literal notranslate"><span class="pre">:ez:`microcontroller-no-os-drivers`</span></code>.</p>
 </section>
 <section id="vendor-role">
-<h4>Vendor role<a class="headerlink" href="#vendor-role" title="Link to this heading">#</a></h4>
+<h4>Vendor role<a class="headerlink" href="#vendor-role" title="Link to this heading"></a></h4>
 <p>The vendor role creates links to the vendor’s website.
 The role syntax is <code class="code docutils literal notranslate"><span class="pre">:vendor:`text</span> <span class="pre">&lt;path&gt;`</span></code>, for example,
 <code class="code docutils literal notranslate"><span class="pre">:xilinx:`Zynq-7000</span> <span class="pre">SoC</span> <span class="pre">Overview</span> <span class="pre">&lt;support/documentation/data_sheets/ds190-Zynq-7000-Overview.pdf&gt;`</span></code>
@@ -683,7 +664,7 @@ gets rendered
 </section>
 </section>
 <section id="hdl-build-status-directive">
-<span id="id4"></span><h3>HDL build status directive<a class="headerlink" href="#hdl-build-status-directive" title="Link to this heading">#</a></h3>
+<span id="id4"></span><h3>HDL build status directive<a class="headerlink" href="#hdl-build-status-directive" title="Link to this heading"></a></h3>
 <p>The HDL build status directive gets information from a markdown formatted status
 table (<em>output.md</em>) and generates a table with the build statuses.</p>
 <p>The directive syntax is:</p>
@@ -701,7 +682,7 @@ thrown.</p>
 </div>
 </section>
 <section id="hdl-parameters-directive">
-<h3>HDL parameters directive<a class="headerlink" href="#hdl-parameters-directive" title="Link to this heading">#</a></h3>
+<h3>HDL parameters directive<a class="headerlink" href="#hdl-parameters-directive" title="Link to this heading"></a></h3>
 <p>The HDL parameters directive gets information parsed from IP-XACT (<em>component.xml</em>)
 library and generates a table with the IP parameters.</p>
 <div class="admonition note">
@@ -733,7 +714,7 @@ file.</p>
 documentation file path matches the <em>component.xml</em> hierarchically.</p>
 </section>
 <section id="hdl-interface-directive">
-<h3>HDL interface directive<a class="headerlink" href="#hdl-interface-directive" title="Link to this heading">#</a></h3>
+<h3>HDL interface directive<a class="headerlink" href="#hdl-interface-directive" title="Link to this heading"></a></h3>
 <p>The HDL interfaces directive gets information parsed from <em>component.xml</em> library
 and generates tables with the IP interfaces, both buses and ports.</p>
 <div class="admonition note">
@@ -777,7 +758,7 @@ legacy puporses, instead suffix with <code class="docutils literal notranslate">
 documentation file path matches the <em>component.xml</em> hierarchically.</p>
 </section>
 <section id="hdl-component-diagram-directive">
-<h3>HDL component diagram directive<a class="headerlink" href="#hdl-component-diagram-directive" title="Link to this heading">#</a></h3>
+<h3>HDL component diagram directive<a class="headerlink" href="#hdl-component-diagram-directive" title="Link to this heading"></a></h3>
 <p>The HDL component diagram directive gets information parsed from <em>component.xml</em>
 library and generates a component diagram for the IP with buses and ports
 information.</p>
@@ -804,7 +785,7 @@ documentation file path matches the <em>component.xml</em> hierarchically.</p>
 </div>
 </section>
 <section id="hdl-regmap-directive">
-<h3>HDL regmap directive<a class="headerlink" href="#hdl-regmap-directive" title="Link to this heading">#</a></h3>
+<h3>HDL regmap directive<a class="headerlink" href="#hdl-regmap-directive" title="Link to this heading"></a></h3>
 <p>The HDL regmap directive gets information from <em>docs/regmap/adi_regmap_*.txt</em> files
 and generates tables with the register maps.</p>
 <p>The directive syntax is:</p>
@@ -833,7 +814,7 @@ in the main IP documentation page. It appends an auxiliary table explaining the
 register access types.</p>
 </section>
 <section id="collapsible-directive">
-<h3>Collapsible directive<a class="headerlink" href="#collapsible-directive" title="Link to this heading">#</a></h3>
+<h3>Collapsible directive<a class="headerlink" href="#collapsible-directive" title="Link to this heading"></a></h3>
 <p>The collapsible directive creates a collapsible/dropdown/”HTML details”.</p>
 <p>The directive syntax is:</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">collapsible</span><span class="p">::</span> <span class="nt">&lt;label&gt;</span>
@@ -861,7 +842,7 @@ register access types.</p>
 </div><p>Notice how you can use any Sphinx syntax, even nest other directives.</p>
 </section>
 <section id="video-directive">
-<h3>Video directive<a class="headerlink" href="#video-directive" title="Link to this heading">#</a></h3>
+<h3>Video directive<a class="headerlink" href="#video-directive" title="Link to this heading"></a></h3>
 <p>The video directive creates a embedded video.
 Currently, direct MP4 and youtube embed links  are supported, but could be easily
 expanded to support third-party services.</p>
@@ -897,7 +878,7 @@ video, but a link to it.</p>
 <p><a href="https://www.youtube.com/watch?v=p_VntEwUe24"><span>https://www.youtube.com/watch?v=p_VntEwUe24</span></a></p>
 </div></div></section>
 <section id="esd-warning-directive">
-<h3>ESD warning directive<a class="headerlink" href="#esd-warning-directive" title="Link to this heading">#</a></h3>
+<h3>ESD warning directive<a class="headerlink" href="#esd-warning-directive" title="Link to this heading"></a></h3>
 <p>The ESD warning directive creates a ESD warning, for example:</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">esd-warning</span><span class="p">::</span>
 </pre></div>
@@ -909,15 +890,15 @@ Although the boards feature ESD protection circuitry, permanent damage may occur
 </div>
 </div></section>
 <section id="global-options-for-directives">
-<h3>Global options for directives<a class="headerlink" href="#global-options-for-directives" title="Link to this heading">#</a></h3>
+<h3>Global options for directives<a class="headerlink" href="#global-options-for-directives" title="Link to this heading"></a></h3>
 <p>Set <code class="docutils literal notranslate"><span class="pre">hide_collapsible_content</span></code> to <code class="docutils literal notranslate"><span class="pre">True</span></code> to hide the <em>collapsibles</em> by default.</p>
 <p>Set <code class="docutils literal notranslate"><span class="pre">monolithic</span></code> to <code class="docutils literal notranslate"><span class="pre">True</span></code> prefix paths with <em>repos/&lt;repo&gt;</em>.
 This is meant for the System Top Documentation repository only.</p>
 </section>
 <section id="common-sections">
-<h3>Common sections<a class="headerlink" href="#common-sections" title="Link to this heading">#</a></h3>
+<h3>Common sections<a class="headerlink" href="#common-sections" title="Link to this heading"></a></h3>
 <section id="hdl-common-sections">
-<h4>HDL common sections<a class="headerlink" href="#hdl-common-sections" title="Link to this heading">#</a></h4>
+<h4>HDL common sections<a class="headerlink" href="#hdl-common-sections" title="Link to this heading"></a></h4>
 <p>The <strong>More information</strong> and <strong>Support</strong> sections that are present in
 the HDL project documentation, are actually separate pages inserted as links.
 They’re located at <em>hdl/projects/common/more_information.rst</em> and <em>/support.rst</em>,
@@ -935,7 +916,7 @@ they’re not included in any toctree.</p>
 </section>
 </section>
 <section id="dynamic-elements">
-<h2>Dynamic elements<a class="headerlink" href="#dynamic-elements" title="Link to this heading">#</a></h2>
+<h2>Dynamic elements<a class="headerlink" href="#dynamic-elements" title="Link to this heading"></a></h2>
 <p>Dynamic elements refer to sections of the generated webpage that updates when
 loaded online from a source of truth, in general, <code class="docutils literal notranslate"><span class="pre">doctools/*.json</span></code> files;
 it uses a concept similar to “react components”.</p>

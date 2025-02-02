@@ -7,11 +7,11 @@
 
     <title>Command line interface &#8212; Doctools  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8e8a900e" />
-    <link rel="stylesheet" type="text/css" href="_static/style.min.css?v=990931db" />
+    <link rel="stylesheet" type="text/css" href="_static/app.min.css?v=baa58904" />
     <script src="_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script defer="" src="_static/app.umd.js?v=c93eadd1"></script>
+    <script defer="" src="_static/app.umd.js?v=2e023412"></script>
     <link rel="icon" href="_static/icon.svg"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -19,8 +19,8 @@
     <link rel="prev" title="Documentation guidelines" href="docs_guidelines.html" />
    
   
-  <meta name="global_root" content="./../../">
-  <meta name="repo" content="doctools">
+  <meta name="repository" content="doctools">
+  <meta name="version" content="v0.3.45">
   
 
 
@@ -40,7 +40,6 @@
   }
 </style>
   </head><body>
-  <div class="banner"></div>
   <input type="checkbox" id="input-show-toc">
   <input type="checkbox" id="input-show-localtoc">
   <input type="checkbox" id="input-show-repotoc">
@@ -77,15 +76,6 @@
 
   <div class="repotoc-tree overlay">
     <root>
-  <a href="./../../documentation/index.html">System Level</a>
-  <a href="./../../hdl/index.html">HDL</a>
-  <a href="./../../testbenches/index.html">HDL Testbenches</a>
-  <a href="./../../pyadi-iio/index.html">Hardware Python Interfaces</a>
-  <a href="./../../libiio/index.html">libiio</a>
-  <a href="./../../no-OS/index.html">no-OS</a>
-  <a href="./../../precision-converters-firmware/index.html">Precision Converters Firmware</a>
-  <a href="./../../PrecisionToolbox/index.html">Precision Toolbox</a>
-  <a href="./../../scopy/index.html">Scopy</a>
   <a href="./index.html" class="current">Doctools</a>
 </root>
 
@@ -93,7 +83,7 @@
     <div class="localtoc">
       <div class="tocwrapper">
         <div>
-          <div class="localtoc-header">On this page</div>
+          <div class="localtoc-header"></div>
           <a id="scroll-up" href="#top-anchor" title="Back to top"></a>
         </div>
         <nav>
@@ -129,15 +119,6 @@ Content on this topic
 </label>
 <div class="repotoc-tree">
   <root>
-  <a href="./../../documentation/index.html">System Level</a>
-  <a href="./../../hdl/index.html">HDL</a>
-  <a href="./../../testbenches/index.html">HDL Testbenches</a>
-  <a href="./../../pyadi-iio/index.html">Hardware Python Interfaces</a>
-  <a href="./../../libiio/index.html">libiio</a>
-  <a href="./../../no-OS/index.html">no-OS</a>
-  <a href="./../../precision-converters-firmware/index.html">Precision Converters Firmware</a>
-  <a href="./../../PrecisionToolbox/index.html">Precision Toolbox</a>
-  <a href="./../../scopy/index.html">Scopy</a>
   <a href="./index.html" class="current">Doctools</a>
 </root>
 
@@ -165,13 +146,13 @@ Content on this topic
           <div class="body" role="main">
             
   <section id="command-line-interface">
-<span id="cli"></span><h1>Command line interface<a class="headerlink" href="#command-line-interface" title="Link to this heading">#</a></h1>
+<span id="cli"></span><h1>Command line interface<a class="headerlink" href="#command-line-interface" title="Link to this heading"></a></h1>
 <p>The Doctools bundles a command line interface called <code class="docutils literal notranslate"><span class="pre">adoc</span></code> meant to ease both
 continuous integration and local builds of the documentation.</p>
 <p>Below, it is briefly described each command, and it is worth noting that every
 command supports the <code class="docutils literal notranslate"><span class="pre">--help</span></code> option for quick look up.</p>
 <section id="author-mode">
-<span id="id1"></span><h2>Author Mode<a class="headerlink" href="#author-mode" title="Link to this heading">#</a></h2>
+<span id="id1"></span><h2>Author Mode<a class="headerlink" href="#author-mode" title="Link to this heading"></a></h2>
 <p>Watches the docs and source code to rebuild it on edit.</p>
 <p>Two HTML live update strategies are available:</p>
 <ul class="simple">
@@ -196,20 +177,20 @@ and automatically reloads, such as Gnome PDF (Evince).</p>
 </pre></div>
 </div>
 <section id="how-can-i-rebuild-the-whole-documentation-within-author-mode">
-<h3>How can I rebuild the whole documentation within Author Mode?<a class="headerlink" href="#how-can-i-rebuild-the-whole-documentation-within-author-mode" title="Link to this heading">#</a></h3>
+<h3>How can I rebuild the whole documentation within Author Mode?<a class="headerlink" href="#how-can-i-rebuild-the-whole-documentation-within-author-mode" title="Link to this heading"></a></h3>
 <p>Run <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">clean</span></code> in another tab and then touch any file.</p>
 <p>Do <strong>not</strong> do <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">clean</span> <span class="pre">html</span></code> since it will generate a build without the
 proper Author Mode environment and live reload won’t work properly.</p>
 </section>
 <section id="why-is-the-output-missing-styling-css-stylesheet">
-<h3>Why is the output missing styling (CSS stylesheet)?<a class="headerlink" href="#why-is-the-output-missing-styling-css-stylesheet" title="Link to this heading">#</a></h3>
+<h3>Why is the output missing styling (CSS stylesheet)?<a class="headerlink" href="#why-is-the-output-missing-styling-css-stylesheet" title="Link to this heading"></a></h3>
 <p>You probably did a <a class="reference internal" href="install.html#development-install"><span class="std std-ref">Development install</span></a> without <a class="reference internal" href="install.html#web-compiler"><span class="std std-ref">Install the web compiler</span></a>
 and you are building directly (<code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">html</span></code>) instead of using Author Mode.</p>
 <p>If you don’t want to install <code class="docutils literal notranslate"><span class="pre">npm</span></code>, use Author Mode and accept the prompt to
 fetch the pre-built web-scripts from the latest release.</p>
 </section>
 <section id="why-is-the-python-source-code-of-this-repo-not-watched">
-<h3>Why is the Python source code of this repo not watched?<a class="headerlink" href="#why-is-the-python-source-code-of-this-repo-not-watched" title="Link to this heading">#</a></h3>
+<h3>Why is the Python source code of this repo not watched?<a class="headerlink" href="#why-is-the-python-source-code-of-this-repo-not-watched" title="Link to this heading"></a></h3>
 <p>Since a Python scripts change would affect rebuilding the whole documentation,
 those files are not watched by design even with the <code class="docutils literal notranslate"><span class="pre">--dev</span></code> option.
 Extensions at the doc itself are, however.</p>
@@ -218,7 +199,7 @@ with the edited Python code.</p>
 </section>
 </section>
 <section id="aggregate">
-<h2>Aggregate<a class="headerlink" href="#aggregate" title="Link to this heading">#</a></h2>
+<h2>Aggregate<a class="headerlink" href="#aggregate" title="Link to this heading"></a></h2>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>This feature is under elaboration.</p>
@@ -251,7 +232,7 @@ included, but in summary, they are just a sequence of bash commands wrapped on p
 </div>
 </section>
 <section id="hdl-render">
-<h2>HDL Render<a class="headerlink" href="#hdl-render" title="Link to this heading">#</a></h2>
+<h2>HDL Render<a class="headerlink" href="#hdl-render" title="Link to this heading"></a></h2>
 <p>Exposes the HDL component diagram generator as a CLI.
 It converts IP-XACT files into SVGs.</p>
 <p>To generate and open the diagram, provide the path containing the IP-XACT and use

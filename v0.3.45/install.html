@@ -7,11 +7,11 @@
 
     <title>Installing &#8212; Doctools  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8e8a900e" />
-    <link rel="stylesheet" type="text/css" href="_static/style.min.css?v=990931db" />
+    <link rel="stylesheet" type="text/css" href="_static/app.min.css?v=baa58904" />
     <script src="_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script defer="" src="_static/app.umd.js?v=c93eadd1"></script>
+    <script defer="" src="_static/app.umd.js?v=2e023412"></script>
     <link rel="icon" href="_static/icon.svg"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -19,8 +19,8 @@
     <link rel="prev" title="Analog Devices Doctools" href="index.html" />
    
   
-  <meta name="global_root" content="./../../">
-  <meta name="repo" content="doctools">
+  <meta name="repository" content="doctools">
+  <meta name="version" content="v0.3.45">
   
 
 
@@ -40,7 +40,6 @@
   }
 </style>
   </head><body>
-  <div class="banner"></div>
   <input type="checkbox" id="input-show-toc">
   <input type="checkbox" id="input-show-localtoc">
   <input type="checkbox" id="input-show-repotoc">
@@ -77,15 +76,6 @@
 
   <div class="repotoc-tree overlay">
     <root>
-  <a href="./../../documentation/index.html">System Level</a>
-  <a href="./../../hdl/index.html">HDL</a>
-  <a href="./../../testbenches/index.html">HDL Testbenches</a>
-  <a href="./../../pyadi-iio/index.html">Hardware Python Interfaces</a>
-  <a href="./../../libiio/index.html">libiio</a>
-  <a href="./../../no-OS/index.html">no-OS</a>
-  <a href="./../../precision-converters-firmware/index.html">Precision Converters Firmware</a>
-  <a href="./../../PrecisionToolbox/index.html">Precision Toolbox</a>
-  <a href="./../../scopy/index.html">Scopy</a>
   <a href="./index.html" class="current">Doctools</a>
 </root>
 
@@ -93,7 +83,7 @@
     <div class="localtoc">
       <div class="tocwrapper">
         <div>
-          <div class="localtoc-header">On this page</div>
+          <div class="localtoc-header"></div>
           <a id="scroll-up" href="#top-anchor" title="Back to top"></a>
         </div>
         <nav>
@@ -132,15 +122,6 @@ Content on this topic
 </label>
 <div class="repotoc-tree">
   <root>
-  <a href="./../../documentation/index.html">System Level</a>
-  <a href="./../../hdl/index.html">HDL</a>
-  <a href="./../../testbenches/index.html">HDL Testbenches</a>
-  <a href="./../../pyadi-iio/index.html">Hardware Python Interfaces</a>
-  <a href="./../../libiio/index.html">libiio</a>
-  <a href="./../../no-OS/index.html">no-OS</a>
-  <a href="./../../precision-converters-firmware/index.html">Precision Converters Firmware</a>
-  <a href="./../../PrecisionToolbox/index.html">Precision Toolbox</a>
-  <a href="./../../scopy/index.html">Scopy</a>
   <a href="./index.html" class="current">Doctools</a>
 </root>
 
@@ -168,12 +149,12 @@ Content on this topic
           <div class="body" role="main">
             
   <section id="installing">
-<h1>Installing<a class="headerlink" href="#installing" title="Link to this heading">#</a></h1>
+<h1>Installing<a class="headerlink" href="#installing" title="Link to this heading"></a></h1>
 <p>Below is described how to do a release install and a development install of Doctools.</p>
 <p>Guarantee to work with Python newer than 3.8 and distros released on or after 20H1
 (e.g. Ubuntu 20.04 LTS).</p>
 <section id="release-install">
-<span id="id1"></span><h2>Release install<a class="headerlink" href="#release-install" title="Link to this heading">#</a></h2>
+<span id="id1"></span><h2>Release install<a class="headerlink" href="#release-install" title="Link to this heading"></a></h2>
 <p>Ensure pip is newer than 23.0 <a class="footnote-reference brackets" href="#f1" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">pip</span> <span class="o">--</span><span class="n">upgrade</span>
 </pre></div>
@@ -194,7 +175,7 @@ with pip shipped with Ubuntu 22.04.</p>
 </aside>
 </aside>
 <section id="using-a-python-virtual-environment">
-<h3>Using a Python virtual environment<a class="headerlink" href="#using-a-python-virtual-environment" title="Link to this heading">#</a></h3>
+<h3>Using a Python virtual environment<a class="headerlink" href="#using-a-python-virtual-environment" title="Link to this heading"></a></h3>
 <p>Installing packages at user level through pip is not always recommended, instead,
 consider using a Python virtual environment (<code class="docutils literal notranslate"><span class="pre">python3-venv</span></code> on ubuntu 22.04).</p>
 <p>To create and activate the environment, do before the previous instructions:</p>
@@ -210,13 +191,13 @@ consider using a Python virtual environment (<code class="docutils literal notra
 </section>
 </section>
 <section id="development-install">
-<span id="id3"></span><h2>Development install<a class="headerlink" href="#development-install" title="Link to this heading">#</a></h2>
+<span id="id3"></span><h2>Development install<a class="headerlink" href="#development-install" title="Link to this heading"></a></h2>
 <p>Development install allows to edit the source code and apply the changes without
 reinstalling.
 Also extends Author Mode to watch changes on the webpage source code
 (use <cite>–dev</cite>/<cite>-r</cite> option to enable this).</p>
 <section id="install-the-web-compiler">
-<span id="web-compiler"></span><h3>Install the web compiler<a class="headerlink" href="#install-the-web-compiler" title="Link to this heading">#</a></h3>
+<span id="web-compiler"></span><h3>Install the web compiler<a class="headerlink" href="#install-the-web-compiler" title="Link to this heading"></a></h3>
 <p>If you care about the web scripts (<cite>js modules</cite>) and style sheets (<cite>sass</cite>),
 install <code class="docutils literal notranslate"><span class="pre">npm</span></code> and the <code class="docutils literal notranslate"><span class="pre">npm</span></code> packages below, if not, read this section’s
 last paragraph.</p>
@@ -240,14 +221,14 @@ For that, just run <a class="reference internal" href="cli.html#author-mode"><sp
 confirm the prompt that will appear.</p>
 </section>
 <section id="fetch-third-party-resources">
-<h3>Fetch third-party resources<a class="headerlink" href="#fetch-third-party-resources" title="Link to this heading">#</a></h3>
+<h3>Fetch third-party resources<a class="headerlink" href="#fetch-third-party-resources" title="Link to this heading"></a></h3>
 <p>Fetch third-party fonts:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">ci</span><span class="o">/</span><span class="n">fetch</span><span class="o">-</span><span class="n">fonts</span><span class="o">.</span><span class="n">sh</span>
 </pre></div>
 </div>
 </section>
 <section id="install-the-repository">
-<h3>Install the repository<a class="headerlink" href="#install-the-repository" title="Link to this heading">#</a></h3>
+<h3>Install the repository<a class="headerlink" href="#install-the-repository" title="Link to this heading"></a></h3>
 <p>Finally, do a symbolic install of this repo:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">e</span> <span class="o">.</span> <span class="o">--</span><span class="n">upgrade</span>
 </pre></div>
@@ -255,7 +236,7 @@ confirm the prompt that will appear.</p>
 </section>
 </section>
 <section id="removing">
-<span id="id4"></span><h2>Removing<a class="headerlink" href="#removing" title="Link to this heading">#</a></h2>
+<span id="id4"></span><h2>Removing<a class="headerlink" href="#removing" title="Link to this heading"></a></h2>
 <p>To remove, either release or development, do:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">uninstall</span> <span class="n">adi</span><span class="o">-</span><span class="n">doctools</span>
 </pre></div>
