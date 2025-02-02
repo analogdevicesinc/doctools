@@ -40,5 +40,13 @@
             "name": "Doctools",
             "visibility": "public"
         }
+    },
+    "modules": {
+        "javascript": [
+            "extra.umd.js"
+        ],
+        "stylesheet": [
+            "extra.min.css"
+        ]
     }
 }

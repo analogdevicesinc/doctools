@@ -7,11 +7,11 @@
 
     <title>Continuous integration &#8212; Doctools  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8e8a900e" />
-    <link rel="stylesheet" type="text/css" href="_static/style.min.css?v=b1e300ab" />
+    <link rel="stylesheet" type="text/css" href="_static/app.min.css?v=baa58904" />
     <script src="_static/documentation_options.js?v=5929fcd5"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script defer="" src="_static/app.umd.js?v=689b8755"></script>
+    <script defer="" src="_static/app.umd.js?v=2e023412"></script>
     <link rel="icon" href="_static/icon.svg"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -19,8 +19,8 @@
     <link rel="prev" title="Command line interface" href="cli.html" />
    
   
-  <meta name="global_root" content="./../">
-  <meta name="repo" content="doctools">
+  <meta name="repository" content="doctools">
+  <meta name="version" content="main">
   
 
 
@@ -40,7 +40,6 @@
   }
 </style>
   </head><body>
-  <div class="banner"></div>
   <input type="checkbox" id="input-show-toc">
   <input type="checkbox" id="input-show-localtoc">
   <input type="checkbox" id="input-show-repotoc">
@@ -77,15 +76,6 @@
 
   <div class="repotoc-tree overlay">
     <root>
-  <a href="./../documentation/index.html">System Level</a>
-  <a href="./../hdl/index.html">HDL</a>
-  <a href="./../testbenches/index.html">HDL Testbenches</a>
-  <a href="./../pyadi-iio/index.html">Hardware Python Interfaces</a>
-  <a href="./../libiio/index.html">libiio</a>
-  <a href="./../no-OS/index.html">no-OS</a>
-  <a href="./../precision-converters-firmware/index.html">Precision Converters Firmware</a>
-  <a href="./../PrecisionToolbox/index.html">Precision Toolbox</a>
-  <a href="./../scopy/index.html">Scopy</a>
   <a href="./index.html" class="current">Doctools</a>
 </root>
 
@@ -103,7 +93,17 @@
 <li><a class="reference internal" href="#documentation-build-and-deployment">Documentation build and deployment</a><ul>
 <li><a class="reference internal" href="#local">Local</a></li>
 <li><a class="reference internal" href="#rolling-release">Rolling release</a></li>
-<li><a class="reference internal" href="#versioned">Versioned</a></li>
+<li><a class="reference internal" href="#versioned">Versioned</a><ul>
+<li><a class="reference internal" href="#string-array-form">String array form</a></li>
+<li><a class="reference internal" href="#fine-grained-form">Fine-grained form</a></li>
+<li><a class="reference internal" href="#further-notes">Further notes</a><ul>
+<li><a class="reference internal" href="#i-don-t-want-a-doc-at-the-root">I don’t want a doc at the root</a></li>
+<li><a class="reference internal" href="#how-do-i-cross-reference-a-specific-version">How do I cross-reference a specific version?</a></li>
+<li><a class="reference internal" href="#what-happened-to-adoc-target-depth">What happened to <code class="docutils literal notranslate"><span class="pre">ADOC_TARGET_DEPTH</span></code>?</a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -128,15 +128,6 @@ Content on this topic
 </label>
 <div class="repotoc-tree">
   <root>
-  <a href="./../documentation/index.html">System Level</a>
-  <a href="./../hdl/index.html">HDL</a>
-  <a href="./../testbenches/index.html">HDL Testbenches</a>
-  <a href="./../pyadi-iio/index.html">Hardware Python Interfaces</a>
-  <a href="./../libiio/index.html">libiio</a>
-  <a href="./../no-OS/index.html">no-OS</a>
-  <a href="./../precision-converters-firmware/index.html">Precision Converters Firmware</a>
-  <a href="./../PrecisionToolbox/index.html">Precision Toolbox</a>
-  <a href="./../scopy/index.html">Scopy</a>
   <a href="./index.html" class="current">Doctools</a>
 </root>
 
@@ -356,30 +347,68 @@ please be aware of GitHub events values if implementing something else.</p>
 <section id="versioned">
 <span id="ci-versioned"></span><h3>Versioned<a class="headerlink" href="#versioned" title="Link to this heading"></a></h3>
 <p>The live versioned version requires additional orchestration than the
-<a class="reference internal" href="#ci-rolling-release"><span class="std std-ref">Rolling release</span></a>.
-Store each version in separated folders in the root path, e.g.
-<code class="docutils literal notranslate"><span class="pre">v1.1</span></code>, <code class="docutils literal notranslate"><span class="pre">v2.2</span></code>, <code class="docutils literal notranslate"><span class="pre">main</span></code>, <code class="docutils literal notranslate"><span class="pre">dev</span></code> and generate a <code class="docutils literal notranslate"><span class="pre">tags.json</span></code>
-containing a plain array with each version on the root path,
-e.g. <code class="docutils literal notranslate"><span class="pre">[&quot;v1.1&quot;,</span> <span class="pre">&quot;v2.2&quot;,</span> <span class="pre">&quot;main&quot;,</span> <span class="pre">&quot;dev&quot;]</span></code>
-(a empty string means there is a built doc on the root).
-This <code class="docutils literal notranslate"><span class="pre">tags.json</span></code> is used solely by the opened live page to show a dropdown to
-switch between versions.</p>
+<a class="reference internal" href="#ci-rolling-release"><span class="std std-ref">Rolling release</span></a>.</p>
+<p>The versions are described in <code class="docutils literal notranslate"><span class="pre">tags.json</span></code> file on the root path
+that can take two formats, one simpler with a plain string array and other
+fine-grained to allow full control.</p>
+<section id="string-array-form">
+<h4>String array form<a class="headerlink" href="#string-array-form" title="Link to this heading"></a></h4>
+<p>But first, store each version in separated folders in the root path, e.g.
+<code class="docutils literal notranslate"><span class="pre">v1.1</span></code>, <code class="docutils literal notranslate"><span class="pre">v2.2</span></code>, <code class="docutils literal notranslate"><span class="pre">main</span></code>, <code class="docutils literal notranslate"><span class="pre">dev</span></code>.</p>
+<p>The simple <code class="docutils literal notranslate"><span class="pre">tags.json</span></code> is a plain array with each version/path on the
+and generate a <code class="docutils literal notranslate"><span class="pre">tags.json</span></code>, e.g. <code class="docutils literal notranslate"><span class="pre">[&quot;v1.1&quot;,</span> <span class="pre">&quot;v2.2&quot;,</span> <span class="pre">&quot;main&quot;,</span> <span class="pre">&quot;dev&quot;,</span> <span class="pre">&quot;&quot;]</span></code>
+(a empty string means there is a built doc on the root and will be named
+<code class="docutils literal notranslate"><span class="pre">latest</span> <span class="pre">(unsable)</span></code>).</p>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p>See this repo’s <a class="icon git reference external" href="https://github.com/analogdevicesinc/doctools/tree/main/.github/workflows/deploy.yml">.github/workflows/deploy.yml</a> for a suggestion on
 how to implement it.</p>
 </div>
-<p>For <a class="reference internal" href="docs_guidelines.html#in-org-ref"><span class="std std-ref">In organization reference</span></a>, the doc shall target a specific version by suffixing
-the target the version on the <code class="docutils literal notranslate"><span class="pre">interref_repos</span></code> variable, e.g.
-<code class="docutils literal notranslate"><span class="pre">interref_repos</span> <span class="pre">=</span> <span class="pre">['pyadi-iio/dev',</span> <span class="pre">'other-repo/v1.1']</span></code>.</p>
-<p>A basic <code class="docutils literal notranslate"><span class="pre">tags.json</span></code> can be obtained with:</p>
+<p>This <code class="docutils literal notranslate"><span class="pre">tags.json</span></code> format can be obtained with:</p>
 <div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
 </pre></div>
 </div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ls<span class="w"> </span>-d<span class="w"> </span>*/<span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-f1<span class="w"> </span>-d<span class="s1">&#39;/&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>--raw-input<span class="w"> </span>.<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>--slurp<span class="w"> </span>.<span class="w"> </span>&gt;<span class="w"> </span>tags.json
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Search for every doc&#39;s objects.inv store the paths as JSON.</span>
 </pre></div>
 </div>
-<div class="clear-left"></div></div></div><p>That means, take all directories in the root path and store as JSON.</p>
+<div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>find<span class="w"> </span>.<span class="w"> </span>-name<span class="w"> </span>objects.inv<span class="w"> </span>-exec<span class="w"> </span>sh<span class="w"> </span>-c<span class="w"> </span><span class="s1">&#39;dirname {}&#39;</span><span class="w"> </span><span class="s1">&#39;;&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>cut<span class="w"> </span>-c<span class="w"> </span><span class="m">3</span>-<span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>sort<span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>jq<span class="w"> </span>--raw-input<span class="w"> </span>.<span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>jq<span class="w"> </span>--slurp<span class="w"> </span>.<span class="w"> </span>&gt;<span class="w"> </span>tags.json
+</pre></div>
+</div>
+<div class="clear-left"></div></div></div></section>
+<section id="fine-grained-form">
+<h4>Fine-grained form<a class="headerlink" href="#fine-grained-form" title="Link to this heading"></a></h4>
+<p>The more elaborated option takes the following format:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;path&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;label&quot;</span><span class="p">],</span>
+<span class="w">  </span><span class="c1">// ...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>For example:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;main&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;main&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;unstable&quot;</span><span class="p">],</span>
+<span class="w">  </span><span class="nt">&quot;v2.0.0&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;v2.0.0&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;pre-release&quot;</span><span class="p">],</span>
+<span class="w">  </span><span class="nt">&quot;v1.2.1&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;v1.2.1&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;latest&quot;</span><span class="p">],</span>
+<span class="w">  </span><span class="nt">&quot;v1.2.0&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;v1.2.0&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">],</span>
+<span class="w">  </span><span class="nt">&quot;v1.1.7&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;v1.1.7&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">],</span>
+<span class="w">  </span><span class="nt">&quot;prs/staging/new-feature&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;new-feature&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;experimental&quot;</span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Notice how the “name” and “label” for path <code class="docutils literal notranslate"><span class="pre">prs/staging/new-feature</span></code>
+was used to provide a more concise but clearer name to this entry.</p>
+</section>
+<section id="further-notes">
+<h4>Further notes<a class="headerlink" href="#further-notes" title="Link to this heading"></a></h4>
+<section id="i-don-t-want-a-doc-at-the-root">
+<h5>I don’t want a doc at the root<a class="headerlink" href="#i-don-t-want-a-doc-at-the-root" title="Link to this heading"></a></h5>
 <p>If the root does not contain any built doc, add a redirect HTML file pointing
 to the main/stable version:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&lt;!DOCTYPE html&gt;
@@ -390,17 +419,24 @@ to the main/stable version:</p>
 &lt;/html&gt;
 </pre></div>
 </div>
-<p>If the root does contain a built doc, add an empty string <code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code> to
-<code class="docutils literal notranslate"><span class="pre">tags.json</span></code>.
-This entry will be named <code class="docutils literal notranslate"><span class="pre">latest</span></code> in the version selector dropdown.</p>
-<p>Finally, set the depth of the destination path during doc generation
-with <code class="docutils literal notranslate"><span class="pre">ADOC_TARGET_DEPTH</span></code>, for example, if the target directory is:</p>
-<ul class="simple">
-<li><p><em>./</em>: <code class="docutils literal notranslate"><span class="pre">0</span></code> or unset</p></li>
-<li><p><em>./v2.2</em>: <code class="docutils literal notranslate"><span class="pre">1</span></code></p></li>
-<li><p><em>./prs/1234</em>: <code class="docutils literal notranslate"><span class="pre">2</span></code></p></li>
-</ul>
-<p>e.g. <code class="docutils literal notranslate"><span class="pre">ADOC_TARGET_DEPTH=2</span> <span class="pre">make</span> <span class="pre">html</span></code></p>
+</section>
+<section id="how-do-i-cross-reference-a-specific-version">
+<h5>How do I cross-reference a specific version?<a class="headerlink" href="#how-do-i-cross-reference-a-specific-version" title="Link to this heading"></a></h5>
+<p>For <a class="reference internal" href="docs_guidelines.html#in-org-ref"><span class="std std-ref">In organization reference</span></a>, the doc shall target a specific version by suffixing
+the target the version on the <code class="docutils literal notranslate"><span class="pre">interref_repos</span></code> variable, e.g.
+<code class="docutils literal notranslate"><span class="pre">interref_repos</span> <span class="pre">=</span> <span class="pre">['pyadi-iio/dev',</span> <span class="pre">'other-repo/v1.1']</span></code>.</p>
+</section>
+<section id="what-happened-to-adoc-target-depth">
+<h5>What happened to <code class="docutils literal notranslate"><span class="pre">ADOC_TARGET_DEPTH</span></code>?<a class="headerlink" href="#what-happened-to-adoc-target-depth" title="Link to this heading"></a></h5>
+<p>Previously there was also a <code class="docutils literal notranslate"><span class="pre">ADOC_TARGET_DEPTH</span></code> enviroment variables
+to create full relative links between versions, but this was deprecated
+by instead just using the root <code class="docutils literal notranslate"><span class="pre">/</span></code> for those links, e.g.
+<code class="docutils literal notranslate"><span class="pre">/doctools/v1.0.0</span></code> instead of <code class="docutils literal notranslate"><span class="pre">../../../doctools/v1.0.0</span></code> from
+<code class="docutils literal notranslate"><span class="pre">doctools/v2.0.0/some/page.html</span></code>.</p>
+<p>This has the side effect of requiring to repository docs to be hosted right
+at the root.</p>
+</section>
+</section>
 </section>
 </section>
 </section>

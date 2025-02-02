@@ -7,11 +7,11 @@
 
     <title>Documentation guidelines &#8212; Doctools  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8e8a900e" />
-    <link rel="stylesheet" type="text/css" href="_static/style.min.css?v=b1e300ab" />
+    <link rel="stylesheet" type="text/css" href="_static/app.min.css?v=baa58904" />
     <script src="_static/documentation_options.js?v=5929fcd5"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script defer="" src="_static/app.umd.js?v=689b8755"></script>
+    <script defer="" src="_static/app.umd.js?v=2e023412"></script>
     <link rel="icon" href="_static/icon.svg"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -19,8 +19,8 @@
     <link rel="prev" title="Fundamentals" href="fundamentals.html" />
    
   
-  <meta name="global_root" content="./../">
-  <meta name="repo" content="doctools">
+  <meta name="repository" content="doctools">
+  <meta name="version" content="main">
   
 
 
@@ -40,7 +40,6 @@
   }
 </style>
   </head><body>
-  <div class="banner"></div>
   <input type="checkbox" id="input-show-toc">
   <input type="checkbox" id="input-show-localtoc">
   <input type="checkbox" id="input-show-repotoc">
@@ -77,15 +76,6 @@
 
   <div class="repotoc-tree overlay">
     <root>
-  <a href="./../documentation/index.html">System Level</a>
-  <a href="./../hdl/index.html">HDL</a>
-  <a href="./../testbenches/index.html">HDL Testbenches</a>
-  <a href="./../pyadi-iio/index.html">Hardware Python Interfaces</a>
-  <a href="./../libiio/index.html">libiio</a>
-  <a href="./../no-OS/index.html">no-OS</a>
-  <a href="./../precision-converters-firmware/index.html">Precision Converters Firmware</a>
-  <a href="./../PrecisionToolbox/index.html">Precision Toolbox</a>
-  <a href="./../scopy/index.html">Scopy</a>
   <a href="./index.html" class="current">Doctools</a>
 </root>
 
@@ -181,15 +171,6 @@ Content on this topic
 </label>
 <div class="repotoc-tree">
   <root>
-  <a href="./../documentation/index.html">System Level</a>
-  <a href="./../hdl/index.html">HDL</a>
-  <a href="./../testbenches/index.html">HDL Testbenches</a>
-  <a href="./../pyadi-iio/index.html">Hardware Python Interfaces</a>
-  <a href="./../libiio/index.html">libiio</a>
-  <a href="./../no-OS/index.html">no-OS</a>
-  <a href="./../precision-converters-firmware/index.html">Precision Converters Firmware</a>
-  <a href="./../PrecisionToolbox/index.html">Precision Toolbox</a>
-  <a href="./../scopy/index.html">Scopy</a>
   <a href="./index.html" class="current">Doctools</a>
 </root>
 
@@ -317,8 +298,8 @@ of them.</p>
 <p>To avoid having the version set in multiple places or having to tweak <code class="docutils literal notranslate"><span class="pre">conf.py</span></code>
 to obtain it from somewhere else, continuous integration can set the environment
 variable <code class="docutils literal notranslate"><span class="pre">ADOC_DOC_VERSION</span></code> to set the version value.</p>
-<p>Still, the <code class="docutils literal notranslate"><span class="pre">version</span></code> value on <code class="docutils literal notranslate"><span class="pre">conf.py</span></code> has higher precedence, and
-<code class="docutils literal notranslate"><span class="pre">ADOC_DOC_VERSION</span></code> will be ignored if the variable is already set.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">version</span></code> value on <code class="docutils literal notranslate"><span class="pre">conf.py</span></code> has lower precedence, and
+will be overwritten if <code class="docutils literal notranslate"><span class="pre">ADOC_DOC_VERSION</span></code> is set.</p>
 <p>The CI, in general, should set <code class="docutils literal notranslate"><span class="pre">ADOC_DOC_VERSION</span></code> as the current checkout branch
 in the pipeline (e.g. <code class="docutils literal notranslate"><span class="pre">main</span></code>, <code class="docutils literal notranslate"><span class="pre">v1.0.0</span></code>).</p>
 <div class="admonition tip">
@@ -328,14 +309,6 @@ in the pipeline (e.g. <code class="docutils literal notranslate"><span class="pr
 </div>
 <p>If both environment variable and <code class="docutils literal notranslate"><span class="pre">version</span></code> on <code class="docutils literal notranslate"><span class="pre">conf.py</span></code> are unset, it defaults
 to an empty string.</p>
-<p>Also, set <code class="docutils literal notranslate"><span class="pre">ADOC_TARGET_DEPTH</span></code> to match the final destination depth, for example,
-if the target directory is:</p>
-<ul class="simple">
-<li><p><em>./</em>: <code class="docutils literal notranslate"><span class="pre">0</span></code> or unset</p></li>
-<li><p><em>./v2.2</em>: <code class="docutils literal notranslate"><span class="pre">1</span></code></p></li>
-<li><p><em>./prs/1234</em>: <code class="docutils literal notranslate"><span class="pre">2</span></code></p></li>
-<li><p><em>./staging/user/branch</em>: <code class="docutils literal notranslate"><span class="pre">3</span></code></p></li>
-</ul>
 </section>
 <section id="exporting-to-pdf">
 <h2>Exporting to PDF<a class="headerlink" href="#exporting-to-pdf" title="Link to this heading"></a></h2>
@@ -1290,24 +1263,45 @@ they’re not included in any toctree.</p>
 </section>
 <section id="dynamic-elements">
 <h2>Dynamic elements<a class="headerlink" href="#dynamic-elements" title="Link to this heading"></a></h2>
-<p>Dynamic elements refer to sections of the generated webpage that updates when
-loaded online from a source of truth, in general, <code class="docutils literal notranslate"><span class="pre">doctools/*.json</span></code> files;
-it uses a concept similar to “react components”.</p>
-<p>These <code class="docutils literal notranslate"><span class="pre">*.json</span></code> files are generated when <code class="docutils literal notranslate"><span class="pre">export_metadata</span></code> is true in the
+<p>Dynamic elements refer to sections of the documentation that are updated using
+dynamically loaded metadata, scripts, and styles (modules).</p>
+<p>The dynamic elements implemented:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">doctools/metadata.json</span></code>:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>The navigation bar at the top (<code class="docutils literal notranslate"><span class="pre">repotoc</span></code> entry).</p></li>
+<li><p>A banner at the top (<code class="docutils literal notranslate"><span class="pre">banner</span></code> entry).</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+<p>The metadata/modules files are generated when <code class="docutils literal notranslate"><span class="pre">core_repo</span></code> is true in the
 <code class="docutils literal notranslate"><span class="pre">conf.py</span></code>.
-From the JavaScript side, it fetches from
-<code class="docutils literal notranslate"><span class="pre">{content_root}[../versioned]/../doctools/[versioned]/metadata.json</span></code>.</p>
+From the JavaScript side, it fetches first
+<code class="docutils literal notranslate"><span class="pre">{content_root}[../versioned]/../doctools/[versioned]/metadata.json</span></code>,
+which contains the basic metadata and the list of the extra scripts and styles.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>path <code class="docutils literal notranslate"><span class="pre">version</span></code> is present and set if <code class="docutils literal notranslate"><span class="pre">latest</span></code> exists at
 <code class="docutils literal notranslate"><span class="pre">{content_root}/../doctools</span></code> and the stored version can be extracted.</p>
 </div>
-<p>The dynamic elements are:</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>To keep the documentation lean, the metadata file is cached on localStorage
+and is only fetched again after the threshold time expires.</p>
+</div>
+<p>To add new JavaScript modules and CSS styles:</p>
 <ul class="simple">
-<li><p>The navigation bar at the top is updated using the <code class="docutils literal notranslate"><span class="pre">repotoc</span></code> entry
-in <code class="docutils literal notranslate"><span class="pre">doctools/metadata.json</span></code>.</p></li>
-<li><p>A banner at the top is present/updated when the <code class="docutils literal notranslate"><span class="pre">banner</span></code> entry
-in <code class="docutils literal notranslate"><span class="pre">doctools/metadata.json</span></code> exists.</p></li>
+<li><p>Update <a class="icon git reference external" href="https://github.com/analogdevicesinc/doctools/tree/main/ci/rollup.config.app.mjs">ci/rollup.config.app.mjs</a>.</p></li>
+<li><p>Add the list of modules to <a class="icon git reference external" href="https://github.com/analogdevicesinc/doctools/tree/main/adi_doctools/lut.py">adi_doctools/lut.py</a>.</p></li>
+</ul>
+<p>The rollup should always output to the <code class="docutils literal notranslate"><span class="pre">static</span></code> directory, the same as the
+base <code class="docutils literal notranslate"><span class="pre">app.umd.js</span></code> and <code class="docutils literal notranslate"><span class="pre">app.min.css</span></code>.</p>
+<p>Example use cases/suggestions:</p>
+<ul class="simple">
+<li><p>An ever improving <code class="docutils literal notranslate"><span class="pre">search.umd.js</span></code>, that follows the natural evolution of the doc.</p></li>
+<li><p>A unified footer accross releases, using DOM manipulation by a <code class="docutils literal notranslate"><span class="pre">footer.umd.js</span></code>.</p></li>
 </ul>
 </section>
 </section>
