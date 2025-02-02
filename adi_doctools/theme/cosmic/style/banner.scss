@@ -1,0 +1,30 @@
+@use "variable";
+
+.banner {
+    line-height: 2em;
+    background-color: var(--bg-banner);
+    color: var(--text-color-banner);
+    text-align: center;
+    z-index: 11;
+    position: relative
+}
+
+.banner a {
+    padding-left: .25em;
+    font-weight: 600;
+    border-bottom: 1px solid rgba(125,125,125,.25);
+}
+
+.banner a:hover {
+    border-color: var(--text-color-banner);
+}
+
+.banner.on {
+    display: block;
+}
+
+@media screen {
+    header {
+        position: sticky;
+    }
+}

@@ -46,16 +46,9 @@ def config_inited(app, config):
     else:
         config.filter_toctree = config.filter_toctree == True
 
-    target_depth = config.target_depth
-    if config.target_depth is None:
-        target_depth = getenv("ADOC_TARGET_DEPTH", default="0")
-        try:
-            target_depth = int(target_depth)
-        except Exception as err:
-            logger.warn(f"ADOC_TARGET_DEPTH '{target_depth}' is not an int.")
-            target_depth = 0
-    config.target_depth = path.join('..', *[".."]*target_depth)
-
+    # DEPRECATED
+    if config.target_depth is not None or getenv("ADOC_TARGET_DEPTH", default=None) is not None:
+        logger.info(f"ADOC_TARGET_DEPTH is deprecated and has no effect.")
 
 def build_finished(app, exc):
     if app.builder.format == 'html' and not exc:
@@ -107,7 +100,7 @@ def repotoc_tree(content_root, conf_vars, pagename):
     From the 'repository' config value, a 'current' class is added to
     the link targeting the current doc.
     """
-    repo, repos, _ = conf_vars
+    repo, repos = conf_vars
     root = etree.Element("root")
     home = "index.html"
     current = ''
@@ -162,7 +155,6 @@ def navigation_tree(app, toctree_html, content_root, pagename):
     conf_vars = (
         app.env.config.repository,
         app.lut['repos'],
-        app.env.config.target_depth
     )
 
     lvl = [0]

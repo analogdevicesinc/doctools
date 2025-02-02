@@ -2,6 +2,7 @@
 
 /**
  * version: v0.0.1, main, staging/new_feature
+ * path: "v0.0.1", "", "prs/staging/new_feature"
  * metadata: fetched by fetch.js
  */
 const state = {
@@ -11,6 +12,7 @@ const state = {
   theme: undefined,
   content_root: undefined,
   sub_hosted: undefined,
+  path: undefined,
   reloaded: undefined,
   metadata: undefined
 }
@@ -67,12 +69,30 @@ export class State {
    * Checks if doc is in a path beyond the server root,
    * e.g.
    * true: doctools, doctools/v0.2.2
-   * false: false
+   * false: / , /v0.2.2
    */
   sub_hosted (content_root, repository) {
     let url = new URL(content_root, location).href,
-        org = new URL(location.origin).href
-    return url !== org
+        org = new URL(repository, location.origin).href
+    return url.startsWith(org)
+  }
+  /**
+   * Extract path of versioned version, without repository name
+   * /doctools -> ""
+   * / -> ""
+   * /doctools/v1.1.1 -> "v1.1.1"
+   * /v1.1.1 -> "v1.1.1"
+   */
+  path (content_root, repository, sub_hosted) {
+    if (!sub_hosted)
+      repository = ""
+
+    let url = new URL(content_root, location).href,
+        org = new URL(repository, location.origin).href
+    if (!url.startsWith(org))
+      return ""
+    else
+      return url.replace(org, "").replace(/^\/|\/$/g, "")
   }
   /**
    * Detects if the page was reloaded by the user.
@@ -93,7 +113,8 @@ export class State {
     state.offline = 'file:' == window.location.protocol
     state.theme = localStorage.getItem('theme')
     state.content_root = this.content_root()
-    state.sub_hosted = this.sub_hosted(state.content_root)
+    state.sub_hosted = this.sub_hosted(state.content_root, state.repository)
+    state.path = this.path(state.content_root, state.repository, state.sub_hosted)
     state.reloaded = this.reloaded()
   }
 }

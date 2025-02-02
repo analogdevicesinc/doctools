@@ -22,7 +22,7 @@ export class Fetch {
       console.log("fetch: dynamic features are not available in offline mode")
       return
     } else if (this.parent.state.sub_hosted === false) {
-      console.log("fetch: dynamic features are not available for single hosted doc")
+      console.log("fetch: dynamic features are not available for single repository doc")
       return
     }
 

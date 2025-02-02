@@ -216,30 +216,72 @@ Versioned
 
 The live versioned version requires additional orchestration than the
 :ref:`ci-rolling-release`.
-Store each version in separated folders in the root path, e.g.
-``v1.1``, ``v2.2``, ``main``, ``dev`` and generate a ``tags.json``
-containing a plain array with each version on the root path,
-e.g. ``["v1.1", "v2.2", "main", "dev"]``
-(a empty string means there is a built doc on the root).
-This ``tags.json`` is used solely by the opened live page to show a dropdown to
-switch between versions.
+
+The versions are described in ``tags.json`` file on the root path
+that can take two formats, one simpler with a plain string array and other
+fine-grained to allow full control.
+
+String array form
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+But first, store each version in separated folders in the root path, e.g.
+``v1.1``, ``v2.2``, ``main``, ``dev``.
+
+The simple ``tags.json`` is a plain array with each version/path on the
+and generate a ``tags.json``, e.g. ``["v1.1", "v2.2", "main", "dev", ""]``
+(a empty string means there is a built doc on the root and will be named
+``latest (unsable)``).
 
 .. tip::
 
    See this repo's :git-doctools:`.github/workflows/deploy.yml` for a suggestion on
    how to implement it.
 
-For :ref:`in-org-ref`, the doc shall target a specific version by suffixing
-the target the version on the ``interref_repos`` variable, e.g.
-``interref_repos = ['pyadi-iio/dev', 'other-repo/v1.1']``.
 
-A basic ``tags.json`` can be obtained with:
+This ``tags.json`` format can be obtained with:
 
 .. shell::
 
-   $ls -d */ | cut -f1 -d'/' | jq --raw-input . | jq --slurp . > tags.json
+   # Search for every doc's objects.inv store the paths as JSON.
+   $find . -name objects.inv -exec sh -c 'dirname {}' ';' | \
+   $    cut -c 3- | \
+   $    sort | \
+   $    jq --raw-input . | \
+   $    jq --slurp . > tags.json
 
-That means, take all directories in the root path and store as JSON.
+Fine-grained form
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+The more elaborated option takes the following format:
+
+.. code:: json
+
+   {
+     "path": ["name", "label"],
+     // ...
+   }
+
+For example:
+
+.. code:: json
+
+   {
+     "main": ["main", "unstable"],
+     "v2.0.0": ["v2.0.0", "pre-release"],
+     "v1.2.1": ["v1.2.1", "latest"],
+     "v1.2.0": ["v1.2.0", ""],
+     "v1.1.7": ["v1.1.7", ""],
+     "prs/staging/new-feature": ["new-feature", "experimental"]
+   }
+
+Notice how the "name" and "label" for path ``prs/staging/new-feature``
+was used to provide a more concise but clearer name to this entry.
+
+Further notes
++++++++++++++
+
+I don't want a doc at the root
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If the root does not contain any built doc, add a redirect HTML file pointing
 to the main/stable version:
@@ -253,15 +295,21 @@ to the main/stable version:
      </head>
    </html>
 
-If the root does contain a built doc, add an empty string ``""`` to
-``tags.json``.
-This entry will be named ``latest`` in the version selector dropdown.
+How do I cross-reference a specific version?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Finally, set the depth of the destination path during doc generation
-with ``ADOC_TARGET_DEPTH``, for example, if the target directory is:
+For :ref:`in-org-ref`, the doc shall target a specific version by suffixing
+the target the version on the ``interref_repos`` variable, e.g.
+``interref_repos = ['pyadi-iio/dev', 'other-repo/v1.1']``.
 
-* *./*: ``0`` or unset
-* *./v2.2*: ``1``
-* *./prs/1234*: ``2``
+What happened to ``ADOC_TARGET_DEPTH``?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-e.g. ``ADOC_TARGET_DEPTH=2 make html``
+Previously there was also a ``ADOC_TARGET_DEPTH`` enviroment variables
+to create full relative links between versions, but this was deprecated
+by instead just using the root ``/`` for those links, e.g.
+``/doctools/v1.0.0`` instead of ``../../../doctools/v1.0.0`` from
+``doctools/v2.0.0/some/page.html``.
+
+This has the side effect of requiring to repository docs to be hosted right
+at the root.

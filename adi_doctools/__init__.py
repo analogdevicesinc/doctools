@@ -50,8 +50,6 @@ def html_page_context(app, pagename, templatename, context, doctree):
      context["repotoc_tree"],
      context["repotoc_current_name"],
      context["repotoc_current"]) = ret
-    context["global_root"] = path.join(context["content_root"],
-                                       app.env.config.target_depth) + SEP
 
 
 def config_inited(app, config):

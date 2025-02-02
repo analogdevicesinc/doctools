@@ -143,14 +143,6 @@ in the pipeline (e.g. ``main``, ``v1.0.0``).
 If both environment variable and ``version`` on ``conf.py`` are unset, it defaults
 to an empty string.
 
-Also, set ``ADOC_TARGET_DEPTH`` to match the final destination depth, for example,
-if the target directory is:
-
-* *./*: ``0`` or unset
-* *./v2.2*: ``1``
-* *./prs/1234*: ``2``
-* *./staging/user/branch*: ``3``
-
 Exporting to PDF
 --------------------------------------------------------------------------------
 

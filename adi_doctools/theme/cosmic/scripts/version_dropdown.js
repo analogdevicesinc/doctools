@@ -22,31 +22,62 @@ export class VersionDropdown {
    * Assert if tags.json is valid
    */
   assert (obj) {
-    if (Object.prototype.toString.call(obj) !== '[object Object]') {
-        console.warn("version_dropdown: expected object of arrays, got ", obj)
-      return true
+    let assert_string = (arr) => {
+      return arr.every(item => typeof item === "string")
     }
 
-    for (let key in obj) {
-      if (!Array.isArray(obj[key])) {
-        console.warn("version_dropdown: expected array, got ", obj[key])
-        return true
-      } else if (obj[key].length !== 2) {
-        console.warn(`version_dropdown: expected two items, got ${obj[key].length}`, obj[key])
+    if (Array.isArray(obj)) {
+      /* Mode one: simple array of versions */
+      if (!assert_string(obj)) {
+        console.warn("version_dropdown: expected array of strings, got ", obj)
         return true
       }
+      return "string-array"
+    } else if (Object.prototype.toString.call(obj) === '[object Object]') {
+      /* Mode two: elaborated version */
+      for (let key in obj) {
+        if (!Array.isArray(obj[key])) {
+          console.warn("version_dropdown: expected array, got ", obj[key])
+          return true
+        } else if (obj[key].length !== 2) {
+          console.warn(`version_dropdown: expected two items, got ${obj[key].length}`, obj[key])
+          return true
+        }
+      }
+      return "fine-grained"
     }
 
-    return false
+    console.warn("version_dropdown: expected object of arrays or array of strings, got ", obj)
+
+    return true
+  }
+  /**
+   * Convert string array of versions into object.
+   */
+  string_array_to_object (obj) {
+    let obj_ = {}
+
+    obj.forEach((item) => {
+      obj_[item] = [item, ""]
+    })
+
+    if ("" in obj_)
+      obj_[""] = ["main", "unstable"]
+
+    return obj_
   }
   /**
    * Create Tag/Version dropdown at the left sidebar.
    */
   render (obj) {
     let version = this.parent.state.version
+    let path = this.parent.state.path
     let label = ''
-    if (this.assert(obj) === true)
+    let mode = this.assert(obj)
+    if (mode === true)
       return
+    else if (mode == "string-array")
+      obj = this.string_array_to_object(obj)
 
     let toc_tree = DOM.get('.sphinxsidebarwrapper .toc-tree')
     let nav_bar = DOM.get('header #right .reverse')
@@ -59,9 +90,11 @@ export class VersionDropdown {
       'style': `grid-template-columns:${cols}`
     })
 
-    if (obj.hasOwnProperty(version)) {
-      label = obj[version][1]
-      version = obj[version][0]
+    if (obj.hasOwnProperty(path)) {
+      label = obj[path][1]
+      version = obj[path][0]
+    } else {
+      console.warn(`version_dropdown: current path ${path} is not in the tags.json`, obj)
     }
 
     for (let key in obj) {
