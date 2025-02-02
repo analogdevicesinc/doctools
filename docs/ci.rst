@@ -230,13 +230,13 @@ But first, store each version in separated folders in the root path, e.g.
 The simple ``tags.json`` is a plain array with each version/path on the
 and generate a ``tags.json``, e.g. ``["v1.1", "v2.2", "main", "dev", ""]``
 (a empty string means there is a built doc on the root and will be named
-``latest (unsable)``).
+``main (unstable)``).
+The first tag will be labeled with ``latest``.
 
 .. tip::
 
    See this repo's :git-doctools:`.github/workflows/deploy.yml` for a suggestion on
    how to implement it.
-
 
 This ``tags.json`` format can be obtained with:
 

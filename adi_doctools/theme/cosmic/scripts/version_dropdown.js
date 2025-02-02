@@ -64,6 +64,11 @@ export class VersionDropdown {
     if ("" in obj_)
       obj_[""] = ["main", "unstable"]
 
+    for (const key in obj_) {
+      obj_[key] = [obj_[key][0], "latest"]
+      break
+    }
+
     return obj_
   }
   /**
