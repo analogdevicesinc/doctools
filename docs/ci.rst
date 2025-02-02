@@ -245,7 +245,7 @@ This ``tags.json`` format can be obtained with:
    # Search for every doc's objects.inv store the paths as JSON.
    $find . -name objects.inv -exec sh -c 'dirname {}' ';' | \
    $    cut -c 3- | \
-   $    sort | \
+   $    sort -r | \
    $    jq --raw-input . | \
    $    jq --slurp . > tags.json
 
