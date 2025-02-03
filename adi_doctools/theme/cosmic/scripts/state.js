@@ -113,8 +113,10 @@ export class State {
     state.offline = 'file:' == window.location.protocol
     state.theme = localStorage.getItem('theme')
     state.content_root = this.content_root()
-    state.sub_hosted = this.sub_hosted(state.content_root, state.repository)
-    state.path = this.path(state.content_root, state.repository, state.sub_hosted)
+    if (!state.offline) {
+      state.sub_hosted = this.sub_hosted(state.content_root, state.repository)
+      state.path = this.path(state.content_root, state.repository, state.sub_hosted)
+    }
     state.reloaded = this.reloaded()
   }
 }
