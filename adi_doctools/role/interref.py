@@ -46,7 +46,7 @@ def interref_repos_apply(app):
 
     def repo_apply_(r):
         if r in repos:
-            d_ = (f'..{SEP}' * (repos[r]['doc_folder'].count(SEP)+1) or f'..{SEP}')
+            d_ = (f'..{SEP}' * (repos[r]['pathname'].count(SEP)+1) or f'..{SEP}')
             if 'parent' in repos[r] and repos[r]['parent'] is not None:
                 d_ += f'..{SEP}'
             return d_ + f'..{SEP}'
@@ -57,7 +57,7 @@ def interref_repos_apply(app):
             t_ = repo_apply_(app.config.repository)
         for r in app.config.interref_repos:
             if t_ is not None and r in repos:
-                t__ = path.join(t_, r, repos[r]['doc_folder'], '_build',
+                t__ = path.join(t_, r, repos[r]['pathname'], '_build',
                                 'html', 'objects.inv')
                 t__ = path.abspath(t__)
                 t__ = (t__, None)

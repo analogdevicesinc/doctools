@@ -452,7 +452,7 @@ def prepare_doc(doc, repos_dir, doc_dir):
             click.echo(f"Unknown repo '{r}', skipped")
             continue
 
-        makedir = path.join(repos_dir, r, repos[r]['doc_folder'])
+        makedir = path.join(repos_dir, r, repos[r]['pathname'])
         dstdir = path.join(doc_dir, r)
         not_valid, builddir, sourcedir = get_sphinx_dirs(makedir)
         if not_valid:

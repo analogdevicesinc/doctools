@@ -1,0 +1,38 @@
+@use "variable";
+
+.page-actions {
+    float: right;
+    margin-top: 1.6rem;
+
+    a, button {
+        cursor: pointer;
+        border-radius: 100%;
+        color: var(--text-color2);
+        display: inline-block;
+        padding: .33rem .37rem .37rem .33rem;
+        margin-left: -.1rrem;
+
+        &::before {
+            display: block;
+            content: '';
+            width: 1.25rem;
+            height: 1.25rem;
+            background-color: var(--text-color2);
+            mask-image: var(--icon-edit);
+            mask-repeat: no-repeat;
+        }
+
+        &:hover::before {
+            background-color: var(--accent-color);
+        }
+
+        &:hover {
+            background-color: var(--bg-color2);
+        }
+    }
+}
+
+.edit-source::before {
+    mask-image: var(--icon-edit);
+}
+

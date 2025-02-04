@@ -176,7 +176,7 @@ def gen_symbolic_doc(repo_dir):
     mk = []
     p = []
     for r in repos:
-        cwd = os.path.join(repo_dir, f"{r}/{repos[r]['doc_folder']}")
+        cwd = os.path.join(repo_dir, f"{r}/{repos[r]['pathname']}")
         click.echo(f"Starting sphinx for {r}")
         mk.append(get_sphinx_dirs(cwd))
         if mk[-1][0]:

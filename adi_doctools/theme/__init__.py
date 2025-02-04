@@ -62,7 +62,9 @@ def build_finished(app, exc):
             for key in app.lut['repos']:
                 repos[key] = {
                     'name': app.lut['repos'][key]['name'],
-                    'visibility': app.lut['repos'][key]['visibility']
+                    'visibility': app.lut['repos'][key]['visibility'],
+                    'pathname': app.lut['repos'][key]['pathname'],
+                    'branch': app.lut['repos'][key]['branch']
                 }
                 if 'topic' in app.lut['repos'][key]:
                     repos[key]['topic'] = app.lut['repos'][key]['topic']
@@ -87,6 +89,8 @@ def build_finished(app, exc):
                 for m in app.lut['modules']['stylesheet']:
                     copy_asset_file(path.join(src_uri, m),
                                     path.join(build_uri, m))
+
+            metadata['source_hostname'] = app.lut['source_hostname']
 
             file = path.join(app.builder.outdir, 'metadata.json')
             with open(file, 'w') as f:

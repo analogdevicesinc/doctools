@@ -13,7 +13,7 @@ class Modules(TypedDict):
 
 
 class Repo(TypedDict):
-    doc_folder: str
+    pathname: str
     name: str
     branch: str
     visibility: str
@@ -25,6 +25,7 @@ class Repo(TypedDict):
 class LUT(TypedDict):
     remote_ssh: str
     remote_https: str
+    source_hostname: str
     repos: Dict[str, Repo]
     banner: Banner
     modules: Modules
@@ -33,16 +34,17 @@ class LUT(TypedDict):
 remote_ssh = "git@github.com:analogdevicesinc/{}.git"
 remote_https = "https://github.com/analogdevicesinc/{}.git"
 remote_doc = "https://analogdevicesinc.github.io/"
+source_hostname = "https://github.com/analogdevicesinc/{repository}/tree/{branch}/{pathname}"
 
 repos = {
     'documentation': Repo(
-        doc_folder='docs',
+        pathname='docs',
         name='System Level',
         branch='main',
         visibility='public'
     ),
     'hdl': Repo(
-        doc_folder='docs',
+        pathname='docs',
         extra=(
             # cwd      # cmd            # no_parallel
             "library", ["make", "all"], False
@@ -52,50 +54,50 @@ repos = {
         visibility='public'
     ),
     'testbenches': Repo(
-        doc_folder='docs',
+        pathname='docs',
         name='HDL Testbenches',
         branch='main',
         visibility='public',
         parent='hdl'
     ),
     'pyadi-iio': Repo(
-        doc_folder='doc',
+        pathname='doc',
         name='Hardware Python Interfaces',
         branch='main',
         visibility='public'
     ),
     'libiio': Repo(
-        doc_folder='doc',
+        pathname='doc',
         name='libiio',
         branch='main',
         visibility='public'
     ),
     'no-OS': Repo(
-        doc_folder='doc/sphinx/source',
+        pathname='doc/sphinx/source',
         name='no-OS',
         branch='main',
         visibility='public'
     ),
     'precision-converters-firmware': Repo(
-        doc_folder='doc/sphinx',
+        pathname='doc/sphinx',
         name='Precision Converters Firmware',
         branch='main',
         visibility='public'
     ),
     'PrecisionToolbox': Repo(
-        doc_folder='docs',
+        pathname='docs',
         name='Precision Toolbox',
         branch='main',
         visibility='public'
     ),
     'scopy': Repo(
-        doc_folder='docs',
+        pathname='docs',
         name='Scopy',
         branch='dev',
         visibility='public'
     ),
     'doctools': Repo(
-        doc_folder='docs',
+        pathname='docs',
         name='Doctools',
         branch='main',
         visibility='public'
@@ -127,6 +129,7 @@ def get_lut():
     # TODO dynamic lut fetch
     return LUT(remote_ssh=remote_ssh,
                remote_https=remote_https,
+               source_hostname=source_hostname,
                repos=repos,
                banner=banner,
                modules=modules)
