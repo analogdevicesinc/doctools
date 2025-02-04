@@ -126,6 +126,7 @@ export class VersionDropdown {
 
     let container = new DOM('div', {
       'className': 'version-dropdown',
+      'title': 'Change version'
     })
     container.innerText = version
     let label_ = new DOM('span', {
