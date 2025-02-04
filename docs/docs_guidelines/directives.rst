@@ -173,7 +173,7 @@ directory accordingly, for example:
       $cd /sys/bus/iio/devices/
       $ls
        iio:device0  iio:device3  iio:device2  iio:device3  iio:device4  iio:device5  iio:device6
-      $cd iio:device3
+      $cd iio\:device3
       $ls -al
        total 0
        drwxr-xr-x 3 root root     0 May 16 14:21 .
@@ -187,7 +187,7 @@ Renders as:
    $cd /sys/bus/iio/devices/
    $ls
     iio:device0  iio:device3  iio:device2  iio:device3  iio:device4  iio:device5  iio:device6
-   $cd iio:device3
+   $cd iio\:device3
    $ls -al
     total 0
     drwxr-xr-x 3 root root     0 May 16 14:21 .

@@ -11,7 +11,7 @@ Doctools has a continuous deployment integration pipeline that works as follows:
 .. code::
 
                       ┌──────────────────┐
-                   ┌─►│Build Doc & Deploy├─┐
+                   ┌─►│Build Doc Latest  ├─┐
                    │  └──────────────────┘ │
                    │                       │
    ┌─────────────┐ │  ┌────────────────┐   │  ┌──────────────┐
@@ -221,11 +221,11 @@ The versions are described in ``tags.json`` file on the root path
 that can take two formats, one simpler with a plain string array and other
 fine-grained to allow full control.
 
-String array form
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
 But first, store each version in separated folders in the root path, e.g.
 ``v1.1``, ``v2.2``, ``main``, ``dev``.
+
+String array form
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 The simple ``tags.json`` is a plain array with each version/path on the
 and generate a ``tags.json``, e.g. ``["v1.1", "v2.2", "main", "dev", ""]``
@@ -275,7 +275,7 @@ For example:
    }
 
 Notice how the "name" and "label" for path ``prs/staging/new-feature``
-was used to provide a more concise but clearer name to this entry.
+was used to provide a concise but clearer name to this entry.
 
 Further notes
 +++++++++++++
