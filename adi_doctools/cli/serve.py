@@ -131,8 +131,10 @@ def serve(directory, port, dev, selenium, once, builder):
         from weasyprint.text.fonts import FontConfiguration
         builder = 'singlehtml'
 
-    source_files = {'app.umd.js', 'app.umd.js.map', 'app.min.css',
-                    'app.min.css.map'}
+    source_files = {'app.umd.js', 'app.umd.js.map',
+                    'app.min.css', 'app.min.css.map',
+                    'extra.umd.js', 'extra.umd.js.map',
+                    'extra.min.css', 'extra.min.css.map'}
     cwd_ = getcwd()
 
     def signal_handler(sig, frame):
@@ -170,8 +172,8 @@ def serve(directory, port, dev, selenium, once, builder):
         for d in listdir(dist):
             break
         for f in source_files:
-            src = path.join(dist, d, cosmic_static, f)
-            dest = path.join(path_, cosmic_static, f)
+            src = path.join(dist, d, static_path, f)
+            dest = path.join(path_, static_path, f)
             copy(src, dest)
         rmtree(dist)
         click.echo("Success fetching the pre-compiled files!")
@@ -194,9 +196,13 @@ def serve(directory, port, dev, selenium, once, builder):
         if symbolic_assert(rollup_bin, log['node_'].format(rollup_bin)):
             return
     else:
-        comp_js = path.abspath(path.join(static_path, 'app.umd.js'))
-        comp_css = path.abspath(path.join(static_path, 'app.min.css'))
-        if not path.isfile(comp_js) or not path.isfile(comp_css):
+        with_sources = True
+        for s in source_files:
+            comp_ = path.abspath(path.join(par_dir, static_path, s))
+            if not path.isfile(comp_):
+                with_sources = False
+
+        if not with_sources:
             click.echo(log['comp'])
             if which("node") is None:
                 click.echo(log['node_alt'])
