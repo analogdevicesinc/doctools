@@ -148,8 +148,8 @@ img {
 }
 
 @media (prefers-color-scheme: dark) {
-    body:not(.light) .body img,
-    body:not(.light) .body svg {
+    body:not(.light, .no-background) .body img,
+    body:not(.light, .no-background) .body svg {
         background: #fff;
         border-radius: variable.$border-radius;
     }
