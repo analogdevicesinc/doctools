@@ -147,13 +147,6 @@ def svpkg_reg_inst(f, regmap: Dict):
                 row += '"' + reg_['name'] + '"'
                 row += f", {addr}"
                 reg_param_dec = []
-                # for reg_param in reg['parameters']:
-                #     reg_params_set = set(reg_param_dec)
-                #     reg_param_dec = list(reg_params_set)
-                #     reg_param_dec.sort()
-                # if len(reg_param_dec):
-                #     row += ", "
-                #     row += ", ".join(reg_param_dec)
 
                 for reg_param in reg['parameters']:
                     reg_param_dec.append(reg_param)
@@ -192,7 +185,7 @@ def svpkg_footer(f, key: str, regmap: Dict):
     f.write(f"endpackage: {pkgname}\n")
 
 
-def write_hdl_regmap(
+def write_hdl_regmap_pkg(
     path_: str,
     regmap: Dict,
     key: str
@@ -233,6 +226,70 @@ def write_hdl_regmap(
     svpkg_footer(f, key, rm)
 
     f.close()
+
+
+def write_hdl_regmap_definitions(
+    path_: str,
+    regmap: Dict,
+    key: str
+) -> None:
+    reg_param_dec = []
+    for rm in regmap:
+        for reg in regmap[rm]['regmap']:
+            for reg_param in reg['parameters']:
+                reg_param_dec.append(reg_param)
+    if len(reg_param_dec):
+        reg_params_set = set(reg_param_dec)
+        reg_param_dec = list(reg_params_set)
+        reg_param_dec.sort()
+        separator = ', \\\n'
+    
+        fname = f"adi_regmap_{key}_definitions.svh"
+        file = path.join(path_, fname)
+        f = open(file, "w")
+
+        run_time = datetime.now().strftime('%b %d %H:%M:%S %Y')
+        pkgname = f"adi_regmap_{key}_pkg"
+        classname = f"adi_regmap_{key}"
+        f.write(license_sv)
+        f.write("/* Auto generated Register Map */\n")
+        f.write(f"/* {run_time} v{__version__} */\n")
+        f.write("\n")
+
+        f.write(f"`timescale 1ns/1ps\n\n")
+        f.write(f"`ifndef _{pkgname.upper()}_DEFINITIONS_SVH_\n")
+        f.write(f"`define _{pkgname.upper()}_DEFINITIONS_SVH_\n\n")
+
+        f.write(f"// Help build VIP Interface parameters name\n")
+
+        reg_param_dec_import = reg_param_dec.copy()
+        for i, reg_param in enumerate(reg_param_dec_import):
+            reg_param_dec_import[i] = f"  n``.inst.{reg_param}"
+        row = separator.join(reg_param_dec_import)
+        f.write(f"`define {pkgname.upper()}_PARAM_IMPORT(n)")
+        f.write(f"{row}\n\n")
+
+        for i, reg_param in enumerate(reg_param_dec):
+            reg_param_dec[i] = f"  {reg_param}"
+        row = separator.join(reg_param_dec)
+        f.write(f"`define {pkgname.upper()}_PARAM_DECL int")
+        f.write(f"{row}\n\n")
+
+        f.write(f"`define {pkgname.upper()}_PARAM_ORDER")
+        f.write(f"{row}\n\n")
+
+        f.write(f"`endif\n")
+
+        f.close()
+
+
+def write_hdl_regmap(
+    path_: str,
+    regmap: Dict,
+    key: str
+) -> None:
+    write_hdl_regmap_pkg(path_, regmap, key)
+    write_hdl_regmap_definitions(path_, regmap, key)
 
 
 def regmap_test_program(

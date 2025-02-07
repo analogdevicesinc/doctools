@@ -31,7 +31,7 @@ def test_hdl_regmap(tmp_path, caplog):
         write_hdl_regmap(d, regmap[r]['subregmap'], r)
 
         f = f"adi_regmap_{r}_pkg.sv"
-        f1 = open(path.join('asset','hdl', 'testbenches', 'common', 'sv',
+        f1 = open(path.join('asset','hdl', 'testbenches', 'library', 'regmaps',
                             f), 'r')
         f2 = open(path.join(d, f), 'r')
         e1 = f1.readlines()
