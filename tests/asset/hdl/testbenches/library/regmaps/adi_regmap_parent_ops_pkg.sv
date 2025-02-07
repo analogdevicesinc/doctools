@@ -1,6 +1,6 @@
 // ***************************************************************************
 // ***************************************************************************
-// Copyright 2014 - 2024 (c) Analog Devices, Inc. All rights reserved.
+// Copyright (C) 2014 - 2025 Analog Devices, Inc. All rights reserved.
 //
 // In this HDL repository, there are many different and unique modules, consisting
 // of various HDL (Verilog or VHDL) components. The individual modules are
@@ -36,9 +36,10 @@
 /* Sep 06 11:19:22 2024 v0.3.40 */
 
 package adi_regmap_parent_ops_pkg;
-  import regmap_pkg::*;
+  import logger_pkg::*;
+  import adi_api_pkg::*;
 
-  class adi_regmap_parent_ops;
+  class adi_regmap_parent_ops extends adi_regmap;
 
     /* Parent OPS (parent ops) */
     class MOCK_0_CLASS extends register_base;
@@ -46,12 +47,16 @@ package adi_regmap_parent_ops_pkg;
 
       function new(
         input string name,
-        input int address);
+        input int address,
+        input adi_regmap parent = null);
 
-        super.new(name, address);
+        super.new(name, address, parent);
+
         this.FOURTH_F = new("FOURTH", 4, 4, RW, 'h0, this);
+
+        this.initialization_done = 1;
       endfunction: new
-    endclass
+    endclass: MOCK_0_CLASS
 
     class MOCK_1_CLASS extends register_base;
       field_base CONFIGURE0_F;
@@ -65,9 +70,11 @@ package adi_regmap_parent_ops_pkg;
 
       function new(
         input string name,
-        input int address);
+        input int address,
+        input adi_regmap parent = null);
 
-        super.new(name, address);
+        super.new(name, address, parent);
+
         this.CONFIGURE0_F = new("CONFIGURE0", 0, 0, RW, 'h0, this);
         this.CONFIGURE1_F = new("CONFIGURE1", 1, 1, RW, 'h0, this);
         this.CONFIGURE2_F = new("CONFIGURE2", 2, 2, RW, 'h0, this);
@@ -76,16 +83,27 @@ package adi_regmap_parent_ops_pkg;
         this.CONFIGURE5_F = new("CONFIGURE5", 5, 5, RW, 'h0, this);
         this.CONFIGURE6_F = new("CONFIGURE6", 6, 6, RW, 'h0, this);
         this.CONFIGURE7_F = new("CONFIGURE7", 7, 7, RW, 'h0, this);
+
+        this.initialization_done = 1;
       endfunction: new
-    endclass
+    endclass: MOCK_1_CLASS
 
     MOCK_0_CLASS MOCK_0_R;
     MOCK_1_CLASS MOCK_1_R;
 
-    function new();
-      this.MOCK_0_R = new("MOCK_0", 'h40);
-      this.MOCK_1_R = new("MOCK_1", 'h80);
-    endfunction: new;
+    function new(
+      input string name,
+      input int address,
+      input adi_api parent = null);
 
-  endclass;
-endpackage;
+      super.new(name, address, parent);
+
+      this.MOCK_0_R = new("MOCK_0", 'h40, this);
+      this.MOCK_1_R = new("MOCK_1", 'h80, this);
+
+      this.info($sformatf("Initialized"), ADI_VERBOSITY_HIGH);
+    endfunction: new
+
+  endclass: adi_regmap_parent_ops
+
+endpackage: adi_regmap_parent_ops_pkg
