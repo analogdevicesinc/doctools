@@ -177,7 +177,7 @@ body {
     }
 }
 
-@media screen {
+@media screen and (min-width: variable.$screen-0) {
     .body {
         p, div.line {
             text-align: justify;
