@@ -123,12 +123,10 @@ def svpkg_head(f, key: str, regmap: Dict):
 def svpkg_reg_decl(f, regmap: Dict):
     for reg in regmap['regmap']:
         if reg['where'] is not None:
-            for n in range(*reg['where']):
-                reg_ = reg.copy()
-                reg_['name'] = reg_['name'].replace('n', str(n))
-                row = f"    {reg['name']}_CLASS"
-                row += f" {reg_['name']}_R;\n"
-                f.write(row)
+            number_of_instances = reg['where'][1]-1
+            row = f"    {reg['name']}_CLASS"
+            row += f" {reg['name']}_R [{number_of_instances}:0];\n"
+            f.write(row)
         else:
             row = f"    {reg['name']}_CLASS"
             row += f" {reg['name']}_R;\n"
@@ -138,27 +136,28 @@ def svpkg_reg_decl(f, regmap: Dict):
 def svpkg_reg_inst(f, regmap: Dict):
     for reg in regmap['regmap']:
         if reg['where'] is not None:
-            for n in range(*reg['where']):
-                reg_ = reg.copy()
-                reg_['name'] = reg_['name'].replace('n', str(n))
-                reg_['address'] = (reg_['address'] + reg_['addr_incr'] * n) * 4
-                addr = hex(reg_['address']).replace("0x", "'h")
-                row = f"      this.{reg_['name']}_R = new("
-                row += '"' + reg_['name'] + '"'
-                row += f", {addr}"
-                reg_param_dec = []
+            number_of_instances = reg['where'][1]
+            f.write(f"      for (int i=0; i<{number_of_instances}; i++) begin\n")
+            split_name = reg['name'].split('n')
+            reg['address'] = (reg['address'] + reg['addr_incr'] * 0) * 4
+            addr = hex(reg['address']).replace("0x", "'h")
+            row = f"        this.{reg['name']}_R[i] = new("
+            row += f"$sformatf(\"{split_name[0]}%0d{split_name[1]}\", i)"
+            row += f", {addr} + i * 4"
+            reg_param_dec = []
 
-                for reg_param in reg['parameters']:
-                    reg_param_dec.append(reg_param)
-                if len(reg_param_dec):
-                    reg_params_set = set(reg_param_dec)
-                    reg_param_dec = list(reg_params_set)
-                    reg_param_dec.sort()
-                    row += ", "
-                    row += ", ".join(reg_param_dec)
+            for reg_param in reg['parameters']:
+                reg_param_dec.append(reg_param)
+            if len(reg_param_dec):
+                reg_params_set = set(reg_param_dec)
+                reg_param_dec = list(reg_params_set)
+                reg_param_dec.sort()
+                row += ", "
+                row += ", ".join(reg_param_dec)
 
-                row += f", this);\n"
-                f.write(row)
+            row += f", this);\n"
+            f.write(row)
+            f.write(f"      end\n")
         else:
             reg['address'] = reg['address'] * 4
             addr = hex(reg['address']).replace("0x", "'h")
