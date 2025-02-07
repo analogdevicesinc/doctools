@@ -133,7 +133,8 @@ The ``version`` value on ``conf.py`` has lower precedence, and
 will be overwritten if ``ADOC_DOC_VERSION`` is set.
 
 The CI, in general, should set ``ADOC_DOC_VERSION`` as the current checkout branch
-in the pipeline (e.g. ``main``, ``v1.0.0``).
+in the pipeline (e.g. ``main``, ``v1.0.0``), for GiHub Actions, that can be
+``${{ github.ref_name}}`` [#f1]_.
 
 .. tip::
 
@@ -142,6 +143,12 @@ in the pipeline (e.g. ``main``, ``v1.0.0``).
 
 If both environment variable and ``version`` on ``conf.py`` are unset, it defaults
 to an empty string.
+
+.. [#f1] Quick cheatsheet for ``gihtub.ref_name`` values on event:
+
+         * push branch: ``main``, ``dev``, ...
+         * push tag: ``v2.2.2``, ``new-feature``, ...
+         * pull_request: ``1234/merge``, ``23/merge``, ...
 
 Exporting to PDF
 --------------------------------------------------------------------------------

@@ -277,6 +277,9 @@ For example:
 Notice how the "name" and "label" for path ``prs/staging/new-feature``
 was used to provide a concise but clearer name to this entry.
 
+The doc version set, either via ``conf.py`` or ``ADOC_DOC_VERSION`` (:ref:`more info <version>`),
+should match a value on the ``name`` column, and not the ``path`` column.
+
 Further notes
 +++++++++++++
 

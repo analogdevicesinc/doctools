@@ -84,7 +84,7 @@ Why was Author Mode renamed to Serve?
 +++++++++++++++++++++++++++++++++++++
 
 Solely to match other tools like ``mkdocs serve``, ``webpack serve``,
-``npm run start``, ``hugo server``,
+``npm run start``, ``hugo server``.
 
 .. _custom-doc:
 
