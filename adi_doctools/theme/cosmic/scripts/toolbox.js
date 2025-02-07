@@ -65,41 +65,52 @@ class Toolbox {
     return (_pathname.match(/\//g)||[]).length
   }
   /*
-   *
+   * Try to fetch every item in array.
    */
+  static async fetch_each (urls) {
+    for (let url of urls) {
+      try {
+        const response = await fetch(url, {
+          method: 'Get',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+
+        if (response.ok === true)
+          return {'obj': await response.json(), 'url': url};
+        else if (response.status !== 404)
+          return {'error': response, 'url': url}
+      } catch (e) {
+        return {'error': e, 'url': url}
+      }
+    }
+
+    return {'error': `No url returned a valid JSON, urls: ${urls}`}
+  }
   static cache_check (state, fetch_url, hours, callback) {
-    let json = localStorage.getItem(fetch_url)
+    if (!Array.isArray(fetch_url))
+      fetch_url = [fetch_url]
+
+    let json = localStorage.getItem(fetch_url[0])
     if (json !== null)
       json = JSON.parse(json)
 
     let cache_timeout = new Date(0)
     cache_timeout.setHours(hours)
     if (state.reloaded === true || json === null || json['timestamp'] + cache_timeout.valueOf() < Date.now()) {
-      fetch(fetch_url, {
-        method: 'Get',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }).then((response) => {
-        if (response.ok !== true) {
+      Toolbox.fetch_each(fetch_url).then((json) => {
+        if ('error' in json) {
+          console.error(`Failed to fetch resource, due to:`, json['error'])
           return
         }
 
-        return response.json()
-      }).then((obj) => {
-        if (!obj)
-          return
-
-        json = {'obj': obj}
         json['timestamp'] = Date.now()
-        callback(obj)
+        callback(json)
         localStorage.setItem(fetch_url, JSON.stringify(json))
-      }).catch((e) => {
-        console.error(`Failed to resolve ${fetch_url}, due to:`, e)
-        return
       })
     } else {
-      callback(json['obj'])
+      callback(json)
     }
   }
 }

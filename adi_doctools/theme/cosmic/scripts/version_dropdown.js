@@ -16,7 +16,7 @@ export class VersionDropdown {
   fetch_tags () {
     Toolbox.cache_check(this.parent.state,
                         `/${this.parent.state.repository}/tags.json`, 2,
-                        (obj) => {this.render(obj)})
+                        (obj) => {this.render(obj['obj'])})
   }
   /**
    * Assert if tags.json is valid

@@ -26,28 +26,36 @@ export class Fetch {
       return
     }
 
-    Toolbox.cache_check(this.parent.state, '/doctools/metadata.json', 24,
-                        (obj) => {this.init_metadata(obj)})
+    Toolbox.cache_check(this.parent.state,
+                        [
+                          '/doctools/metadata.json',
+                          'https://analogdevicesinc.github.io/doctools/metadata.json'
+                        ], 24, (obj) => {this.init_metadata(obj)})
   }
   /**
    * Attach metadata to this and call to inject extra modules.
    */
   init_metadata (obj) {
-    this.parent.state.metadata = obj
+    this.parent.state.metadata = obj['obj']
 
-    if ('modules' in obj)
-      this.load_modules(obj['modules'])
+    if ('modules' in obj['obj'])
+      this.load_modules(obj['obj']['modules'], obj['url'])
   }
   /**
    * Inject any JavaScript and CSS StyleSheet listed on the metadata.
    * The advantage is to load the latest and greatest scripts, regardless
    * of the tools' built doc version.
    */
-  load_modules (obj) {
+  load_modules (obj, url) {
+    if (url.startsWith("https://") || url.startsWith("http://"))
+      url = new URL(url).origin
+    else
+      url = ""
+
     if ('javascript' in obj) {
       obj['javascript'].forEach((elem) => {
         let script = new DOM('script', {
-          'src': `/doctools/_static/${elem}`
+          'src': `${url}/_static/${elem}`
         });
         this.$.head.append(script)
       })
@@ -57,7 +65,7 @@ export class Fetch {
         let style = new DOM('link', {
           'rel': 'stylesheet',
           'type': 'text/css',
-          'href': `/doctools/_static/${elem}`
+          'href': `${url}/_static/${elem}`
         });
         this.$.head.append(style)
       })
