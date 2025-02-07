@@ -143,7 +143,7 @@ def svpkg_reg_inst(f, regmap: Dict):
             addr = hex(reg['address']).replace("0x", "'h")
             row = f"        this.{reg['name']}_R[i] = new("
             row += f"$sformatf(\"{split_name[0]}%0d{split_name[1]}\", i)"
-            row += f", {addr} + i * 4"
+            row += f", {addr} + 'h{reg['addr_incr']} * i * 4"
             reg_param_dec = []
 
             for reg_param in reg['parameters']:

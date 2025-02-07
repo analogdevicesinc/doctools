@@ -1,6 +1,6 @@
 // ***************************************************************************
 // ***************************************************************************
-// Copyright 2014 - 2024 (c) Analog Devices, Inc. All rights reserved.
+// Copyright (C) 2014 - 2025 Analog Devices, Inc. All rights reserved.
 //
 // In this HDL repository, there are many different and unique modules, consisting
 // of various HDL (Verilog or VHDL) components. The individual modules are
@@ -36,9 +36,10 @@
 /* Sep 05 16:39:34 2024 v0.3.39 */
 
 package adi_regmap_parent_pkg;
-  import regmap_pkg::*;
+  import logger_pkg::*;
+  import adi_api_pkg::*;
 
-  class adi_regmap_parent #(int A, int B, int VAL1, int VAL2, int VAL3, int VAL4);
+  class adi_regmap_parent extends adi_regmap;
 
     /* Parent (parent) */
     class MOCK_0_CLASS extends register_base;
@@ -48,16 +49,20 @@ package adi_regmap_parent_pkg;
 
       function new(
         input string name,
-        input int address);
+        input int address,
+        input adi_regmap parent = null);
 
-        super.new(name, address);
+        super.new(name, address, parent);
+
         this.THIRD_F = new("THIRD", 2, 2, RW, 'h0, this);
         this.SECOND_F = new("SECOND", 1, 1, RW, 'h0, this);
         this.FIRST_F = new("FIRST", 0, 0, RW, 'h0, this);
-      endfunction: new
-    endclass
 
-    class MOCK_CHANn_CLASS #(int A, int B, int VAL1, int VAL2, int VAL3, int VAL4) extends register_base;
+        this.initialization_done = 1;
+      endfunction: new
+    endclass: MOCK_0_CLASS
+
+    class MOCK_CHANn_CLASS extends register_base;
       field_base FIRST_F;
       field_base SECOND_F;
       field_base THIRD_F;
@@ -65,15 +70,25 @@ package adi_regmap_parent_pkg;
 
       function new(
         input string name,
-        input int address);
+        input int address,
+        input int A,
+        input int B,
+        input int VAL1,
+        input int VAL2,
+        input int VAL3,
+        input int VAL4,
+        input adi_regmap parent = null);
 
-        super.new(name, address);
+        super.new(name, address, parent);
+
         this.FIRST_F = new("FIRST", 31, A, RO, VAL1, this);
         this.SECOND_F = new("SECOND", A-1, B, RO, VAL2+VAL1-VAL3, this);
         this.THIRD_F = new("THIRD", B-1, 3, RO, ($clog2(VAL3**9)-VAL4)*7**2, this);
         this.CONFIGURE_F = new("CONFIGURE", 2, 0, RW, 'h7, this);
+
+        this.initialization_done = 1;
       endfunction: new
-    endclass
+    endclass: MOCK_CHANn_CLASS
 
     class EXPAND_FIELDS_CLASS extends register_base;
       field_base CONFIGURE0_F;
@@ -87,9 +102,11 @@ package adi_regmap_parent_pkg;
 
       function new(
         input string name,
-        input int address);
+        input int address,
+        input adi_regmap parent = null);
 
-        super.new(name, address);
+        super.new(name, address, parent);
+
         this.CONFIGURE0_F = new("CONFIGURE0", 0, 0, RW, 'h0, this);
         this.CONFIGURE1_F = new("CONFIGURE1", 1, 1, RW, 'h0, this);
         this.CONFIGURE2_F = new("CONFIGURE2", 2, 2, RW, 'h0, this);
@@ -98,48 +115,37 @@ package adi_regmap_parent_pkg;
         this.CONFIGURE5_F = new("CONFIGURE5", 5, 5, RW, 'h0, this);
         this.CONFIGURE6_F = new("CONFIGURE6", 6, 6, RW, 'h0, this);
         this.CONFIGURE7_F = new("CONFIGURE7", 7, 7, RW, 'h0, this);
+
+        this.initialization_done = 1;
       endfunction: new
-    endclass
+    endclass: EXPAND_FIELDS_CLASS
 
     MOCK_0_CLASS MOCK_0_R;
-    MOCK_CHANn_CLASS #(A, B, VAL1, VAL2, VAL3, VAL4) MOCK_CHAN0_R;
-    MOCK_CHANn_CLASS #(A, B, VAL1, VAL2, VAL3, VAL4) MOCK_CHAN1_R;
-    MOCK_CHANn_CLASS #(A, B, VAL1, VAL2, VAL3, VAL4) MOCK_CHAN2_R;
-    MOCK_CHANn_CLASS #(A, B, VAL1, VAL2, VAL3, VAL4) MOCK_CHAN3_R;
-    MOCK_CHANn_CLASS #(A, B, VAL1, VAL2, VAL3, VAL4) MOCK_CHAN4_R;
-    MOCK_CHANn_CLASS #(A, B, VAL1, VAL2, VAL3, VAL4) MOCK_CHAN5_R;
-    MOCK_CHANn_CLASS #(A, B, VAL1, VAL2, VAL3, VAL4) MOCK_CHAN6_R;
-    MOCK_CHANn_CLASS #(A, B, VAL1, VAL2, VAL3, VAL4) MOCK_CHAN7_R;
-    MOCK_CHANn_CLASS #(A, B, VAL1, VAL2, VAL3, VAL4) MOCK_CHAN8_R;
-    MOCK_CHANn_CLASS #(A, B, VAL1, VAL2, VAL3, VAL4) MOCK_CHAN9_R;
-    MOCK_CHANn_CLASS #(A, B, VAL1, VAL2, VAL3, VAL4) MOCK_CHAN10_R;
-    MOCK_CHANn_CLASS #(A, B, VAL1, VAL2, VAL3, VAL4) MOCK_CHAN11_R;
-    MOCK_CHANn_CLASS #(A, B, VAL1, VAL2, VAL3, VAL4) MOCK_CHAN12_R;
-    MOCK_CHANn_CLASS #(A, B, VAL1, VAL2, VAL3, VAL4) MOCK_CHAN13_R;
-    MOCK_CHANn_CLASS #(A, B, VAL1, VAL2, VAL3, VAL4) MOCK_CHAN14_R;
-    MOCK_CHANn_CLASS #(A, B, VAL1, VAL2, VAL3, VAL4) MOCK_CHAN15_R;
+    MOCK_CHANn_CLASS MOCK_CHANn_R [15:0];
     EXPAND_FIELDS_CLASS EXPAND_FIELDS_R;
 
-    function new();
-      this.MOCK_0_R = new("MOCK_0", 'h40);
-      this.MOCK_CHAN0_R = new("MOCK_CHAN0", 'h428);
-      this.MOCK_CHAN1_R = new("MOCK_CHAN1", 'h430);
-      this.MOCK_CHAN2_R = new("MOCK_CHAN2", 'h438);
-      this.MOCK_CHAN3_R = new("MOCK_CHAN3", 'h440);
-      this.MOCK_CHAN4_R = new("MOCK_CHAN4", 'h448);
-      this.MOCK_CHAN5_R = new("MOCK_CHAN5", 'h450);
-      this.MOCK_CHAN6_R = new("MOCK_CHAN6", 'h458);
-      this.MOCK_CHAN7_R = new("MOCK_CHAN7", 'h460);
-      this.MOCK_CHAN8_R = new("MOCK_CHAN8", 'h468);
-      this.MOCK_CHAN9_R = new("MOCK_CHAN9", 'h470);
-      this.MOCK_CHAN10_R = new("MOCK_CHAN10", 'h478);
-      this.MOCK_CHAN11_R = new("MOCK_CHAN11", 'h480);
-      this.MOCK_CHAN12_R = new("MOCK_CHAN12", 'h488);
-      this.MOCK_CHAN13_R = new("MOCK_CHAN13", 'h490);
-      this.MOCK_CHAN14_R = new("MOCK_CHAN14", 'h498);
-      this.MOCK_CHAN15_R = new("MOCK_CHAN15", 'h4a0);
-      this.EXPAND_FIELDS_R = new("EXPAND_FIELDS", 'h80);
-    endfunction: new;
+    function new(
+      input string name,
+      input int address,
+      input int A,
+      input int B,
+      input int VAL1,
+      input int VAL2,
+      input int VAL3,
+      input int VAL4,
+      input adi_api parent = null);
 
-  endclass;
-endpackage;
+      super.new(name, address, parent);
+
+      this.MOCK_0_R = new("MOCK_0", 'h40, this);
+      for (int i=0; i<16; i++) begin
+        this.MOCK_CHANn_R[i] = new($sformatf("MOCK_CHAN%0d", i), 'h428 + 'h2 * i * 4, A, B, VAL1, VAL2, VAL3, VAL4, this);
+      end
+      this.EXPAND_FIELDS_R = new("EXPAND_FIELDS", 'h80, this);
+
+      this.info($sformatf("Initialized"), ADI_VERBOSITY_HIGH);
+    endfunction: new
+
+  endclass: adi_regmap_parent
+
+endpackage: adi_regmap_parent_pkg
