@@ -63,6 +63,14 @@ header {
         background-position: left calc(-1.5rem*2) top;
         transition: .25s ease background-position;
     }
+
+    button, label {
+        border-radius: variable.$border-radius;
+    }
+
+    button:hover, label:hover {
+        background-color: var(--bg-color2);
+    }
 }
 
 @media screen {
@@ -108,7 +116,7 @@ header {
         display: block;
         width: fit-content;
         padding: 0 .5em 0 .5em;
-        transition: padding .4s ease;
+        transition: padding .25s ease;
         margin: 0 .5em;
     }
 

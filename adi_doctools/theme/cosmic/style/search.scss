@@ -54,6 +54,11 @@
 
     button {
         cursor: pointer;
+        border-radius: variable.$border-radius;
+
+        &:hover {
+            background-color: var(--bg-color2);
+        }
     }
 
     button:before {
