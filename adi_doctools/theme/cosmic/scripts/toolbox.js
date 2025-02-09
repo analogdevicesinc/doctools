@@ -92,7 +92,8 @@ class Toolbox {
     if (!Array.isArray(fetch_url))
       fetch_url = [fetch_url]
 
-    let json = localStorage.getItem(fetch_url[0])
+    let cache_key = fetch_url[0]
+    let json = localStorage.getItem(cache_key)
     if (json !== null)
       json = JSON.parse(json)
 
@@ -107,7 +108,7 @@ class Toolbox {
 
         json['timestamp'] = Date.now()
         callback(json)
-        localStorage.setItem(fetch_url, JSON.stringify(json))
+        localStorage.setItem(cache_key, JSON.stringify(json))
       })
     } else {
       callback(json)

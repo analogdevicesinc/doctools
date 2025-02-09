@@ -47,6 +47,11 @@ export class Fetch {
    * of the tools' built doc version.
    */
   load_modules (obj, url) {
+    if (typeof url !== 'string') {
+      console.warn("Expected string with url, got ", url)
+      return
+    }
+
     if (url.startsWith("https://") || url.startsWith("http://"))
       url = new URL(url).origin
     else
