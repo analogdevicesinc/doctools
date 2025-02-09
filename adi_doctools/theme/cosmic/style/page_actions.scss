@@ -1,8 +1,11 @@
 @use "variable";
+@use "mixin_icons";
 
 .page-actions {
     float: right;
     margin-top: 1.6rem;
+    /* Ensure icon inclusion */
+    @include mixin_icons.icons(("edit"));
 
     a, button {
         cursor: pointer;

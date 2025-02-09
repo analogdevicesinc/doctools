@@ -1,3 +1,5 @@
+@use 'sass:list';
+
 /* From: https://github.com/pradyunsg/furo/blob/main/src/furo/assets/styles/variables/_icons.scss */
 
 /* Expose theme icons as CSS variables. */
@@ -43,8 +45,10 @@ $icons: (
     url('data:image/svg+xml;charset=utf-8,<svg viewBox="0 0 24 24" version="1.1" id="svg1" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg"><path d="M 5,19 H 6.2615 L 16.498,8.7635 15.2365,7.502 5,17.7385 Z M 3.5,20.5 V 17.1155 L 16.6905,3.93075 Q 16.91725,3.72475 17.19125,3.6125 17.4655,3.5 17.76625,3.5 q 0.30075,0 0.5825,0.10675 0.282,0.10675 0.49925,0.3395 l 1.22125,1.2365 Q 20.302,5.4 20.401,5.68275 20.5,5.9655 20.5,6.24825 20.5,6.55 20.397,6.824 20.294,7.09825 20.06925,7.325 L 6.8845,20.5 Z M 19.0095,6.24625 17.75375,4.9905 Z M 15.85625,8.14375 15.2365,7.502 16.498,8.7635 Z" /></svg>')
 );
 
-@mixin icons {
-  @each $name, $glyph in $icons {
-    --icon-#{$name}: #{$glyph};
-  }
+@mixin icons($filter: null) {
+    @each $name, $glyph in $icons {
+        @if $filter == null or list.index($filter, $name) {
+            --icon-#{$name}: #{$glyph};
+        }
+    }
 }
