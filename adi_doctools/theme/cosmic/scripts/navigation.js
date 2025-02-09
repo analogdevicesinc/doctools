@@ -62,6 +62,9 @@ export class Navigation {
     $.searchForm.$['action'] = DOM.get('link[rel="search"]').href
     $.body.append([$.searchAreaBg])
 
+    $.preserve_scroll = {}
+    $.preserve_scroll['sphinxsidebarwrapper'] = new DOM(DOM.get('.sphinxsidebarwrapper'))
+
     $.rightHeader = new DOM(DOM.get('header #right span.reverse')).append([$.changeTheme, $.searchButton])
 
     $.relatedNext = DOM.get('.related .next')
@@ -218,6 +221,32 @@ export class Navigation {
   os_theme () {
     return window.matchMedia("(prefers-color-scheme: dark)").matches ? 'dark' : 'light'
   }
+  /*
+   * Save current scroll position of DOM elements, to restore after load.
+   */
+  scroll_save () {
+    let positions = {}
+
+    for (const [key, dom] of Object.entries(this.$.preserve_scroll)) {
+      positions[key] = dom.$.scrollTop
+    }
+
+    localStorage.setItem("scroll_position", JSON.stringify(positions))
+  }
+  /*
+   * Restore previous scroll position of DOM elements.
+   */
+  scroll_restore (e) {
+    let positions = localStorage.getItem("scroll_position")
+    if (!positions)
+      return
+
+    positions = JSON.parse(positions)
+    for (const [key, value] of Object.entries(positions)) {
+      if (key in this.$.preserve_scroll)
+        this.$.preserve_scroll[key].$.scrollTop = value
+    }
+  }
   /**
    * Init navigation.
    */
@@ -226,5 +255,8 @@ export class Navigation {
     onscroll = () => {this.handleScroll()}
     document.addEventListener('keyup', (e) => {this.keyup(e)}, false);
     document.addEventListener('keydown', (e) => {this.keydown(e)}, false);
+
+    this.scroll_restore();
+    addEventListener('beforeunload', (e) => {this.scroll_save(e)}, false);
   }
 }
