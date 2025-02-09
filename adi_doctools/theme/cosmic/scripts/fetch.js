@@ -55,7 +55,7 @@ export class Fetch {
     if ('javascript' in obj) {
       obj['javascript'].forEach((elem) => {
         let script = new DOM('script', {
-          'src': `${url}/_static/${elem}`
+          'src': `${url}/doctools/_static/${elem}`
         });
         this.$.head.append(script)
       })
@@ -65,7 +65,7 @@ export class Fetch {
         let style = new DOM('link', {
           'rel': 'stylesheet',
           'type': 'text/css',
-          'href': `${url}/_static/${elem}`
+          'href': `${url}/doctools/_static/${elem}`
         });
         this.$.head.append(style)
       })
