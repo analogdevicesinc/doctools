@@ -2,8 +2,14 @@
 
 /**
  * version: v0.0.1, main, staging/new_feature
- * path: "v0.0.1", "", "prs/staging/new_feature"
+ * offline: if no webserver, direct file://
+ * theme: dark/light
+ * content_root: relative path to reach the current doc root page
  * metadata: fetched by fetch.js
+ * sub_hosted: hosted alongside other docs
+ * path: "v0.0.1", "", "prs/staging/new_feature"
+ * reloaded: page was reloaded
+ * metadata: tags.json, fetched later by fetch.js, if state allows
  */
 const state = {
   repository: undefined,
@@ -17,6 +23,9 @@ const state = {
   metadata: undefined
 }
 
+/**
+ * Creates the common state of the documentation.
+ */
 export class State {
   constructor (app) {
     this.init_state(state)
@@ -70,6 +79,7 @@ export class State {
    * e.g.
    * true: doctools, doctools/v0.2.2
    * false: / , /v0.2.2
+   * For correctness, the html meta repository tag must match the url repository.
    */
   sub_hosted (content_root, repository) {
     let url = new URL(content_root, location).href,
