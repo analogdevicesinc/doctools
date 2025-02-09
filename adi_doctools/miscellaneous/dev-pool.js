@@ -53,6 +53,9 @@ class PoolChanges {
    * Find .dev-pool, on first match, return url and content.
    */
   static async search (urls) {
+    if ('file:' == window.location.protocol)
+      return [null, null]
+
     for (const url of urls) {
       try {
         const response = await fetch(url, {
