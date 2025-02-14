@@ -9,10 +9,8 @@ import importlib
 from sphinx.application import Sphinx
 
 log = {
-    'no_mk': "File Makefile not found, is {} a docs folder?",
-    'inv_mk': "Failed parse Makefile, is {} a docs folder?",
+    'no_conf_py': "File conf.py not found, is {} a docs folder?",
     'inv_f': "Could not find {}, check rollup output.",
-    'inv_bdir': "Could not find BUILDDIR {}.",
     'inv_srcdir': "Could not find SOURCEDIR {}.",
     'no_selenium': "Package 'selenium' is not installed.",
     'rollup': "Couldn't find {}, ensure this a symbolic install.",
@@ -230,24 +228,14 @@ def serve(directory, port, dev, selenium, once, builder):
             return
 
     directory = path.abspath(directory)
-    makefile = path.join(directory, 'Makefile')
-    if symbolic_assert(makefile, log['no_mk']):
+    conf_py = path.join(directory, 'conf.py')
+    if symbolic_assert(conf_py, log['no_conf_py']):
         return
 
-    # Get builddir and sourcedir, to ensure working with any doc
-    with open(makefile, 'r') as f:
-        data = f.read()
-
-    builddir_ = re.search(r'^BUILDDIR\s*=\s*(.*)$', data, re.MULTILINE)
-    sourcedir_ = re.search(r'^SOURCEDIR\s*=\s*(.*)$', data, re.MULTILINE)
-    builddir_ = builddir_.group(1).strip() if builddir_ else None
-    sourcedir_ = sourcedir_.group(1).strip() if sourcedir_ else None
-    if builddir_ is None or sourcedir_ is None:
-        click.echo(log['inv_mk'].format(directory))
-        return
+    builddir_ = "_build"
     builddir = path.join(directory, builddir_, builder)
     doctreedir = path.join(builddir_, "doctrees")
-    sourcedir = path.join(directory, sourcedir_)
+    sourcedir = directory
     if dir_assert(sourcedir, log['inv_srcdir']):
         return
 
@@ -452,7 +440,7 @@ def serve(directory, port, dev, selenium, once, builder):
                 # Maybe importlib.reload() + monkey patch could be an alternative,
                 # but not triggering full env reload would be tricky, so this is good
                 # enough.
-                subprocess.call(f"make {builder}", shell=True, cwd=directory)
+                subprocess.call(f"sphinx-build -M {builder} '.' '{builddir_}'", shell=True, cwd=directory)
             else:
                 app.build()
         if update_page:

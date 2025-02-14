@@ -50,26 +50,13 @@ class pr:
 
 
 def get_sphinx_dirs(cwd) -> Tuple[bool, str, str]:
-    mk = path.join(cwd, 'Makefile')
-    if not path.isfile(mk):
-        click.echo(click.style(f"{mk} does not exist, skipped!", fg='red'))
+    conf_py = path.join(cwd, 'conf.py')
+    if not path.isfile(conf_py):
+        click.echo(click.style(f"{conf_py} does not exist, skipped!", fg='red'))
         return (True, '', '')
 
-    with open(mk, 'r') as f:
-        data = f.read()
-    builddir_ = re.search(r'^BUILDDIR\s*=\s*(.*)$', data, re.MULTILINE)
-    sourcedir_ = re.search(r'^SOURCEDIR\s*=\s*(.*)$', data, re.MULTILINE)
-    builddir_ = builddir_.group(1).strip() if builddir_ else None
-    sourcedir_ = sourcedir_.group(1).strip() if sourcedir_ else None
-    if builddir_ is None or sourcedir_ is None:
-        click.echo(click.style(f"Failed to parse {mk}, skipped!", fg='red'))
-        return (True, '', '')
-    builddir = path.join(cwd, builddir_)
-    sourcedir = path.join(cwd, sourcedir_)
-    if not path.isdir(sourcedir):
-        click.echo(click.style(f"Parsed {sourcedir} does not exist, skipped!",
-                               fg='red'))
-        return (True, '', '')
+    sourcedir = cwd
+    builddir = path.join(cwd, f"_build/html")
 
     return [False, builddir, sourcedir]
 

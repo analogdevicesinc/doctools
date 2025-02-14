@@ -61,7 +61,7 @@ repos = {
         parent='hdl'
     ),
     'pyadi-iio': Repo(
-        pathname='doc',
+        pathname='doc/source',
         name='Hardware Python Interfaces',
         branch='main',
         visibility='public'

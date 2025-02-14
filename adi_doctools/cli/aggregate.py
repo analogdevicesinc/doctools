@@ -134,26 +134,13 @@ def patch_index(name, docsdir, indexfile):
 
 
 def get_sphinx_dirs(cwd) -> Tuple[bool, str, str]:
-    mk = os.path.join(cwd, 'Makefile')
-    if not os.path.isfile(mk):
-        click.echo(click.style(f"{mk} does not exist, skipped!", fg='red'))
+    conf_py = path.join(cwd, 'conf.py')
+    if not path.isfile(conf_py):
+        click.echo(click.style(f"{conf_py} does not exist, skipped!", fg='red'))
         return (True, '', '')
 
-    with open(mk, 'r') as f:
-        data = f.read()
-    builddir_ = re.search(r'^BUILDDIR\s*=\s*(.*)$', data, re.MULTILINE)
-    sourcedir_ = re.search(r'^SOURCEDIR\s*=\s*(.*)$', data, re.MULTILINE)
-    builddir_ = builddir_.group(1).strip() if builddir_ else None
-    sourcedir_ = sourcedir_.group(1).strip() if sourcedir_ else None
-    if builddir_ is None or sourcedir_ is None:
-        click.echo(click.style(f"Failed to parse {mk}, skipped!", fg='red'))
-        return (True, '', '')
-    builddir = os.path.join(cwd, f"{builddir_}/html")
-    sourcedir = os.path.join(cwd, sourcedir_)
-    if not os.path.isdir(sourcedir):
-        click.echo(click.style(f"Parsed {sourcedir} does not exist, skipped!",
-                               fg='red'))
-        return (True, '', '')
+    sourcedir = cwd
+    builddir = path.join(cwd, f"_build/html")
 
     return [False, builddir, sourcedir]
 
@@ -184,7 +171,7 @@ def gen_symbolic_doc(repo_dir):
 
         env = os.environ.copy()
         env["ADOC_INTERREF_URI"] = os.path.abspath(os.path.join(repo_dir, "..", "html")) + SEP
-        pr.popen(['make', 'html'], p, cwd, env=env)
+        pr.popen(['sphinx-build', '-M', 'html', f"'{mk[1]}'", f"'{mk[0]}'"], p, cwd, env=env)
     pr.wait(p)
 
     d_ = os.path.abspath(os.path.join(repo_dir, os.pardir))
