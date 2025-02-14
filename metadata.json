@@ -21,7 +21,7 @@
         "pyadi-iio": {
             "name": "Hardware Python Interfaces",
             "visibility": "public",
-            "pathname": "doc",
+            "pathname": "doc/source",
             "branch": "main"
         },
         "libiio": {
