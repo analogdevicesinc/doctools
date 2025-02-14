@@ -27,12 +27,12 @@ jobs:
         mkdir -p custom-pages
         printf "Introduction\n============\n\n" > custom-pages/intro.rst
         yes "lorem ipsum dolor sit amet" 2>/dev/null | head -n 20 | tr '\n' ' ' >> custom-pages/intro.rst
-        adoc custom-doc --builder pdf --https
+        adoc custom-doc --builder pdf
 
     - name: Build custom doc
       working-directory: /tmp/my_pdf
       run: |
-        adoc custom-doc --builder pdf --https
+        adoc custom-doc --builder pdf
 
     - name: Store the generated pdf
       uses: actions/upload-artifact@v4

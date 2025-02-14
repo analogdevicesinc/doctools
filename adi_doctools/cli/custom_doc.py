@@ -944,13 +944,13 @@ def organize_include(doc):
     help="Builder to use, valid options are: html, pdf (WeasyPrint) (default: html)."
 )
 @click.option(
-    '--https',
-    '-h',
+    '--ssh',
+    '-s',
     is_flag=True,
     default=False,
-    help="Clone repositories with HTTPS instead of SSH."
+    help="Clone repositories with SSH instead of HTTPS."
 )
-def custom_doc(directory, extra, no_parallel_, open_, builder, https):
+def custom_doc(directory, extra, no_parallel_, open_, builder, ssh):
     """
     Creates an aggregated documentation out the repos
     in the doc.yaml file.
@@ -1026,7 +1026,7 @@ def custom_doc(directory, extra, no_parallel_, open_, builder, https):
         return
 
     p = []
-    remote = lut['remote_https'] if https else lut['remote_ssh']
+    remote = lut['remote_https'] if not ssh else lut['remote_ssh']
     for r in doc['include']:
         cwd = path.join(directory, r)
         if not path.isdir(cwd):
@@ -1034,7 +1034,7 @@ def custom_doc(directory, extra, no_parallel_, open_, builder, https):
                        doc['config'][repo]['branch'], '--', cwd]
             pr.popen(git_cmd, p)
     if pr.wait(p) != 0:
-        click.echo("Failed to clone one or more repositories (hint: --https flag).")
+        click.echo("Failed to clone one or more repositories (hint: --ssh flag).")
 
     if builder == "pdf":
         environ["ADOC_MEDIA_PRINT"] = ""
