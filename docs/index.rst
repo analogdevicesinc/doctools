@@ -19,4 +19,5 @@ provided by Doctools.
    docs_guidelines/index
    cli
    ci
+   packaging
    theme
