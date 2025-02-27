@@ -87,7 +87,7 @@ a go cli that allows to run GitHub actions locally:
     [...]
 
 Update ``public`` with your preferred origin name.
-Additional arguments are added from the :git-doctool:`.actrc` on invoke.
+Additional arguments are added from the :git-doctools:`.actrc` on invoke.
 
 To run a specific workflow, use ``-W``, e.g.:
 
