@@ -5,17 +5,17 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Continuous integration &#8212; Doctools  documentation</title>
+    <title>Documentation deployment &#8212; Doctools  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8e8a900e" />
     <link rel="stylesheet" type="text/css" href="_static/app.min.css?v=9cb8e28d" />
     <script src="_static/documentation_options.js?v=5929fcd5"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script defer="" src="_static/app.umd.js?v=8d0ced9f"></script>
+    <script defer="" src="_static/app.umd.js?v=dcfbb431"></script>
     <link rel="icon" href="_static/icon.svg"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Sphinx theme" href="theme.html" />
+    <link rel="next" title="Packaging pipeline" href="packaging.html" />
     <link rel="prev" title="Command line interface" href="cli.html" />
    
   
@@ -88,22 +88,18 @@
         </div>
         <nav>
           <ul>
-<li><a class="reference internal" href="#">Continuous integration</a><ul>
-<li><a class="reference internal" href="#doctools-package-pipeline">Doctools package pipeline</a></li>
-<li><a class="reference internal" href="#documentation-build-and-deployment">Documentation build and deployment</a><ul>
+<li><a class="reference internal" href="#">Documentation deployment</a><ul>
 <li><a class="reference internal" href="#local">Local</a></li>
 <li><a class="reference internal" href="#rolling-release">Rolling release</a></li>
 <li><a class="reference internal" href="#versioned">Versioned</a><ul>
 <li><a class="reference internal" href="#string-array-form">String array form</a></li>
 <li><a class="reference internal" href="#fine-grained-form">Fine-grained form</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#further-notes">Further notes</a><ul>
 <li><a class="reference internal" href="#i-don-t-want-a-doc-at-the-root">I don’t want a doc at the root</a></li>
 <li><a class="reference internal" href="#how-do-i-cross-reference-a-specific-version">How do I cross-reference a specific version?</a></li>
 <li><a class="reference internal" href="#what-happened-to-adoc-target-depth">What happened to <code class="docutils literal notranslate"><span class="pre">ADOC_TARGET_DEPTH</span></code>?</a></li>
-</ul>
-</li>
-</ul>
-</li>
 </ul>
 </li>
 </ul>
@@ -143,7 +139,8 @@ Content on this topic
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="cli.html">Command line interface</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Continuous integration</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Documentation deployment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="packaging.html">Packaging pipeline</a></li>
 <li class="toctree-l1"><a class="reference internal" href="theme.html">Sphinx theme</a></li>
 </ul>
 </body>
@@ -158,77 +155,12 @@ Content on this topic
         <div class="bodywrapper" id="top-anchor">
           <div class="body" role="main">
             
-  <section id="continuous-integration">
-<span id="ci"></span><h1>Continuous integration<a class="headerlink" href="#continuous-integration" title="Link to this heading"></a></h1>
-<section id="doctools-package-pipeline">
-<h2>Doctools package pipeline<a class="headerlink" href="#doctools-package-pipeline" title="Link to this heading"></a></h2>
-<p>Doctools has a continuous deployment integration pipeline that works as follows:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>                   ┌──────────────────┐
-                ┌─►│Build Doc Latest  ├─┐
-                │  └──────────────────┘ │
-                │                       │
-┌─────────────┐ │  ┌────────────────┐   │  ┌──────────────┐
-│Build Package├─┼─►│Build Doc on Min├───┼─►│Deploy Package│
-└─────────────┘ │  └────────────────┘   │  └──────────────┘
-                │                       │
-                │  ┌─────┐              │
-                └─►│Tests├──────────────┘
-                   └─────┘
-</pre></div>
-</div>
-<p>The Build Package step “compiles” JavaScript and SASS, fetches third-party
-assets and licenses and generates the Python package.</p>
-<p>Then, in the middle-stage, two parallel runs are launched:</p>
-<ul class="simple">
-<li><p><em>Build Doc Latest</em>: uses the latest stable dependencies releases to
-generate this documentation, and store as an artifact.</p></li>
-<li><p><em>Build Doc on Min</em>: uses the minimum requirements dependencies to generate
-this documentation, but the output is discarded.</p></li>
-<li><p><em>Tests</em>: run tests using <code class="docutils literal notranslate"><span class="pre">pytest</span></code>, in special, methods that are not called
-during the <em>Build Doc *</em> pipelines.</p></li>
-</ul>
-<p>Both of them are set to fail-on-warning during the documentation generation.</p>
-<p>Finally, the Deploy Package:</p>
-<ul class="simple">
-<li><p>Grabs the version and checks if the tag version already exists:</p>
-<ul>
-<li><p>If so, set to update the symbolic <code class="docutils literal notranslate"><span class="pre">pre-release</span></code> release.</p></li>
-<li><p>If not, set to update the symbolic <code class="docutils literal notranslate"><span class="pre">latest</span></code> and <code class="docutils literal notranslate"><span class="pre">pre-relase</span></code> release.</p></li>
-</ul>
-</li>
-<li><p>Still if a new version:</p>
-<ul>
-<li><p>Create the git tag and push to origin.</p></li>
-<li><p>Create the tagged release.</p></li>
-<li><p>Upload the artifact to the tagged release.</p></li>
-</ul>
-</li>
-<li><p>Upload the artifact to the symbolic release (<code class="docutils literal notranslate"><span class="pre">pre-release</span></code>, <code class="docutils literal notranslate"><span class="pre">latest</span></code>).</p></li>
-<li><p>Finally, the <em>Build Doc Latest</em> artifact is downloaded and deployed to the
-branch <code class="docutils literal notranslate"><span class="pre">gh-pages</span></code></p></li>
-</ul>
-<p>By design, the live page on <em>github.io</em> follows the pre-release/latest commit-ish;
-properly versioned live documentation should be managed by an external system
-that watches the git tags (e.g.
-<a class="reference external" href="https://github.com/readthedocs/readthedocs.org">readthedocs</a>).</p>
-<p>This approach allows to have a single defined version on <code class="docutils literal notranslate"><span class="pre">adi_doctools/__init__.py</span></code>,
-and have the tags created and releases created/updated without much fuzz.</p>
-<p>The philosophy is to have <code class="docutils literal notranslate"><span class="pre">latest</span></code> updated on tag increment and first
-successful run, and <code class="docutils literal notranslate"><span class="pre">pre-relese</span></code> updated on successful run without tag change.
-These releases exist to provide a pointer to the latest/pre-release packages, e.g.
-<a class="reference external" href="https://github.com/analogdevicesinc/doctools/releases/download/latest/adi-doctools.tar.gz">releases/download/latest/adi-doctools.tar.gz</a>.</p>
-<p>Non-handled corner-cases mitigations:</p>
-<ul class="simple">
-<li><p>Release <code class="docutils literal notranslate"><span class="pre">pre-release</span></code> and <code class="docutils literal notranslate"><span class="pre">latest</span></code> must exist prior the first run.</p></li>
-<li><p>Branch <code class="docutils literal notranslate"><span class="pre">gh-pages</span></code> must exist with at least one commit.</p></li>
-</ul>
-</section>
-<section id="documentation-build-and-deployment">
-<h2>Documentation build and deployment<a class="headerlink" href="#documentation-build-and-deployment" title="Link to this heading"></a></h2>
+  <section id="documentation-deployment">
+<span id="ci"></span><h1>Documentation deployment<a class="headerlink" href="#documentation-deployment" title="Link to this heading"></a></h1>
 <p>Doctools is developed to work offline, in a local server, as a rolling release
 (e.g. on GitHub Page)s and versioned in a dedicated server (with orchestration).</p>
 <section id="local">
-<span id="ci-local"></span><h3>Local<a class="headerlink" href="#local" title="Link to this heading"></a></h3>
+<span id="ci-local"></span><h2>Local<a class="headerlink" href="#local" title="Link to this heading"></a></h2>
 <p>For offline and local server, a <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">html</span></code> suffice to generate the
 documentation.</p>
 <p>To serve the build in a local server, Python built-in server can be used:</p>
@@ -247,7 +179,7 @@ documentation.</p>
 </div>
 <div class="clear-left"></div></div></div></section>
 <section id="rolling-release">
-<span id="ci-rolling-release"></span><h3>Rolling release<a class="headerlink" href="#rolling-release" title="Link to this heading"></a></h3>
+<span id="ci-rolling-release"></span><h2>Rolling release<a class="headerlink" href="#rolling-release" title="Link to this heading"></a></h2>
 <p>For a rolling release, a workflow file is used.</p>
 <p>With GitHub Actions, the following workflow file is recommended:</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">on</span><span class="p">:</span>
@@ -349,7 +281,7 @@ please be aware of GitHub events values if implementing something else.</p>
 </div>
 </section>
 <section id="versioned">
-<span id="ci-versioned"></span><h3>Versioned<a class="headerlink" href="#versioned" title="Link to this heading"></a></h3>
+<span id="ci-versioned"></span><h2>Versioned<a class="headerlink" href="#versioned" title="Link to this heading"></a></h2>
 <p>The live versioned version requires additional orchestration than the
 <a class="reference internal" href="#ci-rolling-release"><span class="std std-ref">Rolling release</span></a>.</p>
 <p>The versions are described in <code class="docutils literal notranslate"><span class="pre">tags.json</span></code> file on the root path
@@ -358,7 +290,7 @@ fine-grained to allow full control.</p>
 <p>But first, store each version in separated folders in the root path, e.g.
 <code class="docutils literal notranslate"><span class="pre">v1.1</span></code>, <code class="docutils literal notranslate"><span class="pre">v2.2</span></code>, <code class="docutils literal notranslate"><span class="pre">main</span></code>, <code class="docutils literal notranslate"><span class="pre">dev</span></code>.</p>
 <section id="string-array-form">
-<h4>String array form<a class="headerlink" href="#string-array-form" title="Link to this heading"></a></h4>
+<h3>String array form<a class="headerlink" href="#string-array-form" title="Link to this heading"></a></h3>
 <p>The simple <code class="docutils literal notranslate"><span class="pre">tags.json</span></code> is a plain array with each version/path on the
 and generate a <code class="docutils literal notranslate"><span class="pre">tags.json</span></code>, e.g. <code class="docutils literal notranslate"><span class="pre">[&quot;v1.1&quot;,</span> <span class="pre">&quot;v2.2&quot;,</span> <span class="pre">&quot;main&quot;,</span> <span class="pre">&quot;dev&quot;,</span> <span class="pre">&quot;&quot;]</span></code>
 (a empty string means there is a built doc on the root and will be named
@@ -388,7 +320,7 @@ how to implement it.</p>
 </div>
 <div class="clear-left"></div></div></div></section>
 <section id="fine-grained-form">
-<h4>Fine-grained form<a class="headerlink" href="#fine-grained-form" title="Link to this heading"></a></h4>
+<h3>Fine-grained form<a class="headerlink" href="#fine-grained-form" title="Link to this heading"></a></h3>
 <p>The more elaborated option takes the following format:</p>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;path&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;label&quot;</span><span class="p">],</span>
@@ -412,10 +344,11 @@ was used to provide a concise but clearer name to this entry.</p>
 <p>The doc version set, either via <code class="docutils literal notranslate"><span class="pre">conf.py</span></code> or <code class="docutils literal notranslate"><span class="pre">ADOC_DOC_VERSION</span></code> (<a class="reference internal" href="docs_guidelines/index.html#version"><span class="std std-ref">more info</span></a>),
 should match a value on the <code class="docutils literal notranslate"><span class="pre">name</span></code> column, and not the <code class="docutils literal notranslate"><span class="pre">path</span></code> column.</p>
 </section>
+</section>
 <section id="further-notes">
-<h4>Further notes<a class="headerlink" href="#further-notes" title="Link to this heading"></a></h4>
+<h2>Further notes<a class="headerlink" href="#further-notes" title="Link to this heading"></a></h2>
 <section id="i-don-t-want-a-doc-at-the-root">
-<h5>I don’t want a doc at the root<a class="headerlink" href="#i-don-t-want-a-doc-at-the-root" title="Link to this heading"></a></h5>
+<h3>I don’t want a doc at the root<a class="headerlink" href="#i-don-t-want-a-doc-at-the-root" title="Link to this heading"></a></h3>
 <p>If the root does not contain any built doc, add a redirect HTML file pointing
 to the main/stable version:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&lt;!DOCTYPE html&gt;
@@ -428,13 +361,13 @@ to the main/stable version:</p>
 </div>
 </section>
 <section id="how-do-i-cross-reference-a-specific-version">
-<h5>How do I cross-reference a specific version?<a class="headerlink" href="#how-do-i-cross-reference-a-specific-version" title="Link to this heading"></a></h5>
+<h3>How do I cross-reference a specific version?<a class="headerlink" href="#how-do-i-cross-reference-a-specific-version" title="Link to this heading"></a></h3>
 <p>For <a class="reference internal" href="docs_guidelines/index.html#in-org-ref"><span class="std std-ref">In organization reference</span></a>, the doc shall target a specific version by suffixing
 the target the version on the <code class="docutils literal notranslate"><span class="pre">interref_repos</span></code> variable, e.g.
 <code class="docutils literal notranslate"><span class="pre">interref_repos</span> <span class="pre">=</span> <span class="pre">['pyadi-iio/dev',</span> <span class="pre">'other-repo/v1.1']</span></code>.</p>
 </section>
 <section id="what-happened-to-adoc-target-depth">
-<h5>What happened to <code class="docutils literal notranslate"><span class="pre">ADOC_TARGET_DEPTH</span></code>?<a class="headerlink" href="#what-happened-to-adoc-target-depth" title="Link to this heading"></a></h5>
+<h3>What happened to <code class="docutils literal notranslate"><span class="pre">ADOC_TARGET_DEPTH</span></code>?<a class="headerlink" href="#what-happened-to-adoc-target-depth" title="Link to this heading"></a></h3>
 <p>Previously there was also a <code class="docutils literal notranslate"><span class="pre">ADOC_TARGET_DEPTH</span></code> enviroment variables
 to create full relative links between versions, but this was deprecated
 by instead just using the root <code class="docutils literal notranslate"><span class="pre">/</span></code> for those links, e.g.
@@ -445,15 +378,13 @@ at the root.</p>
 </section>
 </section>
 </section>
-</section>
-</section>
 
 
           </div>
               <div class="related">
                 &nbsp;
     <a href="cli.html" title="Previous document (Alt+Shift+LeftArrow)" class="prev">Command line interface</a>
-    <a href="theme.html" title="Next document (Alt+Shift+RightArrow)" class="next">Sphinx theme</a>
+    <a href="packaging.html" title="Next document (Alt+Shift+RightArrow)" class="next">Packaging pipeline</a>
               </div>
           
         </div>
