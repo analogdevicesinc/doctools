@@ -1,0 +1,2 @@
+--artifact-server-path $PWD/.artifacts
+-e .github/workflows/event.json

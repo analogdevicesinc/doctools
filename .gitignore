@@ -14,3 +14,4 @@ node_modules
 *.woff2
 adi_doctools/theme/*/static/fonts
 .sass-cache
+.artifacts

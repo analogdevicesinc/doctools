@@ -72,6 +72,77 @@ Non-handled corner-cases mitigations:
 * Release ``pre-release`` and ``latest`` must exist prior the first run.
 * Branch ``gh-pages`` must exist with at least one commit.
 
+.. _act:
+
+Running the CI locally
+--------------------------------------------------------------------------------
+
+The doctools CI is compatible with `act <https://github.com/nektos/act/>`__,
+a go cli that allows to run GitHub actions locally:
+
+.. shell::
+
+   $act --remote-name public \
+    INFO[0000] Using docker host 'unix:///run/user/1000//podman/podman.sock',
+               and daemon socket 'unix:///run/user/1000//podman/podman.sock'
+    INFO[0000] Start server on http://10.44.3.54:34567
+    [build-package/build-package.yml/build] ⭐ Run Set up job
+    [...]
+
+Update ``public`` with your preferred origin name.
+Additional arguments are added from the :git-doctool:`.actrc` on invoke.
+
+To run a specific workflow, use ``-W``, e.g.:
+
+.. shell::
+
+   $act --remote-name public \
+   $    -W .github/workflows/build-package.yml
+
+
+.. _act-podman:
+
+Using act with podman and wsl2
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Below are suggestion instruction on how to bring-up ``ack`` with ``podman`` on
+a Linux under WSL2.
+
+Modify to match your preference as needed, if not under wsl2, skip the steps in
+:green:`green`.
+
+:green:`Ensure cgroup v2 on wsl2's .wslconfig:`
+
+::
+
+   [wsl2]
+   kernelCommandLine = cgroup_no_v1=all systemd.unified_cgroup_hierarchy=1
+
+:green:`Restart wsl2.`
+
+Enable podman service for your user.
+
+.. shell::
+
+   $systemctl enable --now --user podman.socket
+   $systemctl start --user podman.socket
+
+Set the ``DOCKER_HOST`` variable on your *~/.bashrc*:
+
+.. code-block:: bash
+
+   export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock
+
+Fetch ``ack`` binary into an executable path:
+
+.. shell::
+
+   $cd ~/.local/bin/
+   $curl --proto '=https' --tlsv1.2 -sSf \
+   $    https://raw.githubusercontent.com/nektos/act/master/install.sh | \
+   $    sudo bash
+
+
 Documentation build and deployment
 --------------------------------------------------------------------------------
 
