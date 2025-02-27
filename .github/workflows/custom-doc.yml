@@ -32,6 +32,7 @@ jobs:
     - name: Build custom doc
       working-directory: /tmp/my_pdf
       run: |
+        export GIT_LFS_SKIP_SMUDGE=1
         adoc custom-doc --builder pdf
 
     - name: Store the generated pdf
