@@ -20,6 +20,7 @@ from ..writer.hdl import write_hdl_regmap
 from ..writer.hdl import write_hdl_regmap_test
 from ..writer.hdl import write_hdl_library_makefile
 from ..writer.hdl import write_hdl_project_makefile
+from .aux_git import get_git_top_level
 
 
 @click.command()
@@ -60,13 +61,11 @@ def hdl_gen(input_, no_regmap, no_makefile, no_write):
 
     Run from any path at hdl, including hdl/testbenches.
     """
-    p_ = subprocess.run("git rev-parse --show-toplevel", shell=True,
-                        capture_output=True, cwd=input_)
-    if p_.returncode != 0:
-        click.echo(p_.stderr)
+    hdldir = get_git_top_level(input_)
+    if not hdldir:
         return
 
-    hdldir = p_.stdout.decode("utf-8").strip().replace('/testbenches', '')
+    hdldir = hdldir.replace('/testbenches', '')
     call_dir = getcwd()
     chdir(hdldir)
 

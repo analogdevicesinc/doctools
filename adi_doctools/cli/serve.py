@@ -1,14 +1,17 @@
 from os import path, listdir, remove, mkdir
 from os import pardir, killpg, getpgid
-from os import environ
+from os import environ, stat, utime
 from os import chdir, getcwd
-from shutil import copy, which
+from shutil import copy2, which, move
 import click
 import importlib
 
 from sphinx.application import Sphinx
 
+from .aux_git import get_git_top_level, is_git_lfs_installed
+
 log = {
+    'no_lfs': "File .gitattributes contains lfs rules, but git-lfs is not installed.",
     'no_conf_py': "File conf.py not found, is {} a docs folder?",
     'inv_f': "Could not find {}, check rollup output.",
     'inv_srcdir': "Could not find SOURCEDIR {}.",
@@ -133,7 +136,6 @@ def serve(directory, port, dev, selenium, once, builder):
                     'app.min.css', 'app.min.css.map',
                     'extra.umd.js', 'extra.umd.js.map',
                     'extra.min.css', 'extra.min.css.map'}
-    cwd_ = getcwd()
 
     def signal_handler(sig, frame):
         if builder == 'html':
@@ -172,7 +174,7 @@ def serve(directory, port, dev, selenium, once, builder):
         for f in source_files:
             src = path.join(dist, d, static_path, f)
             dest = path.join(path_, static_path, f)
-            copy(src, dest)
+            copy2(src, dest)
         rmtree(dist)
         click.echo("Success fetching the pre-compiled files!")
 
@@ -238,6 +240,22 @@ def serve(directory, port, dev, selenium, once, builder):
     sourcedir = directory
     if dir_assert(sourcedir, log['inv_srcdir']):
         return
+
+    types_lfs = []
+    if git_top_level := get_git_top_level(directory):
+        git_attr = path.join(git_top_level, ".gitattributes")
+        if path.isfile(git_attr):
+            with open(git_attr, "r") as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith("#") and 'filter=lfs' in line:
+                        match = re.match(r"\*\.([a-zA-Z0-9]+)", line)
+                        if match:
+                            types_lfs.append('.'+match.group(1))
+            if len(types_lfs) > 0:
+                if not is_git_lfs_installed():
+                    click.echo(log['no_lfs'])
+                    types_lfs = []
 
     # Define PDF generation
     def generate_toctree(bookmarks, indent=0):
@@ -308,7 +326,7 @@ def serve(directory, port, dev, selenium, once, builder):
         # Build doc the first time
         app.build()
         for f in w_files:
-            watch_file_src[f] = path.getctime(f)
+            watch_file_src[f] = stat(f).st_mtime
         if not once:
             # Run rollup and sass in watch mode
             cmd_rollup = f"{rollup_bin} -c {rollup_conf} --watch"
@@ -328,10 +346,69 @@ def serve(directory, port, dev, selenium, once, builder):
     if once:
         return
 
+    def get_lfs_sha(path_):
+        """
+        Check if the file is a git lfs pointer.
+        If so, returns the sha, if not, return false.
+        """
+        if path.isfile(path_):
+            with open(path_, 'rb') as f:
+                if (f.read(54) == b"version https://git-lfs.github.com/spec/v1\noid sha256:"):
+                    return f.read(64)
+        return False
+
+    def get_source_lfs_file(path_, ext):
+        """
+        Check if _build binary file is a git lfs pointer,
+        and if so, search and return the source file path.
+        If any step fails, returns None
+        """
+        if sha := get_lfs_sha(path_):
+            pattern = path.join(directory, '**', f'*{ext}')
+            files = []
+            for file_path in glob.glob(pattern, recursive=True):
+                if '_build' not in path.normpath(file_path):
+                    files.append(file_path)
+
+            for file in files:
+                try:
+                    with open(file, 'rb') as f:
+                        f.seek(54)
+                        sha_ = f.read(64)
+                        if sha == sha_:
+                            return file
+                except Exception as e:
+                    pass
+
+            return None
+        else:
+            return None
+
+    builddir = path.join(directory, builddir_, builder)
+
     class Handler(http.server.SimpleHTTPRequestHandler):
         def __init__(self, *args, **kwargs):
             global builddir
             super().__init__(*args, directory=builddir, **kwargs)
+
+        def do_GET(self):
+            for ext in types_lfs:
+                if self.path.endswith(ext):
+                    path_ = path.join(builddir, self.path[1:])
+
+                    lfs_f = get_source_lfs_file(path_, ext)
+                    if lfs_f is not None:
+                        tmp_f = path.join(directory, builddir_, path.basename(lfs_f))
+                        stat_ = stat(lfs_f)
+                        click.echo(f"git lfs smudging file {lfs_f}")
+                        # TODO assert lfs repo + lfs installed
+                        subprocess.call(f"git lfs smudge < {path_} > {tmp_f}",
+                                        shell=True, cwd=directory)
+                        utime(tmp_f, (stat_.st_atime, stat_.st_mtime))
+                        copy2(tmp_f, lfs_f)
+                        move(tmp_f, path_)
+
+            super().do_GET()
 
         def log_message(self, format, *args):
             return
@@ -381,7 +458,7 @@ def serve(directory, port, dev, selenium, once, builder):
             __files = [path.abspath(f) for f in _files]
             files.extend(__files)
             for f in __files:
-                ctime.append(path.getctime(f))
+                ctime.append(stat(f).st_mtime)
         dirs = [d for d in listdir(sourcedir)
                 if path.isdir(path.join(sourcedir, d))]
         if builddir_ in dirs:
@@ -394,7 +471,7 @@ def serve(directory, port, dev, selenium, once, builder):
                 for f in __files:
                     if not path.isfile(f):
                         continue
-                    ctime_ = path.getctime(f)
+                    ctime_ = stat(f).st_mtime
                     ctime.append(ctime_)
                     files.append(f)
         return (files, ctime)
@@ -404,7 +481,14 @@ def serve(directory, port, dev, selenium, once, builder):
         global first_run
         update_sphinx = False
         update_page = False
+        git_lfs_pull = []
         for file, ctime in zip(*get_doc_sources()):
+            if file in watch_file_rst and ctime > watch_file_rst[file]:
+                _, ext_= path.splitext(file)
+                if ext_ in types_lfs and get_lfs_sha(file):
+                    # User touched lfs symbolic link, probably wants to pull it
+                    git_lfs_pull.append(file)
+
             if file not in watch_file_rst or ctime > watch_file_rst[file]:
                 update_sphinx = True
                 watch_file_rst[file] = ctime
@@ -416,7 +500,7 @@ def serve(directory, port, dev, selenium, once, builder):
         for file in watch_file_src:
             if not path.isfile(file):
                 continue
-            ctime = path.getctime(file)
+            ctime = stat(file).st_mtime
             if ctime > watch_file_src[file]:
                 update_page = True
                 watch_file_src[file] = ctime
@@ -429,6 +513,13 @@ def serve(directory, port, dev, selenium, once, builder):
             first_run = False
             update_page = False
             update_sphinx = False
+
+        if len(git_lfs_pull) > 0:
+            git_lfs_pull = [path.basename(gf) for gf in git_lfs_pull]
+            lfs_f_s = ' -I '.join(git_lfs_pull)
+            click.echo(f"git lfs smudging file(s): {' '.join(git_lfs_pull)}")
+            subprocess.call(f"git lfs pull -I {lfs_f_s}",
+                            shell=True, cwd=directory)
 
         if update_sphinx:
             if dev:
@@ -445,7 +536,7 @@ def serve(directory, port, dev, selenium, once, builder):
                 app.build()
         if update_page:
             for f in w_files:
-                copy(f, path.join(builddir, '_static', path.basename(f)))
+                copy2(f, path.join(builddir, '_static', path.basename(f)))
         if update_sphinx or update_page:
             if with_selenium:
                 try:
