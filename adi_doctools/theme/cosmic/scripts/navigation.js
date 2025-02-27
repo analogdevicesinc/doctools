@@ -161,7 +161,8 @@ export class Navigation {
   }
   /* Search shortcut */
   search (e) {
-    if (e.key === '/' && !this.$.searchArea.classList.contains('on')) {
+    if ((e.code === 'IntlRo' || e.code === 'Slash')
+        && !this.$.searchArea.classList.contains('on')) {
       DOM.switchState(this.$.searchArea)
       DOM.switchState(this.$.searchAreaBg)
       this.$.searchInput.focus()
@@ -198,6 +199,7 @@ export class Navigation {
         this.related(e)
         break
       case 'IntlRo':
+      case 'Slash':
       case 'Escape':
         this.search(e)
         break
