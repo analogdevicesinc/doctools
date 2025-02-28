@@ -90,6 +90,12 @@ repos = {
         branch='main',
         visibility='public'
     ),
+    'adi_ros2': Repo(
+        pathname='src/adi_ros2/doc',
+        name='ROS2',
+        branch='humble',
+        visibility='public'
+    ),
     'scopy': Repo(
         pathname='docs',
         name='Scopy',
