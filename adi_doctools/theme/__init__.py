@@ -109,7 +109,7 @@ def repotoc_tree(content_root, conf_vars, pagename):
     repo, repos = conf_vars
     root = etree.Element("root")
     home = "index.html"
-    current = ''
+    current = repo # fallback value
 
     repository = {}
     topics = {}
