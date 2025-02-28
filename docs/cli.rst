@@ -51,6 +51,35 @@ All options can be listed with:
 
    $adoc serve --help
 
+.. _serve lfs:
+
+Git LFS integration
++++++++++++++++++++
+
+Serve is detects if a repository uses `git-lfs <https://git-lfs.com>`__
+to fetch (smudge) the watched binaries on demand.
+
+This allows users to clone a repo with ``git lfs install --skip-smudge``
+or ``GIT_LFS_SKIP_SMUDGE=1`` and only fetch, on demand, the binary
+resources they are working on, dramatically reducing clone time and bandwidth
+usage.
+
+The per-file fetch is triggered by a get request, like when opening the
+local server page on the browser, or by touching the watched source file.
+
+The get request triggers the fetch for all git lfs rules on the *.gitattributes*
+files, while the touch will only work on filetypes also watched by the server.
+
+If neither the get request or the touch file to fetch is suitable,
+it is possible to pull the file directly with:
+
+.. code::
+
+   git lfs pull public -I file_basename
+
+Especial attention to the ``file_basename``, e.g. *my_image.jpg*,
+full paths like *path/to/my_image.jpg* will silently fail.
+
 How can I rebuild the whole documentation within Serve?
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
