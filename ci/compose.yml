@@ -1,0 +1,27 @@
+services:
+  runner:
+    image: adi/doctools/runner:latest
+    restart: always
+    deploy:
+      mode: replicate
+      replicas: 3
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 300M
+        reservation:
+          cpus: '0.2'
+          memory: 100M
+    environment:
+      runner_labels: $RUNNER_LABELS
+    secrets:
+      - source: adi_doctools_github_token
+      - source: adi_doctools_org_repository
+
+secrets:
+  adi_doctools_github_token:
+    external: true
+    name: adi_doctools_github_token
+  adi_doctools_org_repository:
+    external: true
+    name: adi_doctools_org_repository

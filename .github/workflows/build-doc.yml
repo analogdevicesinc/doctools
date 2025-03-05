@@ -1,13 +1,10 @@
 on: workflow_call
 jobs:
   build-doc-latest:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, generic]
 
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
-      with:
-        python-version: "3.x"
 
     - uses: actions/download-artifact@v4
       with:
@@ -16,12 +13,15 @@ jobs:
 
     - name: Install pip packages
       run: |
-        pip install $(tail --lines=+2 docs/requirements.txt) --upgrade
-        pip install dist/adi_doctools-*.tar.gz
+        python3 -m venv ~/venv
+        source ~/venv/bin/activate
+        pip3 install $(tail --lines=+2 docs/requirements.txt) --upgrade
+        pip3 install dist/adi_doctools-*.tar.gz
 
     - name: Build doc
       working-directory: docs
       run: >
+        source ~/venv/bin/activate ;
         ADOC_DOC_VERSION=${{ github.ref_name }}
         make html SPHINXOPTS='-W --keep-going' ;
         rm -rf _build/html/_sources
@@ -44,6 +44,7 @@ jobs:
       if: ${{ env.new_tag == '1' }}
       working-directory: docs
       run: >
+        source ~/venv/bin/activate ;
         ADOC_DOC_VERSION=$tag
         make clean html SPHINXOPTS='-W --keep-going' ;
         rm -rf _build/html/_sources
@@ -56,13 +57,12 @@ jobs:
         path: docs/_build/html
 
   build-doc-min:
-    runs-on: ubuntu-20.04
+    runs-on: [self-hosted, generic]
+    # Manually-set variable to skip
+    if: ${{ !github.event.no_python_min }}
 
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
-      with:
-        python-version: "3.8"
 
     - uses: actions/download-artifact@v4
       with:
@@ -71,16 +71,20 @@ jobs:
 
     - name: Install pip packages
       run: |
-        pip install $(tail --lines=+2 docs/requirements.txt) --upgrade
-        pip install dist/adi_doctools-*.tar.gz
+        python3.8 -m venv ~/venv
+        source ~/venv/bin/activate
+        pip3 install $(tail --lines=+2 docs/requirements.txt) --upgrade
+        pip3 install dist/adi_doctools-*.tar.gz
 
     - name: Build doc
       working-directory: docs
-      run: |
-        make html SPHINXOPTS='-W --keep-going'
+      run: >
+        source ~/venv/bin/activate ;
+        make clean html SPHINXOPTS='-W --keep-going' ;
         rm -rf _build/html/_sources
 
-    - name: Store the generated doc
+    - name: Store the generated tagged doc
+      if: ${{ env.new_tag == '1' }}
       uses: actions/upload-artifact@v4
       with:
         name: html-min

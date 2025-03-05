@@ -14,6 +14,7 @@ export class VersionDropdown {
   }
 
   fetch_tags () {
+    // Maybe use /current_host/tags.json instead ?
     Toolbox.cache_check(this.parent.state,
                         `/${this.parent.state.repository}/tags.json`, 2,
                         (obj) => {this.render(obj['obj'])})

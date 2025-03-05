@@ -77,8 +77,8 @@ Non-handled corner-cases mitigations:
 
 .. _act:
 
-Running the continuous integration locally
-------------------------------------------
+Running locally
+---------------
 
 At its core, the workflows are straight forward, roughly they do:
 
@@ -111,6 +111,7 @@ a CLI written in go that allows to run GitHub actions on the host inside contain
 
 .. shell::
 
+   ~/doctools
    $act --remote-name public
     INFO[0000] Using docker host 'unix:///run/user/1000//podman/podman.sock',
                and daemon socket 'unix:///run/user/1000//podman/podman.sock'
@@ -121,6 +122,9 @@ a CLI written in go that allows to run GitHub actions on the host inside contain
 Update ``public`` with your preferred origin name.
 Additional arguments are added from the :git-doctools:`.actrc` on invoke.
 
+It assumes you have the tools necessary already installed (a general guide
+is provided :ref:`here <conf-podman>` and :ref:`here <install-act>`) and already :ref:`built the image <image-podman>`.
+
 To run a specific workflow, use ``-W``, e.g.:
 
 .. shell::
@@ -129,16 +133,17 @@ To run a specific workflow, use ``-W``, e.g.:
    $    -W .github/workflows/build-package.yml
 
 
-.. _act-podman:
+.. _conf-podman:
 
-Configuring act with podman and wsl2
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Configuring podman
+~~~~~~~~~~~~~~~~~~
 
-Below are suggested instructions for setting up ``ack`` with ``podman`` on a
-Linux system running under WSL2.
+Below are suggested instructions for setting up ``podman`` on a Linux environment.
 
 Adjust to your preference as needed, and skip the steps marked in :green:`green`
 if not using WSL2.
+
+Install ``podman`` from your package manager.
 
 :green:`Ensure cgroup v2 on wsl2's .wslconfig:`
 
@@ -162,14 +167,81 @@ Set the ``DOCKER_HOST`` variable on your *~/.bashrc*:
 
    export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock
 
-Fetch ``ack`` binary into an executable path:
+.. _install-act:
+
+Installing act
+~~~~~~~~~~~~~~
+
+Install ``act`` binary into an executable path:
 
 .. shell::
 
-   $cd ~/.local/bin/
+   $cd ~/.local
    $curl --proto '=https' --tlsv1.2 -sSf \
    $    https://raw.githubusercontent.com/nektos/act/master/install.sh | \
    $    sudo bash
    $act --version
     act version 0.2.74
+
+.. _image-podman:
+
+Build the container image
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To build the container image, use your favorite container engine:
+
+.. shell::
+
+   $cd ~/doctools/ci
+   $podman build --tag adi/doctools/local:latest .
+
+.. _compose-podman:
+
+Running a cluster
+-----------------
+
+`Podman-compose <https://github.com/containers/podman-compose>`__ is used
+to manage a cluster of `GitHub Actions Runners <https://github.com/actions/runner>`__.
+
+First, follow the steps in :ref:`conf-podman`,
+then install podman-compose from pip:
+
+.. shell::
+
+   $pip install podman-compose
+
+Build the container image setting ``self_hosted=1``:
+
+.. shell::
+
+   $cd ~/doctools/ci
+   $podman build --build-arg=self_hosted=1 --tag adi/doctools/runner:latest .
+
+Set-up your secrets:
+
+.. shell::
+
+   # e.g. analogdevicesinc/doctools
+   $printf ORG_REPOSITORY | podman secret create adi_doctools_org_repository -
+   # e.g. MyVerYSecRetToken
+   $printf GITHUB_TOKEN | podman secret create adi_doctools_github_token -
+
+Then run your cluster (by default it will spawn three runners) using podman-compose:
+
+.. shell::
+
+   ~/doctools/ci
+   $podman-compose up
+
+.. tip::
+
+   Testing the Containerfile? The one-liner below allows to rebuild and launch
+   the compose.
+
+   .. shell::
+
+      ~/doctools/ci
+      $podman build --build-arg=self_hosted=1 \
+      $             --tag adi/doctools/runner:latest . ; \
+      $podman-compose --podman-run-args='--replace' up
 

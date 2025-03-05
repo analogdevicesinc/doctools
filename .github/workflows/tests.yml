@@ -1,13 +1,10 @@
 on: workflow_call
 jobs:
   tests:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, generic]
 
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
-      with:
-        python-version: "3.x"
 
     - uses: actions/download-artifact@v4
       with:
@@ -16,10 +13,13 @@ jobs:
 
     - name: Install pip packages
       run: |
-        pip install pip sphinx pytest --upgrade
-        pip install dist/adi_doctools-*.tar.gz
+        python3 -m venv ~/venv
+        source ~/venv/bin/activate
+        pip3 install pip sphinx pytest --upgrade
+        pip3 install dist/adi_doctools-*.tar.gz
 
     - name: Run tests
       working-directory: tests
       run: |
+        source ~/venv/bin/activate
         pytest

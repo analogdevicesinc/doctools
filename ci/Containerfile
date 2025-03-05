@@ -1,0 +1,44 @@
+FROM opensuse/tumbleweed:latest
+
+ARG self_hosted=0
+ARG runner_version=2.322.0
+ARG runner_version_sha=18837c7655a6366c920d77f0b01e9ec9d1beac2116ad548a869cfbe8e2a4e06d
+
+RUN zypper install -y --no-recommends \
+    tar curl jq libicu sha3sum
+
+RUN useradd -m runner
+
+WORKDIR /home/runner
+USER runner
+
+RUN if [[ "${self_hosted}" == "1" ]]; then \
+        curl -o actions-runner.tar.gz -L https://github.com/actions/runner/releases/download/v${runner_version}/actions-runner-linux-x64-${runner_version}.tar.gz && \
+        echo "${runner_version_sha} actions-runner.tar.gz" | sha3sum -a 256 -c && \
+        tar xzf actions-runner.tar.gz ; \
+    fi
+
+USER root
+COPY install-deps.sh .
+RUN chmod +x install-deps.sh ; ./install-deps.sh
+COPY install-deps-min.sh .
+RUN chmod +x install-deps-min.sh ; \
+    ./install-deps-min.sh \
+        3.8.20 \
+        cf35014b11c80f2ee9b09da8876df71d889c9f82823b0aa9cf062cd9833a6e1f
+
+WORKDIR /usr/local/bin
+COPY github-api.sh .
+COPY entrypoint.sh .
+RUN chmod +x github-api.sh
+RUN if [[ "${self_hosted}" == "0" ]]; then \
+      printf '#!/bin/bash\n' > entrypoint.sh ; \
+      rm github-api.sh ; \
+    fi
+RUN chmod +x entrypoint.sh
+
+USER runner
+WORKDIR /home/runner
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+

@@ -1,13 +1,10 @@
 on: workflow_call
 jobs:
   custom-doc:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, generic]
 
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
-      with:
-        python-version: "3.x"
 
     - uses: actions/download-artifact@v4
       with:
@@ -16,9 +13,11 @@ jobs:
 
     - name: Install pip packages
       run: |
-        pip install $(tail --lines=+2 docs/requirements.txt) --upgrade
-        pip install weasyprint sphinxcontrib.wavedrom matplotlib
-        pip install dist/adi_doctools-*.tar.gz
+        python3 -m venv ~/venv
+        source ~/venv/bin/activate
+        pip3 install $(tail --lines=+2 docs/requirements.txt) --upgrade
+        pip3 install weasyprint
+        pip3 install dist/adi_doctools-*.tar.gz
 
     - name: Prepare custom doc template
       working-directory: /tmp
@@ -27,12 +26,14 @@ jobs:
         mkdir -p custom-pages
         printf "Introduction\n============\n\n" > custom-pages/intro.rst
         yes "lorem ipsum dolor sit amet" 2>/dev/null | head -n 20 | tr '\n' ' ' >> custom-pages/intro.rst
+        source ~/venv/bin/activate
         adoc custom-doc --builder pdf
 
     - name: Build custom doc
       working-directory: /tmp/my_pdf
       run: |
         export GIT_LFS_SKIP_SMUDGE=1
+        source ~/venv/bin/activate
         adoc custom-doc --builder pdf
 
     - name: Store the generated pdf

@@ -1,16 +1,10 @@
 on: workflow_call
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, generic]
 
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
-      with:
-        python-version: "3.x"
-    - uses: actions/setup-node@v4
-      with:
-        node-version: "lts/*"
 
     - name: Install bundler dependencies
       run: >-
@@ -31,17 +25,16 @@ jobs:
         adi_doctools/theme/cosmic/style/extra.bundle.scss:adi_doctools/theme/cosmic/static/extra.min.css
         --style compressed
 
-    - name: Install build tool
-      run: >-
-        python3 -m
-        pip install build --user
-
     - name: Fetch third-party fonts
-      run: >-
+      run: |
         ./ci/fetch-fonts.sh
 
     - name: Build a binary wheel and a source tarball
-      run: python3 -m build
+      run: |
+        python3 -m venv ~/venv
+        source ~/venv/bin/activate
+        pip3 install build
+        python3 -m build
 
     - name: Store the distribution packages
       uses: actions/upload-artifact@v4
