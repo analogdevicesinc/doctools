@@ -15,6 +15,10 @@ Doctools has a continuous deployment integration pipeline that works as follows:
    │Build Package├─┼─►│Build Doc on Min├───┼─►│Deploy Package│
    └─────────────┘ │  └────────────────┘   │  └──────────────┘
                    │                       │
+                   │  ┌──────────┐         │
+                   ├─►│Custom Doc├─────────┤
+                   │  └──────────┘         │
+                   │                       │
                    │  ┌─────┐              │
                    └─►│Tests├──────────────┘
                       └─────┘
@@ -28,6 +32,8 @@ Then, in the middle-stage, two parallel runs are launched:
   generate this documentation, and store as an artifact.
 * *Build Doc on Min*: uses the minimum requirements dependencies to generate
   this documentation, but the output is discarded.
+* *Custom Doc*: calls :ref:`custom-doc` to check if the CLI tool succeeds in
+  generating a full custom PDF document.
 * *Tests*: run tests using ``pytest``, in special, methods that are not called
   during the *Build Doc \** pipelines.
 
@@ -74,8 +80,34 @@ Non-handled corner-cases mitigations:
 Running the continuous integration locally
 ------------------------------------------
 
-The doctools CI is compatible with `act <https://github.com/nektos/act/>`__,
-a go cli that allows to run GitHub actions locally:
+At its core, the workflows are straight forward, roughly they do:
+
+The ``Tests`` step:
+
+.. shell::
+
+   $cd tests ; pytest
+
+``Build Doc *``:
+
+.. shell::
+
+   $cd docs ; make html
+
+But at a specific minimum and maximum supported environment version.
+
+``Custom Doc``:
+
+.. shell::
+
+   $mkdir /tmp/test-pdf ; cd $_
+   /tmp/test-pdf
+   $adoc custom-doc ; adoc custom-doc
+
+Doing the relevant step on host covers most issues that the CI would catch.
+
+Still, the doctools CI is compatible with `act <https://github.com/nektos/act/>`__,
+a CLI written in go that allows to run GitHub actions on the host inside containers:
 
 .. shell::
 
@@ -99,8 +131,8 @@ To run a specific workflow, use ``-W``, e.g.:
 
 .. _act-podman:
 
-Using act with podman and wsl2
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Configuring act with podman and wsl2
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Below are suggested instructions for setting up ``ack`` with ``podman`` on a
 Linux system running under WSL2.
@@ -138,4 +170,6 @@ Fetch ``ack`` binary into an executable path:
    $curl --proto '=https' --tlsv1.2 -sSf \
    $    https://raw.githubusercontent.com/nektos/act/master/install.sh | \
    $    sudo bash
+   $act --version
+    act version 0.2.74
 

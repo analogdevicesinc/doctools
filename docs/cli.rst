@@ -56,7 +56,7 @@ All options can be listed with:
 Git LFS integration
 +++++++++++++++++++
 
-Serve is detects if a repository uses `git-lfs <https://git-lfs.com>`__
+Serve detects if a repository uses `git-lfs <https://git-lfs.com>`__
 to fetch (smudge) the watched binaries on demand.
 
 This allows users to clone a repo with ``git lfs install --skip-smudge``
