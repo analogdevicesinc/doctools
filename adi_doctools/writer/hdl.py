@@ -242,7 +242,7 @@ def write_hdl_regmap_definitions(
         reg_param_dec = list(reg_params_set)
         reg_param_dec.sort()
         separator = ', \\\n'
-    
+
         fname = f"adi_regmap_{key}_definitions.svh"
         file = path.join(path_, fname)
         f = open(file, "w")
