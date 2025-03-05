@@ -8,7 +8,7 @@ from ..typing.hdl import vendors, Library, Project
 
 license_makefile = f"""\
 ####################################################################################
-## Copyright (c) 2018 - {datetime.now().year} Analog Devices, Inc.
+## Copyright (c) 2018-{datetime.now().year} Analog Devices, Inc.
 ### SPDX short identifier: BSD-1-Clause
 ## Auto-generated v{__version__}, do not modify!
 ####################################################################################
@@ -17,7 +17,7 @@ license_makefile = f"""\
 license_sv = f"""\
 // ***************************************************************************
 // ***************************************************************************
-// Copyright (C) 2014 - 2025 Analog Devices, Inc. All rights reserved.
+// Copyright (C) 2014-2025 Analog Devices, Inc. All rights reserved.
 //
 // In this HDL repository, there are many different and unique modules, consisting
 // of various HDL (Verilog or VHDL) components. The individual modules are
@@ -25,7 +25,7 @@ license_sv = f"""\
 // terms.
 //
 // The user should read each of these license terms, and understand the
-// freedoms and responsabilities that he or she has by using this source/core.
+// freedoms and responsibilities that he or she has by using this source/core.
 //
 // This core is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
@@ -242,7 +242,7 @@ def write_hdl_regmap_definitions(
         reg_param_dec = list(reg_params_set)
         reg_param_dec.sort()
         separator = ', \\\n'
-    
+
         fname = f"adi_regmap_{key}_definitions.svh"
         file = path.join(path_, fname)
         f = open(file, "w")
