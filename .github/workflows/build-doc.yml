@@ -13,10 +13,10 @@ jobs:
 
     - name: Install pip packages
       run: |
-        python3 -m venv ~/venv
+        python3.13 -m venv ~/venv
         source ~/venv/bin/activate
-        pip3 install $(tail --lines=+2 docs/requirements.txt) --upgrade
-        pip3 install dist/adi_doctools-*.tar.gz
+        pip3.13 install $(tail --lines=+2 docs/requirements.txt) --upgrade
+        pip3.13 install dist/adi_doctools-*.tar.gz
 
     - name: Build doc
       working-directory: docs
@@ -73,8 +73,8 @@ jobs:
       run: |
         python3.8 -m venv ~/venv
         source ~/venv/bin/activate
-        pip3 install $(tail --lines=+2 docs/requirements.txt) --upgrade
-        pip3 install dist/adi_doctools-*.tar.gz
+        pip3.8 install $(tail --lines=+2 docs/requirements.txt) --upgrade
+        pip3.8 install dist/adi_doctools-*.tar.gz
 
     - name: Build doc
       working-directory: docs

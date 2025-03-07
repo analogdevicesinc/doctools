@@ -31,10 +31,10 @@ jobs:
 
     - name: Build a binary wheel and a source tarball
       run: |
-        python3 -m venv ~/venv
+        python3.13 -m venv ~/venv
         source ~/venv/bin/activate
-        pip3 install build
-        python3 -m build
+        pip3.13 install build
+        python3.13 -m build
 
     - name: Store the distribution packages
       uses: actions/upload-artifact@v4

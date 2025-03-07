@@ -13,10 +13,10 @@ jobs:
 
     - name: Install pip packages
       run: |
-        python3 -m venv ~/venv
+        python3.13 -m venv ~/venv
         source ~/venv/bin/activate
-        pip3 install pip sphinx pytest --upgrade
-        pip3 install dist/adi_doctools-*.tar.gz
+        pip3.13 install pip sphinx pytest --upgrade
+        pip3.13 install dist/adi_doctools-*.tar.gz
 
     - name: Run tests
       working-directory: tests

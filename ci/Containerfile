@@ -5,7 +5,7 @@ ARG runner_version=2.322.0
 ARG runner_version_sha=18837c7655a6366c920d77f0b01e9ec9d1beac2116ad548a869cfbe8e2a4e06d
 
 RUN zypper install -y --no-recommends \
-    tar curl jq libicu sha3sum
+    tar curl jq libicu coreutils sha3sum
 
 RUN useradd -m runner
 
@@ -21,11 +21,17 @@ RUN if [[ "${self_hosted}" == "1" ]]; then \
 USER root
 COPY install-deps.sh .
 RUN chmod +x install-deps.sh ; ./install-deps.sh
-COPY install-deps-min.sh .
-RUN chmod +x install-deps-min.sh ; \
-    ./install-deps-min.sh \
+COPY install-python.sh .
+RUN chmod +x install-python.sh ; \
+    ./install-python.sh \
+        3.13.2 \
+        3.13 \
+        4c2d9202ab4db02c9d0999b14655dfe5
+RUN chmod +x install-python.sh ; \
+    ./install-python.sh \
         3.8.20 \
-        cf35014b11c80f2ee9b09da8876df71d889c9f82823b0aa9cf062cd9833a6e1f
+        3.8 \
+        745478c81d6382cf46b5e7ad89e56008
 
 WORKDIR /usr/local/bin
 COPY github-api.sh .
