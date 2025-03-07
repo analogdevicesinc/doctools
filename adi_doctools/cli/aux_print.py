@@ -28,7 +28,15 @@ def sanitize_singlehtml(file) -> str:
     for c in cap_:
         ul_ = c.getparent().getnext()
         i = ul_.xpath('./li//a')[0]
-        volumes.append([c.text, i.attrib['href'][1:]])
+        i_ = i.attrib['href']
+        if i_.startswith('#'):
+            i_ = i_[1:]
+        elif i_.startswith('index.html#'):
+            i_ = i_[11:]
+        else:
+            echo(f"Toc-tree link '{i_}' is not internal, skipped")
+            continue
+        volumes.append([c.text, i_])
 
     # Extract title to extract description
     title = root.xpath("//head/title")[0].text
@@ -63,7 +71,11 @@ def sanitize_singlehtml(file) -> str:
 
     # Find indexes and add volumes
     for c, i in volumes:
-        e_ = bwrap.xpath(f".//span[@id='{i}']")[0]
+        e_ = bwrap.xpath(f".//span[@id='{i}']")
+        if len(e_) == 0:
+            echo(f"Failed to find index for id '{i}', skipped")
+            continue
+        e_ = e_[0]
         ele_ = etree.Element("div")
         ele_.attrib['class'] = "volume"
         ele = etree.Element("h1")
