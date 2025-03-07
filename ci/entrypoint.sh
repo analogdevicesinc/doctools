@@ -3,13 +3,14 @@
 
 set -e
 
+runner_version=v1
 github_token=$(cat /run/secrets/adi_doctools_github_token)
 org_repository=$(cat /run/secrets/adi_doctools_org_repository)
 
 source /usr/local/bin/github-api.sh
 
-if [[ -z $runner_labels ]]; then
-    runner_labels=generic
+if [[ ! -z $runner_labels ]]; then
+    runner_version+="-$runner_labels"
 fi
 
 runner_token=$(
@@ -25,7 +26,7 @@ fi
 ./config.sh \
     --url https://github.com/$org_repository \
     --token $runner_token \
-    --labels $runner_labels
+    --labels "$runner_version"
 
 function cleanup () {
     ./config.sh remove \

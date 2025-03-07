@@ -2,7 +2,7 @@ on: workflow_call
 jobs:
   deploy:
     if: ${{ !github.event.act }}
-    runs-on: [self-hosted, generic]
+    runs-on: [self-hosted, v1]
 
     steps:
     - uses: actions/checkout@v4
