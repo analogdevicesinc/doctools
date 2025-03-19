@@ -263,6 +263,49 @@ set-up your secrets:
    $    --secret adi_doctools_runner_token_0,target=/run/secrets/adi_doctools_runner_token,uid=1 \
    $    adi/doctools:v1
 
+Systemd service
+~~~~~~~~~~~~~~~
+
+Below is a suggested systemd service at *~/.config/systemd/user/podman-doctools@.service*.
+
+::
+
+   [Unit]
+   Description=Podman doctools ci %i
+   Wants=network-online.target
+   After=network-online.target
+
+   [Service]
+   #Restart=on-failure
+   ExecStartPre=/usr/bin/rm -f /%t/%n-pid /%t/%n-cid
+   ExecStart=/usr/bin/podman run \
+             --secret adi_doctools_org_repository,target=/run/secrets/adi_doctools_org_repository,uid=1 \
+             --secret adi_doctools_runner_token_0,target=/run/secrets/adi_doctools_runner_token,uid=1 \
+             --conmon-pidfile /%t/%n-pid --cidfile /%t/%n-cid -d adi/podman:v1 top
+   ExecStop=/usr/bin/sh -c "/usr/bin/podman rm -f `cat /%t/%n-cid`"
+   KillMode=none
+   Type=forking
+   PIDFile=/%t/%n-pid
+
+   [Install]
+   WantedBy=multi-user.target
+
+.. note::
+
+   Remember you can pass a github_token to generate the runner_token on demand.
+
+Enable and start the service
+
+.. code:: shell
+
+   systemctl --user enable podman-doctools@1.service
+   systemctl --user start podman-doctools@1.service
+
+.. attention::
+
+   User services are terminated on logout, unless you define ``loginctl enable-linger <your-user>``
+   first.
+
 .. _compose-podman:
 
 Self-hosted cluster
