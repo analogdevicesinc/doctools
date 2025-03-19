@@ -5,6 +5,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      if: ${{ !env.ACT }}
+
+    - name: act-checkout
+      if: ${{ env.ACT }}
+      run: |
+        github_ref_name=$(cd /mnt/repo ; git rev-parse --abbrev-ref HEAD)
+        git clone /mnt/repo --branch=$github_ref_name .
 
     - name: Install bundler dependencies
       run: >-

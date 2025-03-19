@@ -75,68 +75,10 @@ Non-handled corner-cases mitigations:
 * Release ``pre-release`` and ``latest`` must exist prior the first run.
 * Branch ``gh-pages`` must exist with at least one commit.
 
-.. _act:
-
-Running locally
----------------
-
-At its core, the workflows are straight forward, roughly they do:
-
-The ``Tests`` step:
-
-.. shell::
-
-   $cd tests ; pytest
-
-``Build Doc *``:
-
-.. shell::
-
-   $cd docs ; make html
-
-But at a specific minimum and maximum supported environment version.
-
-``Custom Doc``:
-
-.. shell::
-
-   $mkdir /tmp/test-pdf ; cd $_
-   /tmp/test-pdf
-   $adoc custom-doc ; adoc custom-doc
-
-Doing the relevant step on host covers most issues that the CI would catch.
-
-Still, the doctools CI is compatible with `act <https://github.com/nektos/act/>`__,
-a CLI written in go that allows to run GitHub actions on the host inside containers:
-
-.. shell::
-
-   ~/doctools
-   $act --remote-name public
-    INFO[0000] Using docker host 'unix:///run/user/1000//podman/podman.sock',
-               and daemon socket 'unix:///run/user/1000//podman/podman.sock'
-    INFO[0000] Start server on http://10.44.3.54:34567
-    [build-package/build-package.yml/build] ⭐ Run Set up job
-    [...]
-
-Update ``public`` with your preferred origin name.
-Additional arguments are added from the :git-doctools:`.actrc` on invoke.
-
-It assumes you have the tools necessary already installed (a general guide
-is provided :ref:`here <conf-podman>` and :ref:`here <install-act>`) and already :ref:`built the image <image-podman>`.
-
-To run a specific workflow, use ``-W``, e.g.:
-
-.. shell::
-
-   $act --remote-name public \
-   $    -W .github/workflows/build-package.yml
-
-
 .. _conf-podman:
 
-Configuring podman
-~~~~~~~~~~~~~~~~~~
+Configure podman
+----------------
 
 Below are suggested instructions for setting up ``podman`` on a Linux environment.
 
@@ -167,11 +109,76 @@ Set the ``DOCKER_HOST`` variable on your *~/.bashrc*:
 
    export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock
 
-.. _install-act:
+.. _image-podman:
 
-Installing act
-~~~~~~~~~~~~~~
+Build the container image
+-------------------------
 
+To build the container image, use your favorite container engine:
+
+.. shell::
+
+   $cd ~/doctools
+   $podman build --tag adi/doctools:v1 ci
+
+.. _interactive-run:
+
+Interactive run
+---------------
+
+At its core, the workflows are straight forward, roughly they do:
+
+The ``Tests`` step:
+
+.. shell::
+
+   $cd tests ; pytest
+
+``Build Doc *``:
+
+.. shell::
+
+   $cd docs ; make html
+
+But at a specific minimum and maximum supported environment version.
+
+``Custom Doc``:
+
+.. shell::
+
+   $mkdir /tmp/test-pdf ; cd $_
+   /tmp/test-pdf
+   $adoc custom-doc ; adoc custom-doc
+
+Doing the relevant step on host covers most issues that the CI would catch.
+
+You can use the :ref:`container image <image-podman>` with
+`this suggested bash method <https://gist.github.com/gastmaier/53077a7b8d07a6640358b7c005d797f8>`__
+to interactive login into an image, mounting the provided path, to run the steps
+on the container, for example:
+
+.. shell::
+
+   ~/doctools
+   $pdr adi/doctools:v1 .
+   $python3.13 -m venv venv
+   $source venv/bin/activate ; \
+   $    pip3.13 install -e . ; \
+   $    pip3.13 install pytest
+   $cd tests ; pytest
+   $exit
+
+.. _act:
+
+Full local run
+--------------
+
+To have a full continuous integration mock-run `act <https://github.com/nektos/act/>`__
+can be used.
+``act`` is a CLI written in go that allows to run GitHub actions.
+
+Assuming you have the tools necessary already installed (a general guide
+is provided :ref:`here <conf-podman>`  and already :ref:`built the image <image-podman>`.
 Install ``act`` binary into an executable path:
 
 .. shell::
@@ -183,22 +190,83 @@ Install ``act`` binary into an executable path:
    $act --version
     act version 0.2.74
 
-.. _image-podman:
-
-Build the container image
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-To build the container image, use your favorite container engine:
+Now, run your continuous integration:
 
 .. shell::
 
-   $cd ~/doctools/ci
-   $podman build --tag adi/doctools/local:latest .
+   ~/doctools
+   $act --remote-name private
+    INFO[0000] Using docker host 'unix:///run/user/1000//podman/podman.sock',
+               and daemon socket 'unix:///run/user/1000//podman/podman.sock'
+    INFO[0000] Start server on http://10.44.3.54:34567
+    [build/build-kernel.yml/build] ⭐ Run Set up job
+    [...]
+
+Update ``private`` with your preferred origin name (does nothing beyond suppressing warnings).
+
+.. caution::
+
+   Even with ``pull_request`` event type, no rebasing is done on the mock run.
+   Rebase on your side before running ``act``.
+
+Additional arguments are added from the :git-doctools:`.actrc` on invoke.
+
+To run a specific workflow, use ``-W``, e.g.:
+
+.. shell::
+
+   ~/doctools
+   $act pull_request --remote-name public \
+   $    -W .github/workflows/build-kernel.yml
+
+By default, it will run on the checks on the top 5 commits.
+The snippet below will explicitly set the base and head of the desired commits:
+
+.. shell::
+
+   $base=@~15 ; head=@ ; \
+   $    jq -n --arg base "$base" --arg head "$head" \
+   $        '{"act": true,
+   $          "pull_request": { "base": { "sha": $base }, "head": { "sha": $head } }}' \
+   $        | tee ci/act-event.json
+   $act --remote-name public
+
+In the example it takes 14 commits from the current HEAD.
+Please note that this does not change the checkout, just the commit range the checkers run on.
+It is useful for filter out "wip" commits, for example.
+
+.. _podman-run:
+
+Self-hosted runner
+------------------
+
+To host your `GitHub Actions Runner <https://github.com/actions/runner>`__,
+set-up your secrets:
+
+.. shell::
+
+   # e.g. analogdevicesinc/doctools
+   $printf ORG_REPOSITORY | podman secret create adi_doctools_org_repository -
+   # e.g. MyVerYSecRunnerToken
+   $printf RUNNER_TOKEN | podman secret create adi_doctools_runner_token_0 -
+
+.. attention::
+
+   If ``github_token`` from :ref:`compose-podman` is set, the runner_token
+   is ignored and a new is requested.
+
+.. shell::
+
+   ~/doctools
+   $podman run \
+   $    --secret adi_doctools_org_repository,target=/run/secrets/adi_doctools_org_repository,uid=1 \
+   $    --secret adi_doctools_runner_token_0,target=/run/secrets/adi_doctools_runner_token,uid=1 \
+   $    adi/doctools:v1
 
 .. _compose-podman:
 
-Running a cluster
------------------
+Self-hosted cluster
+-------------------
 
 `Podman-compose <https://github.com/containers/podman-compose>`__ is used
 to manage a cluster of `GitHub Actions Runners <https://github.com/actions/runner>`__.
@@ -209,13 +277,6 @@ then install podman-compose from pip:
 .. shell::
 
    $pip install podman-compose
-
-Build the container image setting ``self_hosted=1``:
-
-.. shell::
-
-   $cd ~/doctools/ci
-   $podman build --build-arg=self_hosted=1 --tag adi/doctools/runner:latest .
 
 Set-up your secrets:
 
@@ -241,7 +302,6 @@ Then run your cluster (by default it will spawn three runners) using podman-comp
    .. shell::
 
       ~/doctools/ci
-      $podman build --build-arg=self_hosted=1 \
-      $             --tag adi/doctools/runner:latest . ; \
+      $podman build --tag adi/doctools:v1 . ; \
       $podman-compose --podman-run-args='--replace' up
 

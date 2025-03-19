@@ -1,39 +1,56 @@
 #!/bin/bash
-# if: self_hosted
-
-set -e
 
 runner_version=v1
-github_token=$(cat /run/secrets/adi_doctools_github_token)
-org_repository=$(cat /run/secrets/adi_doctools_org_repository)
+github_token=$(cat /run/secrets/adi_doctools_github_token 2> /dev/null)
+org_repository=$(cat /run/secrets/adi_doctools_org_repository 2> /dev/null)
 
 source /usr/local/bin/github-api.sh
+
+if [[ -z $org_repository ]]; then
+    echo "No adi_doctools_org_repository provided"
+    exit 1
+fi
+
+if [[ ! -z $github_token ]]; then
+    runner_token=$(
+        gh-actions-token $github_token \
+                         $org_repository \
+                         runner_token
+    )
+
+    if [[ "$runner_token" == "null" ]]; then
+        echo "Failed to get '$org_repository' runner_token, check adi_doctools_github_token permission"
+        exit 1
+    fi
+else
+    runner_token=$(cat /run/secrets/adi_doctools_runner_token 2> /dev/null)
+
+    if [[ -z $runner_token ]]; then
+        echo "No adi_doctools_runner_token or adi_doctools_github_token provided"
+        exit 1
+    fi
+fi
 
 if [[ ! -z $runner_labels ]]; then
     runner_version+="-$runner_labels"
 fi
 
-runner_token=$(
-    gh-actions-token $github_token \
-                     $org_repository \
-                     runner_token
-)
-if [[ "$runner_token" == "null" ]]; then
-    printf "Failed to get '$org_repository' runner_token, check github_token permission"
-    exit 1
-fi
+name=$(echo $org_repository | sed 's|/|-|g')-$(echo $runner_token | sha3sum -a 256 | head -c4)-$(tr -dc A-Za-z0-9 </dev/urandom | head -c2; echo)
 
-./config.sh \
+set -e
+
+/home/runner/actions-runner/config.sh \
     --url https://github.com/$org_repository \
     --token $runner_token \
-    --labels "$runner_version"
+    --labels "$runner_version" \
+    --name  $name
 
 function cleanup () {
-    ./config.sh remove \
+    /home/runner/actions-runner/config.sh remove \
         --token $runner_token
 }
 
 trap 'cleanup; exit 130' INT
 trap 'cleanup; exit 143' TERM
 
-./run.sh & wait $!
+/home/runner/actions-runner/run.sh & wait $!

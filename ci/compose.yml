@@ -1,6 +1,6 @@
 services:
   runner:
-    image: adi/doctools/runner:latest
+    image: adi/doctools:v1
     restart: always
     deploy:
       mode: replicate
@@ -8,10 +8,10 @@ services:
       resources:
         limits:
           cpus: '0.5'
-          memory: 300M
+          memory: 2G
         reservation:
           cpus: '0.2'
-          memory: 100M
+          memory: 500MB
     environment:
       runner_labels: $RUNNER_LABELS
     secrets:
