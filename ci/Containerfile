@@ -8,8 +8,9 @@ RUN zypper install -y --no-recommends \
 
 RUN useradd -m runner
 
-WORKDIR /home/runner/actions-runner
 USER runner
+RUN mkdir -p /home/runner/actions-runner
+WORKDIR /home/runner/actions-runner
 
 RUN curl -o actions-runner.tar.gz -L https://github.com/actions/runner/releases/download/v${runner_version}/actions-runner-linux-x64-${runner_version}.tar.gz && \
     echo "${runner_version_sha} actions-runner.tar.gz" | sha3sum -a 256 -c && \
@@ -30,6 +31,7 @@ RUN chmod +x install-python.sh ; \
         3.8 \
         745478c81d6382cf46b5e7ad89e56008
 
+RUN mkdir -p /usr/local/bin
 WORKDIR /usr/local/bin
 COPY github-api.sh .
 COPY entrypoint.sh .
@@ -45,6 +47,7 @@ RUN git config --global user.name "CSE CI" ; \
     git config --global core.pager cat ; \
     git config --global init.defaultBranch  "__runner_init_branch"
 
+RUN mkdir -p /home/runner/playground
 WORKDIR /home/runner/playground
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
