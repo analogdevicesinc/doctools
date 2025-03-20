@@ -93,7 +93,10 @@
 <li><a class="reference internal" href="#build-the-container-image">Build the container image</a></li>
 <li><a class="reference internal" href="#interactive-run">Interactive run</a></li>
 <li><a class="reference internal" href="#full-local-run">Full local run</a></li>
-<li><a class="reference internal" href="#self-hosted-runner">Self-hosted runner</a></li>
+<li><a class="reference internal" href="#self-hosted-runner">Self-hosted runner</a><ul>
+<li><a class="reference internal" href="#systemd-service">Systemd service</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#self-hosted-cluster">Self-hosted cluster</a></li>
 </ul>
 </li>
@@ -455,7 +458,46 @@ is ignored and a new is requested.</p>
 <span class="w">    </span>adi/doctools:v1
 </pre></div>
 </div>
-<div class="clear-left"></div></div></div></section>
+<div class="clear-left"></div></div></div><section id="systemd-service">
+<h3>Systemd service<a class="headerlink" href="#systemd-service" title="Link to this heading"></a></h3>
+<p>Below is a suggested systemd service at <em>~/.config/systemd/user/podman-doctools&#64;.service</em>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">Unit</span><span class="p">]</span>
+<span class="n">Description</span><span class="o">=</span><span class="n">Podman</span> <span class="n">doctools</span> <span class="n">ci</span> <span class="o">%</span><span class="n">i</span>
+<span class="n">Wants</span><span class="o">=</span><span class="n">network</span><span class="o">-</span><span class="n">online</span><span class="o">.</span><span class="n">target</span>
+<span class="n">After</span><span class="o">=</span><span class="n">network</span><span class="o">-</span><span class="n">online</span><span class="o">.</span><span class="n">target</span>
+
+<span class="p">[</span><span class="n">Service</span><span class="p">]</span>
+<span class="c1">#Restart=on-failure</span>
+<span class="n">ExecStartPre</span><span class="o">=/</span><span class="n">usr</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">rm</span> <span class="o">-</span><span class="n">f</span> <span class="o">/%</span><span class="n">t</span><span class="o">/%</span><span class="n">n</span><span class="o">-</span><span class="n">pid</span> <span class="o">/%</span><span class="n">t</span><span class="o">/%</span><span class="n">n</span><span class="o">-</span><span class="n">cid</span>
+<span class="n">ExecStart</span><span class="o">=/</span><span class="n">usr</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">podman</span> <span class="n">run</span> \
+          <span class="o">--</span><span class="n">secret</span> <span class="n">adi_doctools_org_repository</span><span class="p">,</span><span class="n">target</span><span class="o">=/</span><span class="n">run</span><span class="o">/</span><span class="n">secrets</span><span class="o">/</span><span class="n">adi_doctools_org_repository</span><span class="p">,</span><span class="n">uid</span><span class="o">=</span><span class="mi">1</span> \
+          <span class="o">--</span><span class="n">secret</span> <span class="n">adi_doctools_runner_token_0</span><span class="p">,</span><span class="n">target</span><span class="o">=/</span><span class="n">run</span><span class="o">/</span><span class="n">secrets</span><span class="o">/</span><span class="n">adi_doctools_runner_token</span><span class="p">,</span><span class="n">uid</span><span class="o">=</span><span class="mi">1</span> \
+          <span class="o">--</span><span class="n">conmon</span><span class="o">-</span><span class="n">pidfile</span> <span class="o">/%</span><span class="n">t</span><span class="o">/%</span><span class="n">n</span><span class="o">-</span><span class="n">pid</span> <span class="o">--</span><span class="n">cidfile</span> <span class="o">/%</span><span class="n">t</span><span class="o">/%</span><span class="n">n</span><span class="o">-</span><span class="n">cid</span> <span class="o">-</span><span class="n">d</span> <span class="n">adi</span><span class="o">/</span><span class="n">podman</span><span class="p">:</span><span class="n">v1</span> <span class="n">top</span>
+<span class="n">ExecStop</span><span class="o">=/</span><span class="n">usr</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">sh</span> <span class="o">-</span><span class="n">c</span> <span class="s2">&quot;/usr/bin/podman rm -f `cat /%t/%n-cid`&quot;</span>
+<span class="n">KillMode</span><span class="o">=</span><span class="n">none</span>
+<span class="n">Type</span><span class="o">=</span><span class="n">forking</span>
+<span class="n">PIDFile</span><span class="o">=/%</span><span class="n">t</span><span class="o">/%</span><span class="n">n</span><span class="o">-</span><span class="n">pid</span>
+
+<span class="p">[</span><span class="n">Install</span><span class="p">]</span>
+<span class="n">WantedBy</span><span class="o">=</span><span class="n">multi</span><span class="o">-</span><span class="n">user</span><span class="o">.</span><span class="n">target</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Remember you can pass a github_token to generate the runner_token on demand.</p>
+</div>
+<p>Enable and start the service</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>systemctl<span class="w"> </span>--user<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>podman-doctools@1.service
+systemctl<span class="w"> </span>--user<span class="w"> </span>start<span class="w"> </span>podman-doctools@1.service
+</pre></div>
+</div>
+<div class="admonition attention">
+<p class="admonition-title">Attention</p>
+<p>User services are terminated on logout, unless you define <code class="docutils literal notranslate"><span class="pre">loginctl</span> <span class="pre">enable-linger</span> <span class="pre">&lt;your-user&gt;</span></code>
+first.</p>
+</div>
+</section>
+</section>
 <section id="self-hosted-cluster">
 <span id="compose-podman"></span><h2>Self-hosted cluster<a class="headerlink" href="#self-hosted-cluster" title="Link to this heading"></a></h2>
 <p><a class="reference external" href="https://github.com/containers/podman-compose">Podman-compose</a> is used
