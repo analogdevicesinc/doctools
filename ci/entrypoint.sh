@@ -1,13 +1,13 @@
 #!/bin/bash
 
 runner_version=v1
-github_token=$(cat /run/secrets/adi_doctools_github_token 2> /dev/null)
-org_repository=$(cat /run/secrets/adi_doctools_org_repository 2> /dev/null)
+github_token=$(cat /run/secrets/github_token 2> /dev/null)
+org_repository=$(cat /run/secrets/org_repository 2> /dev/null)
 
 source /usr/local/bin/github-api.sh
 
 if [[ -z $org_repository ]]; then
-    echo "No adi_doctools_org_repository provided"
+    echo "No org_repository provided"
     exit 1
 fi
 
@@ -19,14 +19,14 @@ if [[ ! -z $github_token ]]; then
     )
 
     if [[ "$runner_token" == "null" ]]; then
-        echo "Failed to get '$org_repository' runner_token, check adi_doctools_github_token permission"
+        echo "Failed to get '$org_repository' runner_token, check github_token permission"
         exit 1
     fi
 else
-    runner_token=$(cat /run/secrets/adi_doctools_runner_token 2> /dev/null)
+    runner_token=$(cat /run/secrets/runner_token 2> /dev/null)
 
     if [[ -z $runner_token ]]; then
-        echo "No adi_doctools_runner_token or adi_doctools_github_token provided"
+        echo "No runner_token or github_token provided"
         exit 1
     fi
 fi

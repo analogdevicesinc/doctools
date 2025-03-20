@@ -248,40 +248,45 @@ set-up your secrets:
    # e.g. analogdevicesinc/doctools
    $printf ORG_REPOSITORY | podman secret create adi_doctools_org_repository -
    # e.g. MyVerYSecRunnerToken
-   $printf RUNNER_TOKEN | podman secret create adi_doctools_runner_token_0 -
+   $printf RUNNER_TOKEN | podman secret create adi_doctools_runner_token -
 
 .. attention::
 
-   If ``github_token`` from :ref:`compose-podman` is set, the runner_token
+   If ``github_token`` from :ref:`cluster-podman` is set, the runner_token
    is ignored and a new is requested.
 
 .. shell::
 
    ~/doctools
    $podman run \
-   $    --secret adi_doctools_org_repository,target=/run/secrets/adi_doctools_org_repository,uid=1 \
-   $    --secret adi_doctools_runner_token_0,target=/run/secrets/adi_doctools_runner_token,uid=1 \
+   $    --secret adi_doctools_org_repository,target=/run/secrets/org_repository,uid=1 \
+   $    --secret adi_doctools_runner_token,target=/run/secrets/runner_token,uid=1 \
    $    adi/doctools:v1
 
-Systemd service
-~~~~~~~~~~~~~~~
+.. _cluster-podman:
+
+Self-hosted cluster
+-------------------
+
+To host a cluster of self-hosted runners, the recommended approach is to use
+systemd services, instead of for example, podman-compose.
 
 Below is a suggested systemd service at *~/.config/systemd/user/podman-doctools@.service*.
 
 ::
 
    [Unit]
-   Description=Podman doctools ci %i
+   Description=Podman adi_doctools ci %i
    Wants=network-online.target
    After=network-online.target
 
    [Service]
-   #Restart=on-failure
+   Restart=on-failure
    ExecStartPre=/usr/bin/rm -f /%t/%n-pid /%t/%n-cid
    ExecStart=/usr/bin/podman run \
-             --secret adi_doctools_org_repository,target=/run/secrets/adi_doctools_org_repository,uid=1 \
-             --secret adi_doctools_runner_token_0,target=/run/secrets/adi_doctools_runner_token,uid=1 \
-             --conmon-pidfile /%t/%n-pid --cidfile /%t/%n-cid -d adi/podman:v1 top
+             --secret adi_doctools_org_repository,target=/run/secrets/org_repository,uid=1 \
+             --secret adi_doctools_runner_token,target=/run/secrets/runner_token,uid=1 \
+             --conmon-pidfile /%t/%n-pid --cidfile /%t/%n-cid -d adi/doctools:v1 top
    ExecStop=/usr/bin/sh -c "/usr/bin/podman rm -f `cat /%t/%n-cid`"
    KillMode=none
    Type=forking
@@ -292,59 +297,25 @@ Below is a suggested systemd service at *~/.config/systemd/user/podman-doctools@
 
 .. note::
 
-   Remember you can pass a github_token to generate the runner_token on demand.
+   Instead of passing runner_token, you can also pass a github_token to generate
+   the runner_token on demand.
+
+   .. shell::
+
+      # e.g. MyVerYSecRetToken
+      $printf GITHUB_TOKEN | podman secret create adi_doctools_github_token -
+
+   Then update the systemd service,
 
 Enable and start the service
 
 .. code:: shell
 
-   systemctl --user enable podman-doctools@1.service
-   systemctl --user start podman-doctools@1.service
+   systemctl --user enable podman-doctools@0.service
+   systemctl --user start podman-doctools@0.service
 
 .. attention::
 
-   User services are terminated on logout, unless you define ``loginctl enable-linger <your-user>``
-   first.
-
-.. _compose-podman:
-
-Self-hosted cluster
--------------------
-
-`Podman-compose <https://github.com/containers/podman-compose>`__ is used
-to manage a cluster of `GitHub Actions Runners <https://github.com/actions/runner>`__.
-
-First, follow the steps in :ref:`conf-podman`,
-then install podman-compose from pip:
-
-.. shell::
-
-   $pip install podman-compose
-
-Set-up your secrets:
-
-.. shell::
-
-   # e.g. analogdevicesinc/doctools
-   $printf ORG_REPOSITORY | podman secret create adi_doctools_org_repository -
-   # e.g. MyVerYSecRetToken
-   $printf GITHUB_TOKEN | podman secret create adi_doctools_github_token -
-
-Then run your cluster (by default it will spawn three runners) using podman-compose:
-
-.. shell::
-
-   ~/doctools/ci
-   $podman-compose up
-
-.. tip::
-
-   Testing the Containerfile? The one-liner below allows to rebuild and launch
-   the compose.
-
-   .. shell::
-
-      ~/doctools/ci
-      $podman build --tag adi/doctools:v1 . ; \
-      $podman-compose --podman-run-args='--replace' up
+   User services are terminated on logout, unless you define
+   ``loginctl enable-linger <your-user>`` first.
 
