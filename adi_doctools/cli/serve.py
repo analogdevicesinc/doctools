@@ -401,7 +401,6 @@ def serve(directory, port, dev, selenium, once, builder):
                         tmp_f = path.join(directory, builddir_, path.basename(lfs_f))
                         stat_ = stat(lfs_f)
                         click.echo(f"git lfs smudging file {lfs_f}")
-                        # TODO assert lfs repo + lfs installed
                         subprocess.call(f"git lfs smudge < {path_} > {tmp_f}",
                                         shell=True, cwd=directory)
                         utime(tmp_f, (stat_.st_atime, stat_.st_mtime))
@@ -420,8 +419,9 @@ def serve(directory, port, dev, selenium, once, builder):
             http_thread = threading.Thread(target=http.serve_forever)
             http_thread.daemon = True
             http_thread.start()
+            click.echo(f"\n{BLUE}Running server on http://0.0.0.0:{port}{NC}\n")
         except Exception:
-            click.echo(f"Could not start server on http://0.0.0.0:{port}")
+            click.echo(f"{FAIL}Could not start server on http://0.0.0.0:{port}{NC}")
             if dev:
                 killpg(getpgid(rollup_p.pid), signal.SIGTERM)
                 killpg(getpgid(sass_p.pid), signal.SIGTERM)
