@@ -199,7 +199,7 @@ Now, run your continuous integration:
     INFO[0000] Using docker host 'unix:///run/user/1000//podman/podman.sock',
                and daemon socket 'unix:///run/user/1000//podman/podman.sock'
     INFO[0000] Start server on http://10.44.3.54:34567
-    [build/build-kernel.yml/build] ⭐ Run Set up job
+    [build/build-doc.yml/build] ⭐ Run Set up job
     [...]
 
 Update ``private`` with your preferred origin name (does nothing beyond suppressing warnings).
@@ -217,7 +217,7 @@ To run a specific workflow, use ``-W``, e.g.:
 
    ~/doctools
    $act pull_request --remote-name public \
-   $    -W .github/workflows/build-kernel.yml
+   $    -W .github/workflows/build-doc.yml
 
 By default, it will run on the checks on the top 5 commits.
 The snippet below will explicitly set the base and head of the desired commits:
