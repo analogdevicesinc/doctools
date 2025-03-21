@@ -1,10 +1,10 @@
-FROM opensuse/tumbleweed:latest
+FROM opensuse/leap:15.6
 
 ARG runner_version=2.322.0
 ARG runner_version_sha=18837c7655a6366c920d77f0b01e9ec9d1beac2116ad548a869cfbe8e2a4e06d
 
 RUN zypper install -y --no-recommends \
-    tar curl jq libicu coreutils sha3sum
+    tar gzip curl jq libicu coreutils sha3sum
 
 RUN useradd -m runner
 

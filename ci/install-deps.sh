@@ -9,7 +9,7 @@ set -e
 zypper install -y --no-recommends \
     wget make git openssl openssl-devel ca-certificates ca-certificates-mozilla \
     nodejs npm-default \
-    unzip \
+    unzip xz \
     libpango-1_0-0 fontconfig lato-fonts
 
 update-ca-certificates
