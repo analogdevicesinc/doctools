@@ -41,6 +41,10 @@ theme_path = path.join('adi_doctools', 'theme', 'cosmic')
 style_path = path.join(theme_path, 'style')
 static_path = path.join(theme_path, 'static')
 
+BLUE = '\033[94m'
+FAIL = '\033[91m'
+NC = '\033[0m'
+
 @click.command()
 @click.option(
     '--directory',
