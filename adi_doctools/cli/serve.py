@@ -403,7 +403,8 @@ def serve(directory, port, dev, selenium, once, builder):
                     if lfs_f is not None:
                         tmp_f = path.join(directory, builddir_, path.basename(lfs_f))
                         stat_ = stat(lfs_f)
-                        click.echo(f"git lfs smudging file {lfs_f}")
+                        lfs_f_ = path.relpath(lfs_f, git_top_level)
+                        click.echo(f"git lfs smudging file {lfs_f_}")
                         subprocess.call(f"git lfs smudge < {path_} > {tmp_f}",
                                         shell=True, cwd=directory)
                         utime(tmp_f, (stat_.st_atime, stat_.st_mtime))
@@ -518,11 +519,11 @@ def serve(directory, port, dev, selenium, once, builder):
             update_sphinx = False
 
         if len(git_lfs_pull) > 0:
-            git_lfs_pull = [path.basename(gf) for gf in git_lfs_pull]
+            git_lfs_pull = [path.relpath(gf, git_top_level) for gf in git_lfs_pull]
             lfs_f_s = ' -I '.join(git_lfs_pull)
             click.echo(f"git lfs smudging file(s): {' '.join(git_lfs_pull)}")
             subprocess.call(f"git lfs pull -I {lfs_f_s}",
-                            shell=True, cwd=directory)
+                            shell=True, cwd=git_top_level)
 
         if update_sphinx:
             if dev:
