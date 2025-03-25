@@ -17,6 +17,9 @@ def monkeypatch_figure_numbers():
                         tuple_ = list(env.toc_fignumbers[entry][type_][id_])
                         tuple_[-1] = tuple_[-1]-offset
                         env.toc_fignumbers[entry][type_][id_] = tuple(tuple_)
-        return rewrite_needed
+        # Since we are exactly setting figure numbers per page,
+        # old_fignumbers won't fignumbers
+        # and we can discard rewrite_needed
+        return []
 
     TocTreeCollector.assign_figure_numbers = assign_figure_numbers
