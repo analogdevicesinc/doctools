@@ -147,7 +147,6 @@ def serve(directory, port, dev, selenium, once, builder):
             with lock:
                 http.shutdown()
                 http.server_close()
-            http_thread._stop()
         if dev:
             killpg(getpgid(rollup_p.pid), signal.SIGTERM)
             killpg(getpgid(sass_p.pid), signal.SIGTERM)
@@ -553,7 +552,6 @@ def serve(directory, port, dev, selenium, once, builder):
                     with lock:
                         http.shutdown()
                         http.server_close()
-                    http_thread._stop()
                     return
             elif builder == "html":
                 update_dev_pool()
