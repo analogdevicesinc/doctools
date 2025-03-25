@@ -219,21 +219,27 @@ To run a specific workflow, use ``-W``, e.g.:
    $act pull_request --remote-name public \
    $    -W .github/workflows/build-doc.yml
 
-By default, it will run on the checks on the top 5 commits.
-The snippet below will explicitly set the base and head of the desired commits:
+By default, it will run on the checks on the top 5 commits, to set other value,
+set ``ACT_DETPH`` on *.env*
+e.g. 4 commits:
 
 .. shell::
 
-   $base=@~15 ; head=@ ; \
-   $    jq -n --arg base "$base" --arg head "$head" \
-   $        '{"act": true,
-   $          "pull_request": { "base": { "sha": $base }, "head": { "sha": $head } }}' \
-   $        | tee ci/act-event.json
-   $act --remote-name public
+   $echo ACT_DETPH=$(git rev-list --count @~4..@) > .env
+   $act pull_request --remote-name public
 
-In the example it takes 14 commits from the current HEAD.
-Please note that this does not change the checkout, just the commit range the checkers run on.
-It is useful for filter out "wip" commits, for example.
+.. tip::
+
+   Edit ``rev-list`` to use a base commit sha to evaluate the depth.
+
+You can also provide a ``head`` variable to filter out ``wip`` commits, for example:
+
+.. shell::
+
+   $head=$(git rev-parse @~5)
+   $echo ACT_HEAD=$head > .env
+   $echo ACT_DETPH=$(git rev-list --count $head~5..$head) >> .env
+   $act pull_request --remote-name public
 
 .. _podman-run:
 
@@ -288,7 +294,7 @@ Below is a suggested systemd service at *~/.config/systemd/user/podman-doctools@
              --secret adi_doctools_runner_token,target=/run/secrets/runner_token,uid=1 \
              --conmon-pidfile /%t/%n-pid --cidfile /%t/%n-cid -d adi/doctools:v1 top
    ExecStop=/usr/bin/sh -c "/usr/bin/podman rm -f `cat /%t/%n-cid`"
-   KillMode=none
+   TimeoutStopSec=60
    Type=forking
    PIDFile=/%t/%n-pid
 
