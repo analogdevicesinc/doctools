@@ -29,7 +29,7 @@ jobs:
 
     - name: Get pre-release vars
       run: |
-        source ci/github-api.sh
+        source /usr/local/bin/github-api.sh
         release_id=$(
           gh-get-release-id ${{ secrets.GITHUB_TOKEN }} \
                             ${{ github.repository }} \
@@ -47,7 +47,7 @@ jobs:
     - name: Get latest vars
       if: ${{ env.new_tag == '1' }}
       run: |
-        source ci/github-api.sh
+        source /usr/local/bin/github-api.sh
         release_id=$(
           gh-get-release-id ${{ secrets.GITHUB_TOKEN }} \
                             ${{ github.repository }} \
@@ -71,7 +71,7 @@ jobs:
     - name: Create tag release and upload asset
       if: ${{ env.new_tag == '1' }}
       run: |
-        source ci/github-api.sh
+        source /usr/local/bin/github-api.sh
         release_id=$(
           gh-create-release ${{ secrets.GITHUB_TOKEN }} \
                             ${{ github.repository }} \
@@ -87,7 +87,7 @@ jobs:
 
     - name: Update pre-release target commitish
       run: |
-        source ci/github-api.sh
+        source /usr/local/bin/github-api.sh
         gh-update-commitish ${{ secrets.GITHUB_TOKEN }} \
                             ${{ github.repository }} \
                             ${{ github.sha }} \
@@ -95,7 +95,7 @@ jobs:
 
     - name: Upload pre-release asset
       run: |
-        source ci/github-api.sh
+        source /usr/local/bin/github-api.sh
         if [[ ! "$pre_release_asset_id" == "" ]]; then
           gh-delete-asset ${{ secrets.GITHUB_TOKEN }} \
                           ${{ github.repository }} \
@@ -111,7 +111,7 @@ jobs:
     - name: Update latest target commitish
       if: ${{ env.new_tag == '1' }}
       run: |
-        source ci/github-api.sh
+        source /usr/local/bin/github-api.sh
         gh-update-commitish ${{ secrets.GITHUB_TOKEN }} \
                             ${{ github.repository }} \
                             ${{ github.sha }} \
@@ -120,7 +120,7 @@ jobs:
     - name: Upload latest asset
       if: ${{ env.new_tag == '1' }}
       run: |
-        source ci/github-api.sh
+        source /usr/local/bin/github-api.sh
         if [[ ! "$latest_asset_id" == "" ]]; then
           gh-delete-asset ${{ secrets.GITHUB_TOKEN }} \
                           ${{ github.repository }} \
