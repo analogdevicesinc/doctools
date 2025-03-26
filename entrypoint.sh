@@ -1,8 +1,11 @@
 #!/bin/bash
 
-runner_version=v1
 github_token=$(cat /run/secrets/github_token 2> /dev/null)
 org_repository=$(cat /run/secrets/org_repository 2> /dev/null)
+
+if [[ -z "$runner_labels" ]]; then
+	runner_labels="v1"
+fi
 
 source /usr/local/bin/github-api.sh
 
@@ -35,10 +38,6 @@ function get_runner_token () {
 
 get_runner_token
 
-if [[ ! -z $runner_labels ]]; then
-    runner_version+="-$runner_labels"
-fi
-
 name=$(echo $org_repository | sed 's|/|-|g')-$(echo $runner_token | sha3sum -a 256 | head -c4)-$(tr -dc A-Za-z0-9 </dev/urandom | head -c2; echo)
 
 set -e
@@ -46,7 +45,7 @@ set -e
 /home/runner/actions-runner/config.sh \
     --url https://github.com/$org_repository \
     --token $runner_token \
-    --labels "$runner_version" \
+    --labels "$runner_labels" \
     --name  $name
 
 function cleanup () {
