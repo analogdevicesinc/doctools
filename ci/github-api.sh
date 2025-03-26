@@ -83,28 +83,24 @@ gh-actions-token()
   echo $runner_token
 }
 
-gh-get-sha-range()
+gh-get-number-commits()
 {
-  if [[ ! -z "$1" ]]; then
-    head_sha="$1"
-  elif [[ ! -z "$3" ]]; then
-    head_sha="$3"
-  fi
+  total_commits=$(curl -L \
+    -H "Accept: application/vnd.github+json" \
+    -H "Authorization: Bearer $1" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    "https://api.github.com/repos/$2/compare/$3...$4" \
+    | jq ".total_commits")
+  echo "total_commits=$total_commits" >> "$GITHUB_ENV"
+  echo $total_commits
+}
 
-  if [[ ! -z "$2" ]]; then
-    base_sha="$2"
-  elif [[ ! -z "$4" ]]; then
-    base_sha="$4"
-  fi
-
-  if [[ -z "$head_sha" ]] ; then
-    head_sha=$(git rev-parse @)
-  fi
-
-  if [[ -z "$base_sha" ]] ; then
-    base_sha=$(git rev-parse $head_sha~5)
-  fi
-
-  echo "head_sha=$head_sha" >> $GITHUB_ENV
-  echo "base_sha=$base_sha" >> $GITHUB_ENV
+gh-cancel-workflow()
+{
+  curl -L \
+    -X POST \
+    -H "Accept: application/vnd.github+json" \
+    -H "Authorization: Bearer $1" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    https://api.github.com/repos/$2/actions/runs/$3/cancel
 }
