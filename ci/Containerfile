@@ -1,7 +1,7 @@
 FROM opensuse/leap:15.6
 
-ARG runner_version=2.322.0
-ARG runner_version_sha=18837c7655a6366c920d77f0b01e9ec9d1beac2116ad548a869cfbe8e2a4e06d
+ARG runner_version=2.323.0
+ARG runner_version_sha=f1533c606d724c6f157335b1921fdff17f52ff57f22907f0b77f82862e9900f0
 
 RUN zypper install -y --no-recommends \
     tar gzip curl jq libicu coreutils sha3sum
