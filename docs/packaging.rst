@@ -267,7 +267,12 @@ is ignored and a new is requested.
    $podman run \
    $    --secret adi_doctools_org_repository,target=/run/secrets/org_repository,uid=1 \
    $    --secret adi_doctools_runner_token,target=/run/secrets/runner_token,uid=1 \
+   $    --env runner_labels=v1
    $    adi/doctools:v1
+
+The environment variable runner_labels (comma-separated), set the runner labels.
+If not provided on the Containerfile as ``ENV runner_labels=<labels,>`` or as argument
+``--env runner_labels=<labels,>``, it defaults to ``v1``.
 
 .. _cluster-podman:
 
@@ -301,6 +306,8 @@ Below is a suggested systemd service at *~/.config/systemd/user/podman-doctools@
    [Install]
    WantedBy=multi-user.target
 
+Remember to ``systemctl --user daemon-reload after`` modifying.
+
 Instead of passing runner_token, you can also pass a github_token to generate
 the runner_token on demand.
 Using the github_token is the recommended approach because during clean-up the original
@@ -312,13 +319,13 @@ However, please understand the security implications and  ensure the token secre
    # e.g. MyVerYSecRetToken
    $printf GITHUB_TOKEN | podman secret create adi_doctools_github_token -
 
-The required GitHub Fine-Grained token are as follows:
+The required GitHub Fine-Grained token permission should be set as follows:
 
-`repository runner <https://docs.github.com/en/rest/actions/self-hosted-runners?apiVersion=2022-11-28#create-a-registration-token-for-a-repository--fine-grained-access-tokens>`_:
+For `repository runner <https://docs.github.com/en/rest/actions/self-hosted-runners?apiVersion=2022-11-28#create-a-registration-token-for-a-repository--fine-grained-access-tokens>`_:
 
 * ``administration:write``: "Administration" repository permissions (write).
 
-`org runner <https://docs.github.com/en/rest/actions/self-hosted-runners?apiVersion=2022-11-28#create-a-registration-token-for-an-organization>`__:
+For `org runner <https://docs.github.com/en/rest/actions/self-hosted-runners?apiVersion=2022-11-28#create-a-registration-token-for-an-organization>`__:
 
 * ``organization_self_hosted_runners:write``: "Self-hosted runners" organization permissions (write).
 * The user needs to be a org-level admin.
