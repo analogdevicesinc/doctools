@@ -2,6 +2,8 @@ FROM opensuse/leap:15.6
 
 ARG runner_version=2.323.0
 ARG runner_version_sha=f1533c606d724c6f157335b1921fdff17f52ff57f22907f0b77f82862e9900f0
+ENV github_api_sh=https://raw.githubusercontent.com/analogdevicesinc/doctools/refs/heads/v1/github-api.sh
+ENV entrypoint_sh=https://raw.githubusercontent.com/analogdevicesinc/doctools/refs/heads/v1/entrypoint.sh
 
 RUN zypper install -y --no-recommends \
     tar gzip curl jq libicu coreutils sha3sum

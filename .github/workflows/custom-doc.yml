@@ -4,14 +4,7 @@ jobs:
     runs-on: [self-hosted, v1]
 
     steps:
-    - uses: actions/checkout@v4
-      if: ${{ !env.ACT }}
-
-    - name: act-checkout
-      if: ${{ env.ACT }}
-      run: |
-        github_ref_name=$(cd /mnt/repo ; git rev-parse --abbrev-ref HEAD)
-        git clone /mnt/repo --branch=$github_ref_name .
+    - uses: analogdevicesinc/doctools/checkout@v1
 
     - uses: actions/download-artifact@v4
       with:

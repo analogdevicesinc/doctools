@@ -216,7 +216,7 @@ To run a specific workflow, use ``-W``, e.g.:
 .. shell::
 
    ~/doctools
-   $act pull_request --remote-name public \
+   $act --remote-name public \
    $    -W .github/workflows/build-doc.yml
 
 By default, it will run on the checks on the top 5 commits, to set other value,
