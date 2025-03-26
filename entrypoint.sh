@@ -9,13 +9,13 @@ fi
 
 source /usr/local/bin/github-api.sh
 
-if [[ -z $org_repository ]]; then
+if [[ -z "$org_repository" ]]; then
     echo "No org_repository provided"
     exit 1
 fi
 
 function get_runner_token () {
-    if [[ ! -z $github_token ]]; then
+    if [[ ! -z "$github_token" ]]; then
         runner_token=$(
             gh-actions-token $github_token \
                              $org_repository \
@@ -29,7 +29,7 @@ function get_runner_token () {
     else
         runner_token=$(cat /run/secrets/runner_token 2> /dev/null)
 
-        if [[ -z $runner_token ]]; then
+        if [[ -z "$runner_token" ]]; then
             echo "No runner_token or github_token provided"
             exit 1
         fi
