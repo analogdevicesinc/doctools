@@ -1,0 +1,90 @@
+name: Git Checkout
+description: A git checkout for local runners and runs
+
+inputs:
+  depth:
+    description: The depth when fetching
+    required: false
+  act:
+    description: Enable local run mode with act
+    required: false
+  act-mountpoint:
+    description: The source mountpoint
+    default: '/mnt/repo'
+  gh-token:
+    description: 'GitHub Token'
+    default: ${{ github.token }}
+#env:
+# ACT_DEPTH: The depth when fetching, overwrites depth
+# ACT_HEAD: The head to fetch
+
+runs:
+  using: composite
+  steps:
+    - name: Get depth
+      shell: bash
+      run: |
+        if [[ "${{ env.ACT_DEPTH }}" ]]; then
+          echo "depth_sha=$(( ${{ env.ACT_DEPTH }} + 1 ))" >> $GITHUB_ENV
+        elif [[ "${{ inputs.depth }}" ]]; then
+          echo "depth_sha=$(( ${{ inputs.depth }} + 1 ))" >> $GITHUB_ENV
+        elif [[ "${{ github.event.pull_request.commits }}" ]]; then
+          echo "depth_sha=$(( ${{ github.event.pull_request.commits }} + 1 ))" >> $GITHUB_ENV
+        else
+          echo "depth_sha=6" >> $GITHUB_ENV
+        fi
+
+        if [[ "${{ env.ACT }}" ]]; then
+          if [[ "${{ env.ACT_HEAD }}" ]]; then
+            act_head_sha="${{ env.ACT_HEAD }}"
+          else
+            act_head_sha="@"
+          fi
+          echo "head_sha=$(cd ${{ inputs.act-mountpoint }} ; git rev-parse $act_head_sha)" >> $GITHUB_ENV
+        elif [[ "${{ github.event.pull_request.head.sha }}" ]]; then
+          echo "head_sha=${{ github.event.pull_request.head.sha }}" >> $GITHUB_ENV
+        elif [[ "${{ github.sha }}" ]]; then
+          echo "head_sha=${{ github.sha }}" >> $GITHUB_ENV
+        fi
+
+    - name: Prepare git
+      shell: bash
+      run: |
+        if [[ "${{ env.ACT }}" ]]; then
+          url="file://${{ inputs.act-mountpoint }}"
+        else
+          url="https://x-access-token:${{ inputs.gh-token }}@github.com/${{ github.repository }}.git"
+        fi
+
+        if [[ ! -d .git ]]; then
+          git init --initial-branch=trunk .
+          git remote add origin "$url"
+        else
+          git remote set-url origin "$url"
+        fi
+
+        git reset --hard
+        git clean -xf .
+
+        if [[ ! "$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"  == "trunk" ]]; then
+          if [[ $(git rev-parse --verify "trunk" 2>/dev/null) ]]; then
+            git branch -D trunk
+          fi
+          git branch -m trunk
+        fi
+
+    - name: Checkout
+      shell: bash
+      run: |
+        git fetch origin --depth=$depth_sha $head_sha
+        git reset --hard $head_sha
+
+        if [[ "${{ github.event.pull_request.head.sha }}" ]]; then
+          git fetch origin --depth=1 ${{ github.base_ref }}
+          git rebase origin/${{ github.base_ref }}
+          echo "head_sha=$(git rev-parse @)" >> "$GITHUB_ENV"
+        fi
+
+        echo "base_sha=$(git rev-parse @~$((depth_sha - 1)))" >> "$GITHUB_ENV"
+        git log --oneline --reverse | head -200
+
