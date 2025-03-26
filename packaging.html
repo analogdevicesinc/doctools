@@ -387,7 +387,7 @@ Rebase on your side before running <code class="docutils literal notranslate"><s
 <div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~/doctools$
 </pre></div>
 </div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>act<span class="w"> </span>pull_request<span class="w"> </span>--remote-name<span class="w"> </span>public<span class="w"> </span><span class="se">\</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>act<span class="w"> </span>--remote-name<span class="w"> </span>public<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>-W<span class="w"> </span>.github/workflows/build-doc.yml
 </pre></div>
 </div>
@@ -473,10 +473,19 @@ is ignored and a new is requested.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>podman<span class="w"> </span>run<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--secret<span class="w"> </span>adi_doctools_org_repository,target<span class="o">=</span>/run/secrets/org_repository,uid<span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--secret<span class="w"> </span>adi_doctools_runner_token,target<span class="o">=</span>/run/secrets/runner_token,uid<span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>adi/doctools:v1
+<span class="w">    </span>--env<span class="w"> </span><span class="nv">runner_labels</span><span class="o">=</span>v1
 </pre></div>
 </div>
-<div class="clear-left"></div></div></div></section>
+<div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~/doctools$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="w">    </span>adi/doctools:v1
+</pre></div>
+</div>
+<div class="clear-left"></div></div></div><p>The environment variable runner_labels (comma-separated), set the runner labels.
+If not provided on the Containerfile as <code class="docutils literal notranslate"><span class="pre">ENV</span> <span class="pre">runner_labels=&lt;labels,&gt;</span></code> or as argument
+<code class="docutils literal notranslate"><span class="pre">--env</span> <span class="pre">runner_labels=&lt;labels,&gt;</span></code>, it defaults to <code class="docutils literal notranslate"><span class="pre">v1</span></code>.</p>
+</section>
 <section id="self-hosted-cluster">
 <span id="cluster-podman"></span><h2>Self-hosted cluster<a class="headerlink" href="#self-hosted-cluster" title="Link to this heading"></a></h2>
 <p>To host a cluster of self-hosted runners, the recommended approach is to use
@@ -503,6 +512,7 @@ systemd services, instead of for example, podman-compose.</p>
 <span class="n">WantedBy</span><span class="o">=</span><span class="n">multi</span><span class="o">-</span><span class="n">user</span><span class="o">.</span><span class="n">target</span>
 </pre></div>
 </div>
+<p>Remember to <code class="docutils literal notranslate"><span class="pre">systemctl</span> <span class="pre">--user</span> <span class="pre">daemon-reload</span> <span class="pre">after</span></code> modifying.</p>
 <p>Instead of passing runner_token, you can also pass a github_token to generate
 the runner_token on demand.
 Using the github_token is the recommended approach because during clean-up the original
@@ -520,12 +530,12 @@ However, please understand the security implications and  ensure the token secre
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">printf</span><span class="w"> </span>GITHUB_TOKEN<span class="w"> </span><span class="p">|</span><span class="w"> </span>podman<span class="w"> </span>secret<span class="w"> </span>create<span class="w"> </span>adi_doctools_github_token<span class="w"> </span>-
 </pre></div>
 </div>
-<div class="clear-left"></div></div></div><p>The required GitHub Fine-Grained token are as follows:</p>
-<p><a class="reference external" href="https://docs.github.com/en/rest/actions/self-hosted-runners?apiVersion=2022-11-28#create-a-registration-token-for-a-repository--fine-grained-access-tokens">repository runner</a>:</p>
+<div class="clear-left"></div></div></div><p>The required GitHub Fine-Grained token permission should be set as follows:</p>
+<p>For <a class="reference external" href="https://docs.github.com/en/rest/actions/self-hosted-runners?apiVersion=2022-11-28#create-a-registration-token-for-a-repository--fine-grained-access-tokens">repository runner</a>:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">administration:write</span></code>: “Administration” repository permissions (write).</p></li>
 </ul>
-<p><a class="reference external" href="https://docs.github.com/en/rest/actions/self-hosted-runners?apiVersion=2022-11-28#create-a-registration-token-for-an-organization">org runner</a>:</p>
+<p>For <a class="reference external" href="https://docs.github.com/en/rest/actions/self-hosted-runners?apiVersion=2022-11-28#create-a-registration-token-for-an-organization">org runner</a>:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">organization_self_hosted_runners:write</span></code>: “Self-hosted runners” organization permissions (write).</p></li>
 <li><p>The user needs to be a org-level admin.</p></li>
