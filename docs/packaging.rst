@@ -256,10 +256,10 @@ set-up your secrets:
    # e.g. MyVerYSecRunnerToken
    $printf RUNNER_TOKEN | podman secret create adi_doctools_runner_token -
 
-.. attention::
+The runner token is obtained from the GUI at ``github.com/<org>/<repository>/settings/actions/runners/new``.
 
-   If ``github_token`` from :ref:`cluster-podman` is set, the runner_token
-   is ignored and a new is requested.
+If ``github_token`` from :ref:`cluster-podman` is set, the runner_token
+is ignored and a new is requested.
 
 .. shell::
 
@@ -301,17 +301,29 @@ Below is a suggested systemd service at *~/.config/systemd/user/podman-doctools@
    [Install]
    WantedBy=multi-user.target
 
-.. note::
+Instead of passing runner_token, you can also pass a github_token to generate
+the runner_token on demand.
+Using the github_token is the recommended approach because during clean-up the original
+runner_token may have expired already.
+However, please understand the security implications and  ensure the token secrecy.
 
-   Instead of passing runner_token, you can also pass a github_token to generate
-   the runner_token on demand.
+.. shell::
 
-   .. shell::
+   # e.g. MyVerYSecRetToken
+   $printf GITHUB_TOKEN | podman secret create adi_doctools_github_token -
 
-      # e.g. MyVerYSecRetToken
-      $printf GITHUB_TOKEN | podman secret create adi_doctools_github_token -
+The required GitHub Fine-Grained token are as follows:
 
-   Then update the systemd service,
+`repository runner <https://docs.github.com/en/rest/actions/self-hosted-runners?apiVersion=2022-11-28#create-a-registration-token-for-a-repository--fine-grained-access-tokens>`_:
+
+* ``administration:write``: "Administration" repository permissions (write).
+
+`org runner <https://docs.github.com/en/rest/actions/self-hosted-runners?apiVersion=2022-11-28#create-a-registration-token-for-an-organization>`__:
+
+* ``organization_self_hosted_runners:write``: "Self-hosted runners" organization permissions (write).
+* The user needs to be a org-level admin.
+
+Then update the systemd service.
 
 Enable and start the service
 

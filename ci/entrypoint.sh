@@ -11,25 +11,29 @@ if [[ -z $org_repository ]]; then
     exit 1
 fi
 
-if [[ ! -z $github_token ]]; then
-    runner_token=$(
-        gh-actions-token $github_token \
-                         $org_repository \
-                         runner_token
-    )
+function get_runner_token () {
+    if [[ ! -z $github_token ]]; then
+        runner_token=$(
+            gh-actions-token $github_token \
+                             $org_repository \
+                             runner_token
+        )
 
-    if [[ "$runner_token" == "null" ]]; then
-        echo "Failed to get '$org_repository' runner_token, check github_token permission"
-        exit 1
-    fi
-else
-    runner_token=$(cat /run/secrets/runner_token 2> /dev/null)
+        if [[ "$runner_token" == "null" ]]; then
+            echo "Failed to get '$org_repository' runner_token, check github_token permission"
+            exit 1
+        fi
+    else
+        runner_token=$(cat /run/secrets/runner_token 2> /dev/null)
 
-    if [[ -z $runner_token ]]; then
-        echo "No runner_token or github_token provided"
-        exit 1
+        if [[ -z $runner_token ]]; then
+            echo "No runner_token or github_token provided"
+            exit 1
+        fi
     fi
-fi
+}
+
+get_runner_token
 
 if [[ ! -z $runner_labels ]]; then
     runner_version+="-$runner_labels"
@@ -46,6 +50,8 @@ set -e
     --name  $name
 
 function cleanup () {
+    get_runner_token
+
     /home/runner/actions-runner/config.sh remove \
         --token $runner_token
 }
