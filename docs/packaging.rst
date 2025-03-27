@@ -295,9 +295,11 @@ Below is a suggested systemd service at *~/.config/systemd/user/podman-doctools@
    Restart=on-failure
    ExecStartPre=/usr/bin/rm -f /%t/%n-pid /%t/%n-cid
    ExecStart=/usr/bin/podman run \
+             --env name_label=%i \
              --secret adi_doctools_org_repository,target=/run/secrets/org_repository,uid=1 \
              --secret adi_doctools_runner_token,target=/run/secrets/runner_token,uid=1 \
-             --conmon-pidfile /%t/%n-pid --cidfile /%t/%n-cid -d adi/doctools:v1 top
+             --conmon-pidfile /%t/%n-pid --cidfile /%t/%n-cid \
+             -d adi/doctools:v1 top
    ExecStop=/usr/bin/sh -c "/usr/bin/podman rm -f `cat /%t/%n-cid`"
    TimeoutStopSec=60
    Type=forking
@@ -306,7 +308,7 @@ Below is a suggested systemd service at *~/.config/systemd/user/podman-doctools@
    [Install]
    WantedBy=multi-user.target
 
-Remember to ``systemctl --user daemon-reload after`` modifying.
+Remember to ``systemctl --user daemon-reload`` after modifying.
 
 Instead of passing runner_token, you can also pass a github_token to generate
 the runner_token on demand.

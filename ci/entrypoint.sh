@@ -38,7 +38,11 @@ function get_runner_token () {
 
 get_runner_token
 
-name=$(echo $org_repository | sed 's|/|-|g')-$(echo $runner_token | sha3sum -a 256 | head -c4)-$(tr -dc A-Za-z0-9 </dev/urandom | head -c2; echo)
+if [[ -z "$name_label" ]]; then
+	name_label=$(echo $runner_token | sha3sum -a 256 | head -c4)
+fi
+
+name=$(echo $org_repository | sed 's|/|-|g')-$name_label
 
 set -e
 
@@ -46,7 +50,7 @@ set -e
     --url https://github.com/$org_repository \
     --token $runner_token \
     --labels "$runner_labels" \
-    --name  $name
+    --name $name
 
 function cleanup () {
     get_runner_token
