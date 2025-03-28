@@ -61,32 +61,37 @@ runs:
           git remote add origin "$url"
         else
           git remote set-url origin "$url"
-        fi
 
-        git am --abort 2>/dev/null || true
-        git rebase --abort 2>/dev/null || true
-        git cherry-pick --abort 2>/dev/null || true
+          git am --abort 2>/dev/null || true
+          git merge --abort 2>/dev/null || true
+          git rebase --abort 2>/dev/null || true
+          git cherry-pick --abort 2>/dev/null || true
 
-        git reset --hard
-        git clean -xf .
+          git reset --hard --quiet
+          git clean -xf --quiet .
 
-        if [[ ! "$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"  == "trunk" ]]; then
-          if [[ $(git rev-parse --verify "trunk" 2>/dev/null) ]]; then
-            git branch -D trunk
+          git checkout $(git rev-parse @)
+          echo "clean-up branches"
+          branches=$((git branch || true) | (grep -v ^'*' || true))
+          if [[ "$branches" ]]; then
+            git branch -D $branches || true
           fi
-          git branch -m trunk
+          git branch -D trunk || true
+          git checkout -b trunk
         fi
 
     - name: Checkout
       shell: bash
       run: |
         git fetch origin --depth=$depth_sha $head_sha
-        git reset --hard $head_sha
 
         if [[ "${{ github.event.pull_request.head.sha }}" ]]; then
           git fetch origin --depth=1 ${{ github.base_ref }}
-          git rebase origin/${{ github.base_ref }}
+          git reset --hard origin/${{ github.base_ref }}
+          git cherry-pick --allow-empty --empty=keep $head_sha~$((depth_sha - 1))..$head_sha
           echo "head_sha=$(git rev-parse @)" >> "$GITHUB_ENV"
+        else
+          git reset --hard $head_sha
         fi
 
         echo "base_sha=$(git rev-parse @~$((depth_sha - 1)))" >> "$GITHUB_ENV"
