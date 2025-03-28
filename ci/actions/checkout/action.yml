@@ -1,4 +1,4 @@
-name: Git Checkout
+  name: Git Checkout
 description: A git checkout for local runners and runs
 
 inputs:
