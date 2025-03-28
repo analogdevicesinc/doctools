@@ -63,6 +63,10 @@ runs:
           git remote set-url origin "$url"
         fi
 
+        git am --abort 2>/dev/null || true
+        git rebase --abort 2>/dev/null || true
+        git cherry-pick --abort 2>/dev/null || true
+
         git reset --hard
         git clean -xf .
 
