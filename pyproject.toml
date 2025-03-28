@@ -1,11 +1,11 @@
 [build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
+requires = ["flit_core"]
+build-backend = "flit_core.buildapi"
 
 [project]
 name = "adi-doctools"
 description = "ADI's sphinx extensions and theme"
-readme = "README.rst"
+readme = "README.md"
 authors = [
     {name = "Jorge Marques", email="jorge.marques@analog.com"}
 ]
