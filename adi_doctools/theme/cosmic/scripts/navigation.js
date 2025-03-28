@@ -181,8 +181,7 @@ export class Navigation {
     e.preventDefault()
 
     /* Try to anchor to same section */
-    let anchor = (e.ctrlKey && location.href.split('#').length > 1) ?
-                 `#${location.href.split('#')[1]}` : ""
+    let anchor = (e.ctrlKey && location.hash.length > 0) ? location.hash : ""
 
     if ((e.code == 'ArrowLeft' || e.code == 'KeyA') && this.$.relatedPrev)
       location.href = this.$.relatedPrev.href + anchor

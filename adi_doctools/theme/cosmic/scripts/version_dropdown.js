@@ -107,6 +107,17 @@ export class VersionDropdown {
       let entry = new DOM('a', {
         'href': `/${this.parent.state.repository}/${key}`
       })
+      entry.onclick (this, (self, e) => {
+        e.preventDefault()
+        let start = `/${app.state.repository}/${app.state.path}`,
+            og_url = location.pathname + location.hash
+        if (og_url.startsWith(start)) {
+          let url = self.$.href + og_url.substring(start.length)
+          Toolbox.try_redirect(url, self.$.href)
+        } else {
+          location.url(self.$.url)
+        }
+      }, [entry])
       let entry_ = new DOM('div')
       let label_ = new DOM('div')
       entry_.innerText = obj[key][0]

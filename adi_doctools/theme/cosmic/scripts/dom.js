@@ -98,7 +98,7 @@ class DOM {
         ev.apply(self, args)
       }
     }
-  return this
+    return this
   }
   /**
    * Append a ``onclick`` event.
@@ -113,7 +113,7 @@ class DOM {
         ev.apply(self, args)
       }
     }
-  return this
+    return this
   }
   /**
    * Append a ``mouseup`` and ``touchup`` event.
@@ -128,7 +128,7 @@ class DOM {
         ev.apply(self, args)
       }
     })
-  return this
+    return this
   }
   /**
    * Append a ``mousedown`` and ``touchdown`` event.
@@ -143,7 +143,7 @@ class DOM {
         ev.apply(self, args)
       }
     })
-  return this
+    return this
   }
   /**
    * Append a ``mousemove`` and ``touchmove`` event.
@@ -158,7 +158,7 @@ class DOM {
         ev.apply(self, args)
       }
     })
-  return this
+    return this
   }
   /**
    * Append a event listener.
@@ -175,7 +175,7 @@ class DOM {
         fun.apply(self, args)
       }
     })
-  return this
+    return this
   }
   /**
    * Appends others :js:func:`DOM`.

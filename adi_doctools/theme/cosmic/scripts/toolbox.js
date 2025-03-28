@@ -65,6 +65,24 @@ class Toolbox {
     return (_pathname.match(/\//g)||[]).length
   }
   /*
+   * Check if link exists, if not, redirect to second option.
+   */
+  static async try_redirect (url, fallback_url) {
+    try {
+      const response = await fetch(url, {
+        method: 'HEAD'
+      })
+
+      if (response.status === 404)
+        console.log(fallback_url)
+      else
+        location.href = url
+    } catch (e) {
+      location.href = fallback_url
+    }
+    return
+  }
+  /*
    * Try to fetch every item in array.
    */
   static async fetch_each (urls) {
