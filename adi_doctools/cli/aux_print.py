@@ -100,6 +100,21 @@ def sanitize_singlehtml(file) -> str:
             if a__.attrib['href'].startswith(filename):
                 a__.attrib['href'] = a__.attrib['href'][len_fname:]
 
+    # Starting from Sphinx version v8.2.0, commit c93723b803
+    # singlehtml localtoc are broken because
+    # while all ids beyond page id remain as #my-anchor,
+    # all href on the localtoc are prefixed by the original doc name, e.g.
+    #   #document-documentation/some-page#evaluation-board-software
+    # luckily, it is easy to detect since the broken links have double "#",
+    # so discarding the left side is enough
+    # REVISIT: Check if newer Sphinx fixes the issue
+    if Version(sphinx_version) >= Version("8.2.0"):
+        local_tocs = root.xpath("//body//div[@class='tocwrapper']/nav/ul")
+        for toc in local_tocs:
+            a_ = toc.xpath(".//a[@class='reference internal']")
+            for a__ in a_:
+                a__.attrib['href'] = a__.attrib['href'][a__.attrib['href'].rindex("#"):]
+
     # Render LaTeX math with matplotlib.mathtext
     if not importlib.util.find_spec("matplotlib"):
         echo("Package 'matplotlib' required to render LaTeX math formulas is not "
