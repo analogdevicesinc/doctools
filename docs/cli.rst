@@ -221,6 +221,11 @@ Additional configuration can be added to the ``config`` option:
 The option ``extensions`` allow to append extra Sphinx extensions, beyond the
 automatically imported from the sourced documentations.
 
+Just like :ref:`serve`, Custom doc also has :ref:`serve lfs`.
+The current limitation is that only copied images (from the sphinx's "copying images..."
+step) are looked for lfs pointers, so artifacts from other steps are missed, such as
+from the download directive.
+
 Working with multiple docs
 ++++++++++++++++++++++++++
 

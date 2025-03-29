@@ -4,6 +4,7 @@ from collections import defaultdict
 from os import path, listdir, pardir, chdir, getcwd, mkdir
 from os import environ
 from glob import glob
+from shutil import copy2
 import importlib.util
 import subprocess
 import click
@@ -16,6 +17,7 @@ from sphinx.application import Sphinx
 from adi_doctools import __version__
 
 from ..lut import get_lut, remote_doc
+from .aux_git import is_git_lfs_installed, get_lfs_sha
 
 no_parallel = True
 lut = get_lut()
@@ -55,10 +57,9 @@ def get_sphinx_dirs(cwd) -> Tuple[bool, str, str]:
         click.echo(click.style(f"{conf_py} does not exist, skipped!", fg='red'))
         return (True, '', '')
 
-    sourcedir = cwd
     builddir = path.join(cwd, f"_build/html")
 
-    return [False, builddir, sourcedir]
+    return [False, builddir]
 
 
 def do_extra_steps(repo_dir, doc):
@@ -96,7 +97,11 @@ class SphinxWarnings:
     include: List = []  # docname lineno srcfile
 
 
+class SphinxStatuses:
+    images: List = []  # repo srcfile
+
 sphinx_warnings = SphinxWarnings()
+sphinx_statuses = SphinxStatuses()
 
 template_config = """
 from os import path
@@ -439,9 +444,9 @@ def prepare_doc(doc, repos_dir, doc_dir):
             click.echo(f"Unknown repo '{r}', skipped")
             continue
 
-        makedir = path.join(repos_dir, r, repos[r]['pathname'])
+        sourcedir = path.join(repos_dir, r, repos[r]['pathname'])
         dstdir = path.join(doc_dir, r)
-        not_valid, builddir, sourcedir = get_sphinx_dirs(makedir)
+        not_valid, builddir = get_sphinx_dirs(sourcedir)
         if not_valid:
             continue
         doc['sourcedir'][r] = sourcedir
@@ -627,13 +632,15 @@ def prepare_doc(doc, repos_dir, doc_dir):
     # First run, parse warnings
     chdir(doc_dir)
     warnfile = path.join('..', 'warnings.txt')
+    statusfile = path.join('..', 'status.txt')
     warning = open(warnfile, "w")
+    status = open(statusfile, "w")
     builddir = "html"
     doctreedir = path.join(builddir, "doctrees")
 
     # Build with html to build orphanaged docs
     app = Sphinx('.', '.',  builddir, doctreedir, "html",
-                 warning=warning)
+                 warning=warning, status=status, verbosity=1)
 
     app.build()
     chdir(cwd_)
@@ -695,6 +702,23 @@ def parse_warnings(doc_dir):
             continue
 
 
+def parse_status(doc_dir):
+    statusfile = path.join(doc_dir, '..', 'status.txt')
+
+    re_images = r"^copying images\.\.\.\s+\[\s?\d+%\]\s(.*)$"
+    status = open(statusfile, "r")
+    for e in status:
+        e = e.replace("[33m", "").replace("[39;49;00m", "").replace("[01m", "")
+
+        m = re.match(re_images, e)
+        if m:
+            print(m.group(1))
+            repo = m.group(1)[:m.group(1).index('/')]
+            file = m.group(1)[m.group(1).index('/')+1:]
+            sphinx_statuses.images.append([repo, file])
+            continue
+
+
 suppress_warnings = """
 suppress_warnings = [
     'app.add_node',
@@ -705,7 +729,7 @@ suppress_warnings = [
 """
 
 
-def patch_doc(doc, repos_dir, doc_dir, doc_patch_dir, sphinx_builder):
+def patch_doc(doc, repos_dir, doc_dir, doc_patch_dir, git_lfs, sphinx_builder):
     """
     Patches warnings obtained from the first run.
 
@@ -796,6 +820,16 @@ def patch_doc(doc, repos_dir, doc_dir, doc_patch_dir, sphinx_builder):
     for e in sphinx_warnings.image_not_readable:
         # Nothing to do for now, since get_includes should have solved all already.
         continue
+
+    # Resolve git-lfs artifacts
+    if git_lfs:
+        for s in sphinx_statuses.images:
+            lfs_f_s=path.join(repos[s[0]]['pathname'], s[1])
+            path_=path.join(repos_dir, s[0], lfs_f_s)
+            if get_lfs_sha(path_):
+                subprocess.run(f"git lfs pull -I {lfs_f_s}",
+                               shell=True, cwd=path.join(repos_dir, s[0]))
+                copy2(path_, path.join(doc_patch_dir, s[0], s[1]))
 
     # Update include paths
     for e in sphinx_warnings.include:
@@ -992,6 +1026,10 @@ def custom_doc(directory, extra, no_parallel_, open_, builder, ssh):
     else:
         sphinx_builder = 'html'
 
+    git_lfs = is_git_lfs_installed()
+    if not git_lfs:
+        click.echo("git-lfs not installed, lfs pointers won't be resolved.")
+
     # Fill gaps
     organize_include(doc)
     if 'config' not in doc:
@@ -1042,10 +1080,11 @@ def custom_doc(directory, extra, no_parallel_, open_, builder, ssh):
     do_extra_steps(directory, doc)
 
     # Messing with WeasyPrint?
-    # Comment the three lines below to skip Sphinx generation
+    # Comment the four lines below to skip Sphinx generation
     prepare_doc(doc, directory, doc_dir)
     parse_warnings(doc_dir)
-    patch_doc(doc, directory, doc_dir, doc_patch_dir, sphinx_builder)
+    parse_status(doc_dir)
+    patch_doc(doc, directory, doc_dir, doc_patch_dir, git_lfs, sphinx_builder)
 
     if builder == "pdf":
         singlehtml = path.join(doc_patch_dir, "html", "index.html")
@@ -1057,4 +1096,4 @@ def custom_doc(directory, extra, no_parallel_, open_, builder, ssh):
     click.echo(f"Done, {builder} documentation written to {doc_patch_dir}{SEP}{f__}")
 
     if open_:
-        subprocess.call(f"xdg-open {doc_patch_dir}{SEP}_build{SEP}{f__}", shell=True)
+        subprocess.call(f"xdg-open {doc_patch_dir}{SEP}{f__}", shell=True)

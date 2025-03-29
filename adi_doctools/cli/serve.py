@@ -8,7 +8,7 @@ import importlib
 
 from sphinx.application import Sphinx
 
-from .aux_git import get_git_top_level, is_git_lfs_installed
+from .aux_git import get_git_top_level, is_git_lfs_installed, get_lfs_sha
 
 log = {
     'no_lfs': "File .gitattributes contains lfs rules, but git-lfs is not installed.",
@@ -348,17 +348,6 @@ def serve(directory, port, dev, selenium, once, builder):
 
     if once:
         return
-
-    def get_lfs_sha(path_):
-        """
-        Check if the file is a git lfs pointer.
-        If so, returns the sha, if not, return false.
-        """
-        if path.isfile(path_):
-            with open(path_, 'rb') as f:
-                if (f.read(54) == b"version https://git-lfs.github.com/spec/v1\noid sha256:"):
-                    return f.read(64)
-        return False
 
     def get_source_lfs_file(path_, ext):
         """
