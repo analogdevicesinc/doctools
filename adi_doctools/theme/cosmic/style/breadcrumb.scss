@@ -1,0 +1,54 @@
+@use "variable";
+
+.body-header {
+    justify-content: space-between;
+    display: flex;
+    width: 100%;
+    padding-top: .5em;
+    box-sizing: content-box;
+    margin-bottom: -2em !important;
+}
+
+.breadcrumb {
+    ol {
+        list-style: none;
+        padding: 0 .75rem;
+        margin: 0;
+    }
+
+    li {
+        display:inline;
+        padding: 0;
+        overflow: visible;
+    }
+
+    li+li:before {
+        content: "/\00a0";
+        color: var(--text-color2);
+    }
+
+    li:last-child {
+        padding-right: 1em;
+    }
+
+    a {
+        &:hover {
+            background-color: var(--bg-color2);
+        }
+
+        color: var(--font-color2);
+        border-radius: variable.$border-radius;
+        padding: .25rem;
+    }
+
+    padding: 1em 0 1em 0;
+    white-space: nowrap;
+    overflow-y: auto;
+    box-sizing: content-box;
+}
+
+@media print {
+    .breadcrumb {
+        display: none;
+    }
+}

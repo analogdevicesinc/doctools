@@ -1,9 +1,18 @@
 @use "variable";
 @use "mixin_icons";
 
-.page-actions {
+.body .page-actions {
+    margin-top: 1.5rem;
     float: right;
-    margin-top: 1.6rem;
+}
+
+.body-header .page-actions {
+    padding-left: .5em;
+    margin-top: 1em;
+    margin-right: 1em;
+}
+
+.page-actions {
     /* Ensure icon inclusion */
     @include mixin_icons.icons(("edit"));
 
@@ -13,7 +22,7 @@
         color: var(--text-color2);
         display: inline-block;
         padding: .33rem .37rem .37rem .33rem;
-        margin-left: -.1rrem;
+        margin-left: -.1rem;
 
         &::before {
             display: block;
@@ -33,6 +42,11 @@
             background-color: var(--bg-color2);
         }
     }
+
+    height: 1.95rem;
+    border-radius: .75em;
+    background-color: var(--bg-color1);
+    box-shadow: -.5em 0 .5em 0 var(--bg-color1);
 }
 
 .edit-source::before {

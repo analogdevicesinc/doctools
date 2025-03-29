@@ -48,7 +48,6 @@ export class PageActions {
   }
 
   draw_page_source (url) {
-    let doc = DOM.get('.bodywrapper .body')
     let container = new DOM('div', {
       'className': 'page-actions'
     })
@@ -58,9 +57,15 @@ export class PageActions {
       'href': url,
       'target': 'blank'
     })
-    container.append(edit_button)
+    container.append(edit_button.$)
 
-    doc.insertAdjacentElement('afterbegin', container.$)
+    let doc = DOM.get('.bodywrapper .body-header')
+    if (doc === null) {
+      doc =  DOM.get('.bodywrapper .body')
+      doc.insertAdjacentElement('afterbegin', container.$)
+    } else {
+      doc.insertAdjacentElement('beforeend', container.$)
+    }
   }
 
   page_source () {
