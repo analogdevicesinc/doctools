@@ -60,9 +60,20 @@ Serve detects if a repository uses `git-lfs <https://git-lfs.com>`__
 to fetch (smudge) the watched binaries on demand.
 
 This allows users to clone a repo with ``git lfs install --skip-smudge``
-or ``GIT_LFS_SKIP_SMUDGE=1`` and only fetch, on demand, the binary
-resources they are working on, dramatically reducing clone time and bandwidth
-usage.
+and only fetch, on demand, the binary resources they are working on,
+dramatically reducing clone time and bandwidth usage.
+
+.. caution::
+
+   ``GIT_LFS_SKIP_SMUDGE=1`` and ``--skip-smudge`` are not the identical!
+
+   .. shell::
+      :no-path:
+
+      # Still fetches with either set.
+      $git lfs pull -I pointer_file
+      # Only still fetches with --skip-smudge, skipped with GIT_LFS_SKIP_SMUDGE=1
+      $git lfs smudge < pointer_file > /tmp/file.png``
 
 The per-file fetch is triggered by a get request, like when opening the
 local server page on the browser, or by touching the watched source file.

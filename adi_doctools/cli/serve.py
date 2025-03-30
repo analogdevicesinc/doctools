@@ -12,6 +12,7 @@ from .aux_git import get_git_top_level, is_git_lfs_installed, get_lfs_sha
 
 log = {
     'no_lfs': "File .gitattributes contains lfs rules, but git-lfs is not installed.",
+    'lfs_skip_smudge': "GIT_LFS_SKIP_SMUDGE=1 is set, GET requests won't smudge files, only touching the source!",
     'no_conf_py': "File conf.py not found, is {} a docs folder?",
     'inv_f': "Could not find {}, check rollup output.",
     'inv_srcdir': "Could not find SOURCEDIR {}.",
@@ -259,6 +260,9 @@ def serve(directory, port, dev, selenium, once, builder):
                 if not is_git_lfs_installed():
                     click.echo(log['no_lfs'])
                     types_lfs = []
+                elif ("GIT_LFS_SKIP_SMUDGE" in environ and
+                      environ["GIT_LFS_SKIP_SMUDGE"] == "1"):
+                    click.echo(f"{FAIL}{log['lfs_skip_smudge']}{NC}")
 
     # Define PDF generation
     def generate_toctree(bookmarks, indent=0):
