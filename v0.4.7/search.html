@@ -3,24 +3,27 @@
 <html lang="en" data-content_root="./">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-
-    <title>Fundamentals &#8212; Doctools  documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Search &#8212; Doctools  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8e8a900e" />
     <link rel="stylesheet" type="text/css" href="_static/app.min.css?v=0ea85bdb" />
+    
     <script src="_static/documentation_options.js?v=5929fcd5"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script defer="" src="_static/app.umd.js?v=25136f1d"></script>
+    <script src="_static/searchtools.js"></script>
+    <script src="_static/language_data.js"></script>
     <link rel="icon" href="_static/icon.svg"/>
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Documentation guidelines" href="docs_guidelines/index.html" />
-    <link rel="prev" title="Installing" href="install.html" />
+    <link rel="search" title="Search" href="#" />
+    <script src="searchindex.js" defer></script>
+    <meta name="robots" content="noindex" />
+    
    
   
   <meta name="repository" content="doctools">
-  <meta name="version" content="main">
+  <meta name="version" content="">
   
 
 
@@ -39,6 +42,7 @@
     }
   }
 </style>
+
   </head><body>
   <input type="checkbox" id="input-show-toc">
   <input type="checkbox" id="input-show-localtoc">
@@ -87,13 +91,7 @@
           <a id="scroll-up" href="#top-anchor" title="Back to top"></a>
         </div>
         <nav>
-          <ul>
-<li><a class="reference internal" href="#">Fundamentals</a><ul>
-<li><a class="reference internal" href="#documentation-hierarchical-structure">Documentation hierarchical structure</a></li>
-</ul>
-</li>
-</ul>
-
+          
         </nav>
       </div>
     </div>
@@ -118,9 +116,9 @@ Content on this topic
 </div>
 <div class="toc-tree">
   <html>
-  <body><ul class="current">
+  <body><ul>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installing</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Fundamentals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fundamentals.html">Fundamentals</a></li>
 <li class="toctree-l1"><input class="toctree-collapse" type="checkbox" name="toctree-collapse-1" id="toctree-collapse-1"/><div class="collapse"><a class="reference internal" href="docs_guidelines/index.html">Documentation guidelines</a><label for="toctree-collapse-1"><div class="icon"></div></label></div><ul>
 <li class="toctree-l2"><a class="reference internal" href="docs_guidelines/directives.html">Custom directives</a></li>
 <li class="toctree-l2"><a class="reference internal" href="docs_guidelines/roles.html">Custom roles</a></li>
@@ -144,51 +142,32 @@ Content on this topic
           
           <div class="body" role="main">
             
-  <section id="fundamentals">
-<span id="id1"></span><h1>Fundamentals<a class="headerlink" href="#fundamentals" title="Link to this heading"></a></h1>
-<section id="documentation-hierarchical-structure">
-<h2>Documentation hierarchical structure<a class="headerlink" href="#documentation-hierarchical-structure" title="Link to this heading"></a></h2>
-<p>Doctools is the central piece to aggregate multiple documentations together,
-expanding the documentation standard hierarchical, mono-repo configuration.
-The content is organized in three levels:</p>
-<ul class="simple">
-<li><p>repotoc: Listing of repositories in the same organization that contain
-documentations.
-In general, a repository contains only one topic (toctree), e.g. the pyadi-iio
-doc is only about the libiio python bindings.
-If a repo stores more than one toctree/topic, the <code class="docutils literal notranslate"><span class="pre">topic</span></code> attribute is used to
-split each toctree on its own repotoc entry, as if they were stored in multiple
-repositories.
-The <code class="docutils literal notranslate"><span class="pre">topic</span></code> entry must contain one landing page associated with the toctree title,
-e.g. <code class="docutils literal notranslate"><span class="pre">topic:</span> <span class="pre">{'eval':</span> <span class="pre">'Evaluation</span> <span class="pre">Boards',</span> <span class="pre">'university':</span> <span class="pre">'University</span> <span class="pre">Program'}</span></code>,
-then the <em>index.rst</em> must a toctree titled <code class="docutils literal notranslate"><span class="pre">Evaluation</span> <span class="pre">Boards</span></code> and the page
-<code class="docutils literal notranslate"><span class="pre">eval/index.rst</span></code> must exist.
-In the html output, is displayed on the top header.</p></li>
-<li><p>toc: Table of contents of a repository documentation; the displayed depth
-is customizable, but in general a doc page (<code class="docutils literal notranslate"><span class="pre">.rst</span></code>, <code class="docutils literal notranslate"><span class="pre">.md</span></code>) generates one toc
-entry.
-In the html output, is displayed on the left of the webpage.</p></li>
-<li><p>localtoc: Contents on the current doc page/toc entry.
-In the html output, is displayed on the right of the webpage, identified by the
-“On this page” header.</p></li>
-</ul>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">repotoc</span></code> is managed by the <a class="icon git reference external" href="https://github.com/analogdevicesinc/doctools/tree/main/adi_doctools/lut.py">adi_doctools/lut.py</a> and is
-not a native Sphinx feature.
-<code class="docutils literal notranslate"><span class="pre">toc</span></code> and <code class="docutils literal notranslate"><span class="pre">localtoc</span></code> are concepts inherited from Sphinx.</p>
-</div>
-<p>By the concept of <code class="docutils literal notranslate"><span class="pre">repotoc</span></code>, it is possible to each doc to reference other
-repository doc using the <a class="reference internal" href="docs_guidelines/index.html#in-org-ref"><span class="std std-ref">In organization reference</span></a> role.</p>
-</section>
-</section>
-
+  <h1 id="search-documentation">Search</h1>
+  
+  <noscript>
+  <div class="admonition warning">
+  <p>
+    Please activate JavaScript to enable the search
+    functionality.
+  </p>
+  </div>
+  </noscript>
+  
+  
+  <p>
+    Searching for multiple words only shows matches that contain
+    all words.
+  </p>
+  
+  
+  <div id="search-results"></div>
+  
 
           </div>
               <div class="related">
                 &nbsp;
-    <a href="install.html" title="Previous document (Alt+Shift+LeftArrow)" class="prev">Installing</a>
-    <a href="docs_guidelines/index.html" title="Next document (Alt+Shift+RightArrow)" class="next">Documentation guidelines</a>
+    <div></div>
+    <div></div>
               </div>
           
         </div>
