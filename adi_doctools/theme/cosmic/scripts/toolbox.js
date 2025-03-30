@@ -74,7 +74,7 @@ class Toolbox {
       })
 
       if (response.status === 404)
-        console.log(fallback_url)
+        location.href = fallback_url
       else
         location.href = url
     } catch (e) {

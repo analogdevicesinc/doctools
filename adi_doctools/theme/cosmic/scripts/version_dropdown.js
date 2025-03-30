@@ -105,11 +105,15 @@ export class VersionDropdown {
 
     for (let key in obj) {
       let entry = new DOM('a', {
-        'href': `/${this.parent.state.repository}/${key}`
+        'href': key.length > 0 ?
+                  `/${this.parent.state.repository}/${key}` :
+                  `/${this.parent.state.repository}`
       })
       entry.onclick (this, (self, e) => {
         e.preventDefault()
-        let start = `/${app.state.repository}/${app.state.path}`,
+        let start = app.state.path.length > 0 ?
+                      `/${app.state.repository}/${app.state.path}` :
+                      `/${app.state.repository}`,
             og_url = location.pathname + location.hash
         if (og_url.startsWith(start)) {
           let url = self.$.href + og_url.substring(start.length)
