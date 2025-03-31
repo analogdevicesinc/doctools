@@ -119,7 +119,7 @@ To build the container image, use your favorite container engine:
 .. shell::
 
    $cd ~/doctools
-   $podman build --tag adi/doctools:v1 ci
+   $podman build --tag adi/doctools:latest ci
 
 .. _interactive-run:
 
@@ -160,7 +160,7 @@ on the container, for example:
 .. shell::
 
    ~/doctools
-   $pdr adi/doctools:v1 .
+   $pdr adi/doctools:latest .
    $python3.13 -m venv venv
    $source venv/bin/activate ; \
    $    pip3.13 install -e . ; \
@@ -259,7 +259,7 @@ set-up your secrets:
 The runner token is obtained from the GUI at ``github.com/<org>/<repository>/settings/actions/runners/new``.
 
 If ``github_token`` from :ref:`cluster-podman` is set, the runner_token
-is ignored and a new is requested.
+is ignored and a new one is requested.
 
 .. shell::
 
@@ -267,12 +267,13 @@ is ignored and a new is requested.
    $podman run \
    $    --secret adi_doctools_org_repository,target=/run/secrets/org_repository,uid=1 \
    $    --secret adi_doctools_runner_token,target=/run/secrets/runner_token,uid=1 \
-   $    --env runner_labels=v1
-   $    adi/doctools:v1
+   $    --env runner_labels=v1 \
+   $    adi/doctools:latest
 
 The environment variable runner_labels (comma-separated), set the runner labels.
 If not provided on the Containerfile as ``ENV runner_labels=<labels,>`` or as argument
 ``--env runner_labels=<labels,>``, it defaults to ``v1``.
+Most of the times, you want to use the Containerfile-set environment variable.
 
 .. _cluster-podman:
 
@@ -299,9 +300,10 @@ Below is a suggested systemd service at *~/.config/systemd/user/podman-doctools@
              --secret adi_doctools_org_repository,target=/run/secrets/org_repository,uid=1 \
              --secret adi_doctools_runner_token,target=/run/secrets/runner_token,uid=1 \
              --conmon-pidfile /%t/%n-pid --cidfile /%t/%n-cid \
-             -d adi/doctools:v1 top
+             --label "io.containers.autoupdate=local" \
+             -d adi/doctools:latest top
    ExecStop=/usr/bin/sh -c "/usr/bin/podman rm -f `cat /%t/%n-cid`"
-   TimeoutStopSec=60
+   TimeoutStopSec=600
    Type=forking
    PIDFile=/%t/%n-pid
 
@@ -309,6 +311,9 @@ Below is a suggested systemd service at *~/.config/systemd/user/podman-doctools@
    WantedBy=multi-user.target
 
 Remember to ``systemctl --user daemon-reload`` after modifying.
+With `autoupdate <https://docs.podman.io/en/latest/markdown/podman-auto-update.1.html>`__,
+if the image digest of the container and local storage differ,
+the local image is considered to be newer and the systemd unit gets restarted.
 
 Instead of passing runner_token, you can also pass a github_token to generate
 the runner_token on demand.
