@@ -45,11 +45,11 @@ USER runner
 
 RUN git config --global user.name "CSE CI" ; \
     git config --global user.email "cse-ci-notifications@analog.com" ; \
-    git config --global --add safe.directory '*' ; \
-    git config --global set advice.mergeConflict false ; \
-    git config --global core.pager cat ; \
+    git config --global init.defaultBranch  "__runner_init_branch" ; \
+    git config --global advice.mergeConflict false ; \
     git config --global advice.detachedHead false ; \
-    git config --global init.defaultBranch  "__runner_init_branch"
+    git config --global core.pager cat ; \
+    git config --global --add safe.directory '*'
 
 RUN mkdir -p /home/runner/playground
 WORKDIR /home/runner/playground

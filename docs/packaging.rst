@@ -265,8 +265,8 @@ is ignored and a new one is requested.
 
    ~/doctools
    $podman run \
-   $    --secret adi_doctools_org_repository,target=/run/secrets/org_repository,uid=1 \
-   $    --secret adi_doctools_runner_token,target=/run/secrets/runner_token,uid=1 \
+   $    --secret adi_doctools_org_repository,type=env,target=org_repository,uid=1 \
+   $    --secret adi_doctools_runner_token,type=env,target=runner_token,uid=1 \
    $    --env runner_labels=v1 \
    $    adi/doctools:latest
 
@@ -297,8 +297,8 @@ Below is a suggested systemd service at *~/.config/systemd/user/podman-doctools@
    ExecStartPre=/usr/bin/rm -f /%t/%n-pid /%t/%n-cid
    ExecStart=/usr/bin/podman run \
              --env name_label=%i \
-             --secret adi_doctools_org_repository,target=/run/secrets/org_repository,uid=1 \
-             --secret adi_doctools_runner_token,target=/run/secrets/runner_token,uid=1 \
+             --secret adi_doctools_org_repository,type=env,target=org_repository,uid=1 \
+             --secret adi_doctools_runner_token,type=env,target=runner_token,uid=1 \
              --conmon-pidfile /%t/%n-pid --cidfile /%t/%n-cid \
              --label "io.containers.autoupdate=local" \
              -d adi/doctools:latest top
@@ -319,12 +319,28 @@ Instead of passing runner_token, you can also pass a github_token to generate
 the runner_token on demand.
 Using the github_token is the recommended approach because during clean-up the original
 runner_token may have expired already.
-However, please understand the security implications and  ensure the token secrecy.
 
 .. shell::
 
    # e.g. MyVerYSecRetToken
    $printf GITHUB_TOKEN | podman secret create adi_doctools_github_token -
+
+Alternatively, you can also mount the ``runner_token`` into
+``/run/secrets/runner_token`` and have it read when necessary.
+However, please note, just like the GitHub Actions generated ``GITHUB_TOKEN``,
+the path ``/run/secrets/runner_token`` can be read by workflows,
+while the previous option is removed from the environment prior executing
+the GitHub Actions runtime.
+
+The order of precedence for authentication token is:
+
+#. ``github_token``: environment variable.
+#. ``runner_token``: plain text at */run/secrets/runner_token*.
+#. ``runner_token``: environment variable.
+
+Please understand the security implications and ensure the token secrecy,
+by for example, require manual approval for running workflows PRs from
+third party sources and don't relax ``runner`` user permissions.
 
 The required GitHub Fine-Grained token permission should be set as follows:
 
