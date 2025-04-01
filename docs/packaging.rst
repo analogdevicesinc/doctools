@@ -265,9 +265,9 @@ is ignored and a new one is requested.
 
    ~/doctools
    $podman run \
-   $    --secret adi_doctools_org_repository,type=env,target=org_repository,uid=1 \
-   $    --secret adi_doctools_runner_token,type=env,target=runner_token,uid=1 \
-   $    --env runner_labels=v1 \
+   $    --secret adi_doctools_org_repository,type=env,target=org_repository \
+   $    --secret adi_doctools_runner_token,type=env,target=runner_token \
+   $    --env runner_labels=v1,big_cpu \
    $    adi/doctools:latest
 
 The environment variable runner_labels (comma-separated), set the runner labels.
@@ -297,8 +297,8 @@ Below is a suggested systemd service at *~/.config/systemd/user/podman-doctools@
    ExecStartPre=/usr/bin/rm -f /%t/%n-pid /%t/%n-cid
    ExecStart=/usr/bin/podman run \
              --env name_label=%i \
-             --secret adi_doctools_org_repository,type=env,target=org_repository,uid=1 \
-             --secret adi_doctools_runner_token,type=env,target=runner_token,uid=1 \
+             --secret adi_doctools_org_repository,type=env,target=org_repository \
+             --secret adi_doctools_runner_token,type=env,target=runner_token \
              --conmon-pidfile /%t/%n-pid --cidfile /%t/%n-cid \
              --label "io.containers.autoupdate=local" \
              -d adi/doctools:latest top
