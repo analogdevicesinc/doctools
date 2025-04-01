@@ -259,7 +259,7 @@ if not using WSL2.</p>
 <div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~/doctools$
 </pre></div>
 </div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>podman<span class="w"> </span>build<span class="w"> </span>--tag<span class="w"> </span>adi/doctools:v1<span class="w"> </span>ci
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>podman<span class="w"> </span>build<span class="w"> </span>--tag<span class="w"> </span>adi/doctools:latest<span class="w"> </span>ci
 </pre></div>
 </div>
 <div class="clear-left"></div></div></div></section>
@@ -302,7 +302,7 @@ on the container, for example:</p>
 <div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~/doctools$
 </pre></div>
 </div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pdr<span class="w"> </span>adi/doctools:v1<span class="w"> </span>.
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pdr<span class="w"> </span>adi/doctools:latest<span class="w"> </span>.
 </pre></div>
 </div>
 <div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~/doctools$
@@ -467,25 +467,21 @@ set-up your secrets:</p>
 </div>
 <div class="clear-left"></div></div></div><p>The runner token is obtained from the GUI at <code class="docutils literal notranslate"><span class="pre">github.com/&lt;org&gt;/&lt;repository&gt;/settings/actions/runners/new</span></code>.</p>
 <p>If <code class="docutils literal notranslate"><span class="pre">github_token</span></code> from <a class="reference internal" href="#cluster-podman"><span class="std std-ref">Self-hosted cluster</span></a> is set, the runner_token
-is ignored and a new is requested.</p>
+is ignored and a new one is requested.</p>
 <div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~/doctools$
 </pre></div>
 </div>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>podman<span class="w"> </span>run<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--secret<span class="w"> </span>adi_doctools_org_repository,target<span class="o">=</span>/run/secrets/org_repository,uid<span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--secret<span class="w"> </span>adi_doctools_runner_token,target<span class="o">=</span>/run/secrets/runner_token,uid<span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--env<span class="w"> </span><span class="nv">runner_labels</span><span class="o">=</span>v1
-</pre></div>
-</div>
-<div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~/doctools$
-</pre></div>
-</div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="w">    </span>adi/doctools:v1
+<span class="w">    </span>--secret<span class="w"> </span>adi_doctools_org_repository,type<span class="o">=</span>env,target<span class="o">=</span>org_repository,uid<span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--secret<span class="w"> </span>adi_doctools_runner_token,type<span class="o">=</span>env,target<span class="o">=</span>runner_token,uid<span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--env<span class="w"> </span><span class="nv">runner_labels</span><span class="o">=</span>v1<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>adi/doctools:latest
 </pre></div>
 </div>
 <div class="clear-left"></div></div></div><p>The environment variable runner_labels (comma-separated), set the runner labels.
 If not provided on the Containerfile as <code class="docutils literal notranslate"><span class="pre">ENV</span> <span class="pre">runner_labels=&lt;labels,&gt;</span></code> or as argument
-<code class="docutils literal notranslate"><span class="pre">--env</span> <span class="pre">runner_labels=&lt;labels,&gt;</span></code>, it defaults to <code class="docutils literal notranslate"><span class="pre">v1</span></code>.</p>
+<code class="docutils literal notranslate"><span class="pre">--env</span> <span class="pre">runner_labels=&lt;labels,&gt;</span></code>, it defaults to <code class="docutils literal notranslate"><span class="pre">v1</span></code>.
+Most of the times, you want to use the Containerfile-set environment variable.</p>
 </section>
 <section id="self-hosted-cluster">
 <span id="cluster-podman"></span><h2>Self-hosted cluster<a class="headerlink" href="#self-hosted-cluster" title="Link to this heading"></a></h2>
@@ -502,12 +498,13 @@ systemd services, instead of for example, podman-compose.</p>
 <span class="n">ExecStartPre</span><span class="o">=/</span><span class="n">usr</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">rm</span> <span class="o">-</span><span class="n">f</span> <span class="o">/%</span><span class="n">t</span><span class="o">/%</span><span class="n">n</span><span class="o">-</span><span class="n">pid</span> <span class="o">/%</span><span class="n">t</span><span class="o">/%</span><span class="n">n</span><span class="o">-</span><span class="n">cid</span>
 <span class="n">ExecStart</span><span class="o">=/</span><span class="n">usr</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">podman</span> <span class="n">run</span> \
           <span class="o">--</span><span class="n">env</span> <span class="n">name_label</span><span class="o">=%</span><span class="n">i</span> \
-          <span class="o">--</span><span class="n">secret</span> <span class="n">adi_doctools_org_repository</span><span class="p">,</span><span class="n">target</span><span class="o">=/</span><span class="n">run</span><span class="o">/</span><span class="n">secrets</span><span class="o">/</span><span class="n">org_repository</span><span class="p">,</span><span class="n">uid</span><span class="o">=</span><span class="mi">1</span> \
-          <span class="o">--</span><span class="n">secret</span> <span class="n">adi_doctools_runner_token</span><span class="p">,</span><span class="n">target</span><span class="o">=/</span><span class="n">run</span><span class="o">/</span><span class="n">secrets</span><span class="o">/</span><span class="n">runner_token</span><span class="p">,</span><span class="n">uid</span><span class="o">=</span><span class="mi">1</span> \
+          <span class="o">--</span><span class="n">secret</span> <span class="n">adi_doctools_org_repository</span><span class="p">,</span><span class="nb">type</span><span class="o">=</span><span class="n">env</span><span class="p">,</span><span class="n">target</span><span class="o">=</span><span class="n">org_repository</span><span class="p">,</span><span class="n">uid</span><span class="o">=</span><span class="mi">1</span> \
+          <span class="o">--</span><span class="n">secret</span> <span class="n">adi_doctools_runner_token</span><span class="p">,</span><span class="nb">type</span><span class="o">=</span><span class="n">env</span><span class="p">,</span><span class="n">target</span><span class="o">=</span><span class="n">runner_token</span><span class="p">,</span><span class="n">uid</span><span class="o">=</span><span class="mi">1</span> \
           <span class="o">--</span><span class="n">conmon</span><span class="o">-</span><span class="n">pidfile</span> <span class="o">/%</span><span class="n">t</span><span class="o">/%</span><span class="n">n</span><span class="o">-</span><span class="n">pid</span> <span class="o">--</span><span class="n">cidfile</span> <span class="o">/%</span><span class="n">t</span><span class="o">/%</span><span class="n">n</span><span class="o">-</span><span class="n">cid</span> \
-          <span class="o">-</span><span class="n">d</span> <span class="n">adi</span><span class="o">/</span><span class="n">doctools</span><span class="p">:</span><span class="n">v1</span> <span class="n">top</span>
+          <span class="o">--</span><span class="n">label</span> <span class="s2">&quot;io.containers.autoupdate=local&quot;</span> \
+          <span class="o">-</span><span class="n">d</span> <span class="n">adi</span><span class="o">/</span><span class="n">doctools</span><span class="p">:</span><span class="n">latest</span> <span class="n">top</span>
 <span class="n">ExecStop</span><span class="o">=/</span><span class="n">usr</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">sh</span> <span class="o">-</span><span class="n">c</span> <span class="s2">&quot;/usr/bin/podman rm -f `cat /%t/%n-cid`&quot;</span>
-<span class="n">TimeoutStopSec</span><span class="o">=</span><span class="mi">60</span>
+<span class="n">TimeoutStopSec</span><span class="o">=</span><span class="mi">600</span>
 <span class="n">Type</span><span class="o">=</span><span class="n">forking</span>
 <span class="n">PIDFile</span><span class="o">=/%</span><span class="n">t</span><span class="o">/%</span><span class="n">n</span><span class="o">-</span><span class="n">pid</span>
 
@@ -515,12 +512,14 @@ systemd services, instead of for example, podman-compose.</p>
 <span class="n">WantedBy</span><span class="o">=</span><span class="n">multi</span><span class="o">-</span><span class="n">user</span><span class="o">.</span><span class="n">target</span>
 </pre></div>
 </div>
-<p>Remember to <code class="docutils literal notranslate"><span class="pre">systemctl</span> <span class="pre">--user</span> <span class="pre">daemon-reload</span></code> after modifying.</p>
+<p>Remember to <code class="docutils literal notranslate"><span class="pre">systemctl</span> <span class="pre">--user</span> <span class="pre">daemon-reload</span></code> after modifying.
+With <a class="reference external" href="https://docs.podman.io/en/latest/markdown/podman-auto-update.1.html">autoupdate</a>,
+if the image digest of the container and local storage differ,
+the local image is considered to be newer and the systemd unit gets restarted.</p>
 <p>Instead of passing runner_token, you can also pass a github_token to generate
 the runner_token on demand.
 Using the github_token is the recommended approach because during clean-up the original
-runner_token may have expired already.
-However, please understand the security implications and  ensure the token secrecy.</p>
+runner_token may have expired already.</p>
 <div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
 </pre></div>
 </div>
@@ -533,7 +532,22 @@ However, please understand the security implications and  ensure the token secre
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">printf</span><span class="w"> </span>GITHUB_TOKEN<span class="w"> </span><span class="p">|</span><span class="w"> </span>podman<span class="w"> </span>secret<span class="w"> </span>create<span class="w"> </span>adi_doctools_github_token<span class="w"> </span>-
 </pre></div>
 </div>
-<div class="clear-left"></div></div></div><p>The required GitHub Fine-Grained token permission should be set as follows:</p>
+<div class="clear-left"></div></div></div><p>Alternatively, you can also mount the <code class="docutils literal notranslate"><span class="pre">runner_token</span></code> into
+<code class="docutils literal notranslate"><span class="pre">/run/secrets/runner_token</span></code> and have it read when necessary.
+However, please note, just like the GitHub Actions generated <code class="docutils literal notranslate"><span class="pre">GITHUB_TOKEN</span></code>,
+the path <code class="docutils literal notranslate"><span class="pre">/run/secrets/runner_token</span></code> can be read by workflows,
+while the previous option is removed from the environment prior executing
+the GitHub Actions runtime.</p>
+<p>The order of precedence for authentication token is:</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">github_token</span></code>: environment variable.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">runner_token</span></code>: plain text at <em>/run/secrets/runner_token</em>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">runner_token</span></code>: environment variable.</p></li>
+</ol>
+<p>Please understand the security implications and ensure the token secrecy,
+by for example, require manual approval for running workflows PRs from
+third party sources and don’t relax <code class="docutils literal notranslate"><span class="pre">runner</span></code> user permissions.</p>
+<p>The required GitHub Fine-Grained token permission should be set as follows:</p>
 <p>For <a class="reference external" href="https://docs.github.com/en/rest/actions/self-hosted-runners?apiVersion=2022-11-28#create-a-registration-token-for-a-repository--fine-grained-access-tokens">repository runner</a>:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">administration:write</span></code>: “Administration” repository permissions (write).</p></li>
