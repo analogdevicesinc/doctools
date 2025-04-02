@@ -450,7 +450,7 @@ set-up your secrets:</p>
 <div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
 </pre></div>
 </div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">printf</span><span class="w"> </span>ORG_REPOSITORY<span class="w"> </span><span class="p">|</span><span class="w"> </span>podman<span class="w"> </span>secret<span class="w"> </span>create<span class="w"> </span>adi_doctools_org_repository<span class="w"> </span>-
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">printf</span><span class="w"> </span>ORG_REPOSITORY<span class="w"> </span><span class="p">|</span><span class="w"> </span>podman<span class="w"> </span>secret<span class="w"> </span>create<span class="w"> </span>public_doctools_org_repository<span class="w"> </span>-
 </pre></div>
 </div>
 <div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
@@ -462,7 +462,7 @@ set-up your secrets:</p>
 <div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
 </pre></div>
 </div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">printf</span><span class="w"> </span>RUNNER_TOKEN<span class="w"> </span><span class="p">|</span><span class="w"> </span>podman<span class="w"> </span>secret<span class="w"> </span>create<span class="w"> </span>adi_doctools_runner_token<span class="w"> </span>-
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">printf</span><span class="w"> </span>RUNNER_TOKEN<span class="w"> </span><span class="p">|</span><span class="w"> </span>podman<span class="w"> </span>secret<span class="w"> </span>create<span class="w"> </span>public_doctools_runner_token<span class="w"> </span>-
 </pre></div>
 </div>
 <div class="clear-left"></div></div></div><p>The runner token is obtained from the GUI at <code class="docutils literal notranslate"><span class="pre">github.com/&lt;org&gt;/&lt;repository&gt;/settings/actions/runners/new</span></code>.</p>
@@ -472,8 +472,8 @@ is ignored and a new one is requested.</p>
 </pre></div>
 </div>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>podman<span class="w"> </span>run<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--secret<span class="w"> </span>adi_doctools_org_repository,type<span class="o">=</span>env,target<span class="o">=</span>org_repository<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--secret<span class="w"> </span>adi_doctools_runner_token,type<span class="o">=</span>env,target<span class="o">=</span>runner_token<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--secret<span class="w"> </span>public_doctools_org_repository,type<span class="o">=</span>env,target<span class="o">=</span>org_repository<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--secret<span class="w"> </span>public_doctools_runner_token,type<span class="o">=</span>env,target<span class="o">=</span>runner_token<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--env<span class="w"> </span><span class="nv">runner_labels</span><span class="o">=</span>v1,big_cpu<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>adi/doctools:latest
 </pre></div>
@@ -487,9 +487,9 @@ Most of the times, you want to use the Containerfile-set environment variable.</
 <span id="cluster-podman"></span><h2>Self-hosted cluster<a class="headerlink" href="#self-hosted-cluster" title="Link to this heading"></a></h2>
 <p>To host a cluster of self-hosted runners, the recommended approach is to use
 systemd services, instead of for example, podman-compose.</p>
-<p>Below is a suggested systemd service at <em>~/.config/systemd/user/podman-doctools&#64;.service</em>.</p>
+<p>Below is a suggested systemd service at <em>~/.config/systemd/user/podman-public-doctools&#64;.service</em>.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">Unit</span><span class="p">]</span>
-<span class="n">Description</span><span class="o">=</span><span class="n">Podman</span> <span class="n">adi_doctools</span> <span class="n">ci</span> <span class="o">%</span><span class="n">i</span>
+<span class="n">Description</span><span class="o">=</span><span class="n">Podman</span> <span class="n">public</span> <span class="n">doctools</span> <span class="n">ci</span> <span class="o">%</span><span class="n">i</span>
 <span class="n">Wants</span><span class="o">=</span><span class="n">network</span><span class="o">-</span><span class="n">online</span><span class="o">.</span><span class="n">target</span>
 <span class="n">After</span><span class="o">=</span><span class="n">network</span><span class="o">-</span><span class="n">online</span><span class="o">.</span><span class="n">target</span>
 
@@ -498,10 +498,13 @@ systemd services, instead of for example, podman-compose.</p>
 <span class="n">ExecStartPre</span><span class="o">=/</span><span class="n">usr</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">rm</span> <span class="o">-</span><span class="n">f</span> <span class="o">/%</span><span class="n">t</span><span class="o">/%</span><span class="n">n</span><span class="o">-</span><span class="n">pid</span> <span class="o">/%</span><span class="n">t</span><span class="o">/%</span><span class="n">n</span><span class="o">-</span><span class="n">cid</span>
 <span class="n">ExecStart</span><span class="o">=/</span><span class="n">usr</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">podman</span> <span class="n">run</span> \
           <span class="o">--</span><span class="n">env</span> <span class="n">name_label</span><span class="o">=%</span><span class="n">i</span> \
-          <span class="o">--</span><span class="n">secret</span> <span class="n">adi_doctools_org_repository</span><span class="p">,</span><span class="nb">type</span><span class="o">=</span><span class="n">env</span><span class="p">,</span><span class="n">target</span><span class="o">=</span><span class="n">org_repository</span> \
-          <span class="o">--</span><span class="n">secret</span> <span class="n">adi_doctools_runner_token</span><span class="p">,</span><span class="nb">type</span><span class="o">=</span><span class="n">env</span><span class="p">,</span><span class="n">target</span><span class="o">=</span><span class="n">runner_token</span> \
+          <span class="o">--</span><span class="n">secret</span> <span class="n">public_doctools_org_repository</span><span class="p">,</span><span class="nb">type</span><span class="o">=</span><span class="n">env</span><span class="p">,</span><span class="n">target</span><span class="o">=</span><span class="n">org_repository</span> \
+          <span class="o">--</span><span class="n">secret</span> <span class="n">public_doctools_runner_token</span><span class="p">,</span><span class="nb">type</span><span class="o">=</span><span class="n">env</span><span class="p">,</span><span class="n">target</span><span class="o">=</span><span class="n">runner_token</span> \
           <span class="o">--</span><span class="n">conmon</span><span class="o">-</span><span class="n">pidfile</span> <span class="o">/%</span><span class="n">t</span><span class="o">/%</span><span class="n">n</span><span class="o">-</span><span class="n">pid</span> <span class="o">--</span><span class="n">cidfile</span> <span class="o">/%</span><span class="n">t</span><span class="o">/%</span><span class="n">n</span><span class="o">-</span><span class="n">cid</span> \
           <span class="o">--</span><span class="n">label</span> <span class="s2">&quot;io.containers.autoupdate=local&quot;</span> \
+          <span class="o">--</span><span class="n">memory</span><span class="o">-</span><span class="n">swap</span><span class="o">=</span><span class="mi">20</span><span class="n">g</span> \
+          <span class="o">--</span><span class="n">memory</span><span class="o">=</span><span class="mi">16</span><span class="n">g</span> \
+          <span class="o">--</span><span class="n">cpus</span><span class="o">=</span><span class="mi">4</span> \
           <span class="o">-</span><span class="n">d</span> <span class="n">adi</span><span class="o">/</span><span class="n">doctools</span><span class="p">:</span><span class="n">latest</span> <span class="n">top</span>
 <span class="n">ExecStop</span><span class="o">=/</span><span class="n">usr</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">sh</span> <span class="o">-</span><span class="n">c</span> <span class="s2">&quot;/usr/bin/podman rm -f `cat /%t/%n-cid`&quot;</span>
 <span class="n">TimeoutStopSec</span><span class="o">=</span><span class="mi">600</span>
@@ -520,6 +523,9 @@ the local image is considered to be newer and the systemd unit gets restarted.</
 the runner_token on demand.
 Using the github_token is the recommended approach because during clean-up the original
 runner_token may have expired already.</p>
+<p>Tune the limit flags for your needs.
+The <code class="docutils literal notranslate"><span class="pre">--cpus</span></code> flag requires a kernel with <code class="docutils literal notranslate"><span class="pre">CONFIG_CFS_BANDWIDTH</span></code> enabled.
+You can check with <code class="docutils literal notranslate"><span class="pre">zgrep</span> <span class="pre">CONFIG_CFS_BANDWIDTH=</span> <span class="pre">/proc/config.gz</span></code>.</p>
 <div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
 </pre></div>
 </div>
@@ -529,7 +535,7 @@ runner_token may have expired already.</p>
 <div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
 </pre></div>
 </div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">printf</span><span class="w"> </span>GITHUB_TOKEN<span class="w"> </span><span class="p">|</span><span class="w"> </span>podman<span class="w"> </span>secret<span class="w"> </span>create<span class="w"> </span>adi_doctools_github_token<span class="w"> </span>-
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">printf</span><span class="w"> </span>GITHUB_TOKEN<span class="w"> </span><span class="p">|</span><span class="w"> </span>podman<span class="w"> </span>secret<span class="w"> </span>create<span class="w"> </span>public_doctools_github_token<span class="w"> </span>-
 </pre></div>
 </div>
 <div class="clear-left"></div></div></div><p>Alternatively, you can also mount the <code class="docutils literal notranslate"><span class="pre">runner_token</span></code> into
@@ -559,8 +565,8 @@ third party sources and don’t relax <code class="docutils literal notranslate"
 </ul>
 <p>Then update the systemd service.</p>
 <p>Enable and start the service</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>systemctl<span class="w"> </span>--user<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>podman-doctools@0.service
-systemctl<span class="w"> </span>--user<span class="w"> </span>start<span class="w"> </span>podman-doctools@0.service
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>systemctl<span class="w"> </span>--user<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>podman-public-doctools@0.service
+systemctl<span class="w"> </span>--user<span class="w"> </span>start<span class="w"> </span>podman-public-doctools@0.service
 </pre></div>
 </div>
 <div class="admonition attention">
