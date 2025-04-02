@@ -393,12 +393,12 @@ Rebase on your side before running <code class="docutils literal notranslate"><s
 </pre></div>
 </div>
 <div class="clear-left"></div></div></div><p>By default, it will run on the checks on the top 5 commits, to set other value,
-set <code class="docutils literal notranslate"><span class="pre">ACT_DETPH</span></code> on <em>.env</em>
+set <code class="docutils literal notranslate"><span class="pre">ACT_DEPTH</span></code> on <em>.env</em>
 e.g. 4 commits:</p>
 <div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
 </pre></div>
 </div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">echo</span><span class="w"> </span><span class="nv">ACT_DETPH</span><span class="o">=</span><span class="k">$(</span>git<span class="w"> </span>rev-list<span class="w"> </span>--count<span class="w"> </span>@~4..@<span class="k">)</span><span class="w"> </span>&gt;<span class="w"> </span>.env
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">echo</span><span class="w"> </span><span class="nv">ACT_DEPTH</span><span class="o">=</span><span class="k">$(</span>git<span class="w"> </span>rev-list<span class="w"> </span>--count<span class="w"> </span>@~4..@<span class="k">)</span><span class="w"> </span>&gt;<span class="w"> </span>.env
 </pre></div>
 </div>
 <div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
@@ -427,7 +427,7 @@ e.g. 4 commits:</p>
 <div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
 </pre></div>
 </div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">echo</span><span class="w"> </span><span class="nv">ACT_DETPH</span><span class="o">=</span><span class="k">$(</span>git<span class="w"> </span>rev-list<span class="w"> </span>--count<span class="w"> </span><span class="nv">$head</span>~5..<span class="nv">$head</span><span class="k">)</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>.env
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">echo</span><span class="w"> </span><span class="nv">ACT_DEPTH</span><span class="o">=</span><span class="k">$(</span>git<span class="w"> </span>rev-list<span class="w"> </span>--count<span class="w"> </span><span class="nv">$head</span>~5..<span class="nv">$head</span><span class="k">)</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>.env
 </pre></div>
 </div>
 <div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
