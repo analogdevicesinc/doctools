@@ -220,12 +220,12 @@ To run a specific workflow, use ``-W``, e.g.:
    $    -W .github/workflows/build-doc.yml
 
 By default, it will run on the checks on the top 5 commits, to set other value,
-set ``ACT_DETPH`` on *.env*
+set ``ACT_DEPTH`` on *.env*
 e.g. 4 commits:
 
 .. shell::
 
-   $echo ACT_DETPH=$(git rev-list --count @~4..@) > .env
+   $echo ACT_DEPTH=$(git rev-list --count @~4..@) > .env
    $act pull_request --remote-name public
 
 .. tip::
@@ -238,7 +238,7 @@ You can also provide a ``head`` variable to filter out ``wip`` commits, for exam
 
    $head=$(git rev-parse @~5)
    $echo ACT_HEAD=$head > .env
-   $echo ACT_DETPH=$(git rev-list --count $head~5..$head) >> .env
+   $echo ACT_DEPTH=$(git rev-list --count $head~5..$head) >> .env
    $act pull_request --remote-name public
 
 .. _podman-run:
