@@ -252,9 +252,9 @@ set-up your secrets:
 .. shell::
 
    # e.g. analogdevicesinc/doctools
-   $printf ORG_REPOSITORY | podman secret create adi_doctools_org_repository -
+   $printf ORG_REPOSITORY | podman secret create public_doctools_org_repository -
    # e.g. MyVerYSecRunnerToken
-   $printf RUNNER_TOKEN | podman secret create adi_doctools_runner_token -
+   $printf RUNNER_TOKEN | podman secret create public_doctools_runner_token -
 
 The runner token is obtained from the GUI at ``github.com/<org>/<repository>/settings/actions/runners/new``.
 
@@ -265,8 +265,8 @@ is ignored and a new one is requested.
 
    ~/doctools
    $podman run \
-   $    --secret adi_doctools_org_repository,type=env,target=org_repository \
-   $    --secret adi_doctools_runner_token,type=env,target=runner_token \
+   $    --secret public_doctools_org_repository,type=env,target=org_repository \
+   $    --secret public_doctools_runner_token,type=env,target=runner_token \
    $    --env runner_labels=v1,big_cpu \
    $    adi/doctools:latest
 
@@ -283,12 +283,12 @@ Self-hosted cluster
 To host a cluster of self-hosted runners, the recommended approach is to use
 systemd services, instead of for example, podman-compose.
 
-Below is a suggested systemd service at *~/.config/systemd/user/podman-doctools@.service*.
+Below is a suggested systemd service at *~/.config/systemd/user/podman-public-doctools@.service*.
 
 ::
 
    [Unit]
-   Description=Podman adi_doctools ci %i
+   Description=Podman public doctools ci %i
    Wants=network-online.target
    After=network-online.target
 
@@ -297,10 +297,13 @@ Below is a suggested systemd service at *~/.config/systemd/user/podman-doctools@
    ExecStartPre=/usr/bin/rm -f /%t/%n-pid /%t/%n-cid
    ExecStart=/usr/bin/podman run \
              --env name_label=%i \
-             --secret adi_doctools_org_repository,type=env,target=org_repository \
-             --secret adi_doctools_runner_token,type=env,target=runner_token \
+             --secret public_doctools_org_repository,type=env,target=org_repository \
+             --secret public_doctools_runner_token,type=env,target=runner_token \
              --conmon-pidfile /%t/%n-pid --cidfile /%t/%n-cid \
              --label "io.containers.autoupdate=local" \
+             --memory-swap=20g \
+             --memory=16g \
+             --cpus=4 \
              -d adi/doctools:latest top
    ExecStop=/usr/bin/sh -c "/usr/bin/podman rm -f `cat /%t/%n-cid`"
    TimeoutStopSec=600
@@ -320,10 +323,14 @@ the runner_token on demand.
 Using the github_token is the recommended approach because during clean-up the original
 runner_token may have expired already.
 
+Tune the limit flags for your needs.
+The ``--cpus`` flag requires a kernel with ``CONFIG_CFS_BANDWIDTH`` enabled.
+You can check with ``zgrep CONFIG_CFS_BANDWIDTH= /proc/config.gz``.
+
 .. shell::
 
    # e.g. MyVerYSecRetToken
-   $printf GITHUB_TOKEN | podman secret create adi_doctools_github_token -
+   $printf GITHUB_TOKEN | podman secret create public_doctools_github_token -
 
 Alternatively, you can also mount the ``runner_token`` into
 ``/run/secrets/runner_token`` and have it read when necessary.
@@ -359,8 +366,8 @@ Enable and start the service
 
 .. code:: shell
 
-   systemctl --user enable podman-doctools@0.service
-   systemctl --user start podman-doctools@0.service
+   systemctl --user enable podman-public-doctools@0.service
+   systemctl --user start podman-public-doctools@0.service
 
 .. attention::
 
