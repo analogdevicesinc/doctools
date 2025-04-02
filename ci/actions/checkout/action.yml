@@ -35,6 +35,9 @@ runs:
           echo "depth_sha=$(( ${{ inputs.depth }} + 1 ))" >> $GITHUB_ENV
         elif [[ "${{ github.event.pull_request.commits }}" ]]; then
           echo "depth_sha=$(( ${{ github.event.pull_request.commits }} + 1 ))" >> $GITHUB_ENV
+        elif [[ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]] && [[ ! "${{ github.event.forced }}" == "true" ]]; then
+          echo "github_safe_push=true" >> $GITHUB_ENV
+          echo "depth_sha=100" >> $GITHUB_ENV
         else
           echo "depth_sha=6" >> $GITHUB_ENV
         fi
@@ -98,6 +101,11 @@ runs:
           echo "head_sha=$(git rev-parse @)" >> "$GITHUB_ENV"
         else
           git reset --hard $head_sha
+
+          if [[ "$github_safe_push" == "true" ]]; then
+            depth_sha=$(git rev-list --count ${{ github.event.before }}..$head_sha)
+            echo "depth_sha=$depth_sha" >> "$GITHUB_ENV"
+          fi
         fi
 
         echo "base_sha=$(git rev-parse @~$((depth_sha - 1)))" >> "$GITHUB_ENV"
