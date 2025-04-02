@@ -14,9 +14,14 @@ inputs:
   gh-token:
     description: 'GitHub Token'
     default: ${{ github.token }}
-#env:
-# ACT_DEPTH: The depth when fetching, overwrites depth
-# ACT_HEAD: The head to fetch
+# env:
+#   ACT_DEPTH: The depth when fetching, overwrites depth
+#   ACT_HEAD: The head to fetch
+
+# behaviour:
+# github.event.pull_request.head.sha is always used to detect the PR case.
+# cache/ branches are created to avoid base refs from being garbage collected.
+# on PRs, the patch commits are cherry-picked, not merged.
 
 runs:
   using: composite
@@ -65,6 +70,7 @@ runs:
           git am --abort 2>/dev/null || true
           git merge --abort 2>/dev/null || true
           git rebase --abort 2>/dev/null || true
+          git revert --abort 2>/dev/null || true
           git cherry-pick --abort 2>/dev/null || true
 
           git reset --hard --quiet
@@ -72,7 +78,7 @@ runs:
 
           git checkout $(git rev-parse @)
           echo "clean-up branches"
-          branches=$((git branch || true) | (grep -v ^'*' || true))
+          branches=$((git branch || true) | (grep -v ^'*' | grep -v ^'\s\+cache/' || true))
           if [[ "$branches" ]]; then
             git branch -D $branches || true
           fi
@@ -97,3 +103,15 @@ runs:
         echo "base_sha=$(git rev-parse @~$((depth_sha - 1)))" >> "$GITHUB_ENV"
         git log --oneline --reverse | head -200
 
+    - name: Generate cache branches
+      shell: bash
+      run: |
+        if [[ "${{ github.event.pull_request.head.sha }}" ]]; then
+          cache_branch=${{ github.base_ref }}
+          cache_commit=$(git rev-parse origin/${{ github.base_ref }})
+        else
+          cache_branch=${{ github.ref }}
+          cache_commit=$head_sha
+        fi
+        cache_branch=cache/$cache_branch
+        git branch $cache_branch $cache_commit -f
