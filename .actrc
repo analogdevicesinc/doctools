@@ -1,5 +1,4 @@
 --artifact-server-path $PWD/.artifacts
 --container-options "--mount=type=bind,source=.,destination=/mnt/repo,ro=true"
--e ci/act-event.json
 -P self-hosted=adi/doctools:latest
 --pull=false
