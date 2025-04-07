@@ -48,7 +48,7 @@ if [[ "$it" == "true" ]]; then
 	}
 	mkfifo $github_pipe_fifo
 	export GITHUB_ENV=$github_pipe_fifo
-	github_pipe_listener &
+	set -m ; github_pipe_listener &
 	github_pipe_pid=$(command echo $!)
 	trap github_pipe_exit_handler EXIT
 
