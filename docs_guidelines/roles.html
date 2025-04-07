@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<html lang="en" data-content_root="../">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -8,9 +8,9 @@
     <title>Custom roles &#8212; Doctools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8e8a900e" />
     <link rel="stylesheet" type="text/css" href="../_static/app.min.css?v=0ea85bdb" />
-    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
     <script defer="" src="../_static/app.umd.js?v=19910719"></script>
     <link rel="icon" href="../_static/icon.svg"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -109,7 +109,7 @@
     </div>
 
   
-      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
     <a id="no-logo" href="../index.html">
       Doctools
@@ -162,25 +162,25 @@ Content on this topic
           <div class="body" role="main">
             
   <section id="custom-roles">
-<h1>Custom roles<a class="headerlink" href="#custom-roles" title="Link to this heading"></a></h1>
+<h1>Custom roles<a class="headerlink" href="#custom-roles" title="Permalink to this heading"></a></h1>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Link-like roles use the <code class="code docutils literal notranslate"><span class="pre">:role:`text</span> <span class="pre">&lt;link&gt;`</span></code> synthax, like external
 links, but without the undescore in the end.</p>
 </div>
 <section id="color">
-<h2>Color<a class="headerlink" href="#color" title="Link to this heading"></a></h2>
+<h2>Color<a class="headerlink" href="#color" title="Permalink to this heading"></a></h2>
 <p>To print text in red or green, use <code class="code docutils literal notranslate"><span class="pre">:red:`text`</span></code> and <code class="code docutils literal notranslate"><span class="pre">:green:`text`</span></code>.</p>
 </section>
 <section id="link">
-<h2>Link<a class="headerlink" href="#link" title="Link to this heading"></a></h2>
+<h2>Link<a class="headerlink" href="#link" title="Permalink to this heading"></a></h2>
 <p>The link roles are a group of roles defined by <code class="docutils literal notranslate"><span class="pre">adi_links.py</span></code>.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">validate_links</span></code> global option is used to validate each link during build.
 These links are not managed, that means, only links from changed files are checked.
 You can run a build with it set to False, then touch the desired files to check
 the links of only these files.</p>
 <section id="git">
-<span id="role-git"></span><h3>Git<a class="headerlink" href="#git" title="Link to this heading"></a></h3>
+<span id="role-git"></span><h3>Git<a class="headerlink" href="#git" title="Permalink to this heading"></a></h3>
 <p>The Git role allows to create links to the Git repository with a shorter syntax.
 The role syntax is <code class="code docutils literal notranslate"><span class="pre">:git-repo:`text</span> <span class="pre">&lt;type+branch:path&gt;`</span></code>, for example:</p>
 <ul class="simple">
@@ -215,12 +215,12 @@ repository with pretty naming, for example, <code class="code docutils literal n
 as <a class="icon git reference external" href="https://github.com/analogdevicesinc/hdl/tree/main/">ADI HDL repository</a>.</p>
 </section>
 <section id="downgit">
-<h3>DownGit<a class="headerlink" href="#downgit" title="Link to this heading"></a></h3>
+<h3>DownGit<a class="headerlink" href="#downgit" title="Permalink to this heading"></a></h3>
 <p>Same as the <a class="reference internal" href="#role-git"><span class="std std-ref">Git</span></a> but wrapping the address with the <a class="icon git reference external" href="https://github.com/analogdevicesinc/DownGit/">ADI DownGit repository</a>
 fork.</p>
 </section>
 <section id="adi">
-<h3>ADI<a class="headerlink" href="#adi" title="Link to this heading"></a></h3>
+<h3>ADI<a class="headerlink" href="#adi" title="Permalink to this heading"></a></h3>
 <p>The adi role creates links for a webpage to the Analog Devices Inc. website.</p>
 <p>The role syntax is <code class="code docutils literal notranslate"><span class="pre">:adi:`text</span> <span class="pre">&lt;webpage&gt;`</span></code>, for example,
 <code class="code docutils literal notranslate"><span class="pre">:adi:`AD7175-2</span> <span class="pre">&lt;ad7175-2&gt;`</span></code>.
@@ -229,7 +229,7 @@ Since links are case insensitive, you can also reduce it to
 as <a class="icon adi reference external" href="https://www.analog.com/AD7175-2">AD7175-2</a>.</p>
 </section>
 <section id="dokuwiki">
-<span id="role-dokuwiki"></span><h3>Dokuwiki<a class="headerlink" href="#dokuwiki" title="Link to this heading"></a></h3>
+<span id="role-dokuwiki"></span><h3>Dokuwiki<a class="headerlink" href="#dokuwiki" title="Permalink to this heading"></a></h3>
 <p>The dokuwiki role creates links to the Analog Devices Inc. wiki website.
 The role syntax is <code class="code docutils literal notranslate"><span class="pre">:dokuwiki:`text</span> <span class="pre">&lt;path&gt;`</span></code>, for example,
 <code class="code docutils literal notranslate"><span class="pre">:dokuwiki:`pulsar-adc-pmods</span> <span class="pre">&lt;resources/eval/user-guides/circuits-from-the-lab/pulsar-adc-pmods&gt;`</span></code>
@@ -243,7 +243,7 @@ The sole intend of this qualifier is to distinct pending import pages from won�
 import pages.</p>
 </section>
 <section id="engineerzone">
-<h3>EngineerZone<a class="headerlink" href="#engineerzone" title="Link to this heading"></a></h3>
+<h3>EngineerZone<a class="headerlink" href="#engineerzone" title="Permalink to this heading"></a></h3>
 <p>The ez role creates links to the Analog Devices Inc. EngineerZone support website.
 The role syntax is <code class="code docutils literal notranslate"><span class="pre">:ez:`community`</span></code>, for example, <code class="code docutils literal notranslate"><span class="pre">:ez:`fpga`</span></code>
 gets rendered as <a class="icon ez reference external" href="https://ez.analog.com/fpga">EngineerZone</a>.</p>
@@ -251,7 +251,7 @@ gets rendered as <a class="icon ez reference external" href="https://ez.analog.c
 <p>For Microcontroller no-OS Drivers it is <code class="code docutils literal notranslate"><span class="pre">:ez:`microcontroller-no-os-drivers`</span></code>.</p>
 </section>
 <section id="vendor">
-<h3>Vendor<a class="headerlink" href="#vendor" title="Link to this heading"></a></h3>
+<h3>Vendor<a class="headerlink" href="#vendor" title="Permalink to this heading"></a></h3>
 <p>The vendor role creates links to the vendor’s website.
 The role syntax is <code class="code docutils literal notranslate"><span class="pre">:vendor:`text</span> <span class="pre">&lt;path&gt;`</span></code>, for example,
 <code class="code docutils literal notranslate"><span class="pre">:xilinx:`Zynq-7000</span> <span class="pre">SoC</span> <span class="pre">Overview</span> <span class="pre">&lt;support/documentation/data_sheets/ds190-Zynq-7000-Overview.pdf&gt;`</span></code>
@@ -267,7 +267,7 @@ gets rendered
 <code class="docutils literal notranslate"><span class="pre">mw</span></code> (MathWorks).</p>
 </section>
 <section id="supplier">
-<h3>Supplier<a class="headerlink" href="#supplier" title="Link to this heading"></a></h3>
+<h3>Supplier<a class="headerlink" href="#supplier" title="Permalink to this heading"></a></h3>
 <p>The supplier role creates links to a vendor’s website search.
 The role syntax is <code class="code docutils literal notranslate"><span class="pre">:vendor:`text</span> <span class="pre">&lt;path&gt;`</span></code>, for example,
 <code class="code docutils literal notranslate"><span class="pre">:digikey:`AD9081-FMCA-EBZ`</span></code>

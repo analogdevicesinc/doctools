@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<html lang="en" data-content_root="./">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -8,9 +8,9 @@
     <title>Documentation deployment &#8212; Doctools  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8e8a900e" />
     <link rel="stylesheet" type="text/css" href="_static/app.min.css?v=0ea85bdb" />
-    <script src="_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="_static/doctools.js?v=9bcbadda"></script>
-    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=4825356b"></script>
     <script defer="" src="_static/app.umd.js?v=19910719"></script>
     <link rel="icon" href="_static/icon.svg"/>
     <link rel="index" title="Index" href="genindex.html" />
@@ -111,7 +111,7 @@
     </div>
 
   
-      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
     <a id="no-logo" href="index.html">
       Doctools
@@ -157,11 +157,11 @@ Content on this topic
           <div class="body" role="main">
             
   <section id="documentation-deployment">
-<span id="ci"></span><h1>Documentation deployment<a class="headerlink" href="#documentation-deployment" title="Link to this heading"></a></h1>
+<span id="ci"></span><h1>Documentation deployment<a class="headerlink" href="#documentation-deployment" title="Permalink to this heading"></a></h1>
 <p>Doctools is developed to work offline, in a local server, as a rolling release
 (e.g. on GitHub Page)s and versioned in a dedicated server (with orchestration).</p>
 <section id="local">
-<span id="ci-local"></span><h2>Local<a class="headerlink" href="#local" title="Link to this heading"></a></h2>
+<span id="ci-local"></span><h2>Local<a class="headerlink" href="#local" title="Permalink to this heading"></a></h2>
 <p>For offline and local server, a <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">html</span></code> suffice to generate the
 documentation.</p>
 <p>To serve the build in a local server, Python built-in server can be used:</p>
@@ -180,7 +180,7 @@ documentation.</p>
 </div>
 <div class="clear-left"></div></div></div></section>
 <section id="rolling-release">
-<span id="ci-rolling-release"></span><h2>Rolling release<a class="headerlink" href="#rolling-release" title="Link to this heading"></a></h2>
+<span id="ci-rolling-release"></span><h2>Rolling release<a class="headerlink" href="#rolling-release" title="Permalink to this heading"></a></h2>
 <p>For a rolling release, a workflow file is used.</p>
 <p>With GitHub Actions, the following workflow file is recommended:</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">on</span><span class="p">:</span>
@@ -282,7 +282,7 @@ please be aware of GitHub events values if implementing something else.</p>
 </div>
 </section>
 <section id="versioned">
-<span id="ci-versioned"></span><h2>Versioned<a class="headerlink" href="#versioned" title="Link to this heading"></a></h2>
+<span id="ci-versioned"></span><h2>Versioned<a class="headerlink" href="#versioned" title="Permalink to this heading"></a></h2>
 <p>The live versioned version requires additional orchestration than the
 <a class="reference internal" href="#ci-rolling-release"><span class="std std-ref">Rolling release</span></a>.</p>
 <p>The versions are described in <code class="docutils literal notranslate"><span class="pre">tags.json</span></code> file on the root path
@@ -291,7 +291,7 @@ fine-grained to allow full control.</p>
 <p>But first, store each version in separated folders in the root path, e.g.
 <code class="docutils literal notranslate"><span class="pre">v1.1</span></code>, <code class="docutils literal notranslate"><span class="pre">v2.2</span></code>, <code class="docutils literal notranslate"><span class="pre">main</span></code>, <code class="docutils literal notranslate"><span class="pre">dev</span></code>.</p>
 <section id="string-array-form">
-<h3>String array form<a class="headerlink" href="#string-array-form" title="Link to this heading"></a></h3>
+<h3>String array form<a class="headerlink" href="#string-array-form" title="Permalink to this heading"></a></h3>
 <p>The simple <code class="docutils literal notranslate"><span class="pre">tags.json</span></code> is a plain array with each version/path on the
 and generate a <code class="docutils literal notranslate"><span class="pre">tags.json</span></code>, e.g. <code class="docutils literal notranslate"><span class="pre">[&quot;v1.1&quot;,</span> <span class="pre">&quot;v2.2&quot;,</span> <span class="pre">&quot;main&quot;,</span> <span class="pre">&quot;dev&quot;,</span> <span class="pre">&quot;&quot;]</span></code>
 (a empty string means there is a built doc on the root and will be named
@@ -321,7 +321,7 @@ how to implement it.</p>
 </div>
 <div class="clear-left"></div></div></div></section>
 <section id="fine-grained-form">
-<h3>Fine-grained form<a class="headerlink" href="#fine-grained-form" title="Link to this heading"></a></h3>
+<h3>Fine-grained form<a class="headerlink" href="#fine-grained-form" title="Permalink to this heading"></a></h3>
 <p>The more elaborated option takes the following format:</p>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;path&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;label&quot;</span><span class="p">],</span>
@@ -347,9 +347,9 @@ should match a value on the <code class="docutils literal notranslate"><span cla
 </section>
 </section>
 <section id="further-notes">
-<h2>Further notes<a class="headerlink" href="#further-notes" title="Link to this heading"></a></h2>
+<h2>Further notes<a class="headerlink" href="#further-notes" title="Permalink to this heading"></a></h2>
 <section id="i-don-t-want-a-doc-at-the-root">
-<h3>I don’t want a doc at the root<a class="headerlink" href="#i-don-t-want-a-doc-at-the-root" title="Link to this heading"></a></h3>
+<h3>I don’t want a doc at the root<a class="headerlink" href="#i-don-t-want-a-doc-at-the-root" title="Permalink to this heading"></a></h3>
 <p>If the root does not contain any built doc, add a redirect HTML file pointing
 to the main/stable version:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&lt;!DOCTYPE html&gt;
@@ -362,13 +362,13 @@ to the main/stable version:</p>
 </div>
 </section>
 <section id="how-do-i-cross-reference-a-specific-version">
-<h3>How do I cross-reference a specific version?<a class="headerlink" href="#how-do-i-cross-reference-a-specific-version" title="Link to this heading"></a></h3>
+<h3>How do I cross-reference a specific version?<a class="headerlink" href="#how-do-i-cross-reference-a-specific-version" title="Permalink to this heading"></a></h3>
 <p>For <a class="reference internal" href="docs_guidelines/index.html#in-org-ref"><span class="std std-ref">In organization reference</span></a>, the doc shall target a specific version by suffixing
 the target the version on the <code class="docutils literal notranslate"><span class="pre">interref_repos</span></code> variable, e.g.
 <code class="docutils literal notranslate"><span class="pre">interref_repos</span> <span class="pre">=</span> <span class="pre">['pyadi-iio/dev',</span> <span class="pre">'other-repo/v1.1']</span></code>.</p>
 </section>
 <section id="what-happened-to-adoc-target-depth">
-<h3>What happened to <code class="docutils literal notranslate"><span class="pre">ADOC_TARGET_DEPTH</span></code>?<a class="headerlink" href="#what-happened-to-adoc-target-depth" title="Link to this heading"></a></h3>
+<h3>What happened to <code class="docutils literal notranslate"><span class="pre">ADOC_TARGET_DEPTH</span></code>?<a class="headerlink" href="#what-happened-to-adoc-target-depth" title="Permalink to this heading"></a></h3>
 <p>Previously there was also a <code class="docutils literal notranslate"><span class="pre">ADOC_TARGET_DEPTH</span></code> enviroment variables
 to create full relative links between versions, but this was deprecated
 by instead just using the root <code class="docutils literal notranslate"><span class="pre">/</span></code> for those links, e.g.
