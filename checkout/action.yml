@@ -26,20 +26,32 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Get depth
+    - name: Get commit depth
       shell: bash
       run: |
-        if [[ "${{ env.ACT_DEPTH }}" ]]; then
-          echo "depth_sha=$(( ${{ env.ACT_DEPTH }} + 1 ))" >> $GITHUB_ENV
-        elif [[ "${{ inputs.depth }}" ]]; then
-          echo "depth_sha=$(( ${{ inputs.depth }} + 1 ))" >> $GITHUB_ENV
-        elif [[ "${{ github.event.pull_request.commits }}" ]]; then
-          echo "depth_sha=$(( ${{ github.event.pull_request.commits }} + 1 ))" >> $GITHUB_ENV
-        elif [[ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]] && [[ ! "${{ github.event.forced }}" == "true" ]]; then
-          echo "github_safe_push=true" >> $GITHUB_ENV
-          echo "depth_sha=100" >> $GITHUB_ENV
+        if [[ "${{ env.ACT }}" ]]; then
+          if [[ "${{ env.ACT_DEPTH }}" ]]; then
+            echo "setting depth_sha based on env.ACT_DEPTH"
+            echo "depth_sha=$(( ${{ env.ACT_DEPTH }} + 1 ))" >> $GITHUB_ENV
+          else
+            echo "setting depth_sha as 6 (fallback, consider setting ACT_DEPTH enviroment variable)"
+            echo "depth_sha=6" >> $GITHUB_ENV
+          fi
         else
-          echo "depth_sha=6" >> $GITHUB_ENV
+          if [[ "${{ inputs.depth }}" ]]; then
+            echo "setting depth_sha based on inputs.depth"
+            echo "depth_sha=$(( ${{ inputs.depth }} + 1 ))" >> $GITHUB_ENV
+          elif [[ "${{ github.event.pull_request.commits }}" ]]; then
+            echo "setting depth_sha based on github.event.pull_request.commits"
+            echo "depth_sha=$(( ${{ github.event.pull_request.commits }} + 1 ))" >> $GITHUB_ENV
+          elif [[ "${{ github.event.before }}" ]] && [[ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]] && [[ "${{ github.event.forced }}" == "false" ]]; then
+            echo "setting depth_sha based on github.event.before"
+            echo "github_safe_push=true" >> $GITHUB_ENV
+            echo "depth_sha=100" >> $GITHUB_ENV
+          else
+            echo "setting depth_sha as 6 (fallback, either push new-branch or unexpected event type)"
+            echo "depth_sha=6" >> $GITHUB_ENV
+          fi
         fi
 
         if [[ "${{ env.ACT }}" ]]; then
