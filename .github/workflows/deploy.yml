@@ -45,7 +45,7 @@ jobs:
         )
 
     - name: Get latest vars
-      if: ${{ !env.ACT }} && ${{ env.new_tag == '1' }}
+      if: ${{ !env.ACT && env.new_tag == '1' }}
       run: |
         source /usr/local/bin/github-api.sh
         release_id=$(
@@ -63,13 +63,13 @@ jobs:
         )
 
     - name: Create new tag
-      if: ${{ !env.ACT }} && ${{ env.new_tag == '1' }}
+      if: ${{ !env.ACT && env.new_tag == '1' }}
       run: |
          git tag $tag
          git push origin $tag
 
     - name: Create tag release and upload asset
-      if: ${{ !env.ACT }} && ${{ env.new_tag == '1' }}
+      if: ${{ !env.ACT && env.new_tag == '1' }}
       run: |
         source /usr/local/bin/github-api.sh
         release_id=$(
@@ -111,7 +111,7 @@ jobs:
                         $full_asset_name
 
     - name: Update latest target commitish
-      if: ${{ !env.ACT }} && ${{ env.new_tag == '1' }}
+      if: ${{ !env.ACT && env.new_tag == '1' }}
       run: |
         source /usr/local/bin/github-api.sh
         gh-update-commitish ${{ secrets.GITHUB_TOKEN }} \
@@ -120,7 +120,7 @@ jobs:
                             $latest_id
 
     - name: Upload latest asset
-      if: ${{ !env.ACT }} && ${{ env.new_tag == '1' }}
+      if: ${{ !env.ACT && env.new_tag == '1' }}
       run: |
         source /usr/local/bin/github-api.sh
         if [[ ! "$latest_asset_id" == "" ]]; then
