@@ -446,7 +446,7 @@ def serve(directory, port, dev, selenium, once, builder):
         update_dev_pool()
 
     def get_doc_sources():
-        types = ['*.rst', '*.svg', '*.txt', '*.png', '*.jpg', '*.jpeg', '*.py']
+        types = ['*.rst', '*.md', '*.svg', '*.txt', '*.png', '*.jpg', '*.jpeg', '*.py']
         files = []
         ctime = []
         for typ in types:
