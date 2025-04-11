@@ -15,7 +15,6 @@ language = 'en'
 
 extensions = [
     'adi_doctools',
-    'rst2pdf.pdfbuilder'
 ]
 
 needs_extensions = {
