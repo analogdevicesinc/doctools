@@ -158,7 +158,9 @@ format using either rs2pdf or WeasyPrint.
 This is done by setting the environment variable called
 ``ADOC_MEDIA_PRINT`` (the value does not matter) and building the documentation.
 
-For rst2pdf, use:
+For rst2pdf, add ``rst2pdf`` to *conf.py* ``extensions`` list,
+install ``rst2pdf``, ``svglib`` (svg support) and ``matplotlib`` (LaTeX formulas)
+from pip and use:
 
 .. shell::
 
@@ -176,7 +178,9 @@ required for the PDF build.
    the HTML pages of documentation. If not set, some components of the pages
    may not render properly.
 
-Alternatively, WeasyPrint can be used with :ref:`serve` with this command:
+For  WeasyPrint,
+install ``weasyprint``, and ``matplotlib`` (LaTeX formulas) from pip
+and use with :ref:`serve`:
 
 .. shell::
 
