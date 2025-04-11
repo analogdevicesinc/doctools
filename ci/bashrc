@@ -2,35 +2,34 @@
 
 [ -z "$PS1" ] || it=true
 
-if [[ "$it" == "true" ]]; then
-	err=0
-	if git rev-parse --is-inside-work-tree  > /dev/null 2>&1 ; then
-		pushd $(git rev-parse --show-toplevel) &>/dev/null
-		if [[ -f "ci/build.sh" ]]; then
-			export head_sha=$(git rev-parse --short=20 @)
-			export base_sha=$(git rev-parse --short=20 @~6)
-			printf "Set git commit range as (\$base_sha..\$head_sha)\n"
-			printf "\e[34m$base_sha..$head_sha\e[0m.\n"
-			printf "Adjust variables range as needed.\n"
-			source ci/build.sh
+if git rev-parse --is-inside-work-tree  > /dev/null 2>&1 ; then
+	pushd $(git rev-parse --show-toplevel) &>/dev/null
+	if [[ -z "$head_sha" ]]; then
+		export head_sha=$(git rev-parse --short=20 @)
+	fi
+	if [[ -z "$base_sha" ]]; then
+		export base_sha=$(git rev-parse --short=20 @~6)
+	fi
+	if [[ "$it" == "true" ]]; then
+		printf "Set git commit range as (\$base_sha..\$head_sha)\n"
+		printf "\e[34m$base_sha..$head_sha\e[0m\n"
+		printf "Adjust variables range as needed.\n"
+	fi
+	if [[ -f "ci/build.sh" ]]; then
+		source ci/build.sh
+		if [[ "$it" == "true" ]]; then
 			printf "\nSourced methods from ci/build.sh:\n\e[34m"
 			grep -oE '^[a-zA-Z_][a-zA-Z0-9_]*\s*\(\)\s*\{' ci/build.sh |  \
 				awk -F'[ ()]+' '{print $1}' | paste -sd ' '
 			printf "\e[0m"
-		else
-			printf "At a git repository, but ci/build.sh not found."
-			err=1
 		fi
-		popd &>/dev/null
-	else
-		printf "Not a git repository."
-		err=1
 	fi
+	popd &>/dev/null
+else
+	printf "Not a git repository, not setting git commit range variables or sourcing ci/build.sh\n"
+fi
 
-	if [[ $err == "1" ]]; then
-		printf " Not sourcing ci/build.sh or setting git commit range variables\n"
-	fi
-
+if [[ "$it" == "true" ]]; then
 	github_pipe_fifo=/tmp/github_env_$(tr -dc A-Za-z0-9 </dev/urandom | head -c 4; command echo)
 	github_pipe_listener () {
 		while true; do
@@ -51,8 +50,8 @@ if [[ "$it" == "true" ]]; then
 	set -m ; github_pipe_listener &
 	github_pipe_pid=$(command echo $!)
 	trap github_pipe_exit_handler EXIT
-
-	echo () {
-		command echo "$@" | sed "s/%0A/\n/g"
-	}
 fi
+
+echo () {
+	command echo "$@" | sed "s/%0A/\n/g"
+}
