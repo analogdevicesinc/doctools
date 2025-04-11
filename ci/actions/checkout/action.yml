@@ -97,7 +97,7 @@ runs:
           if [[ "$branches" ]]; then
             git branch -D $branches || true
           fi
-          git branch -D trunk || true
+          git branch -D trunk 2>/dev/null || true
           git checkout -b trunk
         fi
 
@@ -109,7 +109,15 @@ runs:
         if [[ "${{ github.event.pull_request.head.sha }}" ]]; then
           git fetch origin --depth=1 ${{ github.base_ref }}
           git reset --hard origin/${{ github.base_ref }}
-          git cherry-pick --allow-empty --empty=keep $head_sha~$((depth_sha - 1))..$head_sha
+          # --empty was added on git 2.45.0
+          has_keep=$(git cherry-pick 2>&1 | grep "\--empty" | wc -l) || true
+          echo $has_keep
+          if [[ "$has_keep" -gt "0" ]]; then
+            keep_empty="--empty=keep"
+          else
+            keep_empty="--keep-redundant-commits"
+          fi
+          git cherry-pick --allow-empty $keep_empty $head_sha~$((depth_sha - 1))..$head_sha
           echo "head_sha=$(git rev-parse @)" >> "$GITHUB_ENV"
         else
           git reset --hard $head_sha
