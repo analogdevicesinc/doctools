@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -8,9 +8,9 @@
     <title>Custom directives &#8212; Doctools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8e8a900e" />
     <link rel="stylesheet" type="text/css" href="../_static/app.min.css?v=0ea85bdb" />
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=b3ba4146"></script>
-    <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script defer="" src="../_static/app.umd.js?v=19910719"></script>
     <link rel="icon" href="../_static/icon.svg"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -118,7 +118,7 @@
     </div>
 
   
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper">
     <a id="no-logo" href="../index.html">
       Doctools
@@ -171,14 +171,14 @@ Content on this topic
           <div class="body" role="main">
             
   <section id="custom-directives">
-<h1>Custom directives<a class="headerlink" href="#custom-directives" title="Permalink to this heading"></a></h1>
+<h1>Custom directives<a class="headerlink" href="#custom-directives" title="Link to this heading"></a></h1>
 <section id="container">
-<h2>Container<a class="headerlink" href="#container" title="Permalink to this heading"></a></h2>
+<h2>Container<a class="headerlink" href="#container" title="Link to this heading"></a></h2>
 <p>To allow disposing content in a tabular manner but still respecting the multiple
 screen sizes and both HTML and PDF output, two container directives are available,
 <code class="docutils literal notranslate"><span class="pre">flex</span></code> and <code class="docutils literal notranslate"><span class="pre">grid</span></code>.</p>
 <section id="flex">
-<span id="directive-flex"></span><h3>Flex<a class="headerlink" href="#flex" title="Permalink to this heading"></a></h3>
+<span id="directive-flex"></span><h3>Flex<a class="headerlink" href="#flex" title="Link to this heading"></a></h3>
 <p>The grid directive implements a subset of
 <a class="reference external" href="https://css-tricks.com/snippets/css/a-guide-to-flexbox/">CSS Flex</a>.
 And is used to dipose elements without worrying about number of columns and sizes,
@@ -188,7 +188,7 @@ while still obtaining a fairly good result.</p>
 </div>
 </section>
 <section id="grid">
-<span id="directive-grid"></span><h3>Grid<a class="headerlink" href="#grid" title="Permalink to this heading"></a></h3>
+<span id="directive-grid"></span><h3>Grid<a class="headerlink" href="#grid" title="Link to this heading"></a></h3>
 <p>The grid directive implements a subset of
 <a class="reference external" href="https://css-tricks.com/snippets/css/complete-guide-grid/">CSS Grids</a>.
 And is used to dipose elements with exact number of columns and width control.</p>
@@ -203,7 +203,7 @@ columns in a sane manner.</p>
 </section>
 </section>
 <section id="clear-content">
-<h2>Clear content<a class="headerlink" href="#clear-content" title="Permalink to this heading"></a></h2>
+<h2>Clear content<a class="headerlink" href="#clear-content" title="Link to this heading"></a></h2>
 <p>A simple directive to
 <a class="reference external" href="https://developer.mozilla.org/en-US/docs/Web/CSS/clear">clear</a>
 the content, forcing any following content to be moved below any preceding
@@ -222,7 +222,7 @@ By default, it clear <code class="docutils literal notranslate"><span class="pre
 (behaves similar to LaTeX <em>cleardoublepage</em>).</p>
 </section>
 <section id="shell">
-<h2>Shell<a class="headerlink" href="#shell" title="Permalink to this heading"></a></h2>
+<h2>Shell<a class="headerlink" href="#shell" title="Link to this heading"></a></h2>
 <p>The shell directive allows to embed shell code in a standard way.</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">shell</span><span class="p">::</span> [bash,sh,zsh,ps1]
    <span class="nc">:user:</span> <span class="nt">&lt;user&gt;</span>
@@ -262,7 +262,7 @@ example:</p>
 </div>
 <p>Renders as:</p>
 <div class="literal-block-wrapper docutils container" id="id1">
-<div class="code-block-caption"><span class="caption-text">iio_reg help</span><a class="headerlink" href="#id1" title="Permalink to this code"></a></div>
+<div class="code-block-caption"><span class="caption-text">iio_reg help</span><a class="headerlink" href="#id1" title="Link to this code"></a></div>
 <div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>user@analog:~$
 </pre></div>
 </div>
@@ -417,7 +417,7 @@ real 7m54.11s user 0.29s sys 8.94s
 </div>
 <div class="clear-left"></div></div></div></section>
 <section id="svg">
-<span id="svg-directive"></span><h2>SVG<a class="headerlink" href="#svg" title="Permalink to this heading"></a></h2>
+<span id="svg-directive"></span><h2>SVG<a class="headerlink" href="#svg" title="Link to this heading"></a></h2>
 <p>The SVG directive embeds a SVG image directly onto the page, having it share
 the same DOM sandbox as the page.</p>
 <p>This allows the SVG image to contain links and interactive content, such as
@@ -437,7 +437,7 @@ hover effects.</p>
 <p>But have the proper hooks for future implementation for other outputs (LaTeX, etc.).</p>
 </section>
 <section id="collapsible">
-<h2>Collapsible<a class="headerlink" href="#collapsible" title="Permalink to this heading"></a></h2>
+<h2>Collapsible<a class="headerlink" href="#collapsible" title="Link to this heading"></a></h2>
 <p>The collapsible directive creates a collapsible/dropdown/”HTML details”.</p>
 <p>The directive syntax is:</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">collapsible</span><span class="p">::</span> <span class="nt">&lt;label&gt;</span>
@@ -465,7 +465,7 @@ hover effects.</p>
 </div><p>Notice how you can use any Sphinx syntax, even nest other directives.</p>
 </section>
 <section id="video">
-<h2>Video<a class="headerlink" href="#video" title="Permalink to this heading"></a></h2>
+<h2>Video<a class="headerlink" href="#video" title="Link to this heading"></a></h2>
 <p>The video directive creates a embedded video.
 Currently, direct MP4 and youtube embed links  are supported, but could be easily
 expanded to support third-party services.</p>
@@ -502,7 +502,7 @@ video, but a link to it.</p>
 <p><a href="https://www.youtube.com/watch?v=p_VntEwUe24"><span>https://www.youtube.com/watch?v=p_VntEwUe24</span></a></p>
 </div></div></section>
 <section id="esd-warning">
-<h2>ESD warning<a class="headerlink" href="#esd-warning" title="Permalink to this heading"></a></h2>
+<h2>ESD warning<a class="headerlink" href="#esd-warning" title="Link to this heading"></a></h2>
 <p>The ESD warning directive creates a ESD warning, for example:</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">esd-warning</span><span class="p">::</span>
 </pre></div>
@@ -514,10 +514,10 @@ Although the boards feature ESD protection circuitry, permanent damage may occur
 </div>
 </div></section>
 <section id="hdl-directives">
-<h2>HDL directives<a class="headerlink" href="#hdl-directives" title="Permalink to this heading"></a></h2>
+<h2>HDL directives<a class="headerlink" href="#hdl-directives" title="Link to this heading"></a></h2>
 <p>The directives in this section target the <a class="icon git reference external" href="https://github.com/analogdevicesinc/hdl/tree/main/">ADI HDL repository</a> documentation.</p>
 <section id="hdl-build-status">
-<span id="hdl-build-status-directive"></span><h3>HDL build status<a class="headerlink" href="#hdl-build-status" title="Permalink to this heading"></a></h3>
+<span id="hdl-build-status-directive"></span><h3>HDL build status<a class="headerlink" href="#hdl-build-status" title="Link to this heading"></a></h3>
 <p>The HDL build status directive gets information from a markdown formatted status
 table (<em>output.md</em>) and generates a table with the build statuses.</p>
 <p>The directive syntax is:</p>
@@ -535,7 +535,7 @@ thrown.</p>
 </div>
 </section>
 <section id="hdl-parameters">
-<h3>HDL parameters<a class="headerlink" href="#hdl-parameters" title="Permalink to this heading"></a></h3>
+<h3>HDL parameters<a class="headerlink" href="#hdl-parameters" title="Link to this heading"></a></h3>
 <p>The HDL parameters directive gets information parsed from IP-XACT (<em>component.xml</em>)
 library and generates a table with the IP parameters.</p>
 <div class="admonition note">
@@ -567,7 +567,7 @@ file.</p>
 documentation file path matches the <em>component.xml</em> hierarchically.</p>
 </section>
 <section id="hdl-interface">
-<h3>HDL interface<a class="headerlink" href="#hdl-interface" title="Permalink to this heading"></a></h3>
+<h3>HDL interface<a class="headerlink" href="#hdl-interface" title="Link to this heading"></a></h3>
 <p>The HDL interfaces directive gets information parsed from <em>component.xml</em> library
 and generates tables with the IP interfaces, both buses and ports.</p>
 <div class="admonition note">
@@ -611,7 +611,7 @@ legacy puporses, instead suffix with <code class="docutils literal notranslate">
 documentation file path matches the <em>component.xml</em> hierarchically.</p>
 </section>
 <section id="hdl-component-diagram">
-<h3>HDL component diagram<a class="headerlink" href="#hdl-component-diagram" title="Permalink to this heading"></a></h3>
+<h3>HDL component diagram<a class="headerlink" href="#hdl-component-diagram" title="Link to this heading"></a></h3>
 <p>The HDL component diagram directive gets information parsed from <em>component.xml</em>
 library and generates a component diagram for the IP with buses and ports
 information.</p>
@@ -638,7 +638,7 @@ documentation file path matches the <em>component.xml</em> hierarchically.</p>
 </div>
 </section>
 <section id="hdl-regmap">
-<h3>HDL regmap<a class="headerlink" href="#hdl-regmap" title="Permalink to this heading"></a></h3>
+<h3>HDL regmap<a class="headerlink" href="#hdl-regmap" title="Link to this heading"></a></h3>
 <p>The HDL regmap directive gets information from <em>docs/regmap/adi_regmap_*.txt</em> files
 and generates tables with the register maps.</p>
 <p>The directive syntax is:</p>
@@ -668,7 +668,7 @@ register access types.</p>
 </section>
 </section>
 <section id="global-options-for-directives">
-<h2>Global options for directives<a class="headerlink" href="#global-options-for-directives" title="Permalink to this heading"></a></h2>
+<h2>Global options for directives<a class="headerlink" href="#global-options-for-directives" title="Link to this heading"></a></h2>
 <p>Set <code class="docutils literal notranslate"><span class="pre">hide_collapsible_content</span></code> to <code class="docutils literal notranslate"><span class="pre">True</span></code> to hide the <em>collapsibles</em> by default.</p>
 <p>Set <code class="docutils literal notranslate"><span class="pre">monolithic</span></code> to <code class="docutils literal notranslate"><span class="pre">True</span></code> prefix paths with <em>&lt;repo&gt;</em>.
 This is meant for the <a class="reference internal" href="../cli.html#custom-doc"><span class="std std-ref">Custom Doc</span></a> custom documents only.</p>

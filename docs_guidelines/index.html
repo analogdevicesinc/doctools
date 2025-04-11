@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -8,9 +8,9 @@
     <title>Documentation guidelines &#8212; Doctools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8e8a900e" />
     <link rel="stylesheet" type="text/css" href="../_static/app.min.css?v=0ea85bdb" />
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=b3ba4146"></script>
-    <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script defer="" src="../_static/app.umd.js?v=19910719"></script>
     <link rel="icon" href="../_static/icon.svg"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -128,7 +128,7 @@
     </div>
 
   
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper">
     <a id="no-logo" href="../index.html">
       Doctools
@@ -174,7 +174,7 @@ Content on this topic
           <div class="body" role="main">
             
   <section id="documentation-guidelines">
-<span id="docs-guidelines"></span><h1>Documentation guidelines<a class="headerlink" href="#documentation-guidelines" title="Permalink to this heading"></a></h1>
+<span id="docs-guidelines"></span><h1>Documentation guidelines<a class="headerlink" href="#documentation-guidelines" title="Link to this heading"></a></h1>
 <p>A brief set-of-rules for the documentation.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -183,7 +183,7 @@ importing text from there, consider the automated options that are provided
 in this page to convert it to reST.</p>
 </div>
 <section id="importing-from-dokuwiki-to-sphinx">
-<h2>Importing from DokuWiki to Sphinx<a class="headerlink" href="#importing-from-dokuwiki-to-sphinx" title="Permalink to this heading"></a></h2>
+<h2>Importing from DokuWiki to Sphinx<a class="headerlink" href="#importing-from-dokuwiki-to-sphinx" title="Link to this heading"></a></h2>
 <p>Use the following command to import a DokuWiki page (old <em>wiki.analog.com</em>):</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pandoc<span class="w"> </span>imported.txt<span class="w"> </span>-f<span class="w"> </span>dokuwiki<span class="w"> </span>-t<span class="w"> </span>rst<span class="w"> </span>--columns<span class="o">=</span><span class="m">80</span><span class="w"> </span>-s<span class="w"> </span>-o<span class="w"> </span>imported.rst<span class="w"> </span>--list-tables
 </pre></div>
@@ -209,14 +209,14 @@ repetitive steps.</p>
 to further help importing.</p>
 </section>
 <section id="indentation">
-<h2>Indentation<a class="headerlink" href="#indentation" title="Permalink to this heading"></a></h2>
+<h2>Indentation<a class="headerlink" href="#indentation" title="Link to this heading"></a></h2>
 <p>Directives are indented with 3 space, which is Sphinx’s default.
 At code directives, the code keeps its original indentation (e.g. 2 spaces for
 Verilog code), but is offset by 3 spaces at the beginning of every line, to
 instruct Sphinx the beginning and end of the code directive.</p>
 </section>
 <section id="table-of-contents">
-<h2>Table of contents<a class="headerlink" href="#table-of-contents" title="Permalink to this heading"></a></h2>
+<h2>Table of contents<a class="headerlink" href="#table-of-contents" title="Link to this heading"></a></h2>
 <p>The relation between pages are created with the <code class="docutils literal notranslate"><span class="pre">toctree</span></code> directive,
 which allows to generate the table of contents and navigation bars.</p>
 <p>Each page may have only one toctree, since they are the equivalent of the
@@ -270,7 +270,7 @@ with it enabled may be obnoxious and confusing prior the final structure/locatio
 of them.</p>
 </section>
 <section id="versioning">
-<span id="version"></span><h2>Versioning<a class="headerlink" href="#versioning" title="Permalink to this heading"></a></h2>
+<span id="version"></span><h2>Versioning<a class="headerlink" href="#versioning" title="Link to this heading"></a></h2>
 <p>To avoid having the version set in multiple places or having to tweak <code class="docutils literal notranslate"><span class="pre">conf.py</span></code>
 to obtain it from somewhere else, continuous integration can set the environment
 variable <code class="docutils literal notranslate"><span class="pre">ADOC_DOC_VERSION</span></code> to set the version value.</p>
@@ -299,7 +299,7 @@ to an empty string.</p>
 </aside>
 </section>
 <section id="exporting-to-pdf">
-<h2>Exporting to PDF<a class="headerlink" href="#exporting-to-pdf" title="Permalink to this heading"></a></h2>
+<h2>Exporting to PDF<a class="headerlink" href="#exporting-to-pdf" title="Link to this heading"></a></h2>
 <p>The whole documentation can be exported to a PDF document for a more compact
 format using either rs2pdf or WeasyPrint.
 This is done by setting the environment variable called
@@ -328,7 +328,7 @@ may not render properly.</p>
 <div class="clear-left"></div></div></div><p>The advantage of WeasyPrint is that the design styles (CSS stylesheet) is
 respected.</p>
 <section id="inner-working">
-<h3>Inner working<a class="headerlink" href="#inner-working" title="Permalink to this heading"></a></h3>
+<h3>Inner working<a class="headerlink" href="#inner-working" title="Link to this heading"></a></h3>
 <p>Internally, <code class="docutils literal notranslate"><span class="pre">ADOC_MEDIA_PRINT</span></code> variable is set to <code class="docutils literal notranslate"><span class="pre">app.config.media_print</span></code>
 and should be used in scenarios where it is explicitly needed to compile the
 content in a different manner than for the <strong>hosted</strong> html.
@@ -340,7 +340,7 @@ third-party JavaScript libraries in the user browser.</p>
 </section>
 </section>
 <section id="local-references">
-<span id="local-refs"></span><h2>Local references<a class="headerlink" href="#local-references" title="Permalink to this heading"></a></h2>
+<span id="local-refs"></span><h2>Local references<a class="headerlink" href="#local-references" title="Link to this heading"></a></h2>
 <p>References to labels have the format <code class="code docutils literal notranslate"><span class="pre">:ref:`context</span> <span class="pre">topic`</span></code>, e.g.
 <code class="code docutils literal notranslate"><span class="pre">:ref:`role</span> <span class="pre">git`</span></code> renders as <a class="reference internal" href="roles.html#role-git"><span class="std std-ref">Git</span></a>.</p>
 <p>Labels are created for any content with the syntax
@@ -366,7 +366,7 @@ and always lower case,
 for example
 <code class="docutils literal notranslate"><span class="pre">my_code</span> <span class="pre">control-interface</span></code> instead of <code class="docutils literal notranslate"><span class="pre">MY_CODE</span> <span class="pre">Control_Interface</span></code>.</p>
 <section id="numbered-references">
-<h3>Numbered references<a class="headerlink" href="#numbered-references" title="Permalink to this heading"></a></h3>
+<h3>Numbered references<a class="headerlink" href="#numbered-references" title="Link to this heading"></a></h3>
 <p>References can be numbered by using
 <a class="reference external" href="https://www.sphinx-doc.org/en/master/usage/referencing.html#role-numref">numref</a>,
 for example, “<em>see Figure 1</em>”.</p>
@@ -392,7 +392,7 @@ the numbering will “propagate” across page which may be counter-intuitive.</
 </section>
 </section>
 <section id="external-references">
-<span id="inter-refs"></span><h2>External references<a class="headerlink" href="#external-references" title="Permalink to this heading"></a></h2>
+<span id="inter-refs"></span><h2>External references<a class="headerlink" href="#external-references" title="Link to this heading"></a></h2>
 <p>External references to other Sphinx documentation are created using the built-in
 <code class="docutils literal notranslate"><span class="pre">sphinx.ext.intersphinx</span></code> extension.</p>
 <p>To setup <strong>in-organization</strong> references read the <a class="reference internal" href="#in-org-ref"><span class="std std-ref">section below</span></a>,
@@ -434,7 +434,7 @@ and let <a class="reference internal" href="../cli.html#cli"><span class="std st
 </pre></div>
 </div>
 <section id="in-organization-reference">
-<span id="in-org-ref"></span><h3>In organization reference<a class="headerlink" href="#in-organization-reference" title="Permalink to this heading"></a></h3>
+<span id="in-org-ref"></span><h3>In organization reference<a class="headerlink" href="#in-organization-reference" title="Link to this heading"></a></h3>
 <p>To create references to Sphinx docs inside the organization add the repositories
 of interest to the <cite>conf.py</cite> file with the following format:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">interref_repos</span> <span class="o">=</span> <span class="p">[</span><span class="n">external</span><span class="o">...</span><span class="p">]</span>
@@ -472,7 +472,7 @@ current repository:</p>
 <p>The correct relative paths are resolved looking into the <code class="docutils literal notranslate"><span class="pre">lut.py</span></code>.</p>
 </section>
 <section id="outside-organization-sphinx-reference">
-<span id="out-org-ref"></span><h3>Outside organization Sphinx reference<a class="headerlink" href="#outside-organization-sphinx-reference" title="Permalink to this heading"></a></h3>
+<span id="out-org-ref"></span><h3>Outside organization Sphinx reference<a class="headerlink" href="#outside-organization-sphinx-reference" title="Link to this heading"></a></h3>
 <p>To create references to third-party Sphinx documentations, add the mappings to
 to the <cite>conf.py</cite> file with the following format:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">intersphinx_mapping</span> <span class="o">=</span> <span class="p">{</span>
@@ -489,7 +489,7 @@ to the <cite>conf.py</cite> file with the following format:</p>
 </section>
 </section>
 <section id="text-width">
-<h2>Text width<a class="headerlink" href="#text-width" title="Permalink to this heading"></a></h2>
+<h2>Text width<a class="headerlink" href="#text-width" title="Link to this heading"></a></h2>
 <p>Each line must be less than 80 columns wide.
 You can use the <code class="code docutils literal notranslate"><span class="pre">fold</span></code> command to break the lines of the imported text
 while respecting word-breaks:</p>
@@ -504,7 +504,7 @@ title character, that means, this is also valid:</p>
 </div>
 </section>
 <section id="tables">
-<span id="id2"></span><h2>Tables<a class="headerlink" href="#tables" title="Permalink to this heading"></a></h2>
+<span id="id2"></span><h2>Tables<a class="headerlink" href="#tables" title="Link to this heading"></a></h2>
 <p>Prefer
 <a class="reference external" href="https://docutils.sourceforge.io/docs/ref/rst/directives.html#list-table">list-tables</a>
 and imported
@@ -521,7 +521,7 @@ if strictly necessary, since they are hard to update.</p>
 </ul>
 </section>
 <section id="lists">
-<h2>Lists<a class="headerlink" href="#lists" title="Permalink to this heading"></a></h2>
+<h2>Lists<a class="headerlink" href="#lists" title="Link to this heading"></a></h2>
 <p>Unordered lists use <code class="docutils literal notranslate"><span class="pre">*</span></code> or <code class="docutils literal notranslate"><span class="pre">-</span></code> and ordered lists <code class="docutils literal notranslate"><span class="pre">#.</span></code>.</p>
 <p>Child items must be aligned with the first letter of the parent item, that means,
 2 spaces for unordered list and 3 spaces for ordered lists, for example:</p>
@@ -548,7 +548,7 @@ if strictly necessary, since they are hard to update.</p>
 </ol>
 </section>
 <section id="code">
-<h2>Code<a class="headerlink" href="#code" title="Permalink to this heading"></a></h2>
+<h2>Code<a class="headerlink" href="#code" title="Link to this heading"></a></h2>
 <p>Prefer
 <a class="reference external" href="https://www.sphinx-doc.org/en/master/usage/restructuredtext/directives.html#directive-code-block">code-blocks</a>
 to
@@ -573,7 +573,7 @@ and emphasizing lines.</p>
 </div>
 </section>
 <section id="images">
-<h2>Images<a class="headerlink" href="#images" title="Permalink to this heading"></a></h2>
+<h2>Images<a class="headerlink" href="#images" title="Link to this heading"></a></h2>
 <p>Prefer the SVG format for images, and save it as <em>Optimized SVG</em> in
 <a class="reference external" href="https://inkscape.org/">inkscape</a> to use less space.</p>
 <p>Store them in a hierarchically, do not use <code class="docutils literal notranslate"><span class="pre">images</span></code> subdirectories.
@@ -588,7 +588,7 @@ The idea is to have simpler relative paths, for example, e.g.:</p>
 <p>In general, this avoids dangling artifacts and keeps the documentation simple.</p>
 </section>
 <section id="git-large-file-storage">
-<span id="git-lfs"></span><h2>Git Large File Storage<a class="headerlink" href="#git-large-file-storage" title="Permalink to this heading"></a></h2>
+<span id="git-lfs"></span><h2>Git Large File Storage<a class="headerlink" href="#git-large-file-storage" title="Link to this heading"></a></h2>
 <p>Where applicable, Git Large File Storage (LFS) is used to replace large files
 with text pointers inside Git, reducing cloning time.</p>
 <p>To setup, install from your package manager and init:</p>
@@ -604,7 +604,7 @@ files use a pattern at the repo root, for example:</p>
 <p>Or edit <code class="docutils literal notranslate"><span class="pre">.gitattributes</span></code> directly.</p>
 </section>
 <section id="third-party-directives-and-roles">
-<h2>Third-party directives and roles<a class="headerlink" href="#third-party-directives-and-roles" title="Permalink to this heading"></a></h2>
+<h2>Third-party directives and roles<a class="headerlink" href="#third-party-directives-and-roles" title="Link to this heading"></a></h2>
 <p>Third-party tools are used to expand Sphinx functionality, if you haven’t already,
 do:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
@@ -612,7 +612,7 @@ do:</p>
 </div>
 </section>
 <section id="custom-directives-and-roles">
-<h2>Custom directives and roles<a class="headerlink" href="#custom-directives-and-roles" title="Permalink to this heading"></a></h2>
+<h2>Custom directives and roles<a class="headerlink" href="#custom-directives-and-roles" title="Link to this heading"></a></h2>
 <p>To expand Sphinx functionality beyond existing tools, custom directives and roles
 have been written, which are located in the <em>docs/extensions</em> folder.
 Extensions are straight forward to create, if some functionality is missing,
@@ -625,9 +625,9 @@ consider requesting or creating one.</p>
 </div>
 </section>
 <section id="common-sections">
-<h2>Common sections<a class="headerlink" href="#common-sections" title="Permalink to this heading"></a></h2>
+<h2>Common sections<a class="headerlink" href="#common-sections" title="Link to this heading"></a></h2>
 <section id="hdl-common-sections">
-<h3>HDL common sections<a class="headerlink" href="#hdl-common-sections" title="Permalink to this heading"></a></h3>
+<h3>HDL common sections<a class="headerlink" href="#hdl-common-sections" title="Link to this heading"></a></h3>
 <p>The <strong>More information</strong> and <strong>Support</strong> sections that are present in
 the HDL project documentation, are actually separate pages inserted as links.
 They’re located at <em>hdl/projects/common/more_information.rst</em> and <em>/support.rst</em>,
@@ -644,7 +644,7 @@ they’re not included in any toctree.</p>
 </section>
 </section>
 <section id="dynamic-elements">
-<h2>Dynamic elements<a class="headerlink" href="#dynamic-elements" title="Permalink to this heading"></a></h2>
+<h2>Dynamic elements<a class="headerlink" href="#dynamic-elements" title="Link to this heading"></a></h2>
 <p>Dynamic elements refer to sections of the documentation that are updated using
 dynamically loaded metadata, scripts, and styles (modules).</p>
 <p>The dynamic elements implemented:</p>

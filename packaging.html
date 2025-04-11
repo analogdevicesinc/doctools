@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="./">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -8,9 +8,9 @@
     <title>Packaging pipeline &#8212; Doctools  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8e8a900e" />
     <link rel="stylesheet" type="text/css" href="_static/app.min.css?v=0ea85bdb" />
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b3ba4146"></script>
-    <script src="_static/doctools.js?v=888ff710"></script>
-    <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script defer="" src="_static/app.umd.js?v=19910719"></script>
     <link rel="icon" href="_static/icon.svg"/>
     <link rel="index" title="Index" href="genindex.html" />
@@ -104,7 +104,7 @@
     </div>
 
   
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper">
     <a id="no-logo" href="index.html">
       Doctools
@@ -150,7 +150,7 @@ Content on this topic
           <div class="body" role="main">
             
   <section id="packaging-pipeline">
-<span id="packaging"></span><h1>Packaging pipeline<a class="headerlink" href="#packaging-pipeline" title="Permalink to this heading"></a></h1>
+<span id="packaging"></span><h1>Packaging pipeline<a class="headerlink" href="#packaging-pipeline" title="Link to this heading"></a></h1>
 <p>Doctools has a continuous deployment integration pipeline that works as follows:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>                   ┌──────────────────┐
                 ┌─►│Build Doc Latest  ├─┐
@@ -218,7 +218,7 @@ These releases exist to provide a pointer to the latest/pre-release packages, e.
 <li><p>Branch <code class="docutils literal notranslate"><span class="pre">gh-pages</span></code> must exist with at least one commit.</p></li>
 </ul>
 <section id="configure-podman">
-<span id="conf-podman"></span><h2>Configure podman<a class="headerlink" href="#configure-podman" title="Permalink to this heading"></a></h2>
+<span id="conf-podman"></span><h2>Configure podman<a class="headerlink" href="#configure-podman" title="Link to this heading"></a></h2>
 <p>Below are suggested instructions for setting up <code class="docutils literal notranslate"><span class="pre">podman</span></code> on a Linux environment.</p>
 <p>Adjust to your preference as needed, and skip the steps marked in <span class="green">green</span>
 if not using WSL2.</p>
@@ -248,7 +248,7 @@ if not using WSL2.</p>
 </div>
 </section>
 <section id="build-the-container-image">
-<span id="image-podman"></span><h2>Build the container image<a class="headerlink" href="#build-the-container-image" title="Permalink to this heading"></a></h2>
+<span id="image-podman"></span><h2>Build the container image<a class="headerlink" href="#build-the-container-image" title="Link to this heading"></a></h2>
 <p>To build the container image, use your favorite container engine:</p>
 <div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
 </pre></div>
@@ -264,7 +264,7 @@ if not using WSL2.</p>
 </div>
 <div class="clear-left"></div></div></div></section>
 <section id="interactive-run">
-<span id="id1"></span><h2>Interactive run<a class="headerlink" href="#interactive-run" title="Permalink to this heading"></a></h2>
+<span id="id1"></span><h2>Interactive run<a class="headerlink" href="#interactive-run" title="Link to this heading"></a></h2>
 <p>At its core, the workflows are straight forward, roughly they do:</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">Tests</span></code> step:</p>
 <div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
@@ -333,7 +333,7 @@ on the container, for example:</p>
 </div>
 <div class="clear-left"></div></div></div></section>
 <section id="full-local-run">
-<span id="act"></span><h2>Full local run<a class="headerlink" href="#full-local-run" title="Permalink to this heading"></a></h2>
+<span id="act"></span><h2>Full local run<a class="headerlink" href="#full-local-run" title="Link to this heading"></a></h2>
 <p>To have a full continuous integration mock-run <a class="reference external" href="https://github.com/nektos/act/">act</a>
 can be used.
 <code class="docutils literal notranslate"><span class="pre">act</span></code> is a CLI written in go that allows to run GitHub actions.</p>
@@ -438,7 +438,7 @@ e.g. 4 commits:</p>
 </div>
 <div class="clear-left"></div></div></div></section>
 <section id="self-hosted-runner">
-<span id="podman-run"></span><h2>Self-hosted runner<a class="headerlink" href="#self-hosted-runner" title="Permalink to this heading"></a></h2>
+<span id="podman-run"></span><h2>Self-hosted runner<a class="headerlink" href="#self-hosted-runner" title="Link to this heading"></a></h2>
 <p>To host your <a class="reference external" href="https://github.com/actions/runner">GitHub Actions Runner</a>,
 set-up your secrets:</p>
 <div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
@@ -484,7 +484,7 @@ If not provided on the Containerfile as <code class="docutils literal notranslat
 Most of the times, you want to use the Containerfile-set environment variable.</p>
 </section>
 <section id="self-hosted-cluster">
-<span id="cluster-podman"></span><h2>Self-hosted cluster<a class="headerlink" href="#self-hosted-cluster" title="Permalink to this heading"></a></h2>
+<span id="cluster-podman"></span><h2>Self-hosted cluster<a class="headerlink" href="#self-hosted-cluster" title="Link to this heading"></a></h2>
 <p>To host a cluster of self-hosted runners, the recommended approach is to use
 systemd services, instead of for example, podman-compose.</p>
 <p>Below is a suggested systemd service at <em>~/.config/systemd/user/podman-public-doctools&#64;.service</em>.</p>
