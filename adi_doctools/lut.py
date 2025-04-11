@@ -15,6 +15,7 @@ class Modules(TypedDict):
 class Repo(TypedDict):
     pathname: str
     name: str
+    longname: Optional[str]
     branch: str
     visibility: str
     topic: Optional[Dict[str, str]]
@@ -62,7 +63,15 @@ repos = {
     ),
     'pyadi-iio': Repo(
         pathname='doc/source',
-        name='Hardware Python Interfaces',
+        name='pyadi-iio',
+        longname='Python interfaces for hardware with Industrial I/O drivers',
+        branch='main',
+        visibility='public'
+    ),
+    'pyadi-jif': Repo(
+        pathname='doc/source',
+        name='pyadi-jif',
+        longname='Python Configurator for ADI JESD204 Interface Framework (JIF)',
         branch='main',
         visibility='public'
     ),
