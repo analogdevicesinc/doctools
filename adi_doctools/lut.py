@@ -68,6 +68,13 @@ repos = {
         branch='main',
         visibility='public'
     ),
+    'pyadi-dt': Repo(
+        pathname='doc/source',
+        name='pyadi-iio',
+        longname='Device tree management tools for hardware',
+        branch='main',
+        visibility='public'
+    ),
     'pyadi-jif': Repo(
         pathname='doc/source',
         name='pyadi-jif',
