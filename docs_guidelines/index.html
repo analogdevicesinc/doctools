@@ -304,7 +304,9 @@ to an empty string.</p>
 format using either rs2pdf or WeasyPrint.
 This is done by setting the environment variable called
 <code class="docutils literal notranslate"><span class="pre">ADOC_MEDIA_PRINT</span></code> (the value does not matter) and building the documentation.</p>
-<p>For rst2pdf, use:</p>
+<p>For rst2pdf, add <code class="docutils literal notranslate"><span class="pre">rst2pdf</span></code> to <em>conf.py</em> <code class="docutils literal notranslate"><span class="pre">extensions</span></code> list,
+install <code class="docutils literal notranslate"><span class="pre">rst2pdf</span></code>, <code class="docutils literal notranslate"><span class="pre">svglib</span></code> (svg support) and <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code> (LaTeX formulas)
+from pip and use:</p>
 <div class="code-shell"><div><div class="no-select highlight-text notranslate"><div class="highlight"><pre><span></span>sphinx-build -b pdf . _build/pdfbuild
 </pre></div>
 </div>
@@ -318,7 +320,9 @@ required for the PDF build.</p>
 the HTML pages of documentation. If not set, some components of the pages
 may not render properly.</p>
 </div>
-<p>Alternatively, WeasyPrint can be used with <a class="reference internal" href="../cli.html#serve"><span class="std std-ref">Serve</span></a> with this command:</p>
+<p>For  WeasyPrint,
+install <code class="docutils literal notranslate"><span class="pre">weasyprint</span></code>, and <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code> (LaTeX formulas) from pip
+and use with <a class="reference internal" href="../cli.html#serve"><span class="std std-ref">Serve</span></a>:</p>
 <div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~/some_repository/docs$
 </pre></div>
 </div>
