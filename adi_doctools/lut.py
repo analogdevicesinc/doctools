@@ -116,7 +116,7 @@ repos = {
     'scopy': Repo(
         pathname='docs',
         name='Scopy',
-        branch='dev',
+        branch='main',
         visibility='public'
     ),
     'doctools': Repo(
