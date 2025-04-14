@@ -461,8 +461,12 @@ def prepare_doc(doc, repos_dir, doc_dir):
         spec.loader.exec_module(__c)
         if hasattr(__c, 'extensions'):
             for ext in __c.extensions:
-                if not importlib.util.find_spec(ext):
+                try:
+                    if not importlib.util.find_spec(ext):
+                        missing_ext.append((r, ext))
+                except ModuleNotFoundError:
                     missing_ext.append((r, ext))
+
             doc['extensions'].update(__c.extensions)
         doc['extensions'].add('sphinx.ext.intersphinx')
         if hasattr(__c, 'interref_repos'):
@@ -1057,7 +1061,10 @@ def custom_doc(directory, extra, no_parallel_, open_, builder, ssh):
 
     missing_ext = []
     for ext in doc['extensions']:
-        if not importlib.util.find_spec(ext):
+        try:
+            if not importlib.util.find_spec(ext):
+                missing_ext.append(ext)
+        except ModuleNotFoundError:
             missing_ext.append(ext)
     if len(missing_ext) > 0:
         click.echo(f"Missing requested extension(s): {missing_ext}")
