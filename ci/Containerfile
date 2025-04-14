@@ -52,7 +52,6 @@ RUN git config --global user.name "CSE CI" ; \
     git config --global init.defaultBranch  "__runner_init_branch" ; \
     git config --global advice.mergeConflict false ; \
     git config --global advice.detachedHead false ; \
-    git config --global core.pager cat ; \
     git config --global --add safe.directory '*'
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
