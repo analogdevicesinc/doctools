@@ -19,7 +19,19 @@
             "branch": "main"
         },
         "pyadi-iio": {
-            "name": "Hardware Python Interfaces",
+            "name": "pyadi-iio",
+            "visibility": "public",
+            "pathname": "doc/source",
+            "branch": "main"
+        },
+        "pyadi-dt": {
+            "name": "pyadi-iio",
+            "visibility": "public",
+            "pathname": "doc/source",
+            "branch": "main"
+        },
+        "pyadi-jif": {
+            "name": "pyadi-jif",
             "visibility": "public",
             "pathname": "doc/source",
             "branch": "main"
