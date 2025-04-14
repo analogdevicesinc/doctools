@@ -426,6 +426,9 @@ def prepare_doc(doc, repos_dir, doc_dir):
         pr.run(f"rm -r {doc_dir}")
     mkdir(doc_dir)
 
+    # Some repos prefeer rst2pdf, but this cli uses weasyprint
+    exclude_extensions = ["rst2pdf.pdfbuilder"]
+
     index_file = path.join(doc_dir, 'index.rst')
     index = doc['project'] + '\n'
     index += '"'*len(doc['project']) + '\n'
@@ -461,6 +464,9 @@ def prepare_doc(doc, repos_dir, doc_dir):
         spec.loader.exec_module(__c)
         if hasattr(__c, 'extensions'):
             for ext in __c.extensions:
+                if ext in exclude_extensions:
+                    __c.extensions.remove(ext)
+                    continue
                 try:
                     if not importlib.util.find_spec(ext):
                         missing_ext.append((r, ext))
