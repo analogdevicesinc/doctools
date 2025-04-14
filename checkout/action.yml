@@ -5,9 +5,6 @@ inputs:
   depth:
     description: The depth when fetching
     required: false
-  act:
-    description: Enable local run mode with act
-    required: false
   act-mountpoint:
     description: The source mountpoint
     default: '/mnt/repo'
@@ -44,12 +41,13 @@ runs:
           elif [[ "${{ github.event.pull_request.commits }}" ]]; then
             echo "setting depth_sha based on github.event.pull_request.commits"
             echo "depth_sha=$(( ${{ github.event.pull_request.commits }} + 1 ))" >> $GITHUB_ENV
-          elif [[ "${{ github.event.before }}" ]] && [[ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]] && [[ "${{ github.event.forced }}" == "false" ]]; then
+          elif && [[ ! "${{ github.event.before }}" ~= "0000000000000000" ]] && [[ "${{ github.event.forced }}" == "false" ]]; then
             echo "setting depth_sha based on github.event.before"
-            echo "github_safe_push=true" >> $GITHUB_ENV
-            echo "depth_sha=100" >> $GITHUB_ENV
+            commits_sha='${{ toJSON(github.event.commits.*.id) }}' ;
+            depth_sha=$(( $(jq <<<"$commits_sha" length) + 1 )) ;
+            echo "depth_sha=$depth_sha" >> $GITHUB_ENV ;
           else
-            echo "setting depth_sha as 6 (fallback, either push new-branch or unexpected event type)"
+            echo "setting depth_sha as 6 (fallback, either force-push, push-new-branch, or unknown event type)"
             echo "depth_sha=6" >> $GITHUB_ENV
           fi
         fi
@@ -123,11 +121,6 @@ runs:
           echo "head_sha=$(git rev-parse @)" >> "$GITHUB_ENV"
         else
           git reset --hard $head_sha
-
-          if [[ "$github_safe_push" == "true" ]]; then
-            depth_sha=$(git rev-list --count ${{ github.event.before }}..$head_sha)
-            echo "depth_sha=$depth_sha" >> "$GITHUB_ENV"
-          fi
         fi
 
         echo "base_sha=$(git rev-parse @~$((depth_sha - 1)))" >> "$GITHUB_ENV"
