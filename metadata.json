@@ -70,7 +70,7 @@
             "name": "Scopy",
             "visibility": "public",
             "pathname": "docs",
-            "branch": "dev"
+            "branch": "main"
         },
         "doctools": {
             "name": "Doctools",
