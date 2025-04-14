@@ -15,3 +15,5 @@ zypper install -y --no-recommends \
 update-ca-certificates
 
 fc-cache -f && fc-list
+
+npm config set fund false
