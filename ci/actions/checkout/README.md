@@ -20,7 +20,7 @@ Key-points:
 
 * For pull-requests, rebase on base reference instead of awkward merge commit.
 * Current checkout branch is always called ``trunk``
-* Sets the ``depth_sha``, ``base_sha``, and ``head_sha`` to ease running checkscripts.
+* Sets the ``fetch_depth``, ``base_sha``, and ``head_sha`` to ease running checkscripts.
 
 When working locally, the user can set the following enviroment variables:
 
