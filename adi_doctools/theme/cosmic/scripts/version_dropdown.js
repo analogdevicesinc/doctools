@@ -10,14 +10,18 @@ export class VersionDropdown {
     this.$ = {}
 
     this.parent = app
-    this.fetch_tags()
+    this.prefix = this.parent.state.sub_hosted ?
+                 `/${this.parent.state.repository}` : ''
+
+    this.init()
   }
 
-  fetch_tags () {
-    // Maybe use /current_host/tags.json instead ?
-    Toolbox.cache_check(this.parent.state,
-                        `/${this.parent.state.repository}/tags.json`, 2,
-                        (obj) => {this.render(obj['obj'])})
+  init() {
+    if (this.parent.state.offline)
+      return
+
+    Toolbox.cache_check(this.parent.state, `${this.prefix}/tags.json`,
+                        2, (obj) => {this.render(obj['obj'])})
   }
   /**
    * Assert if tags.json is valid
@@ -106,14 +110,14 @@ export class VersionDropdown {
     for (let key in obj) {
       let entry = new DOM('a', {
         'href': key.length > 0 ?
-                  `/${this.parent.state.repository}/${key}` :
-                  `/${this.parent.state.repository}`
+                  `${this.prefix}/${key}` :
+                  `${this.prefix}`
       })
       entry.onclick (this, (self, e) => {
         e.preventDefault()
         let start = app.state.path.length > 0 ?
-                      `/${app.state.repository}/${app.state.path}` :
-                      `/${app.state.repository}`,
+                      `${this.prefix}/${app.state.path}` :
+                      `${this.prefix}`,
             og_url = location.pathname + location.hash
         if (og_url.startsWith(start)) {
           let url = self.$.href + og_url.substring(start.length)

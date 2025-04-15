@@ -116,31 +116,13 @@ body {
     }
 }
 
-@media (min-width: variable.$screen-1) {
-    #vertical-border {
-        position: fixed;
-        height: 100vh;
-        border-left: variable.$border-panel;
-        top: 0;
-        z-index: 10;
-    }
-}
-
 @media (min-width: variable.$screen-1) and (max-width: variable.$screen-2) {
-    #vertical-border {
-        left: 17rem;
-    }
-
     .bodywrapper {
         margin-left: 18rem;
     }
 }
 
 @media (min-width: variable.$screen-2) {
-    #vertical-border {
-        left: calc(40vw - 15rem);
-    }
-
     .bodywrapper {
         margin-left: calc(40vw - 14rem);
     }

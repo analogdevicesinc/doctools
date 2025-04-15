@@ -88,22 +88,18 @@ class Toolbox {
   static async fetch_each (urls) {
     for (let url of urls) {
       try {
-        const response = await fetch(url, {
-          method: 'Get',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        })
+        const request = new Request(url)
+        const response = await fetch(request)
 
-        if (response.ok === true)
-          return {'obj': await response.json(), 'url': url};
+        if (response.ok === true) {
+          return {'obj': await response.json(), 'url': url}
+        }
         else if (response.status !== 404)
           return {'error': response, 'url': url}
-      } catch (e) {
-        return {'error': e, 'url': url}
+      } catch (error) {
+        return {'error': error, 'url': url}
       }
     }
-
     return {'error': `No url returned a valid JSON, urls: ${urls}`}
   }
   static cache_check (state, fetch_url, hours, callback) {

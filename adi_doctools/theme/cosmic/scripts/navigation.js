@@ -25,16 +25,6 @@ export class Navigation {
     if (this.parent.state.theme !== this.os_theme())
       $.body.classList.add(this.parent.state.theme)
 
-	  $.searchButton = new DOM('button', {
-      id:'search',
-      className:'icon',
-      title:'Search (/)'
-    }).onclick(this, () => {
-      DOM.switchState($.searchArea)
-      DOM.switchState($.searchAreaBg)
-      $.searchInput.focus()
-      $.searchInput.$.select()
-    })
 	  $.changeTheme = new DOM('button', {
       className: this.parent.state.theme === 'dark' ? 'icon on' : 'icon',
       id:'theme',
@@ -50,22 +40,10 @@ export class Navigation {
       }
     })
 
-    $.searchAreaBg = new DOM('div', {
-      className:'search-area-bg'
-    }).onclick(this, () => {
-      DOM.switchState($.searchArea)
-      DOM.switchState($.searchAreaBg)
-    })
-    $.searchArea = new DOM(DOM.get('.search-area'))
-    $.searchForm = new DOM(DOM.get('form', $.searchArea))
-    $.searchInput = new DOM(DOM.get('input', $.searchForm))
-    $.searchForm.$['action'] = DOM.get('link[rel="search"]').href
-    $.body.append([$.searchAreaBg])
-
     $.preserve_scroll = {}
     $.preserve_scroll['sphinxsidebarwrapper'] = new DOM(DOM.get('.sphinxsidebarwrapper'))
 
-    $.rightHeader = new DOM(DOM.get('header #right span.reverse')).append([$.changeTheme, $.searchButton])
+    $.rightHeader = new DOM(DOM.get('header #right span.reverse')).append([$.changeTheme])
 
     $.relatedNext = DOM.get('.related .next')
     $.relatedPrev = DOM.get('.related .prev')
@@ -159,21 +137,6 @@ export class Navigation {
       }
     }
   }
-  /* Search shortcut */
-  search (e) {
-    if ((e.code === 'IntlRo' || e.code === 'Slash')
-        && !this.$.searchArea.classList.contains('on')) {
-      DOM.switchState(this.$.searchArea)
-      DOM.switchState(this.$.searchAreaBg)
-      this.$.searchInput.focus()
-      this.$.searchInput.$.select()
-    } else if (e.code === 'Escape') {
-      if (this.$.searchArea.classList.contains('on')) {
-        DOM.switchState(this.$.searchArea)
-        DOM.switchState(this.$.searchAreaBg)
-      }
-    }
-  }
   /* Related shortcut */
   related (e) {
     if (!e.altKey || !e.shiftKey)
@@ -200,7 +163,9 @@ export class Navigation {
       case 'IntlRo':
       case 'Slash':
       case 'Escape':
-        this.search(e)
+      case 'KeyK':
+        if (typeof this.parent.search !== "undefined")
+          this.parent.search.search(e)
         break
     }
   }
@@ -212,7 +177,16 @@ export class Navigation {
       case 'ArrowRight':
       case 'KeyA':
       case 'KeyD':
-        e.preventDefault()
+        if (e.altKey && e.shiftKey)
+          e.preventDefault()
+        return
+      case 'IntlRo':
+      case 'Slash':
+        return
+      case 'KeyK':
+        if (e.ctrlKey && e.altKey)
+          e.preventDefault()
+        return
     }
   }
 

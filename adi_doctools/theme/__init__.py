@@ -25,6 +25,7 @@ def theme_config_setup(app):
     app.add_config_value('target_depth', None, 'env', [str])
 
     app.connect("config-inited", config_inited)
+    app.connect("builder-inited", builder_inited)
     app.connect("build-finished", build_finished)
 
 
@@ -51,6 +52,27 @@ def config_inited(app, config):
     # DEPRECATED
     if config.target_depth is not None or getenv("ADOC_TARGET_DEPTH", default=None) is not None:
         logger.info(f"ADOC_TARGET_DEPTH is deprecated and has no effect.")
+
+def builder_inited(app):
+    """
+    Remove Sphinx's default provided scripts
+    """
+    if app.env.config.html_theme not in names:
+        return
+
+    removal = [
+        "_static/documentation_options.js",
+        "_static/doctools.js",
+        "_static/sphinx_highlight.js"
+    ]
+    to_remove = []
+    if app.builder.format == 'html':
+        for js in app.builder._js_files:
+            if js.filename in removal:
+                to_remove.append(js)
+    for js_ in to_remove:
+        app.builder._js_files.remove(js_)
+
 
 def build_finished(app, exc):
     if app.builder.format == 'html' and not exc:
@@ -90,6 +112,7 @@ def build_finished(app, exc):
                     copy_asset_file(path.join(src_uri, m),
                                     path.join(build_uri, m))
 
+            metadata['remote_doc'] = app.lut['remote_doc']
             metadata['source_hostname'] = app.lut['source_hostname']
 
             file = path.join(app.builder.outdir, 'metadata.json')

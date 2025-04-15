@@ -18,19 +18,13 @@ export class Fetch {
    * that contain the most up-to-date metadata
    */
   init () {
-    if (this.parent.state.offline === true) {
-      console.log("fetch: dynamic features are not available in offline mode")
-      return
-    } else if (this.parent.state.sub_hosted === false) {
-      console.log("fetch: dynamic features are not available for single repository doc")
-      return
-    }
-
+    let urls = [
+      'https://analogdevicesinc.github.io/doctools/metadata.json'
+    ]
+    if (this.parent.state.offline === false)
+      urls.unshift('/metadata.json', '/doctools/metadata.json')
     Toolbox.cache_check(this.parent.state,
-                        [
-                          '/doctools/metadata.json',
-                          'https://analogdevicesinc.github.io/doctools/metadata.json'
-                        ], 24, (obj) => {this.init_metadata(obj)})
+                        urls, 24, (obj) => {this.init_metadata(obj)})
   }
   /**
    * Attach metadata to this and call to inject extra modules.
@@ -54,13 +48,18 @@ export class Fetch {
 
     if (url.startsWith("https://") || url.startsWith("http://"))
       url = new URL(url).origin
+    else if (this.parent.state.offline === true)
+      url = `${this.parent.state.metadata.remote_doc}/doctools`
     else
       url = ""
+
+    let url_ = this.parent.state.sub_hosted === false ?
+       `${url}/_static/` : `${url}/doctools/_static/`
 
     if ('javascript' in obj) {
       obj['javascript'].forEach((elem) => {
         let script = new DOM('script', {
-          'src': `${url}/doctools/_static/${elem}`
+          'src': `${url_}${elem}`
         });
         this.$.head.append(script)
       })
@@ -70,7 +69,7 @@ export class Fetch {
         let style = new DOM('link', {
           'rel': 'stylesheet',
           'type': 'text/css',
-          'href': `${url}/doctools/_static/${elem}`
+          'href': `${url_}${elem}`
         });
         this.$.head.append(style)
       })

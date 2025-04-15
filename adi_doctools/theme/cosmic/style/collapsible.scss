@@ -17,7 +17,7 @@
     }
 
     .collapsible {
-        border: variable.$border-panel;
+        border: variable.$border-panel1;
         margin-bottom: .5em;
 
         label {
@@ -35,7 +35,7 @@
     }
 
     .collapsible_content {
-        border-top: variable.$border-panel;
+        border-top: variable.$border-panel1;
     }
 }
 
