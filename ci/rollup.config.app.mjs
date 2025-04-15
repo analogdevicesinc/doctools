@@ -9,11 +9,11 @@ export default [
       file: `${path}/static/app.umd.js`,
       format: "umd",
       name: "App",
-      sourcemap: true
+      sourcemap: true,
     },
     plugins: [
       terser()
-    ]
+    ],
   },
   {
     input: `${path}/scripts/extra.js`,
