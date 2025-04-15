@@ -102,6 +102,13 @@ runs:
           git checkout -b trunk
         fi
 
+        if [[ -z "$(git config user.name)"  ]]; then
+          git config user.name "github-actions[bot]"
+        fi
+        if [[ -z "$(git config user.email)"  ]]; then
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+        fi
+
     - name: Checkout
       shell: bash
       run: |
