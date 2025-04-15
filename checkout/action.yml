@@ -28,27 +28,28 @@ runs:
       run: |
         if [[ "${{ env.ACT }}" ]]; then
           if [[ "${{ env.ACT_DEPTH }}" ]]; then
-            echo "setting depth_sha based on env.ACT_DEPTH"
-            echo "depth_sha=$(( ${{ env.ACT_DEPTH }} + 1 ))" >> $GITHUB_ENV
+            echo "setting fetch_depth based on env.ACT_DEPTH"
+            echo "fetch_depth=$(( ${{ env.ACT_DEPTH }} + 1 ))" >> $GITHUB_ENV
           else
-            echo "setting depth_sha as 6 (fallback, consider setting ACT_DEPTH enviroment variable)"
-            echo "depth_sha=6" >> $GITHUB_ENV
+            echo "setting fetch_depth as 6 (fallback, consider setting ACT_DEPTH enviroment variable)"
+            echo "fetch_depth=6" >> $GITHUB_ENV
           fi
         else
           if [[ "${{ inputs.depth }}" ]]; then
-            echo "setting depth_sha based on inputs.depth"
-            echo "depth_sha=$(( ${{ inputs.depth }} + 1 ))" >> $GITHUB_ENV
+            echo "setting fetch_depth based on inputs.depth"
+            echo "fetch_depth=$(( ${{ inputs.depth }} + 1 ))" >> $GITHUB_ENV
           elif [[ "${{ github.event.pull_request.commits }}" ]]; then
-            echo "setting depth_sha based on github.event.pull_request.commits"
-            echo "depth_sha=$(( ${{ github.event.pull_request.commits }} + 1 ))" >> $GITHUB_ENV
-          elif && [[ ! "${{ github.event.before }}" ~= "0000000000000000" ]] && [[ "${{ github.event.forced }}" == "false" ]]; then
-            echo "setting depth_sha based on github.event.before"
+            echo "setting fetch_depth based on github.event.pull_request.commits"
+            echo "fetch_depth=$(( ${{ github.event.pull_request.commits }} + 1 ))" >> $GITHUB_ENV
+          elif [[ ! "${{ github.event.before }}" =~ "0000000000000000" ]] && [[ "${{ github.event.forced }}" == "false" ]]; then
+            echo "setting fetch_depth based on github.event.before"
             commits_sha='${{ toJSON(github.event.commits.*.id) }}' ;
-            depth_sha=$(( $(jq <<<"$commits_sha" length) + 1 )) ;
-            echo "depth_sha=$depth_sha" >> $GITHUB_ENV ;
+            fetch_depth=$(( $(jq <<<"$commits_sha" length) + 1 )) ;
+            echo "fetch_depth=$fetch_depth" >> $GITHUB_ENV ;
           else
-            echo "setting depth_sha as 6 (fallback, either force-push, push-new-branch, or unknown event type)"
-            echo "depth_sha=6" >> $GITHUB_ENV
+            echo "setting fetch_depth as 6 (fallback, either force-push, push-new-branch, or unknown event type)"
+            echo "fetch_depth=6" >> $GITHUB_ENV
+            echo "fetch_depth_fallback=true" >> $GITHUB_ENV
           fi
         fi
 
@@ -104,7 +105,7 @@ runs:
     - name: Checkout
       shell: bash
       run: |
-        git fetch origin --depth=$depth_sha $head_sha
+        git fetch origin --depth=$fetch_depth $head_sha
 
         if [[ "${{ github.event.pull_request.head.sha }}" ]]; then
           git fetch origin --depth=1 ${{ github.base_ref }}
@@ -117,13 +118,13 @@ runs:
           else
             keep_empty="--keep-redundant-commits"
           fi
-          git cherry-pick --allow-empty $keep_empty $head_sha~$((depth_sha - 1))..$head_sha
+          git cherry-pick --allow-empty $keep_empty $head_sha~$((fetch_depth - 1))..$head_sha
           echo "head_sha=$(git rev-parse @)" >> "$GITHUB_ENV"
         else
           git reset --hard $head_sha
         fi
 
-        echo "base_sha=$(git rev-parse @~$((depth_sha - 1)))" >> "$GITHUB_ENV"
+        echo "base_sha=$(git rev-parse @~$((fetch_depth - 1)))" >> "$GITHUB_ENV"
         git log --oneline --reverse | head -200
 
     - name: Generate cache branches
