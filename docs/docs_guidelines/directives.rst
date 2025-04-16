@@ -1,8 +1,8 @@
 Custom directives
-===============================================================================
+=================
 
 Container
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~
 
 To allow disposing content in a tabular manner but still respecting the multiple
 screen sizes and both HTML and PDF output, two container directives are available,
@@ -11,7 +11,7 @@ screen sizes and both HTML and PDF output, two container directives are availabl
 .. _directive flex:
 
 Flex
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+++++
 
 The grid directive implements a subset of
 `CSS Flex <https://css-tricks.com/snippets/css/a-guide-to-flexbox/>`__.
@@ -25,7 +25,7 @@ while still obtaining a fairly good result.
 .. _directive grid:
 
 Grid
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+++++
 
 The grid directive implements a subset of
 `CSS Grids <https://css-tricks.com/snippets/css/complete-guide-grid/>`__.
@@ -43,7 +43,7 @@ columns in a sane manner.
 
 
 Clear content
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~
 
 A simple directive to
 `clear <https://developer.mozilla.org/en-US/docs/Web/CSS/clear>`__
@@ -66,7 +66,7 @@ With the ``break`` option, it will break the page when generating a PDF
 (behaves similar to LaTeX *cleardoublepage*).
 
 Shell
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~
 
 The shell directive allows to embed shell code in a standard way.
 
@@ -227,7 +227,7 @@ Renders to:
 .. _svg-directive:
 
 SVG
-~~~~~~~~~~~~~
+~~~
 
 The SVG directive embeds a SVG image directly onto the page, having it share
 the same DOM sandbox as the page.
@@ -251,10 +251,10 @@ At it's core, for the HTML builder, it is somewhat equivalent to:
    .. raw:: html
       :file: path
 
-But have the proper hooks for future implementation for other outputs (LaTeX, etc.).
+But has the proper hooks for future implementation for other outputs (LaTeX, etc.).
 
 Collapsible
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~
 
 The collapsible directive creates a collapsible/dropdown/"HTML details".
 
@@ -334,7 +334,7 @@ Renders as:
    **LibIIO - A Library for Interfacing with Linux IIO Devices** - Dan Nechita, Analog Devices Inc
 
 ESD warning
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~
 
 The ESD warning directive creates a ESD warning, for example:
 
@@ -347,14 +347,14 @@ Renders as:
 .. esd-warning::
 
 HDL directives
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
 
 The directives in this section target the :git-hdl:`/` documentation.
 
 .. _hdl build-status-directive:
 
 HDL build status
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+++++++++++++++++
 
 The HDL build status directive gets information from a markdown formatted status
 table (*output.md*) and generates a table with the build statuses.
@@ -376,7 +376,7 @@ thrown.
    The ``:path:`` option is meant to be "filled" during a CI procedure.
 
 HDL parameters
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+++++++++++++++
 
 The HDL parameters directive gets information parsed from IP-XACT (*component.xml*)
 library and generates a table with the IP parameters.
@@ -415,7 +415,7 @@ The ``:path:`` option is optional, and should **not** be included if the
 documentation file path matches the *component.xml* hierarchically.
 
 HDL interface
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++++++++++++++
 
 The HDL interfaces directive gets information parsed from *component.xml* library
 and generates tables with the IP interfaces, both buses and ports.
@@ -468,7 +468,7 @@ The ``:path:`` option is optional, and should **not** be included if the
 documentation file path matches the *component.xml* hierarchically.
 
 HDL component diagram
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++++++++++++++++++++++
 
 The HDL component diagram directive gets information parsed from *component.xml*
 library and generates a component diagram for the IP with buses and ports
@@ -501,7 +501,7 @@ documentation file path matches the *component.xml* hierarchically.
    This directive replaces the deprecated ``symbolator`` directive.
 
 HDL regmap
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+++++++++++
 
 The HDL regmap directive gets information from *docs/regmap/adi_regmap_\*.txt* files
 and generates tables with the register maps.
@@ -537,7 +537,7 @@ in the main IP documentation page. It appends an auxiliary table explaining the
 register access types.
 
 Global options for directives
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Set ``hide_collapsible_content`` to ``True`` to hide the *collapsibles* by default.
 
