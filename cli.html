@@ -7,7 +7,7 @@
 
     <title>Command line interface &#8212; Doctools  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8e8a900e" />
-    <link rel="stylesheet" type="text/css" href="_static/app.min.css?v=0ea85bdb" />
+    <link rel="stylesheet" type="text/css" href="_static/app.min.css?v=534127d7" />
     <script src="_static/documentation_options.js?v=5929fcd5"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
@@ -207,14 +207,14 @@ and automatically reloads, such as Gnome PDF (Evince).</p>
 </div>
 <div class="clear-left"></div></div></div><section id="git-lfs-integration">
 <span id="serve-lfs"></span><h3>Git LFS integration<a class="headerlink" href="#git-lfs-integration" title="Link to this heading"></a></h3>
-<p>Serve detects if a repository uses <a class="reference external" href="https://git-lfs.com">git-lfs</a>
+<p>Serve detects if a repository uses <a class="reference external" href="https://git-lfs.com">Git Large File Storage</a>
 to fetch (smudge) the watched binaries on demand.</p>
-<p>This allows users to clone a repo with <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">lfs</span> <span class="pre">install</span> <span class="pre">--skip-smudge</span></code>
+<p>This enables users to clone a repo with <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">lfs</span> <span class="pre">install</span> <span class="pre">--skip-smudge</span></code>
 and only fetch, on demand, the binary resources they are working on,
-dramatically reducing clone time and bandwidth usage.</p>
+significantly reducing clone time and bandwidth usage.</p>
 <div class="admonition caution">
 <p class="admonition-title">Caution</p>
-<p><code class="docutils literal notranslate"><span class="pre">GIT_LFS_SKIP_SMUDGE=1</span></code> and <code class="docutils literal notranslate"><span class="pre">--skip-smudge</span></code> are not the identical!</p>
+<p><code class="docutils literal notranslate"><span class="pre">GIT_LFS_SKIP_SMUDGE=1</span></code> and <code class="docutils literal notranslate"><span class="pre">--skip-smudge</span></code> are not identical!</p>
 <div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>$
 </pre></div>
 </div>
@@ -230,26 +230,27 @@ dramatically reducing clone time and bandwidth usage.</p>
 <div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>$
 </pre></div>
 </div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Only still fetches with --skip-smudge, skipped with GIT_LFS_SKIP_SMUDGE=1</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Only fetches with --skip-smudge, skipped with GIT_LFS_SKIP_SMUDGE=1</span>
 </pre></div>
 </div>
 <div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>$
 </pre></div>
 </div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>lfs<span class="w"> </span>smudge<span class="w"> </span>&lt;<span class="w"> </span>pointer_file<span class="w"> </span>&gt;<span class="w"> </span>/tmp/file.png<span class="sb">``</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>lfs<span class="w"> </span>smudge<span class="w"> </span>&lt;<span class="w"> </span>pointer_file<span class="w"> </span>&gt;<span class="w"> </span>/tmp/file.png
 </pre></div>
 </div>
 <div class="clear-left"></div></div></div></div>
-<p>The per-file fetch is triggered by a get request, like when opening the
-local server page on the browser, or by touching the watched source file.</p>
-<p>The get request triggers the fetch for all git lfs rules on the <em>.gitattributes</em>
-files, while the touch will only work on filetypes also watched by the server.</p>
-<p>If neither the get request or the touch file to fetch is suitable,
+<p>The per-file fetch is triggered by a GET request, such as when opening the
+local server page in a browser, or by touching the watched source file.</p>
+<p>The HTML GET request triggers a fetch for all Git LFS rules on the
+<em>.gitattributes</em> file, while a “touch” only works on filetypes that are
+also watched by the server.</p>
+<p>If neither the GET request or the touch file to fetch is suitable,
 it is possible to pull the file directly with:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">lfs</span> <span class="n">pull</span> <span class="n">public</span> <span class="o">-</span><span class="n">I</span> <span class="n">file_basename</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>lfs<span class="w"> </span>pull<span class="w"> </span>public<span class="w"> </span>-I<span class="w"> </span>file_basename
 </pre></div>
 </div>
-<p>Especial attention to the <code class="docutils literal notranslate"><span class="pre">file_basename</span></code>, e.g. <em>my_image.jpg</em>,
+<p>Be mindful of the <code class="docutils literal notranslate"><span class="pre">file_basename</span></code>, e.g. <em>my_image.jpg</em>,
 full paths like <em>path/to/my_image.jpg</em> will silently fail.</p>
 </section>
 <section id="how-can-i-rebuild-the-whole-documentation-within-serve">

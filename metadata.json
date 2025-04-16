@@ -25,7 +25,7 @@
             "branch": "main"
         },
         "pyadi-dt": {
-            "name": "pyadi-iio",
+            "name": "pyadi-dt",
             "visibility": "public",
             "pathname": "doc/source",
             "branch": "main"
