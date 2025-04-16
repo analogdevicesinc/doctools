@@ -555,6 +555,93 @@ consider requesting or creating one.
    directives
    roles
 
+.. _repo-extensions:
+
+Repository extensions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Extensions with repository-specific functionalities can be added to the repository
+source code.
+
+At *conf.py*, add:
+
+.. code:: python
+
+   import os
+   import sys
+   sys.path.insert(0, os.path.abspath(os.path.join('.', 'ext'))
+
+   extensions = [
+        ...
+        "ext_repo_name"
+   ]
+
+Create the *ext/ext_repo_name.py* and implement your custom directives/roles.
+Replace *repo_name* with your repository name.
+
+If the extension relies on files at the repository (like XML files), and/or
+uses either env.found_docs or docnames to manage cache,
+check if ``env.config.monolithic`` exists and is true.
+
+If yes, prefix:
+
+* the path to files with the relative path from the custom doc to the
+  repository (always `../<repository>` (e.g.,`../hdl`)); and
+* doc-names with the repository name (e.g., `hdl/`).
+
+This ensures compatibility with :ref:`custom-doc`.
+
+Here is a practical example:
+
+* Metadata to be parsed is at ``repo_name/builds/info.xml``
+* The sphinx source dir ``env.dir`` values are:
+
+ * original doc (per repo): ``repo_name/doc/sphinx/source``
+ * custom doc (always): ``_build``.
+
+So, if is necessary to check ``env.config.monolithic`` to correct infer the
+target file path, for example:
+
+.. code:: python
+
+   if hasattr(env.config, 'monolithic') and env.config.monolithic:
+        repo_path = path.join(env.srcdir, '..', 'repo_name')
+   else:
+        repo_path = path.join(env.srcdir, '..', '..', '..')
+
+   artifact_path = path.abspath(path.join(repo_root, 'builds', 'info.xml'))
+
+This is necessary because Sphinx has no way of knowing the repository root
+(without invoking a git shell), so hard-coding a relative path is necessary.
+
+.. note::
+
+   If the extensions is reused by multiple repositories, infeer the repository
+   name from the first level (``my_repo/``) of the docname
+   (``my_repo/tutorial/index``).
+
+Custom doc copies
+``env.srcdir(original)`` to ``env.srcdir(custom)/repo_name``
+to avoid page conflicts when aggregating.
+So, sometimes it is necessary to prefix docnames with the repository name:
+
+.. code:: python
+
+   if hasattr(env.config, 'monolithic') and env.config.monolithic:
+        prefix = "repo_name"
+   else:
+        prefix = "."
+
+   _somedoc = path.join(prefix, _somedoc)
+
+For intermediary files, for example a SQLite databases, it is recommended
+to anchor to ``outdir/../managed``:
+
+.. code:: python
+
+   dest_dir = path.abspath(path.join(env.app.builder.outdir, pardir, 'managed'))
+   sql_path = (dest_dir, "my_repo.sqlite")
+
 Common sections
 --------------------------------------------------------------------------------
 
