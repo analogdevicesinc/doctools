@@ -1,5 +1,5 @@
 Custom roles
-===============================================================================
+============
 
 .. note::
 
@@ -8,12 +8,12 @@ Custom roles
 
 
 Color
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~
 
 To print text in red or green, use :code:`:red:\`text\`` and :code:`:green:\`text\``.
 
 Link
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~
 
 The link roles are a group of roles defined by ``adi_links.py``.
 
@@ -25,7 +25,7 @@ the links of only these files.
 .. _role git:
 
 Git
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++++
 
 The Git role allows to create links to the Git repository with a shorter syntax.
 The role syntax is :code:`:git-repo:\`text <type+branch:path>\``, for example:
@@ -63,13 +63,13 @@ repository with pretty naming, for example, :code:`:git-hdl:\`/\`` is rendered
 as :git-hdl:`/`.
 
 DownGit
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++++++++
 
 Same as the :ref:`role git` but wrapping the address with the :git-DownGit:`+`
 fork.
 
 ADI
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++++
 
 The adi role creates links for a webpage to the Analog Devices Inc. website.
 
@@ -82,7 +82,7 @@ as :adi:`AD7175-2`.
 .. _role dokuwiki:
 
 Dokuwiki
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+++++++++
 
 The dokuwiki role creates links to the Analog Devices Inc. wiki website.
 The role syntax is :code:`:dokuwiki:\`text <path>\``, for example,
@@ -98,7 +98,7 @@ The sole intend of this qualifier is to distinct pending import pages from won't
 import pages.
 
 EngineerZone
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+++++++++++++
 
 The ez role creates links to the Analog Devices Inc. EngineerZone support website.
 The role syntax is :code:`:ez:\`community\``, for example, :code:`:ez:\`fpga\``
@@ -109,7 +109,7 @@ For Linux Software Drivers, it is :code:`:ez:\`linux-software-drivers\``.
 For Microcontroller no-OS Drivers it is :code:`:ez:\`microcontroller-no-os-drivers\``.
 
 Vendor
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+++++++
 
 The vendor role creates links to the vendor's website.
 The role syntax is :code:`:vendor:\`text <path>\``, for example,
@@ -128,7 +128,7 @@ Supported vendors are: ``xilinx`` (AMD Xilinx), ``intel`` (Intel Altera) and
 ``mw`` (MathWorks).
 
 Supplier
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+++++++++
 
 The supplier role creates links to a vendor's website search.
 The role syntax is :code:`:vendor:\`text <path>\``, for example,

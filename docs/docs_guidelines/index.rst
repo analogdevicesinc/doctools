@@ -1,7 +1,7 @@
 .. _docs_guidelines:
 
 Documentation guidelines
-================================================================================
+========================
 
 A brief set-of-rules for the documentation.
 
@@ -11,7 +11,7 @@ A brief set-of-rules for the documentation.
    in this page to convert it to reST.
 
 Importing from DokuWiki to Sphinx
---------------------------------------------------------------------------------
+---------------------------------
 
 Use the following command to import a DokuWiki page (old *wiki.analog.com*):
 
@@ -45,7 +45,7 @@ There is also the
 to further help importing.
 
 Indentation
---------------------------------------------------------------------------------
+-----------
 
 Directives are indented with 3 space, which is Sphinx's default.
 At code directives, the code keeps its original indentation (e.g. 2 spaces for
@@ -53,7 +53,7 @@ Verilog code), but is offset by 3 spaces at the beginning of every line, to
 instruct Sphinx the beginning and end of the code directive.
 
 Table of contents
---------------------------------------------------------------------------------
+-----------------
 
 The relation between pages are created with the ``toctree`` directive,
 which allows to generate the table of contents and navigation bars.
@@ -123,7 +123,7 @@ of them.
 .. _version:
 
 Versioning
---------------------------------------------------------------------------------
+----------
 
 To avoid having the version set in multiple places or having to tweak ``conf.py``
 to obtain it from somewhere else, continuous integration can set the environment
@@ -151,7 +151,7 @@ to an empty string.
          * pull_request: ``1234/merge``, ``23/merge``, ...
 
 Exporting to PDF
---------------------------------------------------------------------------------
+----------------
 
 The whole documentation can be exported to a PDF document for a more compact
 format using either rs2pdf or WeasyPrint.
@@ -191,7 +191,7 @@ The advantage of WeasyPrint is that the design styles (CSS stylesheet) is
 respected.
 
 Inner working
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~
 
 Internally, ``ADOC_MEDIA_PRINT`` variable is set to ``app.config.media_print``
 and should be used in scenarios where it is explicitly needed to compile the
@@ -206,7 +206,7 @@ Still, another approach is to patch the generated html, like is done at
 .. _local_refs:
 
 Local references
---------------------------------------------------------------------------------
+----------------
 
 References to labels have the format :code:`:ref:\`context topic\``, e.g.
 :code:`:ref:\`role git\`` renders as :ref:`role git`.
@@ -238,7 +238,7 @@ for example
 ``my_code control-interface`` instead of ``MY_CODE Control_Interface``.
 
 Numbered references
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
 
 References can be numbered by using
 `numref <https://www.sphinx-doc.org/en/master/usage/referencing.html#role-numref>`__,
@@ -271,7 +271,7 @@ To customize the format, set ``numfig_format``:
 .. _inter-refs:
 
 External references
---------------------------------------------------------------------------------
+-------------------
 
 External references to other Sphinx documentation are created using the built-in
 ``sphinx.ext.intersphinx`` extension.
@@ -319,7 +319,7 @@ To show all links of an InterSphinx mapping file, use the built-in tool:
 .. _in-org-ref:
 
 In organization reference
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To create references to Sphinx docs inside the organization add the repositories
 of interest to the `conf.py` file with the following format:
@@ -368,7 +368,7 @@ The correct relative paths are resolved looking into the ``lut.py``.
 .. _out-org-ref:
 
 Outside organization Sphinx reference
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To create references to third-party Sphinx documentations, add the mappings to
 to the `conf.py` file with the following format:
@@ -388,7 +388,7 @@ For example:
    }
 
 Text width
---------------------------------------------------------------------------------
+----------
 
 Each line must be less than 80 columns wide.
 You can use the :code:`fold` command to break the lines of the imported text
@@ -409,7 +409,7 @@ title character, that means, this is also valid:
 .. _tables:
 
 Tables
---------------------------------------------------------------------------------
+------
 
 Prefer
 `list-tables <https://docutils.sourceforge.io/docs/ref/rst/directives.html#list-table>`__
@@ -428,7 +428,7 @@ To tune styling, the following classes are available:
 * *bold-first-column*: Make the first column bold.
 
 Lists
---------------------------------------------------------------------------------
+-----
 
 Unordered lists use ``*`` or ``-`` and ordered lists ``#.``.
 
@@ -454,7 +454,7 @@ Renders as:
      #. Child ordered item.
 
 Code
---------------------------------------------------------------------------------
+----
 
 Prefer
 `code-blocks <https://www.sphinx-doc.org/en/master/usage/restructuredtext/directives.html#directive-code-block>`_
@@ -486,7 +486,7 @@ Renders as
        print(string)
 
 Images
---------------------------------------------------------------------------------
+------
 
 Prefer the SVG format for images, and save it as *Optimized SVG* in
 `inkscape <https://inkscape.org/>`_ to use less space.
@@ -510,7 +510,7 @@ In general, this avoids dangling artifacts and keeps the documentation simple.
 .. _git-lfs:
 
 Git Large File Storage
---------------------------------------------------------------------------------
+----------------------
 
 Where applicable, Git Large File Storage (LFS) is used to replace large files
 with text pointers inside Git, reducing cloning time.
@@ -520,7 +520,7 @@ To setup, install from your package manager and init:
 .. code:: bash
 
    apt install git-lfs
-   git lfs install
+   git lfs install --skip-smudge
 
 The files that will use Git LFS are tracked at ``.gitattributes``, to add new
 files use a pattern at the repo root, for example:
@@ -532,7 +532,7 @@ files use a pattern at the repo root, for example:
 Or edit ``.gitattributes`` directly.
 
 Third-party directives and roles
---------------------------------------------------------------------------------
+--------------------------------
 
 Third-party tools are used to expand Sphinx functionality, if you haven't already,
 do:
@@ -542,7 +542,7 @@ do:
    pip install -r requirements.txt
 
 Custom directives and roles
---------------------------------------------------------------------------------
+---------------------------
 
 To expand Sphinx functionality beyond existing tools, custom directives and roles
 have been written, which are located in the *docs/extensions* folder.
@@ -558,7 +558,7 @@ consider requesting or creating one.
 .. _repo-extensions:
 
 Repository extensions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
 
 Extensions with repository-specific functionalities can be added to the repository
 source code.
@@ -643,10 +643,10 @@ to anchor to ``outdir/../managed``:
    sql_path = (dest_dir, "my_repo.sqlite")
 
 Common sections
---------------------------------------------------------------------------------
+---------------
 
 HDL common sections
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
 
 The **More information** and **Support** sections that are present in
 the HDL project documentation, are actually separate pages inserted as links.
@@ -666,7 +666,7 @@ They are inserted like this:
 And will be rendered as sections of the page.
 
 Dynamic elements
---------------------------------------------------------------------------------
+----------------
 
 Dynamic elements refer to sections of the documentation that are updated using
 dynamically loaded metadata, scripts, and styles (modules).

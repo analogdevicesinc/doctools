@@ -1,15 +1,16 @@
 Installing
-================================================================================
+==========
 
-Below is described how to do a release install and a development install of Doctools.
+Below is described how to do a release install and a development install of
+Doctools.
 
-Guarantee to work with Python newer than 3.8 and distros released on or after 20H1
-(e.g. Ubuntu 20.04 LTS).
+Guarantee to work with Python newer than 3.8 and distros released on or after
+20H1 (e.g. Ubuntu 20.04 LTS).
 
 .. _release-install:
 
 Release install
---------------------------------------------------------------------------------
+---------------
 
 Ensure pip is newer than 23.0 [#f1]_:
 
@@ -35,10 +36,11 @@ Test it building this documentation:
 
 
 Using a Python virtual environment
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Installing packages at user level through pip is not always recommended, instead,
-consider using a Python virtual environment (``python3-venv`` on ubuntu 22.04).
+Installing packages at user level through pip is not always recommended,
+instead, consider using a Python virtual environment (``python3-venv`` on
+ubuntu 22.04).
 
 To create and activate the environment, do before the previous instructions:
 
@@ -58,7 +60,7 @@ For next builds, just activate the virtual environment:
 .. _development-install:
 
 Development install
---------------------------------------------------------------------------------
+-------------------
 
 Development install allows to edit the source code and apply the changes without
 reinstalling.
@@ -68,7 +70,7 @@ Also extends Author Mode to watch changes on the webpage source code
 .. _web-compiler:
 
 Install the web compiler
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you care about the web scripts (`js modules`) and style sheets (`sass`),
 install ``node.js``, ``npm`` and the ``npm`` packages below, if not, read this
@@ -95,7 +97,7 @@ For that, just run :ref:`serve` after the repository is installed and
 confirm the prompt that will appear.
 
 Fetch third-party resources
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Fetch third-party fonts:
 
@@ -104,7 +106,7 @@ Fetch third-party fonts:
    $./ci/fetch-fonts.sh
 
 Install the repository
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
 
 Finally, do a symbolic install of this repo:
 
@@ -124,7 +126,7 @@ Finally, do a symbolic install of this repo:
 .. _removing:
 
 Removing
---------------------------------------------------------------------------------
+--------
 
 To remove, either release or development, do:
 

@@ -3,15 +3,15 @@
 Documentation deployment
 ========================
 
-Doctools is developed to work offline, in a local server, as a rolling release
-(e.g. on GitHub Page)s and versioned in a dedicated server (with orchestration).
+Doctools is developed to work offline, in a local server as a rolling release
+(e.g., on GitHub Pages) and versioned in a dedicated server with orchestration.
 
 .. _ci-local:
 
 Local
 -----
 
-For offline and local server, a ``make html`` suffice to generate the
+For offline and local server, a ``make html`` suffices to generate the
 documentation.
 
 To serve the build in a local server, Python built-in server can be used:
@@ -32,7 +32,6 @@ Rolling release
 ---------------
 
 For a rolling release, a workflow file is used.
-
 With GitHub Actions, the following workflow file is recommended:
 
 .. code:: yaml
@@ -119,9 +118,9 @@ With GitHub Actions, the following workflow file is recommended:
          run: |
            git push origin gh-pages:gh-pages
 
-With the Sphinx ``-W`` flag, Sphinx exits with an error if any warning is logged,
-and ``--keep-going`` continues the build even if a warning is logged, to provide
-a complete log for analysis.
+With the Sphinx ``-W`` flag, Sphinx exits with an error if any warning is
+logged, and ``--keep-going`` continues the build even if a warning is logged,
+to provide a complete log for analysis.
 
 The ``deploy-doc`` job only runs when push/merged to main.
 
@@ -163,8 +162,8 @@ The first tag will be labeled with ``latest``.
 
 .. tip::
 
-   See this repo's :git-doctools:`.github/workflows/deploy.yml` for a suggestion on
-   how to implement it.
+   See this repo's :git-doctools:`.github/workflows/deploy.yml` for a
+   suggestion on how to implement it.
 
 This ``tags.json`` format can be obtained with:
 
@@ -205,8 +204,9 @@ For example:
 Notice how the "name" and "label" for path ``prs/staging/new-feature``
 was used to provide a concise but clearer name to this entry.
 
-The doc version set, either via ``conf.py`` or ``ADOC_DOC_VERSION`` (:ref:`more info <version>`),
-should match a value on the ``name`` column, and not the ``path`` column.
+The doc version set, either via ``conf.py`` or ``ADOC_DOC_VERSION``
+(:ref:`more info <version>`), should match a value on the ``name`` column, and
+not the ``path`` column.
 
 Further notes
 -------------
