@@ -2,7 +2,7 @@
 
 import {DOM} from './dom.js'
 
-export class Search {
+export class UnifiedSearch {
   constructor (app) {
     this.parent = app
 
@@ -21,22 +21,41 @@ export class Search {
   init () {
     // pointers:
     // _static/searchtools.js loadIndex  (not used)
-    // searchindex.js calls Search.setIndex
-    // TODO test loadIndex(url) with multiple url (extend Search._index instead ?)
-    // Search.query does the search, with _performSearch as low level
-    this.$.fuzzysort = new DOM('script', {
-      src:'https://cdn.jsdelivr.net/npm/fuzzysort@3.1.0/fuzzysort.min.js',
+    // searchindex.js calls UnifiedSearch.setIndex
+    // TODO test loadIndex(url) with multiple url (extend UnifiedSearch._index instead ?)
+    // UnifiedSearch.query does the search, with _performSearch as low level
+    let searchtools_script = new URL(`${this.parent.state.content_root}_static/searchtools.js`,
+                                     location)
+    let language_data_script = new URL(`${this.parent.state.content_root}_static/language_data.js`,
+                                       location)
+    console.log(searchtools_script)
+    this.$.searchtools = new DOM('script', {
+      src: searchtools_script.href,
       async: true
     })
-    this.$.fuzzysort.$.onload = () => {
-      console.log("hi", fuzzysort)
-      const mystuff = [{file: 'Apple.cpp', bana:"hello"}, {file: 'Banana.cpp'}]
-      const results = fuzzysort.go('a', mystuff, {key: 'file'})
-      console.log(results, this)
-
+    this.$.language_data = new DOM('script', {
+      src: language_data_script.href,
+      async: true
+    })
+    this.$.searchtools.$.onload = () => {
+      let search0 = new URL(`${this.parent.state.content_root}searchindex.js`,
+                            location)
+      Search.loadIndex(search0.href)
       this.ready = true
+
+      Search.query = (query) => {
+        const [searchQuery, searchTerms, excludedTerms, highlightTerms, objectTerms] = Search._parseQuery(query);
+        const results = Search._performSearch(searchQuery, searchTerms, excludedTerms, highlightTerms, objectTerms);
+
+        // for debugging
+        //Search.lastresults = results.slice();  // a copy
+        // console.info("search results:", Search.lastresults);
+
+        // print the results
+        console.log(results, results.length, searchTerms, highlightTerms);
+      }
     }
-    this.$.body.append([this.$.fuzzysort])
+    this.$.body.append([this.$.searchtools, this.$.language_data])
 
     console.log("hello from search")
   }
