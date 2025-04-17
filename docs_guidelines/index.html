@@ -112,8 +112,11 @@
 <li><a class="reference internal" href="#code">Code</a></li>
 <li><a class="reference internal" href="#images">Images</a></li>
 <li><a class="reference internal" href="#git-large-file-storage">Git Large File Storage</a></li>
+<li><a class="reference internal" href="#adding-directives-and-roles">Adding directives and roles</a><ul>
 <li><a class="reference internal" href="#third-party-directives-and-roles">Third-party directives and roles</a></li>
-<li><a class="reference internal" href="#custom-directives-and-roles">Custom directives and roles</a></li>
+<li><a class="reference internal" href="#repository-specific-extensions">Repository-specific extensions</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#common-sections">Common sections</a><ul>
 <li><a class="reference internal" href="#hdl-common-sections">HDL common sections</a></li>
 </ul>
@@ -597,7 +600,7 @@ The idea is to have simpler relative paths, for example, e.g.:</p>
 with text pointers inside Git, reducing cloning time.</p>
 <p>To setup, install from your package manager and init:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>apt<span class="w"> </span>install<span class="w"> </span>git-lfs
-git<span class="w"> </span>lfs<span class="w"> </span>install
+git<span class="w"> </span>lfs<span class="w"> </span>install<span class="w"> </span>--skip-smudge
 </pre></div>
 </div>
 <p>The files that will use Git LFS are tracked at <code class="docutils literal notranslate"><span class="pre">.gitattributes</span></code>, to add new
@@ -607,26 +610,113 @@ files use a pattern at the repo root, for example:</p>
 </div>
 <p>Or edit <code class="docutils literal notranslate"><span class="pre">.gitattributes</span></code> directly.</p>
 </section>
-<section id="third-party-directives-and-roles">
-<h2>Third-party directives and roles<a class="headerlink" href="#third-party-directives-and-roles" title="Link to this heading"></a></h2>
-<p>Third-party tools are used to expand Sphinx functionality, if you haven’t already,
-do:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
-</pre></div>
-</div>
-</section>
-<section id="custom-directives-and-roles">
-<h2>Custom directives and roles<a class="headerlink" href="#custom-directives-and-roles" title="Link to this heading"></a></h2>
-<p>To expand Sphinx functionality beyond existing tools, custom directives and roles
-have been written, which are located in the <em>docs/extensions</em> folder.
-Extensions are straight forward to create, if some functionality is missing,
-consider requesting or creating one.</p>
+<section id="adding-directives-and-roles">
+<h2>Adding directives and roles<a class="headerlink" href="#adding-directives-and-roles" title="Link to this heading"></a></h2>
+<p>Sphinx allows to expand functionality beyond the defaults directives and roles
+by loading extensions.</p>
+<p>Doctools extended directives and roles are documented at:</p>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="directives.html">Custom directives</a></li>
 <li class="toctree-l1"><a class="reference internal" href="roles.html">Custom roles</a></li>
 </ul>
 </div>
+<section id="third-party-directives-and-roles">
+<span id="extension-third-party"></span><h3>Third-party directives and roles<a class="headerlink" href="#third-party-directives-and-roles" title="Link to this heading"></a></h3>
+<p>Repositories have the freedom to choose the third-party extensions they want to
+include in their documentation.
+They are listed on the <em>requirements.tst</em> file, and are installed with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+</pre></div>
+</div>
+<p>The recommendation is to avoid using extensions that render content on the
+client side using JavaScript, because it requires:</p>
+<ul class="simple">
+<li><p>fetching third-party scripts at someone-else server most of the times; and</p></li>
+<li><p>makes exporting to other formats (like pdf) harder, because it is then necessary to
+patch and replace with another non-JavaScript renderer.</p></li>
+</ul>
+</section>
+<section id="repository-specific-extensions">
+<span id="extension-repository"></span><h3>Repository-specific extensions<a class="headerlink" href="#repository-specific-extensions" title="Link to this heading"></a></h3>
+<p>Extensions with repository-specific functionalities can be added to the repository
+source code.</p>
+<p>At <em>conf.py</em>, add:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="s1">&#39;ext&#39;</span><span class="p">))</span>
+
+<span class="n">extensions</span> <span class="o">=</span> <span class="p">[</span>
+     <span class="o">...</span>
+     <span class="s2">&quot;ext_repo_name&quot;</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>Create the <em>ext/ext_repo_name.py</em> and implement your custom directives/roles.
+Replace <em>repo_name</em> with your repository name.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>If you think your extension could be useful for other repositories, consider
+migrating it to Doctools source code.</p>
+</div>
+<p>If the extension relies on files at the repository (like XML files), and/or
+uses either env.found_docs or docnames to manage cache,
+check if <code class="docutils literal notranslate"><span class="pre">env.config.monolithic</span></code> exists and is true.</p>
+<p>If yes, prefix:</p>
+<ul class="simple">
+<li><p>the path to files with the relative path from the custom doc to the
+repository (always <cite>../&lt;repository&gt;</cite> (e.g.,`../hdl`)); and</p></li>
+<li><p>doc-names with the repository name (e.g., <cite>hdl/</cite>).</p></li>
+</ul>
+<p>This ensures compatibility with <a class="reference internal" href="../cli.html#custom-doc"><span class="std std-ref">Custom Doc</span></a>.</p>
+<p>Here is a practical example:</p>
+<ul class="simple">
+<li><p>Metadata to be parsed is at <code class="docutils literal notranslate"><span class="pre">repo_name/builds/info.xml</span></code></p></li>
+<li><p>The sphinx source dir <code class="docutils literal notranslate"><span class="pre">env.dir</span></code> values are:</p></li>
+</ul>
+<blockquote>
+<div><ul class="simple">
+<li><p>original doc (per repo): <code class="docutils literal notranslate"><span class="pre">repo_name/doc/sphinx/source</span></code></p></li>
+<li><p>custom doc (always): <code class="docutils literal notranslate"><span class="pre">_build</span></code>.</p></li>
+</ul>
+</div></blockquote>
+<p>So, if is necessary to check <code class="docutils literal notranslate"><span class="pre">env.config.monolithic</span></code> to correct infer the
+target file path, for example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="s1">&#39;monolithic&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">env</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">monolithic</span><span class="p">:</span>
+     <span class="n">repo_path</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">srcdir</span><span class="p">,</span> <span class="s1">&#39;..&#39;</span><span class="p">,</span> <span class="s1">&#39;repo_name&#39;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+     <span class="n">repo_path</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">srcdir</span><span class="p">,</span> <span class="s1">&#39;..&#39;</span><span class="p">,</span> <span class="s1">&#39;..&#39;</span><span class="p">,</span> <span class="s1">&#39;..&#39;</span><span class="p">)</span>
+
+<span class="n">artifact_path</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">repo_root</span><span class="p">,</span> <span class="s1">&#39;builds&#39;</span><span class="p">,</span> <span class="s1">&#39;info.xml&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>This is necessary because Sphinx has no way of knowing the repository root
+(without invoking a git shell), so hard-coding a relative path is necessary.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If the extensions is reused by multiple repositories, infeer the repository
+name from the first level (<code class="docutils literal notranslate"><span class="pre">my_repo/</span></code>) of the docname
+(<code class="docutils literal notranslate"><span class="pre">my_repo/tutorial/index</span></code>).</p>
+</div>
+<p>Custom doc copies
+<code class="docutils literal notranslate"><span class="pre">env.srcdir(original)</span></code> to <code class="docutils literal notranslate"><span class="pre">env.srcdir(custom)/repo_name</span></code>
+to avoid page conflicts when aggregating.
+So, sometimes it is necessary to prefix docnames with the repository name:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="s1">&#39;monolithic&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">env</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">monolithic</span><span class="p">:</span>
+     <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;repo_name&quot;</span>
+<span class="k">else</span><span class="p">:</span>
+     <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span>
+
+<span class="n">_somedoc</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="n">_somedoc</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For intermediary files, for example a SQLite database, it is recommended
+to anchor to <code class="docutils literal notranslate"><span class="pre">outdir/../managed</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">dest_dir</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">builder</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="n">pardir</span><span class="p">,</span> <span class="s1">&#39;managed&#39;</span><span class="p">))</span>
+<span class="n">sql_path</span> <span class="o">=</span> <span class="p">(</span><span class="n">dest_dir</span><span class="p">,</span> <span class="s2">&quot;my_repo.sqlite&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
 </section>
 <section id="common-sections">
 <h2>Common sections<a class="headerlink" href="#common-sections" title="Link to this heading"></a></h2>
