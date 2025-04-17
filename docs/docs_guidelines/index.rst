@@ -531,23 +531,13 @@ files use a pattern at the repo root, for example:
 
 Or edit ``.gitattributes`` directly.
 
-Third-party directives and roles
---------------------------------
-
-Third-party tools are used to expand Sphinx functionality, if you haven't already,
-do:
-
-.. code:: bash
-
-   pip install -r requirements.txt
-
-Custom directives and roles
+Adding directives and roles
 ---------------------------
 
-To expand Sphinx functionality beyond existing tools, custom directives and roles
-have been written, which are located in the *docs/extensions* folder.
-Extensions are straight forward to create, if some functionality is missing,
-consider requesting or creating one.
+Sphinx allows to expand functionality beyond the defaults directives and roles
+by loading extensions.
+
+Doctools extended directives and roles are documented at:
 
 .. toctree::
    :titlesonly:
@@ -555,10 +545,30 @@ consider requesting or creating one.
    directives
    roles
 
-.. _repo-extensions:
+.. _extension-third-party:
 
-Repository extensions
-~~~~~~~~~~~~~~~~~~~~~
+Third-party directives and roles
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Repositories have the freedom to choose the third-party extensions they want to
+include in their documentation.
+They are listed on the *requirements.tst* file, and are installed with:
+
+.. code:: bash
+
+   pip install -r requirements.txt
+
+The recommendation is to avoid using extensions that render content on the
+client side using JavaScript, because it requires:
+
+* fetching third-party scripts at someone-else server most of the times; and
+* makes exporting to other formats (like pdf) harder, because it is then necessary to
+  patch and replace with another non-JavaScript renderer.
+
+.. _extension-repository:
+
+Repository-specific extensions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Extensions with repository-specific functionalities can be added to the repository
 source code.
@@ -578,6 +588,11 @@ At *conf.py*, add:
 
 Create the *ext/ext_repo_name.py* and implement your custom directives/roles.
 Replace *repo_name* with your repository name.
+
+.. tip::
+
+   If you think your extension could be useful for other repositories, consider
+   migrating it to Doctools source code.
 
 If the extension relies on files at the repository (like XML files), and/or
 uses either env.found_docs or docnames to manage cache,
@@ -634,7 +649,7 @@ So, sometimes it is necessary to prefix docnames with the repository name:
 
    _somedoc = path.join(prefix, _somedoc)
 
-For intermediary files, for example a SQLite databases, it is recommended
+For intermediary files, for example a SQLite database, it is recommended
 to anchor to ``outdir/../managed``:
 
 .. code:: python
