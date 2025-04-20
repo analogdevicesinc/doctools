@@ -10,6 +10,7 @@ export class UnifiedSearch {
     this.parent = app
 
     this.index = {}
+    this.index_state = {}
 
     let $ = this.$ = {}
     $.body = new DOM(DOM.get('body'))
@@ -21,8 +22,13 @@ export class UnifiedSearch {
       DOM.switchState($.searchAreaBg)
     })
     $.searchArea = new DOM(DOM.get('.search-area'))
-    $.searchForm = new DOM(DOM.get('form', $.searchArea))
+    $.searchAreaContainer = new DOM(DOM.get('.search-area > div'))
+    $.searchForm = new DOM(DOM.get('form', $.searchAreaContainer))
     $.searchInput = new DOM(DOM.get('input', $.searchForm))
+    $.searchTags = new DOM('span', {
+      className: 'search-filter'
+    });
+
     $.searchForm.$['action'] = DOM.get('link[rel="search"]').href
     $.body.append([$.searchAreaBg])
 
@@ -42,6 +48,17 @@ export class UnifiedSearch {
     this.init()
 
     app.search = this
+  }
+  checkToc (key, ev) {
+    if (ev.target.checked) {
+      if (this.index_state[key].requested === false) {
+        let search_ = new URL(`${this.parent.state.metadata.remote_doc}${key}/searchindex.js`)
+        this.loadIndex(search_.href, key)
+        this.index_state[key].requested = true
+      }
+    }
+    this.index_state[key].checked = ev.target.checked
+    this.query(this.$.searchInput.$.value)
   }
   /* Search shortcut */
   search (e) {
@@ -66,12 +83,12 @@ export class UnifiedSearch {
     fetch (request)
       .then((response) => response.text())
       .then((text) => {
-        console.log(tag)
         try {
           if (text.substring(0, 16) != "Search.setIndex(" || text.substring(text.length-1) != ")")
             throw new Error(`Search index of tag '${tag}' is impropetly formatted`)
           this.index[tag] = JSON.parse(text.substring(16, text.length-1))
-          console.log(this.index[tag])
+          this.index_state[tag].ready = true
+          console.log(this.index[tag], url)
         } catch (error) {
           console.warn(error)
         } 
@@ -359,7 +376,11 @@ export class UnifiedSearch {
   }
   query (query) {
     const [searchQuery, searchTerms, excludedTerms, highlightTerms, objectTerms] = this._parseQuery(query)
-    const enabledTags = ['doctools', 'hdl']
+    const enabledTags = []
+    for (const [key, value] of Object.entries(this.index_state)) {
+      if (value.checked === true && this.index[key] !== undefined)
+        enabledTags.push(key)
+    }
     enabledTags.forEach((searchOn) => {
       const results = this._performSearch(searchQuery, searchTerms, excludedTerms, highlightTerms, objectTerms, searchOn)
       console.log(results, results.length, searchTerms, highlightTerms)
@@ -421,16 +442,29 @@ export class UnifiedSearch {
       src: language_data_script.href,
       async: true
     })
-    this.$.searchtools.$.onload = () => {
-      let search0 = new URL(`${this.parent.state.content_root}searchindex.js`,
-                            location)
-      let search1 = new URL(`https://analogdevicesinc.github.io/hdl/searchindex.js`)
-
-      this.loadIndex(search0.href, "doctools")
-      this.loadIndex(search1.href, "hdl")
-    }
+    this.$.searchtools.$.onload = () => { /* nothing todo */ }
     this.$.body.append([this.$.searchtools, this.$.language_data])
 
-    console.log("hello from search")
+    for (const [key, value] of Object.entries(this.parent.state.metadata.repotoc)) {
+      this.index_state[key] = {
+        ready: false,
+        requested: false,
+        checked: false
+      }
+      this.$.searchTags.append([
+        new DOM('span').append([
+          new DOM('input', {
+            id: `tag-${key}`,
+            type: 'checkbox'
+          }).onchange(this, this.checkToc, [key]),
+          new DOM('label', {
+            htmlFor: `tag-${key}`,
+            innerText: value['name']
+          })
+        ])
+      ])
+    }
+    this.$.searchAreaContainer.append(this.$.searchTags)
+    this.$.searchInput.$.oninput = (e) => {this.query(e.target.value)}
   }
 }

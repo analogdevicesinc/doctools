@@ -32,6 +32,8 @@ export class Links {
   update_repotoc (obj) {
     let $ = this.$
 
+    let prefix = this.parent.state.sub_hosted === true ?
+                 '/' : this.parent.state.metadata.remote_doc
     let home = "index.html"
     let linksOverlay = [],
         linksSidebar = []
@@ -41,7 +43,7 @@ export class Links {
 
       let base = key == this.parent.state.repository ?
                  this.parent.state.content_root :
-                 `/${key}/`
+                 `${prefix}${key}/`
       linksSidebar.push(new DOM('a', {
         'href': `${base}${home}`,
         'className': this.parent.state.repository === key ? 'current' : '',

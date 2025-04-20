@@ -90,6 +90,7 @@ def build_finished(app, exc):
                     copy_asset_file(path.join(src_uri, m),
                                     path.join(build_uri, m))
 
+            metadata['remote_doc'] = app.lut['remote_doc']
             metadata['source_hostname'] = app.lut['source_hostname']
 
             file = path.join(app.builder.outdir, 'metadata.json')

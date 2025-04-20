@@ -1,4 +1,5 @@
 @use "variable";
+@use "mixin_icons";
 
 .search-area, .search-area-bg {
     top: 0;
@@ -7,8 +8,13 @@
 .search-area {
     position: sticky;
 }
-.search-area form {
+.search-area > div {
     display: none;
+    width: 100vw;
+}
+
+.search-area.on > div {
+    display: block;
 }
 
 .search-area-bg {
@@ -29,22 +35,24 @@
 }
 
 .search-area {
+    /* Ensure icon inclusion */
+    @include mixin_icons.icons(("filter"));
+
     width: 0;
     height: 0;
     z-index: 10;
     overflow: visible;
 }
 
-.search-area.on form {
+.search-area form,
+.search-area .search-filter {
     display: flex;
 }
 
 .search-area form {
-    width: 100vw;
     background: var(--bg-color1);
     padding: .5rem;
     height: 3.5rem;
-
 
     input {
         color: var(--text-color1);
@@ -76,22 +84,64 @@
     }
 }
 
+.search-area .search-filter {
+    padding: 1rem .5rem;
+    background: var(--bg-color3);
+    overflow-y: auto;
+
+    input {
+        display: none;
+    }
+
+    label {
+        border: 1px solid var(--text-color2);
+        color: var(--text-color2);
+        border-radius: 1em;
+        padding: .25em .5em;
+        line-height: 1.5em;
+        cursor: pointer;
+        margin-right: .5em;
+        user-select: none;
+        white-space: nowrap;
+        font-size: .9em;
+    }
+
+    input:checked ~ label {
+        background: var(--text-color2);
+        color: var(--bg-color1);
+    }
+
+    &::before {
+            display: block;
+            content: '';
+            width: 1.5em;
+            height: 1.5em;
+            background-color: var(--text-color2);
+            mask-image: var(--icon-filter);
+            mask-repeat: no-repeat;
+            margin-right: .25em;
+        }
+
+        &:hover::before {
+    }
+}
+
 @media (min-width: variable.$screen-1) {
-    .search-area form {
+    .search-area > div {
         margin-left: calc(40vw - 15rem);
         width: calc(60vw + 15rem);
     }
 }
 
 @media (min-width: variable.$screen-1) and (max-width: variable.$screen-2) {
-    .search-area form {
+    .search-area > div {
         margin-left: 17rem;
         width: calc(100vw - 17rem);
     }
 }
 
 @media (min-width: variable.$screen-3) {
-    .search-area form {
+    .search-area > div {
         max-width: 62rem;
     }
 }
