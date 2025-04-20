@@ -8,12 +8,12 @@
 .search-area {
     position: sticky;
 }
-.search-area > div {
+.search-area {
     display: none;
     width: 100vw;
 }
 
-.search-area.on > div {
+.search-area.on {
     display: block;
 }
 
@@ -28,7 +28,7 @@
 
 .search-area-bg {
     z-index: 9;
-    background: rgba(0, 0, 0, .35);
+    background: var(--bg-color1);
     left: 0;
     right: 0;
     bottom: 0;
@@ -44,13 +44,13 @@
     overflow: visible;
 }
 
-.search-area form,
-.search-area .search-filter {
+.search-area form {
     display: flex;
+    width: 100vw;
 }
 
 .search-area form {
-    background: var(--bg-color1);
+    background: var(--bg-color2);
     padding: .5rem;
     height: 3.5rem;
 
@@ -86,8 +86,7 @@
 
 .search-area .search-filter {
     padding: 1rem .5rem;
-    background: var(--bg-color3);
-    overflow-y: auto;
+    background: var(--bg-color1);
 
     input {
         display: none;
@@ -121,27 +120,51 @@
             mask-repeat: no-repeat;
             margin-right: .25em;
         }
+}
 
-        &:hover::before {
+@media (max-width: variable.$screen-1) {
+    .search-area .search-filter {
+        overflow-y: auto;
+        display: flex;
+        width: 100vw;
     }
 }
 
 @media (min-width: variable.$screen-1) {
-    .search-area > div {
+    .search-area form {
         margin-left: calc(40vw - 15rem);
         width: calc(60vw + 15rem);
+    }
+
+    .search-area .search-filter {
+        display: block;
+        width: 17rem;
+        text-align: center;
+        height: calc(100vh - 3.5rem);
+        overflow-x: auto;
+
+        span {
+            margin: .5em;
+            display: inline-block;
+        }
+    }
+}
+
+@media (min-width: variable.$screen-2) {
+    .search-area .search-filter {
+        margin-left: calc(40vw - 32rem);
     }
 }
 
 @media (min-width: variable.$screen-1) and (max-width: variable.$screen-2) {
-    .search-area > div {
+    .search-area form {
         margin-left: 17rem;
         width: calc(100vw - 17rem);
     }
 }
 
 @media (min-width: variable.$screen-3) {
-    .search-area > div {
+    .search-area form {
         max-width: 62rem;
     }
 }

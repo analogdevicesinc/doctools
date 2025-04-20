@@ -39,12 +39,10 @@
 
   {% block searchbox %}
   <div class="search-area">
-    <div>
-      <form action="" method="get">
-        <input type="text" name="q" aria-labelledby="search-documentation" value="" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" role="search" placeholder="Search"/>
-        <button value="{{ _('search') }}" class="icon"></button>
-      </form>
-    </div>
+    <form action="" method="get">
+      <input type="text" name="q" aria-labelledby="search-documentation" value="" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" role="search" placeholder="Search"/>
+      <button value="{{ _('search') }}" class="icon"></button>
+    </form>
   </div>
   {% endblock %}
 

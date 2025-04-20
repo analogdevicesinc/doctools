@@ -22,8 +22,7 @@ export class UnifiedSearch {
       DOM.switchState($.searchAreaBg)
     })
     $.searchArea = new DOM(DOM.get('.search-area'))
-    $.searchAreaContainer = new DOM(DOM.get('.search-area > div'))
-    $.searchForm = new DOM(DOM.get('form', $.searchAreaContainer))
+    $.searchForm = new DOM(DOM.get('form', $.searchArea))
     $.searchInput = new DOM(DOM.get('input', $.searchForm))
     $.searchTags = new DOM('span', {
       className: 'search-filter'
@@ -464,7 +463,7 @@ export class UnifiedSearch {
         ])
       ])
     }
-    this.$.searchAreaContainer.append(this.$.searchTags)
+    this.$.searchArea.append(this.$.searchTags)
     this.$.searchInput.$.oninput = (e) => {this.query(e.target.value)}
   }
 }
