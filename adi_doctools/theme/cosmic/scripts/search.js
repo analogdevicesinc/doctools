@@ -2,10 +2,53 @@
 
 import {DOM} from './dom.js'
 
-/** 
+/**
+ * Simple result scoring code.
+ */
+if (typeof Scorer === "undefined") {
+  var Scorer = {
+    // Implement the following function to further tweak the score for each result
+    // The function takes a result array [docname, title, anchor, descr, score, filename]
+    // and returns the new score.
+    /*
+    score: result => {
+      const [docname, title, anchor, descr, score, filename, kind] = result
+      return score
+    },
+    */
+
+    // query matches the full name of an object
+    objNameMatch: 11,
+    // or matches in the last dotted part of the object name
+    objPartialMatch: 6,
+    // Additive scores depending on the priority of the object
+    objPrio: {
+      0: 15, // used to be importantResults
+      1: 5, // used to be objectResults
+      2: -5, // used to be unimportantResults
+    },
+    //  Used when the priority is not in the mapping.
+    objPrioDefault: 0,
+
+    // query found in title
+    title: 15,
+    partialTitle: 7,
+    // query found in terms
+    term: 5,
+    partialTerm: 2,
+  };
+}
+
+/**
+ * See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#escaping
+ */
+const _escapeRegExp = (string) =>
+  string.replace(/[.*+\-?^${}()|[\]\\]/g, "\\$&"); // $& means the whole matched string
+
+/**
  * A fork of Sphinx search tools with multi doc support.
  */
-export class UnifiedSearch {
+export class Search {
   constructor (app) {
     this.parent = app
 
@@ -13,21 +56,35 @@ export class UnifiedSearch {
     this.index_state = {}
 
     let $ = this.$ = {}
+    $.keyCheckbox = {}
+    $.searchUL = {}
+    $.searchLI = {}
     $.body = new DOM(DOM.get('body'))
 
     $.searchAreaBg = new DOM('div', {
       className:'search-area-bg'
-    }).onclick(this, () => {
-      DOM.switchState($.searchArea)
-      DOM.switchState($.searchAreaBg)
-    })
+    }).onclick(this, this.cancel_search)
     $.searchArea = new DOM(DOM.get('.search-area'))
     $.searchForm = new DOM(DOM.get('form', $.searchArea))
+      .onevent("submit", this, (e) => {e.preventDefault()})
+    $.searchFormButton = new DOM(DOM.get('button', $.searchForm))
+      .onup(this, this.cancel_search)
     $.searchInput = new DOM(DOM.get('input', $.searchForm))
     $.searchTags = new DOM('span', {
       className: 'search-filter'
     });
+    $.searchResults = new DOM('ul', {
+      className: 'search-results'
+    });
+    $.searchContainer = new DOM('span', {
+      className: 'search-container'
+    }).onclick(this, (e) => {
+      if (e.target === $.searchContainer.$)
+        this.cancel_search()
+    });
 
+    this.$.searchContainer.append([this.$.searchTags, this.$.searchResults])
+    this.$.searchArea.append([this.$.searchContainer])
     $.searchForm.$['action'] = DOM.get('link[rel="search"]').href
     $.body.append([$.searchAreaBg])
 
@@ -40,6 +97,8 @@ export class UnifiedSearch {
       DOM.switchState($.searchAreaBg)
       $.searchInput.focus()
       $.searchInput.$.select()
+      this.$.body.classList.add('overflow-hidden')
+      this.set_default()
     })
 
     this.parent.navigation.$.rightHeader.append([$.searchButton])
@@ -48,55 +107,143 @@ export class UnifiedSearch {
 
     app.search = this
   }
-  checkToc (key, ev) {
+  /**
+   * Default split_query function. Can be overridden in ``sphinx.search`` with a
+   * custom function per language (TODO look for split_query and allow injection).
+   *
+   * The regular expression works by splitting the string on consecutive characters
+   * that are not Unicode letters, numbers, underscores, or emoji characters.
+   * This is the same as ``\W+`` in Python, preserving the surrogate pair area.
+   */
+  split_query (query) {
+     return query
+        .split(/[^\p{Letter}\p{Number}_\p{Emoji_Presentation}]+/gu)
+        .filter(term => term)
+  }
+  cancel_search () {
+    DOM.switchState(this.$.searchArea)
+    DOM.switchState(this.$.searchAreaBg)
+    this.$.body.classList.remove('overflow-hidden')
+    let url = new URL(location)
+    url.searchParams.delete('q')
+    url.searchParams.delete('r')
+    history.replaceState({}, null, url);
+  }
+  /*
+   * Helper function used by query() to order search results.
+   * Each input is an array of [docname, title, anchor, descr, score, filename, kind].
+   * Order the results by score (in opposite order of appearance, since the
+   * `_displayNextItem` function uses pop() to retrieve items) and then alphabetically.
+   */
+   _orderResultsByScoreThenName = (a, b) => {
+    const leftScore = a[4];
+    const rightScore = b[4];
+    if (leftScore === rightScore) {
+      // same score: sort alphabetically
+      const leftTitle = a[1].toLowerCase();
+      const rightTitle = b[1].toLowerCase();
+      if (leftTitle === rightTitle) return 0;
+      return leftTitle > rightTitle ? -1 : 1; // inverted is intentional
+    }
+    return leftScore > rightScore ? 1 : -1;
+  };
+  check_toc (key, ev) {
     if (ev.target.checked) {
       if (this.index_state[key].requested === false) {
         let search_ = new URL(`${this.parent.state.metadata.remote_doc}${key}/searchindex.js`)
-        this.loadIndex(search_.href, key)
+        this.load_index(search_.href, key)
         this.index_state[key].requested = true
+        this.$.keyCheckbox[key].classList.add('requested')
+        this.$.keyCheckbox[key].classList.remove('failed')
+      } else {
+        this.query(this.$.searchInput.$.value)
+      }
+    } else {
+      this.get_tags_and_update_url(this.$.searchInput.$.value)
+    }
+    this.renew_search()
+  }
+  renew_search () {
+    let searchUL_ = []
+    for (const [key, value] of Object.entries(this.index_state)) {
+      if (this.$.keyCheckbox[key].$.checked === true && this.index_state[key].ready === true) {
+        if (!(key in this.$.searchUL)) {
+          this.$.searchUL[key] = new DOM('ul')
+          this.$.searchLI[key] = new DOM('li').append([
+            new DOM('div', {
+              innerText:  this.parent.state.metadata.repotoc[key].name
+            }),
+            this.$.searchUL[key]
+          ])
+          searchUL_.push(this.$.searchLI[key])
+        }
+        this.$.searchLI[key].classList.add('on')
+      } else {
+        if (key in this.$.searchUL)
+          this.$.searchLI[key].classList.remove('on')
       }
     }
-    this.index_state[key].checked = ev.target.checked
-    this.query(this.$.searchInput.$.value)
+    this.$.searchResults.append(searchUL_)
+  }
+  set_default () {
+    let key = this.parent.state.repository
+    let event = new Event('change');
+    if (!(key in this.$.keyCheckbox))
+      return
+    this.$.keyCheckbox[key].$.checked = true
+    this.$.keyCheckbox[key].$.dispatchEvent(event)
   }
   /* Search shortcut */
   search (e) {
-    if ((e.code === 'IntlRo' || e.code === 'Slash')
+    console.log(e)
+    if (((e.code === 'IntlRo' || e.code === 'Slash') ||
+         (e.code === 'KeyK' && (e.ctrlKey || e.altKey)))
         && !this.$.searchArea.classList.contains('on')) {
       DOM.switchState(this.$.searchArea)
       DOM.switchState(this.$.searchAreaBg)
+      this.$.body.classList.add('overflow-hidden')
       this.$.searchInput.focus()
       this.$.searchInput.$.select()
+      this.set_default()
     } else if (e.code === 'Escape') {
       if (this.$.searchArea.classList.contains('on')) {
-        DOM.switchState(this.$.searchArea)
-        DOM.switchState(this.$.searchAreaBg)
+        this.cancel_search()
       }
     }
   }
   /**
    * Load index of search sources.
    */
-  loadIndex = (url, tag) => {
+  load_index = (url, key) => {
+    let onfailure = (error) => {
+      console.warn(error)
+      this.index_state[key].requested = false
+      this.$.keyCheckbox[key].classList.remove('requested')
+      this.$.keyCheckbox[key].classList.add('failed')
+      this.$.keyCheckbox[key].$.checked = false
+    }
     const request = new Request(url)
     fetch (request)
       .then((response) => response.text())
       .then((text) => {
         try {
           if (text.substring(0, 16) != "Search.setIndex(" || text.substring(text.length-1) != ")")
-            throw new Error(`Search index of tag '${tag}' is impropetly formatted`)
-          this.index[tag] = JSON.parse(text.substring(16, text.length-1))
-          this.index_state[tag].ready = true
-          console.log(this.index[tag], url)
+            throw new Error(`Search index of key '${key}' is impropetly formatted`)
+          this.index[key] = JSON.parse(text.substring(16, text.length-1))
+          this.index_state[key].ready = true
+          this.$.keyCheckbox[key].classList.remove('requested')
+          this.$.keyCheckbox[key].classList.add('ready')
+          this.query(this.$.searchInput.$.value)
         } catch (error) {
-          console.warn(error)
-        } 
+          onfailure(error)
+        }
       })
+      .catch(onfailure)
   }
   /**
    * search for object names
    */
-  performObjectSearch (object, objectTerms, searchOn) {
+  perform_object_search (object, objectTerms, searchOn) {
     const filenames = this.index[searchOn].filenames;
     const docNames = this.index[searchOn].docnames;
     const objects = this.index[searchOn].objects;
@@ -140,7 +287,7 @@ export class UnifiedSearch {
       if (anchor === "") anchor = fullname;
       else if (anchor === "-") anchor = objNames[match[1]][1] + "-" + fullname;
 
-      const descr = objName + _(", in ") + title;
+      const descr = objName + ", in " + title;
 
       // add custom score for some objects according to scorer
       if (Scorer.objPrio.hasOwnProperty(match[2]))
@@ -154,7 +301,7 @@ export class UnifiedSearch {
         descr,
         score,
         filenames[match[0]],
-        SearchResultKind.object,
+        "object",
       ]);
     };
     Object.keys(objects).forEach((prefix) =>
@@ -167,7 +314,7 @@ export class UnifiedSearch {
   /**
    * search for full-text terms in the index
    */
-  performTermsSearch (searchTerms, excludedTerms, searchOn) {
+  perform_terms_search (searchTerms, excludedTerms, searchOn) {
     // prepare search
     const terms = this.index[searchOn].terms;
     const titleTerms = this.index[searchOn].titleterms;
@@ -272,7 +419,7 @@ export class UnifiedSearch {
         null,
         score,
         filenames[file],
-        SearchResultKind.text,
+        "text",
       ]);
     }
     return results;
@@ -280,7 +427,7 @@ export class UnifiedSearch {
   /**
    * Execute search (requires search index to be loaded)
    */
-  _performSearch (query, searchTerms, excludedTerms, highlightTerms, objectTerms, searchOn) {
+  perform_search (query, searchTerms, excludedTerms, highlightTerms, objectTerms, searchOn) {
     const filenames = this.index[searchOn].filenames
     const docNames = this.index[searchOn].docnames
     const titles = this.index[searchOn].titles
@@ -307,7 +454,7 @@ export class UnifiedSearch {
             null,
             score + boost,
             filenames[file],
-            SearchResultKind.title,
+            "title",
           ]);
         }
       }
@@ -325,7 +472,7 @@ export class UnifiedSearch {
             null,
             score,
             filenames[file],
-            SearchResultKind.index,
+            "index",
           ];
           if (isMain) {
             normalResults.push(result);
@@ -338,11 +485,11 @@ export class UnifiedSearch {
 
     // lookup as object
     objectTerms.forEach((term) =>
-      normalResults.push(...this.performObjectSearch(term, objectTerms, searchOn))
+      normalResults.push(...this.perform_object_search(term, objectTerms, searchOn))
     );
 
     // lookup as search terms in fulltext
-    normalResults.push(...this.performTermsSearch(searchTerms, excludedTerms, searchOn))
+    normalResults.push(...this.perform_terms_search(searchTerms, excludedTerms, searchOn))
 
     // let the scorer override scores with a custom scoring function
     if (Scorer.score) {
@@ -351,8 +498,8 @@ export class UnifiedSearch {
     }
 
     // Sort each group of results by score and then alphabetically by name.
-    normalResults.sort(_orderResultsByScoreThenName)
-    nonMainIndexResults.sort(_orderResultsByScoreThenName)
+    normalResults.sort(this._orderResultsByScoreThenName)
+    nonMainIndexResults.sort(this._orderResultsByScoreThenName)
 
     // Combine the result groups in (reverse) order.
     // Non-main index entries are typically arbitrary cross-references,
@@ -373,26 +520,66 @@ export class UnifiedSearch {
 
     return results.reverse();
   }
-  query (query) {
-    const [searchQuery, searchTerms, excludedTerms, highlightTerms, objectTerms] = this._parseQuery(query)
+  get_tags_and_update_url (query) {
     const enabledTags = []
     for (const [key, value] of Object.entries(this.index_state)) {
-      if (value.checked === true && this.index[key] !== undefined)
+      if (this.$.keyCheckbox[key].$.checked === true && this.index[key] !== undefined)
         enabledTags.push(key)
     }
-    enabledTags.forEach((searchOn) => {
-      const results = this._performSearch(searchQuery, searchTerms, excludedTerms, highlightTerms, objectTerms, searchOn)
-      console.log(results, results.length, searchTerms, highlightTerms)
-    })
+
+    let url = new URL(location)
+    if (query.length > 0) {
+      url.searchParams.set('q', query)
+      url.searchParams.set('r', enabledTags)
+    } else {
+      url.searchParams.delete('q')
+      url.searchParams.delete('r')
+    }
+    history.replaceState({}, null, url);
+    return enabledTags
   }
-  _parseQuery (query) {
+  query (query) {
+    /* language data not loaded yet */
+    if (typeof Stemmer === "undefined")
+      return
+
+    const [searchQuery, searchTerms, excludedTerms, highlightTerms, objectTerms] = this.parse_query(query)
+    this.renew_search()
+    let enabledTags = this.get_tags_and_update_url(query)
+    enabledTags.forEach((key) => {
+      const results = this.perform_search(searchQuery, searchTerms, excludedTerms, highlightTerms, objectTerms, key)
+      while (this.$.searchUL[key].$.firstChild) {
+        this.$.searchUL[key].$.removeChild(this.$.searchUL[key].$.lastChild)
+      }
+
+      let searchResults_ = []
+      let prefix = this.parent.state.repository === key ?
+                     "" : `${this.parent.state.metadata.remote_doc}${key}`
+      results.forEach((item) => {
+        searchResults_.push(new DOM('li').append(
+          new DOM('a', {
+            href: `${prefix}/${item[0]}.html`,
+            innerText: item[1],
+          })
+        ))
+      })
+      searchResults_.reverse()
+      this.$.searchUL[key].append(searchResults_)
+      if (results.length === 0)
+        this.$.searchLI[key].classList.add('empty')
+      else
+        this.$.searchLI[key].classList.remove('empty')
+    })
+
+  }
+  parse_query (query) {
     // stem the search terms and add them to the correct list
     const stemmer = new Stemmer();
     const searchTerms = new Set();
     const excludedTerms = new Set();
     const highlightTerms = new Set();
-    const objectTerms = new Set(splitQuery(query.toLowerCase().trim()));
-    splitQuery(query.trim()).forEach((queryTerm) => {
+    const objectTerms = new Set(this.split_query(query.toLowerCase().trim()));
+    this.split_query(query.trim()).forEach((queryTerm) => {
       const queryTermLower = queryTerm.toLowerCase();
 
       // maybe skip this "word"
@@ -413,9 +600,7 @@ export class UnifiedSearch {
       }
     });
 
-    if (SPHINX_HIGHLIGHT_ENABLED) {  // set in sphinx_highlight.js
-      localStorage.setItem("sphinx_highlight_terms", [...highlightTerms].join(" "))
-    }
+    localStorage.setItem("sphinx_highlight_terms", [...highlightTerms].join(" "))
 
     return [query, searchTerms, excludedTerms, highlightTerms, objectTerms];
   }
@@ -423,47 +608,55 @@ export class UnifiedSearch {
    * Init search.
    */
   init () {
-    // pointers:
-    // _static/searchtools.js loadIndex  (not used)
-    // searchindex.js calls Search.setIndex
-    // TODO test loadIndex(url) with multiple url (extend Unifiedthis.index[enabledTags[0]] instead ?)
-    // UnifiedSearch.query does the search, with _performSearch as low level
-    let searchtools_script = new URL(`${this.parent.state.content_root}_static/searchtools.js`,
-                                     location)
     let language_data_script = new URL(`${this.parent.state.content_root}_static/language_data.js`,
                                        location)
-    console.log(searchtools_script)
-    this.$.searchtools = new DOM('script', {
-      src: searchtools_script.href,
-      async: true
-    })
     this.$.language_data = new DOM('script', {
       src: language_data_script.href,
       async: true
+    }).onevent("load", this, (e) => {
+      this.$.searchForm.$.action = ""
     })
-    this.$.searchtools.$.onload = () => { /* nothing todo */ }
-    this.$.body.append([this.$.searchtools, this.$.language_data])
+    this.$.body.append([this.$.language_data])
 
     for (const [key, value] of Object.entries(this.parent.state.metadata.repotoc)) {
       this.index_state[key] = {
         ready: false,
-        requested: false,
-        checked: false
+        requested: false
       }
+      let input_ = new DOM('input', {
+        id: `tag-${key}`,
+        type: 'checkbox'
+      }).onchange(this, this.check_toc, [key])
       this.$.searchTags.append([
         new DOM('span').append([
-          new DOM('input', {
-            id: `tag-${key}`,
-            type: 'checkbox'
-          }).onchange(this, this.checkToc, [key]),
+          input_,
           new DOM('label', {
             htmlFor: `tag-${key}`,
             innerText: value['name']
           })
         ])
       ])
+      this.$.keyCheckbox[key] = input_
     }
-    this.$.searchArea.append(this.$.searchTags)
     this.$.searchInput.$.oninput = (e) => {this.query(e.target.value)}
+
+    let url = new URL(location)
+    let q = url.searchParams.get('q')
+    let r = url.searchParams.get('r')
+    if (q !== null) {
+      if (r !== null) {
+        r = r.split(',')
+        r.forEach((key) => {
+          let event = new Event('change');
+          if (key in this.$.keyCheckbox) {
+            this.$.keyCheckbox[key].$.checked = true
+            this.$.keyCheckbox[key].$.dispatchEvent(event)
+          }
+        })
+      }
+      this.$.searchInput.$.value = q
+      let event = new Event('click');
+      this.$.searchButton.$.dispatchEvent(event)
+    }
   }
 }

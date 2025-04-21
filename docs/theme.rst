@@ -7,6 +7,12 @@ It is deeply based on ADI's *harmonic* design language.
 Shortcuts
 -------------------------------------------------------------------------------
 
+.. note::
+
+   Depending on your browser and operation system shortcuts, not all shortcuts
+   may work or they may collide with existing ones, therefore, multiple are
+   provided.
+
 ``Alt+Shift+ArrowLeft`` goes to the previous page and ``Alt+Shift+ArrowRight``
 to the next page.
 Alternatively ``Alt+Shift+A`` and ``Alt+Shift+D``.
@@ -17,4 +23,4 @@ goes to *project_1.html#details*, even if *details* does not exist
 This feature is useful for batch reviewing sections common to multiple pages,
 e.g. "Supported Devices".
 
-The ``/`` key triggers a search.
+The ``/``, ``Ctrl+K``, ``Alt+K`` key triggers the search bar.

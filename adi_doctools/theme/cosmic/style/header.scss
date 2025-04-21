@@ -75,7 +75,7 @@ header {
 
 @media screen {
     header {
-        border-bottom: variable.$border-panel;
+        border-bottom: variable.$border-panel1;
     }
 }
 @media (min-width: variable.$screen-1) and (max-width: variable.$screen-2) {
@@ -162,7 +162,7 @@ header {
 @media (max-width: variable.$screen-1) {
     @media screen {
         header {
-            border-bottom: variable.$border-panel;
+            border-bottom: variable.$border-panel1;
         }
     }
 
@@ -199,7 +199,7 @@ header {
 
     .vertical-divider {
         padding: 0 0.25rem 0 .75rem;
-        border-right: variable.$border-panel;
+        border-right: variable.$border-panel1;
         height: 1.75rem;
     }
 

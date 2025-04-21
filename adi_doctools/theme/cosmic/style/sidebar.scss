@@ -118,6 +118,10 @@
         height: calc(100vh - 5rem);
 	    width: 15rem;
     }
+
+    body:not(.overflow-hidden) .sphinxsidebarwrapper {
+        border-right: variable.$border-panel2;
+    }
 }
 @media (min-width: variable.$screen-1) and (max-width: variable.$screen-2) {
     .sphinxsidebarwrapper {
@@ -173,11 +177,20 @@
         display: inline-block;
         line-height: 1.75em;
         width: 100%;
-        padding: 0 .5em;
-        margin-left: -.5em;
+        padding: 0 .5em 0 0;
+        margin-left: -.75em;
         border-radius: variable.$border-radius;
         font-size: .9em;
-        border-left: 2px solid rgba(0, 0, 0, 0);
+
+        &:before {
+            width: .25em;
+            height: 1.25em;
+            margin: 0 .25em 0 .25em;
+            content: '';
+            display: inline-block;
+            vertical-align: text-bottom;
+            border-radius: variable.$border-radius;
+        }
     }
 
     a:hover {
@@ -185,9 +198,11 @@
     }
 
     a.current {
-        border-color: var(--accent-color);
         color: var(--accent-color);
-        border-radius: 0  variable.$border-radius  variable.$border-radius 0;
+
+        &:before {
+            background: var(--accent-color);
+        }
     }
 
     label:hover .icon {
@@ -236,7 +251,7 @@
         overflow-y: auto;
 
         nav {
-            border-left: 1px solid rgba(125,125,125,.5);
+            border-left: variable.$border-panel2;
             max-width: 20rem;
             margin-bottom: 10em;
             color: var(--text-color2);

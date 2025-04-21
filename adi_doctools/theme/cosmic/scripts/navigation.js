@@ -163,7 +163,8 @@ export class Navigation {
       case 'IntlRo':
       case 'Slash':
       case 'Escape':
-        if (typeof this.parent.search != "undefined")
+      case 'KeyK':
+        if (typeof this.parent.search !== "undefined")
           this.parent.search.search(e)
         break
     }
@@ -176,7 +177,16 @@ export class Navigation {
       case 'ArrowRight':
       case 'KeyA':
       case 'KeyD':
-        e.preventDefault()
+        if (e.altKey && e.shiftKey)
+          e.preventDefault()
+        return
+      case 'IntlRo':
+      case 'Slash':
+        return
+      case 'KeyK':
+        if (e.ctrlKey && e.altKey)
+          e.preventDefault()
+        return
     }
   }
 
