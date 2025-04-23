@@ -2,6 +2,9 @@ Depth
 =====
 
 Sets the FETCH_DEPTH variable, to be passed to GitHub's checkout action.
+Meant to be used with GitHub default behaviour:
+* pr: merge commit
+* push: new commits
 
 Usage:
 
