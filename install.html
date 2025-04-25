@@ -7,11 +7,8 @@
 
     <title>Installing &#8212; Doctools  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8e8a900e" />
-    <link rel="stylesheet" type="text/css" href="_static/app.min.css?v=534127d7" />
-    <script src="_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="_static/doctools.js?v=9bcbadda"></script>
-    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script defer="" src="_static/app.umd.js?v=19910719"></script>
+    <link rel="stylesheet" type="text/css" href="_static/app.min.css?v=09d58a30" />
+    <script defer="" src="_static/app.umd.js?v=52c4bab6"></script>
     <link rel="icon" href="_static/icon.svg"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -48,8 +45,7 @@
   <div class="search-area">
     <form action="" method="get">
       <input type="text" name="q" aria-labelledby="search-documentation" value="" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" role="search" placeholder="Search"/>
-      <button value="search" class="icon"></button>
-      <span id="search-progress"></span>
+      <button class="icon"></button>
     </form>
   </div>
   
@@ -245,7 +241,16 @@ section’s last paragraph.</p>
 <span class="w">    </span>--save-dev
 </pre></div>
 </div>
-<div class="clear-left"></div></div></div><p>If you choose to not use <code class="docutils literal notranslate"><span class="pre">npm</span></code>, you can obtain pre-built web-scripts from the
+<div class="clear-left"></div></div></div><ul class="simple">
+<li><p>rollup/plugin: Module bundler.</p></li>
+<li><p>&#64;rollup/plugin-terser: Minified bundle with terser.</p></li>
+<li><p>sass: CSS stylesheets.</p></li>
+</ul>
+<p>Hidden dependencies (CDN):</p>
+<ul class="simple">
+<li><p>fuzzysort: Fuzzy search</p></li>
+</ul>
+<p>If you choose to not use <code class="docutils literal notranslate"><span class="pre">npm</span></code>, you can obtain pre-built web-scripts from the
 latest release.
 For that, just run <a class="reference internal" href="cli.html#serve"><span class="std std-ref">Serve</span></a> after the repository is installed and
 confirm the prompt that will appear.</p>
@@ -302,8 +307,6 @@ of it, breaking most CLIs.</p>
         </div>
       </div>
   </div>
-
-  <div id="vertical-border"></div>
 
   <label id="cancel-area-show-toc" for="input-show-toc"></label>
   <label id="cancel-area-show-localtoc" for="input-show-localtoc"></label>
