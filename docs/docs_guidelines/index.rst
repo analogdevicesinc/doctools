@@ -719,5 +719,11 @@ base ``app.umd.js`` and ``app.min.css``.
 
 Example use cases/suggestions:
 
-* An ever improving ``search.umd.js``, that follows the natural evolution of the doc.
-* A unified footer accross releases, using DOM manipulation by a ``footer.umd.js``.
+* An ever improving ``search.umd.js``, that follows the natural evolution of the doc (in progress).
+* A unified footer across releases, using DOM manipulation by a ``footer.umd.js``.
+
+Known issues
+~~~~~~~~~~~~
+
+* On Firefox on Windows, fetch requests can only happen to the same port (8000 -> 8000),
+  so :ref:`serve` daemon must be on port 8000

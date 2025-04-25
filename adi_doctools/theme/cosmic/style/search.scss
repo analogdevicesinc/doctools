@@ -139,14 +139,14 @@
 @media (max-width: variable.$screen-1) {
     .search-area .search-filter {
         padding: 1rem .5rem;
-    
+
         label {
             border: 1px solid var(--text-color2);
             color: var(--text-color2);
             border-radius: 1em;
             padding: .25em .5em;
         }
-    
+
         input:checked ~ label {
             background: var(--text-color2);
             color: var(--bg-color1);
@@ -165,7 +165,7 @@
         span {
             display: block;
         }
-    
+
         label {
             color: var(--text-color2);
             padding: .5em .5em;
@@ -183,7 +183,7 @@
                 margin-right: .5em;
             }
         }
-    
+
         input:checked ~ label:before {
             background: var(--text-color2);
             color: var(--bg-color1);
@@ -192,7 +192,7 @@
         input.requested:checked~ label:before {
             animation: blink 1s linear infinite;
         }
-    
+
         &::before {
             line-height: 3.5rem;
         }

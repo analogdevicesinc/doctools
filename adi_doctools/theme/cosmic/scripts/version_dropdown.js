@@ -104,7 +104,7 @@ export class VersionDropdown {
       label = obj[path][1]
       version = obj[path][0]
     } else {
-      console.warn(`version_dropdown: current path ${path} is not in the tags.json`, obj)
+      console.warn(`version_dropdown: current path ${path} is not in the tags.json. Hard-coded meta[name="version"] will be used.`, obj)
     }
 
     for (let key in obj) {

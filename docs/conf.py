@@ -6,7 +6,7 @@ repository = 'doctools'
 project = 'Doctools'
 copyright = '2024, Analog Devices, Inc.'
 author = 'Analog Devices, Inc.'
-version = '0.3'
+version = '0.4'
 
 locale_dirs = ['locales/']  # path is relative to the source directory
 language = 'en'

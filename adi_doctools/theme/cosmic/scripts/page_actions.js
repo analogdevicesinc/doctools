@@ -80,10 +80,14 @@ export class PageActions {
 
     let tgt = m.source_hostname.replace('{repository}', r)
                                .replace('{branch}', m['repotoc'][r]['branch'])
-                               .replace('{pathname}', m['repotoc'][r]['pathname']),
-        path = new URL(location.pathname, location.origin).href,
-        base = new URL(this.parent.state.content_root, path).href
+                               .replace('{pathname}', m['repotoc'][r]['pathname'])
+    let path = ""
+    if (this.parent.state.offline)
+      path = new URL("file://"+location.pathname).href
+    else
+      path = new URL(location.pathname, location.origin).href
 
+    let base = new URL(this.parent.state.content_root, path).href
     let pathname = path.substring(base.length)
 
     if (pathname.endsWith('.html'))

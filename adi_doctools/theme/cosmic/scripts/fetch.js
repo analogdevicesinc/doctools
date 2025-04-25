@@ -46,15 +46,11 @@ export class Fetch {
       return
     }
 
-    if (url.startsWith("https://") || url.startsWith("http://"))
-      url = new URL(url).origin
-    else if (this.parent.state.offline === true)
-      url = `${this.parent.state.metadata.remote_doc}/doctools`
-    else
-      url = ""
+    if (!url.startsWith("https://") && !url.startsWith("http://"))
+      url = new URL(url, location.origin)
+    url = new URL('.', url)
 
-    let url_ = this.parent.state.sub_hosted === false ?
-       `${url}/_static/` : `${url}/doctools/_static/`
+    let url_ = `${url}_static/`
 
     if ('javascript' in obj) {
       obj['javascript'].forEach((elem) => {
