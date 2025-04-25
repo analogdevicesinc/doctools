@@ -61,9 +61,15 @@ export class Search {
     $.searchLI = {}
     $.body = new DOM(DOM.get('body'))
 
-    $.searchAreaBg = new DOM('div', {
-      className:'search-area-bg'
-    }).onclick(this, this.cancel_search)
+    $.searchAreaBg = new DOM(DOM.get('.search-area-bg')) /* polyfill < v0.4.8 */
+    if ($.searchAreaBg.$ === null) {
+      $.searchAreaBg = new DOM('div', {
+        className:'search-area-bg'
+      })
+      $.body.append([$.searchAreaBg])
+    }
+    $.searchAreaBg.onclick(this, this.cancel_search)
+
     $.searchArea = new DOM(DOM.get('.search-area'))
     $.searchForm = new DOM(DOM.get('form', $.searchArea))
       .onevent("submit", this, (e) => {e.preventDefault()})
@@ -86,22 +92,24 @@ export class Search {
     this.$.searchContainer.append([this.$.searchTags, this.$.searchResults])
     this.$.searchArea.append([this.$.searchContainer])
     $.searchForm.$['action'] = DOM.get('link[rel="search"]').href
-    $.body.append([$.searchAreaBg])
 
-	  $.searchButton = new DOM('button', {
-      id:'search',
-      className:'icon',
-      title:'Search (/)'
-    }).onclick(this, () => {
-      DOM.switchState($.searchArea)
-      DOM.switchState($.searchAreaBg)
+    $.searchButton = new DOM(DOM.get('header button#search')) /* polyfill < v0.4.8 */
+    if ($.searchButton.$ === null) {
+	    $.searchButton = new DOM('button', {
+        id:'search',
+        className:'icon',
+        title:'Search (/)'
+      })
+      this.parent.navigation.$.rightHeader.append([$.searchButton])
+    }
+    $.searchButton.onclick(this, () => {
+      $.searchArea.classList.add('on')
+      $.searchAreaBg.classList.add('on')
       $.searchInput.focus()
       $.searchInput.$.select()
       this.$.body.classList.add('overflow-hidden')
       this.set_default()
     })
-
-    this.parent.navigation.$.rightHeader.append([$.searchButton])
 
     this.init()
 
@@ -121,8 +129,8 @@ export class Search {
         .filter(term => term)
   }
   cancel_search () {
-    DOM.switchState(this.$.searchArea)
-    DOM.switchState(this.$.searchAreaBg)
+    this.$.searchArea.classList.remove('on')
+    this.$.searchAreaBg.classList.remove('on')
     this.$.body.classList.remove('overflow-hidden')
     let url = new URL(location)
     url.searchParams.delete('q')
@@ -194,13 +202,12 @@ export class Search {
     this.$.keyCheckbox[key].$.dispatchEvent(event)
   }
   /* Search shortcut */
-  search (e) {
-    console.log(e)
+  search_shortcut (e) {
     if (((e.code === 'IntlRo' || e.code === 'Slash') ||
          (e.code === 'KeyK' && (e.ctrlKey || e.altKey)))
         && !this.$.searchArea.classList.contains('on')) {
-      DOM.switchState(this.$.searchArea)
-      DOM.switchState(this.$.searchAreaBg)
+      this.$.searchArea.classList.add('on')
+      this.$.searchAreaBg.classList.add('on')
       this.$.body.classList.add('overflow-hidden')
       this.$.searchInput.focus()
       this.$.searchInput.$.select()
@@ -553,8 +560,10 @@ export class Search {
       }
 
       let searchResults_ = []
+      /* For now, versioning is not supported, so content_root or path is no used */
       let prefix = this.parent.state.repository === key ?
-                     "" : `${this.parent.state.metadata.remote_doc}${key}`
+                     (this.parent.state.sub_hosted ? `/${key}` : "" )
+                     : `${this.parent.state.metadata.remote_doc}${key}`
       results.forEach((item) => {
         searchResults_.push(new DOM('li').append(
           new DOM('a', {
@@ -603,6 +612,28 @@ export class Search {
     localStorage.setItem("sphinx_highlight_terms", [...highlightTerms].join(" "))
 
     return [query, searchTerms, excludedTerms, highlightTerms, objectTerms];
+  }
+  keyup (e) {
+    switch (e.code) {
+      case 'IntlRo':
+      case 'Slash':
+      case 'Escape':
+      case 'KeyK':
+        this.search_shortcut(e)
+        break
+    }
+  }
+  keydown (e) {
+    switch (e.code) {
+      case 'IntlRo':
+      case 'Slash':
+        e.preventDefault()
+        return
+      case 'KeyK':
+        if (e.ctrlKey && e.altKey)
+          e.preventDefault()
+        return
+    }
   }
   /**
    * Init search.
@@ -658,5 +689,8 @@ export class Search {
       let event = new Event('click');
       this.$.searchButton.$.dispatchEvent(event)
     }
+
+    document.addEventListener('keyup', (e) => {this.keyup(e)}, false);
+    document.addEventListener('keydown', (e) => {this.keydown(e)}, false);
   }
 }

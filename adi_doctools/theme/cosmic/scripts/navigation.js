@@ -151,7 +151,6 @@ export class Navigation {
     else if ((e.code == 'ArrowRight' || e.code == 'KeyD') && this.$.relatedNext)
       location.href = this.$.relatedNext.href + anchor
   }
-
   keyup (e) {
     switch (e.code) {
       case 'ArrowLeft':
@@ -159,13 +158,6 @@ export class Navigation {
       case 'KeyA':
       case 'KeyD':
         this.related(e)
-        break
-      case 'IntlRo':
-      case 'Slash':
-      case 'Escape':
-      case 'KeyK':
-        if (typeof this.parent.search !== "undefined")
-          this.parent.search.search(e)
         break
     }
   }
@@ -180,16 +172,8 @@ export class Navigation {
         if (e.altKey && e.shiftKey)
           e.preventDefault()
         return
-      case 'IntlRo':
-      case 'Slash':
-        return
-      case 'KeyK':
-        if (e.ctrlKey && e.altKey)
-          e.preventDefault()
-        return
     }
   }
-
   /**
    * Get OS Theme
    */

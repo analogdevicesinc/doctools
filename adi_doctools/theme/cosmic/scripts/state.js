@@ -42,15 +42,18 @@ export class State {
     return dom ? dom.content : ''
   }
   /**
-   * Get version of doc, e.g.
+   * Get meta[name="version"] of doc, e.g.
    * main, v0.2.2, staging/new_feature
+   * This is the hard-coded value and may be outdated,
+   * so inhering from path has higher precedence.
+   * Should only be used as a fallback.
    */
   version () {
     let dom = document.querySelector('meta[name="version"]')
-    if (dom !== null) {
-      let tag_ = dom.content
-      return tag_
-    }
+    if (dom === null)
+      return ""
+
+    return dom.content
   }
   /**
    * Get relative path to the root.
