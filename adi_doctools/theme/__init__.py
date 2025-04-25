@@ -1,4 +1,5 @@
 from os import path, getenv
+from packaging.version import Version
 
 from lxml import etree
 from lxml import html
@@ -7,6 +8,7 @@ from docutils import nodes
 from sphinx.highlighting import PygmentsBridge
 from sphinx.transforms.post_transforms import SphinxPostTransform
 from sphinx.util import logging
+from sphinx import __version__ as __sphinx_version__
 
 from .cosmic import cosmic_setup
 
@@ -67,11 +69,18 @@ def builder_inited(app):
     ]
     to_remove = []
     if app.builder.format == 'html':
-        for js in app.builder._js_files:
-            if js.filename in removal:
-                to_remove.append(js)
-    for js_ in to_remove:
-        app.builder._js_files.remove(js_)
+        if Version(__sphinx_version__) < Version('7.2.0'):
+            for js in app.builder.script_files:
+                if js.filename in removal:
+                    to_remove.append(js)
+            for js_ in to_remove:
+                app.builder.script_files.remove(js_)
+        else:
+            for js in app.builder._js_files:
+                if js.filename in removal:
+                    to_remove.append(js)
+            for js_ in to_remove:
+                app.builder._js_files.remove(js_)
 
 
 def build_finished(app, exc):

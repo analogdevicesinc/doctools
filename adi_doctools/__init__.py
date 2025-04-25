@@ -5,6 +5,7 @@ from docutils import nodes
 
 from sphinx.util.osutil import SEP
 from sphinx.transforms import SphinxTransform
+from sphinx import __version__ as __sphinx_version__
 
 from .theme import (navigation_tree, get_pygments_theme,
                     write_pygments_css, wrap_elements)
@@ -30,9 +31,6 @@ def get_navigation_tree(app, context, pagename):
         )
     else:
         toctree_html = ""
-
-    from packaging.version import Version
-    from sphinx import __version__ as __sphinx_version__
 
     if Version(__sphinx_version__) < Version('7.2.0'):
         from urllib.parse import quote
