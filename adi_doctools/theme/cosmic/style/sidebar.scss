@@ -174,22 +174,21 @@
     }
 
     a {
-        display: inline-block;
-        line-height: 1.75em;
+        display: flex;
+        align-items: stretch;
+        line-height: 1.5em;
         width: 100%;
-        padding: 0 .5em 0 0;
+        padding: .25em .5em .25em 0;
         margin-left: -.75em;
         border-radius: variable.$border-radius;
         font-size: .9em;
 
         &:before {
             width: .25em;
-            height: 1.25em;
-            margin: 0 .25em 0 .25em;
-            content: '';
-            display: inline-block;
-            vertical-align: text-bottom;
+            margin: 0 .25em;
+            content: '⠀';
             border-radius: variable.$border-radius;
+            display: block;
         }
     }
 
