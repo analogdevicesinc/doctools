@@ -609,7 +609,7 @@ This ensures compatibility with :ref:`custom-doc`.
 Here is a practical example:
 
 * Metadata to be parsed is at ``repo_name/builds/info.xml``
-* The sphinx source dir ``env.dir`` values are:
+* The sphinx source dir ``env.srcdir`` values are:
 
  * original doc (per repo): ``repo_name/doc/sphinx/source``
  * custom doc (always): ``_build``.

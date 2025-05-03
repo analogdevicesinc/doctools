@@ -5,7 +5,7 @@ from os import path, listdir, pardir, chdir, getcwd, mkdir
 from os import environ
 from glob import glob
 from shutil import copy2
-import importlib.util
+import importlib.util, importlib.machinery
 import subprocess
 import click
 import yaml
@@ -458,6 +458,10 @@ def prepare_doc(doc, repos_dir, doc_dir):
             mkdir(dstdir)
 
         # Get configs
+        finder = importlib.machinery.PathFinder
+        # Needs to change directory in order to resolve sys.path.insert correctly.
+        cwd_ = getcwd()
+        chdir(sourcedir)
         spec = importlib.util.spec_from_file_location("sphinx_conf", path.join(sourcedir, "conf.py"))
         __c = importlib.util.module_from_spec(spec)
         sys.modules["sphinx_conf"] = __c
@@ -468,8 +472,12 @@ def prepare_doc(doc, repos_dir, doc_dir):
                     __c.extensions.remove(ext)
                     continue
                 try:
-                    if not importlib.util.find_spec(ext):
-                        missing_ext.append((r, ext))
+                    if hasattr(__c, 'sys'):
+                        if not finder.find_spec(ext, __c.sys.path):
+                            missing_ext.append((r, ext))
+                    else:
+                        if not importlib.util.find_spec(ext):
+                            missing_ext.append((r, ext))
                 except ModuleNotFoundError:
                     missing_ext.append((r, ext))
 
@@ -489,8 +497,6 @@ def prepare_doc(doc, repos_dir, doc_dir):
                 click.echo(f"{r}: source file/dir '{d}' does not exist, skipped.")
 
         # Infeer toctree entries
-        cwd_ = getcwd()
-        chdir(sourcedir)
         toc_resolve = []
         for d in doc['include'][r]:
             if path.isdir(d):
@@ -604,7 +610,7 @@ def prepare_doc(doc, repos_dir, doc_dir):
         ext = defaultdict(list)
         [ext[r].append(ext_) for r, ext_ in missing_ext]
         click.echo(f"Missing inferred extensions: {dict(ext)}")
-        sys.exit()
+        sys.exit(1)
 
     # Copy over custom pages
     for c in doc['custom']:
