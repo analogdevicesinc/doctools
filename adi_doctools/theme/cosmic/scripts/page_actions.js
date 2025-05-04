@@ -16,31 +16,31 @@ export class PageActions {
 
   page_source_sanity (m, r) {
     if (!m.hasOwnProperty('source_hostname')) {
-      console.warn("edit_source: 'source_hostname' missing from metadata", m)
-      return
+      console.warn("edit_source: 'source_hostname' missing from the metadata", m)
+      return true
     }
 
     if (!m['repotoc'].hasOwnProperty(r)) {
       // The repo may not have been added yet
-      console.log(`edit_source: repository '${r}' not in metadata`)
-      return
+      console.warn(`edit_source: repository '${r}' not in the metadata`)
+      return true
     }
 
     if (!m['repotoc'][r].hasOwnProperty('pathname')) {
       console.warn(`edit_source: 'pathname' missing from entry '${r}'`)
-      return
+      return true
     }
 
     if (!m['repotoc'][r].hasOwnProperty('branch')) {
       console.warn(`edit_source: 'branch' missing from entry '${r}'`)
-      return
+      return true
     }
   }
   /*
-   * Don't show page source buttom on some pages.
+   * Don't show page source button on some pages.
    */
   page_source_ignore () {
-    // Search page
+    /* Search page */
     if (document.querySelector("#search-documentation") !== null)
       return true
 
