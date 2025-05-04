@@ -14,12 +14,17 @@
     width: 100vw;
 }
 
+/**
+ * polyfill < v0.4.8
+ * Used to be darker without blur.
+ */
 .search-area-bg {
-    position: fixed;
-    display: none;
+    background: none !important;
 }
 
 .search-area-bg {
+    position: fixed;
+    display: none;
     z-index: 9;
     backdrop-filter: blur(1em);
     left: 0;
