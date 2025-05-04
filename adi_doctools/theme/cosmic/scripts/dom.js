@@ -116,7 +116,7 @@ class DOM {
     return this
   }
   /**
-   * Append a ``mouseup`` and ``touchup`` event.
+   * Append a ``mouseup`` event.
    * @param {function} ev - Function to be executed on up.
    */
   onup (self, ev, args){
@@ -131,7 +131,7 @@ class DOM {
     return this
   }
   /**
-   * Append a ``mousedown`` and ``touchdown`` event.
+   * Append a ``mousedown`` event.
    * @param {function} ev - Function to be executed on down.
    */
   ondown (self, ev, args){

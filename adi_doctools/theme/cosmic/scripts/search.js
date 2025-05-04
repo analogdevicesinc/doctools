@@ -74,10 +74,11 @@ export class Search {
     $.searchForm = new DOM(DOM.get('form', $.searchArea))
       .onevent("submit", this, (e) => {e.preventDefault()})
     $.searchFormButton = new DOM(DOM.get('button', $.searchForm))
-      .onup(this, this.cancel_search)
+      .onclick(this, this.cancel_search)
     $.searchInput = new DOM(DOM.get('input', $.searchForm))
     $.searchTags = new DOM('span', {
-      className: 'search-filter'
+      className: 'search-filter',
+      tabIndex: '-1',
     });
     $.searchResults = new DOM('ul', {
       className: 'search-results'

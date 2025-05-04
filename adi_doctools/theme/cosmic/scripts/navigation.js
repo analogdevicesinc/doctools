@@ -53,7 +53,7 @@ export class Navigation {
     app.navigation = this
   }
   /*
-   * Initates scroll spy elements.
+   * Initiates scroll spy elements.
    */
   scroll_spy () {
     if (this.$.localtoc.$ !== null) {
@@ -96,7 +96,26 @@ export class Navigation {
   }
   /* Update GUI based on resize event */
   handleResize () {
+    const em = 16,
+          ss = [40, 65, 80, 105],
+          iw = window.innerWidth
+
     this.portrait = window.innerHeight > window.innerWidth ? true : false
+
+    this.previous_size = this.current_size
+    for (let i = 0; i < ss.length; i++) {
+      if (iw < (ss[i] * em))
+        break
+      this.current_size = i
+    }
+    if (this.previous_size === this.current_size)
+      return
+
+    if (this.current_size === 3 || this.previous_size === 3) {
+      let event = new Event('change');
+      this.$.show_localtoc.$.checked = iw < (ss[3] * em) ? false : true;
+      this.$.show_localtoc.$.dispatchEvent(event)
+    }
   }
   /* Update GUI based on scroll event */
   handleScroll () {
@@ -206,6 +225,24 @@ export class Navigation {
         this.$.preserve_scroll[key].$.scrollTop = value
     }
   }
+  renew_index(nodes, ev) {
+    nodes.forEach(node => {
+      node.tabIndex = ev.target.checked ? 0 : -1;
+    })
+  }
+  /**
+   * When elements are not visible, it is ideal to make them
+   * not tab selectable.
+   * Add listeners to check changes and update the tab index accordingly.
+   */
+  check_to_tabindex () {
+    let $ = this.$
+    $.show_localtoc = new DOM(
+      DOM.get('#input-show-localtoc')
+    ).onchange(this, this.renew_index, [$.localtoc.$.querySelectorAll('a')])
+    let event = new Event('change');
+    $.show_localtoc.$.dispatchEvent(event)
+  }
   /**
    * Init navigation.
    */
@@ -215,6 +252,8 @@ export class Navigation {
     document.addEventListener('keyup', (e) => {this.keyup(e)}, false);
     document.addEventListener('keydown', (e) => {this.keydown(e)}, false);
 
+    this.check_to_tabindex();
+    this.handleResize()
     this.scroll_restore();
     addEventListener('beforeunload', (e) => {this.scroll_save(e)}, false);
   }

@@ -9,6 +9,9 @@ export class Links {
   constructor (app) {
     this.$ = {}
 
+    this.$.show_repotoc = new DOM(
+      DOM.get('#input-show-repotoc')
+    ).onchange(this, this.renew_index)
     this.set_doms()
     this.parent = app
 
@@ -28,15 +31,22 @@ export class Links {
     })
     DOM.get('body').prepend($.banner.$)
   }
-
+  renew_index (ev) {
+    this.$.linksSidebar.forEach((elem) => {
+      elem.$.tabIndex = ev.target.checked ? 0 : -1
+    })
+    this.$.linksOverlay.forEach((elem) => {
+      elem.$.tabIndex = ev.target.checked ? 0 : -1
+    })
+  }
   update_repotoc (obj) {
     let $ = this.$
 
     let prefix = this.parent.state.sub_hosted === true ?
                  '/' : this.parent.state.metadata.remote_doc
     let home = "index.html"
-    let linksOverlay = [],
-        linksSidebar = []
+    this.$.linksOverlay = []
+    this.$.linksSidebar = []
     for (const [key, value] of Object.entries(obj)) {
       if (!('name' in value))
         continue
@@ -44,25 +54,27 @@ export class Links {
       let base = key == this.parent.state.repository ?
                  this.parent.state.content_root :
                  `${prefix}${key}/`
-      linksSidebar.push(new DOM('a', {
+      this.$.linksSidebar.push(new DOM('a', {
         'href': `${base}${home}`,
         'className': this.parent.state.repository === key ? 'current' : '',
         'innerText': value['name']
       }))
     }
 
-    linksSidebar.forEach((elem) => {
-      linksOverlay.push(elem.cloneNode(true))
+    this.$.linksSidebar.forEach((elem) => {
+      this.$.linksOverlay.push(elem.cloneNode(true))
     })
 
     if ($.repotocTreeOverlay.$)
       $.repotocTreeOverlay.removeChilds(),
-      $.repotocTreeOverlay.append(linksOverlay)
+      $.repotocTreeOverlay.append(this.$.linksOverlay)
     if ($.repotocTreeSidebar.$)
       $.repotocTreeSidebar.removeChilds(),
-      $.repotocTreeSidebar.append(linksSidebar)
-  }
+      $.repotocTreeSidebar.append(this.$.linksSidebar)
 
+    let event = new Event('change');
+    this.$.show_repotoc.$.dispatchEvent(event)
+  }
   update_banner (obj) {
     let $ = this.$
 

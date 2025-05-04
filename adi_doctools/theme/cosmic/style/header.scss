@@ -68,7 +68,8 @@ header {
         border-radius: variable.$border-radius;
     }
 
-    button:hover, label:hover {
+    button:hover, label:hover,
+    button:focus, label:focus {
         background-color: var(--bg-color2);
     }
 }
