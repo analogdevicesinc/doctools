@@ -158,7 +158,10 @@ export class Search {
   check_toc (key, ev) {
     if (ev.target.checked) {
       if (this.index_state[key].requested === false) {
-        let search_ = new URL(`${this.parent.state.metadata.remote_doc}${key}/searchindex.js`)
+        let remote = `${this.parent.state.metadata.remote_doc}${key}/searchindex.js`
+        if (!this.parent.state.sub_hosted  && key === "local")
+          remote = `${location.origin}/searchindex.js`
+        let search_ = new URL(remote)
         this.load_index(search_.href, key)
         this.index_state[key].requested = true
         this.$.keyCheckbox[key].classList.add('requested')
@@ -179,7 +182,7 @@ export class Search {
           this.$.searchUL[key] = new DOM('ul')
           this.$.searchLI[key] = new DOM('li').append([
             new DOM('div', {
-              innerText:  this.parent.state.metadata.repotoc[key].name
+              innerText: this.$.keyCheckbox[key].$.name
             }),
             this.$.searchUL[key]
           ])
@@ -194,7 +197,17 @@ export class Search {
     this.$.searchResults.append(searchUL_)
   }
   set_default () {
-    let key = this.parent.state.repository
+    /* Return if filter initialized */
+    for (const [key, value] of Object.entries(this.$.keyCheckbox)) {
+      if (value.$.checked)
+        return
+    }
+    /**
+     * When writing the docs, it is a better user experience to be able to search
+     * the local built docs.
+     */
+    let key = this.parent.state.sub_hosted ?
+              this.parent.state.repository : 'local'
     let event = new Event('change');
     if (!(key in this.$.keyCheckbox))
       return
@@ -560,10 +573,9 @@ export class Search {
       }
 
       let searchResults_ = []
-      /* For now, versioning is not supported, so content_root or path is no used */
-      let prefix = this.parent.state.repository === key ?
-                     (this.parent.state.sub_hosted ? `/${key}` : "" )
-                     : `${this.parent.state.metadata.remote_doc}${key}`
+      /* For now, versioning is not supported, so content_root or path are not used */
+      let prefix = key === "local" ?
+                   '' : `${this.parent.state.metadata.remote_doc}${key}`
       results.forEach((item) => {
         searchResults_.push(new DOM('li').append(
           new DOM('a', {
@@ -635,6 +647,27 @@ export class Search {
         return
     }
   }
+  include_item (key, name) {
+    this.index_state[key] = {
+      ready: false,
+      requested: false
+    }
+    let input_ = new DOM('input', {
+      id: `tag-${key}`,
+      type: 'checkbox',
+      name: name,
+    }).onchange(this, this.check_toc, [key])
+    this.$.searchTags.append([
+      new DOM('span').append([
+        input_,
+        new DOM('label', {
+          htmlFor: `tag-${key}`,
+          innerText: name,
+        })
+      ])
+    ])
+    this.$.keyCheckbox[key] = input_
+  }
   /**
    * Init search.
    */
@@ -650,25 +683,15 @@ export class Search {
     this.$.body.append([this.$.language_data])
 
     for (const [key, value] of Object.entries(this.parent.state.metadata.repotoc)) {
-      this.index_state[key] = {
-        ready: false,
-        requested: false
-      }
-      let input_ = new DOM('input', {
-        id: `tag-${key}`,
-        type: 'checkbox'
-      }).onchange(this, this.check_toc, [key])
-      this.$.searchTags.append([
-        new DOM('span').append([
-          input_,
-          new DOM('label', {
-            htmlFor: `tag-${key}`,
-            innerText: value['name']
-          })
-        ])
-      ])
-      this.$.keyCheckbox[key] = input_
+      this.include_item(key, value['name'])
     }
+    if (!this.parent.state.sub_hosted) {
+      let name = this.parent.state.repository in this.parent.state.metadata.repotoc ?
+                 this.parent.state.metadata.repotoc[this.parent.state.repository]['name'] :
+                 this.parent.state.repository
+      this.include_item("local", `${name} (local build)`)
+    }
+
     this.$.searchInput.$.oninput = (e) => {this.query(e.target.value)}
 
     let url = new URL(location)
