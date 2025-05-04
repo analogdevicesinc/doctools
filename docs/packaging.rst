@@ -293,7 +293,7 @@ Below is a suggested systemd service at *~/.config/systemd/user/podman-public-do
    After=network-online.target
 
    [Service]
-   Restart=on-failure
+   Restart=on-success
    ExecStartPre=/usr/bin/rm -f /%t/%n-pid /%t/%n-cid
    ExecStart=/usr/bin/podman run \
              --env name_label=%i \
