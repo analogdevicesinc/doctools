@@ -121,6 +121,37 @@ To build the container image, use your favorite container engine:
    $cd ~/doctools
    $podman build --tag adi/doctools:latest ci
 
+You may want to build the container in a host, where you have all your tools installed,
+and then deploy to a server.
+In this case, export the image and then import on the server:
+
+.. shell::
+   :show-user:
+   :user: user
+   :group: host
+
+   ~/doctools
+   $podman save -o adi-doctools.tar adi/doctools:latest
+   $scp adi-doctools.tar server:/tmp/
+
+.. shell::
+   :show-user:
+   :user: admin
+   :group: server
+
+   /tmp
+   $podman load -i adi-doctools.tar
+
+Or if you are feeling adventurous:
+
+.. shell::
+   :show-user:
+   :user: user
+   :group: host
+
+   ~/doctools
+   $podman save adi/doctools:latest | ssh server "cat - | podman load"
+
 .. _interactive-run:
 
 Interactive run
