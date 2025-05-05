@@ -266,6 +266,7 @@
     p {
         transition: .25s ease color;
         margin: .125em 0em .25em 2em;
+        overflow: hidden;
         min-height: 3em;
     }
 

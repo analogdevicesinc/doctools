@@ -81,7 +81,8 @@ export class Search {
       tabIndex: '-1',
     });
     $.searchResults = new DOM('ul', {
-      className: 'search-results'
+      className: 'search-results',
+      tabIndex: '-1',
     });
     $.searchContainer = new DOM('span', {
       className: 'search-container'
