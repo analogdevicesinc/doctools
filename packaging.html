@@ -7,8 +7,8 @@
 
     <title>Packaging pipeline &#8212; Doctools  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8e8a900e" />
-    <link rel="stylesheet" type="text/css" href="_static/app.min.css?v=09d58a30" />
-    <script defer="" src="_static/app.umd.js?v=52c4bab6"></script>
+    <link rel="stylesheet" type="text/css" href="_static/app.min.css?v=47649d88" />
+    <script defer="" src="_static/app.umd.js?v=9e881883"></script>
     <link rel="icon" href="_static/icon.svg"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -490,7 +490,7 @@ systemd services, instead of for example, podman-compose.</p>
 <span class="n">After</span><span class="o">=</span><span class="n">network</span><span class="o">-</span><span class="n">online</span><span class="o">.</span><span class="n">target</span>
 
 <span class="p">[</span><span class="n">Service</span><span class="p">]</span>
-<span class="n">Restart</span><span class="o">=</span><span class="n">on</span><span class="o">-</span><span class="n">failure</span>
+<span class="n">Restart</span><span class="o">=</span><span class="n">on</span><span class="o">-</span><span class="n">success</span>
 <span class="n">ExecStartPre</span><span class="o">=/</span><span class="n">usr</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">rm</span> <span class="o">-</span><span class="n">f</span> <span class="o">/%</span><span class="n">t</span><span class="o">/%</span><span class="n">n</span><span class="o">-</span><span class="n">pid</span> <span class="o">/%</span><span class="n">t</span><span class="o">/%</span><span class="n">n</span><span class="o">-</span><span class="n">cid</span>
 <span class="n">ExecStart</span><span class="o">=/</span><span class="n">usr</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">podman</span> <span class="n">run</span> \
           <span class="o">--</span><span class="n">env</span> <span class="n">name_label</span><span class="o">=%</span><span class="n">i</span> \
