@@ -40,7 +40,7 @@ runs:
             echo "fetch_depth=$(( ${{ inputs.depth }} + 1 ))" >> $GITHUB_ENV
           elif [[ "${{ github.event.pull_request.commits }}" ]]; then
             echo "setting fetch_depth based on github.event.pull_request.commits"
-            echo "fetch_depth=$(( ${{ github.event.pull_request.commits }} + 1 ))" >> $GITHUB_ENV
+            echo "fetch_depth=$(( ${{ github.event.pull_request.commits }} + 2 ))" >> $GITHUB_ENV
           elif [[ ! "${{ github.event.before }}" =~ "0000000000000000" ]] && [[ "${{ github.event.forced }}" == "false" ]]; then
             echo "setting fetch_depth based on github.event.before"
             commits_sha='${{ toJSON(github.event.commits.*.id) }}' ;
@@ -60,10 +60,8 @@ runs:
             act_head_sha="@"
           fi
           echo "head_sha=$(cd ${{ inputs.act-mountpoint }} ; git rev-parse $act_head_sha)" >> $GITHUB_ENV
-        elif [[ "${{ github.event.pull_request.head.sha }}" ]]; then
-          echo "head_sha=${{ github.event.pull_request.head.sha }}" >> $GITHUB_ENV
-        elif [[ "${{ github.sha }}" ]]; then
-          echo "head_sha=${{ github.sha }}" >> $GITHUB_ENV
+        else
+          echo "head_sha=$GITHUB_SHA" >> $GITHUB_ENV
         fi
 
     - name: Prepare git
@@ -114,32 +112,36 @@ runs:
       run: |
         git fetch origin --depth=$fetch_depth $head_sha
 
+        git reset --hard $head_sha
         if [[ "${{ github.event.pull_request.head.sha }}" ]]; then
-          git fetch origin --depth=1 ${{ github.base_ref }}
-          git reset --hard origin/${{ github.base_ref }}
-          # --empty was added on git 2.45.0
-          has_keep=$(git cherry-pick 2>&1 | grep "\--empty" | wc -l) || true
+          # --empty was added on git 2.26.0
+          has_keep=$(git rebase -help 2>&1 | grep "\--empty" | wc -l) || true
           echo $has_keep
           if [[ "$has_keep" -gt "0" ]]; then
             keep_empty="--empty=keep"
           else
-            keep_empty="--keep-redundant-commits"
+            keep_empty="--keep-empty"
           fi
-          git cherry-pick --allow-empty $keep_empty $head_sha~$((fetch_depth - 1))..$head_sha
-          echo "head_sha=$(git rev-parse @)" >> "$GITHUB_ENV"
+          git rebase $keep_empty @~
+          number_commits=$((fetch_depth - 2))
         else
-          git reset --hard $head_sha
+          number_commits=$((fetch_depth - 1))
         fi
+        echo "number_commits=$number_commits" >> $GITHUB_ENV
+        echo "head_sha=$(git rev-parse @)" >> "$GITHUB_ENV"
+        echo "base_sha=$(git rev-parse @~$number_commits)" >> "$GITHUB_ENV"
 
-        echo "base_sha=$(git rev-parse @~$((fetch_depth - 1)))" >> "$GITHUB_ENV"
-        git log --oneline --reverse | head -200
+    - name: Log commit range
+      shell: bash
+      run: |
+        git log --oneline --reverse $base_sha..$head_sha
 
     - name: Generate cache branches
       shell: bash
       run: |
-        if [[ "${{ github.event.pull_request.head.sha }}" ]]; then
+        if [[ "${{ github.event.pull_request.base.sha }}" ]]; then
           cache_branch=${{ github.base_ref }}
-          cache_commit=$(git rev-parse origin/${{ github.base_ref }})
+          cache_commit=${{ github.event.pull_request.base.sha }}
         else
           cache_branch=${{ github.ref }}
           cache_commit=$head_sha
