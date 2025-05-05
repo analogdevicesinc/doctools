@@ -62,6 +62,12 @@ repos = {
         visibility='public',
         parent='hdl'
     ),
+    'linux': Repo(
+        pathname='docs',
+        name='Linux',
+        branch='main',
+        visibility='public'
+    ),
     'pyadi-iio': Repo(
         pathname='doc/source',
         name='pyadi-iio',
