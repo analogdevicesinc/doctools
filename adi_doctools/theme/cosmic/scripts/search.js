@@ -559,6 +559,45 @@ export class Search {
     history.replaceState({}, null, url);
     return enabledTags
   }
+  html_to_text (text, anchor) {
+    const htmlElement = new DOMParser().parseFromString(text, 'text/html');
+    for (const removalQuery of [".headerlink", "script", "style"]) {
+      htmlElement.querySelectorAll(removalQuery).forEach((el) => { el.remove() });
+    }
+    if (anchor) {
+      const anchorContent = htmlElement.querySelector(`[role="main"] ${anchor}`);
+      if (anchorContent)
+        return anchorContent.textContent;
+
+      console.warn(`Anchored content block '[role=main] ${anchor}' not found.`);
+    }
+
+    // if anchor not specified or not found, fall back to main content
+    const docContent = htmlElement.querySelector('[role="main"]');
+    if (docContent)
+      return docContent.textContent;
+
+    console.warn(`Anchored content block '[role=main] ${anchor}' not found.`);
+    return "";
+  }
+  get_summary (data, keywords, anchor, p_) {
+    const text = this.html_to_text(data, anchor);
+    if (text === "")
+      return
+
+    const textLower = text.toLowerCase();
+    const actualStartPosition = [...keywords]
+      .map((k) => textLower.indexOf(k.toLowerCase()))
+      .filter((i) => i > -1)
+      .slice(-1)[0]
+    const startWithContext = Math.max(actualStartPosition - 120, 0)
+
+    const top = startWithContext === 0 ? "" : "..."
+    const tail = startWithContext + 240 < text.length ? "..." : ""
+
+    p_.$.textContent = top + text.substr(startWithContext, 240).trim() + tail
+    p_.$.classList.remove('loading')
+  }
   query (query) {
     /* language data not loaded yet */
     if (typeof Stemmer === "undefined")
@@ -577,15 +616,46 @@ export class Search {
       /* For now, versioning is not supported, so content_root or path are not used */
       let prefix = key === "local" ?
                    '' : `${this.parent.state.metadata.remote_doc}${key}`
+      results.reverse()
       results.forEach((item) => {
-        searchResults_.push(new DOM('li').append(
+        const [docName, title, anchor, descr, score, _filename, kind] = item;
+        let href_ = `${prefix}/${docName}.html${anchor}`
+        let li_ = new DOM('li').append(
           new DOM('a', {
-            href: `${prefix}/${item[0]}.html`,
-            innerText: item[1],
+            href: href_,
+            innerText: title,
           })
-        ))
+          //highlightTerms.forEach((term) => _highlightText(listItem, term, "highlighted"))
+        )
+        if (descr) {
+          li_.append(
+            new DOM('span', {
+              innerText: `(${descr})`
+            }
+          ))
+        } else {
+          let p_ = new DOM('p', {
+            className: 'context',
+          })
+          // Make cached snappier
+          // To fully remove flickering it would be required to reuse the previous search DOMs.
+          const loading_ = setTimeout(() => {
+            p_.classList.add('loading')
+          }, 50)
+          li_.append(p_)
+          fetch(href_)
+            .then((response) => response.text())
+            .then((data) => {
+              if (data)
+                this.get_summary(data, searchTerms, anchor, p_)
+                //highlightTerms.forEach((term) => _highlightText(listItem, term, "highlighted"))
+            })
+            .finally(() => {
+              clearTimeout(loading_)
+            })
+        }
+        searchResults_.push(li_)
       })
-      searchResults_.reverse()
       this.$.searchUL[key].append(searchResults_)
       if (results.length === 0)
         this.$.searchLI[key].classList.add('empty')

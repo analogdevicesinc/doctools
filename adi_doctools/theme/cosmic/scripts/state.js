@@ -65,7 +65,7 @@ export class State {
     if (dom !== null)
       content_root = dom.dataset['url_root'];
     if (content_root == undefined)
-      content_root = document.querySelector('html').dataset['content_root']
+      content_root = document.documentElement.dataset["content_root"]
     if (content_root == undefined) {
       dom =  document.querySelector('.repotoc-tree .current')
       if (dom !== null)
