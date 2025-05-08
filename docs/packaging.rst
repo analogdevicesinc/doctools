@@ -109,8 +109,10 @@ Set the ``DOCKER_HOST`` variable on your *~/.bashrc*:
 
    export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock
 
-Remote users & network partitions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _podman sssd:
+
+Network users & partitions
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Podman default configuration expects a local user to be able to create a user
 namespace where multiple IDs are mapped and a compatible partition to use as
@@ -122,7 +124,7 @@ the storage location ``graphRoot``.
    location. Podman processes should then be started under this user UID.
 
 Network systems using solutions such as `SSSD <https://sssd.io/>`__ do not
-append the user to the system (is not listed on ``/etc/subuid/``), so automatic
+append the user to the system (is not listed in ``/etc/subuid``), so automatic
 user namespace is not possible. To be compatible with this configuration, a
 single UID within a user space needs to be used, achieved with the
 ``ignore_chown_errors`` parameter.
@@ -355,6 +357,15 @@ The environment variable runner_labels (comma-separated), set the runner labels.
 If not provided on the Containerfile as ``ENV runner_labels=<labels,>`` or as argument
 ``--env runner_labels=<labels,>``, it defaults to ``v1``.
 Most of the times, you want to use the Containerfile-set environment variable.
+
+If you are in an environment as described in :ref:`podman sssd`, append these flags
+to every ``podman run`` command:
+
+* ``--user root``: due to ``ignore_chown_errors`` allowing a single user mapping,
+  this user is root (0). Please note that this the container's root user and in
+  most images is the only available user.
+* ``--env RUNNER_ALLOW_RUNASROOT=1``: suppresses the GitHub Action runner "Must
+  not run with sudo". Again, is the container's root.
 
 .. _cluster-podman:
 
