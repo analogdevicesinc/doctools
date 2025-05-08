@@ -85,7 +85,10 @@
         <nav>
           <ul>
 <li><a class="reference internal" href="#">Packaging pipeline</a><ul>
-<li><a class="reference internal" href="#configure-podman">Configure podman</a></li>
+<li><a class="reference internal" href="#configure-podman">Configure podman</a><ul>
+<li><a class="reference internal" href="#remote-users-network-partitions">Remote users &amp; network partitions</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#build-the-container-image">Build the container image</a></li>
 <li><a class="reference internal" href="#interactive-run">Interactive run</a></li>
 <li><a class="reference internal" href="#full-local-run">Full local run</a></li>
@@ -242,6 +245,48 @@ if not using WSL2.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">DOCKER_HOST</span><span class="o">=</span>unix://<span class="nv">$XDG_RUNTIME_DIR</span>/podman/podman.sock
 </pre></div>
 </div>
+<section id="remote-users-network-partitions">
+<h3>Remote users &amp; network partitions<a class="headerlink" href="#remote-users-network-partitions" title="Link to this heading"></a></h3>
+<p>Podman default configuration expects a local user to be able to create a user
+namespace where multiple IDs are mapped and a compatible partition to use as
+the storage location <code class="docutils literal notranslate"><span class="pre">graphRoot</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The ideal solution is to create a local <strong>non-root</strong> user and storage
+location. Podman processes should then be started under this user UID.</p>
+</div>
+<p>Network systems using solutions such as <a class="reference external" href="https://sssd.io/">SSSD</a> do not
+append the user to the system (is not listed on <code class="docutils literal notranslate"><span class="pre">/etc/subuid/</span></code>), so automatic
+user namespace is not possible. To be compatible with this configuration, a
+single UID within a user space needs to be used, achieved with the
+<code class="docutils literal notranslate"><span class="pre">ignore_chown_errors</span></code> parameter.</p>
+<p>Normally these systems also mount an network file system (nfs) as the home folder,
+which is also not supported.
+In this case, the <code class="docutils literal notranslate"><span class="pre">graphRoot</span></code> location needs to be set to somewhere else
+(a easy test location is <code class="docutils literal notranslate"><span class="pre">/tmp</span></code>).</p>
+<p>This is an example of <em>~/.config/containers/storage.conf</em> to support such
+environments:</p>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="k">[storage]</span>
+<span class="na">driver</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;overlay&quot;</span>
+<span class="c1"># Set to a path in a non-nfs partition</span>
+<span class="na">graphRoot</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;/tmp&quot;</span>
+
+<span class="k">[storage.options.overlay]</span>
+<span class="c1"># Single UID</span>
+<span class="na">ignore_chown_errors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;true&quot;</span>
+</pre></div>
+</div>
+<p>Ensure apply with <code class="docutils literal notranslate"><span class="pre">podman</span> <span class="pre">system</span> <span class="pre">migrate</span></code> and see the changed settings with
+<code class="docutils literal notranslate"><span class="pre">podman</span> <span class="pre">info</span></code>.</p>
+<p>An alternative mitigation for nfs is to create a xfs disk image and mount, but
+since mount requires a root permission it is unlikely to be helpful for most
+users:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>truncate<span class="w"> </span>-s<span class="w"> </span>100g<span class="w"> </span>~/.local/share/containers-xfs.img
+mkfs.xfs<span class="w"> </span>-m<span class="w"> </span><span class="nv">reflink</span><span class="o">=</span><span class="m">1</span><span class="w">  </span>~/.local/share/containers-xfs.img<span class="w"> </span>-m<span class="w"> </span><span class="nv">bigtime</span><span class="o">=</span><span class="m">1</span>,inobtcount<span class="o">=</span><span class="m">1</span><span class="w"> </span>-i<span class="w"> </span><span class="nv">nrext64</span><span class="o">=</span><span class="m">0</span>
+sudo<span class="w"> </span>mount<span class="w"> </span>~/.local/share/containers-xfs.img<span class="w"> </span>~/.local/share/containers
+</pre></div>
+</div>
+</section>
 </section>
 <section id="build-the-container-image">
 <span id="image-podman"></span><h2>Build the container image<a class="headerlink" href="#build-the-container-image" title="Link to this heading"></a></h2>

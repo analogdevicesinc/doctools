@@ -18,6 +18,12 @@
             "pathname": "docs",
             "branch": "main"
         },
+        "linux": {
+            "name": "Linux",
+            "visibility": "public",
+            "pathname": "docs",
+            "branch": "main"
+        },
         "pyadi-iio": {
             "name": "pyadi-iio",
             "visibility": "public",
