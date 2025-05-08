@@ -109,6 +109,56 @@ Set the ``DOCKER_HOST`` variable on your *~/.bashrc*:
 
    export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock
 
+Remote users & network partitions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Podman default configuration expects a local user to be able to create a user
+namespace where multiple IDs are mapped and a compatible partition to use as
+the storage location ``graphRoot``.
+
+.. note::
+
+   The ideal solution is to create a local **non-root** user and storage
+   location. Podman processes should then be started under this user UID.
+
+Network systems using solutions such as `SSSD <https://sssd.io/>`__ do not
+append the user to the system (is not listed on ``/etc/subuid/``), so automatic
+user namespace is not possible. To be compatible with this configuration, a
+single UID within a user space needs to be used, achieved with the
+``ignore_chown_errors`` parameter.
+
+Normally these systems also mount an network file system (nfs) as the home folder,
+which is also not supported.
+In this case, the ``graphRoot`` location needs to be set to somewhere else
+(a easy test location is ``/tmp``).
+
+This is an example of *~/.config/containers/storage.conf* to support such
+environments:
+
+.. code:: ini
+
+   [storage]
+   driver = "overlay"
+   # Set to a path in a non-nfs partition
+   graphRoot = "/tmp"
+
+   [storage.options.overlay]
+   # Single UID
+   ignore_chown_errors = "true"
+
+Ensure apply with ``podman system migrate`` and see the changed settings with
+``podman info``.
+
+An alternative mitigation for nfs is to create a xfs disk image and mount, but
+since mount requires a root permission it is unlikely to be helpful for most
+users:
+
+.. code:: bash
+
+   truncate -s 100g ~/.local/share/containers-xfs.img
+   mkfs.xfs -m reflink=1  ~/.local/share/containers-xfs.img -m bigtime=1,inobtcount=1 -i nrext64=0
+   sudo mount ~/.local/share/containers-xfs.img ~/.local/share/containers
+
 .. _image-podman:
 
 Build the container image
