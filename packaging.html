@@ -86,7 +86,7 @@
           <ul>
 <li><a class="reference internal" href="#">Packaging pipeline</a><ul>
 <li><a class="reference internal" href="#configure-podman">Configure podman</a><ul>
-<li><a class="reference internal" href="#remote-users-network-partitions">Remote users &amp; network partitions</a></li>
+<li><a class="reference internal" href="#network-users-partitions">Network users &amp; partitions</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#build-the-container-image">Build the container image</a></li>
@@ -245,8 +245,8 @@ if not using WSL2.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">DOCKER_HOST</span><span class="o">=</span>unix://<span class="nv">$XDG_RUNTIME_DIR</span>/podman/podman.sock
 </pre></div>
 </div>
-<section id="remote-users-network-partitions">
-<h3>Remote users &amp; network partitions<a class="headerlink" href="#remote-users-network-partitions" title="Link to this heading"></a></h3>
+<section id="network-users-partitions">
+<span id="podman-sssd"></span><h3>Network users &amp; partitions<a class="headerlink" href="#network-users-partitions" title="Link to this heading"></a></h3>
 <p>Podman default configuration expects a local user to be able to create a user
 namespace where multiple IDs are mapped and a compatible partition to use as
 the storage location <code class="docutils literal notranslate"><span class="pre">graphRoot</span></code>.</p>
@@ -256,7 +256,7 @@ the storage location <code class="docutils literal notranslate"><span class="pre
 location. Podman processes should then be started under this user UID.</p>
 </div>
 <p>Network systems using solutions such as <a class="reference external" href="https://sssd.io/">SSSD</a> do not
-append the user to the system (is not listed on <code class="docutils literal notranslate"><span class="pre">/etc/subuid/</span></code>), so automatic
+append the user to the system (is not listed in <code class="docutils literal notranslate"><span class="pre">/etc/subuid</span></code>), so automatic
 user namespace is not possible. To be compatible with this configuration, a
 single UID within a user space needs to be used, achieved with the
 <code class="docutils literal notranslate"><span class="pre">ignore_chown_errors</span></code> parameter.</p>
@@ -551,6 +551,15 @@ is ignored and a new one is requested.</p>
 If not provided on the Containerfile as <code class="docutils literal notranslate"><span class="pre">ENV</span> <span class="pre">runner_labels=&lt;labels,&gt;</span></code> or as argument
 <code class="docutils literal notranslate"><span class="pre">--env</span> <span class="pre">runner_labels=&lt;labels,&gt;</span></code>, it defaults to <code class="docutils literal notranslate"><span class="pre">v1</span></code>.
 Most of the times, you want to use the Containerfile-set environment variable.</p>
+<p>If you are in an environment as described in <a class="reference internal" href="#podman-sssd"><span class="std std-ref">Network users &amp; partitions</span></a>, append these flags
+to every <code class="docutils literal notranslate"><span class="pre">podman</span> <span class="pre">run</span></code> command:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--user</span> <span class="pre">root</span></code>: due to <code class="docutils literal notranslate"><span class="pre">ignore_chown_errors</span></code> allowing a single user mapping,
+this user is root (0). Please note that this the container’s root user and in
+most images is the only available user.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--env</span> <span class="pre">RUNNER_ALLOW_RUNASROOT=1</span></code>: suppresses the GitHub Action runner “Must
+not run with sudo”. Again, is the container’s root.</p></li>
+</ul>
 </section>
 <section id="self-hosted-cluster">
 <span id="cluster-podman"></span><h2>Self-hosted cluster<a class="headerlink" href="#self-hosted-cluster" title="Link to this heading"></a></h2>
