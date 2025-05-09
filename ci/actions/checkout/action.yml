@@ -107,11 +107,18 @@ runs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
         fi
 
-    - name: Checkout
+    - name: Fetch
       shell: bash
       run: |
         git fetch origin --depth=$fetch_depth $head_sha
+        avail_depth=$(git rev-list --count $head_sha)
+        if [[ $fetch_depth -gt $avail_depth ]]; then
+          echo "fetch_depth=$avail_depth" >> $GITHUB_ENV
+        fi
 
+    - name: Checkout
+      shell: bash
+      run: |
         git reset --hard $head_sha
         if [[ "${{ github.event.pull_request.head.sha }}" ]]; then
           # --empty was added on git 2.26.0
