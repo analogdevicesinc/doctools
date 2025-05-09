@@ -393,6 +393,7 @@ Below is a suggested systemd service at *~/.config/systemd/user/podman-public-do
              --secret public_doctools_runner_token,type=env,target=runner_token \
              --conmon-pidfile /%t/%n-pid --cidfile /%t/%n-cid \
              --label "io.containers.autoupdate=local" \
+             --name=public_doctools_%i \
              --memory-swap=20g \
              --memory=16g \
              --cpus=4 \
