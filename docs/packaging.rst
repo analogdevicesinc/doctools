@@ -132,7 +132,7 @@ single UID within a user space needs to be used, achieved with the
 Normally these systems also mount an network file system (nfs) as the home folder,
 which is also not supported.
 In this case, the ``graphRoot`` location needs to be set to somewhere else
-(a easy test location is ``/tmp``).
+(an easy test location is ``/tmp``).
 
 This is an example of *~/.config/containers/storage.conf* to support such
 environments:
@@ -388,7 +388,7 @@ Below is a suggested systemd service at *~/.config/systemd/user/podman-public-do
    Restart=on-success
    ExecStartPre=/usr/bin/rm -f /%t/%n-pid /%t/%n-cid
    ExecStart=/usr/bin/podman run \
-             --env name_label=%i \
+             --env name_label=%H-%i \
              --secret public_doctools_org_repository,type=env,target=org_repository \
              --secret public_doctools_runner_token,type=env,target=runner_token \
              --conmon-pidfile /%t/%n-pid --cidfile /%t/%n-cid \
