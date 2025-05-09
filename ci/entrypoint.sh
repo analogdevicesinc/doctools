@@ -53,19 +53,20 @@ name=$(echo $org_repository_ | sed 's|/|-|g')-$name_label
 
 set -e
 
-/home/runner/actions-runner/config.sh \
+(cd /home/runner/actions-runner ; ./config.sh \
     --url https://github.com/$org_repository_ \
     --token $runner_token_ \
     --labels "$runner_labels_" \
     --unattended \
     --replace \
-    --name $name
+    --name $name \
+)
 
 function cleanup () {
     get_runner_token
 
-    /home/runner/actions-runner/config.sh remove \
-        --token $runner_token_
+    (cd /home/runner/actions-runner ; ./config.sh remove \
+        --token $runner_token_)
 }
 
 trap 'cleanup; exit 130' INT
