@@ -155,3 +155,4 @@ runs:
         fi
         cache_branch=cache/$cache_branch
         git branch $cache_branch $cache_commit -f
+        git --no-pager branch
