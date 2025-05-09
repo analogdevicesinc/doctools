@@ -92,7 +92,7 @@ runs:
 
           git checkout $(git rev-parse @)
           echo "clean-up branches"
-          branches=$((git branch || true) | (grep -v ^'*' | grep -v ^'\s\+cache/' || true))
+          branches=$((git branch || true) | (grep -v ^'*' | grep -v ^'\s\+cache/' | grep -v ^'\s\+mirror/' || true))
           if [[ "$branches" ]]; then
             git branch -D $branches || true
           fi
@@ -150,7 +150,7 @@ runs:
           cache_branch=${{ github.base_ref }}
           cache_commit=${{ github.event.pull_request.base.sha }}
         else
-          cache_branch=${{ github.ref }}
+          cache_branch=${{ github.ref_name }}
           cache_commit=$head_sha
         fi
         cache_branch=cache/$cache_branch
