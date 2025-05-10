@@ -484,7 +484,7 @@
     }
 }
 
-@media (max-width: variable.$screen-3) {
+@media screen and (max-width: variable.$screen-3) {
     #input-show-localtoc:checked ~ #cancel-area-show-localtoc {
         position: fixed;
         background: rgba(0, 0, 0, .05);
@@ -495,7 +495,7 @@
     }
 }
 
-@media (max-width: variable.$screen-1) {
+@media screen and (max-width: variable.$screen-1) {
     #input-show-toc:checked ~ #cancel-area-show-toc {
         position: fixed;
         background: rgba(0, 0, 0, .05);
