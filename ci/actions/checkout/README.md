@@ -1,8 +1,7 @@
 Checkout
 ========
 
-An alternative to https://github.com/actions/checkout with entrypoints for
-https://github.com/nektos/act/ with https://github.com/containers/podman
+An alternative to https://github.com/actions/checkout that flattens pr merge commits.
 
 Usage:
 
@@ -23,11 +22,3 @@ Key-points:
 * Sets the ``fetch_depth``, ``base_sha``, ``head_sha`` and ``number_commits`` to
   ease running checkscripts.
 
-When working locally, the user can set the following enviroment variables:
-
-* ACT_DEPTH: The depth when fetching, overwrites depth
-* ACT_HEAD: The head to fetch
-
-At repository level, the owner shall change the local mountpoint from ``/mnt/repo`` to
-something else by setting input ``act-mountpoint``.
-A motivation maybe compatibility with a specific container, file structure.

@@ -5,15 +5,9 @@ inputs:
   depth:
     description: The depth when fetching
     required: false
-  act-mountpoint:
-    description: The source mountpoint
-    default: '/mnt/repo'
   gh-token:
     description: 'GitHub Token'
     default: ${{ github.token }}
-# env:
-#   ACT_DEPTH: The depth when fetching, overwrites depth
-#   ACT_HEAD: The head to fetch
 
 # behaviour:
 # github.event.pull_request.head.sha is always used to detect the PR case.
@@ -26,52 +20,29 @@ runs:
     - name: Get commit depth
       shell: bash
       run: |
-        if [[ "${{ env.ACT }}" ]]; then
-          if [[ "${{ env.ACT_DEPTH }}" ]]; then
-            echo "setting fetch_depth based on env.ACT_DEPTH"
-            echo "fetch_depth=$(( ${{ env.ACT_DEPTH }} + 1 ))" >> $GITHUB_ENV
-          else
-            echo "setting fetch_depth as 6 (fallback, consider setting ACT_DEPTH enviroment variable)"
-            echo "fetch_depth=6" >> $GITHUB_ENV
-          fi
+        if [[ "${{ inputs.depth }}" ]]; then
+          echo "setting fetch_depth based on inputs.depth"
+          echo "fetch_depth=$(( ${{ inputs.depth }} + 1 ))" >> $GITHUB_ENV
+        elif [[ "${{ github.event.pull_request.commits }}" ]]; then
+          echo "setting fetch_depth based on github.event.pull_request.commits"
+          echo "fetch_depth=$(( ${{ github.event.pull_request.commits }} + 2 ))" >> $GITHUB_ENV
+        elif [[ ! "${{ github.event.before }}" =~ "0000000000000000" ]] && [[ "${{ github.event.forced }}" == "false" ]]; then
+          echo "setting fetch_depth based on github.event.before"
+          commits_sha='${{ toJSON(github.event.commits.*.id) }}' ;
+          fetch_depth=$(( $(jq <<<"$commits_sha" length) + 1 )) ;
+          echo "fetch_depth=$fetch_depth" >> $GITHUB_ENV ;
         else
-          if [[ "${{ inputs.depth }}" ]]; then
-            echo "setting fetch_depth based on inputs.depth"
-            echo "fetch_depth=$(( ${{ inputs.depth }} + 1 ))" >> $GITHUB_ENV
-          elif [[ "${{ github.event.pull_request.commits }}" ]]; then
-            echo "setting fetch_depth based on github.event.pull_request.commits"
-            echo "fetch_depth=$(( ${{ github.event.pull_request.commits }} + 2 ))" >> $GITHUB_ENV
-          elif [[ ! "${{ github.event.before }}" =~ "0000000000000000" ]] && [[ "${{ github.event.forced }}" == "false" ]]; then
-            echo "setting fetch_depth based on github.event.before"
-            commits_sha='${{ toJSON(github.event.commits.*.id) }}' ;
-            fetch_depth=$(( $(jq <<<"$commits_sha" length) + 1 )) ;
-            echo "fetch_depth=$fetch_depth" >> $GITHUB_ENV ;
-          else
-            echo "setting fetch_depth as 6 (fallback, either force-push, push-new-branch, or unknown event type)"
-            echo "fetch_depth=6" >> $GITHUB_ENV
-            echo "fetch_depth_fallback=true" >> $GITHUB_ENV
-          fi
+          echo "setting fetch_depth as 6 (fallback, either force-push, push-new-branch, or unknown event type)"
+          echo "fetch_depth=6" >> $GITHUB_ENV
+          echo "fetch_depth_fallback=true" >> $GITHUB_ENV
         fi
 
-        if [[ "${{ env.ACT }}" ]]; then
-          if [[ "${{ env.ACT_HEAD }}" ]]; then
-            act_head_sha="${{ env.ACT_HEAD }}"
-          else
-            act_head_sha="@"
-          fi
-          echo "head_sha=$(cd ${{ inputs.act-mountpoint }} ; git rev-parse $act_head_sha)" >> $GITHUB_ENV
-        else
-          echo "head_sha=$GITHUB_SHA" >> $GITHUB_ENV
-        fi
+        echo "head_sha=$GITHUB_SHA" >> $GITHUB_ENV
 
     - name: Prepare git
       shell: bash
       run: |
-        if [[ "${{ env.ACT }}" ]]; then
-          url="file://${{ inputs.act-mountpoint }}"
-        else
-          url="https://x-access-token:${{ inputs.gh-token }}@github.com/${{ github.repository }}.git"
-        fi
+        url="https://x-access-token:${{ inputs.gh-token }}@github.com/${{ github.repository }}.git"
 
         if [[ ! -d .git ]]; then
           git init --initial-branch=trunk .
@@ -90,7 +61,7 @@ runs:
           git reset --hard --quiet
           git clean -xf --quiet .
 
-          git checkout $(git rev-parse @)
+          git checkout $(git rev-parse @) || true
           echo "clean-up branches"
           branches=$((git branch || true) | (grep -v ^'*' | grep -v ^'\s\+cache/' | grep -v ^'\s\+mirror/' || true))
           if [[ "$branches" ]]; then
