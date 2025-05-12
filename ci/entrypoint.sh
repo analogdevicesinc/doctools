@@ -4,14 +4,20 @@ github_token_=$github_token
 runner_token_=$runner_token
 org_repository_=$org_repository
 runner_labels_=$runner_labels
+config_flags_=$config_flags
 
 unset github_token
 unset runner_token
 unset org_repository
 unset runner_labels
+unset config_flags_
 
 if [[ -z "$runner_labels_" ]]; then
     runner_labels_="v1"
+fi
+
+if [[ -z "$config_flags_" ]]; then
+    config_flags_="--replace"
 fi
 
 source /usr/local/bin/github-api.sh
@@ -58,8 +64,8 @@ set -e
     --token $runner_token_ \
     --labels "$runner_labels_" \
     --unattended \
-    --replace \
     --name $name \
+    $config_flags_ \
 )
 
 function cleanup () {
