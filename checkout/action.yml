@@ -12,7 +12,7 @@ inputs:
 # behaviour:
 # github.event.pull_request.head.sha is always used to detect the PR case.
 # cache/ branches are created to avoid base refs from being garbage collected.
-# on PRs, the patch commits are cherry-picked, not merged.
+# on PRs, the github automatic merge commit is flattened, allowing to check per commit.
 
 runs:
   using: composite
@@ -32,7 +32,7 @@ runs:
           fetch_depth=$(( $(jq <<<"$commits_sha" length) + 1 )) ;
           echo "fetch_depth=$fetch_depth" >> $GITHUB_ENV ;
         else
-          echo "setting fetch_depth as 6 (fallback, either force-push, push-new-branch, or unknown event type)"
+          echo "setting fetch_depth as 6 (fallback, either due to force-push, new-branch, or uncaught condition)"
           echo "fetch_depth=6" >> $GITHUB_ENV
           echo "fetch_depth_fallback=true" >> $GITHUB_ENV
         fi
