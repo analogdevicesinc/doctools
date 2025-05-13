@@ -44,6 +44,10 @@ runs:
       run: |
         url="https://x-access-token:${{ inputs.gh-token }}@github.com/${{ github.repository }}.git"
 
+        if [[ -f .git/shallow.lock ]] || [[ -f .git/index.lock ]]; then
+          rm -rf .* *
+        fi
+
         if [[ ! -d .git ]]; then
           git init --initial-branch=trunk .
           git config core.pager cat
