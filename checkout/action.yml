@@ -2,11 +2,11 @@ name: Git Checkout
 description: A git checkout for local runners and runs
 
 inputs:
-  depth:
-    description: The depth when fetching
-    required: false
+  branch:
+    description: "Branch to use (don't use context)"
+    default: ''
   gh-token:
-    description: 'GitHub Token'
+    description: "GitHub Token"
     default: ${{ github.token }}
 
 # behaviour:
@@ -63,9 +63,9 @@ runs:
     - name: Get commit depth
       shell: bash
       run: |
-        if [[ "${{ inputs.depth }}" ]]; then
-          echo "setting fetch_depth based on inputs.depth"
-          echo "fetch_depth=$(( ${{ inputs.depth }} + 1 ))" >> $GITHUB_ENV
+        if [[ "${{ inputs.branch }}" ]]; then
+          echo "setting fetch_depth based on inputs.branch"
+          echo "fetch_depth=1" >> $GITHUB_ENV
         elif [[ "${{ github.event.pull_request.head.sha }}" ]]; then
           echo "setting fetch_depth based on github.event.pull_request.head.sha"
           json=$(curl -s -L \
@@ -97,21 +97,24 @@ runs:
           echo "fetch_depth_fallback=true" >> $GITHUB_ENV
         fi
 
-        echo "head_sha=$GITHUB_SHA" >> $GITHUB_ENV
-
-    - name: Fetch
+    - name: Fetch & checkout (branch)
       shell: bash
+      if: ${{ inputs.branch != '' }}
       run: |
-        git fetch origin --depth=$fetch_depth $head_sha
-        avail_depth=$(git rev-list --count $head_sha)
+        git fetch origin --depth=$fetch_depth "${{ inputs.branch }}"
+        git reset --hard origin/${{ inputs.branch }}
+
+    - name: Fetch & checkout (context)
+      shell: bash
+      if: ${{ inputs.branch == '' }}
+      run: |
+        git fetch origin --depth=$fetch_depth $GITHUB_SHA
+        avail_depth=$(git rev-list --count $GITHUB_SHA)
         if [[ $fetch_depth -gt $avail_depth ]]; then
           echo "fetch_depth=$avail_depth" >> $GITHUB_ENV
         fi
 
-    - name: Checkout
-      shell: bash
-      run: |
-        git reset --hard $head_sha
+        git reset --hard $GITHUB_SHA
         if [[ "${{ github.event.pull_request.head.sha }}" ]]; then
           # --empty was added on git 2.26.0
           has_keep=$(git rebase -help 2>&1 | grep "\--empty" | wc -l) || true
@@ -124,18 +127,20 @@ runs:
           git rebase $keep_empty @~
         else
           ahead_by=$((fetch_depth - 1))
+          echo "ahead_by=$ahead_by" >> $GITHUB_ENV
         fi
-        echo "ahead_by=$ahead_by" >> $GITHUB_ENV
         echo "head_sha=$(git rev-parse @)" >> "$GITHUB_ENV"
         echo "base_sha=$(git rev-parse @~$ahead_by)" >> "$GITHUB_ENV"
 
     - name: Log commit range
       shell: bash
+      if: ${{ inputs.branch == '' }}
       run: |
         git log --oneline --reverse $base_sha..$head_sha
 
-    - name: Generate cache branches
+    - name: Generate cache branches & rename
       shell: bash
+      if: ${{ inputs.branch == '' }}
       run: |
         if [[ "${{ github.event.pull_request.base.sha }}" ]]; then
           cache_branch=${{ github.base_ref }}
@@ -146,4 +151,5 @@ runs:
         fi
         cache_branch=cache/$cache_branch
         git branch $cache_branch $cache_commit -f
+        git branch -m $cache_branch || true
         git --no-pager branch
