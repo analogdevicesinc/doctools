@@ -15,11 +15,6 @@ jobs:
     - uses: analogdevicesinc/doctools/checkout@v1
 ```
 
-Inputs:
-* branch: checkout another branch, in this case the variables assume the values:
-  - `fetch_depth`: 1.
-  - `base_sha`, `head_sha` and `ahead_by`: not set
-
 Key-points:
 
 * For pull-requests, rebase on base reference instead of awkward merge commit.

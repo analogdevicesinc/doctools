@@ -2,9 +2,6 @@ name: Git Checkout
 description: A git checkout for local runners and runs
 
 inputs:
-  branch:
-    description: "Branch to use (don't use context)"
-    default: ''
   gh-token:
     description: "GitHub Token"
     default: ${{ github.token }}
@@ -63,10 +60,7 @@ runs:
     - name: Get commit depth
       shell: bash
       run: |
-        if [[ "${{ inputs.branch }}" ]]; then
-          echo "setting fetch_depth based on inputs.branch"
-          echo "fetch_depth=1" >> $GITHUB_ENV
-        elif [[ "${{ github.event.pull_request.head.sha }}" ]]; then
+        if [[ "${{ github.event.pull_request.head.sha }}" ]]; then
           echo "setting fetch_depth based on github.event.pull_request.head.sha"
           json=$(curl -s -L \
             -H "Accept: application/vnd.github+json" \
@@ -97,16 +91,8 @@ runs:
           echo "fetch_depth_fallback=true" >> $GITHUB_ENV
         fi
 
-    - name: Fetch & checkout (branch)
+    - name: Fetch & checkout
       shell: bash
-      if: ${{ inputs.branch != '' }}
-      run: |
-        git fetch origin --depth=$fetch_depth "${{ inputs.branch }}"
-        git reset --hard origin/${{ inputs.branch }}
-
-    - name: Fetch & checkout (context)
-      shell: bash
-      if: ${{ inputs.branch == '' }}
       run: |
         git fetch origin --depth=$fetch_depth $GITHUB_SHA
         avail_depth=$(git rev-list --count $GITHUB_SHA)
@@ -134,13 +120,11 @@ runs:
 
     - name: Log commit range
       shell: bash
-      if: ${{ inputs.branch == '' }}
       run: |
         git log --oneline --reverse $base_sha..$head_sha
 
     - name: Generate cache branches & rename
       shell: bash
-      if: ${{ inputs.branch == '' }}
       run: |
         if [[ "${{ github.event.pull_request.base.sha }}" ]]; then
           cache_branch=${{ github.base_ref }}
