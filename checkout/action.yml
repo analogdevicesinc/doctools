@@ -23,9 +23,26 @@ runs:
         if [[ "${{ inputs.depth }}" ]]; then
           echo "setting fetch_depth based on inputs.depth"
           echo "fetch_depth=$(( ${{ inputs.depth }} + 1 ))" >> $GITHUB_ENV
-        elif [[ "${{ github.event.pull_request.commits }}" ]]; then
-          echo "setting fetch_depth based on github.event.pull_request.commits"
-          echo "fetch_depth=$(( ${{ github.event.pull_request.commits }} + 2 ))" >> $GITHUB_ENV
+        elif [[ "${{ github.event.pull_request.head.sha }}" ]]; then
+          echo "setting fetch_depth based on github.event.pull_request.head.sha"
+          json=$(curl -s -L \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ inputs.gh-token }}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${{ github.repository }}/compare/${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}" \
+          | jq '{behind_by, ahead_by}')
+          ahead_by=$(echo $json | jq '.ahead_by')
+          behind_by=$(echo $json | jq '.behind_by')
+          if [[ "$ahead_by" == "null" ]]; then
+            echo "GitHub API failed, setting based on github.event.pull_request.commits + 100"
+            ahead_by=${{ github.event.pull_request.commits }}
+            echo "ahead_by=$ahead_by" >> $GITHUB_ENV
+            fetch_depth=$(( ahead_by + 100 ))
+          else
+            echo "ahead_by=$ahead_by" >> $GITHUB_ENV
+            fetch_depth=$(( ahead_by + behind_by ))
+          fi
+          echo "fetch_depth=$fetch_depth" >> $GITHUB_ENV
         elif [[ ! "${{ github.event.before }}" =~ "0000000000000000" ]] && [[ "${{ github.event.forced }}" == "false" ]]; then
           echo "setting fetch_depth based on github.event.before"
           commits_sha='${{ toJSON(github.event.commits.*.id) }}' ;
@@ -105,13 +122,12 @@ runs:
             keep_empty="--keep-empty"
           fi
           git rebase $keep_empty @~
-          number_commits=$((fetch_depth - 2))
         else
-          number_commits=$((fetch_depth - 1))
+          ahead_by=$((fetch_depth - 1))
         fi
-        echo "number_commits=$number_commits" >> $GITHUB_ENV
+        echo "ahead_by=$ahead_by" >> $GITHUB_ENV
         echo "head_sha=$(git rev-parse @)" >> "$GITHUB_ENV"
-        echo "base_sha=$(git rev-parse @~$number_commits)" >> "$GITHUB_ENV"
+        echo "base_sha=$(git rev-parse @~$ahead_by)" >> "$GITHUB_ENV"
 
     - name: Log commit range
       shell: bash
