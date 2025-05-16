@@ -77,7 +77,7 @@ runs:
             fetch_depth=$(( ahead_by + 100 ))
           else
             echo "ahead_by=$ahead_by" >> $GITHUB_ENV
-            fetch_depth=$(( ahead_by + behind_by ))
+            fetch_depth=$(( ahead_by + behind_by + 2 ))
           fi
           echo "fetch_depth=$fetch_depth" >> $GITHUB_ENV
         elif [[ ! "${{ github.event.before }}" =~ "0000000000000000" ]] && [[ "${{ github.event.forced }}" == "false" ]]; then
