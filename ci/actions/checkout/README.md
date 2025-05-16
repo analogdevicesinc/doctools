@@ -18,7 +18,7 @@ jobs:
 Key-points:
 
 * For pull-requests, rebase on base reference instead of awkward merge commit.
-* Current checkout branch is always called ``trunk``
-* Sets the ``fetch_depth``, ``base_sha``, ``head_sha`` and ``number_commits`` to
-  ease running checkscripts.
+* Current checkout branch is always called `trunk`
+* Sets the `fetch_depth`, `base_sha`, `head_sha` and `ahead_by` to
+  ease running check scripts.
 
