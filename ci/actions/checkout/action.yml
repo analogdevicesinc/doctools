@@ -20,7 +20,7 @@ runs:
         url="https://x-access-token:${{ inputs.gh-token }}@github.com/${{ github.repository }}.git"
 
         if [[ -f .git/shallow.lock ]] || [[ -f .git/index.lock ]]; then
-          rm -rf .* *
+          rm -rf -- ..?* .[!.]* *
         fi
 
         if [[ ! -d .git ]]; then
