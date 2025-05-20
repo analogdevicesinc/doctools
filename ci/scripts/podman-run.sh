@@ -1,5 +1,6 @@
 #!/bin/bash
 
+container_engine=podman
 podman-run ()
 {
 	help_usage="
@@ -7,15 +8,15 @@ podman-run ()
 	    $ podman-run adi/linux:latest echo hello!
 	      hello!
 
-	    $ podman-run adi/linux:latest
+	    $ podman-run adi/linux
 	    > check_checkpatch
 	      checking @~6..@ ... Done!
 	    > exit
 
-	    $ podman-run adi/linux:latest base_sha=@~10 \; check_checkpatch
+	    $ podman-run adi/linux base_sha=@~10 \; check_checkpatch
 	      checking @~10..@ ... Done!
 
-	    $ podman-run --root adi/linux:latest
+	    $ podman-run --root adi/linux
 	    > zypper install some_package
 	       installing some_package...
 
@@ -25,6 +26,7 @@ podman-run ()
 	local volume=.
 	local image=
 	local with_args=
+	local cwd=
 	declare -a args=
 	for arg; do
 		if [[ "$arg" =~ ^-- ]]; then
@@ -61,9 +63,15 @@ podman-run ()
 		return
 	fi
 
+	if git rev-parse --is-inside-work-tree  > /dev/null 2>&1 ; then
+		cwd=$(git rev-parse --show-toplevel)
+	else
+		cwd=$(pwd)
+	fi
+
 	# If the image is not found, will search sources on
 	# /etc/$container_engine/registries.d
-	name=$(echo $image | sed 's|:|-|g' | sed 's|/|-|g')
+	name=$(echo $image | sed 's|:|_|g' | sed 's|/|_|g').$(echo ${cwd:1} | sed 's|/|-|g')
 	running=$($container_engine container inspect -f '{{.State.Running}}' $name 2>/dev/null)
 	run_params="run -it \
 		--replace \
