@@ -415,6 +415,9 @@ Instead of passing runner_token, you can also pass a github_token to generate
 the runner_token on demand.
 Using the github_token is the recommended approach because during clean-up the original
 runner_token may have expired already.
+Alternatively, you can mount a FIFO to ``/var/run/secrets/runner_token`` to
+generate a token just in time, without ever passing the github_token to the
+container (scripts not provided).
 
 Tune the limit flags for your needs.
 The ``--cpus`` flag requires a kernel with ``CONFIG_CFS_BANDWIDTH`` enabled.
