@@ -558,14 +558,3 @@ def serve(directory, port, dev, selenium, once, builder):
     scheduler.enter(1, 1, check_files, (scheduler,))
     scheduler.run()
 
-@click.command()
-@click.option(
-    '--directory',
-    '-d',
-    is_flag=False,
-    type=click.Path(exists=True),
-    default='.'
-)
-def author_mode(directory):
-    # DEPRECATED
-    click.echo("Deprecated: To match other live-editing tools, this command was renamed to 'serve'.")
