@@ -5,12 +5,14 @@ runner_token_=$runner_token
 org_repository_=$org_repository
 runner_labels_=$runner_labels
 config_flags_=$config_flags
+name_label_=$name_label
 
 unset github_token
 unset runner_token
 unset org_repository
 unset runner_labels
-unset config_flags_
+unset config_flags
+unset name_label
 
 if [[ -z "$runner_labels_" ]]; then
     runner_labels_="v1"
@@ -51,11 +53,11 @@ function get_runner_token () {
 
 get_runner_token
 
-if [[ -z "$name_label" ]]; then
-    name_label=$(echo $runner_token_ | sha3sum -a 256 | head -c4)
+if [[ -z "$name_label_" ]]; then
+    name_label_=$(echo $runner_token_ | sha3sum -a 256 | head -c4)
 fi
 
-name=$(echo $org_repository_ | sed 's|/|-|g')-$name_label
+name=$(echo $org_repository_ | sed 's|/|-|g')-$name_label_
 
 set -e
 
