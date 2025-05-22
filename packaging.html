@@ -601,7 +601,10 @@ the local image is considered to be newer and the systemd unit gets restarted.</
 <p>Instead of passing runner_token, you can also pass a github_token to generate
 the runner_token on demand.
 Using the github_token is the recommended approach because during clean-up the original
-runner_token may have expired already.</p>
+runner_token may have expired already.
+Alternatively, you can mount a FIFO to <code class="docutils literal notranslate"><span class="pre">/var/run/secrets/runner_token</span></code> to
+generate a token just in time, without ever passing the github_token to the
+container (scripts not provided).</p>
 <p>Tune the limit flags for your needs.
 The <code class="docutils literal notranslate"><span class="pre">--cpus</span></code> flag requires a kernel with <code class="docutils literal notranslate"><span class="pre">CONFIG_CFS_BANDWIDTH</span></code> enabled.
 You can check with <code class="docutils literal notranslate"><span class="pre">zgrep</span> <span class="pre">CONFIG_CFS_BANDWIDTH=</span> <span class="pre">/proc/config.gz</span></code>.</p>
