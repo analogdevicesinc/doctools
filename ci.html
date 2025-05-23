@@ -5,15 +5,15 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Documentation deployment &#8212; Doctools  documentation</title>
+    <title>Packaging pipeline &#8212; Doctools  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8e8a900e" />
     <link rel="stylesheet" type="text/css" href="_static/app.min.css?v=c218d0f6" />
     <script defer="" src="_static/app.umd.js?v=8984ea49"></script>
     <link rel="icon" href="_static/icon.svg"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Packaging pipeline" href="packaging.html" />
-    <link rel="prev" title="Command line interface" href="cli.html" />
+    <link rel="next" title="Sphinx theme" href="theme.html" />
+    <link rel="prev" title="Documentation deployment" href="deploy.html" />
    
   
   <meta name="repository" content="doctools">
@@ -84,20 +84,16 @@
         </div>
         <nav>
           <ul>
-<li><a class="reference internal" href="#">Documentation deployment</a><ul>
-<li><a class="reference internal" href="#local">Local</a></li>
-<li><a class="reference internal" href="#rolling-release">Rolling release</a></li>
-<li><a class="reference internal" href="#versioned">Versioned</a><ul>
-<li><a class="reference internal" href="#string-array-form">String array form</a></li>
-<li><a class="reference internal" href="#fine-grained-form">Fine-grained form</a></li>
+<li><a class="reference internal" href="#">Packaging pipeline</a><ul>
+<li><a class="reference internal" href="#configure-podman">Configure podman</a><ul>
+<li><a class="reference internal" href="#network-users-partitions">Network users &amp; partitions</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#further-notes">Further notes</a><ul>
-<li><a class="reference internal" href="#i-don-t-want-a-doc-at-the-root">I don’t want a doc at the root</a></li>
-<li><a class="reference internal" href="#how-do-i-cross-reference-a-specific-version">How do I cross-reference a specific version?</a></li>
-<li><a class="reference internal" href="#what-happened-to-adoc-target-depth">What happened to <code class="docutils literal notranslate"><span class="pre">ADOC_TARGET_DEPTH</span></code>?</a></li>
-</ul>
-</li>
+<li><a class="reference internal" href="#build-the-container-image">Build the container image</a></li>
+<li><a class="reference internal" href="#interactive-run">Interactive run</a></li>
+<li><a class="reference internal" href="#full-local-run">Full local run</a></li>
+<li><a class="reference internal" href="#self-hosted-runner">Self-hosted runner</a></li>
+<li><a class="reference internal" href="#self-hosted-cluster">Self-hosted cluster</a></li>
 </ul>
 </li>
 </ul>
@@ -135,8 +131,8 @@ Content on this topic
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="cli.html">Command line interface</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Documentation deployment</a></li>
-<li class="toctree-l1"><a class="reference internal" href="packaging.html">Packaging pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="deploy.html">Documentation deployment</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Packaging pipeline</a></li>
 <li class="toctree-l1"><a class="reference internal" href="theme.html">Sphinx theme</a></li>
 </ul>
 </body>
@@ -152,228 +148,548 @@ Content on this topic
           
           <div class="body" role="main">
             
-  <section id="documentation-deployment">
-<span id="ci"></span><h1>Documentation deployment<a class="headerlink" href="#documentation-deployment" title="Link to this heading"></a></h1>
-<p>Doctools is developed to work offline, in a local server as a rolling release
-(e.g., on GitHub Pages) and versioned in a dedicated server with orchestration.</p>
-<section id="local">
-<span id="ci-local"></span><h2>Local<a class="headerlink" href="#local" title="Link to this heading"></a></h2>
-<p>For offline and local server, a <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">html</span></code> suffices to generate the
-documentation.</p>
-<p>To serve the build in a local server, Python built-in server can be used:</p>
+  <section id="packaging-pipeline">
+<span id="packaging"></span><h1>Packaging pipeline<a class="headerlink" href="#packaging-pipeline" title="Link to this heading"></a></h1>
+<p>Doctools has a continuous deployment integration pipeline that works as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>                   ┌──────────────────┐
+                ┌─►│Build Doc Latest  ├─┐
+                │  └──────────────────┘ │
+                │                       │
+┌─────────────┐ │  ┌────────────────┐   │  ┌──────────────┐
+│Build Package├─┼─►│Build Doc on Min├───┼─►│Deploy Package│
+└─────────────┘ │  └────────────────┘   │  └──────────────┘
+                │                       │
+                │  ┌──────────┐         │
+                ├─►│Custom Doc├─────────┤
+                │  └──────────┘         │
+                │                       │
+                │  ┌─────┐              │
+                └─►│Tests├──────────────┘
+                   └─────┘
+</pre></div>
+</div>
+<p>The Build Package step “compiles” JavaScript and SASS, fetches third-party
+assets and licenses and generates the Python package.</p>
+<p>Then, in the middle-stage, two parallel runs are launched:</p>
+<ul class="simple">
+<li><p><em>Build Doc Latest</em>: uses the latest stable dependencies releases to
+generate this documentation, and store as an artifact.</p></li>
+<li><p><em>Build Doc on Min</em>: uses the minimum requirements dependencies to generate
+this documentation, but the output is discarded.</p></li>
+<li><p><em>Custom Doc</em>: calls <a class="reference internal" href="cli.html#custom-doc"><span class="std std-ref">Custom Doc</span></a> to check if the CLI tool succeeds in
+generating a full custom PDF document.</p></li>
+<li><p><em>Tests</em>: run tests using <code class="docutils literal notranslate"><span class="pre">pytest</span></code>, in special, methods that are not called
+during the <em>Build Doc *</em> pipelines.</p></li>
+</ul>
+<p>Both of them are set to fail-on-warning during the documentation generation.</p>
+<p>Finally, the Deploy Package:</p>
+<ul class="simple">
+<li><p>Grabs the version and checks if the tag version already exists:</p>
+<ul>
+<li><p>If so, set to update the symbolic <code class="docutils literal notranslate"><span class="pre">pre-release</span></code> release.</p></li>
+<li><p>If not, set to update the symbolic <code class="docutils literal notranslate"><span class="pre">latest</span></code> and <code class="docutils literal notranslate"><span class="pre">pre-relase</span></code> release.</p></li>
+</ul>
+</li>
+<li><p>Still if a new version:</p>
+<ul>
+<li><p>Create the git tag and push to origin.</p></li>
+<li><p>Create the tagged release.</p></li>
+<li><p>Upload the artifact to the tagged release.</p></li>
+</ul>
+</li>
+<li><p>Upload the artifact to the symbolic release (<code class="docutils literal notranslate"><span class="pre">pre-release</span></code>, <code class="docutils literal notranslate"><span class="pre">latest</span></code>).</p></li>
+<li><p>Finally, the <em>Build Doc Latest</em> artifact is downloaded and deployed to the
+branch <code class="docutils literal notranslate"><span class="pre">gh-pages</span></code></p></li>
+</ul>
+<p>By design, the live page on <em>github.io</em> follows the pre-release/latest commit-ish;
+properly versioned live documentation should be managed by an external system
+that watches the git tags (e.g.
+<a class="reference external" href="https://github.com/readthedocs/readthedocs.org">readthedocs</a>).</p>
+<p>This approach allows to have a single defined version on <code class="docutils literal notranslate"><span class="pre">adi_doctools/__init__.py</span></code>,
+and have the tags created and releases created/updated without much fuzz.</p>
+<p>The philosophy is to have <code class="docutils literal notranslate"><span class="pre">latest</span></code> updated on tag increment and first
+successful run, and <code class="docutils literal notranslate"><span class="pre">pre-relese</span></code> updated on successful run without tag change.
+These releases exist to provide a pointer to the latest/pre-release packages, e.g.
+<a class="reference external" href="https://github.com/analogdevicesinc/doctools/releases/download/latest/adi-doctools.tar.gz">releases/download/latest/adi-doctools.tar.gz</a>.</p>
+<p>Non-handled corner-cases mitigations:</p>
+<ul class="simple">
+<li><p>Release <code class="docutils literal notranslate"><span class="pre">pre-release</span></code> and <code class="docutils literal notranslate"><span class="pre">latest</span></code> must exist prior the first run.</p></li>
+<li><p>Branch <code class="docutils literal notranslate"><span class="pre">gh-pages</span></code> must exist with at least one commit.</p></li>
+</ul>
+<section id="configure-podman">
+<span id="conf-podman"></span><h2>Configure podman<a class="headerlink" href="#configure-podman" title="Link to this heading"></a></h2>
+<p>Below are suggested instructions for setting up <code class="docutils literal notranslate"><span class="pre">podman</span></code> on a Linux environment.</p>
+<p>Adjust to your preference as needed, and skip the steps marked in <span class="green">green</span>
+if not using WSL2.</p>
+<p>Install <code class="docutils literal notranslate"><span class="pre">podman</span></code> from your package manager.</p>
+<p><span class="green">Ensure cgroup v2 on wsl2’s .wslconfig:</span></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">wsl2</span><span class="p">]</span>
+<span class="n">kernelCommandLine</span> <span class="o">=</span> <span class="n">cgroup_no_v1</span><span class="o">=</span><span class="nb">all</span> <span class="n">systemd</span><span class="o">.</span><span class="n">unified_cgroup_hierarchy</span><span class="o">=</span><span class="mi">1</span>
+</pre></div>
+</div>
+<p><span class="green">Restart wsl2.</span></p>
+<p>Enable podman service for your user.</p>
 <div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
 </pre></div>
 </div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>http.server<span class="w"> </span>-d<span class="w"> </span>/path/to/docs/_build/html
-</pre></div>
-</div>
-<div class="clear-left"></div></div></div><p>Or with hot reload using <a class="reference internal" href="cli.html#serve"><span class="std std-ref">Serve</span></a>:</p>
-<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
-</pre></div>
-</div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>adoc<span class="w"> </span>serve<span class="w"> </span>-d<span class="w"> </span>/path/to/docs
-</pre></div>
-</div>
-<div class="clear-left"></div></div></div></section>
-<section id="rolling-release">
-<span id="ci-rolling-release"></span><h2>Rolling release<a class="headerlink" href="#rolling-release" title="Link to this heading"></a></h2>
-<p>For a rolling release, a workflow file is used.
-With GitHub Actions, the following workflow file is recommended:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">on</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">push</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">branches</span><span class="p">:</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">main</span>
-<span class="w">  </span><span class="nt">pull_request</span><span class="p">:</span>
-
-<span class="nt">jobs</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">build-doc</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
-
-<span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/checkout@v4</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/setup-python@v5</span>
-<span class="w">      </span><span class="nt">with</span><span class="p">:</span>
-<span class="w">        </span><span class="nt">python-version</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;3.x&quot;</span>
-
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Install pip packages</span>
-<span class="w">      </span><span class="nt">working-directory</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docs</span>
-<span class="w">      </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<span class="w">        </span><span class="no">pip install pip --upgrade</span>
-<span class="w">        </span><span class="no">pip install -r requirements.txt</span>
-
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Build doc</span>
-<span class="w">      </span><span class="nt">working-directory</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docs</span>
-<span class="w">      </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<span class="w">        </span><span class="no">make html SPHINXOPTS=&#39;-W --keep-going&#39;</span>
-
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Store the generated doc</span>
-<span class="w">      </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/upload-artifact@v4</span>
-<span class="w">      </span><span class="nt">with</span><span class="p">:</span>
-<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">html</span>
-<span class="w">        </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docs/_build/html</span>
-
-<span class="w">  </span><span class="nt">deploy-doc</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
-<span class="w">    </span><span class="nt">needs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">build-doc</span>
-<span class="w">    </span><span class="nt">if</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">github.ref == &#39;refs/heads/main&#39;</span>
-
-<span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<span class="w">        </span><span class="no">git config --global user.name &quot;${{ github.event.head_commit.committer.name }}&quot;</span>
-<span class="w">        </span><span class="no">git config --global user.email &quot;${{ github.event.head_commit.committer.email }}&quot;</span>
-
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/checkout@v4</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Create gh-pages branch</span>
-<span class="w">      </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">&gt;</span>
-<span class="w">        </span><span class="no">git ls-remote --exit-code --heads origin refs/heads/gh-pages ||</span>
-<span class="w">        </span><span class="no">(</span>
-<span class="w">          </span><span class="no">git reset --hard ;</span>
-<span class="w">          </span><span class="no">git clean -fdx ;</span>
-<span class="w">          </span><span class="no">git checkout --orphan gh-pages ;</span>
-<span class="w">          </span><span class="no">git reset --hard;</span>
-<span class="w">          </span><span class="no">git commit -m &quot;empty&quot; --allow-empty ;</span>
-<span class="w">          </span><span class="no">git push origin gh-pages:gh-pages</span>
-<span class="w">        </span><span class="no">)</span>
-
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/checkout@v4</span>
-<span class="w">      </span><span class="nt">with</span><span class="p">:</span>
-<span class="w">        </span><span class="nt">ref</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;gh-pages&#39;</span>
-
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Empty gh-pages</span>
-<span class="w">      </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<span class="w">        </span><span class="no">git rm -r . --quiet || true</span>
-
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/download-artifact@v4</span>
-<span class="w">      </span><span class="nt">with</span><span class="p">:</span>
-<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">html</span>
-
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Patch doc build</span>
-<span class="w">      </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<span class="w">        </span><span class="no">rm -r _sources</span>
-<span class="w">        </span><span class="no">touch .nojekyll</span>
-
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Commit gh-pages</span>
-<span class="w">      </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<span class="w">        </span><span class="no">git add . &gt;&gt; /dev/null</span>
-<span class="w">        </span><span class="no">git commit -m &quot;deploy: ${GITHUB_SHA}&quot; --allow-empty</span>
-
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Push to gh-pages</span>
-<span class="w">      </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<span class="w">        </span><span class="no">git push origin gh-pages:gh-pages</span>
-</pre></div>
-</div>
-<p>With the Sphinx <code class="docutils literal notranslate"><span class="pre">-W</span></code> flag, Sphinx exits with an error if any warning is
-logged, and <code class="docutils literal notranslate"><span class="pre">--keep-going</span></code> continues the build even if a warning is logged,
-to provide a complete log for analysis.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">deploy-doc</span></code> job only runs when push/merged to main.</p>
-<div class="admonition attention">
-<p class="admonition-title">Attention</p>
-<p><code class="docutils literal notranslate"><span class="pre">GITHUB_SHA</span></code> on <code class="docutils literal notranslate"><span class="pre">pull_request</span></code> is the pre-commit and not the head commit,
-please be aware of GitHub events values if implementing something else.</p>
-</div>
-<p>The <em>requirements.txt</em> file should contain:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sphinx</span>
-<span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">analogdevicesinc</span><span class="o">/</span><span class="n">doctools</span><span class="o">/</span><span class="n">releases</span><span class="o">/</span><span class="n">download</span><span class="o">/</span><span class="n">latest</span><span class="o">/</span><span class="n">adi</span><span class="o">-</span><span class="n">doctools</span><span class="o">.</span><span class="n">tar</span><span class="o">.</span><span class="n">gz</span>
-</pre></div>
-</div>
-</section>
-<section id="versioned">
-<span id="ci-versioned"></span><h2>Versioned<a class="headerlink" href="#versioned" title="Link to this heading"></a></h2>
-<p>The live versioned version requires additional orchestration than the
-<a class="reference internal" href="#ci-rolling-release"><span class="std std-ref">Rolling release</span></a>.</p>
-<p>The versions are described in <code class="docutils literal notranslate"><span class="pre">tags.json</span></code> file on the root path
-that can take two formats, one simpler with a plain string array and other
-fine-grained to allow full control.</p>
-<p>But first, store each version in separated folders in the root path, e.g.
-<code class="docutils literal notranslate"><span class="pre">v1.1</span></code>, <code class="docutils literal notranslate"><span class="pre">v2.2</span></code>, <code class="docutils literal notranslate"><span class="pre">main</span></code>, <code class="docutils literal notranslate"><span class="pre">dev</span></code>.</p>
-<section id="string-array-form">
-<h3>String array form<a class="headerlink" href="#string-array-form" title="Link to this heading"></a></h3>
-<p>The simple <code class="docutils literal notranslate"><span class="pre">tags.json</span></code> is a plain array with each version/path on the
-and generate a <code class="docutils literal notranslate"><span class="pre">tags.json</span></code>, e.g. <code class="docutils literal notranslate"><span class="pre">[&quot;v1.1&quot;,</span> <span class="pre">&quot;v2.2&quot;,</span> <span class="pre">&quot;main&quot;,</span> <span class="pre">&quot;dev&quot;,</span> <span class="pre">&quot;&quot;]</span></code>
-(a empty string means there is a built doc on the root and will be named
-<code class="docutils literal notranslate"><span class="pre">main</span> <span class="pre">(unstable)</span></code>).
-The first tag will be labeled with <code class="docutils literal notranslate"><span class="pre">latest</span></code>.</p>
-<div class="admonition tip">
-<p class="admonition-title">Tip</p>
-<p>See this repo’s <a class="icon git reference external" href="https://github.com/analogdevicesinc/doctools/tree/main/.github/workflows/deploy.yml">.github/workflows/deploy.yml</a> for a
-suggestion on how to implement it.</p>
-</div>
-<p>This <code class="docutils literal notranslate"><span class="pre">tags.json</span></code> format can be obtained with:</p>
-<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
-</pre></div>
-</div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Search for every doc&#39;s objects.inv store the paths as JSON.</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>systemctl<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>--now<span class="w"> </span>--user<span class="w"> </span>podman.socket
 </pre></div>
 </div>
 <div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
 </pre></div>
 </div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>find<span class="w"> </span>.<span class="w"> </span>-name<span class="w"> </span>objects.inv<span class="w"> </span>-exec<span class="w"> </span>sh<span class="w"> </span>-c<span class="w"> </span><span class="s1">&#39;dirname {}&#39;</span><span class="w"> </span><span class="s1">&#39;;&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>cut<span class="w"> </span>-c<span class="w"> </span><span class="m">3</span>-<span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>sort<span class="w"> </span>-r<span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>jq<span class="w"> </span>--raw-input<span class="w"> </span>.<span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>jq<span class="w"> </span>--slurp<span class="w"> </span>.<span class="w"> </span>&gt;<span class="w"> </span>tags.json
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>systemctl<span class="w"> </span>start<span class="w"> </span>--user<span class="w"> </span>podman.socket
+</pre></div>
+</div>
+<div class="clear-left"></div></div></div><p>Set the <code class="docutils literal notranslate"><span class="pre">DOCKER_HOST</span></code> variable on your <em>~/.bashrc</em>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">DOCKER_HOST</span><span class="o">=</span>unix://<span class="nv">$XDG_RUNTIME_DIR</span>/podman/podman.sock
+</pre></div>
+</div>
+<section id="network-users-partitions">
+<span id="podman-sssd"></span><h3>Network users &amp; partitions<a class="headerlink" href="#network-users-partitions" title="Link to this heading"></a></h3>
+<p>Podman default configuration expects a local user to be able to create a user
+namespace where multiple IDs are mapped and a compatible partition to use as
+the storage location <code class="docutils literal notranslate"><span class="pre">graphRoot</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The ideal solution is to create a local <strong>non-root</strong> user and storage
+location. Podman processes should then be started under this user UID.</p>
+</div>
+<p>Network systems using solutions such as <a class="reference external" href="https://sssd.io/">SSSD</a> do not
+append the user to the system (is not listed in <code class="docutils literal notranslate"><span class="pre">/etc/subuid</span></code>), so automatic
+user namespace is not possible. To be compatible with this configuration, a
+single UID within a user space needs to be used, achieved with the
+<code class="docutils literal notranslate"><span class="pre">ignore_chown_errors</span></code> parameter.</p>
+<p>Normally these systems also mount an network file system (nfs) as the home folder,
+which is also not supported.
+In this case, the <code class="docutils literal notranslate"><span class="pre">graphRoot</span></code> location needs to be set to somewhere else
+(an easy test location is <code class="docutils literal notranslate"><span class="pre">/tmp</span></code>).</p>
+<p>This is an example of <em>~/.config/containers/storage.conf</em> to support such
+environments:</p>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="k">[storage]</span>
+<span class="na">driver</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;overlay&quot;</span>
+<span class="c1"># Set to a path in a non-nfs partition</span>
+<span class="na">graphRoot</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;/tmp&quot;</span>
+
+<span class="k">[storage.options.overlay]</span>
+<span class="c1"># Single UID</span>
+<span class="na">ignore_chown_errors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;true&quot;</span>
+</pre></div>
+</div>
+<p>Ensure apply with <code class="docutils literal notranslate"><span class="pre">podman</span> <span class="pre">system</span> <span class="pre">migrate</span></code> and see the changed settings with
+<code class="docutils literal notranslate"><span class="pre">podman</span> <span class="pre">info</span></code>.</p>
+<p>An alternative mitigation for nfs is to create a xfs disk image and mount, but
+since mount requires a root permission it is unlikely to be helpful for most
+users:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>truncate<span class="w"> </span>-s<span class="w"> </span>100g<span class="w"> </span>~/.local/share/containers-xfs.img
+mkfs.xfs<span class="w"> </span>-m<span class="w"> </span><span class="nv">reflink</span><span class="o">=</span><span class="m">1</span><span class="w">  </span>~/.local/share/containers-xfs.img<span class="w"> </span>-m<span class="w"> </span><span class="nv">bigtime</span><span class="o">=</span><span class="m">1</span>,inobtcount<span class="o">=</span><span class="m">1</span><span class="w"> </span>-i<span class="w"> </span><span class="nv">nrext64</span><span class="o">=</span><span class="m">0</span>
+sudo<span class="w"> </span>mount<span class="w"> </span>~/.local/share/containers-xfs.img<span class="w"> </span>~/.local/share/containers
+</pre></div>
+</div>
+</section>
+</section>
+<section id="build-the-container-image">
+<span id="image-podman"></span><h2>Build the container image<a class="headerlink" href="#build-the-container-image" title="Link to this heading"></a></h2>
+<p>To build the container image, use your favorite container engine:</p>
+<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>~/doctools
+</pre></div>
+</div>
+<div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~/doctools$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>podman<span class="w"> </span>build<span class="w"> </span>--tag<span class="w"> </span>adi/doctools:latest<span class="w"> </span>ci
+</pre></div>
+</div>
+<div class="clear-left"></div></div></div><p>You may want to build the container in a host, where you have all your tools installed,
+and then deploy to a server.
+In this case, export the image and then import on the server:</p>
+<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>user@host:~/doctools$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>podman<span class="w"> </span>save<span class="w"> </span>-o<span class="w"> </span>adi-doctools.tar<span class="w"> </span>adi/doctools:latest
+</pre></div>
+</div>
+<div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>user@host:~/doctools$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scp<span class="w"> </span>adi-doctools.tar<span class="w"> </span>server:/tmp/
+</pre></div>
+</div>
+<div class="clear-left"></div></div></div><div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>admin@server:/tmp$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>podman<span class="w"> </span>load<span class="w"> </span>-i<span class="w"> </span>adi-doctools.tar
+</pre></div>
+</div>
+<div class="clear-left"></div></div></div><p>Or if you are feeling adventurous:</p>
+<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>user@host:~/doctools$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>podman<span class="w"> </span>save<span class="w"> </span>adi/doctools:latest<span class="w"> </span><span class="p">|</span><span class="w"> </span>ssh<span class="w"> </span>server<span class="w"> </span><span class="s2">&quot;cat - | podman load&quot;</span>
 </pre></div>
 </div>
 <div class="clear-left"></div></div></div></section>
-<section id="fine-grained-form">
-<h3>Fine-grained form<a class="headerlink" href="#fine-grained-form" title="Link to this heading"></a></h3>
-<p>The more elaborated option takes the following format:</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;path&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;label&quot;</span><span class="p">],</span>
-<span class="w">  </span><span class="c1">// ...</span>
-<span class="p">}</span>
+<section id="interactive-run">
+<span id="id1"></span><h2>Interactive run<a class="headerlink" href="#interactive-run" title="Link to this heading"></a></h2>
+<p>At its core, the workflows are straight forward, roughly they do:</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">Tests</span></code> step:</p>
+<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
 </pre></div>
 </div>
-<p>For example:</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;main&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;main&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;unstable&quot;</span><span class="p">],</span>
-<span class="w">  </span><span class="nt">&quot;v2.0.0&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;v2.0.0&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;pre-release&quot;</span><span class="p">],</span>
-<span class="w">  </span><span class="nt">&quot;v1.2.1&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;v1.2.1&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;latest&quot;</span><span class="p">],</span>
-<span class="w">  </span><span class="nt">&quot;v1.2.0&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;v1.2.0&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">],</span>
-<span class="w">  </span><span class="nt">&quot;v1.1.7&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;v1.1.7&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">],</span>
-<span class="w">  </span><span class="nt">&quot;prs/staging/new-feature&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;new-feature&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;experimental&quot;</span><span class="p">]</span>
-<span class="p">}</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>tests<span class="w"> </span><span class="p">;</span><span class="w"> </span>pytest
 </pre></div>
 </div>
-<p>Notice how the “name” and “label” for path <code class="docutils literal notranslate"><span class="pre">prs/staging/new-feature</span></code>
-was used to provide a concise but clearer name to this entry.</p>
-<p>The doc version set, either via <code class="docutils literal notranslate"><span class="pre">conf.py</span></code> or <code class="docutils literal notranslate"><span class="pre">ADOC_DOC_VERSION</span></code>
-(<a class="reference internal" href="docs_guidelines/index.html#version"><span class="std std-ref">more info</span></a>), should match a value on the <code class="docutils literal notranslate"><span class="pre">name</span></code> column, and
-not the <code class="docutils literal notranslate"><span class="pre">path</span></code> column.</p>
-</section>
-</section>
-<section id="further-notes">
-<h2>Further notes<a class="headerlink" href="#further-notes" title="Link to this heading"></a></h2>
-<section id="i-don-t-want-a-doc-at-the-root">
-<h3>I don’t want a doc at the root<a class="headerlink" href="#i-don-t-want-a-doc-at-the-root" title="Link to this heading"></a></h3>
-<p>If the root does not contain any built doc, add a redirect HTML file pointing
-to the main/stable version:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&lt;!DOCTYPE html&gt;
-&lt;html&gt;
-  &lt;head&gt;
-    &lt;meta http-equiv=&quot;refresh&quot; content=&quot;0; url=main/index.html&quot; /&gt;
-  &lt;/head&gt;
-&lt;/html&gt;
+<div class="clear-left"></div></div></div><p><code class="docutils literal notranslate"><span class="pre">Build</span> <span class="pre">Doc</span> <span class="pre">*</span></code>:</p>
+<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
 </pre></div>
 </div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>docs<span class="w"> </span><span class="p">;</span><span class="w"> </span>make<span class="w"> </span>html
+</pre></div>
+</div>
+<div class="clear-left"></div></div></div><p>But at a specific minimum and maximum supported environment version.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Custom</span> <span class="pre">Doc</span></code>:</p>
+<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mkdir<span class="w"> </span>/tmp/test-pdf<span class="w"> </span><span class="p">;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span><span class="nv">$_</span>
+</pre></div>
+</div>
+<div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>/tmp/test-pdf$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>adoc<span class="w"> </span>custom-doc<span class="w"> </span><span class="p">;</span><span class="w"> </span>adoc<span class="w"> </span>custom-doc
+</pre></div>
+</div>
+<div class="clear-left"></div></div></div><p>Doing the relevant step on host covers most issues that the CI would catch.</p>
+<p>You can use the <a class="reference internal" href="#image-podman"><span class="std std-ref">container image</span></a> with
+<a class="icon git reference external" href="https://github.com/analogdevicesinc/doctools/tree/main/ci/scripts/podman-run.sh">this suggested bash method</a>
+to interactive login into an image, mounting the provided path, to run the steps
+on the container, for example:</p>
+<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~/doctools$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pdr<span class="w"> </span>adi/doctools:latest<span class="w"> </span>.
+</pre></div>
+</div>
+<div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~/doctools$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3.13<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv
+</pre></div>
+</div>
+<div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~/doctools$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">source</span><span class="w"> </span>venv/bin/activate<span class="w"> </span><span class="p">;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>pip3.13<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="w"> </span><span class="p">;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>pip3.13<span class="w"> </span>install<span class="w"> </span>pytest
+</pre></div>
+</div>
+<div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~/doctools$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>tests<span class="w"> </span><span class="p">;</span><span class="w"> </span>pytest
+</pre></div>
+</div>
+<div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~/doctools/tests$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">exit</span>
+</pre></div>
+</div>
+<div class="clear-left"></div></div></div></section>
+<section id="full-local-run">
+<span id="act"></span><h2>Full local run<a class="headerlink" href="#full-local-run" title="Link to this heading"></a></h2>
+<p>To have a full continuous integration mock-run <a class="reference external" href="https://github.com/nektos/act/">act</a>
+can be used.
+<code class="docutils literal notranslate"><span class="pre">act</span></code> is a CLI written in go that allows to run GitHub actions.</p>
+<p>Assuming you have the tools necessary already installed (a general guide
+is provided <a class="reference internal" href="#conf-podman"><span class="std std-ref">here</span></a>  and already <a class="reference internal" href="#image-podman"><span class="std std-ref">built the image</span></a>.
+Install <code class="docutils literal notranslate"><span class="pre">act</span></code> binary into an executable path:</p>
+<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>~/.local
+</pre></div>
+</div>
+<div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~/.local$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>--proto<span class="w"> </span><span class="s1">&#39;=https&#39;</span><span class="w"> </span>--tlsv1.2<span class="w"> </span>-sSf<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>https://raw.githubusercontent.com/nektos/act/master/install.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>sudo<span class="w"> </span>bash
+</pre></div>
+</div>
+<div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~/.local$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>act<span class="w"> </span>--version
+</pre></div>
+</div>
+<div class="clear-left"></div></div><div><div class="no-select highlight-text notranslate"><div class="highlight"><pre><span></span>act version 0.2.74
+</pre></div>
+</div>
+<div class="clear-left"></div></div></div><p>Now, run your continuous integration:</p>
+<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~/doctools$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>act<span class="w"> </span>--remote-name<span class="w"> </span>private
+</pre></div>
+</div>
+<div class="clear-left"></div></div><div><div class="no-select highlight-text notranslate"><div class="highlight"><pre><span></span>INFO[0000] Using docker host &#39;unix:///run/user/1000//podman/podman.sock&#39;,
+           and daemon socket &#39;unix:///run/user/1000//podman/podman.sock&#39;
+INFO[0000] Start server on http://10.44.3.54:34567
+[build/build-doc.yml/build] ⭐ Run Set up job
+[...]
+</pre></div>
+</div>
+<div class="clear-left"></div></div></div><p>Update <code class="docutils literal notranslate"><span class="pre">private</span></code> with your preferred origin name (does nothing beyond suppressing warnings).</p>
+<div class="admonition caution">
+<p class="admonition-title">Caution</p>
+<p>Even with <code class="docutils literal notranslate"><span class="pre">pull_request</span></code> event type, no rebasing is done on the mock run.
+Rebase on your side before running <code class="docutils literal notranslate"><span class="pre">act</span></code>.</p>
+</div>
+<p>Additional arguments are added from the <a class="icon git reference external" href="https://github.com/analogdevicesinc/doctools/tree/main/.actrc">.actrc</a> on invoke.</p>
+<p>To run a specific workflow, use <code class="docutils literal notranslate"><span class="pre">-W</span></code>, e.g.:</p>
+<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~/doctools$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>act<span class="w"> </span>--remote-name<span class="w"> </span>public<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-W<span class="w"> </span>.github/workflows/build-doc.yml
+</pre></div>
+</div>
+<div class="clear-left"></div></div></div><p>By default, it will run on the checks on the top 5 commits, to set other value,
+set <code class="docutils literal notranslate"><span class="pre">ACT_DEPTH</span></code> on <em>.env</em>
+e.g. 4 commits:</p>
+<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">echo</span><span class="w"> </span><span class="nv">ACT_DEPTH</span><span class="o">=</span><span class="k">$(</span>git<span class="w"> </span>rev-list<span class="w"> </span>--count<span class="w"> </span>@~4..@<span class="k">)</span><span class="w"> </span>&gt;<span class="w"> </span>.env
+</pre></div>
+</div>
+<div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>act<span class="w"> </span>pull_request<span class="w"> </span>--remote-name<span class="w"> </span>public
+</pre></div>
+</div>
+<div class="clear-left"></div></div></div><div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Edit <code class="docutils literal notranslate"><span class="pre">rev-list</span></code> to use a base commit sha to evaluate the depth.</p>
+</div>
+<p>You can also provide a <code class="docutils literal notranslate"><span class="pre">head</span></code> variable to filter out <code class="docutils literal notranslate"><span class="pre">wip</span></code> commits, for example:</p>
+<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">head</span><span class="o">=</span><span class="k">$(</span>git<span class="w"> </span>rev-parse<span class="w"> </span>@~5<span class="k">)</span>
+</pre></div>
+</div>
+<div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">echo</span><span class="w"> </span><span class="nv">ACT_HEAD</span><span class="o">=</span><span class="nv">$head</span><span class="w"> </span>&gt;<span class="w"> </span>.env
+</pre></div>
+</div>
+<div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">echo</span><span class="w"> </span><span class="nv">ACT_DEPTH</span><span class="o">=</span><span class="k">$(</span>git<span class="w"> </span>rev-list<span class="w"> </span>--count<span class="w"> </span><span class="nv">$head</span>~5..<span class="nv">$head</span><span class="k">)</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>.env
+</pre></div>
+</div>
+<div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>act<span class="w"> </span>pull_request<span class="w"> </span>--remote-name<span class="w"> </span>public
+</pre></div>
+</div>
+<div class="clear-left"></div></div></div></section>
+<section id="self-hosted-runner">
+<span id="podman-run"></span><h2>Self-hosted runner<a class="headerlink" href="#self-hosted-runner" title="Link to this heading"></a></h2>
+<p>To host your <a class="reference external" href="https://github.com/actions/runner">GitHub Actions Runner</a>,
+set-up your secrets:</p>
+<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># e.g. analogdevicesinc/doctools</span>
+</pre></div>
+</div>
+<div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">printf</span><span class="w"> </span>ORG_REPOSITORY<span class="w"> </span><span class="p">|</span><span class="w"> </span>podman<span class="w"> </span>secret<span class="w"> </span>create<span class="w"> </span>public_doctools_org_repository<span class="w"> </span>-
+</pre></div>
+</div>
+<div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># e.g. MyVerYSecRunnerToken</span>
+</pre></div>
+</div>
+<div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">printf</span><span class="w"> </span>RUNNER_TOKEN<span class="w"> </span><span class="p">|</span><span class="w"> </span>podman<span class="w"> </span>secret<span class="w"> </span>create<span class="w"> </span>public_doctools_runner_token<span class="w"> </span>-
+</pre></div>
+</div>
+<div class="clear-left"></div></div></div><p>The runner token is obtained from the GUI at <code class="docutils literal notranslate"><span class="pre">github.com/&lt;org&gt;/&lt;repository&gt;/settings/actions/runners/new</span></code>.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">github_token</span></code> from <a class="reference internal" href="#cluster-podman"><span class="std std-ref">Self-hosted cluster</span></a> is set, the runner_token
+is ignored and a new one is requested.</p>
+<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~/doctools$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>podman<span class="w"> </span>run<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--secret<span class="w"> </span>public_doctools_org_repository,type<span class="o">=</span>env,target<span class="o">=</span>org_repository<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--secret<span class="w"> </span>public_doctools_runner_token,type<span class="o">=</span>env,target<span class="o">=</span>runner_token<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--env<span class="w"> </span><span class="nv">runner_labels</span><span class="o">=</span>v1,big_cpu<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>adi/doctools:latest
+</pre></div>
+</div>
+<div class="clear-left"></div></div></div><p>The environment variable runner_labels (comma-separated), set the runner labels.
+If not provided on the Containerfile as <code class="docutils literal notranslate"><span class="pre">ENV</span> <span class="pre">runner_labels=&lt;labels,&gt;</span></code> or as argument
+<code class="docutils literal notranslate"><span class="pre">--env</span> <span class="pre">runner_labels=&lt;labels,&gt;</span></code>, it defaults to <code class="docutils literal notranslate"><span class="pre">v1</span></code>.
+Most of the times, you want to use the Containerfile-set environment variable.</p>
+<p>If you are in an environment as described in <a class="reference internal" href="#podman-sssd"><span class="std std-ref">Network users &amp; partitions</span></a>, append these flags
+to every <code class="docutils literal notranslate"><span class="pre">podman</span> <span class="pre">run</span></code> command:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--user</span> <span class="pre">root</span></code>: due to <code class="docutils literal notranslate"><span class="pre">ignore_chown_errors</span></code> allowing a single user mapping,
+this user is root (0). Please note that this the container’s root user and in
+most images is the only available user.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--env</span> <span class="pre">RUNNER_ALLOW_RUNASROOT=1</span></code>: suppresses the GitHub Action runner “Must
+not run with sudo”. Again, is the container’s root.</p></li>
+</ul>
 </section>
-<section id="how-do-i-cross-reference-a-specific-version">
-<h3>How do I cross-reference a specific version?<a class="headerlink" href="#how-do-i-cross-reference-a-specific-version" title="Link to this heading"></a></h3>
-<p>For <a class="reference internal" href="docs_guidelines/index.html#in-org-ref"><span class="std std-ref">In organization reference</span></a>, the doc shall target a specific version by suffixing
-the target the version on the <code class="docutils literal notranslate"><span class="pre">interref_repos</span></code> variable, e.g.
-<code class="docutils literal notranslate"><span class="pre">interref_repos</span> <span class="pre">=</span> <span class="pre">['pyadi-iio/dev',</span> <span class="pre">'other-repo/v1.1']</span></code>.</p>
-</section>
-<section id="what-happened-to-adoc-target-depth">
-<h3>What happened to <code class="docutils literal notranslate"><span class="pre">ADOC_TARGET_DEPTH</span></code>?<a class="headerlink" href="#what-happened-to-adoc-target-depth" title="Link to this heading"></a></h3>
-<p>Previously there was also a <code class="docutils literal notranslate"><span class="pre">ADOC_TARGET_DEPTH</span></code> enviroment variables
-to create full relative links between versions, but this was deprecated
-by instead just using the root <code class="docutils literal notranslate"><span class="pre">/</span></code> for those links, e.g.
-<code class="docutils literal notranslate"><span class="pre">/doctools/v1.0.0</span></code> instead of <code class="docutils literal notranslate"><span class="pre">../../../doctools/v1.0.0</span></code> from
-<code class="docutils literal notranslate"><span class="pre">doctools/v2.0.0/some/page.html</span></code>.</p>
-<p>This has the side effect of requiring to repository docs to be hosted right
-at the root.</p>
-</section>
+<section id="self-hosted-cluster">
+<span id="cluster-podman"></span><h2>Self-hosted cluster<a class="headerlink" href="#self-hosted-cluster" title="Link to this heading"></a></h2>
+<p>To host a cluster of self-hosted runners, the recommended approach is to use
+systemd services, instead of for example, podman-compose.</p>
+<p>Below is a suggested systemd service at <em>~/.config/systemd/user/podman-public-doctools&#64;.service</em>.</p>
+<div class="highlight-systemd notranslate"><div class="highlight"><pre><span></span><span class="k">[Unit]</span>
+<span class="na">Description</span><span class="o">=</span><span class="s">container public doctools ci %i</span>
+<span class="na">Wants</span><span class="o">=</span><span class="s">network-online.target</span>
+<span class="na">After</span><span class="o">=</span><span class="s">network-online.target</span>
+
+<span class="k">[Service]</span>
+<span class="na">Restart</span><span class="o">=</span><span class="s">on-success</span>
+<span class="na">ExecStart</span><span class="o">=</span><span class="s">/usr/bin/podman run </span>\
+<span class="w">          </span><span class="s">--env name_label=%H-%i </span>\
+<span class="w">          </span><span class="s">--secret public_doctools_org_repository,type=env,target=org_repository </span>\
+<span class="w">          </span><span class="s">--secret public_doctools_runner_token,type=env,target=runner_token </span>\
+<span class="w">          </span><span class="s">--conmon-pidfile %t/%n-pid --cidfile %t/%n-cid </span>\
+<span class="w">          </span><span class="s">--label &quot;io.containers.autoupdate=local&quot; </span>\
+<span class="w">          </span><span class="s">--name=public_doctools_%i </span>\
+<span class="w">          </span><span class="s">--memory-swap=20g </span>\
+<span class="w">          </span><span class="s">--memory=16g </span>\
+<span class="w">          </span><span class="s">--cpus=4 </span>\
+<span class="w">          </span><span class="s">-d adi/doctools:latest top</span>
+<span class="na">ExecStop</span><span class="o">=</span><span class="s">/usr/bin/sh -c &quot;/usr/bin/podman stop -t 300 $(cat %t/%n-cid) &amp;&amp; /usr/bin/podman rm $(cat %t/%n-cid)&quot;</span>
+<span class="na">ExecStopPost</span><span class="o">=</span><span class="s">/usr/bin/rm -f %t/%n-pid %t/%n-cid</span>
+<span class="na">TimeoutStopSec</span><span class="o">=</span><span class="s">600</span>
+<span class="na">Type</span><span class="o">=</span><span class="s">forking</span>
+<span class="na">PIDFile</span><span class="o">=</span><span class="s">%t/%n-pid</span>
+
+<span class="k">[Install]</span>
+<span class="na">WantedBy</span><span class="o">=</span><span class="s">multi-user.target</span>
+</pre></div>
+</div>
+<div><div class="collapsible docutils container">
+<input class="collapsible_input" id="71a9563522a94ac01cc589dd08b10c490acf1aae" name="71a9563522a94ac01cc589dd08b10c490acf1aae" type="checkbox"></input><label for="71a9563522a94ac01cc589dd08b10c490acf1aae"><p>Docker alternative (discouraged)</p>
+<div class="icon"></div></label><div class="collapsible_content docutils container">
+<div class="highlight-systemd notranslate"><div class="highlight"><pre><span></span><span class="k">[Unit]</span>
+<span class="na">Description</span><span class="o">=</span><span class="s">container public doctools ci %i</span>
+<span class="na">Wants</span><span class="o">=</span><span class="s">network-online.target</span>
+<span class="na">After</span><span class="o">=</span><span class="s">gpg-passphrase.service</span>
+
+<span class="k">[Service]</span>
+<span class="na">Restart</span><span class="o">=</span><span class="s">on-success</span>
+<span class="na">ExecStart</span><span class="o">=</span><span class="s">/bin/sh -c &quot;/usr/bin/docker run </span>\
+<span class="w">          </span><span class="s">--env name_label=solanum-%i </span>\
+<span class="w">          </span><span class="s">--env org_repository=$(gpg --quiet --batch --decrypt /run/secrets/public_doctools_org_repository.gpg) </span>\
+<span class="w">          </span><span class="s">--env runner_token=$(gpg --quiet --batch --decrypt /run/secrets/public_runner_token.gpg) </span>\
+<span class="w">          </span><span class="s">--cidfile %t/%n-cid </span>\
+<span class="w">          </span><span class="s">--label &quot;io.containers.autoupdate=local&quot; </span>\
+<span class="w">          </span><span class="s">--name=public_doctools_%i </span>\
+<span class="w">          </span><span class="s">--memory-swap=20g </span>\
+<span class="w">          </span><span class="s">--memory=16g </span>\
+<span class="w">          </span><span class="s">--cpus=4 </span>\
+<span class="w">          </span><span class="s">--log-driver=journald </span>\
+<span class="w">          </span><span class="s">-d localhost/adi/doctools:latest top&quot;</span>
+<span class="na">RemainAfterExit</span><span class="o">=</span><span class="s">yes</span>
+<span class="na">ExecStop</span><span class="o">=</span><span class="s">/usr/bin/sh -c &quot;/usr/bin/docker stop -t 300 $(cat %t/%n-cid) &amp;&amp; /usr/bin/docker rm $(cat %t/%n-cid)&quot;</span>
+<span class="na">ExecStopPost</span><span class="o">=</span><span class="s">/bin/rm %t/%n-cid</span>
+<span class="na">TimeoutStopSec</span><span class="o">=</span><span class="s">600</span>
+<span class="na">Type</span><span class="o">=</span><span class="s">forking</span>
+
+<span class="k">[Install]</span>
+<span class="na">WantedBy</span><span class="o">=</span><span class="s">multi-user.target</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div><p>Remember to <code class="docutils literal notranslate"><span class="pre">systemctl</span> <span class="pre">--user</span> <span class="pre">daemon-reload</span></code> after modifying.
+With <a class="reference external" href="https://docs.podman.io/en/latest/markdown/podman-auto-update.1.html">autoupdate</a>,
+if the image digest of the container and local storage differ,
+the local image is considered to be newer and the systemd unit gets restarted.</p>
+<p>Instead of passing runner_token, you can also pass a github_token to generate
+the runner_token on demand.
+Using the github_token is the recommended approach because during clean-up the original
+runner_token may have expired already.
+Alternatively, you can mount a FIFO to <code class="docutils literal notranslate"><span class="pre">/var/run/secrets/runner_token</span></code> to
+generate a token just in time, without ever passing the github_token to the
+container (scripts not provided).</p>
+<p>Tune the limit flags for your needs.
+The <code class="docutils literal notranslate"><span class="pre">--cpus</span></code> flag requires a kernel with <code class="docutils literal notranslate"><span class="pre">CONFIG_CFS_BANDWIDTH</span></code> enabled.
+You can check with <code class="docutils literal notranslate"><span class="pre">zgrep</span> <span class="pre">CONFIG_CFS_BANDWIDTH=</span> <span class="pre">/proc/config.gz</span></code>.</p>
+<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># e.g. MyVerYSecRetToken</span>
+</pre></div>
+</div>
+<div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">printf</span><span class="w"> </span>GITHUB_TOKEN<span class="w"> </span><span class="p">|</span><span class="w"> </span>podman<span class="w"> </span>secret<span class="w"> </span>create<span class="w"> </span>public_doctools_github_token<span class="w"> </span>-
+</pre></div>
+</div>
+<div class="clear-left"></div></div></div><p>Alternatively, you can also mount the <code class="docutils literal notranslate"><span class="pre">runner_token</span></code> into
+<code class="docutils literal notranslate"><span class="pre">/run/secrets/runner_token</span></code> and have it read when necessary.
+However, please note, just like the GitHub Actions generated <code class="docutils literal notranslate"><span class="pre">GITHUB_TOKEN</span></code>,
+the path <code class="docutils literal notranslate"><span class="pre">/run/secrets/runner_token</span></code> can be read by workflows,
+while the previous option is removed from the environment prior executing
+the GitHub Actions runtime.</p>
+<p>The order of precedence for authentication token is:</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">github_token</span></code>: environment variable.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">runner_token</span></code>: plain text at <em>/run/secrets/runner_token</em>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">runner_token</span></code>: environment variable.</p></li>
+</ol>
+<p>Please understand the security implications and ensure the token secrecy,
+by for example, require manual approval for running workflows PRs from
+third party sources and don’t relax <code class="docutils literal notranslate"><span class="pre">runner</span></code> user permissions.</p>
+<p>The required GitHub Fine-Grained token permission should be set as follows:</p>
+<p>For <a class="reference external" href="https://docs.github.com/en/rest/actions/self-hosted-runners?apiVersion=2022-11-28#create-a-registration-token-for-a-repository--fine-grained-access-tokens">repository runner</a>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">administration:write</span></code>: “Administration” repository permissions (write).</p></li>
+</ul>
+<p>For <a class="reference external" href="https://docs.github.com/en/rest/actions/self-hosted-runners?apiVersion=2022-11-28#create-a-registration-token-for-an-organization">org runner</a>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">organization_self_hosted_runners:write</span></code>: “Self-hosted runners” organization permissions (write).</p></li>
+<li><p>The user needs to be a org-level admin.</p></li>
+</ul>
+<p>Then update the systemd service.</p>
+<p>Enable and start the service</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>systemctl<span class="w"> </span>--user<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>podman-public-doctools@0.service
+systemctl<span class="w"> </span>--user<span class="w"> </span>start<span class="w"> </span>podman-public-doctools@0.service
+</pre></div>
+</div>
+<div class="admonition attention">
+<p class="admonition-title">Attention</p>
+<p>User services are terminated on logout, unless you define
+<code class="docutils literal notranslate"><span class="pre">loginctl</span> <span class="pre">enable-linger</span> <span class="pre">&lt;your-user&gt;</span></code> first.</p>
+</div>
 </section>
 </section>
 
@@ -381,8 +697,8 @@ at the root.</p>
           </div>
               <div class="related">
                 &nbsp;
-    <a href="cli.html" title="Previous document (Alt+Shift+LeftArrow)" class="prev">Command line interface</a>
-    <a href="packaging.html" title="Next document (Alt+Shift+RightArrow)" class="next">Packaging pipeline</a>
+    <a href="deploy.html" title="Previous document (Alt+Shift+LeftArrow)" class="prev">Documentation deployment</a>
+    <a href="theme.html" title="Next document (Alt+Shift+RightArrow)" class="next">Sphinx theme</a>
               </div>
           
         </div>
