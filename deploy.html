@@ -12,7 +12,7 @@
     <link rel="icon" href="_static/icon.svg"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Packaging pipeline" href="ci.html" />
+    <link rel="next" title="Continuous integration" href="ci.html" />
     <link rel="prev" title="Command line interface" href="cli.html" />
    
   
@@ -136,7 +136,7 @@ Content on this topic
 </li>
 <li class="toctree-l1"><a class="reference internal" href="cli.html">Command line interface</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Documentation deployment</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ci.html">Packaging pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ci.html">Continuous integration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="theme.html">Sphinx theme</a></li>
 </ul>
 </body>
@@ -157,7 +157,7 @@ Content on this topic
 <p>Doctools is developed to work offline, in a local server as a rolling release
 (e.g., on GitHub Pages) and versioned in a dedicated server with orchestration.</p>
 <section id="local">
-<span id="ci-local"></span><h2>Local<a class="headerlink" href="#local" title="Link to this heading"></a></h2>
+<span id="deploy-local"></span><h2>Local<a class="headerlink" href="#local" title="Link to this heading"></a></h2>
 <p>For offline and local server, a <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">html</span></code> suffices to generate the
 documentation.</p>
 <p>To serve the build in a local server, Python built-in server can be used:</p>
@@ -176,7 +176,7 @@ documentation.</p>
 </div>
 <div class="clear-left"></div></div></div></section>
 <section id="rolling-release">
-<span id="ci-rolling-release"></span><h2>Rolling release<a class="headerlink" href="#rolling-release" title="Link to this heading"></a></h2>
+<span id="deploy-rolling-release"></span><h2>Rolling release<a class="headerlink" href="#rolling-release" title="Link to this heading"></a></h2>
 <p>For a rolling release, a workflow file is used.
 With GitHub Actions, the following workflow file is recommended:</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">on</span><span class="p">:</span>
@@ -278,9 +278,9 @@ please be aware of GitHub events values if implementing something else.</p>
 </div>
 </section>
 <section id="versioned">
-<span id="ci-versioned"></span><h2>Versioned<a class="headerlink" href="#versioned" title="Link to this heading"></a></h2>
+<span id="deploy-versioned"></span><h2>Versioned<a class="headerlink" href="#versioned" title="Link to this heading"></a></h2>
 <p>The live versioned version requires additional orchestration than the
-<a class="reference internal" href="#ci-rolling-release"><span class="std std-ref">Rolling release</span></a>.</p>
+<a class="reference internal" href="#deploy-rolling-release"><span class="std std-ref">Rolling release</span></a>.</p>
 <p>The versions are described in <code class="docutils literal notranslate"><span class="pre">tags.json</span></code> file on the root path
 that can take two formats, one simpler with a plain string array and other
 fine-grained to allow full control.</p>
@@ -382,7 +382,7 @@ at the root.</p>
               <div class="related">
                 &nbsp;
     <a href="cli.html" title="Previous document (Alt+Shift+LeftArrow)" class="prev">Command line interface</a>
-    <a href="ci.html" title="Next document (Alt+Shift+RightArrow)" class="next">Packaging pipeline</a>
+    <a href="ci.html" title="Next document (Alt+Shift+RightArrow)" class="next">Continuous integration</a>
               </div>
           
         </div>

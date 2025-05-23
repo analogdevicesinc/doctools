@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Packaging pipeline &#8212; Doctools  documentation</title>
+    <title>Continuous integration &#8212; Doctools  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8e8a900e" />
     <link rel="stylesheet" type="text/css" href="_static/app.min.css?v=c218d0f6" />
     <script defer="" src="_static/app.umd.js?v=8984ea49"></script>
@@ -84,7 +84,7 @@
         </div>
         <nav>
           <ul>
-<li><a class="reference internal" href="#">Packaging pipeline</a><ul>
+<li><a class="reference internal" href="#">Continuous integration</a><ul>
 <li><a class="reference internal" href="#configure-podman">Configure podman</a><ul>
 <li><a class="reference internal" href="#network-users-partitions">Network users &amp; partitions</a></li>
 </ul>
@@ -132,7 +132,7 @@ Content on this topic
 </li>
 <li class="toctree-l1"><a class="reference internal" href="cli.html">Command line interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="deploy.html">Documentation deployment</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Packaging pipeline</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Continuous integration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="theme.html">Sphinx theme</a></li>
 </ul>
 </body>
@@ -148,8 +148,8 @@ Content on this topic
           
           <div class="body" role="main">
             
-  <section id="packaging-pipeline">
-<span id="packaging"></span><h1>Packaging pipeline<a class="headerlink" href="#packaging-pipeline" title="Link to this heading"></a></h1>
+  <section id="continuous-integration">
+<span id="ci"></span><h1>Continuous integration<a class="headerlink" href="#continuous-integration" title="Link to this heading"></a></h1>
 <p>Doctools has a continuous deployment integration pipeline that works as follows:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>                   ┌──────────────────┐
                 ┌─►│Build Doc Latest  ├─┐
@@ -569,7 +569,6 @@ systemd services, instead of for example, podman-compose.</p>
 <div class="highlight-systemd notranslate"><div class="highlight"><pre><span></span><span class="k">[Unit]</span>
 <span class="na">Description</span><span class="o">=</span><span class="s">container public doctools ci %i</span>
 <span class="na">Wants</span><span class="o">=</span><span class="s">network-online.target</span>
-<span class="na">After</span><span class="o">=</span><span class="s">network-online.target</span>
 
 <span class="k">[Service]</span>
 <span class="na">Restart</span><span class="o">=</span><span class="s">on-success</span>
@@ -595,12 +594,13 @@ systemd services, instead of for example, podman-compose.</p>
 </pre></div>
 </div>
 <div><div class="collapsible docutils container">
-<input class="collapsible_input" id="1c2007d244b84d1a7aa279748e963d6adbeb9c0c" name="1c2007d244b84d1a7aa279748e963d6adbeb9c0c" type="checkbox"></input><label for="1c2007d244b84d1a7aa279748e963d6adbeb9c0c"><p>Docker alternative (discouraged)</p>
+<input class="collapsible_input" id="95816b8119581e500f95448f9d1c900a93705d6c" name="95816b8119581e500f95448f9d1c900a93705d6c" type="checkbox"></input><label for="95816b8119581e500f95448f9d1c900a93705d6c"><p>Docker alternative (discouraged)</p>
 <div class="icon"></div></label><div class="collapsible_content docutils container">
 <div class="highlight-systemd notranslate"><div class="highlight"><pre><span></span><span class="k">[Unit]</span>
 <span class="na">Description</span><span class="o">=</span><span class="s">container public doctools ci %i</span>
+<span class="na">Requires</span><span class="o">=</span><span class="s">gpg-passphrase.service</span>
 <span class="na">Wants</span><span class="o">=</span><span class="s">network-online.target</span>
-<span class="na">After</span><span class="o">=</span><span class="s">gpg-passphrase.service</span>
+<span class="na">After</span><span class="o">=</span><span class="s">docker.service</span>
 
 <span class="k">[Service]</span>
 <span class="na">Restart</span><span class="o">=</span><span class="s">on-success</span>
