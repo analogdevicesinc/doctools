@@ -1,7 +1,7 @@
-.. _packaging:
+.. _ci:
 
-Packaging pipeline
-==================
+Continuous integration
+======================
 
 Doctools has a continuous deployment integration pipeline that works as follows:
 
@@ -382,7 +382,6 @@ Below is a suggested systemd service at *~/.config/systemd/user/container-public
    [Unit]
    Description=container public doctools ci %i
    Wants=network-online.target
-   After=network-online.target
 
    [Service]
    Restart=on-success
@@ -412,8 +411,9 @@ Below is a suggested systemd service at *~/.config/systemd/user/container-public
 
       [Unit]
       Description=container public doctools ci %i
+      Requires=gpg-passphrase.service
       Wants=network-online.target
-      After=gpg-passphrase.service
+      After=docker.service
 
       [Service]
       Restart=on-success

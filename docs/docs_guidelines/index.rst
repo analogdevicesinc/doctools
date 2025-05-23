@@ -337,7 +337,7 @@ For example:
 Notice that in the example ``main`` suffixes ``pyadi-iio``, this means that will
 look for the build at path ``main`` of this repo instead of at root.
 This can be used to target a specific version, if the target repository stores
-multiple, for example, ``v1.1``, more about that :ref:`ci-versioned`.
+multiple, for example, ``v1.1``, more about that :ref:`deploy-versioned`.
 
 .. tip::
 

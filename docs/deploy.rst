@@ -6,7 +6,7 @@ Documentation deployment
 Doctools is developed to work offline, in a local server as a rolling release
 (e.g., on GitHub Pages) and versioned in a dedicated server with orchestration.
 
-.. _ci-local:
+.. _deploy-local:
 
 Local
 -----
@@ -26,7 +26,7 @@ Or with hot reload using :ref:`serve`:
 
    $adoc serve -d /path/to/docs
 
-.. _ci-rolling-release:
+.. _deploy-rolling-release:
 
 Rolling release
 ---------------
@@ -136,13 +136,13 @@ The *requirements.txt* file should contain:
    sphinx
    https://github.com/analogdevicesinc/doctools/releases/download/latest/adi-doctools.tar.gz
 
-.. _ci-versioned:
+.. _deploy-versioned:
 
 Versioned
 ---------
 
 The live versioned version requires additional orchestration than the
-:ref:`ci-rolling-release`.
+:ref:`deploy-rolling-release`.
 
 The versions are described in ``tags.json`` file on the root path
 that can take two formats, one simpler with a plain string array and other
