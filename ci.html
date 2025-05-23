@@ -595,7 +595,7 @@ systemd services, instead of for example, podman-compose.</p>
 </pre></div>
 </div>
 <div><div class="collapsible docutils container">
-<input class="collapsible_input" id="71a9563522a94ac01cc589dd08b10c490acf1aae" name="71a9563522a94ac01cc589dd08b10c490acf1aae" type="checkbox"></input><label for="71a9563522a94ac01cc589dd08b10c490acf1aae"><p>Docker alternative (discouraged)</p>
+<input class="collapsible_input" id="1c2007d244b84d1a7aa279748e963d6adbeb9c0c" name="1c2007d244b84d1a7aa279748e963d6adbeb9c0c" type="checkbox"></input><label for="1c2007d244b84d1a7aa279748e963d6adbeb9c0c"><p>Docker alternative (discouraged)</p>
 <div class="icon"></div></label><div class="collapsible_content docutils container">
 <div class="highlight-systemd notranslate"><div class="highlight"><pre><span></span><span class="k">[Unit]</span>
 <span class="na">Description</span><span class="o">=</span><span class="s">container public doctools ci %i</span>
@@ -605,7 +605,7 @@ systemd services, instead of for example, podman-compose.</p>
 <span class="k">[Service]</span>
 <span class="na">Restart</span><span class="o">=</span><span class="s">on-success</span>
 <span class="na">ExecStart</span><span class="o">=</span><span class="s">/bin/sh -c &quot;/usr/bin/docker run </span>\
-<span class="w">          </span><span class="s">--env name_label=solanum-%i </span>\
+<span class="w">          </span><span class="s">--env name_label=%H-%i </span>\
 <span class="w">          </span><span class="s">--env org_repository=$(gpg --quiet --batch --decrypt /run/secrets/public_doctools_org_repository.gpg) </span>\
 <span class="w">          </span><span class="s">--env runner_token=$(gpg --quiet --batch --decrypt /run/secrets/public_runner_token.gpg) </span>\
 <span class="w">          </span><span class="s">--cidfile %t/%n-cid </span>\
