@@ -1,246 +1,504 @@
-.. _ci:
+.. _packaging:
 
-Documentation deployment
-========================
+Packaging pipeline
+==================
 
-Doctools is developed to work offline, in a local server as a rolling release
-(e.g., on GitHub Pages) and versioned in a dedicated server with orchestration.
-
-.. _ci-local:
-
-Local
------
-
-For offline and local server, a ``make html`` suffices to generate the
-documentation.
-
-To serve the build in a local server, Python built-in server can be used:
-
-.. shell::
-
-   $python -m http.server -d /path/to/docs/_build/html
-
-Or with hot reload using :ref:`serve`:
-
-.. shell::
-
-   $adoc serve -d /path/to/docs
-
-.. _ci-rolling-release:
-
-Rolling release
----------------
-
-For a rolling release, a workflow file is used.
-With GitHub Actions, the following workflow file is recommended:
-
-.. code:: yaml
-
-   on:
-     push:
-       branches:
-         - main
-     pull_request:
-
-   jobs:
-     build-doc:
-       runs-on: ubuntu-latest
-
-       steps:
-       - uses: actions/checkout@v4
-       - uses: actions/setup-python@v5
-         with:
-           python-version: "3.x"
-
-       - name: Install pip packages
-         working-directory: docs
-         run: |
-           pip install pip --upgrade
-           pip install -r requirements.txt
-
-       - name: Build doc
-         working-directory: docs
-         run: |
-           make html SPHINXOPTS='-W --keep-going'
-
-       - name: Store the generated doc
-         uses: actions/upload-artifact@v4
-         with:
-           name: html
-           path: docs/_build/html
-
-     deploy-doc:
-       runs-on: ubuntu-latest
-       needs: build-doc
-       if: github.ref == 'refs/heads/main'
-
-       steps:
-       - run: |
-           git config --global user.name "${{ github.event.head_commit.committer.name }}"
-           git config --global user.email "${{ github.event.head_commit.committer.email }}"
-
-       - uses: actions/checkout@v4
-       - name: Create gh-pages branch
-         run: >
-           git ls-remote --exit-code --heads origin refs/heads/gh-pages ||
-           (
-             git reset --hard ;
-             git clean -fdx ;
-             git checkout --orphan gh-pages ;
-             git reset --hard;
-             git commit -m "empty" --allow-empty ;
-             git push origin gh-pages:gh-pages
-           )
-
-       - uses: actions/checkout@v4
-         with:
-           ref: 'gh-pages'
-
-       - name: Empty gh-pages
-         run: |
-           git rm -r . --quiet || true
-
-       - uses: actions/download-artifact@v4
-         with:
-           name: html
-
-       - name: Patch doc build
-         run: |
-           rm -r _sources
-           touch .nojekyll
-
-       - name: Commit gh-pages
-         run: |
-           git add . >> /dev/null
-           git commit -m "deploy: ${GITHUB_SHA}" --allow-empty
-
-       - name: Push to gh-pages
-         run: |
-           git push origin gh-pages:gh-pages
-
-With the Sphinx ``-W`` flag, Sphinx exits with an error if any warning is
-logged, and ``--keep-going`` continues the build even if a warning is logged,
-to provide a complete log for analysis.
-
-The ``deploy-doc`` job only runs when push/merged to main.
-
-.. attention::
-
-   ``GITHUB_SHA`` on ``pull_request`` is the pre-commit and not the head commit,
-   please be aware of GitHub events values if implementing something else.
-
-The *requirements.txt* file should contain:
+Doctools has a continuous deployment integration pipeline that works as follows:
 
 .. code::
 
-   sphinx
-   https://github.com/analogdevicesinc/doctools/releases/download/latest/adi-doctools.tar.gz
+                      ┌──────────────────┐
+                   ┌─►│Build Doc Latest  ├─┐
+                   │  └──────────────────┘ │
+                   │                       │
+   ┌─────────────┐ │  ┌────────────────┐   │  ┌──────────────┐
+   │Build Package├─┼─►│Build Doc on Min├───┼─►│Deploy Package│
+   └─────────────┘ │  └────────────────┘   │  └──────────────┘
+                   │                       │
+                   │  ┌──────────┐         │
+                   ├─►│Custom Doc├─────────┤
+                   │  └──────────┘         │
+                   │                       │
+                   │  ┌─────┐              │
+                   └─►│Tests├──────────────┘
+                      └─────┘
 
-.. _ci-versioned:
+The Build Package step "compiles" JavaScript and SASS, fetches third-party
+assets and licenses and generates the Python package.
 
-Versioned
----------
+Then, in the middle-stage, two parallel runs are launched:
 
-The live versioned version requires additional orchestration than the
-:ref:`ci-rolling-release`.
+* *Build Doc Latest*: uses the latest stable dependencies releases to
+  generate this documentation, and store as an artifact.
+* *Build Doc on Min*: uses the minimum requirements dependencies to generate
+  this documentation, but the output is discarded.
+* *Custom Doc*: calls :ref:`custom-doc` to check if the CLI tool succeeds in
+  generating a full custom PDF document.
+* *Tests*: run tests using ``pytest``, in special, methods that are not called
+  during the *Build Doc \** pipelines.
 
-The versions are described in ``tags.json`` file on the root path
-that can take two formats, one simpler with a plain string array and other
-fine-grained to allow full control.
+Both of them are set to fail-on-warning during the documentation generation.
 
-But first, store each version in separated folders in the root path, e.g.
-``v1.1``, ``v2.2``, ``main``, ``dev``.
+Finally, the Deploy Package:
 
-String array form
-~~~~~~~~~~~~~~~~~
+* Grabs the version and checks if the tag version already exists:
 
-The simple ``tags.json`` is a plain array with each version/path on the
-and generate a ``tags.json``, e.g. ``["v1.1", "v2.2", "main", "dev", ""]``
-(a empty string means there is a built doc on the root and will be named
-``main (unstable)``).
-The first tag will be labeled with ``latest``.
+  * If so, set to update the symbolic ``pre-release`` release.
+  * If not, set to update the symbolic ``latest`` and ``pre-relase`` release.
+
+* Still if a new version:
+
+  * Create the git tag and push to origin.
+  * Create the tagged release.
+  * Upload the artifact to the tagged release.
+
+* Upload the artifact to the symbolic release (``pre-release``, ``latest``).
+
+* Finally, the *Build Doc Latest* artifact is downloaded and deployed to the
+  branch ``gh-pages``
+
+By design, the live page on *github.io* follows the pre-release/latest commit-ish;
+properly versioned live documentation should be managed by an external system
+that watches the git tags (e.g.
+`readthedocs <https://github.com/readthedocs/readthedocs.org>`_).
+
+This approach allows having a single defined version on ``adi_doctools/__init__.py``,
+and have the tags created and releases created/updated without much fuzz.
+
+The philosophy is to have ``latest`` updated on tag increment and first
+successful run, and ``pre-relese`` updated on successful run without tag change.
+These releases exist to provide a pointer to the latest/pre-release packages, e.g.
+`releases/download/latest/adi-doctools.tar.gz <https://github.com/analogdevicesinc/doctools/releases/download/latest/adi-doctools.tar.gz>`_.
+
+Non-handled corner-cases mitigations:
+
+* Release ``pre-release`` and ``latest`` must exist prior the first run.
+* Branch ``gh-pages`` must exist with at least one commit.
+
+.. _conf-podman:
+
+Configure podman
+----------------
+
+Below are suggested instructions for setting up ``podman`` on a Linux environment.
+
+Adjust to your preference as needed, and skip the steps marked in :green:`green`
+if not using WSL2.
+
+Install ``podman`` from your package manager.
+
+:green:`Ensure cgroup v2 on wsl2's .wslconfig:`
+
+::
+
+   [wsl2]
+   kernelCommandLine = cgroup_no_v1=all systemd.unified_cgroup_hierarchy=1
+
+:green:`Restart wsl2.`
+
+Enable podman service for your user.
+
+.. shell::
+
+   $systemctl enable --now --user podman.socket
+   $systemctl start --user podman.socket
+
+Set the ``DOCKER_HOST`` variable on your *~/.bashrc*:
+
+.. code-block:: bash
+
+   export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock
+
+.. _podman sssd:
+
+Network users & partitions
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Podman default configuration expects a local user to be able to create a user
+namespace where multiple IDs are mapped and a compatible partition to use as
+the storage location ``graphRoot``.
+
+.. note::
+
+   The ideal solution is to create a local **non-root** user and storage
+   location. Podman processes should then be started under this user UID.
+
+Network systems using solutions such as `SSSD <https://sssd.io/>`__ do not
+append the user to the system (is not listed in ``/etc/subuid``), so automatic
+user namespace is not possible. To be compatible with this configuration, a
+single UID within a user space needs to be used, achieved with the
+``ignore_chown_errors`` parameter.
+
+Normally these systems also mount an network file system (nfs) as the home folder,
+which is also not supported.
+In this case, the ``graphRoot`` location needs to be set to somewhere else
+(an easy test location is ``/tmp``).
+
+This is an example of *~/.config/containers/storage.conf* to support such
+environments:
+
+.. code:: ini
+
+   [storage]
+   driver = "overlay"
+   # Set to a path in a non-nfs partition
+   graphRoot = "/tmp"
+
+   [storage.options.overlay]
+   # Single UID
+   ignore_chown_errors = "true"
+
+Ensure apply with ``podman system migrate`` and see the changed settings with
+``podman info``.
+
+An alternative mitigation for nfs is to create a xfs disk image and mount, but
+since mount requires a root permission it is unlikely to be helpful for most
+users:
+
+.. code:: bash
+
+   truncate -s 100g ~/.local/share/containers-xfs.img
+   mkfs.xfs -m reflink=1  ~/.local/share/containers-xfs.img -m bigtime=1,inobtcount=1 -i nrext64=0
+   sudo mount ~/.local/share/containers-xfs.img ~/.local/share/containers
+
+.. _image-podman:
+
+Build the container image
+-------------------------
+
+To build the container image, use your favorite container engine:
+
+.. shell::
+
+   $cd ~/doctools
+   $podman build --tag adi/doctools:latest ci
+
+You may want to build the container in a host, where you have all your tools installed,
+and then deploy to a server.
+In this case, export the image and then import on the server:
+
+.. shell::
+   :show-user:
+   :user: user
+   :group: host
+
+   ~/doctools
+   $podman save -o adi-doctools.tar adi/doctools:latest
+   $scp adi-doctools.tar server:/tmp/
+
+.. shell::
+   :show-user:
+   :user: admin
+   :group: server
+
+   /tmp
+   $podman load -i adi-doctools.tar
+
+Or if you are feeling adventurous:
+
+.. shell::
+   :show-user:
+   :user: user
+   :group: host
+
+   ~/doctools
+   $podman save adi/doctools:latest | ssh server "cat - | podman load"
+
+.. _interactive-run:
+
+Interactive run
+---------------
+
+At its core, the workflows are straight forward, roughly they do:
+
+The ``Tests`` step:
+
+.. shell::
+
+   $cd tests ; pytest
+
+``Build Doc *``:
+
+.. shell::
+
+   $cd docs ; make html
+
+But at a specific minimum and maximum supported environment version.
+
+``Custom Doc``:
+
+.. shell::
+
+   $mkdir /tmp/test-pdf ; cd $_
+   /tmp/test-pdf
+   $adoc custom-doc ; adoc custom-doc
+
+Doing the relevant step on host covers most issues that the CI would catch.
+
+You can use the :ref:`container image <image-podman>` with
+:git-doctools:`this suggested bash method <ci/scripts/podman-run.sh>`
+to interactive login into an image, mounting the provided path, to run the steps
+on the container, for example:
+
+.. shell::
+
+   ~/doctools
+   $pdr adi/doctools:latest .
+   $python3.13 -m venv venv
+   $source venv/bin/activate ; \
+   $    pip3.13 install -e . ; \
+   $    pip3.13 install pytest
+   $cd tests ; pytest
+   $exit
+
+.. _act:
+
+Full local run
+--------------
+
+To have a full continuous integration mock-run `act <https://github.com/nektos/act/>`__
+can be used.
+``act`` is a CLI written in go that allows to run GitHub actions.
+
+Assuming you have the tools necessary already installed (a general guide
+is provided :ref:`here <conf-podman>`) and already :ref:`built the image <image-podman>`.
+Install ``act`` binary into an executable path:
+
+.. shell::
+
+   $cd ~/.local
+   $curl --proto '=https' --tlsv1.2 -sSf \
+   $    https://raw.githubusercontent.com/nektos/act/master/install.sh | \
+   $    sudo bash
+   $act --version
+    act version 0.2.74
+
+Now, run your continuous integration:
+
+.. shell::
+
+   ~/doctools
+   $act --remote-name private
+    INFO[0000] Using docker host 'unix:///run/user/1000//podman/podman.sock',
+               and daemon socket 'unix:///run/user/1000//podman/podman.sock'
+    INFO[0000] Start server on http://10.44.3.54:34567
+    [build/build-doc.yml/build] ⭐ Run Set up job
+    [...]
+
+Update ``private`` with your preferred origin name (does nothing beyond suppressing warnings).
+
+.. caution::
+
+   Even with ``pull_request`` event type, no rebasing is done on the mock run.
+   Rebase on your side before running ``act``.
+
+Additional arguments are added from the :git-doctools:`.actrc` on invoke.
+
+To run a specific workflow, use ``-W``, e.g.:
+
+.. shell::
+
+   ~/doctools
+   $act --remote-name public \
+   $    -W .github/workflows/build-doc.yml
+
+By default, it will run on the checks on the top 5 commits, to set other value,
+set ``ACT_DEPTH`` on *.env*
+e.g. 4 commits:
+
+.. shell::
+
+   $echo ACT_DEPTH=$(git rev-list --count @~4..@) > .env
+   $act pull_request --remote-name public
 
 .. tip::
 
-   See this repo's :git-doctools:`.github/workflows/deploy.yml` for a
-   suggestion on how to implement it.
+   Edit ``rev-list`` to use a base commit sha to evaluate the depth.
 
-This ``tags.json`` format can be obtained with:
+You can also provide a ``head`` variable to filter out ``wip`` commits, for example:
 
 .. shell::
 
-   # Search for every doc's objects.inv store the paths as JSON.
-   $find . -name objects.inv -exec sh -c 'dirname {}' ';' | \
-   $    cut -c 3- | \
-   $    sort -r | \
-   $    jq --raw-input . | \
-   $    jq --slurp . > tags.json
+   $head=$(git rev-parse @~5)
+   $echo ACT_HEAD=$head > .env
+   $echo ACT_DEPTH=$(git rev-list --count $head~5..$head) >> .env
+   $act pull_request --remote-name public
 
-Fine-grained form
-~~~~~~~~~~~~~~~~~
+.. _podman-run:
 
-The more elaborated option takes the following format:
+Self-hosted runner
+------------------
 
-.. code:: json
+To host your `GitHub Actions Runner <https://github.com/actions/runner>`__,
+set-up your secrets:
 
-   {
-     "path": ["name", "label"],
-     // ...
-   }
+.. shell::
 
-For example:
+   # e.g. analogdevicesinc/doctools
+   $printf ORG_REPOSITORY | podman secret create public_doctools_org_repository -
+   # e.g. MyVerYSecRunnerToken
+   $printf RUNNER_TOKEN | podman secret create public_doctools_runner_token -
 
-.. code:: json
+The runner token is obtained from the GUI at ``github.com/<org>/<repository>/settings/actions/runners/new``.
 
-   {
-     "main": ["main", "unstable"],
-     "v2.0.0": ["v2.0.0", "pre-release"],
-     "v1.2.1": ["v1.2.1", "latest"],
-     "v1.2.0": ["v1.2.0", ""],
-     "v1.1.7": ["v1.1.7", ""],
-     "prs/staging/new-feature": ["new-feature", "experimental"]
-   }
+If ``github_token`` from :ref:`cluster-podman` is set, the runner_token
+is ignored and a new one is requested.
 
-Notice how the "name" and "label" for path ``prs/staging/new-feature``
-was used to provide a concise but clearer name to this entry.
+.. shell::
 
-The doc version set, either via ``conf.py`` or ``ADOC_DOC_VERSION``
-(:ref:`more info <version>`), should match a value on the ``name`` column, and
-not the ``path`` column.
+   ~/doctools
+   $podman run \
+   $    --secret public_doctools_org_repository,type=env,target=org_repository \
+   $    --secret public_doctools_runner_token,type=env,target=runner_token \
+   $    --env runner_labels=v1,big_cpu \
+   $    adi/doctools:latest
 
-Further notes
--------------
+The environment variable runner_labels (comma-separated), set the runner labels.
+If not provided on the Containerfile as ``ENV runner_labels=<labels,>`` or as argument
+``--env runner_labels=<labels,>``, it defaults to ``v1``.
+Most of the time, you want to use the Containerfile-set environment variable.
 
-I don't want a doc at the root
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+If you are in an environment as described in :ref:`podman sssd`, append these flags
+to every ``podman run`` command:
 
-If the root does not contain any built doc, add a redirect HTML file pointing
-to the main/stable version:
+* ``--user root``: due to ``ignore_chown_errors`` allowing a single user mapping,
+  this user is root (0). Please note that this the container's root user and in
+  most images is the only available user.
+* ``--env RUNNER_ALLOW_RUNASROOT=1``: suppresses the GitHub Action runner "Must
+  not run with sudo". Again, is the container's root.
 
-.. code::
+.. _cluster-podman:
 
-   <!DOCTYPE html>
-   <html>
-     <head>
-       <meta http-equiv="refresh" content="0; url=main/index.html" />
-     </head>
-   </html>
+Self-hosted cluster
+-------------------
 
-How do I cross-reference a specific version?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+To host a cluster of self-hosted runners, the recommended approach is to use
+systemd services, instead of for example, podman-compose.
 
-For :ref:`in-org-ref`, the doc shall target a specific version by suffixing
-the target the version on the ``interref_repos`` variable, e.g.
-``interref_repos = ['pyadi-iio/dev', 'other-repo/v1.1']``.
+Below is a suggested systemd service at *~/.config/systemd/user/container-public-doctools@.service*.
 
-What happened to ``ADOC_TARGET_DEPTH``?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. code:: systemd
 
-Previously there was also a ``ADOC_TARGET_DEPTH`` enviroment variables
-to create full relative links between versions, but this was deprecated
-by instead just using the root ``/`` for those links, e.g.
-``/doctools/v1.0.0`` instead of ``../../../doctools/v1.0.0`` from
-``doctools/v2.0.0/some/page.html``.
+   [Unit]
+   Description=container public doctools ci %i
+   Wants=network-online.target
+   After=network-online.target
 
-This has the side effect of requiring to repository docs to be hosted right
-at the root.
+   [Service]
+   Restart=on-success
+   ExecStart=/usr/bin/podman run \
+             --env name_label=%H-%i \
+             --secret public_doctools_org_repository,type=env,target=org_repository \
+             --secret public_doctools_runner_token,type=env,target=runner_token \
+             --conmon-pidfile %t/%n-pid --cidfile %t/%n-cid \
+             --label "io.containers.autoupdate=local" \
+             --name=public_doctools_%i \
+             --memory-swap=20g \
+             --memory=16g \
+             --cpus=4 \
+             -d adi/doctools:latest top
+   ExecStop=/usr/bin/sh -c "/usr/bin/podman stop -t 300 $(cat %t/%n-cid) && /usr/bin/podman rm $(cat %t/%n-cid)"
+   ExecStopPost=/usr/bin/rm -f %t/%n-pid %t/%n-cid
+   TimeoutStopSec=600
+   Type=forking
+   PIDFile=%t/%n-pid
+
+   [Install]
+   WantedBy=multi-user.target
+
+.. collapsible:: Docker alternative (discouraged)
+
+   .. code:: systemd
+
+      [Unit]
+      Description=container public doctools ci %i
+      Wants=network-online.target
+      After=gpg-passphrase.service
+
+      [Service]
+      Restart=on-success
+      ExecStart=/bin/sh -c "/usr/bin/docker run \
+                --env name_label=%H-%i \
+                --env org_repository=$(gpg --quiet --batch --decrypt /run/secrets/public_doctools_org_repository.gpg) \
+                --env runner_token=$(gpg --quiet --batch --decrypt /run/secrets/public_runner_token.gpg) \
+                --cidfile %t/%n-cid \
+                --label "io.containers.autoupdate=local" \
+                --name=public_doctools_%i \
+                --memory-swap=20g \
+                --memory=16g \
+                --cpus=4 \
+                --log-driver=journald \
+                -d localhost/adi/doctools:latest top"
+      RemainAfterExit=yes
+      ExecStop=/usr/bin/sh -c "/usr/bin/docker stop -t 300 $(cat %t/%n-cid) && /usr/bin/docker rm $(cat %t/%n-cid)"
+      ExecStopPost=/bin/rm %t/%n-cid
+      TimeoutStopSec=600
+      Type=forking
+
+      [Install]
+      WantedBy=multi-user.target
+
+Remember to ``systemctl --user daemon-reload`` after modifying.
+With `autoupdate <https://docs.podman.io/en/latest/markdown/podman-auto-update.1.html>`__,
+if the image digest of the container and local storage differ,
+the local image is considered to be newer and the systemd unit gets restarted.
+
+Instead of passing runner_token, you can also pass a github_token to generate
+the runner_token on demand.
+Using the github_token is the recommended approach because during clean-up the original
+runner_token may have expired already.
+Alternatively, you can mount a FIFO to ``/var/run/secrets/runner_token`` to
+generate a token just in time, without ever passing the github_token to the
+container (scripts not provided).
+
+Tune the limit flags for your needs.
+The ``--cpus`` flag requires a kernel with ``CONFIG_CFS_BANDWIDTH`` enabled.
+You can check with ``zgrep CONFIG_CFS_BANDWIDTH= /proc/config.gz``.
+
+.. shell::
+
+   # e.g. MyVerYSecRetToken
+   $printf GITHUB_TOKEN | podman secret create public_doctools_github_token -
+
+Alternatively, you can also mount the ``runner_token`` into
+``/run/secrets/runner_token`` and have it read when necessary.
+However, please note, just like the GitHub Actions generated ``GITHUB_TOKEN``,
+the path ``/run/secrets/runner_token`` can be read by workflows,
+while the previous option is removed from the environment prior executing
+the GitHub Actions runtime.
+
+The order of precedence for authentication token is:
+
+#. ``github_token``: environment variable.
+#. ``runner_token``: plain text at */run/secrets/runner_token*.
+#. ``runner_token``: environment variable.
+
+Please understand the security implications and ensure the token secrecy,
+by for example, require manual approval for running workflows PRs from
+third party sources and don't relax ``runner`` user permissions.
+
+The required GitHub Fine-Grained token permission should be set as follows:
+
+For `repository runner <https://docs.github.com/en/rest/actions/self-hosted-runners?apiVersion=2022-11-28#create-a-registration-token-for-a-repository--fine-grained-access-tokens>`_:
+
+* ``administration:write``: "Administration" repository permissions (write).
+
+For `org runner <https://docs.github.com/en/rest/actions/self-hosted-runners?apiVersion=2022-11-28#create-a-registration-token-for-an-organization>`__:
+
+* ``organization_self_hosted_runners:write``: "Self-hosted runners" organization permissions (write).
+* The user needs to be a org-level admin.
+
+Then update the systemd service.
+
+Enable and start the service
+
+.. code:: shell
+
+   systemctl --user enable podman-public-doctools@0.service
+   systemctl --user start podman-public-doctools@0.service
+
+.. attention::
+
+   User services are terminated on logout, unless you define
+   ``loginctl enable-linger <your-user>`` first.
+

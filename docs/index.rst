@@ -18,6 +18,6 @@ provided by Doctools.
    fundamentals
    docs_guidelines/index
    cli
+   deploy
    ci
-   packaging
    theme
