@@ -572,7 +572,7 @@ systemd services, instead of for example, podman-compose.</p>
 
 <span class="k">[Service]</span>
 <span class="na">Restart</span><span class="o">=</span><span class="s">on-success</span>
-<span class="na">ExecStart</span><span class="o">=</span><span class="s">/usr/bin/podman run </span>\
+<span class="na">ExecStart</span><span class="o">=</span><span class="s">/bin/podman run </span>\
 <span class="w">          </span><span class="s">--env name_label=%H-%i </span>\
 <span class="w">          </span><span class="s">--secret public_doctools_org_repository,type=env,target=org_repository </span>\
 <span class="w">          </span><span class="s">--secret public_doctools_runner_token,type=env,target=runner_token </span>\
@@ -583,8 +583,8 @@ systemd services, instead of for example, podman-compose.</p>
 <span class="w">          </span><span class="s">--memory=16g </span>\
 <span class="w">          </span><span class="s">--cpus=4 </span>\
 <span class="w">          </span><span class="s">-d adi/doctools:latest top</span>
-<span class="na">ExecStop</span><span class="o">=</span><span class="s">/usr/bin/sh -c &quot;/usr/bin/podman stop -t 300 $(cat %t/%n-cid) &amp;&amp; /usr/bin/podman rm $(cat %t/%n-cid)&quot;</span>
-<span class="na">ExecStopPost</span><span class="o">=</span><span class="s">/usr/bin/rm -f %t/%n-pid %t/%n-cid</span>
+<span class="na">ExecStop</span><span class="o">=</span><span class="s">/bin/sh -c &quot;/bin/podman stop -t 300 $(cat %t/%n-cid) &amp;&amp; /bin/podman rm $(cat %t/%n-cid)&quot;</span>
+<span class="na">ExecStopPost</span><span class="o">=</span><span class="s">/bin/rm %t/%n-pid %t/%n-cid</span>
 <span class="na">TimeoutStopSec</span><span class="o">=</span><span class="s">600</span>
 <span class="na">Type</span><span class="o">=</span><span class="s">forking</span>
 <span class="na">PIDFile</span><span class="o">=</span><span class="s">%t/%n-pid</span>
@@ -594,7 +594,7 @@ systemd services, instead of for example, podman-compose.</p>
 </pre></div>
 </div>
 <div><div class="collapsible docutils container">
-<input class="collapsible_input" id="95816b8119581e500f95448f9d1c900a93705d6c" name="95816b8119581e500f95448f9d1c900a93705d6c" type="checkbox"></input><label for="95816b8119581e500f95448f9d1c900a93705d6c"><p>Docker alternative (discouraged)</p>
+<input class="collapsible_input" id="8945c69aad34842285590bb25b5c9d9ecd082c64" name="8945c69aad34842285590bb25b5c9d9ecd082c64" type="checkbox"></input><label for="8945c69aad34842285590bb25b5c9d9ecd082c64"><p>Docker alternative</p>
 <div class="icon"></div></label><div class="collapsible_content docutils container">
 <div class="highlight-systemd notranslate"><div class="highlight"><pre><span></span><span class="k">[Unit]</span>
 <span class="na">Description</span><span class="o">=</span><span class="s">container public doctools ci %i</span>
@@ -604,7 +604,7 @@ systemd services, instead of for example, podman-compose.</p>
 
 <span class="k">[Service]</span>
 <span class="na">Restart</span><span class="o">=</span><span class="s">on-success</span>
-<span class="na">ExecStart</span><span class="o">=</span><span class="s">/bin/sh -c &quot;/usr/bin/docker run </span>\
+<span class="na">ExecStart</span><span class="o">=</span><span class="s">/bin/sh -c &quot;/bin/docker run </span>\
 <span class="w">          </span><span class="s">--env name_label=%H-%i </span>\
 <span class="w">          </span><span class="s">--env org_repository=$(gpg --quiet --batch --decrypt /run/secrets/public_doctools_org_repository.gpg) </span>\
 <span class="w">          </span><span class="s">--env runner_token=$(gpg --quiet --batch --decrypt /run/secrets/public_runner_token.gpg) </span>\
@@ -617,7 +617,7 @@ systemd services, instead of for example, podman-compose.</p>
 <span class="w">          </span><span class="s">--log-driver=journald </span>\
 <span class="w">          </span><span class="s">-d localhost/adi/doctools:latest top&quot;</span>
 <span class="na">RemainAfterExit</span><span class="o">=</span><span class="s">yes</span>
-<span class="na">ExecStop</span><span class="o">=</span><span class="s">/usr/bin/sh -c &quot;/usr/bin/docker stop -t 300 $(cat %t/%n-cid) &amp;&amp; /usr/bin/docker rm $(cat %t/%n-cid)&quot;</span>
+<span class="na">ExecStop</span><span class="o">=</span><span class="s">/bin/sh -c &quot;/bin/docker stop -t 300 $(cat %t/%n-cid) &amp;&amp; /bin/docker rm $(cat %t/%n-cid)&quot;</span>
 <span class="na">ExecStopPost</span><span class="o">=</span><span class="s">/bin/rm %t/%n-cid</span>
 <span class="na">TimeoutStopSec</span><span class="o">=</span><span class="s">600</span>
 <span class="na">Type</span><span class="o">=</span><span class="s">forking</span>
