@@ -385,7 +385,7 @@ Below is a suggested systemd service at *~/.config/systemd/user/container-public
 
    [Service]
    Restart=on-success
-   ExecStart=/usr/bin/podman run \
+   ExecStart=/bin/podman run \
              --env name_label=%H-%i \
              --secret public_doctools_org_repository,type=env,target=org_repository \
              --secret public_doctools_runner_token,type=env,target=runner_token \
@@ -396,8 +396,8 @@ Below is a suggested systemd service at *~/.config/systemd/user/container-public
              --memory=16g \
              --cpus=4 \
              -d adi/doctools:latest top
-   ExecStop=/usr/bin/sh -c "/usr/bin/podman stop -t 300 $(cat %t/%n-cid) && /usr/bin/podman rm $(cat %t/%n-cid)"
-   ExecStopPost=/usr/bin/rm %t/%n-pid %t/%n-cid
+   ExecStop=/bin/sh -c "/bin/podman stop -t 300 $(cat %t/%n-cid) && /bin/podman rm $(cat %t/%n-cid)"
+   ExecStopPost=/bin/rm %t/%n-pid %t/%n-cid
    TimeoutStopSec=600
    Type=forking
    PIDFile=%t/%n-pid
@@ -405,7 +405,7 @@ Below is a suggested systemd service at *~/.config/systemd/user/container-public
    [Install]
    WantedBy=multi-user.target
 
-.. collapsible:: Docker alternative (discouraged)
+.. collapsible:: Docker alternative
 
    .. code:: systemd
 
@@ -417,7 +417,7 @@ Below is a suggested systemd service at *~/.config/systemd/user/container-public
 
       [Service]
       Restart=on-success
-      ExecStart=/bin/sh -c "/usr/bin/docker run \
+      ExecStart=/bin/sh -c "/bin/docker run \
                 --env name_label=%H-%i \
                 --env org_repository=$(gpg --quiet --batch --decrypt /run/secrets/public_doctools_org_repository.gpg) \
                 --env runner_token=$(gpg --quiet --batch --decrypt /run/secrets/public_runner_token.gpg) \
@@ -430,7 +430,7 @@ Below is a suggested systemd service at *~/.config/systemd/user/container-public
                 --log-driver=journald \
                 -d localhost/adi/doctools:latest top"
       RemainAfterExit=yes
-      ExecStop=/usr/bin/sh -c "/usr/bin/docker stop -t 300 $(cat %t/%n-cid) && /usr/bin/docker rm $(cat %t/%n-cid)"
+      ExecStop=/bin/sh -c "/bin/docker stop -t 300 $(cat %t/%n-cid) && /bin/docker rm $(cat %t/%n-cid)"
       ExecStopPost=/bin/rm %t/%n-cid
       TimeoutStopSec=600
       Type=forking
