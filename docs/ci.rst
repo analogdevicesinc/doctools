@@ -397,7 +397,7 @@ Below is a suggested systemd service at *~/.config/systemd/user/container-public
              --cpus=4 \
              -d adi/doctools:latest top
    ExecStop=/usr/bin/sh -c "/usr/bin/podman stop -t 300 $(cat %t/%n-cid) && /usr/bin/podman rm $(cat %t/%n-cid)"
-   ExecStopPost=/usr/bin/rm -f %t/%n-pid %t/%n-cid
+   ExecStopPost=/usr/bin/rm %t/%n-pid %t/%n-cid
    TimeoutStopSec=600
    Type=forking
    PIDFile=%t/%n-pid
