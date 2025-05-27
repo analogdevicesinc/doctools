@@ -128,13 +128,12 @@ runs:
       shell: bash
       run: |
         if [[ "${{ github.event.pull_request.base.sha }}" ]]; then
-          cache_branch=${{ github.base_ref }}
-          cache_commit=${{ github.event.pull_request.base.sha }}
+          branch=${{ github.base_ref }}
+          commit=${{ github.event.pull_request.base.sha }}
         else
-          cache_branch=${{ github.ref_name }}
-          cache_commit=$head_sha
+          branch=${{ github.ref_name }}
+          commit=$head_sha
         fi
-        cache_branch=cache/$cache_branch
-        git branch $cache_branch $cache_commit -f
-        git branch -m $cache_branch || true
+        git branch cache/$branch $commit -f
+        git branch -m $branch 2>/dev/null || true
         git --no-pager branch
