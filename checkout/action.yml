@@ -36,9 +36,10 @@ runs:
           git rebase --abort 2>/dev/null || true
           git revert --abort 2>/dev/null || true
           git cherry-pick --abort 2>/dev/null || true
+          git bisect reset 2>/dev/null || true
 
           git reset --hard --quiet
-          git clean -xf --quiet .
+          git clean -ffdx --quiet .
 
           git checkout $(git rev-parse @) || true
           echo "clean-up branches"
