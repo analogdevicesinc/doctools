@@ -1,22 +1,22 @@
 #!/bin/bash
 
 container_engine=podman
-podman-run ()
+container-run ()
 {
 	help_usage="
 	Examples:
-	    $ podman-run adi/linux:latest echo hello!
+	    $ container-run adi/linux:latest echo hello!
 	      hello!
 
-	    $ podman-run adi/linux
+	    $ container-run adi/linux
 	    > check_checkpatch
 	      checking @~6..@ ... Done!
 	    > exit
 
-	    $ podman-run adi/linux base_sha=@~10 \; check_checkpatch
+	    $ container-run adi/linux base_sha=@~10 \; check_checkpatch
 	      checking @~10..@ ... Done!
 
-	    $ podman-run --root adi/linux
+	    $ container-run --root adi/linux
 	    > zypper install some_package
 	       installing some_package...
 
@@ -58,9 +58,13 @@ podman-run ()
 
 	if [[ -z "$image" ]]; then
 		echo "missing image, usage:"
-		echo "podman-run --root --volume=<path> <image> [cmd]"
+		echo "container-run --root --volume=<path> <image> [cmd]"
 		printf "$help_usage" | sed -e 's/^\t//'
 		return
+	fi
+
+	if [ -z "$($container_engine images -q $image 2>/dev/null)" ]; then
+		image=localhost/$image
 	fi
 
 	if git rev-parse --is-inside-work-tree  > /dev/null 2>&1 ; then
@@ -73,16 +77,27 @@ podman-run ()
 	# /etc/$container_engine/registries.d
 	name=$(echo $image | sed 's|:|_|g' | sed 's|/|_|g').$(echo ${cwd:1} | sed 's|/|-|g')
 	running=$($container_engine container inspect -f '{{.State.Running}}' $name 2>/dev/null)
+	if [[ ! -z "$($container_engine ps -a --filter "name=^$name$" --format "{{.Names}}")" ]]; then
+		exists=true
+	else
+		exists=false
+	fi
+
 	run_params="run -it \
-		--replace \
 		--entrypoint= \
 		--name=$name \
 		--workdir=$(pwd) \
 		--volume $volume:$(cd $volume; pwd)"
-	if [[ "$as_root" ]]; then
-		run_params="$run_params --user root"
-	else
-		run_params="$run_params --userns keep-id"
+	if [ "$container_engine" == "podman" ]; then
+		if [[ "$as_root" ]]; then
+			run_params="$run_params --user root"
+		else
+			run_params="$run_params --userns keep-id"
+		fi
+	elif [ "$container_engine" == "docker" ]; then
+		if [[ "$as_root" ]]; then
+			run_params="$run_params --user root"
+		fi
 	fi
 
 	if [[ "$running" == "true" ]]; then
@@ -93,6 +108,9 @@ podman-run ()
 			$container_engine exec -it $name bash -l
 		fi
 	else
+		if [[ "$exists" == "true" ]]; then
+			$container_engine rm $name 1>/dev/null
+		fi
 		if [[ "$with_args" ]]; then
 			args_="${args[@]}"
 			$container_engine ${run_params} $image bash -lc "$args_"
@@ -102,6 +120,7 @@ podman-run ()
 	fi
 
 }
-alias pdr=podman-run
-
+alias docker-run=container-run
+alias container-run=container-run
+alias cr=container-run
 
