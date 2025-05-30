@@ -1,7 +1,7 @@
 Installing
 ==========
 
-Below is described how to do a release install and a development install of
+Below is described how to do a release install, and a development install of
 Doctools.
 
 Guarantee to work with Python newer than 3.8 and distros released on or after
@@ -62,9 +62,9 @@ For next builds, just activate the virtual environment:
 Development install
 -------------------
 
-Development install allows to edit the source code and apply the changes without
+Development install allows editing the source code and apply the changes without
 reinstalling.
-Also extends Author Mode to watch changes on the webpage source code
+Also extends :ref:`serve` to watch changes on the webpage source code
 (use `--dev`/`-r` option to enable this).
 
 .. _web-compiler:
@@ -116,7 +116,7 @@ Fetch third-party fonts:
 Install the repository
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Finally, do a symbolic install of this repo:
+Finally, do a symbolic installation of this repo:
 
 .. shell::
 
@@ -124,11 +124,11 @@ Finally, do a symbolic install of this repo:
 
 .. caution::
 
-   If using a python virtual enviroment for the *requirements.txt* packages.
-   do this command with the virtual enviroment already activated.
+   If using a python virtual environment for the *requirements.txt* packages,
+   do this command with the virtual environment already activated.
 
-   Mixing pip packages inside and outside the virtual enviroment will cause
-   packages outside of the enviroment to not have access to the packages inside
+   Mixing pip packages inside and outside the virtual environment will cause
+   packages outside the environment to not have access to the packages inside
    of it, breaking most CLIs.
 
 .. _removing:

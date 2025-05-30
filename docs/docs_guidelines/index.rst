@@ -56,7 +56,7 @@ Table of contents
 -----------------
 
 The relation between pages are created with the ``toctree`` directive,
-which allows to generate the table of contents and navigation bars.
+which allows generating the table of contents and navigation bars.
 
 Each page may have only one toctree, since they are the equivalent of the
 volumes of a book, and it does not make sense to have multiple "volumes" at
@@ -133,7 +133,7 @@ The ``version`` value on ``conf.py`` has lower precedence, and
 will be overwritten if ``ADOC_DOC_VERSION`` is set.
 
 The CI, in general, should set ``ADOC_DOC_VERSION`` as the current checkout branch
-in the pipeline (e.g. ``main``, ``v1.0.0``), for GiHub Actions, that can be
+in the pipeline (e.g. ``main``, ``v1.0.0``), for GitHub Actions, that can be
 ``${{ github.ref_name}}`` [#f1]_.
 
 .. tip::
@@ -144,7 +144,7 @@ in the pipeline (e.g. ``main``, ``v1.0.0``), for GiHub Actions, that can be
 If both environment variable and ``version`` on ``conf.py`` are unset, it defaults
 to an empty string.
 
-.. [#f1] Quick cheatsheet for ``gihtub.ref_name`` values on event:
+.. [#f1] Quick cheat sheet for ``gihtub.ref_name`` values on event:
 
          * push branch: ``main``, ``dev``, ...
          * push tag: ``v2.2.2``, ``new-feature``, ...
@@ -174,13 +174,12 @@ required for the PDF build.
 
 .. warning::
 
-   The enviroment variable ``ADOC_MEDIA_PRINT`` should be unset when building
+   The environment variable ``ADOC_MEDIA_PRINT`` should be unset when building
    the HTML pages of documentation. If not set, some components of the pages
    may not render properly.
 
-For  WeasyPrint,
-install ``weasyprint``, and ``matplotlib`` (LaTeX formulas) from pip
-and use with :ref:`serve`:
+For WeasyPrint, install ``weasyprint``, and ``matplotlib`` (LaTeX formulas)
+from pip and use with :ref:`serve`:
 
 .. shell::
 
@@ -232,7 +231,7 @@ References to docs have the format :code:`:doc:\`path/to/doc\``, e.g.
    Even though Sphinx allows breaking line inside the reference role,
    it makes pattern matching hard.
 
-Prefer hyphen separation ``-`` over undeline ``_`` for the "title" section,
+Prefer hyphen separation ``-`` over underline ``_`` for the "title" section,
 and always lower case,
 for example
 ``my_code control-interface`` instead of ``MY_CODE Control_Interface``.
@@ -276,7 +275,7 @@ External references
 External references to other Sphinx documentation are created using the built-in
 ``sphinx.ext.intersphinx`` extension.
 
-To setup **in-organization** references read the :ref:`section below <in-org-ref>`,
+To set up **in-organization** references read the :ref:`section below <in-org-ref>`,
 and for **third-party** docs, the section :ref:`that follows <out-org-ref>`.
 
 | For either, to create a reference to a **label**, use:
@@ -293,7 +292,7 @@ As the other roles, it is possible to customize the text, e.g.
 .. tip::
 
     Pay attention to the log output, since
-    a warnings is thrown for each reference not found.
+    warnings is thrown for each reference not found.
 
 External references work with any kind of references, such as
 *ref*, *doc*, *envvar*, *token*, *term*, *numref* and *keyword*.
@@ -341,7 +340,7 @@ multiple, for example, ``v1.1``, more about that :ref:`deploy-versioned`.
 
 .. tip::
 
-   For even more freedom, you can setup with an explicit path as
+   For even more freedom, you can set up with an explicit path as
    an :ref:`out-org-ref`.
 
 It is possible to customize the target URL with the ``interref_uri`` config or
@@ -371,7 +370,7 @@ Outside organization Sphinx reference
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To create references to third-party Sphinx documentations, add the mappings to
-to the `conf.py` file with the following format:
+the `conf.py` file with the following format:
 
 .. code:: python
 
@@ -439,7 +438,7 @@ Child items must be aligned with the first letter of the parent item, that means
 
    #. Parent ordered item.
 
-      * Child unordeded item.
+      * Child unordered item.
 
         #. Child ordered item.
         #. Child ordered item.
@@ -491,15 +490,16 @@ Images
 Prefer the SVG format for images, and save it as *Optimized SVG* in
 `inkscape <https://inkscape.org/>`_ to use less space.
 
-Store them in a hierarchically, do not use ``images`` subdirectories.
-The idea is to have simpler relative paths, for example, e.g.:
+Store them in a hierarchy, do not use ``images`` subdirectories. The idea is to
+have simpler relative paths, for example, e.g.:
 
 .. code:: rst
 
    .. image:: ad2234_sdz_schematic.svg
 
+Or even simpler ``schematic.svg``, if already in a ``ad2234`` directory.
 
-Instead of over complicated paths like:
+Instead of overcomplicated paths like:
 
 .. code:: rst
 
@@ -534,7 +534,7 @@ Or edit ``.gitattributes`` directly.
 Adding directives and roles
 ---------------------------
 
-Sphinx allows to expand functionality beyond the defaults directives and roles
+Sphinx allows expanding functionality beyond the defaults directives and roles
 by loading extensions.
 
 Doctools extended directives and roles are documented at:
@@ -561,7 +561,7 @@ They are listed on the *requirements.tst* file, and are installed with:
 The recommendation is to avoid using extensions that render content on the
 client side using JavaScript, because it requires:
 
-* fetching third-party scripts at someone-else server most of the times; and
+* fetching third-party scripts at someone-else server most of the time; and
 * makes exporting to other formats (like pdf) harder, because it is then necessary to
   patch and replace with another non-JavaScript renderer.
 
@@ -600,9 +600,9 @@ check if ``env.config.monolithic`` exists and is true.
 
 If yes, prefix:
 
-* the path to files with the relative path from the custom doc to the
+* The path to files with the relative path from the custom doc to the
   repository (always `../<repository>` (e.g.,`../hdl`)); and
-* doc-names with the repository name (e.g., `hdl/`).
+* Doc-names with the repository name (e.g., `hdl/`).
 
 This ensures compatibility with :ref:`custom-doc`.
 
@@ -611,10 +611,10 @@ Here is a practical example:
 * Metadata to be parsed is at ``repo_name/builds/info.xml``
 * The sphinx source dir ``env.srcdir`` values are:
 
- * original doc (per repo): ``repo_name/doc/sphinx/source``
- * custom doc (always): ``_build``.
+ * Original doc (per repo): ``repo_name/doc/sphinx/source``
+ * Custom doc (always): ``_build``.
 
-So, if is necessary to check ``env.config.monolithic`` to correct infer the
+So, if it is necessary to check ``env.config.monolithic`` to correct infer the
 target file path, for example:
 
 .. code:: python
@@ -631,7 +631,7 @@ This is necessary because Sphinx has no way of knowing the repository root
 
 .. note::
 
-   If the extensions is reused by multiple repositories, infeer the repository
+   If the extensions are reused by multiple repositories, infer the repository
    name from the first level (``my_repo/``) of the docname
    (``my_repo/tutorial/index``).
 
@@ -701,7 +701,7 @@ which contains the basic metadata and the list of the extra scripts and styles.
 
 .. note::
 
-   path ``version`` is present and set if ``latest`` exists at
+   Path ``version`` is present and set if ``latest`` exists at
    ``{content_root}/../doctools`` and the stored version can be extracted.
 
 .. tip::

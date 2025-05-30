@@ -79,10 +79,10 @@ The per-file fetch is triggered by a GET request, such as when opening the
 local server page in a browser, or by touching the watched source file.
 
 The HTML GET request triggers a fetch for all Git LFS rules on the
-*.gitattributes* file, while a "touch" only works on filetypes that are
+*.gitattributes* file, while a "touch" only works on file types that are
 also watched by the server.
 
-If neither the GET request or the touch file to fetch is suitable,
+If neither the GET request nor the touch file to fetch is suitable,
 it is possible to pull the file directly with:
 
 .. code-block:: bash
@@ -149,7 +149,7 @@ To quick start, run the tool twice in an empty directly.
    $adoc custom-doc --builder pdf
     [ build output ]
 
-The *doc.yaml* file is a concise human readable markup file to set the desired
+The *doc.yaml* file is a concise human-readable markup file to set the desired
 content and some other options.
 Running the tool in a directory without the *doc.yaml* will instantiate a template
 and return.
@@ -230,7 +230,7 @@ Additional configuration can be added to the ``config`` option:
   If the repository is already present, this option has no effect.
 * ``extra``: Do steps that require extra software, for example, some vendor SDK.
 
-The option ``extensions`` allow to append extra Sphinx extensions, beyond the
+The option ``extensions`` allow appending extra Sphinx extensions, beyond the
 automatically imported from the sourced documentations.
 
 Just like :ref:`serve`, Custom doc also has :ref:`serve lfs`.
