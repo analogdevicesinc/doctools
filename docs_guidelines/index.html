@@ -220,7 +220,7 @@ instruct Sphinx the beginning and end of the code directive.</p>
 <section id="table-of-contents">
 <h2>Table of contents<a class="headerlink" href="#table-of-contents" title="Link to this heading"></a></h2>
 <p>The relation between pages are created with the <code class="docutils literal notranslate"><span class="pre">toctree</span></code> directive,
-which allows to generate the table of contents and navigation bars.</p>
+which allows generating the table of contents and navigation bars.</p>
 <p>Each page may have only one toctree, since they are the equivalent of the
 volumes of a book, and it does not make sense to have multiple “volumes” at
 the repository level.</p>
@@ -279,7 +279,7 @@ variable <code class="docutils literal notranslate"><span class="pre">ADOC_DOC_V
 <p>The <code class="docutils literal notranslate"><span class="pre">version</span></code> value on <code class="docutils literal notranslate"><span class="pre">conf.py</span></code> has lower precedence, and
 will be overwritten if <code class="docutils literal notranslate"><span class="pre">ADOC_DOC_VERSION</span></code> is set.</p>
 <p>The CI, in general, should set <code class="docutils literal notranslate"><span class="pre">ADOC_DOC_VERSION</span></code> as the current checkout branch
-in the pipeline (e.g. <code class="docutils literal notranslate"><span class="pre">main</span></code>, <code class="docutils literal notranslate"><span class="pre">v1.0.0</span></code>), for GiHub Actions, that can be
+in the pipeline (e.g. <code class="docutils literal notranslate"><span class="pre">main</span></code>, <code class="docutils literal notranslate"><span class="pre">v1.0.0</span></code>), for GitHub Actions, that can be
 <code class="docutils literal notranslate"><span class="pre">${{</span> <span class="pre">github.ref_name}}</span></code> <a class="footnote-reference brackets" href="#f1" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>.</p>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
@@ -291,7 +291,7 @@ to an empty string.</p>
 <aside class="footnote-list brackets">
 <aside class="footnote brackets" id="f1" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
-<p>Quick cheatsheet for <code class="docutils literal notranslate"><span class="pre">gihtub.ref_name</span></code> values on event:</p>
+<p>Quick cheat sheet for <code class="docutils literal notranslate"><span class="pre">gihtub.ref_name</span></code> values on event:</p>
 <ul class="simple">
 <li><p>push branch: <code class="docutils literal notranslate"><span class="pre">main</span></code>, <code class="docutils literal notranslate"><span class="pre">dev</span></code>, …</p></li>
 <li><p>push tag: <code class="docutils literal notranslate"><span class="pre">v2.2.2</span></code>, <code class="docutils literal notranslate"><span class="pre">new-feature</span></code>, …</p></li>
@@ -318,13 +318,12 @@ the remaining pages. Note that an HTML build of the documentation is not
 required for the PDF build.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p>The enviroment variable <code class="docutils literal notranslate"><span class="pre">ADOC_MEDIA_PRINT</span></code> should be unset when building
+<p>The environment variable <code class="docutils literal notranslate"><span class="pre">ADOC_MEDIA_PRINT</span></code> should be unset when building
 the HTML pages of documentation. If not set, some components of the pages
 may not render properly.</p>
 </div>
-<p>For  WeasyPrint,
-install <code class="docutils literal notranslate"><span class="pre">weasyprint</span></code>, and <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code> (LaTeX formulas) from pip
-and use with <a class="reference internal" href="../cli.html#serve"><span class="std std-ref">Serve</span></a>:</p>
+<p>For WeasyPrint, install <code class="docutils literal notranslate"><span class="pre">weasyprint</span></code>, and <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code> (LaTeX formulas)
+from pip and use with <a class="reference internal" href="../cli.html#serve"><span class="std std-ref">Serve</span></a>:</p>
 <div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~/some_repository/docs$
 </pre></div>
 </div>
@@ -367,7 +366,7 @@ third-party JavaScript libraries in the user browser.</p>
 Even though Sphinx allows breaking line inside the reference role,
 it makes pattern matching hard.</p>
 </div>
-<p>Prefer hyphen separation <code class="docutils literal notranslate"><span class="pre">-</span></code> over undeline <code class="docutils literal notranslate"><span class="pre">_</span></code> for the “title” section,
+<p>Prefer hyphen separation <code class="docutils literal notranslate"><span class="pre">-</span></code> over underline <code class="docutils literal notranslate"><span class="pre">_</span></code> for the “title” section,
 and always lower case,
 for example
 <code class="docutils literal notranslate"><span class="pre">my_code</span> <span class="pre">control-interface</span></code> instead of <code class="docutils literal notranslate"><span class="pre">MY_CODE</span> <span class="pre">Control_Interface</span></code>.</p>
@@ -401,7 +400,7 @@ the numbering will “propagate” across page which may be counter-intuitive.</
 <span id="inter-refs"></span><h2>External references<a class="headerlink" href="#external-references" title="Link to this heading"></a></h2>
 <p>External references to other Sphinx documentation are created using the built-in
 <code class="docutils literal notranslate"><span class="pre">sphinx.ext.intersphinx</span></code> extension.</p>
-<p>To setup <strong>in-organization</strong> references read the <a class="reference internal" href="#in-org-ref"><span class="std std-ref">section below</span></a>,
+<p>To set up <strong>in-organization</strong> references read the <a class="reference internal" href="#in-org-ref"><span class="std std-ref">section below</span></a>,
 and for <strong>third-party</strong> docs, the section <a class="reference internal" href="#out-org-ref"><span class="std std-ref">that follows</span></a>.</p>
 <div class="line-block">
 <div class="line">For either, to create a reference to a <strong>label</strong>, use:</div>
@@ -418,7 +417,7 @@ for example, <code class="code docutils literal notranslate"><span class="pre">:
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p>Pay attention to the log output, since
-a warnings is thrown for each reference not found.</p>
+warnings is thrown for each reference not found.</p>
 </div>
 <p>External references work with any kind of references, such as
 <em>ref</em>, <em>doc</em>, <em>envvar</em>, <em>token</em>, <em>term</em>, <em>numref</em> and <em>keyword</em>.</p>
@@ -456,7 +455,7 @@ This can be used to target a specific version, if the target repository stores
 multiple, for example, <code class="docutils literal notranslate"><span class="pre">v1.1</span></code>, more about that <a class="reference internal" href="../deploy.html#deploy-versioned"><span class="std std-ref">Versioned</span></a>.</p>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
-<p>For even more freedom, you can setup with an explicit path as
+<p>For even more freedom, you can set up with an explicit path as
 an <a class="reference internal" href="#out-org-ref"><span class="std std-ref">Outside organization Sphinx reference</span></a>.</p>
 </div>
 <p>It is possible to customize the target URL with the <code class="docutils literal notranslate"><span class="pre">interref_uri</span></code> config or
@@ -480,7 +479,7 @@ current repository:</p>
 <section id="outside-organization-sphinx-reference">
 <span id="out-org-ref"></span><h3>Outside organization Sphinx reference<a class="headerlink" href="#outside-organization-sphinx-reference" title="Link to this heading"></a></h3>
 <p>To create references to third-party Sphinx documentations, add the mappings to
-to the <cite>conf.py</cite> file with the following format:</p>
+the <cite>conf.py</cite> file with the following format:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">intersphinx_mapping</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s1">&#39;&lt;name&gt;&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;&lt;path/to/external&gt;&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 <span class="p">}</span>
@@ -533,7 +532,7 @@ if strictly necessary, since they are hard to update.</p>
 2 spaces for unordered list and 3 spaces for ordered lists, for example:</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="m">#.</span> Parent ordered item.
 
-   <span class="m">*</span> Child unordeded item.
+   <span class="m">*</span> Child unordered item.
 
      <span class="m">#.</span> Child ordered item.
      <span class="m">#.</span> Child ordered item.
@@ -582,12 +581,13 @@ and emphasizing lines.</p>
 <h2>Images<a class="headerlink" href="#images" title="Link to this heading"></a></h2>
 <p>Prefer the SVG format for images, and save it as <em>Optimized SVG</em> in
 <a class="reference external" href="https://inkscape.org/">inkscape</a> to use less space.</p>
-<p>Store them in a hierarchically, do not use <code class="docutils literal notranslate"><span class="pre">images</span></code> subdirectories.
-The idea is to have simpler relative paths, for example, e.g.:</p>
+<p>Store them in a hierarchy, do not use <code class="docutils literal notranslate"><span class="pre">images</span></code> subdirectories. The idea is to
+have simpler relative paths, for example, e.g.:</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">image</span><span class="p">::</span> ad2234_sdz_schematic.svg
 </pre></div>
 </div>
-<p>Instead of over complicated paths like:</p>
+<p>Or even simpler <code class="docutils literal notranslate"><span class="pre">schematic.svg</span></code>, if already in a <code class="docutils literal notranslate"><span class="pre">ad2234</span></code> directory.</p>
+<p>Instead of overcomplicated paths like:</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">image</span><span class="p">::</span> ../../project/images/ad2234_sdz/ad2234_sdz_schematic.svg
 </pre></div>
 </div>
@@ -611,7 +611,7 @@ files use a pattern at the repo root, for example:</p>
 </section>
 <section id="adding-directives-and-roles">
 <h2>Adding directives and roles<a class="headerlink" href="#adding-directives-and-roles" title="Link to this heading"></a></h2>
-<p>Sphinx allows to expand functionality beyond the defaults directives and roles
+<p>Sphinx allows expanding functionality beyond the defaults directives and roles
 by loading extensions.</p>
 <p>Doctools extended directives and roles are documented at:</p>
 <div class="toctree-wrapper compound">
@@ -631,7 +631,7 @@ They are listed on the <em>requirements.tst</em> file, and are installed with:</
 <p>The recommendation is to avoid using extensions that render content on the
 client side using JavaScript, because it requires:</p>
 <ul class="simple">
-<li><p>fetching third-party scripts at someone-else server most of the times; and</p></li>
+<li><p>fetching third-party scripts at someone-else server most of the time; and</p></li>
 <li><p>makes exporting to other formats (like pdf) harder, because it is then necessary to
 patch and replace with another non-JavaScript renderer.</p></li>
 </ul>
@@ -663,9 +663,9 @@ uses either env.found_docs or docnames to manage cache,
 check if <code class="docutils literal notranslate"><span class="pre">env.config.monolithic</span></code> exists and is true.</p>
 <p>If yes, prefix:</p>
 <ul class="simple">
-<li><p>the path to files with the relative path from the custom doc to the
+<li><p>The path to files with the relative path from the custom doc to the
 repository (always <cite>../&lt;repository&gt;</cite> (e.g.,`../hdl`)); and</p></li>
-<li><p>doc-names with the repository name (e.g., <cite>hdl/</cite>).</p></li>
+<li><p>Doc-names with the repository name (e.g., <cite>hdl/</cite>).</p></li>
 </ul>
 <p>This ensures compatibility with <a class="reference internal" href="../cli.html#custom-doc"><span class="std std-ref">Custom Doc</span></a>.</p>
 <p>Here is a practical example:</p>
@@ -675,11 +675,11 @@ repository (always <cite>../&lt;repository&gt;</cite> (e.g.,`../hdl`)); and</p><
 </ul>
 <blockquote>
 <div><ul class="simple">
-<li><p>original doc (per repo): <code class="docutils literal notranslate"><span class="pre">repo_name/doc/sphinx/source</span></code></p></li>
-<li><p>custom doc (always): <code class="docutils literal notranslate"><span class="pre">_build</span></code>.</p></li>
+<li><p>Original doc (per repo): <code class="docutils literal notranslate"><span class="pre">repo_name/doc/sphinx/source</span></code></p></li>
+<li><p>Custom doc (always): <code class="docutils literal notranslate"><span class="pre">_build</span></code>.</p></li>
 </ul>
 </div></blockquote>
-<p>So, if is necessary to check <code class="docutils literal notranslate"><span class="pre">env.config.monolithic</span></code> to correct infer the
+<p>So, if it is necessary to check <code class="docutils literal notranslate"><span class="pre">env.config.monolithic</span></code> to correct infer the
 target file path, for example:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="s1">&#39;monolithic&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">env</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">monolithic</span><span class="p">:</span>
      <span class="n">repo_path</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">srcdir</span><span class="p">,</span> <span class="s1">&#39;..&#39;</span><span class="p">,</span> <span class="s1">&#39;repo_name&#39;</span><span class="p">)</span>
@@ -693,7 +693,7 @@ target file path, for example:</p>
 (without invoking a git shell), so hard-coding a relative path is necessary.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>If the extensions is reused by multiple repositories, infeer the repository
+<p>If the extensions are reused by multiple repositories, infer the repository
 name from the first level (<code class="docutils literal notranslate"><span class="pre">my_repo/</span></code>) of the docname
 (<code class="docutils literal notranslate"><span class="pre">my_repo/tutorial/index</span></code>).</p>
 </div>
@@ -758,7 +758,7 @@ From the JavaScript side, it fetches first
 which contains the basic metadata and the list of the extra scripts and styles.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>path <code class="docutils literal notranslate"><span class="pre">version</span></code> is present and set if <code class="docutils literal notranslate"><span class="pre">latest</span></code> exists at
+<p>Path <code class="docutils literal notranslate"><span class="pre">version</span></code> is present and set if <code class="docutils literal notranslate"><span class="pre">latest</span></code> exists at
 <code class="docutils literal notranslate"><span class="pre">{content_root}/../doctools</span></code> and the stored version can be extracted.</p>
 </div>
 <div class="admonition tip">
