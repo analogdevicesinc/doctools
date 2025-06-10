@@ -4,7 +4,7 @@ jobs:
     runs-on: [self-hosted, v1]
 
     steps:
-    - uses: analogdevicesinc/doctools/checkout@v1
+    - uses: analogdevicesinc/doctools/checkout@action
 
     - uses: actions/download-artifact@v4
       with:
@@ -62,7 +62,7 @@ jobs:
     if: ${{ !github.event.no_python_min }}
 
     steps:
-    - uses: analogdevicesinc/doctools/checkout@v1
+    - uses: analogdevicesinc/doctools/checkout@action
 
     - uses: actions/download-artifact@v4
       with:
