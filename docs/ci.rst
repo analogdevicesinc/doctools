@@ -5,7 +5,7 @@ Continuous integration
 
 Doctools has a continuous deployment integration pipeline that works as follows:
 
-.. code::
+::
 
                       ┌──────────────────┐
                    ┌─►│Build Doc Latest  ├─┐
@@ -253,12 +253,16 @@ on the container, for example:
 
 .. _act:
 
-Full local run
---------------
+Testing GitHub Action workflows
+-------------------------------
 
 To have a full continuous integration mock-run `act <https://github.com/nektos/act/>`__
 can be used.
 ``act`` is a CLI written in go that allows to run GitHub actions.
+
+The intent is to test the YAML files locally, for testing non-CI code prefer
+:ref:`interactive-run` during development and, after pushing to remote, the
+CI results.
 
 Assuming you have the tools necessary already installed (a general guide
 is provided :ref:`here <conf-podman>`) and already :ref:`built the image <image-podman>`.
@@ -302,35 +306,13 @@ To run a specific workflow, use ``-W``, e.g.:
    $act --remote-name public \
    $    -W .github/workflows/build-doc.yml
 
-By default, it will run on the checks on the top 5 commits, to set other value,
-set ``ACT_DEPTH`` on *.env*
-e.g. 4 commits:
-
-.. shell::
-
-   $echo ACT_DEPTH=$(git rev-list --count @~4..@) > .env
-   $act pull_request --remote-name public
-
-.. tip::
-
-   Edit ``rev-list`` to use a base commit sha to evaluate the depth.
-
-You can also provide a ``head`` variable to filter out ``wip`` commits, for example:
-
-.. shell::
-
-   $head=$(git rev-parse @~5)
-   $echo ACT_HEAD=$head > .env
-   $echo ACT_DEPTH=$(git rev-list --count $head~5..$head) >> .env
-   $act pull_request --remote-name public
-
 .. _podman-run:
 
 Self-hosted runner
 ------------------
 
 To host your `GitHub Actions Runner <https://github.com/actions/runner>`__,
-set-up your secrets:
+set up your secrets:
 
 .. shell::
 
@@ -373,7 +355,7 @@ Self-hosted cluster
 -------------------
 
 To host a cluster of self-hosted runners, the recommended approach is to use
-systemd services, instead of for example, podman-compose.
+systemd services, instead of for example, container compose solutions.
 
 Below is a suggested systemd service at *~/.config/systemd/user/container-public-doctools@.service*.
 
@@ -440,7 +422,7 @@ Below is a suggested systemd service at *~/.config/systemd/user/container-public
 
 Remember to ``systemctl --user daemon-reload`` after modifying.
 With `autoupdate <https://docs.podman.io/en/latest/markdown/podman-auto-update.1.html>`__,
-if the image digest of the container and local storage differ,
+if the image-digest of the container and local storage differ,
 the local image is considered to be newer and the systemd unit gets restarted.
 
 Tune the limit flags for your needs.
@@ -480,7 +462,7 @@ For `repository runner <https://docs.github.com/en/rest/actions/self-hosted-runn
 For `org runner <https://docs.github.com/en/rest/actions/self-hosted-runners?apiVersion=2022-11-28#create-a-registration-token-for-an-organization>`__:
 
 * ``organization_self_hosted_runners:write``: "Self-hosted runners" organization permissions (write).
-* The user needs to be a org-level admin.
+* The user needs to be an org-level admin.
 
 Then update the systemd service.
 
