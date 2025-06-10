@@ -236,7 +236,7 @@ But at a specific minimum and maximum supported environment version.
 Doing the relevant step on host covers most issues that the CI would catch.
 
 You can use the :ref:`container image <image-podman>` with
-:git-doctools:`this suggested bash method <ci/scripts/podman-run.sh>`
+:git-doctools:`this suggested bash method <ci/scripts/container-run.sh>`
 to interactive login into an image, mounting the provided path, to run the steps
 on the container, for example:
 
