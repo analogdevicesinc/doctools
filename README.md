@@ -2,7 +2,7 @@ Shared composite GitHub Actions
 ===============================
 
 Contains reusable and public GitHub Actions focused on performance.
-This is the v1 release branch.
+This is the action release branch.
 
 Use as follows:
 
@@ -13,5 +13,5 @@ jobs:
     runs-on: [self-hosted, v1]
 
     steps:
-    - uses: analogdevices/doctools/checkout@v1
+    - uses: analogdevices/doctools/checkout@action
 ```

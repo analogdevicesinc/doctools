@@ -2,7 +2,7 @@ Depth
 =====
 
 Sets the FETCH_DEPTH variable, to be passed to GitHub's checkout action.
-Meant to be used with GitHub default behaviour:
+Meant to be used with GitHub default behavior:
 * pr: merge commit
 * push: new commits
 
@@ -15,7 +15,7 @@ jobs:
     runs-on: [self-hosted, v1]
 
     steps:
-    - uses: analogdevicesinc/doctools/range@v1
+    - uses: analogdevicesinc/doctools/range@action
     - uses: actions/checkout@v4
       with:
         fetch-depth: ${{ env.FETCH_DEPTH }}
