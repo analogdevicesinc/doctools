@@ -443,34 +443,28 @@ With `autoupdate <https://docs.podman.io/en/latest/markdown/podman-auto-update.1
 if the image digest of the container and local storage differ,
 the local image is considered to be newer and the systemd unit gets restarted.
 
-Instead of passing runner_token, you can also pass a github_token to generate
-the runner_token on demand.
-Using the github_token is the recommended approach because during clean-up the original
-runner_token may have expired already.
-Alternatively, you can mount a FIFO to ``/var/run/secrets/runner_token`` to
-generate a token just in time, without ever passing the github_token to the
-container (scripts not provided).
-
 Tune the limit flags for your needs.
 The ``--cpus`` flag requires a kernel with ``CONFIG_CFS_BANDWIDTH`` enabled.
 You can check with ``zgrep CONFIG_CFS_BANDWIDTH= /proc/config.gz``.
 
-.. shell::
+Instead of passing ``runner_token``, you can also pass a ``github_token`` to
+generate the ``runner_token`` on demand. Using the ``github_token`` is the
+recommended approach because during clean-up the original runner_token may have
+expired already.
 
-   # e.g. MyVerYSecRetToken
-   $printf GITHUB_TOKEN | podman secret create public_doctools_github_token -
+Alternatively, you can mount a FIFO to ``/var/run/secrets/runner_token`` to
+generate a token just in time, without ever passing the github_token to the
+container (scripts not provided).
 
-Alternatively, you can also mount the ``runner_token`` into
-``/run/secrets/runner_token`` and have it read when necessary.
 However, please note, just like the GitHub Actions generated ``GITHUB_TOKEN``,
-the path ``/run/secrets/runner_token`` can be read by workflows,
-while the previous option is removed from the environment prior executing
-the GitHub Actions runtime.
+the path ``/run/secrets/runner_token`` can be read by workflows, while the
+previous option is removed from the environment prior executing the GitHub
+Actions runtime.
 
 The order of precedence for authentication token is:
 
 #. ``github_token``: environment variable.
-#. ``runner_token``: plain text at */run/secrets/runner_token*.
+#. ``runner_token``: plain text or FIFO at */run/secrets/runner_token*.
 #. ``runner_token``: environment variable.
 
 Please understand the security implications and ensure the token secrecy,
