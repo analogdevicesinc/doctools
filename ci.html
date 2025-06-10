@@ -91,7 +91,7 @@
 </li>
 <li><a class="reference internal" href="#build-the-container-image">Build the container image</a></li>
 <li><a class="reference internal" href="#interactive-run">Interactive run</a></li>
-<li><a class="reference internal" href="#full-local-run">Full local run</a></li>
+<li><a class="reference internal" href="#testing-github-action-workflows">Testing GitHub Action workflows</a></li>
 <li><a class="reference internal" href="#self-hosted-runner">Self-hosted runner</a></li>
 <li><a class="reference internal" href="#self-hosted-cluster">Self-hosted cluster</a></li>
 </ul>
@@ -401,11 +401,14 @@ on the container, for example:</p>
 </pre></div>
 </div>
 <div class="clear-left"></div></div></div></section>
-<section id="full-local-run">
-<span id="act"></span><h2>Full local run<a class="headerlink" href="#full-local-run" title="Link to this heading"></a></h2>
+<section id="testing-github-action-workflows">
+<span id="act"></span><h2>Testing GitHub Action workflows<a class="headerlink" href="#testing-github-action-workflows" title="Link to this heading"></a></h2>
 <p>To have a full continuous integration mock-run <a class="reference external" href="https://github.com/nektos/act/">act</a>
 can be used.
 <code class="docutils literal notranslate"><span class="pre">act</span></code> is a CLI written in go that allows to run GitHub actions.</p>
+<p>The intent is to test the YAML files locally, for testing non-CI code prefer
+<a class="reference internal" href="#interactive-run"><span class="std std-ref">Interactive run</span></a> during development and, after pushing to remote, the
+CI results.</p>
 <p>Assuming you have the tools necessary already installed (a general guide
 is provided <a class="reference internal" href="#conf-podman"><span class="std std-ref">here</span></a>) and already <a class="reference internal" href="#image-podman"><span class="std std-ref">built the image</span></a>.
 Install <code class="docutils literal notranslate"><span class="pre">act</span></code> binary into an executable path:</p>
@@ -461,55 +464,11 @@ Rebase on your side before running <code class="docutils literal notranslate"><s
 <span class="w">    </span>-W<span class="w"> </span>.github/workflows/build-doc.yml
 </pre></div>
 </div>
-<div class="clear-left"></div></div></div><p>By default, it will run on the checks on the top 5 commits, to set other value,
-set <code class="docutils literal notranslate"><span class="pre">ACT_DEPTH</span></code> on <em>.env</em>
-e.g. 4 commits:</p>
-<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
-</pre></div>
-</div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">echo</span><span class="w"> </span><span class="nv">ACT_DEPTH</span><span class="o">=</span><span class="k">$(</span>git<span class="w"> </span>rev-list<span class="w"> </span>--count<span class="w"> </span>@~4..@<span class="k">)</span><span class="w"> </span>&gt;<span class="w"> </span>.env
-</pre></div>
-</div>
-<div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
-</pre></div>
-</div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>act<span class="w"> </span>pull_request<span class="w"> </span>--remote-name<span class="w"> </span>public
-</pre></div>
-</div>
-<div class="clear-left"></div></div></div><div class="admonition tip">
-<p class="admonition-title">Tip</p>
-<p>Edit <code class="docutils literal notranslate"><span class="pre">rev-list</span></code> to use a base commit sha to evaluate the depth.</p>
-</div>
-<p>You can also provide a <code class="docutils literal notranslate"><span class="pre">head</span></code> variable to filter out <code class="docutils literal notranslate"><span class="pre">wip</span></code> commits, for example:</p>
-<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
-</pre></div>
-</div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">head</span><span class="o">=</span><span class="k">$(</span>git<span class="w"> </span>rev-parse<span class="w"> </span>@~5<span class="k">)</span>
-</pre></div>
-</div>
-<div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
-</pre></div>
-</div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">echo</span><span class="w"> </span><span class="nv">ACT_HEAD</span><span class="o">=</span><span class="nv">$head</span><span class="w"> </span>&gt;<span class="w"> </span>.env
-</pre></div>
-</div>
-<div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
-</pre></div>
-</div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">echo</span><span class="w"> </span><span class="nv">ACT_DEPTH</span><span class="o">=</span><span class="k">$(</span>git<span class="w"> </span>rev-list<span class="w"> </span>--count<span class="w"> </span><span class="nv">$head</span>~5..<span class="nv">$head</span><span class="k">)</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>.env
-</pre></div>
-</div>
-<div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
-</pre></div>
-</div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>act<span class="w"> </span>pull_request<span class="w"> </span>--remote-name<span class="w"> </span>public
-</pre></div>
-</div>
 <div class="clear-left"></div></div></div></section>
 <section id="self-hosted-runner">
 <span id="podman-run"></span><h2>Self-hosted runner<a class="headerlink" href="#self-hosted-runner" title="Link to this heading"></a></h2>
 <p>To host your <a class="reference external" href="https://github.com/actions/runner">GitHub Actions Runner</a>,
-set-up your secrets:</p>
+set up your secrets:</p>
 <div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
 </pre></div>
 </div>
@@ -564,7 +523,7 @@ not run with sudo”. Again, is the container’s root.</p></li>
 <section id="self-hosted-cluster">
 <span id="cluster-podman"></span><h2>Self-hosted cluster<a class="headerlink" href="#self-hosted-cluster" title="Link to this heading"></a></h2>
 <p>To host a cluster of self-hosted runners, the recommended approach is to use
-systemd services, instead of for example, podman-compose.</p>
+systemd services, instead of for example, container compose solutions.</p>
 <p>Below is a suggested systemd service at <em>~/.config/systemd/user/container-public-doctools&#64;.service</em>.</p>
 <div class="highlight-systemd notranslate"><div class="highlight"><pre><span></span><span class="k">[Unit]</span>
 <span class="na">Description</span><span class="o">=</span><span class="s">container public doctools ci %i</span>
@@ -630,40 +589,26 @@ systemd services, instead of for example, podman-compose.</p>
 </div>
 </div><p>Remember to <code class="docutils literal notranslate"><span class="pre">systemctl</span> <span class="pre">--user</span> <span class="pre">daemon-reload</span></code> after modifying.
 With <a class="reference external" href="https://docs.podman.io/en/latest/markdown/podman-auto-update.1.html">autoupdate</a>,
-if the image digest of the container and local storage differ,
+if the image-digest of the container and local storage differ,
 the local image is considered to be newer and the systemd unit gets restarted.</p>
-<p>Instead of passing runner_token, you can also pass a github_token to generate
-the runner_token on demand.
-Using the github_token is the recommended approach because during clean-up the original
-runner_token may have expired already.
-Alternatively, you can mount a FIFO to <code class="docutils literal notranslate"><span class="pre">/var/run/secrets/runner_token</span></code> to
-generate a token just in time, without ever passing the github_token to the
-container (scripts not provided).</p>
 <p>Tune the limit flags for your needs.
 The <code class="docutils literal notranslate"><span class="pre">--cpus</span></code> flag requires a kernel with <code class="docutils literal notranslate"><span class="pre">CONFIG_CFS_BANDWIDTH</span></code> enabled.
 You can check with <code class="docutils literal notranslate"><span class="pre">zgrep</span> <span class="pre">CONFIG_CFS_BANDWIDTH=</span> <span class="pre">/proc/config.gz</span></code>.</p>
-<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
-</pre></div>
-</div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># e.g. MyVerYSecRetToken</span>
-</pre></div>
-</div>
-<div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
-</pre></div>
-</div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">printf</span><span class="w"> </span>GITHUB_TOKEN<span class="w"> </span><span class="p">|</span><span class="w"> </span>podman<span class="w"> </span>secret<span class="w"> </span>create<span class="w"> </span>public_doctools_github_token<span class="w"> </span>-
-</pre></div>
-</div>
-<div class="clear-left"></div></div></div><p>Alternatively, you can also mount the <code class="docutils literal notranslate"><span class="pre">runner_token</span></code> into
-<code class="docutils literal notranslate"><span class="pre">/run/secrets/runner_token</span></code> and have it read when necessary.
-However, please note, just like the GitHub Actions generated <code class="docutils literal notranslate"><span class="pre">GITHUB_TOKEN</span></code>,
-the path <code class="docutils literal notranslate"><span class="pre">/run/secrets/runner_token</span></code> can be read by workflows,
-while the previous option is removed from the environment prior executing
-the GitHub Actions runtime.</p>
+<p>Instead of passing <code class="docutils literal notranslate"><span class="pre">runner_token</span></code>, you can also pass a <code class="docutils literal notranslate"><span class="pre">github_token</span></code> to
+generate the <code class="docutils literal notranslate"><span class="pre">runner_token</span></code> on demand. Using the <code class="docutils literal notranslate"><span class="pre">github_token</span></code> is the
+recommended approach because during clean-up the original runner_token may have
+expired already.</p>
+<p>Alternatively, you can mount a FIFO to <code class="docutils literal notranslate"><span class="pre">/var/run/secrets/runner_token</span></code> to
+generate a token just in time, without ever passing the github_token to the
+container (scripts not provided).</p>
+<p>However, please note, just like the GitHub Actions generated <code class="docutils literal notranslate"><span class="pre">GITHUB_TOKEN</span></code>,
+the path <code class="docutils literal notranslate"><span class="pre">/run/secrets/runner_token</span></code> can be read by workflows, while the
+previous option is removed from the environment prior executing the GitHub
+Actions runtime.</p>
 <p>The order of precedence for authentication token is:</p>
 <ol class="arabic simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">github_token</span></code>: environment variable.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">runner_token</span></code>: plain text at <em>/run/secrets/runner_token</em>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">runner_token</span></code>: plain text or FIFO at <em>/run/secrets/runner_token</em>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">runner_token</span></code>: environment variable.</p></li>
 </ol>
 <p>Please understand the security implications and ensure the token secrecy,
@@ -677,7 +622,7 @@ third party sources and don’t relax <code class="docutils literal notranslate"
 <p>For <a class="reference external" href="https://docs.github.com/en/rest/actions/self-hosted-runners?apiVersion=2022-11-28#create-a-registration-token-for-an-organization">org runner</a>:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">organization_self_hosted_runners:write</span></code>: “Self-hosted runners” organization permissions (write).</p></li>
-<li><p>The user needs to be a org-level admin.</p></li>
+<li><p>The user needs to be an org-level admin.</p></li>
 </ul>
 <p>Then update the systemd service.</p>
 <p>Enable and start the service</p>
