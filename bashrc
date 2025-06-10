@@ -5,10 +5,10 @@
 if git rev-parse --is-inside-work-tree  > /dev/null 2>&1 ; then
 	pushd $(git rev-parse --show-toplevel) &>/dev/null
 	if [[ -z "$head_sha" ]]; then
-		export head_sha=$(git rev-parse --short=20 @)
+		export head_sha=@
 	fi
 	if [[ -z "$base_sha" ]]; then
-		export base_sha=$(git rev-parse --short=20 @~6)
+		export base_sha=@~6
 	fi
 	if [[ "$it" == "true" ]]; then
 		printf "Set git commit range as (\$base_sha..\$head_sha)\n"

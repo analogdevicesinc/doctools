@@ -4,14 +4,22 @@ github_token_=$github_token
 runner_token_=$runner_token
 org_repository_=$org_repository
 runner_labels_=$runner_labels
+config_flags_=$config_flags
+name_label_=$name_label
 
 unset github_token
 unset runner_token
 unset org_repository
 unset runner_labels
+unset config_flags
+unset name_label
 
 if [[ -z "$runner_labels_" ]]; then
     runner_labels_="v1"
+fi
+
+if [[ -z "$config_flags_" ]]; then
+    config_flags_="--replace"
 fi
 
 source /usr/local/bin/github-api.sh
@@ -33,8 +41,8 @@ function get_runner_token () {
             exit 1
         fi
     else
-        if [[ -f "/run/secrets/runner_token" ]]; then
-            runner_token_=$(cat /run/secrets/runner_token)
+        if [[ -p "/var/run/secrets/runner_token" ]] || [[ -f "/var/run/secrets/runner_token" ]]; then
+            runner_token_=$(cat /var/run/secrets/runner_token)
         fi
         if [[ -z "$runner_token_" ]]; then
             echo "No runner_token or github_token provided"
@@ -45,27 +53,28 @@ function get_runner_token () {
 
 get_runner_token
 
-if [[ -z "$name_label" ]]; then
-    name_label=$(echo $runner_token_ | sha3sum -a 256 | head -c4)
+if [[ -z "$name_label_" ]]; then
+    name_label_=$(echo $runner_token_ | sha3sum -a 256 | head -c4)
 fi
 
-name=$(echo $org_repository_ | sed 's|/|-|g')-$name_label
+name=$(echo $org_repository_ | sed 's|/|-|g')-$name_label_
 
 set -e
 
-/home/runner/actions-runner/config.sh \
+(cd /home/runner/actions-runner ; ./config.sh \
     --url https://github.com/$org_repository_ \
     --token $runner_token_ \
     --labels "$runner_labels_" \
     --unattended \
-    --replace \
-    --name $name
+    --name $name \
+    $config_flags_ \
+)
 
 function cleanup () {
     get_runner_token
 
-    /home/runner/actions-runner/config.sh remove \
-        --token $runner_token_
+    (cd /home/runner/actions-runner ; ./config.sh remove \
+        --token $runner_token_)
 }
 
 trap 'cleanup; exit 130' INT
