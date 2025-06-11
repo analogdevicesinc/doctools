@@ -41,14 +41,13 @@ runs:
           git reset --hard --quiet
           git clean -ffdx --quiet .
 
-          git checkout $(git rev-parse @) || true
+          git switch -d @
           echo "clean-up branches"
           branches=$((git branch || true) | (grep -v ^'*' | grep -v ^'\s\+cache/' | grep -v ^'\s\+mirror/' || true))
           if [[ "$branches" ]]; then
             git branch -D $branches || true
           fi
-          git branch -D trunk 2>/dev/null || true
-          git checkout -b trunk
+          git switch -C trunk
         fi
 
         if [[ -z "$(git config user.name)"  ]]; then
@@ -92,7 +91,7 @@ runs:
           echo "fetch_depth_fallback=true" >> $GITHUB_ENV
         fi
 
-    - name: Fetch & checkout
+    - name: Fetch & reset
       shell: bash
       run: |
         git fetch origin --depth=$fetch_depth $GITHUB_SHA
