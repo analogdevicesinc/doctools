@@ -37,6 +37,7 @@ log = {
 unmanaged = []
 # Avoid
 first_run = True
+trigger_rst = ("", "")
 
 theme_path = path.join('adi_doctools', 'theme', 'cosmic')
 style_path = path.join(theme_path, 'style')
@@ -427,9 +428,9 @@ def serve(directory, port, dev, selenium, once, builder):
 
     dev_pool = path.join(builddir, '.dev-pool')
 
-    def update_dev_pool():
+    def update_dev_pool(file):
         dev_f = open(dev_pool, 'w')
-        dev_f.write(str(time.time()))
+        dev_f.write(f"{str(time.time())}\n{file}\n")
         dev_f.close()
 
     if with_selenium:
@@ -443,7 +444,7 @@ def serve(directory, port, dev, selenium, once, builder):
 
         driver.get(f"http://0.0.0.0:{port}")
     elif builder == "html":
-        update_dev_pool()
+        update_dev_pool("")
 
 
     def get_doc_sources_included():
@@ -494,8 +495,19 @@ def serve(directory, port, dev, selenium, once, builder):
         return (files, ctime)
 
 
+    def get_trigger_rst(trigger_rst_, file):
+        if not file.endswith(".rst") or trigger_rst_[0] == file:
+            return trigger_rst_
+
+        path_ = path.relpath(file, sourcedir)[:-4] + ".html"
+        if path_.startswith("../"):
+            # Outside of source dir, unsupported
+            return trigger_rst_
+        return (file, path_)
+
+
     def check_files(scheduler):
-        global first_run
+        global first_run, trigger_rst
         update_sphinx = False
         update_page = False
         git_lfs_pull = []
@@ -506,6 +518,8 @@ def serve(directory, port, dev, selenium, once, builder):
                     # User touched lfs symbolic link, probably wants to pull it
                     git_lfs_pull.append(file)
 
+            if file in watch_file_rst and ctime > watch_file_rst[file]:
+                trigger_rst = get_trigger_rst(trigger_rst, file)
             if file not in watch_file_rst or ctime > watch_file_rst[file]:
                 update_sphinx = True
                 watch_file_rst[file] = ctime
@@ -514,6 +528,7 @@ def serve(directory, port, dev, selenium, once, builder):
                         watch_file_rst[file] = sys.float_info.max
                         update_sphinx = False
                         break
+
         for file in watch_file_src:
             if not path.isfile(file):
                 continue
@@ -568,7 +583,7 @@ def serve(directory, port, dev, selenium, once, builder):
                         http.server_close()
                     return
             elif builder == "html":
-                update_dev_pool()
+                update_dev_pool(trigger_rst[1])
             elif builder == 'singlehtml':
                 update_pdf()
 

@@ -59,7 +59,7 @@ class PoolChanges {
     for (const url of urls) {
       try {
         const response = await fetch(url, {
-          signal: AbortSignal.timeout(250),
+          signal: AbortSignal.timeout(5000),
           cache: "no-store"
         })
 
@@ -76,19 +76,24 @@ class PoolChanges {
  * Alternative to selenium.
  */
 PoolChanges.search(PoolChanges.get_paths()).then(obj => {
-  const [url, timestamp] = obj
-
+  const [url, obj_] = obj
   if (!url) {
     console.log("File .dev-pool is absent, pooling interface disabled.")
     return
   }
 
   console.log(`File ${url} is present, pooling interface enabled.`)
-  pool_timestamp = Number(timestamp)
+  pool_timestamp = Number(obj_.split("\n")[0])
   pool_interval = setInterval(() => {
     PoolChanges.do(url).then(obj => {
-      if (this.pool_timestamp < Number(obj)) {
-        location.reload()
+      obj = obj.split("\n")
+      if (this.pool_timestamp < Number(obj[0])) {
+        url_ = new URL(url, location.origin)
+        url_ = new URL(obj[1], url_)
+        if (document.visibilityState === 'visible' && obj[1] !== "")
+          location.href = url_
+        else
+          location.reload()
       }
     }).catch(e => {
       if (e.statusText === "File not found") {
