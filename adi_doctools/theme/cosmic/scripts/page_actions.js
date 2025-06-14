@@ -1,5 +1,6 @@
 "use strict";
 import {DOM} from './dom.js'
+import {Toolbox} from './toolbox.js'
 
 /**
  * Shows page actions buttons to the right side of the title.
@@ -47,7 +48,7 @@ export class PageActions {
     return false
   }
 
-  draw_page_source (url) {
+  draw_page_source (url, url_raw) {
     let container = new DOM('div', {
       'className': 'page-actions'
     })
@@ -57,6 +58,10 @@ export class PageActions {
       'href': url,
       'target': 'blank'
     })
+    edit_button.onclick(this, (self, url_raw, e) => {
+      e.preventDefault()
+      Toolbox.try_include(url_raw, self.$.href)
+    }, [edit_button, url_raw])
     container.append(edit_button.$)
 
     let doc = DOM.get('.bodywrapper .body-header')
@@ -78,9 +83,14 @@ export class PageActions {
     if (this.page_source_ignore())
       return
 
-    let tgt = m.source_hostname.replace('{repository}', r)
-                               .replace('{branch}', m['repotoc'][r]['branch'])
-                               .replace('{pathname}', m['repotoc'][r]['pathname'])
+    let format_tgt = (hostname) => {
+      return hostname.replace('{repository}', r)
+                              .replace('{branch}', m['repotoc'][r]['branch'])
+                              .replace('{pathname}', m['repotoc'][r]['pathname'])
+    }
+
+    let tgt = format_tgt(m.source_hostname)
+    let tgt_raw = format_tgt(m.source_hostname_raw)
     let path = ""
     if (this.parent.state.offline)
       path = new URL("file://"+location.pathname).href
@@ -96,7 +106,8 @@ export class PageActions {
       pathname = pathname.concat('index.rst')
 
     tgt = tgt.concat('/', pathname)
+    tgt_raw = tgt_raw.concat('/', pathname)
 
-    this.draw_page_source(tgt)
+    this.draw_page_source(tgt, tgt_raw)
   }
 }

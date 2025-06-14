@@ -28,6 +28,7 @@ class LUT(TypedDict):
     remote_https: str
     remote_doc: str
     source_hostname: str
+    source_hostname_raw: str
     repos: Dict[str, Repo]
     banner: Banner
     modules: Modules
@@ -37,6 +38,7 @@ remote_ssh = "git@github.com:analogdevicesinc/{}.git"
 remote_https = "https://github.com/analogdevicesinc/{}.git"
 remote_doc = "https://analogdevicesinc.github.io/"
 source_hostname = "https://github.com/analogdevicesinc/{repository}/tree/{branch}/{pathname}"
+source_hostname_raw = "https://raw.githubusercontent.com/analogdevicesinc/{repository}/refs/heads/{branch}/{pathname}"
 
 repos = {
     'documentation': Repo(
@@ -160,6 +162,7 @@ def get_lut():
                remote_https=remote_https,
                remote_doc=remote_doc,
                source_hostname=source_hostname,
+               source_hostname_raw=source_hostname_raw,
                repos=repos,
                banner=banner,
                modules=modules)

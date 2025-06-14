@@ -123,6 +123,7 @@ def build_finished(app, exc):
 
             metadata['remote_doc'] = app.lut['remote_doc']
             metadata['source_hostname'] = app.lut['source_hostname']
+            metadata['source_hostname_raw'] = app.lut['source_hostname_raw']
 
             file = path.join(app.builder.outdir, 'metadata.json')
             with open(file, 'w') as f:

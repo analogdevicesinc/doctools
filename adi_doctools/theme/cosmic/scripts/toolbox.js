@@ -83,6 +83,34 @@ class Toolbox {
     return
   }
   /*
+   * Check if the raw content is only a include directive.
+   * If yes, resolve its path and redirect to it.
+   */
+  static async try_include (url_raw, url) {
+    let fallback = (error) => {
+      location.href = url
+    }
+    const request = new Request(url_raw)
+    await fetch (request)
+      .then(
+        (response) => {
+          if (!response.ok)
+            throw new Error(response.status)
+          return response.text()
+        })
+      .then((text) => {
+        text = text.replace(/\n+$/, "")
+        if (text.startsWith(".. include:: ") && text.split(/\n/).length == 1) {
+          text = text.substring(13)
+          location.href = new URL(text, url).href
+        } else {
+          fallback()
+        }
+      })
+      .catch(fallback)
+    return
+  }
+  /*
    * Try to fetch every item in array.
    */
   static async fetch_each (urls) {
