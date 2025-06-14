@@ -60,7 +60,11 @@ export class PageActions {
     })
     edit_button.onclick(this, (self, url_raw, e) => {
       e.preventDefault()
-      Toolbox.try_include(url_raw, self.$.href)
+      Toolbox.try_include(url_raw, self.$.href, true)
+    }, [edit_button, url_raw])
+    edit_button.onauxclick(this, (self, url_raw, e) => {
+      e.preventDefault()
+      Toolbox.try_include(url_raw, self.$.href, true)
     }, [edit_button, url_raw])
     container.append(edit_button.$)
 

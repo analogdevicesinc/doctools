@@ -116,6 +116,21 @@ class DOM {
     return this
   }
   /**
+   * Append a ``onauxclick`` event.
+   * @param {function} ev - Function to be executed on click.
+   */
+  onauxclick (self, ev, args){
+    this.$.onauxclick = (e) => {
+      if (typeof args == 'undefined')
+        ev.apply(self, [e])
+      else if (args.constructor == Array) {
+        args.push(e)
+        ev.apply(self, args)
+      }
+    }
+    return this
+  }
+  /**
    * Append a ``mouseup`` event.
    * @param {function} ev - Function to be executed on up.
    */

@@ -113,7 +113,7 @@ export class VersionDropdown {
                   `${this.prefix}/${key}` :
                   `${this.prefix}`
       })
-      entry.onclick (this, (self, e) => {
+      let handle = (self, new_tab, e) => {
         e.preventDefault()
         let start = app.state.path.length > 0 ?
                       `${this.prefix}/${app.state.path}` :
@@ -121,11 +121,16 @@ export class VersionDropdown {
             og_url = location.pathname + location.hash
         if (og_url.startsWith(start)) {
           let url = self.$.href + og_url.substring(start.length)
-          Toolbox.try_redirect(url, self.$.href)
+          Toolbox.try_redirect(url, self.$.href, new_tab)
         } else {
-          location.url(self.$.url)
+          if (new_tab)
+            window.open(self.$.url, '_blank').focus()
+          else
+            location.url(self.$.url)
         }
-      }, [entry])
+      }
+      entry.onclick (this, handle, [entry, false])
+      entry.onauxclick (this, handle, [entry, true])
       let entry_ = new DOM('div')
       let label_ = new DOM('div')
       entry_.innerText = obj[key][0]

@@ -67,28 +67,35 @@ class Toolbox {
   /*
    * Check if link exists, if not, redirect to second option.
    */
-  static async try_redirect (url, fallback_url) {
+  static async try_redirect (url, fallback_url, new_tab) {
+    let url_
     try {
       const response = await fetch(url, {
         method: 'HEAD'
       })
 
       if (response.status === 404)
-        location.href = fallback_url
+        url_ = fallback_url
       else
-        location.href = url
+        url_ = url
     } catch (e) {
-      location.href = fallback_url
+      url_ = fallback_url
     }
-    return
+    if (new_tab)
+      window.open(url_, '_blank').focus()
+    else
+      location.href = url_
   }
   /*
    * Check if the raw content is only a include directive.
    * If yes, resolve its path and redirect to it.
    */
-  static async try_include (url_raw, url) {
+  static async try_include (url_raw, url, new_tab) {
     let fallback = (error) => {
-      location.href = url
+      if (new_tab)
+        window.open(url, '_blank').focus()
+      else
+        location.href = url
     }
     const request = new Request(url_raw)
     await fetch (request)
@@ -102,7 +109,10 @@ class Toolbox {
         text = text.replace(/\n+$/, "")
         if (text.startsWith(".. include:: ") && text.split(/\n/).length == 1) {
           text = text.substring(13)
-          location.href = new URL(text, url).href
+          if (new_tab)
+            window.open(new URL(text, url).href, '_blank').focus()
+          else
+            location.href = new URL(text, url).href
         } else {
           fallback()
         }
