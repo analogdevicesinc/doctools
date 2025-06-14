@@ -445,6 +445,23 @@ def serve(directory, port, dev, selenium, once, builder):
     elif builder == "html":
         update_dev_pool()
 
+
+    def get_doc_sources_included():
+        include_ = set()
+        for docname in app.env.included:
+            include_.update(app.env.included[docname])
+        files_ = {item + ".rst" for item in include_}
+        files = []
+        ctime = []
+        for f in files_:
+            if not path.isfile(f):
+                continue
+            ctime_ = stat(f).st_mtime
+            ctime.append(ctime_)
+            files.append(f)
+        return (files, ctime)
+
+
     def get_doc_sources():
         types = ['*.rst', '*.md', '*.svg', '*.txt', '*.png', '*.jpg', '*.jpeg', '*.py']
         files = []
@@ -471,6 +488,9 @@ def serve(directory, port, dev, selenium, once, builder):
                     ctime_ = stat(f).st_mtime
                     ctime.append(ctime_)
                     files.append(f)
+        files_, ctime_ = get_doc_sources_included()
+        files.extend(files_)
+        ctime.extend(ctime_)
         return (files, ctime)
 
 
