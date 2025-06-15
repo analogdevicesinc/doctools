@@ -166,4 +166,12 @@ class Toolbox {
       callback(json)
     }
   }
+  /*
+   * Return alphanumeric sequence. Can be us used for shortcuts.
+   */
+  static get_alphanumeric () {
+    const numbers = [...Array(9).keys(), -1].map(n => (n + 1).toString())
+    const alphabet = [...Array(25).keys()].map(n => String.fromCharCode(98 + n))
+    return numbers.concat(alphabet)
+  }
 }

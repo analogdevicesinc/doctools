@@ -1,5 +1,6 @@
 "use strict";
 
+import {Toolbox} from './toolbox.js'
 import {DOM} from './dom.js'
 
 /**
@@ -79,7 +80,17 @@ export class Search {
     $.searchTags = new DOM('span', {
       className: 'search-filter',
       tabIndex: '-1',
-    });
+    }).append([
+      new DOM('div', {
+        className: 'title',
+        innerText: "Search on",
+      }).append([
+        new DOM('code', {
+          className: "literal",
+          innerText: "Ctrl +",
+        }),
+      ])
+    ]);
     $.searchResults = new DOM('ul', {
       className: 'search-results',
       tabIndex: '-1',
@@ -697,6 +708,19 @@ export class Search {
 
     return [query, searchTerms, excludedTerms, highlightTerms, objectTerms];
   }
+  select_filter_tags (e) {
+    if (!this.$.searchArea.classList.contains('on') ||
+        !this.$.searchTags.classList.contains('on'))
+      return
+    Object.values(this.$.keyCheckbox).forEach(checkbox => {
+      if (checkbox.$.dataset['shortcut'] == e.key) {
+        e.preventDefault()
+        let event = new Event('change');
+        checkbox.$.checked = !checkbox.$.checked
+        checkbox.$.dispatchEvent(event)
+      }
+    })
+  }
   keyup (e) {
     switch (e.code) {
       case 'IntlRo':
@@ -705,6 +729,10 @@ export class Search {
       case 'KeyK':
         this.search_shortcut(e)
         break
+      case 'ControlLeft':
+      case 'ControlRight':
+        this.$.searchTags.classList.remove('on')
+        break
     }
   }
   keydown (e) {
@@ -712,14 +740,19 @@ export class Search {
       case 'IntlRo':
       case 'Slash':
         e.preventDefault()
-        return
+        break
       case 'KeyK':
         if (e.ctrlKey && e.altKey)
           e.preventDefault()
-        return
+        break
+      case 'ControlLeft':
+      case 'ControlRight':
+        this.$.searchTags.classList.add('on')
+        break
     }
+    this.select_filter_tags(e)
   }
-  include_item (key, name) {
+  include_item (key, name, shortcut) {
     this.index_state[key] = {
       ready: false,
       requested: false
@@ -728,14 +761,22 @@ export class Search {
       id: `tag-${key}`,
       type: 'checkbox',
       name: name,
+      shortcut: shortcut,
     }).onchange(this, this.check_toc, [key])
     this.$.searchTags.append([
       new DOM('span').append([
         input_,
         new DOM('label', {
           htmlFor: `tag-${key}`,
-          innerText: name,
-        })
+        }).append([
+          new DOM('span', {
+            innerText: shortcut,
+            className: 'checkbox',
+          }),
+          new DOM('span', {
+            innerText: name,
+          }),
+        ])
       ])
     ])
     this.$.keyCheckbox[key] = input_
@@ -744,6 +785,7 @@ export class Search {
    * Init search.
    */
   init () {
+    let alphanumeric = Toolbox.get_alphanumeric()
     let language_data_script = new URL(`${this.parent.state.content_root}_static/language_data.js`,
                                        location)
     this.$.language_data = new DOM('script', {
@@ -755,13 +797,13 @@ export class Search {
     this.$.body.append([this.$.language_data])
 
     for (const [key, value] of Object.entries(this.parent.state.metadata.repotoc)) {
-      this.include_item(key, value['name'])
+      this.include_item(key, value['name'], alphanumeric.shift())
     }
     if (!this.parent.state.sub_hosted) {
       let name = this.parent.state.repository in this.parent.state.metadata.repotoc ?
                  this.parent.state.metadata.repotoc[this.parent.state.repository]['name'] :
                  this.parent.state.repository
-      this.include_item("local", `${name} (local build)`)
+      this.include_item("local", `${name} (local build)`, alphanumeric.shift())
     }
 
     this.$.searchInput.$.oninput = (e) => {this.query(e.target.value)}
