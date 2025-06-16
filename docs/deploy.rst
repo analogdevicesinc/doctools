@@ -156,7 +156,7 @@ String array form
 
 The simple ``tags.json`` is a plain array with each version/path on the
 and generate a ``tags.json``, e.g. ``["v1.1", "v2.2", "main", "dev", ""]``
-(a empty string means there is a built doc on the root and will be named
+(an empty string means there is a built doc on the root and will be named
 ``main (unstable)``).
 The first tag will be labeled with ``latest``.
 
@@ -172,7 +172,7 @@ This ``tags.json`` format can be obtained with:
    # Search for every doc's objects.inv store the paths as JSON.
    $find . -name objects.inv -exec sh -c 'dirname {}' ';' | \
    $    cut -c 3- | \
-   $    sort -r | \
+   $    sort -Vr | \
    $    jq --raw-input . | \
    $    jq --slurp . > tags.json
 
@@ -236,7 +236,7 @@ the target the version on the ``interref_repos`` variable, e.g.
 What happened to ``ADOC_TARGET_DEPTH``?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Previously there was also a ``ADOC_TARGET_DEPTH`` enviroment variables
+Previously there was also a ``ADOC_TARGET_DEPTH`` environment variables
 to create full relative links between versions, but this was deprecated
 by instead just using the root ``/`` for those links, e.g.
 ``/doctools/v1.0.0`` instead of ``../../../doctools/v1.0.0`` from
