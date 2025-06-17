@@ -48,9 +48,9 @@ export class Links {
       prefix = this.parent.state.sub_hosted === true ?
                '/' : this.parent.state.metadata.remote_doc
     else
-      prefix = this.parent.state.subhost === '/' ?
+      prefix = this.parent.state.subhost === '' || this.parent.state.subhost === undefined ?
                this.parent.state.metadata.remote_doc :
-               this.parent.state.subhost
+               this.parent.state.subhost.startsWith('/docs') ? '/docs/' : '/'
     let home = "index.html"
     this.$.linksOverlay = []
     this.$.linksSidebar = []
