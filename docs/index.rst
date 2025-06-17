@@ -1,5 +1,5 @@
 Analog Devices Doctools
-===============================================================================
+=======================
 
 `Analog Devices Inc. <https://www.analog.com>`_
 documentation extensions, themes, and tools for multiple repositories in the

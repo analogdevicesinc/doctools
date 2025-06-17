@@ -1,10 +1,10 @@
 .. _fundamentals:
 
 Fundamentals 
-================================================================================
+============
 
 Documentation hierarchical structure
---------------------------------------------------------------------------------
+------------------------------------
 
 Doctools is the central piece to aggregate multiple documentations together,
 expanding the documentation standard hierarchical, mono-repo configuration.
