@@ -42,8 +42,15 @@ export class Links {
   update_repotoc (obj) {
     let $ = this.$
 
-    let prefix = this.parent.state.sub_hosted === true ?
-                 '/' : this.parent.state.metadata.remote_doc
+    /* polyfill < v0.4.11 */
+    let prefix = ''
+    if (Object.hasOwn(this.parent.state, 'sub_hosted'))
+      prefix = this.parent.state.sub_hosted === true ?
+               '/' : this.parent.state.metadata.remote_doc
+    else
+      prefix = this.parent.state.subhost === '/' ?
+               this.parent.state.metadata.remote_doc :
+               this.parent.state.subhost
     let home = "index.html"
     this.$.linksOverlay = []
     this.$.linksSidebar = []

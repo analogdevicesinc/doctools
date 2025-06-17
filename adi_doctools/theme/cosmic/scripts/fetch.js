@@ -21,8 +21,15 @@ export class Fetch {
     let urls = [
       'https://analogdevicesinc.github.io/doctools/metadata.json'
     ]
-    if (this.parent.state.offline === false)
-      urls.unshift('/metadata.json', '/doctools/metadata.json')
+    if (Object.hasOwn(this.parent.state, 'sub_hosted')) {
+      if (this.parent.state.offline === false)
+        urls.unshift('/metadata.json', '/doctools/metadata.json', '/docs/doctools/metadata.json')
+    } else {
+      if (this.parent.state.offline === false) {
+        urls.unshift(new URL(`${this.parent.state.subhost}/../doctools/metadata.json`, location).href)
+        urls.unshift('/metadata.json')
+      }
+    }
     Toolbox.cache_check(this.parent.state,
                         urls, 24, (obj) => {this.init_metadata(obj)})
   }

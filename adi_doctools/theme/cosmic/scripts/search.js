@@ -172,7 +172,13 @@ export class Search {
     if (ev.target.checked) {
       if (this.index_state[key].requested === false) {
         let remote = `${this.parent.state.metadata.remote_doc}${key}/searchindex.js`
-        if (!this.parent.state.sub_hosted  && key === "local")
+        /* polyfill < v0.4.11 */
+        let not_sub_hosted
+        if (Object.hasOwn(this.parent.state, 'sub_hosted'))
+          not_sub_hosted = !this.parent.state.sub_hosted
+        else
+          not_sub_hosted = this.parent.state.subhost === '' || this.parent.state.subhost === undefined
+        if (not_sub_hosted && key === "local")
           remote = `${location.origin}/searchindex.js`
         let search_ = new URL(remote)
         this.load_index(search_.href, key)
@@ -219,8 +225,14 @@ export class Search {
      * When writing the docs, it is a better user experience to be able to search
      * the local built docs.
      */
-    let key = this.parent.state.sub_hosted ?
-              this.parent.state.repository : 'local'
+    /* polyfill < v0.4.11 */
+    let key = ''
+    if (Object.hasOwn(this.parent.state, 'sub_hosted'))
+      key = this.parent.state.sub_hosted ?
+            this.parent.state.repository : 'local'
+    else
+      key = this.parent.state.subhost === '' || this.parent.state.subhost === undefined ?
+            'local' : this.parent.state.repository
     let event = new Event('change');
     if (!(key in this.$.keyCheckbox))
       return
@@ -799,7 +811,14 @@ export class Search {
     for (const [key, value] of Object.entries(this.parent.state.metadata.repotoc)) {
       this.include_item(key, value['name'], alphanumeric.shift())
     }
-    if (!this.parent.state.sub_hosted) {
+    /* polyfill < v0.4.11 */
+    let sub_hosted
+    if (Object.hasOwn(this.parent.state, 'sub_hosted'))
+      sub_hosted = this.parent.state.sub_hosted
+    else
+      sub_hosted = this.parent.state.subhost !== '' && this.parent.state.subhost !== undefined
+
+    if (!sub_hosted) {
       let name = this.parent.state.repository in this.parent.state.metadata.repotoc ?
                  this.parent.state.metadata.repotoc[this.parent.state.repository]['name'] :
                  this.parent.state.repository

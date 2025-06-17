@@ -6,7 +6,7 @@
  * theme: dark/light
  * content_root: relative path to reach the current doc root page
  * metadata: fetched by fetch.js
- * sub_hosted: hosted alongside other docs
+ * subhost: "docs/$repository", "$repository" (github.io) or "" (single doc)
  * path: "v0.0.1", "", "prs/staging/new_feature"
  * reloaded: page was reloaded
  * metadata: tags.json, fetched later by fetch.js, if state allows
@@ -17,7 +17,7 @@ const state = {
   offline: undefined,
   theme: undefined,
   content_root: undefined,
-  sub_hosted: undefined,
+  subhost: undefined,
   path: undefined,
   reloaded: undefined,
   metadata: undefined
@@ -80,28 +80,64 @@ export class State {
   /**
    * Checks if doc is in a path beyond the server root,
    * e.g.
-   * true: doctools, doctools/v0.2.2
-   * false: / , /v0.2.2
+   * /docs/doctools, /docs/doctools/v0.2.2 -> /docs/doctools
+   * /doctools, /doctools/v0.2.2 -> /doctools
+   * / , /v0.2.2 -> (empty)
    * For correctness, the html meta repository tag must match the url repository.
    */
-  sub_hosted (content_root, repository) {
-    let url = new URL(content_root, location).href,
-        org = new URL(repository, location.origin).href
-    return url.startsWith(org)
+  subhost (content_root, repository) {
+    let doc_root   = new URL(content_root, location).href,
+        no_docs    = new URL(repository, location.origin).href,
+        under_docs = new URL(`docs/${repository}`, location.origin).href
+    if (doc_root.startsWith(under_docs))
+      return `/docs/${repository}`
+    else if (doc_root.startsWith(no_docs))
+      return `/${repository}`
+    else
+      return ''
+  }
+  /**
+   * Get absolute path to doc,
+   * e.g.
+   * file://../docs/doctools, file://../docs/doctools/v0.2.2 -> file://../docs/doctools
+   * For correctness, the html meta repository tag must match the url repository.
+   */
+  subhost_offline (content_root, repository) {
+    let doc_root = new URL(content_root, location).href
+    let index = doc_root.search("/_build/html")
+    if (index !== -1)
+      return doc_root.substring(0, index + "/_build/html".length)
+    index = doc_root.search(repository)
+    if (index !== -1)
+      return doc_root.substring(0, index + repository.length)
+    return undefined
   }
   /**
    * Extract path of versioned version, without repository name
    * /doctools -> ""
    * / -> ""
+   * /docs/doctools/v1.1.1 -> "v1.1.1"
    * /doctools/v1.1.1 -> "v1.1.1"
    * /v1.1.1 -> "v1.1.1"
    */
-  path (content_root, repository, sub_hosted) {
-    if (!sub_hosted)
-      repository = ""
-
+  path (content_root, subhost) {
     let url = new URL(content_root, location).href,
-        org = new URL(repository, location.origin).href
+        org = new URL(subhost, location.origin).href
+    if (!url.startsWith(org))
+      return ""
+    else
+      return url.replace(org, "").replace(/^\/|\/$/g, "")
+  }
+  /**
+   * Extract path of versioned version, without repository name
+   * file://../doctools -> ""
+   * file://../doctools/v1.1.1 -> "v1.1.1"
+   */
+  path_offline (content_root, subhost) {
+    if (subhost === undefined)
+      return undefined
+    let url = new URL(content_root, location).href,
+        org = subhost
     if (!url.startsWith(org))
       return ""
     else
@@ -127,8 +163,11 @@ export class State {
     state.theme = localStorage.getItem('theme')
     state.content_root = this.content_root()
     if (!state.offline) {
-      state.sub_hosted = this.sub_hosted(state.content_root, state.repository)
-      state.path = this.path(state.content_root, state.repository, state.sub_hosted)
+      state.subhost = this.subhost(state.content_root, state.repository)
+      state.path = this.path(state.content_root, state.subhost)
+    } else {
+      state.subhost = this.subhost_offline(state.content_root, state.repository)
+      state.path = this.path_offline(state.content_root, state.subhost)
     }
     state.reloaded = this.reloaded()
   }

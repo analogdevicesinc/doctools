@@ -10,8 +10,13 @@ export class VersionDropdown {
     this.$ = {}
 
     this.parent = app
-    this.prefix = this.parent.state.sub_hosted ?
-                 `/${this.parent.state.repository}` : ''
+    /* polyfill < v0.4.11 */
+    let prefix = ''
+    if (Object.hasOwn(this.parent.state, 'sub_hosted'))
+      this.prefix = this.parent.state.sub_hosted === true ?
+                   `/${this.parent.state.repository}` : ''
+    else
+      this.prefix = this.parent.state.subhost
 
     this.init()
   }
@@ -111,22 +116,26 @@ export class VersionDropdown {
       let entry = new DOM('a', {
         'href': key.length > 0 ?
                   `${this.prefix}/${key}` :
-                  `${this.prefix}`
+                  `${this.prefix !== '' ? this.prefix : '/.'}`
       })
       let handle = (self, new_tab, e) => {
         e.preventDefault()
         let start = app.state.path.length > 0 ?
                       `${this.prefix}/${app.state.path}` :
-                      `${this.prefix}`,
-            og_url = location.pathname + location.hash
-        if (og_url.startsWith(start)) {
-          let url = self.$.href + og_url.substring(start.length)
+                      `${this.prefix}`
+        if (location.pathname.startsWith(start)) {
+          let pathname = location.pathname.substring(start.length + 1)
+
+          if (self.$.href.slice(-1) !== '/')
+            pathname = '/' + pathname
+          let url = new URL(self.$.href + pathname)
+          url.hash = location.hash
           Toolbox.try_redirect(url, self.$.href, new_tab)
         } else {
           if (new_tab)
             window.open(self.$.url, '_blank').focus()
           else
-            location.url(self.$.url)
+            location.href = self.$.url
         }
       }
       entry.onclick (this, handle, [entry, false])
