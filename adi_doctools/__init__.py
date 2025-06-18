@@ -70,6 +70,10 @@ def config_inited(app, config):
     # Parameter to enable PDF output tweaks
     config.media_print = True if getenv("ADOC_MEDIA_PRINT") is not None else False
 
+    # Default repository as project if not provided
+    if config.repository is None:
+        config.repository = config.project
+
 def builder_inited(app):
     if app.builder.format == 'html':
         # Add include regardless of theme.
