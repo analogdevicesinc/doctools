@@ -124,6 +124,9 @@ class Toolbox {
    * Try to fetch every item in array.
    */
   static async fetch_each (urls) {
+    if (!Array.isArray(urls))
+      urls = [urls]
+
     for (let url of urls) {
       try {
         const request = new Request(url)
@@ -139,32 +142,6 @@ class Toolbox {
       }
     }
     return {'error': `No url returned a valid JSON, urls: ${urls}`}
-  }
-  static cache_check (state, fetch_url, hours, callback) {
-    if (!Array.isArray(fetch_url))
-      fetch_url = [fetch_url]
-
-    let cache_key = fetch_url[0]
-    let json = localStorage.getItem(cache_key)
-    if (json !== null)
-      json = JSON.parse(json)
-
-    let cache_timeout = new Date(0)
-    cache_timeout.setHours(hours)
-    if (state.reloaded === true || json === null || json['timestamp'] + cache_timeout.valueOf() < Date.now()) {
-      Toolbox.fetch_each(fetch_url).then((json) => {
-        if ('error' in json) {
-          console.error(`Failed to fetch resource, due to:`, json['error'])
-          return
-        }
-
-        json['timestamp'] = Date.now()
-        callback(json)
-        localStorage.setItem(cache_key, JSON.stringify(json))
-      })
-    } else {
-      callback(json)
-    }
   }
   /*
    * Return alphanumeric sequence. Can be us used for shortcuts.

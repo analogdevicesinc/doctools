@@ -30,17 +30,22 @@ export class Fetch {
         urls.unshift('/metadata.json')
       }
     }
-    Toolbox.cache_check(this.parent.state,
-                        urls, 24, (obj) => {this.init_metadata(obj)})
+    Toolbox.fetch_each(urls).then((obj) => {
+      if ('error' in obj) {
+        console.error(`Failed to fetch resource, due to:`, obj['error'])
+        return
+      }
+      this.init_metadata(obj['obj'], obj['url'])
+    })
   }
   /**
    * Attach metadata to this and call to inject extra modules.
    */
-  init_metadata (obj) {
-    this.parent.state.metadata = obj['obj']
+  init_metadata (obj, url) {
+    this.parent.state.metadata = obj
 
-    if ('modules' in obj['obj'])
-      this.load_modules(obj['obj']['modules'], obj['url'])
+    if ('modules' in obj)
+      this.load_modules(obj['modules'], url)
   }
   /**
    * Inject any JavaScript and CSS StyleSheet listed on the metadata.

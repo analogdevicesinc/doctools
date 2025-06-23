@@ -25,8 +25,13 @@ export class VersionDropdown {
     if (this.parent.state.offline)
       return
 
-    Toolbox.cache_check(this.parent.state, `${this.prefix}/tags.json`,
-                        2, (obj) => {this.render(obj['obj'])})
+    Toolbox.fetch_each(`${this.prefix}/tags.json`).then((obj) => {
+      if ('error' in obj) {
+        console.error(`Failed to fetch resource, due to:`, obj['error'])
+        return
+      }
+      this.render(obj['obj'])
+    })
   }
   /**
    * Assert if tags.json is valid
