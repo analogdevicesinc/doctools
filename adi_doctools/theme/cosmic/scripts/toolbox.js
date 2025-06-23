@@ -174,4 +174,19 @@ class Toolbox {
     const alphabet = [...Array(25).keys()].map(n => String.fromCharCode(98 + n))
     return numbers.concat(alphabet)
   }
+  /*
+   * Lazy method to await condition,
+   * useful for:
+   *   await waitUntil(() => this.parent.state.metadata !== undefined)
+   * When testing parts of extra.js temporally under app.js
+   */
+  static waitUntil = (condition, checkInterval=100) => {
+    return new Promise(resolve => {
+      let interval = setInterval(() => {
+        if (!condition()) return;
+        clearInterval(interval);
+        resolve();
+      }, checkInterval)
+    })
+  }
 }
