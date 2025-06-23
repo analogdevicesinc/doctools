@@ -1,5 +1,6 @@
 "use strict";
 
+import {VersionDropdown} from './version_dropdown.js'
 import {Toolbox} from './toolbox.js'
 import {DOM} from './dom.js'
 
@@ -55,6 +56,7 @@ export class Search {
 
     this.index = {}
     this.index_state = {}
+    this.key_prefix = {}
 
     let $ = this.$ = {}
     $.keyCheckbox = {}
@@ -168,23 +170,57 @@ export class Search {
     }
     return leftScore > rightScore ? 1 : -1;
   };
+  async get_default_searchindex(key, not_sub_hosted) {
+    const prefix = not_sub_hosted && key === "local" ?
+                   location.origin : `${this.parent.state.metadata.remote_doc}${key}`
+    let process = (obj) => {
+      let path = ""
+      if (!('error' in obj)) {
+        let mode = VersionDropdown.assert(obj['obj'])
+        if (mode === true)
+          return prefix
+
+        else if (mode == "fine-grained")
+          obj['obj'] = VersionDropdown.object_to_string_array(obj['obj'])
+        let arr = obj['obj']
+
+        if (arr.includes(""))
+          path = ""
+        else if(arr.includes("main"))
+          path = "main/"
+        else if (arr.some(item => item.includes("adi_meta")))
+          path = `${arr.find(item => item.includes("adi_meta"))}/`
+        else
+          path = `${arr.at(0)}/`
+      }
+      return `${prefix}/${path}`
+    }
+
+    return await Toolbox.fetch_each(`${prefix}/tags.json`).then((obj) => {
+      this.key_prefix[key] = process(obj)
+      return `${this.key_prefix[key]}searchindex.js`
+    })
+  }
   check_toc (key, ev) {
     if (ev.target.checked) {
       if (this.index_state[key].requested === false) {
-        let remote = `${this.parent.state.metadata.remote_doc}${key}/searchindex.js`
         /* polyfill < v0.4.11 */
         let not_sub_hosted
         if (Object.hasOwn(this.parent.state, 'sub_hosted'))
           not_sub_hosted = !this.parent.state.sub_hosted
         else
           not_sub_hosted = this.parent.state.subhost === '' || this.parent.state.subhost === undefined
-        if (not_sub_hosted && key === "local")
-          remote = `${location.origin}/searchindex.js`
-        let search_ = new URL(remote)
-        this.load_index(search_.href, key)
-        this.index_state[key].requested = true
-        this.$.keyCheckbox[key].classList.add('requested')
-        this.$.keyCheckbox[key].classList.remove('failed')
+        this.get_default_searchindex(key, not_sub_hosted)
+          .then((url) => {
+            console.log(url)
+            let search_ = new URL(url)
+            this.load_index(search_.href, key)
+            this.index_state[key].requested = true
+            this.$.keyCheckbox[key].classList.add('requested')
+            this.$.keyCheckbox[key].classList.remove('failed')
+            this.renew_search()
+          })
+        return
       } else {
         this.query(this.$.searchInput.$.value)
       }
@@ -638,12 +674,10 @@ export class Search {
 
       let searchResults_ = []
       /* For now, versioning is not supported, so content_root or path are not used */
-      let prefix = key === "local" ?
-                   '' : `${this.parent.state.metadata.remote_doc}${key}`
       results.reverse()
       results.forEach((item) => {
         const [docName, title, anchor, descr, score, _filename, kind] = item;
-        let href_ = `${prefix}/${docName}.html${anchor}`
+        let href_ = `${this.key_prefix[key]}${docName}.html${anchor}`
         let li_ = new DOM('li').append(
           new DOM('a', {
             href: href_,

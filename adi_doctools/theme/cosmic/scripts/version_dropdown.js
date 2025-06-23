@@ -36,7 +36,7 @@ export class VersionDropdown {
   /**
    * Assert if tags.json is valid
    */
-  assert (obj) {
+  static assert (obj) {
     let assert_string = (arr) => {
       return arr.every(item => typeof item === "string")
     }
@@ -67,9 +67,21 @@ export class VersionDropdown {
     return true
   }
   /**
+   * Convert object into strig array.
+   */
+  static object_to_string_array (obj) {
+    let obj_ = []
+
+    for (const key in obj) {
+      obj_.push(key)
+    }
+
+    return obj_
+  }
+  /**
    * Convert string array of versions into object.
    */
-  string_array_to_object (obj) {
+  static string_array_to_object (obj) {
     let obj_ = {}
 
     obj.forEach((item) => {
@@ -93,11 +105,11 @@ export class VersionDropdown {
     let version = this.parent.state.version
     let path = this.parent.state.path
     let label = ''
-    let mode = this.assert(obj)
+    let mode = VersionDropdown.assert(obj)
     if (mode === true)
       return
     else if (mode == "string-array")
-      obj = this.string_array_to_object(obj)
+      obj = VersionDropdown.string_array_to_object(obj)
 
     let toc_tree = DOM.get('.sphinxsidebarwrapper .toc-tree')
     let nav_bar = DOM.get('header #right .reverse')
