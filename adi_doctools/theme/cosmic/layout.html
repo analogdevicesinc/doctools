@@ -7,6 +7,9 @@
   {% endif %}
   <meta name="repository" content="{{ repotoc_current }}">
   <meta name="version" content="{{ version }}">
+  {% if page_source_suffix %}
+    <meta name="page_source_suffix" content="{{ page_source_suffix }}">
+  {% endif %}
 
   {%- block theme_styles %}
   {% include "section/css_variables.html" with context %}

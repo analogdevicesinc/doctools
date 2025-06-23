@@ -87,6 +87,14 @@ export class PageActions {
     if (this.page_source_ignore())
       return
 
+    let page_source_suffix = () => {
+      let dom = document.querySelector('meta[name="page_source_suffix"]')
+      if (dom === null)
+        return '.rst'
+      return dom.content
+    }
+    let suffix = page_source_suffix()
+
     let format_tgt = (hostname) => {
       return hostname.replace('{repository}', r)
                               .replace('{branch}', m['repotoc'][r]['branch'])
@@ -105,9 +113,9 @@ export class PageActions {
     let pathname = path.substring(base.length)
 
     if (pathname.endsWith('.html'))
-      pathname = pathname.replace(/\.html$/i, '.rst')
+      pathname = pathname.replace(/\.html$/i, suffix)
     else
-      pathname = pathname.concat('index.rst')
+      pathname = pathname.concat(`index${suffix}`)
 
     tgt = tgt.concat('/', pathname)
     tgt_raw = tgt_raw.concat('/', pathname)
