@@ -21,7 +21,7 @@ class PoolChanges {
   */
   static async do (url) {
     const response = await fetch(url, {
-      signal: AbortSignal.timeout(250),
+      signal: AbortSignal.timeout(32000),
       cache: "no-store"
     })
 
@@ -56,16 +56,27 @@ class PoolChanges {
     if ('file:' == window.location.protocol)
       return [null, null]
 
-    for (const url of urls) {
+    const do_fetch = async (url) => {
       try {
         const response = await fetch(url, {
-          signal: AbortSignal.timeout(5000),
+          signal: AbortSignal.timeout(250),
+          headers: {"no-wait": ""},
           cache: "no-store"
         })
 
         if (response.ok)
           return [url, await response.text()]
-      } catch (e) {}
+      } catch (e) {
+        if (e.name === "TimeoutError")
+          return await do_fetch(url)
+        return [null, null]
+      }
+    }
+
+    for (const url of urls) {
+      const ret = await do_fetch(url)
+      if (ret[0] !== null)
+        return ret
     }
 
     return [null, null]
@@ -81,10 +92,7 @@ PoolChanges.search(PoolChanges.get_paths()).then(obj => {
     console.log("File .dev-pool is absent, pooling interface disabled.")
     return
   }
-
-  console.log(`File ${url} is present, pooling interface enabled.`)
-  pool_timestamp = Number(obj_.split("\n")[0])
-  pool_interval = setInterval(() => {
+  do_pool = () => {
     PoolChanges.do(url).then(obj => {
       obj = obj.split("\n")
       if (this.pool_timestamp < Number(obj[0])) {
@@ -95,16 +103,21 @@ PoolChanges.search(PoolChanges.get_paths()).then(obj => {
         else
           location.reload()
       }
+      setTimeout(do_pool, 500)
     }).catch(e => {
       if (e.statusText === "File not found") {
         console.error(`${e.statusText}: File ${url} was removed, pooling interface disabled.`)
-        clearInterval(this.pool_interval)
       } else {
         if (e.name !== last_error_name) {
           console.log(`${e.name}: Failed to fetch ${url}, but still trying.`)
           last_error_name = e.name
         }
+        setTimeout(do_pool, 500)
       }
     })
-  }, 500)
+  }
+
+  console.log(`File ${url} is present, pooling interface enabled.`)
+  pool_timestamp = Number(obj_.split("\n")[0])
+  setTimeout(do_pool, 500)
 })

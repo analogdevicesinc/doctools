@@ -42,6 +42,7 @@ trigger_rst = ("", "")
 theme_path = path.join('adi_doctools', 'theme', 'cosmic')
 style_path = path.join(theme_path, 'style')
 static_path = path.join(theme_path, 'static')
+dev_pool_val = b""
 
 BLUE = '\033[94m'
 FAIL = '\033[91m'
@@ -147,6 +148,7 @@ def serve(directory, port, dev, selenium, once, builder):
         if builder == 'html':
             click.echo("Shutting down server")
             with lock:
+                reload_event.set()
                 http.shutdown()
                 http.server_close()
         if dev:
@@ -383,12 +385,36 @@ def serve(directory, port, dev, selenium, once, builder):
 
     builddir = path.join(directory, builddir_, builder)
 
+    reload_event = threading.Event()
+    dev_pool_lock = threading.Lock()
     class Handler(http.server.SimpleHTTPRequestHandler):
         def __init__(self, *args, **kwargs):
             global builddir
             super().__init__(*args, directory=builddir, **kwargs)
 
         def do_GET(self):
+            global dev_pool_val
+
+            def send_dev_pool():
+                self.send_response(200)
+                self.send_header("Content-type", "text/plain")
+                self.end_headers()
+                with dev_pool_lock:
+                    self.wfile.write(dev_pool_val)
+                self.end_headers()
+                return
+
+            if not with_selenium and self.path == "/.dev-pool":
+                if self.headers.get("no-wait") is not None:
+                    send_dev_pool()
+                    return
+                if reload_event.wait(timeout=30):
+                    reload_event.clear()
+                    send_dev_pool()
+                else:
+                    send_dev_pool()
+                return
+
             for ext in types_lfs:
                 if self.path.endswith(ext):
                     path_ = path.join(builddir, self.path[1:])
@@ -412,7 +438,7 @@ def serve(directory, port, dev, selenium, once, builder):
 
     if builder == "html":
         try:
-            http = socketserver.TCPServer(("", port), Handler)
+            http = socketserver.ThreadingTCPServer(("", port), Handler)
             lock = threading.Lock()
             http_thread = threading.Thread(target=http.serve_forever)
             http_thread.daemon = True
@@ -429,8 +455,15 @@ def serve(directory, port, dev, selenium, once, builder):
     dev_pool = path.join(builddir, '.dev-pool')
 
     def update_dev_pool(file):
+        global dev_pool_val
+        dev_pool_val_ = f"{str(time.time())}\n{file}\n"
+        # For XHR
+        with dev_pool_lock:
+            dev_pool_val = bytes(dev_pool_val_, 'utf-8')
+        reload_event.set()
+        # For alt servers, e.g. at ../ of {./doctools, ./no-OS}
         dev_f = open(dev_pool, 'w')
-        dev_f.write(f"{str(time.time())}\n{file}\n")
+        dev_f.write(dev_pool_val_)
         dev_f.close()
 
     if with_selenium:
@@ -572,8 +605,8 @@ def serve(directory, port, dev, selenium, once, builder):
         if update_sphinx or update_page:
             if with_selenium:
                 try:
-                    driver.execute_script("location.reload();")
-                except Exception:
+                    driver.execute_script(f"location.replace('{trigger_rst[1]}');")
+                except Exception as e:
                     click.echo("Browser disconnected")
                     if dev:
                         killpg(getpgid(rollup_p.pid), signal.SIGTERM)
