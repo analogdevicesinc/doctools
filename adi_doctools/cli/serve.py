@@ -197,11 +197,11 @@ def serve(directory, port, dev, selenium, once, builder):
     if dev:
         if which("node") is None:
             click.echo(log['node'])
-            return
+            sys.exit(1)
         if symbolic_assert(rollup_conf, log['rollup'].format(rollup_conf)):
-            return
+            sys.exit(1)
         if symbolic_assert(rollup_bin, log['node_'].format(rollup_bin)):
-            return
+            sys.exit(1)
     else:
         with_sources = True
         for s in source_files:
@@ -234,19 +234,19 @@ def serve(directory, port, dev, selenium, once, builder):
             with_selenium = True
         else:
             click.echo(log['no_selenium'])
-            return
+            sys.exit(1)
 
     directory = path.abspath(directory)
     conf_py = path.join(directory, 'conf.py')
     if symbolic_assert(conf_py, log['no_conf_py']):
-        return
+        sys.exit(1)
 
     builddir_ = "_build"
     builddir = path.join(directory, builddir_, builder)
     doctreedir = path.join(builddir_, "doctrees")
     sourcedir = directory
     if dir_assert(sourcedir, log['inv_srcdir']):
-        return
+        sys.exit(1)
 
     types_lfs = []
     if git_top_level := get_git_top_level(directory):
@@ -331,7 +331,7 @@ def serve(directory, port, dev, selenium, once, builder):
             w_files.extend(f)
         for f in w_files:
             if symbolic_assert(f, log['inv_f']):
-                return
+                sys.exit(1)
 
         # Build doc the first time
         app.build()
