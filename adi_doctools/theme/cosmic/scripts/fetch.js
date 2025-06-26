@@ -23,7 +23,8 @@ export class Fetch {
     ]
     if (Object.hasOwn(this.parent.state, 'sub_hosted')) {
       if (this.parent.state.offline === false)
-        urls.unshift('/metadata.json', '/doctools/metadata.json', '/docs/doctools/metadata.json')
+        // REVISIT: To save 56ms, infer docs from hostname
+        urls.unshift('/docs/doctools/metadata.json', '/doctools/metadata.json', '/metadata.json')
     } else {
       if (this.parent.state.offline === false) {
         urls.unshift(new URL(`${this.parent.state.subhost}/../doctools/metadata.json`, location).href)
