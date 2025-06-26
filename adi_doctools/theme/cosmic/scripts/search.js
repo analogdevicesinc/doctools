@@ -212,7 +212,6 @@ export class Search {
           not_sub_hosted = this.parent.state.subhost === '' || this.parent.state.subhost === undefined
         this.get_default_searchindex(key, not_sub_hosted)
           .then((url) => {
-            console.log(url)
             let search_ = new URL(url)
             this.load_index(search_.href, key)
             this.index_state[key].requested = true
@@ -798,6 +797,11 @@ export class Search {
     }
     this.select_filter_tags(e)
   }
+  focus (e) {
+    // Resolve keyDown not captured due to browser Ctrl shortcut
+    if (this.$.searchTags.classList.contains('on'))
+        this.$.searchTags.classList.remove('on')
+  }
   include_item (key, name, shortcut) {
     this.index_state[key] = {
       ready: false,
@@ -882,5 +886,6 @@ export class Search {
 
     document.addEventListener('keyup', (e) => {this.keyup(e)}, false);
     document.addEventListener('keydown', (e) => {this.keydown(e)}, false);
+    document.addEventListener("focus", (e) => {this.focus(e)})
   }
 }
