@@ -1,7 +1,7 @@
 from typing import Tuple, List
 from sphinx.util.osutil import SEP
 
-import os
+from os import mkdir, path, pardir, environ
 import click
 import subprocess
 import re
@@ -46,14 +46,14 @@ class pr:
     def mkdir(d):
         global dry_run
         if not dry_run:
-            os.mkdir(d)
+            mkdir(d)
         else:
             click.echo(f"mkdir {d}")
 
 
 def patch_index(name, docsdir, indexfile):
     global dry_run
-    file = os.path.join(os.path.join(docsdir, name), 'index.rst')
+    file = path.join(path.join(docsdir, name), 'index.rst')
     toctree = []
 
     with open(file, "r") as f:
@@ -137,12 +137,11 @@ def get_sphinx_dirs(cwd) -> Tuple[bool, str, str]:
     conf_py = path.join(cwd, 'conf.py')
     if not path.isfile(conf_py):
         click.echo(click.style(f"{conf_py} does not exist, skipped!", fg='red'))
-        return (True, '', '')
+        return (True, '')
 
-    sourcedir = cwd
     builddir = path.join(cwd, f"_build/html")
 
-    return [False, builddir, sourcedir]
+    return (False, builddir)
 
 
 def do_extra_steps(repo_dir):
@@ -150,7 +149,7 @@ def do_extra_steps(repo_dir):
     for l_ in repos:
         if 'extra' in repos[l_]:
             cwd, cmd, no_p = repos[l_]['extra']
-            cwd = os.path.join(repo_dir, f"{l_}/{cwd}")
+            cwd = path.join(repo_dir, f"{l_}/{cwd}")
             nproc = 1 if no_parallel or no_p else 4
             if cmd[0] == 'make':
                 pr.run(f"{' '.join(cmd)} -j{nproc}", cwd)
@@ -163,28 +162,28 @@ def gen_symbolic_doc(repo_dir):
     mk = []
     p = []
     for r in repos:
-        cwd = os.path.join(repo_dir, f"{r}/{repos[r]['pathname']}")
-        click.echo(f"Starting sphinx for {r}")
-        mk.append(get_sphinx_dirs(cwd))
-        if mk[-1][0]:
+        sourcedir = path.join(repo_dir, r, repos[r]['pathname'])
+        not_valid, builddir = get_sphinx_dirs(sourcedir)
+        mk.append([not_valid, sourcedir, builddir])
+        if not_valid:
             continue
 
-        env = os.environ.copy()
-        env["ADOC_INTERREF_URI"] = os.path.abspath(os.path.join(repo_dir, "..", "html")) + SEP
-        pr.popen(['sphinx-build', '-M', 'html', f"'{mk[1]}'", f"'{mk[0]}'"], p, cwd, env=env)
+        env = environ.copy()
+        env["ADOC_INTERREF_URI"] = path.abspath(path.join(repo_dir, "..", "html")) + SEP
+        pr.popen(['sphinx-build', '-M', 'html', sourcedir, builddir], p, sourcedir, env=env)
     pr.wait(p)
 
-    d_ = os.path.abspath(os.path.join(repo_dir, os.pardir))
+    d_ = path.abspath(path.join(repo_dir, pardir))
 
-    out = os.path.join(d_, 'html')
-    if os.path.isdir(out):
+    out = path.join(d_, 'html')
+    if path.isdir(out):
       pr.run(f"rm -r {out}")
     pr.mkdir(out)
     for r, m in zip(repos, mk):
         if m[0]:
             continue
-        d_ = os.path.join(out, r)
-        pr.popen(['cp', '-r', m[1], d_], p)
+        d_ = path.join(out, r)
+        pr.popen(['cp', '-r', path.join(m[2], 'html'), d_], p)
     pr.wait(p)
 
 
@@ -200,7 +199,7 @@ def gen_symbolic_doc(repo_dir):
 )
 @click.option(
     '--extra',
-    '-t',
+    '-e',
     is_flag=True,
     default=False,
     help="Compile extra features."
@@ -229,7 +228,14 @@ def gen_symbolic_doc(repo_dir):
     default=False,
     help="Open after generation (xdg-open)."
 )
-def aggregate(directory, extra, no_parallel_, dry_run_, open_):
+@click.option(
+    '--ssh',
+    '-s',
+    is_flag=True,
+    default=False,
+    help="Clone repositories with SSH instead of HTTPS."
+)
+def aggregate(directory, extra, no_parallel_, dry_run_, open_, ssh):
     """
     Creates a symbolic-aggregated documentation out of every repo
     documentation.
@@ -238,23 +244,24 @@ def aggregate(directory, extra, no_parallel_, dry_run_, open_):
     global dry_run, no_parallel
     no_parallel = no_parallel_
     dry_run = dry_run_
-    directory = os.path.abspath(directory)
+    directory = path.abspath(directory)
 
     if not extra:
         click.echo("Extra features disabled, use --extra to enable.")
 
-    repos_dir = os.path.join(directory, 'repos')
+    repos_dir = path.join(directory, 'repos')
     if not dry_run:
-        if not os.path.isdir(directory):
+        if not path.isdir(directory):
             pr.mkdir(directory)
-        if not os.path.isdir(repos_dir):
+        if not path.isdir(repos_dir):
             pr.mkdir(repos_dir)
 
     p = []
+    remote = lut['remote_https'] if not ssh else lut['remote_ssh']
     for r in repos:
-        cwd = os.path.join(repos_dir, r)
-        if not os.path.isdir(cwd):
-            git_cmd = ["git", "clone", lut['remote_ssh'].format(r), "--depth=1", "-b",
+        cwd = path.join(repos_dir, r)
+        if not path.isdir(cwd):
+            git_cmd = ["git", "clone", remote.format(r), "--depth=1", "-b",
                        repos[r]['branch'], '--', cwd]
             pr.popen(git_cmd, p)
         else:

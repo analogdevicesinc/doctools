@@ -55,11 +55,11 @@ def get_sphinx_dirs(cwd) -> Tuple[bool, str, str]:
     conf_py = path.join(cwd, 'conf.py')
     if not path.isfile(conf_py):
         click.echo(click.style(f"{conf_py} does not exist, skipped!", fg='red'))
-        return (True, '', '')
+        return (True, '')
 
     builddir = path.join(cwd, f"_build/html")
 
-    return [False, builddir]
+    return (False, builddir)
 
 
 def do_extra_steps(repo_dir, doc):
