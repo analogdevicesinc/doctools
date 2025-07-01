@@ -529,10 +529,17 @@ def serve(directory, port, dev, selenium, once, builder):
 
 
     def get_trigger_rst(trigger_rst_, file):
-        if not file.endswith(".rst") or trigger_rst_[0] == file:
+        if trigger_rst_[0] == file:
             return trigger_rst_
 
-        path_ = path.relpath(file, sourcedir)[:-4] + ".html"
+        if file.endswith(".rst"):
+            c = -4
+        if file.endswith(".md"):
+            c = -3
+        else:
+            return trigger_rst_
+
+        path_ = path.relpath(file, sourcedir)[:c] + ".html"
         if path_.startswith("../"):
             # Outside of source dir, unsupported
             return trigger_rst_
