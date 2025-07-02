@@ -292,10 +292,10 @@ def serve(directory, port, dev, selenium, once, builder):
         click.echo("preparing pdf styles...")
 
         font_config = FontConfiguration()
-        src_dir = path.abspath(path.join(path.dirname(__file__), pardir, pardir))
-        css = CSS(path.join(src_dir, cosmic, 'static', 'app.min.css'),
+        src_dir = path.abspath(path.join(path.dirname(__file__), pardir))
+        css = CSS(path.join(src_dir, 'theme', 'cosmic', 'static', 'app.min.css'),
                   font_config=font_config)
-        css_extra = CSS(path.join(src_dir, cosmic, 'style', 'weasyprint.css'),
+        css_extra = CSS(path.join(src_dir, 'theme', 'cosmic', 'style', 'weasyprint.css'),
                         font_config=font_config)
 
         click.echo("rendering pdf content...")
