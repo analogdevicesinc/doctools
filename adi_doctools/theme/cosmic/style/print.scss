@@ -4,6 +4,12 @@
     }
 }
 
+@media not screen {
+    .only-screen {
+        display: none !important;
+    }
+}
+
 @media print {
     body {
         font-size: .8rem;

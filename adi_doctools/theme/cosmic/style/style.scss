@@ -136,6 +136,10 @@ body {
     .body {
         min-height: calc(100vh - 7rem);
     }
+
+    .body-header + .body {
+        min-height: calc(100vh - 8.5rem);
+    }
 }
 
 @media (max-width: variable.$screen-1) {
