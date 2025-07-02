@@ -3,7 +3,6 @@
  * Browser agnostic alternative to the selenium mode.
  * This is an exceptional asset that gets inject to
  * the html regardless of the theme.
- * * TODO preserve scroll || scroll pos
  */
 
 /* Global variable to store timestamp and interval handler */
@@ -11,7 +10,22 @@ var pool_timestamp
 var pool_interval
 /* Keep track of last error to reduce log clutter */
 var last_error_name
+/* Check if reload condition was triggered by pooled changes */
+var pool_preserve_scroll = false
 
+/* Hooks to restore scroll postion */
+window.onload = () => {
+  /* Onload because we want to scroll down after all content that may push the
+   * page down loads first */
+  var scrollpos = localStorage.getItem('devpool_scroll_position');
+  if (scrollpos) window.scrollTo(0, scrollpos);
+}
+window.onbeforeunload = () => {
+  if (pool_preserve_scroll === true)
+    localStorage.setItem('devpool_scroll_position', window.scrollY)
+  else
+    localStorage.removeItem('devpool_scroll_position')
+}
 /**
  * Pool changes, return a text on success and true on error.
  */
@@ -83,13 +97,6 @@ class PoolChanges {
     return [null, null]
   }
 }
-window.onload = () => {
-  var scrollpos = localStorage.getItem('devpool_scroll_position');
-  if (scrollpos) window.scrollTo(0, scrollpos);
-}
-window.onbeforeunload = () => {
-  localStorage.setItem('devpool_scroll_position', window.scrollY)
-}
 /*
  * Serve watch mode, reload webpage on changes.
  * Alternative to selenium.
@@ -106,6 +113,7 @@ PoolChanges.search(PoolChanges.get_paths()).then(obj => {
       if (this.pool_timestamp < Number(obj[0])) {
         url_ = new URL(url, location.origin)
         url_ = new URL(obj[1], url_)
+        pool_preserve_scroll = true
         if (document.visibilityState === 'visible' && obj[1] !== "")
           location.href = url_
         else
