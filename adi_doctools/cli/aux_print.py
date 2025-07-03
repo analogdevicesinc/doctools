@@ -1,7 +1,7 @@
 from packaging.version import Version
 
 from sphinx.__init__ import __version__ as sphinx_version
-from os.path import basename
+from os import path
 from lxml import html, etree
 from click import echo
 import importlib.util
@@ -12,6 +12,7 @@ def sanitize_singlehtml(file) -> str:
     * Remove the embed style
     * Extract custom doc name
     * Covert toctree caption into "volumes" (H1 header)
+    * Replace 'document-' anchor with immediate header anchor
     """
 
     root = html.parse(file).getroot()
@@ -22,8 +23,13 @@ def sanitize_singlehtml(file) -> str:
         link.getparent().remove(link)
 
     # Obtain toctree caption to use as volume titles
-    toc_tree = root.xpath("//body//div[@class='toc-tree']")[0]
-    cap_ = toc_tree.xpath("./p[@class='caption' and @role='heading']//span[@class='caption-text']")
+    toc_tree = root.xpath("//body//div[@class='toc-tree']")
+    if len(toc_tree):
+        toc_tree = toc_tree[0]
+        cap_ = toc_tree.xpath("./p[@class='caption' and @role='heading']//span[@class='caption-text']")
+        echo(f"Toc-tree not found, skipped")
+    else:
+        cap_ = []
     volumes = []
     for c in cap_:
         ul_ = c.getparent().getnext()
@@ -45,7 +51,7 @@ def sanitize_singlehtml(file) -> str:
     else:
         description = ''
 
-    bwrap = root.xpath("//div[@class='bodywrapper']")[0]
+    bwrap = root.xpath("//*[@role='main']")[0]
 
     # Remove first H1 and replace with break-before
     # if next if not a section (e.g. introduction)
@@ -66,8 +72,12 @@ def sanitize_singlehtml(file) -> str:
     ele_desc = etree.Element("span")
     ele_desc.attrib['class'] = "description"
     ele_desc.text = description
-    first_page = root.xpath("//header//a[@id='logo']")[0]
-    first_page.insert(1, ele_desc)
+    first_page = root.xpath("//header//a[@id='logo']")
+    if len(toc_tree):
+        first_page = first_page[0]
+        first_page.insert(1, ele_desc)
+    else:
+        echo(f"Logo not found, skipped adding description")
 
     # Find indexes and add volumes
     for c, i in volumes:
@@ -92,7 +102,7 @@ def sanitize_singlehtml(file) -> str:
     #    href="index.html#my-label"
     # So, for < v8.1.0, patch href="my-index.html#*" -> href="#*"
     if Version(sphinx_version) < Version("8.1.0"):
-        filename = basename(file)
+        filename = path.basename(file)
         len_fname = len(filename)
 
         a_ = root.xpath("//a[@class='reference internal']")
@@ -100,6 +110,8 @@ def sanitize_singlehtml(file) -> str:
             if a__.attrib['href'].startswith(filename):
                 a__.attrib['href'] = a__.attrib['href'][len_fname:]
 
+    toc = root.xpath("//body//div[@class='tocwrapper']/nav/ul")
+    toc = toc[0] if toc else None
     # Starting from Sphinx version v8.2.0, commit c93723b803
     # singlehtml localtoc are broken because
     # while all ids beyond page id remain as #my-anchor,
@@ -109,11 +121,26 @@ def sanitize_singlehtml(file) -> str:
     # so discarding the left side is enough
     # REVISIT: Check if newer Sphinx fixes the issue
     if Version(sphinx_version) >= Version("8.2.0"):
-        local_tocs = root.xpath("//body//div[@class='tocwrapper']/nav/ul")
-        for toc in local_tocs:
-            a_ = toc.xpath(".//a[@class='reference internal']")
-            for a__ in a_:
-                a__.attrib['href'] = a__.attrib['href'][a__.attrib['href'].rindex("#"):]
+        a_ = toc.xpath(".//a[@class='reference internal']")
+        for a__ in a_:
+            a__.attrib['href'] = a__.attrib['href'][a__.attrib['href'].rindex("#"):]
+
+    # In the toctree and body, replace document anchor by the immediate header anchor,
+    # to scroll to the correct position.
+    for span in bwrap.xpath('.//span[following-sibling::*[1][self::section]]'):
+        section = span.getnext()
+        heading = section.xpath('./h1 | ./h2 | ./h3 | ./h4 | ./h5 | ./h6')
+        if heading:
+            anchor0 = "#" + span.get('id')
+            anchor1 = "#" + section.get('id')
+            toclink = toc.xpath(f".//a[@href='{anchor0}']")
+            if toclink:
+                toclink[0].set('href', anchor1)
+
+            bodylink = bwrap.xpath(f".//a[@href='{anchor0}']")
+            for bl in bodylink:
+                print("found", bl.attrib['href'], bl.get('class'), anchor1)
+                bl.set('href', anchor1)
 
     # Render LaTeX math with matplotlib.mathtext
     if not importlib.util.find_spec("matplotlib"):
@@ -152,6 +179,10 @@ def sanitize_singlehtml(file) -> str:
             m_.text=""
             m_.append(svg)
 
-    return html.tostring(root, encoding="utf-8", method="html")
+    html_utf8 = html.tostring(root, encoding="utf-8", method="html")
+    # For checking the output
+    with open(path.join(path.dirname(file), "." + path.basename(file)), 'wb') as f:
+        f.write(html_utf8)
+    return html_utf8
 
 

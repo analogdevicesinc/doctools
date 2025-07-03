@@ -12,7 +12,8 @@ And read the :ref:`cli` for information about the command line interface
 provided by Doctools.
 
 .. toctree::
-   :maxdepth: 1
+   :hidden:
+   :maxdepth: 3
 
    install
    fundamentals

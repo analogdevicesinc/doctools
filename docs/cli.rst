@@ -45,6 +45,11 @@ For PDF output, do:
 Make sure to use an PDF viewer that watches the file timestamp
 and automatically reloads, such as Gnome PDF (Evince).
 
+.. tip::
+
+   The PDF's table of contents depth is set by the top index page's
+   ``maxdepth`` property of the toctree.
+
 All options can be listed with:
 
 .. shell::

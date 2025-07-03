@@ -59,8 +59,8 @@
         width: 100%;
     }
 
-    h1 {
-        break-before: always
+    section:has(> h1) {
+        break-before: always;
     }
 
     .tocwrapper ul li a {

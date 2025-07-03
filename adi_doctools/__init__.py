@@ -51,6 +51,14 @@ def html_page_context(app, pagename, templatename, context, doctree):
 
 
 def config_inited(app, config):
+    """
+    Called only when adi_doctools is present in the extensions list.
+    Can be used to adjust features when using other themes.
+    """
+    return
+
+def builder_inited(app):
+    config = app.config
 
     if config.numfig_per_doc:
         monkeypatch_figure_numbers()
@@ -74,7 +82,6 @@ def config_inited(app, config):
     if config.repository is None:
         config.repository = config.project
 
-def builder_inited(app):
     if app.builder.format == 'html':
         # Add include regardless of theme.
         if getenv("ADOC_DEVPOOL") is not None:
@@ -173,6 +180,8 @@ def setup(app):
     app.add_transform(unique_ids)
     app.add_post_transform(wrap_elements)
 
+    # All: doctools extesion
+    # Bulider/html-page-context: hooks for doctools themes
     app.connect("config-inited", config_inited)
     app.connect("builder-inited", builder_inited)
     app.connect("html-page-context", html_page_context)
