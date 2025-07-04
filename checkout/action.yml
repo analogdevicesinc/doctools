@@ -95,11 +95,6 @@ runs:
       shell: bash
       run: |
         git fetch origin --depth=$fetch_depth $GITHUB_SHA
-        avail_depth=$(git rev-list --count $GITHUB_SHA)
-        if [[ $fetch_depth -gt $avail_depth ]]; then
-          echo "fetch_depth=$avail_depth" >> $GITHUB_ENV
-        fi
-
         git reset --hard $GITHUB_SHA
         if [[ "${{ github.event.pull_request.head.sha }}" ]]; then
           # --empty was added on git 2.26.0
@@ -110,13 +105,17 @@ runs:
           else
             keep_empty="--keep-empty"
           fi
-          git rebase $keep_empty @~
+          while ! git rebase $keep_empty @~; do
+            git rebase --abort
+            git fetch origin --deepen=$fetch_depth $GITHUB_SHA
+          done
         else
           ahead_by=$((fetch_depth - 1))
           echo "ahead_by=$ahead_by" >> $GITHUB_ENV
         fi
         echo "head_sha=$(git rev-parse @)" >> "$GITHUB_ENV"
         echo "base_sha=$(git rev-parse @~$ahead_by)" >> "$GITHUB_ENV"
+        echo "fetch_depth=$(git rev-list --count $GITHUB_SHA)" >> "$GITHUB_ENV"
 
     - name: Log commit range
       shell: bash
