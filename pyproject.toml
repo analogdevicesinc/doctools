@@ -36,8 +36,14 @@ requires-python = ">=3.8"
 dynamic = ["version"]
 
 [project.optional-dependencies]
-ci = [
-    "selenium"
+
+cli = [
+    "selenium",
+    "weasyprint"
+]
+
+test = [
+    "pytest"
 ]
 
 [tool.setuptools.packages.find]
