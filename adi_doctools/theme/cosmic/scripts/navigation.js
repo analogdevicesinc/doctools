@@ -16,7 +16,7 @@ export class Navigation {
     let $ = this.$ = {}
     $.body = new DOM(DOM.get('body'))
     $.content = new DOM(DOM.get('.body section'))
-    $.localtoc = new DOM(DOM.get('.tocwrapper > nav > ul > li'))
+    $.localtoc = new DOM(DOM.get('.tocwrapper > nav > ul'))
     this.scroll_spy()
 
     if (this.parent.state.theme === null)
