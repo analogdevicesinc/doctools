@@ -965,7 +965,7 @@ def organize_include(doc):
 )
 @click.option(
     '--extra',
-    '-t',
+    '-e',
     is_flag=True,
     default=False,
     help="Compile extra features."
