@@ -139,7 +139,6 @@ def sanitize_singlehtml(file) -> str:
 
             bodylink = bwrap.xpath(f".//a[@href='{anchor0}']")
             for bl in bodylink:
-                print("found", bl.attrib['href'], bl.get('class'), anchor1)
                 bl.set('href', anchor1)
 
     # Render LaTeX math with matplotlib.mathtext
