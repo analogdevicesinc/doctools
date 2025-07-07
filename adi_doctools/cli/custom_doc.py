@@ -57,7 +57,7 @@ def get_sphinx_dirs(cwd) -> Tuple[bool, str, str]:
         click.echo(click.style(f"{conf_py} does not exist, skipped!", fg='red'))
         return (True, '')
 
-    builddir = path.join(cwd, f"_build/html")
+    builddir = path.join(cwd, f"_build")
 
     return (False, builddir)
 
@@ -104,7 +104,12 @@ sphinx_warnings = SphinxWarnings()
 sphinx_statuses = SphinxStatuses()
 
 template_config = """
+# -- Path setup --------------------------------------------------------------
 from os import path
+from sys import path as sys_path
+
+$sys_path_insert$
+
 # -- Project information -----------------------------------------------------
 
 repository = 'custom'
@@ -442,6 +447,8 @@ def prepare_doc(doc, repos_dir, doc_dir):
     entry_points = [e[:-4] for e in entry_points]
 
     missing_ext = []
+    sys_path_og = list(sys.path)
+    sys_path_ = set()
     for r in doc['include']:
         if r not in repos:
             click.echo(f"Unknown repo '{r}', skipped")
@@ -486,7 +493,8 @@ def prepare_doc(doc, repos_dir, doc_dir):
         if hasattr(__c, 'interref_repos'):
             doc['interref_repos'].update(__c.interref_repos)
         doc['interref_repos'].add(r)
-
+        # Get sys_paths inserted and restore
+        sys_path_.update([p for p in sys.path if p not in sys_path_og])
         # sourcedir : /path/to/hdl/docs
         # dstdir : doc/hdl
         for d in doc['include'][r]:
@@ -624,6 +632,11 @@ def prepare_doc(doc, repos_dir, doc_dir):
 
     e_ = ''.join([f"\n    '{e}'," for e in doc['extensions']]) + '\n'
     config_f = config_f.replace(f"$extensions$", e_)
+
+    sys_path_insert = ""
+    for sp in sys_path_:
+        sys_path_insert += f"sys_path.insert(0, '{sp}')\n"
+    config_f = config_f.replace(f"$sys_path_insert$", sys_path_insert)
 
     # Add local alternative inventory
     # Allows to edit the set of repos and test locally and then publish together,
