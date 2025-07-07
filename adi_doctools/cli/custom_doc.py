@@ -664,13 +664,12 @@ def prepare_doc(doc, repos_dir, doc_dir):
     statusfile = path.join('..', 'status.txt')
     warning = open(warnfile, "w")
     status = open(statusfile, "w")
-    builddir = "html"
-    doctreedir = path.join(builddir, "doctrees")
+    builddir = path.join("..", "build", "html_pre")
+    doctreedir = path.join(builddir, ".doctrees")
 
     # Build with html to build orphanaged docs
     app = Sphinx('.', '.',  builddir, doctreedir, "html",
                  warning=warning, status=status, verbosity=1)
-
     app.build()
     chdir(cwd_)
 
@@ -916,17 +915,15 @@ def patch_doc(doc, repos_dir, doc_dir, doc_patch_dir, git_lfs, sphinx_builder):
 
     # Second run
     cwd_ = getcwd()
-    chdir(doc_patch_dir)
     warnfile = path.join('..', 'warnings_patched.txt')
     warning = open(warnfile, "w")
-    builddir = "html"
+    builddir = path.join("build", "html")
     doctreedir = path.join(builddir, "doctrees")
-    app = Sphinx('.', '.',  builddir, doctreedir, sphinx_builder,
+    app = Sphinx(doc_patch_dir, doc_patch_dir,  builddir, doctreedir, sphinx_builder,
                  warning=warning)
     app.build()
     with open(warnfile, "r") as f:
         click.echo(f.read())
-    chdir(cwd_)
 
 
 def gen_pdf(index_file):
@@ -974,7 +971,7 @@ def organize_include(doc):
     type=click.Path(exists=False),
     default='.',
     required=True,
-    help="Path to host custom doc, contain the repositories and doc (_build)."
+    help="Path to host custom doc, contain the repositories and doc (workdir)."
 )
 @click.option(
     '--extra',
@@ -1025,8 +1022,8 @@ def custom_doc(directory, extra, no_parallel_, open_, builder, ssh):
     directory = path.abspath(directory)
 
     doc_yaml = path.join(directory, 'doc.yaml')
-    doc_dir = path.join(directory, '_build_pre')
-    doc_patch_dir = path.join(directory, '_build')
+    doc_dir = path.join(directory, 'sources_pre')
+    doc_patch_dir = path.join(directory, 'sources')
     if not path.isdir(directory):
         mkdir(directory)
     if not path.isfile(doc_yaml):
@@ -1119,13 +1116,13 @@ def custom_doc(directory, extra, no_parallel_, open_, builder, ssh):
     patch_doc(doc, directory, doc_dir, doc_patch_dir, git_lfs, sphinx_builder)
 
     if builder == "pdf":
-        singlehtml = path.join(doc_patch_dir, "html", "index.html")
+        singlehtml = path.join(directory, "build", "html", "index.html")
         gen_pdf(singlehtml)
         f__ = "output.pdf"
     else:
         f__ = f"html{SEP}index.html"
 
-    click.echo(f"Done, {builder} documentation written to {doc_patch_dir}{SEP}{f__}")
+    click.echo(f"Done, {builder} documentation written to {directory}{SEP}build{SEP}{f__}")
 
     if open_:
-        subprocess.call(f"xdg-open {doc_patch_dir}{SEP}{f__}", shell=True)
+        subprocess.call(f"xdg-open {directory}{SEP}build{SEP}{f__}", shell=True)

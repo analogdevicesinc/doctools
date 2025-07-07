@@ -40,4 +40,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: custom-pdf
-        path: /tmp/my_pdf/_build/output.pdf
+        path: /tmp/my_pdf/build/output.pdf
