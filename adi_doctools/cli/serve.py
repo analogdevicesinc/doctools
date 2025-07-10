@@ -462,9 +462,10 @@ def serve(directory, port, dev, selenium, once, builder):
             dev_pool_val = bytes(dev_pool_val_, 'utf-8')
         reload_event.set()
         # For alt servers, e.g. at ../ of {./doctools, ./no-OS}
-        dev_f = open(dev_pool, 'w')
-        dev_f.write(dev_pool_val_)
-        dev_f.close()
+        if path.isdir(builddir):
+            dev_f = open(dev_pool, 'w')
+            dev_f.write(dev_pool_val_)
+            dev_f.close()
 
     if with_selenium:
         from selenium import webdriver
