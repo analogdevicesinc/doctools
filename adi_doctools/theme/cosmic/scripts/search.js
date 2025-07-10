@@ -126,7 +126,10 @@ export class Search {
       this.set_default()
     })
 
-    this.init()
+    if (typeof this.parent.fetch === 'object')
+      this.parent.fetch.then(this.init.bind(this))
+    else
+      this.init()
 
     app.search = this
   }

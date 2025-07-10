@@ -1,6 +1,7 @@
 "use strict";
 
 /**
+ * repository: from html meta tag
  * version: v0.0.1, main, staging/new_feature
  * offline: if no webserver, direct file://
  * theme: dark/light

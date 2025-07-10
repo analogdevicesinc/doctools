@@ -12,7 +12,10 @@ export class PageActions {
     this.$ = {}
 
     this.parent = app
-    this.page_source()
+    if (typeof this.parent.fetch === 'object')
+      this.parent.fetch.then(this.init.bind(this))
+    else
+      this.init()
   }
 
   page_source_sanity (m, r) {
@@ -76,7 +79,6 @@ export class PageActions {
       doc.insertAdjacentElement('beforeend', container.$)
     }
   }
-
   page_source () {
     let m = this.parent.state.metadata
     let r = this.parent.state.repository
@@ -121,5 +123,8 @@ export class PageActions {
     tgt_raw = tgt_raw.concat('/', pathname)
 
     this.draw_page_source(tgt, tgt_raw)
+  }
+  init () {
+    this.page_source()
   }
 }

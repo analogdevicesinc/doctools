@@ -9,41 +9,69 @@ export class Fetch {
     $.head = new DOM(DOM.get('head'))
 
     this.parent = app
+    this.callback = []
 
     this.init()
+
+    app.fetch = this
   }
   /**
    * Updates elements in a reactive manner,
-   * fetching from the main doctools/metadata.js,
-   * that contain the most up-to-date metadata
+   * fetching from the main hosted doctools.
+   * Fetches metadata.json, extra.umd.js, extra.umd.css
+   * After metadata.json is fetched, its file list are also
+   * fetched, if any.
+   * Depending on the context, the origin changes:
+   * - sub_hosted & ip_addr: same origin
+   * - sub_hosted & domain: same origin
+   * - single_hosted | offline: remote origin
+   * That means, sub_hosted locally can be used to mock a
+   * full domain deploy, while single_hosted and offline,
+   * mostly used by user and doc writers, relies on the remote
+   * source.
    */
   init () {
-    let urls = [
-      'https://analogdevicesinc.github.io/doctools/metadata.json'
-    ]
-    if (Object.hasOwn(this.parent.state, 'sub_hosted')) {
-      if (this.parent.state.offline === false)
-        // REVISIT: To save 56ms, infer docs from hostname
-        urls.unshift('/docs/doctools/metadata.json', '/doctools/metadata.json', '/metadata.json')
-    } else {
-      if (this.parent.state.offline === false) {
-        urls.unshift(new URL(`${this.parent.state.subhost}/../doctools/metadata.json`, location).href)
-        urls.unshift('/metadata.json')
-      }
-    }
-    Toolbox.fetch_each(urls).then((obj) => {
-      if ('error' in obj) {
-        console.error(`Failed to fetch resource, due to:`, obj['error'])
-        return
-      }
-      this.init_metadata(obj['obj'], obj['url'])
-    })
+    let state = this.parent.state
+    const base_url = (state.subhost === '' || state.offline === true) ?
+      new URL('https://analogdevicesinc.github.io/doctools') :
+      new URL('doctools', new URL(state.subhost, location.origin))
+    // Do you want to use single_hosted with same origin? use below:
+    //const base_url =
+    //  new URL(new URL(state.subhost, location.origin))
+
+    const response = fetch(
+      new Request(new URL('metadata.json', base_url+'/'))
+    )
+      .then(response => response)
+      .then(response => response.json())
+      .then(obj => this.init_metadata(obj, base_url))
+
+    let script = new DOM('script', {
+      'src': new URL('_static/extra.umd.js', base_url+'/')
+    });
+    this.$.head.append(script)
+    let style = new DOM('link', {
+      'rel': 'stylesheet',
+      'type': 'text/css',
+      'href': new URL('_static/extra.min.css', base_url+'/')
+    });
+    this.$.head.append(style)
+  }
+  /**
+   * Append callbacks to call after metadata.json is loaded.
+   */
+  then (callback) {
+    if (this.parent.state.metadata)
+      callback()
+    else
+      this.callback.push(callback)
   }
   /**
    * Attach metadata to this and call to inject extra modules.
    */
   init_metadata (obj, url) {
     this.parent.state.metadata = obj
+    this.callback.forEach(cb => cb())
 
     if ('modules' in obj)
       this.load_modules(obj['modules'], url)
@@ -54,31 +82,30 @@ export class Fetch {
    * of the tools' built doc version.
    */
   load_modules (obj, url) {
-    if (typeof url !== 'string') {
-      console.warn("Expected string with url, got ", url)
+    if (!(url instanceof URL)) {
+      console.warn("Expected URL, got ", url)
       return
     }
-
-    if (!url.startsWith("https://") && !url.startsWith("http://"))
-      url = new URL(url, location.origin)
-    url = new URL('.', url)
-
-    let url_ = `${url}_static/`
+    url = new URL('_static', url+'/')
 
     if ('javascript' in obj) {
       obj['javascript'].forEach((elem) => {
+        if (elem === 'extra.umd.js')
+          return
         let script = new DOM('script', {
-          'src': `${url_}${elem}`
+          'src': new URL(elem, url+'/')
         });
         this.$.head.append(script)
       })
     }
     if ('stylesheet' in obj) {
       obj['stylesheet'].forEach((elem) => {
+        if (elem === 'extra.min.css')
+          return
         let style = new DOM('link', {
           'rel': 'stylesheet',
           'type': 'text/css',
-          'href': `${url_}${elem}`
+          'href': new URL(elem, url+'/')
         });
         this.$.head.append(style)
       })

@@ -7,31 +7,33 @@ import {Toolbox} from './toolbox.js'
  */
 export class VersionDropdown {
   constructor (app) {
+    this.parent = app
+    if (this.parent.state.offline)
+      return
     this.$ = {}
 
-    this.parent = app
     /* polyfill < v0.4.11 */
-    let prefix = ''
     if (Object.hasOwn(this.parent.state, 'sub_hosted'))
       this.prefix = this.parent.state.sub_hosted === true ?
-                   `/${this.parent.state.repository}` : ''
+                   `{this.parent.state.repository}` : ''
     else
       this.prefix = this.parent.state.subhost
-
+    this.prefix = new URL(this.prefix, location.origin).href
+    if (this.prefix.endsWith('/'))
+      this.prefix = this.prefix.slice(0, -1)
     this.init()
   }
 
   init() {
-    if (this.parent.state.offline)
-      return
-
-    Toolbox.fetch_each(`${this.prefix}/tags.json`).then((obj) => {
-      if ('error' in obj) {
-        console.error(`Failed to fetch resource, due to:`, obj['error'])
-        return
-      }
-      this.render(obj['obj'])
-    })
+    const response = fetch(
+      new Request(new URL('tags.json', this.prefix+'/'))
+    )
+      .then(response => response)
+      .then(response => response.json())
+      .then(obj => this.render(obj))
+      .catch(error => {
+        console.log("version_dropdown: no tags.json to fill dropdown")
+      })
   }
   /**
    * Assert if tags.json is valid
@@ -132,16 +134,16 @@ export class VersionDropdown {
     for (let key in obj) {
       let entry = new DOM('a', {
         'href': key.length > 0 ?
-                  `${this.prefix}/${key}` :
-                  `${this.prefix !== '' ? this.prefix : '/.'}`
+                  this.prefix+'/'+key :
+                  this.prefix
       })
       let handle = (self, new_tab, e) => {
         e.preventDefault()
         let start = app.state.path.length > 0 ?
-                      `${this.prefix}/${app.state.path}` :
-                      `${this.prefix}`
-        if (location.pathname.startsWith(start)) {
-          let pathname = location.pathname.substring(start.length + 1)
+                      this.prefix+'/'+app.state.path :
+                      this.prefix
+        if (location.href.startsWith(start)) {
+          let pathname = location.href.substring(start.length + 1)
 
           if (self.$.href.slice(-1) !== '/')
             pathname = '/' + pathname

@@ -14,8 +14,13 @@ export class Links {
     ).onchange(this, this.renew_index)
     this.set_doms()
     this.parent = app
-
-    let m = app.state.metadata
+    if (typeof this.parent.fetch === 'object')
+      this.parent.fetch.then(this.init.bind(this))
+    else
+      this.init()
+  }
+  init () {
+    let m = this.parent.state.metadata
     if ('repotoc' in m)
       this.update_repotoc(m['repotoc'])
     if ('banner' in m)
