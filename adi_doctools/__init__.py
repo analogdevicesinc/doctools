@@ -13,7 +13,7 @@ from .theme import setup as theme_setup, names as theme_names
 from .directive import setup as directive_setup
 from .role import setup as role_setup
 from .lut import get_lut
-from .role.interref import interref_repos_apply
+from .role.interref import interref_repos_apply, interref_repos_assert
 from .monkeypatch import monkeypatch_figure_numbers
 
 __version__ = "0.4.13"
@@ -54,7 +54,11 @@ def config_inited(app, config):
     """
     Called only when adi_doctools is present in the extensions list.
     Can be used to adjust features when using other themes.
+    Is required for manipulating config values in some cases.
     """
+    app.lut = get_lut()
+    interref_repos_apply(config)
+
     return
 
 def builder_inited(app):
@@ -63,11 +67,11 @@ def builder_inited(app):
     if config.numfig_per_doc:
         monkeypatch_figure_numbers()
 
-    app.lut = get_lut()
+    if not hasattr(app, 'lut'):
+        app.lut = get_lut()
+    interref_repos_assert(config)
 
-    interref_repos_apply(app)
-
-    # Inject version value, enviroment entry has higher precedence
+    # Inject version value, environment entry has higher precedence
     doc_version = getenv("ADOC_DOC_VERSION", default=None)
     if doc_version is not None:
         try:
@@ -180,8 +184,6 @@ def setup(app):
     app.add_transform(unique_ids)
     app.add_post_transform(wrap_elements)
 
-    # All: doctools extesion
-    # Bulider/html-page-context: hooks for doctools themes
     app.connect("config-inited", config_inited)
     app.connect("builder-inited", builder_inited)
     app.connect("html-page-context", html_page_context)

@@ -21,13 +21,12 @@ from sphinx.application import Sphinx
 from sphinx.util.typing import RoleFunction
 from .common import get_outer_inner
 
-DEPRECATED_REF_MINUS = False
-
 logger = logging.getLogger(__name__)
 
 dft_interref_uri = remote_doc
 
-def interref_repos_apply(app):
+
+def interref_repos_apply(config):
     """
     Applies interref_repos into intersphinx_mapping.
     Expands the repository name into targets, with the main one being:
@@ -40,30 +39,37 @@ def interref_repos_apply(app):
       /data/my-repo-1/doc/sphinx/source
     Useful for when simultaneously editing multiple docs.
     """
-    if app.config.interref_uri is None:
-        app.config.interref_uri = getenv("ADOC_INTERREF_URI",
-                                         default=dft_interref_uri)
+    if config.interref_uri is None:
+        config.interref_uri = getenv("ADOC_INTERREF_URI",
+                                     default=dft_interref_uri)
 
     def repo_apply_(r):
         if r in repos:
-            d_ = (f'..{SEP}' * (repos[r]['pathname'].count(SEP)+1) or f'..{SEP}')
+            d_ = (f'..{SEP}'*(repos[r]['pathname'].count(SEP)+1) or f'..{SEP}')
             if 'parent' in repos[r] and repos[r]['parent'] is not None:
                 d_ += f'..{SEP}'
             return d_ + f'..{SEP}'
 
-    if 'interref_repos' in app.config:
-        t_ = None
-        if 'repository' in app.config and app.config.interref_local:
-            t_ = repo_apply_(app.config.repository)
-        for r in app.config.interref_repos:
-            if t_ is not None and r in repos:
-                t__ = path.join(t_, r, repos[r]['pathname'], '_build',
-                                'html', 'objects.inv')
-                t__ = path.abspath(t__)
-                t__ = (t__, None)
-            else:
-                t__ = None
-            app.config.intersphinx_mapping[r] = (app.config.interref_uri+r, t__)
+    t_ = None
+    if 'repository' in config and config.interref_local:
+        t_ = repo_apply_(config.repository)
+    for r in config.interref_repos:
+        if t_ is not None and r in repos:
+            t__ = path.join(t_, r, repos[r]['pathname'], '_build',
+                            'html', 'objects.inv')
+            t__ = path.abspath(t__)
+            t__ = (t__, None)
+        else:
+            t__ = None
+        config.intersphinx_mapping[r] = (config.interref_uri+r, t__)
+    config.interref_repos = []  # Consumed
+
+
+def interref_repos_assert(config):
+    if len(config.interref_repos):
+        logger.warning("interref_repos is present in config but never applied."
+                       " Is adi_doctools in the extension list?")
+
 
 # DEPRECATED START
 class InterrefDispatcher(CustomReSTDispatcher):
@@ -73,7 +79,8 @@ class InterrefDispatcher(CustomReSTDispatcher):
     """
 
     def role(
-        self, role_name: str, language_module: ModuleType, lineno: int, reporter: Reporter,
+        self, role_name: str, language_module: ModuleType,
+        lineno: int, reporter: Reporter,
     ) -> Tuple[RoleFunction, List[system_message]]:
         if len(role_name) > 4 and role_name.startswith(('ref-')):
             return InterrefRole(role_name), []
@@ -88,25 +95,23 @@ class InterrefRole(IntersphinxRole):
 
     def run(self) -> Tuple[List[Node], List[system_message]]:
         assert self.name == self.orig_name.lower()
-        inventory, name_suffix = self.get_inventory_and_name_suffix(self.orig_name)
+        inv, name_suffix = self.get_inventory_and_name_suffix(self.orig_name)
         text, ref_ = get_outer_inner(self.text)
         if text is not None:
-            to_ = f":external+{inventory}:ref:`{text} <{ref_}>`"
+            to_ = f":external+{inv}:ref:`{text} <{ref_}>`"
         else:
-            to_ = f":external+{inventory}:ref:`{ref_}`"
+            to_ = f":external+{inv}:ref:`{ref_}`"
         message = (f"References 'ref-*' are deprecated,\n"
                    f"  update {self.rawtext} "
                    f"to {to_} ")
-        if DEPRECATED_REF_MINUS == True:
-            logger.warning(message,
-                           location=(self.env.docname, self.lineno))
-        else:
-            logger.info(message,
-                        location=(self.env.docname, self.lineno))
+        logger.warning(message,
+                       location=(self.env.docname, self.lineno))
 
         return super().run()
 
-    def get_inventory_and_name_suffix(self, name: str) -> Tuple[Optional[str], str]:
+    def get_inventory_and_name_suffix(
+        self, name: str
+    ) -> Tuple[Optional[str], str]:
         assert name.startswith('ref'), name
         # must have an explicit inventory name, i.e,
         # :ref-inv:role:        or
@@ -127,8 +132,8 @@ class InterrefRole(IntersphinxRole):
 def install_dispatcher(app: Sphinx, docname: str, source: List[str]) -> None:
     """Enable InterrefDispatcher.
 
-    .. note:: The installed dispatcher will be uninstalled on disabling sphinx_domain
-              automatically.
+    .. note:: The installed dispatcher will be uninstalled on disabling
+              sphinx_domain automatically.
     """
     dispatcher = InterrefDispatcher()
     dispatcher.enable()
@@ -141,7 +146,7 @@ def interref_setup(app: Sphinx) -> Dict[str, Any]:
     app.add_config_value('interref_local', False, 'env')
 
     if not isinstance(app.config.interref_repos, list):
-        logger.warning(f"Config 'interref_repos' must be a list.")
+        logger.warning("Config 'interref_repos' must be a list.")
         app.config.interref_repos = []
 
     if Version(sphinx_version) < Version("7.3.0"):
@@ -156,10 +161,10 @@ def interref_setup(app: Sphinx) -> Dict[str, Any]:
     if enable_intersphinx:
         app.setup_extension('sphinx.ext.intersphinx')
         if (len(app.config.intersphinx_disabled_reftypes) == 1 and
-            app.config.intersphinx_disabled_reftypes[0] =='std:doc'):
+           app.config.intersphinx_disabled_reftypes[0] == 'std:doc'):
             app.config.intersphinx_disabled_reftypes = ["*"]
             logger.info("adi_doctools: "
                         "Changed intersphinx_disabled_reftypes value from "
                         "'std:doc' to '*' to avoid refs linking to wrong docs")
 
-    app.connect('source-read', install_dispatcher) # DEPRECATED
+    app.connect('source-read', install_dispatcher)  # DEPRECATED
