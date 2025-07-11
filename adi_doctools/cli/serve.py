@@ -535,7 +535,7 @@ def serve(directory, port, dev, selenium, once, builder):
 
         if file.endswith(".rst"):
             c = -4
-        if file.endswith(".md"):
+        elif file.endswith(".md"):
             c = -3
         else:
             return trigger_rst_
