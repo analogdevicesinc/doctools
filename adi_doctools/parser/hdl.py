@@ -813,7 +813,7 @@ def parse_hdl_library(
     tcl_ = tcl(file)
 
     # Check library name against ip_name
-    for line in tcl_:
+    for i, line in enumerate(tcl_):
         for m in ['adi_ip_create', 'ad_ip_create']:
             if line.startswith(m):
                 line_ = line.split()
