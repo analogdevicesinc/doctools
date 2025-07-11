@@ -257,6 +257,14 @@ def install_dispatcher(app, docname: str, source: List[str]) -> None:
     dispatcher = GitRoleDispatcher()
     dispatcher.enable()
 
+
+def links_target_blank(app, doctree, fromdocname):
+    for node in doctree.traverse(nodes.reference):
+        if ('refuri' in node and
+            node['refuri'].startswith(('http://', 'https://'))):
+            node['target'] = '_blank'
+
+
 def common_setup(app):
     app.add_role("red",             color('red'))
     app.add_role("green",           color('green'))
@@ -274,3 +282,4 @@ def common_setup(app):
         app.add_config_value('url_' + key, dft_url[key], 'env')
 
     app.connect('source-read', install_dispatcher)
+    app.connect('doctree-resolved', links_target_blank)
