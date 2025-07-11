@@ -1,9 +1,11 @@
 @use "sass:list";
 $links: (
-    "adi":    #0067b9 "adi",
-    "ez":     #2eb251 "ez",
-    "git":    #f05133 "git",
-    "other":  #666666 "external",
+    "adi":     #0067b9 "adi",
+    "ez":      #2eb251 "ez",
+    "git":     #f05133 "git",
+    "link":    #666666 "link",
+    "dokuwiki":#666666 "dokuwiki",
+    "download":#666666 "download",
 );
 
 @mixin default-link($color, $icon-name) {

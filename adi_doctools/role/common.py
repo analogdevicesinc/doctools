@@ -8,6 +8,7 @@ from docutils.nodes import Node, system_message
 from sphinx.util import logging
 from sphinx.util.docutils import SphinxRole, CustomReSTDispatcher
 from sphinx.util.typing import RoleFunction
+from sphinx.addnodes import download_reference
 
 logger = logging.getLogger(__name__)
 
@@ -93,7 +94,8 @@ def dokuwiki():
         if len(path) > 0 and path[0] == '/':
             path = path[1:]
         url = get_url_config('dokuwiki', inliner) + '/' + path
-        node = nodes.reference(rawtext, text, refuri=url, **options)
+        node = nodes.reference(rawtext, text, refuri=url,
+                               classes=['icon', 'dokuwiki'], **options)
         return [node], []
 
     return role
@@ -263,6 +265,10 @@ def links_target_blank(app, doctree, fromdocname):
         if ('refuri' in node and
             node['refuri'].startswith(('http://', 'https://'))):
             node['target'] = '_blank'
+            if isinstance(node, download_reference):
+                node['classes'].append('icon')
+            elif 'icon' not in node['classes']:
+                node['classes'].extend(('icon', 'link'))
 
 
 def common_setup(app):
