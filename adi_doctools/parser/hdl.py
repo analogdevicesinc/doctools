@@ -215,6 +215,8 @@ def parse_hdl_regmap(ctime: float, file: str) -> Dict:
                         field_default = ' '.join(field_loc[1:])
                         field_default_long = ' '.join(field_loc[1:])
                         try:
+                            if not field_default.startswith("0x"):
+                                raise TypeError("Not hexadecimal")
                             fd_ = int(field_default, 16)
                             if type(field_bits) is tuple:
                                 len_f = (field_bits[0] - field_bits[1] + 1)
