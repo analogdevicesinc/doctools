@@ -1,3 +1,9 @@
+.. description::
+
+   "Serve" launches a live doc server, "custom doc" generates a custom html or
+   pdf, with only the content that matters, and "aggregate" builds all docs at
+   once.
+
 .. _cli:
 
 Command line interface

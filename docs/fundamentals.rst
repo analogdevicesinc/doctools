@@ -8,6 +8,7 @@ Documentation hierarchical structure
 
 Doctools is the central piece to aggregate multiple documentations together,
 expanding the documentation standard hierarchical, mono-repo configuration.
+
 The content is organized in three levels:
 
 * repotoc: Listing of repositories in the same organization that contain

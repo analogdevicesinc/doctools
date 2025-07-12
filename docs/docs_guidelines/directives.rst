@@ -1,5 +1,10 @@
+.. _directive:
+
 Custom directives
 =================
+
+Custom Sphinx directives to allow better formatting, and extra features, such
+has videos and shell code snippets.
 
 Container
 ~~~~~~~~~

@@ -1,3 +1,8 @@
+.. description::
+
+   Contiunous deployment pipeline and instructions to set up a self-hosted
+   GitHub Actions runner using Podman or Docker and systemd without root.
+
 .. _ci:
 
 Continuous integration

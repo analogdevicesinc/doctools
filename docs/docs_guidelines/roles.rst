@@ -1,5 +1,10 @@
+.. _role:
+
 Custom roles
 ============
+
+Custom Sphinx roles to allow better linking, such as git links, and formatting,
+like font coloring.
 
 .. note::
 
