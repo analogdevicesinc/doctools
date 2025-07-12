@@ -54,6 +54,44 @@ def parse_rst(state, content, uid: Optional[str] = None):
     return node
 
 
+def meta_description_default(app, doctree, fromdocname):
+    has_meta = any(
+        isinstance(node, nodes.meta) and node.get('name') == 'description'
+        for node in doctree.traverse(nodes.meta)
+    )
+    if has_meta:
+        return
+
+    content = None
+    for node in doctree.traverse(nodes.paragraph):
+        if node.parent.tagname != 'meta':
+            content = node.astext().strip()
+            break
+    if not content:
+        return
+
+    meta = nodes.meta(name='description',
+                      content=content)
+    doctree.insert(0, meta)
+
+
+class directive_description(Directive):
+    has_content = True
+
+    def run(self):
+        description = ' '.join(self.content)
+        if len(description) > 160:
+            docname = self.state.document.settings.env.docname
+            self.state_machine.reporter.warning(
+                f"{docname}: Description provided is too long "
+                f" ({len(description)} > 160).",
+                line=self.lineno
+            )
+        meta = nodes.meta(name='description',
+                          content=description)
+        return [meta]
+
+
 class directive_base(Directive):
     has_content = True
     add_index = True
@@ -727,6 +765,7 @@ class directive_svg(SphinxDirective):
         return [figure_node]
 
 def common_setup(app):
+    app.add_directive('description', directive_description)
     app.add_directive('collapsible', directive_collapsible)
     app.add_directive('video', directive_video)
     app.add_directive('flex', directive_flex)
@@ -737,3 +776,5 @@ def common_setup(app):
 
     app.add_config_value('hide_collapsible_content',
                          dft_hide_collapsible_content, 'env')
+
+    app.connect('doctree-resolved', meta_description_default)
