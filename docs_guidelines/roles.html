@@ -4,11 +4,12 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta content="Custom Sphinx roles to allow better linking, such as git links, and formatting, like font coloring." name="description" />
 
     <title>Custom roles &#8212; Doctools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8e8a900e" />
-    <link rel="stylesheet" type="text/css" href="../_static/app.min.css?v=25ed7d6a" />
-    <script defer="" src="../_static/app.umd.js?v=80d097f0"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/app.min.css?v=fc454092" />
+    <script defer="" src="../_static/app.umd.js?v=a81630d9"></script>
     <link rel="icon" href="../_static/icon.svg"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -59,7 +60,7 @@
     </div>
     <div id="right">
       <span>
-        <a id="logo-org" href="https://analog.com"></a>
+        <a id="logo-org" href="https://analog.com" aria-label="Analog Devices Inc. landing page"></a>
         <div class="vertical-divider"></div>
         <label id="show-repotoc" for="input-show-repotoc" title="Show/hide docs" tabindex="0">Docs</label>
         <a id="logo" href="../index.html">
@@ -161,7 +162,9 @@ Content on this topic
           <div class="body" role="main">
             
   <section id="custom-roles">
-<h1>Custom roles<a class="headerlink" href="#custom-roles" title="Link to this heading"></a></h1>
+<span id="role"></span><h1>Custom roles<a class="headerlink" href="#custom-roles" title="Link to this heading"></a></h1>
+<p>Custom Sphinx roles to allow better linking, such as git links, and formatting,
+like font coloring.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Link-like roles use the <code class="code docutils literal notranslate"><span class="pre">:role:`text</span> <span class="pre">&lt;link&gt;`</span></code> synthax, like external
@@ -184,11 +187,11 @@ the links of only these files.</p>
 The role syntax is <code class="code docutils literal notranslate"><span class="pre">:git-repo:`text</span> <span class="pre">&lt;type+branch:path&gt;`</span></code>, for example:</p>
 <ul class="simple">
 <li><p><code class="code docutils literal notranslate"><span class="pre">:git-hdl:`main:docs/user_guide/docs_guidelines.rst`</span></code>
-renders as <a class="icon git reference external" href="https://github.com/analogdevicesinc/hdl/tree/main/docs/user_guide/docs_guidelines.rst">docs/user_guide/docs_guidelines.rst</a>.</p></li>
+renders as <a class="icon git reference external" href="https://github.com/analogdevicesinc/hdl/tree/main/docs/user_guide/docs_guidelines.rst" target="_blank">docs/user_guide/docs_guidelines.rst</a>.</p></li>
 <li><p><code class="code docutils literal notranslate"><span class="pre">:git-hdl:`Guidelines</span> <span class="pre">&lt;docs/user_guide/docs_guidelines.rst&gt;`</span></code>
-renders as <a class="icon git reference external" href="https://github.com/analogdevicesinc/hdl/tree/main/docs/user_guide/docs_guidelines.rst">Guidelines</a>.</p></li>
+renders as <a class="icon git reference external" href="https://github.com/analogdevicesinc/hdl/tree/main/docs/user_guide/docs_guidelines.rst" target="_blank">Guidelines</a>.</p></li>
 <li><p><code class="code docutils literal notranslate"><span class="pre">:git-wiki-scripts:`raw+linux/build_zynq_kernel_image.sh</span></code>``
-renders as <a class="icon git reference external" href="https://raw.githubusercontent.com/analogdevicesinc/wiki-scripts/main/linux/build_zynq_kernel_image.sh">linux/build_zynq_kernel_image.sh</a>.</p></li>
+renders as <a class="icon git reference external" href="https://raw.githubusercontent.com/analogdevicesinc/wiki-scripts/main/linux/build_zynq_kernel_image.sh" target="_blank">linux/build_zynq_kernel_image.sh</a>.</p></li>
 </ul>
 <div class="admonition important">
 <p class="admonition-title">Important</p>
@@ -211,11 +214,11 @@ also.</p></li>
 <p>The text field is optional and will be filled with the full path.</p>
 <p>Finally, you can do <code class="code docutils literal notranslate"><span class="pre">:git-repo:`/`</span></code> for a link to the root of the
 repository with pretty naming, for example, <code class="code docutils literal notranslate"><span class="pre">:git-hdl:`/`</span></code> is rendered
-as <a class="icon git reference external" href="https://github.com/analogdevicesinc/hdl/tree/main/">ADI HDL repository</a>.</p>
+as <a class="icon git reference external" href="https://github.com/analogdevicesinc/hdl/tree/main/" target="_blank">ADI HDL repository</a>.</p>
 </section>
 <section id="downgit">
 <h3>DownGit<a class="headerlink" href="#downgit" title="Link to this heading"></a></h3>
-<p>Same as the <a class="reference internal" href="#role-git"><span class="std std-ref">Git</span></a> but wrapping the address with the <a class="icon git reference external" href="https://github.com/analogdevicesinc/DownGit/">ADI DownGit repository</a>
+<p>Same as the <a class="reference internal" href="#role-git"><span class="std std-ref">Git</span></a> but wrapping the address with the <a class="icon git reference external" href="https://github.com/analogdevicesinc/DownGit/" target="_blank">ADI DownGit repository</a>
 fork.</p>
 </section>
 <section id="adi">
@@ -225,7 +228,7 @@ fork.</p>
 <code class="code docutils literal notranslate"><span class="pre">:adi:`AD7175-2</span> <span class="pre">&lt;ad7175-2&gt;`</span></code>.
 Since links are case insensitive, you can also reduce it to
 <code class="code docutils literal notranslate"><span class="pre">:adi:`AD7175-2`</span></code>, when <em>webpage</em> is the same as <em>text</em> and will render
-as <a class="icon adi reference external" href="https://www.analog.com/AD7175-2">AD7175-2</a>.</p>
+as <a class="icon adi reference external" href="https://www.analog.com/AD7175-2" target="_blank">AD7175-2</a>.</p>
 </section>
 <section id="dokuwiki">
 <span id="role-dokuwiki"></span><h3>Dokuwiki<a class="headerlink" href="#dokuwiki" title="Link to this heading"></a></h3>
@@ -233,11 +236,11 @@ as <a class="icon adi reference external" href="https://www.analog.com/AD7175-2"
 The role syntax is <code class="code docutils literal notranslate"><span class="pre">:dokuwiki:`text</span> <span class="pre">&lt;path&gt;`</span></code>, for example,
 <code class="code docutils literal notranslate"><span class="pre">:dokuwiki:`pulsar-adc-pmods</span> <span class="pre">&lt;resources/eval/user-guides/circuits-from-the-lab/pulsar-adc-pmods&gt;`</span></code>
 gets rendered as
-<a class="reference external" href="https://wiki.analog.com/resources/eval/user-guides/circuits-from-the-lab/pulsar-adc-pmods">pulsar-adc-pmods</a>.</p>
+<a class="icon dokuwiki reference external" href="https://wiki.analog.com/resources/eval/user-guides/circuits-from-the-lab/pulsar-adc-pmods" target="_blank">pulsar-adc-pmods</a>.</p>
 <p>For intentional deprecated links, add the <code class="docutils literal notranslate"><span class="pre">deprecated</span></code> qualifier, e.g.:
 <code class="code docutils literal notranslate"><span class="pre">:dokuwiki+deprecated:`ADS-B</span> <span class="pre">Airplane</span> <span class="pre">Tracking</span> <span class="pre">Example</span> <span class="pre">&lt;resources/tools-software/linux-software/libiio/clients/adsb_example&gt;`</span></code>
 gets rendered as
-<a class="reference external" href="https://wiki.analog.com/resources/tools-software/linux-software/libiio/clients/adsb_example">ADS-B Airplane Tracking Example</a>.
+<a class="icon dokuwiki reference external" href="https://wiki.analog.com/resources/tools-software/linux-software/libiio/clients/adsb_example" target="_blank">ADS-B Airplane Tracking Example</a>.
 The sole intend of this qualifier is to distinct pending import pages from won’t
 import pages.</p>
 </section>
@@ -245,7 +248,7 @@ import pages.</p>
 <h3>EngineerZone<a class="headerlink" href="#engineerzone" title="Link to this heading"></a></h3>
 <p>The ez role creates links to the Analog Devices Inc. EngineerZone support website.
 The role syntax is <code class="code docutils literal notranslate"><span class="pre">:ez:`community`</span></code>, for example, <code class="code docutils literal notranslate"><span class="pre">:ez:`fpga`</span></code>
-gets rendered as <a class="icon ez reference external" href="https://ez.analog.com/fpga">EngineerZone</a>.</p>
+gets rendered as <a class="icon ez reference external" href="https://ez.analog.com/fpga" target="_blank">EngineerZone</a>.</p>
 <p>For Linux Software Drivers, it is <code class="code docutils literal notranslate"><span class="pre">:ez:`linux-software-drivers`</span></code>.</p>
 <p>For Microcontroller no-OS Drivers it is <code class="code docutils literal notranslate"><span class="pre">:ez:`microcontroller-no-os-drivers`</span></code>.</p>
 </section>
@@ -255,12 +258,12 @@ gets rendered as <a class="icon ez reference external" href="https://ez.analog.c
 The role syntax is <code class="code docutils literal notranslate"><span class="pre">:vendor:`text</span> <span class="pre">&lt;path&gt;`</span></code>, for example,
 <code class="code docutils literal notranslate"><span class="pre">:xilinx:`Zynq-7000</span> <span class="pre">SoC</span> <span class="pre">Overview</span> <span class="pre">&lt;support/documentation/data_sheets/ds190-Zynq-7000-Overview.pdf&gt;`</span></code>
 gets rendered
-<a class="reference external" href="https://www.xilinx.com/support/documentation/data_sheets/ds190-Zynq-7000-Overview.pdf">Zynq-7000 SoC Overview</a>.</p>
+<a class="icon link reference external" href="https://www.xilinx.com/support/documentation/data_sheets/ds190-Zynq-7000-Overview.pdf" target="_blank">Zynq-7000 SoC Overview</a>.</p>
 <p>The text parameter is optional, if absent, the file name will be used as the text,
 for example,
 <code class="code docutils literal notranslate"><span class="pre">:intel:`content/www/us/en/docs/programmable/683780/22-4/general-purpose-i-o-overview.html`</span></code>
 gets rendered
-<a class="reference external" href="https://www.intel.com/content/www/us/en/docs/programmable/683780/22-4/general-purpose-i-o-overview.html">general-purpose-i-o-overview.html</a>
+<a class="icon link reference external" href="https://www.intel.com/content/www/us/en/docs/programmable/683780/22-4/general-purpose-i-o-overview.html" target="_blank">general-purpose-i-o-overview.html</a>
 (not very readable).</p>
 <p>Supported vendors are: <code class="docutils literal notranslate"><span class="pre">xilinx</span></code> (AMD Xilinx), <code class="docutils literal notranslate"><span class="pre">intel</span></code> (Intel Altera) and
 <code class="docutils literal notranslate"><span class="pre">mw</span></code> (MathWorks).</p>
@@ -271,7 +274,7 @@ gets rendered
 The role syntax is <code class="code docutils literal notranslate"><span class="pre">:vendor:`text</span> <span class="pre">&lt;path&gt;`</span></code>, for example,
 <code class="code docutils literal notranslate"><span class="pre">:digikey:`AD9081-FMCA-EBZ`</span></code>
 gets rendered
-<a class="reference external" href="https://www.digikey.com/scripts/DkSearch/dksus.dll?KeywordSearch?Site=US&amp;Keywords=AD9081-FMCA-EBZ">AD9081-FMCA-EBZ</a>.</p>
+<a class="icon link reference external" href="https://www.digikey.com/scripts/DkSearch/dksus.dll?KeywordSearch?Site=US&amp;Keywords=AD9081-FMCA-EBZ" target="_blank">AD9081-FMCA-EBZ</a>.</p>
 <p>The text parameter is optional.</p>
 <p>Supported vendors are: <code class="docutils literal notranslate"><span class="pre">digikey</span></code> (Digikey), <code class="docutils literal notranslate"><span class="pre">mouser</span></code> (Mouser) and
 <code class="docutils literal notranslate"><span class="pre">arrow</span></code> (Arrow).</p>

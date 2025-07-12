@@ -4,11 +4,12 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta content="Custom Sphinx directives to allow better formatting, and extra features, such has videos and shell code snippets." name="description" />
 
     <title>Custom directives &#8212; Doctools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8e8a900e" />
-    <link rel="stylesheet" type="text/css" href="../_static/app.min.css?v=25ed7d6a" />
-    <script defer="" src="../_static/app.umd.js?v=80d097f0"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/app.min.css?v=fc454092" />
+    <script defer="" src="../_static/app.umd.js?v=a81630d9"></script>
     <link rel="icon" href="../_static/icon.svg"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -59,7 +60,7 @@
     </div>
     <div id="right">
       <span>
-        <a id="logo-org" href="https://analog.com"></a>
+        <a id="logo-org" href="https://analog.com" aria-label="Analog Devices Inc. landing page"></a>
         <div class="vertical-divider"></div>
         <label id="show-repotoc" for="input-show-repotoc" title="Show/hide docs" tabindex="0">Docs</label>
         <a id="logo" href="../index.html">
@@ -170,7 +171,9 @@ Content on this topic
           <div class="body" role="main">
             
   <section id="custom-directives">
-<h1>Custom directives<a class="headerlink" href="#custom-directives" title="Link to this heading"></a></h1>
+<span id="directive"></span><h1>Custom directives<a class="headerlink" href="#custom-directives" title="Link to this heading"></a></h1>
+<p>Custom Sphinx directives to allow better formatting, and extra features, such
+has videos and shell code snippets.</p>
 <section id="container">
 <h2>Container<a class="headerlink" href="#container" title="Link to this heading"></a></h2>
 <p>To allow disposing content in a tabular manner but still respecting the multiple
@@ -179,7 +182,7 @@ screen sizes and both HTML and PDF output, two container directives are availabl
 <section id="flex">
 <span id="directive-flex"></span><h3>Flex<a class="headerlink" href="#flex" title="Link to this heading"></a></h3>
 <p>The grid directive implements a subset of
-<a class="reference external" href="https://css-tricks.com/snippets/css/a-guide-to-flexbox/">CSS Flex</a>.
+<a class="icon link reference external" href="https://css-tricks.com/snippets/css/a-guide-to-flexbox/" target="_blank">CSS Flex</a>.
 And is used to dipose elements without worrying about number of columns and sizes,
 while still obtaining a fairly good result.</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">flex</span><span class="p">::</span>
@@ -189,7 +192,7 @@ while still obtaining a fairly good result.</p>
 <section id="grid">
 <span id="directive-grid"></span><h3>Grid<a class="headerlink" href="#grid" title="Link to this heading"></a></h3>
 <p>The grid directive implements a subset of
-<a class="reference external" href="https://css-tricks.com/snippets/css/complete-guide-grid/">CSS Grids</a>.
+<a class="icon link reference external" href="https://css-tricks.com/snippets/css/complete-guide-grid/" target="_blank">CSS Grids</a>.
 And is used to dipose elements with exact number of columns and width control.</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">grid</span><span class="p">::</span>
    <span class="nc">:widths:</span> 25 25% 150px
@@ -204,11 +207,11 @@ columns in a sane manner.</p>
 <section id="clear-content">
 <h2>Clear content<a class="headerlink" href="#clear-content" title="Link to this heading"></a></h2>
 <p>A simple directive to
-<a class="reference external" href="https://developer.mozilla.org/en-US/docs/Web/CSS/clear">clear</a>
+<a class="icon link reference external" href="https://developer.mozilla.org/en-US/docs/Web/CSS/clear" target="_blank">clear</a>
 the content, forcing any following content to be moved below any preceding
 content.
 It is useful when working with images
-aligned/<a class="reference external" href="https://developer.mozilla.org/en-US/docs/Web/CSS/float">float</a>
+aligned/<a class="icon link reference external" href="https://developer.mozilla.org/en-US/docs/Web/CSS/float" target="_blank">float</a>
 left/right and wants to ensure the next section does not also gets “squashed”.</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">clear-content</span><span class="p">::</span>
    <span class="nc">:side:</span> [both,left,right]
@@ -514,7 +517,7 @@ Although the boards feature ESD protection circuitry, permanent damage may occur
 </div></section>
 <section id="hdl-directives">
 <h2>HDL directives<a class="headerlink" href="#hdl-directives" title="Link to this heading"></a></h2>
-<p>The directives in this section target the <a class="icon git reference external" href="https://github.com/analogdevicesinc/hdl/tree/main/">ADI HDL repository</a> documentation.</p>
+<p>The directives in this section target the <a class="icon git reference external" href="https://github.com/analogdevicesinc/hdl/tree/main/" target="_blank">ADI HDL repository</a> documentation.</p>
 <section id="hdl-build-status">
 <span id="hdl-build-status-directive"></span><h3>HDL build status<a class="headerlink" href="#hdl-build-status" title="Link to this heading"></a></h3>
 <p>The HDL build status directive gets information from a markdown formatted status
