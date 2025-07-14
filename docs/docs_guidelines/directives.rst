@@ -4,7 +4,7 @@ Custom directives
 =================
 
 Custom Sphinx directives to allow better formatting, and extra features, such
-has videos and shell code snippets.
+as videos and shell code snippets.
 
 Container
 ~~~~~~~~~
@@ -20,7 +20,7 @@ Flex
 
 The grid directive implements a subset of
 `CSS Flex <https://css-tricks.com/snippets/css/a-guide-to-flexbox/>`__.
-And is used to dipose elements without worrying about number of columns and sizes,
+And is used to dispose elements without worrying about number of columns and sizes,
 while still obtaining a fairly good result.
 
 .. code:: rst
@@ -34,14 +34,14 @@ Grid
 
 The grid directive implements a subset of
 `CSS Grids <https://css-tricks.com/snippets/css/complete-guide-grid/>`__.
-And is used to dipose elements with exact number of columns and width control.
+And is used to dispose elements with exact number of columns and width control.
 
 .. code:: rst
 
    .. grid::
       :widths: 25 25% 150px
 
-The ``widths`` options allow units (``px``, ``%``, etc) and without an explicit
+The ``widths`` options allow units (``px``, ``%``, etc.) and without an explicit
 unit it is inferred percentile.
 This option is required, since it is not possible to infer the number of
 columns in a sane manner.
@@ -56,7 +56,7 @@ the content, forcing any following content to be moved below any preceding
 content.
 It is useful when working with images
 aligned/`float <https://developer.mozilla.org/en-US/docs/Web/CSS/float>`__
-left/right and wants to ensure the next section does not also gets "squashed".
+left/right and wants to ensure the next section does not also get "squashed".
 
 .. code:: rst
 
@@ -65,10 +65,35 @@ left/right and wants to ensure the next section does not also gets "squashed".
       :break:
 
 It can clear content to it's ``left``, ``right`` or ``both`` sides.
-By default, it clear ``both`` sides.
+By default, it clears ``both`` sides.
 
 With the ``break`` option, it will break the page when generating a PDF
 (behaves similar to LaTeX *cleardoublepage*).
+
+Description
+~~~~~~~~~~~
+
+The description directive sets the HTML meta description tag
+required by search engines for good SEO.
+
+The content should be up to 160 characters, if it exceeds this length, a
+warning is raised. If not present, try to use the page's first paragraph as the
+content for HTML meta description.
+
+.. code:: rst
+
+   .. description::
+
+      <content>
+
+for example:
+
+.. code:: rst
+
+   .. description::
+
+      Continuous deployment pipeline and instructions to set up a self-hosted
+      GitHub Actions runner using Podman or Docker and systemd without root.
 
 Shell
 ~~~~~
@@ -294,8 +319,8 @@ Notice how you can use any Sphinx syntax, even nest other directives.
 Video
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The video directive creates a embedded video.
-Currently, direct MP4 and youtube embed links  are supported, but could be easily
+The video directive creates an embedded video.
+Currently, direct MP4 and youtube embed links are supported, but could be easily
 expanded to support third-party services.
 
 The directive syntax is:
@@ -341,7 +366,7 @@ Renders as:
 ESD warning
 ~~~~~~~~~~~
 
-The ESD warning directive creates a ESD warning, for example:
+The ESD warning directive creates an ESD warning, for example:
 
 .. code:: rst
 
@@ -467,7 +492,7 @@ To provide a description to the squashed signals/buses, write, for example,
 .. warning::
 
    Do not create new IP with signals named as ``_phy*``, it was added for
-   legacy puporses, instead suffix with ``_*``, e.g. ``mysignal_phy_4``.
+   legacy purposes, instead suffix with ``_*``, e.g. ``mysignal_phy_4``.
 
 The ``:path:`` option is optional, and should **not** be included if the
 documentation file path matches the *component.xml* hierarchically.
