@@ -89,15 +89,15 @@ def builder_inited(app):
     if app.builder.format == 'html':
         # Add include regardless of theme.
         if getenv("ADOC_DEVPOOL") is not None:
-            app.add_js_file("dev-pool.js", priority=500, defer="")
+            app.add_js_file("dev-pool.js", priority=500, loading_method="async")
 
         # Add bundled JavaScript if current theme is from this extension.
         if app.env.config.html_theme in theme_names:
-            app.add_js_file("app.umd.js", priority=500, defer="")
+            app.add_js_file("app.umd.js", priority=500, loading_method="async")
             app.config.html_permalinks_icon = ""
             get_pygments_theme(app)
         else:
-            app.add_css_file("third-party.css", priority=500, defer="")
+            app.add_css_file("third-party.css", priority=500)
 
 
 def build_finished(app, exc):
