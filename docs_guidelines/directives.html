@@ -4,7 +4,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta content="Custom Sphinx directives to allow better formatting, and extra features, such has videos and shell code snippets." name="description" />
+<meta content="Custom Sphinx directives to allow better formatting, and extra features, such as videos and shell code snippets." name="description" />
 
     <title>Custom directives &#8212; Doctools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8e8a900e" />
@@ -95,6 +95,7 @@
 </ul>
 </li>
 <li><a class="reference internal" href="#clear-content">Clear content</a></li>
+<li><a class="reference internal" href="#description">Description</a></li>
 <li><a class="reference internal" href="#shell">Shell</a></li>
 <li><a class="reference internal" href="#svg">SVG</a></li>
 <li><a class="reference internal" href="#collapsible">Collapsible</a></li>
@@ -173,7 +174,7 @@ Content on this topic
   <section id="custom-directives">
 <span id="directive"></span><h1>Custom directives<a class="headerlink" href="#custom-directives" title="Link to this heading"></a></h1>
 <p>Custom Sphinx directives to allow better formatting, and extra features, such
-has videos and shell code snippets.</p>
+as videos and shell code snippets.</p>
 <section id="container">
 <h2>Container<a class="headerlink" href="#container" title="Link to this heading"></a></h2>
 <p>To allow disposing content in a tabular manner but still respecting the multiple
@@ -183,7 +184,7 @@ screen sizes and both HTML and PDF output, two container directives are availabl
 <span id="directive-flex"></span><h3>Flex<a class="headerlink" href="#flex" title="Link to this heading"></a></h3>
 <p>The grid directive implements a subset of
 <a class="icon link reference external" href="https://css-tricks.com/snippets/css/a-guide-to-flexbox/" target="_blank">CSS Flex</a>.
-And is used to dipose elements without worrying about number of columns and sizes,
+And is used to dispose elements without worrying about number of columns and sizes,
 while still obtaining a fairly good result.</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">flex</span><span class="p">::</span>
 </pre></div>
@@ -193,12 +194,12 @@ while still obtaining a fairly good result.</p>
 <span id="directive-grid"></span><h3>Grid<a class="headerlink" href="#grid" title="Link to this heading"></a></h3>
 <p>The grid directive implements a subset of
 <a class="icon link reference external" href="https://css-tricks.com/snippets/css/complete-guide-grid/" target="_blank">CSS Grids</a>.
-And is used to dipose elements with exact number of columns and width control.</p>
+And is used to dispose elements with exact number of columns and width control.</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">grid</span><span class="p">::</span>
    <span class="nc">:widths:</span> 25 25% 150px
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">widths</span></code> options allow units (<code class="docutils literal notranslate"><span class="pre">px</span></code>, <code class="docutils literal notranslate"><span class="pre">%</span></code>, etc) and without an explicit
+<p>The <code class="docutils literal notranslate"><span class="pre">widths</span></code> options allow units (<code class="docutils literal notranslate"><span class="pre">px</span></code>, <code class="docutils literal notranslate"><span class="pre">%</span></code>, etc.) and without an explicit
 unit it is inferred percentile.
 This option is required, since it is not possible to infer the number of
 columns in a sane manner.</p>
@@ -212,16 +213,36 @@ the content, forcing any following content to be moved below any preceding
 content.
 It is useful when working with images
 aligned/<a class="icon link reference external" href="https://developer.mozilla.org/en-US/docs/Web/CSS/float" target="_blank">float</a>
-left/right and wants to ensure the next section does not also gets “squashed”.</p>
+left/right and wants to ensure the next section does not also get “squashed”.</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">clear-content</span><span class="p">::</span>
    <span class="nc">:side:</span> [both,left,right]
    <span class="nc">:break:</span>
 </pre></div>
 </div>
 <p>It can clear content to it’s <code class="docutils literal notranslate"><span class="pre">left</span></code>, <code class="docutils literal notranslate"><span class="pre">right</span></code> or <code class="docutils literal notranslate"><span class="pre">both</span></code> sides.
-By default, it clear <code class="docutils literal notranslate"><span class="pre">both</span></code> sides.</p>
+By default, it clears <code class="docutils literal notranslate"><span class="pre">both</span></code> sides.</p>
 <p>With the <code class="docutils literal notranslate"><span class="pre">break</span></code> option, it will break the page when generating a PDF
 (behaves similar to LaTeX <em>cleardoublepage</em>).</p>
+</section>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Link to this heading"></a></h2>
+<p>The description directive sets the HTML meta description tag
+required by search engines for good SEO.</p>
+<p>The content should be up to 160 characters, if it exceeds this length, a
+warning is raised. If not present, try to use the page’s first paragraph as the
+content for HTML meta description.</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">description</span><span class="p">::</span>
+
+   &lt;content&gt;
+</pre></div>
+</div>
+<p>for example:</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">description</span><span class="p">::</span>
+
+   Continuous deployment pipeline and instructions to set up a self-hosted
+   GitHub Actions runner using Podman or Docker and systemd without root.
+</pre></div>
+</div>
 </section>
 <section id="shell">
 <h2>Shell<a class="headerlink" href="#shell" title="Link to this heading"></a></h2>
@@ -468,8 +489,8 @@ hover effects.</p>
 </section>
 <section id="video">
 <h2>Video<a class="headerlink" href="#video" title="Link to this heading"></a></h2>
-<p>The video directive creates a embedded video.
-Currently, direct MP4 and youtube embed links  are supported, but could be easily
+<p>The video directive creates an embedded video.
+Currently, direct MP4 and youtube embed links are supported, but could be easily
 expanded to support third-party services.</p>
 <p>The directive syntax is:</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">video</span><span class="p">::</span> <span class="nt">&lt;url&gt;</span>
@@ -505,7 +526,7 @@ video, but a link to it.</p>
 </div></div></section>
 <section id="esd-warning">
 <h2>ESD warning<a class="headerlink" href="#esd-warning" title="Link to this heading"></a></h2>
-<p>The ESD warning directive creates a ESD warning, for example:</p>
+<p>The ESD warning directive creates an ESD warning, for example:</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">esd-warning</span><span class="p">::</span>
 </pre></div>
 </div>
@@ -607,7 +628,7 @@ to avoid repetition, for example:</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>Do not create new IP with signals named as <code class="docutils literal notranslate"><span class="pre">_phy*</span></code>, it was added for
-legacy puporses, instead suffix with <code class="docutils literal notranslate"><span class="pre">_*</span></code>, e.g. <code class="docutils literal notranslate"><span class="pre">mysignal_phy_4</span></code>.</p>
+legacy purposes, instead suffix with <code class="docutils literal notranslate"><span class="pre">_*</span></code>, e.g. <code class="docutils literal notranslate"><span class="pre">mysignal_phy_4</span></code>.</p>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">:path:</span></code> option is optional, and should <strong>not</strong> be included if the
 documentation file path matches the <em>component.xml</em> hierarchically.</p>
