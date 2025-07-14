@@ -1,0 +1,59 @@
+@use "variable";
+@use "mixin_icons";
+
+@media print {
+    button.copy {
+        display: none;
+    }
+}
+
+div.highlight {
+    @include mixin_icons.icons(("copy"));
+    position: relative;
+
+    button.copy {
+        border-radius: variable.$border-radius;
+        transition: .25s ease opacity;
+        background: var(--bg-color3);
+        position: absolute;
+        cursor: pointer;
+        padding: .25em;
+        right: .25em;
+        top: .5em;
+        opacity: .5;
+
+        &::before {
+            display: block;
+            content: '';
+            width: 1.25rem;
+            height: 1.25rem;
+            background-color: var(--text-color2);
+            mask-image: var(--icon-copy);
+            mask-repeat: no-repeat;
+        }
+    }
+
+    &:hover button.copy {
+        opacity: 1;
+        background: var(--bg-color2);
+    }
+}
+
+.code-shell div.highlight {
+
+    button.copy {
+        right: -0.25rem;
+        top: -.125rem;
+        opacity: 0.25;
+
+        &::before {
+            width: 1.125rem;
+            height: 1.125rem;
+            mask-size:cover;
+        }
+    }
+
+    &:hover button.copy {
+        opacity: 1;
+    }
+}

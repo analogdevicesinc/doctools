@@ -66,5 +66,9 @@ em.sig-param, em.property {
         opacity: 0.8;
         user-select: none;
     }
+
+    & > div {
+        padding-bottom: .25em;
+    }
 }
 
