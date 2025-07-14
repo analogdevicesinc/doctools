@@ -363,10 +363,13 @@ def serve(directory, port, dev, selenium, once, builder):
         If any step fails, returns None
         """
         if sha := get_lfs_sha(path_):
+            name_ = path.basename(path_)
+            name_ = re.sub(r'(_?\d+)?\.\w+$', '', name_)
             pattern = path.join(directory, '**', f'*{ext}')
             files = []
             for file_path in glob.glob(pattern, recursive=True):
-                if '_build' not in path.normpath(file_path):
+                if ('/_build/' not in path.normpath(file_path) and
+                    name_ in path.basename(file_path)):
                     files.append(file_path)
 
             for file in files:
