@@ -67,7 +67,6 @@ export class ContentActions {
       }, [item])
       item.insertAdjacentElement('afterend', button.$)
     })
-    console.log(code_block)
   }
   unused () {
     let page_source_suffix = () => {

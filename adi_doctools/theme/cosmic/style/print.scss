@@ -23,7 +23,7 @@
         display: none !important;
     }
 
-    body .highlight {
+    body .highlight, body.light .highlight {
         background: none;
         border: 1px solid var(--text-color3);
     }
@@ -33,7 +33,7 @@
         border: 1px solid var(--text-color3);
 
         .highlight {
-            border: none;
+            border: none !important;
         }
     }
 

@@ -53,3 +53,8 @@
     mask-image: var(--icon-edit);
 }
 
+@media print {
+    .page-actions {
+        display: none;
+    }
+}
