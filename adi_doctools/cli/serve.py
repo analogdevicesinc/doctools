@@ -305,6 +305,10 @@ def serve(directory, port, dev, selenium, once, builder):
 
         click.echo("writing pdf...")
         document.write_pdf(path.join(builddir, '..', 'output.pdf'))
+        if not once:
+            click.echo("wrote pdf! waiting new user changes...")
+        else:
+            click.echo("wrote pdf!")
 
     if not with_selenium and builder == 'html':
         environ["ADOC_DEVPOOL"] = ""
