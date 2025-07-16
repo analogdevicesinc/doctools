@@ -603,19 +603,22 @@ def serve(directory, port, dev, selenium, once, builder):
                             shell=True, cwd=git_top_level)
 
         if update_sphinx:
-            if dev:
-                # Uses subprocess because creating a new Sphinx class:
-                # * Do not re-eval the roles/directives, but
-                # * Trigger a full rebuild due to env changes
-                # so it is no use for developing purposes.
-                #
-                # Maybe importlib.reload() + monkey patch could be an alternative,
-                # but not triggering full env reload would be tricky, so this is good
-                # enough.
-                subprocess.call(f"sphinx-build -b {builder} . {builddir} -j auto",
-                                shell=True, cwd=directory)
-            else:
-                app.build()
+            # dev:
+            #   Uses subprocess because creating a new Sphinx class:
+            #   * Do not re-eval the roles/directives, but
+            #   * Trigger a full rebuild due to env changes
+            #   so it is no use for developing purposes.
+            #
+            #   Maybe importlib.reload() + monkey patch could be an alternative,
+            #   but not triggering full env reload would be tricky, so this is
+            #   good enough.
+            # no-dev (FIXME):
+            #   with parallel set, calling app.build() is stuck with the
+            #   first run value, even tough it successfully reads the file, as
+            #   seem with verbosity=2.
+            #   So, for now, always rebuild with subprocess instead.
+            subprocess.call(f"sphinx-build -b {builder} . {builddir} -j auto",
+                            shell=True, cwd=directory)
         if update_page:
             for f in w_files:
                 copy2(f, path.join(builddir, '_static', path.basename(f)))
