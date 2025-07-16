@@ -363,11 +363,7 @@ class wrap_elements(SphinxPostTransform):
         if self.env.config.html_theme not in names:
             return
 
-        get_nodes = (
-            self.document.findall  # docutils 0.18+
-            if hasattr(self.document, "findall")
-            else self.document.traverse  # docutils <= 0.17.x
-        )
+        get_nodes = (self.document.findall)
         for node in list(get_nodes(nodes.table)):
             new_node = nodes.container(classes=["table-wrapper"])
             new_node.update_all_atts(node)
