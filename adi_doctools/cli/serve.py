@@ -1,7 +1,7 @@
 from os import path, listdir, remove, mkdir
 from os import pardir, killpg, getpgid
 from os import environ, stat, utime
-from os import chdir, getcwd
+from os import chdir, getcwd, cpu_count
 from shutil import copy2, which, move
 import click
 import importlib
@@ -309,7 +309,8 @@ def serve(directory, port, dev, selenium, once, builder):
     if not with_selenium and builder == 'html':
         environ["ADOC_DEVPOOL"] = ""
 
-    app = Sphinx(directory, directory,  builddir, doctreedir, builder)
+    app = Sphinx(directory, directory,  builddir,
+                 doctreedir, builder, parallel=cpu_count())
 
     watch_file_src = {}
     watch_file_rst = {}
@@ -607,7 +608,8 @@ def serve(directory, port, dev, selenium, once, builder):
                 # Maybe importlib.reload() + monkey patch could be an alternative,
                 # but not triggering full env reload would be tricky, so this is good
                 # enough.
-                subprocess.call(f"sphinx-build -b {builder} . {builddir}", shell=True, cwd=directory)
+                subprocess.call(f"sphinx-build -b {builder} . {builddir} -j {cpu_count()}",
+                                shell=True, cwd=directory)
             else:
                 app.build()
         if update_page:

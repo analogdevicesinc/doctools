@@ -2,7 +2,7 @@ from typing import Tuple, List
 from collections import defaultdict
 
 from os import path, listdir, pardir, chdir, getcwd, mkdir
-from os import environ
+from os import environ, cpu_count
 from glob import glob
 from shutil import copy2
 import importlib.util, importlib.machinery
@@ -669,7 +669,8 @@ def prepare_doc(doc, repos_dir, doc_dir):
 
     # Build with html to build orphanaged docs
     app = Sphinx('.', '.',  builddir, doctreedir, "html",
-                 warning=warning, status=status, verbosity=1)
+                 warning=warning, status=status, verbosity=1,
+                 parallel=cpu_count())
     app.build()
     chdir(cwd_)
 
