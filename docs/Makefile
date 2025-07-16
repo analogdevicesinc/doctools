@@ -1,5 +1,5 @@
 SHELL         = /bin/bash
-SPHINXOPTS   ?= -j $(shell nproc)
+SPHINXOPTS   ?= -j auto
 SPHINXBUILD  ?= sphinx-build
 SOURCEDIR     = .
 BUILDDIR      = _build

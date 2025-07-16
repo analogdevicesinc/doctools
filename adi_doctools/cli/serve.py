@@ -612,7 +612,7 @@ def serve(directory, port, dev, selenium, once, builder):
                 # Maybe importlib.reload() + monkey patch could be an alternative,
                 # but not triggering full env reload would be tricky, so this is good
                 # enough.
-                subprocess.call(f"sphinx-build -b {builder} . {builddir} -j {cpu_count()}",
+                subprocess.call(f"sphinx-build -b {builder} . {builddir} -j auto",
                                 shell=True, cwd=directory)
             else:
                 app.build()
