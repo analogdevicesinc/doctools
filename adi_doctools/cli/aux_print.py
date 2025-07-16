@@ -27,7 +27,7 @@ def sanitize_singlehtml(file) -> str:
     if len(toc_tree):
         toc_tree = toc_tree[0]
         cap_ = toc_tree.xpath("./p[@class='caption' and @role='heading']//span[@class='caption-text']")
-        echo(f"Toc-tree not found, skipped")
+        echo(f"Toctree not found, skipped")
     else:
         cap_ = []
     volumes = []
