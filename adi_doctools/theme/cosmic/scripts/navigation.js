@@ -16,7 +16,7 @@ export class Navigation {
     let $ = this.$ = {}
     $.body = new DOM(DOM.get('body'))
     $.content = new DOM(DOM.get('.body section'))
-    $.localtoc = new DOM(DOM.get('.tocwrapper > nav > ul'))
+    $.localtoc = new DOM(DOM.get('.tocwrapper > nav'))
     this.scroll_spy()
 
     if (this.parent.state.theme === null)
@@ -66,26 +66,26 @@ export class Navigation {
   prepareLocaltocMap (){
     let key = ""
     let lt = this.scrollSpy.localtoc
-    let i = 0
     DOM.getAll('.reference.internal', this.$.localtoc).forEach((elem) => {
-      key = `${i}_${elem.textContent}`
+      key = elem.getAttribute("href").substring(1)
       lt.set(key, [elem, undefined])
-      i += 1
     })
 
     let entries = []
+    // references
     for (let i = 0; i < 7; i++) {
       entries.push(...DOM.getAll(`section > h${i}`, this.$.content))
     }
+    // document- links from singlehtml
+    entries.push(...Array.from(
+      DOM.getAll('div.toctree-wrapper.compound > span', this.$.content))
+        .filter(span => span.id.startsWith('document-')))
     // Sort entries in distance to the top
     entries = entries.sort((a, b) => a.getBoundingClientRect().y - b.getBoundingClientRect().y)
-    i = 0
     entries.forEach((elem) => {
-      key = elem.textContent
-      key = `${i}_${key}`
+      key = elem.id || elem.parentNode.id
       if (lt.has(key)) {
         lt.set(key, [lt.get(key)[0], elem])
-        i += 1
       }
     })
     // Remove not found entries
