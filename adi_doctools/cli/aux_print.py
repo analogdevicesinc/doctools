@@ -110,7 +110,7 @@ def sanitize_singlehtml(file) -> str:
             if a__.attrib['href'].startswith(filename):
                 a__.attrib['href'] = a__.attrib['href'][len_fname:]
 
-    toc = root.xpath("//body//div[@class='tocwrapper']/nav/ul")
+    toc = root.xpath("//body//div[@class='tocwrapper']/nav")
     toc = toc[0] if toc else None
     # Starting from Sphinx version v8.2.0, commit c93723b803
     # singlehtml localtoc are broken because
