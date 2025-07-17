@@ -149,7 +149,7 @@ header .description {
     line-height: 1.1em;
 }
 
-section > h2 {
+section:has(> h2) {
     display: block;
     break-before: always;
 }

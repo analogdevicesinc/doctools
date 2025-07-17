@@ -40,7 +40,7 @@ def sanitize_singlehtml(file) -> str:
         elif i_.startswith('index.html#'):
             i_ = i_[11:]
         else:
-            echo(f"Toc-tree link '{i_}' is not internal, skipped")
+            echo(f"Toctree link '{i_}' is not internal, skipped")
             continue
         volumes.append([c.text, i_])
 
