@@ -1,5 +1,5 @@
 from os import path, listdir, remove, mkdir
-from os import pardir, killpg, getpgid
+from os import pardir
 from os import environ, stat, utime
 from os import chdir, getcwd, cpu_count
 from shutil import copy2, which, move
@@ -8,6 +8,7 @@ import importlib
 
 from sphinx.application import Sphinx
 
+from .aux_os import aux_killpg
 from .aux_git import get_git_top_level, is_git_lfs_installed, get_lfs_sha
 
 log = {
@@ -152,8 +153,8 @@ def serve(directory, port, dev, selenium, once, builder):
                 http.shutdown()
                 http.server_close()
         if dev:
-            killpg(getpgid(rollup_p.pid), signal.SIGTERM)
-            killpg(getpgid(sass_p.pid), signal.SIGTERM)
+            aux_killpg(rollup_p)
+            aux_killpg(sass_p)
         click.echo("Terminated")
         sys.exit()
 
@@ -455,8 +456,8 @@ def serve(directory, port, dev, selenium, once, builder):
         except Exception:
             click.echo(f"{FAIL}Could not start server on http://0.0.0.0:{port}{NC}")
             if dev:
-                killpg(getpgid(rollup_p.pid), signal.SIGTERM)
-                killpg(getpgid(sass_p.pid), signal.SIGTERM)
+                aux_killpg(rollup_p)
+                aux_killpg(sass_p)
             return
     signal.signal(signal.SIGINT, signal_handler)
 
@@ -629,8 +630,8 @@ def serve(directory, port, dev, selenium, once, builder):
                 except Exception as e:
                     click.echo("Browser disconnected")
                     if dev:
-                        killpg(getpgid(rollup_p.pid), signal.SIGTERM)
-                        killpg(getpgid(sass_p.pid), signal.SIGTERM)
+                        aux_killpg(rollup_p)
+                        aux_killpg(sass_p)
                     with lock:
                         http.shutdown()
                         http.server_close()
