@@ -475,8 +475,8 @@ Enable and start the service
 
 .. code:: shell
 
-   systemctl --user enable podman-public-doctools@0.service
-   systemctl --user start podman-public-doctools@0.service
+   systemctl --user enable container-public-doctools@0.service
+   systemctl --user start container-public-doctools@0.service
 
 .. attention::
 
