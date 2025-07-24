@@ -5,6 +5,9 @@
   {% if theme_no_index %}
     <meta name="robots" content="noindex">
   {% endif %}
+  {% if theme_standalone %}
+  <meta name="standalone">
+  {% endif %}
   <meta name="repository" content="{{ repotoc_current }}">
   <meta name="version" content="{{ version }}">
   {% if page_source_suffix %}
@@ -57,7 +60,9 @@
       <span>
         <a id="logo-org" href="{{ theme_org_url }}" aria-label="Analog Devices Inc. landing page"></a>
         <div class="vertical-divider"></div>
+        {% if not theme_standalone %}
         <label id="show-repotoc" for="input-show-repotoc" title="Show/hide docs" tabindex="0">Docs</label>
+        {% endif %}
         <a id="logo" href="{{ pathto(master_doc) }}">
           <div>{{ repotoc_current_name }}</div>
         </a>

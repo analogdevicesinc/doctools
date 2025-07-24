@@ -12,12 +12,7 @@ export class VersionDropdown {
       return
     this.$ = {}
 
-    /* polyfill < v0.4.11 */
-    if (Object.hasOwn(this.parent.state, 'sub_hosted'))
-      this.prefix = this.parent.state.sub_hosted === true ?
-                    this.parent.state.repository : ''
-    else
-      this.prefix = this.parent.state.subhost
+    this.prefix = this.parent.state.subhost
     this.prefix = new URL(this.prefix, location.origin).href
     if (this.prefix.endsWith('/'))
       this.prefix = this.prefix.slice(0, -1)

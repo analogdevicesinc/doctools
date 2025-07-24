@@ -207,12 +207,7 @@ export class Search {
   check_toc (key, ev) {
     if (ev.target.checked) {
       if (this.index_state[key].requested === false) {
-        /* polyfill < v0.4.11 */
-        let not_sub_hosted
-        if (Object.hasOwn(this.parent.state, 'sub_hosted'))
-          not_sub_hosted = !this.parent.state.sub_hosted
-        else
-          not_sub_hosted = this.parent.state.subhost === '' || this.parent.state.subhost === undefined
+        let not_sub_hosted = this.parent.state.subhost === '' || this.parent.state.subhost === undefined
         this.get_default_searchindex(key, not_sub_hosted)
           .then((url) => {
             let search_ = new URL(url)
@@ -263,14 +258,8 @@ export class Search {
      * When writing the docs, it is a better user experience to be able to search
      * the local built docs.
      */
-    /* polyfill < v0.4.11 */
-    let key = ''
-    if (Object.hasOwn(this.parent.state, 'sub_hosted'))
-      key = this.parent.state.sub_hosted ?
-            this.parent.state.repository : 'local'
-    else
-      key = this.parent.state.subhost === '' || this.parent.state.subhost === undefined ?
-            'local' : this.parent.state.repository
+    let key = this.parent.state.subhost === '' || this.parent.state.subhost === undefined || this.parent.state.standalone ?
+              'local' : this.parent.state.repository
     let event = new Event('change');
     if (!(key in this.$.keyCheckbox))
       return
@@ -849,21 +838,18 @@ export class Search {
     })
     this.$.body.append([this.$.language_data])
 
-    for (const [key, value] of Object.entries(this.parent.state.metadata.repotoc)) {
-      this.include_item(key, value['name'], alphanumeric.shift())
-    }
-    /* polyfill < v0.4.11 */
-    let sub_hosted
-    if (Object.hasOwn(this.parent.state, 'sub_hosted'))
-      sub_hosted = this.parent.state.sub_hosted
-    else
-      sub_hosted = this.parent.state.subhost !== '' && this.parent.state.subhost !== undefined
+    if (!this.parent.state.standalone)
+      for (const [key, value] of Object.entries(this.parent.state.metadata.repotoc)) {
+        this.include_item(key, value['name'], alphanumeric.shift())
+      }
+    let not_subhosted = this.parent.state.subhost === '' || this.parent.state.subhost === undefined
 
-    if (!sub_hosted) {
+    if (not_subhosted || this.parent.state.standalone) {
       let name = this.parent.state.repository in this.parent.state.metadata.repotoc ?
                  this.parent.state.metadata.repotoc[this.parent.state.repository]['name'] :
                  this.parent.state.repository
-      this.include_item("local", `${name} (local build)`, alphanumeric.shift())
+      let label = this.parent.state.standalone ? '' : ' (local build)'
+      this.include_item("local", `${name}${label}`, alphanumeric.shift())
     }
 
     this.$.searchInput.$.oninput = (e) => {this.query(e.target.value)}

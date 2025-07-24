@@ -199,13 +199,13 @@ header {
     }
 
     .vertical-divider {
-        padding: 0 0.25rem 0 .75rem;
+        padding: 0 0.25rem 0 0.75rem;
         border-right: variable.$border-panel1;
         height: 1.75rem;
     }
 
     #logo {
-        padding-left: 0.25rem;
+        padding-left: 0.5rem;
         height: 3.5rem;
         overflow: hidden;
         display: flex;
@@ -278,7 +278,7 @@ body.dark #logo-org {
 header {
     #show-repotoc {
         display: flex;
-        margin: 0 .25em;
+        margin: 0 0 0 .25em;
         align-items: center;
         border-radius: variable.$border-radius;
         padding: .5em .75em;

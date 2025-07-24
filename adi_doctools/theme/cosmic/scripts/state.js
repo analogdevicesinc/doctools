@@ -7,10 +7,11 @@
  * theme: dark/light
  * content_root: relative path to reach the current doc root page
  * metadata: fetched by fetch.js
- * subhost: "docs/$repository", "$repository" (github.io) or "" (single doc)
+ * subhost: "/docs/$repository", "/$repository" (github.io) or "" (single doc)
  * path: "v0.0.1", "", "prs/staging/new_feature"
  * reloaded: page was reloaded
  * metadata: tags.json, fetched later by fetch.js, if state allows
+ * standalone: isolated doc, disable multi-repo integrations
  */
 const state = {
   repository: undefined,
@@ -21,7 +22,8 @@ const state = {
   subhost: undefined,
   path: undefined,
   reloaded: undefined,
-  metadata: undefined
+  metadata: undefined,
+  standalone: undefined
 }
 
 /**
@@ -155,6 +157,12 @@ export class State {
     return performance.navigation.type === performance.navigation.TYPE_RELOAD
   }
   /**
+   * Disable integrations.
+   */
+  standalone () {
+    return document.querySelector('meta[name="standalone"]') ? true : false
+  }
+  /**
    * Init app state object.
    */
   init_state (state) {
@@ -171,5 +179,6 @@ export class State {
       state.path = this.path_offline(state.content_root, state.subhost)
     }
     state.reloaded = this.reloaded()
+    state.standalone = this.standalone()
   }
 }
