@@ -26,3 +26,28 @@ The ``/``, ``Ctrl+K``, ``Alt+K`` key triggers the search bar. In search, Use
 ``Ctrl+`` incrementing values (1,2,3..B,C...,Z) to select the search locations.
 ``A`` is skipped because it is a common shortcut to select all text. Double tab
 from the focused search box focuses on the first result. ``esc`` exits the search.
+
+Theme options
+-------------
+
+As other Sphinx themes, customization is provided through the *conf.py*.
+The options are added to the ``html_theme_options`` dictionary:
+
+.. code:: python
+
+   html_theme_options = {
+       "light_logo": path.join("path", "to", "logo_light.svg"),
+       "dark_logo": path.join("path", "to", "logo_dark.svg"),
+       "no_index": False,
+       "standalone": False,
+   }
+
+For logos in the sidebar, provide a dark and light variant:
+If there is no dark variant, provide only ``light_logo``.
+
+To not index the doc in search engines, set ``no_index`` as ``True``.
+
+If you desire to disable cross-repository integration, set ``standalone`` as
+``True``. This option is not recommended in most cases, since the internal
+logic already manages the features on a context/deployment basis, while this
+flag will permanently disable the features for a build.
