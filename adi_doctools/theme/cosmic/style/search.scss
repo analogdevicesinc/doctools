@@ -107,6 +107,7 @@
 }
 
 .search-area .search-filter {
+    box-sizing: content-box;
     background: var(--bg-color1);
     flex-shrink: 0;
 
@@ -317,6 +318,7 @@
 .search-area .search-container {
     display: flex;
     align-items: flex-start;
+    width: 100vw;
 }
 
 @media (max-width: variable.$screen-1) {
@@ -338,8 +340,8 @@
 
 @media (min-width: variable.$screen-1) {
     .search-area form {
-        margin-left: calc(40vw - 15rem);
-        width: calc(60vw + 15rem);
+        margin-left: calc(40vw - 21.5rem);
+        width: calc(25vw + 36em);
     }
 
     .search-area .search-filter {
@@ -354,39 +356,27 @@
     }
 }
 
-@media (min-width: variable.$screen-2) {
-    .search-area .search-container {
-        margin-left: calc(40vw - 32rem);
-    }
-}
-
 @media (min-width: variable.$screen-3) {
-    .search-area .search-container {
-        width: 79em;
+    .search-area .search-filter {
+        padding-left: calc(40vw - 40rem);
+        width: 20rem;
+    }
+
+    .search-area .search-results {
+        width: calc(25vw + 36em);
     }
 }
 
-@media (min-width: variable.$screen-1) and (max-width: variable.$screen-3) {
-    .search-area .search-container {
-        width: calc(60vw + 32rem);
-    }
-}
-
-@media (max-width: variable.$screen-1) {
+@media (max-width: variable.$screen-3) {
     .search-area .search-container {
         width: 100vw;
     }
 }
 
-@media (min-width: variable.$screen-1) and (max-width: variable.$screen-2) {
+@media (min-width: variable.$screen-1) and (max-width: variable.$screen-3) {
     .search-area form {
-        margin-left: 17rem;
-        width: calc(100vw - 17rem);
+        margin-left: 20rem;
+        width: calc(100vw - 20rem);
     }
 }
 
-@media (min-width: variable.$screen-3) {
-    .search-area form {
-        max-width: 62rem;
-    }
-}

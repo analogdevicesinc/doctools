@@ -1,4 +1,7 @@
+@use 'sass:map';
+
 @use "variable";
+@use "size";
 
 .version-dropdown {
     display: flex;
@@ -103,20 +106,6 @@ header .version-dropdown {
     }
 }
 
-@media (min-width: variable.$screen-3) {
-    .version-dropdown-list {
-        top: 3rem;
-        right: calc(60vw - 42rem);
-    }
-}
-
-@media (min-width: variable.$screen-1) and (max-width: variable.$screen-3) {
-    .version-dropdown-list {
-        top: 3rem;
-        right: 7rem;
-    }
-}
-
 @media (max-width: variable.$screen-1) {
     .version-dropdown-list {
         top: 10rem;
@@ -147,3 +136,20 @@ header .version-dropdown {
         z-index: 12;
     }
 }
+
+@media (min-width: variable.$screen-1) and (max-width: variable.$screen-3) {
+    @include size.version-dropdown-position(
+        map.get(map.get(size.$bodywrapper-sizes, screen-1-3), rem),
+        map.get(map.get(size.$bodywrapper-sizes, screen-1-3), vw),
+        7rem
+    );
+}
+
+@media (min-width: variable.$screen-3) {
+    @include size.version-dropdown-position(
+        map.get(map.get(size.$bodywrapper-sizes, screen-3), rem),
+        map.get(map.get(size.$bodywrapper-sizes, screen-3), vw),
+        2.5rem
+    );
+}
+

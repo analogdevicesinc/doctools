@@ -1,4 +1,7 @@
+@use 'sass:map';
+
 @use "variable";
+@use "size";
 
 .sphinxsidebar {
     width: 0;
@@ -22,7 +25,7 @@
     }
 }
 
-@media (max-width: variable.$screen-1) {
+@media (max-width: variable.$screen-3) {
     .sphinxsidebar {
         transition: .125s ease opacity, .25s ease margin;
         pointer-events: none;
@@ -47,6 +50,10 @@
         margin: 1em auto 0;
     }
 
+
+}
+
+@media (max-width: variable.$screen-1) {
     .sphinxsidebar #logo img, .sphinxsidebar #no-logo {
         display: none !important;
     }
@@ -54,15 +61,12 @@
 
 .sphinxsidebar #logo, .sphinxsidebar #no-logo {
     display: block;
-    max-width: 13rem;
-}
-
-.sphinxsidebar #no-logo {
     font-size: 1.5em;
-    margin-bottom: .5rem;
+    max-width: 13rem;
+    margin: 1rem 1rem 0 1rem;
 }
 
-@media (min-width: variable.$screen-0) and (max-width: variable.$screen-1) {
+@media (min-width: variable.$screen-0) and (max-width: variable.$screen-3) {
     .sphinxsidebar {
         width: 18em;
         left: -19em;
@@ -109,34 +113,35 @@
     display: none;
 }
 
-@media (min-width: variable.$screen-1) {
+@media (min-width: variable.$screen-3) {
     button#show-sidebar {
       display: none;
     }
 
+    .sphinxsidebar {
+        z-index: 6;
+    }
     .sphinxsidebarwrapper {
-        height: calc(100vh - 5rem);
-	    width: 15rem;
+        height: calc(100vh - 3.5rem);
+	width: calc(5vw + 15rem);
     }
 
     body:not(.overflow-hidden) .sphinxsidebarwrapper {
         border-right: variable.$border-panel2;
     }
 }
-@media (min-width: variable.$screen-1) and (max-width: variable.$screen-2) {
-    .sphinxsidebarwrapper {
-        padding: 1.5rem 1rem 0em 1rem;
+
+@media (min-width: variable.$screen-3) {
+    .sphinxsidebarwrapper .toc-tree, .sphinxsidebarwrapper .repotoc-tree {
+        padding: 1em 1vw;
+    }
+    .sphinxsidebar #logo, .sphinxsidebar #no-logo {
+        margin: 1vw 1vw 0 1vw;
     }
 }
 
-@media (min-width: variable.$screen-2) {
-    .sphinxsidebarwrapper {
-        padding: 1.5rem 1rem 0em calc(40vw - 31rem);
-    }
-}
-
-@media (max-width: variable.$screen-1) {
-    .toc-tree, .repotoc-tree {
+@media (max-width: variable.$screen-3) {
+    .sphinxsidebarwrapper .toc-tree, .sphinxsidebarwrapper .repotoc-tree {
         padding: 1em;
     }
 }
@@ -252,9 +257,9 @@
         nav {
             border-left: variable.$border-panel2;
             max-width: 20rem;
+            padding-right: .5em;
             margin-bottom: 10em;
             color: var(--text-color2);
-
         }
 
         nav > ul > li:first-child > a {
@@ -263,7 +268,6 @@
 
     }
     .sphinxsidebar, .localtoc {
-        z-index: 2;
         position: sticky;
         top: 3.5rem;
         height: 0;
@@ -374,16 +378,6 @@
     }
 }
 
-@media screen and (min-width: variable.$screen-3) {
-    .tocwrapper {
-        width: calc(60vw - 60rem + 13rem);
-    }
-
-    .localtoc {
-        left: calc(40vw + 60rem - 13rem);
-    }
-}
-
 @media (min-width: variable.$screen-1) {
     .sphinxsidebar {
         #show-repotoc, #show-toc {
@@ -454,7 +448,7 @@
     display: none;
 }
 
-@media screen and (max-width: variable.$screen-3) {
+@media screen and (max-width: variable.$screen-1) {
     .localtoc {
         transition: .125s ease opacity;
         pointer-events: none;
@@ -484,7 +478,7 @@
     }
 }
 
-@media screen and (max-width: variable.$screen-3) {
+@media screen and (max-width: variable.$screen-1) {
     #input-show-localtoc:checked ~ #cancel-area-show-localtoc {
         position: fixed;
         background: rgba(0, 0, 0, .05);
@@ -495,7 +489,11 @@
     }
 }
 
-@media screen and (max-width: variable.$screen-1) {
+@media screen and (max-width: variable.$screen-3) {
+    .sphinxsidebar, .localtoc {
+        z-index: 2;
+    }
+
     #input-show-toc:checked ~ #cancel-area-show-toc {
         position: fixed;
         background: rgba(0, 0, 0, .05);
@@ -512,3 +510,20 @@
 #input-switch-toc {
     display: none
 }
+
+@media (min-width: variable.$screen-1) and (max-width: variable.$screen-3) {
+    @include size.localtoc-position(
+        map.get(map.get(size.$bodywrapper-sizes, screen-1-3), rem),
+        map.get(map.get(size.$bodywrapper-sizes, screen-1-3), vw),
+        map.get(map.get(size.$bodywrapper-sizes, screen-1-3), offset)
+    );
+}
+
+@media (min-width: variable.$screen-3) {
+    @include size.localtoc-position(
+        map.get(map.get(size.$bodywrapper-sizes, screen-3), rem),
+        map.get(map.get(size.$bodywrapper-sizes, screen-3), vw),
+        -2vw
+    );
+}
+

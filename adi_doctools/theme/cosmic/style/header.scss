@@ -74,20 +74,18 @@ header {
     }
 }
 
-@media screen {
+@media (min-width: variable.$screen-3) {
     header {
-        border-bottom: variable.$border-panel1;
-    }
-}
-@media (min-width: variable.$screen-1) and (max-width: variable.$screen-2) {
-    .repotoc-tree.overlay root {
-        padding-left: 18em;
+        #right {
+          margin-left: calc(50vw - 20rem - 10vw + 1rem);
+          width: calc(40rem + 20vw - 1rem);
+        }
     }
 }
 
-@media (min-width: variable.$screen-2) {
-    .repotoc-tree.overlay root {
-        padding-left: calc(40vw - 14em);
+@media screen {
+    header {
+        border-bottom: variable.$border-panel1;
     }
 }
 
@@ -154,7 +152,7 @@ header {
     }
 }
 
-@media (min-width: variable.$screen-3) {
+@media (min-width: variable.$screen-1) {
     header #show-localtoc {
         display: none;
     }
@@ -182,6 +180,7 @@ header {
 }
 
 header {
+    display: flex;
     height: 3.5rem;
 
     #right {
@@ -232,9 +231,6 @@ body.dark #logo-org {
     header {
         backdrop-filter: blur(1em);
     }
-    header #right {
-        width: 100%;
-    }
 }
 
 @media (min-width: variable.$screen-1) {
@@ -242,30 +238,38 @@ body.dark #logo-org {
         background: var(--bg-color1);
     }
 
-    header #left{
-        display: none;
-    }
-
     header #right {
         text-align: right;
     }
 }
 
-@media (min-width: variable.$screen-1) and (max-width: variable.$screen-2) {
-    header #right {
-        margin-left: 19rem;
+@media (min-width: variable.$screen-3) {
+    header #left {
+        display: none;
     }
 }
 
-@media (min-width: variable.$screen-2) {
+@media (min-width: variable.$screen-1) and (max-width: variable.$screen-3) {
     header #right {
-        margin-left: calc(40vw - 13rem);
+        width: calc(75vw - 1rem);
+    }
+}
+
+@media (max-width: variable.$screen-1) {
+    header #right {
+        width: 100%;
+    }
+}
+
+@media (min-width: variable.$screen-1) and (max-width: variable.$screen-3) {
+    .repotoc-tree.overlay root {
+        padding-left: 9em;
     }
 }
 
 @media (min-width: variable.$screen-3) {
-    header #right {
-        max-width: 60rem;
+    .repotoc-tree.overlay root {
+        padding-left: calc(40vw - 12.5em);
     }
 }
 

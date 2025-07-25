@@ -2,7 +2,10 @@
 
 footer {
     border-top: variable.$border-panel1;
+    margin-top: 1em;
     padding: 1em;
+    position: relative;
+    z-index: 4;
 }
 
 @media screen {
@@ -11,20 +14,8 @@ footer {
     }
 }
 
-@media (min-width: variable.$screen-1) and (max-width: variable.$screen-2) {
-    footer {
-        margin-left: 18rem;
-    }
-}
-
-@media (min-width: variable.$screen-2) {
-    footer {
-        margin-left: calc(40vw - 14em);
-    }
-}
-
 @media (min-width: variable.$screen-3) {
     footer {
-        max-width: 60rem;
+        margin-left: calc(5vw + 15rem);
     }
 }

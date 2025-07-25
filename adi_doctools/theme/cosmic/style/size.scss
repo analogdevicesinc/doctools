@@ -1,0 +1,43 @@
+@use 'sass:math';
+
+$bodywrapper-1-3-rem: 10rem;
+$bodywrapper-1-3-vw: 60vw;
+$bodywrapper-1-3-offset: 10vw;
+$bodywrapper-3-rem: 40rem;
+$bodywrapper-3-vw: 20vw;
+
+$bodywrapper-sizes: (
+  screen-1-3: (
+    rem: $bodywrapper-1-3-rem,
+    vw: $bodywrapper-1-3-vw,
+    offset: $bodywrapper-1-3-offset
+  ),
+  screen-3: (
+    rem: $bodywrapper-3-rem,
+    vw: $bodywrapper-3-vw
+  )
+);
+
+@mixin bodywrapper-position($rem, $vw, $offset: 0vw) {
+    .bodywrapper {
+        width: calc(#{$rem} + #{$vw});
+        margin-left: calc(50vw - #{$offset} - #{math.div($rem, 2)} - #{math.div($vw, 2)});
+    }
+}
+
+@mixin localtoc-position($rem, $vw, $offset: 0vw) {
+    .tocwrapper {
+        width: calc(100vw - 50vw + $offset - #{math.div($rem, 2)} - #{math.div($vw, 2)});
+    }
+    .localtoc {
+        left: calc(50vw - $offset + #{math.div($rem, 2)} + #{math.div($vw, 2)});
+    }
+}
+
+@mixin version-dropdown-position($rem, $vw, $offset) {
+    .version-dropdown-list {
+        top: 3rem;
+        right: calc(50vw + $offset - #{math.div($rem, 2)} - #{math.div($vw, 2)} + $offset);
+    }
+}
+

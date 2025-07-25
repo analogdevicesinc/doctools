@@ -1,0 +1,71 @@
+@use 'sass:map';
+
+@use "variable";
+@use "size";
+
+.body {
+    width: 100%;
+    padding: 0 1rem;
+    overflow-x: auto;
+}
+
+.body {
+    p, div.line {
+        line-height: 1.5em;
+        margin: .25em 0 .75em 0;
+    }
+
+    p {
+        margin: .25em 0 .5em 0;
+    }
+
+    div.line{
+        margin: .25em 0;
+    }
+}
+
+@media (min-width: variable.$screen-1) {
+
+    .body {
+        min-height: calc(100vh - 7rem);
+    }
+
+    .body-header + .body {
+        min-height: calc(100vh - 8.5rem);
+    }
+}
+
+@media (max-width: variable.$screen-1) {
+    .body {
+        min-height: calc(100vh - 11.25rem);
+    }
+}
+
+@media (max-width: variable.$screen-3) {
+    .bodywrapper > div {
+        margin: 0 auto;
+    }
+}
+
+@media screen and (min-width: variable.$screen-0) {
+    .body {
+        p, div.line {
+            text-align: justify;
+        }
+    }
+}
+
+@media (min-width: variable.$screen-1) and (max-width: variable.$screen-3) {
+    @include size.bodywrapper-position(
+        map.get(map.get(size.$bodywrapper-sizes, screen-1-3), rem),
+        map.get(map.get(size.$bodywrapper-sizes, screen-1-3), vw),
+        map.get(map.get(size.$bodywrapper-sizes, screen-1-3), offset),
+    );
+}
+
+@media (min-width: variable.$screen-3) {
+    @include size.bodywrapper-position(
+        map.get(map.get(size.$bodywrapper-sizes, screen-3), rem),
+        map.get(map.get(size.$bodywrapper-sizes, screen-3), vw)
+    );
+}

@@ -1,3 +1,12 @@
+$hmc-color-blue-700: #0067b9;
+$hmc-color-blue-300: #92befc;
+$hmc-color-purple-700: #8e3dc7;
+$hmc-color-purple-500: #b16ee0;
+$hmc-color-purple-300: #d4adf0;
+$hmc-radius-200: 0.5rem;
+$hmc-radius-300: 0.75rem;
+$hmc-radius-400: 1rem;
+
 $bg-light1: #f8f8f8;
 $bg-light2: #f0f1f3;
 $bg-light3: #ebebeb;
@@ -21,12 +30,12 @@ $border-panel1: 1px solid rgba(125, 125, 125, 0.8);
 $border-panel2: 1px solid rgba(125, 125, 125, 0.5);
 $border-th: 1px solid rgba(125, 125, 125, 0.5);
 $border-td: 1px solid rgba(125, 125, 125, 0.25);
-$accent-color-light: #0067b9;
-$accent-color-dark: #0076d6;
-$accent-color-code-light: #cc6d34;
-$accent-color-code-dark: #ff8d34;
-$border-radius: .5rem;
-$border-radius-extra: 1rem;
+$accent-color-light: $hmc-color-blue-700;
+$accent-color-dark: $hmc-color-blue-300;
+$accent-color-code-light: $hmc-color-purple-700;
+$accent-color-code-dark: $hmc-color-purple-300;
+$border-radius: $hmc-radius-200;
+$border-radius-extra: $hmc-radius-400;
 
 $screen-3: 105em;
 $screen-2: 80em;
