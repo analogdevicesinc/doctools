@@ -11,11 +11,14 @@ export class PageActions {
   constructor (app) {
     this.$ = {}
 
+    this.with_page_source = true
     this.parent = app
     if (typeof this.parent.fetch === 'object')
-      this.parent.fetch.then(this.init.bind(this))
+      this.parent.fetch.then(this.preinit.bind(this))
     else
-      this.init()
+      this.preinit()
+
+    app.page_actions = this
   }
 
   page_source_sanity (m, r) {
@@ -50,36 +53,26 @@ export class PageActions {
 
     return false
   }
-
-  draw_page_source (url, url_raw) {
-    let container = new DOM('div', {
+  draw_page_source () {
+    this.$.container = new DOM('div', {
       'className': 'page-actions'
     })
-    let edit_button = new DOM('a', {
+    this.$.edit_button = new DOM('a', {
       'className': 'edit-source',
       'title': 'See and edit this page source',
-      'href': url,
       'target': 'blank'
     })
-    edit_button.onclick(this, (self, url_raw, e) => {
+    this.$.edit_button.onclick(this, (self, e) => {
       e.preventDefault()
-      Toolbox.try_include(url_raw, self.$.href, true)
-    }, [edit_button, url_raw])
-    edit_button.onauxclick(this, (self, url_raw, e) => {
+      Toolbox.try_include(this.edit_button_tgt_raw, self.$.href, true)
+    }, [this.$.edit_button])
+    this.$.edit_button.onauxclick(this, (self, e) => {
       e.preventDefault()
-      Toolbox.try_include(url_raw, self.$.href, true)
-    }, [edit_button, url_raw])
-    container.append(edit_button.$)
-
-    let doc = DOM.get('.bodywrapper .body-header')
-    if (doc === null) {
-      doc =  DOM.get('.bodywrapper .body')
-      doc.insertAdjacentElement('afterbegin', container.$)
-    } else {
-      doc.insertAdjacentElement('beforeend', container.$)
-    }
+      Toolbox.try_include(this.edit_button_tgt_raw, self.$.href, true)
+    }, [this.$.edit_button])
+    this.$.container.append(this.$.edit_button.$)
   }
-  page_source () {
+  preinit_page_source () {
     let m = this.parent.state.metadata
     let r = this.parent.state.repository
 
@@ -89,6 +82,30 @@ export class PageActions {
     if (this.page_source_ignore())
       return
 
+    this.draw_page_source()
+    this.with_page_source = true
+  }
+  init_page_source () {
+    if (!this.with_page_source)
+      return
+
+    let doc = DOM.get('.bodywrapper .body-header .breadcrumb')
+    if (doc === null || doc.classList.contains('empty')) {
+      doc =  DOM.get('.bodywrapper .body')
+      doc.insertAdjacentElement('afterbegin', this.$.container.$)
+    } else {
+      doc.parentElement.insertAdjacentElement('beforeend', this.$.container.$)
+    }
+
+    let m = this.parent.state.metadata
+    let r = this.parent.state.repository
+
+    let format_tgt = (hostname) => {
+      return hostname.replace('{repository}', r)
+                              .replace('{branch}', m['repotoc'][r]['branch'])
+                              .replace('{pathname}', m['repotoc'][r]['pathname'])
+    }
+
     let page_source_suffix = () => {
       let dom = document.querySelector('meta[name="page_source_suffix"]')
       if (dom === null)
@@ -96,12 +113,6 @@ export class PageActions {
       return dom.content
     }
     let suffix = page_source_suffix()
-
-    let format_tgt = (hostname) => {
-      return hostname.replace('{repository}', r)
-                              .replace('{branch}', m['repotoc'][r]['branch'])
-                              .replace('{pathname}', m['repotoc'][r]['pathname'])
-    }
 
     let tgt = format_tgt(m.source_hostname)
     let tgt_raw = format_tgt(m.source_hostname_raw)
@@ -122,9 +133,23 @@ export class PageActions {
     tgt = tgt.concat('/', pathname)
     tgt_raw = tgt_raw.concat('/', pathname)
 
-    this.draw_page_source(tgt, tgt_raw)
+    this.$.edit_button.$.href = tgt
+    this.edit_button_tgt_raw = tgt_raw
+  }
+  deinit_page_source () {
+    if (!this.with_page_source)
+      return
+
+    this.edit_button_tgt_raw = undefined
+  }
+  preinit () {
+    this.preinit_page_source()
+    this.init()
   }
   init () {
-    this.page_source()
+    this.init_page_source()
+  }
+  deinit () {
+    this.deinit_page_source()
   }
 }

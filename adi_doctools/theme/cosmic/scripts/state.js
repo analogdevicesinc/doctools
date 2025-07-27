@@ -62,15 +62,15 @@ export class State {
    * Get relative path to the root.
    * Dual fallback to support multiple Sphinx versions.
    */
-  content_root () {
+  static content_root (doc) {
     let content_root
-    let dom = document.querySelector('script#documentation_options')
+    let dom = doc.querySelector('script#documentation_options')
     if (dom !== null)
       content_root = dom.dataset['url_root'];
     if (content_root == undefined)
-      content_root = document.documentElement.dataset["content_root"]
+      content_root = doc.documentElement.dataset["content_root"]
     if (content_root == undefined) {
-      dom =  document.querySelector('.repotoc-tree .current')
+      dom =  doc.querySelector('.repotoc-tree .current')
       if (dom !== null)
         content_root = dom.getAttribute('href').replace('index.html', '')
     }
@@ -170,7 +170,7 @@ export class State {
     state.version = this.version()
     state.offline = 'file:' == window.location.protocol
     state.theme = localStorage.getItem('theme')
-    state.content_root = this.content_root()
+    state.content_root = State.content_root(document)
     if (!state.offline) {
       state.subhost = this.subhost(state.content_root, state.repository)
       state.path = this.path(state.content_root, state.subhost)

@@ -1,11 +1,7 @@
-{% if parents -%}
-  <div class="body-header">
-    <nav class="breadcrumb">
-        <ol>
-          {% for item in parents -%}
-          <li><a href="{{ item.link }}">{{ item.title }}</a></li>
-          {% endfor -%}
-        </ol>
-    </nav>
-  </div>
-{% endif -%}
+<div class="body-header">
+  <nav class="breadcrumb{% if not parents %} empty{% endif %}"><ol>
+      {%- for item in parents -%}
+      <li><a href="{{ item.link }}">{{ item.title }}</a></li>
+      {%- endfor -%}
+  </ol></nav>
+</div>

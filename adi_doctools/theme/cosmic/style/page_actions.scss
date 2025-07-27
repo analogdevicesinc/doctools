@@ -6,6 +6,10 @@
     float: right;
 }
 
+.body-header:has(.empty) {
+  display: none;
+}
+
 .body-header .page-actions {
     padding-left: .5em;
     margin-top: 1em;

@@ -15,9 +15,8 @@ export class Navigation {
 
     let $ = this.$ = {}
     $.body = new DOM(DOM.get('body'))
-    $.content = new DOM(DOM.get('.body section'))
+    $.content = new DOM(DOM.get('.documentwrapper .body'))
     $.localtoc = new DOM(DOM.get('.tocwrapper > nav'))
-    this.scroll_spy()
 
     if (this.parent.state.theme === null)
       this.parent.state.theme = this.os_theme()
@@ -45,20 +44,26 @@ export class Navigation {
 
     $.rightHeader = new DOM(DOM.get('header #right span.reverse')).append([$.changeTheme])
 
-    $.relatedNext = DOM.get('.related .next')
-    $.relatedPrev = DOM.get('.related .prev')
+    $.related = new DOM(DOM.get('.related'))
 
-    this.init()
+    this.preinit()
 
     app.navigation = this
   }
   /*
    * Initiates scroll spy elements.
    */
-  scroll_spy () {
+  init_scroll_spy () {
     if (this.$.localtoc.$ !== null) {
       this.prepareLocaltocMap()
     }
+  }
+  /*
+   * De-init scroll spy elements.
+   */
+  deinit_scroll_spy () {
+    this.scrollSpy.localtoc.clear()
+    this.scrollSpy.currentLocaltoc = undefined
   }
   /*
    * Prepare map for localtoc elements to be used by the scroll spy.
@@ -165,10 +170,20 @@ export class Navigation {
     /* Try to anchor to same section */
     let anchor = (e.ctrlKey && location.hash.length > 0) ? location.hash : ""
 
-    if ((e.code == 'ArrowLeft' || e.code == 'KeyA') && this.$.relatedPrev)
-      location.href = this.$.relatedPrev.href + anchor
-    else if ((e.code == 'ArrowRight' || e.code == 'KeyD') && this.$.relatedNext)
-      location.href = this.$.relatedNext.href + anchor
+    let dom
+    if ((e.code == 'ArrowLeft' || e.code == 'KeyA'))
+      dom = DOM.get('.prev', this.$.related)
+    else if ((e.code == 'ArrowRight' || e.code == 'KeyD'))
+      dom = DOM.get('.next', this.$.related)
+    if (!dom)
+      return
+
+    if (anchor !== "") {
+      let href_ = new URL(dom.href)
+      href_.hash = anchor
+      dom.href = href_
+    }
+    dom.dispatchEvent(new Event('click'))
   }
   keyup (e) {
     switch (e.code) {
@@ -244,9 +259,9 @@ export class Navigation {
     $.show_localtoc.$.dispatchEvent(event)
   }
   /**
-   * Init navigation.
+   * Pre-init navigation.
    */
-  init () {
+  preinit () {
     onresize = () => {this.handleResize()}
     onscroll = () => {this.handleScroll()}
     document.addEventListener('keyup', (e) => {this.keyup(e)}, false);
@@ -256,5 +271,19 @@ export class Navigation {
     this.handleResize()
     this.scroll_restore();
     addEventListener('beforeunload', (e) => {this.scroll_save(e)}, false);
+
+    this.init()
+  }
+  /**
+   * Init navigation.
+   */
+  init () {
+    this.init_scroll_spy()
+  }
+  /**
+   * De-init navigation.
+   */
+  deinit () {
+    this.deinit_scroll_spy()
   }
 }
