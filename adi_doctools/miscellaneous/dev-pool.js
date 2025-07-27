@@ -18,7 +18,7 @@ window.onload = () => {
   /* Onload because we want to scroll down after all content that may push the
    * page down loads first */
   var scrollpos = localStorage.getItem('devpool_scroll_position');
-  if (scrollpos) window.scrollTo(0, scrollpos);
+  if (scrollpos) window.scrollTo({ top: scrollpos, left: 0, behavior: "instant" })
 }
 window.onbeforeunload = () => {
   if (pool_preserve_scroll === true)
