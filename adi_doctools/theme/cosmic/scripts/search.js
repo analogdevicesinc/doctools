@@ -723,13 +723,19 @@ export class Search {
     this.split_query(query.trim()).forEach((queryTerm) => {
       const queryTermLower = queryTerm.toLowerCase();
 
-      // maybe skip this "word"
-      // stopwords array is from language_data.js
-      if (
-        stopwords.indexOf(queryTermLower) !== -1 ||
-        queryTerm.match(/^\d+$/)
-      )
-        return;
+      // polyfill: starting from sphinx#13575, it is a Set
+      if (stopwords instanceof Set) {
+        // stopwords set is from language_data.js
+        if (stopwords.has(queryTermLower) || queryTerm.match(/^\d+$/))
+          return;
+      } else {
+        // stopwords array is from language_data.js
+        if (
+         stopwords.indexOf(queryTermLower) !== -1 ||
+         queryTerm.match(/^\d+$/)
+        )
+          return;
+      }
 
       // stem the word
       let word = stemmer.stemWord(queryTermLower);
