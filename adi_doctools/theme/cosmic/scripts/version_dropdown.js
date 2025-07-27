@@ -186,16 +186,29 @@ export class VersionDropdown {
     toc_tree.insertAdjacentElement('afterbegin', container.$)
     let container3 = new DOM(container.$.cloneNode(true))
 
-    container.onclick(this, this.show, [true])
-    container3.onclick(this, this.show, [true])
-    cancel_dropdown.onclick(this, this.show, [true])
+    container.onclick(this, this.show, [container, true])
+    container3.onclick(this, this.show, [container3, true])
+    cancel_dropdown.onclick(this, this.show, [undefined, false])
+    onresize = (ev) => {this.show(undefined, false, ev)}
     nav_bar.append(container3.$)
 
     this.$.list = container2
     this.$.cancel= cancel_dropdown
   }
-  show (d) {
-    DOM.switchState(this.$.cancel)
-    DOM.switchState(this.$.list)
+  show (dom, show, ev) {
+    if (!show) {
+      this.$.cancel.classList.remove('on')
+      this.$.list.classList.remove('on')
+      return
+    }
+
+    let rect = dom.rect
+    this.$.list.style.top = `${rect.top + 2.5*16}px`
+    if (rect.right < rect.left)
+      this.$.list.style.right = `${rect.right}px`
+    else
+      this.$.list.style.left = `${rect.left}px`
+    this.$.cancel.classList.add('on')
+    this.$.list.classList.add('on')
   }
 }

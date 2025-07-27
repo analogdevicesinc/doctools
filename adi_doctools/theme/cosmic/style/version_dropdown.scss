@@ -108,13 +108,6 @@ header .version-dropdown {
 
 @media (max-width: variable.$screen-1) {
     .version-dropdown-list {
-        top: 10rem;
-        left: 1rem;
-    }
-}
-
-@media (max-width: variable.$screen-1) {
-    .version-dropdown-list {
         max-height: calc(100vh - 11em);
     }
 }
@@ -135,21 +128,5 @@ header .version-dropdown {
         bottom: 0;
         z-index: 12;
     }
-}
-
-@media (min-width: variable.$screen-1) and (max-width: variable.$screen-3) {
-    @include size.version-dropdown-position(
-        map.get(map.get(size.$bodywrapper-sizes, screen-1-3), rem),
-        map.get(map.get(size.$bodywrapper-sizes, screen-1-3), vw),
-        7rem
-    );
-}
-
-@media (min-width: variable.$screen-3) {
-    @include size.version-dropdown-position(
-        map.get(map.get(size.$bodywrapper-sizes, screen-3), rem),
-        map.get(map.get(size.$bodywrapper-sizes, screen-3), vw),
-        2.5rem
-    );
 }
 

@@ -34,10 +34,3 @@ $bodywrapper-sizes: (
     }
 }
 
-@mixin version-dropdown-position($rem, $vw, $offset) {
-    .version-dropdown-list {
-        top: 3rem;
-        right: calc(50vw + $offset - #{math.div($rem, 2)} - #{math.div($vw, 2)} + $offset);
-    }
-}
-

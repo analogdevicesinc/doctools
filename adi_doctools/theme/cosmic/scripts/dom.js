@@ -72,6 +72,12 @@ class DOM {
     this.$.src = str
   }
   /**
+   * Get getBoundingClientRect
+   */
+  get rect () {
+    return this.$.getBoundingClientRect()
+  }
+  /**
    * Focus on DOM.
    */
   focus (){
