@@ -98,6 +98,7 @@ export class HotReload {
     this.regen_breadcrumb(dom)
     this.parent.navigation.init()
     this.parent.page_actions.init()
+    this.parent.content_actions.init()
 
     if (url.hash)
       document.querySelector(`${url.hash}`)?.scrollIntoView({ behavior: 'auto' })
@@ -110,6 +111,8 @@ export class HotReload {
     if (pathname === '#')
       return
 
+    // FIXME: Should check if they exist, in case it is removed from extra
+    this.parent.content_actions.deinit()
     this.parent.page_actions.deinit()
     this.parent.navigation.deinit()
 
