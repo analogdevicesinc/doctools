@@ -41,7 +41,7 @@ runs:
           git reset --hard --quiet
           git clean -ffdx --quiet .
 
-          git switch -d @
+          git switch -d || true
           echo "clean-up branches"
           branches=$((git branch || true) | (grep -v ^'*' | grep -v ^'\s\+cache/' | grep -v ^'\s\+mirror/' || true))
           if [[ "$branches" ]]; then
