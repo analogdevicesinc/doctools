@@ -39,7 +39,7 @@ export class HotReload {
       this.$.breadcrumb.classList.add('empty')
     else
       this.$.breadcrumb.classList.remove('empty')
-    arr.forEach((elem) => {
+    arr.reverse().forEach((elem) => {
       ol.appendChild(new DOM('li').append(
         new DOM('a', {
           'href': elem.href,
