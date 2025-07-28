@@ -15,7 +15,7 @@ jobs:
       run: |
         tag=v$(sed -n 's/^__version__ = "\(.*\)"/\1/p' adi_doctools/__init__.py)
         echo "tag=$tag" >> "$GITHUB_ENV"
-        git fetch --tags
+        git fetch --tags --prune --prune-tags --force
         if ! [ $(git tag -l "$tag") ] ; then
           echo "new_tag=1" >> "$GITHUB_ENV"
         fi
