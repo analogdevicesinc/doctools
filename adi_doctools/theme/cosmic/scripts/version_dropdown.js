@@ -203,9 +203,10 @@ export class VersionDropdown {
     }
 
     let rect = dom.rect
+    let wiw = window.innerWidth
     this.$.list.style.top = `${rect.top + 2.5*16}px`
-    if (rect.right < rect.left)
-      this.$.list.style.right = `${rect.right}px`
+    if ((wiw - rect.right) < rect.left)
+      this.$.list.style.right = `${wiw - rect.right}px`
     else
       this.$.list.style.left = `${rect.left}px`
     this.$.cancel.classList.add('on')
