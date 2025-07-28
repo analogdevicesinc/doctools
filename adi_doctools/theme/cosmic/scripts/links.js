@@ -55,13 +55,15 @@ export class Links {
     let home = "index.html"
     this.$.linksOverlay = []
     this.$.linksSidebar = []
+    let self_link = this.parent.state.offline ?
+                    this.parent.state.content_root :
+                    new URL(this.parent.state.content_root, location.href)
     for (const [key, value] of Object.entries(obj)) {
       if (!('name' in value))
         continue
 
       let base = key == this.parent.state.repository ?
-                 this.parent.state.content_root :
-                 `${prefix}${key}/`
+                 self_link : `${prefix}${key}/`
       this.$.linksSidebar.push(new DOM('a', {
         'href': `${base}${home}`,
         'className': this.parent.state.repository === key ? 'current' : '',

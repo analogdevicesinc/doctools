@@ -139,6 +139,12 @@ export class HotReload {
       }
     })
   }
+  init_others () {
+    let logo = DOM.get('.sphinxsidebarwrapper > a')
+    logo.href = logo.href.replace(/#$/, '')
+    logo = DOM.get('header a#logo')
+    logo.href = logo.href.replace(/#$/, '')
+  }
   popstate (ev) {
     let url = new URL(location.href)
     url.hash = ''
@@ -151,7 +157,8 @@ export class HotReload {
   init () {
     this.location_href = location.href
 
-    this.init_toctree ()
+    this.init_toctree()
+    this.init_others()
     this.hot_links()
     window.addEventListener('popstate', (ev) => {
       this.popstate(ev)
