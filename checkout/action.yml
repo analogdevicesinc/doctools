@@ -73,13 +73,12 @@ runs:
           if [[ "$ahead_by" == "null" ]]; then
             echo "GitHub API failed, setting based on github.event.pull_request.commits + 100"
             ahead_by=${{ github.event.pull_request.commits }}
-            echo "ahead_by=$ahead_by" >> $GITHUB_ENV
             fetch_depth=$(( ahead_by + 100 ))
           else
-            echo "ahead_by=$ahead_by" >> $GITHUB_ENV
-            echo "behind_by=$behind_by" >> $GITHUB_ENV
             fetch_depth=$(( ahead_by + behind_by + 2 ))
           fi
+          echo "ahead_by=$ahead_by" >> $GITHUB_ENV
+          echo "behind_by=$behind_by" >> $GITHUB_ENV
           echo "fetch_depth=$fetch_depth" >> $GITHUB_ENV
         elif [[ ! "${{ github.event.before }}" =~ "0000000000000000" ]] && [[ "${{ github.event.forced }}" == "false" ]]; then
           echo "setting fetch_depth based on github.event.before"
@@ -95,39 +94,36 @@ runs:
     - name: Fetch & reset
       shell: bash
       run: |
-        git fetch origin --depth=$fetch_depth $GITHUB_SHA
-        git reset --hard $GITHUB_SHA
-        retry=10
         if [[ "${{ github.event.pull_request.head.sha }}" ]]; then
-          # --empty was added on git 2.26.0
-          has_keep=$(git rebase -help 2>&1 | grep "\--empty" | wc -l) || true
-          echo $has_keep
-          if [[ "$has_keep" -gt "0" ]]; then
-            keep_empty="--empty=keep"
-          else
-            keep_empty="--keep-empty"
-          fi
-          while ! git rebase $keep_empty --rebase-merges @~; do
-            git rebase --abort
-            if [[ "$retry" -eq 0 ]]; then
-              break
-            fi
-            echo "deepening by $fetch_depth commits"
-            git fetch origin --deepen=$fetch_depth $GITHUB_SHA
-            retry=$((retry - 1))
-          done
-          if [[ "$retry" -eq 0 ]]; then
-            echo "::warning::Failed to rebase, using source branch instead"
+          if [[ "$behind_by" -eq 0 ]]; then
+            git fetch origin --depth=$fetch_depth ${{ github.event.pull_request.head.sha }}
             git reset --hard ${{ github.event.pull_request.head.sha }}
-            echo "rebase_fail=true" >> $GITHUB_ENV
+          else
+            git fetch origin --depth=$fetch_depth $GITHUB_SHA
+            git reset --hard $GITHUB_SHA
+            # --empty was added on git 2.26.0
+            has_keep=$(git rebase -help 2>&1 | grep "\--empty" | wc -l) || true
+            echo $has_keep
+            if [[ "$has_keep" -gt "0" ]]; then
+              keep_empty="--empty=keep"
+            else
+              keep_empty="--keep-empty"
+            fi
+            while ! git rebase $keep_empty --rebase-merges @~; do
+              git rebase --abort
+              echo "deepening by $fetch_depth commits"
+              git fetch origin --deepen=$fetch_depth $GITHUB_SHA
+            done
           fi
         else
+          git fetch origin --depth=$fetch_depth $GITHUB_SHA
+          git reset --hard $GITHUB_SHA
           ahead_by=$((fetch_depth - 1))
           echo "ahead_by=$ahead_by" >> $GITHUB_ENV
         fi
         echo "head_sha=$(git rev-parse @)" >> "$GITHUB_ENV"
-        if [[ "$retry" -eq 0 ]]; then
-          echo "base_sha=$(git rev-list --first-parent HEAD | tail -n 1)" >> "$GITHUB_ENV"
+        if [[ "${{ github.event.pull_request.head.sha }}" ]]; then
+          echo "base_sha=${{ github.event.pull_request.base.sha }}" >> "$GITHUB_ENV"
         else
           echo "base_sha=$(git rev-parse @~$ahead_by)" >> "$GITHUB_ENV"
         fi
