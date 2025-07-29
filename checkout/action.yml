@@ -77,6 +77,7 @@ runs:
             fetch_depth=$(( ahead_by + 100 ))
           else
             echo "ahead_by=$ahead_by" >> $GITHUB_ENV
+            echo "behind_by=$behind_by" >> $GITHUB_ENV
             fetch_depth=$(( ahead_by + behind_by + 2 ))
           fi
           echo "fetch_depth=$fetch_depth" >> $GITHUB_ENV
@@ -96,6 +97,7 @@ runs:
       run: |
         git fetch origin --depth=$fetch_depth $GITHUB_SHA
         git reset --hard $GITHUB_SHA
+        retry=10
         if [[ "${{ github.event.pull_request.head.sha }}" ]]; then
           # --empty was added on git 2.26.0
           has_keep=$(git rebase -help 2>&1 | grep "\--empty" | wc -l) || true
@@ -105,17 +107,31 @@ runs:
           else
             keep_empty="--keep-empty"
           fi
-          while ! git rebase $keep_empty @~; do
+          while ! git rebase $keep_empty --rebase-merges @~; do
             git rebase --abort
+            if [[ "$retry" -eq 0 ]]; then
+              break
+            fi
+            echo "deepening by $fetch_depth commits"
             git fetch origin --deepen=$fetch_depth $GITHUB_SHA
+            retry=$((retry - 1))
           done
+          if [[ "$retry" -eq 0 ]]; then
+            echo "::warning::Failed to rebase, using source branch instead"
+            git reset --hard ${{ github.event.pull_request.head.sha }}
+            echo "rebase_fail=true" >> $GITHUB_ENV
+          fi
         else
           ahead_by=$((fetch_depth - 1))
           echo "ahead_by=$ahead_by" >> $GITHUB_ENV
         fi
         echo "head_sha=$(git rev-parse @)" >> "$GITHUB_ENV"
-        echo "base_sha=$(git rev-parse @~$ahead_by)" >> "$GITHUB_ENV"
-        echo "fetch_depth=$(git rev-list --count $GITHUB_SHA)" >> "$GITHUB_ENV"
+        if [[ "$retry" -eq 0 ]]; then
+          echo "base_sha=$(git rev-list --first-parent HEAD | tail -n 1)" >> "$GITHUB_ENV"
+        else
+          echo "base_sha=$(git rev-parse @~$ahead_by)" >> "$GITHUB_ENV"
+        fi
+        echo "fetch_depth=$(git rev-list --count --first-parent $GITHUB_SHA)" >> "$GITHUB_ENV"
 
     - name: Log commit range
       shell: bash
