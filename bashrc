@@ -19,7 +19,7 @@ if git rev-parse --is-inside-work-tree  > /dev/null 2>&1 ; then
 		source ci/build.sh
 		if [[ "$it" == "true" ]]; then
 			printf "\nSourced methods from ci/build.sh:\n\e[34m"
-			grep -oE '^[a-zA-Z_][a-zA-Z0-9_]*\s*\(\)\s*\{' ci/build.sh |  \
+			grep -oE '^[a-zA-Z][a-zA-Z0-9_]*\s*\(\)\s*\{' ci/build.sh |  \
 				awk -F'[ ()]+' '{print $1}' | paste -sd ' '
 			printf "\e[0m"
 		fi
