@@ -24,6 +24,10 @@
     }
 }
 
+.body-header:has(.empty) {
+  display: none;
+}
+
 @media (min-width: variable.$screen-1) {
 
     .body {
