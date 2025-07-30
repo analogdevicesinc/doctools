@@ -65,7 +65,7 @@ export class HotReload {
     DOM.getAll('.reference.internal', this.$.content).forEach(attach_load)
     DOM.getAll('a[href]', this.$.breadcrumb).forEach(attach_load)
   }
-  replace (dom, url, txt, push) {
+  replace (dom, url, txt) {
 
     const parser = new DOMParser()
     const doc = parser.parseFromString(txt, 'text/html');
@@ -85,9 +85,6 @@ export class HotReload {
       node = node.parentElement
     }
 
-    if (push) {
-      history.pushState(url.href, '', url.href)
-    }
     this.location_href = url.href
 
     this.parent.state.content_root = State.content_root(doc)
@@ -99,6 +96,8 @@ export class HotReload {
     this.parent.navigation.init()
     this.parent.page_actions.init()
     this.parent.content_actions.init()
+
+    this.$.content.classList.remove('fetch');
 
     if (url.hash)
       document.querySelector(`${url.hash}`)?.scrollIntoView({ behavior: 'auto' })
@@ -119,6 +118,8 @@ export class HotReload {
        return
     }
 
+    this.$.content.classList.add('fetch');
+
     // FIXME: Should check if they exist, in case it is removed from extra,
     // Consider also creating a loading order stack, so we just iterate over.
     this.parent.content_actions.deinit()
@@ -129,12 +130,19 @@ export class HotReload {
       elem.classList.remove('current')
     })
 
+    // Push even before fething, so in case of failure the user can easily
+    // reload the page
+    if (push)
+      history.pushState(request_url.href, '', request_url.href)
     const response = fetch(
       new Request(request_url)
     )
       .then(response => response)
       .then(response => response.text())
-      .then(txt => this.replace(dom, request_url, txt, push))
+      .then(txt => this.replace(dom, request_url, txt))
+      .catch(error => {
+        // TODO "Ahhh, Technology."-styled user message
+      })
   }
   init_toctree () {
     DOM.getAll('.reference.internal', this.$.toctree).forEach((elem) => {

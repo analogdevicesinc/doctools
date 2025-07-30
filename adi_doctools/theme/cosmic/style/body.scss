@@ -28,6 +28,14 @@
   display: none;
 }
 
+.body {
+  transition: ease opacity .2s;
+}
+
+.body.fetch {
+  opacity: 0;
+}
+
 @media (min-width: variable.$screen-1) {
 
     .body {
