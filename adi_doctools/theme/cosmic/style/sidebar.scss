@@ -54,7 +54,7 @@
 }
 
 @media (max-width: variable.$screen-1) {
-    .sphinxsidebar #logo img, .sphinxsidebar #no-logo {
+    .sphinxsidebar #logo, .sphinxsidebar #no-logo {
         display: none !important;
     }
 }
