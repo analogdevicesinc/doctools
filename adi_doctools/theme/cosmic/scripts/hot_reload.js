@@ -85,8 +85,6 @@ export class HotReload {
       node = node.parentElement
     }
 
-    this.location_href = url.href
-
     this.parent.state.content_root = State.content_root(doc)
     this.$.content.$.innerHTML = content.innerHTML
     this.$.localtoc.$.innerHTML = localtoc.innerHTML
@@ -106,17 +104,22 @@ export class HotReload {
 
     this.hot_links()
   }
-  load (dom, pathname, push) {
+  load (dom, pathname, new_state) {
     if (pathname === '#')
       return
 
-    let current_url = new URL(location)
+    let current_url = new URL(this.location_href)
     let request_url = new URL(pathname, current_url)
+    this.location_href = request_url.href
     if (current_url.pathname === request_url.pathname &&
         current_url.origin === request_url.origin) {
-       location.href = request_url.hash
+       location.hash = request_url.hash === '' ? '#top-anchor': request_url.hash
        return
     }
+    // Push even before fething, so in case of failure the user can easily
+    // reload the page
+    if (new_state)
+      history.pushState(request_url.href, '', request_url.href)
 
     this.$.content.classList.add('fetch');
 
@@ -130,10 +133,6 @@ export class HotReload {
       elem.classList.remove('current')
     })
 
-    // Push even before fething, so in case of failure the user can easily
-    // reload the page
-    if (push)
-      history.pushState(request_url.href, '', request_url.href)
     const response = fetch(
       new Request(request_url)
     )
@@ -176,8 +175,6 @@ export class HotReload {
     this.init_toctree()
     this.init_others()
     this.hot_links()
-    window.addEventListener('popstate', (ev) => {
-      this.popstate(ev)
-    })
+    onpopstate = (ev) => {this.popstate(ev)}
   }
 }
