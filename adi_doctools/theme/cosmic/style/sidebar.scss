@@ -161,9 +161,9 @@
     label {
         cursor: pointer;
         display: block;
-        padding: .6em .5em;
-        height: 1.75em;
-        width: 1.75em;
+        padding: .5em .5em .4em .5em;
+        height: 1em;
+        width: 1em;
     }
 
     .toctree-collapse ~ ul {
@@ -226,7 +226,7 @@
         width: .6em;
         height: .6em;
         transform: rotate(-45deg);
-        margin-top: 0px;
+        margin-top: 1px;
         margin-left: -1px;
     }
 

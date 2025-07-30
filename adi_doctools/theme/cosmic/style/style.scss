@@ -12,6 +12,11 @@
 
 html {
     scroll-behavior: smooth;
+    box-sizing: border-box;
+}
+
+*, *:before, *:after {
+     box-sizing: inherit;
 }
 
 body {
@@ -92,10 +97,6 @@ body {
         background-color: var(--bg-color1);
         color: var(--text-color1);
     }
-}
-
-* {
-    box-sizing: border-box;
 }
 
 .body ol p, .body ul p {
