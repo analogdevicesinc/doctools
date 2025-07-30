@@ -107,7 +107,6 @@
 }
 
 .search-area .search-filter {
-    box-sizing: content-box;
     background: var(--bg-color1);
     flex-shrink: 0;
 
@@ -346,7 +345,7 @@
 
     .search-area .search-filter {
         display: block;
-        width: 19rem;
+        width: 22rem;
         text-align: center;
         overflow-x: auto;
         height: calc(100% + 3.5em);
@@ -359,7 +358,7 @@
 @media (min-width: variable.$screen-3) {
     .search-area .search-filter {
         padding-left: calc(40vw - 40rem);
-        width: 20rem;
+        width: calc(40vw - 20rem);
     }
 
     .search-area .search-results {
