@@ -111,7 +111,16 @@ export class HotReload {
     if (pathname === '#')
       return
 
-    // FIXME: Should check if they exist, in case it is removed from extra
+    let current_url = new URL(location)
+    let request_url = new URL(pathname, current_url)
+    if (current_url.pathname === request_url.pathname &&
+        current_url.origin === request_url.origin) {
+       location.href = request_url.hash
+       return
+    }
+
+    // FIXME: Should check if they exist, in case it is removed from extra,
+    // Consider also creating a loading order stack, so we just iterate over.
     this.parent.content_actions.deinit()
     this.parent.page_actions.deinit()
     this.parent.navigation.deinit()
@@ -120,13 +129,12 @@ export class HotReload {
       elem.classList.remove('current')
     })
 
-    let url = new URL(pathname, location)
     const response = fetch(
-      new Request(url)
+      new Request(request_url)
     )
       .then(response => response)
       .then(response => response.text())
-      .then(txt => this.replace(dom, url, txt, push))
+      .then(txt => this.replace(dom, request_url, txt, push))
   }
   init_toctree () {
     DOM.getAll('.reference.internal', this.$.toctree).forEach((elem) => {
