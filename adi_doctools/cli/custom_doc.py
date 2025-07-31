@@ -24,8 +24,9 @@ lut = get_lut()
 repos = lut['repos']
 
 default_config = {
-    'extra': False,
+    'repository': None,
     'branch': 'main',
+    'extra': False,
 }
 
 
@@ -161,7 +162,8 @@ include:
   - documentation/eval/user-guide/adc/ad4052-ardz
   - documentation/software/libiio/cli.rst
   - documentation/linux/drivers/iio-adc/ad4052
-  - hdl/projects/ad4052_ardz
+  - hdl_my_label_0/projects/ad4630_fmc
+  - hdl_my_label_1/projects/ad4052_ardz
   - no-OS/drivers/ad405x.rst
   - no-OS/projects/ad405x.rst
 
@@ -190,14 +192,19 @@ entry-point:
       - no-OS/drivers/ad405x.rst
   - caption: HDL design
     files:
-      - hdl/projects/ad4052_ardz/index.rst
+      - hdl_my_label_0/projects/ad4630_fmc/index.rst
+      - hdl_my_label_1/projects/ad4052_ardz/index.rst
 
-# Per repo configuration
+# Per repository configuration
 # extra: do steps that require extra software (e.g. vendor sdk)
 # branch: clone from a specific branch, overwrites "main"
 config:
-    hdl:
-      branch: "my-branch"
+    hdl_my_label_0:
+      repository: "hdl"
+      branch: "hdl_2023_r2"
+    hdl_my_label_1:
+      repository: "hdl"
+      branch: "main"
     no-OS:
       extra: true
 
@@ -241,7 +248,7 @@ def get_includes(sourcedir, dstdir, doc):
                     f.write(''.join(data))
 
 
-def namespace_ref(doc_dir, r):
+def namespace_ref(doc_dir, path_, r):
     """
     Add repository identifier to every label/reference, e.g:
     .. _spi_engine:         -> .. _hdl+spi_engine:
@@ -259,7 +266,7 @@ def namespace_ref(doc_dir, r):
     # 1. Patch :ref:`str`         into :ref:`{r}+str`
     # 2. Patch :ref:`Title <str>` into :ref:`Title <{r}+str>`
     # 3. Patch ^.. _str:$         into .. _{r}+str:
-    cwd = path.join(doc_dir, r)
+    cwd = path.join(doc_dir, path_)
     patch_cmd = """\
     find . -type f -exec sed -i -E \
         "s/(\\s|^|\\(|\\/)(:ref:\\`)([^<>:]+)(\\`)/\\1\\2{r}+\\3\\4/g" {{}} \\;
@@ -354,11 +361,16 @@ def patch_index(doc, tocs, index_file):
 
     for k in tocs:
         toctrees.append([])
+        # may be custom-pages
+        if k in doc['config']:
+            r = doc['config'][k]['repository'] if doc['config'][k]['repository'] else k
+        else:
+            r = k
         for k_ in tocs[k]:
             if f"{k}{SEP}index.rst" == k_:
                 toctrees[-1] += _patch_index(path.join(path.dirname(index_file), k, "index.rst"), k)
                 if not toctrees[-1][0][2]:
-                    toctrees[-1][0][0].append(f"   :caption: {repos[k]['name']}\n")
+                    toctrees[-1][0][0].append(f"   :caption: {repos[r]['name']}\n")
                     toctrees[-1][0][2] = True
             else:
                 # Fallback, just add somewhere
@@ -449,18 +461,19 @@ def prepare_doc(doc, repos_dir, doc_dir):
     missing_ext = []
     sys_path_og = list(sys.path)
     sys_path_ = set()
-    for r in doc['include']:
+    for path_ in doc['include']:
+        r = doc['config'][path_]['repository'] if doc['config'][path_]['repository'] else path_
         if r not in repos:
             click.echo(f"Unknown repo '{r}', skipped")
             continue
 
-        sourcedir = path.join(repos_dir, r, repos[r]['pathname'])
-        dstdir = path.join(doc_dir, r)
+        sourcedir = path.join(repos_dir, path_, repos[r]['pathname'])
+        dstdir = path.join(doc_dir, path_)
         not_valid, builddir = get_sphinx_dirs(sourcedir)
         if not_valid:
             continue
-        doc['sourcedir'][r] = sourcedir
-        doc['builddir'][r] = builddir
+        doc['sourcedir'][path_] = sourcedir
+        doc['builddir'][path_] = builddir
         if not path.isdir(dstdir):
             mkdir(dstdir)
 
@@ -481,12 +494,12 @@ def prepare_doc(doc, repos_dir, doc_dir):
                 try:
                     if hasattr(__c, 'sys'):
                         if not finder.find_spec(ext, __c.sys.path):
-                            missing_ext.append((r, ext))
+                            missing_ext.append((path_, ext))
                     else:
                         if not importlib.util.find_spec(ext):
-                            missing_ext.append((r, ext))
+                            missing_ext.append((path_, ext))
                 except ModuleNotFoundError:
-                    missing_ext.append((r, ext))
+                    missing_ext.append((path_, ext))
 
             doc['extensions'].update(__c.extensions)
         doc['extensions'].add('sphinx.ext.intersphinx')
@@ -497,22 +510,22 @@ def prepare_doc(doc, repos_dir, doc_dir):
         sys_path_.update([p for p in sys.path if p not in sys_path_og])
         # sourcedir : /path/to/hdl/docs
         # dstdir : doc/hdl
-        for d in doc['include'][r]:
+        for d in doc['include'][path_]:
             d__ = path.abspath(path.join(sourcedir, d))
             if path.isfile(d__) or path.isdir(d__):
                 pr.run(f"cp -r --parents {d} {dstdir}", sourcedir)
             else:
-                click.echo(f"{r}: source file/dir '{d}' does not exist, skipped.")
+                click.echo(f"{path_}: source file/dir '{d}' does not exist, skipped.")
 
         # Infeer toctree entries
         toc_resolve = []
-        for d in doc['include'][r]:
+        for d in doc['include'][path_]:
             if path.isdir(d):
                 index_ = path.join(d, 'index.rst')
                 if path.isfile(index_):
                     d = index_
                 else:
-                    click.echo(f"{r}: source dir '{d}' does not contain index.rst, "
+                    click.echo(f"{path_}: source dir '{d}' does not contain index.rst, "
                                "won't try to resolve toctree for this folder.")
                     continue
             elif not path.isfile(d):
@@ -522,7 +535,7 @@ def prepare_doc(doc, repos_dir, doc_dir):
             toc_resolve.append(d)
 
         def is_orphan_or_explicit_entry(d):
-            if path.join(r, d) in entry_points:
+            if path.join(path_, d) in entry_points:
                 return True
             with open(d+".rst", "r") as f:
                 if f.readline()[:-1].strip() == ":orphan:":
@@ -612,12 +625,12 @@ def prepare_doc(doc, repos_dir, doc_dir):
             pr.run(f"cp --parents {f_} {dstdir}", sourcedir)
 
         get_includes(sourcedir, dstdir, doc)
-        namespace_ref(doc_dir, r)
+        namespace_ref(doc_dir, path_, r)
 
     if len(missing_ext) > 0:
         ext = defaultdict(list)
         [ext[r].append(ext_) for r, ext_ in missing_ext]
-        click.echo(f"Missing inferred extensions: {dict(ext)}")
+        click.echo(f"Some inferred extensions are not installed: {dict(ext)}")
         sys.exit(1)
 
     # Copy over custom pages
@@ -834,7 +847,7 @@ def patch_doc(doc, repos_dir, doc_dir, doc_patch_dir, git_lfs, sphinx_builder):
             data[i] = re.sub(pattern3, replacement3, data[i])
         else:
             # Relative path, from own doc
-            # Infeer repo from path and patch
+            # Infer repo from path and patch
             abs_doc = path.relpath(path.abspath(path.join(src, '..', label)), doc_dir).split(SEP)
             r = abs_doc[0]
             l_ = '/'.join(abs_doc[1:])
@@ -853,7 +866,8 @@ def patch_doc(doc, repos_dir, doc_dir, doc_patch_dir, git_lfs, sphinx_builder):
     # Resolve git-lfs artifacts
     if git_lfs:
         for s in sphinx_statuses.images:
-            lfs_f_s=path.join(repos[s[0]]['pathname'], s[1])
+            r = doc['config'][s[0]]['repository'] if doc['config'][s[0]]['repository'] else s[0]
+            lfs_f_s=path.join(repos[r]['pathname'], s[1])
             path_=path.join(repos_dir, s[0], lfs_f_s)
             if get_lfs_sha(path_):
                 subprocess.run(f"git lfs pull -I {lfs_f_s}",
@@ -1077,10 +1091,10 @@ def custom_doc(directory, extra, no_parallel_, open_, builder, ssh):
         doc['project'] = 'Custom doc'
     if 'description' not in doc:
         doc['description'] = ''
-    for repo in doc['include']:
-        if repo not in doc['config'] or doc['config'][repo] is None:
-            doc['config'][repo] = {}
-        doc['config'][repo] = {**default_config, **doc['config'][repo]}
+    for path_ in doc['include']:
+        if path_ not in doc['config'] or doc['config'][path_] is None:
+            doc['config'][path_] = {}
+        doc['config'][path_] = {**default_config, **doc['config'][path_]}
 
     missing_ext = []
     for ext in doc['extensions']:
@@ -1095,11 +1109,12 @@ def custom_doc(directory, extra, no_parallel_, open_, builder, ssh):
 
     p = []
     remote = lut['remote_https'] if not ssh else lut['remote_ssh']
-    for r in doc['include']:
-        cwd = path.join(directory, r)
+    for path_ in doc['include']:
+        r = doc['config'][path_]['repository'] if doc['config'][path_]['repository'] else path_
+        cwd = path.join(directory, path_)
         if not path.isdir(cwd):
             git_cmd = ["git", "clone", remote.format(r), "--depth=1", "-b",
-                       doc['config'][repo]['branch'], '--', cwd]
+                       doc['config'][path_]['branch'], '--', cwd]
             pr.popen(git_cmd, p)
     if pr.wait(p) != 0:
         click.echo("Failed to clone one or more repositories (hint: --ssh flag).")
