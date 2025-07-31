@@ -3,8 +3,10 @@
 Custom directives
 =================
 
-Custom Sphinx directives to allow better formatting, and extra features, such
-as videos and shell code snippets.
+Doctools custom Sphinx directives allow better formatting, and add extra
+features, such as videos and shell code snippets.
+
+Below, every added directive is explained with examples.
 
 Container
 ~~~~~~~~~

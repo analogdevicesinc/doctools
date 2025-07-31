@@ -535,11 +535,11 @@ Adding directives and roles
 ---------------------------
 
 Sphinx allows expanding functionality beyond the defaults directives and roles
-by loading extensions.
-
-Doctools extended directives and roles are documented at:
+by loading extensions. Doctools implements custom directives and roles for common
+features, but :ref:`third-party extensions <extension-third-party>` can also be used.
 
 .. toctree::
+   :caption: Doctools extended directives and roles are provided at:
    :titlesonly:
 
    directives

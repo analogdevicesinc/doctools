@@ -3,14 +3,15 @@
 Custom roles
 ============
 
-Custom Sphinx roles to allow better linking, such as git links, and formatting,
-like font coloring.
+Doctools custom Sphinx roles allow better linking, such as git links, and
+formatting, like font coloring.
+
+Below, every added role is explained with examples.
 
 .. note::
 
    Link-like roles use the :code:`:role:\`text <link>\`` synthax, like external
    links, but without the undescore in the end.
-
 
 Color
 ~~~~~
