@@ -207,7 +207,8 @@ Here is a minimal *doc.yaml*:
       - sphinx.ext.duration
 
 The ``include`` option contains the list of files to include in the custom
-document, with the first level of the path the repository name.
+document, with the first level of the path the label (normally the repository
+name).
 
 During generation, the tool will resolve the hierarchy of the included docs,
 adding pages until the repository top-level page is reached.
@@ -237,6 +238,9 @@ Resolves at *index.rst* into:
 
 Additional configuration can be added to the ``config`` option:
 
+* ``repository``: Sets the repository to clone, if unset, is inferred as the
+  label name. Useful when using the same repository multiple times for
+  different branches.
 * ``branch``: Clone the repository from a specific branch, overwrite "main".
   If the repository is already present, this option has no effect.
 * ``extra``: Do steps that require extra software, for example, some vendor SDK.
