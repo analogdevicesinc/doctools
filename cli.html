@@ -365,7 +365,8 @@ included, but in summary, they are just a sequence of bash commands wrapped on p
 </pre></div>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">include</span></code> option contains the list of files to include in the custom
-document, with the first level of the path the repository name.</p>
+document, with the first level of the path the label (normally the repository
+name).</p>
 <p>During generation, the tool will resolve the hierarchy of the included docs,
 adding pages until the repository top-level page is reached.
 This may result in unwanted content being added and empty “category” sections.</p>
@@ -389,6 +390,9 @@ In summary, this:</p>
 </div>
 <p>Additional configuration can be added to the <code class="docutils literal notranslate"><span class="pre">config</span></code> option:</p>
 <ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">repository</span></code>: Sets the repository to clone, if unset, is inferred as the
+label name. Useful when using the same repository multiple times for
+different branches.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">branch</span></code>: Clone the repository from a specific branch, overwrite “main”.
 If the repository is already present, this option has no effect.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">extra</span></code>: Do steps that require extra software, for example, some vendor SDK.</p></li>
