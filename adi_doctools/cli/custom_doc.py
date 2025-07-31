@@ -438,7 +438,7 @@ def resolve_glob(toctrees, index_file):
             f_.update(docs)
 
 
-def prepare_doc(doc, repos_dir, doc_dir):
+def prepare_doc(doc, repos_dir, doc_dir, drop_ext):
     if path.isdir(doc_dir):
         pr.run(f"rm -r {doc_dir}")
     mkdir(doc_dir)
@@ -488,18 +488,23 @@ def prepare_doc(doc, repos_dir, doc_dir):
         spec.loader.exec_module(__c)
         if hasattr(__c, 'extensions'):
             for ext in __c.extensions:
+                ext_miss = False
                 if ext in exclude_extensions:
                     __c.extensions.remove(ext)
                     continue
                 try:
                     if hasattr(__c, 'sys'):
                         if not finder.find_spec(ext, __c.sys.path):
-                            missing_ext.append((path_, ext))
+                            ext_miss = True
                     else:
                         if not importlib.util.find_spec(ext):
-                            missing_ext.append((path_, ext))
+                            ext_miss = True
                 except ModuleNotFoundError:
+                    ext_miss = True
+                if ext_miss:
                     missing_ext.append((path_, ext))
+                    if drop_ext:
+                        __c.extensions.remove(ext)
 
             doc['extensions'].update(__c.extensions)
         doc['extensions'].add('sphinx.ext.intersphinx')
@@ -631,7 +636,11 @@ def prepare_doc(doc, repos_dir, doc_dir):
         ext = defaultdict(list)
         [ext[r].append(ext_) for r, ext_ in missing_ext]
         click.echo(f"Some inferred extensions are not installed: {dict(ext)}")
-        sys.exit(1)
+        if not drop_ext:
+            click.echo(f"If they are not necessary, use --drop-missing-extensions to remove them.")
+            sys.exit(1)
+        else:
+            click.echo(f"And will not be added to the configuration file.")
 
     # Copy over custom pages
     for c in doc['custom']:
@@ -1025,7 +1034,14 @@ def organize_include(doc):
     default=False,
     help="Clone repositories with SSH instead of HTTPS."
 )
-def custom_doc(directory, extra, no_parallel_, open_, builder, ssh):
+@click.option(
+    '--drop-missing-extensions',
+    'drop_ext',
+    is_flag=True,
+    default=False,
+    help="Drop extensions not installed, useful when the pages don't use them anyway."
+)
+def custom_doc(directory, extra, no_parallel_, open_, builder, ssh, drop_ext):
     """
     Creates an aggregated documentation out the repos
     in the doc.yaml file.
@@ -1126,7 +1142,7 @@ def custom_doc(directory, extra, no_parallel_, open_, builder, ssh):
 
     # Messing with WeasyPrint?
     # Comment the four lines below to skip Sphinx generation
-    prepare_doc(doc, directory, doc_dir)
+    prepare_doc(doc, directory, doc_dir, drop_ext)
     parse_warnings(doc_dir)
     parse_status(doc_dir)
     patch_doc(doc, directory, doc_dir, doc_patch_dir, git_lfs, sphinx_builder)

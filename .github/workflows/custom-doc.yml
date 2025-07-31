@@ -34,7 +34,7 @@ jobs:
       run: |
         export GIT_LFS_SKIP_SMUDGE=1
         source ~/venv/3.13/custom-doc/bin/activate
-        adoc custom-doc --builder pdf
+        adoc custom-doc --drop-missing-extensions --builder pdf
 
     - name: Store the generated pdf
       uses: actions/upload-artifact@v4
