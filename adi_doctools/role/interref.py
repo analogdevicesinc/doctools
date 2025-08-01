@@ -54,14 +54,15 @@ def interref_repos_apply(config):
     if 'repository' in config and config.interref_local:
         t_ = repo_apply_(config.repository)
     for r in config.interref_repos:
-        if t_ is not None and r in repos:
-            t__ = path.join(t_, r, repos[r]['pathname'], '_build',
+        r_ = r.split('/')[0]
+        if t_ is not None and r_ in repos:
+            t__ = path.join(t_, r, repos[r_]['pathname'], '_build',
                             'html', 'objects.inv')
             t__ = path.abspath(t__)
             t__ = (t__, None)
         else:
             t__ = None
-        config.intersphinx_mapping[r] = (config.interref_uri+r, t__)
+        config.intersphinx_mapping[r_] = (config.interref_uri+r, t__)
     config.interref_repos = []  # Consumed
 
 
