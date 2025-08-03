@@ -33,7 +33,7 @@ export class HotReload {
         }
       }
     }
-    let ol = this.$.breadcrumb.firstChild
+    let ol = this.$.breadcrumb.firstElementChild
     ol.innerHTML = ''
     if (arr.length === 0)
       this.$.breadcrumb.classList.add('empty')
@@ -79,9 +79,13 @@ export class HotReload {
       return
     }
 
-    let node = dom
+    let child, node = dom
     while (node && node !== this.$.toctree.$) {
+      // if li child is input
       node.classList.add('current')
+      child = node.firstElementChild
+      if (child !== null && child.type === "checkbox")
+        child.checked = true
       node = node.parentElement
     }
 
