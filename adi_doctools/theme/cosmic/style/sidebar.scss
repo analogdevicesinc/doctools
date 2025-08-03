@@ -247,6 +247,7 @@
         left: 100vw;
         height: 0;
         width: 0;
+
     }
 
     .tocwrapper {
@@ -275,11 +276,24 @@
 }
 
 .localtoc {
+
     .caption-text {
         font-weight: bold;
         color: var(--text-color2);
     }
+
+    nav {
+        transition: ease opacity .2s;
+    }
 }
+
+.localtoc nav.fetch {
+    pointer-events: none;
+    user-select: none;
+    opacity: 0;
+}
+
+
 
 @media screen {
     .tocwrapper ul {

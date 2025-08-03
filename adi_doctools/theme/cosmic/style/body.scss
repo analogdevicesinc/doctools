@@ -28,11 +28,13 @@
   display: none;
 }
 
-.body {
+.bodywrapper {
   transition: ease opacity .2s;
 }
 
-.body.fetch {
+.bodywrapper.fetch {
+  pointer-events: none;
+  user-select: none;
   opacity: 0;
 }
 

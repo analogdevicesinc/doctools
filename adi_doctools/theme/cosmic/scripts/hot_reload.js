@@ -11,6 +11,7 @@ export class HotReload {
       return
     let $ = this.$ = {}
     $.toctree = new DOM(DOM.get('.sphinxsidebar .toc-tree'))
+    $.bodywrapper = new DOM(DOM.get('.documentwrapper .bodywrapper'))
     $.content = new DOM(DOM.get('.documentwrapper .body'))
     $.localtoc = new DOM(DOM.get('.localtoc nav'))
     $.related = new DOM(DOM.get('.documentwrapper .related'))
@@ -99,7 +100,8 @@ export class HotReload {
     this.parent.page_actions.init()
     this.parent.content_actions.init()
 
-    this.$.content.classList.remove('fetch');
+    this.$.bodywrapper.classList.remove('fetch');
+    this.$.localtoc.classList.remove('fetch');
 
     if (url.hash)
       document.querySelector(`${url.hash}`)?.scrollIntoView({ behavior: 'auto' })
@@ -125,7 +127,8 @@ export class HotReload {
     if (new_state)
       history.pushState(request_url.href, '', request_url.href)
 
-    this.$.content.classList.add('fetch');
+    this.$.bodywrapper.classList.add('fetch');
+    this.$.localtoc.classList.add('fetch');
 
     // FIXME: Should check if they exist, in case it is removed from extra,
     // Consider also creating a loading order stack, so we just iterate over.
