@@ -659,7 +659,7 @@ export class Search {
     let enabledTags = this.get_tags_and_update_url(query)
     enabledTags.forEach((key) => {
       const results = this.perform_search(searchQuery, searchTerms, excludedTerms, highlightTerms, objectTerms, key)
-      while (this.$.searchUL[key].$.firstChild) {
+      while (this.$.searchUL[key].$.firstElementChild) {
         this.$.searchUL[key].$.removeChild(this.$.searchUL[key].$.lastChild)
       }
 
