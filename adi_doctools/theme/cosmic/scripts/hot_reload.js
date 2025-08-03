@@ -11,6 +11,7 @@ export class HotReload {
       return
     let $ = this.$ = {}
     $.toctree = new DOM(DOM.get('.sphinxsidebar .toc-tree'))
+    $.documentwrapper = new DOM(DOM.get('.documentwrapper'))
     $.bodywrapper = new DOM(DOM.get('.documentwrapper .bodywrapper'))
     $.content = new DOM(DOM.get('.documentwrapper .body'))
     $.localtoc = new DOM(DOM.get('.localtoc nav'))
@@ -100,8 +101,9 @@ export class HotReload {
     this.parent.page_actions.init()
     this.parent.content_actions.init()
 
-    this.$.bodywrapper.classList.remove('fetch');
-    this.$.localtoc.classList.remove('fetch');
+    this.$.bodywrapper.classList.remove('fetch')
+    this.$.localtoc.classList.remove('fetch')
+    this.$.loader.classList.remove('fetch')
 
     if (url.hash)
       document.querySelector(`${url.hash}`)?.scrollIntoView({ behavior: 'auto' })
@@ -127,8 +129,17 @@ export class HotReload {
     if (new_state)
       history.pushState(request_url.href, '', request_url.href)
 
-    this.$.bodywrapper.classList.add('fetch');
-    this.$.localtoc.classList.add('fetch');
+    const body_= setTimeout(() => {
+      this.$.localtoc.classList.add('fetch')
+      this.$.bodywrapper.classList.add('fetch')
+    }, 50)
+    const loader_= setTimeout(() => {
+      this.$.loader.classList.add('fetch')
+    }, 500)
+    if (this.$.loader.classList.contains('fail')) {
+      this.$.loader.classList.add('fetch')
+      this.$.loader.classList.remove('fail')
+    }
 
     // FIXME: Should check if they exist, in case it is removed from extra,
     // Consider also creating a loading order stack, so we just iterate over.
@@ -147,7 +158,13 @@ export class HotReload {
       .then(response => response.text())
       .then(txt => this.replace(dom, request_url, txt))
       .catch(error => {
-        // TODO "Ahhh, Technology."-styled user message
+        this.$.localtoc.classList.add('fetch')
+        this.$.bodywrapper.classList.add('fetch')
+        this.$.loader.classList.add('fail')
+      })
+      .finally(() => {
+        clearTimeout(body_)
+        clearTimeout(loader_)
       })
   }
   init_toctree () {
@@ -167,6 +184,33 @@ export class HotReload {
     logo = DOM.get('header a#logo')
     logo.href = logo.href.replace(/#$/, '')
   }
+  init_loader() {
+    let sides = []
+    for (let j = 0; j < 2; j++) {
+      const side = new DOM('div', {
+        'className': `wave-spinner-${j}`
+      });
+      let bars = []
+      for (let i = 0; i < 7; i++) {
+        const bar = new DOM('span');
+        bar.style.animationDelay = `${i * 0.1}s`;
+        bars.push(bar);
+      }
+      side.append(bars)
+      sides.push(side)
+    }
+    sides.push(new DOM('div', {
+      'className': 'text'
+    }))
+    sides.push(new DOM('div', {
+      'className': 'subtext'
+    }))
+
+    this.$.loader = new DOM('div', {
+      'id': 'loader'
+    }).append(sides)
+    this.$.documentwrapper.append(this.$.loader)
+  }
   popstate (ev) {
     let url = new URL(location.href)
     url.hash = ''
@@ -181,6 +225,7 @@ export class HotReload {
 
     this.init_toctree()
     this.init_others()
+    this.init_loader()
     this.hot_links()
     onpopstate = (ev) => {this.popstate(ev)}
   }

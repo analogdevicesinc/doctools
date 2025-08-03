@@ -29,13 +29,14 @@
 }
 
 .bodywrapper {
-  transition: ease opacity .2s;
+  transition: ease opacity .2s, ease transform .2s;
 }
 
 .bodywrapper.fetch {
   pointer-events: none;
   user-select: none;
   opacity: 0;
+  transform: perspective(16rem) scale3d(.99,.99,.99);
 }
 
 @media (min-width: variable.$screen-1) {
@@ -82,4 +83,87 @@
         map.get(map.get(size.$bodywrapper-sizes, screen-3), rem),
         map.get(map.get(size.$bodywrapper-sizes, screen-3), vw)
     );
+}
+
+/* hot reload loader */
+.documentwrapper #loader {
+  pointer-events: none;
+  user-select: none;
+  position: fixed;
+  top: calc(50vh - 10rem + 3.5rem);
+  left: calc(50vw - 10rem);
+  width: 20rem;
+  text-align: center;
+  transition: ease opacity .25s;
+  opacity: 0;
+
+  &.fetch, &.fail {
+    opacity: 1;
+  }
+
+  .wave-spinner-0, .wave-spinner-1 {
+    transition: ease opacity .25s;
+    justify-content: center;
+    display: flex;
+    height: 3em;
+    gap: 1em;
+  }
+
+  .wave-spinner-0 {
+    align-items: flex-end;
+  }
+
+  span {
+    width: .125em;
+  }
+
+  .wave-spinner-0 span  {
+    animation: wave 1.5s infinite ease-in-out;
+    background: linear-gradient(to top, var(--text-color2), var(--text-color1));
+    border-radius: 0.1em 0.1em 0 0;
+  }
+
+  .wave-spinner-1 span  {
+    animation: wave 2s infinite ease-in-out;
+    background: linear-gradient(to top, var(--text-color3), var(--text-color2));
+    border-radius: 0 0 0.1em 0.1em;
+  }
+
+  .text {
+    font-weight: bold;
+    padding: 1em 0 .5em;
+  }
+
+  .text::before {
+    content: 'Loading content.';
+  }
+
+  .subtext::before {
+    content: "Shouldn't take long.";
+  }
+
+  &.fail {
+    .text::before {
+      content: 'Ahhh, Technology.';
+    }
+
+    .subtext::before {
+      content: 'Content failed to load.';
+    }
+
+    .wave-spinner-0, .wave-spinner-1 {
+      opacity: 0;
+    }
+  }
+}
+
+@keyframes wave {
+  0%, 100% {
+    height: 20%;
+    opacity: 0.8;
+  }
+  50% {
+    height: 100%;
+    opacity: .8;
+  }
 }
