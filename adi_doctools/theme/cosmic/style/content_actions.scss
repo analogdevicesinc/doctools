@@ -7,9 +7,12 @@
     }
 }
 
+div[class^='highlight-'] {
+    position: relative;
+}
+
 div.highlight {
     @include mixin_icons.icons(("copy"));
-    position: relative;
 
     button.copy {
         border-radius: variable.$border-radius;
