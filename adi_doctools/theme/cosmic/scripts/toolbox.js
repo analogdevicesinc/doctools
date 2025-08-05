@@ -148,7 +148,7 @@ class Toolbox {
    */
   static get_alphanumeric () {
     const numbers = [...Array(9).keys(), -1].map(n => (n + 1).toString())
-    const alphabet = [...Array(25).keys()].map(n => String.fromCharCode(98 + n))
+    const alphabet = [...Array(26).keys()].map(n => String.fromCharCode(97 + n))
     return numbers.concat(alphabet)
   }
   /*

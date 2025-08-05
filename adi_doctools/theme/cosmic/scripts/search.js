@@ -834,6 +834,11 @@ export class Search {
    */
   init () {
     let alphanumeric = Toolbox.get_alphanumeric()
+    // Remove common text-manipulation shortcuts
+    const drop_ = ['a', 'c', 'f']
+    drop_.forEach(letter => {
+	alphanumeric.splice(alphanumeric.indexOf(letter), 1);
+    })
     let language_data_script = new URL(`${this.parent.state.content_root}_static/language_data.js`,
                                        location)
     this.$.language_data = new DOM('script', {
