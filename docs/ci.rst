@@ -85,7 +85,9 @@ Non-handled corner-cases mitigations:
 Configure podman
 ----------------
 
-Below are suggested instructions for setting up ``podman`` on a Linux environment.
+Below are suggested instructions for setting up ``podman`` on a Linux environment,
+if you wish to use it as your container engine. If you already use something else
+like ``docker``, **keep it** and skip this section.
 
 Adjust to your preference as needed, and skip the steps marked in :green:`green`
 if not using WSL2.
@@ -176,7 +178,8 @@ To build the container image, use your favorite container engine:
 .. shell::
 
    $cd ~/doctools
-   $podman build --tag adi/doctools:latest ci
+   $alias container=podman # or docker, ...
+   $container build --tag adi/doctools:latest ci
 
 You may want to build the container in a host, where you have all your tools installed,
 and then deploy to a server.
@@ -188,7 +191,7 @@ In this case, export the image and then import on the server:
    :group: host
 
    ~/doctools
-   $podman save -o adi-doctools.tar adi/doctools:latest
+   $container save -o adi-doctools.tar adi/doctools:latest
    $scp adi-doctools.tar server:/tmp/
 
 .. shell::
@@ -197,7 +200,7 @@ In this case, export the image and then import on the server:
    :group: server
 
    /tmp
-   $podman load -i adi-doctools.tar
+   $container load -i adi-doctools.tar
 
 Or if you are feeling adventurous:
 
@@ -207,7 +210,7 @@ Or if you are feeling adventurous:
    :group: host
 
    ~/doctools
-   $podman save adi/doctools:latest | ssh server "cat - | podman load"
+   $container save adi/doctools:latest | ssh server "cat - | podman load"
 
 .. _interactive-run:
 
@@ -248,7 +251,7 @@ on the container, for example:
 .. shell::
 
    ~/doctools
-   $pdr adi/doctools:latest .
+   $cr adi/doctools:latest .
    $python3.13 -m venv venv
    $source venv/bin/activate ; \
    $    pip3.13 install -e . ; \
@@ -340,6 +343,21 @@ is ignored and a new one is requested.
    $    --env runner_labels=v1,big_cpu \
    $    adi/doctools:latest
 
+.. collapsible:: Docker alternative
+
+   ``docker`` does **not** have a built-in keyring, instead you pass directly
+   to ``run`` command. :red:`Consider hardening strategies to mitigate risks`,
+   like using another keyring as below.
+
+   .. shell::
+
+      ~/doctools
+      $docker run \
+      $    --env public_doctools_org_repository=$(gpg --quiet --batch --decrypt /run/secrets/public_doctools_org_repository.gpg) \
+      $    --env public_doctools_runner_token=$(gpg --quiet --batch --decrypt /run/secrets/public_doctools_runner_token.gpg) \
+      $    --env runner_labels=v1,big_cpu \
+      $    localhost/adi/doctools:latest
+
 The environment variable runner_labels (comma-separated), set the runner labels.
 If not provided on the Containerfile as ``ENV runner_labels=<labels,>`` or as argument
 ``--env runner_labels=<labels,>``, it defaults to ``v1``.
@@ -407,7 +425,7 @@ Below is a suggested systemd service at *~/.config/systemd/user/container-public
       ExecStart=/bin/sh -c "/bin/docker run \
                 --env name_label=%H-%i \
                 --env org_repository=$(gpg --quiet --batch --decrypt /run/secrets/public_doctools_org_repository.gpg) \
-                --env runner_token=$(gpg --quiet --batch --decrypt /run/secrets/public_runner_token.gpg) \
+                --env runner_token=$(gpg --quiet --batch --decrypt /run/secrets/public_doctools_runner_token.gpg) \
                 --cidfile %t/%n-cid \
                 --label "io.containers.autoupdate=local" \
                 --name=public_doctools_%i \
