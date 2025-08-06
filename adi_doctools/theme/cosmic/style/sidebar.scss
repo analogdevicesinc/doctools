@@ -282,12 +282,12 @@
         color: var(--text-color2);
     }
 
-    nav {
+    .tocwrapper {
         transition: ease opacity .2s;
     }
 }
 
-.localtoc nav.fetch {
+.localtoc .tocwrapper.fetch {
     pointer-events: none;
     user-select: none;
     opacity: 0;

@@ -15,6 +15,7 @@ export class HotReload {
     $.bodywrapper = new DOM(DOM.get('.documentwrapper .bodywrapper'))
     $.content = new DOM(DOM.get('.documentwrapper .body'))
     $.localtoc = new DOM(DOM.get('.localtoc nav'))
+    $.tocwrapper = new DOM(DOM.get('.localtoc .tocwrapper'))
     $.related = new DOM(DOM.get('.documentwrapper .related'))
     $.breadcrumb = DOM.get('.bodywrapper .body-header .breadcrumb')
 
@@ -102,7 +103,7 @@ export class HotReload {
     this.parent.content_actions.init()
 
     this.$.bodywrapper.classList.remove('fetch')
-    this.$.localtoc.classList.remove('fetch')
+    this.$.tocwrapper.classList.remove('fetch')
     this.$.loader.classList.remove('fetch')
 
     if (url.hash)
@@ -129,7 +130,7 @@ export class HotReload {
     if (new_state)
       history.pushState(request_url.href, '', request_url.href)
 
-    this.$.localtoc.classList.add('fetch')
+    this.$.tocwrapper.classList.add('fetch')
     this.$.bodywrapper.classList.add('fetch')
     const loader_= setTimeout(() => {
       this.$.loader.classList.add('fetch')
