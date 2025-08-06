@@ -21,6 +21,8 @@ needs_extensions = {
     'adi_doctools': '0.3'
 }
 
+interref_repos = ['hdl', 'no-OS', 'linux']
+
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 source_suffix = '.rst'
 

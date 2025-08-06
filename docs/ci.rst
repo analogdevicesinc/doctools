@@ -3,6 +3,17 @@
    Continuous deployment pipeline and instructions to set up a self-hosted
    GitHub Actions runner using Podman or Docker and systemd without root.
 
+.. collection:: AD-APARD32690-SL
+
+   hdl:
+     projects/ad738x_fmc/index
+
+   linux:
+     iio/driver/ad9078
+
+   no-OS:
+     projects/ad7091r8-sdz
+
 .. _ci:
 
 Continuous integration

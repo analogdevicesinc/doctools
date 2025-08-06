@@ -254,12 +254,12 @@
         background: var(--bg-color1);
         height: calc(100vh - 4.5rem);
         overflow-y: auto;
+        margin-bottom: 10em;
 
-        nav {
+        .group, nav {
             border-left: variable.$border-panel2;
             max-width: 20rem;
             padding-right: .5em;
-            margin-bottom: 10em;
             color: var(--text-color2);
         }
 
@@ -342,11 +342,12 @@
         padding: .25em 0;
     }
 
-    .localtoc-header {
+    .header {
+        user-select: none;
         color: var(--text-color3);
     }
 
-    > div {
+    .localtoc-header {
         display: flex;
         align-items: center;
     }
@@ -373,8 +374,15 @@
 }
 
 @media screen {
-    .localtoc-header {
+    .localtoc .header {
         padding-left: 1rem;
+    }
+
+    .localtoc .subheader {
+        padding-left: .5rem;
+        color: var(--text-color3);
+        font-weight: bold;
+        margin: 1em 0 -.25em 0;
     }
 
     .localtoc-header:before {
@@ -383,7 +391,7 @@
 }
 
 @media print {
-    .localtoc-header {
+    .localtoc .header {
         font-size: 1.5em;
     }
 

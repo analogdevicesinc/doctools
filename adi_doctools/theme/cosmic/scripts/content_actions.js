@@ -41,6 +41,52 @@ export class ContentActions {
       item.insertAdjacentElement('afterend', button.$)
     })
   }
+  collection () {
+    let tocwrapper = new DOM(DOM.get('.localtoc .tocwrapper'))
+    let header = new DOM('div', {
+      'className': 'header'
+    })
+    header.innerText = "Collections"
+    let container = new DOM('div').append(header)
+
+    let collection0 = new DOM('div', {
+      'className': 'subheader'
+    })
+    let mocks_ = ['User Guide', 'HDL project', 'Linux driver', 'no-OS driver']
+    let mocks = []
+    mocks_.forEach(item => {
+      const m = new DOM('a', {'href': '#'})
+      m.innerText = item
+      mocks.push(new DOM('li').append(m))
+    })
+    collection0.innerText = "AD-APARD32690-SL"
+    container.append([
+      new DOM('div', {'className': 'group'}).append([
+        collection0,
+        new DOM('ul').append(mocks)
+      ]),
+    ])
+
+    let collection1 = new DOM('div', {
+      'className': 'subheader'
+    })
+    mocks_ = ['User Guide', 'HDL project', 'no-OS driver']
+    mocks = []
+    mocks_.forEach(item => {
+      const m = new DOM('a', {'href': '#'})
+      m.innerText = item
+      mocks.push(new DOM('li').append(m))
+    })
+    collection1.innerText = "AD-LORE-INPSUM"
+    container.append([
+      new DOM('div', {'className': 'group'}).append([
+        collection1,
+        new DOM('ul').append(mocks)
+      ]),
+    ])
+
+    tocwrapper.append(container)
+  }
   deinit () {
   }
   init () {
@@ -48,5 +94,6 @@ export class ContentActions {
       this.copy_button()
     else
       console.log('copy_button: sphinx-copy-button extension is present, skipping')
+    this.collection()
   }
 }
