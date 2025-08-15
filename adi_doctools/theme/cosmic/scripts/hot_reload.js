@@ -129,10 +129,8 @@ export class HotReload {
     if (new_state)
       history.pushState(request_url.href, '', request_url.href)
 
-    const body_= setTimeout(() => {
-      this.$.localtoc.classList.add('fetch')
-      this.$.bodywrapper.classList.add('fetch')
-    }, 50)
+    this.$.localtoc.classList.add('fetch')
+    this.$.bodywrapper.classList.add('fetch')
     const loader_= setTimeout(() => {
       this.$.loader.classList.add('fetch')
     }, 500)
@@ -151,19 +149,22 @@ export class HotReload {
       elem.classList.remove('current')
     })
 
+    const time_ = Date.now()
     const response = fetch(
       new Request(request_url)
     )
       .then(response => response)
       .then(response => response.text())
-      .then(txt => this.replace(dom, request_url, txt))
+      .then(txt => {
+        const timeout = 125 - (Date.now() - time_)
+        const body_= setTimeout(() => {
+          this.replace(dom, request_url, txt)
+        }, timeout)
+      })
       .catch(error => {
-        this.$.localtoc.classList.add('fetch')
-        this.$.bodywrapper.classList.add('fetch')
         this.$.loader.classList.add('fail')
       })
       .finally(() => {
-        clearTimeout(body_)
         clearTimeout(loader_)
       })
   }
