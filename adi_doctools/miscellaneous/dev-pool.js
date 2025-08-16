@@ -84,7 +84,7 @@ class PoolChanges {
         else
           return [null, null]
       } catch (e) {
-        if (e.name === "TimeoutError")
+        if (e.name === "TimeoutError" || e.name === "AbortError")
           return await do_fetch(url)
         return [null, null]
       }
