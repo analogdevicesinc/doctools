@@ -122,8 +122,16 @@ export class HotReload {
     this.location_href = request_url.href
     if (current_url.pathname === request_url.pathname &&
         current_url.origin === request_url.origin) {
-       location.hash = request_url.hash === '' ? '#top-anchor': request_url.hash
-       return
+      const hash = request_url.hash === '' ? '#top-anchor': request_url.hash
+      if (new_state) {
+        location.hash = hash
+      } else {
+        const dom_ = document.querySelector(hash)
+        if (dom_)
+          dom_.scrollIntoView()
+        history.replaceState(null, "", hash)
+      }
+      return
     }
     // Push even before fething, so in case of failure the user can easily
     // reload the page
