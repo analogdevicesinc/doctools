@@ -127,9 +127,9 @@ export class Search {
     })
 
     if (typeof this.parent.fetch === 'object')
-      this.parent.fetch.then(this.init.bind(this))
+      this.parent.fetch.then(this.construct.bind(this))
     else
-      this.init()
+      this.construct()
 
     app.search = this
   }
@@ -830,9 +830,9 @@ export class Search {
     this.$.keyCheckbox[key] = input_
   }
   /**
-   * Init search.
+   * Construct search.
    */
-  init () {
+  construct () {
     let alphanumeric = Toolbox.get_alphanumeric()
     // Remove common text-manipulation shortcuts
     const drop_ = ['a', 'c', 'f']

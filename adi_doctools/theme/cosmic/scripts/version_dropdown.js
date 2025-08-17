@@ -16,10 +16,10 @@ export class VersionDropdown {
     this.prefix = new URL(this.prefix, location.origin).href
     if (this.prefix.endsWith('/'))
       this.prefix = this.prefix.slice(0, -1)
-    this.init()
+    this.construct()
   }
 
-  init() {
+  construct () {
     const response = fetch(
       new Request(new URL('tags.json', this.prefix+'/'))
     )

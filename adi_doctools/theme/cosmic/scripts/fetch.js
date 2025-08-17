@@ -11,7 +11,7 @@ export class Fetch {
     this.parent = app
     this.callback = []
 
-    this.init()
+    this.construct()
 
     app.fetch = this
   }
@@ -30,7 +30,7 @@ export class Fetch {
    * mostly used by user and doc writers, relies on the remote
    * source.
    */
-  init () {
+  construct () {
     let state = this.parent.state
     const base_url = (state.subhost === '' || state.offline === true) ?
       new URL('https://analogdevicesinc.github.io/doctools') :

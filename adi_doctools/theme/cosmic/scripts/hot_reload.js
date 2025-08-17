@@ -22,7 +22,7 @@ export class HotReload {
     this.toctree = new Map()
     this.location_href
 
-    this.init()
+    this.construct()
   }
   regen_breadcrumb (dom) {
     let node = dom.parentElement.parentElement
@@ -98,10 +98,10 @@ export class HotReload {
     this.$.related.$.innerHTML = related.innerHTML
 
     this.regen_breadcrumb(dom)
-    this.parent.navigation.init()
-    this.parent.page_actions.init()
-    this.parent.content_actions.init()
-
+    for (const key in this.parent) {
+      if ("init" in this.parent[key])
+        this.parent[key].init()
+    }
     this.$.bodywrapper.classList.remove('fetch')
     this.$.tocwrapper.classList.remove('fetch')
     this.$.loader.classList.remove('fetch')
@@ -148,11 +148,11 @@ export class HotReload {
       this.$.loader.classList.remove('fail')
     }
 
-    // FIXME: Should check if they exist, in case it is removed from extra,
-    // Consider also creating a loading order stack, so we just iterate over.
-    this.parent.content_actions.deinit()
-    this.parent.page_actions.deinit()
-    this.parent.navigation.deinit()
+    const keys = Object.keys(this.parent).reverse()
+    keys.forEach(key => {
+      if ("deinit" in this.parent[key])
+        this.parent[key].deinit()
+    })
 
     DOM.getAll('.current', this.$.toctree).forEach((elem) => {
       elem.classList.remove('current')
@@ -230,7 +230,7 @@ export class HotReload {
     else // Fallback
       location.href = location.href
   }
-  init () {
+  construct () {
     this.location_href = location.href
 
     this.init_toctree()

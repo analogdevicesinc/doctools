@@ -15,11 +15,11 @@ export class Links {
     this.set_doms()
     this.parent = app
     if (typeof this.parent.fetch === 'object')
-      this.parent.fetch.then(this.init.bind(this))
+      this.parent.fetch.then(this.construct.bind(this))
     else
-      this.init()
+      this.construct()
   }
-  init () {
+  construct() {
     let m = this.parent.state.metadata
     if ('repotoc' in m)
       this.update_repotoc(m['repotoc'])

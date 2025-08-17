@@ -46,7 +46,7 @@ export class Navigation {
 
     $.related = new DOM(DOM.get('.related'))
 
-    this.preinit()
+    this.construct()
 
     app.navigation = this
   }
@@ -261,7 +261,7 @@ export class Navigation {
   /**
    * Pre-init navigation.
    */
-  preinit () {
+  construct () {
     onresize = () => {this.handleResize()}
     onscroll = () => {this.handleScroll()}
     document.addEventListener('keyup', (e) => {this.keyup(e)}, false);
