@@ -29,6 +29,10 @@ default_config = {
     'extra': False,
 }
 
+BLUE = '\033[94m'
+FAIL = '\033[91m'
+NC = '\033[0m'
+
 
 class pr:
     @staticmethod
@@ -635,9 +639,11 @@ def prepare_doc(doc, repos_dir, doc_dir, drop_ext):
     if len(missing_ext) > 0:
         ext = defaultdict(list)
         [ext[r].append(ext_) for r, ext_ in missing_ext]
-        click.echo(f"Some inferred extensions are not installed: {dict(ext)}")
+        click.echo(f"Some inferred extensions are {FAIL}not installed{NC}: "
+                   f"{dict(ext)}")
         if not drop_ext:
-            click.echo(f"If they are not necessary, use --drop-missing-extensions to remove them.")
+            click.echo("If they are not necessary, use "
+                       f"{BLUE}--drop-missing-extensions{NC} to remove them.")
             sys.exit(1)
         else:
             click.echo(f"And will not be added to the configuration file.")
@@ -939,7 +945,7 @@ def patch_doc(doc, repos_dir, doc_dir, doc_patch_dir, git_lfs, sphinx_builder):
 
     # Second run
     cwd_ = getcwd()
-    warnfile = path.join('..', 'warnings_patched.txt')
+    warnfile = 'warnings_patched.txt'
     warning = open(warnfile, "w")
     builddir = path.join("build", "html")
     doctreedir = path.join(builddir, "doctrees")
@@ -1058,8 +1064,8 @@ def custom_doc(directory, extra, no_parallel_, open_, builder, ssh, drop_ext):
     if not path.isdir(directory):
         mkdir(directory)
     if not path.isfile(doc_yaml):
-        click.echo("Configuration file doc.yaml not found, created template at:\n"
-                   f"{doc_yaml}\n"
+        click.echo(f"Configuration file doc.yaml {FAIL}not found{NC}, created template at:\n"
+                   f"{BLUE}{doc_yaml}{NC}\n"
                    "Update it with the desired sources and rerun the tool.")
         with open(doc_yaml, "w") as f:
             f.write(template_yaml)
