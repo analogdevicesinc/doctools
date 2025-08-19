@@ -152,6 +152,24 @@ class DOM {
     return this
   }
   /**
+   * Append a ``onmiddleclick`` event.
+   * @param {function} ev - Function to be executed on up.
+   */
+  onmiddleclick (self, ev, args){
+    this.$.addEventListener('mouseup', (e) => {
+      if ( e.which !== 2 )
+        return
+
+      if (typeof args == 'undefined')
+        ev.apply(self, [e])
+      else if (args.constructor == Array) {
+        args.push(e)
+        ev.apply(self, args)
+      }
+    })
+    return this
+  }
+  /**
    * Append a ``mousedown`` event.
    * @param {function} ev - Function to be executed on down.
    */

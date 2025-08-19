@@ -57,18 +57,15 @@ export class PageActions {
     this.$.container = new DOM('div', {
       'className': 'page-actions'
     })
-    this.$.edit_button = new DOM('a', {
+    this.$.edit_button = new DOM('button', {
       'className': 'edit-source',
-      'title': 'See and edit this page source',
-      'target': 'blank'
+      'title': 'See and edit this page source'
     })
     this.$.edit_button.onclick(this, (self, e) => {
-      e.preventDefault()
-      Toolbox.try_include(this.edit_button_tgt_raw, self.$.href, true)
+      Toolbox.try_include(this.edit_button_tgt_raw, self.alt_href, true)
     }, [this.$.edit_button])
-    this.$.edit_button.onauxclick(this, (self, e) => {
-      e.preventDefault()
-      Toolbox.try_include(this.edit_button_tgt_raw, self.$.href, true)
+    this.$.edit_button.onmiddleclick(this, (self, e) => {
+      Toolbox.try_include(this.edit_button_tgt_raw, self.alt_href, true)
     }, [this.$.edit_button])
     this.$.container.append(this.$.edit_button.$)
   }
@@ -133,7 +130,7 @@ export class PageActions {
     tgt = tgt.concat('/', pathname)
     tgt_raw = tgt_raw.concat('/', pathname)
 
-    this.$.edit_button.$.href = tgt
+    this.$.edit_button.alt_href = tgt
     this.edit_button_tgt_raw = tgt_raw
   }
   deinit_page_source () {

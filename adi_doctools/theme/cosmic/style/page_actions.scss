@@ -34,11 +34,11 @@
             mask-repeat: no-repeat;
         }
 
-        &:hover::before {
+        &:hover::before, &:focus::before {
             background-color: var(--accent-color);
         }
 
-        &:hover {
+        &:hover, &:focus {
             background-color: var(--bg-color2);
         }
     }
