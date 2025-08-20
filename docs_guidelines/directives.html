@@ -8,7 +8,7 @@
 
     <title>Custom directives &#8212; Doctools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8e8a900e" />
-    <link rel="stylesheet" type="text/css" href="../_static/app.min.css?v=b2fe33c6" />
+    <link rel="stylesheet" type="text/css" href="../_static/app.min.css?v=9d1cc31f" />
     <script async="async" src="../_static/app.umd.js?v=23451dc4"></script>
     <link rel="icon" href="../_static/icon.svg"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -98,6 +98,10 @@
 </li>
 <li><a class="reference internal" href="#clear-content">Clear content</a></li>
 <li><a class="reference internal" href="#description">Description</a></li>
+<li><a class="reference internal" href="#collection">Collection</a><ul>
+<li><a class="reference internal" href="#collection-pattern">Collection pattern</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#shell">Shell</a></li>
 <li><a class="reference internal" href="#svg">SVG</a></li>
 <li><a class="reference internal" href="#collapsible">Collapsible</a></li>
@@ -241,6 +245,142 @@ content for HTML meta description.</p>
    GitHub Actions runner using Podman or Docker and systemd without root.
 </pre></div>
 </div>
+</section>
+<section id="collection">
+<span id="directive-collection"></span><h2>Collection<a class="headerlink" href="#collection" title="Link to this heading"></a></h2>
+<p>The collection directive creates cross-documentation collection of pages,
+written to <em>collection.json</em> at the root of the built doc (html only).
+Can be used in landing pages and visited pages that belong to a collection.</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">collection</span><span class="p">::</span> subtitle
+   <span class="nc">:subtitle:</span> <span class="nt">&lt;subtitle&gt;</span>
+   <span class="nc">:image:</span> <span class="nt">&lt;path/to/image.png&gt;</span>
+   <span class="nc">:label:</span> [label ...]
+
+   &lt;description&gt;
+
+   # pages to include
+   &lt;repo&gt;:
+     <span class="m">-</span> &lt;path/to/doc&gt;
+     <span class="m">-</span> &lt;path/to/doc&gt;
+
+   &lt;repo&gt;:
+     <span class="m">-</span> &lt;path/to/doc&gt;
+
+<span class="c">   ...</span>
+</pre></div>
+</div>
+<p>Subtitle, image, label and description are optional but recommended.
+For example:</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">collection</span><span class="p">::</span> EVAL-AD4050/AD4052-ARDZ
+   <span class="nc">:subtitle:</span> Evaluating the AD4050/AD4052 Compact, Low Power, 12-Bit/16-Bit, 2 MSPS Easy Drive SAR ADCs
+   <span class="nc">:image:</span> eval-angle.png
+   <span class="nc">:label:</span> user-guide
+
+   documentation:
+     <span class="m">-</span> User guide &lt;.&gt;
+
+   hdl:
+     <span class="m">-</span> projects/ad4052_ardz
+     <span class="m">-</span> Custom title &lt;projects/dual_ad4052_ardz&gt;
+
+   linux:
+     <span class="m">-</span> iio/ad4052
+
+   no-OS:
+     <span class="m">-</span> drivers/ad405x
+</pre></div>
+</div>
+<p>The page that inserts the collection is always inserted into the collection and
+is the top-level page, therefore, it doesn’t need to be included to the include
+list. But, if it is desired to have an alternative title, like in the example
+above, use the special <code class="docutils literal notranslate"><span class="pre">.</span></code> value.</p>
+<p>The image path is relative to the current doc, while the includes are always
+absolute to the target doc, with the exception of the special <code class="docutils literal notranslate"><span class="pre">.</span></code>.
+Includes will include all pages below the path provided, for example, for
+<em>user-guide/some-board</em>, the paths <em>user-guide/some-board/index</em>,
+<em>user-guide/some-board/user</em>, <em>user-guide/some-board/dev</em> are also included.
+Includes don’t take file extensions, only the basename.</p>
+<p>All collections are collected and written to <em>collection.json</em> for the html builder,
+for example:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;pattern&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;no-OS&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;^projects&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;${repo} project&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;^driver&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;${repo} driver&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;linux&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;^iio&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;${repo} IIO driver&quot;</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;collection&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;EVAL-AD4050/AD4052-ARDZ&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;image&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;documentation/_images/eval-angle19.png&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;subtitle&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Evaluating the AD4050/AD4052 Compact, Low Power, 12-Bit/16-Bit, 2 MSPS Easy Drive SAR ADCs&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;label&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                </span><span class="s2">&quot;user-guide&quot;</span>
+<span class="w">            </span><span class="p">]</span>
+<span class="w">            </span><span class="nt">&quot;docname&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;eval/user-guide/adc/ad4052-ardz&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;include&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="nt">&quot;documentation&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                    </span><span class="nt">&quot;eval/user-guide/adc/ad4052-ardz&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                        </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;User guide&quot;</span>
+<span class="w">                    </span><span class="p">}</span>
+<span class="w">                </span><span class="p">},</span>
+<span class="w">                </span><span class="nt">&quot;hdl&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                    </span><span class="nt">&quot;projects/ad4052_ardz&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span>
+<span class="w">                    </span><span class="nt">&quot;projects/dual_ad4052_ardz&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                        </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Custom title&quot;</span>
+<span class="w">                    </span><span class="p">}</span>
+<span class="w">                </span><span class="p">},</span>
+<span class="w">                </span><span class="nt">&quot;linux&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                    </span><span class="nt">&quot;iio/ad4052&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{}</span>
+<span class="w">                </span><span class="p">},</span>
+<span class="w">                </span><span class="nt">&quot;no-OS&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                    </span><span class="nt">&quot;drivers/ad405x&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{}</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="c1">//{&quot;EVAL-...&quot;}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Optional keys not present in a collection are not set in the JSON file, so checking
+if it includes the key (e.g., <code class="code docutils literal notranslate"><span class="pre">if</span> <span class="pre">(&quot;image&quot;</span> <span class="pre">in</span> <span class="pre">collection)</span></code>) suffices.
+The <strong>docname</strong> entry is the top-level document of the includes, that means, the
+landing page of the collection.</p>
+<section id="collection-pattern">
+<span id="directive-collection-pattern"></span><h3>Collection pattern<a class="headerlink" href="#collection-pattern" title="Link to this heading"></a></h3>
+<p>The collection pattern configuration value is auxiliary to
+<a class="reference internal" href="#directive-collection"><span class="std std-ref">Collection</span></a> to auto-set a name to includes without an explicit
+name. It takes pairs of regex and template, with the syntax:</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">collection-pattern</span><span class="p">::</span>
+
+   &lt;repo&gt;:
+     <span class="m">-</span> &lt;regex&gt;: &lt;template&gt;
+</pre></div>
+</div>
+<p>For example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">collection_pattern</span> <span class="o">=</span> <span class="p">{</span>
+     <span class="s2">&quot;no-OS&quot;</span><span class="p">:</span> <span class="p">{</span>
+         <span class="s2">&quot;^projects&quot;</span><span class="p">:</span> <span class="s2">&quot;$</span><span class="si">{repository}</span><span class="s2"> project&quot;</span><span class="p">,</span>
+         <span class="s2">&quot;^driver&quot;</span><span class="p">:</span> <span class="s2">&quot;$</span><span class="si">{repository}</span><span class="s2"> driver&quot;</span>
+     <span class="p">},</span>
+     <span class="s2">&quot;linux&quot;</span><span class="p">:{</span>
+         <span class="s2">&quot;^iio&quot;</span><span class="p">:</span> <span class="s2">&quot;$</span><span class="si">{repository}</span><span class="s2"> IIO driver&quot;</span>
+     <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>If the include has no name and doesn’t match any pattern, it will be named
+<code class="docutils literal notranslate"><span class="pre">&lt;repository</span> <span class="pre">name&gt;</span> <span class="pre">path/to/include</span></code>.</p>
+<p>The supported template variables are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">repository</span></code>: Replaces with the current include repository.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Path</span></code>: Replaces with the current include path.</p></li>
+</ul>
+</section>
 </section>
 <section id="shell">
 <h2>Shell<a class="headerlink" href="#shell" title="Link to this heading"></a></h2>
