@@ -85,6 +85,10 @@
     );
 }
 
+.bodywrapper .collection {
+  display: none;
+}
+
 /* hot reload loader */
 .documentwrapper #loader {
   pointer-events: none;
