@@ -8,12 +8,12 @@ from sphinx.util.docutils import SphinxDirective
 from sphinx.directives.code import container_wrapper
 
 import re
-from os import path
+from os import path, pardir, makedirs
 from uuid import uuid4
 from hashlib import sha1
 from typing import Tuple
 
-from .node import node_div, node_input, node_label, node_icon, node_source, node_a
+from .node import node_div, node_input, node_label, node_icon, node_source, node_a, node_collection
 from .node import node_iframe, node_video
 
 logger = logging.getLogger(__name__)
@@ -54,7 +54,7 @@ def parse_rst(state, content, uid: Optional[str] = None):
     return node
 
 
-def meta_description_default(app, doctree, fromdocname):
+def directive_description_doctree_resolved(app, doctree, fromdocname):
     has_meta = any(
         isinstance(node, nodes.meta) and node.get('name') == 'description'
         for node in doctree.traverse(nodes.meta)
@@ -288,6 +288,198 @@ class directive_collapsible(directive_base):
         self.state.nested_parse(self.content, self.content_offset, content)
 
         return [node]
+
+
+def directive_collection_build_finished(app, exc):
+    if app.builder.format != 'html':
+        return
+
+    import json
+
+    env = app.env
+
+    # Merge collection_image map with cache
+    # we don't care about removed images, since the o.g. path is a uid
+    dest_dir = path.abspath(path.join(app.builder.outdir, pardir,
+                                      'managed'))
+    file_map = path.join(dest_dir, 'collection_image_map.json')
+    if not path.exists(dest_dir):
+        makedirs(dest_dir)
+    json_map = {}
+    if path.exists(file_map):
+        with open(file_map) as f:
+            json_map = json.loads(f.read())
+    if hasattr(env, 'collection_image'):
+        json_map.update(env.collection_image)
+
+    if not hasattr(env, 'collection'):
+        env.collection = []
+
+    if not len(env.collection):
+        return
+
+    import json
+
+    pattern = app.config.collection_pattern
+
+    collection_ = {}
+    used_keys = set()
+    for item in env.collection:
+        if item['key'] in used_keys:
+            logger.warning(
+                f"collection: Duplicated key '{item['key']}', skipped."
+            )
+        used_keys.add(item['key'])
+        collection_[item['key']] = {
+            'docname': item['docname'],
+            'description': item['description'],
+            'include': item['include'],
+        }
+        if app.config.repository:
+            collection_[item['key']]['docname'] = f"{app.config.repository}/{item['docname']}"
+            if 'image' in item and item['image'] in json_map:
+                collection_[item['key']]['image'] = f"{app.config.repository}/{json_map[item['image']]}"
+        if 'subtitle' in item:
+            collection_[item['key']]['subtitle'] = item['subtitle']
+        if 'label' in item:
+            collection_[item['key']]['label'] = item['label']
+
+    json_ = {'pattern': pattern, 'collection': collection_}
+
+    file = path.join(app.builder.outdir, 'collection.json')
+    with open(file, 'w') as f:
+        json.dump(json_, f, indent=4)
+    with open(file_map, 'w') as f:
+        json.dump(json_map, f, indent=4)
+
+
+class directive_collection(SphinxDirective):
+    option_spec = {
+        'subtitle': directives.unchanged_required,
+        'image': directives.unchanged_required,
+        'label': directives.unchanged_required,
+    }
+    has_content = True
+    final_argument_whitespace = True
+
+    required_arguments = 1
+    optional_arguments = 0
+
+    def run(self):
+        self.assert_has_content()
+
+        key = self.arguments[0].strip()
+        subtitle = self.options.pop('subtitle', None)
+        image = self.options.pop('image', None)
+        if image:
+            image = directives.uri(image)
+        label = self.options.pop('label', None)
+        if label:
+            label = re.split(r'(?<!\\) ', label)
+            label = [l.replace('\\ ', ' ') for l in label]
+
+        description = []
+        for i, line in enumerate(self.content):
+            # First include, break-out description part
+            if not line.startswith(' ') and line.strip().endswith(':'):
+                break
+        description = "\n".join(self.content[:i])
+
+        # REVISIT: Assert include with intersphinx
+        include = {}
+        current_include = None
+        got_itself = False
+        for i, line in enumerate(self.content[i:]):
+            line = line.split("#", 1)[0]  # Strip comments
+            if not line.startswith(' ') and line.strip().endswith(':'):
+                current_include = line.strip()[:-1]
+                if not current_include in include:
+                    include[current_include] = {}
+                continue
+            if not current_include:
+                continue
+
+            if not line.startswith('  -') and line != "":
+                self.state_machine.reporter.warning(
+                    "collection: Malformed include line skipped: "
+                    f"'{line}'",
+                    line=self.lineno
+                )
+                continue
+            line = line.strip()
+            if line == "":
+                continue
+
+            line = line[2:]
+            match = re.match(r'([^<]+)<([^>]+)>', line)
+            if match:
+                name = match.group(1).strip()
+                path_ = match.group(2)
+            else:
+                name = None
+                path_ = line
+
+            if (current_include == self.config.repository and
+                (path_ == '.' or path_ == self.env.docname)):
+                got_itself = True
+                path_ = self.env.docname
+            if (current_include != self.config.repository and
+                (path_ == '.')):
+                    self.state_machine.reporter.warning(
+                    f"collection: Got '.' repository '{current_include}', "
+                    f"which isn't the current '{self.config.repository}'.",
+                    line=self.lineno
+                )
+
+            include[current_include][path_] = {}
+            if name:
+                include[current_include][path_]["name"] = name
+
+        if not got_itself and self.config.repository:
+            if not self.config.repository in include:
+                include[self.config.repository] = {}
+            include[self.config.repository][self.env.docname] = {}
+
+        if not hasattr(self.env, 'collection'):
+            self.env.collection = []
+
+        entry = {
+            'docname': self.env.docname,
+            'key': key,
+            'description': description,
+            'include': include,
+        }
+        if subtitle:
+            entry['subtitle'] = subtitle
+        if image:
+            entry['image'] = image
+        if label:
+            entry['label'] = label
+        node = node_collection(classes=['collection'], olduri=image)
+        if image:
+            image_node = nodes.image(self.block_text, uri=image)
+            node += image_node
+
+        self.env.collection.append(entry)
+
+        return [node]
+
+def directive_collection_purge_doc(app, env, docname):
+    if not hasattr(env, 'collection'):
+        return
+
+    env.collection = [
+        item for item in env.collection if item['docname'] != docname
+    ]
+
+
+def directive_collection_merge_info(app, env, docnames, other):
+    if not hasattr(env, 'collection'):
+        env.collection = []
+    if hasattr(other, 'collection'):
+        env.collection.extend([
+            item for item in other.collection if item['docname'] in docnames
+        ])
 
 
 class directive_video(Directive):
@@ -767,6 +959,7 @@ class directive_svg(SphinxDirective):
 def common_setup(app):
     app.add_directive('description', directive_description)
     app.add_directive('collapsible', directive_collapsible)
+    app.add_directive('collection', directive_collection)
     app.add_directive('video', directive_video)
     app.add_directive('flex', directive_flex)
     app.add_directive('grid', directive_grid)
@@ -776,5 +969,10 @@ def common_setup(app):
 
     app.add_config_value('hide_collapsible_content',
                          dft_hide_collapsible_content, 'env')
+    app.add_config_value('collection_pattern',
+                         {}, 'env')
 
-    app.connect('doctree-resolved', meta_description_default)
+    app.connect('env-purge-doc', directive_collection_purge_doc)
+    app.connect('env-merge-info', directive_collection_merge_info)
+    app.connect('doctree-resolved', directive_description_doctree_resolved)
+    app.connect('build-finished', directive_collection_build_finished)
