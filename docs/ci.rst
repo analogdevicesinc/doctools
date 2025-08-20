@@ -347,7 +347,7 @@ is ignored and a new one is requested.
 
    ``docker`` does **not** have a built-in keyring, instead you pass directly
    to ``run`` command. :red:`Consider hardening strategies to mitigate risks`,
-   like using another keyring as below.
+   like using other keyring software as below.
 
    .. shell::
 
