@@ -148,11 +148,13 @@ export class HotReload {
       this.$.loader.classList.remove('fail')
     }
 
-    const keys = Object.keys(this.parent).reverse()
-    keys.forEach(key => {
-      if ("deinit" in this.parent[key])
-        this.parent[key].deinit()
-    })
+    setTimeout(() =>  {
+      const keys = Object.keys(this.parent).reverse()
+      keys.forEach(key => {
+        if ("deinit" in this.parent[key])
+          this.parent[key].deinit()
+      })
+    }, 120)
 
     DOM.getAll('.current', this.$.toctree).forEach((elem) => {
       elem.classList.remove('current')
