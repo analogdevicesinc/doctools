@@ -60,3 +60,50 @@ div.highlight {
         opacity: 1;
     }
 }
+
+/* Collections */
+.collections {
+    .sub-header {
+        user-select: none;
+        cursor: pointer;
+
+        &:before {
+            font-size: 1.5em;
+            padding-right: .5em;
+            font-family: monospace;
+            content: "+";
+        }
+
+        &:hover:before {
+            color: var(--accent-color);
+        }
+    }
+
+    .group {
+        margin-bottom: .5em;
+    }
+
+    ul {
+        overflow: hidden;
+        margin: 0;
+    }
+
+    span {
+        display: grid;
+        grid-template-rows: 0fr;
+        transition: opacity .25s ease, grid-template-rows .25s ease;
+        opacity: 0;
+    }
+}
+.collection-collapse {
+    display: none;
+}
+
+.collection-collapse:checked ~ span {
+    grid-template-rows: 1fr;
+    opacity: 1;
+}
+
+.collection-collapse:checked ~ .sub-header:before {
+    content: "-";
+}
