@@ -97,6 +97,160 @@ for example:
       Continuous deployment pipeline and instructions to set up a self-hosted
       GitHub Actions runner using Podman or Docker and systemd without root.
 
+.. _directive collection:
+
+Collection
+~~~~~~~~~~
+
+The collection directive creates cross-documentation collection of pages,
+written to *collection.json* at the root of the built doc (html only).
+Can be used in landing pages and visited pages that belong to a collection.
+
+.. code:: rst
+
+   .. collection:: subtitle
+      :subtitle: <subtitle>
+      :image: <path/to/image.png>
+      :label: [label ...]
+
+      <description>
+
+      # pages to include
+      <repo>:
+        - <path/to/doc>
+        - <path/to/doc>
+
+      <repo>:
+        - <path/to/doc>
+
+      ...
+
+Subtitle, image, label and description are optional but recommended.
+For example:
+
+.. code:: rst
+
+  .. collection:: EVAL-AD4050/AD4052-ARDZ
+     :subtitle: Evaluating the AD4050/AD4052 Compact, Low Power, 12-Bit/16-Bit, 2 MSPS Easy Drive SAR ADCs
+     :image: eval-angle.png
+     :label: user-guide
+
+     documentation:
+       - User guide <.>
+
+     hdl:
+       - projects/ad4052_ardz
+       - Custom title <projects/dual_ad4052_ardz>
+
+     linux:
+       - iio/ad4052
+
+     no-OS:
+       - drivers/ad405x
+
+The page that inserts the collection is always inserted into the collection and
+is the top-level page, therefore, it doesn't need to be included to the include
+list. But, if it is desired to have an alternative title, like in the example
+above, use the special ``.`` value.
+
+The image path is relative to the current doc, while the includes are always
+absolute to the target doc, with the exception of the special ``.``.
+Includes will include all pages below the path provided, for example, for
+*user-guide/some-board*, the paths *user-guide/some-board/index*,
+*user-guide/some-board/user*, *user-guide/some-board/dev* are also included.
+Includes don't take file extensions, only the basename.
+
+All collections are collected and written to *collection.json* for the html builder,
+for example:
+
+.. code:: json
+
+   {
+       "pattern": {
+           "no-OS": {
+               "^projects": "${repo} project",
+               "^driver": "${repo} driver"
+           },
+           "linux": {
+               "^iio": "${repo} IIO driver"
+           }
+       },
+       "collection": {
+           "EVAL-AD4050/AD4052-ARDZ": {
+               "image": "documentation/_images/eval-angle19.png",
+               "subtitle": "Evaluating the AD4050/AD4052 Compact, Low Power, 12-Bit/16-Bit, 2 MSPS Easy Drive SAR ADCs",
+               "label": [
+                   "user-guide"
+               ]
+               "docname": "eval/user-guide/adc/ad4052-ardz",
+               "description": "",
+               "include": {
+                   "documentation": {
+                       "eval/user-guide/adc/ad4052-ardz": {
+                           "name": "User guide"
+                       }
+                   },
+                   "hdl": {
+                       "projects/ad4052_ardz": {},
+                       "projects/dual_ad4052_ardz": {
+                           "name": "Custom title"
+                       }
+                   },
+                   "linux": {
+                       "iio/ad4052": {}
+                   },
+                   "no-OS": {
+                       "drivers/ad405x": {}
+                   }
+               },
+           }
+           //{"EVAL-..."}
+       }
+   }
+
+Optional keys not present in a collection are not set in the JSON file, so checking
+if it includes the key (e.g., :code:`if ("image" in collection)`) suffices.
+The **docname** entry is the top-level document of the includes, that means, the
+landing page of the collection.
+
+.. _directive collection pattern:
+
+Collection pattern
+++++++++++++++++++
+
+The collection pattern configuration value is auxiliary to
+:ref:`directive collection` to auto-set a name to includes without an explicit
+name. It takes pairs of regex and template, with the syntax:
+
+.. code:: rst
+
+   .. collection-pattern::
+
+      <repo>:
+        - <regex>: <template>
+
+For example:
+
+.. code:: python
+
+   collection_pattern = {
+        "no-OS": {
+            "^projects": "${repository} project",
+            "^driver": "${repository} driver"
+        },
+        "linux":{
+            "^iio": "${repository} IIO driver"
+        }
+   }
+
+If the include has no name and doesn't match any pattern, it will be named
+``<repository name> path/to/include``.
+
+The supported template variables are:
+
+* ``repository``: Replaces with the current include repository.
+* ``Path``: Replaces with the current include path.
+
 Shell
 ~~~~~
 
@@ -319,7 +473,7 @@ Renders as:
 Notice how you can use any Sphinx syntax, even nest other directives.
 
 Video
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~
 
 The video directive creates an embedded video.
 Currently, direct MP4 and youtube embed links are supported, but could be easily
