@@ -8,7 +8,7 @@ class node_base(nodes.Element, nodes.General):
     """
 
     @staticmethod
-    def visit(translator, node):
+    def visit(self, node):
         attributes = node.attributes.copy()
 
         attributes.pop("ids")
@@ -17,16 +17,16 @@ class node_base(nodes.Element, nodes.General):
         attributes.pop("dupnames")
         attributes.pop("backrefs")
 
-        text = translator.starttag(node, node.tagname, **attributes)
-        translator.body.append(text.strip())
+        text = self.starttag(node, node.tagname, **attributes)
+        self.body.append(text.strip())
 
     @staticmethod
-    def depart(translator, node):
+    def depart(self, node):
         if node.endtag:
-            translator.body.append(f"</{node.tagname}>")
+            self.body.append(f"</{node.tagname}>")
 
     @staticmethod
-    def default(translator, node):
+    def default(self, node):
         pass
 
 class node_div(node_base):
@@ -65,9 +65,41 @@ class node_pre(node_base):
     tagname = 'pre'
     endtag = 'true'
 
+class node_collection(node_base):
+    """
+    For now, the node is not written to the html page, but used to resolve
+    metadata only.
+    """
+    tagname = 'div'
+    endtag = 'true'
+
+    @staticmethod
+    def update_collection_env(env, olduri, uri):
+        if not hasattr(env, 'collection_image'):
+            env.collection_image = {}
+        env.collection_image[olduri] = uri
+
+    @staticmethod
+    def depart(self, node):
+        """
+        Check if node has child image, if so,
+        collect the uri to files.
+        """
+        for node_ in node:
+            if isinstance(node_, nodes.image):
+                node_collection.update_collection_env(
+                        self.builder.env, node['olduri'], node_['uri'])
+                break
+        self.body.append(f"</{node.tagname}>")
+
 def node_setup(app):
     for node in [node_div, node_input, node_label, node_icon, node_video, node_source, node_iframe, node_a, node_pre]:
         app.add_node(node,
-                html =(node.visit, node.depart),
-                latex=(node.default, node.default),
-                text =(node.default, node.default))
+            html =(node.visit, node.depart),
+            latex=(node.default, node.default),
+            text =(node.default, node.default))
+
+    app.add_node(node_collection,
+        html =(node.visit, node_collection.depart),
+        latex=(node.default, node.default),
+        text =(node.default, node.default))
