@@ -108,7 +108,7 @@ Can be used in landing pages and visited pages that belong to a collection.
 
 .. code:: rst
 
-   .. collection:: subtitle
+   .. collection:: <title>
       :subtitle: <subtitle>
       :image: <path/to/image.png>
       :label: [label ...]
@@ -220,14 +220,15 @@ Collection pattern
 
 The collection pattern configuration value is auxiliary to
 :ref:`directive collection` to auto-set a name to includes without an explicit
-name. It takes pairs of regex and template, with the syntax:
+name. It takes pairs of regex and template in a dict at *conf.py*, with the syntax:
 
-.. code:: rst
+.. code:: python
 
-   .. collection-pattern::
-
-      <repo>:
-        - <regex>: <template>
+   collection_pattern = {
+        "<repo>": {
+            "<regex>": "<template>",
+        }
+   }
 
 For example:
 
@@ -236,10 +237,10 @@ For example:
    collection_pattern = {
         "no-OS": {
             "^projects": "${repository} project",
-            "^driver": "${repository} driver"
+            "^driver": "${repository} driver",
         },
         "linux":{
-            "^iio": "${repository} IIO driver"
+            "^iio": "${repository} IIO driver",
         }
    }
 
