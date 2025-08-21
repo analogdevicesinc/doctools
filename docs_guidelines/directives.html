@@ -251,7 +251,7 @@ content for HTML meta description.</p>
 <p>The collection directive creates cross-documentation collection of pages,
 written to <em>collection.json</em> at the root of the built doc (html only).
 Can be used in landing pages and visited pages that belong to a collection.</p>
-<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">collection</span><span class="p">::</span> subtitle
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">collection</span><span class="p">::</span> <span class="nt">&lt;title&gt;</span>
    <span class="nc">:subtitle:</span> <span class="nt">&lt;subtitle&gt;</span>
    <span class="nc">:image:</span> <span class="nt">&lt;path/to/image.png&gt;</span>
    <span class="nc">:label:</span> [label ...]
@@ -354,21 +354,22 @@ landing page of the collection.</p>
 <span id="directive-collection-pattern"></span><h3>Collection pattern<a class="headerlink" href="#collection-pattern" title="Link to this heading"></a></h3>
 <p>The collection pattern configuration value is auxiliary to
 <a class="reference internal" href="#directive-collection"><span class="std std-ref">Collection</span></a> to auto-set a name to includes without an explicit
-name. It takes pairs of regex and template, with the syntax:</p>
-<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">collection-pattern</span><span class="p">::</span>
-
-   &lt;repo&gt;:
-     <span class="m">-</span> &lt;regex&gt;: &lt;template&gt;
+name. It takes pairs of regex and template in a dict at <em>conf.py</em>, with the syntax:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">collection_pattern</span> <span class="o">=</span> <span class="p">{</span>
+     <span class="s2">&quot;&lt;repo&gt;&quot;</span><span class="p">:</span> <span class="p">{</span>
+         <span class="s2">&quot;&lt;regex&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;template&gt;&quot;</span><span class="p">,</span>
+     <span class="p">}</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>For example:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">collection_pattern</span> <span class="o">=</span> <span class="p">{</span>
      <span class="s2">&quot;no-OS&quot;</span><span class="p">:</span> <span class="p">{</span>
          <span class="s2">&quot;^projects&quot;</span><span class="p">:</span> <span class="s2">&quot;$</span><span class="si">{repository}</span><span class="s2"> project&quot;</span><span class="p">,</span>
-         <span class="s2">&quot;^driver&quot;</span><span class="p">:</span> <span class="s2">&quot;$</span><span class="si">{repository}</span><span class="s2"> driver&quot;</span>
+         <span class="s2">&quot;^driver&quot;</span><span class="p">:</span> <span class="s2">&quot;$</span><span class="si">{repository}</span><span class="s2"> driver&quot;</span><span class="p">,</span>
      <span class="p">},</span>
      <span class="s2">&quot;linux&quot;</span><span class="p">:{</span>
-         <span class="s2">&quot;^iio&quot;</span><span class="p">:</span> <span class="s2">&quot;$</span><span class="si">{repository}</span><span class="s2"> IIO driver&quot;</span>
+         <span class="s2">&quot;^iio&quot;</span><span class="p">:</span> <span class="s2">&quot;$</span><span class="si">{repository}</span><span class="s2"> IIO driver&quot;</span><span class="p">,</span>
      <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
