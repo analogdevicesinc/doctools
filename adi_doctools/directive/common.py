@@ -315,11 +315,6 @@ def directive_collection_build_finished(app, exc):
     if not hasattr(env, 'collection'):
         env.collection = []
 
-    if not len(env.collection):
-        return
-
-    import json
-
     pattern = app.config.collection_pattern
 
     collection_ = {}
