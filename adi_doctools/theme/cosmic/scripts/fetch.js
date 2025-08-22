@@ -37,7 +37,7 @@ export class Fetch {
       new URL('doctools', new URL(state.subhost, location.origin))
     // Do you want to use single_hosted with same origin? use below:
     //const base_url =
-    //  new URL(new URL(state.subhost, location.origin))
+    //  new URL(state.subhost, location.origin)
 
     const response = fetch(
       new Request(new URL('metadata.json', base_url+'/'))

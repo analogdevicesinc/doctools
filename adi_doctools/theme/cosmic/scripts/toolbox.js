@@ -132,9 +132,8 @@ class Toolbox {
         const request = new Request(url)
         const response = await fetch(request)
 
-        if (response.ok === true) {
+        if (response.ok === true)
           return {'obj': await response.json(), 'url': url}
-        }
         else if (response.status !== 404)
           return {'error': response, 'url': url}
       } catch (error) {

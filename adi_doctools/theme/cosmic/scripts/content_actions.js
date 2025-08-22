@@ -158,11 +158,11 @@ export class ContentActions {
 
     let state = this.parent.state
     const base_url = (state.subhost === '' || state.offline === true) ?
-      new URL(`${state.metadata.remote_doc}/documentation`) :
+      new URL(`${state.metadata.remote_doc}documentation`) :
       new URL('documentation', new URL(state.subhost, location.origin))
     // Do you want to use single_hosted with same origin? use below:
     //const base_url =
-    //  new URL(new URL(state.subhost, location.origin))
+    //  new URL(state.subhost, location.origin)
 
     if (this.collection) {
       this.load_collection()
@@ -173,7 +173,14 @@ export class ContentActions {
       { signal }
     )
       .then(response => response)
-      .then(response => response.json())
+      .then(response => {
+        if (response.ok === true)
+          return response.json()
+        else if (response.status === 404)
+          return {} // Don't try again if doesn't exist
+        else
+          throw new Error();
+      })
       .then(obj => {this.collection = obj ; this.load_collection()})
       .catch(err => {})
   }

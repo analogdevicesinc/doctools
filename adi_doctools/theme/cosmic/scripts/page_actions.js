@@ -11,7 +11,7 @@ export class PageActions {
   constructor (app) {
     this.$ = {}
 
-    this.with_page_source = true
+    this.with_page_source = false
     this.parent = app
     if (typeof this.parent.fetch === 'object')
       this.parent.fetch.then(this.preinit.bind(this))
