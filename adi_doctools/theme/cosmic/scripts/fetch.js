@@ -43,8 +43,14 @@ export class Fetch {
       new Request(new URL('metadata.json', base_url+'/'))
     )
       .then(response => response)
-      .then(response => response.json())
+      .then(response => {
+        if (response.ok === true)
+          return response.json()
+        else
+          throw new Error();
+      })
       .then(obj => this.init_metadata(obj, base_url))
+      .catch(err => {})
 
     let script = new DOM('script', {
       'src': new URL('_static/extra.umd.js', base_url+'/')
