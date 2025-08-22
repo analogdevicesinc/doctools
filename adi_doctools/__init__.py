@@ -16,7 +16,7 @@ from .lut import get_lut
 from .role.interref import interref_repos_apply, interref_repos_assert
 from .monkeypatch import monkeypatch_figure_numbers
 
-__version__ = "0.4.18"
+__version__ = "0.4.19"
 
 
 def get_navigation_tree(app, context, pagename):
