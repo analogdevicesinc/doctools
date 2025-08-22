@@ -450,10 +450,12 @@ class directive_collection(SphinxDirective):
             entry['image'] = image
         if label:
             entry['label'] = label
-        node = node_collection(classes=['collection'], olduri=image)
         if image:
+            node = node_collection(classes=['collection'], olduri=image)
             image_node = nodes.image(self.block_text, uri=image)
             node += image_node
+        else:
+            node = node_collection(classes=['collection'])
 
         self.env.collection.append(entry)
 
