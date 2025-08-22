@@ -414,10 +414,13 @@ class directive_collection(SphinxDirective):
                 name = None
                 path_ = line
 
+            docname = self.env.docname
+            if docname.endswith('/index'):
+                docname = docname[:-6]
             if (current_include == self.config.repository and
-                (path_ == '.' or path_ == self.env.docname)):
+                (path_ == '.' or path_ == docname or path_ == self.env.docname)):
                 got_itself = True
-                path_ = self.env.docname
+                path_ = docname
             if (current_include != self.config.repository and
                 (path_ == '.')):
                     self.state_machine.reporter.warning(
@@ -433,7 +436,7 @@ class directive_collection(SphinxDirective):
         if not got_itself and self.config.repository:
             if not self.config.repository in include:
                 include[self.config.repository] = {}
-            include[self.config.repository][self.env.docname] = {}
+            include[self.config.repository][docname] = {}
 
         if not hasattr(self.env, 'collection'):
             self.env.collection = []
