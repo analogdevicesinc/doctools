@@ -149,6 +149,10 @@ documentation build.
 The advantage of this approach is that regardless of the tools' built doc version,
 it will always fetch the latest and greatest.
 See also: ci/rollup.config.app.mjs
+
+To provide a slight speed boost, the JavaScript 'bets' that the metadata.json
+contains extra.*.*, appending to the page before the metadata loads,
+other items will be appended after metadata.json is fetched.
 """
 modules = Modules(
     javascript=['extra.umd.js'],
