@@ -769,7 +769,6 @@ def parse_status(doc_dir):
 
         m = re.match(re_images, e)
         if m:
-            print(m.group(1))
             repo = m.group(1)[:m.group(1).index('/')]
             file = m.group(1)[m.group(1).index('/')+1:]
             sphinx_statuses.images.append([repo, file])
