@@ -104,7 +104,7 @@ header {
         background: var(--bg-color1);
         overflow-y: auto;
         padding-top: 1em;
-        height: calc(100vh - 3.5em);
+        height: calc(100vh - 3.5rem);
         width: 100vw;
         display: flex;
         flex-direction: column;
@@ -263,7 +263,7 @@ body.dark #logo-org {
 
 @media (min-width: variable.$screen-1) and (max-width: variable.$screen-3) {
     .repotoc-tree.overlay root {
-        padding-left: 9em;
+        padding-left: 9rem;
     }
 }
 
