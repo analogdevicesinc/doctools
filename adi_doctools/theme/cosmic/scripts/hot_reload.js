@@ -21,6 +21,7 @@ export class HotReload {
 
     this.toctree = new Map()
     this.location_href
+    this.lock_load = false
 
     this.construct()
   }
@@ -118,9 +119,10 @@ export class HotReload {
       window.scrollTo({ top: 0, left: 0, behavior: "instant" })
 
     this.hot_links()
+    this.lock_load = false
   }
   load (dom, pathname, new_state) {
-    if (pathname === '#')
+    if (pathname === '#' || this.lock_load === true)
       return
 
     let current_url = new URL(this.location_href)
@@ -139,6 +141,7 @@ export class HotReload {
       }
       return
     }
+    this.lock_load = true
     // Push even before fething, so in case of failure the user can easily
     // reload the page
     if (new_state)
