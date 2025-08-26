@@ -25,6 +25,14 @@ export class HotReload {
     this.construct()
   }
   regen_breadcrumb (dom) {
+    let ol = this.$.breadcrumb.firstElementChild
+    ol.innerHTML = ''
+
+    if (dom.id === "logo") {
+      this.$.breadcrumb.classList.add('empty')
+      return
+    }
+
     let node = dom.parentElement.parentElement
     let arr = []
     while (node && node !== this.$.toctree.$) {
@@ -36,8 +44,6 @@ export class HotReload {
         }
       }
     }
-    let ol = this.$.breadcrumb.firstElementChild
-    ol.innerHTML = ''
     if (arr.length === 0)
       this.$.breadcrumb.classList.add('empty')
     else
@@ -83,7 +89,7 @@ export class HotReload {
     }
 
     let child, node = dom
-    while (node && node !== this.$.toctree.$) {
+    if (dom.id !== "logo") while (node && node !== this.$.toctree.$) {
       // if li child is input
       node.classList.add('current')
       child = node.firstElementChild
@@ -180,21 +186,34 @@ export class HotReload {
       })
   }
   init_toctree () {
-    DOM.getAll('.reference.internal', this.$.toctree).forEach((elem) => {
-      elem.href = elem.href.replace(/#$/, '') // Make absolute and strip trailling #
-      this.toctree.set(elem.href, elem)
+    const append_load = (dom) => {
+      // Make absolute and strip trailling #
+      dom.href = dom.href.replace(/#$/, '')
+      this.toctree.set(dom.href, dom)
 
-      elem.onclick = (ev) => {
+      dom.onclick = (ev) => {
         ev.preventDefault()
-        this.load(elem, elem.href, true)
+        this.load(dom, dom.href, true)
       }
-    })
+    }
+    DOM.getAll('.reference.internal', this.$.toctree)
+      .forEach(dom => append_load(dom))
   }
   init_others () {
-    let logo = DOM.get('.sphinxsidebarwrapper > a')
-    logo.href = logo.href.replace(/#$/, '')
-    logo = DOM.get('header a#logo')
-    logo.href = logo.href.replace(/#$/, '')
+    const append_load = (dom, alt_dom) => {
+      // Make absolute and strip trailling #
+      alt_dom.href = alt_dom.href.replace(/#$/, '')
+
+      alt_dom.onclick = (ev) => {
+        ev.preventDefault()
+        this.load(dom, alt_dom.href, true)
+      }
+    }
+    const dom = DOM.get('header a#logo')
+    append_load(dom, dom)
+    const alt_dom = DOM.get('.sphinxsidebarwrapper > a')
+    append_load(dom, alt_dom)
+    this.toctree.set(dom.href, dom)
   }
   init_loader() {
     let sides = []
