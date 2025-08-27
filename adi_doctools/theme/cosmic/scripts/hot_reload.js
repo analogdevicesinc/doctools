@@ -22,6 +22,7 @@ export class HotReload {
     this.toctree = new Map()
     this.location_href
     this.lock_load = false
+    this.reduced_motion
 
     this.construct()
   }
@@ -113,10 +114,13 @@ export class HotReload {
     this.$.tocwrapper.classList.remove('fetch')
     this.$.loader.classList.remove('fetch')
 
-    if (url.hash)
-      document.querySelector(`${url.hash}`)?.scrollIntoView({ behavior: 'auto' })
-    else
+    if (!this.reduced_motion)
       window.scrollTo({ top: 0, left: 0, behavior: "instant" })
+    if (url.hash)
+      setTimeout(() => {
+        document.querySelector(`${url.hash}`)
+          ?.scrollIntoView({ behavior: 'auto' })
+      }, this.reduced_motion ? 0 : 125)
 
     this.hot_links()
     this.lock_load = false
@@ -124,6 +128,8 @@ export class HotReload {
   load (dom, pathname, new_state) {
     if (pathname === '#' || this.lock_load === true)
       return
+
+    this.reduced_motion = Toolbox.reducedMotion()
 
     let current_url = new URL(this.location_href)
     let request_url = new URL(pathname, current_url)
@@ -163,7 +169,7 @@ export class HotReload {
         if ("deinit" in this.parent[key])
           this.parent[key].deinit()
       })
-    }, 120)
+    }, this.reduced_motion ? 0 : 120)
 
     DOM.getAll('.current', this.$.toctree).forEach((elem) => {
       elem.classList.remove('current')
@@ -176,7 +182,7 @@ export class HotReload {
       .then(response => response)
       .then(response => response.text())
       .then(txt => {
-        const timeout = 125 - (Date.now() - time_)
+        const timeout = this.reduced_motion ? 0 : 125 - (Date.now() - time_)
         const body_= setTimeout(() => {
           this.replace(dom, request_url, txt)
         }, timeout)
