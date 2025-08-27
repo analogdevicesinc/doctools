@@ -20,7 +20,8 @@ video {
         scroll-margin-top: 3.5rem;
     }
 
-    .body > section {
+    .body > section,
+    .body > section > span {
         scroll-margin-top: calc(3.5rem + 1.75em);
     }
 

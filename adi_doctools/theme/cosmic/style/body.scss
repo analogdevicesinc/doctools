@@ -36,7 +36,12 @@
   pointer-events: none;
   user-select: none;
   opacity: 0;
-  transform: perspective(16rem) scale3d(.99,.99,.99);
+}
+
+@media not (prefers-reduced-motion: reduce) {
+  .bodywrapper.fetch {
+    transform: perspective(16rem) scale3d(.99,.99,.99);
+  }
 }
 
 @media (min-width: variable.$screen-1) {
