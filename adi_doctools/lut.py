@@ -80,6 +80,12 @@ repos = {
         branch='main',
         visibility='public'
     ),
+    'kuiper': Repo(
+        pathname='docs',
+        name='Kuiper',
+        branch='main',
+        visibility='public'
+    ),
     'pyadi-iio': Repo(
         pathname='doc/source',
         name='pyadi-iio',
