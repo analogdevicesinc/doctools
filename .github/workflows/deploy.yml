@@ -4,7 +4,12 @@ jobs:
     runs-on: [self-hosted, v1]
 
     steps:
-    - uses: analogdevicesinc/doctools/checkout@action
+    - name: Get assets
+      run: |
+        curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -L -o __init__.py \
+          https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/adi_doctools/__init__.py
+        curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -L -o github-api.sh \
+          https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/ci/github-api.sh
 
     - uses: actions/download-artifact@v4
       with:
@@ -13,7 +18,7 @@ jobs:
 
     - name: Get head tag, if it is new and others vars
       run: |
-        tag=v$(sed -n 's/^__version__ = "\(.*\)"/\1/p' adi_doctools/__init__.py)
+        tag=v$(sed -n 's/^__version__ = "\(.*\)"/\1/p' __init__.py)
         echo "tag=$tag" >> "$GITHUB_ENV"
         git fetch --tags --prune --prune-tags --force
         if ! [ $(git tag -l "$tag") ] ; then
@@ -28,7 +33,7 @@ jobs:
 
     - name: Get pre-release vars
       run: |
-        source /usr/local/bin/github-api.sh
+        source ./github-api.sh
         release_id=$(
           gh-get-release-id ${{ secrets.GITHUB_TOKEN }} \
                             ${{ github.repository }} \
@@ -46,7 +51,7 @@ jobs:
     - name: Get latest vars
       if: ${{ env.new_tag == '1' }}
       run: |
-        source /usr/local/bin/github-api.sh
+        source ./github-api.sh
         release_id=$(
           gh-get-release-id ${{ secrets.GITHUB_TOKEN }} \
                             ${{ github.repository }} \
@@ -70,7 +75,7 @@ jobs:
     - name: GitHub create tag release and upload asset
       if: ${{ env.new_tag == '1' }}
       run: |
-        source /usr/local/bin/github-api.sh
+        source ./github-api.sh
         release_id=$(
           gh-create-release ${{ secrets.GITHUB_TOKEN }} \
                             ${{ github.repository }} \
@@ -86,7 +91,7 @@ jobs:
 
     - name: GitHub update pre-release target commitish
       run: |
-        source /usr/local/bin/github-api.sh
+        source ./github-api.sh
         gh-update-commitish ${{ secrets.GITHUB_TOKEN }} \
                             ${{ github.repository }} \
                             ${{ github.sha }} \
@@ -94,7 +99,7 @@ jobs:
 
     - name: GitHub upload pre-release asset
       run: |
-        source /usr/local/bin/github-api.sh
+        source ./github-api.sh
         if [[ ! "$pre_release_asset_id" == "" ]]; then
           gh-delete-asset ${{ secrets.GITHUB_TOKEN }} \
                           ${{ github.repository }} \
@@ -110,7 +115,7 @@ jobs:
     - name: GitHub update latest target commitish
       if: ${{ env.new_tag == '1' }}
       run: |
-        source /usr/local/bin/github-api.sh
+        source ./github-api.sh
         gh-update-commitish ${{ secrets.GITHUB_TOKEN }} \
                             ${{ github.repository }} \
                             ${{ github.sha }} \
@@ -119,7 +124,7 @@ jobs:
     - name: GitHub Upload latest asset
       if: ${{ env.new_tag == '1' }}
       run: |
-        source /usr/local/bin/github-api.sh
+        source ./github-api.sh
         if [[ ! "$latest_asset_id" == "" ]]; then
           gh-delete-asset ${{ secrets.GITHUB_TOKEN }} \
                           ${{ github.repository }} \
@@ -132,18 +137,14 @@ jobs:
                         $asset_name \
                         $full_asset_name
 
-    - run: |
-        git config --global user.name "${{ github.event.head_commit.committer.name }}"
-        git config --global user.email "${{ github.event.head_commit.committer.email }}"
+    - uses: analogdevicesinc/doctools/blank@action
 
     - name: Prepare gh-pages branch
       run: >
-        git reset --hard ;
-        git clean -fdx ;
         git ls-remote --exit-code --heads origin refs/heads/gh-pages &&
         (
-          git fetch origin gh-pages ;
-          git checkout -b gh-pages origin/gh-pages ;
+          git fetch origin gh-pages:gh-pages -f ;
+          git switch gh-pages ;
           DOC_BUILDS=$(find . -mindepth 2 -name objects.inv -exec sh -c 'dirname {}' ';') ;
           git rm -r . --quiet || true ;
           printf "Detected doc builds: $DOC_BUILDS" ;
