@@ -10,6 +10,8 @@ jobs:
           https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/adi_doctools/__init__.py
         curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -L -o github-api.sh \
           https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/ci/github-api.sh
+        curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -L -o cloudsmith-api.sh \
+          https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/ci/cloudsmith-api.sh
 
     - uses: actions/download-artifact@v4
       with:
@@ -136,6 +138,43 @@ jobs:
                         $latest_id \
                         $asset_name \
                         $full_asset_name
+
+    - uses: cloudsmith-io/cloudsmith-cli-action@v1.0.4
+      env:
+        CLOUDSMITH_SERVICE_SLUG: ${{ secrets.CLOUDSMITH_SERVICE_SLUG }}
+      if: ${{ env.CLOUDSMITH_SERVICE_SLUG != '' }}
+      with:
+        oidc-namespace: ${{ secrets.CLOUDSMITH_NAMESPACE }}
+        oidc-service-slug: ${{ secrets.CLOUDSMITH_SERVICE_SLUG }}
+        oidc-auth-only: 'true'
+
+    - name: Cloudsmith upload asset and create package
+      if: ${{ env.CLOUDSMITH_API_KEY != '' }}
+      run: |
+        source ./cloudsmith-api.sh
+
+        tags_="branch/${{ github.ref_name }}"
+        if [[ "${{ github.base_ref }}" ]]; then
+          tags_+=" base_branch/${{ github.base_ref }}"
+        fi
+        tags_+=" on/${{ github.event_name }}"
+
+        package_file=$(
+          cs-upload-package ${{ env.CLOUDSMITH_API_KEY }} \
+                            ${{ secrets.CLOUDSMITH_NAMESPACE }} \
+                            ${{ secrets.CLOUDSMITH_REPOSITORY }} \
+                            $asset_name \
+                            $full_asset_name \
+                            latest_package_file
+        )
+
+        [[ "$package_file" == "null" ]]; exit 1
+
+        cs-package-store-python ${{ env.CLOUDSMITH_API_KEY }} \
+                                ${{ secrets.CLOUDSMITH_NAMESPACE }} \
+                                ${{ secrets.CLOUDSMITH_REPOSITORY }} \
+                                $package_file \
+                                $tags_
 
     - uses: analogdevicesinc/doctools/blank@action
 
