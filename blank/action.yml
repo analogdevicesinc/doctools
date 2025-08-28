@@ -1,0 +1,58 @@
+name: Git Blank
+description: A git init for local runners
+
+inputs:
+  gh-token:
+    description: "GitHub Token"
+    default: ${{ github.token }}
+
+# behaviour:
+# just inits the github repo, if not yet
+
+runs:
+  using: composite
+  steps:
+    - name: Prepare git
+      shell: bash
+      run: |
+        url="https://x-access-token:${{ inputs.gh-token }}@github.com/${{ github.repository }}.git"
+
+        if [[ -f .git/shallow.lock ]] || [[ -f .git/index.lock ]]; then
+          rm -rf -- ..?* .[!.]* *
+        fi
+
+        if [[ ! -d .git ]]; then
+          git init --initial-branch=trunk .
+          git config core.pager cat
+          git remote add origin "$url"
+        else
+          git config core.pager cat
+          git remote set-url origin "$url"
+
+          git am --abort 2>/dev/null || true
+          git merge --abort 2>/dev/null || true
+          git rebase --abort 2>/dev/null || true
+          git revert --abort 2>/dev/null || true
+          git cherry-pick --abort 2>/dev/null || true
+          git bisect reset 2>/dev/null || true
+
+          git reset --hard --quiet
+          git clean -ffdx --quiet .
+
+          git switch -d || true
+          echo "clean-up branches"
+          branches=$((git branch || true) | (grep -v ^'*' | grep -v ^'\s\+cache/' | grep -v ^'\s\+mirror/' || true))
+          if [[ "$branches" ]]; then
+            git branch -D $branches || true
+          fi
+          git checkout --orphan trunk
+          git reset --hard
+        fi
+
+        if [[ -z "$(git config user.name)"  ]]; then
+          git config user.name "github-actions[bot]"
+        fi
+        if [[ -z "$(git config user.email)"  ]]; then
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+        fi
+
