@@ -1,7 +1,15 @@
 on: workflow_call
+
+permissions:
+  contents: write
+  id-token: write
+
 jobs:
   deploy:
     runs-on: [self-hosted, v1]
+    permissions:
+      id-token: write
+      contents: write
 
     steps:
     - name: Get assets
@@ -10,6 +18,8 @@ jobs:
           https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/adi_doctools/__init__.py
         curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -L -o github-api.sh \
           https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/ci/github-api.sh
+        curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -L -o cloudsmith-api.sh \
+          https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/ci/cloudsmith-api.sh
 
     - uses: actions/download-artifact@v4
       with:
@@ -136,6 +146,45 @@ jobs:
                         $latest_id \
                         $asset_name \
                         $full_asset_name
+
+    - uses: cloudsmith-io/cloudsmith-cli-action@v1.0.4
+      env:
+        CLOUDSMITH_SERVICE_SLUG: ${{ secrets.CLOUDSMITH_SERVICE_SLUG }}
+      if: ${{ env.CLOUDSMITH_SERVICE_SLUG != '' }}
+      with:
+        oidc-namespace: ${{ vars.CLOUDSMITH_NAMESPACE }}
+        oidc-service-slug: ${{ secrets.CLOUDSMITH_SERVICE_SLUG }}
+        oidc-auth-only: 'true'
+
+    - name: Cloudsmith upload asset and create package
+      if: ${{ env.CLOUDSMITH_API_KEY != '' }}
+      run: |
+        source ./cloudsmith-api.sh
+
+        # push: refs/heads/<branch>
+        # tag || release: refs/tags/<tag>
+        # pull_request: refs/pull/<id>/merge
+        tags_="${{ github.ref }}"
+        if [[ "${{ github.ref }}" == refs/pull/* ]]; then
+          tags_+=", refs/heads/${{ github.head_ref }}"
+          tags_+=", refs/base/${{ github.base_ref }}"
+        fi
+        tags_+=", on/${{ github.event_name }}"
+
+        package_file=$(
+          cs-upload-package ${{ env.CLOUDSMITH_API_KEY }} \
+                            ${{ vars.CLOUDSMITH_NAMESPACE }} \
+                            ${{ vars.CLOUDSMITH_REPOSITORY }} \
+                            $asset_name \
+                            $full_asset_name \
+                            latest_package_file
+        )
+
+        cs-package-store-python ${{ env.CLOUDSMITH_API_KEY }} \
+                                ${{ vars.CLOUDSMITH_NAMESPACE }} \
+                                ${{ vars.CLOUDSMITH_REPOSITORY }} \
+                                $package_file \
+                                $tags_
 
     - uses: analogdevicesinc/doctools/blank@action
 
