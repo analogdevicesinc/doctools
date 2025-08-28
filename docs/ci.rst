@@ -259,61 +259,6 @@ on the container, for example:
    $cd tests ; pytest
    $exit
 
-.. _act:
-
-Testing GitHub Action workflows
--------------------------------
-
-To have a full continuous integration mock-run `act <https://github.com/nektos/act/>`__
-can be used.
-``act`` is a CLI written in go that allows to run GitHub actions.
-
-The intent is to test the YAML files locally, for testing non-CI code prefer
-:ref:`interactive-run` during development and, after pushing to remote, the
-CI results.
-
-Assuming you have the tools necessary already installed (a general guide
-is provided :ref:`here <conf-podman>`) and already :ref:`built the image <image-podman>`.
-Install ``act`` binary into an executable path:
-
-.. shell::
-
-   $cd ~/.local
-   $curl --proto '=https' --tlsv1.2 -sSf \
-   $    https://raw.githubusercontent.com/nektos/act/master/install.sh | \
-   $    sudo bash
-   $act --version
-    act version 0.2.74
-
-Now, run your continuous integration:
-
-.. shell::
-
-   ~/doctools
-   $act --remote-name private
-    INFO[0000] Using docker host 'unix:///run/user/1000//podman/podman.sock',
-               and daemon socket 'unix:///run/user/1000//podman/podman.sock'
-    INFO[0000] Start server on http://10.44.3.54:34567
-    [build/build-doc.yml/build] ⭐ Run Set up job
-    [...]
-
-Update ``private`` with your preferred origin name (does nothing beyond suppressing warnings).
-
-.. caution::
-
-   Even with ``pull_request`` event type, no rebasing is done on the mock run.
-   Rebase on your side before running ``act``.
-
-Additional arguments are added from the :git-doctools:`.actrc` on invoke.
-
-To run a specific workflow, use ``-W``, e.g.:
-
-.. shell::
-
-   ~/doctools
-   $act --remote-name public \
-   $    -W .github/workflows/build-doc.yml
-
 .. _podman-run:
 
 Self-hosted runner
