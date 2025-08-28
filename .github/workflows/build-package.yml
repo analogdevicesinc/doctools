@@ -29,6 +29,13 @@ jobs:
       run: |
         ./ci/fetch-fonts.sh
 
+    - name: Append git sha to version
+      run: >
+        git restore adi_doctools/__init__.py ;
+        sha=$(git rev-parse --short @) ;
+        sed -i "s/^__version__ = \"\([^\"]*\)\"/__version__ = \"\1+git.$sha\"/" \
+          adi_doctools/__init__.py
+
     - name: Build a binary wheel and a source tarball
       run: |
         python3.13 -m venv ~/venv/3.13/build-package

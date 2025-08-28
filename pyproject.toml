@@ -51,9 +51,6 @@ where = [""]
 include = ["adi_doctools*"]
 namespaces = true
 
-[tool.setuptools.dynamic]
-version = {attr = "adi_doctools.__version__"}
-
 [project.entry-points."sphinx.html_themes"]
 cosmic = 'adi_doctools'
 harmonic = 'adi_doctools'
