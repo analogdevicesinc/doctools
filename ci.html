@@ -97,7 +97,6 @@
 </li>
 <li><a class="reference internal" href="#build-the-container-image">Build the container image</a></li>
 <li><a class="reference internal" href="#interactive-run">Interactive run</a></li>
-<li><a class="reference internal" href="#testing-github-action-workflows">Testing GitHub Action workflows</a></li>
 <li><a class="reference internal" href="#self-hosted-runner">Self-hosted runner</a></li>
 <li><a class="reference internal" href="#self-hosted-cluster">Self-hosted cluster</a></li>
 </ul>
@@ -414,70 +413,6 @@ on the container, for example:</p>
 </pre></div>
 </div>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">exit</span>
-</pre></div>
-</div>
-<div class="clear-left"></div></div></div></section>
-<section id="testing-github-action-workflows">
-<span id="act"></span><h2>Testing GitHub Action workflows<a class="headerlink" href="#testing-github-action-workflows" title="Link to this heading"></a></h2>
-<p>To have a full continuous integration mock-run <a class="icon link reference external" href="https://github.com/nektos/act/" target="_blank">act</a>
-can be used.
-<code class="docutils literal notranslate"><span class="pre">act</span></code> is a CLI written in go that allows to run GitHub actions.</p>
-<p>The intent is to test the YAML files locally, for testing non-CI code prefer
-<a class="reference internal" href="#interactive-run"><span class="std std-ref">Interactive run</span></a> during development and, after pushing to remote, the
-CI results.</p>
-<p>Assuming you have the tools necessary already installed (a general guide
-is provided <a class="reference internal" href="#conf-podman"><span class="std std-ref">here</span></a>) and already <a class="reference internal" href="#image-podman"><span class="std std-ref">built the image</span></a>.
-Install <code class="docutils literal notranslate"><span class="pre">act</span></code> binary into an executable path:</p>
-<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
-</pre></div>
-</div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>~/.local
-</pre></div>
-</div>
-<div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~/.local$
-</pre></div>
-</div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>--proto<span class="w"> </span><span class="s1">&#39;=https&#39;</span><span class="w"> </span>--tlsv1.2<span class="w"> </span>-sSf<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>https://raw.githubusercontent.com/nektos/act/master/install.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>sudo<span class="w"> </span>bash
-</pre></div>
-</div>
-<div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~/.local$
-</pre></div>
-</div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>act<span class="w"> </span>--version
-</pre></div>
-</div>
-<div class="clear-left"></div></div><div><div class="no-select highlight-text notranslate"><div class="highlight"><pre><span></span>act version 0.2.74
-</pre></div>
-</div>
-<div class="clear-left"></div></div></div><p>Now, run your continuous integration:</p>
-<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~/doctools$
-</pre></div>
-</div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>act<span class="w"> </span>--remote-name<span class="w"> </span>private
-</pre></div>
-</div>
-<div class="clear-left"></div></div><div><div class="no-select highlight-text notranslate"><div class="highlight"><pre><span></span>INFO[0000] Using docker host &#39;unix:///run/user/1000//podman/podman.sock&#39;,
-           and daemon socket &#39;unix:///run/user/1000//podman/podman.sock&#39;
-INFO[0000] Start server on http://10.44.3.54:34567
-[build/build-doc.yml/build] ⭐ Run Set up job
-[...]
-</pre></div>
-</div>
-<div class="clear-left"></div></div></div><p>Update <code class="docutils literal notranslate"><span class="pre">private</span></code> with your preferred origin name (does nothing beyond suppressing warnings).</p>
-<div class="admonition caution">
-<p class="admonition-title">Caution</p>
-<p>Even with <code class="docutils literal notranslate"><span class="pre">pull_request</span></code> event type, no rebasing is done on the mock run.
-Rebase on your side before running <code class="docutils literal notranslate"><span class="pre">act</span></code>.</p>
-</div>
-<p>Additional arguments are added from the <a class="icon git reference external" href="https://github.com/analogdevicesinc/doctools/tree/main/.actrc" target="_blank">.actrc</a> on invoke.</p>
-<p>To run a specific workflow, use <code class="docutils literal notranslate"><span class="pre">-W</span></code>, e.g.:</p>
-<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~/doctools$
-</pre></div>
-</div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>act<span class="w"> </span>--remote-name<span class="w"> </span>public<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>-W<span class="w"> </span>.github/workflows/build-doc.yml
 </pre></div>
 </div>
 <div class="clear-left"></div></div></div></section>
