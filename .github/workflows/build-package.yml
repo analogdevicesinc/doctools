@@ -1,10 +1,38 @@
-on: workflow_call
+on:
+  workflow_call:
+    outputs:
+      new_tag:
+        value: ${{ jobs.build.outputs.new_tag}}
+      tag:
+        value: ${{ jobs.build.outputs.tag}}
+
 jobs:
   build:
     runs-on: [self-hosted, v1]
 
+    outputs:
+      new_tag: ${{ steps.get_new_tag.outputs.new_tag}}
+      tag: ${{ steps.get_tag.outputs.tag}}
+
     steps:
     - uses: analogdevicesinc/doctools/checkout@action
+
+    - name: Get tag
+      id: get_tag
+      run: |
+        tag=v$(sed -n 's/^__version__ = "\(.*\)"/\1/p' adi_doctools/__init__.py)
+        echo "tag=$tag" >> "$GITHUB_OUTPUT"
+        echo "tag=$tag" >> "$GITHUB_ENV"
+
+    - name: Get if new tag
+      id: get_new_tag
+      if: github.ref == 'refs/heads/main'
+      run: |
+        git fetch --tags --prune --prune-tags --force
+        if ! [ $(git tag -l "${{ env.tag }}") ] ; then
+          echo "new_tag=true" >> "$GITHUB_OUTPUT"
+          echo "new_tag=true" >> "$GITHUB_ENV"
+        fi
 
     - name: Install bundler dependencies
       run: >-
@@ -29,10 +57,10 @@ jobs:
       run: |
         ./ci/fetch-fonts.sh
 
-    - name: Append git sha to version
+    - name: Create dirty tag with git sha
+      if: ${{ env.new_tag != 'true' }}
       run: >
-        git restore adi_doctools/__init__.py ;
-        sha=$(git rev-parse --short @) ;
+        sha=$(echo $GITHUB_SHA | cut -c 1-12) ;
         sed -i "s/^__version__ = \"\([^\"]*\)\"/__version__ = \"\1+git.$sha\"/" \
           adi_doctools/__init__.py
 

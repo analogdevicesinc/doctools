@@ -1,4 +1,12 @@
-on: workflow_call
+on:
+  workflow_call:
+    inputs:
+      new_tag:
+        default: false
+        type: string
+      tag:
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -14,8 +22,6 @@ jobs:
     steps:
     - name: Get assets
       run: |
-        curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -L -o __init__.py \
-          https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/adi_doctools/__init__.py
         curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -L -o github-api.sh \
           https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/ci/github-api.sh
         curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -L -o cloudsmith-api.sh \
@@ -26,15 +32,8 @@ jobs:
         name: dist
         path: dist
 
-    - name: Get head tag, if it is new and others vars
+    - name: Get others vars
       run: |
-        tag=v$(sed -n 's/^__version__ = "\(.*\)"/\1/p' __init__.py)
-        echo "tag=$tag" >> "$GITHUB_ENV"
-        git fetch --tags --prune --prune-tags --force
-        if ! [ $(git tag -l "$tag") ] ; then
-          echo "new_tag=1" >> "$GITHUB_ENV"
-        fi
-
         asset_name=adi-doctools.tar.gz
         echo "asset_name=$asset_name" >> "$GITHUB_ENV"
 
@@ -59,7 +58,7 @@ jobs:
         )
 
     - name: Get latest vars
-      if: ${{ env.new_tag == '1' }}
+      if: ${{ inputs.new_tag == 'true' }}
       run: |
         source ./github-api.sh
         release_id=$(
@@ -76,20 +75,19 @@ jobs:
                           latest_asset_id
         )
 
-    - name: Create new tag
-      if: ${{ env.new_tag == '1' }}
-      run: |
-         git tag $tag
-         git push origin $tag
-
     - name: GitHub create tag release and upload asset
-      if: ${{ env.new_tag == '1' }}
+      if: ${{ inputs.new_tag == 'true' }}
       run: |
         source ./github-api.sh
+        gh-create-tag ${{ secrets.GITHUB_TOKEN }} \
+                      ${{ github.repository }} \
+                      ${{ inputs.tag }} \
+                      ${{ github.sha }}
+
         release_id=$(
           gh-create-release ${{ secrets.GITHUB_TOKEN }} \
                             ${{ github.repository }} \
-                            $tag \
+                            ${{ inputs.tag }} \
                             new_tag_release_id
         )
 
@@ -123,7 +121,7 @@ jobs:
                         $full_asset_name
 
     - name: GitHub update latest target commitish
-      if: ${{ env.new_tag == '1' }}
+      if: ${{ inputs.new_tag == 'true' }}
       run: |
         source ./github-api.sh
         gh-update-commitish ${{ secrets.GITHUB_TOKEN }} \
@@ -132,7 +130,7 @@ jobs:
                             $latest_id
 
     - name: GitHub Upload latest asset
-      if: ${{ env.new_tag == '1' }}
+      if: ${{ inputs.new_tag == 'true' }}
       run: |
         source ./github-api.sh
         if [[ ! "$latest_asset_id" == "" ]]; then
@@ -200,8 +198,8 @@ jobs:
           if ! [ -z "$DOC_BUILDS" ]; then
             git checkout @ -- $DOC_BUILDS ;
           fi ;
-          if [[ "$new_tag" == "1" ]]; then
-            git rm -r $tag --quiet || true ;
+          if [[ "${{ inputs.new_tag }}" == "1" ]]; then
+            git rm -r ${{ inputs.tag }} --quiet || true ;
           fi ;
         ) || (
           git checkout --orphan gh-pages ;
@@ -214,10 +212,10 @@ jobs:
         name: html
 
     - uses: actions/download-artifact@v4
-      if: ${{ env.new_tag == '1' }}
+      if: ${{ inputs.new_tag == 'true' }}
       with:
         name: html-tagged
-        path: ${{ env.tag }}
+        path: ${{ inputs.tag }}
 
     - name: Generate aux files
       run: >

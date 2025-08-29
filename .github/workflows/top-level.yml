@@ -23,8 +23,11 @@ jobs:
   deploy:
     if: github.ref == 'refs/heads/main'
     uses: ./.github/workflows/deploy.yml
-    needs: [build-doc, tests, custom-doc]
+    needs: [build-package, build-doc, tests, custom-doc]
     secrets: inherit
     permissions:
       contents: write
       id-token: write
+    with:
+      new_tag: ${{ needs.build-package.outputs.new_tag }}
+      tag: ${{ needs.build-package.outputs.tag }}
