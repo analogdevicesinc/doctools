@@ -27,6 +27,10 @@ jobs:
         curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -L -o cloudsmith-api.sh \
           https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/ci/cloudsmith-api.sh
 
+    - name: Ensure clean dist
+      run: |
+        rm -rf dist
+
     - uses: actions/download-artifact@v4
       with:
         name: dist
@@ -37,7 +41,7 @@ jobs:
         asset_name=adi-doctools.tar.gz
         echo "asset_name=$asset_name" >> "$GITHUB_ENV"
 
-        full_asset_name=$(ls dist/adi_doctools-*.tar.gz)
+        full_asset_name=$(find dist/ -maxdepth 1 -name "adi_doctools-*.tar.gz" -print -quit)
         echo "full_asset_name=$full_asset_name" >> "$GITHUB_ENV"
 
     - name: Get pre-release vars
