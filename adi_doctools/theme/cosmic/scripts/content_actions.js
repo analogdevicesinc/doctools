@@ -109,7 +109,7 @@ export class ContentActions {
       new DOM('div', {'className': 'group'}).append([
         input_collection,
         collection,
-        new DOM('span').append(ul)
+        new DOM('span', {'className': 'span-ul'}).append(ul)
       ]),
     ])
   }

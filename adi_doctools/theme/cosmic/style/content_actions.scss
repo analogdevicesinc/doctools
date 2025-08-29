@@ -62,7 +62,7 @@ div.highlight {
 }
 
 /* Collections */
-.collections {
+.tocwrapper .collections {
     .sub-header {
         user-select: none;
         cursor: pointer;
@@ -88,22 +88,23 @@ div.highlight {
         margin: 0;
     }
 
-    span {
+    .span-ul {
         display: grid;
         grid-template-rows: 0fr;
         transition: opacity .25s ease, grid-template-rows .25s ease;
         opacity: 0;
     }
 }
-.collection-collapse {
+
+.tocwrapper .collection-collapse {
     display: none;
 }
 
-.collection-collapse:checked ~ span {
+.tocwrapper .collection-collapse:checked ~ .span-ul {
     grid-template-rows: 1fr;
     opacity: 1;
 }
 
-.collection-collapse:checked ~ .sub-header:before {
+.tocwrapper .collection-collapse:checked ~ .sub-header:before {
     content: "-";
 }
