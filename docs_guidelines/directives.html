@@ -96,6 +96,7 @@
 <li><a class="reference internal" href="#grid">Grid</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#include-template">Include template</a></li>
 <li><a class="reference internal" href="#clear-content">Clear content</a></li>
 <li><a class="reference internal" href="#description">Description</a></li>
 <li><a class="reference internal" href="#collection">Collection</a><ul>
@@ -207,6 +208,79 @@ This option is required, since it is not possible to infer the number of
 columns in a sane manner.</p>
 </section>
 </section>
+<section id="include-template">
+<h2>Include template<a class="headerlink" href="#include-template" title="Link to this heading"></a></h2>
+<p>The include template directive extends the
+<a class="icon link reference external" href="https://docutils.sourceforge.io/docs/ref/rst/directives.html#include" target="_blank">include directive</a>
+to render an output by processing two files, one template file and one data file.
+The template file is processed with <a class="icon link reference external" href="https://jinja.palletsprojects.com/en/stable" target="_blank">jinja2</a>,
+and the data format is YAML, for example:</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">include-template</span><span class="p">::</span> sample/fruit-template.rst.jinja
+
+   fruit_type: tropical
+
+   fruit:
+     rambutan: red
+     papaya: yellow
+     guava: green
+     açaí: purple
+</pre></div>
+</div>
+<p>Template source: <a class="icon git reference external" href="https://github.com/analogdevicesinc/doctools/tree/main/docs/docs_guidelines/sample/fruit-template.rst.jinja" target="_blank">docs/docs_guidelines/sample/fruit-template.rst.jinja</a></p>
+<p>Renders as:</p>
+<hr class="docutils" />
+<p>These are 4 tropical fruits and their color:</p>
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Fruit</p></th>
+<th class="head"><p>Color</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>rambutan</p></td>
+<td><p>red</p></td>
+</tr>
+<tr class="row-odd"><td><p>papaya</p></td>
+<td><p>yellow</p></td>
+</tr>
+<tr class="row-even"><td><p>guava</p></td>
+<td><p>green</p></td>
+</tr>
+<tr class="row-odd"><td><p>açaí</p></td>
+<td><p>purple</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr class="docutils" />
+<p>Instead of passing the YAML data as the content, you can store in another file instead:</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">include-template</span><span class="p">::</span> sample/fruit-template.rst.jinja
+   <span class="nc">:file:</span> sample/fruit-data.yaml
+</pre></div>
+</div>
+<p>Renders as:</p>
+<hr class="docutils" />
+<p>These are 2 temperate fruits and their color:</p>
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Fruit</p></th>
+<th class="head"><p>Color</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>kiwi</p></td>
+<td><p>green</p></td>
+</tr>
+<tr class="row-odd"><td><p>apple</p></td>
+<td><p>red</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<hr class="docutils" />
 <section id="clear-content">
 <h2>Clear content<a class="headerlink" href="#clear-content" title="Link to this heading"></a></h2>
 <p>A simple directive to
