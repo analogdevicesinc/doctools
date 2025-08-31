@@ -302,9 +302,30 @@ class directive_include_template(Include):
     as yaml and the include as a jinja2 tamplate.
     """
     has_content = True
+    option_spec = Include.option_spec.copy()
+    option_spec.update({
+        "file": str,
+    })
 
     def run(self) -> Sequence[Node]:
-        content_text = "\n".join(self.content).strip()
+        content_text = "\n".join(self.content)
+        if "file" in self.options:
+            if len(self.content):
+                self.state_machine.reporter.warning(
+                    f"Option :file: and content: '''\n{content_text}\n''' provided, "
+                    "but only sourced file will be used.",
+                    line=self.lineno
+                )
+            _, filename = self.env.relfn2path(self.options["file"])
+            try:
+                with open(filename, "r") as f:
+                    content_text = f.readlines()
+            except FileNotFoundError as e:
+                self.state_machine.reporter.warning(
+                    e,
+                    line=self.lineno
+                )
+            content_text = "".join(content_text)
         try:
             parsed_yaml = yaml.safe_load(content_text) if content_text else {}
         except Exception as e:
