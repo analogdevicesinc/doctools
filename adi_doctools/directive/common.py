@@ -1,3 +1,4 @@
+from packaging.version import Version
 from typing import List, Optional
 
 from docutils import nodes
@@ -7,6 +8,8 @@ from sphinx.util import logging
 from sphinx.util.docutils import SphinxDirective
 from sphinx.directives.code import container_wrapper
 from sphinx.directives.other import Include
+
+from sphinx import __version__ as __sphinx_version__
 
 import re
 import jinja2
@@ -335,21 +338,45 @@ class directive_include_template(Include):
             )
             return []
 
-        def _render_include(app, path, docname, arg):
-            templ = jinja2.Template(arg[0])
+        def _render_include(path, text):
+            templ = jinja2.Template(text)
             try:
-                arg[0] = templ.render(**parsed_yaml)
+                return templ.render(**parsed_yaml)
             except Exception as e:
                 self.state_machine.reporter.warning(
                     f"jinja2: {path}: {e}",
                     line=self.lineno
                 )
-                arg[0] = ""
+            return ""
+
+        def _include_read(app, path, docname, arg):
+            arg[0] = _render_include(path, arg[0])
             self.env.events.disconnect(listener_id)
 
-        listener_id = self.env.events.connect("include-read", _render_include, priority=999)
+        if Version(__sphinx_version__) >= Version('7.2.5'):
+            listener_id = self.env.events.connect(
+                    "include-read",
+                    _include_read,
+                    priority=500
+                )
+            return super().run()
 
-        return super().run()
+        # - Sphinx < 7.2.5
+        def _insert_input(include_lines, source):
+            from docutils.statemachine import StateMachine
+            from pathlib import Path
+
+            text = "\n".join(include_lines[:-2])
+            text = _render_include(Path(source), text)
+            include_lines = text.splitlines() + include_lines[-2:]
+            return StateMachine.insert_input(self.state_machine, include_lines, source)
+
+        old_insert_input = self.state_machine.insert_input
+        self.state_machine.insert_input = _insert_input
+        try:
+            return super().run()
+        finally:
+            self.state_machine.insert_input = old_insert_input
 
 
 def directive_collection_build_finished(app, exc):
