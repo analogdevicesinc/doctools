@@ -48,6 +48,52 @@ unit it is inferred percentile.
 This option is required, since it is not possible to infer the number of
 columns in a sane manner.
 
+Include template
+~~~~~~~~~~~~~~~~
+
+The include template directive extends the
+`include directive <https://docutils.sourceforge.io/docs/ref/rst/directives.html#include>`_
+to render an output by processing two files, one template file and one data file.
+The template file is processed with `jinja2 <https://jinja.palletsprojects.com/en/stable>`_,
+and the data format is YAML, for example:
+
+.. code:: rst
+
+   .. include-template:: sample/fruit-template.rst.jinja
+
+      fruit_type: tropical
+
+      fruit:
+        rambutan: red
+        papaya: yellow
+        guava: green
+        açaí: purple
+
+Template source: :git-doctools:`docs/docs_guidelines/sample/fruit-template.rst.jinja`
+
+Renders as:
+
+.. include-template:: sample/fruit-template.rst.jinja
+
+   fruit_type: tropical
+
+   fruit:
+     rambutan: red
+     papaya: yellow
+     guava: green
+     açaí: purple
+
+Instead of passing the YAML data as the content, you can store in another file instead:
+
+.. code:: rst
+
+   .. include-template:: sample/fruit-template.rst.jinja
+      :file: sample/fruit-data.yaml
+
+Renders as:
+
+.. include-template:: sample/fruit-template.rst.jinja
+   :file: sample/fruit-data.yaml
 
 Clear content
 ~~~~~~~~~~~~~

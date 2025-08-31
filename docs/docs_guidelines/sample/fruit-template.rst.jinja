@@ -1,0 +1,15 @@
+----
+
+These are {{ fruit | length }} {{ fruit_type }} fruits and their color:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Fruit
+     - Color
+{% for key, val in fruit.items() %}
+   * - {{ key }}
+     - {{ val }}
+{% endfor %}
+
+----
