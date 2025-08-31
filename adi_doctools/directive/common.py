@@ -6,12 +6,18 @@ from docutils.parsers.rst import Directive, directives
 from sphinx.util import logging
 from sphinx.util.docutils import SphinxDirective
 from sphinx.directives.code import container_wrapper
+from sphinx.directives.other import Include
 
 import re
+import jinja2
+import yaml
 from os import path, pardir, makedirs
 from uuid import uuid4
 from hashlib import sha1
 from typing import Tuple
+
+from typing import Sequence
+from docutils.nodes import Node
 
 from .node import node_div, node_input, node_label, node_icon, node_source, node_a, node_collection
 from .node import node_iframe, node_video
@@ -288,6 +294,41 @@ class directive_collapsible(directive_base):
         self.state.nested_parse(self.content, self.content_offset, content)
 
         return [node]
+
+
+class directive_include_template(Include):
+    """
+    Like the standard "Include" directive, but parses the content
+    as yaml and the include as a jinja2 tamplate.
+    """
+    has_content = True
+
+    def run(self) -> Sequence[Node]:
+        content_text = "\n".join(self.content).strip()
+        try:
+            parsed_yaml = yaml.safe_load(content_text) if content_text else {}
+        except Exception as e:
+            self.state_machine.reporter.warning(
+                e,
+                line=self.lineno
+            )
+            return []
+
+        def _render_include(app, path, docname, arg):
+            templ = jinja2.Template(arg[0])
+            try:
+                arg[0] = templ.render(**parsed_yaml)
+            except Exception as e:
+                self.state_machine.reporter.warning(
+                    f"jinja2: {path}: {e}",
+                    line=self.lineno
+                )
+                arg[0] = ""
+            self.env.events.disconnect(listener_id)
+
+        listener_id = self.env.events.connect("include-read", _render_include, priority=999)
+
+        return super().run()
 
 
 def directive_collection_build_finished(app, exc):
@@ -959,6 +1000,7 @@ class directive_svg(SphinxDirective):
 def common_setup(app):
     app.add_directive('description', directive_description)
     app.add_directive('collapsible', directive_collapsible)
+    app.add_directive('include-template', directive_include_template)
     app.add_directive('collection', directive_collection)
     app.add_directive('video', directive_video)
     app.add_directive('flex', directive_flex)
