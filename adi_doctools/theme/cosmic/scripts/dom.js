@@ -1,7 +1,7 @@
 "use strict";
 export {DOM, Animate}
 
-/** Make DOM element*/
+/** Make DOM element */
 class DOM {
   constructor (dom, tags){
     this.$
@@ -16,6 +16,17 @@ class DOM {
       else
         this.$.dataset[tag] = tags[tag]
     }
+  }
+  /* Make DOM element, without wrapper class */
+  static new (dom, tags){
+    let elem = document.createElement(dom);
+    if (typeof tags == 'object') for (const tag in tags) {
+      if (tag in elem)
+        elem[tag] = tags[tag]
+      else
+        elem.dataset[tag] = tags[tag]
+    }
+    return elem
   }
   /**
    * Clone node
@@ -70,12 +81,6 @@ class DOM {
   /** Set DOM src */
   set src (str){
     this.$.src = str
-  }
-  /**
-   * Get getBoundingClientRect
-   */
-  get rect () {
-    return this.$.getBoundingClientRect()
   }
   /**
    * Focus on DOM.
@@ -244,13 +249,12 @@ class DOM {
   /**
    * Remove childs from :js:func:`DOM` object.
    */
-  removeChilds (){
-    let child = this.$.lastElementChild
+  static removeChilds (a){
+    let child = a.lastElementChild
     while (child) {
-      this.$.removeChild(child)
-      child = this.$.lastElementChild
+      a.removeChild(child)
+      child = a.lastElementChild
     }
-    return this
   }
   /**
    * Get DOM Node element.
@@ -288,129 +292,6 @@ class DOM {
   */
   static UID (){
     return (+new Date).toString(36) + Math.random().toString(36).substr(2)
-  }
-  /**
-   * Prototype a DOM composed by details, sumamary and a h2 title with optional
-   * onclick event.
-   * @param {Object} str - id, title and onclick function of the DOM element.
-   * @param {string} str.id - Id of the DOM element.
-   * @param {string} str.title - Title of the DOM element.
-   * @param {Object} str.onclick - Onclick function of the DOM element.
-   */
-  static prototypeDetails (str){
-    let summary = new DOM('summary', {innerText:str.innerText})
-    let details = new DOM('details', {id:str.id, name:str.id})
-      .append(summary)
-
-    if (str.onevent != undefined) {
-      str.onevent.forEach(event => {
-        event.args.push(details.$)
-        summary.onevent(
-          event.event,
-          event.self,
-          event.fun,
-          event.args
-        )
-      })
-    }
-    return details
-  }
-  /**
-   * Prototype a DOM composed by input(file type) and label.
-   * @param {Object} str - id, className and innerText of the DOM element.
-   * @param {string} str.id - Id of the DOM element.
-   * @param {string} str.className - ClassName of the DOM element.
-   * @param {string} str.innerText - Inner text of the DOM element.
-   */
-  static prototypeInputFile (str){
-    return new DOM('label', {
-      htmlFor:`${str.id}_input`,
-      id:str.id,
-      className:str.className,
-      innerText:str.innerText
-      }).append(
-        new DOM('input', {id:`${str.id}_input`, type:'file'})
-      )
-  }
-  /**
-   * Prototype a DOM composed by input(checkbox) and label styled as as switch.
-   * @param {Object} str - id, className and innerText of the DOM element.
-   * @param {string} str.id - Id of the DOM element.
-   * @param {string} str.className - ClassName of the DOM element.
-   * @param {string} str.innerText - Inner text of the DOM element.
-   * @returns Array with input and container.
-   */
-  static prototypeCheckSwitch (str){
-    let input = new DOM('input', {
-      id:str.id,
-      name:str.id,
-      className:'checkswitch',
-      type:'checkbox',
-      value:false
-    })
-
-    let container = new DOM('div', {className:str.className})
-      .append([
-        new DOM('div')
-          .append([
-            new DOM('label', {
-                className:'checkswitch',
-                htmlFor:str.id,
-                innerText:str.innerText
-              }).append([
-                input,
-                new DOM('span')
-              ])
-          ])
-      ])
-
-    return [input, container]
-  }
-  /**
-   * Prototype a DOM that allows data to be downloded on its creation.
-   * @param {string} filename - name of the file.
-   * @param {string} file - file content.
-   */
-  static prototypeDownload (filename, file){
-    let data,
-        reg = /.*\.(py|xml|csv|json|svg|png)$/
-    if (!reg.test(filename))
-      return
-
-    let format = filename.match(reg)[1]
-    filename = filename
-      .replaceAll('/','-')
-      .replaceAll(' ','_')
-      .toLowerCase()
-
-    switch (format) {
-      case 'xml':
-        data = "data:x-application/xml;charset=utf-8," + encodeURIComponent(file);
-        break
-      case 'py':
-        data = "data:text/python;charset=utf-8," + encodeURIComponent(file);
-        break
-      case 'json':
-        data = "data:text/json;charset=utf-8," + encodeURIComponent(file);
-        break
-      case 'csv':
-        data = "data:text/csv;charset=utf-8," + encodeURIComponent(file);
-        break
-      case 'svg':
-        data = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(file);
-        break
-      case 'png':
-        data = file; // Expect already in blob
-        break
-    }
-    let element = document.createElement('a')
-    element.setAttribute('href', data)
-    element.setAttribute('download', filename)
-    element.style.display = 'none'
-
-    document.body.appendChild(element)
-    element.click ()
-    document.body.removeChild(element)
   }
   /**
    * Set a option of a select list by its innerText.

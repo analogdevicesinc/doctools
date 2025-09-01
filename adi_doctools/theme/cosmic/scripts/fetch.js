@@ -6,7 +6,7 @@ import {DOM} from './dom.js'
 export class Fetch {
   constructor (app) {
     let $ = this.$ = {}
-    $.head = new DOM(DOM.get('head'))
+    $.head = document.querySelector('head')
 
     this.parent = app
     this.callback = []
@@ -53,11 +53,11 @@ export class Fetch {
       .then(obj => this.init_metadata(obj, base_url))
       .catch(err => {})
 
-    let script = new DOM('script', {
+    let script = DOM.new('script', {
       'src': new URL('_static/extra.umd.js', base_url+'/')
     });
     this.$.head.append(script)
-    let style = new DOM('link', {
+    let style = DOM.new('link', {
       'rel': 'stylesheet',
       'type': 'text/css',
       'href': new URL('_static/extra.min.css', base_url+'/')
@@ -101,7 +101,7 @@ export class Fetch {
       obj['javascript'].forEach((elem) => {
         if (elem === 'extra.umd.js')
           return
-        let script = new DOM('script', {
+        let script = DOM.new('script', {
           'src': new URL(elem, url+'/')
         });
         this.$.head.append(script)
@@ -111,7 +111,7 @@ export class Fetch {
       obj['stylesheet'].forEach((elem) => {
         if (elem === 'extra.min.css')
           return
-        let style = new DOM('link', {
+        let style = DOM.new('link', {
           'rel': 'stylesheet',
           'type': 'text/css',
           'href': new URL(elem, url+'/')

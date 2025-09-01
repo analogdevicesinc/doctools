@@ -3,15 +3,14 @@ import {DOM} from './dom.js'
 import {Toolbox} from './toolbox.js'
 
 /**
- * Updates dynamic  links, banners with content from metadata.json.
+ * Updates dynamic links, banners with content from metadata.json.
  */
 export class Links {
   constructor (app) {
     this.$ = {}
 
-    this.$.show_repotoc = new DOM(
-      DOM.get('#input-show-repotoc')
-    ).onchange(this, this.renew_index)
+    this.$.show_repotoc = document.querySelector('#input-show-repotoc')
+    this.$.show_repotoc.onchange = (ev) => { this.renew_index(ev) }
     this.set_doms()
     this.parent = app
     if (typeof this.parent.fetch === 'object')
@@ -29,19 +28,19 @@ export class Links {
   set_doms () {
     let $ = this.$
 
-    $.repotocTreeOverlay = new DOM(DOM.get('.repotoc-tree.overlay root'))
-    $.repotocTreeSidebar = new DOM(DOM.get('.sphinxsidebar .repotoc-tree root'))
-    $.banner = new DOM('div', {
+    $.repotocTreeOverlay = document.querySelector('.repotoc-tree.overlay root')
+    $.repotocTreeSidebar = document.querySelector('.sphinxsidebar .repotoc-tree root')
+    $.banner = DOM.new('div', {
       className: 'banner'
     })
-    DOM.get('body').prepend($.banner.$)
+    document.querySelector('body').prepend($.banner)
   }
   renew_index (ev) {
     this.$.linksSidebar.forEach((elem) => {
-      elem.$.tabIndex = ev.target.checked ? 0 : -1
+      elem.tabIndex = ev.target.checked ? 0 : -1
     })
     this.$.linksOverlay.forEach((elem) => {
-      elem.$.tabIndex = ev.target.checked ? 0 : -1
+      elem.tabIndex = ev.target.checked ? 0 : -1
     })
   }
   update_repotoc (obj) {
@@ -64,7 +63,7 @@ export class Links {
 
       let base = key == this.parent.state.repository ?
                  self_link : `${prefix}${key}/`
-      this.$.linksSidebar.push(new DOM('a', {
+      this.$.linksSidebar.push(DOM.new('a', {
         'href': `${base}${home}`,
         'className': this.parent.state.repository === key ? 'current' : '',
         'innerText': value['name']
@@ -75,26 +74,26 @@ export class Links {
       this.$.linksOverlay.push(elem.cloneNode(true))
     })
 
-    if ($.repotocTreeOverlay.$)
-      $.repotocTreeOverlay.removeChilds(),
-      $.repotocTreeOverlay.append(this.$.linksOverlay)
-    if ($.repotocTreeSidebar.$)
-      $.repotocTreeSidebar.removeChilds(),
-      $.repotocTreeSidebar.append(this.$.linksSidebar)
+    if ($.repotocTreeOverlay)
+      DOM.removeChilds($.repotocTreeOverlay),
+      this.$.linksOverlay.forEach((item) => {$.repotocTreeOverlay.append(item)})
+    if ($.repotocTreeSidebar)
+      DOM.removeChilds($.repotocTreeSidebar),
+      this.$.linksSidebar.forEach((item) => {$.repotocTreeSidebar.append(item)})
 
     let event = new Event('change');
-    this.$.show_repotoc.$.dispatchEvent(event)
+    this.$.show_repotoc.dispatchEvent(event)
   }
   update_banner (obj) {
     let $ = this.$
 
     if ('msg' in obj)
-      $.banner.append(new DOM('span', {
+      $.banner.append(DOM.new('span', {
         'innerText': obj['msg']
       }))
 
     if ('a_href' in obj && 'a_text' in obj)
-      $.banner.append(new DOM('a', {
+      $.banner.append(DOM.new('a', {
         'href': obj['a_href'],
         'innerText': obj['a_text'],
         'target': '_blank'

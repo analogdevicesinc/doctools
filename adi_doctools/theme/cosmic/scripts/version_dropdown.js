@@ -114,7 +114,7 @@ export class VersionDropdown {
 
     let i = Object.keys(obj).length > 10 ? 4 : 2
     let cols = " auto".repeat(i)
-    let container2 = new DOM('div', {
+    let container2 = DOM.new('div', {
       'className': 'version-dropdown-list',
       'style': `grid-template-columns:${cols}`
     })
@@ -127,37 +127,40 @@ export class VersionDropdown {
     }
 
     for (let key in obj) {
-      let entry = new DOM('a', {
-        'href': key.length > 0 ?
-                  this.prefix+'/'+key :
-                  this.prefix
+      let entry = DOM.new('button', {
+        'alt_href': key.length > 0 ?
+                    this.prefix+'/'+key :
+                    this.prefix
       })
-      let handle = (self, new_tab, e) => {
-        e.preventDefault()
+      entry.addEventListener('mousedown', (ev) => {
+        ev.preventDefault()
+      })
+      entry.addEventListener('mouseup', (ev) => {
+        if (ev.which !== 1 && ev.which !== 2)
+          return
+        const new_tab = ev.which === 2
+
         let start = app.state.path.length > 0 ?
                       this.prefix+'/'+app.state.path :
                       this.prefix
         if (location.href.startsWith(start)) {
           let pathname = location.href.substring(start.length + 1)
-
-          if (self.$.href.slice(-1) !== '/')
+          if (entry.dataset['alt_href'].slice(-1) !== '/')
             pathname = '/' + pathname
-          let url = new URL(self.$.href + pathname)
+          let url = new URL(entry.dataset['alt_href'] + pathname)
           url.hash = location.hash
-          Toolbox.try_redirect(url, self.$.href, new_tab)
-        } else {
+          Toolbox.try_redirect(url, entry.dataset['alt_href'], new_tab)
+        } else {_
           if (new_tab)
-            window.open(self.$.url, '_blank').focus()
+            window.open(entry.url, '_blank').focus()
           else
-            location.href = self.$.url
+            location.href = entry.url
         }
-      }
-      entry.onclick (this, handle, [entry, false])
-      entry.onauxclick (this, handle, [entry, true])
-      let entry_ = new DOM('div')
-      let label_ = new DOM('div')
+      })
+      let entry_ = DOM.new('div')
+      let label_ = DOM.new('div')
       entry_.innerText = obj[key][0]
-      let label = new DOM('span', {
+      let label = DOM.new('span', {
         'className': obj[key][1] === '' ? "" : "label"
       })
       label.innerText = obj[key][1]
@@ -166,43 +169,43 @@ export class VersionDropdown {
       entry.append(label_)
       container2.append(entry)
     }
-    let cancel_dropdown = new DOM('dev', {
+    let cancel_dropdown = DOM.new('dev', {
       'id': 'cancel-area-show-version-dropdown'
     })
-    body.append(cancel_dropdown.$)
-    body.append(container2.$)
+    body.append(cancel_dropdown)
+    body.append(container2)
 
-    let container = new DOM('div', {
+    let container = DOM.new('div', {
       'className': 'version-dropdown',
       'title': 'Change version'
     })
     container.innerText = version
-    let label_ = new DOM('span', {
+    let label_ = DOM.new('span', {
       'className': label === '' ? "" : "label"
     })
     label_.innerText = label
     container.append(label_)
 
-    toc_tree.insertAdjacentElement('afterbegin', container.$)
-    let container3 = new DOM(container.$.cloneNode(true))
+    toc_tree.insertAdjacentElement('afterbegin', container)
+    let container3 = container.cloneNode(true)
 
-    container.onclick(this, this.show, [container, true])
-    container3.onclick(this, this.show, [container3, true])
-    cancel_dropdown.onclick(this, this.show, [undefined, false])
-    onresize = (ev) => {this.show(undefined, false, ev)}
-    nav_bar.append(container3.$)
+    container.onclick = (ev) => { this.show(container, true) }
+    container3.onclick = (ev) => { this.show(container3, true) }
+    cancel_dropdown.onclick = (ev) => {this.show(undefined, false) }
+    onresize = (ev) => { this.show(undefined, false) }
+    nav_bar.append(container3)
 
     this.$.list = container2
     this.$.cancel= cancel_dropdown
   }
-  show (dom, show, ev) {
+  show (dom, show) {
     if (!show) {
       this.$.cancel.classList.remove('on')
       this.$.list.classList.remove('on')
       return
     }
 
-    let rect = dom.rect
+    let rect = dom.getBoundingClientRect()
     let wiw = window.innerWidth
     this.$.list.style.top = `${rect.top + 2.5*16}px`
     if ((wiw - rect.right) < rect.left)

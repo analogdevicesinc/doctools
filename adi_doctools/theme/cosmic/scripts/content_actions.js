@@ -15,9 +15,9 @@ export class ContentActions {
     this.collection
 
     if (typeof this.parent.fetch === 'object')
-      this.parent.fetch.then(this.init.bind(this))
+      this.parent.fetch.then(this.construct.bind(this))
     else
-      this.init()
+      this.construct()
 
     app.content_actions = this
   }
@@ -183,6 +183,9 @@ export class ContentActions {
       })
       .then(obj => {this.collection = obj ; this.load_collection()})
       .catch(err => {})
+  }
+  construct () {
+    this.init()
   }
   deinit () {
     this.deinit_collection()

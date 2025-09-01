@@ -14,9 +14,9 @@ export class PageActions {
     this.with_page_source = false
     this.parent = app
     if (typeof this.parent.fetch === 'object')
-      this.parent.fetch.then(this.preinit.bind(this))
+      this.parent.fetch.then(this.construct.bind(this))
     else
-      this.preinit()
+      this.construct()
 
     app.page_actions = this
   }
@@ -54,20 +54,27 @@ export class PageActions {
     return false
   }
   draw_page_source () {
-    this.$.container = new DOM('div', {
+    this.$.container = DOM.new('div', {
       'className': 'page-actions'
     })
-    this.$.edit_button = new DOM('button', {
+    this.$.edit_button = DOM.new('button', {
       'className': 'edit-source',
       'title': 'See and edit this page source'
     })
-    this.$.edit_button.onclick(this, (self, e) => {
-      Toolbox.try_include(this.edit_button_tgt_raw, self.alt_href, true)
-    }, [this.$.edit_button])
-    this.$.edit_button.onmiddleclick(this, (self, e) => {
-      Toolbox.try_include(this.edit_button_tgt_raw, self.alt_href, true)
-    }, [this.$.edit_button])
-    this.$.container.append(this.$.edit_button.$)
+
+    this.$.edit_button.addEventListener('mousedown', (ev) => {
+      ev.preventDefault()
+    })
+    this.$.edit_button.addEventListener('mouseup', (ev) => {
+      if (ev.which !== 1 && ev.which !== 2)
+        return
+      Toolbox.try_include(
+        this.edit_button_tgt_raw,
+        this.$.edit_button.alt_href,
+        true
+      )
+    })
+    this.$.container.append(this.$.edit_button)
   }
   preinit_page_source () {
     let m = this.parent.state.metadata
@@ -89,9 +96,9 @@ export class PageActions {
     let doc = DOM.get('.bodywrapper .body-header .breadcrumb')
     if (doc === null || doc.classList.contains('empty')) {
       doc =  DOM.get('.bodywrapper .body')
-      doc.insertAdjacentElement('afterbegin', this.$.container.$)
+      doc.insertAdjacentElement('afterbegin', this.$.container)
     } else {
-      doc.parentElement.insertAdjacentElement('beforeend', this.$.container.$)
+      doc.parentElement.insertAdjacentElement('beforeend', this.$.container)
     }
 
     let m = this.parent.state.metadata
@@ -139,7 +146,7 @@ export class PageActions {
 
     this.edit_button_tgt_raw = undefined
   }
-  preinit () {
+  construct () {
     this.preinit_page_source()
     this.init()
   }

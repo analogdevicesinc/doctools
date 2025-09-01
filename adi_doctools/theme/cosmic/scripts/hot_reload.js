@@ -10,14 +10,14 @@ export class HotReload {
     if (this.parent.state.offline === true)
       return
     let $ = this.$ = {}
-    $.toctree = new DOM(DOM.get('.sphinxsidebar .toc-tree'))
-    $.documentwrapper = new DOM(DOM.get('.documentwrapper'))
-    $.bodywrapper = new DOM(DOM.get('.documentwrapper .bodywrapper'))
-    $.content = new DOM(DOM.get('.documentwrapper .body'))
-    $.localtoc = new DOM(DOM.get('.localtoc nav'))
-    $.tocwrapper = new DOM(DOM.get('.localtoc .tocwrapper'))
-    $.related = new DOM(DOM.get('.documentwrapper .related'))
-    $.breadcrumb = DOM.get('.bodywrapper .body-header .breadcrumb')
+    $.toctree = document.querySelector('.sphinxsidebar .toc-tree')
+    $.documentwrapper = document.querySelector('.documentwrapper')
+    $.bodywrapper = document.querySelector('.documentwrapper .bodywrapper')
+    $.content = document.querySelector('.documentwrapper .body')
+    $.localtoc = document.querySelector('.localtoc nav')
+    $.tocwrapper = document.querySelector('.localtoc .tocwrapper')
+    $.related = document.querySelector('.documentwrapper .related')
+    $.breadcrumb = document.querySelector('.bodywrapper .body-header .breadcrumb')
     $.title = document.querySelector('head title')
 
     this.toctree = new Map()
@@ -41,7 +41,7 @@ export class HotReload {
 
     let node = dom.parentElement.parentElement
     let arr = []
-    while (node && node !== this.$.toctree.$) {
+    while (node && node !== this.$.toctree) {
       node = node.parentElement
       if (node.tagName == 'LI') {
         if (node.childNodes[1]) {
@@ -55,12 +55,12 @@ export class HotReload {
     else
       this.$.breadcrumb.classList.remove('empty')
     arr.reverse().forEach((elem) => {
-      ol.appendChild(new DOM('li').append(
-        new DOM('a', {
-          'href': elem.href,
-          'innerText': elem.innerText
-        })
-      ).$)
+      const li = DOM.new('li')
+      li.append(DOM.new('a', {
+        'href': elem.href,
+        'innerText': elem.innerText
+      }))
+      ol.appendChild(li)
     })
   }
   hot_links () {
@@ -76,9 +76,9 @@ export class HotReload {
         this.load(dom, elem.href, true)
       }
     }
-    DOM.getAll('a[href]', this.$.related).forEach(attach_load)
-    DOM.getAll('.reference.internal', this.$.content).forEach(attach_load)
-    DOM.getAll('a[href]', this.$.breadcrumb).forEach(attach_load)
+    document.querySelectorAll('a[href]', this.$.related).forEach(attach_load)
+    document.querySelectorAll('.reference.internal', this.$.content).forEach(attach_load)
+    document.querySelectorAll('a[href]', this.$.breadcrumb).forEach(attach_load)
   }
   script_remove (url) {
     /* Nothing to do */
@@ -149,9 +149,9 @@ export class HotReload {
     const parser = new DOMParser()
     const doc = parser.parseFromString(txt, 'text/html');
 
-    const content = doc.querySelector('.documentwrapper .body');
     const localtoc = doc.querySelector('.localtoc nav');
     const related = doc.querySelector('.documentwrapper .related')
+    const content = doc.querySelector('.documentwrapper .body');
     const scripts = doc.querySelector('head')?.querySelectorAll('script') || []
     const title = doc.querySelector('head title')
 
@@ -163,7 +163,7 @@ export class HotReload {
     }
 
     let child, node = dom
-    if (dom.id !== "logo") while (node && node !== this.$.toctree.$) {
+    if (dom.id !== "logo") while (node && node !== this.$.toctree) {
       // if li child is input
       node.classList.add('current')
       child = node.firstElementChild
@@ -173,9 +173,9 @@ export class HotReload {
     }
 
     this.parent.state.content_root = State.content_root(doc)
-    this.$.content.$.innerHTML = content.innerHTML
-    this.$.localtoc.$.innerHTML = localtoc.innerHTML
-    this.$.related.$.innerHTML = related.innerHTML
+    this.$.content.innerHTML = content.innerHTML
+    this.$.localtoc.innerHTML = localtoc.innerHTML
+    this.$.related.innerHTML = related.innerHTML
     this.$.title.innerText = title.innerText
 
     this.regen_breadcrumb(dom)
@@ -312,28 +312,29 @@ export class HotReload {
   init_loader() {
     let sides = []
     for (let j = 0; j < 2; j++) {
-      const side = new DOM('div', {
+      const side = DOM.new('div', {
         'className': `wave-spinner-${j}`
       });
       let bars = []
       for (let i = 0; i < 7; i++) {
-        const bar = new DOM('span');
+        const bar = DOM.new('span');
         bar.style.animationDelay = `${i * 0.1}s`;
         bars.push(bar);
       }
       side.append(bars)
       sides.push(side)
     }
-    sides.push(new DOM('div', {
+    sides.push(DOM.new('div', {
       'className': 'text'
     }))
-    sides.push(new DOM('div', {
+    sides.push(DOM.new('div', {
       'className': 'subtext'
     }))
 
-    this.$.loader = new DOM('div', {
+    this.$.loader = DOM.new('div', {
       'id': 'loader'
-    }).append(sides)
+    })
+    this.$.loader.append(sides)
     this.$.documentwrapper.append(this.$.loader)
   }
   popstate (ev) {
