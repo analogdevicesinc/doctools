@@ -84,16 +84,16 @@ export class HotReload {
   }
   script_add (url) {
     const elem = this.js_script_memory.get(url)
-    document.querySelector('head')?.append(elem.dom)
-    elem.dom.onload = () => { elem.loaded = true }
+    document.querySelector('head')?.append(elem)
     switch(url) {
       case "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js":
         // MathJax will apply on load, so only call if already loaded,
         // instead of having to wait if it to be loaded to call.
         if (typeof MathJax !== 'undefined')
           MathJax.typeset()
-        // For reference, if custom initialization is needed, the solution is:
-        //elem.loaded ? MathJax.typeset() : elem.dom.onload = () => { MathJax.typeset() }
+        // For reference only, if custom initialization was necessary
+        //else
+        //  elem.onload = () => { console.log("MathJax loaded") }
         break;
     }
   }
@@ -136,7 +136,7 @@ export class HotReload {
       for (const attr of js_script.get(item).attributes) {
         script.setAttribute(attr.name, attr.value);
       }
-      this.js_script_memory.set(item, {'dom': script, 'loaded': false})
+      this.js_script_memory.set(item, script)
     })
 
     return added
@@ -300,7 +300,7 @@ export class HotReload {
     for (let i = 0; i < scripts.length; i++) {
       const key = this.normalize_src(scripts[i].src)
       this.js_script_current.add(key)
-      this.js_script_memory.set(key, {'dom': scripts[i], loaded: true}) // Assume loaded
+      this.js_script_memory.set(key, scripts[i])
     }
   }
   init_loader() {
