@@ -20,6 +20,9 @@ export class HotReload {
     $.breadcrumb = DOM.get('.bodywrapper .body-header .breadcrumb')
 
     this.toctree = new Map()
+    this.js_script_current = new Set()
+    this.js_script_memory = new Map()
+
     this.location_href
     this.lock_load = false
     this.reduced_motion
@@ -76,6 +79,68 @@ export class HotReload {
     DOM.getAll('.reference.internal', this.$.content).forEach(attach_load)
     DOM.getAll('a[href]', this.$.breadcrumb).forEach(attach_load)
   }
+  script_remove (url) {
+    /* Nothing to do */
+  }
+  script_add (url) {
+    const elem = this.js_script_memory.get(url)
+    document.querySelector('head')?.append(elem.dom)
+    elem.dom.onload = () => { elem.loaded = true }
+    switch(url) {
+      case "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js":
+        // MathJax will apply on load, so only call if already loaded,
+        // instead of having to wait if it to be loaded to call.
+        if (typeof MathJax !== 'undefined')
+          MathJax.typeset()
+        // For reference, if custom initialization is needed, the solution is:
+        //elem.loaded ? MathJax.typeset() : elem.dom.onload = () => { MathJax.typeset() }
+        break;
+    }
+  }
+  normalize_src (src) {
+    const url = new URL(src)
+    url.searchParams.delete("v")
+    return url.href
+  }
+  /**
+   * Synchronize added and removed scripts
+   * Scripts already in memory cannot be removed, so maintain the head is for
+   * cleanness. Instead, rules per-script exist to neutralize and re-apply when
+   * necessary
+   */
+  sync_scripts (scripts) {
+    let js_script = new Map()
+    // Append metadata extra scripts, for proper filtering
+    this.parent.state.metadata.modules.javascript.forEach((item) => {
+      js_script.set(new URL('_static/extra.umd.js', this.parent.fetch.base_url+'/').href)
+    })
+    for (let i = 0; i < scripts.length; i++) {
+      js_script.set(this.normalize_src(scripts[i].src), scripts[i])
+    }
+    const added = [...js_script.keys()].filter(k => !this.js_script_current.has(k));
+    const removed = [...this.js_script_current.keys()].filter(k => !js_script.has(k));
+
+    /* Sync */
+    removed.forEach((item) => {
+      this.script_remove(item)
+    })
+
+    this.js_script_current = new Set(js_script.keys())
+
+    added.forEach((item) => {
+      // already in memory
+      if (this.js_script_memory.has(item))
+        return
+      // Prepare script element
+      const script = document.createElement("script");
+      for (const attr of js_script.get(item).attributes) {
+        script.setAttribute(attr.name, attr.value);
+      }
+      this.js_script_memory.set(item, {'dom': script, 'loaded': false})
+    })
+
+    return added
+  }
   replace (dom, url, txt) {
 
     const parser = new DOMParser()
@@ -84,6 +149,8 @@ export class HotReload {
     const content = doc.querySelector('.documentwrapper .body');
     const localtoc = doc.querySelector('.localtoc nav');
     const related = doc.querySelector('.documentwrapper .related')
+    const scripts = doc.querySelector('head')?.querySelectorAll('script') || []
+    const added = this.sync_scripts(scripts)
 
     if (!content || !localtoc) {
       console.warn("page: failed to get elements for ", url)
@@ -121,6 +188,10 @@ export class HotReload {
         document.querySelector(`${url.hash}`)
           ?.scrollIntoView({ behavior: 'auto' })
       }, this.reduced_motion ? 0 : 125)
+
+    added.forEach((item) => {
+      this.script_add(item)
+    })
 
     this.hot_links()
     this.lock_load = false
@@ -223,6 +294,14 @@ export class HotReload {
     const alt_dom = DOM.get('.sphinxsidebarwrapper > a')
     append_load(dom, alt_dom)
     this.toctree.set(dom.href, dom)
+
+    // Map scripts
+    const scripts = document.querySelector('head')?.querySelectorAll('script') || []
+    for (let i = 0; i < scripts.length; i++) {
+      const key = this.normalize_src(scripts[i].src)
+      this.js_script_current.add(key)
+      this.js_script_memory.set(key, {'dom': scripts[i], loaded: true}) // Assume loaded
+    }
   }
   init_loader() {
     let sides = []
