@@ -69,7 +69,9 @@ and the data format is YAML, for example:
         guava: green
         açaí: purple
 
-Template source: :git-doctools:`docs/docs_guidelines/sample/fruit-template.rst.jinja`
+With template (:git-doctools:`docs/docs_guidelines/sample/fruit-template.rst.jinja`):
+
+.. literalinclude:: sample/fruit-template.rst.jinja
 
 Renders as:
 
