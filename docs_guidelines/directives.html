@@ -9,7 +9,7 @@
     <title>Custom directives &#8212; Doctools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8e8a900e" />
     <link rel="stylesheet" type="text/css" href="../_static/app.min.css?v=37266688" />
-    <script async="async" src="../_static/app.umd.js?v=1d9a1894"></script>
+    <script async="async" src="../_static/app.umd.js?v=8f62bab2"></script>
     <link rel="icon" href="../_static/icon.svg"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -226,7 +226,24 @@ and the data format is YAML, for example:</p>
      açaí: purple
 </pre></div>
 </div>
-<p>Template source: <a class="icon git reference external" href="https://github.com/analogdevicesinc/doctools/tree/main/docs/docs_guidelines/sample/fruit-template.rst.jinja" target="_blank">docs/docs_guidelines/sample/fruit-template.rst.jinja</a></p>
+<p>With template (<a class="icon git reference external" href="https://github.com/analogdevicesinc/doctools/tree/main/docs/docs_guidelines/sample/fruit-template.rst.jinja" target="_blank">docs/docs_guidelines/sample/fruit-template.rst.jinja</a>):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">----</span>
+
+<span class="n">These</span> <span class="n">are</span> <span class="p">{{</span> <span class="n">fruit</span> <span class="o">|</span> <span class="n">length</span> <span class="p">}}</span> <span class="p">{{</span> <span class="n">fruit_type</span> <span class="p">}}</span> <span class="n">fruits</span> <span class="ow">and</span> <span class="n">their</span> <span class="n">color</span><span class="p">:</span>
+
+<span class="o">..</span> <span class="nb">list</span><span class="o">-</span><span class="n">table</span><span class="p">::</span>
+   <span class="p">:</span><span class="n">header</span><span class="o">-</span><span class="n">rows</span><span class="p">:</span> <span class="mi">1</span>
+
+   <span class="o">*</span> <span class="o">-</span> <span class="n">Fruit</span>
+     <span class="o">-</span> <span class="n">Color</span>
+<span class="p">{</span><span class="o">%</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">fruit</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="o">%</span><span class="p">}</span>
+   <span class="o">*</span> <span class="o">-</span> <span class="p">{{</span> <span class="n">key</span> <span class="p">}}</span>
+     <span class="o">-</span> <span class="p">{{</span> <span class="n">val</span> <span class="p">}}</span>
+<span class="p">{</span><span class="o">%</span> <span class="n">endfor</span> <span class="o">%</span><span class="p">}</span>
+
+<span class="o">----</span>
+</pre></div>
+</div>
 <p>Renders as:</p>
 <hr class="docutils" />
 <p>These are 4 tropical fruits and their color:</p>
