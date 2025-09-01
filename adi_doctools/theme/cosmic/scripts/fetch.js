@@ -39,6 +39,9 @@ export class Fetch {
     // Do you want to use single_hosted with same origin? use below:
     //const base_url =
     //  new URL(state.subhost, location.origin)
+    // Testing offline? use
+    //const base_url =
+    //  new URL('http://127.0.0.1:8000')
 
     const response = fetch(
       new Request(new URL('metadata.json', base_url+'/'))
