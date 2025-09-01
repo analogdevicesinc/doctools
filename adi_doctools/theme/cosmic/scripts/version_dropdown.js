@@ -8,18 +8,38 @@ import {Toolbox} from './toolbox.js'
 export class VersionDropdown {
   constructor (app) {
     this.parent = app
-    if (this.parent.state.offline)
-      return
     this.$ = {}
+
+    this.prefix
+    this.construct()
+  }
+
+  fallback () {
+    let version = this.parent.state.version
+    let char = version.substr(0,1)
+
+    if (version === "")
+      return
+
+    console.log("version_dropdown: using hard-coded current version")
+    if (char >= '0' && char <= '9')
+      version = `v${version}`
+
+    this.render({"": [version, ""]})
+  }
+  construct () {
+    if (this.parent.state.offline) {
+      let path = location.href
+      this.prefix = new URL(app.state.content_root, path).href
+      this.prefix = this.prefix.substring(0, this.prefix.length - 1)
+      this.fallback()
+      return
+    }
 
     this.prefix = this.parent.state.subhost
     this.prefix = new URL(this.prefix, location.origin).href
     if (this.prefix.endsWith('/'))
       this.prefix = this.prefix.slice(0, -1)
-    this.construct()
-  }
-
-  construct () {
     const response = fetch(
       new Request(new URL('tags.json', this.prefix+'/'))
     )
@@ -27,19 +47,8 @@ export class VersionDropdown {
       .then(response => response.json())
       .then(obj => this.render(obj))
       .catch(error => {
-        let version = this.parent.state.version
-        let char = version.substr(0,1)
-
-        if (version === "") {
-          console.log("version_dropdown: no tags.json and no current version")
-          return
-        }
-
-        console.log("version_dropdown: no tags.json, using hard-coded current version")
-        if (char >= '0' && char <= '9')
-          version = `v${version}`
-
-        this.render({"": [version, ""]})
+        console.log("version_dropdown: no tags.json and no current version")
+        this.fallback()
       })
   }
   /**
@@ -139,10 +148,12 @@ export class VersionDropdown {
     }
 
     for (let key in obj) {
+      let page = key.length > 0 ?
+                 this.prefix+'/'+key :
+                 this.prefix
+      page += "/index.html"
       let entry = DOM.new('button', {
-        'alt_href': key.length > 0 ?
-                    this.prefix+'/'+key :
-                    this.prefix
+        'alt_href': page
       })
       entry.addEventListener('mousedown', (ev) => {
         ev.preventDefault()
@@ -157,16 +168,14 @@ export class VersionDropdown {
                       this.prefix
         if (location.href.startsWith(start)) {
           let pathname = location.href.substring(start.length + 1)
-          if (entry.dataset['alt_href'].slice(-1) !== '/')
-            pathname = '/' + pathname
-          let url = new URL(entry.dataset['alt_href'] + pathname)
+          let url = new URL(pathname, entry.dataset['alt_href'])
           url.hash = location.hash
           Toolbox.try_redirect(url, entry.dataset['alt_href'], new_tab)
-        } else {_
+        } else {
           if (new_tab)
-            window.open(entry.url, '_blank').focus()
+            window.open(entry.dataset['alt_href'], '_blank').focus()
           else
-            location.href = entry.url
+            location.href = entry.dataset['alt_href']
         }
       })
       let entry_ = DOM.new('div')
@@ -180,6 +189,9 @@ export class VersionDropdown {
       entry.append(entry_)
       entry.append(label_)
       container2.append(entry)
+    }
+    if (Object.keys(obj).length <= 1) {
+      container2.classList.add('no-other')
     }
     let cancel_dropdown = DOM.new('dev', {
       'id': 'cancel-area-show-version-dropdown'

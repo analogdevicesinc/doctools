@@ -96,6 +96,17 @@ header .version-dropdown {
         opacity: 1;
         pointer-events: initial;
     }
+
+    &.no-other {
+        button {
+            display: none;
+        }
+
+        &:before {
+          content: "No other version available";
+          padding: 0.5em;
+        }
+    }
 }
 
 .version-dropdown, .version-dropdown-list {
