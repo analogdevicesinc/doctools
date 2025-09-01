@@ -255,7 +255,9 @@ export class Search {
           this.$.searchLI[key].classList.remove('on')
       }
     }
-    this.$.searchResults.append(searchUL_)
+    searchUL_.forEach((item) => {
+      this.$.searchResults.$.insertAdjacentElement('afterbegin', item.$)
+    })
   }
   set_default () {
     /* Return if filter initialized */
