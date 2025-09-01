@@ -219,7 +219,7 @@ export class HotReload {
       return
     }
     this.lock_load = true
-    // Push even before fething, so in case of failure the user can easily
+    // Push even before fetching, so in case of failure the user can easily
     // reload the page
     if (new_state)
       history.pushState(request_url.href, '', request_url.href)
@@ -281,7 +281,7 @@ export class HotReload {
   }
   init_others () {
     const append_load = (dom, alt_dom) => {
-      // Make absolute and strip trailling #
+      // Make absolute and strip trailing #
       alt_dom.href = alt_dom.href.replace(/#$/, '')
 
       alt_dom.onclick = (ev) => {
