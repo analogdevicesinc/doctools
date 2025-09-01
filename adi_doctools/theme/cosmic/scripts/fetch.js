@@ -10,6 +10,7 @@ export class Fetch {
 
     this.parent = app
     this.callback = []
+    this.base_url
 
     this.construct()
 
@@ -62,6 +63,8 @@ export class Fetch {
       'href': new URL('_static/extra.min.css', base_url+'/')
     });
     this.$.head.append(style)
+
+    this.base_url = base_url
   }
   /**
    * Append callbacks to call after metadata.json is loaded.
