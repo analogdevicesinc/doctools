@@ -57,6 +57,7 @@ export class Search {
     this.index = {}
     this.index_state = {}
     this.key_prefix = {}
+    this.search_page = new URL(`${this.parent.state.content_root}search.html`, location).pathname
 
     let $ = this.$ = {}
     $.keyCheckbox = {}
@@ -75,7 +76,11 @@ export class Search {
 
     $.searchArea = new DOM(DOM.get('.search-area'))
     $.searchForm = new DOM(DOM.get('form', $.searchArea))
-      .onevent("submit", this, (e) => {e.preventDefault()})
+    if (this.parent.state.offline) {
+      $.searchForm.$.action = this.search_page
+      $.searchForm.$.method = "get"
+    } else
+      $.searchForm.onevent("submit", this, (e) => {e.preventDefault()})
     $.searchFormButton = new DOM(DOM.get('button', $.searchForm))
       .onclick(this, this.cancel_search)
     $.searchInput = new DOM(DOM.get('input', $.searchForm))
@@ -104,7 +109,9 @@ export class Search {
         this.cancel_search()
     });
 
-    this.$.searchContainer.append([this.$.searchTags, this.$.searchResults])
+    if (!this.parent.state.offline)
+      this.$.searchContainer.append(this.$.searchTags)
+    this.$.searchContainer.append(this.$.searchResults)
     this.$.searchArea.append([this.$.searchContainer])
     $.searchForm.$['action'] = DOM.get('link[rel="search"]').href
 
@@ -126,7 +133,9 @@ export class Search {
       this.set_default()
     })
 
-    if (typeof this.parent.fetch === 'object')
+    if (this.parent.state.offline)
+      this.construct_offline()
+    else if (typeof this.parent.fetch === 'object')
       this.parent.fetch.then(this.construct.bind(this))
     else
       this.construct()
@@ -828,6 +837,25 @@ export class Search {
       ])
     ])
     this.$.keyCheckbox[key] = input_
+  }
+  /**
+   * Construct offline search.
+   */
+  construct_offline () {
+    window.SPHINX_HIGHLIGHT_ENABLED = false
+    window.DOCUMENTATION_OPTIONS = {}
+    document.querySelector('.documentwrapper .body')?.append(DOM.new("div", {'id': 'search-results'}))
+    if (this.search_page === location.pathname) {
+      ['doctools.js', 'language_data.js', 'searchtools.js', 'english-stemmer.js']
+        .forEach((item) => {
+        const script = document.createElement("script");
+        script.src = new URL(`${this.parent.state.content_root}_static/${item}`, location)
+        document.querySelector('head')?.append(script)
+      })
+      const script = document.createElement("script");
+      script.src = new URL(`${this.parent.state.content_root}searchindex.js`, location)
+      document.querySelector('head')?.append(script)
+    }
   }
   /**
    * Construct search.
