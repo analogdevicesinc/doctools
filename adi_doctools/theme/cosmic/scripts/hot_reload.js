@@ -18,6 +18,7 @@ export class HotReload {
     $.tocwrapper = new DOM(DOM.get('.localtoc .tocwrapper'))
     $.related = new DOM(DOM.get('.documentwrapper .related'))
     $.breadcrumb = DOM.get('.bodywrapper .body-header .breadcrumb')
+    $.title = document.querySelector('head title')
 
     this.toctree = new Map()
     this.js_script_current = new Set()
@@ -152,6 +153,8 @@ export class HotReload {
     const localtoc = doc.querySelector('.localtoc nav');
     const related = doc.querySelector('.documentwrapper .related')
     const scripts = doc.querySelector('head')?.querySelectorAll('script') || []
+    const title = doc.querySelector('head title')
+
     const added = this.sync_scripts(scripts)
 
     if (!content || !localtoc) {
@@ -173,6 +176,7 @@ export class HotReload {
     this.$.content.$.innerHTML = content.innerHTML
     this.$.localtoc.$.innerHTML = localtoc.innerHTML
     this.$.related.$.innerHTML = related.innerHTML
+    this.$.title.innerText = title.innerText
 
     this.regen_breadcrumb(dom)
     for (const key in this.parent) {
