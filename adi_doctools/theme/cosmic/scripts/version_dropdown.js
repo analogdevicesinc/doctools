@@ -27,7 +27,19 @@ export class VersionDropdown {
       .then(response => response.json())
       .then(obj => this.render(obj))
       .catch(error => {
-        console.log("version_dropdown: no tags.json to fill dropdown")
+        let version = this.parent.state.version
+        let char = version.substr(0,1)
+
+        if (version === "") {
+          console.log("version_dropdown: no tags.json and no current version")
+          return
+        }
+
+        console.log("version_dropdown: no tags.json, using hard-coded current version")
+        if (char >= '0' && char <= '9')
+          version = `v${version}`
+
+        this.render({"": [version, ""]})
       })
   }
   /**

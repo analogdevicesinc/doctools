@@ -81,6 +81,10 @@ header .version-dropdown {
             text-align: center;
         }
 
+        div {
+            color: var(--text-color2);
+        }
+
         &:hover div {
             background-color: var(--bg-color3);
             color: var(--text-color1);
