@@ -559,11 +559,70 @@ They are listed on the *requirements.tst* file, and are installed with:
    pip install -r requirements.txt
 
 The recommendation is to avoid using extensions that render content on the
-client side using JavaScript, because it requires:
+client-side using JavaScript, because it requires:
 
-* fetching third-party scripts at someone-else server most of the time; and
-* makes exporting to other formats (like pdf) harder, because it is then necessary to
+* Fetching third-party scripts at someone-else server most of the time; and
+* Makes exporting to other formats (like pdf) harder, because it is then necessary to
   patch and replace with another non-JavaScript renderer.
+* Requires managing these added scripts to ensure they apply on hot reload.
+
+Support custom JavaScript in hot reload
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Hot reload is a feature that reloads only parts of a webpage, allowing super
+fast content-loading, cool animations, and a better user experience.
+
+However, for third-party client-side JavaScript, it is necessary to map the
+added globals to hot reload module.
+
+On :git-doctools:`adi_doctools/theme/cosmic/scripts/hot_reload.js`, extend the
+``script_remove`` and ``script_add`` to include hooks for your particular added
+script.
+
+For example, for MathJax, that is simply calling the global method
+``MathJax.typeset()`` to process the new page (hot reload) if the page includes
+the script.
+
+Here is a template:
+
+.. code:: javascript
+
+   export class HotReload {
+     // ...
+     script_remove (url) {
+       switch(url) {
+         case "https://example.com/npm/my_script.js":
+           if (typeof MyScript !== 'undefined')
+             // If there is a clean-up/deinit method, call it
+             // to try to keep memory usage in check.
+             MyScript.cleanup()
+           break;
+         // ...
+       }
+     }
+     script_add (url) {
+       // Get templated script node.
+       const elem = this.js_script_memory.get(url)
+       // Append to page to init loading.
+       document.querySelector('head')?.append(elem)
+       switch(url) {
+         case "https://example.com/npm/my_script.js":
+           if (typeof MyScript !== 'undefined')
+             // On hot reload, already loaded, retrigger init.
+             // You need to check the script documentation for
+             // the exact methods names, calls.
+             MyScript.init()
+           else
+             // On hot reload, first load, do
+             elem.onload = () => {
+               console.log("MyScript loaded!")
+               // Do other things, if necessary, but in general those scripts
+               // already do their thing on load.
+             }
+           break;
+         // ...
+       }
+     }
 
 .. _extension-repository:
 
