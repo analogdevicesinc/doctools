@@ -127,13 +127,13 @@
   }
 
   .wave-spinner-0 span  {
-    animation: wave 1.5s infinite ease-in-out;
+    animation: wave 2s infinite ease-in-out;
     background: linear-gradient(to top, var(--text-color2), var(--text-color1));
     border-radius: 0.1em 0.1em 0 0;
   }
 
   .wave-spinner-1 span  {
-    animation: wave 2s infinite ease-in-out;
+    animation: wave 1.5s infinite ease-in-out;
     background: linear-gradient(to top, var(--text-color3), var(--text-color2));
     border-radius: 0 0 0.1em 0.1em;
   }

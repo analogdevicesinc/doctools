@@ -321,7 +321,7 @@ export class HotReload {
         bar.style.animationDelay = `${i * 0.1}s`;
         bars.push(bar);
       }
-      side.append(bars)
+      bars.forEach((node) => { side.append(node) })
       sides.push(side)
     }
     sides.push(DOM.new('div', {
@@ -334,7 +334,7 @@ export class HotReload {
     this.$.loader = DOM.new('div', {
       'id': 'loader'
     })
-    this.$.loader.append(sides)
+    sides.forEach((node) => { this.$.loader.append(node) })
     this.$.documentwrapper.append(this.$.loader)
   }
   popstate (ev) {
