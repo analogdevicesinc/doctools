@@ -115,7 +115,10 @@
 <li><a class="reference internal" href="#images">Images</a></li>
 <li><a class="reference internal" href="#git-large-file-storage">Git Large File Storage</a></li>
 <li><a class="reference internal" href="#adding-directives-and-roles">Adding directives and roles</a><ul>
-<li><a class="reference internal" href="#third-party-directives-and-roles">Third-party directives and roles</a></li>
+<li><a class="reference internal" href="#third-party-directives-and-roles">Third-party directives and roles</a><ul>
+<li><a class="reference internal" href="#support-custom-javascript-in-hot-reload">Support custom JavaScript in hot reload</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#repository-specific-extensions">Repository-specific extensions</a></li>
 </ul>
 </li>
@@ -638,12 +641,65 @@ They are listed on the <em>requirements.tst</em> file, and are installed with:</
 </pre></div>
 </div>
 <p>The recommendation is to avoid using extensions that render content on the
-client side using JavaScript, because it requires:</p>
+client-side using JavaScript, because it requires:</p>
 <ul class="simple">
-<li><p>fetching third-party scripts at someone-else server most of the time; and</p></li>
-<li><p>makes exporting to other formats (like pdf) harder, because it is then necessary to
+<li><p>Fetching third-party scripts at someone-else server most of the time; and</p></li>
+<li><p>Makes exporting to other formats (like pdf) harder, because it is then necessary to
 patch and replace with another non-JavaScript renderer.</p></li>
+<li><p>Requires managing these added scripts to ensure they apply on hot reload.</p></li>
 </ul>
+<section id="support-custom-javascript-in-hot-reload">
+<h4>Support custom JavaScript in hot reload<a class="headerlink" href="#support-custom-javascript-in-hot-reload" title="Link to this heading"></a></h4>
+<p>Hot reload is a feature that reloads only parts of a webpage, allowing super
+fast content-loading, cool animations, and a better user experience.</p>
+<p>However, for third-party client-side JavaScript, it is necessary to map the
+added globals to hot reload module.</p>
+<p>On <a class="icon git reference external" href="https://github.com/analogdevicesinc/doctools/tree/main/adi_doctools/theme/cosmic/scripts/hot_reload.js" target="_blank">adi_doctools/theme/cosmic/scripts/hot_reload.js</a>, extend the
+<code class="docutils literal notranslate"><span class="pre">script_remove</span></code> and <code class="docutils literal notranslate"><span class="pre">script_add</span></code> to include hooks for your particular added
+script.</p>
+<p>For example, for MathJax, that is simply calling the global method
+<code class="docutils literal notranslate"><span class="pre">MathJax.typeset()</span></code> to process the new page (hot reload) if the page includes
+the script.</p>
+<p>Here is a template:</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="k">export</span><span class="w"> </span><span class="kd">class</span><span class="w"> </span><span class="nx">HotReload</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="c1">// ...</span>
+<span class="w">  </span><span class="nx">script_remove</span><span class="w"> </span><span class="p">(</span><span class="nx">url</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">switch</span><span class="p">(</span><span class="nx">url</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="k">case</span><span class="w"> </span><span class="s2">&quot;https://example.com/npm/my_script.js&quot;</span><span class="o">:</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="ow">typeof</span><span class="w"> </span><span class="nx">MyScript</span><span class="w"> </span><span class="o">!==</span><span class="w"> </span><span class="s1">&#39;undefined&#39;</span><span class="p">)</span>
+<span class="w">          </span><span class="c1">// If there is a clean-up/deinit method, call it</span>
+<span class="w">          </span><span class="c1">// to try to keep memory usage in check.</span>
+<span class="w">          </span><span class="nx">MyScript</span><span class="p">.</span><span class="nx">cleanup</span><span class="p">()</span>
+<span class="w">        </span><span class="k">break</span><span class="p">;</span>
+<span class="w">      </span><span class="c1">// ...</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="nx">script_add</span><span class="w"> </span><span class="p">(</span><span class="nx">url</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Get templated script node.</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">elem</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">js_script_memory</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="nx">url</span><span class="p">)</span>
+<span class="w">    </span><span class="c1">// Append to page to init loading.</span>
+<span class="w">    </span><span class="nb">document</span><span class="p">.</span><span class="nx">querySelector</span><span class="p">(</span><span class="s1">&#39;head&#39;</span><span class="p">)</span><span class="o">?</span><span class="p">.</span><span class="nx">append</span><span class="p">(</span><span class="nx">elem</span><span class="p">)</span>
+<span class="w">    </span><span class="k">switch</span><span class="p">(</span><span class="nx">url</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="k">case</span><span class="w"> </span><span class="s2">&quot;https://example.com/npm/my_script.js&quot;</span><span class="o">:</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="ow">typeof</span><span class="w"> </span><span class="nx">MyScript</span><span class="w"> </span><span class="o">!==</span><span class="w"> </span><span class="s1">&#39;undefined&#39;</span><span class="p">)</span>
+<span class="w">          </span><span class="c1">// On hot reload, already loaded, retrigger init.</span>
+<span class="w">          </span><span class="c1">// You need to check the script documentation for</span>
+<span class="w">          </span><span class="c1">// the exact methods names, calls.</span>
+<span class="w">          </span><span class="nx">MyScript</span><span class="p">.</span><span class="nx">init</span><span class="p">()</span>
+<span class="w">        </span><span class="k">else</span>
+<span class="w">          </span><span class="c1">// On hot reload, first load, do</span>
+<span class="w">          </span><span class="nx">elem</span><span class="p">.</span><span class="nx">onload</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;MyScript loaded!&quot;</span><span class="p">)</span>
+<span class="w">            </span><span class="c1">// Do other things, if necessary, but in general those scripts</span>
+<span class="w">            </span><span class="c1">// already do their thing on load.</span>
+<span class="w">          </span><span class="p">}</span>
+<span class="w">        </span><span class="k">break</span><span class="p">;</span>
+<span class="w">      </span><span class="c1">// ...</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+</pre></div>
+</div>
+</section>
 </section>
 <section id="repository-specific-extensions">
 <span id="extension-repository"></span><h3>Repository-specific extensions<a class="headerlink" href="#repository-specific-extensions" title="Link to this heading"></a></h3>
