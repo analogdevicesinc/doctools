@@ -4,7 +4,7 @@
 set -e
 
 zypper install -y --no-recommends \
-    gcc awk libffi-devel
+    gcc awk libffi-devel findutils
 
 PYTHON_MIN=$1
 PYTHON_MIN_SHA=$3
