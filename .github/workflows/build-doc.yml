@@ -1,4 +1,10 @@
-on: workflow_call
+on:
+  workflow_call:
+    inputs:
+      tag:
+        required: true
+        type: string
+
 jobs:
   build-doc-latest:
     runs-on: [self-hosted, v1]
@@ -22,7 +28,7 @@ jobs:
       working-directory: docs
       run: >
         source ~/venv/3.13/build-doc-latest/bin/activate ;
-        ADOC_DOC_VERSION=${{ github.ref_name }}
+        ADOC_DOC_VERSION=${{ inputs.tag }}
         make html SPHINXOPTS='-W --keep-going' ;
         rm -rf _build/html/_sources
 
@@ -32,34 +38,8 @@ jobs:
         name: html
         path: docs/_build/html
 
-    - name: Check if new tag
-      run: |
-        tag=v$(sed -n 's/^__version__ = "\(.*\)"/\1/p' adi_doctools/__init__.py)
-        git fetch --tags --prune --prune-tags --force
-        if ! [ $(git tag -l "$tag") ] ; then
-          echo "new_tag=1" >> "$GITHUB_ENV"
-        fi
-
-    - name: Build tagged doc
-      if: ${{ env.new_tag == '1' }}
-      working-directory: docs
-      run: >
-        source ~/venv/3.13/build-doc-latest/bin/activate ;
-        ADOC_DOC_VERSION=$tag
-        make clean html SPHINXOPTS='-W --keep-going' ;
-        rm -rf _build/html/_sources
-
-    - name: Store the generated tagged doc
-      if: ${{ env.new_tag == '1' }}
-      uses: actions/upload-artifact@v4
-      with:
-        name: html-tagged
-        path: docs/_build/html
-
   build-doc-min:
     runs-on: [self-hosted, v1]
-    # Manually-set variable to skip
-    if: ${{ !github.event.no_python_min }}
 
     steps:
     - uses: analogdevicesinc/doctools/checkout@action
