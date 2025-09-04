@@ -104,7 +104,7 @@ jobs:
         gh-update-commitish ${{ secrets.GITHUB_TOKEN }} \
                             ${{ github.repository }} \
                             ${{ github.sha }} \
-                            $pre_release_id
+                            $pre_release_id || true
 
     - name: GitHub upload pre-release asset
       run: |

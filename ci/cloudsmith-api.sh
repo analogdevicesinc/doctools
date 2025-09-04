@@ -1,6 +1,6 @@
 cs-package-upload()
 {
-  package_file=$(curl -L \
+  package_file=$(curl -fL \
     -T $5 \
     -H "X-Api-Key: $1" \
     -H "Content-Sha256: $(shasum -a256 $4 | cut -f1 -d' ')" \
@@ -11,7 +11,7 @@ cs-package-upload()
 
 cs-package-store-python()
 {
-  curl -L \
+  curl -sfL \
     -X POST \
     -H "Accept: application/json" \
     -H "Content-Type: application/json" \

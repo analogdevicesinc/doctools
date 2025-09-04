@@ -2,7 +2,7 @@
 
 gh-get-release-id()
 {
-  release_id=$(curl -L \
+  release_id=$(curl -fL \
     -H "Accept: application/vnd.github+json" \
     -H "Authorization: Bearer $1" \
     -H "X-GitHub-Api-Version: 2022-11-28" \
@@ -14,7 +14,7 @@ gh-get-release-id()
 
 gh-get-asset-id()
 {
-  asset_id=$(curl -L \
+  asset_id=$(curl -fL \
     -H "Accept: application/vnd.github+json"  \
     -H "Authorization: Bearer $1"  \
     -H "X-GitHub-Api-Version: 2022-11-28" \
@@ -26,7 +26,7 @@ gh-get-asset-id()
 
 gh-create-tag()
 {
-  curl -L \
+  curl -fL \
     -X POST \
     -H "Accept: application/vnd.github+json" \
     -H "Authorization: Bearer $1" \
@@ -40,7 +40,7 @@ gh-create-tag()
 
 gh-create-release()
 {
-  release_id=$(curl -L \
+  release_id=$(curl -fL \
    -X POST \
    -H "Accept: application/vnd.github+json" \
    -H "Authorization: Bearer $1" \
@@ -54,7 +54,7 @@ gh-create-release()
 
 gh-upload-asset()
 {
-  curl -L \
+  curl -fL \
     -X POST \
     -H "Accept: application/vnd.github+json" \
     -H "Authorization: Bearer $1" \
@@ -66,7 +66,7 @@ gh-upload-asset()
 
 gh-delete-asset()
 {
-  curl -L \
+  curl -fL \
     -X DELETE \
     -H "Accept: application/vnd.github+json" \
     -H "Authorization: Bearer $1" \
@@ -76,7 +76,7 @@ gh-delete-asset()
 
 gh-update-commitish()
 {
-  curl -s \
+  curl -sfL \
     -X PATCH \
     -H "Accept: application/vnd.github+json" \
     -H "Authorization: Bearer $1" \
@@ -87,7 +87,7 @@ gh-update-commitish()
 
 gh-get-number-commits()
 {
-  total_commits=$(curl -L \
+  total_commits=$(curl -fL \
     -H "Accept: application/vnd.github+json" \
     -H "Authorization: Bearer $1" \
     -H "X-GitHub-Api-Version: 2022-11-28" \
@@ -99,7 +99,7 @@ gh-get-number-commits()
 
 gh-cancel-workflow()
 {
-  curl -L \
+  curl -sfL \
     -X POST \
     -H "Accept: application/vnd.github+json" \
     -H "Authorization: Bearer $1" \
