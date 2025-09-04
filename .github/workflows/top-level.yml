@@ -14,6 +14,8 @@ jobs:
     uses: ./.github/workflows/build-doc.yml
     needs: [build-package]
     secrets: inherit
+    with:
+      tag: ${{ needs.build-package.outputs.tag }}
   tests:
     uses: ./.github/workflows/tests.yml
     needs: [build-package]
@@ -23,7 +25,6 @@ jobs:
     needs: [build-package]
     secrets: inherit
   deploy:
-    if: github.ref == 'refs/heads/main'
     uses: ./.github/workflows/deploy.yml
     needs: [build-package, build-doc, tests, custom-doc]
     secrets: inherit

@@ -23,6 +23,7 @@ jobs:
     runs-on: [self-hosted, v1]
     permissions:
       contents: write
+    if: ${{ github.ref == 'refs/heads/main' }}
 
     steps:
     - name: Get assets
@@ -151,6 +152,7 @@ jobs:
     permissions:
       id-token: write
       contents: write
+    if: ${{ github.ref == 'refs/heads/main' }}
 
     steps:
     - name: Get assets
@@ -216,9 +218,18 @@ jobs:
     runs-on: [self-hosted, v1]
     permissions:
       contents: write
+    if: ${{ github.ref == 'refs/heads/main' || github.event.pull_request.head.repo.full_name == github.repository }}
 
     steps:
     - uses: analogdevicesinc/doctools/blank@action
+
+    - name: Context to path
+      run: |
+        if [[ "${{ inputs.new_tag }}" == "true" ]]; then
+          echo "doc_path=${{ inputs.tag }}" >> "$GITHUB_ENV"
+        elif [[ "${{ github.ref }}" == refs/pull/* ]]; then
+          echo "doc_path=pull/${{ github.event.number }}" >> "$GITHUB_ENV"
+        fi
 
     - name: Prepare gh-pages branch
       run: >
@@ -226,14 +237,13 @@ jobs:
         (
           git fetch origin gh-pages:gh-pages -f ;
           git switch gh-pages ;
-          DOC_BUILDS=$(find . -mindepth 2 -name objects.inv -exec sh -c 'dirname {}' ';') ;
+          built_docs=$(find . -mindepth 2 -name objects.inv -exec sh -c 'dirname {}' ';') ;
           git rm -r . --quiet || true ;
-          printf "Detected doc builds: $DOC_BUILDS" ;
-          if ! [ -z "$DOC_BUILDS" ]; then
-            git checkout @ -- $DOC_BUILDS ;
+          if ! [ -z "$built_docs" ]; then
+            git checkout @ -- $built_docs ;
           fi ;
-          if [[ "${{ inputs.new_tag }}" == "1" ]]; then
-            git rm -r ${{ inputs.tag }} --quiet || true ;
+          if ! [ -z "${{ env.doc_path }}" ]; then
+            git rm -r ${{ env.doc_path }} --quiet || true ;
           fi ;
         ) || (
           git checkout --orphan gh-pages ;
@@ -242,14 +252,15 @@ jobs:
         )
 
     - uses: actions/download-artifact@v4
+      if: ${{ github.ref == 'refs/heads/main' }}
       with:
         name: html
 
     - uses: actions/download-artifact@v4
-      if: ${{ inputs.new_tag == 'true' }}
+      if: ${{ env.doc_path != '' }}
       with:
-        name: html-tagged
-        path: ${{ inputs.tag }}
+        name: html
+        path: ${{ env.doc_path }}
 
     - name: Generate aux files
       run: >
@@ -262,5 +273,8 @@ jobs:
     - name: Commit and push to gh-pages
       run: |
         git add . >> /dev/null
-        git commit -m "deploy: ${GITHUB_SHA}" --allow-empty
+        if [[ "${{ github.ref }}" == refs/pull/* ]]; then
+          context=" #${{ github.event.number }} (${{ github.event.action }})"
+        fi
+        git commit -m "deploy: ${GITHUB_SHA}$context" --allow-empty
         git push origin gh-pages:gh-pages
