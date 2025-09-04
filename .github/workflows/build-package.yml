@@ -1,6 +1,10 @@
 on:
   workflow_call:
     outputs:
+      asset_name:
+        value: ${{ jobs.build.outputs.asset_name}}
+      full_asset_name:
+        value: ${{ jobs.build.outputs.full_asset_name}}
       new_tag:
         value: ${{ jobs.build.outputs.new_tag}}
       tag:
@@ -11,6 +15,8 @@ jobs:
     runs-on: [self-hosted, v1]
 
     outputs:
+      asset_name: ${{ steps.get_asset.outputs.asset_name}}
+      full_asset_name: ${{ steps.get_asset.outputs.full_asset_name}}
       new_tag: ${{ steps.get_new_tag.outputs.new_tag}}
       tag: ${{ steps.get_tag.outputs.tag}}
 
@@ -70,6 +76,13 @@ jobs:
         source ~/venv/3.13/build-package/bin/activate
         pip3.13 install build
         python3.13 -m build
+
+    - name: Get asset name
+      id: get_asset
+      run: |
+        echo "asset_name=adi-doctools.tar.gz" >> "$GITHUB_OUTPUT"
+        full_asset_name=$(find dist/ -maxdepth 1 -name "adi_doctools-*.tar.gz" -print -quit)
+        echo "full_asset_name=$full_asset_name" >> "$GITHUB_OUTPUT"
 
     - name: Store the distribution packages
       uses: actions/upload-artifact@v4

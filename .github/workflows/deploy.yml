@@ -1,8 +1,14 @@
 on:
   workflow_call:
     inputs:
+      asset_name:
+        required: true
+        type: string
+      full_asset_name:
+        required: true
+        type: string
       new_tag:
-        default: false
+        required: true
         type: string
       tag:
         required: true
@@ -13,10 +19,9 @@ permissions:
   id-token: write
 
 jobs:
-  deploy:
+  deploy-github:
     runs-on: [self-hosted, v1]
     permissions:
-      id-token: write
       contents: write
 
     steps:
@@ -24,8 +29,6 @@ jobs:
       run: |
         curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -L -o github-api.sh \
           https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/ci/github-api.sh
-        curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -L -o cloudsmith-api.sh \
-          https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/ci/cloudsmith-api.sh
 
     - name: Ensure clean dist
       run: |
@@ -35,14 +38,6 @@ jobs:
       with:
         name: dist
         path: dist
-
-    - name: Get others vars
-      run: |
-        asset_name=adi-doctools.tar.gz
-        echo "asset_name=$asset_name" >> "$GITHUB_ENV"
-
-        full_asset_name=$(find dist/ -maxdepth 1 -name "adi_doctools-*.tar.gz" -print -quit)
-        echo "full_asset_name=$full_asset_name" >> "$GITHUB_ENV"
 
     - name: Get pre-release vars
       run: |
@@ -58,6 +53,7 @@ jobs:
           gh-get-asset-id ${{ secrets.GITHUB_TOKEN }} \
                           ${{ github.repository }} \
                           $release_id \
+                          ${{ inputs.asset_name }} \
                           pre_release_asset_id
         )
 
@@ -76,6 +72,7 @@ jobs:
           gh-get-asset-id ${{ secrets.GITHUB_TOKEN }} \
                           ${{ github.repository }} \
                           $release_id \
+                          ${{ inputs.asset_name }} \
                           latest_asset_id
         )
 
@@ -98,8 +95,8 @@ jobs:
         gh-upload-asset ${{ secrets.GITHUB_TOKEN }} \
                         ${{ github.repository }} \
                         $release_id \
-                        $asset_name \
-                        $full_asset_name
+                        ${{ inputs.asset_name }} \
+                        ${{ inputs.full_asset_name }}
 
     - name: GitHub update pre-release target commitish
       run: |
@@ -121,8 +118,8 @@ jobs:
         gh-upload-asset ${{ secrets.GITHUB_TOKEN }} \
                         ${{ github.repository }} \
                         $pre_release_id \
-                        $asset_name \
-                        $full_asset_name
+                        ${{ inputs.asset_name }} \
+                        ${{ inputs.full_asset_name }}
 
     - name: GitHub update latest target commitish
       if: ${{ inputs.new_tag == 'true' }}
@@ -146,8 +143,29 @@ jobs:
         gh-upload-asset ${{ secrets.GITHUB_TOKEN }} \
                         ${{ github.repository }} \
                         $latest_id \
-                        $asset_name \
-                        $full_asset_name
+                        ${{ inputs.asset_name }} \
+                        ${{ inputs.full_asset_name }}
+
+  deploy-cloudsmith:
+    runs-on: [self-hosted, v1]
+    permissions:
+      id-token: write
+      contents: write
+
+    steps:
+    - name: Get assets
+      run: |
+        curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -L -o cloudsmith-api.sh \
+          https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/ci/cloudsmith-api.sh
+
+    - name: Ensure clean dist
+      run: |
+        rm -rf dist
+
+    - uses: actions/download-artifact@v4
+      with:
+        name: dist
+        path: dist
 
     - uses: cloudsmith-io/cloudsmith-cli-action@v1.0.4
       env:
@@ -157,6 +175,12 @@ jobs:
         oidc-namespace: ${{ vars.CLOUDSMITH_NAMESPACE }}
         oidc-service-slug: ${{ secrets.CLOUDSMITH_SERVICE_SLUG }}
         oidc-auth-only: 'true'
+
+    - name: Cloudsmith API Key
+      env:
+        CLOUDSMITH_SERVICE_SLUG: ${{ secrets.CLOUDSMITH_SERVICE_SLUG }}
+      if: ${{ env.CLOUDSMITH_SERVICE_SLUG == '' }}
+      run: echo "CLOUDSMITH_API_KEY=${{ secrets.CLOUDSMITH_API_KEY }}" >> "$GITHUB_ENV"
 
     - name: Cloudsmith upload asset and create package
       if: ${{ env.CLOUDSMITH_API_KEY != '' }}
@@ -174,11 +198,11 @@ jobs:
         tags_+=", on/${{ github.event_name }}"
 
         package_file=$(
-          cs-upload-package ${{ env.CLOUDSMITH_API_KEY }} \
+          cs-package-upload ${{ env.CLOUDSMITH_API_KEY }} \
                             ${{ vars.CLOUDSMITH_NAMESPACE }} \
                             ${{ vars.CLOUDSMITH_REPOSITORY }} \
-                            $asset_name \
-                            $full_asset_name \
+                            ${{ inputs.asset_name }} \
+                            ${{ inputs.full_asset_name }} \
                             latest_package_file
         )
 
@@ -186,8 +210,14 @@ jobs:
                                 ${{ vars.CLOUDSMITH_NAMESPACE }} \
                                 ${{ vars.CLOUDSMITH_REPOSITORY }} \
                                 $package_file \
-                                $tags_
+                                "$tags_"
 
+  deploy-gh-pages:
+    runs-on: [self-hosted, v1]
+    permissions:
+      contents: write
+
+    steps:
     - uses: analogdevicesinc/doctools/blank@action
 
     - name: Prepare gh-pages branch

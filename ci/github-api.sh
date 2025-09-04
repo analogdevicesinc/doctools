@@ -19,8 +19,8 @@ gh-get-asset-id()
     -H "Authorization: Bearer $1"  \
     -H "X-GitHub-Api-Version: 2022-11-28" \
     "https://api.github.com/repos/$2/releases/$3/assets" \
-    | jq -r ".[] | select(.name==\"$asset_name\") | .id")
-  echo "$4=$asset_id" >> "$GITHUB_ENV"
+    | jq -r ".[] | select(.name==\"$4\") | .id")
+  echo "$5=$asset_id" >> "$GITHUB_ENV"
   echo $asset_id
 }
 
