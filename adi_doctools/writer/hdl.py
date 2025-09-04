@@ -259,23 +259,44 @@ def write_hdl_regmap_definitions(
         f.write(f"`ifndef _{pkgname.upper()}_DEFINITIONS_SVH_\n")
         f.write(f"`define _{pkgname.upper()}_DEFINITIONS_SVH_\n\n")
 
+        f.write(f"`include \"utils.svh\"\n\n")
+
         f.write(f"// Help build VIP Interface parameters name\n")
 
+        f.write(f"`define {pkgname.upper()}_PARAM_IMPORT(NAME)")
         reg_param_dec_import = reg_param_dec.copy()
         for i, reg_param in enumerate(reg_param_dec_import):
-            reg_param_dec_import[i] = f"  n``.inst.{reg_param}"
+            reg_param_dec_import[i] = f"  NAME``.inst.{reg_param}"
         row = separator.join(reg_param_dec_import)
-        f.write(f"`define {pkgname.upper()}_PARAM_IMPORT(n)")
         f.write(f"{row}\n\n")
 
+        f.write(f"`define {pkgname.upper()}_PARAM_DECL(NAME=NOT_DEFINED) int \\\n")
+        reg_param_dec_named = reg_param_dec.copy()
+        reg_param_dec_unnamed = reg_param_dec.copy()
         for i, reg_param in enumerate(reg_param_dec):
-            reg_param_dec[i] = f"  {reg_param}"
-        row = separator.join(reg_param_dec)
-        f.write(f"`define {pkgname.upper()}_PARAM_DECL int")
-        f.write(f"{row}\n\n")
+            reg_param_dec_named[i] = f"    NAME``_{reg_param}"
+            reg_param_dec_unnamed[i] = f"    {reg_param}"
+        f.write(f"  `ifdef NAME \\\n")
+        row = separator.join(reg_param_dec_unnamed)
+        f.write(f"{row} \\\n")
+        f.write(f"  `else \\\n")
+        row = separator.join(reg_param_dec_named)
+        f.write(f"{row} \\\n")
+        f.write(f"  `endif\n\n")
 
-        f.write(f"`define {pkgname.upper()}_PARAM_ORDER")
-        f.write(f"{row}\n\n")
+        f.write(f"`define {pkgname.upper()}_PARAM_ORDER(NAME=NOT_DEFINED) \\\n")
+        reg_param_dec_named = reg_param_dec.copy()
+        reg_param_dec_unnamed = reg_param_dec.copy()
+        for i, reg_param in enumerate(reg_param_dec):
+            reg_param_dec_named[i] = f"    NAME``_{reg_param}"
+            reg_param_dec_unnamed[i] = f"    {reg_param}"
+        f.write(f"  `ifdef NAME \\\n")
+        row = separator.join(reg_param_dec_unnamed)
+        f.write(f"{row} \\\n")
+        f.write(f"  `else \\\n")
+        row = separator.join(reg_param_dec_named)
+        f.write(f"{row} \\\n")
+        f.write(f"  `endif\n\n")
 
         f.write(f"`endif\n")
 
