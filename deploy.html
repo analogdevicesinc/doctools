@@ -92,7 +92,7 @@
           <ul>
 <li><a class="reference internal" href="#">Documentation deployment</a><ul>
 <li><a class="reference internal" href="#local">Local</a></li>
-<li><a class="reference internal" href="#github-page-deployment">GitHub Page deployment</a><ul>
+<li><a class="reference internal" href="#github-pages-deployment">GitHub Pages deployment</a><ul>
 <li><a class="reference internal" href="#rolling-release">Rolling release</a></li>
 <li><a class="reference internal" href="#versioned">Versioned</a></li>
 <li><a class="reference internal" href="#string-array-form">String array form</a></li>
@@ -184,8 +184,8 @@ documentation.</p>
 </pre></div>
 </div>
 <div class="clear-left"></div></div></div></section>
-<section id="github-page-deployment">
-<span id="deploy-actions"></span><h2>GitHub Page deployment<a class="headerlink" href="#github-page-deployment" title="Link to this heading"></a></h2>
+<section id="github-pages-deployment">
+<span id="deploy-actions"></span><h2>GitHub Pages deployment<a class="headerlink" href="#github-pages-deployment" title="Link to this heading"></a></h2>
 <p>For either rolling release or versioned, you can use the shared actions.</p>
 <p>For push to default branch and pull requests:</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">on</span><span class="p">:</span>
@@ -227,7 +227,7 @@ documentation.</p>
 <span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
 <span class="w">    </span><span class="nt">permissions</span><span class="p">:</span>
 <span class="w">      </span><span class="nt">contents</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">write</span>
-<span class="w">    </span><span class="nt">if</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ github.ref == &#39;refs/heads/main&#39; || startsWith(github.ref, &#39;refs/pull/&#39;) }}</span>
+<span class="w">    </span><span class="nt">if</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ github.ref == &#39;refs/heads/main&#39; || github.event_name == &#39;pull_request&#39; }}</span>
 
 <span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">analogdevicesinc/doctools/gh-pages-deploy@action</span>
