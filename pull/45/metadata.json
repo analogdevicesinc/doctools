@@ -1,0 +1,99 @@
+{
+    "repotoc": {
+        "documentation": {
+            "name": "System Level",
+            "visibility": "public",
+            "pathname": "docs",
+            "branch": "main"
+        },
+        "hdl": {
+            "name": "HDL",
+            "visibility": "public",
+            "pathname": "docs",
+            "branch": "main"
+        },
+        "testbenches": {
+            "name": "HDL Testbenches",
+            "visibility": "public",
+            "pathname": "docs",
+            "branch": "main"
+        },
+        "linux": {
+            "name": "Linux",
+            "visibility": "public",
+            "pathname": "docs",
+            "branch": "main"
+        },
+        "pyadi-iio": {
+            "name": "pyadi-iio",
+            "visibility": "public",
+            "pathname": "doc/source",
+            "branch": "main"
+        },
+        "pyadi-dt": {
+            "name": "pyadi-dt",
+            "visibility": "public",
+            "pathname": "doc/source",
+            "branch": "main"
+        },
+        "pyadi-jif": {
+            "name": "pyadi-jif",
+            "visibility": "public",
+            "pathname": "doc/source",
+            "branch": "main"
+        },
+        "libiio": {
+            "name": "libiio",
+            "visibility": "public",
+            "pathname": "doc",
+            "branch": "main"
+        },
+        "no-OS": {
+            "name": "no-OS",
+            "visibility": "public",
+            "pathname": "doc/sphinx/source",
+            "branch": "main"
+        },
+        "precision-converters-firmware": {
+            "name": "Precision Converters Firmware",
+            "visibility": "public",
+            "pathname": "doc/sphinx",
+            "branch": "main"
+        },
+        "PrecisionToolbox": {
+            "name": "Precision Toolbox",
+            "visibility": "public",
+            "pathname": "docs",
+            "branch": "main"
+        },
+        "adi_ros2": {
+            "name": "ROS2",
+            "visibility": "public",
+            "pathname": "src/adi_ros2/doc",
+            "branch": "humble"
+        },
+        "scopy": {
+            "name": "Scopy",
+            "visibility": "public",
+            "pathname": "docs",
+            "branch": "main"
+        },
+        "doctools": {
+            "name": "Doctools",
+            "visibility": "public",
+            "pathname": "docs",
+            "branch": "main"
+        }
+    },
+    "modules": {
+        "javascript": [
+            "extra.umd.js"
+        ],
+        "stylesheet": [
+            "extra.min.css"
+        ]
+    },
+    "remote_doc": "https://analogdevicesinc.github.io/",
+    "source_hostname": "https://github.com/analogdevicesinc/{repository}/tree/{branch}/{pathname}",
+    "source_hostname_raw": "https://raw.githubusercontent.com/analogdevicesinc/{repository}/refs/heads/{branch}/{pathname}"
+}
