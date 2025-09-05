@@ -7,10 +7,10 @@ inputs:
     default: ${{ github.token }}
   new_tag:
     description: "If is a new tag"
-    required: true
+    default: false
   tag:
     description: "Tag value"
-    required: true
+    default: ""
   branch:
     description: "Branch to manage"
     default: gh-pages
@@ -56,7 +56,7 @@ runs:
       run: |
         if [[ "${{ github.event_name }}" == "pull_request" ]]; then
           echo "doc_path=pull/${{ github.event.number }}" >> "$GITHUB_ENV"
-        elif [[ "${{ inputs.new_tag }}" == "true" ]]; then
+        elif [[ "${{ inputs.new_tag }}" == "true" ]] && [[ -n "${{ inputs.tag }}" ]]; then
           echo "doc_path=${{ inputs.tag }}" >> "$GITHUB_ENV"
         fi
 
