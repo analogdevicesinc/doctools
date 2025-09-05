@@ -62,4 +62,19 @@ runs:
       run: |
         git add . >> /dev/null
         git commit -m "deploy: ${GITHUB_SHA} #${{ github.event.number }} (${{ github.event.action }})" --allow-empty
-        git push origin ${{ inputs.branch }}:${{ inputs.branch }}
+        if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+          json=$(curl -s -L \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ inputs.gh-token }}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}" \
+          | jq '{state, merged}')
+          state=$(echo "$json" | jq -r '.state')
+          if [[ "$state" == "closed" ]]; then
+            git push origin ${{ inputs.branch }}:${{ inputs.branch }}
+          else
+            echo "pr state '$state' is not 'closed', not pushing"
+          fi
+        else
+          git push origin ${{ inputs.branch }}:${{ inputs.branch }}
+        fi
