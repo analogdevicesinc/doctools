@@ -74,6 +74,7 @@ For push to default branch and pull requests:
 
      deploy-gh-pages:
        runs-on: ubuntu-latest
+       needs: build-doc
        permissions:
          contents: write
        if: ${{ github.ref == 'refs/heads/main' || github.event_name == 'pull_request' }}
