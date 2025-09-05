@@ -92,8 +92,9 @@
           <ul>
 <li><a class="reference internal" href="#">Documentation deployment</a><ul>
 <li><a class="reference internal" href="#local">Local</a></li>
+<li><a class="reference internal" href="#github-page-deployment">GitHub Page deployment</a><ul>
 <li><a class="reference internal" href="#rolling-release">Rolling release</a></li>
-<li><a class="reference internal" href="#versioned">Versioned</a><ul>
+<li><a class="reference internal" href="#versioned">Versioned</a></li>
 <li><a class="reference internal" href="#string-array-form">String array form</a></li>
 <li><a class="reference internal" href="#fine-grained-form">Fine-grained form</a></li>
 </ul>
@@ -183,8 +184,81 @@ documentation.</p>
 </pre></div>
 </div>
 <div class="clear-left"></div></div></div></section>
+<section id="github-page-deployment">
+<span id="deploy-actions"></span><h2>GitHub Page deployment<a class="headerlink" href="#github-page-deployment" title="Link to this heading"></a></h2>
+<p>For either rolling release or versioned, you can use the shared actions.</p>
+<p>For push to default branch and pull requests:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">on</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">push</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">branches</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">main</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dev</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dev/*</span>
+<span class="w">  </span><span class="nt">pull_request</span><span class="p">:</span>
+
+<span class="nt">jobs</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">build-doc</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+
+<span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/checkout@v4</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/setup-python@v5</span>
+<span class="w">      </span><span class="nt">with</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">python-version</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;3.x&quot;</span>
+
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Install pip packages</span>
+<span class="w">      </span><span class="nt">working-directory</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docs</span>
+<span class="w">      </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">        </span><span class="no">pip install pip --upgrade</span>
+<span class="w">        </span><span class="no">pip install -r requirements.txt</span>
+
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Build doc</span>
+<span class="w">      </span><span class="nt">working-directory</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docs</span>
+<span class="w">      </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">        </span><span class="no">make html SPHINXOPTS=&#39;-W --keep-going&#39;</span>
+
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Store the generated doc</span>
+<span class="w">      </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/upload-artifact@v4</span>
+<span class="w">      </span><span class="nt">with</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">html</span>
+<span class="w">        </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docs/_build/html</span>
+
+<span class="w">  </span><span class="nt">deploy-gh-pages</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+<span class="w">    </span><span class="nt">permissions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">contents</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">write</span>
+<span class="w">    </span><span class="nt">if</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ github.ref == &#39;refs/heads/main&#39; || startsWith(github.ref, &#39;refs/pull/&#39;) }}</span>
+
+<span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">analogdevicesinc/doctools/gh-pages-deploy@action</span>
+<span class="w">      </span><span class="nt">with</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">new_tag</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ env.new_tag }}</span>
+<span class="w">        </span><span class="nt">tag</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ env.tag }}</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">html</span>
+</pre></div>
+</div>
+<p>Remove <code class="docutils literal notranslate"><span class="pre">new_tag</span></code> and <code class="docutils literal notranslate"><span class="pre">tag</span></code> if not versioned.</p>
+<p>If running on pull requests, you need to also clean on closed:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">on</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">pull_request</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">types</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">closed</span><span class="p p-Indicator">]</span>
+
+<span class="nt">jobs</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">clean-gh-pages</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+<span class="w">    </span><span class="nt">permissions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">contents</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">write</span>
+
+<span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">analogdevicesinc/doctools/gh-pages-rm-path@action</span>
+<span class="w">      </span><span class="nt">with</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pull/${{ github.event.number }}</span>
+</pre></div>
+</div>
+<p>The actions are protected from fork pull requests and concurrency.</p>
+<p>Next, in depth example, without using the actions, are provided.</p>
 <section id="rolling-release">
-<span id="deploy-rolling-release"></span><h2>Rolling release<a class="headerlink" href="#rolling-release" title="Link to this heading"></a></h2>
+<span id="deploy-rolling-release"></span><h3>Rolling release<a class="headerlink" href="#rolling-release" title="Link to this heading"></a></h3>
 <p>For a rolling release, a workflow file is used.
 With GitHub Actions, the following workflow file is recommended:</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">on</span><span class="p">:</span>
@@ -286,7 +360,7 @@ please be aware of GitHub events values if implementing something else.</p>
 </div>
 </section>
 <section id="versioned">
-<span id="deploy-versioned"></span><h2>Versioned<a class="headerlink" href="#versioned" title="Link to this heading"></a></h2>
+<span id="deploy-versioned"></span><h3>Versioned<a class="headerlink" href="#versioned" title="Link to this heading"></a></h3>
 <p>The live versioned version requires additional orchestration than the
 <a class="reference internal" href="#deploy-rolling-release"><span class="std std-ref">Rolling release</span></a>.</p>
 <p>The versions are described in <code class="docutils literal notranslate"><span class="pre">tags.json</span></code> file on the root path
@@ -294,6 +368,7 @@ that can take two formats, one simpler with a plain string array and other
 fine-grained to allow full control.</p>
 <p>But first, store each version in separated folders in the root path, e.g.
 <code class="docutils literal notranslate"><span class="pre">v1.1</span></code>, <code class="docutils literal notranslate"><span class="pre">v2.2</span></code>, <code class="docutils literal notranslate"><span class="pre">main</span></code>, <code class="docutils literal notranslate"><span class="pre">dev</span></code>.</p>
+</section>
 <section id="string-array-form">
 <h3>String array form<a class="headerlink" href="#string-array-form" title="Link to this heading"></a></h3>
 <p>The simple <code class="docutils literal notranslate"><span class="pre">tags.json</span></code> is a plain array with each version/path on the
@@ -365,6 +440,7 @@ to the main/stable version:</p>
 &lt;/html&gt;
 </pre></div>
 </div>
+<p>With the shared action, this is not supported.</p>
 </section>
 <section id="how-do-i-cross-reference-a-specific-version">
 <h3>How do I cross-reference a specific version?<a class="headerlink" href="#how-do-i-cross-reference-a-specific-version" title="Link to this heading"></a></h3>
