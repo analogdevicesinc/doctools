@@ -1,10 +1,10 @@
 on:
   workflow_call:
     inputs:
-      asset_name:
+      asset_alias_name:
         required: true
         type: string
-      full_asset_name:
+      asset_path:
         required: true
         type: string
       new_tag:
@@ -54,7 +54,7 @@ jobs:
           gh-get-asset-id ${{ secrets.GITHUB_TOKEN }} \
                           ${{ github.repository }} \
                           $release_id \
-                          ${{ inputs.asset_name }} \
+                          ${{ inputs.asset_alias_name }} \
                           pre_release_asset_id
         )
 
@@ -73,7 +73,7 @@ jobs:
           gh-get-asset-id ${{ secrets.GITHUB_TOKEN }} \
                           ${{ github.repository }} \
                           $release_id \
-                          ${{ inputs.asset_name }} \
+                          ${{ inputs.asset_alias_name }} \
                           latest_asset_id
         )
 
@@ -96,8 +96,8 @@ jobs:
         gh-upload-asset ${{ secrets.GITHUB_TOKEN }} \
                         ${{ github.repository }} \
                         $release_id \
-                        ${{ inputs.asset_name }} \
-                        ${{ inputs.full_asset_name }}
+                        ${{ inputs.asset_alias_name }} \
+                        ${{ inputs.asset_path }}
 
     - name: GitHub update pre-release target commitish
       run: |
@@ -119,8 +119,8 @@ jobs:
         gh-upload-asset ${{ secrets.GITHUB_TOKEN }} \
                         ${{ github.repository }} \
                         $pre_release_id \
-                        ${{ inputs.asset_name }} \
-                        ${{ inputs.full_asset_name }}
+                        ${{ inputs.asset_alias_name }} \
+                        ${{ inputs.asset_path }}
 
     - name: GitHub update latest target commitish
       if: ${{ inputs.new_tag == 'true' }}
@@ -144,8 +144,8 @@ jobs:
         gh-upload-asset ${{ secrets.GITHUB_TOKEN }} \
                         ${{ github.repository }} \
                         $latest_id \
-                        ${{ inputs.asset_name }} \
-                        ${{ inputs.full_asset_name }}
+                        ${{ inputs.asset_alias_name }} \
+                        ${{ inputs.asset_path }}
 
   deploy-cloudsmith:
     runs-on: [self-hosted, v1]
@@ -203,8 +203,8 @@ jobs:
           cs-package-upload ${{ env.CLOUDSMITH_API_KEY }} \
                             ${{ vars.CLOUDSMITH_NAMESPACE }} \
                             ${{ vars.CLOUDSMITH_REPOSITORY }} \
-                            ${{ inputs.asset_name }} \
-                            ${{ inputs.full_asset_name }} \
+                            ${{ inputs.asset_alias_name }} \
+                            ${{ inputs.asset_path }} \
                             latest_package_file
         )
 

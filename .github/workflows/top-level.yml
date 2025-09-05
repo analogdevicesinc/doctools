@@ -32,7 +32,7 @@ jobs:
       contents: write
       id-token: write
     with:
-      asset_name: ${{ needs.build-package.outputs.asset_name }}
-      full_asset_name: ${{ needs.build-package.outputs.full_asset_name }}
+      asset_alias_name: ${{ needs.build-package.outputs.asset_alias_name }}
+      asset_path: ${{ needs.build-package.outputs.asset_path }}
       new_tag: ${{ needs.build-package.outputs.new_tag }}
       tag: ${{ needs.build-package.outputs.tag }}

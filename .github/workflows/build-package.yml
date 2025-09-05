@@ -1,10 +1,10 @@
 on:
   workflow_call:
     outputs:
-      asset_name:
-        value: ${{ jobs.build.outputs.asset_name}}
-      full_asset_name:
-        value: ${{ jobs.build.outputs.full_asset_name}}
+      asset_alias_name:
+        value: ${{ jobs.build.outputs.asset_alias_name}}
+      asset_path:
+        value: ${{ jobs.build.outputs.asset_path}}
       new_tag:
         value: ${{ jobs.build.outputs.new_tag}}
       tag:
@@ -15,8 +15,8 @@ jobs:
     runs-on: [self-hosted, v1]
 
     outputs:
-      asset_name: ${{ steps.get_asset.outputs.asset_name}}
-      full_asset_name: ${{ steps.get_asset.outputs.full_asset_name}}
+      asset_alias_name: ${{ steps.get_asset.outputs.asset_alias_name}}
+      asset_path: ${{ steps.get_asset.outputs.asset_path}}
       new_tag: ${{ steps.get_new_tag.outputs.new_tag}}
       tag: ${{ steps.get_tag.outputs.tag}}
 
@@ -80,9 +80,9 @@ jobs:
     - name: Get asset name
       id: get_asset
       run: |
-        echo "asset_name=adi-doctools.tar.gz" >> "$GITHUB_OUTPUT"
-        full_asset_name=$(find dist/ -maxdepth 1 -name "adi_doctools-*.tar.gz" -print -quit)
-        echo "full_asset_name=$full_asset_name" >> "$GITHUB_OUTPUT"
+        echo "asset_alias_name=adi-doctools.tar.gz" >> "$GITHUB_OUTPUT"
+        asset_path=$(find dist/ -maxdepth 1 -name "adi_doctools-*.tar.gz" -print -quit)
+        echo "asset_path=$asset_path" >> "$GITHUB_OUTPUT"
 
     - name: Store the distribution packages
       uses: actions/upload-artifact@v4
