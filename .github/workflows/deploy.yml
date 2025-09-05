@@ -217,7 +217,7 @@ jobs:
     runs-on: [self-hosted, v1]
     permissions:
       contents: write
-    if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/pull/') }}
+    if: ${{ github.ref == 'refs/heads/main' || github.event_name == 'pull_request' }}
 
     steps:
     - uses: analogdevicesinc/doctools/gh-pages-deploy@action

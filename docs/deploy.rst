@@ -28,8 +28,8 @@ Or with hot reload using :ref:`serve`:
 
 .. _deploy-actions:
 
-GitHub Page deployment
-----------------------
+GitHub Pages deployment
+-----------------------
 
 For either rolling release or versioned, you can use the shared actions.
 
@@ -76,7 +76,7 @@ For push to default branch and pull requests:
        runs-on: ubuntu-latest
        permissions:
          contents: write
-       if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/pull/') }}
+       if: ${{ github.ref == 'refs/heads/main' || github.event_name == 'pull_request' }}
 
        steps:
        - uses: analogdevicesinc/doctools/gh-pages-deploy@action
