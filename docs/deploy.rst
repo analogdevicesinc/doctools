@@ -26,10 +26,94 @@ Or with hot reload using :ref:`serve`:
 
    $adoc serve -d /path/to/docs
 
+.. _deploy-actions:
+
+GitHub Page deployment
+----------------------
+
+For either rolling release or versioned, you can use the shared actions.
+
+For push to default branch and pull requests:
+
+.. code:: yaml
+
+   on:
+     push:
+       branches:
+         - main
+         - dev
+         - dev/*
+     pull_request:
+
+   jobs:
+     build-doc:
+       runs-on: ubuntu-latest
+
+       steps:
+       - uses: actions/checkout@v4
+       - uses: actions/setup-python@v5
+         with:
+           python-version: "3.x"
+
+       - name: Install pip packages
+         working-directory: docs
+         run: |
+           pip install pip --upgrade
+           pip install -r requirements.txt
+
+       - name: Build doc
+         working-directory: docs
+         run: |
+           make html SPHINXOPTS='-W --keep-going'
+
+       - name: Store the generated doc
+         uses: actions/upload-artifact@v4
+         with:
+           name: html
+           path: docs/_build/html
+
+     deploy-gh-pages:
+       runs-on: ubuntu-latest
+       permissions:
+         contents: write
+       if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/pull/') }}
+
+       steps:
+       - uses: analogdevicesinc/doctools/gh-pages-deploy@action
+         with:
+           new_tag: ${{ env.new_tag }}
+           tag: ${{ env.tag }}
+           name: html
+
+Remove ``new_tag`` and ``tag`` if not versioned.
+
+If running on pull requests, you need to also clean on closed:
+
+.. code:: yaml
+
+   on:
+     pull_request:
+       types: [closed]
+
+   jobs:
+     clean-gh-pages:
+       runs-on: ubuntu-latest
+       permissions:
+         contents: write
+
+       steps:
+       - uses: analogdevicesinc/doctools/gh-pages-rm-path@action
+         with:
+           path: pull/${{ github.event.number }}
+
+The actions are protected from fork pull requests and concurrency.
+
+Next, in depth example, without using the actions, are provided.
+
 .. _deploy-rolling-release:
 
 Rolling release
----------------
+~~~~~~~~~~~~~~~
 
 For a rolling release, a workflow file is used.
 With GitHub Actions, the following workflow file is recommended:
@@ -139,7 +223,7 @@ The *requirements.txt* file should contain:
 .. _deploy-versioned:
 
 Versioned
----------
+~~~~~~~~~
 
 The live versioned version requires additional orchestration than the
 :ref:`deploy-rolling-release`.
@@ -225,6 +309,8 @@ to the main/stable version:
        <meta http-equiv="refresh" content="0; url=main/index.html" />
      </head>
    </html>
+
+With the shared action, this is not supported.
 
 How do I cross-reference a specific version?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
