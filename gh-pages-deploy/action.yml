@@ -1,0 +1,118 @@
+name: GH Pages Deploy
+description: Deploy to gh-pages
+
+inputs:
+  gh-token:
+    description: "GitHub Token"
+    default: ${{ github.token }}
+  new_tag:
+    description: "If is a new tag"
+    required: true
+  tag:
+    description: "Tag value"
+    required: true
+  branch:
+    description: "Branch to manage"
+    default: gh-pages
+  name:
+    description: "Artifact to deploy"
+    required: true
+
+# behaviour:
+# on push:
+#  * adds doc to root ./
+#  * if is a new tag, add to ./<tag> as well
+# on pull_request:
+#  * adds to ./pull/<id>
+#
+# Important:
+#   if the workflow runs in other branches,
+#   do not run this workflow!
+
+runs:
+  using: composite
+  steps:
+    - name: Check run condition
+      shell: bash
+      run: |
+        if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+          if [[ "${{ github.event.pull_request.head.repo.full_name }}" == "${{ github.repository }}" ]]; then
+            echo "gh_pages_deploy_run=true" >> "$GITHUB_ENV"
+          else
+            echo "gh_pages_deploy_run=" >> "$GITHUB_ENV"
+          fi
+        elif [[ "${{ github.event_name }}" == "push" ]]; then
+          echo "gh_pages_deploy_run=true" >> "$GITHUB_ENV"
+        else
+          echo "gh_pages_deploy_run=" >> "$GITHUB_ENV"
+        fi
+
+    - uses: analogdevicesinc/doctools/blank@action
+      if: ${{ env.gh_pages_deploy_run == 'true' }}
+
+    - name: Context to path
+      if: ${{ env.gh_pages_deploy_run == 'true' }}
+      shell: bash
+      run: |
+        if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+          echo "doc_path=pull/${{ github.event.number }}" >> "$GITHUB_ENV"
+        elif [[ "${{ inputs.new_tag }}" == "true" ]]; then
+          echo "doc_path=${{ inputs.tag }}" >> "$GITHUB_ENV"
+        fi
+
+    - name: Prepare gh-pages branch
+      if: ${{ env.gh_pages_deploy_run == 'true' }}
+      shell: bash
+      run: >
+        git ls-remote --exit-code --heads origin refs/heads/${{ inputs.branch }} &&
+        (
+          git fetch origin ${{ inputs.branch }}:${{ inputs.branch }} -f ;
+          git switch ${{ inputs.branch }} ;
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            built_docs=$(find . -mindepth 2 -name objects.inv -exec sh -c 'dirname {}' ';') ;
+            git rm -r . --quiet || true ;
+            if ! [ -z "$built_docs" ]; then
+              git checkout @ -- $built_docs ;
+            fi ;
+          fi ;
+          if ! [ -z "${{ env.doc_path }}" ]; then
+            git rm -r ${{ env.doc_path }} --quiet || true ;
+          fi ;
+        ) || (
+          git checkout --orphan ${{ inputs.branch }} ;
+          git reset --hard ;
+          git commit -m "initial commit" --allow-empty
+        )
+
+    - uses: actions/download-artifact@v4
+      if: ${{ env.gh_pages_deploy_run == 'true' && github.event_name == 'push' }}
+      with:
+        name: ${{ inputs.name }}
+
+    - uses: actions/download-artifact@v4
+      if: ${{ env.gh_pages_deploy_run == 'true' && env.doc_path != '' }}
+      with:
+        name: ${{ inputs.name }}
+        path: ${{ env.doc_path }}
+
+    - name: Generate aux files
+      if: ${{ env.gh_pages_deploy_run == 'true' }}
+      shell: bash
+      run: >
+        touch .nojekyll ;
+        find . -name objects.inv -exec sh -c 'dirname {}' ';' |
+        cut -c 3- | sort -Vr |
+        jq --raw-input . |
+        jq --slurp . > tags.json
+
+    - name: Commit and push to gh-pages
+      if: ${{ env.gh_pages_deploy_run == 'true' }}
+      shell: bash
+      run: |
+        git add . >> /dev/null
+        if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+          context=" #${{ github.event.number }} (${{ github.event.action }})"
+        fi
+        git commit -m "deploy: ${GITHUB_SHA}$context" --allow-empty
+        git push origin ${{ inputs.branch }}:${{ inputs.branch }}
+

@@ -1,0 +1,65 @@
+name: GH Pages Remove Path
+description: Remove path from gh-pages
+
+inputs:
+  gh-token:
+    description: "GitHub Token"
+    default: ${{ github.token }}
+  path:
+    description: "Path(s) to delete"
+    required: true
+  branch:
+    description: "Branch to manage"
+    default: gh-pages
+
+# behaviour:
+# removes the paths provides from gh-pages branch
+
+runs:
+  using: composite
+  steps:
+    - name: Check run condition
+      shell: bash
+      run: |
+        if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+          if [[ "${{ github.event.pull_request.head.repo.full_name }}" == "${{ github.repository }}" ]]; then
+            echo "gh_pages_remove_path_run=true" >> "$GITHUB_ENV"
+          else
+            echo "gh_pages_remove_path_run=" >> "$GITHUB_ENV"
+          fi
+        else
+          echo "gh_pages_remove_path_run=true" >> "$GITHUB_ENV"
+        fi
+
+    - uses: analogdevicesinc/doctools/blank@action
+      if: ${{ env.gh_pages_remove_path_run == 'true' }}
+
+    - name: Clean-up gh-pages branch
+      shell: bash
+      if: ${{ env.gh_pages_remove_path_run == 'true' }}
+      run: >
+        git ls-remote --exit-code --heads origin refs/heads/${{ inputs.branch }} &&
+        (
+          git fetch origin ${{ inputs.branch }}:${{ inputs.branch }} -f ;
+          git switch ${{ inputs.branch }} ;
+          git rm -r ${{ inputs.path }} --quiet || true ;
+          echo "gh_pages_exist=true" >> "$GITHUB_ENV" ;
+        )
+
+    - name: Generate aux files
+      shell: bash
+      if: ${{ env.gh_pages_remove_path_run == 'true' && env.gh_pages_exist == 'true' }}
+      run: >
+        touch .nojekyll ;
+        find . -name objects.inv -exec sh -c 'dirname {}' ';' |
+        cut -c 3- | sort -Vr |
+        jq --raw-input . |
+        jq --slurp . > tags.json
+
+    - name: Commit and push to gh-pages
+      shell: bash
+      if: ${{ env.gh_pages_remove_path_run == 'true' && env.gh_pages_exist == 'true' }}
+      run: |
+        git add . >> /dev/null
+        git commit -m "deploy: ${GITHUB_SHA} #${{ github.event.number }} (${{ github.event.action }})" --allow-empty
+        git push origin ${{ inputs.branch }}:${{ inputs.branch }}
