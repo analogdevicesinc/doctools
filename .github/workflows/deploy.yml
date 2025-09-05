@@ -217,63 +217,12 @@ jobs:
     runs-on: [self-hosted, v1]
     permissions:
       contents: write
-    if: ${{ github.ref == 'refs/heads/main' || github.event.pull_request.head.repo.full_name == github.repository }}
+    if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/pull/') }}
 
     steps:
-    - uses: analogdevicesinc/doctools/blank@action
-
-    - name: Context to path
-      run: |
-        if [[ "${{ inputs.new_tag }}" == "true" ]]; then
-          echo "doc_path=${{ inputs.tag }}" >> "$GITHUB_ENV"
-        elif [[ "${{ github.ref }}" == refs/pull/* ]]; then
-          echo "doc_path=pull/${{ github.event.number }}" >> "$GITHUB_ENV"
-        fi
-
-    - name: Prepare gh-pages branch
-      run: >
-        git ls-remote --exit-code --heads origin refs/heads/gh-pages &&
-        (
-          git fetch origin gh-pages:gh-pages -f ;
-          git switch gh-pages ;
-          built_docs=$(find . -mindepth 2 -name objects.inv -exec sh -c 'dirname {}' ';') ;
-          git rm -r . --quiet || true ;
-          if ! [ -z "$built_docs" ]; then
-            git checkout @ -- $built_docs ;
-          fi ;
-          if ! [ -z "${{ env.doc_path }}" ]; then
-            git rm -r ${{ env.doc_path }} --quiet || true ;
-          fi ;
-        ) || (
-          git checkout --orphan gh-pages ;
-          git reset --hard ;
-          git commit -m "initial commit" --allow-empty
-        )
-
-    - uses: actions/download-artifact@v4
-      if: ${{ github.ref == 'refs/heads/main' }}
+    - uses: analogdevicesinc/doctools/gh-pages-deploy@action
       with:
+        new_tag: ${{ inputs.new_tag }}
+        tag: ${{ inputs.tag }}
         name: html
 
-    - uses: actions/download-artifact@v4
-      if: ${{ env.doc_path != '' }}
-      with:
-        name: html
-        path: ${{ env.doc_path }}
-
-    - name: Generate aux files
-      run: >
-        touch .nojekyll ;
-        find . -name objects.inv -exec sh -c 'dirname {}' ';' |
-        cut -c 3- | sort -Vr |
-        jq --raw-input . |
-        jq --slurp . > tags.json
-
-    - name: Commit and push to gh-pages
-      run: |
-        git add . >> /dev/null
-        if [[ "${{ github.ref }}" == refs/pull/* ]]; then
-          context=" #${{ github.event.number }} (${{ github.event.action }})"
-        fi
-        git commit -m "deploy: ${GITHUB_SHA}$context" --allow-empty
-        git push origin gh-pages:gh-pages
