@@ -203,7 +203,6 @@ jobs:
           cs-package-upload ${{ env.CLOUDSMITH_API_KEY }} \
                             ${{ vars.CLOUDSMITH_NAMESPACE }} \
                             ${{ vars.CLOUDSMITH_REPOSITORY }} \
-                            ${{ inputs.asset_alias_name }} \
                             ${{ inputs.asset_path }} \
                             latest_package_file
         )

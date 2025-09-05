@@ -1,11 +1,11 @@
 cs-package-upload()
 {
   package_file=$(curl -fL \
-    -T $5 \
+    -T $4 \
     -H "X-Api-Key: $1" \
     -H "Content-Sha256: $(shasum -a256 $4 | cut -f1 -d' ')" \
-    https://upload.cloudsmith.io/$2/$3/$4 | jq -r .identifier)
-  echo "$6=$package_file" >> "$GITHUB_ENV"
+    https://upload.cloudsmith.io/$2/$3/$(basename $4) | jq -r .identifier)
+  echo "$5=$package_file" >> "$GITHUB_ENV"
   echo $package_file
 }
 
