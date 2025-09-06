@@ -81,10 +81,9 @@ export class Navigation {
     for (let i = 0; i < 7; i++) {
       entries.push(...DOM.getAll(`section > h${i}`, this.$.content))
     }
-    // document- links from singlehtml
+    // doc links from singlehtml
     entries.push(...Array.from(
-      DOM.getAll('div.toctree-wrapper.compound > span', this.$.content))
-        .filter(span => span.id.startsWith('document-')))
+      DOM.getAll('div.toctree-wrapper.compound > span', this.$.content)))
     // Sort entries in distance to the top
     entries = entries.sort((a, b) => a.getBoundingClientRect().y - b.getBoundingClientRect().y)
     entries.forEach((elem) => {
@@ -149,15 +148,12 @@ export class Navigation {
       else
         key = key_neg
 
-      if (key !== undefined) {
-        let clt_key = this.scrollSpy.currentLocaltoc
-        if (key !== clt_key) {
-          lt.get(key)[0].classList.add("current")
-          if (clt_key !== undefined) {
-            lt.get(clt_key)[0].classList.remove("current")
-          }
-          this.scrollSpy.currentLocaltoc = key
-        }
+      let clt_key = this.scrollSpy.currentLocaltoc
+      if (clt_key !== undefined && key !== clt_key)
+        lt.get(clt_key)[0].classList.remove("current")
+      if (key !== undefined && key !== clt_key) {
+        lt.get(key)[0].classList.add("current")
+        this.scrollSpy.currentLocaltoc = key
       }
     }
   }
