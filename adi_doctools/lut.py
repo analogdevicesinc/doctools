@@ -16,6 +16,8 @@ class Repo(TypedDict):
     pathname: str
     name: str
     longname: Optional[str]
+    description: str
+    category: str
     branch: str
     visibility: str
     topic: Optional[Dict[str, str]]
@@ -44,6 +46,8 @@ repos = {
     'documentation': Repo(
         pathname='docs',
         name='System Level',
+        description='User guides and tutorials for evaluation boards, software and hardware.',
+        category='system-level',
         branch='main',
         visibility='public'
     ),
@@ -54,12 +58,16 @@ repos = {
             "library", ["make", "all"], False
         ),
         name='HDL',
+        description='HDL libraries and projects for reference designs and prototyping systems.',
+        category='hdl',
         branch='main',
         visibility='public'
     ),
     'testbenches': Repo(
         pathname='docs',
         name='HDL Testbenches',
+        description='HDL testbenches for reference designs and prototyping systems.',
+        category='hdl',
         branch='main',
         visibility='public',
         parent='hdl'
@@ -67,6 +75,8 @@ repos = {
     'linux': Repo(
         pathname='docs',
         name='Linux',
+        description='Reduced Linux kernel documentation for staging or non-upstream drivers.',
+        category='driver',
         branch='main',
         visibility='public'
     ),
@@ -74,6 +84,8 @@ repos = {
         pathname='doc/source',
         name='pyadi-iio',
         longname='Python interfaces for hardware with Industrial I/O drivers',
+        description='Python abstraction layer for  IIO drivers.',
+        category='library',
         branch='main',
         visibility='public'
     ),
@@ -81,6 +93,8 @@ repos = {
         pathname='doc/source',
         name='pyadi-dt',
         longname='Device tree management tools for hardware',
+        description='Library and CLI for managing device trees components.',
+        category='library',
         branch='main',
         visibility='public'
     ),
@@ -88,48 +102,64 @@ repos = {
         pathname='doc/source',
         name='pyadi-jif',
         longname='Python Configurator for ADI JESD204 Interface Framework (JIF)',
+        description='Python interface for the ADI JESD Interface Framework.',
+        category='tool',
         branch='main',
         visibility='public'
     ),
     'libiio': Repo(
         pathname='doc',
         name='libiio',
+        description='Cross-platform library to access IIO devices.',
+        category='library',
         branch='main',
         visibility='public'
     ),
     'no-OS': Repo(
         pathname='doc/sphinx/source',
         name='no-OS',
+        description='Bare-metal software framework for drivers and applications.',
+        category='driver',
         branch='main',
         visibility='public'
     ),
     'precision-converters-firmware': Repo(
         pathname='doc/sphinx',
         name='Precision Converters Firmware',
+        description='Embedded firmware applications for precision converters on SDP-K1 and others.',
+        category='library',
         branch='main',
         visibility='public'
     ),
     'PrecisionToolbox': Repo(
         pathname='docs',
         name='Precision Toolbox',
+        description='Set of tools to interface precision converters within MATLAB and Simulink.',
+        category='library',
         branch='main',
         visibility='public'
     ),
     'adi_ros2': Repo(
         pathname='src/adi_ros2/doc',
         name='ROS2',
+        description='Robotics SDK with ROS 2 packages and tools in pre-configured container images.',
+        category='toolkit',
         branch='humble',
         visibility='public'
     ),
     'scopy': Repo(
         pathname='docs',
         name='Scopy',
+        description='Multi-functional software toolset with strong capabilities for signal analysis.',
+        category='tool',
         branch='main',
         visibility='public'
     ),
     'doctools': Repo(
         pathname='docs',
         name='Doctools',
+        description='Documentation guidelines, extensions, and tools.',
+        category='tool',
         branch='main',
         visibility='public'
     ),

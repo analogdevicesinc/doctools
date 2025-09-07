@@ -93,6 +93,8 @@ def build_finished(app, exc):
             for key in app.lut['repos']:
                 repos[key] = {
                     'name': app.lut['repos'][key]['name'],
+                    'description': app.lut['repos'][key]['description'],
+                    'category': app.lut['repos'][key]['category'],
                     'visibility': app.lut['repos'][key]['visibility'],
                     'pathname': app.lut['repos'][key]['pathname'],
                     'branch': app.lut['repos'][key]['branch']
