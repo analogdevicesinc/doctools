@@ -119,6 +119,16 @@ header .version-dropdown {
         padding: .2em .4em;
         margin-left: .5em;
         color: var(--accent-color);
+
+        &.pull_request {
+          color: variable.$hmc-color-purple-700;
+          border-color: variable.$hmc-color-purple-700;
+        }
+
+        &.unstable {
+          color: variable.$hmc-color-red-700;
+          border-color: variable.$hmc-color-red-700;
+        }
     }
 }
 

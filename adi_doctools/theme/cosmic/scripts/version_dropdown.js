@@ -110,11 +110,28 @@ export class VersionDropdown {
       obj_[""] = ["main", "unstable"]
 
     for (const key in obj_) {
-      obj_[key] = [obj_[key][0], "latest"]
-      break
+      if (!key.startsWith('pull/')) {
+        obj_[key] = [obj_[key][0], "latest"]
+        break
+      }
+    }
+
+    for (const key in obj_) {
+      if (key.startsWith('pull/'))
+        obj_[key] = ['#'+ obj_[key][0].substring(5), "pull request"]
     }
 
     return obj_
+  }
+  get_class_labels (text) {
+    if (text === '')
+      return ''
+    let labels = 'label'
+    if (text === 'pull request')
+      labels += ' pull_request'
+    else if (text === 'unstable')
+      labels += ' unstable'
+    return labels
   }
   /**
    * Create Tag/Version dropdown at the left sidebar.
@@ -182,7 +199,7 @@ export class VersionDropdown {
       let label_ = DOM.new('div')
       entry_.innerText = obj[key][0]
       let label = DOM.new('span', {
-        'className': obj[key][1] === '' ? "" : "label"
+        'className': this.get_class_labels(obj[key][1])
       })
       label.innerText = obj[key][1]
       label_.append(label)
@@ -205,7 +222,7 @@ export class VersionDropdown {
     })
     container.innerText = version
     let label_ = DOM.new('span', {
-      'className': label === '' ? "" : "label"
+      'className': this.get_class_labels(label)
     })
     label_.innerText = label
     container.append(label_)
@@ -232,10 +249,13 @@ export class VersionDropdown {
     let rect = dom.getBoundingClientRect()
     let wiw = window.innerWidth
     this.$.list.style.top = `${rect.top + 2.5*16}px`
-    if ((wiw - rect.right) < rect.left)
+    if ((wiw - rect.right) < rect.left) {
+      this.$.list.style.removeProperty('left')
       this.$.list.style.right = `${wiw - rect.right}px`
-    else
+    } else {
       this.$.list.style.left = `${rect.left}px`
+      this.$.list.style.removeProperty('right')
+    }
     this.$.cancel.classList.add('on')
     this.$.list.classList.add('on')
   }
