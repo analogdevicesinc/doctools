@@ -193,7 +193,6 @@ jobs:
         # tag || release: refs/tags/<tag>
         # pull_request: refs/pull/<id>/merge
         tags_="${{ github.ref }}, on/${{ github.event_name }}"
-        tags_+=", on/${{ github.event_name }}"
         [[ "${{ github.ref }}" == refs/pull/* ]] && \
           tags_+=", refs/heads/${{ github.head_ref }}, refs/base/${{ github.base_ref }}"
 
