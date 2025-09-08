@@ -28,6 +28,11 @@ while still obtaining a fairly good result.
 .. code:: rst
 
    .. flex::
+      :class: [badges, ...]
+
+The ``badges`` class applies styles to center elements, adds padding, and sets
+a max-width, for having a cluster of badges, normally below the logo, with ci
+status, code quality, among others.
 
 .. _directive grid:
 

@@ -4,6 +4,7 @@ from typing import List, Optional
 from docutils import nodes
 from docutils.statemachine import ViewList
 from docutils.parsers.rst import Directive, directives
+from docutils.parsers.rst.roles import set_classes
 from sphinx.util import logging
 from sphinx.util.docutils import SphinxDirective
 from sphinx.directives.code import container_wrapper
@@ -660,6 +661,9 @@ class directive_flex(Directive):
     This class losely sets CSS flex rules to show content side-by-side
     if enough space is provided.
     """
+    option_spec = {
+        'class': directives.class_option,
+    }
     has_content = True
     add_index = True
     final_argument_whitespace = True
@@ -668,8 +672,12 @@ class directive_flex(Directive):
     optional_arguments = 0
 
     def run(self):
+        set_classes(self.options)
+        classes_ = ['flex']
+        if 'classes' in self.options:
+            classes_.extend(self.options.get('classes'))
         node = node_div(
-            classes=['flex']
+            classes=classes_
         )
         self.state.nested_parse(self.content, self.content_offset, node)
 
@@ -683,6 +691,7 @@ class directive_grid(Directive):
     Widths is converted to CSS grid-template-columns.
     """
     option_spec = {
+        'class': directives.class_option,
         'widths': length_or_percentage_or_unitless_list,
     }
     has_content = False
@@ -700,8 +709,11 @@ class directive_grid(Directive):
                 'Error in "%s" directive: "widths" option is required.'
                 % (self.name))
 
+        classes_ = ['grid']
+        if 'classes' in self.options:
+            classes_.extend(self.options.get('classes'))
         node = node_div(
-            classes=['grid']
+            classes=classes_
         )
         widths = ' '.join([(w + '%' if w[-1].isnumeric() else w) for w in widths])
         node['style'] = f"grid-template-columns: {widths};"

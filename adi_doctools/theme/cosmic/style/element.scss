@@ -342,6 +342,21 @@ img {
     display: inline-block !important;
 }
 
+.flex.badges {
+    justify-content: center;
+    max-width: 40rem;
+    margin: 0 auto;
+
+    a {
+      width: inherit;
+      padding: .25em;
+    }
+
+    a:before {
+        display: none;
+    }
+}
+
 .only-light {
     display: var(--display-light) !important;
 }
