@@ -94,10 +94,6 @@ At the repository root, install the `npm` dependencies locally:
 * @rollup/plugin-terser: Minified bundle with terser.
 * sass: CSS stylesheets.
 
-Hidden dependencies (CDN):
-
-* fuzzysort: Fuzzy search
-
 If you choose to not use ``npm``, you can obtain pre-built web-scripts from the
 latest release.
 For that, just run :ref:`serve` after the repository is installed and
