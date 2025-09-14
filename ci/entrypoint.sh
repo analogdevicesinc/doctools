@@ -22,8 +22,6 @@ if [[ -z "$config_flags_" ]]; then
     config_flags_="--replace"
 fi
 
-source /usr/local/bin/github-api.sh
-
 if [[ -z "$org_repository_" ]]; then
     echo "No org_repository provided"
     exit 1

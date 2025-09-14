@@ -29,7 +29,7 @@ jobs:
     - name: Get assets
       run: |
         curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -L -o github-api.sh \
-          https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/ci/github-api.sh
+          https://raw.githubusercontent.com/analogdevicesinc/doctools/refs/heads/main/ci/github-api.sh
 
     - name: Ensure clean dist
       run: |
@@ -158,7 +158,7 @@ jobs:
     - name: Get assets
       run: |
         curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -L -o cloudsmith-api.sh \
-          https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/ci/cloudsmith-api.sh
+          https://raw.githubusercontent.com/analogdevicesinc/doctools/refs/heads/main/ci/cloudsmith-api.sh
 
     - name: Ensure clean dist
       run: |
