@@ -20,7 +20,7 @@ permissions:
 
 jobs:
   deploy-github:
-    runs-on: [self-hosted, v1]
+    runs-on: [self-hosted]
     permissions:
       contents: write
     if: ${{ github.ref == 'refs/heads/main' }}
@@ -148,7 +148,7 @@ jobs:
                         ${{ inputs.asset_path }}
 
   deploy-cloudsmith:
-    runs-on: [self-hosted, v1]
+    runs-on: [self-hosted]
     permissions:
       id-token: write
       contents: write
@@ -211,7 +211,7 @@ jobs:
                                 "$tags_"
 
   deploy-gh-pages:
-    runs-on: [self-hosted, v1]
+    runs-on: [self-hosted]
     permissions:
       contents: write
     if: ${{ github.ref == 'refs/heads/main' || github.event_name == 'pull_request' }}
