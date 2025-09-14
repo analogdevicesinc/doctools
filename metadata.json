@@ -32,7 +32,7 @@
             "pathname": "docs",
             "branch": "main"
         },
-        "kuiper": {
+        "adi-kuiper-gen": {
             "name": "Kuiper",
             "description": "A Debian-based Linux distribution designed for our hardware and evaluation boards.",
             "category": "os",
