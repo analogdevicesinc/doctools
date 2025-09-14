@@ -83,6 +83,8 @@ repos = {
     'kuiper': Repo(
         pathname='docs',
         name='Kuiper',
+        description='A Debian-based Linux distribution designed for our hardware and evaluation boards.',
+        category='os',
         branch='main',
         visibility='public'
     ),
