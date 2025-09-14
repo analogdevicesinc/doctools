@@ -80,6 +80,14 @@ repos = {
         branch='main',
         visibility='public'
     ),
+    'adi-kuiper-gen': Repo(
+        pathname='docs',
+        name='Kuiper',
+        description='A Debian-based Linux distribution designed for our hardware and evaluation boards.',
+        category='os',
+        branch='main',
+        visibility='public'
+    ),
     'pyadi-iio': Repo(
         pathname='doc/source',
         name='pyadi-iio',
