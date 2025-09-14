@@ -164,11 +164,6 @@ jobs:
       run: |
         rm -rf dist
 
-    - uses: actions/download-artifact@v4
-      with:
-        name: dist
-        path: dist
-
     - uses: cloudsmith-io/cloudsmith-cli-action@v1.0.4
       env:
         CLOUDSMITH_SERVICE_SLUG: ${{ secrets.CLOUDSMITH_SERVICE_SLUG }}
@@ -183,6 +178,12 @@ jobs:
         CLOUDSMITH_SERVICE_SLUG: ${{ secrets.CLOUDSMITH_SERVICE_SLUG }}
       if: ${{ env.CLOUDSMITH_SERVICE_SLUG == '' }}
       run: echo "CLOUDSMITH_API_KEY=${{ secrets.CLOUDSMITH_API_KEY }}" >> "$GITHUB_ENV"
+
+    - uses: actions/download-artifact@v4
+      if: ${{ env.CLOUDSMITH_API_KEY != '' }}
+      with:
+        name: dist
+        path: dist
 
     - name: Cloudsmith upload asset and create package
       if: ${{ env.CLOUDSMITH_API_KEY != '' }}
