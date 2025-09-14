@@ -20,8 +20,21 @@ RUN curl -o actions-runner.tar.gz -L https://github.com/actions/runner/releases/
     tar xzf actions-runner.tar.gz
 
 USER root
-COPY install-deps.sh .
-RUN chmod +x install-deps.sh ; ./install-deps.sh
+
+#core: wget make git openssl ca-certificates ca-certificates-mozilla
+#gh-actions: nodejs npm-default
+#packaging: unzip
+#weasyprint: libpango fontconfig lato-fonts
+RUN zypper install -y --no-recommends \
+    wget make git git-lfs openssl openssl-devel ca-certificates ca-certificates-mozilla \
+    nodejs npm-default \
+    unzip xz \
+    libpango-1_0-0 fontconfig lato-fonts
+
+RUN update-ca-certificates
+RUN fc-cache -f && fc-list
+RUN npm config set fund false
+
 COPY install-python.sh .
 RUN chmod +x install-python.sh ; \
     ./install-python.sh \
