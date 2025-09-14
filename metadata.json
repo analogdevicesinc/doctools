@@ -32,6 +32,14 @@
             "pathname": "docs",
             "branch": "main"
         },
+        "kuiper": {
+            "name": "Kuiper",
+            "description": "A Debian-based Linux distribution designed for our hardware and evaluation boards.",
+            "category": "os",
+            "visibility": "public",
+            "pathname": "docs",
+            "branch": "main"
+        },
         "pyadi-iio": {
             "name": "pyadi-iio",
             "description": "Python abstraction layer for  IIO drivers.",
