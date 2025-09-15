@@ -39,11 +39,12 @@ dynamic = ["version"]
 
 cli = [
     "selenium",
-    "weasyprint"
+    "weasyprint",
 ]
 
 test = [
-    "pytest"
+    "pytest",
+    "ruff",
 ]
 
 [tool.setuptools.packages.find]
