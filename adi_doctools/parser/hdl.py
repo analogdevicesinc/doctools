@@ -1,4 +1,4 @@
-from typing import TypedDict, Optional, List, Tuple, Dict
+from typing import Optional, List, Tuple, Dict
 
 import re
 import contextlib
@@ -194,7 +194,7 @@ def parse_hdl_regmap(ctime: float, file: str) -> Dict:
                                 bit_str = " ".join(bit_str.split(delimiter))
                             for str_part in bit_str.split():
                                 try:
-                                    bit_tmp = int(str_part)
+                                    int(str_part)
                                 except Exception:
                                     reg_params.append(str_part)
                         try:
@@ -206,7 +206,7 @@ def parse_hdl_regmap(ctime: float, file: str) -> Dict:
                                 bit_str = " ".join(bit_str.split(delimiter))
                             for str_part in bit_str.split():
                                 try:
-                                    bit_tmp = int(str_part)
+                                    int(str_part)
                                 except Exception:
                                     reg_params.append(str_part)
                         field_bits = (bit0_, bit1_)
@@ -803,7 +803,7 @@ def parse_hdl_library(
     if idx != -1:
         path_ = path.dirname(file)[idx+8:]
     else:
-        logger.warning(f"'library' not found in path to extract long name'")
+        logger.warning("'library' not found in path to extract long name'")
         return (None, None, None)
 
     if not path.isfile(file):
@@ -840,7 +840,7 @@ def parse_hdl_library(
             if len(line_) >= 5:
                 deps.add(line_[4])
 
-    if top_mod_ == None:
+    if top_mod_ is None:
         logger.warning(f"{file}: Unable to find top module name for library "
                        f"'{ip_name}', will use the lib name instead.")
         top_mod_ = ip_name
@@ -1053,7 +1053,7 @@ def parse_hdl_project(
     if idx != -1:
         path_ = path.dirname(file)[idx+9:]
     else:
-        logger.warning(f"'projects' not found in path to extract long name'")
+        logger.warning("'projects' not found in path to extract long name'")
         return (None, None)
 
     if not path.isfile(file):
@@ -1105,9 +1105,9 @@ def parse_hdl_project(
     m_deps.update(tcl_files_)
     # Get project files
     for t in tcl_files:
-        for l in t:
-            if l.startswith('adi_project_files'):
-                i_ = tcl.get_list_items(l)
+        for line in t:
+            if line.startswith('adi_project_files'):
+                i_ = tcl.get_list_items(line)
                 # Convert to relative to file dir
                 dir_ = path.dirname(file)
                 for f in i_:
@@ -1124,13 +1124,13 @@ def parse_hdl_project(
     # Get libraries
     lib_deps = set()
     for t in tcl_files:
-        for l in t:
-            if l.startswith('ad_ip_instance'):
-                l_ = l.split()
+        for line in t:
+            if line.startswith('ad_ip_instance'):
+                l_ = line.split()
                 if len(l_) > 1:
                     lib_deps.add(l_[1])
-            elif l.startswith('add_instance'):
-                l_ = l.split()
+            elif line.startswith('add_instance'):
+                l_ = line.split()
                 if len(l_) > 2:
                     lib_deps.add(l_[2])
 

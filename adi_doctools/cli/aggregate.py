@@ -4,7 +4,6 @@ from sphinx.util.osutil import SEP
 from os import mkdir, path, pardir, environ
 import click
 import subprocess
-import re
 
 from ..lut import get_lut
 
@@ -139,7 +138,7 @@ def get_sphinx_dirs(cwd) -> Tuple[bool, str, str]:
         click.echo(click.style(f"{conf_py} does not exist, skipped!", fg='red'))
         return (True, '')
 
-    builddir = path.join(cwd, f"_build/html")
+    builddir = path.join(cwd, "_build/html")
 
     return (False, builddir)
 

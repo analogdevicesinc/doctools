@@ -1,10 +1,10 @@
-from typing import Dict, Tuple
+from typing import Dict
 
 from datetime import datetime
 from os import path
 
 from ..__init__ import __version__
-from ..typing.hdl import vendors, Library, Project
+from ..typing.hdl import Library, Project
 
 license_makefile = f"""\
 ####################################################################################
@@ -14,7 +14,7 @@ license_makefile = f"""\
 ####################################################################################
 """
 
-license_sv = f"""\
+license_sv = """\
 // ***************************************************************************
 // ***************************************************************************
 // Copyright (C) 2014-2025 Analog Devices, Inc. All rights reserved.
@@ -117,7 +117,7 @@ def svpkg_head(f, key: str, regmap: Dict):
     f.write("  import logger_pkg::*;\n")
     f.write("  import adi_api_pkg::*;\n\n")
     f.write(f"  class {classname} extends adi_regmap")
-    f.write(f";\n\n")
+    f.write(";\n\n")
 
 
 def svpkg_reg_decl(f, regmap: Dict):
@@ -155,9 +155,9 @@ def svpkg_reg_inst(f, regmap: Dict):
                 row += ", "
                 row += ", ".join(reg_param_dec)
 
-            row += f", this);\n"
+            row += ", this);\n"
             f.write(row)
-            f.write(f"      end\n")
+            f.write("      end\n")
         else:
             reg['address'] = reg['address'] * 4
             addr = hex(reg['address']).replace("0x", "'h")
@@ -173,7 +173,7 @@ def svpkg_reg_inst(f, regmap: Dict):
                 reg_param_dec.sort()
                 row += ", "
                 row += ", ".join(reg_param_dec)
-            row += f", this);\n"
+            row += ", this);\n"
             f.write(row)
 
 
@@ -249,17 +249,16 @@ def write_hdl_regmap_definitions(
 
         run_time = datetime.now().strftime('%b %d %H:%M:%S %Y')
         pkgname = f"adi_regmap_{key}_pkg"
-        classname = f"adi_regmap_{key}"
         f.write(license_sv)
         f.write("/* Auto generated Register Map */\n")
         f.write(f"/* {run_time} v{__version__} */\n")
         f.write("\n")
 
-        f.write(f"`timescale 1ns/1ps\n\n")
+        f.write("`timescale 1ns/1ps\n\n")
         f.write(f"`ifndef _{pkgname.upper()}_DEFINITIONS_SVH_\n")
         f.write(f"`define _{pkgname.upper()}_DEFINITIONS_SVH_\n\n")
 
-        f.write(f"// Help build VIP Interface parameters name\n")
+        f.write("// Help build VIP Interface parameters name\n")
 
         reg_param_dec_import = reg_param_dec.copy()
         for i, reg_param in enumerate(reg_param_dec_import):
@@ -277,7 +276,7 @@ def write_hdl_regmap_definitions(
         f.write(f"`define {pkgname.upper()}_PARAM_ORDER")
         f.write(f"{row}\n\n")
 
-        f.write(f"`endif\n")
+        f.write("`endif\n")
 
         f.close()
 
@@ -295,7 +294,7 @@ def regmap_test_program(
     path_: str,
     regmap: Dict
 ) -> None:
-    fname = f"test_program.sv"
+    fname = "test_program.sv"
     file = path.join(path_, fname)
     f = open(file, "w")
 
@@ -303,15 +302,15 @@ def regmap_test_program(
     f.write("import logger_pkg::*;\n")
 
     for m in regmap:
-        row = f"import adi_regmap_" + m + "_pkg::*;\n"
+        row = "import adi_regmap_" + m + "_pkg::*;\n"
         f.write(row)
 
     f.write("\nmodule test_program;\n\n")
 
     for m in regmap:
-        row = f"  adi_regmap_" + m + " "
+        row = "  adi_regmap_" + m + " "
 
-        row += f"adi_regmap_" + m + "_rm;\n"
+        row += "adi_regmap_" + m + "_rm;\n"
         f.write(row)
 
     f.write("\n  initial begin\n\n")
@@ -319,8 +318,8 @@ def regmap_test_program(
     f.write("\n    setLoggerVerbosity(ADI_VERBOSITY_NONE);\n\n")
 
     for m in regmap:
-        row = f"    adi_regmap_" + m + "_rm = new(\"" + m + "\""
-        row += f", 0"
+        row = "    adi_regmap_" + m + "_rm = new(\"" + m + "\""
+        row += ", 0"
         reg_param_dec = []
         for k in regmap[m]['subregmap']:
             for reg in regmap[m]['subregmap'][k]['regmap']:
@@ -349,7 +348,7 @@ def regmap_bash_script(
     path_: str,
     regmap: Dict
 ) -> None:
-    fname = f"test_program"
+    fname = "test_program"
     file = path.join(path_, fname)
     f = open(file, "w")
 
@@ -365,7 +364,7 @@ def regmap_bash_script(
     f.write("SOURCE+=\"adi_api_pkg.sv \"\n")
 
     for m in regmap:
-        row = f"SOURCE+=\"adi_regmap_" + m + "_pkg.sv \"\n"
+        row = "SOURCE+=\"adi_regmap_" + m + "_pkg.sv \"\n"
         f.write(row)
 
     f.write("SOURCE+=\"test_program.sv\"\n\n")

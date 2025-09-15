@@ -1,7 +1,6 @@
 from typing import Tuple, List
 from types import ModuleType
 
-import subprocess
 from docutils import nodes
 from docutils.utils import Reporter
 from docutils.nodes import Node, system_message

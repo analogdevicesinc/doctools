@@ -1,7 +1,7 @@
 from typing import List, Set, Optional, Union, Tuple
 
 import re
-from os import path, chdir, getcwd
+from os import path
 
 from sphinx.util import logging
 
@@ -27,9 +27,9 @@ class tcl:
                     line_ += line.replace('\n', '')
                     data.append(line_)
                     line_ = ''
-        data = [' '.join(l.replace("\t", " ").strip().split()) for l in data]
+        data = [' '.join(d.replace("\t", " ").strip().split()) for d in data]
         for m in ["list", "info"]:
-            data = [l.replace("[ "+m, "["+m) for l in data]
+            data = [d.replace("[ "+m, "["+m) for d in data]
         self.data = data
 
     def __iter__(self):

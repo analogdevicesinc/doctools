@@ -5,7 +5,8 @@ from os import path, listdir, pardir, chdir, getcwd, mkdir
 from os import environ, cpu_count
 from glob import glob
 from shutil import copy2
-import importlib.util, importlib.machinery
+import importlib.util
+import importlib.machinery
 import subprocess
 import click
 import yaml
@@ -62,7 +63,7 @@ def get_sphinx_dirs(cwd) -> Tuple[bool, str, str]:
         click.echo(click.style(f"{conf_py} does not exist, skipped!", fg='red'))
         return (True, '')
 
-    builddir = path.join(cwd, f"_build")
+    builddir = path.join(cwd, "_build")
 
     return (False, builddir)
 
@@ -646,7 +647,7 @@ def prepare_doc(doc, repos_dir, doc_dir, drop_ext):
                        f"{BLUE}--drop-missing-extensions{NC} to remove them.")
             sys.exit(1)
         else:
-            click.echo(f"And will not be added to the configuration file.")
+            click.echo("And will not be added to the configuration file.")
 
     # Copy over custom pages
     for c in doc['custom']:
@@ -659,12 +660,12 @@ def prepare_doc(doc, repos_dir, doc_dir, drop_ext):
     config_f = template_config
 
     e_ = ''.join([f"\n    '{e}'," for e in doc['extensions']]) + '\n'
-    config_f = config_f.replace(f"$extensions$", e_)
+    config_f = config_f.replace("$extensions$", e_)
 
     sys_path_insert = ""
     for sp in sys_path_:
         sys_path_insert += f"sys_path.insert(0, '{sp}')\n"
-    config_f = config_f.replace(f"$sys_path_insert$", sys_path_insert)
+    config_f = config_f.replace("$sys_path_insert$", sys_path_insert)
 
     # Add local alternative inventory
     # Allows to edit the set of repos and test locally and then publish together,
@@ -679,7 +680,7 @@ def prepare_doc(doc, repos_dir, doc_dir, drop_ext):
             str_inter += f"\n         ('{url}', None)),\n"
         else:
             str_inter += " None),\n"
-    config_f = config_f.replace(f"$intersphinx_mapping$", str_inter)
+    config_f = config_f.replace("$intersphinx_mapping$", str_inter)
 
     config_f = config_f.replace("$project$", doc['project'])
     config_f = config_f.replace("$description$", doc['description'])
@@ -943,7 +944,6 @@ def patch_doc(doc, repos_dir, doc_dir, doc_patch_dir, git_lfs, sphinx_builder):
     patch_index(doc, tocs, index_file)
 
     # Second run
-    cwd_ = getcwd()
     warnfile = 'warnings_patched.txt'
     warning = open(warnfile, "w")
     builddir = path.join("build", "html")

@@ -76,7 +76,7 @@ def builder_inited(app):
     if doc_version is not None:
         try:
             doc_version = 'v'+str(Version(doc_version))
-        except Exception as err:
+        except Exception:
             pass
         config.version = doc_version
     # Parameter to enable PDF output tweaks

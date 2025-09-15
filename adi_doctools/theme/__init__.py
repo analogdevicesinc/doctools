@@ -49,11 +49,11 @@ def config_inited(app, config):
         ftoc = getenv("ADOC_FILTER_TOCTREE", default="0")
         config.filter_toctree = True if ftoc == "1" else False
     else:
-        config.filter_toctree = config.filter_toctree == True
+        config.filter_toctree = True if config.filter_toctree else False
 
     # DEPRECATED
     if config.target_depth is not None or getenv("ADOC_TARGET_DEPTH", default=None) is not None:
-        logger.info(f"ADOC_TARGET_DEPTH is deprecated and has no effect.")
+        logger.info("ADOC_TARGET_DEPTH is deprecated and has no effect.")
 
 def builder_inited(app):
     """
@@ -240,7 +240,7 @@ def navigation_tree(app, toctree_html, content_root, pagename):
             return
 
         for t in tocs:
-            if t[0] == False:
+            if not t[0]:
                 for e in t[1]:
                     body.remove(e)
 
