@@ -229,7 +229,6 @@ to anchor to ``outdir/../managed``:
    dest_dir = path.abspath(path.join(env.app.builder.outdir, pardir, 'managed'))
    sql_path = (dest_dir, "my_repo.sqlite")
 
-
 Indentation
 -----------
 
@@ -425,9 +424,8 @@ for example
 Numbered references
 ~~~~~~~~~~~~~~~~~~~
 
-References can be numbered by using
-`numref <https://www.sphinx-doc.org/en/master/usage/referencing.html#role-numref>`__,
-for example, "*see Figure 1*".
+References can be numbered by using :external+sphinx:rst:role:`numref`, for
+example, "*see Figure 1*".
 
 To use this feature, enable on the *conf.py*:
 
@@ -446,9 +444,10 @@ To customize the format, set ``numfig_format``:
 
 .. tip::
 
-   By default enumeration is global, so if the toctree is not
-   `numbered <https://www.sphinx-doc.org/en/master/usage/restructuredtext/directives.html#directive-option-toctree-numbered>`__ to divide the pages in numbered sections (e.g. *Figure 3.4.4*),
-   the numbering will "propagate" across page which may be counter-intuitive.
+   By default enumeration is global, so if the
+   :external+sphinx:rst:dir:`toctree` is not ``numbered`` to divide the pages
+   in numbered sections (e.g. *Figure 3.4.4*), the numbering will "propagate"
+   across page which may be counter-intuitive.
 
    To have the numbering reset at every page, add ``numfig_per_doc = True`` to
    *conf.py*.
@@ -603,9 +602,8 @@ and imported
 (using the file option), because they are faster to create, easier to maintain
 and the 80 column-width rule can be respected with list-tables.
 
-Only use
-`grid tables <https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html#tables>`__
-if strictly necessary, since they are hard to update.
+Only use :external+sphinx:ref:`Grid Tables <rst-tables>` if strictly necessary,
+since they are hard to update.
 
 To tune styling, the following classes are available:
 
@@ -641,12 +639,9 @@ Renders as:
 Code
 ----
 
-Prefer
-`code-blocks <https://www.sphinx-doc.org/en/master/usage/restructuredtext/directives.html#directive-code-block>`_
-to
-`code <https://docutils.sourceforge.io/docs/ref/rst/directives.html#code>`_
-directives, because code-blocks have more options, such as showing line numbers
-and emphasizing lines.
+Prefer :external+sphinx:rst:dir:`code-block` to ``code`` directives, because
+code-blocks have more options, such as showing line numbers and emphasizing
+lines.
 
 For example,
 
@@ -660,7 +655,7 @@ For example,
           string = "Hello world"
           print(string)
 
-Renders as
+Renders as:
 
 .. code-block:: python
    :linenos:

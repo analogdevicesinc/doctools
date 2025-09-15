@@ -283,7 +283,7 @@ Here is a example of auto-resolved *intersphinx_mapping* by ``custom-doc``, at t
    }
 
 Learn more about the core of this behavior at
-`Multiple targets for the inventory, intersphinx_mapping <https://www.sphinx-doc.org/en/master/usage/extensions/intersphinx.html#confval-intersphinx_mapping>`__.
+:external+sphinx:mod:`sphinx.ext.intersphinx`'s ``intersphinx_mapping``.
 
 For a single doc, without ``custom-doc``, there is also ``interref_local`` described
 at :ref:`in-org-ref`.
