@@ -1,0 +1,8 @@
+ADI|adi
+[Dd]octools
+bundler
+rollup
+npm
+distro
+distros
+docname
