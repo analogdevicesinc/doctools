@@ -1,7 +1,7 @@
 from os import path, listdir, remove, mkdir
 from os import pardir
 from os import environ, stat, utime
-from os import chdir, getcwd, cpu_count
+from os import cpu_count
 from shutil import copy2, which, move
 import click
 import importlib
@@ -284,7 +284,6 @@ def serve(directory, port, dev, selenium, once, builder):
 
     if builder == 'singlehtml':
         singlehtml_file = path.join(builddir, 'index.html')
-        font_config = FontConfiguration()
         from .aux_print import sanitize_singlehtml
 
     def update_pdf():
@@ -385,7 +384,7 @@ def serve(directory, port, dev, selenium, once, builder):
                         sha_ = f.read(64)
                         if sha == sha_:
                             return file
-                except Exception as e:
+                except Exception:
                     pass
 
             return None
@@ -627,7 +626,7 @@ def serve(directory, port, dev, selenium, once, builder):
             if with_selenium:
                 try:
                     driver.execute_script(f"location.replace('{trigger_rst[1]}');")
-                except Exception as e:
+                except Exception:
                     click.echo("Browser disconnected")
                     if dev:
                         aux_killpg(rollup_p)

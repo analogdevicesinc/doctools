@@ -8,7 +8,7 @@ def monkeypatch_figure_numbers():
     old_assign_figure_numbers = TocTreeCollector.assign_figure_numbers
 
     def assign_figure_numbers(self, env):
-        rewrite_needed = old_assign_figure_numbers(self, env)
+        _ = old_assign_figure_numbers(self, env)
         for entry in env.toc_fignumbers:
             for type_ in  env.toc_fignumbers[entry]:
                 if len(env.toc_fignumbers[entry][type_]) > 0:

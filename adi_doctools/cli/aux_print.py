@@ -27,7 +27,7 @@ def sanitize_singlehtml(file) -> str:
     if len(toc_tree):
         toc_tree = toc_tree[0]
         cap_ = toc_tree.xpath("./p[@class='caption' and @role='heading']//span[@class='caption-text']")
-        echo(f"Toctree not found, skipped")
+        echo("Toctree not found, skipped")
     else:
         cap_ = []
     volumes = []
@@ -77,7 +77,7 @@ def sanitize_singlehtml(file) -> str:
         first_page = first_page[0]
         first_page.insert(1, ele_desc)
     else:
-        echo(f"Logo not found, skipped adding description")
+        echo("Logo not found, skipped adding description")
 
     # Find indexes and add volumes
     for c, i in volumes:

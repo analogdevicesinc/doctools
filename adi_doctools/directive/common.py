@@ -461,7 +461,7 @@ class directive_collection(SphinxDirective):
         label = self.options.pop('label', None)
         if label:
             label = re.split(r'(?<!\\) ', label)
-            label = [l.replace('\\ ', ' ') for l in label]
+            label = [d.replace('\\ ', ' ') for d in label]
 
         description = []
         for i, line in enumerate(self.content):
@@ -478,7 +478,7 @@ class directive_collection(SphinxDirective):
             line = line.split("#", 1)[0]  # Strip comments
             if not line.startswith(' ') and line.strip().endswith(':'):
                 current_include = line.strip()[:-1]
-                if not current_include in include:
+                if current_include not in include:
                     include[current_include] = {}
                 continue
             if not current_include:
@@ -524,7 +524,7 @@ class directive_collection(SphinxDirective):
                 include[current_include][path_]["name"] = name
 
         if not got_itself and self.config.repository:
-            if not self.config.repository in include:
+            if self.config.repository not in include:
                 include[self.config.repository] = {}
             include[self.config.repository][docname] = {}
 

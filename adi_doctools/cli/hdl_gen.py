@@ -1,9 +1,8 @@
 from typing import Dict, Tuple
 
 import click
-import subprocess
 import re
-from os import path, walk, pardir, chdir, getcwd
+from os import path, walk, chdir, getcwd
 from glob import glob
 
 from ..typing.hdl import vendors, Library, Carrier, Project
