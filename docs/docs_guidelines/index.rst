@@ -44,6 +44,192 @@ There is also the
 `DokuWiki to Sphinx (bash.sh) <https://gist.github.com/gastmaier/9d9c8281dc3c8551991a857cdb2692cc>`__
 to further help importing.
 
+Directives and roles
+--------------------
+
+Sphinx allows expanding functionality beyond the defaults directives and roles
+by loading extensions. Doctools implements custom directives and roles for common
+features, but :ref:`third-party extensions <extension-third-party>` can also be used.
+
+.. toctree::
+   :caption: Doctools extended directives and roles are provided at:
+   :titlesonly:
+
+   directives
+   roles
+
+.. _extension-third-party:
+
+Third-party directives and roles
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Repositories have the freedom to choose the third-party extensions they want to
+include in their documentation.
+They are listed on the *requirements.tst* file, and are installed with:
+
+.. code:: bash
+
+   pip install -r requirements.txt
+
+The recommendation is to avoid using extensions that render content on the
+client-side using JavaScript, because it requires:
+
+* Fetching third-party scripts at someone-else server most of the time; and
+* Makes exporting to other formats (like pdf) harder, because it is then necessary to
+  patch and replace with another non-JavaScript renderer.
+* Requires managing these added scripts to ensure they apply on hot reload.
+
+Support custom JavaScript in hot reload
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Hot reload is a feature that reloads only parts of a webpage, allowing super
+fast content-loading, cool animations, and a better user experience.
+
+However, for third-party client-side JavaScript, it is necessary to map the
+added globals to hot reload module.
+
+On :git-doctools:`adi_doctools/theme/cosmic/scripts/hot_reload.js`, extend the
+``script_remove`` and ``script_add`` to include hooks for your particular added
+script.
+
+For example, for MathJax, that is simply calling the global method
+``MathJax.typeset()`` to process the new page (hot reload) if the page includes
+the script.
+
+Here is a template:
+
+.. code:: javascript
+
+   export class HotReload {
+     // ...
+     script_remove (url) {
+       switch(url) {
+         case "https://example.com/npm/my_script.js":
+           if (typeof MyScript !== 'undefined')
+             // If there is a clean-up/deinit method, call it
+             // to try to keep memory usage in check.
+             MyScript.cleanup()
+           break;
+         // ...
+       }
+     }
+     script_add (url) {
+       // Get templated script node.
+       const elem = this.js_script_memory.get(url)
+       // Append to page to init loading.
+       document.querySelector('head')?.append(elem)
+       switch(url) {
+         case "https://example.com/npm/my_script.js":
+           if (typeof MyScript !== 'undefined')
+             // On hot reload, already loaded, retrigger init.
+             // You need to check the script documentation for
+             // the exact methods names, calls.
+             MyScript.init()
+           else
+             // On hot reload, first load, do
+             elem.onload = () => {
+               console.log("MyScript loaded!")
+               // Do other things, if necessary, but in general those scripts
+               // already do their thing on load.
+             }
+           break;
+         // ...
+       }
+     }
+
+.. _extension-repository:
+
+Repository-specific extensions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Extensions with repository-specific functionalities can be added to the repository
+source code.
+
+At *conf.py*, add:
+
+.. code:: python
+
+   import os
+   import sys
+   sys.path.insert(0, os.path.abspath(os.path.join('.', 'ext'))
+
+   extensions = [
+        ...
+        "ext_repo_name"
+   ]
+
+Create the *ext/ext_repo_name.py* and implement your custom directives/roles.
+Replace *repo_name* with your repository name.
+
+.. tip::
+
+   If you think your extension could be useful for other repositories, consider
+   migrating it to Doctools source code.
+
+If the extension relies on files at the repository (like XML files), and/or
+uses either env.found_docs or docnames to manage cache,
+check if ``env.config.monolithic`` exists and is true.
+
+If yes, prefix:
+
+* The path to files with the relative path from the custom doc to the
+  repository (always `../<repository>` (e.g.,`../hdl`)); and
+* Doc-names with the repository name (e.g., `hdl/`).
+
+This ensures compatibility with :ref:`custom-doc`.
+
+Here is a practical example:
+
+* Metadata to be parsed is at ``repo_name/builds/info.xml``
+* The sphinx source dir ``env.srcdir`` values are:
+
+ * Original doc (per repo): ``repo_name/doc/sphinx/source``
+ * Custom doc (always): ``_build``.
+
+So, if it is necessary to check ``env.config.monolithic`` to correct infer the
+target file path, for example:
+
+.. code:: python
+
+   if hasattr(env.config, 'monolithic') and env.config.monolithic:
+        repo_path = path.join(env.srcdir, '..', 'repo_name')
+   else:
+        repo_path = path.join(env.srcdir, '..', '..', '..')
+
+   artifact_path = path.abspath(path.join(repo_root, 'builds', 'info.xml'))
+
+This is necessary because Sphinx has no way of knowing the repository root
+(without invoking a git shell), so hard-coding a relative path is necessary.
+
+.. note::
+
+   If the extensions are reused by multiple repositories, infer the repository
+   name from the first level (``my_repo/``) of the docname
+   (``my_repo/tutorial/index``).
+
+Custom doc copies
+``env.srcdir(original)`` to ``env.srcdir(custom)/repo_name``
+to avoid page conflicts when aggregating.
+So, sometimes it is necessary to prefix docnames with the repository name:
+
+.. code:: python
+
+   if hasattr(env.config, 'monolithic') and env.config.monolithic:
+        prefix = "repo_name"
+   else:
+        prefix = "."
+
+   _somedoc = path.join(prefix, _somedoc)
+
+For intermediary files, for example a SQLite database, it is recommended
+to anchor to ``outdir/../managed``:
+
+.. code:: python
+
+   dest_dir = path.abspath(path.join(env.app.builder.outdir, pardir, 'managed'))
+   sql_path = (dest_dir, "my_repo.sqlite")
+
+
 Indentation
 -----------
 
@@ -530,191 +716,6 @@ files use a pattern at the repo root, for example:
    git lfs track *.jpg
 
 Or edit ``.gitattributes`` directly.
-
-Adding directives and roles
----------------------------
-
-Sphinx allows expanding functionality beyond the defaults directives and roles
-by loading extensions. Doctools implements custom directives and roles for common
-features, but :ref:`third-party extensions <extension-third-party>` can also be used.
-
-.. toctree::
-   :caption: Doctools extended directives and roles are provided at:
-   :titlesonly:
-
-   directives
-   roles
-
-.. _extension-third-party:
-
-Third-party directives and roles
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Repositories have the freedom to choose the third-party extensions they want to
-include in their documentation.
-They are listed on the *requirements.tst* file, and are installed with:
-
-.. code:: bash
-
-   pip install -r requirements.txt
-
-The recommendation is to avoid using extensions that render content on the
-client-side using JavaScript, because it requires:
-
-* Fetching third-party scripts at someone-else server most of the time; and
-* Makes exporting to other formats (like pdf) harder, because it is then necessary to
-  patch and replace with another non-JavaScript renderer.
-* Requires managing these added scripts to ensure they apply on hot reload.
-
-Support custom JavaScript in hot reload
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Hot reload is a feature that reloads only parts of a webpage, allowing super
-fast content-loading, cool animations, and a better user experience.
-
-However, for third-party client-side JavaScript, it is necessary to map the
-added globals to hot reload module.
-
-On :git-doctools:`adi_doctools/theme/cosmic/scripts/hot_reload.js`, extend the
-``script_remove`` and ``script_add`` to include hooks for your particular added
-script.
-
-For example, for MathJax, that is simply calling the global method
-``MathJax.typeset()`` to process the new page (hot reload) if the page includes
-the script.
-
-Here is a template:
-
-.. code:: javascript
-
-   export class HotReload {
-     // ...
-     script_remove (url) {
-       switch(url) {
-         case "https://example.com/npm/my_script.js":
-           if (typeof MyScript !== 'undefined')
-             // If there is a clean-up/deinit method, call it
-             // to try to keep memory usage in check.
-             MyScript.cleanup()
-           break;
-         // ...
-       }
-     }
-     script_add (url) {
-       // Get templated script node.
-       const elem = this.js_script_memory.get(url)
-       // Append to page to init loading.
-       document.querySelector('head')?.append(elem)
-       switch(url) {
-         case "https://example.com/npm/my_script.js":
-           if (typeof MyScript !== 'undefined')
-             // On hot reload, already loaded, retrigger init.
-             // You need to check the script documentation for
-             // the exact methods names, calls.
-             MyScript.init()
-           else
-             // On hot reload, first load, do
-             elem.onload = () => {
-               console.log("MyScript loaded!")
-               // Do other things, if necessary, but in general those scripts
-               // already do their thing on load.
-             }
-           break;
-         // ...
-       }
-     }
-
-.. _extension-repository:
-
-Repository-specific extensions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Extensions with repository-specific functionalities can be added to the repository
-source code.
-
-At *conf.py*, add:
-
-.. code:: python
-
-   import os
-   import sys
-   sys.path.insert(0, os.path.abspath(os.path.join('.', 'ext'))
-
-   extensions = [
-        ...
-        "ext_repo_name"
-   ]
-
-Create the *ext/ext_repo_name.py* and implement your custom directives/roles.
-Replace *repo_name* with your repository name.
-
-.. tip::
-
-   If you think your extension could be useful for other repositories, consider
-   migrating it to Doctools source code.
-
-If the extension relies on files at the repository (like XML files), and/or
-uses either env.found_docs or docnames to manage cache,
-check if ``env.config.monolithic`` exists and is true.
-
-If yes, prefix:
-
-* The path to files with the relative path from the custom doc to the
-  repository (always `../<repository>` (e.g.,`../hdl`)); and
-* Doc-names with the repository name (e.g., `hdl/`).
-
-This ensures compatibility with :ref:`custom-doc`.
-
-Here is a practical example:
-
-* Metadata to be parsed is at ``repo_name/builds/info.xml``
-* The sphinx source dir ``env.srcdir`` values are:
-
- * Original doc (per repo): ``repo_name/doc/sphinx/source``
- * Custom doc (always): ``_build``.
-
-So, if it is necessary to check ``env.config.monolithic`` to correct infer the
-target file path, for example:
-
-.. code:: python
-
-   if hasattr(env.config, 'monolithic') and env.config.monolithic:
-        repo_path = path.join(env.srcdir, '..', 'repo_name')
-   else:
-        repo_path = path.join(env.srcdir, '..', '..', '..')
-
-   artifact_path = path.abspath(path.join(repo_root, 'builds', 'info.xml'))
-
-This is necessary because Sphinx has no way of knowing the repository root
-(without invoking a git shell), so hard-coding a relative path is necessary.
-
-.. note::
-
-   If the extensions are reused by multiple repositories, infer the repository
-   name from the first level (``my_repo/``) of the docname
-   (``my_repo/tutorial/index``).
-
-Custom doc copies
-``env.srcdir(original)`` to ``env.srcdir(custom)/repo_name``
-to avoid page conflicts when aggregating.
-So, sometimes it is necessary to prefix docnames with the repository name:
-
-.. code:: python
-
-   if hasattr(env.config, 'monolithic') and env.config.monolithic:
-        prefix = "repo_name"
-   else:
-        prefix = "."
-
-   _somedoc = path.join(prefix, _somedoc)
-
-For intermediary files, for example a SQLite database, it is recommended
-to anchor to ``outdir/../managed``:
-
-.. code:: python
-
-   dest_dir = path.abspath(path.join(env.app.builder.outdir, pardir, 'managed'))
-   sql_path = (dest_dir, "my_repo.sqlite")
 
 Common sections
 ---------------
