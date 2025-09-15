@@ -2,7 +2,7 @@
 
 {%- block extrahead %}
   {{ super() }}
-  {% if theme_no_index %}
+  {% if theme_no_index or 'no-index' in (meta or {}) %}
     <meta name="robots" content="noindex">
   {% endif %}
   {% if theme_standalone %}

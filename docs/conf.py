@@ -15,6 +15,7 @@ language = 'en'
 
 extensions = [
     'adi_doctools',
+    'sphinx.ext.intersphinx',
 ]
 
 needs_extensions = {
@@ -30,6 +31,12 @@ core_repo = True
 
 #  -- Options for PDF output --------------------------------------------------
 # draft comment, future options for exporting to PDF
+
+# -- External docs configuration ----------------------------------------------
+
+intersphinx_mapping = {
+    'sphinx': ('https://www.sphinx-doc.org/en/master', None)
+}
 
 # -- Options for HTML output --------------------------------------------------
 
