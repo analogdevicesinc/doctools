@@ -13,6 +13,9 @@
   {% if page_source_suffix %}
     <meta name="page_source_suffix" content="{{ page_source_suffix }}">
   {% endif %}
+  {% if 'stub' in (meta or {}) %}
+    <meta name="stub" content="{{ meta['stub'] }}">
+  {% endif %}
 
   {%- block theme_styles %}
   {% include "section/css_variables.html" with context %}
