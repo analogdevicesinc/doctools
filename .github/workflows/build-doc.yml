@@ -68,3 +68,22 @@ jobs:
       with:
         name: html-min
         path: docs/_build/html
+
+  check-doc:
+    runs-on: [self-hosted, v1]
+
+    steps:
+    - uses: analogdevicesinc/doctools/checkout@action
+    - name: Install pip packages
+      run: |
+        python3.13 -m venv venv/3.13/build-doc-latest
+        source ./venv/3.13/build-doc-latest/bin/activate
+        pip3.13 install docutils
+        echo PATH=$PATH >> $GITHUB_ENV
+
+    - uses: errata-ai/vale-action@v2.1.1
+      with:
+        files: docs
+        fail_on_error: ${{ github.event_name == 'pull_request' }}
+        reporter: ${{ github.event_name == 'pull_request' && 'github-pr-check' || 'github-check' }}
+        filter_mode: ${{ github.event_name == 'pull_request' && 'added' || 'nofilter' }}
