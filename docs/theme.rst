@@ -1,3 +1,5 @@
+.. _theme:
+
 Sphinx theme
 ============
 
@@ -27,6 +29,8 @@ The ``/``, ``Ctrl+K``, ``Alt+K`` key triggers the search bar. In search, Use
 ``A`` is skipped because it is a common shortcut to select all text. Double tab
 from the focused search box focuses on the first result. ``esc`` exits the search.
 
+.. _theme options:
+
 Theme options
 -------------
 
@@ -45,9 +49,25 @@ The options are added to the ``html_theme_options`` dictionary:
 For logos in the sidebar, provide a dark and light variant:
 If there is no dark variant, provide only ``light_logo``.
 
-To not index the doc in search engines, set ``no_index`` as ``True``.
+To not index the doc in search engines, set ``no_index`` as ``True``, a per-page
+option is available using :ref:`theme metadata` as well.
 
 If you desire to disable cross-repository integration, set ``standalone`` as
 ``True``. This option is not recommended in most cases, since the internal
 logic already manages the features on a context/deployment basis, while this
 flag will permanently disable the features for a build.
+
+.. _theme metadata:
+
+Metadata
+--------
+
+:external+sphinx:ref:`metadata` are field lists at the top of the file, that are
+parsed into document metadata.
+
+Beyond Sphinx special metadata fields, a metadata are converted into HTML meta tags.
+The values and their effects are:
+
+* ``no-index``: Appends an
+  `noindex meta tag <https://developers.google.com/search/docs/crawling-indexing/block-indexing>`__
+  to the page, alternative to the :ref:`theme option <theme options>` ``no_index``.
