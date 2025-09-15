@@ -71,3 +71,10 @@ The values and their effects are:
 * ``no-index``: Appends an
   `noindex meta tag <https://developers.google.com/search/docs/crawling-indexing/block-indexing>`__
   to the page, alternative to the :ref:`theme option <theme options>` ``no_index``.
+* ``stub``: Marks the page as a temporary or incomplete page that serves as a
+  placeholder for future content.
+
+When visiting a page with the ``stub`` metadata, alternatives are searched and
+suggested to redirect to. Useful for then the content is in under review in a
+pull request or different tag. It is also possible to a specific version by
+providing a value, for example ``:stub: pull/1234``.
