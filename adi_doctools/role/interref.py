@@ -1,7 +1,7 @@
 """
 Extends intersphinx.
 """
-from typing import List, Tuple, Dict, Optional, Any
+from typing import Dict, Any
 
 from os import path, getenv
 from packaging.version import Version
@@ -12,14 +12,7 @@ from ..lut import repos, remote_doc
 
 # For deprecation handling
 from sphinx.util import logging
-from sphinx.util.docutils import CustomReSTDispatcher
-from sphinx.ext.intersphinx import IntersphinxRole
-from types import ModuleType
-from docutils.nodes import Node, system_message
-from docutils.utils import Reporter
 from sphinx.application import Sphinx
-from sphinx.util.typing import RoleFunction
-from .common import get_outer_inner
 
 logger = logging.getLogger(__name__)
 
@@ -72,75 +65,6 @@ def interref_repos_assert(config):
                        " Is adi_doctools in the extension list?")
 
 
-# DEPRECATED START
-class InterrefDispatcher(CustomReSTDispatcher):
-    """Custom dispatcher for ref role.
-
-    This enables :ref-***: roles on parsing reST document.
-    """
-
-    def role(
-        self, role_name: str, language_module: ModuleType,
-        lineno: int, reporter: Reporter,
-    ) -> Tuple[RoleFunction, List[system_message]]:
-        if len(role_name) > 4 and role_name.startswith(('ref-')):
-            return InterrefRole(role_name), []
-        else:
-            return super().role(role_name, language_module, lineno, reporter)
-
-
-class InterrefRole(IntersphinxRole):
-    """
-    Just IntersphinxRole but with a gorgeous deprecated warning (maybe).
-    """
-
-    def run(self) -> Tuple[List[Node], List[system_message]]:
-        assert self.name == self.orig_name.lower()
-        inv, name_suffix = self.get_inventory_and_name_suffix(self.orig_name)
-        text, ref_ = get_outer_inner(self.text)
-        if text is not None:
-            to_ = f":external+{inv}:ref:`{text} <{ref_}>`"
-        else:
-            to_ = f":external+{inv}:ref:`{ref_}`"
-        message = (f"References 'ref-*' are deprecated,\n"
-                   f"  update {self.rawtext} "
-                   f"to {to_} ")
-        logger.warning(message,
-                       location=(self.env.docname, self.lineno))
-
-        return super().run()
-
-    def get_inventory_and_name_suffix(
-        self, name: str
-    ) -> Tuple[Optional[str], str]:
-        assert name.startswith('ref'), name
-        # must have an explicit inventory name, i.e,
-        # :ref-inv:role:        or
-        # :ref-inv:domain:role: or
-        # :ref-inv:             (defaults to ref)
-        suffix = name[4:]
-        if name[3] == '-':
-            if ':' not in suffix:
-                return suffix, 'ref'
-            else:
-                inv_name, suffix = suffix.split(':', 1)
-                return inv_name, suffix
-        else:
-            msg = f'Malformed :ref-: role name: {name}'
-            raise ValueError(msg)
-
-
-def install_dispatcher(app: Sphinx, docname: str, source: List[str]) -> None:
-    """Enable InterrefDispatcher.
-
-    .. note:: The installed dispatcher will be uninstalled on disabling
-              sphinx_domain automatically.
-    """
-    dispatcher = InterrefDispatcher()
-    dispatcher.enable()
-
-
-# DEPRECATED END
 def interref_setup(app: Sphinx) -> Dict[str, Any]:
     app.add_config_value('interref_repos', [], 'env')
     app.add_config_value('interref_uri', None, 'env')
@@ -153,13 +77,13 @@ def interref_setup(app: Sphinx) -> Dict[str, Any]:
     if Version(sphinx_version) < Version("7.3.0"):
         # Prior to Sphinx 7.3.x, config values were default during setup,
         # so we cannot enable on demand.
-        enable_intersphinx = True
+        auto_enable_intersphinx = True
     elif len(app.config.interref_repos) > 0:
-        enable_intersphinx = True
+        auto_enable_intersphinx = True
     else:
-        enable_intersphinx = False
+        auto_enable_intersphinx = False
 
-    if enable_intersphinx:
+    if auto_enable_intersphinx:
         app.setup_extension('sphinx.ext.intersphinx')
         if (len(app.config.intersphinx_disabled_reftypes) == 1 and
            app.config.intersphinx_disabled_reftypes[0] == 'std:doc'):
@@ -167,5 +91,3 @@ def interref_setup(app: Sphinx) -> Dict[str, Any]:
             logger.info("adi_doctools: "
                         "Changed intersphinx_disabled_reftypes value from "
                         "'std:doc' to '*' to avoid refs linking to wrong docs")
-
-    app.connect('source-read', install_dispatcher)  # DEPRECATED
