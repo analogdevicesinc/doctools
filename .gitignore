@@ -15,3 +15,4 @@ node_modules
 adi_doctools/theme/*/static/fonts
 .sass-cache
 .artifacts
+.github/styles/write-good
