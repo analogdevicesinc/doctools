@@ -144,6 +144,15 @@ export class HotReload {
 
     return added
   }
+  /**
+   * Replaces all meta tags with the new page meta tags.
+   */
+  sync_meta (doc) {
+    document.head.querySelectorAll("meta")
+      .forEach(meta => meta.remove())
+    doc.head.querySelectorAll("meta")
+      .forEach(meta => document.head.appendChild(document.importNode(meta, true)))
+  }
   replace (dom, url, txt) {
 
     const parser = new DOMParser()
@@ -152,10 +161,11 @@ export class HotReload {
     const localtoc = doc.querySelector('.localtoc nav');
     const related = doc.querySelector('.documentwrapper .related')
     const content = doc.querySelector('.documentwrapper .body');
-    const scripts = doc.querySelector('head')?.querySelectorAll('script') || []
+    const scripts = doc.head.querySelectorAll('script') || []
     const title = doc.querySelector('head title')
 
     const added = this.sync_scripts(scripts)
+    this.sync_meta(doc)
 
     if (!content || !localtoc) {
       console.warn("page: failed to get elements for ", url)
