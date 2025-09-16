@@ -1,0 +1,135 @@
+{
+    "repotoc": {
+        "documentation": {
+            "name": "System Level",
+            "description": "User guides and tutorials for evaluation boards, software and hardware.",
+            "category": "system-level",
+            "visibility": "public",
+            "pathname": "docs",
+            "branch": "main"
+        },
+        "hdl": {
+            "name": "HDL",
+            "description": "HDL libraries and projects for reference designs and prototyping systems.",
+            "category": "hdl",
+            "visibility": "public",
+            "pathname": "docs",
+            "branch": "main"
+        },
+        "testbenches": {
+            "name": "HDL Testbenches",
+            "description": "HDL testbenches for reference designs and prototyping systems.",
+            "category": "hdl",
+            "visibility": "public",
+            "pathname": "docs",
+            "branch": "main"
+        },
+        "linux": {
+            "name": "Linux",
+            "description": "Reduced Linux kernel documentation for staging or non-upstream drivers.",
+            "category": "driver",
+            "visibility": "public",
+            "pathname": "docs",
+            "branch": "main"
+        },
+        "adi-kuiper-gen": {
+            "name": "Kuiper",
+            "description": "A Debian-based Linux distribution designed for our hardware and evaluation boards.",
+            "category": "os",
+            "visibility": "public",
+            "pathname": "docs",
+            "branch": "main"
+        },
+        "pyadi-iio": {
+            "name": "pyadi-iio",
+            "description": "Python abstraction layer for  IIO drivers.",
+            "category": "library",
+            "visibility": "public",
+            "pathname": "doc/source",
+            "branch": "main"
+        },
+        "pyadi-dt": {
+            "name": "pyadi-dt",
+            "description": "Library and CLI for managing device trees components.",
+            "category": "library",
+            "visibility": "public",
+            "pathname": "doc/source",
+            "branch": "main"
+        },
+        "pyadi-jif": {
+            "name": "pyadi-jif",
+            "description": "Python interface for the ADI JESD Interface Framework.",
+            "category": "tool",
+            "visibility": "public",
+            "pathname": "doc/source",
+            "branch": "main"
+        },
+        "libiio": {
+            "name": "libiio",
+            "description": "Cross-platform library to access IIO devices.",
+            "category": "library",
+            "visibility": "public",
+            "pathname": "doc",
+            "branch": "main"
+        },
+        "no-OS": {
+            "name": "no-OS",
+            "description": "Bare-metal software framework for drivers and applications.",
+            "category": "driver",
+            "visibility": "public",
+            "pathname": "doc/sphinx/source",
+            "branch": "main"
+        },
+        "precision-converters-firmware": {
+            "name": "Precision Converters Firmware",
+            "description": "Embedded firmware applications for precision converters on SDP-K1 and others.",
+            "category": "library",
+            "visibility": "public",
+            "pathname": "doc/sphinx",
+            "branch": "main"
+        },
+        "PrecisionToolbox": {
+            "name": "Precision Toolbox",
+            "description": "Set of tools to interface precision converters within MATLAB and Simulink.",
+            "category": "library",
+            "visibility": "public",
+            "pathname": "docs",
+            "branch": "main"
+        },
+        "adi_ros2": {
+            "name": "ROS2",
+            "description": "Robotics SDK with ROS 2 packages and tools in pre-configured container images.",
+            "category": "toolkit",
+            "visibility": "public",
+            "pathname": "src/adi_ros2/doc",
+            "branch": "humble"
+        },
+        "scopy": {
+            "name": "Scopy",
+            "description": "Multi-functional software toolset with strong capabilities for signal analysis.",
+            "category": "tool",
+            "visibility": "public",
+            "pathname": "docs",
+            "branch": "main"
+        },
+        "doctools": {
+            "name": "Doctools",
+            "description": "Documentation guidelines, extensions, and tools.",
+            "category": "tool",
+            "visibility": "public",
+            "pathname": "docs",
+            "branch": "main"
+        }
+    },
+    "modules": {
+        "javascript": [
+            "extra.umd.js"
+        ],
+        "stylesheet": [
+            "extra.min.css"
+        ]
+    },
+    "remote_doc": "https://analogdevicesinc.github.io/",
+    "source_hostname": "https://github.com/analogdevicesinc/{repository}/tree/{branch}/{pathname}",
+    "source_hostname_raw": "https://raw.githubusercontent.com/analogdevicesinc/{repository}/refs/heads/{branch}/{pathname}"
+}
