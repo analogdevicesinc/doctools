@@ -1,6 +1,6 @@
 "use strict";
 
-import {VersionDropdown} from './version_dropdown.js'
+import {Versioned} from './versioned.js'
 import {Toolbox} from './toolbox.js'
 import {DOM} from './dom.js'
 
@@ -188,12 +188,12 @@ export class Search {
     let process = (obj) => {
       let path = ""
       if (!('error' in obj)) {
-        let mode = VersionDropdown.assert(obj['obj'])
+        let mode = Versioned.assert(obj['obj'])
         if (mode === true)
           return prefix
 
         else if (mode == "fine-grained")
-          obj['obj'] = VersionDropdown.object_to_string_array(obj['obj'])
+          obj['obj'] = Versioned.object_to_string_array(obj['obj'])
         let arr = obj['obj']
 
         if (arr.includes(""))
