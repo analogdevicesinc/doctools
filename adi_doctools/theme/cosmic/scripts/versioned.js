@@ -5,13 +5,17 @@ import {Toolbox} from './toolbox.js'
 /**
  * Fetches the tags.json file and renders a dropdown.
  */
-export class VersionDropdown {
+export class Versioned {
   constructor (app) {
     this.parent = app
     this.$ = {}
 
+    this.tags
     this.prefix
+    this.callback = []
     this.construct()
+
+    app.versioned = this
   }
 
   fallback () {
@@ -21,7 +25,7 @@ export class VersionDropdown {
     if (version === "")
       return
 
-    console.log("version_dropdown: using hard-coded current version")
+    console.log("versioned: using hard-coded current version")
     if (char >= '0' && char <= '9')
       version = `v${version}`
 
@@ -45,9 +49,9 @@ export class VersionDropdown {
     )
       .then(response => response)
       .then(response => response.json())
-      .then(obj => this.render(obj))
+      .then(obj => this.init_tags(obj))
       .catch(error => {
-        console.log("version_dropdown: no tags.json and no current version")
+        console.log("versioned: no tags.json and no current version")
         this.fallback()
       })
   }
@@ -62,7 +66,7 @@ export class VersionDropdown {
     if (Array.isArray(obj)) {
       /* Mode one: simple array of versions */
       if (!assert_string(obj)) {
-        console.warn("version_dropdown: expected array of strings, got ", obj)
+        console.warn("versioned: expected array of strings, got ", obj)
         return true
       }
       return "string-array"
@@ -70,17 +74,17 @@ export class VersionDropdown {
       /* Mode two: elaborated version */
       for (let key in obj) {
         if (!Array.isArray(obj[key])) {
-          console.warn("version_dropdown: expected array, got ", obj[key])
+          console.warn("versioned: expected array, got ", obj[key])
           return true
         } else if (obj[key].length !== 2) {
-          console.warn(`version_dropdown: expected two items, got ${obj[key].length}`, obj[key])
+          console.warn(`versioned: expected two items, got ${obj[key].length}`, obj[key])
           return true
         }
       }
       return "fine-grained"
     }
 
-    console.warn("version_dropdown: expected object of arrays or array of strings, got ", obj)
+    console.warn("versioned: expected object of arrays or array of strings, got ", obj)
 
     return true
   }
@@ -133,6 +137,11 @@ export class VersionDropdown {
       labels += ' unstable'
     return labels
   }
+  init_tags (obj) {
+    this.tags = obj
+    this.callback.forEach(cb => cb())
+    this.render(obj)
+  }
   /**
    * Create Tag/Version dropdown at the left sidebar.
    */
@@ -140,11 +149,11 @@ export class VersionDropdown {
     let version = this.parent.state.version
     let path = this.parent.state.path
     let label = ''
-    let mode = VersionDropdown.assert(obj)
+    let mode = Versioned.assert(obj)
     if (mode === true)
       return
     else if (mode == "string-array")
-      obj = VersionDropdown.string_array_to_object(obj)
+      obj = Versioned.string_array_to_object(obj)
 
     let toc_tree = DOM.get('.sphinxsidebarwrapper .toc-tree')
     let nav_bar = DOM.get('header #right .reverse')
@@ -161,7 +170,7 @@ export class VersionDropdown {
       label = obj[path][1]
       version = obj[path][0]
     } else {
-      console.warn(`version_dropdown: current path ${path} is not in the tags.json. Hard-coded meta[name="version"] will be used.`, obj)
+      console.warn(`versioned: current path ${path} is not in the tags.json. Hard-coded meta[name="version"] will be used.`, obj)
     }
 
     for (let key in obj) {
@@ -180,11 +189,11 @@ export class VersionDropdown {
           return
         const new_tab = ev.which === 2
 
-        let start = app.state.path.length > 0 ?
+        const start = app.state.path.length > 0 ?
                       this.prefix+'/'+app.state.path :
                       this.prefix
         if (location.href.startsWith(start)) {
-          let pathname = location.href.substring(start.length + 1)
+          const pathname = location.href.substring(start.length + 1)
           let url = new URL(pathname, entry.dataset['alt_href'])
           url.hash = location.hash
           Toolbox.try_redirect(url, entry.dataset['alt_href'], new_tab)
@@ -238,6 +247,15 @@ export class VersionDropdown {
 
     this.$.list = container2
     this.$.cancel= cancel_dropdown
+  }
+  /**
+   * Append callbacks to call after tags.json is loaded.
+   */
+  then (callback) {
+    if (this.parent.state.version)
+      callback()
+    else
+      this.callback.push(callback)
   }
   show (dom, show) {
     if (!show) {
