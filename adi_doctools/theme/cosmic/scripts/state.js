@@ -6,11 +6,11 @@
  * offline: if no webserver, direct file://
  * theme: dark/light
  * content_root: relative path to reach the current doc root page
- * metadata: fetched by fetch.js
- * subhost: "/docs/$repository", "/$repository" (github.io) or "" (single doc)
+ * subhost: "/docs/$repository", "/$repository" (github.io), "" (single doc), "file://..." (offline)
  * path: "v0.0.1", "", "prs/staging/new_feature"
  * reloaded: page was reloaded
- * metadata: tags.json, fetched later by fetch.js, if state allows
+ * metadata: metadata.json, fetched later by fetch.js, if state allows
+ * tags: tags.json, fetched later by extra version_dropdown.js
  * standalone: isolated doc, disable multi-repo integrations
  */
 const state = {
@@ -23,6 +23,7 @@ const state = {
   path: undefined,
   reloaded: undefined,
   metadata: undefined,
+  tags: undefined,
   standalone: undefined
 }
 
