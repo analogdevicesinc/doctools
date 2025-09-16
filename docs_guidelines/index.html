@@ -24,6 +24,7 @@
     <meta name="page_source_suffix" content=".rst">
   
   
+  
 
 
 <style>
@@ -92,6 +93,14 @@
           <ul>
 <li><a class="reference internal" href="#">Documentation guidelines</a><ul>
 <li><a class="reference internal" href="#importing-from-dokuwiki-to-sphinx">Importing from DokuWiki to Sphinx</a></li>
+<li><a class="reference internal" href="#directives-and-roles">Directives and roles</a><ul>
+<li><a class="reference internal" href="#third-party-directives-and-roles">Third-party directives and roles</a><ul>
+<li><a class="reference internal" href="#support-custom-javascript-in-hot-reload">Support custom JavaScript in hot reload</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#repository-specific-extensions">Repository-specific extensions</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#indentation">Indentation</a></li>
 <li><a class="reference internal" href="#table-of-contents">Table of contents</a></li>
 <li><a class="reference internal" href="#versioning">Versioning</a></li>
@@ -114,14 +123,6 @@
 <li><a class="reference internal" href="#code">Code</a></li>
 <li><a class="reference internal" href="#images">Images</a></li>
 <li><a class="reference internal" href="#git-large-file-storage">Git Large File Storage</a></li>
-<li><a class="reference internal" href="#adding-directives-and-roles">Adding directives and roles</a><ul>
-<li><a class="reference internal" href="#third-party-directives-and-roles">Third-party directives and roles</a><ul>
-<li><a class="reference internal" href="#support-custom-javascript-in-hot-reload">Support custom JavaScript in hot reload</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#repository-specific-extensions">Repository-specific extensions</a></li>
-</ul>
-</li>
 <li><a class="reference internal" href="#common-sections">Common sections</a><ul>
 <li><a class="reference internal" href="#hdl-common-sections">HDL common sections</a></li>
 </ul>
@@ -220,6 +221,168 @@ repetitive steps.</p>
 <p>There is also the
 <a class="icon link reference external" href="https://gist.github.com/gastmaier/9d9c8281dc3c8551991a857cdb2692cc" target="_blank">DokuWiki to Sphinx (bash.sh)</a>
 to further help importing.</p>
+</section>
+<section id="directives-and-roles">
+<h2>Directives and roles<a class="headerlink" href="#directives-and-roles" title="Link to this heading"></a></h2>
+<p>Sphinx allows expanding functionality beyond the defaults directives and roles
+by loading extensions. Doctools implements custom directives and roles for common
+features, but <a class="reference internal" href="#extension-third-party"><span class="std std-ref">third-party extensions</span></a> can also be used.</p>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Doctools extended directives and roles are provided at:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="directives.html">Custom directives</a></li>
+<li class="toctree-l1"><a class="reference internal" href="roles.html">Custom roles</a></li>
+</ul>
+</div>
+<section id="third-party-directives-and-roles">
+<span id="extension-third-party"></span><h3>Third-party directives and roles<a class="headerlink" href="#third-party-directives-and-roles" title="Link to this heading"></a></h3>
+<p>Repositories have the freedom to choose the third-party extensions they want to
+include in their documentation.
+They are listed on the <em>requirements.tst</em> file, and are installed with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+</pre></div>
+</div>
+<p>The recommendation is to avoid using extensions that render content on the
+client-side using JavaScript, because it requires:</p>
+<ul class="simple">
+<li><p>Fetching third-party scripts at someone-else server most of the time; and</p></li>
+<li><p>Makes exporting to other formats (like pdf) harder, because it is then necessary to
+patch and replace with another non-JavaScript renderer.</p></li>
+<li><p>Requires managing these added scripts to ensure they apply on hot reload.</p></li>
+</ul>
+<section id="support-custom-javascript-in-hot-reload">
+<h4>Support custom JavaScript in hot reload<a class="headerlink" href="#support-custom-javascript-in-hot-reload" title="Link to this heading"></a></h4>
+<p>Hot reload is a feature that reloads only parts of a webpage, allowing super
+fast content-loading, cool animations, and a better user experience.</p>
+<p>However, for third-party client-side JavaScript, it is necessary to map the
+added globals to hot reload module.</p>
+<p>On <a class="icon git reference external" href="https://github.com/analogdevicesinc/doctools/tree/main/adi_doctools/theme/cosmic/scripts/hot_reload.js" target="_blank">adi_doctools/theme/cosmic/scripts/hot_reload.js</a>, extend the
+<code class="docutils literal notranslate"><span class="pre">script_remove</span></code> and <code class="docutils literal notranslate"><span class="pre">script_add</span></code> to include hooks for your particular added
+script.</p>
+<p>For example, for MathJax, that is simply calling the global method
+<code class="docutils literal notranslate"><span class="pre">MathJax.typeset()</span></code> to process the new page (hot reload) if the page includes
+the script.</p>
+<p>Here is a template:</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="k">export</span><span class="w"> </span><span class="kd">class</span><span class="w"> </span><span class="nx">HotReload</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="c1">// ...</span>
+<span class="w">  </span><span class="nx">script_remove</span><span class="w"> </span><span class="p">(</span><span class="nx">url</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">switch</span><span class="p">(</span><span class="nx">url</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="k">case</span><span class="w"> </span><span class="s2">&quot;https://example.com/npm/my_script.js&quot;</span><span class="o">:</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="ow">typeof</span><span class="w"> </span><span class="nx">MyScript</span><span class="w"> </span><span class="o">!==</span><span class="w"> </span><span class="s1">&#39;undefined&#39;</span><span class="p">)</span>
+<span class="w">          </span><span class="c1">// If there is a clean-up/deinit method, call it</span>
+<span class="w">          </span><span class="c1">// to try to keep memory usage in check.</span>
+<span class="w">          </span><span class="nx">MyScript</span><span class="p">.</span><span class="nx">cleanup</span><span class="p">()</span>
+<span class="w">        </span><span class="k">break</span><span class="p">;</span>
+<span class="w">      </span><span class="c1">// ...</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="nx">script_add</span><span class="w"> </span><span class="p">(</span><span class="nx">url</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Get templated script node.</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">elem</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">js_script_memory</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="nx">url</span><span class="p">)</span>
+<span class="w">    </span><span class="c1">// Append to page to init loading.</span>
+<span class="w">    </span><span class="nb">document</span><span class="p">.</span><span class="nx">querySelector</span><span class="p">(</span><span class="s1">&#39;head&#39;</span><span class="p">)</span><span class="o">?</span><span class="p">.</span><span class="nx">append</span><span class="p">(</span><span class="nx">elem</span><span class="p">)</span>
+<span class="w">    </span><span class="k">switch</span><span class="p">(</span><span class="nx">url</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="k">case</span><span class="w"> </span><span class="s2">&quot;https://example.com/npm/my_script.js&quot;</span><span class="o">:</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="ow">typeof</span><span class="w"> </span><span class="nx">MyScript</span><span class="w"> </span><span class="o">!==</span><span class="w"> </span><span class="s1">&#39;undefined&#39;</span><span class="p">)</span>
+<span class="w">          </span><span class="c1">// On hot reload, already loaded, retrigger init.</span>
+<span class="w">          </span><span class="c1">// You need to check the script documentation for</span>
+<span class="w">          </span><span class="c1">// the exact methods names, calls.</span>
+<span class="w">          </span><span class="nx">MyScript</span><span class="p">.</span><span class="nx">init</span><span class="p">()</span>
+<span class="w">        </span><span class="k">else</span>
+<span class="w">          </span><span class="c1">// On hot reload, first load, do</span>
+<span class="w">          </span><span class="nx">elem</span><span class="p">.</span><span class="nx">onload</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;MyScript loaded!&quot;</span><span class="p">)</span>
+<span class="w">            </span><span class="c1">// Do other things, if necessary, but in general those scripts</span>
+<span class="w">            </span><span class="c1">// already do their thing on load.</span>
+<span class="w">          </span><span class="p">}</span>
+<span class="w">        </span><span class="k">break</span><span class="p">;</span>
+<span class="w">      </span><span class="c1">// ...</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="repository-specific-extensions">
+<span id="extension-repository"></span><h3>Repository-specific extensions<a class="headerlink" href="#repository-specific-extensions" title="Link to this heading"></a></h3>
+<p>Extensions with repository-specific functionalities can be added to the repository
+source code.</p>
+<p>At <em>conf.py</em>, add:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="s1">&#39;ext&#39;</span><span class="p">))</span>
+
+<span class="n">extensions</span> <span class="o">=</span> <span class="p">[</span>
+     <span class="o">...</span>
+     <span class="s2">&quot;ext_repo_name&quot;</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>Create the <em>ext/ext_repo_name.py</em> and implement your custom directives/roles.
+Replace <em>repo_name</em> with your repository name.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>If you think your extension could be useful for other repositories, consider
+migrating it to Doctools source code.</p>
+</div>
+<p>If the extension relies on files at the repository (like XML files), and/or
+uses either env.found_docs or docnames to manage cache,
+check if <code class="docutils literal notranslate"><span class="pre">env.config.monolithic</span></code> exists and is true.</p>
+<p>If yes, prefix:</p>
+<ul class="simple">
+<li><p>The path to files with the relative path from the custom doc to the
+repository (always <cite>../&lt;repository&gt;</cite> (e.g.,`../hdl`)); and</p></li>
+<li><p>Doc-names with the repository name (e.g., <cite>hdl/</cite>).</p></li>
+</ul>
+<p>This ensures compatibility with <a class="reference internal" href="../cli.html#custom-doc"><span class="std std-ref">Custom Doc</span></a>.</p>
+<p>Here is a practical example:</p>
+<ul class="simple">
+<li><p>Metadata to be parsed is at <code class="docutils literal notranslate"><span class="pre">repo_name/builds/info.xml</span></code></p></li>
+<li><p>The sphinx source dir <code class="docutils literal notranslate"><span class="pre">env.srcdir</span></code> values are:</p></li>
+</ul>
+<blockquote>
+<div><ul class="simple">
+<li><p>Original doc (per repo): <code class="docutils literal notranslate"><span class="pre">repo_name/doc/sphinx/source</span></code></p></li>
+<li><p>Custom doc (always): <code class="docutils literal notranslate"><span class="pre">_build</span></code>.</p></li>
+</ul>
+</div></blockquote>
+<p>So, if it is necessary to check <code class="docutils literal notranslate"><span class="pre">env.config.monolithic</span></code> to correct infer the
+target file path, for example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="s1">&#39;monolithic&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">env</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">monolithic</span><span class="p">:</span>
+     <span class="n">repo_path</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">srcdir</span><span class="p">,</span> <span class="s1">&#39;..&#39;</span><span class="p">,</span> <span class="s1">&#39;repo_name&#39;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+     <span class="n">repo_path</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">srcdir</span><span class="p">,</span> <span class="s1">&#39;..&#39;</span><span class="p">,</span> <span class="s1">&#39;..&#39;</span><span class="p">,</span> <span class="s1">&#39;..&#39;</span><span class="p">)</span>
+
+<span class="n">artifact_path</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">repo_root</span><span class="p">,</span> <span class="s1">&#39;builds&#39;</span><span class="p">,</span> <span class="s1">&#39;info.xml&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>This is necessary because Sphinx has no way of knowing the repository root
+(without invoking a git shell), so hard-coding a relative path is necessary.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If the extensions are reused by multiple repositories, infer the repository
+name from the first level (<code class="docutils literal notranslate"><span class="pre">my_repo/</span></code>) of the docname
+(<code class="docutils literal notranslate"><span class="pre">my_repo/tutorial/index</span></code>).</p>
+</div>
+<p>Custom doc copies
+<code class="docutils literal notranslate"><span class="pre">env.srcdir(original)</span></code> to <code class="docutils literal notranslate"><span class="pre">env.srcdir(custom)/repo_name</span></code>
+to avoid page conflicts when aggregating.
+So, sometimes it is necessary to prefix docnames with the repository name:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="s1">&#39;monolithic&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">env</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">monolithic</span><span class="p">:</span>
+     <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;repo_name&quot;</span>
+<span class="k">else</span><span class="p">:</span>
+     <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span>
+
+<span class="n">_somedoc</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="n">_somedoc</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For intermediary files, for example a SQLite database, it is recommended
+to anchor to <code class="docutils literal notranslate"><span class="pre">outdir/../managed</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">dest_dir</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">builder</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="n">pardir</span><span class="p">,</span> <span class="s1">&#39;managed&#39;</span><span class="p">))</span>
+<span class="n">sql_path</span> <span class="o">=</span> <span class="p">(</span><span class="n">dest_dir</span><span class="p">,</span> <span class="s2">&quot;my_repo.sqlite&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
 </section>
 <section id="indentation">
 <h2>Indentation<a class="headerlink" href="#indentation" title="Link to this heading"></a></h2>
@@ -383,9 +546,8 @@ for example
 <code class="docutils literal notranslate"><span class="pre">my_code</span> <span class="pre">control-interface</span></code> instead of <code class="docutils literal notranslate"><span class="pre">MY_CODE</span> <span class="pre">Control_Interface</span></code>.</p>
 <section id="numbered-references">
 <h3>Numbered references<a class="headerlink" href="#numbered-references" title="Link to this heading"></a></h3>
-<p>References can be numbered by using
-<a class="icon link reference external" href="https://www.sphinx-doc.org/en/master/usage/referencing.html#role-numref" target="_blank">numref</a>,
-for example, “<em>see Figure 1</em>”.</p>
+<p>References can be numbered by using <a class="icon link reference external" href="https://www.sphinx-doc.org/en/master/usage/referencing.html#role-numref" target="_blank" title="(in Sphinx v8.3.0)"><code class="xref rst rst-role docutils literal notranslate"><span class="pre">numref</span></code></a>, for
+example, “<em>see Figure 1</em>”.</p>
 <p>To use this feature, enable on the <em>conf.py</em>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">numfig</span> <span class="o">=</span> <span class="kc">True</span>
 </pre></div>
@@ -399,9 +561,10 @@ for example, “<em>see Figure 1</em>”.</p>
 </div>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
-<p>By default enumeration is global, so if the toctree is not
-<a class="icon link reference external" href="https://www.sphinx-doc.org/en/master/usage/restructuredtext/directives.html#directive-option-toctree-numbered" target="_blank">numbered</a> to divide the pages in numbered sections (e.g. <em>Figure 3.4.4</em>),
-the numbering will “propagate” across page which may be counter-intuitive.</p>
+<p>By default enumeration is global, so if the
+<a class="icon link reference external" href="https://www.sphinx-doc.org/en/master/usage/restructuredtext/directives.html#directive-toctree" target="_blank" title="(in Sphinx v8.3.0)"><code class="xref rst rst-dir docutils literal notranslate"><span class="pre">toctree</span></code></a> is not <code class="docutils literal notranslate"><span class="pre">numbered</span></code> to divide the pages
+in numbered sections (e.g. <em>Figure 3.4.4</em>), the numbering will “propagate”
+across page which may be counter-intuitive.</p>
 <p>To have the numbering reset at every page, add <code class="docutils literal notranslate"><span class="pre">numfig_per_doc</span> <span class="pre">=</span> <span class="pre">True</span></code> to
 <em>conf.py</em>.</p>
 </div>
@@ -527,9 +690,8 @@ and imported
 <a class="icon link reference external" href="https://docutils.sourceforge.io/docs/ref/rst/directives.html#csv-table-1" target="_blank">csv-tables</a>
 (using the file option), because they are faster to create, easier to maintain
 and the 80 column-width rule can be respected with list-tables.</p>
-<p>Only use
-<a class="icon link reference external" href="https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html#tables" target="_blank">grid tables</a>
-if strictly necessary, since they are hard to update.</p>
+<p>Only use <a class="icon link reference external" href="https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html#rst-tables" target="_blank" title="(in Sphinx v8.3.0)"><span class="xref std std-ref">Grid Tables</span></a> if strictly necessary,
+since they are hard to update.</p>
 <p>To tune styling, the following classes are available:</p>
 <ul class="simple">
 <li><p><em>bold-header</em>: Make the header bold.</p></li>
@@ -565,12 +727,9 @@ if strictly necessary, since they are hard to update.</p>
 </section>
 <section id="code">
 <h2>Code<a class="headerlink" href="#code" title="Link to this heading"></a></h2>
-<p>Prefer
-<a class="icon link reference external" href="https://www.sphinx-doc.org/en/master/usage/restructuredtext/directives.html#directive-code-block" target="_blank">code-blocks</a>
-to
-<a class="icon link reference external" href="https://docutils.sourceforge.io/docs/ref/rst/directives.html#code" target="_blank">code</a>
-directives, because code-blocks have more options, such as showing line numbers
-and emphasizing lines.</p>
+<p>Prefer <a class="icon link reference external" href="https://www.sphinx-doc.org/en/master/usage/restructuredtext/directives.html#directive-code-block" target="_blank" title="(in Sphinx v8.3.0)"><code class="xref rst rst-dir docutils literal notranslate"><span class="pre">code-block</span></code></a> to <code class="docutils literal notranslate"><span class="pre">code</span></code> directives, because
+code-blocks have more options, such as showing line numbers and emphasizing
+lines.</p>
 <p>For example,</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">code-block</span><span class="p">::</span> python
    <span class="nc">:linenos:</span>
@@ -581,7 +740,7 @@ and emphasizing lines.</p>
        print(string)
 </pre></div>
 </div>
-<p>Renders as</p>
+<p>Renders as:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span><span class="k">def</span><span class="w"> </span><span class="nf">hello_world</span><span class="p">():</span>
 <span class="hll"><span class="linenos">2</span>    <span class="n">string</span> <span class="o">=</span> <span class="s2">&quot;Hello world&quot;</span>
 </span><span class="linenos">3</span>    <span class="nb">print</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
@@ -619,168 +778,6 @@ files use a pattern at the repo root, for example:</p>
 </pre></div>
 </div>
 <p>Or edit <code class="docutils literal notranslate"><span class="pre">.gitattributes</span></code> directly.</p>
-</section>
-<section id="adding-directives-and-roles">
-<h2>Adding directives and roles<a class="headerlink" href="#adding-directives-and-roles" title="Link to this heading"></a></h2>
-<p>Sphinx allows expanding functionality beyond the defaults directives and roles
-by loading extensions. Doctools implements custom directives and roles for common
-features, but <a class="reference internal" href="#extension-third-party"><span class="std std-ref">third-party extensions</span></a> can also be used.</p>
-<div class="toctree-wrapper compound">
-<p class="caption" role="heading"><span class="caption-text">Doctools extended directives and roles are provided at:</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="directives.html">Custom directives</a></li>
-<li class="toctree-l1"><a class="reference internal" href="roles.html">Custom roles</a></li>
-</ul>
-</div>
-<section id="third-party-directives-and-roles">
-<span id="extension-third-party"></span><h3>Third-party directives and roles<a class="headerlink" href="#third-party-directives-and-roles" title="Link to this heading"></a></h3>
-<p>Repositories have the freedom to choose the third-party extensions they want to
-include in their documentation.
-They are listed on the <em>requirements.tst</em> file, and are installed with:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
-</pre></div>
-</div>
-<p>The recommendation is to avoid using extensions that render content on the
-client-side using JavaScript, because it requires:</p>
-<ul class="simple">
-<li><p>Fetching third-party scripts at someone-else server most of the time; and</p></li>
-<li><p>Makes exporting to other formats (like pdf) harder, because it is then necessary to
-patch and replace with another non-JavaScript renderer.</p></li>
-<li><p>Requires managing these added scripts to ensure they apply on hot reload.</p></li>
-</ul>
-<section id="support-custom-javascript-in-hot-reload">
-<h4>Support custom JavaScript in hot reload<a class="headerlink" href="#support-custom-javascript-in-hot-reload" title="Link to this heading"></a></h4>
-<p>Hot reload is a feature that reloads only parts of a webpage, allowing super
-fast content-loading, cool animations, and a better user experience.</p>
-<p>However, for third-party client-side JavaScript, it is necessary to map the
-added globals to hot reload module.</p>
-<p>On <a class="icon git reference external" href="https://github.com/analogdevicesinc/doctools/tree/main/adi_doctools/theme/cosmic/scripts/hot_reload.js" target="_blank">adi_doctools/theme/cosmic/scripts/hot_reload.js</a>, extend the
-<code class="docutils literal notranslate"><span class="pre">script_remove</span></code> and <code class="docutils literal notranslate"><span class="pre">script_add</span></code> to include hooks for your particular added
-script.</p>
-<p>For example, for MathJax, that is simply calling the global method
-<code class="docutils literal notranslate"><span class="pre">MathJax.typeset()</span></code> to process the new page (hot reload) if the page includes
-the script.</p>
-<p>Here is a template:</p>
-<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="k">export</span><span class="w"> </span><span class="kd">class</span><span class="w"> </span><span class="nx">HotReload</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="c1">// ...</span>
-<span class="w">  </span><span class="nx">script_remove</span><span class="w"> </span><span class="p">(</span><span class="nx">url</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="k">switch</span><span class="p">(</span><span class="nx">url</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="k">case</span><span class="w"> </span><span class="s2">&quot;https://example.com/npm/my_script.js&quot;</span><span class="o">:</span>
-<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="ow">typeof</span><span class="w"> </span><span class="nx">MyScript</span><span class="w"> </span><span class="o">!==</span><span class="w"> </span><span class="s1">&#39;undefined&#39;</span><span class="p">)</span>
-<span class="w">          </span><span class="c1">// If there is a clean-up/deinit method, call it</span>
-<span class="w">          </span><span class="c1">// to try to keep memory usage in check.</span>
-<span class="w">          </span><span class="nx">MyScript</span><span class="p">.</span><span class="nx">cleanup</span><span class="p">()</span>
-<span class="w">        </span><span class="k">break</span><span class="p">;</span>
-<span class="w">      </span><span class="c1">// ...</span>
-<span class="w">    </span><span class="p">}</span>
-<span class="w">  </span><span class="p">}</span>
-<span class="w">  </span><span class="nx">script_add</span><span class="w"> </span><span class="p">(</span><span class="nx">url</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="c1">// Get templated script node.</span>
-<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">elem</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">js_script_memory</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="nx">url</span><span class="p">)</span>
-<span class="w">    </span><span class="c1">// Append to page to init loading.</span>
-<span class="w">    </span><span class="nb">document</span><span class="p">.</span><span class="nx">querySelector</span><span class="p">(</span><span class="s1">&#39;head&#39;</span><span class="p">)</span><span class="o">?</span><span class="p">.</span><span class="nx">append</span><span class="p">(</span><span class="nx">elem</span><span class="p">)</span>
-<span class="w">    </span><span class="k">switch</span><span class="p">(</span><span class="nx">url</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="k">case</span><span class="w"> </span><span class="s2">&quot;https://example.com/npm/my_script.js&quot;</span><span class="o">:</span>
-<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="ow">typeof</span><span class="w"> </span><span class="nx">MyScript</span><span class="w"> </span><span class="o">!==</span><span class="w"> </span><span class="s1">&#39;undefined&#39;</span><span class="p">)</span>
-<span class="w">          </span><span class="c1">// On hot reload, already loaded, retrigger init.</span>
-<span class="w">          </span><span class="c1">// You need to check the script documentation for</span>
-<span class="w">          </span><span class="c1">// the exact methods names, calls.</span>
-<span class="w">          </span><span class="nx">MyScript</span><span class="p">.</span><span class="nx">init</span><span class="p">()</span>
-<span class="w">        </span><span class="k">else</span>
-<span class="w">          </span><span class="c1">// On hot reload, first load, do</span>
-<span class="w">          </span><span class="nx">elem</span><span class="p">.</span><span class="nx">onload</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
-<span class="w">            </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;MyScript loaded!&quot;</span><span class="p">)</span>
-<span class="w">            </span><span class="c1">// Do other things, if necessary, but in general those scripts</span>
-<span class="w">            </span><span class="c1">// already do their thing on load.</span>
-<span class="w">          </span><span class="p">}</span>
-<span class="w">        </span><span class="k">break</span><span class="p">;</span>
-<span class="w">      </span><span class="c1">// ...</span>
-<span class="w">    </span><span class="p">}</span>
-<span class="w">  </span><span class="p">}</span>
-</pre></div>
-</div>
-</section>
-</section>
-<section id="repository-specific-extensions">
-<span id="extension-repository"></span><h3>Repository-specific extensions<a class="headerlink" href="#repository-specific-extensions" title="Link to this heading"></a></h3>
-<p>Extensions with repository-specific functionalities can be added to the repository
-source code.</p>
-<p>At <em>conf.py</em>, add:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
-<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="s1">&#39;ext&#39;</span><span class="p">))</span>
-
-<span class="n">extensions</span> <span class="o">=</span> <span class="p">[</span>
-     <span class="o">...</span>
-     <span class="s2">&quot;ext_repo_name&quot;</span>
-<span class="p">]</span>
-</pre></div>
-</div>
-<p>Create the <em>ext/ext_repo_name.py</em> and implement your custom directives/roles.
-Replace <em>repo_name</em> with your repository name.</p>
-<div class="admonition tip">
-<p class="admonition-title">Tip</p>
-<p>If you think your extension could be useful for other repositories, consider
-migrating it to Doctools source code.</p>
-</div>
-<p>If the extension relies on files at the repository (like XML files), and/or
-uses either env.found_docs or docnames to manage cache,
-check if <code class="docutils literal notranslate"><span class="pre">env.config.monolithic</span></code> exists and is true.</p>
-<p>If yes, prefix:</p>
-<ul class="simple">
-<li><p>The path to files with the relative path from the custom doc to the
-repository (always <cite>../&lt;repository&gt;</cite> (e.g.,`../hdl`)); and</p></li>
-<li><p>Doc-names with the repository name (e.g., <cite>hdl/</cite>).</p></li>
-</ul>
-<p>This ensures compatibility with <a class="reference internal" href="../cli.html#custom-doc"><span class="std std-ref">Custom Doc</span></a>.</p>
-<p>Here is a practical example:</p>
-<ul class="simple">
-<li><p>Metadata to be parsed is at <code class="docutils literal notranslate"><span class="pre">repo_name/builds/info.xml</span></code></p></li>
-<li><p>The sphinx source dir <code class="docutils literal notranslate"><span class="pre">env.srcdir</span></code> values are:</p></li>
-</ul>
-<blockquote>
-<div><ul class="simple">
-<li><p>Original doc (per repo): <code class="docutils literal notranslate"><span class="pre">repo_name/doc/sphinx/source</span></code></p></li>
-<li><p>Custom doc (always): <code class="docutils literal notranslate"><span class="pre">_build</span></code>.</p></li>
-</ul>
-</div></blockquote>
-<p>So, if it is necessary to check <code class="docutils literal notranslate"><span class="pre">env.config.monolithic</span></code> to correct infer the
-target file path, for example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="s1">&#39;monolithic&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">env</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">monolithic</span><span class="p">:</span>
-     <span class="n">repo_path</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">srcdir</span><span class="p">,</span> <span class="s1">&#39;..&#39;</span><span class="p">,</span> <span class="s1">&#39;repo_name&#39;</span><span class="p">)</span>
-<span class="k">else</span><span class="p">:</span>
-     <span class="n">repo_path</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">srcdir</span><span class="p">,</span> <span class="s1">&#39;..&#39;</span><span class="p">,</span> <span class="s1">&#39;..&#39;</span><span class="p">,</span> <span class="s1">&#39;..&#39;</span><span class="p">)</span>
-
-<span class="n">artifact_path</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">repo_root</span><span class="p">,</span> <span class="s1">&#39;builds&#39;</span><span class="p">,</span> <span class="s1">&#39;info.xml&#39;</span><span class="p">))</span>
-</pre></div>
-</div>
-<p>This is necessary because Sphinx has no way of knowing the repository root
-(without invoking a git shell), so hard-coding a relative path is necessary.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>If the extensions are reused by multiple repositories, infer the repository
-name from the first level (<code class="docutils literal notranslate"><span class="pre">my_repo/</span></code>) of the docname
-(<code class="docutils literal notranslate"><span class="pre">my_repo/tutorial/index</span></code>).</p>
-</div>
-<p>Custom doc copies
-<code class="docutils literal notranslate"><span class="pre">env.srcdir(original)</span></code> to <code class="docutils literal notranslate"><span class="pre">env.srcdir(custom)/repo_name</span></code>
-to avoid page conflicts when aggregating.
-So, sometimes it is necessary to prefix docnames with the repository name:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="s1">&#39;monolithic&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">env</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">monolithic</span><span class="p">:</span>
-     <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;repo_name&quot;</span>
-<span class="k">else</span><span class="p">:</span>
-     <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span>
-
-<span class="n">_somedoc</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="n">_somedoc</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>For intermediary files, for example a SQLite database, it is recommended
-to anchor to <code class="docutils literal notranslate"><span class="pre">outdir/../managed</span></code>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">dest_dir</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">builder</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="n">pardir</span><span class="p">,</span> <span class="s1">&#39;managed&#39;</span><span class="p">))</span>
-<span class="n">sql_path</span> <span class="o">=</span> <span class="p">(</span><span class="n">dest_dir</span><span class="p">,</span> <span class="s2">&quot;my_repo.sqlite&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
 </section>
 <section id="common-sections">
 <h2>Common sections<a class="headerlink" href="#common-sections" title="Link to this heading"></a></h2>
