@@ -6,6 +6,7 @@ import {Toolbox} from './toolbox.js'
  * Shows page actions buttons to the right side of the title.
  * The actions are:
  * * An edit page button to open the page source code on the git hosting website.
+ * * Resolve stub pages
  */
 export class PageActions {
   constructor (app) {
@@ -17,6 +18,8 @@ export class PageActions {
       this.parent.fetch.then(this.construct.bind(this))
     else
       this.construct()
+
+    this.parent.versioned.then(this.handler_stub.bind(this))
 
     app.page_actions = this
   }
@@ -146,12 +149,39 @@ export class PageActions {
 
     this.edit_button_tgt_raw = undefined
   }
+  handler_stub () {
+    if (!this.parent.versioned.tags)
+      return
+    let dom = document.querySelector('meta[name="stub"]')
+    if (!dom || dom.content === '')
+      return
+
+    const start = app.state.path.length > 0 ?
+                  this.parent.versioned.prefix+'/'+app.state.path :
+                  this.parent.versioned.prefix
+
+    if (!location.href.startsWith(start))
+      return
+
+    const pathname = location.href.substring(start.length + 1)
+    let url = new URL(pathname, this.parent.versioned.prefix+'/'+dom.content+'/')
+    if (url.href === location.href) {
+      console.warn(`page_actions: stub cadidate '${dom.content}' references itself`)
+      return
+    }
+    let await_ = async () => {
+      if (await Toolbox.try_redirect(url, undefined, false))
+        console.log(`page_actions: stub candidate '${dom.content}' does not exist`)
+    }
+    await_()
+  }
   construct () {
     this.preinit_page_source()
     this.init()
   }
   init () {
     this.init_page_source()
+    this.handler_stub()
   }
   deinit () {
     this.deinit_page_source()
