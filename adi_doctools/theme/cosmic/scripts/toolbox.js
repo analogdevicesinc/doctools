@@ -81,10 +81,13 @@ class Toolbox {
     } catch (e) {
       url_ = fallback_url
     }
+    if (!url_)
+      return true
     if (new_tab)
       window.open(url_, '_blank').focus()
     else
       location.href = url_
+    return false
   }
   /*
    * Check if the raw content is only a include directive.

@@ -74,7 +74,7 @@ The values and their effects are:
 * ``stub``: Marks the page as a temporary or incomplete page that serves as a
   placeholder for future content.
 
-When visiting a page with the ``stub`` metadata, the scripts searches for
-alternatives and suggests to redirect to. Useful for then the content is in
-under review in a pull request or different tag. Suggesting a specific version
-is possible by providing a value, for example ``:stub: pull/1234``.
+When visiting a page with the ``stub`` metadata, the scripts searches for the
+suggested alternative to redirect to. Useful for then the content is in under
+review in a pull request or different tag. The suggested alternative is the
+value and is for example ``:stub: pull/1234``.
