@@ -71,6 +71,7 @@ jobs:
 
   check-doc:
     runs-on: [self-hosted, v1]
+    if: ${{ github.event_name == 'pull_request' }}
 
     steps:
     - uses: analogdevicesinc/doctools/checkout@action
