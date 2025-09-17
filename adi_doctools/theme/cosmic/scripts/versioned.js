@@ -114,7 +114,7 @@ export class Versioned {
       obj_[""] = ["main", "unstable"]
 
     for (const key in obj_) {
-      if (!key.startsWith('pull/')) {
+      if (!key.startsWith('pull/') && !key.startsWith('staging/')) {
         obj_[key] = [obj_[key][0], "latest"]
         break
       }
@@ -123,6 +123,8 @@ export class Versioned {
     for (const key in obj_) {
       if (key.startsWith('pull/'))
         obj_[key] = ['#'+ obj_[key][0].substring(5), "pull request"]
+      else if (key.startsWith('staging/'))
+        obj_[key] = ['#'+ obj_[key][0].substring(8), "staging"]
     }
 
     return obj_
