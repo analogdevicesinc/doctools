@@ -65,6 +65,8 @@ export class HotReload {
   }
   hot_links () {
     let attach_load = (elem) => {
+      if (elem.constructor.name !== 'HTMLAnchorElement')
+        return
       let url = new URL(elem)
       url.hash = ''
       let dom = this.toctree.get(url.href)
