@@ -83,10 +83,11 @@ jobs:
         vale sync
 
         check_vale() {
-          files=$(git diff --diff-filter=ACM --no-renames --name-only $base_sha..$head_sha -- docs/**/*.rst)
+          files=$(git diff --diff-filter=ACM --no-renames --name-only $base_sha..$head_sha -- docs/*.rst docs/**/*.rst)
 
           [[ -z "$files" ]] && return
           while read file; do
+            echo $file
             vale $file --output=JSON | \
               jq -r 'to_entries[] | .key as $file | .value[] |
               "::\(.Severity) file=\($file),line=\(.Line),col=\(.Span[0])::vale:\(.Check):\($file):\(.Line):\(.Span[0]) \(.Message)"'
