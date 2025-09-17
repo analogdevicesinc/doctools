@@ -124,7 +124,7 @@ export class Versioned {
       if (key.startsWith('pull/'))
         obj_[key] = ['#'+ obj_[key][0].substring(5), "pull request"]
       else if (key.startsWith('staging/'))
-        obj_[key] = ['#'+ obj_[key][0].substring(8), "staging"]
+        obj_[key] = [obj_[key][0], "branch"]
     }
 
     return obj_
