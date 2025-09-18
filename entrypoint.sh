@@ -15,7 +15,7 @@ unset config_flags
 unset name_label
 
 if [[ -z "$runner_labels_" ]]; then
-    runner_labels_="v1"
+    runner_labels_="repo-only,v1"
 fi
 
 if [[ -z "$config_flags_" ]]; then
