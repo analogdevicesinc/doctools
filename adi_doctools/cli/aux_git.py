@@ -1,4 +1,5 @@
 import subprocess
+import shutil
 from click import echo
 from os import path
 
@@ -20,12 +21,7 @@ def is_git_lfs_installed():
     """
     Check if git lfs is installed.
     """
-    p_ = subprocess.run(["which", "git-lfs"],
-                        capture_output=True)
-    if p_.returncode != 0:
-        return False
-
-    return True
+    return shutil.which("git-lfs") is not None
 
 def get_lfs_sha(path_):
     """
