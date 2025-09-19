@@ -358,9 +358,22 @@ export class HotReload {
     else // Fallback
       location.href = location.href
   }
+  /**
+   * If some of the elements are missing in the page,
+   * create
+   */
+  ensure_dom () {
+    if (this.$.related === null) {
+      this.$.related = DOM.new('div', {
+        className: 'related'
+      })
+      this.$.documentwrapper.insertAdjacentElement('beforeend', $.related)
+    }
+  }
   construct () {
     this.location_href = location.href
 
+    this.ensure_dom()
     this.init_toctree()
     this.init_others()
     this.init_loader()
