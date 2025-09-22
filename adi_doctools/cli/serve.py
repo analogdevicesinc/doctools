@@ -454,6 +454,7 @@ def serve(directory, port, dev, selenium, once, builder):
             click.echo(f"\n{BLUE}Running server on http://0.0.0.0:{port}{NC}\n")
         except Exception:
             click.echo(f"{FAIL}Could not start server on http://0.0.0.0:{port}{NC}")
+            click.echo(f"  {BLUE}Tip{NC}: pass another port with {BLUE}--port{NC}")
             if dev:
                 aux_killpg(rollup_p)
                 aux_killpg(sass_p)
