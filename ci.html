@@ -522,11 +522,11 @@ systemd services, instead of for example, container compose solutions.</p>
 <span class="na">PIDFile</span><span class="o">=</span><span class="s">%t/%n-pid</span>
 
 <span class="k">[Install]</span>
-<span class="na">WantedBy</span><span class="o">=</span><span class="s">multi-user.target</span>
+<span class="na">WantedBy</span><span class="o">=</span><span class="s">default.target</span>
 </pre></div>
 </div>
 <div><div class="collapsible docutils container">
-<input class="collapsible_input" id="b0ab042a1bbb2dbf402388cd27cc3ee36f781666" name="b0ab042a1bbb2dbf402388cd27cc3ee36f781666" type="checkbox"></input><label for="b0ab042a1bbb2dbf402388cd27cc3ee36f781666"><p>Docker alternative</p>
+<input class="collapsible_input" id="ece968691cbd677c8d43ccfe3eb12f4753745316" name="ece968691cbd677c8d43ccfe3eb12f4753745316" type="checkbox"></input><label for="ece968691cbd677c8d43ccfe3eb12f4753745316"><p>Docker alternative</p>
 <div class="icon"></div></label><div class="collapsible_content docutils container">
 <div class="highlight-systemd notranslate"><div class="highlight"><pre><span></span><span class="k">[Unit]</span>
 <span class="na">Description</span><span class="o">=</span><span class="s">container public doctools ci %i</span>
@@ -556,7 +556,7 @@ systemd services, instead of for example, container compose solutions.</p>
 <span class="na">Type</span><span class="o">=</span><span class="s">forking</span>
 
 <span class="k">[Install]</span>
-<span class="na">WantedBy</span><span class="o">=</span><span class="s">multi-user.target</span>
+<span class="na">WantedBy</span><span class="o">=</span><span class="s">default.target</span>
 </pre></div>
 </div>
 </div>
