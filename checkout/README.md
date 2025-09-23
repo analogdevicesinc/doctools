@@ -17,6 +17,7 @@ jobs:
 
 Key-points:
 
+* Fixups are auto-squashed, as an alternative to force pushing.
 * For pull-requests, rebase on base reference instead of awkward merge commit.
 * Current checkout branch is always called `trunk`
 * Sets the `fetch_depth`, `base_sha`, `head_sha` and `ahead_by` to

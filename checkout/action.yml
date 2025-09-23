@@ -95,6 +95,15 @@ runs:
     - name: Fetch & reset
       shell: bash
       run: |
+        # --empty was added on git 2.26.0
+        has_keep=$(git rebase -help 2>&1 | grep "\--empty" | wc -l) || true
+        echo $has_keep
+        if [[ "$has_keep" -gt "0" ]]; then
+          keep_empty="--empty=keep"
+        else
+          keep_empty="--keep-empty"
+        fi
+
         if [[ "${{ github.event.pull_request.head.sha }}" ]]; then
           if [[ "$behind_by" -eq 0 ]]; then
             git fetch origin --depth=$fetch_depth ${{ github.event.pull_request.head.sha }}
@@ -102,14 +111,6 @@ runs:
           else
             git fetch origin --depth=$fetch_depth $GITHUB_SHA
             git reset --hard $GITHUB_SHA
-            # --empty was added on git 2.26.0
-            has_keep=$(git rebase -help 2>&1 | grep "\--empty" | wc -l) || true
-            echo $has_keep
-            if [[ "$has_keep" -gt "0" ]]; then
-              keep_empty="--empty=keep"
-            else
-              keep_empty="--keep-empty"
-            fi
             while ! git rebase $keep_empty --rebase-merges @~; do
               git rebase --abort
               echo "deepening by $fetch_depth commits"
@@ -122,12 +123,19 @@ runs:
           ahead_by=$((fetch_depth - 1))
           echo "ahead_by=$ahead_by" >> $GITHUB_ENV
         fi
-        echo "head_sha=$(git rev-parse @)" >> "$GITHUB_ENV"
+
         if [[ "${{ github.event.pull_request.head.sha }}" ]]; then
-          echo "base_sha=${{ github.event.pull_request.base.sha }}" >> "$GITHUB_ENV"
+          base_sha=${{ github.event.pull_request.base.sha }}
         else
-          echo "base_sha=$(git rev-parse @~$ahead_by)" >> "$GITHUB_ENV"
+          base_sha=$(git rev-parse @~$ahead_by)
         fi
+
+        # try to apply fixups
+        git rebase $keep_empty --rebase-merges --autosquash $base_sha \
+          || git rebase --abort || true
+
+        echo "head_sha=$(git rev-parse @)" >> "$GITHUB_ENV"
+        echo "base_sha=$base_sha" >> "$GITHUB_ENV"
         echo "fetch_depth=$(git rev-list --count --first-parent $GITHUB_SHA)" >> "$GITHUB_ENV"
 
     - name: Log commit range
