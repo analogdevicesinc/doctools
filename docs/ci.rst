@@ -357,7 +357,7 @@ Below is a suggested systemd service at *~/.config/systemd/user/container-public
    PIDFile=%t/%n-pid
 
    [Install]
-   WantedBy=multi-user.target
+   WantedBy=default.target
 
 .. collapsible:: Docker alternative
 
@@ -391,7 +391,7 @@ Below is a suggested systemd service at *~/.config/systemd/user/container-public
       Type=forking
 
       [Install]
-      WantedBy=multi-user.target
+      WantedBy=default.target
 
 Remember to ``systemctl --user daemon-reload`` after modifying.
 With `autoupdate <https://docs.podman.io/en/latest/markdown/podman-auto-update.1.html>`__,
