@@ -17,6 +17,7 @@ runs:
     - name: Prepare git
       shell: bash
       run: |
+        # Prepare git
         url="https://x-access-token:${{ inputs.gh-token }}@github.com/${{ github.repository }}.git"
 
         if [[ -f .git/shallow.lock ]] || [[ -f .git/index.lock ]]; then
@@ -61,6 +62,7 @@ runs:
     - name: Get commit depth
       shell: bash
       run: |
+        # Get commit depth
         if [[ "${{ github.event.pull_request.head.sha }}" ]]; then
           echo "setting fetch_depth based on github.event.pull_request.head.sha"
           json=$(curl -s -L \
@@ -95,6 +97,7 @@ runs:
     - name: Fetch & reset
       shell: bash
       run: |
+        # Fetch & reset
         # --empty was added on git 2.26.0
         has_keep=$(git rebase -help 2>&1 | grep "\--empty" | wc -l) || true
         echo $has_keep
@@ -125,27 +128,40 @@ runs:
         fi
 
         if [[ "${{ github.event.pull_request.head.sha }}" ]]; then
-          base_sha=${{ github.event.pull_request.base.sha }}
+          echo "base_sha=${{ github.event.pull_request.base.sha }}" >> "$GITHUB_ENV"
         else
-          base_sha=$(git rev-parse @~$ahead_by)
+          echo "base_sha=$(git rev-parse @~$ahead_by)" >> "$GITHUB_ENV"
         fi
 
-        # try to apply fixups
+    - name: Apply fixups
+      shell: bash
+      run: |
+        # Apply fixups
         git rebase $keep_empty --rebase-merges --autosquash $base_sha \
           || git rebase --abort || true
 
+    - name: Fill environment
+      shell: bash
+      run: |
+        # Fill environment
         echo "head_sha=$(git rev-parse @)" >> "$GITHUB_ENV"
-        echo "base_sha=$base_sha" >> "$GITHUB_ENV"
-        echo "fetch_depth=$(git rev-list --count --first-parent $GITHUB_SHA)" >> "$GITHUB_ENV"
+
+        if [[ "${{ github.event.pull_request.head.sha }}" ]]; then
+          if [[ "$behind_by" -ne 0 ]]; then
+            echo "fetch_depth=$(git rev-list --count --first-parent $GITHUB_SHA)" >> "$GITHUB_ENV"
+          fi
+        fi
 
     - name: Log commit range
       shell: bash
       run: |
+        # Log commit range
         git log --oneline --reverse $base_sha..$head_sha
 
     - name: Generate cache branches & rename
       shell: bash
       run: |
+        # Generate cache branches & rename
         if [[ "${{ github.event.pull_request.base.sha }}" ]]; then
           branch=${{ github.base_ref }}
           commit=${{ github.event.pull_request.base.sha }}
