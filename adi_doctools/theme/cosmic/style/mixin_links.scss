@@ -6,6 +6,7 @@ $links: (
     "link":    #666666 "link",
     "dokuwiki":#666666 "dokuwiki",
     "download":#666666 "download",
+    "doxygen": #659ad2 "doxygen",
 );
 
 @mixin default-link($color, $icon-name) {
