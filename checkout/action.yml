@@ -37,6 +37,7 @@ runs:
           git revert --abort 2>/dev/null || true
           git cherry-pick --abort 2>/dev/null || true
           git bisect reset 2>/dev/null || true
+          git stash clear || true
 
           git reset --hard --quiet
           git clean -ffdx --quiet .
