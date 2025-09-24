@@ -141,7 +141,8 @@ container-run ()
 	fi
 
 }
+alias container=$container_engine
 alias docker-run=container-run
-alias container-run=container-run
+alias podman-run=container-run
 alias cr=container-run
 
