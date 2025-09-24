@@ -3,7 +3,8 @@
 container_engine=podman
 container-run ()
 {
-	help_usage="
+	help_usage="container-run --root --volume=<path> <image> [cmd]
+
 	Examples:
 	    $ container-run adi/linux:latest echo hello!
 	      hello!
@@ -20,17 +21,25 @@ container-run ()
 	    > zypper install some_package
 	       installing some_package...
 
+	If volume is not provided:
+	 * is git repository: Set as the root of the repository, and if a
+	   wortree, add the common git dir as well.
+	 * is not a git repository: only set the current directory.
+	If volume is provided, only set the current directory.
 	"
 	
 	local as_root=
-	local volume=.
+	local volume=
 	local image=
 	local with_args=
 	local cwd=
 	declare -a args=
 	for arg; do
 		if [[ "$arg" =~ ^-- ]]; then
-			if [[ "$arg" == "--root" ]]; then
+			if [[ "$arg" == "--help" ]]; then
+				printf "$help_usage" | sed -e 's/^\t//'
+				return
+			elif [[ "$arg" == "--root" ]]; then
 				as_root=true
 			elif [[ "$arg" == "--volume" ]]; then
 				echo "missing --volume= value (e.g. --volume=work)"
@@ -58,7 +67,6 @@ container-run ()
 
 	if [[ -z "$image" ]]; then
 		echo "missing image, usage:"
-		echo "container-run --root --volume=<path> <image> [cmd]"
 		printf "$help_usage" | sed -e 's/^\t//'
 		return
 	fi
@@ -83,11 +91,24 @@ container-run ()
 		exists=false
 	fi
 
+	if [[ -z "$volume" ]]; then
+		git_root=$(git rev-parse --git-common-dir 2>/dev/null) || true
+		if [[ ! -z "$git_root" ]]; then
+			volume=$(realpath $git_root/..)
+			git_root_2=$(git rev-parse --show-toplevel)
+			[ "$git_root_2" != "$git" ] && volume_2=$git_root_2
+		else
+			volume=.
+		fi
+	fi
+	volume=$(realpath $volume)
+
 	run_params="run -it \
 		--entrypoint= \
 		--name=$name \
 		--workdir=$(pwd) \
-		--volume $volume:$(cd $volume; pwd)"
+		--volume $volume:$volume"
+	[ ! -z "$volume_2" ] && run_params="$run_params --volume $volume_2:$volume_2"
 	if [ "$container_engine" == "podman" ]; then
 		if [[ "$as_root" ]]; then
 			run_params="$run_params --user root"
