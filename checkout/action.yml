@@ -63,7 +63,6 @@ runs:
       run: |
         # Get commit depth
         if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-          echo "setting fetch_depth based on github.event.pull_request.head.sha"
           json=$(curl -s -L \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${{ inputs.gh-token }}" \
@@ -80,7 +79,6 @@ runs:
           else
             fetch_depth=$(( ahead_by + behind_by + 2 ))
             echo "behind_by=$behind_by" >> $GITHUB_ENV
-            echo "merge_base_sha=$merge_base_commit" >> $GITHUB_ENV
             echo "fetch_depth=$fetch_depth" >> $GITHUB_ENV
           fi
         elif [[ ! "${{ github.event.before }}" =~ "0000000000000000" ]] && [[ "${{ github.event.forced }}" == "false" ]]; then
