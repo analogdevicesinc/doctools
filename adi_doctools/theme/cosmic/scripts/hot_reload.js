@@ -88,24 +88,26 @@ export class HotReload {
   script_add (key) {
     const elem = this.js_script_memory.get(key)
     document.querySelector('head')?.append(elem)
-    switch(key) {
-      case "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js":
-        // MathJax will apply on load, so only call if already loaded,
-        // instead of having to wait if it to be loaded to call.
-        if (typeof MathJax !== 'undefined')
-          MathJax.typeset()
-        // For reference only, if custom initialization was necessary
-        //else
-        //  elem.onload = () => { console.log("MathJax loaded") }
-      case "https://cdn.jsdelivr.net/npm/mermaid@11.2.0/dist/mermaid.esm.min.mjs":
-        if (typeof Mermaid !== 'undefined')
+
+    if (!key.startsWith("https://"))
+      return
+
+    if (new RegExp("^https://cdn\\.jsdelivr\\.net/npm/mathjax@[^/]+/es5/tex-mml-chtml\\.js$").test(key)) {
+      // MathJax will apply on load, so only call if already loaded,
+      // instead of having to wait if it to be loaded to call.
+      if (typeof MathJax !== 'undefined')
+        MathJax.typeset()
+      // For reference only, if custom initialization was necessary
+      //else
+      //  elem.onload = () => { console.log("MathJax loaded") }
+    } else if (new RegExp("^https://cdn\\.jsdelivr\\.net/npm/mermaid@[^/]+/dist/mermaid\\.esm\\.min\\.mjs$").test(key)) {
+      if (typeof Mermaid !== 'undefined')
+        Mermaid.run()
+      else
+        import(key).then(m => {
+          window.Mermaid = m.default
           Mermaid.run()
-        else
-          import("https://cdn.jsdelivr.net/npm/mermaid@11.2.0/dist/mermaid.esm.min.mjs").then(m => {
-            window.Mermaid = m.default
-            Mermaid.run()
-          })
-        break;
+        })
     }
   }
   get_script_key (script) {
