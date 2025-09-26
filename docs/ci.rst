@@ -303,6 +303,8 @@ is ignored and a new one is requested.
       $    --env runner_labels=repo-only,v1,big_cpu \
       $    localhost/adi/doctools:v1
 
+   Or ``systemd-creds``. If your system supports, consider protecting with TPM2.
+
 The environment variable runner_labels (comma-separated), set the runner labels.
 If not provided on the Containerfile as ``ENV runner_labels=<labels,>`` or as argument
 ``--env runner_labels=<labels,>``, it defaults to ``v1``.
