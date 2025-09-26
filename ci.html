@@ -9,7 +9,7 @@
     <title>Continuous integration &#8212; Doctools  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8e8a900e" />
     <link rel="stylesheet" type="text/css" href="_static/app.min.css?v=02e51da6" />
-    <script async="async" src="_static/app.umd.js?v=ae84136e"></script>
+    <script async="async" src="_static/app.umd.js?v=a9cc9f1c"></script>
     <link rel="icon" href="_static/icon.svg"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -459,7 +459,7 @@ is ignored and a new one is requested.</p>
 </pre></div>
 </div>
 <div class="clear-left"></div></div></div><div><div class="collapsible docutils container">
-<input class="collapsible_input" id="cbdc10dfeb666db8161e75b0172c29705eb609dc" name="cbdc10dfeb666db8161e75b0172c29705eb609dc" type="checkbox"></input><label for="cbdc10dfeb666db8161e75b0172c29705eb609dc"><p>Docker alternative</p>
+<input class="collapsible_input" id="6c0c02ea33af4cbc332d9bc2650cc6b615efc51c" name="6c0c02ea33af4cbc332d9bc2650cc6b615efc51c" type="checkbox"></input><label for="6c0c02ea33af4cbc332d9bc2650cc6b615efc51c"><p>Docker alternative</p>
 <div class="icon"></div></label><div class="collapsible_content docutils container">
 <p><code class="docutils literal notranslate"><span class="pre">docker</span></code> does <strong>not</strong> have a built-in keyring, instead you pass directly
 to <code class="docutils literal notranslate"><span class="pre">run</span></code> command. <span class="red">Consider hardening strategies to mitigate risks</span>,
@@ -474,7 +474,8 @@ like using other keyring software as below.</p>
 <span class="w">    </span>localhost/adi/doctools:v1
 </pre></div>
 </div>
-<div class="clear-left"></div></div></div></div>
+<div class="clear-left"></div></div></div><p>Or <code class="docutils literal notranslate"><span class="pre">systemd-creds</span></code>. If your system supports, consider protecting with TPM2.</p>
+</div>
 </div>
 </div><p>The environment variable runner_labels (comma-separated), set the runner labels.
 If not provided on the Containerfile as <code class="docutils literal notranslate"><span class="pre">ENV</span> <span class="pre">runner_labels=&lt;labels,&gt;</span></code> or as argument
