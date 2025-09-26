@@ -82,13 +82,13 @@ export class HotReload {
     document.querySelectorAll('.reference.internal', this.$.content).forEach(attach_load)
     document.querySelectorAll('a[href]', this.$.breadcrumb).forEach(attach_load)
   }
-  script_remove (url) {
+  script_remove (key) {
     /* Nothing to do */
   }
-  script_add (url) {
-    const elem = this.js_script_memory.get(url)
+  script_add (key) {
+    const elem = this.js_script_memory.get(key)
     document.querySelector('head')?.append(elem)
-    switch(url) {
+    switch(key) {
       case "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js":
         // MathJax will apply on load, so only call if already loaded,
         // instead of having to wait if it to be loaded to call.
@@ -97,11 +97,22 @@ export class HotReload {
         // For reference only, if custom initialization was necessary
         //else
         //  elem.onload = () => { console.log("MathJax loaded") }
+      case "https://cdn.jsdelivr.net/npm/mermaid@11.2.0/dist/mermaid.esm.min.mjs":
+        if (typeof Mermaid !== 'undefined')
+          Mermaid.run()
+        else
+          import("https://cdn.jsdelivr.net/npm/mermaid@11.2.0/dist/mermaid.esm.min.mjs").then(m => {
+            window.Mermaid = m.default
+            Mermaid.run()
+          })
         break;
     }
   }
-  normalize_src (src) {
-    const url = new URL(src)
+  get_script_key (script) {
+    if (!script.hasAttribute("src"))
+      return script.innerHTML
+
+    const url = new URL(script.src)
     url.searchParams.delete("v")
     return url.href
   }
@@ -120,7 +131,7 @@ export class HotReload {
       })
     }
     for (let i = 0; i < scripts.length; i++) {
-      js_script.set(this.normalize_src(scripts[i].src), scripts[i])
+      js_script.set(this.get_script_key(scripts[i]), scripts[i])
     }
     const added = [...js_script.keys()].filter(k => !this.js_script_current.has(k));
     const removed = [...this.js_script_current.keys()].filter(k => !js_script.has(k));
@@ -138,9 +149,12 @@ export class HotReload {
         return
       // Prepare script element
       const script = document.createElement("script");
-      for (const attr of js_script.get(item).attributes) {
+      const cache = js_script.get(item)
+      for (const attr of cache.attributes) {
         script.setAttribute(attr.name, attr.value);
       }
+      if (cache.innerHTML)
+        script.innerHTML = cache.innerHTML
       this.js_script_memory.set(item, script)
     })
 
@@ -316,7 +330,8 @@ export class HotReload {
     // Map scripts
     const scripts = document.querySelector('head')?.querySelectorAll('script') || []
     for (let i = 0; i < scripts.length; i++) {
-      const key = this.normalize_src(scripts[i].src)
+      const key = this.get_script_key(scripts[i])
+
       this.js_script_current.add(key)
       this.js_script_memory.set(key, scripts[i])
     }

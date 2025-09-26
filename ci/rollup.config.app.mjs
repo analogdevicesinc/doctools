@@ -14,6 +14,8 @@ export default [
     plugins: [
       terser()
     ],
+    // Treat all https:// as external
+    external: (id) => /^https?:\/\//.test(id),
   },
   {
     input: `${path}/scripts/extra.js`,
