@@ -12,7 +12,7 @@ jobs:
     steps:
     - uses: analogdevicesinc/doctools/checkout@action
 
-    - uses: actions/download-artifact@v4
+    - uses: actions/download-artifact@v5
       with:
         name: dist
         path: dist
@@ -44,7 +44,7 @@ jobs:
     steps:
     - uses: analogdevicesinc/doctools/checkout@action
 
-    - uses: actions/download-artifact@v4
+    - uses: actions/download-artifact@v5
       with:
         name: dist
         path: dist
