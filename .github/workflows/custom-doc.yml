@@ -6,6 +6,9 @@ jobs:
     steps:
     - uses: analogdevicesinc/doctools/checkout@action
 
+    - name: Ensure clean dist
+      run: rm -rf dist
+
     - uses: actions/download-artifact@v5
       with:
         name: dist
@@ -17,7 +20,7 @@ jobs:
         source ./venv/3.13/custom-doc/bin/activate
         pip3.13 install $(tail --lines=+2 docs/requirements.txt) --upgrade
         pip3.13 install weasyprint
-        pip3.13 install dist/adi_doctools-*.tar.gz
+        pip3.13 install dist/*.tar.gz
 
     - name: Prepare custom doc template
       run: |
