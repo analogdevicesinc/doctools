@@ -86,7 +86,7 @@ jobs:
         vale sync
 
         check_vale() {
-          files=$(git diff --diff-filter=ACM --no-renames --name-only $base_sha..$head_sha -- docs/*.rst docs/**/*.rst)
+          files=$(git diff --diff-filter=ACM --no-renames --name-only $base_sha..$head_sha -- 'docs/*.rst' 'docs/**/*.rst')
 
           [[ -z "$files" ]] && return
           while read file; do
