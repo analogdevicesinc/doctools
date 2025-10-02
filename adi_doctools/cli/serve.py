@@ -1,7 +1,6 @@
 from os import path, listdir, remove, mkdir
 from os import pardir
 from os import environ, stat, utime
-from os import cpu_count
 from shutil import copy2, which, move
 import click
 import importlib
