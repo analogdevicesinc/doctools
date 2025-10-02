@@ -313,8 +313,10 @@ def serve(directory, port, dev, selenium, once, builder):
     if not with_selenium and builder == 'html':
         environ["ADOC_DEVPOOL"] = ""
 
-    app = Sphinx(directory, directory,  builddir,
-                 doctreedir, builder, parallel=cpu_count())
+    def app_subprocess_build():
+        subprocess.call(f"sphinx-build -b {builder} . {builddir} -d {doctreedir} -j auto",
+                        shell=True, cwd=directory)
+
 
     watch_file_src = {}
     watch_file_rst = {}
@@ -339,7 +341,7 @@ def serve(directory, port, dev, selenium, once, builder):
                 sys.exit(1)
 
         # Build doc the first time
-        app.build()
+        app_subprocess_build()
         for f in w_files:
             watch_file_src[f] = stat(f).st_mtime
         if not once:
@@ -354,12 +356,17 @@ def serve(directory, port, dev, selenium, once, builder):
             update_pdf()
     else:
         # Build doc the first time
-        app.build()
+        app_subprocess_build()
         if builder == "singlehtml":
             update_pdf()
 
     if once:
         return
+
+    # app.build() doesn't handle the cache well in parallel,
+    # instead, we call through subprocess if needed
+    app = Sphinx(directory, directory,  builddir,
+                 doctreedir, builder, parallel=0)
 
     def get_source_lfs_file(path_, ext):
         """
@@ -587,9 +594,11 @@ def serve(directory, port, dev, selenium, once, builder):
                 update_page = True
                 watch_file_src[file] = ctime
 
+        use_subprocess = False
         if not path.isdir(builddir):
             # User did make clean
             update_sphinx = True
+            use_subprocess = True
 
         if first_run is True:
             first_run = False
@@ -613,13 +622,10 @@ def serve(directory, port, dev, selenium, once, builder):
             #   Maybe importlib.reload() + monkey patch could be an alternative,
             #   but not triggering full env reload would be tricky, so this is
             #   good enough.
-            # no-dev (FIXME):
-            #   with parallel set, calling app.build() is stuck with the
-            #   first run value, even tough it successfully reads the file, as
-            #   seem with verbosity=2.
-            #   So, for now, always rebuild with subprocess instead.
-            subprocess.call(f"sphinx-build -b {builder} . {builddir} -j auto",
-                            shell=True, cwd=directory)
+            if dev or use_subprocess:
+                app_subprocess_build()
+            else:
+                app.build()
         if update_page:
             for f in w_files:
                 copy2(f, path.join(builddir, '_static', path.basename(f)))
