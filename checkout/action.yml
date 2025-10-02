@@ -5,6 +5,10 @@ inputs:
   gh-token:
     description: "GitHub Token"
     default: ${{ github.token }}
+  lfs:
+    description: "Enable Git LFS"
+    default: 'false'
+
 
 # behaviour:
 # cache/ branches are created to avoid base refs from being garbage collected.
@@ -16,6 +20,15 @@ runs:
     - name: Prepare git
       shell: bash
       run: |
+        if command -v git-lfs >/dev/null 2>&1; then
+          if [ "${{ inputs.lfs }}" = "true" ]; then
+            git lfs install
+          else
+            git lfs install --skip-smudge
+          fi
+        elif [ "${{ inputs.lfs }}" = "true" ]; then
+          echo "::warning ::Git LFS set to true, but git-lfs is not installed."
+        fi
         # Prepare git
         url="https://x-access-token:${{ inputs.gh-token }}@github.com/${{ github.repository }}.git"
 
