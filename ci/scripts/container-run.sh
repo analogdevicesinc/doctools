@@ -3,7 +3,7 @@
 container_engine=podman
 container-run ()
 {
-	help_usage="container-run --root --volume=<path> <image> [cmd]
+	help_usage="container-run <image> [cmd]
 
 	Examples:
 	    $ container-run adi/linux:latest echo hello!
@@ -21,6 +21,12 @@ container-run ()
 	    > zypper install some_package
 	       installing some_package...
 
+	Options:
+
+	--volume=<path>     Mount a path as a volume.
+	--root              Runs as root instead of user runner.
+	--no-credentials    Don't mount credentials into the container.
+
 	If volume is not provided:
 	 * is git repository: Set as the root of the repository, and if a
 	   wortree, add the common git dir as well.
@@ -28,7 +34,8 @@ container-run ()
 	If volume is provided, only set the current directory.
 	"
 	
-	local as_root=
+	local as_root=false
+	local no_creds=false
 	local volume=
 	local image=
 	local with_args=
@@ -41,6 +48,8 @@ container-run ()
 				return
 			elif [[ "$arg" == "--root" ]]; then
 				as_root=true
+			elif [[ "$arg" == "--no-credentials" ]]; then
+				no_creds=true
 			elif [[ "$arg" == "--volume" ]]; then
 				echo "missing --volume= value (e.g. --volume=work)"
 				return
@@ -110,15 +119,25 @@ container-run ()
 		--volume $volume:$volume"
 	[ ! -z "$volume_2" ] && run_params="$run_params --volume $volume_2:$volume_2"
 	if [ "$container_engine" == "podman" ]; then
-		if [[ "$as_root" ]]; then
+		if $as_root; then
 			run_params="$run_params --user root"
 		else
 			run_params="$run_params --userns keep-id"
 		fi
 	elif [ "$container_engine" == "docker" ]; then
-		if [[ "$as_root" ]]; then
+		if $as_root; then
 			run_params="$run_params --user root"
 		fi
+	fi
+	if ! $no_creds; then
+		home=$($as_root && echo "/root" || echo "/home/runner")
+		if [[ -d "$HOME/.ssh" ]]; then
+			run_params="$run_params --volume $HOME/.ssh:$home/.ssh"
+		fi
+		if [[ -f "$HOME/.git-credentials" ]]; then
+			run_params="$run_params --volume $HOME/.git-credentials:$home/.git-credentials"
+		fi
+
 	fi
 
 	if [[ "$running" == "true" ]]; then
