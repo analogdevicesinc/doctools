@@ -53,6 +53,12 @@ else
 	printf "\e[31mNot\e[0m a git repository! Won't set ci tools, nor git commit range.\n"
 fi
 
+if $it; then
+	if [ -f /usr/share/bash-completion/bash_completion ]; then
+		. /usr/share/bash-completion/bash_completion
+	fi
+fi
+
 github_pipe_fifo=/tmp/github_env_$(tr -dc A-Za-z0-9 </dev/urandom | head -c 4; command echo)
 github_pipe_listener () {
 	github_pipe_listener_clean () {
