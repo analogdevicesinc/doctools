@@ -73,6 +73,8 @@ The values and their effects are:
   to the page, alternative to the :ref:`theme option <theme options>` ``no_index``.
 * ``stub``: Marks the page as a temporary or incomplete page that serves as a
   placeholder for future content.
+* ``body-class``: Add classes to the body HTML tag, scoping the whole webpage.
+  Useful for customizing the header, sidebars.
 
 When visiting a page with the ``stub`` metadata, the scripts searches for the
 suggested alternative to redirect to. Useful for then the content is in under

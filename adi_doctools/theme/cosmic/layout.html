@@ -94,6 +94,14 @@
   {%- endif %}
 {%- endblock %}
 
+{%- block body_tag %}
+  {% if 'body-class' in (meta or {}) %}
+    <body class="{{ meta['body-class'].replace(',', ' ') }}">
+  {% else %}
+    <body>
+  {% endif %}
+{%- endblock %}
+
 {%- block content %}
 
   <div class="repotoc-tree overlay">
