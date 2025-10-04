@@ -462,9 +462,8 @@ class directive_collection(SphinxDirective):
         if image:
             image = directives.uri(image)
         label = self.options.pop('label', None)
-        if label:
-            label = re.split(r'(?<!\\) ', label)
-            label = [d.replace('\\ ', ' ') for d in label]
+        label = re.split(r'(?<!\\)[ ,]', label)
+        label = [d.replace('\\ ', ' ') for d in label if d]
 
         description = []
         for i, line in enumerate(self.content):
