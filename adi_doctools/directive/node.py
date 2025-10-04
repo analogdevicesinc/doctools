@@ -87,8 +87,15 @@ class node_collection(node_base):
         """
         for node_ in node:
             if isinstance(node_, nodes.image):
+                if node_['uri'].find('://') == -1:
+                    relfn, _ =  self.builder.env.relfn2path(
+                        node_['uri'],
+                        self.builder.current_docname
+                    )
+                else:
+                    relfn = node_['uri']
                 node_collection.update_collection_env(
-                        self.builder.env, node['olduri'], node_['uri'])
+                        self.builder.env, node['olduri'], relfn)
                 break
         self.body.append(f"</{node.tagname}>")
 

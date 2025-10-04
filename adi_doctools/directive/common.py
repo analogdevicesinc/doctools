@@ -423,7 +423,10 @@ def directive_collection_build_finished(app, exc):
         if app.config.repository:
             collection_[item['key']]['docname'] = f"{app.config.repository}/{item['docname']}"
             if 'image' in item and item['image'] in json_map:
-                collection_[item['key']]['image'] = f"{app.config.repository}/{json_map[item['image']]}"
+                if json_map[item['image']].find('://') == -1:
+                    collection_[item['key']]['image'] = f"{app.config.repository}/{json_map[item['image']]}"
+                else:
+                    collection_[item['key']]['image'] = json_map[item['image']]
         if 'subtitle' in item:
             collection_[item['key']]['subtitle'] = item['subtitle']
         if 'label' in item:
