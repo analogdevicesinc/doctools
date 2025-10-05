@@ -30,6 +30,7 @@ class node_base(nodes.Element, nodes.General):
         pass
 
 class node_div(node_base):
+    # prefer nodes.container
     tagname = 'div'
     endtag = 'true'
 
@@ -74,10 +75,10 @@ class node_collection(node_base):
     endtag = 'true'
 
     @staticmethod
-    def update_collection_env(env, olduri, uri):
-        if not hasattr(env, 'collection_image'):
-            env.collection_image = {}
-        env.collection_image[olduri] = uri
+    def update_collection_env(builder, olduri, uri):
+        if not hasattr(builder, 'collection_image'):
+            builder.collection_image = {}
+        builder.collection_image[olduri] = uri
 
     @staticmethod
     def depart(self, node):
@@ -95,7 +96,7 @@ class node_collection(node_base):
                 else:
                     relfn = node_['uri']
                 node_collection.update_collection_env(
-                        self.builder.env, node['olduri'], relfn)
+                        self.builder, node['olduri'], relfn)
                 break
         self.body.append(f"</{node.tagname}>")
 

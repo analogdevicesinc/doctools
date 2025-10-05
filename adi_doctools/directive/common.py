@@ -399,8 +399,9 @@ def directive_collection_build_finished(app, exc):
     if path.exists(file_map):
         with open(file_map) as f:
             json_map = json.loads(f.read())
-    if hasattr(env, 'collection_image'):
-        json_map.update(env.collection_image)
+
+    if hasattr(app.builder, 'collection_image'):
+        json_map.update(app.builder.collection_image)
 
     if not hasattr(env, 'collection'):
         env.collection = []
@@ -546,11 +547,11 @@ class directive_collection(SphinxDirective):
         if label:
             entry['label'] = label
         if image:
-            node = node_collection(classes=['collection'], olduri=image)
+            node = node_collection(classes=['_collection'], olduri=image)
             image_node = nodes.image(self.block_text, uri=image)
             node += image_node
         else:
-            node = node_collection(classes=['collection'])
+            node = node_collection(classes=['_collection'])
 
         self.env.collection.append(entry)
 
