@@ -71,7 +71,6 @@ At the repository root, install the `npm` dependencies locally:
 ```
 npm install rollup \
     @rollup/plugin-terser \
-    rollup-plugin-scss \
     sass \
     --save-dev
 ```
