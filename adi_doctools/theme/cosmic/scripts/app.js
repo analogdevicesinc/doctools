@@ -7,8 +7,8 @@ export default function App () {
   window.app = {}
 
   new State(app)
+  new Fetch(app)
   let on_visible = () => {
-    new Fetch(app)
     new Navigation(app)
     new HotReload(app)
   }

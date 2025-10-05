@@ -12,7 +12,7 @@ export class ContentActions {
   constructor (app) {
     this.$ = {}
     this.parent = app
-    this.collection
+    this.callback = []
 
     if (typeof this.parent.fetch === 'object')
       this.parent.fetch.then(this.construct.bind(this))
@@ -115,7 +115,7 @@ export class ContentActions {
   }
   load_collection () {
     const repo = this.parent.state.repository
-    const obj = this.collection
+    const obj = this.parent.state.collection
     if (!("collection" in obj))
       return
     if ("pattern" in obj)
@@ -181,7 +181,11 @@ export class ContentActions {
         else
           throw new Error();
       })
-      .then(obj => {this.collection = obj ; this.load_collection()})
+      .then(obj => {
+        this.parent.state.collection = obj
+        this.callback.forEach(cb => cb())
+        this.load_collection()
+      })
       .catch(err => {})
   }
   construct () {
@@ -196,5 +200,14 @@ export class ContentActions {
     else
       console.log('copy_button: sphinx-copy-button extension is present, skipping')
     this.init_collection()
+  }
+  /**
+   * Append callbacks to call after collection.json is loaded.
+   */
+  then (callback) {
+    if (this.parent.state.collection)
+      callback()
+    else
+      this.callback.push(callback)
   }
 }

@@ -7,11 +7,18 @@ import { ContentActions } from './content_actions.js'
 
 export default function Extra (){
   new Polyfill(app)
-  new Links(app)
-  new Versioned(app)
-  new PageActions(app)
-  new Search(app)
-  new ContentActions(app)
+  let on_visible = () => {
+    new Links(app)
+    new Versioned(app)
+    new PageActions(app)
+    new Search(app)
+    new ContentActions(app)
+  }
+
+  if (document.visibilityState === 'visible')
+    on_visible()
+  else
+    window.addEventListener('focus', on_visible, { once: true })
 }
 
 Extra()

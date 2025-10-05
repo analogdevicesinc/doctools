@@ -10,6 +10,7 @@
  * path: "v0.0.1", "", "prs/staging/new_feature"
  * reloaded: page was reloaded
  * metadata: metadata.json, fetched later by fetch.js, if state allows
+ * collection: collection.json, fetched later by content_actions.js, if state allows
  * tags: tags.json, fetched later by extra version_dropdown.js
  * standalone: isolated doc, disable multi-repo integrations
  */
@@ -23,6 +24,7 @@ const state = {
   path: undefined,
   reloaded: undefined,
   metadata: undefined,
+  collection: undefined,
   tags: undefined,
   standalone: undefined
 }
