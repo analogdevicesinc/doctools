@@ -513,7 +513,7 @@ def serve(directory, port, dev, selenium, once, builder):
 
 
     def get_doc_sources():
-        types = ['*.rst', '*.md', '*.svg', '*.txt', '*.png', '*.jpg', '*.jpeg', '*.py']
+        types = ['*.rst', '*.md', '*.svg', '*.txt', '*.png', '*.jpg', '*.jpeg', '*.py', '*.js', '*.css']
         files = []
         ctime = []
         for typ in types:
