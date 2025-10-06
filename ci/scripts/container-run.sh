@@ -86,6 +86,31 @@ container-run ()
 
 	if git rev-parse --is-inside-work-tree  > /dev/null 2>&1 ; then
 		cwd=$(git rev-parse --show-toplevel)
+
+		ci_worktree=$(git worktree list | grep '\[_ci\]' | cut -f1 -d " ")
+		if [[ -z "$ci_worktree" ]]; then
+			remote=$(git remote -v | grep analogdevicesinc | head -1 | cut -f1)
+			if [[ ! -z "$remote" ]]; then
+				printf "Remote '\e[34m$remote\e[0m' matches '\e[34manalogdevicesinc\e[0m'."
+				if git ls-remote --exit-code --heads $remote refs/heads/ci 1>/dev/null ; then
+					printf "\b, and has branch '\e[34mci\e[0m'.\n"
+					read -p "Fetch (y/n)? " yn
+					case $yn in
+						[Yy]* )
+							printf "\33[2K\rFetching branch '\e[34mci\e[0m'..."
+							git fetch --quiet $remote ci
+							git branch -D _ci &>/dev/null
+							git worktree add -q -b _ci $cwd/_ci $remote/ci
+							printf "\33[2K\rFetched CI branch to '_ci'.\n"
+							printf "To \e[34mclean-up\e[0m, use: \n"
+							printf "  \e[34mgit worktree remove _ci\e[0m\n\n"
+							printf "Keep it up to date as well with \e[34mgit pull\e[0m.\n\n" ;;
+						* )
+							printf "Continuing without \e[34_ci\e[0m worktree.\n\n" ;;
+					esac
+				fi
+			fi
+		fi
 	else
 		cwd=$(pwd)
 	fi
