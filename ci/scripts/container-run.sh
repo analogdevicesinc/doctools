@@ -25,7 +25,7 @@ container-run ()
 
 	--volume=<path>     Mount a path as a volume.
 	--root              Runs as root instead of user runner.
-	--no-credentials    Don't mount credentials into the container.
+	--mount-keys        Mount credentials into the container.
 
 	If volume is not provided:
 	 * is git repository: Set as the root of the repository, and if a
@@ -35,7 +35,7 @@ container-run ()
 	"
 	
 	local as_root=false
-	local no_creds=false
+	local mount_keys=false
 	local volume=
 	local image=
 	local with_args=
@@ -48,8 +48,8 @@ container-run ()
 				return
 			elif [[ "$arg" == "--root" ]]; then
 				as_root=true
-			elif [[ "$arg" == "--no-credentials" ]]; then
-				no_creds=true
+			elif [[ "$arg" == "--mount_keys" ]]; then
+				mount_keys=true
 			elif [[ "$arg" == "--volume" ]]; then
 				echo "missing --volume= value (e.g. --volume=work)"
 				return
@@ -129,7 +129,7 @@ container-run ()
 			run_params="$run_params --user root"
 		fi
 	fi
-	if ! $no_creds; then
+	if $mount_keys; then
 		home=$($as_root && echo "/root" || echo "/home/runner")
 		if [[ -d "$HOME/.ssh" ]]; then
 			run_params="$run_params --volume $HOME/.ssh:$home/.ssh"
