@@ -1,4 +1,6 @@
 "use strict";
+
+import {DispatchEvent} from './event.js'
 import {DOM} from './dom.js'
 import {Toolbox} from './toolbox.js'
 
@@ -20,6 +22,7 @@ export class ContentActions {
       this.construct()
 
     app.content_actions = this
+    DispatchEvent("app:content_actions:constructed")
   }
   copy_button () {
     let body = new DOM(DOM.get('.bodywrapper .body'))

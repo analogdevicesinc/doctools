@@ -1,3 +1,4 @@
+import { DispatchEvent } from './event.js'
 import { Polyfill } from './polyfill.js'
 import { Links } from './links.js'
 import { PageActions } from './page_actions.js'

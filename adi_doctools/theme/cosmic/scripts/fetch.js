@@ -1,5 +1,6 @@
 "use strict";
 
+import {DispatchEvent} from './event.js'
 import {Toolbox} from './toolbox.js'
 import {DOM} from './dom.js'
 
@@ -15,6 +16,7 @@ export class Fetch {
     this.construct()
 
     app.fetch = this
+    DispatchEvent("app:fetch:constructed")
   }
   /**
    * Updates elements in a reactive manner,
