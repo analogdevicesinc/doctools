@@ -6,24 +6,8 @@ if git rev-parse --is-inside-work-tree  > /dev/null 2>&1 ; then
 	pushd $(realpath $(git rev-parse --git-common-dir)/..) 1>/dev/null
 
 	ci_worktree=$(git worktree list | grep '\[_ci\]' | cut -f1 -d " ")
-	if [[ -z "$ci_worktree" ]]; then
-		remote=$(git remote -v | grep analogdevicesinc | head -1 | cut -f1)
-		if [[ ! -z "$remote" ]]; then
-			$it && printf "Remote '\e[34m$remote\e[0m' matches '\e[34manalogdevicesinc\e[0m'."
-			if git ls-remote --exit-code --heads $remote refs/heads/ci 1>/dev/null ; then
-				$it && printf "\b, fetching branch '\e[34mci\e[0m'..."
-				git fetch --quiet $remote ci
-				git branch -D _ci &>/dev/null
-				git worktree add -q -b _ci _ci $remote/ci
-				ci_worktree=$(git worktree list | grep '\[_ci\]' | cut -f1 -d " ")
-				$it && printf "\33[2K\rFetched CI branch to '$ci_worktree'.\n"
-				$it && printf "To \e[34mclean-up\e[0m, use: \n"
-				$it && printf "  \e[34mgit worktree remove _ci\e[0m\n\n"
-			fi
-		fi
-	fi
 	if [[ ! -z "$ci_worktree" ]]; then
-		if [[ -f "$ci_worktree/ci/user.sh" ]]; then
+		if [[ -f "$ci_worktree/user.sh" ]]; then
 			source $ci_worktree/ci/user.sh
 		elif [[ -f "$ci_worktree/ci/build.sh" ]]; then
 			source $ci_worktree/ci/build.sh
