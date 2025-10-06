@@ -15,14 +15,12 @@ unset config_flags
 unset name_label
 
 if [[ -z "$runner_labels_" ]]; then
-    runner_labels_="repo-only,v1"
+    runner_labels_="repo-only"
 fi
 
 if [[ -z "$config_flags_" ]]; then
     config_flags_="--replace"
 fi
-
-source /usr/local/bin/github-api.sh
 
 if [[ -z "$org_repository_" ]]; then
     echo "No org_repository provided"
@@ -31,10 +29,13 @@ fi
 
 function get_runner_token () {
     if [[ ! -z "$github_token_" ]]; then
-        runner_token_=$(
-            gh-actions-token $github_token_ \
-                             $org_repository_
-        )
+        runner_token_=$(curl -L \
+          -X POST \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: Bearer $github_token_" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          "https://api.github.com/repos/$org_repository_/actions/runners/registration-token" \
+          | jq -r .token)
 
         if [[ "$runner_token_" == "null" ]]; then
             echo "Failed to get '$org_repository_' runner_token, check github_token permission"
