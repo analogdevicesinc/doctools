@@ -1,0 +1,117 @@
+name: Git Changed files
+description: A git changed_keys files for local runners
+
+inputs:
+  gh-token:
+    description: "GitHub Token"
+    default: ${{ github.token }}
+  rules:
+    description: |
+      A newline-separated list of key:pattern rules, e.g.,:
+        package:^adi_doctools/
+        doc:^doc/
+        ci:^.github/\|^ci/
+    required: true
+  base_sha:
+    required: false
+  head_sha:
+    required: false
+
+outputs:
+  changed_keys:
+    description: "Comma-separated list of matches"
+    value: ${{ steps.check.outputs.changed_keys }}
+
+  all_changed_files:
+    description: "New line separated list of all files"
+    value: ${{ steps.check.outputs.all_changed_files }}
+
+runs:
+  using: composite
+  steps:
+    - name: Get changed_keys files
+      id: check
+      shell: bash
+      run: |
+        # Get changed_keys files
+        changed_keys=""
+        rules="${{ inputs.rules }}"
+
+        [[ -n "${{ inputs.base_sha }}" ]] && base_sha="${{ inputs.base_sha }}"
+        [[ -n "${{ inputs.head_sha }}" ]] && head_sha="${{ inputs.head_sha }}"
+
+        if [[ -z "$base_sha" || -z "$head_sha" ]]; then
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            base_sha=${{ github.event.pull_request.base.sha }}
+            head_sha=${{ github.event.pull_request.head.sha }}
+          elif [[ ! "${{ github.event.before }}" =~ "0000000000000000" ]] && [[ "${{ github.event.forced }}" == "false" ]]; then
+            base_sha=${{ github.event.before }}
+            head_sha=${{ github.sha }}
+          else
+            if [[ "${{ github.event.before }}" =~ "0000000000000000" ]]; then
+              echo "::notice ::New branch, will set all rules to true."
+            else
+              echo "::notice ::Force pushed, will set all rules to true."
+            fi
+            while IFS= read -r line; do
+              [[ -z "$key" ]] && continue
+              key="${line%%:*}"
+              echo "$key=true" >> "$GITHUB_ENV"
+              changed_keys="$changed_keys,$key"
+            done <<< "$rules"
+            echo "changed_keys=$changed_keys" >> "$GITHUB_OUTPUT"
+            exit
+          fi
+        elif [[ "$checkout_fallback" == "true" ]]; then
+            echo "::notice ::Checkout reported fallback, will set all rules to true."
+            while IFS= read -r line; do
+              [[ -z "$key" ]] && continue
+              key="${line%%:*}"
+              echo "$key=true" >> "$GITHUB_ENV"
+              changed_keys="$changed_keys,$key"
+            done <<< "$rules"
+            echo "changed_keys=$changed_keys" >> "$GITHUB_OUTPUT"
+            exit
+        fi
+
+        json=$(curl -sfL  \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: Bearer ${{ inputs.gh-token }}"  \
+          -H "X-GitHub-Api-Version: 2022-11-28"  \
+          "https://api.github.com/repos/${{ github.repository }}/compare/$base_sha...$head_sha" \
+          | jq '{ahead_by, files}')
+
+        ahead_by=$(echo $json | jq '.ahead_by')
+        if [[ "$ahead_by" == "null" ]]; then
+          echo "::warning ::GitHub API failed to determine compare, will set all rules to true."
+          while IFS= read -r line; do
+            [[ -z "$key" ]] && continue
+            key="${line%%:*}"
+            echo "$key=true" >> "$GITHUB_ENV"
+            changed_keys="$changed_keys,$key"
+          done <<< "$rules"
+          echo "changed_keys=$changed_keys" >> "$GITHUB_OUTPUT"
+          exit
+        fi
+
+        all_changed_files=$(echo $json | jq '.files[].filename' -r)
+        echo "$all_changed_files"
+
+        echo "all_changed_files=$all_changed_files" >> "$GITHUB_ENV"
+        echo "all_changed_files=$all_changed_files" >> "$GITHUB_OUTPUT"
+
+        while IFS= read -r line; do
+          key="${line%%:*}"
+          pattern="${line#*:}"
+
+          [[ -z "$key" ]] && continue
+
+          echo "$pattern"
+
+          if echo "$all_changed_files" | grep "$pattern"; then
+            echo "$key=true" >> "$GITHUB_ENV"
+            changed_keys="$changed_keys,$key"
+          fi
+        done <<< "$rules"
+
+        echo "changed_keys=$changed_keys" >> "$GITHUB_OUTPUT"
