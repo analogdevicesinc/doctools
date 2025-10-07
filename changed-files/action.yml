@@ -29,13 +29,17 @@ runs:
         [[ -n "${{ inputs.head_sha }}" ]] && head_sha="${{ inputs.head_sha }}"
 
         if [[ -z "$base_sha" || -z "$head_sha" ]]; then
+          echo case 0
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo case 1
             base_sha=${{ github.event.pull_request.base.sha }}
             head_sha=${{ github.event.pull_request.head.sha }}
           elif [[ ! "${{ github.event.before }}" =~ "0000000000000000" ]] && [[ "${{ github.event.forced }}" == "false" ]]; then
+            echo case 2
             base_sha=${{ github.event.before }}
             head_sha=${{ github.sha }}
           else
+            echo case 3
             if [[ "${{ github.event.before }}" =~ "0000000000000000" ]]; then
               echo "::notice ::New branch, will set all rules to true."
             else
@@ -49,6 +53,7 @@ runs:
             exit
           fi
         elif [[ "$checkout_fallback" == "true" ]]; then
+            echo case 4
             echo "::notice ::Checkout reported fallback, will set all rules to true."
             while IFS= read -r line; do
               key="${line%%:*}"
@@ -58,6 +63,7 @@ runs:
             exit
         fi
 
+        echo case 6
         json=$(curl -sfL  \
           -H "Accept: application/vnd.github+json" \
           -H "Authorization: Bearer ${{ inputs.token }}"  \
@@ -76,6 +82,7 @@ runs:
           exit
         fi
 
+        echo case 7
         changed_files=$(echo $json | jq '.files[].filename' -r)
         echo "$changed_files"
 
