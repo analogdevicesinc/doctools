@@ -303,7 +303,8 @@ If the include has no name and doesn't match any pattern, it will be named
 The supported template variables are:
 
 * ``repository``: Replaces with the current include repository.
-* ``Path``: Replaces with the current include path.
+* ``path``: Replaces with the current include path ``path/to/include``.
+* ``basename``: Replaces with the current include path basename ``include``.
 
 Shell
 ~~~~~

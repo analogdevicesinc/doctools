@@ -67,13 +67,15 @@ export class ContentActions {
       this.parent.state.metadata.repotoc[repo].name : repo
     if (this.collection_pattern === undefined ||
        !(repo in this.collection_pattern))
-      return `${repo_name} ${path}`
+      return `${repo_name} (${path})`
 
     for (const pattern in this.collection_pattern[repo]) {
       const regex = new RegExp(pattern)
+      const basename = path.substring(path.lastIndexOf('/')+1)
       if (regex.test(path))
         return this.collection_pattern[repo][pattern]
           .replace("${repository}", repo_name)
+          .replace("${basename}", basename)
           .replace("${path}", path)
     }
 
