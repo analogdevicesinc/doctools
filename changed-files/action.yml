@@ -98,7 +98,9 @@ runs:
 
           [[ -z "$key" ]] && continue
 
-          if echo "$changed_files" | grep -E "$pattern" >/dev/null; then
+          echo "$pattern"
+
+          if echo "$changed_files" | grep "$pattern"; then
             echo "$key=true" >> "$GITHUB_ENV"
             echo "$key=true" >> "$GITHUB_OUTPUT"
           fi
