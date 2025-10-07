@@ -105,7 +105,7 @@ runs:
         echo "$all_changed_files"
 
         echo "all_changed_files=$all_changed_files" >> "$GITHUB_ENV"
-        echo "all_changed_files=$all_changed_files" >> "$GITHUB_OUTPUT
+        echo "all_changed_files=$all_changed_files" >> "$GITHUB_OUTPUT"
 
         while IFS= read -r line; do
           key="${line%%:*}"
