@@ -60,7 +60,7 @@ runs:
               [[ -z "$key" ]] && continue
               key="${line%%:*}"
               echo "$key=true" >> "$GITHUB_ENV"
-              changed_keys+="$changed_keys,$key"
+              changed_keys="$changed_keys,$key"
             done <<< "${{ inputs.rules }}"
             echo "changed_keys=$changed_keys" >> "$GITHUB_OUTPUT"
             exit
@@ -72,7 +72,7 @@ runs:
               [[ -z "$key" ]] && continue
               key="${line%%:*}"
               echo "$key=true" >> "$GITHUB_ENV"
-              changed_keys+="$changed_keys,$key"
+              changed_keys="$changed_keys,$key"
             done <<< "${{ inputs.rules }}"
             echo "changed_keys=$changed_keys" >> "$GITHUB_OUTPUT"
             exit
@@ -93,7 +93,7 @@ runs:
             [[ -z "$key" ]] && continue
             key="${line%%:*}"
             echo "$key=true" >> "$GITHUB_ENV"
-            changed_keys+="$changed_keys,$key"
+            changed_keys="$changed_keys,$key"
           done <<< "${{ inputs.rules }}"
           echo "changed_keys=$changed_keys" >> "$GITHUB_OUTPUT"
           exit
@@ -116,7 +116,7 @@ runs:
 
           if echo "$all_changed_files" | grep -E "$pattern"; then
             echo "$key=true" >> "$GITHUB_ENV"
-            changed_keys+="$changed_keys,$key"
+            changed_keys="$changed_keys,$key"
           fi
         done <<< "${{ inputs.rules }}"
 
