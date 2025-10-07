@@ -17,13 +17,24 @@ inputs:
   head_sha:
     required: false
 
+outputs:
+  changed:
+    description: "Comma-separated list of matches"
+    value: ${{ steps.check.outputs.changed }}
+
+  all_changed_files:
+    description: "New line separated list of all files"
+    value: ${{ steps.check.outputs.all_changed_files }}
+
 runs:
   using: composite
   steps:
     - name: Get changed files
+      id: check
       shell: bash
       run: |
         # Get changed files
+        changed_keys=()
 
         [[ -n "${{ inputs.base_sha }}" ]] && base_sha="${{ inputs.base_sha }}"
         [[ -n "${{ inputs.head_sha }}" ]] && head_sha="${{ inputs.head_sha }}"
@@ -49,8 +60,10 @@ runs:
               [[ -z "$key" ]] && continue
               key="${line%%:*}"
               echo "$key=true" >> "$GITHUB_ENV"
-              echo "$key=true" >> "$GITHUB_OUTPUT"
+              changed_keys+=("$key")
             done <<< "${{ inputs.rules }}"
+            changed=$(IFS=,; echo "${changed_keys[*]}")
+            echo "changed=$changed" >> "$GITHUB_OUTPUT"
             exit
           fi
         elif [[ "$checkout_fallback" == "true" ]]; then
@@ -60,8 +73,10 @@ runs:
               [[ -z "$key" ]] && continue
               key="${line%%:*}"
               echo "$key=true" >> "$GITHUB_ENV"
-              echo "$key=true" >> "$GITHUB_OUTPUT"
+              changed_keys+=("$key")
             done <<< "${{ inputs.rules }}"
+            changed=$(IFS=,; echo "${changed_keys[*]}")
+            echo "changed=$changed" >> "$GITHUB_OUTPUT"
             exit
         fi
 
@@ -80,17 +95,19 @@ runs:
             [[ -z "$key" ]] && continue
             key="${line%%:*}"
             echo "$key=true" >> "$GITHUB_ENV"
-            echo "$key=true" >> "$GITHUB_OUTPUT"
+            changed_keys+=("$key")
           done <<< "${{ inputs.rules }}"
+          changed=$(IFS=,; echo "${changed_keys[*]}")
+          echo "changed=$changed" >> "$GITHUB_OUTPUT"
           exit
         fi
 
         echo case 7
-        changed_files=$(echo $json | jq '.files[].filename' -r)
-        echo "$changed_files"
+        all_changed_files=$(echo $json | jq '.files[].filename' -r)
+        echo "$all_changed_files"
 
-        echo "changed_files=$changed_files" >> "$GITHUB_ENV"
-        echo "changed_files=$changed_files" >> "$GITHUB_OUTPUT"
+        echo "all_changed_files=$all_changed_files" >> "$GITHUB_ENV"
+        echo "all_changed_files=$all_changed_files" >> "$GITHUB_OUTPUT
 
         while IFS= read -r line; do
           key="${line%%:*}"
@@ -100,8 +117,11 @@ runs:
 
           echo "$pattern"
 
-          if echo "$changed_files" | grep "$pattern"; then
+          if echo "$all_changed_files" | grep "$pattern"; then
             echo "$key=true" >> "$GITHUB_ENV"
-            echo "$key=true" >> "$GITHUB_OUTPUT"
+            changed_keys+=("$key")
           fi
         done <<< "${{ inputs.rules }}"
+
+        changed=$(IFS=,; echo "${changed_keys[*]}")
+        echo "changed=$changed" >> "$GITHUB_OUTPUT"
