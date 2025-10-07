@@ -1,4 +1,5 @@
 from packaging.version import Version
+from multiprocessing import Manager
 from typing import List, Optional
 
 from docutils import nodes
@@ -378,6 +379,12 @@ class directive_include_template(Include):
             return super().run()
         finally:
             self.state_machine.insert_input = old_insert_input
+
+
+def directive_collection_before_read_docs(app, env, docnames):
+    if not hasattr(app.builder, "collection_image"):
+        manager = Manager()
+        app.builder.collection_image = manager.dict()
 
 
 def directive_collection_build_finished(app, exc):
@@ -1077,6 +1084,7 @@ def common_setup(app):
     app.add_config_value('collection_pattern',
                          {}, 'env')
 
+    app.connect("env-before-read-docs", directive_collection_before_read_docs)
     app.connect('env-purge-doc', directive_collection_purge_doc)
     app.connect('env-merge-info', directive_collection_merge_info)
     app.connect('doctree-resolved', directive_description_doctree_resolved)

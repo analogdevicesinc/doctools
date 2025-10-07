@@ -76,8 +76,6 @@ class node_collection(node_base):
 
     @staticmethod
     def update_collection_env(builder, olduri, uri):
-        if not hasattr(builder, 'collection_image'):
-            builder.collection_image = {}
         builder.collection_image[olduri] = uri
 
     @staticmethod
@@ -93,10 +91,16 @@ class node_collection(node_base):
                         node_['uri'],
                         self.builder.current_docname
                     )
+                    if not relfn.startswith(self.builder.imagedir):
+                        # likely image file not readable:
+                        if node['olduri'] in self.builder.collection_image:
+                            del self.builder.collection_image[node['olduri']]
+                        continue
                 else:
                     relfn = node_['uri']
                 node_collection.update_collection_env(
-                        self.builder, node['olduri'], relfn)
+                    self.builder, node['olduri'], relfn
+                )
                 break
         self.body.append(f"</{node.tagname}>")
 
