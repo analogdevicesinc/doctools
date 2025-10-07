@@ -1,0 +1,93 @@
+name: Git Changed files
+description: A git changed files for local runners
+
+inputs:
+  gh-token:
+    description: "GitHub Token"
+    default: ${{ github.token }}
+  rules:
+    description: |
+      A newline-separated list of key:pattern rules, e.g.,:
+        package:^adi_doctools/
+        doc:^doc/
+        ci:^.github/\|^ci/
+    required: true
+  base_sha:
+    required: false
+  head_sha:
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Get changed files
+      shell: bash
+      run: |
+        # Get changed files
+
+        [[ -n "${{ inputs.base_sha }}" ]] && base_sha="${{ inputs.base_sha }}"
+        [[ -n "${{ inputs.head_sha }}" ]] && head_sha="${{ inputs.head_sha }}"
+
+        if [[ -z "$base_sha" || -z "$head_sha" ]]; then
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            base_sha=${{ github.event.pull_request.base.sha }}
+            head_sha=${{ github.event.pull_request.head.sha }}
+          elif [[ ! "${{ github.event.before }}" =~ "0000000000000000" ]] && [[ "${{ github.event.forced }}" == "false" ]]; then
+            base_sha=${{ github.event.before }}
+            head_sha=${{ github.sha }}
+          else
+            if [[ "${{ github.event.before }}" =~ "0000000000000000" ]]; then
+              echo "::notice ::New branch, will set all rules to true."
+            else
+              echo "::notice ::Force pushed, will set all rules to true."
+            fi
+            while IFS= read -r line; do
+              key="${line%%:*}"
+              echo "$key=true" >> "$GITHUB_ENV"
+              echo "$key=true" >> "$GITHUB_OUTPUT"
+            done <<< "${{ inputs.rules }}"
+            exit
+          fi
+        elif [[ "$checkout_fallback" == "true" ]]; then
+            echo "::notice ::Checkout reported fallback, will set all rules to true."
+            while IFS= read -r line; do
+              key="${line%%:*}"
+              echo "$key=true" >> "$GITHUB_ENV"
+              echo "$key=true" >> "$GITHUB_OUTPUT"
+            done <<< "${{ inputs.rules }}"
+            exit
+        fi
+
+        json=$(curl -sfL  \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: Bearer ${{ inputs.token }}"  \
+          -H "X-GitHub-Api-Version: 2022-11-28"  \
+          "https://api.github.com/repos/${{ github.repository }}/compare/$base_sha...$head_sha" \
+          | jq '{ahead_by, files}')
+
+        ahead_by=$(echo $json | jq '.ahead_by')
+        if [[ "$ahead_by" == "null" ]]; then
+          echo "::warning ::GitHub API failed to determine compare, will set all rules to true."
+          while IFS= read -r line; do
+            key="${line%%:*}"
+            echo "$key=true" >> "$GITHUB_ENV"
+            echo "$key=true" >> "$GITHUB_OUTPUT"
+          done <<< "${{ inputs.rules }}"
+          exit
+        fi
+
+        changed_files=$(echo $json | jq '.files[].filename' -r)
+        echo "$changed_files"
+
+        echo "changed_files=$changed_files" >> "$GITHUB_ENV"
+        echo "changed_files=$changed_files" >> "$GITHUB_OUTPUT"
+
+        while IFS= read -r line; do
+          key="${line%%:*}"
+          pattern="${line#*:}"
+
+          if echo "$changed_files" | grep -E "$pattern" >/dev/null; then
+            echo "$key=true" >> "$GITHUB_ENV"
+            echo "$key=true" >> "$GITHUB_OUTPUT"
+          fi
+        done <<< "${{ inputs.rules }}"
