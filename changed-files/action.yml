@@ -115,10 +115,10 @@ runs:
 
           echo "$pattern"
 
-          if echo "$all_changed_files" | grep -E "$pattern"; then
+          if echo "$all_changed_files" | grep "$pattern"; then
             echo "$key=true" >> "$GITHUB_ENV"
             changed_keys="$changed_keys,$key"
           fi
-        done <<< "${{ inputs.rules }}"
+        done <<< "$rules"
 
         echo "changed_keys=$changed_keys" >> "$GITHUB_OUTPUT"
