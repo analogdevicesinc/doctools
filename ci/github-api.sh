@@ -87,7 +87,7 @@ gh-update-commitish()
 
 gh-get-number-commits()
 {
-  total_commits=$(curl -fL \
+  total_commits=$(curl -sfL \
     -H "Accept: application/vnd.github+json" \
     -H "Authorization: Bearer $1" \
     -H "X-GitHub-Api-Version: 2022-11-28" \
@@ -95,6 +95,18 @@ gh-get-number-commits()
     | jq ".total_commits")
   echo "total_commits=$total_commits" >> "$GITHUB_ENV"
   echo $total_commits
+}
+
+gh-get-changed-files()
+{
+  changed_files=$(curl -sfL  \
+    -H "Accept: application/vnd.github+json" \
+    -H "Authorization: Bearer $1"  \
+    -H "X-GitHub-Api-Version: 2022-11-28"  \
+    "https://api.github.com/repos/$2/compare/$3...$4" \
+    | jq '.files[].filename' -r)
+  echo "changed_files=$changed_files" >> "$GITHUB_ENV"
+  echo "$changed_files"
 }
 
 gh-cancel-workflow()

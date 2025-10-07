@@ -6,7 +6,22 @@ on:
   pull_request:
 
 jobs:
+  state:
+    runs-on: [self-hosted, repo-only]
+    outputs:
+      changed: ${{ steps.state.outputs.changed_keys }}
+    steps:
+    - uses: analogdevicesinc/doctools/changed-files@action-debug
+      id: state
+      with:
+        rules: |
+          package:^adi_doctools/
+          doc:^doc/
+          ci:^.github/\|^ci/
+
   build-package:
+    needs: [state]
+    if: contains(needs.state.outputs.changed, 'package')
     uses: ./.github/workflows/build-package.yml
     secrets: inherit
   build-doc:
