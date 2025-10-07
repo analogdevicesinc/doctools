@@ -119,6 +119,6 @@ runs:
             echo "$key=true" >> "$GITHUB_ENV"
             changed_keys="$changed_keys,$key"
           fi
-        done <<< "$rules"
+        done <<< "${{ inputs.rules }}"
 
         echo "changed_keys=$changed_keys" >> "$GITHUB_OUTPUT"
