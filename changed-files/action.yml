@@ -114,7 +114,7 @@ runs:
 
           echo "$pattern"
 
-          if echo "$all_changed_files" | grep "$pattern"; then
+          if echo "$all_changed_files" | grep -E "$pattern"; then
             echo "$key=true" >> "$GITHUB_ENV"
             changed_keys+="$changed_keys,$key"
           fi
