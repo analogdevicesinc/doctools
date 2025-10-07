@@ -35,6 +35,7 @@ runs:
       run: |
         # Get changed_keys files
         changed_keys=""
+        rules="${{ inputs.rules }}"
 
         [[ -n "${{ inputs.base_sha }}" ]] && base_sha="${{ inputs.base_sha }}"
         [[ -n "${{ inputs.head_sha }}" ]] && head_sha="${{ inputs.head_sha }}"
@@ -61,7 +62,7 @@ runs:
               key="${line%%:*}"
               echo "$key=true" >> "$GITHUB_ENV"
               changed_keys="$changed_keys,$key"
-            done <<< "${{ inputs.rules }}"
+            done <<< "$rules"
             echo "changed_keys=$changed_keys" >> "$GITHUB_OUTPUT"
             exit
           fi
@@ -73,7 +74,7 @@ runs:
               key="${line%%:*}"
               echo "$key=true" >> "$GITHUB_ENV"
               changed_keys="$changed_keys,$key"
-            done <<< "${{ inputs.rules }}"
+            done <<< "$rules"
             echo "changed_keys=$changed_keys" >> "$GITHUB_OUTPUT"
             exit
         fi
@@ -94,7 +95,7 @@ runs:
             key="${line%%:*}"
             echo "$key=true" >> "$GITHUB_ENV"
             changed_keys="$changed_keys,$key"
-          done <<< "${{ inputs.rules }}"
+          done <<< "$rules"
           echo "changed_keys=$changed_keys" >> "$GITHUB_OUTPUT"
           exit
         fi
@@ -118,6 +119,6 @@ runs:
             echo "$key=true" >> "$GITHUB_ENV"
             changed_keys="$changed_keys,$key"
           fi
-        done <<< "${{ inputs.rules }}"
+        done <<< "$rules"
 
         echo "changed_keys=$changed_keys" >> "$GITHUB_OUTPUT"
