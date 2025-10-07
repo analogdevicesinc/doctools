@@ -46,6 +46,7 @@ runs:
               echo "::notice ::Force pushed, will set all rules to true."
             fi
             while IFS= read -r line; do
+              [[ -z "$key" ]] && continue
               key="${line%%:*}"
               echo "$key=true" >> "$GITHUB_ENV"
               echo "$key=true" >> "$GITHUB_OUTPUT"
@@ -56,6 +57,7 @@ runs:
             echo case 4
             echo "::notice ::Checkout reported fallback, will set all rules to true."
             while IFS= read -r line; do
+              [[ -z "$key" ]] && continue
               key="${line%%:*}"
               echo "$key=true" >> "$GITHUB_ENV"
               echo "$key=true" >> "$GITHUB_OUTPUT"
@@ -75,6 +77,7 @@ runs:
         if [[ "$ahead_by" == "null" ]]; then
           echo "::warning ::GitHub API failed to determine compare, will set all rules to true."
           while IFS= read -r line; do
+            [[ -z "$key" ]] && continue
             key="${line%%:*}"
             echo "$key=true" >> "$GITHUB_ENV"
             echo "$key=true" >> "$GITHUB_OUTPUT"
@@ -92,6 +95,8 @@ runs:
         while IFS= read -r line; do
           key="${line%%:*}"
           pattern="${line#*:}"
+
+          [[ -z "$key" ]] && continue
 
           if echo "$changed_files" | grep -E "$pattern" >/dev/null; then
             echo "$key=true" >> "$GITHUB_ENV"
