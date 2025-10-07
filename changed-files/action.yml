@@ -66,7 +66,7 @@ runs:
         echo case 6
         json=$(curl -sfL  \
           -H "Accept: application/vnd.github+json" \
-          -H "Authorization: Bearer ${{ inputs.token }}"  \
+          -H "Authorization: Bearer ${{ inputs.gh-token }}"  \
           -H "X-GitHub-Api-Version: 2022-11-28"  \
           "https://api.github.com/repos/${{ github.repository }}/compare/$base_sha...$head_sha" \
           | jq '{ahead_by, files}')
