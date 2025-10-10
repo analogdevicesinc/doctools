@@ -113,7 +113,7 @@ container-run ()
 			fi
 		fi
 	else
-		cwd=$(pwd)
+		cwd=$(pwd -P)
 	fi
 
 	# If the image is not found, will search sources on
@@ -141,7 +141,7 @@ container-run ()
 	run_params="run -it \
 		--entrypoint= \
 		--name=$name \
-		--workdir=$(pwd) \
+		--workdir=$(pwd -P) \
 		--volume $volume:$volume"
 	[ ! -z "$volume_2" ] && run_params="$run_params --volume $volume_2:$volume_2"
 	if [ "$container_engine" == "podman" ]; then
