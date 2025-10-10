@@ -7,6 +7,7 @@ if git rev-parse --is-inside-work-tree  > /dev/null 2>&1 ; then
 
 	ci_worktree=$(git worktree list | grep '\[_ci\]' | cut -f1 -d " ")
 	if [[ ! -z "$ci_worktree" ]]; then
+		export CI_WORKTREE=$ci_worktree
 		if [[ -f "$ci_worktree/user.sh" ]]; then
 			source $ci_worktree/ci/user.sh
 		elif [[ -f "$ci_worktree/ci/build.sh" ]]; then
