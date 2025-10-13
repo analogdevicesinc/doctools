@@ -523,6 +523,9 @@ def serve(directory, port, dev, selenium, once, builder):
             files.extend(__files)
             for f in __files:
                 ctime.append(stat(f).st_mtime)
+        if path.isfile(f):
+            files.append(conf_py)
+            ctime.append(stat(conf_py).st_mtime)
         dirs = [d for d in listdir(sourcedir)
                 if path.isdir(path.join(sourcedir, d))]
         if builddir_ in dirs:
