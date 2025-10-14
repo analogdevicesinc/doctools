@@ -439,8 +439,8 @@ def serve(directory, port, dev, selenium, once, builder):
                         stat_ = stat(lfs_f)
                         lfs_f_ = path.relpath(lfs_f, git_top_level)
                         click.echo(f"git lfs smudging file {lfs_f_}")
-                        subprocess.call(f"git lfs smudge < {path_} > {tmp_f}",
-                                        shell=True, cwd=directory)
+                        with open(path_, "rb") as fin, open(tmp_f, "wb") as fout:
+                            subprocess.run(["git", "lfs", "smudge"], stdin=fin, stdout=fout, check=True)
                         utime(tmp_f, (stat_.st_atime, stat_.st_mtime))
                         copy2(tmp_f, lfs_f)
                         move(tmp_f, path_)
