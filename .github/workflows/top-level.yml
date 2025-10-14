@@ -9,20 +9,28 @@ jobs:
   build-package:
     uses: ./.github/workflows/build-package.yml
     secrets: inherit
+    permissions:
+      contents: read
   build-doc:
     uses: ./.github/workflows/build-doc.yml
     needs: [build-package]
     secrets: inherit
+    permissions:
+      contents: read
     with:
       tag: ${{ needs.build-package.outputs.tag }}
   tests:
     uses: ./.github/workflows/tests.yml
     needs: [build-package]
     secrets: inherit
+    permissions:
+      contents: read
   custom-doc:
     uses: ./.github/workflows/custom-doc.yml
     needs: [build-package]
     secrets: inherit
+    permissions:
+      contents: read
   deploy:
     uses: ./.github/workflows/deploy.yml
     needs: [build-package, build-doc, tests, custom-doc]
