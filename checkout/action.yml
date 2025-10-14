@@ -157,6 +157,10 @@ runs:
           fi
         fi
 
+        while ! git rev-parse $base_sha ; do
+          git fetch origin --deepen=$fetch_depth $GITHUB_SHA
+        done
+
         if [[ "$checkout_fallback" != "true" ]]; then
           echo "Applying fixups"
           git rebase $keep_empty --rebase-merges --autosquash $base_sha \
