@@ -10,6 +10,9 @@ on:
       tag:
         value: ${{ jobs.build.outputs.tag}}
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: [self-hosted, v1]

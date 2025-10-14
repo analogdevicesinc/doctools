@@ -5,6 +5,9 @@ on:
         required: true
         type: string
 
+permissions:
+  contents: read
+
 jobs:
   build-doc-latest:
     runs-on: [self-hosted, v1]
