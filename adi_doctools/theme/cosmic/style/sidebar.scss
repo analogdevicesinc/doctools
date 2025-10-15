@@ -161,7 +161,7 @@
     label {
         cursor: pointer;
         display: block;
-        padding: .5em .5em .4em .5em;
+        padding: .5em .3em .2em .5em;
         height: 1em;
         width: 1em;
     }
@@ -220,11 +220,11 @@
 
     .collapse label .icon {
         border: 1px solid var(--text-color1);
-        border-width: 0 2px 2px 0;
+        border-width: 0 1px 1px 0;
         display: block;
         transition: transform ease .125s, margin ease .125s;
-        width: .6em;
-        height: .6em;
+        width: .5em;
+        height: .5em;
         transform: rotate(-45deg);
         margin-top: 1px;
         margin-left: -1px;
@@ -232,7 +232,7 @@
 
     .toctree-collapse:checked ~ .collapse .icon {
         transform: rotate(45deg);
-        margin-top: -2px;
+        margin-top: -1px;
         margin-left: 1px;
     }
 
