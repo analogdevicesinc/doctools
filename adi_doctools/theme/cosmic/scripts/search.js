@@ -846,6 +846,8 @@ export class Search {
   construct_offline () {
     window.SPHINX_HIGHLIGHT_ENABLED = false
     window.DOCUMENTATION_OPTIONS = {}
+    window.DOCUMENTATION_OPTIONS.FILE_SUFFIX=".html"
+    window.DOCUMENTATION_OPTIONS.LINK_SUFFIX=".html"
     document.querySelector('.documentwrapper .body')?.append(DOM.new("div", {'id': 'search-results'}))
     if (this.search_page === location.pathname) {
       ['doctools.js', 'language_data.js', 'searchtools.js', 'english-stemmer.js']
