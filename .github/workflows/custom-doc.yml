@@ -5,7 +5,7 @@ permissions:
 
 jobs:
   custom-doc:
-    runs-on: [self-hosted, v1]
+    runs-on: [self-hosted, repo-only, v1]
 
     steps:
     - uses: analogdevicesinc/doctools/checkout@action

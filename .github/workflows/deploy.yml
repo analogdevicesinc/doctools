@@ -148,7 +148,7 @@ jobs:
                         ${{ inputs.asset_path }}
 
   deploy-cloudsmith:
-    runs-on: [self-hosted]
+    runs-on: [self-hosted, repo-only]
     permissions:
       id-token: write
       contents: write
@@ -212,7 +212,7 @@ jobs:
                                 "$tags_"
 
   deploy-gh-pages:
-    runs-on: [self-hosted]
+    runs-on: [self-hosted, repo-only]
     permissions:
       contents: write
     if: ${{ github.ref == 'refs/heads/main' || github.event_name == 'pull_request' }}
