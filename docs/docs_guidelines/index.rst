@@ -229,28 +229,59 @@ to anchor to ``outdir/../managed``:
    dest_dir = path.abspath(path.join(env.app.builder.outdir, pardir, 'managed'))
    sql_path = (dest_dir, "my_repo.sqlite")
 
-Indentation
------------
+Indentation matters
+-------------------
 
-Directives are indented with 3 space, which is Sphinx's default.
-At code directives, the code keeps its original indentation (e.g. 2 spaces for
-Verilog code), but is offset by 3 spaces at the beginning of every line, to
-instruct Sphinx the beginning and end of the code directive.
+Directives are indented with :green:`3 spaces`. At code directives, the code
+keeps its original indentation (e.g. 2 spaces for Verilog code, tabs for C
+code), but is offset by 3 spaces at the beginning of every line, to instruct
+Sphinx the beginning and end of the code directive.
+
+This offset tells Sphinx where the code directive starts and ends, Even though
+*wonky* offset may work, the end-result is frequently worse.
+
+The rule of thumb is to always align the next line with the first word of the previous line,
+like this:
+
+.. code:: rst
+
+   #. Parent ordered item.
+
+      * Child unordered item.
+
+        #. Child ordered item.
+        #. Child ordered item.
+
+   .. code::
+
+      void main()
+      {
+      	printf("Hello world");
+      }
+
+Renders as:
+
+#. Parent ordered item.
+
+   * Child unordered item.
+
+     #. Child ordered item.
+     #. Child ordered item.
+
+.. code::
+
+   void main()
+   {
+   	printf("Hello world");
+   }
 
 Table of contents
 -----------------
 
-The relation between pages are created with the ``toctree`` directive,
-which allows generating the table of contents and navigation bars.
+The Table of Contents (ToC) are created with the ``toctree`` directive, content
+added to to it are included to the navigations bars and table of contents.
 
-Each page may have only one toctree, since they are the equivalent of the
-volumes of a book, and it does not make sense to have multiple "volumes" at
-the repository level.
-
-The only exception is the :git-documentation:`/`, which indeed contains various
-types of documentation (eval-boards, university program, Linux drivers, etc.).
-
-The ``toctree`` directive has the following format:
+The basic structure of a ``toctree`` is:
 
 .. code:: rst
 
@@ -259,8 +290,8 @@ The ``toctree`` directive has the following format:
 
       Custom title <path/to/page>
 
-For pages with shorter titles, such as libraries, the label is inherited from
-the page itself, for example:
+For pages where the title is already short and clear (like library pages), the
+page name is taken directly from the file itself:
 
 .. code:: rst
 
@@ -269,8 +300,8 @@ the page itself, for example:
       library/axi_dmac/index
       library/spi_engine/index
 
-And for pages with long titles, such as projects, overwrite the full title with
-a custom title, e.g:
+For longer titles (common in project documentation), override the visible label
+using a shorter alias:
 
 .. code:: rst
 
@@ -278,32 +309,143 @@ a custom title, e.g:
 
       AD7616-SDZ <projects/ad7616_sdz/index>
 
-This way, only "AD7616-SDZ" will be displayed in the page navigation bar instead
-of "AD7616-SDZ HDL project".
+This ensures that "AD7616-SDZ" is shown in the navigation instead of the full
+title defined in the page, such as "AD7616-SDZ HDL project".
 
-Also, it is recommended to wrap the toctree in a "Contents" section:
+Position matters
+~~~~~~~~~~~~~~~~
+
+The placement of a ``toctree`` within a page determines where content is
+injected when generating a PDF.
+
+A recommended usage looks like:
 
 .. code:: rst
 
-   Contents
-   ========
+   My evaluation board
+   ===================
+
+   User guides
+   -----------
+
+   To simplify speed-up bring-up, a ... .
+   They describe how ... .
 
    .. toctree::
+      :caption: The user-guides are provided at:
 
-      some_page
+      hardware_guide
+      software_guide
 
-For extensive documentation with different topics, it makes sense to filter
-the toctree based on the current topic/toctree title.
-This is possible by setting the environment variable ``ADOC_FILTER_TOCTREE`` to
-``1``.
-Alternatively, setting ``filter_toctree`` on ``conf.py`` has higher precedence
-than ``ADOC_FILTER_TOCTREE``.
-And is supposed to be used alongside the ``topic`` field at ``lut.py`` to
-preserve high level links for each topic.
+   Help and support
+   ----------------
 
-Enable this environment variable only on the release build, since writing pages
-with it enabled may be obnoxious and confusing prior the final structure/location
-of them.
+   ...
+
+In HTML output, this renders as:
+
+.. code:: rst
+
+   # My evaluation board
+
+   ## User guides
+
+   To simplify speed-up bring-up, a ... .
+   They describe how ... .
+   The user-guides are provided at:
+
+   * Hardware Guide
+   * Software Guide
+
+   ## Help and support
+
+   ...
+
+For PDF output, the caption ``The user-guides are provided at:`` is
+intentionally not rendered. This allows the caption to contextualize the list
+visually in HTML, and not on the PDF, where no list is rendered, but the actual
+sections.
+
+.. code:: markdown
+
+   # My evaluation board
+
+   ## User guides
+
+   ### Hardware Guide
+
+   <Hardware guide content>
+
+   ### Software Guide
+
+   <Software guide content>
+
+   ## Help and support
+
+   ...
+
+A common but :red:`incorrect` usage is placing a hidden ``toctree`` away from
+its related section:
+
+.. code:: rst
+
+   My evaluation board
+   ===================
+
+   Help and support
+   ----------------
+
+   To get help ...
+
+   .. toctree::
+      :hidden:
+
+      hardware_guide
+      software_guide
+
+In PDF output, this results in the user guides added **under** an
+:red:`unrelated` section:
+
+.. code:: markdown
+
+   # My evaluation board
+
+   ## Help and support
+
+   To get help ...
+
+   ### Hardware Guide
+
+   <Hardware guide content>
+
+   ### Software Guide
+
+   <Software guide content>
+
+
+Top-level caption
+~~~~~~~~~~~~~~~~~
+
+Captions on top-level ``toctree`` entries also appear in the sidebar. Use them
+to group related documentation areas logically—such as ``Software``,
+``Tutorials``, ``API Usage``, or ``Contributing``, rather than as explanatory
+phrases like ``Tutorials are provided at:``.
+
+You can think of top-level ``toctree`` captions as book volumes. For example,
+the :git-documentation:`/` uses them to organize areas like evaluation boards,
+university programs, and Linux drivers.
+
+Filtering multiple topics
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For large documentation sets with multiple topic areas, it can be useful to
+filter navigation entries dynamically. This can be enabled via:
+
+* Setting the environment variable ``ADOC_FILTER_TOCTREE=1``.
+* Or, setting ``filter_toctree`` in ``conf.py`` (this takes precedence).
+
+This mechanism is meant to be used alongside the ``topic`` metadata defined in
+``lut.py`` so that top-level links remain consistent across topics.
 
 .. _version:
 
@@ -664,6 +806,8 @@ Renders as:
    def hello_world():
        string = "Hello world"
        print(string)
+
+Preserve the original code identation, just offset it by :green:`3 spaces`.
 
 Images
 ------
