@@ -104,8 +104,13 @@
 <li><a class="reference internal" href="#repository-specific-extensions">Repository-specific extensions</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#indentation">Indentation</a></li>
-<li><a class="reference internal" href="#table-of-contents">Table of contents</a></li>
+<li><a class="reference internal" href="#indentation-matters">Indentation matters</a></li>
+<li><a class="reference internal" href="#table-of-contents">Table of contents</a><ul>
+<li><a class="reference internal" href="#position-matters">Position matters</a></li>
+<li><a class="reference internal" href="#top-level-caption">Top-level caption</a></li>
+<li><a class="reference internal" href="#filtering-multiple-topics">Filtering multiple topics</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#versioning">Versioning</a></li>
 <li><a class="reference internal" href="#exporting-to-pdf">Exporting to PDF</a><ul>
 <li><a class="reference internal" href="#inner-working">Inner working</a></li>
@@ -387,66 +392,199 @@ to anchor to <code class="docutils literal notranslate"><span class="pre">outdir
 </div>
 </section>
 </section>
-<section id="indentation">
-<h2>Indentation<a class="headerlink" href="#indentation" title="Link to this heading"></a></h2>
-<p>Directives are indented with 3 space, which is Sphinx’s default.
-At code directives, the code keeps its original indentation (e.g. 2 spaces for
-Verilog code), but is offset by 3 spaces at the beginning of every line, to
-instruct Sphinx the beginning and end of the code directive.</p>
+<section id="indentation-matters">
+<h2>Indentation matters<a class="headerlink" href="#indentation-matters" title="Link to this heading"></a></h2>
+<p>Directives are indented with <span class="green">3 spaces</span>. At code directives, the code
+keeps its original indentation (e.g. 2 spaces for Verilog code, tabs for C
+code), but is offset by 3 spaces at the beginning of every line, to instruct
+Sphinx the beginning and end of the code directive.</p>
+<p>This offset tells Sphinx where the code directive starts and ends, Even though
+<em>wonky</em> offset may work, the end-result is frequently worse.</p>
+<p>The rule of thumb is to always align the next line with the first word of the previous line,
+like this:</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="m">#.</span> Parent ordered item.
+
+   <span class="m">*</span> Child unordered item.
+
+     <span class="m">#.</span> Child ordered item.
+     <span class="m">#.</span> Child ordered item.
+
+<span class="p">..</span> <span class="ow">code</span><span class="p">::</span>
+
+   void main()
+   {
+     printf(&quot;Hello world&quot;);
+   }
+</pre></div>
+</div>
+<p>Renders as:</p>
+<ol class="arabic simple">
+<li><p>Parent ordered item.</p>
+<ul class="simple">
+<li><p>Child unordered item.</p>
+<ol class="arabic simple">
+<li><p>Child ordered item.</p></li>
+<li><p>Child ordered item.</p></li>
+</ol>
+</li>
+</ul>
+</li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">void</span> <span class="n">main</span><span class="p">()</span>
+<span class="p">{</span>
+     <span class="n">printf</span><span class="p">(</span><span class="s2">&quot;Hello world&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
 </section>
 <section id="table-of-contents">
 <h2>Table of contents<a class="headerlink" href="#table-of-contents" title="Link to this heading"></a></h2>
-<p>The relation between pages are created with the <code class="docutils literal notranslate"><span class="pre">toctree</span></code> directive,
-which allows generating the table of contents and navigation bars.</p>
-<p>Each page may have only one toctree, since they are the equivalent of the
-volumes of a book, and it does not make sense to have multiple “volumes” at
-the repository level.</p>
-<p>The only exception is the <a class="icon git reference external" href="https://github.com/analogdevicesinc/documentation/tree/main/" target="_blank">ADI System Level Documentation repository</a>, which indeed contains various
-types of documentation (eval-boards, university program, Linux drivers, etc.).</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">toctree</span></code> directive has the following format:</p>
+<p>The Table of Contents (ToC) are created with the <code class="docutils literal notranslate"><span class="pre">toctree</span></code> directive, content
+added to to it are included to the navigations bars and table of contents.</p>
+<p>The basic structure of a <code class="docutils literal notranslate"><span class="pre">toctree</span></code> is:</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">toctree</span><span class="p">::</span>
    <span class="nc">:maxdepth:</span> <span class="nt">&lt;depth&gt;</span>
 
    Custom title &lt;path/to/page&gt;
 </pre></div>
 </div>
-<p>For pages with shorter titles, such as libraries, the label is inherited from
-the page itself, for example:</p>
+<p>For pages where the title is already short and clear (like library pages), the
+page name is taken directly from the file itself:</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">toctree</span><span class="p">::</span>
 
    library/axi_dmac/index
    library/spi_engine/index
 </pre></div>
 </div>
-<p>And for pages with long titles, such as projects, overwrite the full title with
-a custom title, e.g:</p>
+<p>For longer titles (common in project documentation), override the visible label
+using a shorter alias:</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">toctree</span><span class="p">::</span>
 
    AD7616-SDZ &lt;projects/ad7616_sdz/index&gt;
 </pre></div>
 </div>
-<p>This way, only “AD7616-SDZ” will be displayed in the page navigation bar instead
-of “AD7616-SDZ HDL project”.</p>
-<p>Also, it is recommended to wrap the toctree in a “Contents” section:</p>
-<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="gh">Contents</span>
-<span class="gh">========</span>
+<p>This ensures that “AD7616-SDZ” is shown in the navigation instead of the full
+title defined in the page, such as “AD7616-SDZ HDL project”.</p>
+<section id="position-matters">
+<h3>Position matters<a class="headerlink" href="#position-matters" title="Link to this heading"></a></h3>
+<p>The placement of a <code class="docutils literal notranslate"><span class="pre">toctree</span></code> within a page determines where content is
+injected when generating a PDF.</p>
+<p>A recommended usage looks like:</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="gh">My evaluation board</span>
+<span class="gh">===================</span>
+
+<span class="gh">User guides</span>
+<span class="gh">-----------</span>
+
+To simplify speed-up bring-up, a ... .
+They describe how ... .
 
 <span class="p">..</span> <span class="ow">toctree</span><span class="p">::</span>
+   <span class="nc">:caption:</span> The user-guides are provided at:
 
-   some_page
+   hardware_guide
+   software_guide
+
+<span class="gh">Help and support</span>
+<span class="gh">----------------</span>
+
+<span class="c">...</span>
 </pre></div>
 </div>
-<p>For extensive documentation with different topics, it makes sense to filter
-the toctree based on the current topic/toctree title.
-This is possible by setting the environment variable <code class="docutils literal notranslate"><span class="pre">ADOC_FILTER_TOCTREE</span></code> to
-<code class="docutils literal notranslate"><span class="pre">1</span></code>.
-Alternatively, setting <code class="docutils literal notranslate"><span class="pre">filter_toctree</span></code> on <code class="docutils literal notranslate"><span class="pre">conf.py</span></code> has higher precedence
-than <code class="docutils literal notranslate"><span class="pre">ADOC_FILTER_TOCTREE</span></code>.
-And is supposed to be used alongside the <code class="docutils literal notranslate"><span class="pre">topic</span></code> field at <code class="docutils literal notranslate"><span class="pre">lut.py</span></code> to
-preserve high level links for each topic.</p>
-<p>Enable this environment variable only on the release build, since writing pages
-with it enabled may be obnoxious and confusing prior the final structure/location
-of them.</p>
+<p>In HTML output, this renders as:</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span># My evaluation board
+
+## User guides
+
+To simplify speed-up bring-up, a ... .
+They describe how ... .
+The user-guides are provided at:
+
+<span class="m">*</span> Hardware Guide
+<span class="m">*</span> Software Guide
+
+## Help and support
+
+<span class="c">...</span>
+</pre></div>
+</div>
+<p>For PDF output, the caption <code class="docutils literal notranslate"><span class="pre">The</span> <span class="pre">user-guides</span> <span class="pre">are</span> <span class="pre">provided</span> <span class="pre">at:</span></code> is
+intentionally not rendered. This allows the caption to contextualize the list
+visually in HTML, and not on the PDF, where no list is rendered, but the actual
+sections.</p>
+<div class="highlight-markdown notranslate"><div class="highlight"><pre><span></span><span class="gh"># My evaluation board</span>
+
+<span class="gu">## User guides</span>
+
+<span class="gu">### Hardware Guide</span>
+
+&lt;Hardware guide content&gt;
+
+<span class="gu">### Software Guide</span>
+
+&lt;Software guide content&gt;
+
+<span class="gu">## Help and support</span>
+
+...
+</pre></div>
+</div>
+<p>A common but <span class="red">incorrect</span> usage is placing a hidden <code class="docutils literal notranslate"><span class="pre">toctree</span></code> away from
+its related section:</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="gh">My evaluation board</span>
+<span class="gh">===================</span>
+
+<span class="gh">Help and support</span>
+<span class="gh">----------------</span>
+
+To get help ...
+
+<span class="p">..</span> <span class="ow">toctree</span><span class="p">::</span>
+   <span class="nc">:hidden:</span>
+
+   hardware_guide
+   software_guide
+</pre></div>
+</div>
+<p>In PDF output, this results in the user guides added <strong>under</strong> an
+<span class="red">unrelated</span> section:</p>
+<div class="highlight-markdown notranslate"><div class="highlight"><pre><span></span><span class="gh"># My evaluation board</span>
+
+<span class="gu">## Help and support</span>
+
+To get help ...
+
+<span class="gu">### Hardware Guide</span>
+
+&lt;Hardware guide content&gt;
+
+<span class="gu">### Software Guide</span>
+
+&lt;Software guide content&gt;
+</pre></div>
+</div>
+</section>
+<section id="top-level-caption">
+<h3>Top-level caption<a class="headerlink" href="#top-level-caption" title="Link to this heading"></a></h3>
+<p>Captions on top-level <code class="docutils literal notranslate"><span class="pre">toctree</span></code> entries also appear in the sidebar. Use them
+to group related documentation areas logically—such as <code class="docutils literal notranslate"><span class="pre">Software</span></code>,
+<code class="docutils literal notranslate"><span class="pre">Tutorials</span></code>, <code class="docutils literal notranslate"><span class="pre">API</span> <span class="pre">Usage</span></code>, or <code class="docutils literal notranslate"><span class="pre">Contributing</span></code>, rather than as explanatory
+phrases like <code class="docutils literal notranslate"><span class="pre">Tutorials</span> <span class="pre">are</span> <span class="pre">provided</span> <span class="pre">at:</span></code>.</p>
+<p>You can think of top-level <code class="docutils literal notranslate"><span class="pre">toctree</span></code> captions as book volumes. For example,
+the <a class="icon git reference external" href="https://github.com/analogdevicesinc/documentation/tree/main/" target="_blank">ADI System Level Documentation repository</a> uses them to organize areas like evaluation boards,
+university programs, and Linux drivers.</p>
+</section>
+<section id="filtering-multiple-topics">
+<h3>Filtering multiple topics<a class="headerlink" href="#filtering-multiple-topics" title="Link to this heading"></a></h3>
+<p>For large documentation sets with multiple topic areas, it can be useful to
+filter navigation entries dynamically. This can be enabled via:</p>
+<ul class="simple">
+<li><p>Setting the environment variable <code class="docutils literal notranslate"><span class="pre">ADOC_FILTER_TOCTREE=1</span></code>.</p></li>
+<li><p>Or, setting <code class="docutils literal notranslate"><span class="pre">filter_toctree</span></code> in <code class="docutils literal notranslate"><span class="pre">conf.py</span></code> (this takes precedence).</p></li>
+</ul>
+<p>This mechanism is meant to be used alongside the <code class="docutils literal notranslate"><span class="pre">topic</span></code> metadata defined in
+<code class="docutils literal notranslate"><span class="pre">lut.py</span></code> so that top-level links remain consistent across topics.</p>
+</section>
 </section>
 <section id="versioning">
 <span id="version"></span><h2>Versioning<a class="headerlink" href="#versioning" title="Link to this heading"></a></h2>
@@ -749,6 +887,7 @@ lines.</p>
 </span><span class="linenos">3</span>    <span class="nb">print</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
 </pre></div>
 </div>
+<p>Preserve the original code identation, just offset it by <span class="green">3 spaces</span>.</p>
 </section>
 <section id="images">
 <h2>Images<a class="headerlink" href="#images" title="Link to this heading"></a></h2>
