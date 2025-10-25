@@ -134,8 +134,10 @@ export class PageActions {
 
     if (pathname.endsWith('.html'))
       pathname = pathname.replace(/\.html$/i, suffix)
-    else
+    else if (pathname.endsWith('/'))
       pathname = pathname.concat(`index${suffix}`)
+    else
+      pathname = pathname.concat(suffix)
 
     tgt = tgt.concat('/', pathname)
     tgt_raw = tgt_raw.concat('/', pathname)
