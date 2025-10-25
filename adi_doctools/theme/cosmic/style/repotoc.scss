@@ -22,7 +22,7 @@
             border: 1px solid rgba(125,125,125,.8);
             border-radius: variable.$border-radius;
             transition: border ease .125s;
-            padding: 1em;
+            padding: 1em !important;
             width: 100%;
 
             &:hover {
