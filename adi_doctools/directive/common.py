@@ -429,11 +429,17 @@ def directive_collection_build_finished(app, exc):
         inv = env.intersphinx_named_inventory.get(inventory)
         if inv:
             if doc in inv['std:doc']:
+                pass
+            elif f"{doc}/index" in inv['std:doc']:
+                doc = f"{doc}/index"
+            else:
+                return
+
+            if Version(__sphinx_version__) < Version("8.1.4"):
+                _, _, _, display_name = inv['std:doc'][doc]
+                entry['name'] = display_name
+            else:
                 entry['name'] = inv['std:doc'][doc].display_name
-                return
-            if f"{doc}/index" in inv['std:doc']:
-                entry['name'] = inv['std:doc'][f"{doc}/index"].display_name
-                return
 
     collection_ = {}
     used_keys = set()
