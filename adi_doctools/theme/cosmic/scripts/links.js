@@ -28,8 +28,8 @@ export class Links {
   set_doms () {
     let $ = this.$
 
-    $.repotocTreeOverlay = document.querySelector('.repotoc-tree.overlay root')
-    $.repotocTreeSidebar = document.querySelector('.sphinxsidebar .repotoc-tree root')
+    $.repotocTreeOverlay = document.querySelector('.repotoc-tree.overlay')
+    $.repotocTreeSidebar = document.querySelector('.sphinxsidebar .repotoc-tree')
     $.banner = DOM.new('div', {
       className: 'banner'
     })
@@ -63,23 +63,60 @@ export class Links {
 
       let base = key == this.parent.state.repository ?
                  self_link : `${prefix}${key}/`
-      this.$.linksSidebar.push(DOM.new('a', {
+      let entry = DOM.new('a', {
         'href': `${base}${home}`,
         'className': this.parent.state.repository === key ? 'current' : '',
-        'innerText': value['name']
-      }))
+      })
+      let name = DOM.new('div', {
+        'innerText': value['name'],
+        'className': 'title'
+      })
+      let desc = DOM.new('div', {
+        'innerText': value['description'],
+        'className': 'subtitle'
+      })
+      let spacer = DOM.new('div')
+      entry.append(name)
+      entry.append(desc)
+      entry.append(spacer)
+      this.$.linksSidebar.push(entry)
     }
 
     this.$.linksSidebar.forEach((elem) => {
       this.$.linksOverlay.push(elem.cloneNode(true))
     })
 
-    if ($.repotocTreeOverlay)
-      DOM.removeChilds($.repotocTreeOverlay),
-      this.$.linksOverlay.forEach((item) => {$.repotocTreeOverlay.append(item)})
-    if ($.repotocTreeSidebar)
-      DOM.removeChilds($.repotocTreeSidebar),
-      this.$.linksSidebar.forEach((item) => {$.repotocTreeSidebar.append(item)})
+    let link_landing =  DOM.new('a', {
+      'innerText': 'Landing page',
+      'href': prefix,
+      'className': 'landing-page'
+    })
+    if ($.repotocTreeOverlay) {
+      DOM.removeChilds($.repotocTreeOverlay)
+      let container = DOM.new('div', {
+        'className': 'container'
+      })
+      let cards = DOM.new('div', {
+        'className': 'cards'
+      })
+      this.$.linksOverlay.forEach((item) => {cards.append(item)})
+      container.append(link_landing)
+      container.append(cards)
+      $.repotocTreeOverlay.append(container)
+    }
+    if ($.repotocTreeSidebar) {
+      let container = DOM.new('div', {
+        'className': 'container'
+      })
+      let cards = DOM.new('div', {
+        'className': 'cards'
+      })
+      DOM.removeChilds($.repotocTreeSidebar)
+      this.$.linksSidebar.forEach((item) => {cards.append(item)})
+      container.append(link_landing.cloneNode(true))
+      container.append(cards)
+      $.repotocTreeSidebar.append(container)
+    }
 
     let event = new Event('change');
     this.$.show_repotoc.dispatchEvent(event)

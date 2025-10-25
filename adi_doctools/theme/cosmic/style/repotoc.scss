@@ -1,0 +1,132 @@
+@use "variable";
+@use "mixin_icons";
+
+.repotoc-tree.overlay {
+    .container {
+        overflow-y: auto;
+        padding-top: 1em;
+        height: calc(100vh - 3.5rem);
+        background: var(--bg-color1);
+    }
+
+    .landing-page {
+        margin-left: .5em;
+    }
+
+    .cards {
+        grid-template-columns: 1fr 1fr 1fr;
+        transition: row-gap .25s ease;
+        margin-right: 1em;
+
+        a {
+            border: 1px solid rgba(125,125,125,.8);
+            border-radius: variable.$border-radius;
+            transition: border ease .125s;
+            padding: 1em;
+            width: 100%;
+
+            &:hover {
+                border-color: rgba(125,125,125,1) !important;
+            }
+        }
+    }
+}
+
+.sphinxsidebar .repotoc-tree {
+    .cards {
+        row-gap: .5em;
+    }
+
+    .cards a {
+        box-sizing: border-box;
+        padding: .5em;
+        margin-left: 0;
+        border: 1px solid rgba(125,125,125,.5);
+
+        &:before {
+            display: none;
+        }
+    }
+
+    a.landing-page:before {
+        border-radius: 0;
+        margin-left: 0;
+    }
+}
+
+.repotoc-tree {
+    @include mixin_icons.icons(("home"));
+
+    a.landing-page {
+        display: flex;
+        align-items: center;
+        width: fit-content;
+        color: var(--text-color2);
+        margin: .5em 0 1em 0;
+        padding: .25em .5em !important;
+        border: 1px solid rgba(125,125,125,.8);
+        border-radius: variable.$border-radius;
+
+        &::before {
+            content: '';
+            display: inline-block;
+            width: 1.5em;
+            height: 1.5em;
+            margin-right: .25em;
+            background-color: var(--text-color2);
+            mask-image: var(--icon-home);
+            mask-repeat: no-repeat;
+        }
+        &:hover::before {
+            background-color: var(--accent-color) !important;
+        }
+    }
+
+    .cards {
+        display: grid;
+        column-gap: 1em;
+        row-gap: 0em;
+        margin-bottom: 1em;
+
+        a {
+            justify-self: stretch;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+
+            &:hover {
+                border-color: rgba(125,125,125,1) !important;
+            }
+        }
+    }
+
+    .title {
+        font-size: 1.2em;
+        color: var(--accent-color);
+        margin-bottom: .5em;
+    }
+    .subtitle {
+        color: var(--text-color3);
+    }
+}
+
+@media (min-width: variable.$screen-1) and (max-width: variable.$screen-3) {
+    .repotoc-tree.overlay .container {
+        padding-left: 9rem;
+        padding-right: calc(40vw - 26rem);
+        width: 100vw;
+    }
+}
+
+@media (min-width: variable.$screen-3) {
+    .repotoc-tree.overlay .container {
+        padding-left: calc(40vw - 12.5rem);
+        padding-right: calc(40vw - 20.5rem);
+        width: 100vw;
+    }
+}
+
+
+#input-show-repotoc:checked ~ div.repotoc-tree .cards {
+    row-gap: 1em;
+}

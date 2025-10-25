@@ -33,6 +33,11 @@ em.sig-param, em.property {
     padding-bottom: .25em;
 }
 
+
+.highlight {
+    background-color: var(--bg-color3) !important;
+}
+
 // TODO Port to third-party themes
 .code-shell {
     background-color: var(--bg-color3);

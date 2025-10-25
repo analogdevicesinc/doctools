@@ -100,6 +100,10 @@ header {
     transition: opacity .25s ease;
     overflow-y: visible;
 
+    /*
+     * root is delete by the extra script,
+     * kept just for no-javascript corner-case.
+     */
     root {
         background: var(--bg-color1);
         overflow-y: auto;
