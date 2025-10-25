@@ -549,12 +549,15 @@ class directive_collection(SphinxDirective):
         }
         if subtitle:
             entry['subtitle'] = subtitle
-        if image:
-            entry['image'] = image
         if label:
             entry['label'] = label
         if image:
             node = node_collection(classes=['_collection'], olduri=image)
+            oldrelfn, _ =  self.env.relfn2path(
+                image,
+                self.env.docname
+            )
+            entry['image'] = oldrelfn
             image_node = nodes.image(self.block_text, uri=image)
             node += image_node
         else:
