@@ -415,6 +415,26 @@ def directive_collection_build_finished(app, exc):
 
     pattern = app.config.collection_pattern
 
+    def get_title(entry, inventory, doc):
+        if inventory == app.config.repository:
+            doc = env.docname if doc == '.' else doc
+            if doc in env.titles:
+                entry['name'] = env.titles[doc].astext()
+            elif f"{doc}/index" in env.titles:
+                entry['name'] = env.titles[f"{doc}/index"].astext()
+            return
+
+        if not hasattr(env, "intersphinx_named_inventory"):
+            return
+        inv = env.intersphinx_named_inventory.get(inventory)
+        if inv:
+            if doc in inv['std:doc']:
+                entry['name'] = inv['std:doc'][doc].display_name
+                return
+            if f"{doc}/index" in inv['std:doc']:
+                entry['name'] = inv['std:doc'][f"{doc}/index"].display_name
+                return
+
     collection_ = {}
     used_keys = set()
     for item in env.collection:
@@ -439,6 +459,11 @@ def directive_collection_build_finished(app, exc):
             collection_[item['key']]['subtitle'] = item['subtitle']
         if 'label' in item:
             collection_[item['key']]['label'] = item['label']
+
+        for inventory in item['include']:
+            for key in item['include'][inventory]:
+                if 'name' not in item['include'][inventory][key]:
+                    get_title(item['include'][inventory][key], inventory, key)
 
     json_ = {'pattern': pattern, 'collection': collection_}
 
@@ -480,7 +505,6 @@ class directive_collection(SphinxDirective):
                 break
         description = "\n".join(self.content[:i])
 
-        # REVISIT: Assert include with intersphinx
         include = {}
         current_include = None
         got_itself = False
@@ -513,6 +537,8 @@ class directive_collection(SphinxDirective):
             else:
                 name = None
                 path_ = line
+
+            self.assert_docname(current_include, path_, self.env.docname)
 
             docname = self.env.docname
             if docname.endswith('/index'):
@@ -566,6 +592,38 @@ class directive_collection(SphinxDirective):
         self.env.collection.append(entry)
 
         return [node]
+
+    def assert_docname(self, inventory, doc, doc_):
+        if not hasattr(self.env, "intersphinx_named_inventory"):
+            return
+        if inventory == self.config.repository:
+            doc = doc_ if doc == '.' else doc
+            if doc not in self.env.found_docs:
+                self.state_machine.reporter.warning(
+                    f"unknown document: '{doc}'",
+                    line=self.lineno
+                )
+            return
+
+        inv = self.env.intersphinx_named_inventory.get(inventory)
+        if inv:
+            if doc in inv['std:doc']:
+                return
+            if f"{doc}/index" in inv['std:doc']:
+                return
+
+            self.state_machine.reporter.warning(
+                f"Doc '{doc}' not in inventory '{inventory}'.",
+                line=self.lineno
+            )
+            return
+
+        self.state_machine.reporter.warning(
+            f"Inventory '{inventory}' is not on loaded on intersphinx.",
+            line=self.lineno
+        )
+        return
+
 
 def directive_collection_purge_doc(app, env, docname):
     if not hasattr(env, 'collection'):
