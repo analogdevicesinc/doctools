@@ -5,7 +5,7 @@ from typing import Dict, Any
 
 from os import path, getenv
 from packaging.version import Version
-from sphinx.__init__ import __version__ as sphinx_version
+from sphinx.__init__ import __version__ as __sphinx_version__
 from sphinx.util.osutil import SEP
 
 from ..lut import repos, remote_doc
@@ -74,7 +74,7 @@ def interref_setup(app: Sphinx) -> Dict[str, Any]:
         logger.warning("Config 'interref_repos' must be a list.")
         app.config.interref_repos = []
 
-    if Version(sphinx_version) < Version("7.3.0"):
+    if Version(__sphinx_version__) < Version("7.3.0"):
         # Prior to Sphinx 7.3.x, config values were default during setup,
         # so we cannot enable on demand.
         auto_enable_intersphinx = True

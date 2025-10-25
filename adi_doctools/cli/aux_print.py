@@ -1,6 +1,6 @@
 from packaging.version import Version
 
-from sphinx.__init__ import __version__ as sphinx_version
+from sphinx.__init__ import __version__ as __sphinx_version__
 from os import path
 from lxml import html, etree
 from click import echo
@@ -101,7 +101,7 @@ def sanitize_singlehtml(file) -> str:
     # instead, have a anchored link
     #    href="index.html#my-label"
     # So, for < v8.1.0, patch href="my-index.html#*" -> href="#*"
-    if Version(sphinx_version) < Version("8.1.0"):
+    if Version(__sphinx_version__) < Version("8.1.0"):
         filename = path.basename(file)
         len_fname = len(filename)
 
@@ -120,7 +120,7 @@ def sanitize_singlehtml(file) -> str:
     # luckily, it is easy to detect since the broken links have double "#",
     # so discarding the left side is enough
     # REVISIT: Check if newer Sphinx fixes the issue
-    if Version(sphinx_version) >= Version("8.2.0"):
+    if Version(__sphinx_version__) >= Version("8.2.0"):
         a_ = toc.xpath(".//a[@class='reference internal']")
         for a__ in a_:
             a__.attrib['href'] = a__.attrib['href'][a__.attrib['href'].rindex("#"):]
