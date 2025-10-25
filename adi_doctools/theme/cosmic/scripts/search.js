@@ -885,7 +885,8 @@ export class Search {
       for (const [key, value] of Object.entries(this.parent.state.metadata.repotoc)) {
         this.include_item(key, value['name'], alphanumeric.shift())
       }
-    let not_subhosted = this.parent.state.subhost === '' || this.parent.state.subhost === undefined
+    let is_hosted_landing_page = this.parent.state.metadata.remote_doc === location.href
+    let not_subhosted = (this.parent.state.subhost === '' || this.parent.state.subhost === undefined) && !is_hosted_landing_page
 
     if (not_subhosted || this.parent.state.standalone) {
       let name = this.parent.state.repository in this.parent.state.metadata.repotoc ?
