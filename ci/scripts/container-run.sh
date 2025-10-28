@@ -48,7 +48,7 @@ container-run ()
 				return
 			elif [[ "$arg" == "--root" ]]; then
 				as_root=true
-			elif [[ "$arg" == "--mount_keys" ]]; then
+			elif [[ "$arg" == "--mount-keys" ]]; then
 				mount_keys=true
 			elif [[ "$arg" == "--volume" ]]; then
 				echo "missing --volume= value (e.g. --volume=work)"
