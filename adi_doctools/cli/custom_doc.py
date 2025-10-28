@@ -136,6 +136,12 @@ needs_extensions = {
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 source_suffix = '.rst'
 
+# -- MystParser configuration -------------------------------------------------
+
+myst_enable_extensions = [
+$myst_enable_extensions$
+]
+
 # -- Custom extensions configuration ------------------------------------------
 
 monolithic = True
@@ -341,6 +347,8 @@ def _patch_index(toc_file, repo):
 
     return toctrees
 
+def _len(t):
+    return -4 if t.endswith('.rst') else -3
 
 def patch_index(doc, tocs, index_file):
     toctrees = []
@@ -361,7 +369,7 @@ def patch_index(doc, tocs, index_file):
             toc_ = [[], [], False]
         else:
             toc_ = [[f"   :caption: {t['caption']}\n"], [], True]
-        toc_[1] = [f"   {t_[:-4]}\n" for t_ in t['files']]
+        toc_[1] = [f"   {t_[:_len(t_)]}\n" for t_ in t['files']]
         toctrees[-1].append(toc_)
 
     for k in tocs:
@@ -381,7 +389,7 @@ def patch_index(doc, tocs, index_file):
                 # Fallback, just add somewhere
                 if k not in orphan_toc:
                     orphan_toc[k] = []
-                orphan_toc[k].append(f"   {k_[:-4]}\n")
+                orphan_toc[k].append(f"   {k_[:_len(k_)]}\n")
         if k in orphan_toc:
             toctrees[-1] += [[[], orphan_toc[k], False]]
 
@@ -425,9 +433,12 @@ def resolve_glob(toctrees, index_file):
                 t_[0].remove('   :glob:\n')
                 n_docs = []
                 for d in t_[1]:
-                    d = path.join(dir_name, d.strip()+'.rst')
-                    d_ = ['   '+path.relpath(d__, dir_name)[:-4]+'\n' for d__ in glob(d)]
-                    n_docs.extend(d_)
+                    d1 = path.join(dir_name, d.strip()+'.rst')
+                    d2 = path.join(dir_name, d.strip()+'.md')
+                    d1_ = ['   '+path.relpath(d__, dir_name)[:-4]+'\n' for d__ in glob(d1)]
+                    d2_ = ['   '+path.relpath(d__, dir_name)[:-3]+'\n' for d__ in glob(d2)]
+                    n_docs.extend(d1_)
+                    n_docs.extend(d2_)
                 t_[1] = n_docs
 
     # Remove duplicated entries
@@ -448,8 +459,8 @@ def prepare_doc(doc, repos_dir, doc_dir, drop_ext):
         pr.run(f"rm -r {doc_dir}")
     mkdir(doc_dir)
 
-    # Some repos prefeer rst2pdf, but this cli uses weasyprint
-    exclude_extensions = ["rst2pdf.pdfbuilder"]
+    # Some repos prefer rst2pdf, but this cli uses weasyprint
+    exclude_extensions = ["rst2pdf.pdfbuilder", "ext_pyadi_jif"]
 
     index_file = path.join(doc_dir, 'index.rst')
     index = doc['project'] + '\n'
@@ -461,7 +472,7 @@ def prepare_doc(doc, repos_dir, doc_dir, drop_ext):
     entry_points = []
     for t in doc['entry-point']:
         entry_points.extend(t['files'])
-    entry_points = [e[:-4] for e in entry_points]
+    entry_points = [e[:_len(e)] for e in entry_points]
 
     missing_ext = []
     sys_path_og = list(sys.path)
@@ -518,6 +529,9 @@ def prepare_doc(doc, repos_dir, doc_dir, drop_ext):
         if hasattr(__c, 'interref_repos'):
             doc['interref_repos'].update(__c.interref_repos)
         doc['interref_repos'].add(r)
+        if hasattr(__c, 'myst_enable_extensions'):
+            doc['sphinx-conf']['myst_enable_extensions'].extend(__c.myst_enable_extensions)
+
         # Get sys_paths inserted and restore
         sys_path_.update([p for p in sys.path if p not in sys_path_og])
         # sourcedir : /path/to/hdl/docs
@@ -543,7 +557,7 @@ def prepare_doc(doc, repos_dir, doc_dir, drop_ext):
             elif not path.isfile(d):
                 continue
 
-            d = d[:-4]
+            d = d[:_len(d)]
             toc_resolve.append(d)
 
         def is_orphan_or_explicit_entry(d):
@@ -577,7 +591,7 @@ def prepare_doc(doc, repos_dir, doc_dir, drop_ext):
                     if found:
                         break
 
-                    if SEP.join(d_) == f[:-4]:
+                    if SEP.join(d_) == f[:_len(f)]:
                         # skip self
                         continue
 
@@ -621,7 +635,7 @@ def prepare_doc(doc, repos_dir, doc_dir, drop_ext):
                         break
                 else:
                     # Now look for the parent
-                    d_ = also_include[-1][:-4].split(SEP)
+                    d_ = also_include[-1][:_len(also_include[-1])].split(SEP)
                     if d_[0] == '.':
                         d_.pop(0)
 
@@ -686,6 +700,9 @@ def prepare_doc(doc, repos_dir, doc_dir, drop_ext):
 
     config_f = config_f.replace("$project$", doc['project'])
     config_f = config_f.replace("$description$", doc['description'])
+
+    e_ = ''.join([f"\n    '{e}'," for e in doc['sphinx-conf']['myst_enable_extensions']]) + '\n'
+    config_f = config_f.replace("$myst_enable_extensions$", e_)
     with open(conf_file, "w") as f:
         f.write(config_f)
 
@@ -1114,6 +1131,10 @@ def custom_doc(directory, extra, no_parallel_, open_, builder, ssh, drop_ext):
         doc['project'] = 'Custom doc'
     if 'description' not in doc:
         doc['description'] = ''
+    if 'sphinx-conf' not in doc:
+        doc['sphinx-conf'] = {}
+    if 'myst_enable_extensions' not in doc['sphinx-conf']:
+        doc['sphinx-conf']['myst_enable_extensions'] = []
     for path_ in doc['include']:
         if path_ not in doc['config'] or doc['config'][path_] is None:
             doc['config'][path_] = {}
