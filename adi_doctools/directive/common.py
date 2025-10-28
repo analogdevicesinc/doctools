@@ -493,6 +493,9 @@ class directive_collection(SphinxDirective):
     optional_arguments = 0
 
     def run(self):
+        if self.env.config.no_collections:
+            return []
+
         self.assert_has_content()
 
         key = self.arguments[0].strip()

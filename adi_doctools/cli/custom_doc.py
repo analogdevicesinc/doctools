@@ -1163,6 +1163,7 @@ def custom_doc(directory, extra, no_parallel_, open_, builder, ssh, drop_ext):
     if pr.wait(p) != 0:
         click.echo("Failed to clone one or more repositories (hint: --ssh flag).")
 
+    environ["ADOC_NO_COLLECTIONS"] = ""
     if builder == "pdf":
         environ["ADOC_MEDIA_PRINT"] = ""
 
