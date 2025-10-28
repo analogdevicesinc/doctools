@@ -175,8 +175,8 @@ include:
   - documentation/linux/drivers/iio-adc/ad4052
   - hdl_my_label_0/projects/ad4630_fmc
   - hdl_my_label_1/projects/ad4052_ardz
-  - no-OS/drivers/ad405x.rst
-  - no-OS/projects/ad405x.rst
+  - no-OS/drivers/adc/ad405x.rst
+  - no-OS/projects/adc/ad405x.rst
 
 # Custom pages
 # Are copied over preserving the path
@@ -199,8 +199,8 @@ entry-point:
       - documentation/linux/drivers/iio-adc/ad4052/index.rst
   - caption: no-OS driver&project
     files:
-      - no-OS/projects/ad405x.rst
-      - no-OS/drivers/ad405x.rst
+      - no-OS/projects/adc/ad405x.rst
+      - no-OS/drivers/adc/ad405x.rst
   - caption: HDL design
     files:
       - hdl_my_label_0/projects/ad4630_fmc/index.rst
