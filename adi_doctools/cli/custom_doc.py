@@ -177,6 +177,7 @@ include:
   - hdl_my_label_1/projects/ad4052_ardz
   - no-OS/drivers/adc/ad405x.rst
   - no-OS/projects/adc/ad405x.rst
+  - pyadi-jif/devs/converters.md
 
 # Custom pages
 # Are copied over preserving the path
@@ -205,6 +206,9 @@ entry-point:
     files:
       - hdl_my_label_0/projects/ad4630_fmc/index.rst
       - hdl_my_label_1/projects/ad4052_ardz/index.rst
+  - caption: pyadi-jif
+    files:
+      - pyadi-jif/devs/converters.md
 
 # Per repository configuration
 # extra: do steps that require extra software (e.g. vendor sdk)
@@ -510,7 +514,11 @@ def prepare_doc(doc, repos_dir, doc_dir, drop_ext):
                     continue
                 try:
                     if hasattr(__c, 'sys'):
-                        if not finder.find_spec(ext, __c.sys.path):
+                        if finder.find_spec(ext, __c.sys.path):
+                            pass
+                        elif importlib.util.find_spec(ext):
+                            pass
+                        else:
                             ext_miss = True
                     else:
                         if not importlib.util.find_spec(ext):
