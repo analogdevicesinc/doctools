@@ -153,6 +153,8 @@ container-run ()
 	elif [ "$container_engine" == "docker" ]; then
 		if $as_root; then
 			run_params="$run_params --user root"
+		else
+			run_params="$run_params --env USERID=$(id -u) --env GROUPID=$(id -g)"
 		fi
 	fi
 	if $mount_keys; then
