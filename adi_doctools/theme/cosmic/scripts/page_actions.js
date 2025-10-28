@@ -134,7 +134,7 @@ export class PageActions {
 
     if (pathname.endsWith('.html'))
       pathname = pathname.replace(/\.html$/i, suffix)
-    else if (pathname.endsWith('/'))
+    else if (pathname.endsWith('/') || pathname === "")
       pathname = pathname.concat(`index${suffix}`)
     else
       pathname = pathname.concat(suffix)
