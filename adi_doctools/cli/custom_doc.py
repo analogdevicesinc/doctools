@@ -491,11 +491,11 @@ def prepare_doc(doc, repos_dir, doc_dir, drop_ext):
         __c = importlib.util.module_from_spec(spec)
         sys.modules["sphinx_conf"] = __c
         spec.loader.exec_module(__c)
+        _c = []
         if hasattr(__c, 'extensions'):
             for ext in __c.extensions:
                 ext_miss = False
                 if ext in exclude_extensions:
-                    __c.extensions.remove(ext)
                     continue
                 try:
                     if hasattr(__c, 'sys'):
@@ -508,10 +508,12 @@ def prepare_doc(doc, repos_dir, doc_dir, drop_ext):
                     ext_miss = True
                 if ext_miss:
                     missing_ext.append((path_, ext))
-                    if drop_ext:
-                        __c.extensions.remove(ext)
+                    if not drop_ext:
+                        _c.append(ext)
+                else:
+                    _c.append(ext)
 
-            doc['extensions'].update(__c.extensions)
+            doc['extensions'].update(_c)
         doc['extensions'].add('sphinx.ext.intersphinx')
         if hasattr(__c, 'interref_repos'):
             doc['interref_repos'].update(__c.interref_repos)
