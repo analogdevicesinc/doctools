@@ -25,7 +25,6 @@ jobs:
         pip3.13 install $(tail --lines=+2 docs/requirements.txt) --upgrade
         pip3.13 install weasyprint
         pip3.13 install dist/*.tar.gz
-        pip3.13 install myst_parser 'pyadi-jif[gekko]' docplex
 
     - name: Prepare custom doc template
       run: |

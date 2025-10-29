@@ -177,7 +177,6 @@ include:
   - hdl_my_label_1/projects/ad4052_ardz
   - no-OS/drivers/adc/ad405x.rst
   - no-OS/projects/adc/ad405x.rst
-  - pyadi-jif/devs/converters.md
 
 # Custom pages
 # Are copied over preserving the path
@@ -206,9 +205,6 @@ entry-point:
     files:
       - hdl_my_label_0/projects/ad4630_fmc/index.rst
       - hdl_my_label_1/projects/ad4052_ardz/index.rst
-  - caption: pyadi-jif
-    files:
-      - pyadi-jif/devs/converters.md
 
 # Per repository configuration
 # extra: do steps that require extra software (e.g. vendor sdk)
