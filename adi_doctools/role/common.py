@@ -217,6 +217,7 @@ def adi():
         name, adi_id = get_outer_inner(text)
         if name is None:
             name = adi_id
+        adi_id = '' if adi_id == '/' else adi_id
         url = get_url_config('adi', inliner) + '/' + adi_id
         node = nodes.reference(rawtext, name, refuri=url,
                                classes=['icon', 'adi'], **options)

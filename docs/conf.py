@@ -45,3 +45,20 @@ html_theme = 'harmonic'
 html_theme_options = {}
 
 html_favicon = path.join("sources", "icon.svg")
+
+# -- Linkcheck ----------------------------------------------------------------
+
+linkcheck_sitemaps = [
+    "https://www.analog.com/media/en/en-pdf-sitemap.xml",
+]
+linkcheck_timeout = 5
+linkcheck_request_headers = {
+    "*": {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:142.0) Gecko/20100101 Firefox/142.0",
+        "Accept-Language": "en-US,en;q=0.5",
+    },
+}
+linkcheck_ignore = [
+    r'https://www.digikey.com/',
+    r'https://inkscape.org/',
+]

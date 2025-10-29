@@ -172,7 +172,7 @@ to build the doc with your own changes.
 Some documentations depend on auto generated sections and extra features, use
 the ``--extra`` option to enable those; it considers that the environment has all
 the tools needed, for example, ``vivado`` is accessible for the HDL documentation.
-See :git-doctools:`adi_doctools/cli/custom-doc.py` to understand how the extra steps are
+See :git-doctools:`adi_doctools/cli/custom_doc.py` to understand how the extra steps are
 included, but in summary, they are just a sequence of bash commands wrapped on python.
 
 For all options, do:
