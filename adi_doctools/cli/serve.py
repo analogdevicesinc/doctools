@@ -439,11 +439,12 @@ def serve(directory, port, dev, selenium, once, builder):
                         stat_ = stat(lfs_f)
                         lfs_f_ = path.relpath(lfs_f, git_top_level)
                         click.echo(f"git lfs smudging file {lfs_f_}")
+                        subprocess.run(["git", "lfs", "pull", "-I", lfs_f], check=True)
+
                         with open(path_, "rb") as fin, open(tmp_f, "wb") as fout:
                             subprocess.run(["git", "lfs", "smudge"], stdin=fin, stdout=fout, check=True)
-                        utime(tmp_f, (stat_.st_atime, stat_.st_mtime))
-                        copy2(tmp_f, lfs_f)
                         move(tmp_f, path_)
+                        utime(path_, (stat_.st_atime, stat_.st_mtime))
 
             super().do_GET()
 
@@ -611,8 +612,8 @@ def serve(directory, port, dev, selenium, once, builder):
             git_lfs_pull = [path.relpath(gf, git_top_level) for gf in git_lfs_pull]
             lfs_f_s = ' -I '.join(git_lfs_pull)
             click.echo(f"git lfs smudging file(s): {' '.join(git_lfs_pull)}")
-            subprocess.call(f"git lfs pull -I {lfs_f_s}",
-                            shell=True, cwd=git_top_level)
+            subprocess.call(["git", "lfs", "pull", "-I", lfs_f_s],
+                            cwd=git_top_level)
 
         if update_sphinx:
             # dev:
