@@ -148,9 +148,11 @@ def serve(directory, port, dev, selenium, once, builder):
         if builder == 'html':
             click.echo("Shutting down server")
             with lock:
+                shutdown_event.set()
                 reload_event.set()
                 http.shutdown()
                 http.server_close()
+            http_thread.join()
         if dev:
             aux_killpg(rollup_p)
             aux_killpg(sass_p)
@@ -399,6 +401,7 @@ def serve(directory, port, dev, selenium, once, builder):
 
     builddir = path.join(directory, builddir_, builder)
 
+    shutdown_event = threading.Event()
     reload_event = threading.Event()
     dev_pool_lock = threading.Lock()
     class Handler(http.server.SimpleHTTPRequestHandler):
@@ -409,6 +412,9 @@ def serve(directory, port, dev, selenium, once, builder):
         def do_GET(self):
             global dev_pool_val
 
+            if shutdown_event.is_set():
+                return
+
             def send_dev_pool():
                 self.send_response(200)
                 self.send_header("Content-type", "text/plain")
@@ -418,35 +424,38 @@ def serve(directory, port, dev, selenium, once, builder):
                 self.end_headers()
                 return
 
-            if not with_selenium and self.path == "/.dev-pool":
-                if self.headers.get("no-wait") is not None:
-                    send_dev_pool()
+            try:
+                if not with_selenium and self.path == "/.dev-pool":
+                    if self.headers.get("no-wait") is not None:
+                        send_dev_pool()
+                        return
+                    if reload_event.wait(timeout=30):
+                        reload_event.clear()
+                        send_dev_pool()
+                    else:
+                        send_dev_pool()
                     return
-                if reload_event.wait(timeout=30):
-                    reload_event.clear()
-                    send_dev_pool()
-                else:
-                    send_dev_pool()
+
+                for ext in types_lfs:
+                    if self.path.endswith(ext):
+                        path_ = path.join(builddir, self.path[1:])
+
+                        lfs_f = get_source_lfs_file(path_, ext)
+                        if lfs_f is not None:
+                            tmp_f = path.join(directory, builddir_, path.basename(lfs_f))
+                            stat_ = stat(lfs_f)
+                            lfs_f_ = path.relpath(lfs_f, git_top_level)
+                            click.echo(f"git lfs smudging file {lfs_f_}")
+                            subprocess.run(["git", "lfs", "pull", "-I", lfs_f], check=True)
+
+                            with open(path_, "rb") as fin, open(tmp_f, "wb") as fout:
+                                subprocess.run(["git", "lfs", "smudge"], stdin=fin, stdout=fout, check=True)
+                            move(tmp_f, path_)
+                            utime(path_, (stat_.st_atime, stat_.st_mtime))
+
+                super().do_GET()
+            except (BrokenPipeError, ConnectionResetError):
                 return
-
-            for ext in types_lfs:
-                if self.path.endswith(ext):
-                    path_ = path.join(builddir, self.path[1:])
-
-                    lfs_f = get_source_lfs_file(path_, ext)
-                    if lfs_f is not None:
-                        tmp_f = path.join(directory, builddir_, path.basename(lfs_f))
-                        stat_ = stat(lfs_f)
-                        lfs_f_ = path.relpath(lfs_f, git_top_level)
-                        click.echo(f"git lfs smudging file {lfs_f_}")
-                        subprocess.run(["git", "lfs", "pull", "-I", lfs_f], check=True)
-
-                        with open(path_, "rb") as fin, open(tmp_f, "wb") as fout:
-                            subprocess.run(["git", "lfs", "smudge"], stdin=fin, stdout=fout, check=True)
-                        move(tmp_f, path_)
-                        utime(path_, (stat_.st_atime, stat_.st_mtime))
-
-            super().do_GET()
 
         def log_message(self, format, *args):
             return
@@ -642,8 +651,11 @@ def serve(directory, port, dev, selenium, once, builder):
                         aux_killpg(rollup_p)
                         aux_killpg(sass_p)
                     with lock:
+                        shutdown_event.set()
+                        reload_event.set()
                         http.shutdown()
                         http.server_close()
+                    http_thread.join()
                     return
             elif builder == "html":
                 update_dev_pool(trigger_rst[1])
