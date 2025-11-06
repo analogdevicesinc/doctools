@@ -10,9 +10,11 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 from typing import TYPE_CHECKING
 from urllib.parse import urljoin, urlparse, urlunparse
+from packaging.version import Version
 
 from sphinx.util import logging
 from sphinx.util import requests
+from sphinx import __version__ as __sphinx_version__
 
 if TYPE_CHECKING:
     from sphinx.application import Sphinx
@@ -158,14 +160,20 @@ def patch_linkcheck_worker(app: Sphinx, config: Config) -> None:
     if not hasattr(app, 'builder') or app.builder.name != 'linkcheck':
         return
 
-    from sphinx.builders.linkcheck import HyperlinkAvailabilityCheckWorker, _Status
+    from sphinx.builders.linkcheck import HyperlinkAvailabilityCheckWorker
+
+    if Version(__sphinx_version__) > Version('8.1.3'):
+        from sphinx.builders.linkcheck import _Status
+        working = _Status.WORKING
+    else:
+        working = 'working'
 
     original_check = HyperlinkAvailabilityCheckWorker._check
 
     def patched_check(self, docname: str, uri: str, hyperlink) -> tuple:
         """Patched _check method that handles in-sitemap URIs."""
         if uri.endswith(' (from sitemap)'):
-            return _Status.WORKING, '', 0
+            return working, '', 0
         return original_check(self, docname, uri, hyperlink)
 
     HyperlinkAvailabilityCheckWorker._check = patched_check
