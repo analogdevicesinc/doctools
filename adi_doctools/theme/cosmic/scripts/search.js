@@ -57,10 +57,12 @@ export class Search {
     this.index = {}
     this.index_state = {}
     this.key_prefix = {}
+    this.versions_available = {}
     this.search_page = new URL(`${this.parent.state.content_root}search.html`, location).pathname
 
     let $ = this.$ = {}
     $.keyCheckbox = {}
+    $.keyVersion = {}
     $.searchUL = {}
     $.searchLI = {}
     $.body = new DOM(DOM.get('body'))
@@ -182,9 +184,21 @@ export class Search {
     }
     return leftScore > rightScore ? 1 : -1;
   };
-  async get_default_searchindex(key, not_sub_hosted) {
+  async get_searchindex(key, not_sub_hosted, version=null) {
     const prefix = not_sub_hosted && key === "local" ?
                    location.origin : `${this.parent.state.metadata.remote_doc}${key}`
+    let guess_default = (arr) => {
+      let path
+      if (arr.includes(""))
+        path = ""
+      else if(arr.includes("main"))
+        path = "main"
+      else if (arr.some(item => item.includes("adi_meta")))
+        path = `${arr.find(item => item.includes("adi_meta"))}`
+      else
+        path = `${arr.at(0)}/`
+      return path
+    }
     let process = (obj) => {
       let path = ""
       if (!('error' in obj)) {
@@ -192,24 +206,40 @@ export class Search {
         if (mode === true)
           return prefix
 
-        else if (mode == "fine-grained")
+        if (mode == "fine-grained")
+          this.versions_available[key] = obj['obj']
+        else
+          this.versions_available[key] = Versioned.string_array_to_object(obj['obj'])
+
+        if (mode == "fine-grained")
           obj['obj'] = Versioned.object_to_string_array(obj['obj'])
         let arr = obj['obj']
 
-        if (arr.includes(""))
-          path = ""
-        else if(arr.includes("main"))
-          path = "main/"
-        else if (arr.some(item => item.includes("adi_meta")))
-          path = `${arr.find(item => item.includes("adi_meta"))}/`
-        else
-          path = `${arr.at(0)}/`
+        if (key in this.versions_available) {
+          if (version in this.versions_available[key]) {
+            path = version
+            this.$.keyVersion[key].innerText = this.versions_available[key][version][0]
+          } else {
+            path = guess_default(arr)
+            this.index_state[key].version = null
+            this.$.keyVersion[key].innerText = this.versions_available[key][path][0]
+          }
+        } else {
+          path = guess_default(arr)
+          this.index_state[key].version = null
+          this.$.keyVersion[key].innerText = "-"
+        }
+      } else {
+          this.index_state[key].version = null
+          this.$.keyVersion[key].innerText = "-"
       }
-      return `${prefix}/${path}`
+      return path.lenght > 0 ? `${prefix}/` : `${prefix}/${path}/`
     }
 
     return await Toolbox.fetch_each(`${prefix}/tags.json`).then((obj) => {
+      this.$.keyVersion[key].classList.remove('unset')
       this.key_prefix[key] = process(obj)
+
       return `${this.key_prefix[key]}searchindex.js`
     })
   }
@@ -217,7 +247,8 @@ export class Search {
     if (ev.target.checked) {
       if (this.index_state[key].requested === false) {
         let not_sub_hosted = this.parent.state.subhost === '' || this.parent.state.subhost === undefined
-        this.get_default_searchindex(key, not_sub_hosted)
+        const selected_version = this.index_state[key].version
+        this.get_searchindex(key, not_sub_hosted, selected_version)
           .then((url) => {
             let search_ = new URL(url)
             this.load_index(search_.href, key)
@@ -606,8 +637,12 @@ export class Search {
   get_tags_and_update_url (query) {
     const enabledTags = []
     for (const [key, value] of Object.entries(this.index_state)) {
-      if (this.$.keyCheckbox[key].$.checked === true && this.index[key] !== undefined)
-        enabledTags.push(key)
+      if (this.$.keyCheckbox[key].$.checked === true && this.index[key] !== undefined) {
+        if (value['version'] === null)
+          enabledTags.push(key)
+        else
+          enabledTags.push(`${key}@${value['version']}`)
+      }
     }
 
     let url = new URL(location)
@@ -669,9 +704,10 @@ export class Search {
     this.renew_search()
     let enabledTags = this.get_tags_and_update_url(query)
     enabledTags.forEach((key) => {
-      const results = this.perform_search(searchQuery, searchTerms, excludedTerms, highlightTerms, objectTerms, key)
-      while (this.$.searchUL[key].$.firstElementChild) {
-        this.$.searchUL[key].$.removeChild(this.$.searchUL[key].$.lastChild)
+      key = key.split('@')
+      const results = this.perform_search(searchQuery, searchTerms, excludedTerms, highlightTerms, objectTerms, key[0])
+      while (this.$.searchUL[key[0]].$.firstElementChild) {
+        this.$.searchUL[key[0]].$.removeChild(this.$.searchUL[key[0]].$.lastChild)
       }
 
       let searchResults_ = []
@@ -679,7 +715,7 @@ export class Search {
       results.reverse()
       results.forEach((item) => {
         const [docName, title, anchor, descr, score, _filename, kind] = item;
-        let href_ = `${this.key_prefix[key]}${docName}.html${anchor}`
+        let href_ = `${this.key_prefix[key[0]]}${docName}.html${anchor}`
         let li_ = new DOM('li').append(
           new DOM('a', {
             href: href_,
@@ -716,11 +752,11 @@ export class Search {
         }
         searchResults_.push(li_)
       })
-      this.$.searchUL[key].append(searchResults_)
+      this.$.searchUL[key[0]].append(searchResults_)
       if (results.length === 0)
-        this.$.searchLI[key].classList.add('empty')
+        this.$.searchLI[key[0]].classList.add('empty')
       else
-        this.$.searchLI[key].classList.remove('empty')
+        this.$.searchLI[key[0]].classList.remove('empty')
     })
 
   }
@@ -816,14 +852,26 @@ export class Search {
       ready: false,
       requested: false
     }
+
     let input_ = new DOM('input', {
       id: `tag-${key}`,
       type: 'checkbox',
       name: name,
       shortcut: shortcut,
     }).onchange(this, this.check_toc, [key])
+
+    let version_button = new DOM('button', {
+      className: 'version-filter unset',
+      title: 'Select version to search'
+    })
+    version_button.onclick(this, (key, e) => {
+      this.show_version_dropdown(key, version_button)
+    }, [key])
+
     this.$.searchTags.append([
-      new DOM('span').append([
+      new DOM('span', {
+        className: 'search-entry'
+      }).append([
         input_,
         new DOM('label', {
           htmlFor: `tag-${key}`,
@@ -835,10 +883,161 @@ export class Search {
           new DOM('span', {
             innerText: name,
           }),
-        ])
+        ]),
+        version_button
       ])
     ])
+    this.$.keyVersion[key] = version_button
     this.$.keyCheckbox[key] = input_
+  }
+  get_class_labels (text) {
+    if (text === '')
+      return ''
+    let labels = 'label'
+    if (text === 'pull request')
+      labels += ' pull_request'
+    else if (text === 'unstable')
+      labels += ' unstable'
+    return labels
+  }
+  /**
+   * Show version dropdown for a specific search entry
+   */
+  show_version_dropdown(key, version_button, ev) {
+    let obj = this.versions_available[key]
+    if (!obj) {
+      console.warn(`No versions available for key: ${key}`)
+      obj = {}
+    }
+
+    this.clean_versions_dropdown()
+
+    let i = Object.keys(obj).length > 10 ? 4 : 2
+    let cols = " auto".repeat(i)
+    this.$.list.style = `grid-template-columns:${cols}`
+    if (Object.keys(obj).length <= 1)
+      this.$.list.classList.add('no-other')
+    else
+      this.$.list.classList.remove('no-other')
+
+    for (let version in obj) {
+      let entry = DOM.new('button', {
+        'version': version
+      })
+      entry.addEventListener('mousedown', (ev) => {
+        ev.preventDefault()
+      })
+      entry.addEventListener('mouseup', (ev) => {
+        if (ev.which !== 1 && ev.which !== 2)
+          return
+
+        ev.preventDefault()
+        this.select_version(key, version)
+      })
+      let entry_ = DOM.new('div')
+      let label_ = DOM.new('div')
+      entry_.innerText = obj[version][0]
+      let label = DOM.new('span', {
+        'className': this.get_class_labels(obj[version][1])
+      })
+      label.innerText = obj[version][1]
+      label_.append(label)
+      entry.append(entry_)
+      entry.append(label_)
+      this.$.list.append(entry)
+    }
+
+    this.show(version_button.$, true)
+  }
+  /**
+   * Deinit version in dropdowns
+   */
+  clean_versions_dropdown() {
+    while (this.$.list.firstElementChild) {
+      this.$.list.removeChild(this.$.list.lastChild)
+    }
+  }
+  /**
+   * Select a version for a specific search entry
+   */
+  async select_version(key, version) {
+    this.index_state[key].version = version
+
+    const version_label = version === "" ? "main" : this.versions_available[key][version][0]
+
+    if (this.$.keyCheckbox[key].$.checked && this.index_state[key].ready) {
+      this.index_state[key].ready = false
+      this.index_state[key].requested = false
+      this.$.keyCheckbox[key].classList.remove('ready')
+      this.$.keyCheckbox[key].classList.add('requested')
+
+      let not_sub_hosted = this.parent.state.subhost === '' || this.parent.state.subhost === undefined
+      this.get_searchindex(key, not_sub_hosted, version)
+        .then((url) => {
+          let search_ = new URL(url)
+          this.load_index(search_.href, key)
+          this.index_state[key].requested = true
+          this.$.keyCheckbox[key].classList.remove('failed')
+          this.renew_search()
+        })
+        .catch((error) => {
+          console.warn(`Failed to load search index for ${key} version ${version}:`, error)
+          this.index_state[key].requested = false
+          this.$.keyCheckbox[key].classList.remove('requested')
+          this.$.keyCheckbox[key].classList.add('failed')
+        })
+    }
+
+    this.show(undefined, false)
+  }
+  show (dom, show) {
+    if (!show) {
+      this.$.cancel.classList.remove('on')
+      this.$.list.classList.remove('on')
+      return
+    }
+
+    let rect = dom.getBoundingClientRect()
+    let wiw = window.innerWidth
+    let wih = window.innerHeight
+    if ((wih - rect.bottom) < rect.top) {
+      this.$.list.style.removeProperty('top')
+      this.$.list.style.bottom = `${wih - rect.bottom + 1.5*16}px`
+    } else {
+      this.$.list.style.removeProperty('bottom')
+      this.$.list.style.top = `${rect.top + 1.5*16}px`
+    }
+    if ((wiw - rect.right) < rect.left) {
+      this.$.list.style.removeProperty('left')
+      this.$.list.style.right = `${wiw - rect.right}px`
+    } else {
+      this.$.list.style.left = `${rect.left}px`
+      this.$.list.style.removeProperty('right')
+    }
+    this.$.cancel.classList.add('on')
+    this.$.list.classList.add('on')
+  }
+  /**
+   * Create Tag/Version dropdown to be re-used.
+   */
+  render () {
+    let body = DOM.get('body')
+
+    let container2 = DOM.new('div', {
+      'className': 'version-dropdown-list',
+    })
+
+    let cancel_dropdown = DOM.new('dev', {
+      'id': 'cancel-area-show-version-dropdown'
+    })
+    body.append(cancel_dropdown)
+    body.append(container2)
+
+    addEventListener("resize", (ev) => { this.show(undefined, false) })
+    cancel_dropdown.onclick = (ev) => {this.show(undefined, false) }
+
+    this.$.list = container2
+    this.$.cancel = cancel_dropdown
   }
   /**
    * Construct offline search.
@@ -905,10 +1104,15 @@ export class Search {
       if (r !== null) {
         r = r.split(',')
         r.forEach((key) => {
+          key = key.split('@')
           let event = new Event('change');
-          if (key in this.$.keyCheckbox) {
-            this.$.keyCheckbox[key].$.checked = true
-            this.$.keyCheckbox[key].$.dispatchEvent(event)
+          if (key[0] in this.$.keyCheckbox) {
+            this.$.keyCheckbox[key[0]].$.checked = true
+            if (key.length === 2)
+              this.index_state[key[0]].version = key[1]
+            else
+              this.index_state[key[0]].version = null
+            this.$.keyCheckbox[key[0]].$.dispatchEvent(event)
           }
         })
       }
@@ -920,5 +1124,7 @@ export class Search {
     document.addEventListener('keyup', (e) => {this.keyup(e)}, false);
     document.addEventListener('keydown', (e) => {this.keydown(e)}, false);
     document.addEventListener("focus", (e) => {this.focus(e)})
+
+    this.render()
   }
 }

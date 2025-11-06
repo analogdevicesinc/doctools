@@ -127,6 +127,32 @@
         font-size: .9em;
     }
 
+    .search-entry {
+        display: flex;
+        align-items: center;
+
+        button.version-filter {
+            background: var(--bg-color2);
+            border: 1px solid var(--text-color3);
+            border-radius: variable.$border-radius;
+            color: var(--text-color2);
+            font-size: .75em;
+            padding: .2em .4em;
+            cursor: pointer;
+            min-width: 3em;
+            text-align: center;
+
+            &:hover {
+                background: var(--bg-color3);
+                border-color: var(--text-color2);
+                color: var(--text-color1);
+            }
+        }
+        button.version-filter.unset {
+            display: none;
+        }
+    }
+
     input.failed ~ label {
         opacity: .5;
     }
@@ -187,6 +213,10 @@
 
         input.requested:checked~ label {
             animation: blink 1s linear infinite;
+        }
+
+        button.version-filter {
+            margin-right: 1em;
         }
     }
 }
