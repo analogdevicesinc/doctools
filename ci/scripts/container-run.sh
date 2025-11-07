@@ -98,10 +98,10 @@ container-run ()
 					case $yn in
 						[Yy]* )
 							printf "\33[2K\rFetching branch '\e[34mci\e[0m'..."
-							git fetch --quiet $remote ci
 							git branch -D _ci &>/dev/null
+							git fetch --quiet $remote ci:_ci
 							ci_worktree=$(realpath $(git rev-parse --git-common-dir)/../_ci)
-							git worktree add -q -b _ci $ci_worktree $remote/ci
+							git worktree add -q $ci_worktree _ci
 							printf "\33[2K\rFetched CI branch to '_ci'.\n"
 							printf "To \e[34mclean-up\e[0m, use: \n"
 							printf "  \e[34mgit worktree remove _ci\e[0m\n\n"
