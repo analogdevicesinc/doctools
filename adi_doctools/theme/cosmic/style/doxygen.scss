@@ -1,0 +1,38 @@
+@use "variable";
+@use "mixin_icons";
+
+/* Minimal theme reinforcement for doctools' doxygen elements */
+.repotoc-tree.overlay .container {
+    @include mixin_icons.icons(("link"));
+
+    box-sizing: border-box;
+    padding-left: calc(var(--side-nav-fixed-width) + 1em);
+}
+
+.repotoc-tree.overlay .container,
+.repotoc-tree.overlay .cards a {
+    box-sizing: border-box;
+}
+
+.repotoc-tree.overlay .cards .title {
+    margin-top: 0;
+    margin-bottom: .5em;
+}
+
+@media (max-width: variable.$screen-3) {
+    .repotoc-tree.overlay .container {
+        padding: 0;
+    }
+}
+
+@media (max-width: variable.$screen-1) {
+    .repotoc-tree.overlay .container {
+        width: 100vw;
+    }
+}
+
+@media (max-width: variable.$screen-0) {
+    .repotoc-tree.overlay .cards {
+        grid-template-columns: 1fr 1fr;
+    }
+}

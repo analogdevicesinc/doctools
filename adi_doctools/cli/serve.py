@@ -142,7 +142,10 @@ def serve(directory, port, dev, selenium, once, builder):
     source_files = {'app.umd.js', 'app.umd.js.map',
                     'app.min.css', 'app.min.css.map',
                     'extra.umd.js', 'extra.umd.js.map',
-                    'extra.min.css', 'extra.min.css.map'}
+                    'extra.min.css', 'extra.min.css.map',
+                    'doxygen.min.css', 'doxygen.min.css.map',
+                    'doxygen.umd.js', 'doxygen.umd.js.map',
+                    }
 
     def signal_handler(sig, frame):
         if builder == 'html':
@@ -195,7 +198,8 @@ def serve(directory, port, dev, selenium, once, builder):
 
     sass_conf_1 = path.join(style_path, 'app.bundle.scss') + ':' + path.join(static_path, 'app.min.css')
     sass_conf_2 = path.join(style_path, 'extra.bundle.scss') + ':' + path.join(static_path, 'extra.min.css')
-    sass_conf = sass_conf_1 + ' ' +  sass_conf_2
+    sass_conf_3 = path.join(style_path, 'doxygen.bundle.scss') + ':' + path.join(static_path, 'doxygen.min.css')
+    sass_conf = sass_conf_1 + ' ' +  sass_conf_2 + ' ' + sass_conf_3
     if dev:
         if which("node") is None:
             click.echo(log['node'])

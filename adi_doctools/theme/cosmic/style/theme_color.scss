@@ -1,0 +1,62 @@
+@use "variable";
+
+body {
+    --is-dark-theme: 0;
+    --is-light-theme: 1;
+    --display-dark: none;
+    --display-light: inline-block;
+    --bg-color1: #{variable.$bg-light1};
+    --bg-color2: #{variable.$bg-light2};
+    --bg-color3: #{variable.$bg-light3};
+    --bg-color1-faded1: #{variable.$bg-light1}99;
+    --bg-color1-faded2: #{variable.$bg-light1}aa;
+    --text-color1: #{variable.$text-color-light1};
+    --text-color2: #{variable.$text-color-light2};
+    --text-color3: #{variable.$text-color-light3};
+    --accent-color: #{variable.$accent-color-light};
+    --accent-color-code: #{variable.$accent-color-code-light};
+    --bg-banner: #{variable.$bg-banner-light};
+    --text-color-banner: #{variable.$text-color-banner-light};
+}
+
+body.dark {
+    --is-dark-theme: 1;
+    --is-light-theme: 0;
+    --display-dark: inline-block;
+    --display-light: none;
+    --bg-color1: #{variable.$bg-dark1};
+    --bg-color2: #{variable.$bg-dark2};
+    --bg-color3: #{variable.$bg-dark3};
+    --bg-color1-faded1: #{variable.$bg-dark1}aa;
+    --bg-color1-faded2: #{variable.$bg-dark1}cc;
+    --text-color1: #{variable.$text-color-dark1};
+    --text-color2: #{variable.$text-color-dark2};
+    --text-color3: #{variable.$text-color-dark3};
+    --accent-color: #{variable.$accent-color-dark};
+    --accent-color-code: #{variable.$accent-color-code-dark};
+    --bg-banner: #{variable.$bg-banner-dark};
+    --text-color-banner: #{variable.$text-color-banner-dark};
+}
+
+@media (prefers-color-scheme: dark) {
+    body:not(.light) {
+        --is-dark-theme: 1;
+        --is-light-theme: 0;
+        --display-dark: inline-block;
+        --display-light: none;
+        --bg-color1: #{variable.$bg-dark1};
+        --bg-color2: #{variable.$bg-dark2};
+        --bg-color3: #{variable.$bg-dark3};
+        --bg-color1-faded1: #{variable.$bg-dark1}99;
+        --bg-color1-faded2: #{variable.$bg-dark1}aa;
+        --text-color1: #{variable.$text-color-dark1};
+        --text-color2: #{variable.$text-color-dark2};
+        --text-color3: #{variable.$text-color-dark3};
+        --accent-color: #{variable.$accent-color-dark};
+        --accent-color-code: #{variable.$accent-color-code-dark};
+        --bg-banner: #{variable.$bg-banner-dark};
+        --text-color-banner: #{variable.$text-color-banner-dark};
+    }
+}
+
+

@@ -29,4 +29,16 @@ export default [
       terser()
     ]
   },
+  {
+    input: `${path}/scripts/doxygen.js`,
+    output: {
+      file: `${path}/static/doxygen.umd.js`,
+      format: "umd",
+      name: "Doxygen",
+      sourcemap: true
+    },
+    plugins: [
+      terser()
+    ]
+  },
 ]
