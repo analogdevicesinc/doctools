@@ -38,10 +38,10 @@ runs:
       shell: bash
       run: |
         # Detect engine
-        if command -v podman &> /dev/null; then
-          echo "container=podman" >> "$GITHUB_ENV"
-        elif command -v docker &> /dev/null; then
+        if command -v docker &> /dev/null; then
           echo "container=docker" >> "$GITHUB_ENV"
+        elif command -v podman &> /dev/null; then
+          echo "container=podman" >> "$GITHUB_ENV"
         else
           echo "::error ::Neither podman nor docker is installed."
           exit 1
@@ -77,7 +77,7 @@ runs:
       run: |
         # Save container
         rm -f dist.tar
-        $container save -o dist.tar localhost/adi/$repository:$version
+        $container save -o dist.tar adi/$repository:$version
 
     - name: Get assets
       shell: bash
