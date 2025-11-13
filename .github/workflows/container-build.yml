@@ -1,0 +1,65 @@
+name: Container build
+run-name: Build container for ${{ inputs.repository }}@${{ inputs.ref }}
+on:
+  workflow_dispatch:
+    inputs:
+      organization:
+        description: 'Organization name'
+        required: true
+        type: string
+      repository:
+        description: 'Repository name'
+        required: true
+        type: string
+      ref:
+        description: 'Branch/tag ref to checkout'
+        required: true
+        type: string
+        default: 'refs/heads/main'
+      containerfile:
+        description: 'Path to the Containerfile'
+        required: true
+        type: string
+  workflow_call:
+    inputs:
+      organization:
+        description: 'Organization name'
+        required: true
+        type: string
+      repository:
+        description: 'Repository name'
+        required: true
+        type: string
+      ref:
+        description: 'Branch/tag ref to checkout'
+        required: true
+        type: string
+        default: 'refs/heads/main'
+      containerfile:
+        description: 'Path to the Containerfile'
+        required: true
+        type: string
+
+jobs:
+  build-container:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          repository: ${{ inputs.organization }}/${{ inputs.repository }}
+          ref: ${{ inputs.ref }}
+
+      - uses: analogdevicesinc/doctools/container-build@action
+        with:
+          organization: ${{ inputs.organization }}
+          repository: ${{ inputs.repository }}
+          ref: ${{ inputs.ref }}
+          containerfile: ${{ inputs.containerfile }}
+          cloudsmith-namespace: ${{ vars.CLOUDSMITH_NAMESPACE }}
+          cloudsmith-repository: ${{ vars.CLOUDSMITH_REPOSITORY_CONTAINERS }}
+          cloudsmith-service-slug: ${{ secrets.CLOUDSMITH_SERVICE_SLUG }}
+          cloudsmith-api-key: ${{ secrets.CLOUDSMITH_API_KEY }}

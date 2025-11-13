@@ -21,3 +21,16 @@ cs-package-store-python()
          \"tags\": \"$5\"}" \
     https://api.cloudsmith.com/v1/packages/$2/$3/upload/python/
 }
+
+cs-package-store-docker()
+{
+  curl -sfL \
+    -X POST \
+    -H "Accept: application/json" \
+    -H "Content-Type: application/json" \
+    -H "X-Api-Key: $1" \
+    -d "{\"package_file\":\"$4\", \
+         \"republish\":\"true\", \
+         \"tags\": \"$5\"}" \
+    https://api.cloudsmith.com/v1/packages/$2/$3/upload/docker/
+}
