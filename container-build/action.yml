@@ -1,0 +1,131 @@
+name: Container Build
+description: Build and upload container images to Cloudsmith
+
+inputs:
+  gh-token:
+    description: 'GitHub Token'
+    default: ${{ github.token }}
+  organization:
+    description: 'Organization name'
+    required: true
+  repository:
+    description: 'Repository name'
+    required: true
+  ref:
+    description: 'Branch/tag ref to checkout'
+    required: true
+    default: 'refs/heads/main'
+  containerfile:
+    description: 'Path to the Containerfile'
+    required: true
+  cloudsmith-api-key:
+    description: 'Cloudsmith API Key'
+    required: false
+  cloudsmith-service-slug:
+    description: 'Cloudsmith Service Slug for OIDC'
+    required: false
+  cloudsmith-namespace:
+    description: 'Cloudsmith namespace'
+    required: false
+  cloudsmith-repository:
+    description: 'Cloudsmith repository name for containers'
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Detect engine
+      shell: bash
+      run: |
+        # Detect engine
+        if command -v podman &> /dev/null; then
+          echo "container=podman" >> "$GITHUB_ENV"
+        elif command -v docker &> /dev/null; then
+          echo "container=docker" >> "$GITHUB_ENV"
+        else
+          echo "::error ::Neither podman nor docker is installed."
+          exit 1
+        fi
+
+    - name: Extract version from Containerfile
+      shell: bash
+      run: |
+        # Extract version from Containerfile
+        if [[ ! -f "${{ inputs.containerfile }}" ]]; then
+          echo "::error ::Containerfile not found at ${{ inputs.containerfile }}"
+          exit 1
+        fi
+        version=$(grep "^ENV runner_labels" ${{ inputs.containerfile }} | sed -n 's/.*ENV runner_labels.*,v\([^,]*\).*/\1/p' | head -1)
+        if [[ -z "$version" ]]; then
+          echo "::error ::Could not extract version from ${{ inputs.containerfile }}, is it set at 'runner_labels'?"
+          exit 1
+        fi
+        echo "version=v$version" >> "$GITHUB_ENV"
+        echo "version: v$version"
+        repository=$(echo "${{ inputs.repository }}" | tr '-' '_')
+        echo "repository=$repository" >> "$GITHUB_ENV"
+        echo "container name: adi/$repository:$version"
+
+    - name: Build container
+      shell: bash
+      run: |
+        # Build container
+        $container build --tag adi/$repository:$version -f ${{ inputs.containerfile }} $(dirname ${{ inputs.containerfile }})
+
+    - name: Save container
+      shell: bash
+      run: |
+        # Save container
+        rm -f dist.tar
+        $container save -o dist.tar localhost/adi/$repository:$version
+
+    - name: Get assets
+      shell: bash
+      run: |
+        # Get assets
+        curl -s -H "Authorization: Bearer ${{ inputs.gh-token }}" -L -o cloudsmith-api.sh \
+          https://raw.githubusercontent.com/analogdevicesinc/doctools/refs/heads/main/ci/cloudsmith-api.sh
+
+    - uses: cloudsmith-io/cloudsmith-cli-action@v1.0.4
+      env:
+        CLOUDSMITH_SERVICE_SLUG: ${{ inputs.cloudsmith-service-slug }}
+      if: ${{ inputs.cloudsmith-service-slug != '' }}
+      with:
+        oidc-namespace: ${{ inputs.cloudsmith-namespace }}
+        oidc-service-slug: ${{ inputs.cloudsmith-service-slug }}
+        oidc-auth-only: 'true'
+
+    - name: Cloudsmith API Key
+      shell: bash
+      env:
+        CLOUDSMITH_SERVICE_SLUG: ${{ inputs.cloudsmith-service-slug }}
+      if: ${{ inputs.cloudsmith-service-slug == '' }}
+      run: |
+        # Cloudsmith API Key
+        echo "CLOUDSMITH_API_KEY=${{ inputs.cloudsmith-api-key }}" >> "$GITHUB_ENV"
+
+    - name: Cloudsmith upload container and create package
+      shell: bash
+      if: ${{ inputs.cloudsmith-api-key != '' || inputs.cloudsmith-service-slug != '' }}
+      run: |
+        # Cloudsmith upload container and create package
+        source ./cloudsmith-api.sh
+
+        # push: refs/heads/<branch>
+        # tag || release: refs/tags/<tag>
+        # pull_request: refs/pull/<id>/merge
+        tags_="${{ inputs.ref }}, on/${{ github.event_name }}"
+
+        package_file=$(
+          cs-package-upload ${{ env.CLOUDSMITH_API_KEY }} \
+                            ${{ inputs.cloudsmith-namespace }} \
+                            ${{ inputs.cloudsmith-repository }} \
+                            dist.tar \
+                            latest_package_file
+        )
+
+        cs-package-store-docker ${{ env.CLOUDSMITH_API_KEY }} \
+                                ${{ inputs.cloudsmith-namespace }} \
+                                ${{ inputs.cloudsmith-repository }} \
+                                $package_file \
+                                "$tags_"
