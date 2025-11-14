@@ -400,7 +400,6 @@ def serve(directory, port, dev, selenium, once, builder):
             return None
 
     builddir = path.join(directory, builddir_, builder)
-
     shutdown_event = threading.Event()
     reload_event = threading.Event()
     dev_pool_lock = threading.Lock()
@@ -446,12 +445,34 @@ def serve(directory, port, dev, selenium, once, builder):
                             stat_ = stat(lfs_f)
                             lfs_f_ = path.relpath(lfs_f, git_top_level)
                             click.echo(f"git lfs smudging file {lfs_f_}")
-                            subprocess.run(["git", "lfs", "pull", "-I", lfs_f], check=True)
-
-                            with open(path_, "rb") as fin, open(tmp_f, "wb") as fout:
-                                subprocess.run(["git", "lfs", "smudge"], stdin=fin, stdout=fout, check=True)
+                            try:
+                                with open(path_, "rb") as fin, open(tmp_f, "wb") as fout:
+                                    subprocess.run(["git", "lfs", "smudge"], stdin=fin, stdout=fout, check=True)
+                            except Exception as e:
+                                if e.returncode == 2:
+                                    pass
+                                else:
+                                    raise
+                            copy2(tmp_f, lfs_f)
+                            utime(lfs_f, (stat_.st_atime, stat_.st_mtime))
                             move(tmp_f, path_)
                             utime(path_, (stat_.st_atime, stat_.st_mtime))
+
+                            while True:
+                                try:
+                                    subprocess.run(["git", "update-index", "--", lfs_f],
+                                                   capture_output=True, text=True, check=True)
+                                except subprocess.CalledProcessError as e:
+                                    if e.returncode == 128:
+                                        if ".git/index.lock" in e.stderr:
+                                            time.sleep(0.1)
+                                            continue
+                                        else:
+                                            raise
+                                    else:
+                                        raise
+
+                                break
 
                 super().do_GET()
             except (BrokenPipeError, ConnectionResetError):
@@ -459,6 +480,16 @@ def serve(directory, port, dev, selenium, once, builder):
 
         def log_message(self, format, *args):
             return
+
+    def wsl2_networking(scheduler):
+        """
+        Helps Windows pick-up WSL2 exposed port.
+        """
+        try:
+            from urllib.request import urlopen
+            urlopen(f"http://0.0.0.0:{port}")
+        except Exception as e:
+            click.echo(e)
 
     if builder == "html":
         try:
@@ -468,6 +499,10 @@ def serve(directory, port, dev, selenium, once, builder):
             http_thread.daemon = True
             http_thread.start()
             click.echo(f"\n{BLUE}Running server on http://0.0.0.0:{port}{NC}\n")
+
+            scheduler = sched.scheduler(time.time, time.sleep)
+            scheduler.enter(1, 1, wsl2_networking, (scheduler,))
+            scheduler.run()
         except Exception:
             click.echo(f"{FAIL}Could not start server on http://0.0.0.0:{port}{NC}")
             click.echo(f"  {BLUE}Tip{NC}: pass another port with {BLUE}--port{NC}")
@@ -621,8 +656,14 @@ def serve(directory, port, dev, selenium, once, builder):
             git_lfs_pull = [path.relpath(gf, git_top_level) for gf in git_lfs_pull]
             lfs_f_s = ' -I '.join(git_lfs_pull)
             click.echo(f"git lfs smudging file(s): {' '.join(git_lfs_pull)}")
-            subprocess.call(["git", "lfs", "pull", "-I", lfs_f_s],
-                            cwd=git_top_level)
+            try:
+                subprocess.run(["git", "lfs", "pull", "-I", lfs_f_s], check=True,
+                                cwd=git_top_level)
+            except Exception as e:
+                if e.returncode == 2:
+                    pass
+                else:
+                    raise
 
         if update_sphinx:
             # dev:
