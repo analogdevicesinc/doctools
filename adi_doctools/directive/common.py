@@ -783,6 +783,7 @@ class directive_grid(Directive):
     optional_arguments = 0
 
     def run(self):
+        set_classes(self.options)
         widths = self.options.pop('widths', None)
         if widths is None:
             raise self.error(
