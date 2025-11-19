@@ -13,6 +13,10 @@
         margin-left: .5em;
     }
 
+    .cards-links {
+        display: flex;
+    }
+
     .cards {
         grid-template-columns: 1fr 1fr 1fr;
         transition: row-gap .25s ease;
@@ -74,12 +78,19 @@
             height: 1.5em;
             margin-right: .25em;
             background-color: var(--text-color2);
-            mask-image: var(--icon-home);
             mask-repeat: no-repeat;
         }
         &:hover::before {
             background-color: var(--accent-color) !important;
         }
+    }
+
+    .home::before {
+        mask-image: var(--icon-home);
+    }
+
+    .ext-developer::before {
+        mask-image: var(--icon-link);
     }
 
     .cards {

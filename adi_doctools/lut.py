@@ -29,6 +29,7 @@ class LUT(TypedDict):
     remote_ssh: str
     remote_https: str
     remote_doc: str
+    remote_alt: str
     source_hostname: str
     source_hostname_raw: str
     repos: Dict[str, Repo]
@@ -39,6 +40,7 @@ class LUT(TypedDict):
 remote_ssh = "git@github.com:analogdevicesinc/{}.git"
 remote_https = "https://github.com/analogdevicesinc/{}.git"
 remote_doc = "https://analogdevicesinc.github.io/"
+remote_alt = "https://developer.analog.com/docs/"
 source_hostname = "https://github.com/analogdevicesinc/{repository}/tree/{branch}/{pathname}"
 source_hostname_raw = "https://raw.githubusercontent.com/analogdevicesinc/{repository}/refs/heads/{branch}/{pathname}"
 
@@ -203,6 +205,7 @@ def get_lut():
     return LUT(remote_ssh=remote_ssh,
                remote_https=remote_https,
                remote_doc=remote_doc,
+               remote_alt=remote_alt,
                source_hostname=source_hostname,
                source_hostname_raw=source_hostname_raw,
                repos=repos,

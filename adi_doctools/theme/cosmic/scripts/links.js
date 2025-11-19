@@ -86,21 +86,36 @@ export class Links {
       this.$.linksOverlay.push(elem.cloneNode(true))
     })
 
+    // remote_alt doesn't have the open-source landing page
+    const _canonical = new URL(app.state.metadata.remote_alt).host === location.host ?
+                       this.parent.state.metadata.remote_doc : prefix
+    const _developer = this.parent.state.metadata.remote_alt
     let link_landing =  DOM.new('a', {
-      'innerText': 'Landing page',
-      'href': prefix,
-      'className': 'landing-page'
+      'innerText': 'Open source home',
+      'href': _canonical,
+      'className': 'landing-page home'
     })
+    let link_developer = DOM.new('a', {
+      'innerText': 'Developer portal',
+      'href': new URL('..', _developer),
+      'target': '_blank',
+      'className': 'landing-page ext-developer'
+    })
+
+    let cards_links = DOM.new('div', {
+      'className': 'cards-links'
+    })
+    cards_links.append(link_landing, link_developer)
     if ($.repotocTreeOverlay) {
       DOM.removeChilds($.repotocTreeOverlay)
       let container = DOM.new('div', {
         'className': 'container'
       })
-      let cards = DOM.new('div', {
-        'className': 'cards'
+       let cards = DOM.new('div', {
+      'className': 'cards'
       })
       this.$.linksOverlay.forEach((item) => {cards.append(item)})
-      container.append(link_landing)
+      container.append(cards_links)
       container.append(cards)
       $.repotocTreeOverlay.append(container)
     }
@@ -113,7 +128,7 @@ export class Links {
       })
       DOM.removeChilds($.repotocTreeSidebar)
       this.$.linksSidebar.forEach((item) => {cards.append(item)})
-      container.append(link_landing.cloneNode(true))
+      container.append(cards_links.cloneNode(true))
       container.append(cards)
       $.repotocTreeSidebar.append(container)
     }

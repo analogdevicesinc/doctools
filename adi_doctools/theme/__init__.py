@@ -124,6 +124,7 @@ def build_finished(app, exc):
                                     path.join(build_uri, m))
 
             metadata['remote_doc'] = app.lut['remote_doc']
+            metadata['remote_alt'] = app.lut['remote_alt']
             metadata['source_hostname'] = app.lut['source_hostname']
             metadata['source_hostname_raw'] = app.lut['source_hostname_raw']
 
