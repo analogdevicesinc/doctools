@@ -453,3 +453,45 @@ Enable and start the service
    User services are terminated on logout, unless you define
    ``loginctl enable-linger <your-user>`` first.
 
+Restrict network access
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To restrict the container to access only some resources in the network,
+to the ``podman run`` in the systemd service, append
+``--network podman --hooks-dir %h/.config/containers/oci/hooks.d``
+to use ``netavark`` as the network backend and use OCI hooks from the
+path listed.
+
+Then create two files, ``container-iptables.sh`` with the commands to run
+in the `rootless network namespace <https://docs.podman.io/en/stable/markdown/podman-unshare.1.html#rootless-netns>`__,
+for example:
+
+.. code:: bash
+
+   #!/bin/bash
+
+   /usr/sbin/iptables -I FORWARD -d 10.0.1.0/24 -j DROP
+   /usr/sbin/iptables -I FORWARD -d 10.0.2.0/24 -j DROP
+
+And ``container-iptables.sh`` with the hook rule (only absolute path is
+supported):
+
+
+.. code:: json
+
+   {
+       "version": "1.0.0",
+       "hook": {
+           "path": "/home/<USER>/.config/containers/oci/hooks.d/container-iptables.sh",
+           "args": [],
+           "env": []
+       },
+       "when": {
+           "always": true,
+           "commands": [".*"]
+       },
+       "stages": ["createContainer"]
+   }
+
+For more complex cases, use annotations to filer which hooks run with a
+container.
