@@ -184,12 +184,12 @@ class directive_regmap(directive_base):
     def get_hex_addr(addr: int, addr_incr: int):
         if addr_incr == 0:
             dword = f"{hex(addr)}"
-            byte = f"{hex(addr<<2)}"
+            hdl_byte = f"{hex(addr<<2)}"
         else:
             dword = f"{hex(addr)} + {hex(addr_incr)}*n"
-            byte = f"{hex(addr<<2)} + {hex(addr_incr<<2)}*n"
+            hdl_byte = f"{hex(addr<<2)} + {hex(addr_incr<<2)}*n"
 
-        return (dword, byte)
+        return (dword, hdl_byte)
 
     def tables(self, subnode, obj, key):
         uid = "hdl-regmap-" + key
@@ -203,15 +203,15 @@ class directive_regmap(directive_base):
         table = nodes.table(classes=['regmap'])
         table += tgroup
 
-        self.table_header(tgroup, ["DWORD", "BYTE", ["Reg Name", 3], "Description"])  # noqa: E501
-        self.table_header(tgroup, [["", 1], "BITS", "Field Name", "Type", "Default Value", "Description"])  # noqa: E501
+        self.table_header(tgroup, [["Address", 1], ["Reg Name", 3], ""])  # noqa: E501
+        self.table_header(tgroup, ["HDL", "DWORD", "BITS", "Field Name", "Type", "Default Value", "Description"])  # noqa: E501
 
         rows = []
         for reg in obj['regmap']:
-            dword, byte = self.get_hex_addr(reg['address'], reg['addr_incr'])
+            dword, hdl_byte = self.get_hex_addr(reg['address'], reg['addr_incr'])
             self.column_entries(rows, [
                 [dword, 'literal', ['bold']],
-                [byte, 'literal', ['bold']],
+                [hdl_byte, 'literal', ['bold']],
                 [reg['name'], 'literal', ['bold'], 3],
                 [reg['description'], 'reST', ['description', 'bold']],
             ], uid=uid)
