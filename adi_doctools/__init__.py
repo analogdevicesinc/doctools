@@ -17,7 +17,7 @@ from .role.interref import interref_repos_apply, interref_repos_assert
 from .monkeypatch import monkeypatch_figure_numbers
 from .ext import setup as ext_setup
 
-__version__ = "0.4.27"
+__version__ = "0.4.28"
 
 
 def get_navigation_tree(app, context, pagename):
