@@ -716,9 +716,18 @@ For example:
 Text width
 ----------
 
-Each line must be less than 80 columns wide.
-You can use the :code:`fold` command to break the lines of the imported text
-while respecting word-breaks:
+Each line must be less than **80** columns wide. This visually ensures while
+writing that the paragraphs are concise and well structured.
+
+For **neovim**, you can visual select the block ``Ctrl+V`` then wrap with
+``gq``.
+
+For **vscode**, you can install
+`Rewrap <https://marketplace.visualstudio.com/items?itemName=stkb.rewrap>`__,
+select the block and wrap with ``Alt+Q``.
+
+As a last resort, youcan use the :code:`fold` command to break the lines of the
+imported text while respecting word-breaks:
 
 .. code:: bash
 
