@@ -80,10 +80,16 @@ ADI
 The adi role creates links for a webpage to the Analog Devices Inc. website.
 
 The role syntax is :code:`:adi:\`text <webpage>\``, for example,
-:code:`:adi:\`AD7175-2 <ad7175-2>\``.
-Since links are case insensitive, you can also reduce it to
-:code:`:adi:\`AD7175-2\``, when *webpage* is the same as *text* and will render
-as :adi:`AD7175-2`.
+:code:`:adi:\`AD7175-2 <en/products/ad7175-2.html>\``.
+
+It is now preferred to use the pathname (:code:`:adi:\`text <path/to/ad0000.html>\``)
+instead of the virtual link (:code:`:adi:\`text <ad0000>\``) because they can be
+checked against the sitemap instead of requiring to request each url.
+
+.. TODO
+
+   Provide users a migration plan, maybe even a cli to still "allow virtual links",
+   but they set how it should expand with an aux directive.
 
 .. _role dokuwiki:
 
