@@ -227,10 +227,10 @@ fork.</p>
 <h3>ADI<a class="headerlink" href="#adi" title="Link to this heading"></a></h3>
 <p>The adi role creates links for a webpage to the Analog Devices Inc. website.</p>
 <p>The role syntax is <code class="code docutils literal notranslate"><span class="pre">:adi:`text</span> <span class="pre">&lt;webpage&gt;`</span></code>, for example,
-<code class="code docutils literal notranslate"><span class="pre">:adi:`AD7175-2</span> <span class="pre">&lt;ad7175-2&gt;`</span></code>.
-Since links are case insensitive, you can also reduce it to
-<code class="code docutils literal notranslate"><span class="pre">:adi:`AD7175-2`</span></code>, when <em>webpage</em> is the same as <em>text</em> and will render
-as <a class="icon adi reference external" href="https://www.analog.com/AD7175-2" target="_blank">AD7175-2</a>.</p>
+<code class="code docutils literal notranslate"><span class="pre">:adi:`AD7175-2</span> <span class="pre">&lt;en/products/ad7175-2.html&gt;`</span></code>.</p>
+<p>It is now preferred to use the pathname (<code class="code docutils literal notranslate"><span class="pre">:adi:`text</span> <span class="pre">&lt;path/to/ad0000.html&gt;`</span></code>)
+instead of the virtual link (<code class="code docutils literal notranslate"><span class="pre">:adi:`text</span> <span class="pre">&lt;ad0000&gt;`</span></code>) because they can be
+checked against the sitemap instead of requiring to request each url.</p>
 </section>
 <section id="dokuwiki">
 <span id="role-dokuwiki"></span><h3>Dokuwiki<a class="headerlink" href="#dokuwiki" title="Link to this heading"></a></h3>
