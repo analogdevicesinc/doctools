@@ -810,9 +810,15 @@ the <cite>conf.py</cite> file with the following format:</p>
 </section>
 <section id="text-width">
 <h2>Text width<a class="headerlink" href="#text-width" title="Link to this heading"></a></h2>
-<p>Each line must be less than 80 columns wide.
-You can use the <code class="code docutils literal notranslate"><span class="pre">fold</span></code> command to break the lines of the imported text
-while respecting word-breaks:</p>
+<p>Each line must be less than <strong>80</strong> columns wide. This visually ensures while
+writing that the paragraphs are concise and well structured.</p>
+<p>For <strong>neovim</strong>, you can visual select the block <code class="docutils literal notranslate"><span class="pre">Ctrl+V</span></code> then wrap with
+<code class="docutils literal notranslate"><span class="pre">gq</span></code>.</p>
+<p>For <strong>vscode</strong>, you can install
+<a class="icon link reference external" href="https://marketplace.visualstudio.com/items?itemName=dnut.rewrap-revived" target="_blank">Rewrap Revived</a>,
+select the block and wrap with <code class="docutils literal notranslate"><span class="pre">Alt+Q</span></code>.</p>
+<p>As a last resort, youcan use the <code class="code docutils literal notranslate"><span class="pre">fold</span></code> command to break the lines of the
+imported text while respecting word-breaks:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cat<span class="w"> </span>imported.txt<span class="w"> </span><span class="p">|</span><span class="w"> </span>fold<span class="w"> </span>-sw<span class="w"> </span><span class="m">80</span><span class="w"> </span>&gt;<span class="w"> </span>imported.rst
 </pre></div>
 </div>
