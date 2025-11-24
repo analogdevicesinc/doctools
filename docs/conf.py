@@ -49,7 +49,9 @@ html_favicon = path.join("sources", "icon.svg")
 # -- Linkcheck ----------------------------------------------------------------
 
 linkcheck_sitemaps = [
+    "https://wiki.analog.com/doku.php?do=sitemap",
     "https://www.analog.com/media/en/en-pdf-sitemap.xml",
+    "https://www.analog.com/media/en/en-pdp-sitemap.xml",
 ]
 linkcheck_timeout = 5
 linkcheck_request_headers = {

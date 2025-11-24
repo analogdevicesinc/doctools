@@ -63,6 +63,13 @@ class LinkcheckSitemap:
             response.raise_for_status()
             content = response.content
 
+            if url.endswith(".gz") or response.headers.get('content-type', '').endswith('gzip'):
+                from io import BytesIO
+                import gzip
+
+                with gzip.GzipFile(fileobj=BytesIO(content)) as f:
+                    content = f.read().decode("utf-8")
+
             root = ET.fromstring(content)
 
             if root.tag.endswith('sitemapindex'):
