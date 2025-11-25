@@ -39,6 +39,11 @@ on:
         description: 'Path to the Containerfile'
         required: true
         type: string
+    secrets:
+      CLOUDSMITH_SERVICE_SLUG:
+        required: false
+      CLOUDSMITH_API_KEY:
+        required: false
 
 jobs:
   build-container:
