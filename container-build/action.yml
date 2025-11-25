@@ -87,9 +87,7 @@ runs:
           https://raw.githubusercontent.com/analogdevicesinc/doctools/refs/heads/main/ci/cloudsmith-api.sh
 
     - uses: cloudsmith-io/cloudsmith-cli-action@v1.0.4
-      env:
-        CLOUDSMITH_SERVICE_SLUG: ${{ inputs.cloudsmith-service-slug }}
-      if: ${{ inputs.cloudsmith-service-slug != '' }}
+      if: ${{ inputs.cloudsmith-service-slug != '' && inputs.cloudsmith-service-slug != ' ' }}
       with:
         oidc-namespace: ${{ inputs.cloudsmith-namespace }}
         oidc-service-slug: ${{ inputs.cloudsmith-service-slug }}
@@ -97,16 +95,15 @@ runs:
 
     - name: Cloudsmith API Key
       shell: bash
-      env:
-        CLOUDSMITH_SERVICE_SLUG: ${{ inputs.cloudsmith-service-slug }}
-      if: ${{ inputs.cloudsmith-service-slug == '' }}
+      if: ${{ inputs.cloudsmith-service-slug == '' || inputs.cloudsmith-service-slug == ' ' }}
       run: |
         # Cloudsmith API Key
-        echo "CLOUDSMITH_API_KEY=${{ inputs.cloudsmith-api-key }}" >> "$GITHUB_ENV"
+        CLOUDSMITH_API_KEY=$(echo "${{ inputs.cloudsmith-api-key }}" | xargs)
+        echo "CLOUDSMITH_API_KEY=$CLOUDSMITH_API_KEY" >> "$GITHUB_ENV"
 
     - name: Cloudsmith upload container and create package
       shell: bash
-      if: ${{ inputs.cloudsmith-api-key != '' || inputs.cloudsmith-service-slug != '' }}
+      if: ${{ env.CLOUDSMITH_API_KEY != '' }}
       run: |
         # Cloudsmith upload container and create package
         source ./cloudsmith-api.sh
