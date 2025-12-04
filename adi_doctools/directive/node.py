@@ -15,7 +15,10 @@ class node_base(nodes.Element, nodes.General):
         attributes.pop("classes")
         attributes.pop("names")
         attributes.pop("dupnames")
-        attributes.pop("backrefs")
+        if 'backrefs' in attributes:
+            # DEPRECATED: backrefs will be removed from docutils 2.0, not in
+            # python 3.14
+            attributes.pop("backrefs")
 
         text = self.starttag(node, node.tagname, **attributes)
         self.body.append(text.strip())
