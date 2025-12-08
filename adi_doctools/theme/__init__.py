@@ -99,6 +99,9 @@ def build_finished(app, exc):
                     'pathname': app.lut['repos'][key]['pathname'],
                     'branch': app.lut['repos'][key]['branch']
                 }
+                # Miscellaneous expansions
+                repos[key]['url_doc'] = app.lut['remote_doc'] + key
+                repos[key]['url_source'] = app.lut['remote_https'].format(key)
                 if 'topic' in app.lut['repos'][key]:
                     repos[key]['topic'] = app.lut['repos'][key]['topic']
             metadata = {'repotoc': repos}
