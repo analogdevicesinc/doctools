@@ -1045,7 +1045,7 @@ class directive_shell(SphinxDirective):
             sep = '>'
 
         lit = node_div()
-        if typ in ['$', '#']:
+        if typ == '$':
             if wd is not None:
                 if wd.startswith(self.homedir):
                     wd = '~' + wd[len(self.homedir):]
