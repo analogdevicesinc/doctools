@@ -871,6 +871,7 @@ class directive_shell(SphinxDirective):
 
         line_strip = ''
         ll = None
+        le = None
         block = []
         parsed = []
         content = list(self.content)
@@ -878,6 +879,7 @@ class directive_shell(SphinxDirective):
         quotes = 0
         for line in content:
             typ = line[0] if len(line) > 0 else ' '
+            tye = line[-1] if len(line) > 0 else ' '
             line_ = line[1:] if typ in types else line
 
             wd = self.parse_path(line_strip, wd)
@@ -892,6 +894,10 @@ class directive_shell(SphinxDirective):
                 else:
                     wd = self.homedir
 
+            if le == "\\":
+                typ = ll
+            elif typ == "$":
+                line_ = line_.strip()
             # Block flush condition
             # * If the line type change or
             # * Is command type and not scaped and quotes closed
@@ -910,6 +916,7 @@ class directive_shell(SphinxDirective):
                 quotes += line_.count("'")
                 quotes += line_.count('"')
             ll = typ
+            le = tye
 
         literals = node_div(
             classes=['code-shell']
