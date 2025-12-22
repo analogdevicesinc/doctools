@@ -138,12 +138,26 @@ container-run ()
 	fi
 	volume=$(realpath $volume)
 
-	run_params="run -it \
-		--entrypoint= \
-		--name=$name \
-		--workdir=$(pwd -P) \
-		--volume $volume:$volume"
-	[ ! -z "$volume_2" ] && run_params="$run_params --volume $volume_2:$volume_2"
+	if [[ "$running" == "true" ]]; then
+		run_params=""
+	else
+		run_params="run -it \
+			--entrypoint= \
+			--name=$name \
+			--workdir=$(pwd -P) \
+			--volume $volume:$volume"
+		[ ! -z "$volume_2" ] && run_params="$run_params --volume $volume_2:$volume_2"
+		if $mount_keys; then
+			home=$($as_root && echo "/root" || echo "/home/runner")
+			if [[ -d "$HOME/.ssh" ]]; then
+				run_params="$run_params --volume $HOME/.ssh:$home/.ssh"
+			fi
+			if [[ -f "$HOME/.git-credentials" ]]; then
+				run_params="$run_params --volume $HOME/.git-credentials:$home/.git-credentials"
+			fi
+
+		fi
+	fi
 	if [ "$container_engine" == "podman" ]; then
 		if $as_root; then
 			run_params="$run_params --user root"
@@ -156,16 +170,6 @@ container-run ()
 		else
 			run_params="$run_params --env USERID=$(id -u) --env GROUPID=$(id -g)"
 		fi
-	fi
-	if $mount_keys; then
-		home=$($as_root && echo "/root" || echo "/home/runner")
-		if [[ -d "$HOME/.ssh" ]]; then
-			run_params="$run_params --volume $HOME/.ssh:$home/.ssh"
-		fi
-		if [[ -f "$HOME/.git-credentials" ]]; then
-			run_params="$run_params --volume $HOME/.git-credentials:$home/.git-credentials"
-		fi
-
 	fi
 
 	if [[ "$running" == "true" ]]; then
