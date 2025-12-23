@@ -175,9 +175,9 @@ container-run ()
 	if [[ "$running" == "true" ]]; then
 		if [[ "$with_args" ]]; then
 			args_="${args[@]}"
-			$container_engine exec -it $name bash -lc "$args_"
+			$container_engine exec ${run_params} -it $name bash -lc "$args_"
 		else
-			$container_engine exec -it $name bash -l
+			$container_engine exec ${run_params} -it $name bash -l
 		fi
 	else
 		if [[ "$exists" == "true" ]]; then
