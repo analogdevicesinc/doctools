@@ -161,7 +161,7 @@ container-run ()
 	if [ "$container_engine" == "podman" ]; then
 		if $as_root; then
 			run_params="$run_params --user root"
-		else
+		elif [[ "$running" != "true" ]]; then
 			run_params="$run_params --userns keep-id"
 		fi
 	elif [ "$container_engine" == "docker" ]; then
