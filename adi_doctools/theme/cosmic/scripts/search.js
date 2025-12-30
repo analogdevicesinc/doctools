@@ -237,7 +237,6 @@ export class Search {
     }
 
     return await Toolbox.fetch_each(`${prefix}/tags.json`).then((obj) => {
-      this.$.keyVersion[key].classList.remove('unset')
       this.key_prefix[key] = process(obj)
 
       return `${this.key_prefix[key]}searchindex.js`
@@ -861,8 +860,9 @@ export class Search {
     }).onchange(this, this.check_toc, [key])
 
     let version_button = new DOM('button', {
-      className: 'version-filter unset',
-      title: 'Select version to search'
+      className: 'version-filter',
+      title: 'Select version to search',
+      innerText: '...'
     })
     version_button.onclick(this, (key, e) => {
       this.show_version_dropdown(key, version_button)

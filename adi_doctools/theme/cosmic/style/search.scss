@@ -148,7 +148,7 @@
                 color: var(--text-color1);
             }
         }
-        button.version-filter.unset {
+        input:not(:checked) ~ button.version-filter {
             display: none;
         }
     }
