@@ -15,7 +15,7 @@ from .role import setup as role_setup
 from .lut import get_lut
 from .role.interref import interref_repos_apply, interref_repos_assert
 from .monkeypatch import monkeypatch_figure_numbers
-from .ext import setup as ext_setup
+from .transforms import setup as transforms_setup
 
 __version__ = "0.4.29"
 
@@ -182,7 +182,7 @@ def setup(app):
         setup(app)
     for setup in role_setup:
         setup(app)
-    for setup in ext_setup:
+    for setup in transforms_setup:
         setup(app)
 
     app.add_transform(unique_ids)
