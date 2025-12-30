@@ -301,6 +301,8 @@ export class Search {
      */
     let key = this.parent.state.subhost === '' || this.parent.state.subhost === undefined || this.parent.state.standalone ?
               'local' : this.parent.state.repository
+    if (this.parent.state.version !== undefined)
+        this.index_state[key].version = this.parent.state.path
     let event = new Event('change');
     if (!(key in this.$.keyCheckbox))
       return
@@ -710,7 +712,6 @@ export class Search {
       }
 
       let searchResults_ = []
-      /* For now, versioning is not supported, so content_root or path are not used */
       results.reverse()
       results.forEach((item) => {
         const [docName, title, anchor, descr, score, _filename, kind] = item;
