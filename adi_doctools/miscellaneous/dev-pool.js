@@ -228,11 +228,17 @@ pool_changes.search(PoolChanges.get_paths()).then(obj => {
       if (this.pool_timestamp < Number(obj[0])) {
         url_ = new URL(url, location.origin)
         url_ = new URL(obj[1], url_)
-        pool_preserve_scroll = true
-        if (document.visibilityState === 'visible' && obj[1] !== "")
-          location.href = url_
-        else
-          location.reload()
+        if (Object.hasOwn(window, 'app') &&
+            Object.hasOwn(app, 'hot_reload') &&
+            typeof app.hot_reload.load_href === "function") {
+          app.hot_reload.load_href(url_)
+        } else {
+          pool_preserve_scroll = true
+          if (document.visibilityState === 'visible' && obj[1] !== "")
+            location.href = url_
+          else
+            location.reload()
+        }
       }
       pool_changes.$.state.classList.remove('degraded')
       setTimeout(do_pool, 500)

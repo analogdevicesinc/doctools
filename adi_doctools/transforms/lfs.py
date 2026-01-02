@@ -42,10 +42,10 @@ class lfs_to_links(SphinxPostTransform):
         return not is_lfs
 
     def run(self, **kwargs) -> None:
-        self.types_lfs = self.get_lfs_types(self.document.settings.env.srcdir)
+        self.types_lfs = self.get_lfs_types(self.env.srcdir)
         url = f"https://media.githubusercontent.com/media/{environ['GIT_ORG_REPOSITORY']}/{environ['GIT_BRANCH']}/docs"
 
-        docname = self.document.settings.env.docname
+        docname = self.env.docname
         for node in self.document.findall(nodes.image):
             uri = node['candidates'].get('*')
             if uri:

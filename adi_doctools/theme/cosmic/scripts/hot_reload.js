@@ -27,8 +27,11 @@ export class HotReload {
     this.location_href
     this.lock_load = false
     this.reduced_motion
+    this.scrollY = false
 
     this.construct()
+
+    app.hot_reload = this
   }
   regen_breadcrumb (dom) {
     let ol = this.$.breadcrumb.firstElementChild
@@ -229,8 +232,15 @@ export class HotReload {
 
     this.hot_links()
     this.lock_load = false
+    if (this.scrollY) {
+      window.scrollTo({ top: this.scrollY, left: 0, behavior: "instant" })
+      this.scrollY = false
+    }
   }
-  load (dom, pathname, new_state) {
+  /**
+   * Force forces refetching and replacing, even if is the same page.
+   */
+  load (dom, pathname, new_state, force) {
     if (pathname === '#' || this.lock_load === true)
       return
 
@@ -241,16 +251,20 @@ export class HotReload {
     this.location_href = request_url.href
     if (current_url.pathname === request_url.pathname &&
         current_url.origin === request_url.origin) {
-      const hash = request_url.hash === '' ? '#top-anchor': request_url.hash
-      if (new_state) {
-        location.hash = hash
+      if (force) {
+        this.scrollY = window.scrollY
       } else {
-        const dom_ = document.querySelector(hash)
-        if (dom_)
-          dom_.scrollIntoView()
-        history.replaceState(null, "", hash)
+        const hash = request_url.hash === '' ? '#top-anchor': request_url.hash
+        if (new_state) {
+          location.hash = hash
+        } else {
+          const dom_ = document.querySelector(hash)
+          if (dom_)
+            dom_.scrollIntoView()
+          history.replaceState(null, "", hash)
+        }
+        return
       }
-      return
     }
     this.lock_load = true
     // Push even before fetching, so in case of failure the user can easily
@@ -280,6 +294,8 @@ export class HotReload {
       elem.classList.remove('current')
     })
 
+    if (force)
+      request_url.searchParams.append(Toolbox.UID(), '')
     const time_ = Date.now()
     const response = fetch(
       new Request(request_url)
@@ -372,6 +388,17 @@ export class HotReload {
     let dom = this.toctree.get(url.href)
     if (dom !== undefined)
       this.load(dom, location.href, false)
+    else // Fallback
+      location.href = location.href
+  }
+  /**
+   * Expose load call to arbitrary consumers, like dev-pool.js.
+   */
+  load_href (url) {
+    url.hash = ''
+    let dom = this.toctree.get(url.href)
+    if (dom !== undefined)
+      this.load(dom, url.href, true, true)
     else // Fallback
       location.href = location.href
   }
