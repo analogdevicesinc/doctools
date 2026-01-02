@@ -432,6 +432,9 @@ def serve(directory, port, dev, selenium, once, builder):
                         reload_event.clear()
                         send_dev_pool()
                     else:
+                        with dev_pool_lock:
+                            dev_pool_val_ = f"{str(time.time())}\n@timed-out\n"
+                            dev_pool_val = bytes(dev_pool_val_, 'utf-8')
                         send_dev_pool()
                     return
 

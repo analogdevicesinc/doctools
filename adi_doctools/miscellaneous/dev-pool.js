@@ -225,7 +225,7 @@ pool_changes.search(PoolChanges.get_paths()).then(obj => {
   do_pool = () => {
     PoolChanges.do(url).then(obj => {
       obj = obj.split("\n")
-      if (this.pool_timestamp < Number(obj[0])) {
+      if (this.pool_timestamp < Number(obj[0]) && obj[1] !== "@timed-out") {
         url_ = new URL(url, location.origin)
         url_ = new URL(obj[1], url_)
         if (Object.hasOwn(window, 'app') &&
