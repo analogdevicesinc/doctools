@@ -61,8 +61,6 @@
 }
 
 @page :first {
-    background: #0067b9;
-    background-size: cover;
     margin: 0;
     @bottom-left { content: none }
     @bottom-center { content: none }
@@ -70,7 +68,6 @@
 }
 
 @page volume {
-    background: #e0e1e6;
     margin: 0;
     @bottom-left { content: none }
     @bottom-center { content: none }
@@ -95,19 +92,40 @@ footer {
     page: no-footer;
 }
 
-.volume {
+.volume, header {
     page: volume;
     height: 297mm;
+    position: relative;
     display: flex;
     font-family: Barlow;
-    margin-left: 4rem;
+    padding-left: 4rem;
     justify-content: start;
     align-items: center;
+}
+
+.volume {
     font-size: 2em;
+}
+
+.volume .cover, header .cover {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+}
+
+.volume h1 {
+    position: relative;
+    z-index: 1;
+    color: #333;
+    text-shadow: 0 2px 4px rgba(255, 255, 255, 0.3);
 }
 
 header {
     color: #fff;
+    position: relative;
 }
 
 header #right span {
@@ -126,8 +144,8 @@ header #logo {
     position: absolute;
     top: 0;
     left: 5rem;
-    padding-left: 1rem;
     bottom: 0;
+    padding-left: 1rem;
     height: 100%;
     max-width: 70%;
     font-family: Barlow;
@@ -136,8 +154,8 @@ header #logo {
     align-items: flex-start;
     display: flex;
     overflow: visible;
-    border-left: 1px solid #fff;
 }
+
 header #logo div {
     font-size: 4em;
     line-height: 1em;
@@ -152,4 +170,8 @@ header .description {
 section:has(> h2) {
     display: block;
     break-before: always;
+}
+
+header .vertical-divider {
+    display: none;
 }

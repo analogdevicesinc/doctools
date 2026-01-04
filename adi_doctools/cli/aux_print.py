@@ -6,13 +6,14 @@ from lxml import html, etree
 from click import echo
 import importlib.util
 
+from .aux_cover import generate_wave_cover
+
 def sanitize_singlehtml(file) -> str:
     """
     Alter the singlehtml etree to:
     * Remove the embed style
     * Extract custom doc name
     * Covert toctree caption into "volumes" (H1 header)
-    * Replace 'document-' anchor with immediate header anchor
     """
 
     root = html.parse(file).getroot()
@@ -27,7 +28,6 @@ def sanitize_singlehtml(file) -> str:
     if len(toc_tree):
         toc_tree = toc_tree[0]
         cap_ = toc_tree.xpath("./p[@class='caption' and @role='heading']//span[@class='caption-text']")
-        echo("Toctree not found, skipped")
     else:
         cap_ = []
     volumes = []
@@ -79,9 +79,21 @@ def sanitize_singlehtml(file) -> str:
     else:
         echo("Logo not found, skipped adding description")
 
+    header = root.xpath("//header")
+    if len(header):
+        header = header[0]
+        main_svg = generate_wave_cover(title, is_volume=False)
+        svg_elem = etree.fromstring(main_svg)
+        svg_elem.attrib['class'] = "cover"
+        # Insert as first child of header
+        header.insert(0, svg_elem)
+    else:
+        echo("Header not found, skipped main cover generation")
+
     # Find indexes and add volumes
     for c, i in volumes:
-        e_ = bwrap.xpath(f".//span[@id='{i}']")
+        _id = 'document-' + i.lstrip('/').rstrip('/')
+        e_ = bwrap.xpath(f".//span[@id='{_id}']")
         if len(e_) == 0:
             echo(f"Failed to find index for id '{i}', skipped")
             continue
@@ -91,6 +103,12 @@ def sanitize_singlehtml(file) -> str:
         ele = etree.Element("h1")
         ele.text = c
         ele_.insert(0, ele)
+
+        volume_svg = generate_wave_cover(c, is_volume=True)
+        svg_elem = etree.fromstring(volume_svg)
+        svg_elem.attrib['class'] = "cover"
+        ele_.insert(0, svg_elem)
+
         e_p = e_.getparent()
         e_p.insert(e_p.index(e_), ele_)
 
