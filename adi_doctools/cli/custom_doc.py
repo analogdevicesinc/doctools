@@ -262,44 +262,18 @@ def get_includes(sourcedir, dstdir, doc):
 def namespace_ref(doc_dir, path_, r):
     """
     Add repository identifier to every label/reference, e.g:
-    .. _spi_engine:         -> .. _hdl+spi_engine:
-    :ref:`spi_engine`       -> :ref:`hdl+spi_engine`
-    :ref:`Alt <spi_engine>` -> :ref:`Alt <hdl+spi_engine>`
+    .. _spi_engine:         -> .. _hdl:spi_engine:
 
-    For external references, convert to local also, e.g.
-    :external+hdl:`spi_engine`       -> :ref:`hdl+spi_engine`
-    :external+hdl:`Alt <spi_engine>` -> :ref:`Alt <hdl+spi_engine>`
-
-    After the first sphinx run, the unresolved references are converted (back)
-    into external references.
+    Pending xfer are patched internally (transforms/aggregate.py@namespace_pending_xfer)
     """
     # Prefixes references with repo name to create namespace
-    # 1. Patch :ref:`str`         into :ref:`{r}+str`
-    # 2. Patch :ref:`Title <str>` into :ref:`Title <{r}+str>`
-    # 3. Patch ^.. _str:$         into .. _{r}+str:
+    # 1. Patch ^.. _str:$         into .. _{r}+str:
     cwd = path.join(doc_dir, path_)
     patch_cmd = """\
-    find . -type f -exec sed -i -E \
-        "s/(\\s|^|\\(|\\/)(:ref:\\`)([^<>:]+)(\\`)/\\1\\2{r}+\\3\\4/g" {{}} \\;
-    find . -type f -exec sed -i -E \
-        "s/(\\s|^|\\(|\\/)(:ref:\\`)([^<]+)( <)([^:>]+)(>)/\\1\\2\\3\\4{r}+\\5\\6/g" {{}} \\;
     find . -type f -exec sed -i -E \
         "s/^(.. _)([^:]+)(:)\\$/\\1{r}+\\2\\3/g" {{}} \\;\
     """.format(r=r)
     pr.run(patch_cmd, cwd)
-
-    # Convert external references (ref&doc) into local
-    # 1. Patch :external+r:ref:`str`         into :ref:`r+str`
-    #          :external+r:ref:`Title <str>` into :ref:`Title <r+str>`
-    # 2. Patch :external+r:doc:`str`         into :doc:`/r/str`
-    #          :external+r:doc:`Title <str>` into :doc:`Title </r/str>`
-    patch_cmd = """\
-    find . -type f -exec sed -i -E \
-        -e "s/(\\s|^|\\(|\\/)(:external\\+)([^:]+):ref:\\`([^<]+)( <)([^:>]+)(>)/\\1:ref:\\`\\4\\5\\3+\\6\\7/g" \
-        -e "s/(\\s|^|\\(|\\/)(:external\\+)([^:]+):doc:\\`([^<]+)( <)([^:>]+)(>)/\\1:doc:\\`\\4\\5\\/\\3\\/\\6\\7/g" {} \\;\
-    """
-    pr.run(patch_cmd, cwd)
-
 
 def _patch_index(toc_file, repo):
     with open(toc_file, "r") as f:
@@ -809,7 +783,15 @@ suppress_warnings = [
 """
 
 
-def patch_doc(doc, repos_dir, doc_dir, doc_patch_dir, git_lfs, sphinx_builder):
+def post_prepare_doc(doc_dir):
+    """
+    Due to improper sphinx globals
+    """
+    with open(path.join(doc_dir, 'conf.py'), "a") as f:
+        f.write(suppress_warnings)
+
+
+def patch_doc(doc, repos_dir, doc_dir, git_lfs, sphinx_builder):
     """
     Patches warnings obtained from the first run.
 
@@ -817,13 +799,6 @@ def patch_doc(doc, repos_dir, doc_dir, doc_patch_dir, git_lfs, sphinx_builder):
     paragraph/block/directive, therefore, it is necessary to do a
     loop looking for the exact match and have a little of faith.
     """
-    if path.isdir(doc_patch_dir):
-        pr.run(f"rm -r {doc_patch_dir}")
-    pr.run(f"cp -r {doc_dir} {doc_patch_dir}")
-    index_file = path.join(doc_patch_dir, 'index.rst')
-    with open(path.join(doc_patch_dir, 'conf.py'), "a") as f:
-        # Due to improper sphinx globals
-        f.write(suppress_warnings)
 
     # Orphan pages
     # Add to root index
@@ -833,68 +808,6 @@ def patch_doc(doc, repos_dir, doc_dir, doc_patch_dir, git_lfs, sphinx_builder):
         if p[0] not in tocs:
             tocs[p[0]] = []
         tocs[p[0]].append(SEP.join(p))
-
-    # Swap with explicit external references
-    for src, i, label in sphinx_warnings.ref_ref:
-        i = int(i)-1
-        r = path.relpath(src, doc_dir).split(SEP)[0]
-        p = path.join(doc_patch_dir, path.relpath(src, doc_dir))
-
-        pattern1 = r'(^|\s|\(|\/):ref:`([^+]+)\+([^`]+)`'
-        replacement1 = r'\1:external+\2:ref:`\3`'
-        pattern2 = r'(^|\s|\(|\/):ref:`([^`]+)<([^+]+)\+([^>]+)>`'
-        replacement2 = r'\1:external+\3:ref:`\2<\4>`'
-        with open(p, "r") as f:
-            data = f.readlines()
-        while i < len(data) and label not in data[i]:
-            i += 1
-        if i == len(data):
-            click.echo(f"{src}: Failed to find '{label}'. "
-                       "Nested parse limitation?")
-            continue
-        data[i] = re.sub(pattern2, replacement2, data[i])
-        data[i] = re.sub(pattern1, replacement1, data[i])
-        with open(p, "w") as f:
-            f.write(''.join(data))
-
-    # Swap with explicit external documents
-    pattern3 = r'(^|\s|\(|\/):doc:`\/([^/]+)\/([^`]+)`'
-    replacement3 = r'\1:external+\2:doc:`\3`'
-    pattern4 = r'(^|\s|\(|\/):doc:`([^<]+)<\/([^/]+)\/([^>]+)>`'
-    replacement4 = r'\1:external+\3:doc:`\2<\4>`'
-    pattern5 = r'(^|\s|\(|\/):doc:`([^`]+)`'
-    replacement5 = r'\1:external+$repo$:doc:`$label$`'
-    pattern6 = r'(^|\s|\(|\/):doc:`([^<]+)<([^>]+)>`'
-    replacement6 = r'\1:external+$repo$:doc:`$label$<\3>`'
-    for src, i, label in sphinx_warnings.ref_doc:
-        i = int(i)-1
-        r = path.relpath(src, doc_dir).split(SEP)[0]
-        p = path.join(doc_patch_dir, path.relpath(src, doc_dir))
-
-        with open(p, "r") as f:
-            data = f.readlines()
-        while i < len(data) and label not in data[i]:
-            i += 1
-        if i == len(data):
-            click.echo(f"{src}: Failed to find '{label}'. "
-                       "Nested parse limitation?")
-            continue
-        if label[0] == '/':
-            # Absolute path, likely from prior step
-            data[i] = re.sub(pattern4, replacement4, data[i])
-            data[i] = re.sub(pattern3, replacement3, data[i])
-        else:
-            # Relative path, from own doc
-            # Infer repo from path and patch
-            abs_doc = path.relpath(path.abspath(path.join(src, '..', label)), doc_dir).split(SEP)
-            r = abs_doc[0]
-            l_ = '/'.join(abs_doc[1:])
-            data[i] = re.sub(pattern6, replacement6, data[i])
-            data[i] = re.sub(pattern5, replacement5, data[i])
-            data[i] = data[i].replace('$repo$', r).replace('$label$', l_)
-
-        with open(p, "w") as f:
-            f.write(''.join(data))
 
     # Grab missing images
     for e in sphinx_warnings.image_not_readable:
@@ -910,7 +823,7 @@ def patch_doc(doc, repos_dir, doc_dir, doc_patch_dir, git_lfs, sphinx_builder):
             if get_lfs_sha(path_):
                 subprocess.run(f"git lfs pull -I {lfs_f_s}",
                                shell=True, cwd=path.join(repos_dir, s[0]))
-                copy2(path_, path.join(doc_patch_dir, s[0], s[1]))
+                copy2(path_, path.join(doc_dir, s[0], s[1]))
 
     # Update include paths
     for e in sphinx_warnings.include:
@@ -918,7 +831,7 @@ def patch_doc(doc, repos_dir, doc_dir, doc_patch_dir, git_lfs, sphinx_builder):
         r = p[0]
         p = SEP.join(p[1:])
         idx = int(e[1])-1
-        p_ = path.join(doc_patch_dir, r, p)
+        p_ = path.join(doc_dir, r, p)
 
         with open(p_, "r") as f:
             data = f.readlines()
@@ -943,7 +856,7 @@ def patch_doc(doc, repos_dir, doc_dir, doc_patch_dir, git_lfs, sphinx_builder):
 
     for src in toc_:
         data_filter = []
-        with open(path.join(doc_patch_dir, src), "r") as f:
+        with open(path.join(doc_dir, src), "r") as f:
             data = f.readlines()
         for lineno in toc_[src]:
             d = data[int(lineno):]
@@ -961,9 +874,10 @@ def patch_doc(doc, repos_dir, doc_dir, doc_patch_dir, git_lfs, sphinx_builder):
 
         for d in data_filter:
             data.remove(d)
-        with open(path.join(doc_patch_dir, src), "w") as f:
+        with open(path.join(doc_dir, src), "w") as f:
             f.write(''.join(data))
 
+    index_file = path.join(doc_dir, 'index.rst')
     patch_index(doc, tocs, index_file)
 
     # Second run
@@ -971,7 +885,7 @@ def patch_doc(doc, repos_dir, doc_dir, doc_patch_dir, git_lfs, sphinx_builder):
     warning = open(warnfile, "w")
     builddir = path.join("build", "html")
     doctreedir = path.join(builddir, "doctrees")
-    app = Sphinx(doc_patch_dir, doc_patch_dir,  builddir, doctreedir, sphinx_builder,
+    app = Sphinx(doc_dir, doc_dir,  builddir, doctreedir, sphinx_builder,
                  warning=warning)
     app.build()
     with open(warnfile, "r") as f:
@@ -1081,8 +995,7 @@ def custom_doc(directory, extra, no_parallel_, open_, builder, ssh, drop_ext):
     directory = path.abspath(directory)
 
     doc_yaml = path.join(directory, 'doc.yaml')
-    doc_dir = path.join(directory, 'sources_pre')
-    doc_patch_dir = path.join(directory, 'sources')
+    doc_dir = path.join(directory, 'sources')
     if not path.isdir(directory):
         mkdir(directory)
     if not path.isfile(doc_yaml):
@@ -1113,7 +1026,7 @@ def custom_doc(directory, extra, no_parallel_, open_, builder, ssh, drop_ext):
 
     git_lfs = is_git_lfs_installed()
     if not git_lfs:
-        click.echo("git-lfs not installed, lfs pointers won't be resolved.")
+        click.echo(f"{FAIL}git-lfs not installed{NC}, lfs pointers won't be resolved.")
 
     # Fill gaps
     organize_include(doc)
@@ -1167,6 +1080,7 @@ def custom_doc(directory, extra, no_parallel_, open_, builder, ssh, drop_ext):
     if pr.wait(p) != 0:
         click.echo("Failed to clone one or more repositories (hint: --ssh flag).")
 
+    environ["ADOC_CUSTOM_DOC"] = ""
     environ["ADOC_NO_COLLECTIONS"] = ""
     if builder == "pdf":
         environ["ADOC_MEDIA_PRINT"] = ""
@@ -1178,7 +1092,10 @@ def custom_doc(directory, extra, no_parallel_, open_, builder, ssh, drop_ext):
     prepare_doc(doc, directory, doc_dir, drop_ext)
     parse_warnings(doc_dir)
     parse_status(doc_dir)
-    patch_doc(doc, directory, doc_dir, doc_patch_dir, git_lfs, sphinx_builder)
+    post_prepare_doc(doc_dir)
+    while True:
+        patch_doc(doc, directory, doc_dir, git_lfs, sphinx_builder)
+        break
 
     if builder == "pdf":
         singlehtml = path.join(directory, "build", "html", "index.html")
