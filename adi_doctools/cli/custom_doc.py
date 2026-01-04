@@ -1,7 +1,7 @@
 from typing import Tuple, List
 from collections import defaultdict
 
-from os import path, listdir, pardir, chdir, getcwd, mkdir
+from os import path, listdir, pardir, chdir, getcwd, mkdir, walk
 from os import environ, cpu_count
 from glob import glob
 from shutil import copy2
@@ -170,7 +170,7 @@ description: "Evaluating the ADXXXX/ADXXXX ... SAR ADCs"
 # Dirs and files to include
 # First level is repository name
 include:
-  - documentation/eval/user-guide/adc/ad4052-ardz
+  - documentation/solutions/reference-designs/ad4052-ardz
   - documentation/software/libiio/cli.rst
   - documentation/linux/drivers/iio-adc/ad4052
   - hdl_my_label_0/projects/ad4630_fmc
@@ -193,7 +193,7 @@ entry-point:
       - custom-pages/intro.rst
   - caption: Evaluation board
     files:
-      - documentation/eval/user-guide/adc/ad4052-ardz/index.rst
+      - documentation/solutions/reference-designs/ad4052-ardz
   - caption: Linux IIO driver
     files:
       - documentation/linux/drivers/iio-adc/ad4052/index.rst
@@ -224,40 +224,54 @@ extensions:
    - sphinx.ext.duration
 """
 
-
 def get_includes(sourcedir, dstdir, doc):
     """
     Get includes/images that are under the doc_dir depth.
     """
     cwd = dstdir
-    # Run include first to solve image for missing included files also
-    for e in ['include', 'image', 'figure']:
-        patch_cmd = "grep -rn '^.. {e}:: '".format(e=e)
-        p = subprocess.Popen(patch_cmd, shell=True, cwd=cwd,
-                             stdout=subprocess.PIPE)
 
-        for line in p.stdout:
-            m = line.decode("utf-8").split('.. {e}:: '.format(e=e))
-            m.append(m[0][m[0].index(':')+1:])
-            m[2] = int(m[2][:m[2].index(':')])
-            m[0] = m[0][:m[0].index(':')].strip()
-            m[1] = m[1].strip()
-            # Inside namespace: copy over
-            if m[0].count(SEP) >= m[1].count('..'+SEP):
-                d = path.join(path.dirname(m[0]), m[1])
-                pr.run(f"cp -r --parents {d} {dstdir}", sourcedir)
-            # Outside namespace: update path
-            else:
-                with open(path.join(dstdir, m[0]), "r") as f:
-                    data = f.readlines()
-                p_ = path.join(sourcedir, path.dirname(m[0]), m[1])
-                m_patched = path.abspath(p_)
-                p_ = path.join(dstdir, path.dirname(m[0]))
-                m_patched = path.relpath(m_patched, p_)
-                data[m[2]-1] = data[m[2]-1].replace(m[1], m_patched)
-                with open(path.join(dstdir, m[0]), "w") as f:
-                    f.write(''.join(data))
+    patterns = {
+        e: re.compile(rf'^[ \t]*\.\. {e}::\s+(.*)')
+        for e in ['include', 'image', 'figure']
+    }
 
+    for root, _, files in walk(cwd):
+        for fname in files:
+            fpath = path.join(root, fname)
+            relpath = path.relpath(fpath, cwd).strip()
+
+            try:
+                with open(fpath, encoding="utf-8") as f:
+                    lines = f.readlines()
+            except (UnicodeDecodeError, OSError):
+                continue
+
+            for lineno, line in enumerate(lines, start=1):
+                for e, rx in patterns.items():
+                    m = rx.match(line)
+                    if not m:
+                        continue
+
+                    target = m.group(1).strip()
+
+                    # Inside namespace: copy over
+                    if relpath.count(SEP) >= target.count('..' + SEP):
+                        d = path.join(path.dirname(relpath), target)
+                        pr.run(f"cp -r --parents {d} {dstdir}", sourcedir)
+                    # Outside namespace: update path
+                    else:
+                        with open(path.join(dstdir, relpath), "r") as f:
+                            data = f.readlines()
+
+                        p_ = path.join(sourcedir, path.dirname(relpath), target)
+                        m_patched = path.abspath(p_)
+                        p_ = path.join(dstdir, path.dirname(relpath))
+                        m_patched = path.relpath(m_patched, p_)
+
+                        data[lineno - 1] = data[lineno - 1].replace(target, m_patched)
+
+                        with open(path.join(dstdir, relpath), "w") as f:
+                            f.write(''.join(data))
 
 def namespace_ref(doc_dir, path_, r):
     """
@@ -1094,6 +1108,7 @@ def custom_doc(directory, extra, no_parallel_, open_, builder, ssh, drop_ext):
     parse_status(doc_dir)
     post_prepare_doc(doc_dir)
     while True:
+        # TODO here we could run n-times or until no warning is remaining (e.g. nested includes)
         patch_doc(doc, directory, doc_dir, git_lfs, sphinx_builder)
         break
 
