@@ -907,6 +907,10 @@ def patch_doc(doc, repos_dir, doc_dir, git_lfs, sphinx_builder):
 
 
 def gen_pdf(index_file):
+    # TODO consider replacing with
+    # flatpak run org.chromium.Chromium --print-to-pdf=/home/me/output.pdf "file:///home/me/pdf/build/html/index.html" --headless -no-pdf-header-footer
+    # + paged.js
+    # Drawbacks: needs to detect user chromium and, if flatpak, not all paths are in the container (e.g. /tmp).
     from weasyprint import HTML, CSS
     from weasyprint.text.fonts import FontConfiguration
     from .aux_print import sanitize_singlehtml
