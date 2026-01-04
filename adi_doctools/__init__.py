@@ -1,10 +1,7 @@
-from typing import Any
 from os import path, getenv
 from packaging.version import Version
-from docutils import nodes
 
 from sphinx.util.osutil import SEP
-from sphinx.transforms import SphinxTransform
 from sphinx import __version__ as __sphinx_version__
 
 from .theme import (navigation_tree, get_pygments_theme,
@@ -14,7 +11,7 @@ from .directive import setup as directive_setup
 from .role import setup as role_setup
 from .lut import get_lut
 from .role.interref import interref_repos_apply, interref_repos_assert
-from .monkeypatch import monkeypatch_figure_numbers
+from .monkeypatch import monkeypatch_figure_numbers, monkeypatch_singlehtml_builder
 from .transforms import setup as transforms_setup
 
 __version__ = "0.4.29"
@@ -67,6 +64,10 @@ def builder_inited(app):
 
     if config.numfig_per_doc:
         monkeypatch_figure_numbers()
+
+    if (Version(__sphinx_version__) >= Version("8.2.0") and
+        app.builder.name == 'singlehtml'):
+        monkeypatch_singlehtml_builder()
 
     if not hasattr(app, 'lut'):
         app.lut = get_lut()
@@ -130,50 +131,6 @@ def build_finished(app, exc):
 
         copy_asset(app, "esd-warning.svg")
 
-class unique_ids(SphinxTransform):
-    """
-    Suffix IDs/anchors to make them unique, e.g.
-    {overview, features, ..., overview} ->
-    {overview, features, ..., overview-1}
-    """
-    default_priority = 500
-    used_ids = set()
-
-    def apply(self, **kwargs: Any) -> None:
-        if self.app.builder.name != "singlehtml":
-            return
-
-        def make_unique_id(node, id_):
-            """
-            A node contains multiple ids, the first is the title
-            text converted to ID, then, if present, the label
-            e.g.:
-              .. _documentation+a label:
-
-              My header
-              ---------
-
-            becomes:
-              ["my-header", "documentation-a-label"]
-
-            The first is the one is the one we worry about collision
-            """
-            counter = 1
-            id__ = id_
-            while id__ in self.used_ids:
-                id__ = f"{id_}-{counter}"
-                counter += 1
-            self.used_ids.add(id__)
-            node['ids'][0] = id__
-
-        # findall (Docutils >= 0.18.1) returns an iterator,
-        # and deprecates traverse (returns a list).
-        # Sphinx 7.1.2 requires Docutils >= 0.18.1
-        for node in self.document.findall():
-            if (not isinstance(node, nodes.Text) and
-                'ids' in node and node['ids']):
-                make_unique_id(node, node['ids'][0])
-
 
 def setup(app):
     for setup in theme_setup:
@@ -185,7 +142,6 @@ def setup(app):
     for setup in transforms_setup:
         setup(app)
 
-    app.add_transform(unique_ids)
     app.add_post_transform(wrap_elements)
 
     app.connect("config-inited", config_inited)

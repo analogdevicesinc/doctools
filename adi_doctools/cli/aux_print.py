@@ -112,18 +112,6 @@ def sanitize_singlehtml(file) -> str:
 
     toc = root.xpath("//body//div[@class='tocwrapper']/nav")
     toc = toc[0] if toc else None
-    # Starting from Sphinx version v8.2.0, commit c93723b803
-    # singlehtml localtoc are broken because
-    # while all ids beyond page id remain as #my-anchor,
-    # all href on the localtoc are prefixed by the original doc name, e.g.
-    #   #document-documentation/some-page#evaluation-board-software
-    # luckily, it is easy to detect since the broken links have double "#",
-    # so discarding the left side is enough
-    # REVISIT: Check if newer Sphinx fixes the issue
-    if Version(__sphinx_version__) >= Version("8.2.0"):
-        a_ = toc.xpath(".//a[@class='reference internal']")
-        for a__ in a_:
-            a__.attrib['href'] = a__.attrib['href'][a__.attrib['href'].rindex("#"):]
 
     # In the toctree and body, replace document anchor by the immediate header anchor,
     # to scroll to the correct position.
