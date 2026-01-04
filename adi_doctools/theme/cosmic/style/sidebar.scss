@@ -265,12 +265,14 @@
             padding-right: .5em;
             color: var(--text-color2);
         }
+    }
 
-        nav > ul > li:first-child > a {
+    body:not(.singlehtml) {
+        .tocwrapper nav > ul > li:first-child > a {
           display: none;
         }
-
     }
+
     .sphinxsidebar, .localtoc {
         position: sticky;
         top: 3.5rem;

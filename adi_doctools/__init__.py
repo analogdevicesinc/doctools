@@ -47,6 +47,12 @@ def html_page_context(app, pagename, templatename, context, doctree):
      context["repotoc_current_name"],
      context["repotoc_current"]) = ret
 
+    metadata = app.env.metadata[pagename]
+    body_class = metadata.get('body-class', '')
+    if app.builder.name == 'singlehtml':
+        body_class = (body_class + " singlehtml").strip()
+    context['body_class'] = body_class
+
 
 def config_inited(app, config):
     """

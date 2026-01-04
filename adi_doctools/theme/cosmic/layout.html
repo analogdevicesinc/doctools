@@ -95,8 +95,8 @@
 {%- endblock %}
 
 {%- block body_tag %}
-  {% if 'body-class' in (meta or {}) %}
-    <body class="{{ meta['body-class'].replace(',', ' ') }}">
+  {% if body_class %}
+    <body class="{{ body_class.replace(',', ' ') }}">
   {% else %}
     <body>
   {% endif %}
