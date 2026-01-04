@@ -233,7 +233,7 @@ export class Search {
           this.index_state[key].version = null
           this.$.keyVersion[key].innerText = "-"
       }
-      return path.lenght > 0 ? `${prefix}/` : `${prefix}/${path}/`
+      return path.length > 0 ? `${prefix}/${path}/` : `${prefix}/`
     }
 
     return await Toolbox.fetch_each(`${prefix}/tags.json`).then((obj) => {
