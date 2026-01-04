@@ -280,12 +280,40 @@ def namespace_ref(doc_dir, path_, r):
 
     Pending xfer are patched internally (transforms/aggregate.py@namespace_pending_xfer)
     """
-    # Prefixes references with repo name to create namespace
-    # 1. Patch ^.. _str:$         into .. _{r}+str:
+    # Sphinx formats
+    # 1. Prefixes references with repo name to create namespace
+    # Patch ^.. _str:$         into .. _{r}+str:
     cwd = path.join(doc_dir, path_)
     patch_cmd = """\
-    find . -type f -exec sed -i -E \
+    find . -type f -name '*.rst' -exec sed -i -E \
         "s/^(.. _)([^:]+)(:)\\$/\\1{r}+\\2\\3/g" {{}} \\;\
+    """.format(r=r)
+    pr.run(patch_cmd, cwd)
+
+    # MystParser formats
+    # https://myst-parser.readthedocs.io/en/latest/syntax/cross-referencing.html
+
+    # Prefixes references with repo name to create namespace
+
+    # 1. Patch (target)= explicit annotations -> ({r}+target)=
+    patch_cmd = """\
+    find . -type f -name '*.md' -exec sed -i -E \
+        "s/^\\(([^)]+)\\)=/\\({r}+\\1\\)=/g" {{}} \\;\
+    """.format(r=r)
+    pr.run(patch_cmd, cwd)
+
+    # 2. Patch {#str}          into {#{r}+str}
+    #          {#str .class}   into {#{r}+str .class}
+    patch_cmd = """\
+    find . -type f -name '*.md' -exec sed -i -E \
+        "s/\\{{#([^ }}]+)/{{#{r}+\\1/g" {{}} \\;\
+    """.format(r=r)
+    pr.run(patch_cmd, cwd)
+
+    # 4. Patch :name:         into :name: {r}+target
+    patch_cmd = """\
+    find . -type f -name '*.md' -exec sed -i -E \
+        "s/^:name:[ \\t]+([^ \\t]+)/:name: {r}+\\1/g" {{}} \\;\
     """.format(r=r)
     pr.run(patch_cmd, cwd)
 
