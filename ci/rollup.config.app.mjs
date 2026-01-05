@@ -6,7 +6,7 @@ export default [
   {
     input: `${path}/scripts/app.js`,
     output: {
-      file: `${path}/static/app.umd.js`,
+      file: `${path}/static_common/app.umd.js`,
       format: "umd",
       name: "App",
       sourcemap: true,
@@ -20,7 +20,7 @@ export default [
   {
     input: `${path}/scripts/extra.js`,
     output: {
-      file: `${path}/static/extra.umd.js`,
+      file: `${path}/static_core/extra.umd.js`,
       format: "umd",
       name: "Extra",
       sourcemap: true
@@ -32,7 +32,7 @@ export default [
   {
     input: `${path}/scripts/doxygen.js`,
     output: {
-      file: `${path}/static/doxygen.umd.js`,
+      file: `${path}/static_core/doxygen.umd.js`,
       format: "umd",
       name: "Doxygen",
       sourcemap: true

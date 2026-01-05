@@ -41,7 +41,8 @@ trigger_rst = ("", "")
 
 theme_path = path.join('adi_doctools', 'theme', 'cosmic')
 style_path = path.join(theme_path, 'style')
-static_path = path.join(theme_path, 'static')
+static_common_path = path.join(theme_path, 'static_common')
+static_core_path = path.join(theme_path, 'static_core')
 dev_pool_val = b""
 
 BLUE = '\033[94m'
@@ -139,13 +140,16 @@ def serve(directory, port, dev, selenium, once, builder):
         from weasyprint.text.fonts import FontConfiguration
         builder = 'singlehtml'
 
-    source_files = {'app.umd.js', 'app.umd.js.map',
-                    'app.min.css', 'app.min.css.map',
-                    'extra.umd.js', 'extra.umd.js.map',
-                    'extra.min.css', 'extra.min.css.map',
-                    'doxygen.min.css', 'doxygen.min.css.map',
-                    'doxygen.umd.js', 'doxygen.umd.js.map',
-                    }
+    source_common_files = {
+        'app.umd.js', 'app.umd.js.map',
+        'app.min.css', 'app.min.css.map',
+    }
+    source_core_files = {
+        'extra.umd.js', 'extra.umd.js.map',
+        'extra.min.css', 'extra.min.css.map',
+        'doxygen.min.css', 'doxygen.min.css.map',
+        'doxygen.umd.js', 'doxygen.umd.js.map',
+    }
 
     def signal_handler(sig, frame):
         if builder == 'html':
@@ -183,9 +187,13 @@ def serve(directory, port, dev, selenium, once, builder):
         remove(path.join(dist, file))
         for d in listdir(dist):
             break
-        for f in source_files:
-            src = path.join(dist, d, static_path, f)
-            dest = path.join(path_, static_path, f)
+        for f in source_common_files:
+            src = path.join(dist, d, static_common_path, f)
+            dest = path.join(path_, static_common_path, f)
+            copy2(src, dest)
+        for f in source_core_files:
+            src = path.join(dist, d, static_core_path, f)
+            dest = path.join(path_, static_core_path, f)
             copy2(src, dest)
         rmtree(dist)
         click.echo("Success fetching the pre-compiled files!")
@@ -196,9 +204,9 @@ def serve(directory, port, dev, selenium, once, builder):
     rollup_conf = path.join(par_dir, 'ci', 'rollup.config.app.mjs')
     sass_bin = path.join(par_dir, 'node_modules', '.bin', 'sass')
 
-    sass_conf_1 = path.join(style_path, 'app.bundle.scss') + ':' + path.join(static_path, 'app.min.css')
-    sass_conf_2 = path.join(style_path, 'extra.bundle.scss') + ':' + path.join(static_path, 'extra.min.css')
-    sass_conf_3 = path.join(style_path, 'doxygen.bundle.scss') + ':' + path.join(static_path, 'doxygen.min.css')
+    sass_conf_1 = path.join(style_path, 'app.bundle.scss') + ':' + path.join(static_common_path, 'app.min.css')
+    sass_conf_2 = path.join(style_path, 'extra.bundle.scss') + ':' + path.join(static_core_path, 'extra.min.css')
+    sass_conf_3 = path.join(style_path, 'doxygen.bundle.scss') + ':' + path.join(static_core_path, 'doxygen.min.css')
     sass_conf = sass_conf_1 + ' ' +  sass_conf_2 + ' ' + sass_conf_3
     if dev:
         if which("node") is None:
@@ -210,8 +218,12 @@ def serve(directory, port, dev, selenium, once, builder):
             sys.exit(1)
     else:
         with_sources = True
-        for s in source_files:
-            comp_ = path.abspath(path.join(par_dir, static_path, s))
+        for s in source_common_files:
+            comp_ = path.abspath(path.join(par_dir, static_common_path, s))
+            if not path.isfile(comp_):
+                with_sources = False
+        for s in source_core_files:
+            comp_ = path.abspath(path.join(par_dir, static_core_path, s))
             if not path.isfile(comp_):
                 with_sources = False
 
@@ -298,7 +310,7 @@ def serve(directory, port, dev, selenium, once, builder):
 
         font_config = FontConfiguration()
         src_dir = path.abspath(path.join(path.dirname(__file__), pardir))
-        css = CSS(path.join(src_dir, 'theme', 'cosmic', 'static', 'app.min.css'),
+        css = CSS(path.join(src_dir, 'theme', 'cosmic', 'static_common', 'app.min.css'),
                   font_config=font_config)
         css_extra = CSS(path.join(src_dir, 'theme', 'cosmic', 'style', 'weasyprint.css'),
                         font_config=font_config)
@@ -326,11 +338,13 @@ def serve(directory, port, dev, selenium, once, builder):
     watch_file_src = {}
     watch_file_rst = {}
     if dev:
-        source_files.add('icons.svg')
         w_files = []
         # Check if minified files exists, if not, run rollup once
         rollup_cache = True
-        for f in source_files:
+        for f in source_common_files:
+            if not path.isfile(f):
+                rollup_cache = False
+        for f in source_core_files:
             if not path.isfile(f):
                 rollup_cache = False
         if not rollup_cache:
@@ -339,7 +353,10 @@ def serve(directory, port, dev, selenium, once, builder):
             subprocess.call(f"{sass_bin} --style compressed {sass_conf}",
                             shell=True, cwd=par_dir)
         for t in ['*.umd.js*', '*.min.css*']:
-            f = glob.glob(path.join(src_dir, 'theme', 'cosmic', 'static', t))
+            f = glob.glob(path.join(src_dir, 'theme', 'cosmic', 'static_common', t))
+            w_files.extend(f)
+        for t in ['*.umd.js*', '*.min.css*']:
+            f = glob.glob(path.join(src_dir, 'theme', 'cosmic', 'static_core', t))
             w_files.extend(f)
         for f in w_files:
             if symbolic_assert(f, log['inv_f']):

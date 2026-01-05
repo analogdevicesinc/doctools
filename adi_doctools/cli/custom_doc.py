@@ -951,7 +951,7 @@ def gen_pdf(index_file):
     src_dir = path.abspath(path.join(path.dirname(__file__), pardir, pardir))
     cosmic = path.join('adi_doctools', 'theme', 'cosmic')
     base_url = path.dirname(index_file)
-    css = CSS(path.join(src_dir, cosmic, 'static', 'app.min.css'),
+    css = CSS(path.join(src_dir, cosmic, 'static_common', 'app.min.css'),
               font_config=font_config, base_url=(path.join(base_url, '_static')))
     css_extra = CSS(path.join(src_dir, cosmic, 'style', 'weasyprint.css'),
                     font_config=font_config)

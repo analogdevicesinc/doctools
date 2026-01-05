@@ -100,6 +100,12 @@ def builder_inited(app):
         if getenv("ADOC_DEVPOOL") is not None:
             app.add_js_file("dev-pool.js", priority=500, loading_method="async")
 
+        theme_path = path.join(path.dirname(__file__), 'theme', 'cosmic')
+        app.config.html_static_path.append(path.join(theme_path, 'static_common'))
+        if app.env.config.core_repo:
+            app.config.html_static_path.append(
+                path.join(path.dirname(__file__), 'theme', 'cosmic', 'static_core')
+            )
         # Add bundled JavaScript if current theme is from this extension.
         if app.env.config.html_theme in theme_names:
             app.add_js_file("app.umd.js", priority=500, loading_method="async")
