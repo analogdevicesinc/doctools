@@ -1,6 +1,6 @@
 import terser from '@rollup/plugin-terser'
 
-let path = "adi_doctools/theme/cosmic"
+let path = "adi_doctools/theme/harmonic"
 
 export default [
   {

@@ -88,7 +88,7 @@ fast content-loading, cool animations, and a better user experience.
 However, for third-party client-side JavaScript, it is necessary to map the
 added globals to hot reload module.
 
-On :git-doctools:`adi_doctools/theme/cosmic/scripts/hot_reload.js`, extend the
+On :git-doctools:`adi_doctools/theme/harmonic/scripts/hot_reload.js`, extend the
 ``script_remove`` and ``script_add`` to include hooks for your particular added
 script.
 

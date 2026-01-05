@@ -949,11 +949,11 @@ def gen_pdf(index_file):
 
     font_config = FontConfiguration()
     src_dir = path.abspath(path.join(path.dirname(__file__), pardir, pardir))
-    cosmic = path.join('adi_doctools', 'theme', 'cosmic')
+    harmonic = path.join('adi_doctools', 'theme', 'harmonic')
     base_url = path.dirname(index_file)
-    css = CSS(path.join(src_dir, cosmic, 'static_common', 'app.min.css'),
+    css = CSS(path.join(src_dir, harmonic, 'static_common', 'app.min.css'),
               font_config=font_config, base_url=(path.join(base_url, '_static')))
-    css_extra = CSS(path.join(src_dir, cosmic, 'style', 'weasyprint.css'),
+    css_extra = CSS(path.join(src_dir, harmonic, 'style', 'weasyprint.css'),
                     font_config=font_config)
 
     click.echo("rendering pdf content...")

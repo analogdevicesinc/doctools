@@ -10,7 +10,7 @@ from sphinx.transforms.post_transforms import SphinxPostTransform
 from sphinx.util import logging
 from sphinx import __version__ as __sphinx_version__
 
-from .cosmic import cosmic_setup
+from .harmonic import setup as harmonic_setup
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +32,7 @@ def theme_config_setup(app):
 
 
 setup = [
-    cosmic_setup,
+    harmonic_setup,
     theme_config_setup
 ]
 
@@ -110,7 +110,7 @@ def build_finished(app, exc):
 
             # Extra JavaScript modules
             build_uri = path.join(app.builder.outdir, '_static')
-            src_uri = path.join(path.dirname(__file__), 'cosmic', 'static')
+            src_uri = path.join(path.dirname(__file__), 'harmonic', 'static')
             if app.lut['modules']['javascript'] is not None:
                 if 'modules' not in metadata:
                     metadata['modules'] = {}

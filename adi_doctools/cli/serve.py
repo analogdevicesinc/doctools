@@ -39,7 +39,7 @@ unmanaged = []
 first_run = True
 trigger_rst = ("", "")
 
-theme_path = path.join('adi_doctools', 'theme', 'cosmic')
+theme_path = path.join('adi_doctools', 'theme', 'harmonic')
 style_path = path.join(theme_path, 'style')
 static_common_path = path.join(theme_path, 'static_common')
 static_core_path = path.join(theme_path, 'static_core')
@@ -310,9 +310,9 @@ def serve(directory, port, dev, selenium, once, builder):
 
         font_config = FontConfiguration()
         src_dir = path.abspath(path.join(path.dirname(__file__), pardir))
-        css = CSS(path.join(src_dir, 'theme', 'cosmic', 'static_common', 'app.min.css'),
+        css = CSS(path.join(src_dir, 'theme', 'harmonic', 'static_common', 'app.min.css'),
                   font_config=font_config)
-        css_extra = CSS(path.join(src_dir, 'theme', 'cosmic', 'style', 'weasyprint.css'),
+        css_extra = CSS(path.join(src_dir, 'theme', 'harmonic', 'style', 'weasyprint.css'),
                         font_config=font_config)
 
         click.echo("rendering pdf content...")
@@ -353,10 +353,10 @@ def serve(directory, port, dev, selenium, once, builder):
             subprocess.call(f"{sass_bin} --style compressed {sass_conf}",
                             shell=True, cwd=par_dir)
         for t in ['*.umd.js*', '*.min.css*']:
-            f = glob.glob(path.join(src_dir, 'theme', 'cosmic', 'static_common', t))
+            f = glob.glob(path.join(src_dir, 'theme', 'harmonic', 'static_common', t))
             w_files.extend(f)
         for t in ['*.umd.js*', '*.min.css*']:
-            f = glob.glob(path.join(src_dir, 'theme', 'cosmic', 'static_core', t))
+            f = glob.glob(path.join(src_dir, 'theme', 'harmonic', 'static_core', t))
             w_files.extend(f)
         for f in w_files:
             if symbolic_assert(f, log['inv_f']):

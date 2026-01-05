@@ -44,9 +44,9 @@ jobs:
     - name: Bundle web styles
       run: >-
         node_modules/.bin/sass
-        adi_doctools/theme/cosmic/style/app.bundle.scss:adi_doctools/theme/cosmic/static_common/app.min.css
-        adi_doctools/theme/cosmic/style/extra.bundle.scss:adi_doctools/theme/cosmic/static_core/extra.min.css
-        adi_doctools/theme/cosmic/style/doxygen.bundle.scss:adi_doctools/theme/cosmic/static_core/doxygen.min.css
+        adi_doctools/theme/harmonic/style/app.bundle.scss:adi_doctools/theme/harmonic/static_common/app.min.css
+        adi_doctools/theme/harmonic/style/extra.bundle.scss:adi_doctools/theme/harmonic/static_core/extra.min.css
+        adi_doctools/theme/harmonic/style/doxygen.bundle.scss:adi_doctools/theme/harmonic/static_core/doxygen.min.css
         --style compressed
 
     - name: Fetch third-party fonts
