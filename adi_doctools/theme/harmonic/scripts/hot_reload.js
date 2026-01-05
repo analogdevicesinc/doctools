@@ -95,7 +95,7 @@ export class HotReload {
     if (!key.startsWith("https://"))
       return
 
-    if (new RegExp("^https://cdn\\.jsdelivr\\.net/npm/mathjax@[^/]+/es5/tex-mml-chtml\\.js$").test(key)) {
+    if (new RegExp("^https://cdn\\.jsdelivr\\.net/npm/mathjax@[^/]+/(?:es5/)?tex-mml-chtml\\.js$").test(key)) {
       // MathJax will apply on load, so only call if already loaded,
       // instead of having to wait if it to be loaded to call.
       if (typeof MathJax !== 'undefined')
