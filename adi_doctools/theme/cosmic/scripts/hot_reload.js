@@ -132,7 +132,7 @@ export class HotReload {
     // Append metadata extra scripts, for proper filtering
     if (this.parent.state.metadata) {
       this.parent.state.metadata.modules.javascript.forEach((item) => {
-        js_script.set(new URL('_static/extra.umd.js', this.parent.fetch.base_url+'/').href)
+        js_script.set(new URL('_static/extra.umd.js', this.parent.fetch.base_url).href)
       })
     }
     for (let i = 0; i < scripts.length; i++) {

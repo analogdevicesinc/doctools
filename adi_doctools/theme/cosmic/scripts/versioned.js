@@ -42,10 +42,10 @@ export class Versioned {
 
     this.prefix = this.parent.state.subhost
     this.prefix = new URL(this.prefix, location.origin).href
-    if (this.prefix.endsWith('/'))
-      this.prefix = this.prefix.slice(0, -1)
+    if (!this.prefix.endsWith('/'))
+      this.prefix += '/'
     const response = fetch(
-      new Request(new URL('tags.json', this.prefix+'/'))
+      new Request(new URL('tags.json', this.prefix))
     )
       .then(response => response)
       .then(response => response.json())
@@ -177,9 +177,9 @@ export class Versioned {
 
     for (let key in obj) {
       let page = key.length > 0 ?
-                 this.prefix+'/'+key :
+                 this.prefix + key + '/' :
                  this.prefix
-      page += "/index.html"
+      page += "index.html"
       let entry = DOM.new('button', {
         'alt_href': page
       })
@@ -192,10 +192,10 @@ export class Versioned {
         const new_tab = ev.which === 2
 
         const start = app.state.path.length > 0 ?
-                      this.prefix+'/'+app.state.path :
+                      this.prefix + app.state.path + '/' :
                       this.prefix
         if (location.href.startsWith(start)) {
-          const pathname = location.href.substring(start.length + 1)
+          const pathname = location.href.substring(start.length)
           let url = new URL(pathname, entry.dataset['alt_href'])
           url.hash = location.hash
           Toolbox.try_redirect(url, entry.dataset['alt_href'], new_tab)

@@ -36,17 +36,17 @@ export class Fetch {
   construct () {
     let state = this.parent.state
     const base_url = (state.subhost === '' || state.offline === true) ?
-      new URL('https://analogdevicesinc.github.io/doctools') :
-      new URL('doctools', new URL(state.subhost, location.origin))
+      new URL('https://analogdevicesinc.github.io/doctools/') :
+      new URL('doctools/', new URL(state.subhost, location.origin))
     // Do you want to use single_hosted with same origin? use below:
     //const base_url =
-    //  new URL(state.subhost, location.origin)
+    //  new URL(state.subhost + '/', location.origin)
     // Testing offline? use
     //const base_url =
-    //  new URL('http://127.0.0.1:8000')
+    //  new URL('http://127.0.0.1:8000/')
 
     const response = fetch(
-      new Request(new URL('metadata.json', base_url+'/'))
+      new Request(new URL('metadata.json', base_url))
     )
       .then(response => response)
       .then(response => {
@@ -59,13 +59,13 @@ export class Fetch {
       .catch(err => {})
 
     let script = DOM.new('script', {
-      'src': new URL('_static/extra.umd.js', base_url+'/')
+      'src': new URL('_static/extra.umd.js', base_url)
     });
     this.$.head.append(script)
     let style = DOM.new('link', {
       'rel': 'stylesheet',
       'type': 'text/css',
-      'href': new URL('_static/extra.min.css', base_url+'/')
+      'href': new URL('_static/extra.min.css', base_url)
     });
     this.$.head.append(style)
 
@@ -100,14 +100,16 @@ export class Fetch {
       console.warn("Expected URL, got ", url)
       return
     }
-    url = new URL('_static', url+'/')
+    if (!url.pathname.endsWith('/'))
+      url.pathname += '/'
+    url = new URL('_static', url)
 
     if ('javascript' in obj) {
       obj['javascript'].forEach((elem) => {
         if (elem === 'extra.umd.js')
           return
         let script = DOM.new('script', {
-          'src': new URL(elem, url+'/')
+          'src': new URL(elem, url)
         });
         this.$.head.append(script)
       })
@@ -119,7 +121,7 @@ export class Fetch {
         let style = DOM.new('link', {
           'rel': 'stylesheet',
           'type': 'text/css',
-          'href': new URL(elem, url+'/')
+          'href': new URL(elem, url)
         });
         this.$.head.append(style)
       })
