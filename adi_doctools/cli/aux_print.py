@@ -92,8 +92,7 @@ def sanitize_singlehtml(file) -> str:
 
     # Find indexes and add volumes
     for c, i in volumes:
-        _id = 'document-' + i.lstrip('/').rstrip('/')
-        e_ = bwrap.xpath(f".//span[@id='{_id}']")
+        e_ = bwrap.xpath(f".//span[@id='{i}']")
         if len(e_) == 0:
             echo(f"Failed to find index for id '{i}', skipped")
             continue

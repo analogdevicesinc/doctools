@@ -286,7 +286,7 @@ def namespace_ref(doc_dir, path_, r):
     cwd = path.join(doc_dir, path_)
     patch_cmd = """\
     find . -type f -name '*.rst' -exec sed -i -E \
-        "s/^(.. _)([^:]+)(:)\\$/\\1{r}+\\2\\3/g" {{}} \\;\
+        "s/^([ \t]*.. _)([^:]+)(:)\\$/\\1{r}:\\2\\3/g" {{}} \\;\
     """.format(r=r)
     pr.run(patch_cmd, cwd)
 
