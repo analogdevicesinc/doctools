@@ -392,7 +392,7 @@ def patch_index(doc, tocs, index_file):
         toctrees.append([])
         # may be custom-pages
         if k in doc['config']:
-            r = doc['config'][k]['repository'] if doc['config'][k]['repository'] else k
+            r = doc['config'][k]['repository']
         else:
             r = k
         for k_ in tocs[k]:
@@ -1102,6 +1102,16 @@ def custom_doc(directory, extra, no_parallel_, open_, builder, ssh, drop_ext):
         if path_ not in doc['config'] or doc['config'][path_] is None:
             doc['config'][path_] = {}
         doc['config'][path_] = {**default_config, **doc['config'][path_]}
+
+    for k in doc['config']:
+        repo = doc['config'][k]['repository']
+        if repo:
+            if not k.startswith(repo + '_'):
+                click.echo(f"Label '{k}' does {FAIL}not{NC} start with '{repo}_' (repository + '_'), "
+                           "this is required due to the cross-references.")
+                return
+        else:
+            doc['config'][k]['repository'] = k
 
     missing_ext = []
     for ext in doc['extensions']:

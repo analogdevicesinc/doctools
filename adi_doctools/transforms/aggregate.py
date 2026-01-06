@@ -54,13 +54,17 @@ class namespace_pending_xfer(SphinxTransform):
                         node['reftarget'] = '/'.join(reftarget)
             else:
                 if 'intersphinx' in node:
-                    node['reftarget'] = node['inventory'].lower() + ":" + node['reftarget']
+                    node['reftarget'] = node['inventory'] + ":" + node['reftarget']
                     del node['intersphinx']
                     del node['inventory']
                 else:
                     inventory = node.get('refdoc', fromdocname).split('/')[0]
-                    if inventory in inventories and node['reftarget'].find(':') == -1:
-                        node['reftarget'] = inventory.lower() + ":" + node['reftarget']
+                    match = next((k for k in inventories if (inventory == k or
+                                                             inventory.startswith(k + '_'))),
+                                 None)
+
+                    if match and node['reftarget'].find(':') == -1:
+                        node['reftarget'] = match + ":" + node['reftarget']
 
 
 def setup(app):
