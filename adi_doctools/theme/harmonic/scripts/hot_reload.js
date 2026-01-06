@@ -223,6 +223,11 @@ export class HotReload {
         child.checked = true
       node = node.parentElement
     }
+    dom.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      container: "all"
+    });
 
     this.parent.state.content_root = State.content_root(doc)
     this.$.content.innerHTML = content.innerHTML
