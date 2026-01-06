@@ -27,7 +27,7 @@ export class HotReload {
     this.location_href
     this.lock_load = false
     this.reduced_motion
-    this.scrollY = false
+    this.scrollY = undefined
 
     this.construct()
 
@@ -78,7 +78,7 @@ export class HotReload {
 
       elem.onclick = (ev) => {
         ev.preventDefault()
-        this.load(dom, elem.href, true)
+        this.load(dom, elem.href, false, false)
       }
     }
     document.querySelectorAll('a[href]', this.$.related).forEach(attach_load)
@@ -220,11 +220,21 @@ export class HotReload {
 
     if (!this.reduced_motion)
       window.scrollTo({ top: 0, left: 0, behavior: "instant" })
-    if (url.hash)
+    if (url.hash && isNaN(this.scrollY)) {
       setTimeout(() => {
         document.querySelector(`${url.hash}`)
           ?.scrollIntoView({ behavior: 'auto' })
       }, this.reduced_motion ? 0 : 125)
+    } else if (!isNaN(this.scrollY)) {
+      window.scrollTo({ top: this.scrollY, left: 0, behavior: "instant" })
+      if (!this.reduced_motion)
+        setTimeout(() => {
+          window.scrollTo({ top: this.scrollY, left: 0, behavior: "auto" })
+          this.scrollY = undefined
+        }, 125) /* Correction due to Z-transform */
+      else
+        this.scrollY = undefined
+    }
 
     added.forEach((item) => {
       this.script_add(item)
@@ -232,15 +242,12 @@ export class HotReload {
 
     this.hot_links()
     this.lock_load = false
-    if (this.scrollY) {
-      window.scrollTo({ top: this.scrollY, left: 0, behavior: "instant" })
-      this.scrollY = false
-    }
   }
   /**
    * Force forces refetching and replacing, even if is the same page.
+   * state: popstate event state or false to store current state.
    */
-  load (dom, pathname, new_state, force) {
+  load (dom, pathname, state, force) {
     if (pathname === '#' || this.lock_load === true)
       return
 
@@ -255,13 +262,13 @@ export class HotReload {
         this.scrollY = window.scrollY
       } else {
         const hash = request_url.hash === '' ? '#top-anchor': request_url.hash
-        if (new_state) {
+        if (state === false) {
           location.hash = hash
         } else {
           const dom_ = document.querySelector(hash)
           if (dom_)
             dom_.scrollIntoView()
-          history.replaceState(null, "", hash)
+          history.replaceState({}, "", hash)
         }
         return
       }
@@ -269,8 +276,19 @@ export class HotReload {
     this.lock_load = true
     // Push even before fetching, so in case of failure the user can easily
     // reload the page
-    if (new_state)
-      history.pushState(request_url.href, '', request_url.href)
+    if (state === false) {
+      if (current_url.pathname !== request_url.pathname) {
+        /* If visiting a new page, store last scroll position */
+        const new_state = {
+          scrollY: window.scrollY
+        }
+        history.replaceState(new_state, "", current_url)
+      }
+      history.pushState({}, '', request_url.href)
+    } else if (state !== null) {
+      if (Object.hasOwn(state, 'scrollY'))
+        this.scrollY = state.scrollY
+    }
 
     this.$.tocwrapper.classList.add('fetch')
     this.$.bodywrapper.classList.add('fetch')
@@ -323,7 +341,7 @@ export class HotReload {
 
       dom.onclick = (ev) => {
         ev.preventDefault()
-        this.load(dom, dom.href, true)
+        this.load(dom, dom.href, false, false)
       }
     }
     DOM.getAll('.reference.internal', this.$.toctree)
@@ -336,7 +354,7 @@ export class HotReload {
 
       alt_dom.onclick = (ev) => {
         ev.preventDefault()
-        this.load(dom, alt_dom.href, true)
+        this.load(dom, alt_dom.href, false, false)
       }
     }
     const dom = DOM.get('header a#logo')
@@ -387,7 +405,7 @@ export class HotReload {
     url.hash = ''
     let dom = this.toctree.get(url.href)
     if (dom !== undefined)
-      this.load(dom, location.href, false)
+      this.load(dom, location.href, ev.state, false)
     else // Fallback
       location.href = location.href
   }
@@ -398,7 +416,7 @@ export class HotReload {
     url.hash = ''
     let dom = this.toctree.get(url.href)
     if (dom !== undefined)
-      this.load(dom, url.href, true, true)
+      this.load(dom, url.href, false, true)
     else // Fallback
       location.href = location.href
   }
