@@ -193,7 +193,7 @@ entry-point:
       - custom-pages/intro.rst
   - caption: Evaluation board
     files:
-      - documentation/solutions/reference-designs/ad4052-ardz
+      - documentation/solutions/reference-designs/ad4052-ardz/index.rst
   - caption: Linux IIO driver
     files:
       - documentation/linux/drivers/iio-adc/ad4052/index.rst
