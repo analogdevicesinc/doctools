@@ -637,7 +637,7 @@ def serve(directory, port, dev, selenium, once, builder):
     def check_files(scheduler):
         global first_run, trigger_rst
         update_sphinx = False
-        update_page = False
+        update_dev = False
         git_lfs_pull = []
         for file, ctime in zip(*get_doc_sources()):
             if file in watch_file_rst and ctime > watch_file_rst[file]:
@@ -662,7 +662,7 @@ def serve(directory, port, dev, selenium, once, builder):
                 continue
             ctime = stat(file).st_mtime
             if ctime > watch_file_src[file]:
-                update_page = True
+                update_dev = True
                 watch_file_src[file] = ctime
 
         use_subprocess = False
@@ -673,7 +673,7 @@ def serve(directory, port, dev, selenium, once, builder):
 
         if first_run is True:
             first_run = False
-            update_page = False
+            update_dev = False
             update_sphinx = False
 
         if len(git_lfs_pull) > 0:
@@ -703,10 +703,10 @@ def serve(directory, port, dev, selenium, once, builder):
                 app_subprocess_build()
             else:
                 app.build()
-        if update_page:
+        if update_dev:
             for f in w_files:
                 copy2(f, path.join(builddir, '_static', path.basename(f)))
-        if update_sphinx or update_page:
+        if update_sphinx or update_dev:
             if with_selenium:
                 try:
                     driver.execute_script(f"location.replace('{trigger_rst[1]}');")
@@ -723,7 +723,7 @@ def serve(directory, port, dev, selenium, once, builder):
                     http_thread.join()
                     return
             elif builder == "html":
-                update_dev_pool(trigger_rst[1])
+                update_dev_pool("@code-changed" if update_dev else trigger_rst[1])
             elif builder == 'singlehtml':
                 update_pdf()
 
