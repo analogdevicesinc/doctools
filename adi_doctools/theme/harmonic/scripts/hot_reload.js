@@ -174,6 +174,27 @@ export class HotReload {
     doc.head.querySelectorAll("meta")
       .forEach(meta => document.head.appendChild(document.importNode(meta, true)))
   }
+  /**
+   * Compensate scroll due to layout shifting (e.g. images loading)
+   */
+  scroll_compensate_layout(anchor) {
+    let settle_timeout, raf
+
+    const observer = new ResizeObserver(() => {
+      clearTimeout(settle_timeout)
+
+      cancelAnimationFrame(raf)
+      anchor.scrollIntoView()
+
+      settle_timeout = setTimeout(() => {
+        raf = requestAnimationFrame(() => {
+          observer.disconnect()
+        })
+      }, 750)
+    })
+
+    observer.observe(this.$.bodywrapper)
+  }
   replace (dom, url, txt) {
 
     const parser = new DOMParser()
@@ -222,8 +243,11 @@ export class HotReload {
       window.scrollTo({ top: 0, left: 0, behavior: "instant" })
     if (url.hash && isNaN(this.scrollY)) {
       setTimeout(() => {
-        document.querySelector(`${url.hash}`)
-          ?.scrollIntoView({ behavior: 'auto' })
+        let anchor = document.querySelector(`${url.hash}`)
+        if (anchor) {
+          anchor.scrollIntoView({ behavior: 'auto' })
+          this.scroll_compensate_layout(anchor)
+        }
       }, this.reduced_motion ? 0 : 125)
     } else if (!isNaN(this.scrollY)) {
       window.scrollTo({ top: this.scrollY, left: 0, behavior: "instant" })
