@@ -11,15 +11,15 @@ export default function App () {
 
   new State(app)
   new Fetch(app)
-  let on_visible = () => {
+  let on_ready = () => {
     new Navigation(app)
     new HotReload(app)
   }
 
-  if (document.visibilityState === 'visible')
-    on_visible()
+  if (document.readyState === 'loading')
+    document.addEventListener('DOMContentLoaded', on_ready, { once: true });
   else
-    window.addEventListener('focus', on_visible, { once: true })
+    on_ready()
 }
 
 App()

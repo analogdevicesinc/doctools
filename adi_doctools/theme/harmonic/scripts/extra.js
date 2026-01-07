@@ -7,7 +7,7 @@ import { ContentActions } from './content_actions.js'
 
 export default function Extra (){
   new Polyfill(app)
-  let on_visible = () => {
+  let on_ready = () => {
     new Links(app)
     new Versioned(app)
     new PageActions(app)
@@ -15,10 +15,10 @@ export default function Extra (){
     new ContentActions(app)
   }
 
-  if (document.visibilityState === 'visible')
-    on_visible()
+  if (document.readyState === 'loading')
+    document.addEventListener('DOMContentLoaded', on_ready, { once: true });
   else
-    window.addEventListener('focus', on_visible, { once: true })
+    on_ready()
 }
 
 Extra()
