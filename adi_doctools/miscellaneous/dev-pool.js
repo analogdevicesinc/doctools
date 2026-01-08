@@ -225,8 +225,10 @@ pool_changes.search(PoolChanges.get_paths()).then(obj => {
   do_pool = () => {
     PoolChanges.do(url).then(obj => {
       obj = obj.split("\n")
-      if (obj[1] === "@timed-out")
+      if (obj[1] === "@timed-out") {
+        setTimeout(do_pool, 500)
         return
+      }
       if (this.pool_timestamp < Number(obj[0])) {
         url_ = new URL(url, location.origin)
         url_ = new URL(obj[1], url_)
