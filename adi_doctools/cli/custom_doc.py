@@ -738,7 +738,7 @@ def prepare_doc(doc, repos_dir, doc_dir, drop_ext):
     # Build with html to build orphanaged docs
     app = Sphinx('.', '.',  builddir, doctreedir, "html",
                  warning=warning, status=status, verbosity=1,
-                 parallel=cpu_count())
+                 parallel=1 if no_parallel else cpu_count())
     app.build()
     chdir(cwd_)
 
