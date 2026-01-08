@@ -165,7 +165,7 @@ export class PageActions {
     if (!location.href.startsWith(start))
       return
 
-    const pathname = location.href.substring(start.length + 1)
+    const pathname = location.href.substring(start.length)
     let url = new URL(pathname, this.parent.versioned.prefix + dom.content + '/')
     if (url.href === location.href) {
       console.warn(`page_actions: stub cadidate '${dom.content}' references itself`)
