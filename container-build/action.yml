@@ -87,7 +87,7 @@ runs:
       shell: bash
       run: |
         # Build container
-        $container build --tag $image_name:$version -f ${{ inputs.containerfile }} $(dirname ${{ inputs.containerfile }})
+        $container build --tag $image_name:$version -f ${{ inputs.containerfile }} .
 
     - name: Save container
       shell: bash
