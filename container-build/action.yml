@@ -215,7 +215,7 @@ runs:
       run: |
         # Assert SBOM
         _fmt() {
-          msg=$(printf "$1" | sed ':a;N;$!ba;s/\n/%0A/g')
+          msg=$(printf "%s" "$1" | sed ':a;N;$!ba;s/\n/%0A/g')
           printf "%s\n" "$msg"
         }
 
@@ -226,7 +226,7 @@ runs:
 
           tail -n +2 .cves | grep Warning && type=warning
           tail -n +2 .cves | grep Critical && type=error
-          _fmt "::$type ::assert_sbom:"$'\n'"$(tail -n +2 .cves)"
+          _fmt "::$type ::assert_cves:"$'\n'"$(tail -n +2 .cves)"
 
           ret=$(cat .cves_ret)
           popd ; rm -r $_sbom
