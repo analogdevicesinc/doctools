@@ -172,6 +172,7 @@ runs:
           syft --from file -o cyclonedx-json -o table "$1" > .sbom
           head -n 1 .sbom > sbom.json
 
+          grype db update
           grype sbom:sbom.json -o json -o table --fail-on high > .cves ; echo $? > .cves_ret
           head -n 1 .cves > cves.json
         }
