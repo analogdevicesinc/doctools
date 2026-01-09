@@ -11,6 +11,10 @@ on:
         description: 'Repository name'
         required: true
         type: string
+      image-name:
+        description: 'Image name'
+        required: true
+        type: string
       ref:
         description: 'Branch/tag ref to checkout'
         required: true
@@ -28,6 +32,10 @@ on:
         type: string
       repository:
         description: 'Repository name'
+        required: true
+        type: string
+      image-name:
+        description: 'Image name'
         required: true
         type: string
       ref:
@@ -61,7 +69,7 @@ jobs:
       - uses: analogdevicesinc/doctools/container-build@action
         with:
           organization: ${{ inputs.organization }}
-          repository: ${{ inputs.repository }}
+          image-name: ${{ inputs.image-name }}
           ref: ${{ inputs.ref }}
           containerfile: ${{ inputs.containerfile }}
           cloudsmith-namespace: ${{ vars.CLOUDSMITH_NAMESPACE }}
