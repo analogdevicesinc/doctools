@@ -8,13 +8,16 @@ inputs:
   organization:
     description: 'Organization name'
     required: true
-  repository:
-    description: 'Repository name'
+  image-name:
+    description: 'Image name, can be the repository name'
     required: true
   ref:
-    description: 'Branch/tag ref to checkout'
+    description: 'Branch/tag ref checked-out'
     required: true
     default: 'refs/heads/main'
+  sbom-cve:
+    description: 'Generate SBOM assert CVEs'
+    default: 'true'
   containerfile:
     description: 'Path to the Containerfile'
     required: true
@@ -55,29 +58,43 @@ runs:
           echo "::error ::Containerfile not found at ${{ inputs.containerfile }}"
           exit 1
         fi
-        version=$(grep "^ENV runner_labels" ${{ inputs.containerfile }} | sed -n 's/.*ENV runner_labels.*,v\([^,]*\).*/\1/p' | head -1)
+
+        # Try python version
+        init_file="$(echo "${{ inputs.containerfile }}" | cut -d/ -f1)/__init__.py"
+        if [[ -f "$init_file" ]]; then
+          version=$(grep "^__version__" "$init_file" | sed -nE "s/^__version__[[:space:]]*=[[:space:]]*['\"]([^'\"]+)['\"]/\1/p" | head -1)
+          if [[ -z "$version" ]]; then
+            echo "::error ::Could not extract version from $init_file, is it set at '__version__'?"
+            exit 1
+          fi
+        fi
+
+        # Try container version
+        [[ -z "$version" ]] && version=$(grep "^ENV runner_labels" ${{ inputs.containerfile }} | sed -n 's/.*ENV runner_labels.*,v\([^,]*\).*/\1/p' | head -1)
         if [[ -z "$version" ]]; then
           echo "::error ::Could not extract version from ${{ inputs.containerfile }}, is it set at 'runner_labels'?"
           exit 1
         fi
         echo "version=v$version" >> "$GITHUB_ENV"
         echo "version: v$version"
-        repository=$(echo "${{ inputs.repository }}" | tr '-' '_')
-        echo "repository=$repository" >> "$GITHUB_ENV"
-        echo "container name: adi/$repository:$version"
+        image_name=$(echo "${{ inputs.image-name}}" | tr '-' '_')
+        echo "image_name=$image_name" >> "$GITHUB_ENV"
+        dist_name=$(echo $image_name | tr '/' '_').tar
+        echo "dist_name=$dist_name" >> "$GITHUB_ENV"
+        echo "container name: $image_name:$version"
 
     - name: Build container
       shell: bash
       run: |
         # Build container
-        $container build --tag adi/$repository:$version -f ${{ inputs.containerfile }} $(dirname ${{ inputs.containerfile }})
+        $container build --tag $image_name:$version -f ${{ inputs.containerfile }} $(dirname ${{ inputs.containerfile }})
 
     - name: Save container
       shell: bash
       run: |
         # Save container
-        rm -f dist.tar
-        $container save -o dist.tar adi/$repository:$version
+        [ -f $dist_name] && rm $dist_name
+        $container save -o $dist_name $image_name:$version
 
     - name: Get assets
       shell: bash
@@ -117,7 +134,7 @@ runs:
           cs-package-upload ${{ env.CLOUDSMITH_API_KEY }} \
                             ${{ inputs.cloudsmith-namespace }} \
                             ${{ inputs.cloudsmith-repository }} \
-                            dist.tar \
+                            $dist_name \
                             latest_package_file
         )
 
@@ -126,3 +143,94 @@ runs:
                                 ${{ inputs.cloudsmith-repository }} \
                                 $package_file \
                                 "$tags_"
+
+    - name: Prepare SBOM tools
+      shell: bash
+      if: ${{ inputs.sbom-cve == 'true' }}
+      run: |
+        # Prepare SBOM tools
+        get_tools() {
+          command -v syft || curl -sSfL https://get.anchore.io/syft | $1 sh -s -- -b /usr/local/bin
+          command -v grype || curl -sSfL https://get.anchore.io/grype | $1 sh -s -- -b /usr/local/bin
+        }
+
+        if [ "$(id -u)" -eq 0 ]; then
+          get_tools
+        elif command -v sudo && sudo -n true 2>/dev/null; then
+          get_tools "sudo"
+        else
+          command -v syft
+          command -v grype
+        fi
+
+    - name: Run SBOM tools
+      shell: bash
+      if: ${{ inputs.sbom-cve == 'true' }}
+      run: |
+        # Run SBOM tools
+        run_sbom_tools () {
+          syft --from file -o cyclonedx-json -o table "$1" > .sbom
+          head -n 1 .sbom > sbom.json
+
+          grype sbom:sbom.json -o json -o table --fail-on high > .cves ; echo $? > .cves_ret
+          head -n 1 .cves > cves.json
+        }
+
+        _dist=$(realpath ./$dist_name)
+        _sbom=$(mktemp -d) ; pushd $_sbom
+        run_sbom_tools $_dist
+        zip sbom.zip *
+        popd
+        echo "_sbom=$_sbom" >> $GITHUB_ENV
+
+    - name: Cloudsmith upload SBOM
+      shell: bash
+      if: ${{ inputs.sbom-cve == 'true' && env.CLOUDSMITH_API_KEY != '' }}
+      run: |
+        # Cloudsmith upload SBOM
+        source ./cloudsmith-api.sh
+
+        tags_="${{ inputs.ref }}, on/${{ github.event_name }}"
+
+        sbom_file=$(
+          cs-package-upload ${{ env.CLOUDSMITH_API_KEY }} \
+                            ${{ inputs.cloudsmith-namespace }} \
+                            ${{ inputs.cloudsmith-repository }} \
+                            "$_sbom/sbom.zip" \
+                            latest_sbom_file
+        )
+
+        cs-package-store-raw ${{ env.CLOUDSMITH_API_KEY }} \
+                             ${{ inputs.cloudsmith-namespace }} \
+                             ${{ inputs.cloudsmith-repository }} \
+                             $sbom_file \
+                             "$image_name.sbom.zip" \
+                             "$tags_" \
+                             "$version"
+
+    - name: Assert SBOM
+      shell: bash
+      if: ${{ inputs.sbom-cve == 'true' }}
+      run: |
+        # Assert SBOM
+        _fmt() {
+          msg=$(printf "%s" "$1" | sed ':a;N;$!ba;s/\n/%0A/g')
+          printf "%s\n" "$msg"
+        }
+
+        assert_sbom() {
+          pushd $_sbom
+          type=notice
+          _fmt "::$type ::assert_sbom:$'\n'$(tail -n +2 .sbom)"
+
+          tail -n +2 .cves | grep Warning && type=warning
+          tail -n +2 .cves | grep Critical && type=error
+          _fmt "::$type ::assert_cves:"$'\n'"$(tail -n +2 .cves)"
+
+          ret=$(cat .cves_ret)
+          popd ; rm -r $_sbom
+          return "$ret"
+        }
+
+        assert_sbom
+
