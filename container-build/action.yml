@@ -34,6 +34,19 @@ inputs:
     description: 'Cloudsmith repository name for containers'
     required: false
 
+outputs:
+  image_archive:
+    description: "Path to image archive"
+    value: ${{ steps.get_vars.outputs.image_archive }}
+  sbom_archive:
+    description: "Path to sbom archive"
+    value: ${{ steps.run_sbom.outputs.sbom_archive }}
+  version:
+    description: "Built version"
+    value: ${{ steps.get_vars.outputs.version }}
+
+
+
 runs:
   using: composite
   steps:
@@ -51,6 +64,7 @@ runs:
         fi
 
     - name: Extract version from Containerfile
+      id: get_vars
       shell: bash
       run: |
         # Extract version from Containerfile
@@ -76,11 +90,13 @@ runs:
           exit 1
         fi
         echo "version=v$version" >> "$GITHUB_ENV"
+        echo "version=v$version" >> "$GITHUB_OUTPUT"
         echo "version: v$version"
         image_name=$(echo "${{ inputs.image-name}}" | tr '-' '_')
         echo "image_name=$image_name" >> "$GITHUB_ENV"
-        dist_name=$(echo $image_name | tr '/' '_').tar
-        echo "dist_name=$dist_name" >> "$GITHUB_ENV"
+        image_archive=$(mktemp -d)/$(echo $image_name | tr '/' '_').tar
+        echo "image_archive=$image_archive" >> "$GITHUB_ENV"
+        echo "image_archive=$image_archive" >> "$GITHUB_OUTPUT"
         echo "container name: $image_name:$version"
 
     - name: Build container
@@ -93,56 +109,7 @@ runs:
       shell: bash
       run: |
         # Save container
-        [ -f $dist_name] && rm $dist_name
-        $container save -o $dist_name $image_name:$version
-
-    - name: Get assets
-      shell: bash
-      run: |
-        # Get assets
-        curl -s -H "Authorization: Bearer ${{ inputs.gh-token }}" -L -o cloudsmith-api.sh \
-          https://raw.githubusercontent.com/analogdevicesinc/doctools/refs/heads/main/ci/cloudsmith-api.sh
-
-    - uses: cloudsmith-io/cloudsmith-cli-action@v1.0.4
-      if: ${{ inputs.cloudsmith-service-slug != '' && inputs.cloudsmith-service-slug != ' ' }}
-      with:
-        oidc-namespace: ${{ inputs.cloudsmith-namespace }}
-        oidc-service-slug: ${{ inputs.cloudsmith-service-slug }}
-        oidc-auth-only: 'true'
-
-    - name: Cloudsmith API Key
-      shell: bash
-      if: ${{ inputs.cloudsmith-service-slug == '' || inputs.cloudsmith-service-slug == ' ' }}
-      run: |
-        # Cloudsmith API Key
-        CLOUDSMITH_API_KEY=$(echo "${{ inputs.cloudsmith-api-key }}" | xargs)
-        echo "CLOUDSMITH_API_KEY=$CLOUDSMITH_API_KEY" >> "$GITHUB_ENV"
-
-    - name: Cloudsmith upload container and create package
-      shell: bash
-      if: ${{ env.CLOUDSMITH_API_KEY != '' }}
-      run: |
-        # Cloudsmith upload container and create package
-        source ./cloudsmith-api.sh
-
-        # push: refs/heads/<branch>
-        # tag || release: refs/tags/<tag>
-        # pull_request: refs/pull/<id>/merge
-        tags_="${{ inputs.ref }}, on/${{ github.event_name }}"
-
-        package_file=$(
-          cs-package-upload ${{ env.CLOUDSMITH_API_KEY }} \
-                            ${{ inputs.cloudsmith-namespace }} \
-                            ${{ inputs.cloudsmith-repository }} \
-                            $dist_name \
-                            latest_package_file
-        )
-
-        cs-package-store-docker ${{ env.CLOUDSMITH_API_KEY }} \
-                                ${{ inputs.cloudsmith-namespace }} \
-                                ${{ inputs.cloudsmith-repository }} \
-                                $package_file \
-                                "$tags_"
+        $container save -o $image_archive $image_name:$version
 
     - name: Prepare SBOM tools
       shell: bash
@@ -164,25 +131,99 @@ runs:
         fi
 
     - name: Run SBOM tools
+      id: run_sbom
       shell: bash
       if: ${{ inputs.sbom-cve == 'true' }}
       run: |
         # Run SBOM tools
+        _fmt() {
+          msg=$(printf "%s" "$1" | sed ':a;N;$!ba;s/\n/%0A/g')
+          printf "%s\n" "$msg"
+        }
+
         run_sbom_tools () {
-          syft --from file -o cyclonedx-json -o table "$1" > .sbom
+          pushd $1
+          syft --from file -o cyclonedx-json -o table "$2" > .sbom
           head -n 1 .sbom > sbom.json
 
           grype db update
-          grype sbom:sbom.json -o json -o table --fail-on high > .cves ; echo $? > .cves_ret
+          grype -o json -o table \
+                --fail-on high \
+                --sort-by severity \
+                sbom:sbom.json > .cves ; echo $? > .cves_ret
           head -n 1 .cves > cves.json
+          zip $(dirname $2)/sbom.zip *
+          echo "sbom_archive=$(dirname $2)/sbom.zip" >> $GITHUB_ENV
+          echo "sbom_archive=$(dirname $2)/sbom.zip" >> $GITHUB_OUTPUT
+          popd
         }
 
-        _dist=$(realpath ./$dist_name)
-        _sbom=$(mktemp -d) ; pushd $_sbom
-        run_sbom_tools $_dist
-        zip sbom.zip *
-        popd
-        echo "_sbom=$_sbom" >> $GITHUB_ENV
+        assert_sbom() {
+          pushd $1
+          type=notice
+          _fmt "::$type ::assert_sbom: (likely incomplete)"$'\n'"$(tail -n +2 .sbom)"
+
+          tail -n +2 .cves | grep Warning && type=warning
+          tail -n +2 .cves | grep Critical && type=error
+          _fmt "::$type ::assert_cves: (may be incomplete)"$'\n'"$(tail -n +2 .cves)"
+
+          ret=$(cat .cves_ret)
+          popd ; rm -r $1
+          return "$ret"
+        }
+
+        _sbom=$(mktemp -d)
+        run_sbom_tools $_sbom $image_archive
+        assert_sbom $_sbom
+
+    - uses: cloudsmith-io/cloudsmith-cli-action@v1.0.4
+      if: ${{ inputs.cloudsmith-service-slug != '' && inputs.cloudsmith-service-slug != ' ' }}
+      with:
+        oidc-namespace: ${{ inputs.cloudsmith-namespace }}
+        oidc-service-slug: ${{ inputs.cloudsmith-service-slug }}
+        oidc-auth-only: 'true'
+
+    - name: Cloudsmith API Key
+      shell: bash
+      if: ${{ inputs.cloudsmith-service-slug == '' || inputs.cloudsmith-service-slug == ' ' }}
+      run: |
+        # Cloudsmith API Key
+        CLOUDSMITH_API_KEY=$(echo "${{ inputs.cloudsmith-api-key }}" | xargs)
+        echo "CLOUDSMITH_API_KEY=$CLOUDSMITH_API_KEY" >> "$GITHUB_ENV"
+
+    - name: Cloudsmith get assets
+      if: ${{ env.CLOUDSMITH_API_KEY != '' }}
+      shell: bash
+      run: |
+        # Cloudsmith get assets
+        curl -s -H "Authorization: Bearer ${{ inputs.gh-token }}" -L -o cloudsmith-api.sh \
+          https://raw.githubusercontent.com/analogdevicesinc/doctools/refs/heads/main/ci/cloudsmith-api.sh
+
+    - name: Cloudsmith upload container and create package
+      shell: bash
+      if: ${{ env.CLOUDSMITH_API_KEY != '' }}
+      run: |
+        # Cloudsmith upload container and create package
+        source ./cloudsmith-api.sh
+
+        # push: refs/heads/<branch>
+        # tag || release: refs/tags/<tag>
+        # pull_request: refs/pull/<id>/merge
+        tags_="${{ inputs.ref }}, on/${{ github.event_name }}"
+
+        package_file=$(
+          cs-package-upload ${{ env.CLOUDSMITH_API_KEY }} \
+                            ${{ inputs.cloudsmith-namespace }} \
+                            ${{ inputs.cloudsmith-repository }} \
+                            $image_archive \
+                            latest_package_file
+        )
+
+        cs-package-store-docker ${{ env.CLOUDSMITH_API_KEY }} \
+                                ${{ inputs.cloudsmith-namespace }} \
+                                ${{ inputs.cloudsmith-repository }} \
+                                $package_file \
+                                "$tags_"
 
     - name: Cloudsmith upload SBOM
       shell: bash
@@ -197,7 +238,7 @@ runs:
           cs-package-upload ${{ env.CLOUDSMITH_API_KEY }} \
                             ${{ inputs.cloudsmith-namespace }} \
                             ${{ inputs.cloudsmith-repository }} \
-                            "$_sbom/sbom.zip" \
+                            "$sbom_archive" \
                             latest_sbom_file
         )
 
@@ -209,29 +250,4 @@ runs:
                              "$tags_" \
                              "$version"
 
-    - name: Assert SBOM
-      shell: bash
-      if: ${{ inputs.sbom-cve == 'true' }}
-      run: |
-        # Assert SBOM
-        _fmt() {
-          msg=$(printf "%s" "$1" | sed ':a;N;$!ba;s/\n/%0A/g')
-          printf "%s\n" "$msg"
-        }
-
-        assert_sbom() {
-          pushd $_sbom
-          type=notice
-          _fmt "::$type ::assert_sbom:$'\n'$(tail -n +2 .sbom)"
-
-          tail -n +2 .cves | grep Warning && type=warning
-          tail -n +2 .cves | grep Critical && type=error
-          _fmt "::$type ::assert_cves:"$'\n'"$(tail -n +2 .cves)"
-
-          ret=$(cat .cves_ret)
-          popd ; rm -r $_sbom
-          return "$ret"
-        }
-
-        assert_sbom
 
