@@ -136,11 +136,6 @@ runs:
       if: ${{ inputs.sbom-cve == 'true' }}
       run: |
         # Run SBOM tools
-        _fmt() {
-          msg=$(printf "%s" "$1" | sed ':a;N;$!ba;s/\n/%0A/g')
-          printf "%s\n" "$msg"
-        }
-
         run_sbom_tools () {
           pushd $1
           syft --from file -o cyclonedx-json -o table "$2" > .sbom
@@ -160,12 +155,13 @@ runs:
 
         assert_sbom() {
           pushd $1
-          type=notice
-          _fmt "::$type ::assert_sbom: (likely incomplete)"$'\n'"$(tail -n +2 .sbom)"
+          echo "CVEs:"$'\n'\`\`\`$'\n'"$(tail -n +2 .cves)"$'\n'"\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "SBOM:"$'\n'\`\`\`$'\n'"$(tail -n +2 .sbom)"$'\n'"\`\`\`" >> $GITHUB_STEP_SUMMARY
 
-          tail -n +2 .cves | grep Warning && type=warning
-          tail -n +2 .cves | grep Critical && type=error
-          _fmt "::$type ::assert_cves: (may be incomplete)"$'\n'"$(tail -n +2 .cves)"
+          type=
+          tail -n +2 .cves | grep Medium && { type=warning ; level=Medium ;}
+          tail -n +2 .cves | grep High && { type=error ; level=High ;}
+          [ -n "$type" ] && echo "::$type ::assert_cves: CVE of level $level detected."
 
           ret=$(cat .cves_ret)
           popd ; rm -r $1
