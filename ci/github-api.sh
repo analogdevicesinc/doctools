@@ -8,7 +8,7 @@ gh-get-release-id()
     -H "X-GitHub-Api-Version: 2022-11-28" \
     "https://api.github.com/repos/$2/releases/tags/$3" \
     | jq -r .id)
-  echo "$4=$release_id" >> "$GITHUB_ENV"
+  [ -n "$4" ] && echo "$4=$release_id" >> "$GITHUB_ENV"
   echo $release_id
 }
 
@@ -20,7 +20,7 @@ gh-get-asset-id()
     -H "X-GitHub-Api-Version: 2022-11-28" \
     "https://api.github.com/repos/$2/releases/$3/assets" \
     | jq -r ".[] | select(.name==\"$4\") | .id")
-  echo "$5=$asset_id" >> "$GITHUB_ENV"
+  [ -n "$5" ] && echo "$5=$asset_id" >> "$GITHUB_ENV"
   echo $asset_id
 }
 
@@ -48,7 +48,7 @@ gh-create-release()
    "https://api.github.com/repos/$2/releases" \
    -d "{\"tag_name\":\"$3\",\"name\":\"$3\",\"make_latest\":\"true\"}" \
    | jq -r .id)
-  echo "$4=$release_id" >> "$GITHUB_ENV"
+  [ -n "$4" ] && echo "$4=$release_id" >> "$GITHUB_ENV"
   echo $release_id
 }
 
