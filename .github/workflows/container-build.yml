@@ -48,7 +48,7 @@ on:
         required: true
         type: string
     secrets:
-      CLOUDSMITH_SERVICE_SLUG:
+      CLOUDSMITH_SERVICE_SLUG_CONTAINERS:
         required: false
       CLOUDSMITH_API_KEY:
         required: false
@@ -67,12 +67,24 @@ jobs:
           ref: ${{ inputs.ref }}
 
       - uses: analogdevicesinc/doctools/container-build@action
+        id: container_build
         with:
-          organization: ${{ inputs.organization }}
-          image-name: ${{ inputs.image-name }}
-          ref: ${{ inputs.ref }}
+          image-name: adi/${{ inputs.repository }}
           containerfile: ${{ inputs.containerfile }}
-          cloudsmith-namespace: ${{ vars.CLOUDSMITH_NAMESPACE }}
-          cloudsmith-repository: ${{ vars.CLOUDSMITH_REPOSITORY_CONTAINERS }}
-          cloudsmith-service-slug: ${{ secrets.CLOUDSMITH_SERVICE_SLUG }}
-          cloudsmith-api-key: ${{ secrets.CLOUDSMITH_API_KEY }}
+
+      - uses: analogdevicesinc/doctools/cloudsmith-upload-container@action
+        with:
+          path: ${{ steps.container_build.outputs.image_archive }}
+          namespace: ${{ vars.CLOUDSMITH_NAMESPACE }}
+          repository: ${{ vars.CLOUDSMITH_REPOSITORY_CONTAINERS }}
+          api-key: ${{ secrets.CLOUDSMITH_API_KEY }}
+          service-slug: ${{ secrets.CLOUDSMITH_SERVICE_SLUG_CONTAINERS }}
+
+      - uses: analogdevicesinc/doctools/cloudsmith-upload-raw@action
+        with:
+          path: ${{ steps.container_build.outputs.image_archive }}
+          version: ${{ steps.container_build.outputs.version }}
+          namespace: ${{ vars.CLOUDSMITH_NAMESPACE }}
+          repository: ${{ vars.CLOUDSMITH_REPOSITORY_CONTAINERS }}
+          api-key: ${{ secrets.CLOUDSMITH_API_KEY }}
+          service-slug: ${{ secrets.CLOUDSMITH_SERVICE_SLUG_CONTAINERS }}
