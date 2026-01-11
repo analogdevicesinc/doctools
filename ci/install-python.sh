@@ -6,13 +6,13 @@ set -e
 zypper install -y --no-recommends \
     gcc awk libffi-devel findutils
 
-PYTHON_MIN=$1
-PYTHON_MIN_SHA=$3
-curl -o python.tar.xz -L https://www.python.org/ftp/python/$PYTHON_MIN/Python-$PYTHON_MIN.tar.xz
-echo "$PYTHON_MIN_SHA python.tar.xz" | md5sum -c
+PYTHON_VERSION=$1
+PYTHON_SHA=$3
+curl -o python.tar.xz -L https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tar.xz
+echo "$PYTHON_SHA python.tar.xz" | sha256sum -c
 
 tar xf python.tar.xz
-cd Python-$PYTHON_MIN
+cd Python-$PYTHON_VERSION
 
 ./configure \
     --prefix=/opt/python/$1 \

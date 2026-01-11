@@ -40,14 +40,14 @@ RUN npm config set fund false
 COPY install-python.sh .
 RUN chmod +x install-python.sh ; \
     ./install-python.sh \
-        3.13.2 \
+        3.13.9 \
         3.13 \
-        4c2d9202ab4db02c9d0999b14655dfe5
+        ed5ef34cda36cfa2f3a340f07cac7e7814f91c7f3c411f6d3562323a866c5c66
 RUN chmod +x install-python.sh ; \
     ./install-python.sh \
         3.8.20 \
         3.8 \
-        745478c81d6382cf46b5e7ad89e56008
+        6fb89a7124201c61125c0ab4cf7f6894df339a40c02833bfd28ab4d7691fafb4
 
 RUN mkdir -p /usr/local/bin
 WORKDIR /usr/local/bin
