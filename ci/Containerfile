@@ -17,7 +17,7 @@ WORKDIR /home/runner/actions-runner
 
 RUN curl -o actions-runner.tar.gz -L https://github.com/actions/runner/releases/download/v${runner_version}/actions-runner-linux-x64-${runner_version}.tar.gz && \
     echo "${runner_version_sha} actions-runner.tar.gz" | sha256sum -c && \
-    tar xzf actions-runner.tar.gz
+    tar xzf actions-runner.tar.gz && rm actions-runner.tar.gz
 
 USER root
 
@@ -48,6 +48,7 @@ RUN chmod +x install-python.sh ; \
         3.8.20 \
         3.8 \
         6fb89a7124201c61125c0ab4cf7f6894df339a40c02833bfd28ab4d7691fafb4
+RUN rm install-python.sh
 
 RUN mkdir -p /usr/local/bin
 WORKDIR /usr/local/bin
