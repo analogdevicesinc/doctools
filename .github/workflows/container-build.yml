@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       organization:
-        description: 'Organization name'
+        description: 'Organization name (analogdevicesinc, ...)'
         required: true
         type: string
       repository:
@@ -12,8 +12,8 @@ on:
         required: true
         type: string
       image-name:
-        description: 'Image name'
-        required: true
+        description: 'Image name (optional, defaults to adi/<repository>)'
+        required: false
         type: string
       ref:
         description: 'Branch/tag ref to checkout'
@@ -36,7 +36,7 @@ on:
         type: string
       image-name:
         description: 'Image name'
-        required: true
+        required: false
         type: string
       ref:
         description: 'Branch/tag ref to checkout'
@@ -69,7 +69,7 @@ jobs:
       - uses: analogdevicesinc/doctools/container-build@action
         id: container_build
         with:
-          image-name: adi/${{ inputs.repository }}
+          image-name: ${{ inputs.image-name || format('adi/{0}', inputs.repository) }}
           containerfile: ${{ inputs.containerfile }}
 
       - uses: analogdevicesinc/doctools/cloudsmith-upload-container@action
