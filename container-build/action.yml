@@ -6,7 +6,7 @@ inputs:
     description: 'GitHub Token'
     default: ${{ github.token }}
   image-name:
-    description: 'Image name, can be the repository name'
+    description: 'Image name, for example, adi/<repository>'
     required: true
   sbom-cve:
     description: 'Generate SBOM assert CVEs'

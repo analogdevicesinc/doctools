@@ -10,7 +10,7 @@ Inputs
 ------
 
 - `gh-token` (optional, default: `${{ github.token }}`): GitHub Token
-- `image-name` (required): Image name, can be the repository name
+- `image-name` (required): Image name, for example, `adi/<repository>`
 - `containerfile` (required): Path to the Containerfile
 - `sbom-cve` (optional, default: true): Generate SBOM and assert CVEs
 
