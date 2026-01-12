@@ -5,6 +5,7 @@ from .hdl_render import hdl_render
 from .hdl_gen import hdl_gen
 from .aggregate import aggregate
 from .custom_doc import custom_doc
+from .search import search
 
 
 class AliasGroup(click.Group):
@@ -36,7 +37,8 @@ commands = [
     hdl_render,
     hdl_gen,
     aggregate,
-    custom_doc
+    custom_doc,
+    search,
 ]
 
 for cmd in commands:

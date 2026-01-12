@@ -1,0 +1,821 @@
+"""Search searchindex.js and relate to objects.inv
+Translated to python from
+./adi_doctools/themes/harmonic/scripts/search.js
+That is a fork from sphinx provided search.
+"""
+
+import asyncio
+import json
+import re
+import shutil
+import sys
+from concurrent.futures import ThreadPoolExecutor
+from html.parser import HTMLParser
+from io import StringIO
+from urllib.request import urlopen
+from urllib.error import URLError
+from urllib.parse import urljoin
+
+import click
+import snowballstemmer
+
+from ..lut import repos, remote_doc
+
+from pathlib import Path
+from sphinx.ext.intersphinx._load import _fetch_inventory, _InvConfig
+
+
+BLUE = '\033[94m'
+RESET = '\033[0m'
+
+STOPWORDS = {
+    'a', 'and', 'are', 'as', 'at',
+    'be', 'but', 'by',
+    'for',
+    'if', 'in', 'into', 'is', 'it',
+    'near', 'no', 'not',
+    'of', 'on', 'or',
+    'such',
+    'that', 'the', 'their', 'then', 'there', 'these', 'they', 'this', 'to',
+    'was', 'will', 'with',
+}
+
+SCORE_TITLE = 15
+SCORE_PARTIAL_TITLE = 8
+SCORE_TERM = 5
+SCORE_PARTIAL_TERM = 2
+
+
+def get_terminal_width():
+    """Get the current terminal width."""
+    return shutil.get_terminal_size().columns
+
+
+def get_terminal_height():
+    """Get the current terminal height."""
+    return shutil.get_terminal_size().lines
+
+
+def calculate_limit_from_terminal():
+    """Calculate result limit based on terminal height.
+
+    Estimates ~5 lines per result on average:
+    - Title line
+    - URL line
+    - References line (combined label refs + doc ref, may wrap)
+    - Summary line
+    - Blank line
+
+    Also accounts for ~10 lines of header overhead (search progress, result count, etc).
+
+    Returns:
+        int: Calculated limit, minimum of 3
+    """
+    height = get_terminal_height()
+    limit = max(3, (height - 10) // 5)
+    return limit
+
+
+def calculate_wrapped_lines(text, width):
+    """Calculate how many lines text will take when wrapped."""
+    if not text:
+        return 1
+
+    # Strip ANSI codes
+    ansi_escape = re.compile(r'\x1b\[[0-9;]*m|\x1b\]8;;[^\x1b]*\x1b\\|\x1b\]8;;\x1b\\')
+    visible_text = ansi_escape.sub('', text)
+    visible_length = len(visible_text)
+
+    return max(1, (visible_length + width - 1) // width)
+
+
+def truncate_text(text, max_chars):
+    """Truncate text to fit within max characters."""
+    # Strip ANSI codes
+    ansi_escape = re.compile(r'\x1b\[[0-9;]*m')
+    visible_text = ansi_escape.sub('', text)
+
+    # If visible text fits, return original
+    if len(visible_text) <= max_chars:
+        return text
+
+    # Need to truncate - find position in original text that gives us max_chars visible chars
+    # We need to account for ANSI codes while counting and track formatting state
+    visible_count = 0
+    pos = 0
+    in_escape = False
+    formatting_active = False
+    escape_start = 0
+
+    for i, char in enumerate(text):
+        if char == '\x1b':
+            in_escape = True
+            escape_start = i
+        elif in_escape and char == 'm':
+            in_escape = False
+            # Check what code this was
+            escape_code = text[escape_start:i+1]
+            if escape_code == '\x1b[0m':
+                formatting_active = False
+            else:
+                # Any other escape code activates formatting
+                formatting_active = True
+        elif not in_escape:
+            if visible_count >= max_chars - 3:  # Leave room for "..."
+                pos = i
+                break
+            visible_count += 1
+    else:
+        pos = len(text)
+
+    # Truncate at the position and add ellipsis
+    truncated = text[:pos] + "..."
+
+    # Only add reset if we're currently in a formatted state
+    # (i.e., formatting was opened but not reset before truncation)
+    if formatting_active:
+        truncated += '\x1b[0m'
+
+    return truncated
+
+
+def move_cursor_up(lines):
+    """Move cursor up by specified number of lines."""
+    if lines > 0 and sys.stdout.isatty():
+        sys.stdout.write(f'\033[{lines}A')
+        sys.stdout.flush()
+
+
+def move_cursor_down(lines):
+    """Move cursor down by specified number of lines."""
+    if lines > 0 and sys.stdout.isatty():
+        sys.stdout.write(f'\033[{lines}B')
+        sys.stdout.flush()
+
+
+def clear_line():
+    """Clear the current line."""
+    if sys.stdout.isatty():
+        sys.stdout.write('\r\033[2K')
+        sys.stdout.flush()
+
+
+def make_clickable_link(url, display_text=None):
+    """Create a clickable terminal link using OSC 8."""
+    if display_text is None:
+        display_text = url
+
+    if not sys.stdout.isatty():
+        # In non-TTY mode, just return the display text (no hyperlink codes)
+        return display_text
+
+    # OSC 8 format: \033]8;;URL\033\\DISPLAY_TEXT\033]8;;\033\\
+    return f"\033]8;;{url}\033\\{display_text}\033]8;;\033\\"
+
+
+def extract_path_from_url(url):
+    """Extract a pathname from URL for display."""
+    if '://' in url:
+        path = url.split('://', 1)[1]
+    else:
+        path = url
+
+    if '/' in path:
+        parts = path.split('/', 1)
+        if len(parts) > 1:
+            path = parts[1]
+
+    if '#' in path:
+        path = path.split('#')[0]
+
+    if path.endswith('.html'):
+        path = path[:-5]
+
+    return path
+
+
+
+class HTMLTextExtractor(HTMLParser):
+    """Extract text content from HTML, skipping scripts and styles."""
+
+    def __init__(self):
+        super().__init__()
+        self.text = StringIO()
+        self.skip = False
+
+    def handle_starttag(self, tag, attrs):
+        if tag in ('script', 'style'):
+            self.skip = True
+
+    def handle_endtag(self, tag):
+        if tag in ('script', 'style'):
+            self.skip = False
+
+    def handle_data(self, data):
+        if not self.skip:
+            self.text.write(data)
+
+    def get_text(self):
+        return self.text.getvalue()
+
+
+def fetch_search_index(url):
+    """Fetch and parse searchindex.js from URL."""
+    try:
+        with urlopen(url, timeout=30) as response:
+            content = response.read().decode('utf-8')
+    except URLError as e:
+        raise URLError(f"Failed to fetch {url}: {e.reason}")
+
+    match = re.search(r'Search\.setIndex\((.*)\)', content, re.DOTALL)
+    if not match:
+        raise ValueError("Could not find Search.setIndex() in searchindex.js")
+
+    json_str = match.group(1)
+    try:
+        return json.loads(json_str)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Failed to parse searchindex.js JSON: {e}")
+
+
+def fetch_intersphinx_inventory(base_url):
+    """Fetch and parse intersphinx objects.inv file."""
+    if not base_url.endswith('/'):
+        base_url += '/'
+
+    inv_url = base_url + 'objects.inv'
+
+    config = _InvConfig(
+        intersphinx_cache_limit=5,
+        intersphinx_timeout=10,
+        tls_verify=False,
+        tls_cacerts=None,
+        user_agent='',
+    )
+
+    inv = _fetch_inventory(
+        target_uri='',
+        inv_location=inv_url,
+        config=config,
+        srcdir=Path(),
+    )
+
+    return inv
+
+
+def get_intersphinx_references(inventory, docname, repo_name, base_url):
+    """Get intersphinx references for a document."""
+    if not inventory:
+        return {'doc_ref': None, 'label_refs': []}
+
+    result = {'doc_ref': None, 'label_refs': []}
+
+    if 'std:doc' in inventory.data and docname in inventory.data['std:doc']:
+        if repo_name:
+            result['doc_ref'] = f":external+{repo_name}:doc:`{docname}`"
+        else:
+            result['doc_ref'] = f":std:doc:`{docname}`"
+
+    if 'std:label' in inventory.data:
+        doc_uri_prefix = f"{docname}.html#"
+
+        for label_name, inv_item in inventory.data['std:label'].items():
+            if inv_item.uri.startswith(doc_uri_prefix):
+                full_url = urljoin(base_url, inv_item.uri)
+
+                if repo_name:
+                    ref_text = f":external+{repo_name}:ref:`{label_name}`"
+                else:
+                    ref_text = f":std:label:`{label_name}`"
+
+                result['label_refs'].append((ref_text, label_name, full_url))
+
+    return result
+
+
+def get_base_url(searchindex_url):
+    """Extract base documentation URL from searchindex.js URL."""
+    return searchindex_url.rsplit('/', 1)[0] + '/'
+
+
+def stem_query(query_terms, stemmer):
+    """Stem query terms and filter stopwords."""
+    stemmed = []
+    for term in query_terms:
+        term_lower = term.lower()
+        if term_lower not in STOPWORDS:
+            stemmed.append(stemmer.stemWord(term_lower))
+    return stemmed
+
+
+def extract_html_text(html_content, anchor=None):
+    """Extract text from HTML content."""
+    try:
+        # Try to find [role="main"] section
+        main_match = re.search(r'<[^>]+role=["\']main["\'][^>]*>(.*)',
+                              html_content, re.DOTALL | re.IGNORECASE)
+
+        if main_match:
+            content = main_match.group(1)
+        else:
+            content = html_content
+
+        # If anchor specified, try to extract that section
+        if anchor:
+            anchor_id = anchor.lstrip('#')
+            patterns = [
+                rf'<[^>]+id=["\']?{re.escape(anchor_id)}["\']?[^>]*>(.*?)(?=<h[1-6][^>]*>|</section>|</div>|$)',
+                rf'id=["\']?{re.escape(anchor_id)}["\']?[^>]*>([^<]*.*?)(?=<h[1-6]|</(?:div|section)|$)',
+            ]
+
+            for pattern in patterns:
+                anchor_match = re.search(pattern, content, re.DOTALL | re.IGNORECASE)
+                if anchor_match:
+                    content = anchor_match.group(1)
+                    break
+
+        extractor = HTMLTextExtractor()
+        extractor.feed(content)
+        text = extractor.get_text()
+
+        text = re.sub(r'\s+', ' ', text).strip()
+        return text
+    except Exception:
+        return ""
+
+
+def get_summary(html_content, query_terms, anchor=None):
+    """Extract a summary from HTML content around the first matching keyword."""
+    text = extract_html_text(html_content, anchor)
+    if not text:
+        return None
+
+    text_lower = text.lower()
+
+    positions = []
+    for term in query_terms:
+        term_lower = term.lower()
+        pos = text_lower.find(term_lower)
+        if pos >= 0:
+            positions.append(pos)
+
+    if not positions:
+        start_pos = 0
+    else:
+        start_pos = max(min(positions) - 120, 0)
+
+    summary = text[start_pos:start_pos + 240].strip()
+
+    for term in query_terms:
+        if term.lower() in STOPWORDS:
+            continue
+        pattern = re.compile(re.escape(term), re.IGNORECASE)
+        summary = pattern.sub(lambda m: click.style(m.group(), fg='yellow'), summary)
+
+    prefix = "..." if start_pos > 0 else ""
+    suffix = "..." if start_pos + 240 < len(text) else ""
+
+    summary = prefix + summary + suffix
+
+    return summary
+
+
+def search_index(index_data, query_terms, stemmer):
+    """Search the index for query terms."""
+    results = {}
+
+    docnames = index_data.get('docnames', [])
+    titles = index_data.get('titles', [])
+    alltitles = index_data.get('alltitles', {})
+    titleterms = index_data.get('titleterms', {})
+    terms = index_data.get('terms', {})
+
+    # Stem query terms
+    stemmed_terms = stem_query(query_terms, stemmer)
+    if not stemmed_terms:
+        return results
+
+    query_lower = ' '.join(term.lower() for term in query_terms)
+
+    # 1. Search in alltitles (exact and partial title matches)
+    for title_text, occurrences in alltitles.items():
+        title_lower = title_text.lower()
+
+        # Check for exact match of full query
+        if query_lower in title_lower:
+            score = SCORE_TITLE
+            if query_lower == title_lower:
+                score = SCORE_TITLE + 5  # Bonus for exact match
+            elif title_lower.startswith(query_lower):
+                score = SCORE_TITLE + 2  # Bonus for prefix match
+            else:
+                score = SCORE_PARTIAL_TITLE
+
+            for file_id, anchor in occurrences:
+                if file_id < len(docnames):
+                    docname = docnames[file_id]
+                    key = (docname, anchor)
+                    if key not in results or results[key][1] < score:
+                        results[key] = (title_text, score)
+
+        # Check for individual term matches in title
+        else:
+            matched_terms = sum(1 for term in query_terms if term.lower() in title_lower)
+            if matched_terms > 0:
+                # Score based on proportion of query terms found
+                score = int(SCORE_PARTIAL_TITLE * (matched_terms / len(query_terms)))
+                for file_id, anchor in occurrences:
+                    if file_id < len(docnames):
+                        docname = docnames[file_id]
+                        key = (docname, anchor)
+                        if key not in results or results[key][1] < score:
+                            results[key] = (title_text, score)
+
+    # 2. Search in titleterms (stemmed title keywords)
+    for stemmed_term in stemmed_terms:
+        if stemmed_term in titleterms:
+            file_ids = titleterms[stemmed_term]
+            if isinstance(file_ids, list):
+                for file_id in file_ids:
+                    if file_id < len(titles) and file_id < len(docnames):
+                        title = titles[file_id]
+                        docname = docnames[file_id]
+                        key = (docname, None)
+                        score = SCORE_PARTIAL_TITLE
+                        if key not in results or results[key][1] < score:
+                            results[key] = (title, score)
+
+    # 3. Search in terms (full-text stemmed keywords)
+    for stemmed_term in stemmed_terms:
+        if stemmed_term in terms:
+            file_ids = terms[stemmed_term]
+            if isinstance(file_ids, list):
+                for file_id in file_ids:
+                    if file_id < len(titles) and file_id < len(docnames):
+                        title = titles[file_id]
+                        docname = docnames[file_id]
+                        key = (docname, None)
+                        # Only add if not already found with higher score
+                        score = SCORE_TERM
+                        if key not in results or results[key][1] < score:
+                            results[key] = (title, score)
+
+    return results
+
+
+def format_results_sync(results, base_url, limit):
+    """Format and sort search results (without summaries)."""
+    formatted = []
+
+    for (docname, anchor), (title, score) in results.items():
+        url = urljoin(base_url, f"{docname}.html")
+        if anchor:
+            url += f"#{anchor}"
+
+        formatted.append((title, url, score))
+
+    formatted.sort(key=lambda x: (-x[2], x[0].lower()))
+
+    return formatted[:limit]
+
+
+async def fetch_single_summary(url, query_terms, anchor, executor):
+    """Fetch and extract summary for a single result."""
+    loop = asyncio.get_event_loop()
+
+    def fetch_sync():
+        try:
+            with urlopen(url, timeout=10) as response:
+                html_content = response.read().decode('utf-8')
+                return get_summary(html_content, query_terms, anchor)
+        except Exception:
+            return None
+
+    return await loop.run_in_executor(executor, fetch_sync)
+
+
+async def update_result_summary(result_num, url, query_terms, anchor, result_line_counts, terminal_width, executor):
+    """Fetch summary and update the display for one result."""
+    summary = await fetch_single_summary(url, query_terms, anchor, executor)
+
+    if not sys.stdout.isatty():
+        if summary:
+            click.echo(f"   [{result_num}] {summary}")
+        return
+
+    max_summary_chars = terminal_width - 3
+    if summary:
+        summary = truncate_text(summary, max_summary_chars)
+    else:
+        summary = "(summary unavailable)"
+
+    # Calculate lines to move back from bottom
+    # We need to:
+    # 1. Skip all results AFTER this one: sum(result_line_counts[result_num:])
+    # 2. Skip this result's blank line: +1
+    # 3. Get to this result's summary line: +1 (summary line itself)
+    # Total: sum(result_line_counts[result_num:]) + 2
+
+    # Note: result_num is 1-indexed (1, 2, 3, ...), but result_line_counts is 0-indexed
+    # result_line_counts[result_num:] correctly gives all results after this one
+    lines_back = sum(result_line_counts[result_num:]) + 2
+
+    # Move cursor to summary line for this result
+    move_cursor_up(lines_back)
+
+    # Clear and write summary
+    clear_line()
+    sys.stdout.write(f"   {summary}")
+    # Explicitly write a reset code to ensure no color bleeding
+    sys.stdout.write('\033[0m')
+    sys.stdout.flush()
+
+    # Move cursor back to bottom
+    move_cursor_down(lines_back)
+
+
+async def fetch_and_display_summaries(formatted_results, query_terms, base_url, result_line_counts, terminal_width):
+    """Fetch summaries asynchronously and update display."""
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        tasks = []
+        for i, (title, url, score) in enumerate(formatted_results, 1):
+            anchor = None
+            if '#' in url:
+                url_parts = url.split('#', 1)
+                anchor = '#' + url_parts[1]
+
+            task = update_result_summary(i, url, query_terms, anchor, result_line_counts, terminal_width, executor)
+            tasks.append(task)
+
+        await asyncio.gather(*tasks)
+
+
+@click.command()
+@click.option(
+    '--url',
+    help='Explicit url to documentation (searchindex.js)'
+)
+@click.option(
+    '--repo',
+    help='Repository name(s), comma-separated (e.g., "documentation,hdl,no-OS"), "all" searches all repositories.'
+)
+@click.option(
+    '--limit',
+    default=None,
+    type=int,
+    help='Maximum number of results to show (default: auto-calculated based on terminal height)'
+)
+@click.option(
+    '--verbose', '-v',
+    is_flag=True,
+    help='Show result scores'
+)
+@click.argument('query', nargs=-1, required=True)
+def search(url, repo, limit, verbose, query):
+    """Search Sphinx documentation using searchindex.js.
+
+    Fetches the search index from a Sphinx-generated documentation site
+    and searches for the given query terms. Uses the same search algorithm
+    as Sphinx's JavaScript search, including Porter stemming and stopword
+    filtering.
+
+    Results are displayed immediately with summaries loaded asynchronously.
+
+    If neither --url nor --repo is specified, searches all known repositories.
+
+    Examples:
+
+        adoc search ad9084 profile
+
+        adoc search --repo documentation -- sphinx tutorial
+
+        adoc search --repo documentation,hdl,no-OS -- axi
+
+        adoc search --url https://www.sphinx-doc.org/en/master/searchindex.js -- sphinx tutorial
+
+        adoc search --repo hdl --limit 10 -- axi
+    """
+    if url and repo:
+        click.echo("Error: Cannot specify both --url and --repo", err=True)
+        raise click.Abort()
+
+    if url and not url.endswith('searchindex.js'):
+        if not url.endswith('/'):
+            url += '/'
+        url += 'searchindex.js'
+
+    if not url and not repo:
+        repo = 'all'
+
+    if limit is None:
+        limit = calculate_limit_from_terminal()
+
+    repo_sources = []  # List of (repo_name, url) tuples
+    if repo:
+        if repo.strip() == 'all':
+            repo_names = sorted(repos.keys())
+            click.echo(f"Searching {len(repo_names)} repositories...")
+        else:
+            repo_names = [r.strip() for r in repo.split(',')]
+
+            unknown_repos = [r for r in repo_names if r not in repos]
+            if unknown_repos:
+                click.echo(f"Error: Unknown repository(ies): {' '.join(unknown_repos)}", err=True)
+                click.echo(f"Available repositories: {' '.join(sorted(repos.keys()))}", err=True)
+                raise click.Abort()
+
+        for repo_name in repo_names:
+            repo_url = f"{remote_doc}/{repo_name}/searchindex.js"
+            repo_sources.append((repo_name, repo_url))
+    else:
+        repo_sources = [(None, url)]
+
+    query_str = ' '.join(query)
+
+    stemmer = snowballstemmer.stemmer('porter')
+
+    try:
+        all_results = []
+
+        for repo_name, repo_url in repo_sources:
+            if len(repo_sources) > 1:
+                click.echo(f"Fetching search index from {repo_name}...")
+            else:
+                click.echo(f"Fetching search index from {repo_url}...")
+
+            try:
+                index_data = fetch_search_index(repo_url)
+                base_url = get_base_url(repo_url)
+
+                inventory = fetch_intersphinx_inventory(base_url)
+                results = search_index(index_data, query, stemmer)
+
+                for (docname, anchor), (title, score) in results.items():
+                    result_url = urljoin(base_url, f"{docname}.html")
+                    if anchor:
+                        result_url += f"#{anchor}"
+
+                    refs = get_intersphinx_references(inventory, docname, repo_name, base_url)
+
+                    all_results.append({
+                        'repo': repo_name,
+                        'title': title,
+                        'url': result_url,
+                        'score': score,
+                        'anchor': anchor,
+                        'docname': docname,
+                        'doc_ref': refs['doc_ref'],
+                        'label_refs': refs['label_refs']
+                    })
+
+            except Exception as e:
+                click.echo(f"Warning: Failed to search {repo_name or repo_url}: {e}", err=True)
+                continue
+
+        if not all_results:
+            click.echo(f"\nNo results found for \"{query_str}\"")
+            return
+
+        all_results.sort(key=lambda x: (-x['score'], x['title'].lower()))
+        total = len(all_results)
+        click.echo(f"\nFound {total} result{'s' if total != 1 else ''} for \"{query_str}\"")
+
+        all_results = all_results[:limit]
+
+        formatted_results = [(r['title'], r['url'], r['score'], r['repo'], r['doc_ref'], r['label_refs'], r['docname']) for r in all_results]
+        showing = len(formatted_results)
+
+        if showing < total:
+            click.echo(f"Top {showing} results:\n")
+        else:
+            click.echo()
+
+        terminal_width = get_terminal_width()
+
+        result_line_counts = []
+        for i, (title, url, score, repo_name, doc_ref, label_refs, docname) in enumerate(formatted_results, 1):
+            # TTY: blue color, no numbering
+            # Non-TTY: numbering [1], [2], etc. for matching with summaries at bottom
+            if sys.stdout.isatty():
+                blue = BLUE
+                reset = RESET
+                number_prefix = ""
+            else:
+                blue = ""
+                reset = ""
+                number_prefix = f"[{i}] "
+
+            if verbose:
+                if len(repo_sources) > 1 and repo_name:
+                    title_line = f"{number_prefix}{blue}[Score: {score}] [{repo_name}] {title}{reset}"
+                else:
+                    title_line = f"{number_prefix}{blue}[Score: {score}] {title}{reset}"
+            else:
+                if len(repo_sources) > 1 and repo_name:
+                    title_line = f"{number_prefix}{blue}[{repo_name}] {title}{reset}"
+                else:
+                    title_line = f"{number_prefix}{blue}{title}{reset}"
+
+            refs_parts = []
+
+            if label_refs:
+                clickable_refs = []
+                for ref_text, label_name, full_url in label_refs:
+                    clickable_ref = make_clickable_link(full_url, ref_text)
+                    clickable_refs.append(clickable_ref)
+                refs_parts.extend(clickable_refs)
+
+            if doc_ref:
+                clickable_doc_ref = make_clickable_link(url, doc_ref)
+                refs_parts.append(clickable_doc_ref)
+
+            if refs_parts:
+                # Strip ANSI codes
+                ansi_escape = re.compile(r'\x1b\[[0-9;]*m|\x1b\]8;;[^\x1b]*\x1b\\|\x1b\]8;;\x1b\\')
+
+                max_width = terminal_width - 3  # Account for "   " prefix
+                included_refs = []
+                current_length = 0
+
+                for ref in refs_parts:
+                    visible_ref = ansi_escape.sub('', ref)
+                    ref_length = len(visible_ref)
+
+                    separator_length = 1 if included_refs else 0
+
+                    # Check if adding this ref would exceed width
+                    if current_length + separator_length + ref_length <= max_width:
+                        included_refs.append(ref)
+                        current_length += separator_length + ref_length
+                    else:
+                        # Would exceed width, stop adding refs
+                        break
+
+                # Build the final refs line
+                if included_refs:
+                    # If we dropped refs and " ..." doesn't fit, drop refs from the end until it does
+                    if len(included_refs) < len(refs_parts):
+                        ellipsis_length = 4  # len(" ...")
+                        while included_refs and current_length + ellipsis_length > max_width:
+                            dropped_ref = included_refs.pop()
+                            visible_dropped = ansi_escape.sub('', dropped_ref)
+                            if included_refs:
+                                current_length -= len(visible_dropped) + 1  # +1 for " "
+                            else:
+                                current_length -= len(visible_dropped)
+
+                    if included_refs:
+                        refs_text = ' '.join(included_refs)
+                        if len(included_refs) < len(refs_parts):
+                            refs_text += " ..."
+                        refs_line = f"   {click.style(refs_text, dim=True)}"
+                    else:
+                        refs_line = ""
+                else:
+                    refs_line = ""
+            else:
+                refs_line = ""
+
+            url_line = f"   {url}"
+
+            # In non-TTY mode, summaries are printed at the bottom
+            if sys.stdout.isatty():
+                summary_line = "   Loading summary..."
+                show_summary_line = True
+            else:
+                summary_line = ""
+                show_summary_line = False
+
+            # Calculate how many physical lines this result will take
+            # Structure: title + url + refs (may wrap if long) + [summary] + blank
+            lines_count = calculate_wrapped_lines(title_line, terminal_width)
+            lines_count += calculate_wrapped_lines(url_line, terminal_width)
+            lines_count += calculate_wrapped_lines(refs_line, terminal_width)
+            if show_summary_line:
+                lines_count += 1  # summary line (TTY only)
+            lines_count += 1  # blank line
+
+            result_line_counts.append(lines_count)
+
+            click.echo(title_line)
+            click.echo(url_line)
+            click.echo(refs_line)
+            if show_summary_line:
+                click.echo(summary_line)
+            click.echo()
+
+        formatted_for_async = [(title, url, score) for title, url, score, _, _, _, _ in formatted_results]
+        asyncio.run(fetch_and_display_summaries(formatted_for_async, query, None, result_line_counts, terminal_width))
+
+        if sys.stdout.isatty():
+            click.echo()
+
+    except URLError as e:
+        click.echo(f"Error: {e}", err=True)
+        raise click.Abort()
+    except ValueError as e:
+        click.echo(f"Error: {e}", err=True)
+        raise click.Abort()
+    except Exception as e:
+        click.echo(f"Unexpected error: {e}", err=True)
+        raise click.Abort()
