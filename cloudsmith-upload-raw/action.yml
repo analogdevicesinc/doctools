@@ -74,7 +74,7 @@ runs:
 
     - name: Cloudsmith upload raw
       shell: bash
-      if: ${{ inputs.sbom-cve == 'true' && env.CLOUDSMITH_API_KEY != '' }}
+      if: ${{ env.CLOUDSMITH_API_KEY != '' }}
       run: |
         # Cloudsmith upload raw
         source ./cloudsmith-api.sh
