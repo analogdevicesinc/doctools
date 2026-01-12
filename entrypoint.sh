@@ -55,7 +55,7 @@ function get_runner_token () {
 get_runner_token
 
 if [[ -z "$name_label_" ]]; then
-    name_label_=$(echo $runner_token_ | sha3sum -a 256 | head -c4)
+    name_label_=$(echo $runner_token_ | sha256sum | head -c4)
 fi
 
 name=$(echo $org_repository_ | sed 's|/|-|g')-$name_label_
