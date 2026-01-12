@@ -37,6 +37,7 @@ runs:
       id: get_tags
       shell: bash
       run: |
+        # Get tags
         if [[ -n "${{ inputs.tags }}" ]]; then
           echo "tags=${{ inputs.tags }}" >> "$GITHUB_OUTPUT"
         else
