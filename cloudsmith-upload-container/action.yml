@@ -13,10 +13,10 @@ inputs:
     required: false
   namespace:
     description: 'Cloudsmith namespace'
-    required: false
+    required: true
   repository:
     description: 'Cloudsmith repository name'
-    required: false
+    required: true
   api-key:
     description: 'Cloudsmith API Key'
     required: false
