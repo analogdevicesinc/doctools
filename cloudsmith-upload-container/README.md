@@ -23,7 +23,8 @@ Authentication
 - API Key: Provide `api-key`
 
 If `CLOUDSMITH_API_KEY` environment variable is set, OIDC and API Key set are
-skipped.
+skipped. Single space `' '` `service-slug` is considered empty, to allow
+overwriting organization-level secrets.
 
 Usage
 -----
