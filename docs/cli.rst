@@ -138,6 +138,40 @@ Why was Author Mode renamed to Serve?
 Solely to match other tools like ``mkdocs serve``, ``webpack serve``,
 ``npm run start``, ``hugo server``.
 
+.. _search-docs:
+
+Search docs
+-----------
+
+Search Sphinx documentations. Works by fetching the ``searchindex.json`` and
+``objects.inv`` Uses the same search algorithm as Sphinx's JavaScript search.
+
+For example:
+
+.. shell::
+
+   $ adoc search ad9084 profile
+    [documentation] AD9084
+    https://analogdevicesinc.github.io/documentation/software/iio-oscilloscope/ad9084/index.html
+    :external+documentation:ref:`ad9084 iio-oscilloscope` ...
+      AD9084 Capture Window Main receivers are handled by the axi-ad9081-rx-hpc
+      IIO device, The number of channels depend on the JESD mode (M) p...
+
+     [scopy] AD9084
+     https://analogdevicesinc.github.io/scopy/plugins/ad9084/ad9084.html
+     :external+scopy:ref:`ad9084` :external+scopy:doc:`plugins/ad9084/ad9084`
+       AD9084 Overview The AD9084 instrument for Scopy enables integration
+       and control of the Apollo MxFE platform within the Scopy soft...
+
+More examples:
+
+.. shell::
+
+   $ adoc search --repo documentation -- user guide
+   $ adoc search --repo documentation,hdl,no-OS -- axi
+   $ adoc search --url https://analogdevicesinc.github.io/hdl/2023_R2 -- ad4630
+   $ adoc search --repo hdl --limit 10 -- axi
+
 .. _custom-doc:
 
 Custom Doc
