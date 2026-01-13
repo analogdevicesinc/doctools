@@ -151,17 +151,17 @@ For example:
 .. shell::
 
    $ adoc search ad9084 profile
-    [documentation] AD9084
+    [1] [documentation] AD9084
     https://analogdevicesinc.github.io/documentation/software/iio-oscilloscope/ad9084/index.html
     :external+documentation:ref:`ad9084 iio-oscilloscope` ...
       AD9084 Capture Window Main receivers are handled by the axi-ad9081-rx-hpc
       IIO device, The number of channels depend on the JESD mode (M) p...
 
-     [scopy] AD9084
-     https://analogdevicesinc.github.io/scopy/plugins/ad9084/ad9084.html
-     :external+scopy:ref:`ad9084` :external+scopy:doc:`plugins/ad9084/ad9084`
-       AD9084 Overview The AD9084 instrument for Scopy enables integration
-       and control of the Apollo MxFE platform within the Scopy soft...
+    [2] [scopy] AD9084
+    https://analogdevicesinc.github.io/scopy/plugins/ad9084/ad9084.html
+    :external+scopy:ref:`ad9084` :external+scopy:doc:`plugins/ad9084/ad9084`
+      AD9084 Overview The AD9084 instrument for Scopy enables integration
+      and control of the Apollo MxFE platform within the Scopy soft...
 
 More examples:
 
@@ -171,6 +171,25 @@ More examples:
    $ adoc search --repo documentation,hdl,no-OS -- axi
    $ adoc search --url https://analogdevicesinc.github.io/hdl/2023_R2 -- ad4630
    $ adoc search --repo hdl --limit 10 -- axi
+
+Fetch source
+++++++++++++
+
+For a search, you can chain the ``adoc search --fetch`` command, for example:
+
+.. shell::
+
+   $ adoc search --fetch 1
+     Fetching source for: [2] EVAL-AD4060/AD4062-ARDZ
+     Repository: documentation
+     Document: solutions/reference-designs/ad4062-ardz/index
+
+     Source URL: https://.../reference-designs/ad4062-ardz/index.rst
+
+     .. collection:: EVAL-AD4060/AD4062-ARDZ
+        :subtitle: Evaluating the AD4060/AD4062 Compact, Low Power, 12-Bit/16-Bit, 2 MSPS Easy Drive SAR ADCs
+        :image: eval-angle.png
+        :label: eval user-guide
 
 .. _custom-doc:
 

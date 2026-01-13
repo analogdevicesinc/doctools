@@ -5,7 +5,9 @@ That is a fork from sphinx provided search.
 """
 
 import asyncio
+import hashlib
 import json
+import os
 import pickle
 import re
 import shutil
@@ -22,7 +24,7 @@ from urllib.parse import urljoin, urlparse
 import click
 import snowballstemmer
 
-from ..lut import repos, remote_doc
+from ..lut import repos, remote_doc, source_hostname_raw
 
 from pathlib import Path
 from sphinx import __version__ as __sphinx_version__
@@ -39,6 +41,7 @@ RESET = '\033[0m'
 
 CACHE_DIR = Path('/tmp/adoc.search')
 CACHE_VALIDITY = 600  # 10 minutes
+RESULTS_FILE = CACHE_DIR / f'last_results_{hashlib.md5(os.getcwd().encode()).hexdigest()}.json'
 
 STOPWORDS = {
     'a', 'and', 'are', 'as', 'at',
@@ -259,6 +262,172 @@ def save_error_to_cache(cache_path, error_type, url):
 
     with open(cache_path, 'w', encoding='utf-8') as f:
         json.dump(error_marker, f)
+
+
+def save_search_results(results):
+    """Save search results to temp file for --fetch option."""
+    RESULTS_FILE.parent.mkdir(parents=True, exist_ok=True)
+
+    results_data = []
+    for i, (title, url, score, repo_name, doc_ref, label_refs, docname) in enumerate(results, 1):
+        results_data.append({
+            'index': i,
+            'title': title,
+            'url': url,
+            'score': score,
+            'repo': repo_name,
+            'docname': docname,
+            'doc_ref': doc_ref
+        })
+
+    with open(RESULTS_FILE, 'w', encoding='utf-8') as f:
+        json.dump(results_data, f, indent=2)
+
+
+def load_search_results():
+    """Load previous search results from temp file."""
+    if not RESULTS_FILE.exists():
+        return None
+
+    try:
+        with open(RESULTS_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception:
+        return None
+
+
+def fetch_source_file(index):
+    """Fetch and display source file from previous search results."""
+    results = load_search_results()
+
+    if results is None:
+        click.echo("Error: No previous search results found. Run a search first.", err=True)
+        raise click.Abort()
+
+    result = None
+    for r in results:
+        if r['index'] == index:
+            result = r
+            break
+
+    if result is None:
+        click.echo(f"Error: No result found at index {index}. Valid indices: 1-{len(results)}", err=True)
+        raise click.Abort()
+
+    repo_name = result['repo']
+    docname = result['docname']
+
+    if not repo_name or repo_name not in repos:
+        click.echo(f"Error: Unknown source location for '{repo_name or 'unknown'}'.", err=True)
+        click.echo("  " + ", ".join(sorted(repos.keys())), err=True)
+        raise click.Abort()
+
+    repo_info = repos[repo_name]
+    pathname = repo_info['pathname']
+    branch = repo_info['branch']
+
+    # Construct the source file path
+    # docname is like "library/axi_dmac/index" -> "library/axi_dmac/index.rst"
+    # or could be other extensions
+    source_extensions = ['.rst', '.md']
+
+    click.echo(f"\n{BLUE}Fetching source for:{RESET} [{index}] {result['title']}")
+    click.echo(f"{BLUE}Repository:{RESET} {repo_name}")
+    click.echo(f"{BLUE}Document:{RESET} {docname}\n")
+
+    source_url = None
+    content = None
+
+    for ext in source_extensions:
+        # Build the full path: pathname/docname.ext
+        if pathname:
+            full_path = f"{pathname}/{docname}{ext}"
+        else:
+            full_path = f"{docname}{ext}"
+
+        # Use source_hostname_raw template
+        test_url = source_hostname_raw.format(
+            repository=repo_name,
+            branch=branch,
+            pathname=full_path
+        )
+
+        try:
+            response = urlopen(test_url)
+            content = response.read().decode('utf-8')
+            source_url = test_url
+            break
+        except HTTPError as e:
+            if e.code == 404:
+                continue
+            else:
+                raise
+        except Exception:
+            continue
+
+    if content is None:
+        click.echo(f"Error: Could not fetch source file. Tried extensions: {', '.join(source_extensions)}", err=True)
+        click.echo(f"URL: {result['url']}", err=True)
+        raise click.Abort()
+
+    include_pattern = re.compile(r'^\s*\.\.\s+include::\s+(.+?)\s*$', re.MULTILINE)
+    lines = [line for line in content.strip().split('\n') if line.strip() and not line.strip().startswith('..') or line.strip().startswith('.. include::')]
+
+    if len(lines) <= 1:
+        match = include_pattern.search(content)
+        if match:
+            include_path = match.group(1).strip()
+
+            # Resolve the include path relative to the current file
+            # The current file path is like "doc/sphinx/source/drivers/adc/ad405x.rst"
+            # The include path is like "../../../../../drivers/adc/ad405x/README.rst"
+
+            if pathname:
+                current_file_path = f"{pathname}/{docname}"
+            else:
+                current_file_path = docname
+
+            current_dir = '/'.join(current_file_path.split('/')[:-1]) if '/' in current_file_path else ''
+
+            if current_dir:
+                resolved_path = f"{current_dir}/{include_path}"
+            else:
+                resolved_path = include_path
+
+            path_parts = []
+            for part in resolved_path.split('/'):
+                if part == '..':
+                    if path_parts:
+                        path_parts.pop()
+                elif part and part != '.':
+                    path_parts.append(part)
+
+            resolved_path = '/'.join(path_parts)
+
+            included_url = source_hostname_raw.format(
+                repository=repo_name,
+                branch=branch,
+                pathname=resolved_path
+            )
+
+            try:
+                click.echo(f"{BLUE}Following include directive to:{RESET} {include_path}\n")
+                response = urlopen(included_url)
+                content = response.read().decode('utf-8')
+                source_url = included_url
+            except HTTPError as e:
+                if e.code == 404:
+                    click.echo("Warning: Could not fetch included file (404). Showing original content.", err=True)
+                    click.echo(f"Attempted URL: {included_url}\n", err=True)
+                else:
+                    click.echo(f"Warning: Could not fetch included file (HTTP {e.code}). Showing original content.", err=True)
+            except Exception as e:
+                click.echo(f"Warning: Could not fetch included file: {e}. Showing original content.", err=True)
+
+    click.echo(f"{BLUE}Source URL:{RESET} {source_url}\n")
+    click.echo("─" * get_terminal_width())
+    click.echo(content)
+    click.echo("─" * get_terminal_width())
 
 
 def get_inventory_cache_path(base_url):
@@ -726,8 +895,14 @@ async def fetch_and_display_summaries(formatted_results, query_terms, base_url, 
     is_flag=True,
     help='Show result scores'
 )
-@click.argument('query', nargs=-1, required=True)
-def search(url, repo, limit, verbose, query):
+@click.option(
+    '--fetch', '-f',
+    type=int,
+    default=None,
+    help='Fetch source file by index from previous search results'
+)
+@click.argument('query', nargs=-1, required=False)
+def search(url, repo, limit, verbose, fetch, query):
     """Search Sphinx documentation.
 
     Fetches the search index from a Sphinx-generated documentation site
@@ -743,7 +918,16 @@ def search(url, repo, limit, verbose, query):
         adoc search --repo documentation,hdl,no-OS -- axi
         adoc search --url https://analogdevicesinc.github.io/hdl/2023_R2 -- ad4630
         adoc search --repo hdl --limit 10 -- axi
+        adoc search --fetch 3  # Fetch source from previous search
     """
+    if fetch is not None:
+        fetch_source_file(fetch)
+        return
+
+    if not query:
+        click.echo("Error: Query is required", err=True)
+        raise click.Abort()
+
     if url and repo:
         click.echo("Error: Cannot specify both --url and --repo", err=True)
         raise click.Abort()
@@ -841,16 +1025,14 @@ def search(url, repo, limit, verbose, query):
 
         result_line_counts = []
         for i, (title, url, score, repo_name, doc_ref, label_refs, docname) in enumerate(formatted_results, 1):
-            # TTY: blue color, no numbering
-            # Non-TTY: numbering [1], [2], etc. for matching with summaries at bottom
             if sys.stdout.isatty():
                 blue = BLUE
                 reset = RESET
-                number_prefix = ""
             else:
                 blue = ""
                 reset = ""
-                number_prefix = f"[{i}] "
+
+            number_prefix = f"[{i}] "
 
             if verbose:
                 if len(repo_sources) > 1 and repo_name:
@@ -954,11 +1136,15 @@ def search(url, repo, limit, verbose, query):
                 click.echo(summary_line2)
             click.echo()
 
+        save_search_results(formatted_results)
+
         formatted_for_async = [(title, url, score) for title, url, score, _, _, _, _ in formatted_results]
         asyncio.run(fetch_and_display_summaries(formatted_for_async, query, None, result_line_counts, terminal_width))
 
         if sys.stdout.isatty():
             click.echo()
+
+        click.echo(click.style("Fetch source with: adoc search --fetch <index>", dim=True))
 
     except URLError as e:
         click.echo(f"Error: {e}", err=True)
