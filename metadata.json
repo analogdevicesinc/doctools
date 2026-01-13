@@ -115,7 +115,7 @@
             "description": "Set of tools to interface precision converters within MATLAB and Simulink.",
             "category": "library",
             "visibility": "public",
-            "pathname": "docs",
+            "pathname": "docs/source",
             "branch": "main",
             "url_doc": "https://analogdevicesinc.github.io/PrecisionToolbox",
             "url_source": "https://github.com/analogdevicesinc/PrecisionToolbox.git"

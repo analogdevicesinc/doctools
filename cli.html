@@ -103,7 +103,10 @@
 <li><a class="reference internal" href="#why-was-author-mode-renamed-to-serve">Why was Author Mode renamed to Serve?</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#search-docs">Search docs</a></li>
+<li><a class="reference internal" href="#search-docs">Search docs</a><ul>
+<li><a class="reference internal" href="#fetch-source">Fetch source</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#custom-doc">Custom Doc</a><ul>
 <li><a class="reference internal" href="#working-with-multiple-docs">Working with multiple docs</a></li>
 </ul>
@@ -299,17 +302,17 @@ with the edited Python code.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>adoc<span class="w"> </span>search<span class="w"> </span>ad9084<span class="w"> </span>profile
 </pre></div>
 </div>
-<div class="clear-left"></div></div><div><div class="no-select highlight-text notranslate"><div class="highlight"><pre><span></span>[documentation] AD9084
+<div class="clear-left"></div></div><div><div class="no-select highlight-text notranslate"><div class="highlight"><pre><span></span>[1] [documentation] AD9084
 https://analogdevicesinc.github.io/documentation/software/iio-oscilloscope/ad9084/index.html
 :external+documentation:ref:`ad9084 iio-oscilloscope` ...
   AD9084 Capture Window Main receivers are handled by the axi-ad9081-rx-hpc
   IIO device, The number of channels depend on the JESD mode (M) p...
 
- [scopy] AD9084
- https://analogdevicesinc.github.io/scopy/plugins/ad9084/ad9084.html
- :external+scopy:ref:`ad9084` :external+scopy:doc:`plugins/ad9084/ad9084`
-   AD9084 Overview The AD9084 instrument for Scopy enables integration
-   and control of the Apollo MxFE platform within the Scopy soft...
+[2] [scopy] AD9084
+https://analogdevicesinc.github.io/scopy/plugins/ad9084/ad9084.html
+:external+scopy:ref:`ad9084` :external+scopy:doc:`plugins/ad9084/ad9084`
+  AD9084 Overview The AD9084 instrument for Scopy enables integration
+  and control of the Apollo MxFE platform within the Scopy soft...
 </pre></div>
 </div>
 <div class="clear-left"></div></div></div><p>More examples:</p>
@@ -337,7 +340,29 @@ https://analogdevicesinc.github.io/documentation/software/iio-oscilloscope/ad908
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>adoc<span class="w"> </span>search<span class="w"> </span>--repo<span class="w"> </span>hdl<span class="w"> </span>--limit<span class="w"> </span><span class="m">10</span><span class="w"> </span>--<span class="w"> </span>axi
 </pre></div>
 </div>
+<div class="clear-left"></div></div></div><section id="fetch-source">
+<h3>Fetch source<a class="headerlink" href="#fetch-source" title="Link to this heading"></a></h3>
+<p>For a search, you can chain the <code class="docutils literal notranslate"><span class="pre">adoc</span> <span class="pre">search</span> <span class="pre">--fetch</span></code> command, for example:</p>
+<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>adoc<span class="w"> </span>search<span class="w"> </span>--fetch<span class="w"> </span><span class="m">1</span>
+</pre></div>
+</div>
+<div class="clear-left"></div></div><div><div class="no-select highlight-text notranslate"><div class="highlight"><pre><span></span> Fetching source for: [2] EVAL-AD4060/AD4062-ARDZ
+ Repository: documentation
+ Document: solutions/reference-designs/ad4062-ardz/index
+
+ Source URL: https://.../reference-designs/ad4062-ardz/index.rst
+
+ .. collection:: EVAL-AD4060/AD4062-ARDZ
+    :subtitle: Evaluating the AD4060/AD4062 Compact, Low Power, 12-Bit/16-Bit, 2 MSPS Easy Drive SAR ADCs
+    :image: eval-angle.png
+    :label: eval user-guide
+</pre></div>
+</div>
 <div class="clear-left"></div></div></div></section>
+</section>
 <section id="custom-doc">
 <span id="id3"></span><h2>Custom Doc<a class="headerlink" href="#custom-doc" title="Link to this heading"></a></h2>
 <p>Generates custom documents with filtered content from all documentations of the
