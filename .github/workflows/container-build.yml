@@ -82,7 +82,7 @@ jobs:
 
       - uses: analogdevicesinc/doctools/cloudsmith-upload-raw@action
         with:
-          path: ${{ steps.container_build.outputs.image_archive }}
+          path: ${{ steps.container_build.outputs.sbom_archive }}
           version: ${{ steps.container_build.outputs.version }}
           namespace: ${{ vars.CLOUDSMITH_NAMESPACE }}
           repository: ${{ vars.CLOUDSMITH_REPOSITORY_CONTAINERS }}
