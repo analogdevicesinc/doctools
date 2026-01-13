@@ -142,7 +142,7 @@ repos = {
         visibility='public'
     ),
     'PrecisionToolbox': Repo(
-        pathname='docs',
+        pathname='docs/source',
         name='Precision Toolbox',
         description='Set of tools to interface precision converters within MATLAB and Simulink.',
         category='library',
