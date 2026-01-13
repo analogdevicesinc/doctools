@@ -99,54 +99,27 @@ def calculate_wrapped_lines(text, width):
     return max(1, (visible_length + width - 1) // width)
 
 
-def truncate_text(text, max_chars):
+def truncate_text(text, max_chars, query_terms=None, add_ellipsis=True):
     """Truncate text to fit within max characters."""
-    # Strip ANSI codes
-    ansi_escape = re.compile(r'\x1b\[[0-9;]*m')
-    visible_text = ansi_escape.sub('', text)
+    # Strip all ANSI codes
+    ansi_escape = re.compile(r'\x1b\[[0-9;]*m|\x1b\]8;;[^\x1b]*\x1b\\|\x1b\]8;;\x1b\\')
+    plain_text = ansi_escape.sub('', text)
 
-    # If visible text fits, return original
-    if len(visible_text) <= max_chars:
-        return text
-
-    # Need to truncate - find position in original text that gives us max_chars visible chars
-    # We need to account for ANSI codes while counting and track formatting state
-    visible_count = 0
-    pos = 0
-    in_escape = False
-    formatting_active = False
-    escape_start = 0
-
-    for i, char in enumerate(text):
-        if char == '\x1b':
-            in_escape = True
-            escape_start = i
-        elif in_escape and char == 'm':
-            in_escape = False
-            # Check what code this was
-            escape_code = text[escape_start:i+1]
-            if escape_code == '\x1b[0m':
-                formatting_active = False
-            else:
-                # Any other escape code activates formatting
-                formatting_active = True
-        elif not in_escape:
-            if visible_count >= max_chars - 3:  # Leave room for "..."
-                pos = i
-                break
-            visible_count += 1
+    if len(plain_text) <= max_chars:
+        result = plain_text
     else:
-        pos = len(text)
+        if add_ellipsis:
+            result = plain_text[:max_chars - 3] + "..."
+        else:
+            result = plain_text[:max_chars]
 
-    # Truncate at the position and add ellipsis
-    truncated = text[:pos] + "..."
+    if query_terms:
+        for term in query_terms:
+            if term.lower() not in STOPWORDS:
+                pattern = re.compile(re.escape(term), re.IGNORECASE)
+                result = pattern.sub(lambda m: click.style(m.group(), fg='yellow'), result)
 
-    # Only add reset if we're currently in a formatted state
-    # (i.e., formatting was opened but not reset before truncation)
-    if formatting_active:
-        truncated += '\x1b[0m'
-
-    return truncated
+    return result
 
 
 def move_cursor_up(lines):
@@ -672,9 +645,18 @@ async def update_result_summary(result_num, url, query_terms, anchor, result_lin
 
     max_chars_per_line = terminal_width - 2
     if summary:
-        line1 = truncate_text(summary[:max_chars_per_line], max_chars_per_line)
-        remaining = summary[max_chars_per_line:] if len(summary) > max_chars_per_line else ""
-        line2 = truncate_text(remaining, max_chars_per_line) if remaining else ""
+        # Strip ANSI codes to calculate visible length
+        ansi_escape = re.compile(r'\x1b\[[0-9;]*m|\x1b\]8;;[^\x1b]*\x1b\\|\x1b\]8;;\x1b\\')
+        visible_summary = ansi_escape.sub('', summary)
+
+        has_second_line = len(visible_summary) > max_chars_per_line
+        line1 = truncate_text(summary, max_chars_per_line, query_terms, add_ellipsis=not has_second_line)
+
+        if has_second_line:
+            remaining_visible = visible_summary[max_chars_per_line:]
+            line2 = truncate_text(remaining_visible, max_chars_per_line, query_terms, add_ellipsis=True)
+        else:
+            line2 = ""
     else:
         line1 = "(no summary)"
         line2 = ""
