@@ -71,20 +71,18 @@ def get_terminal_height():
 def calculate_limit_from_terminal():
     """Calculate result limit based on terminal height.
 
-    Estimates ~5 lines per result on average:
+    The result takes 6 lines
     - Title line
     - URL line
-    - References line (combined label refs + doc ref, may wrap)
-    - Summary line
+    - References line (label refs + doc ref)
+    - Summary line 1
+    - Summary line 2
     - Blank line
 
-    Also accounts for ~10 lines of header overhead (search progress, result count, etc).
-
-    Returns:
-        int: Calculated limit, minimum of 3
+    10 is the header size.
     """
     height = get_terminal_height()
-    limit = max(3, (height - 10) // 5)
+    limit = max(3, (height - 10) // 6)
     return limit
 
 
@@ -513,7 +511,7 @@ def extract_html_text(html_content, anchor=None):
         return ""
 
 
-def get_summary(html_content, query_terms, anchor=None):
+def get_summary(html_content, query_terms, anchor=None, max_chars=480):
     """Extract a summary from HTML content around the first matching keyword."""
     text = extract_html_text(html_content, anchor)
     if not text:
@@ -531,9 +529,9 @@ def get_summary(html_content, query_terms, anchor=None):
     if not positions:
         start_pos = 0
     else:
-        start_pos = max(min(positions) - 120, 0)
+        start_pos = max(min(positions) - 180, 0)
 
-    summary = text[start_pos:start_pos + 240].strip()
+    summary = text[start_pos:start_pos + max_chars].strip()
 
     for term in query_terms:
         if term.lower() in STOPWORDS:
@@ -542,7 +540,7 @@ def get_summary(html_content, query_terms, anchor=None):
         summary = pattern.sub(lambda m: click.style(m.group(), fg='yellow'), summary)
 
     prefix = "..." if start_pos > 0 else ""
-    suffix = "..." if start_pos + 240 < len(text) else ""
+    suffix = "..." if start_pos + max_chars < len(text) else ""
 
     summary = prefix + summary + suffix
 
@@ -669,38 +667,45 @@ async def update_result_summary(result_num, url, query_terms, anchor, result_lin
 
     if not sys.stdout.isatty():
         if summary:
-            click.echo(f"   [{result_num}] {summary}")
+            click.echo(f"  [{result_num}] {summary}")
         return
 
-    max_summary_chars = terminal_width - 3
+    max_chars_per_line = terminal_width - 2
     if summary:
-        summary = truncate_text(summary, max_summary_chars)
+        line1 = truncate_text(summary[:max_chars_per_line], max_chars_per_line)
+        remaining = summary[max_chars_per_line:] if len(summary) > max_chars_per_line else ""
+        line2 = truncate_text(remaining, max_chars_per_line) if remaining else ""
     else:
-        summary = "(summary unavailable)"
+        line1 = "(no summary)"
+        line2 = ""
 
     # Calculate lines to move back from bottom
     # We need to:
     # 1. Skip all results AFTER this one: sum(result_line_counts[result_num:])
     # 2. Skip this result's blank line: +1
-    # 3. Get to this result's summary line: +1 (summary line itself)
-    # Total: sum(result_line_counts[result_num:]) + 2
+    # 3. Skip this result's second summary line: +1
+    # Total: sum(result_line_counts[result_num:]) + 3
 
     # Note: result_num is 1-indexed (1, 2, 3, ...), but result_line_counts is 0-indexed
     # result_line_counts[result_num:] correctly gives all results after this one
-    lines_back = sum(result_line_counts[result_num:]) + 2
+    lines_back = sum(result_line_counts[result_num:]) + 3
 
-    # Move cursor to summary line for this result
+    # Move cursor to first summary line for this result
     move_cursor_up(lines_back)
 
-    # Clear and write summary
+    # Clear and write first summary line
     clear_line()
-    sys.stdout.write(f"   {summary}")
-    # Explicitly write a reset code to ensure no color bleeding
+    sys.stdout.write(f"  {line1}")
+    sys.stdout.write('\033[0m\n')
+
+    # Clear and write second summary line
+    clear_line()
+    sys.stdout.write(f"  {line2}")
     sys.stdout.write('\033[0m')
     sys.stdout.flush()
 
     # Move cursor back to bottom
-    move_cursor_down(lines_back)
+    move_cursor_down(lines_back - 1)
 
 
 async def fetch_and_display_summaries(formatted_results, query_terms, base_url, result_line_counts, terminal_width):
@@ -900,7 +905,7 @@ def search(url, repo, limit, verbose, query):
                 # Strip ANSI codes
                 ansi_escape = re.compile(r'\x1b\[[0-9;]*m|\x1b\]8;;[^\x1b]*\x1b\\|\x1b\]8;;\x1b\\')
 
-                max_width = terminal_width - 3  # Account for "   " prefix
+                max_width = terminal_width
                 included_refs = []
                 current_length = 0
 
@@ -935,7 +940,7 @@ def search(url, repo, limit, verbose, query):
                         refs_text = ' '.join(included_refs)
                         if len(included_refs) < len(refs_parts):
                             refs_text += " ..."
-                        refs_line = f"   {click.style(refs_text, dim=True)}"
+                        refs_line = click.style(refs_text, dim=True)
                     else:
                         refs_line = ""
                 else:
@@ -943,23 +948,25 @@ def search(url, repo, limit, verbose, query):
             else:
                 refs_line = ""
 
-            url_line = f"   {url}"
+            url_line = f"{url}"
 
             # In non-TTY mode, summaries are printed at the bottom
             if sys.stdout.isatty():
-                summary_line = "   Loading summary..."
-                show_summary_line = True
+                summary_line1 = "  ..."
+                summary_line2 = "  "
+                show_summary_lines = True
             else:
-                summary_line = ""
-                show_summary_line = False
+                summary_line1 = ""
+                summary_line2 = ""
+                show_summary_lines = False
 
             # Calculate how many physical lines this result will take
-            # Structure: title + url + refs (may wrap if long) + [summary] + blank
+            # Structure: title + url + refs (may wrap if long) + [summary x2] + blank
             lines_count = calculate_wrapped_lines(title_line, terminal_width)
             lines_count += calculate_wrapped_lines(url_line, terminal_width)
             lines_count += calculate_wrapped_lines(refs_line, terminal_width)
-            if show_summary_line:
-                lines_count += 1  # summary line (TTY only)
+            if show_summary_lines:
+                lines_count += 2  # two summary lines (TTY only)
             lines_count += 1  # blank line
 
             result_line_counts.append(lines_count)
@@ -967,8 +974,9 @@ def search(url, repo, limit, verbose, query):
             click.echo(title_line)
             click.echo(url_line)
             click.echo(refs_line)
-            if show_summary_line:
-                click.echo(summary_line)
+            if show_summary_lines:
+                click.echo(summary_line1)
+                click.echo(summary_line2)
             click.echo()
 
         formatted_for_async = [(title, url, score) for title, url, score, _, _, _, _ in formatted_results]
