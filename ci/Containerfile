@@ -27,19 +27,16 @@ USER root
 
 #user: bash-completion openssh
 #core: wget make git openssl ca-certificates ca-certificates-mozilla
-#gh-actions: nodejs npm-default
 #packaging: unzip
 #weasyprint: libpango fontconfig lato-fonts
 RUN zypper install -y --no-recommends \
     bash-completion openssh \
     wget make git git-lfs openssl openssl-devel ca-certificates ca-certificates-mozilla \
-    nodejs npm-default \
     unzip xz \
     libpango-1_0-0 fontconfig lato-fonts
 
 RUN update-ca-certificates
 RUN fc-cache -f && fc-list
-RUN npm config set fund false
 
 COPY ci/install-python.sh .
 RUN chmod +x install-python.sh ; \
