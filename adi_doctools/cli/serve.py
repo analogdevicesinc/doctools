@@ -190,10 +190,14 @@ def serve(directory, port, dev, selenium, once, builder):
         for f in source_common_files:
             src = path.join(dist, d, static_common_path, f)
             dest = path.join(path_, static_common_path, f)
+            if not path.isdir(path.join(path_, static_common_path)):
+                mkdir(path.join(path_, static_common_path))
             copy2(src, dest)
         for f in source_core_files:
             src = path.join(dist, d, static_core_path, f)
             dest = path.join(path_, static_core_path, f)
+            if not path.isdir(path.join(path_, static_core_path)):
+                mkdir(path.join(path_, static_core_path))
             copy2(src, dest)
         rmtree(dist)
         click.echo("Success fetching the pre-compiled files!")
