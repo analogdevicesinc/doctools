@@ -11,6 +11,7 @@ import re
 import shutil
 import sys
 import time
+from packaging.version import Version
 from concurrent.futures import ThreadPoolExecutor
 from html.parser import HTMLParser
 from io import StringIO
@@ -24,7 +25,13 @@ import snowballstemmer
 from ..lut import repos, remote_doc
 
 from pathlib import Path
-from sphinx.ext.intersphinx._load import _fetch_inventory, _InvConfig
+from sphinx import __version__ as __sphinx_version__
+from sphinx.ext.intersphinx._load import _InvConfig
+
+if Version(__sphinx_version__) < Version('9.0.0'):
+    from sphinx.ext.intersphinx._load import _fetch_inventory
+else:
+    from sphinx.ext.intersphinx._load import _fetch_inventory_data, _load_inventory
 
 
 BLUE = '\033[94m'
@@ -398,12 +405,22 @@ def fetch_intersphinx_inventory(base_url):
     )
 
     try:
-        inv = _fetch_inventory(
-            target_uri='',
-            inv_location=inv_url,
-            config=config,
-            srcdir=Path(),
-        )
+        if Version(__sphinx_version__) < Version('9.0.0'):
+            inv = _fetch_inventory(
+                target_uri='',
+                inv_location=inv_url,
+                config=config,
+                srcdir=Path(),
+            )
+        else:
+            raw_data, target_uri = _fetch_inventory_data(
+                target_uri='',
+                inv_location=inv_url,
+                config=config,
+                srcdir=Path(),
+                cache_path=None,
+            )
+            inv = _load_inventory(raw_data, target_uri=target_uri)
         save_inventory_to_cache(cache_path, inv)
         return inv
     except HTTPError as e:
