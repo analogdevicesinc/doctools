@@ -1,6 +1,5 @@
 """Tests for the search CLI command."""
 from unittest.mock import patch, MagicMock
-from io import BytesIO
 
 from click.testing import CliRunner
 from adi_doctools.cli.search import search

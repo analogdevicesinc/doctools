@@ -31,7 +31,7 @@ BLUE = '\033[94m'
 RESET = '\033[0m'
 
 CACHE_DIR = Path('/tmp/adoc.search')
-CACHE_VALIDITY = 600  # 10 minutes in seconds
+CACHE_VALIDITY = 600  # 10 minutes
 
 STOPWORDS = {
     'a', 'and', 'are', 'as', 'at',
