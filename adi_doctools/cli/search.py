@@ -6,15 +6,17 @@ That is a fork from sphinx provided search.
 
 import asyncio
 import json
+import pickle
 import re
 import shutil
 import sys
+import time
 from concurrent.futures import ThreadPoolExecutor
 from html.parser import HTMLParser
 from io import StringIO
 from urllib.request import urlopen
-from urllib.error import URLError
-from urllib.parse import urljoin
+from urllib.error import URLError, HTTPError
+from urllib.parse import urljoin, urlparse
 
 import click
 import snowballstemmer
@@ -27,6 +29,9 @@ from sphinx.ext.intersphinx._load import _fetch_inventory, _InvConfig
 
 BLUE = '\033[94m'
 RESET = '\033[0m'
+
+CACHE_DIR = Path('/tmp/adoc.search')
+CACHE_VALIDITY = 600  # 10 minutes in seconds
 
 STOPWORDS = {
     'a', 'and', 'are', 'as', 'at',
@@ -219,11 +224,138 @@ class HTMLTextExtractor(HTMLParser):
         return self.text.getvalue()
 
 
+def get_cache_path(url):
+    """Get the cache file path for a given URL."""
+    parsed = urlparse(url)
+
+    parts = [parsed.netloc]
+
+    path = parsed.path.strip('/')
+    path = path[:-len("/searchindex.js")]
+    parts.append(path.replace('/', '.'))
+
+    filename = '.'.join(parts) + '.json'
+
+    return CACHE_DIR / filename
+
+
+def is_cache_valid(cache_path):
+    """Check if cache file exists and is less than 10 minutes old."""
+    if not cache_path.exists():
+        return False
+
+    file_age = time.time() - cache_path.stat().st_mtime
+    return file_age < CACHE_VALIDITY
+
+
+def load_from_cache(cache_path):
+    """Load search index from cache file."""
+    with open(cache_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+
+    if isinstance(data, dict) and data.get('__cache_error__'):
+        return None
+
+    return data
+
+
+def save_to_cache(cache_path, data):
+    """Save search index to cache file."""
+    # Ensure cache directory exists
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with open(cache_path, 'w', encoding='utf-8') as f:
+        json.dump(data, f)
+
+
+def save_error_to_cache(cache_path, error_type, url):
+    """Save an error marker to cache file."""
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+
+    error_marker = {
+        '__cache_error__': True,
+        'error_type': error_type,
+        'url': url,
+        'timestamp': time.time()
+    }
+
+    with open(cache_path, 'w', encoding='utf-8') as f:
+        json.dump(error_marker, f)
+
+
+def get_inventory_cache_path(base_url):
+    """Get cache path for objects.inv based on base URL."""
+    inv_url = base_url.rstrip('/') + '/objects.inv'
+    parsed = urlparse(inv_url)
+
+    parts = [parsed.netloc]
+
+    path = parsed.path.strip('/')
+    path = path[:-len("/objects.inv")]
+    parts.append(path.replace('/', '.'))
+
+    filename = '.'.join(parts) + '.inv.pickle'
+    return CACHE_DIR / filename
+
+
+def load_inventory_from_cache(cache_path):
+    """Load inventory from cache file."""
+    with open(cache_path, 'rb') as f:
+        # First byte indicates if it's an error marker
+        first_bytes = f.read(10)
+        f.seek(0)
+
+        if first_bytes.startswith(b'{'):
+            f.close()
+            with open(cache_path, 'r', encoding='utf-8') as jf:
+                data = json.load(jf)
+                if isinstance(data, dict) and data.get('__cache_error__'):
+                    return None
+
+        return pickle.load(f)
+
+
+def save_inventory_to_cache(cache_path, inventory):
+    """Save inventory to cache file."""
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with open(cache_path, 'wb') as f:
+        pickle.dump(inventory, f)
+
+
+def save_inventory_error_to_cache(cache_path, error_type, url):
+    """Save an error marker for inventory cache."""
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+
+    error_marker = {
+        '__cache_error__': True,
+        'error_type': error_type,
+        'url': url,
+        'timestamp': time.time()
+    }
+
+    with open(cache_path, 'w', encoding='utf-8') as f:
+        json.dump(error_marker, f)
+
+
 def fetch_search_index(url):
-    """Fetch and parse searchindex.js from URL."""
+    """Fetch and parse searchindex.js from URL, with caching."""
+    cache_path = get_cache_path(url)
+
+    if is_cache_valid(cache_path):
+        cached_data = load_from_cache(cache_path)
+        if cached_data is None:
+            return None
+        return cached_data
+
     try:
         with urlopen(url, timeout=30) as response:
             content = response.read().decode('utf-8')
+    except HTTPError as e:
+        if e.code == 404:
+            save_error_to_cache(cache_path, '404', url)
+            return None
+        raise URLError(f"HTTP {e.code}: {url}")
     except URLError as e:
         raise URLError(f"Failed to fetch {url}: {e.reason}")
 
@@ -233,17 +365,29 @@ def fetch_search_index(url):
 
     json_str = match.group(1)
     try:
-        return json.loads(json_str)
+        data = json.loads(json_str)
+        save_to_cache(cache_path, data)
+        return data
     except json.JSONDecodeError as e:
         raise ValueError(f"Failed to parse searchindex.js JSON: {e}")
 
 
 def fetch_intersphinx_inventory(base_url):
-    """Fetch and parse intersphinx objects.inv file."""
+    """Fetch and parse intersphinx objects.inv file, with caching."""
     if not base_url.endswith('/'):
         base_url += '/'
 
     inv_url = base_url + 'objects.inv'
+    cache_path = get_inventory_cache_path(base_url)
+
+    if is_cache_valid(cache_path):
+        try:
+            cached_inv = load_inventory_from_cache(cache_path)
+            if cached_inv is None:
+                return None
+            return cached_inv
+        except Exception:
+            pass
 
     config = _InvConfig(
         intersphinx_cache_limit=5,
@@ -253,14 +397,22 @@ def fetch_intersphinx_inventory(base_url):
         user_agent='',
     )
 
-    inv = _fetch_inventory(
-        target_uri='',
-        inv_location=inv_url,
-        config=config,
-        srcdir=Path(),
-    )
-
-    return inv
+    try:
+        inv = _fetch_inventory(
+            target_uri='',
+            inv_location=inv_url,
+            config=config,
+            srcdir=Path(),
+        )
+        save_inventory_to_cache(cache_path, inv)
+        return inv
+    except HTTPError as e:
+        if e.code == 404:
+            save_inventory_error_to_cache(cache_path, '404', inv_url)
+            return None
+        raise
+    except Exception:
+        return None
 
 
 def get_intersphinx_references(inventory, docname, repo_name, base_url):
@@ -638,13 +790,11 @@ def search(url, repo, limit, verbose, query):
         all_results = []
 
         for repo_name, repo_url in repo_sources:
-            if len(repo_sources) > 1:
-                click.echo(f"Fetching search index from {repo_name}...")
-            else:
-                click.echo(f"Fetching search index from {repo_url}...")
-
             try:
                 index_data = fetch_search_index(repo_url)
+                if index_data is None:
+                    continue
+
                 base_url = get_base_url(repo_url)
 
                 inventory = fetch_intersphinx_inventory(base_url)
