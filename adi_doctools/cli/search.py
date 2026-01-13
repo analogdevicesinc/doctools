@@ -746,27 +746,20 @@ async def fetch_and_display_summaries(formatted_results, query_terms, base_url, 
 )
 @click.argument('query', nargs=-1, required=True)
 def search(url, repo, limit, verbose, query):
-    """Search Sphinx documentation using searchindex.js.
+    """Search Sphinx documentation.
 
     Fetches the search index from a Sphinx-generated documentation site
     and searches for the given query terms. Uses the same search algorithm
-    as Sphinx's JavaScript search, including Porter stemming and stopword
-    filtering.
-
-    Results are displayed immediately with summaries loaded asynchronously.
+    as Sphinx's JavaScript search.
 
     If neither --url nor --repo is specified, searches all known repositories.
 
     Examples:
 
         adoc search ad9084 profile
-
-        adoc search --repo documentation -- sphinx tutorial
-
+        adoc search --repo documentation -- user guide
         adoc search --repo documentation,hdl,no-OS -- axi
-
-        adoc search --url https://www.sphinx-doc.org/en/master/searchindex.js -- sphinx tutorial
-
+        adoc search --url https://analogdevicesinc.github.io/hdl/2023_R2 -- ad4630
         adoc search --repo hdl --limit 10 -- axi
     """
     if url and repo:
@@ -799,7 +792,7 @@ def search(url, repo, limit, verbose, query):
                 raise click.Abort()
 
         for repo_name in repo_names:
-            repo_url = f"{remote_doc}/{repo_name}/searchindex.js"
+            repo_url = f"{remote_doc}{repo_name}/searchindex.js"
             repo_sources.append((repo_name, repo_url))
     else:
         repo_sources = [(None, url)]
