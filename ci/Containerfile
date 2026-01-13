@@ -41,7 +41,7 @@ RUN update-ca-certificates
 RUN fc-cache -f && fc-list
 RUN npm config set fund false
 
-COPY install-python.sh .
+COPY ci/install-python.sh .
 RUN chmod +x install-python.sh ; \
     ./install-python.sh \
         3.13.9 \
