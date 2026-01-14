@@ -62,6 +62,16 @@ SCORE_TERM = 5
 SCORE_PARTIAL_TERM = 2
 
 
+def split_strings_in_tuple(t):
+    out = []
+    for item in t:
+        if isinstance(item, str):
+            out.extend(item.split())
+        else:
+            out.append(item)
+    return tuple(out)
+
+
 def get_terminal_width():
     """Get the current terminal width."""
     return shutil.get_terminal_size().columns
@@ -1080,6 +1090,8 @@ def search(url, repo, limit, verbose, fetch, format, query):
     else:
         repo_sources = [(None, url)]
 
+    # At this time, don't allow multiword exact match.
+    query = split_strings_in_tuple(query)
     query_str = ' '.join(query)
 
     stemmer = snowballstemmer.stemmer('porter')
