@@ -13,6 +13,7 @@ class SphinxHTMLToMarkdown:
 
     def __init__(self, base_url):
         self.base_url = base_url
+        self.anchor = None
         self.output = []
 
     def convert(self, html_content):
@@ -25,6 +26,10 @@ class SphinxHTMLToMarkdown:
             Markdown string
         """
         tree = lxml_html.fromstring(html_content)
+
+        index = self.base_url.rfind('#')
+        if index != -1:
+            self.anchor = self.base_url[index+1:]
 
         # Find main content area
         main_content = tree.find('.//div[@role="main"]')
@@ -39,6 +44,12 @@ class SphinxHTMLToMarkdown:
 
         if main_content is None:
             return None
+
+        # If the url has an anchor, just return the section
+        if self.anchor is not None:
+            main_content_ = tree.find(f'.//*[@id="{self.anchor}"]')
+            if main_content_ is not None:
+                main_content = main_content_
 
         self.process_element(main_content)
 
