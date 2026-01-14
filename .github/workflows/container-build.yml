@@ -24,6 +24,15 @@ on:
         description: 'Path to the Containerfile'
         required: true
         type: string
+      fail-on:
+        description: 'Fail on vulnerability severity'
+        type: choice
+        options:
+        - negligible
+        - low
+        - medium
+        - high
+        - critical
   workflow_call:
     inputs:
       organization:
@@ -46,6 +55,9 @@ on:
       containerfile:
         description: 'Path to the Containerfile'
         required: true
+        type: string
+      fail-on:
+        description: 'Fail on vulnerability severity'
         type: string
     secrets:
       CLOUDSMITH_SERVICE_SLUG_CONTAINERS:
@@ -71,6 +83,7 @@ jobs:
         with:
           image-name: ${{ inputs.image-name || format('adi/{0}', inputs.repository) }}
           containerfile: ${{ inputs.containerfile }}
+          fail-on: ${{ inputs.fail-on }}
 
       - uses: analogdevicesinc/doctools/cloudsmith-upload-container@action
         with:
