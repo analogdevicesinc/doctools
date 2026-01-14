@@ -12,6 +12,9 @@ inputs:
     description: 'Generate SBOM assert CVEs'
     default: true
     type: boolean
+  fail-on:
+    description: 'Fail on vulnerability severity, options: negligible low medium high critical'
+    default: 'high'
   containerfile:
     description: 'Path to the Containerfile'
     required: true
@@ -123,7 +126,7 @@ runs:
 
           grype db update
           grype -o json -o table \
-                --fail-on high \
+                --fail-on "${{ inputs.fail-on }}" \
                 --sort-by severity \
                 sbom:sbom.json > .cves || cves_ret=$?
           head -n 1 .cves > cves.json
