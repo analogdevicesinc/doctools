@@ -25,6 +25,7 @@ import click
 import snowballstemmer
 
 from ..lut import repos, remote_doc, source_hostname_raw
+from .aux_html2md import convert_html_to_markdown
 
 from pathlib import Path
 from sphinx import __version__ as __sphinx_version__
@@ -40,7 +41,7 @@ BLUE = '\033[94m'
 RESET = '\033[0m'
 
 CACHE_DIR = Path('/tmp/adoc.search')
-CACHE_VALIDITY = 600  # 10 minutes
+CACHE_VALIDITY = 3600  # 1 hour
 RESULTS_FILE = CACHE_DIR / f'last_results_{hashlib.md5(os.getcwd().encode()).hexdigest()}.json'
 
 STOPWORDS = {
@@ -296,8 +297,50 @@ def load_search_results():
         return None
 
 
-def fetch_source_file(index):
-    """Fetch and display source file from previous search results."""
+def fetch_url_content(url, format='md'):
+    """Fetch content from URL in specified format."""
+    if format == 'src':
+        click.echo("Error: --format src is not applicable for URL fetch.", err=True)
+        click.echo("The 'src' format fetches source files (.rst/.md) from repositories,", err=True)
+        click.echo("which requires using an index from previous search results.", err=True)
+        raise click.Abort()
+
+    click.echo("")
+    click.echo(f"{BLUE}Format:{RESET} {format.upper()}", nl=False)
+    if format == 'md':
+        click.echo(" (converted to markdown)")
+    elif format == 'html':
+        click.echo(" (html)")
+
+    click.echo(click.style("Available: md (default), html, src", dim=True))
+    click.echo(f"\n{BLUE}Fetching:{RESET} {url}\n")
+
+    try:
+        with urlopen(url, timeout=30) as response:
+            html_content = response.read().decode('utf-8')
+    except HTTPError as e:
+        click.echo(f"Error: HTTP {e.code} - {url}", err=True)
+        raise click.Abort()
+    except URLError as e:
+        click.echo(f"Error: Failed to fetch URL - {e.reason}", err=True)
+        raise click.Abort()
+    except Exception as e:
+        click.echo(f"Error: {e}", err=True)
+        raise click.Abort()
+
+    click.echo("─" * get_terminal_width())
+
+    if format == 'html':
+        click.echo(html_content)
+    elif format == 'md':
+        markdown = convert_html_to_markdown(url, html_content)
+        if markdown is None:
+            click.echo("Error: Failed to convert HTML to Markdown", err=True)
+            raise click.Abort()
+        click.echo(markdown)
+
+def fetch_source_file(index, format='src'):
+    """Fetch and display file from previous search results in specified format."""
     results = load_search_results()
 
     if results is None:
@@ -314,6 +357,54 @@ def fetch_source_file(index):
         click.echo(f"Error: No result found at index {index}. Valid indices: 1-{len(results)}", err=True)
         raise click.Abort()
 
+    result_url = result['url']
+
+    click.echo("")
+    click.echo(f"{BLUE}Format:{RESET} {format.upper()}", nl=False)
+    if format == 'md':
+        click.echo(" (converted to markdown)")
+    elif format == 'src':
+        click.echo(" (source reST or markdown)")
+    elif format == 'html':
+        click.echo(" (html)")
+    click.echo(click.style("Available: md (default), src, html", dim=True))
+
+    if format == 'html':
+        click.echo(f"\n{BLUE}Fetching from:{RESET} [{index}] {result['title']}")
+        click.echo(f"{BLUE}URL:{RESET} {result_url}\n")
+
+        try:
+            with urlopen(result_url, timeout=30) as response:
+                html_content = response.read().decode('utf-8')
+        except Exception as e:
+            click.echo(f"Error: Failed to fetch HTML - {e}", err=True)
+            raise click.Abort()
+
+        click.echo("─" * get_terminal_width())
+        click.echo(html_content)
+        return
+
+    elif format == 'md':
+        click.echo(f"\n{BLUE}Fetching from:{RESET} [{index}] {result['title']}")
+        click.echo(f"{BLUE}URL:{RESET} {result_url}\n")
+
+        try:
+            with urlopen(result_url, timeout=30) as response:
+                html_content = response.read().decode('utf-8')
+        except Exception as e:
+            click.echo(f"Error: Failed to fetch HTML - {e}", err=True)
+            raise click.Abort()
+
+        markdown = convert_html_to_markdown(result_url, html_content)
+        if markdown is None:
+            click.echo("Error: Failed to convert HTML to Markdown", err=True)
+            raise click.Abort()
+
+        click.echo("─" * get_terminal_width())
+        click.echo(markdown)
+        return
+
+    # format == 'src' - fetch source file
     repo_name = result['repo']
     docname = result['docname']
 
@@ -331,7 +422,7 @@ def fetch_source_file(index):
     # or could be other extensions
     source_extensions = ['.rst', '.md']
 
-    click.echo(f"\n{BLUE}Fetching source for:{RESET} [{index}] {result['title']}")
+    click.echo(f"\n{BLUE}Fetching from:{RESET} [{index}] {result['title']}")
     click.echo(f"{BLUE}Repository:{RESET} {repo_name}")
     click.echo(f"{BLUE}Document:{RESET} {docname}\n")
 
@@ -427,7 +518,6 @@ def fetch_source_file(index):
     click.echo(f"{BLUE}Source URL:{RESET} {source_url}\n")
     click.echo("─" * get_terminal_width())
     click.echo(content)
-    click.echo("─" * get_terminal_width())
 
 
 def get_inventory_cache_path(base_url):
@@ -888,7 +978,7 @@ async def fetch_and_display_summaries(formatted_results, query_terms, base_url, 
     '--limit',
     default=None,
     type=int,
-    help='Maximum number of results to show (default: auto-calculated based on terminal height)'
+    help='Maximum number of results to show'
 )
 @click.option(
     '--verbose', '-v',
@@ -897,12 +987,17 @@ async def fetch_and_display_summaries(formatted_results, query_terms, base_url, 
 )
 @click.option(
     '--fetch', '-f',
-    type=int,
     default=None,
-    help='Fetch source file by index from previous search results'
+    help='Fetch file by index from previous search results, or provide a full url'
+)
+@click.option(
+    '--format',
+    type=click.Choice(['html', 'src', 'md'], case_sensitive=False),
+    default='md',
+    help='Output format for --fetch: html, src (source .rst/.md), md (converted markdown, default)'
 )
 @click.argument('query', nargs=-1, required=False)
-def search(url, repo, limit, verbose, fetch, query):
+def search(url, repo, limit, verbose, fetch, format, query):
     """Search Sphinx documentation.
 
     Fetches the search index from a Sphinx-generated documentation site
@@ -913,15 +1008,37 @@ def search(url, repo, limit, verbose, fetch, query):
 
     Examples:
 
+        # Search
         adoc search ad9084 profile
         adoc search --repo documentation -- user guide
         adoc search --repo documentation,hdl,no-OS -- axi
         adoc search --url https://analogdevicesinc.github.io/hdl/2023_R2 -- ad4630
         adoc search --repo hdl --limit 10 -- axi
-        adoc search --fetch 3  # Fetch source from previous search
+
+        # Fetch by index from previous search
+        adoc search --fetch 3                     # Default: converted markfown
+        adoc search --fetch 3 --format src        # Source file (.rst or .md)
+        adoc search --fetch 3 --format html       # html
+
+        # Fetch by url
+        adoc search --fetch https://analogdevicesinc.github.io/.../index.html
+
+    Format options:
+        html: Page html
+        src:  Source file (.rst or .md)
+        md:   Page html onverted to Markdown (default)
     """
     if fetch is not None:
-        fetch_source_file(fetch)
+        if isinstance(fetch, str) and (fetch.startswith('http://') or fetch.startswith('https://')):
+            fetch_url_content(fetch, format=format)
+        else:
+            try:
+                index = int(fetch)
+                fetch_source_file(index, format=format)
+            except ValueError:
+                click.echo("Error: --fetch must be either an integer index or a full URL", err=True)
+                click.echo(f"Got: {fetch}", err=True)
+                raise click.Abort()
         return
 
     if not query:
