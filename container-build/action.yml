@@ -143,6 +143,7 @@ runs:
           type=
           tail -n +2 .cves | grep Medium && { type=warning ; level=Medium ;}
           tail -n +2 .cves | grep High && { type=error ; level=High ;}
+          tail -n +2 .cves | grep Critical && { type=error ; level=Critical ;}
           [ -n "$type" ] && echo "::$type ::assert_cves: CVE of level $level detected."
 
           popd ; rm -r $1
