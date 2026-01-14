@@ -31,9 +31,18 @@ USER root
 #weasyprint: libpango fontconfig lato-fonts
 RUN zypper install -y --no-recommends \
     bash-completion openssh \
-    wget make git git-lfs openssl openssl-devel ca-certificates ca-certificates-mozilla \
+    wget make git openssl openssl-devel ca-certificates ca-certificates-mozilla \
     unzip xz \
     libpango-1_0-0 fontconfig lato-fonts
+
+# git-lfs: install latest, dangerously bundles go packages.
+ARG git_lfs_version=3.7.1
+ARG git_lfs_version_sha=1c0b6ee5200ca708c5cebebb18fdeb0e1c98f1af5c1a9cba205a4c0ab5a5ec08
+RUN curl -o git-lfs.tar.gz -L https://github.com/git-lfs/git-lfs/releases/download/v${git_lfs_version}/git-lfs-linux-amd64-v${git_lfs_version}.tar.gz && \
+    echo "${git_lfs_version_sha} git-lfs.tar.gz" | sha256sum -c && \
+    tar xzf git-lfs.tar.gz && rm git-lfs.tar.gz
+RUN ./git-lfs-${git_lfs_version}/install.sh
+RUN rm -r ./git-lfs-${git_lfs_version}
 
 RUN update-ca-certificates
 RUN fc-cache -f && fc-list
