@@ -2,9 +2,6 @@ name: Container Build
 description: Build and upload container images to Cloudsmith
 
 inputs:
-  gh-token:
-    description: 'GitHub Token'
-    default: ${{ github.token }}
   image-name:
     description: 'Image name, for example, adi/<repository>'
     required: true
