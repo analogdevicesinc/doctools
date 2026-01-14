@@ -3,6 +3,7 @@ Convert Sphinx HTML documentation to Markdown format.
 """
 
 import re
+import traceback
 from urllib.parse import urljoin
 from lxml import html as lxml_html
 
@@ -86,6 +87,8 @@ class SphinxHTMLToMarkdown:
                     self.handle_pre(pre)
                 else:
                     self.process_children(elem, list_depth)
+            elif  "code-shell" in classes:
+                self.handle_shell(elem)
             else:
                 self.process_children(elem, list_depth)
         elif tag == 'dl':
@@ -117,32 +120,55 @@ class SphinxHTMLToMarkdown:
             self.output.append('')
             self.output.append(text)
 
-    def handle_pre(self, elem):
+    def handle_shell(self, elem):
+        """Process all shell of an code-shell."""
+
+        output = []
+        language = ''
+        # language is always the same, so just keep the last
+        for pre in elem.findall('.//pre'):
+            language_, code_ = self.handle_pre(pre, code_shell=True)
+            if language_ == 'default':
+                output.append(code_ + ' ')
+            elif language_ == 'text':
+                output.append(code_)
+            else: #bash
+                language = language_
+                output[-1] += code_
+
+        self.output.append('')
+        self.output.append(f'```{language}')
+        self.output.extend(output)
+        self.output.append('```')
+        self.output.append('')
+
+    def handle_pre(self, elem, code_shell=False):
         """Convert code block to Markdown."""
         language = ''
-        parent = elem.getparent()
+        parent = elem.getparent().getparent()
 
-        def get_language(elem):
-            classes = parent.get('class', '')
+        def get_language(elem_):
+            classes = elem_.get('class', '')
             lang_match = re.search(r'highlight-(\w+)|language-(\w+)', classes)
             if lang_match:
                 return lang_match.group(1) or lang_match.group(2)
-            return None
+            return ''
 
         if parent is not None:
             language = get_language(parent)
-            if language is None:
-                parent = parent.getparent()
-                language = get_language(parent)
 
         # Get code content (preserving internal structure)
         code = elem.text_content()
 
-        self.output.append('')
-        self.output.append(f'```{language}')
-        self.output.append(code.rstrip())
-        self.output.append('```')
-        self.output.append('')
+        if not code_shell:
+            self.output.append('')
+            self.output.append(f'```{language}')
+            self.output.append(code.rstrip())
+            self.output.append('```')
+            self.output.append('')
+            return
+
+        return language, code.rstrip()
 
     def handle_figure(self, elem):
         """Convert figure with caption to Markdown."""
@@ -370,4 +396,5 @@ def convert_html_to_markdown(url, html_content):
         converter = SphinxHTMLToMarkdown(url)
         return converter.convert(html_content)
     except Exception:
+        traceback.print_exc()
         return None
