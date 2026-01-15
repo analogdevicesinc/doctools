@@ -26,6 +26,15 @@ import snowballstemmer
 
 from ..lut import repos, remote_doc, source_hostname_raw
 from .aux_html2md import convert_html_to_markdown
+from .string_search import (
+    format_desc_converted_markdown,
+    format_desc_source_rest_markdown,
+    format_help_cli,
+    format_available,
+    error_format_src_not_applicable,
+    error_format_src_requires_index_1,
+    error_format_src_requires_index_2,
+)
 
 from pathlib import Path
 from sphinx import __version__ as __sphinx_version__
@@ -310,19 +319,19 @@ def load_search_results():
 def fetch_url_content(url, format='md'):
     """Fetch content from URL in specified format."""
     if format == 'src':
-        click.echo("Error: --format src is not applicable for URL fetch.", err=True)
-        click.echo("The 'src' format fetches source files (.rst/.md) from repositories,", err=True)
-        click.echo("which requires using an index from previous search results.", err=True)
+        click.echo(error_format_src_not_applicable, err=True)
+        click.echo(error_format_src_requires_index_1, err=True)
+        click.echo(error_format_src_requires_index_2, err=True)
         raise click.Abort()
 
     click.echo("")
     click.echo(f"{BLUE}Format:{RESET} {format.upper()}", nl=False)
     if format == 'md':
-        click.echo(" (converted to markdown)")
+        click.echo(format_desc_converted_markdown)
     elif format == 'html':
         click.echo(" (html)")
 
-    click.echo(click.style("Available: md (default), html, src", dim=True))
+    click.echo(click.style(format_available, dim=True))
     click.echo(f"\n{BLUE}Fetching:{RESET} {url}\n")
 
     try:
@@ -372,12 +381,12 @@ def fetch_source_file(index, format='src'):
     click.echo("")
     click.echo(f"{BLUE}Format:{RESET} {format.upper()}", nl=False)
     if format == 'md':
-        click.echo(" (converted to markdown)")
+        click.echo(format_desc_converted_markdown)
     elif format == 'src':
-        click.echo(" (source reST or markdown)")
+        click.echo(format_desc_source_rest_markdown)
     elif format == 'html':
         click.echo(" (html)")
-    click.echo(click.style("Available: md (default), src, html", dim=True))
+    click.echo(click.style(format_available, dim=True))
 
     if format == 'html':
         click.echo(f"\n{BLUE}Fetching from:{RESET} [{index}] {result['title']}")
@@ -1004,7 +1013,7 @@ async def fetch_and_display_summaries(formatted_results, query_terms, base_url, 
     '--format',
     type=click.Choice(['html', 'src', 'md'], case_sensitive=False),
     default='md',
-    help='Output format for --fetch: html, src (source .rst/.md), md (converted markdown, default)'
+    help=format_help_cli
 )
 @click.argument('query', nargs=-1, required=False)
 def search(url, repo, limit, verbose, fetch, format, query):

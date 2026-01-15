@@ -42,6 +42,10 @@ cli = [
     "weasyprint",
 ]
 
+mcp = [
+    "mcp >= 1.0",
+]
+
 test = [
     "pytest",
     "ruff",
@@ -58,6 +62,7 @@ harmonic = 'adi_doctools'
 
 [project.scripts]
 adoc = "adi_doctools.cli:entry_point"
+adoc-mcp = "adi_doctools.mcp:main"
 
 [tool.pytest.ini_options]
 addopts = [
