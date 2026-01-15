@@ -97,6 +97,7 @@
 <li><a class="reference internal" href="#">Installing</a><ul>
 <li><a class="reference internal" href="#release-install">Release install</a><ul>
 <li><a class="reference internal" href="#using-a-python-virtual-environment">Using a Python virtual environment</a></li>
+<li><a class="reference internal" href="#release-links-and-optional-dependencies">Release links and optional dependencies</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#development-install">Development install</a><ul>
@@ -224,6 +225,32 @@ ubuntu 22.04).</p>
 </pre></div>
 </div>
 <div class="clear-left"></div></div></div></section>
+<section id="release-links-and-optional-dependencies">
+<h3>Release links and optional dependencies<a class="headerlink" href="#release-links-and-optional-dependencies" title="Link to this heading"></a></h3>
+<p>The release link are always:</p>
+<ul>
+<li><div class="line-block">
+<div class="line"><a class="icon link reference external" href="https://github.com/analogdevicesinc/doctools/releases/download/latest/adi-doctools.tar.gz" target="_blank">https://github.com/analogdevicesinc/doctools/releases/download/latest/adi-doctools.tar.gz</a></div>
+<div class="line">latest (commit at tag bump).</div>
+</div>
+</li>
+<li><div class="line-block">
+<div class="line"><a class="icon link reference external" href="https://github.com/analogdevicesinc/doctools/releases/download/pre-release/adi-doctools.tar.gz" target="_blank">https://github.com/analogdevicesinc/doctools/releases/download/pre-release/adi-doctools.tar.gz</a></div>
+<div class="line">pre-release (main head commit).</div>
+</div>
+</li>
+<li><div class="line-block">
+<div class="line"><a class="icon link reference external" href="https://github.com/analogdevicesinc/doctools/releases/download/v0.4.32/adi-doctools.tar.gz" target="_blank">https://github.com/analogdevicesinc/doctools/releases/download/v0.4.32/adi-doctools.tar.gz</a></div>
+<div class="line">specific version.</div>
+</div>
+</li>
+</ul>
+<p>Optional dependencies can be installed with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># test, cli, ...</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="s1">&#39;adi_doctools[test] @ https://github.com/analogdevicesinc/doctools/releases/download/latest/adi-doctools.tar.gz&#39;</span>
+</pre></div>
+</div>
+</section>
 </section>
 <section id="development-install">
 <span id="id3"></span><h2>Development install<a class="headerlink" href="#development-install" title="Link to this heading"></a></h2>
