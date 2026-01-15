@@ -56,6 +56,25 @@ For next builds, just activate the virtual environment:
 
    $source venv/bin/activate
 
+Release links and optional dependencies
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The release link are always:
+
+- | https://github.com/analogdevicesinc/doctools/releases/download/latest/adi-doctools.tar.gz
+  | latest (commit at tag bump).
+- | https://github.com/analogdevicesinc/doctools/releases/download/pre-release/adi-doctools.tar.gz
+  | pre-release (main head commit).
+- | https://github.com/analogdevicesinc/doctools/releases/download/v0.4.32/adi-doctools.tar.gz
+  | specific version.
+
+Optional dependencies can be installed with:
+
+.. code:: bash
+
+   # test, cli, ...
+   pip install 'adi_doctools[test] @ https://github.com/analogdevicesinc/doctools/releases/download/latest/adi-doctools.tar.gz'
+
 .. _development-install:
 
 Development install
