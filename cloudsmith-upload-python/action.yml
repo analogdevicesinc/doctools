@@ -1,0 +1,88 @@
+name: Container Build
+description: Build and upload container images to Cloudsmith
+
+inputs:
+  gh-token:
+    description: 'GitHub Token'
+    default: ${{ github.token }}
+  path:
+    description: 'Path to the artifact'
+    required: true
+  tags:
+    description: 'Tags to add to artifact, defaults to github context'
+    required: false
+  namespace:
+    description: 'Cloudsmith namespace'
+    required: true
+  repository:
+    description: 'Cloudsmith repository name'
+    required: true
+  api-key:
+    description: 'Cloudsmith API Key'
+    required: false
+  service-slug:
+    description: 'Cloudsmith Service Slug for OIDC'
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Get tags
+      id: get_tags
+      shell: bash
+      run: |
+        # Get tags
+        if [[ -n "${{ inputs.tags }}" ]]; then
+          echo "tags=${{ inputs.tags }}" >> "$GITHUB_OUTPUT"
+        else
+          # push: refs/heads/<branch>
+          # tag || release: refs/tags/<tag>
+          # pull_request: refs/pull/<id>/merge
+          tags="${{ github.ref }}, on/${{ github.event_name }}"
+          [[ "${{ github.ref }}" == refs/pull/* ]] && \
+            tags+=", refs/heads/${{ github.head_ref }}, refs/base/${{ github.base_ref }}"
+          echo "tags=$tags" >> "$GITHUB_OUTPUT"
+        fi
+
+    - uses: cloudsmith-io/cloudsmith-cli-action@v1.0.4
+      if: ${{ env.CLOUDSMITH_API_KEY == '' && (inputs.service-slug != '' && inputs.service-slug != ' ') }}
+      with:
+        oidc-namespace: ${{ inputs.namespace }}
+        oidc-service-slug: ${{ inputs.service-slug }}
+        oidc-auth-only: 'true'
+
+    - name: Cloudsmith API Key
+      shell: bash
+      if: ${{ env.CLOUDSMITH_API_KEY == '' && (inputs.service-slug == '' || inputs.service-slug == ' ') }}
+      run: |
+        # Cloudsmith API Key
+        CLOUDSMITH_API_KEY=$(echo "${{ inputs.api-key }}" | xargs)
+        echo "CLOUDSMITH_API_KEY=$CLOUDSMITH_API_KEY" >> "$GITHUB_ENV"
+
+    - name: Cloudsmith get assets
+      if: ${{ env.CLOUDSMITH_API_KEY != '' }}
+      shell: bash
+      run: |
+        # Cloudsmith get assets
+        curl -s -H "Authorization: Bearer ${{ inputs.gh-token }}" -L -o cloudsmith-api.sh \
+          https://raw.githubusercontent.com/analogdevicesinc/doctools/refs/heads/main/ci/cloudsmith-api.sh
+
+    - name: Cloudsmith upload python
+      shell: bash
+      if: ${{ env.CLOUDSMITH_API_KEY != '' }}
+      run: |
+        # Cloudsmith upload python
+        source ./cloudsmith-api.sh
+
+        package_file=$(
+          cs-package-upload "${{ env.CLOUDSMITH_API_KEY }}" \
+                            "${{ inputs.namespace }}" \
+                            "${{ inputs.repository }}" \
+                            "${{ inputs.path }}"
+        )
+
+        cs-package-store-python ${{ env.CLOUDSMITH_API_KEY }} \
+                                ${{ vars.CLOUDSMITH_NAMESPACE }} \
+                                ${{ vars.CLOUDSMITH_REPOSITORY }} \
+                                "$package_file" \
+                                "${{ steps.get_tags.outputs.tags }}"
