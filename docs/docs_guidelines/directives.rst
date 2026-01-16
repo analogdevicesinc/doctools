@@ -40,7 +40,7 @@ Grid
 ++++
 
 The grid directive implements a subset of
-`CSS Grids <https://css-tricks.com/snippets/css/complete-guide-grid/>`__.
+`CSS Grids <https://css-tricks.com/css-grid-layout-guide/>`__.
 And is used to dispose elements with exact number of columns and width control.
 
 .. code:: rst
