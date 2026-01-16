@@ -147,11 +147,39 @@ jobs:
                         ${{ inputs.asset_alias_name }} \
                         ${{ inputs.asset_path }}
 
+  # Reusable workflows are currently unsupported on the PyPI
+  # https://github.com/pypa/gh-action-pypi-publish/issues/166
+  deploy-pypi:
+    runs-on: [self-hosted, repo-only]
+    permissions:
+      contents: read
+    if: ${{ github.ref == 'refs/heads/main' && inputs.new_tag == 'true'}}
+
+    steps:
+    - name: Ensure clean dist
+      run: |
+        rm -rf dist
+
+    - uses: actions/download-artifact@v5
+      with:
+        name: dist
+        path: dist
+
+    - name: Publish to PyPI
+      env:
+        PYPI_API_KEY: ${{ secrets.PYPI_API_KEY }}
+      if: ${{ env.PYPI_API_KEY != '' }}
+      run: |
+        python3.13 -m venv venv/3.13/deploy-pypi
+        source ./venv/3.13/deploy-pypi/bin/activate
+        pip3.13 install twine --upgrade
+        twine upload --password "${{ secrets.PYPI_API_KEY }}" dist/*
+
   deploy-cloudsmith:
     runs-on: [self-hosted, repo-only]
     permissions:
+      contents: read
       id-token: write
-      contents: write
     if: ${{ github.ref == 'refs/heads/main' }}
 
     steps:
