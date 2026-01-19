@@ -110,10 +110,17 @@ runs:
       shell: bash
       run: |
         git add . >> /dev/null
+        context=""
+        msg=""
+        action="${{ github.event.action }}"
         if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-          context=" #${{ github.event.number }} (${{ github.event.action }})"
+          context=" #${{ github.event.number }}"
+          owner=$(echo ${{ github.repository }} | cut -d/ -f1)
+          repo=$(echo ${{ github.repository }} | cut -d/ -f2)
+          msg="${msg}https://$owner.github.io/$repo/pull/${{ github.event.number }}"$'\n'
         fi
-        git commit -m "deploy: ${GITHUB_SHA}$context" --allow-empty
+        [[ -n "$action" ]] && context="$context ($action)"
+        git commit -m "deploy: ${GITHUB_SHA}$context" -m "$msg" --allow-empty
         if [[ "${{ github.event_name }}" == "pull_request" ]]; then
           json=$(curl -s -L \
             -H "Accept: application/vnd.github+json" \
