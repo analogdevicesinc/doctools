@@ -98,6 +98,7 @@
 <li><a class="reference internal" href="#release-install">Release install</a><ul>
 <li><a class="reference internal" href="#using-a-python-virtual-environment">Using a Python virtual environment</a></li>
 <li><a class="reference internal" href="#release-links-and-optional-dependencies">Release links and optional dependencies</a></li>
+<li><a class="reference internal" href="#latex-support">LaTeX support</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#development-install">Development install</a><ul>
@@ -250,6 +251,28 @@ ubuntu 22.04).</p>
 pip<span class="w"> </span>install<span class="w"> </span><span class="s1">&#39;adi_doctools[test] @ https://github.com/analogdevicesinc/doctools/releases/download/latest/adi-doctools.tar.gz&#39;</span>
 </pre></div>
 </div>
+</section>
+<section id="latex-support">
+<span id="latex"></span><h3>LaTeX support<a class="headerlink" href="#latex-support" title="Link to this heading"></a></h3>
+<p>Beyond the HTML harmonic theme, limited LaTeX support is available.
+To build you will need, at least:</p>
+<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>zypper<span class="w"> </span>install<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>texlive-latexmk<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>texlive-collection-basic<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>texlive-collection<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>texlive-collection<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>texlive-collection<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>texlive-collection<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>texlive-fncychap<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>gnu-free-fonts<span class="w"> </span>texlive-gnu-freefont<span class="w"> </span>texlive-gnu-freefont-fonts
+</pre></div>
+</div>
+<div class="clear-left"></div></div></div><p>Due to unicode support, <code class="docutils literal notranslate"><span class="pre">latex_engine</span></code> is set to <code class="docutils literal notranslate"><span class="pre">xelatex</span></code> internally if
+the value is Sphinx default’s <code class="docutils literal notranslate"><span class="pre">pdflatex</span></code>. If <code class="docutils literal notranslate"><span class="pre">latex_elements['fontpkg']</span></code> is
+not provided, a default is also set with unicode characters.</p>
 </section>
 </section>
 <section id="development-install">
