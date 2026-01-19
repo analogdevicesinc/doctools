@@ -381,3 +381,19 @@ class wrap_elements(SphinxPostTransform):
             new_node.update_all_atts(node)
             node.parent.replace(node, new_node)
             new_node.append(node)
+
+
+def latex_config(app):
+    if app.config['latex_engine'] == 'pdflatex':
+        logger.info("latex_engine: Replacing 'pdflatex' with 'xelatex' due to unicode support.")
+        # Due to unicode support
+        app.config.latex_engine = "xelatex"
+
+    if 'fontpkg' not in app.config['latex_elements']:
+        app.config['latex_elements']['fontpkg'] = r'''
+  \usepackage{fontspec}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \setmainfont{FreeSerif}
+  \setsansfont{FreeSans}
+  \setmonofont{FreeMono}
+            '''

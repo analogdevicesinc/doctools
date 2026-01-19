@@ -3,10 +3,11 @@ from packaging.version import Version
 
 from sphinx.util.osutil import SEP
 from sphinx import __version__ as __sphinx_version__
+from sphinx.util import logging
 
 from .theme import (navigation_tree, get_pygments_theme,
                     write_pygments_css, wrap_elements)
-from .theme import setup as theme_setup, names as theme_names
+from .theme import setup as theme_setup, names as theme_names, latex_config
 from .directive import setup as directive_setup
 from .role import setup as role_setup
 from .lut import get_lut
@@ -16,6 +17,7 @@ from .transforms import setup as transforms_setup
 
 __version__ = "0.4.32"
 
+logger = logging.getLogger(__name__)
 
 def get_navigation_tree(app, context, pagename):
     # The navigation tree, generated from the sphinx-provided ToC tree.
@@ -62,6 +64,7 @@ def config_inited(app, config):
     """
     app.lut = get_lut()
     interref_repos_apply(config)
+    latex_config(app)
 
     return
 
@@ -113,7 +116,6 @@ def builder_inited(app):
             get_pygments_theme(app)
         else:
             app.add_css_file("third-party.css", priority=500)
-
 
 def build_finished(app, exc):
     """

@@ -75,6 +75,30 @@ Optional dependencies can be installed with:
    # test, cli, ...
    pip install 'adi_doctools[test] @ https://github.com/analogdevicesinc/doctools/releases/download/latest/adi-doctools.tar.gz'
 
+.. _latex:
+
+LaTeX support
+~~~~~~~~~~~~~
+
+Beyond the HTML harmonic theme, limited LaTeX support is available.
+To build you will need, at least:
+
+.. shell::
+
+   $ zypper install \
+       texlive-latexmk \
+       texlive-collection-basic \
+       texlive-collection \
+       texlive-collection \
+       texlive-collection \
+       texlive-collection \
+       texlive-fncychap \
+       gnu-free-fonts texlive-gnu-freefont texlive-gnu-freefont-fonts
+
+Due to unicode support, ``latex_engine`` is set to ``xelatex`` internally if
+the value is Sphinx default's ``pdflatex``. If ``latex_elements['fontpkg']`` is
+not provided, a default is also set with unicode characters.
+
 .. _development-install:
 
 Development install
