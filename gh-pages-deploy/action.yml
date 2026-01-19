@@ -110,6 +110,10 @@ runs:
       shell: bash
       run: |
         git add . >> /dev/null
+        if git diff --cached --quiet ; then
+          echo "::notice ::No changes, nothing to commit"
+          exit 0
+        fi
         context=""
         msg=""
         action="${{ github.event.action }}"
@@ -132,7 +136,7 @@ runs:
           if [[ "$state" == "open" ]]; then
             git push origin ${{ inputs.branch }}:${{ inputs.branch }}
           else
-            echo "pr state '$state' is not 'open', not pushing"
+            echo "::warning ::PR state '$state' is not 'open', not pushing"
           fi
         else
           git push origin ${{ inputs.branch }}:${{ inputs.branch }}
