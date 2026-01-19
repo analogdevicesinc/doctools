@@ -17,6 +17,7 @@ log = {
     'inv_f': "Could not find {}, check rollup output.",
     'inv_srcdir': "Could not find SOURCEDIR {}.",
     'no_selenium': "Package 'selenium' is not installed.",
+    'no_dev_pool': "Built docs doesn't have dev-pool.js, discarted.",
     'rollup': "Couldn't find {}, ensure this a symbolic install.",
     'node': "Couldn't find the node executable, please install nodejs.",
     'node_alt': "And the node executable is not installed.",
@@ -333,11 +334,15 @@ def serve(directory, port, dev, selenium, once, builder):
 
     if not with_selenium and builder == 'html':
         environ["ADOC_DEVPOOL"] = ""
+        if not path.isfile(path.join(builddir, '_static', 'dev-pool.js')):
+          # Verify if cached is without dev-pool
+          click.echo(log["no_dev_pool"])
+          subprocess.call(f"sphinx-build -M clean . {builddir} -j auto",
+                          shell=True, cwd=directory)
 
     def app_subprocess_build():
         subprocess.call(f"sphinx-build -b {builder} . {builddir} -d {doctreedir} -j auto",
                         shell=True, cwd=directory)
-
 
     watch_file_src = {}
     watch_file_rst = {}
