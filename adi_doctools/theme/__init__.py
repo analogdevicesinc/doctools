@@ -11,6 +11,7 @@ from sphinx.util import logging
 from sphinx import __version__ as __sphinx_version__
 
 from .harmonic import setup as harmonic_setup
+from .latex import latex_elements
 
 logger = logging.getLogger(__name__)
 
@@ -329,11 +330,7 @@ def latex_config(app):
         # Due to unicode support
         app.config.latex_engine = "xelatex"
 
-    if 'fontpkg' not in app.config['latex_elements']:
-        app.config['latex_elements']['fontpkg'] = r'''
-  \usepackage{fontspec}
-  \defaultfontfeatures{Scale=MatchLowercase}
-  \setmainfont{FreeSerif}
-  \setsansfont{FreeSans}
-  \setmonofont{FreeMono}
-            '''
+    if not app.config['latex_elements']:
+        app.config['latex_elements'] = latex_elements
+        for key, value in latex_elements.items():
+            app.builder.context[key] = value

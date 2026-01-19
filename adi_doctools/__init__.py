@@ -64,9 +64,7 @@ def config_inited(app, config):
     """
     app.lut = get_lut()
     interref_repos_apply(config)
-    latex_config(app)
 
-    return
 
 def builder_inited(app):
     config = app.config
@@ -112,6 +110,9 @@ def builder_inited(app):
             get_pygments_theme(app)
         else:
             app.add_css_file("third-party.css", priority=500)
+
+    if app.builder.name == 'latex':
+        latex_config(app)
 
 def write_toctree_html(app):
     """

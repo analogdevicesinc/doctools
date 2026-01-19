@@ -204,14 +204,9 @@ To build you will need, at least:
 .. shell::
 
    $ zypper install \
-       texlive-latexmk \
-       texlive-collection-basic \
-       texlive-collection-latex \
-       texlive-collection-latexrecommended \
-       texlive-collection-latexextra \
-       texlive-collection-fontsrecommended \
+       texlive-xetex \
        texlive-fncychap \
-       gnu-free-fonts texlive-gnu-freefont texlive-gnu-freefont-fonts
+       texlive-gnu-freefont
 
 Due to unicode support, ``latex_engine`` is set to ``xelatex`` internally if
 the value is Sphinx default's ``pdflatex``. If ``latex_elements['fontpkg']`` is

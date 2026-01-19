@@ -30,7 +30,10 @@ source_suffix = '.rst'
 core_repo = True
 
 #  -- Options for PDF output --------------------------------------------------
-# draft comment, future options for exporting to PDF
+
+latex_show_pagerefs = True
+
+latex_show_urls = 'footnote'
 
 # -- External docs configuration ----------------------------------------------
 
