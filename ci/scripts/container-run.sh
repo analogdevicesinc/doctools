@@ -26,6 +26,7 @@ container-run ()
 	--volume=<path>     Mount a path as a volume.
 	--root              Runs as root instead of user runner.
 	--mount-keys        Mount credentials into the container.
+	--mount-ai          Mount ai tools, including credentials.
 
 	If volume is not provided:
 	 * is git repository: Set as the root of the repository, and if a
@@ -36,10 +37,12 @@ container-run ()
 	
 	local as_root=false
 	local mount_keys=false
+	local mount_ai=false
 	local volume=
 	local image=
 	local with_args=
 	local cwd=
+	declare -a run_params=
 	declare -a args=
 	for arg; do
 		if [[ "$arg" =~ ^-- ]]; then
@@ -50,6 +53,8 @@ container-run ()
 				as_root=true
 			elif [[ "$arg" == "--mount-keys" ]]; then
 				mount_keys=true
+			elif [[ "$arg" == "--mount-ai" ]]; then
+				mount_ai=true
 			elif [[ "$arg" == "--volume" ]]; then
 				echo "missing --volume= value (e.g. --volume=work)"
 				return
@@ -138,46 +143,75 @@ container-run ()
 	fi
 	volume=$(realpath $volume)
 
+	home=$($as_root && echo "/root" || echo "/home/runner")
 	if [[ "$running" == "true" ]]; then
-		run_params=""
+		run_params=()
 	else
-		run_params="run -it \
-			--entrypoint= \
-			--name=$name \
-			--workdir=$(pwd -P) \
-			--volume $volume:$volume"
-		[ ! -z "$volume_2" ] && run_params="$run_params --volume $volume_2:$volume_2"
+		run_params=(run -it)
+		run_params+=(--entrypoint=)
+		run_params+=(--name=$name)
+		run_params+=(--workdir=$(pwd -P))
+		run_params+=(--volume $volume:$volume)
+		[ ! -z "$volume_2" ] && run_params+=(--volume $volume_2:$volume_2)
 		if $mount_keys; then
-			home=$($as_root && echo "/root" || echo "/home/runner")
 			if [[ -d "$HOME/.ssh" ]]; then
-				run_params="$run_params --volume $HOME/.ssh:$home/.ssh"
+				run_params+=(--volume $HOME/.ssh:$home/.ssh)
 			fi
 			if [[ -f "$HOME/.git-credentials" ]]; then
-				run_params="$run_params --volume $HOME/.git-credentials:$home/.git-credentials"
+				run_params+=(--volume $HOME/.git-credentials:$home/.git-credentials)
 			fi
+
+		fi
+		if $mount_ai; then
+			ai_env_vars=(
+				ANTHROPIC_BASE_URL
+				ANTHROPIC_AUTH_TOKEN
+				ANTHROPIC_CUSTOM_HEADERS
+				ANTHROPIC_MODEL
+				ANTHROPIC_DEFAULT_OPUS_MODEL
+				ANTHROPIC_DEFAULT_SONNET_MODEL
+				ANTHROPIC_DEFAULT_HAIKU_MODEL
+			)
+			echo -n "Detected AI tools:"
+			if [[ -f "$HOME/.local/bin/claude" ]]; then
+				echo -n " claude"
+				run_params+=(--volume $HOME/.local/bin/claude:$home/.local/bin/claude)
+			fi
+			echo ""
+			vars_=()
+			for var in "${ai_env_vars[@]}"; do
+				val="${!var}"
+				if [[ -n "$val" ]]; then
+					vars_+=($var)
+					run_params+=(--env $var="$val")
+				fi
+			done
+			echo "Passed AI env vars:"
+			printf "%s\n" "${vars_[@]}" | column
 
 		fi
 	fi
 	if [ "$container_engine" == "podman" ]; then
 		if $as_root; then
-			run_params="$run_params --user root"
+			run_params+=(--user root)
 		elif [[ "$running" != "true" ]]; then
-			run_params="$run_params --userns keep-id"
+			run_params+=(--userns keep-id)
 		fi
 	elif [ "$container_engine" == "docker" ]; then
 		if $as_root; then
-			run_params="$run_params --user root"
+			run_params+=(--user root)
 		else
-			run_params="$run_params --env USERID=$(id -u) --env GROUPID=$(id -g)"
+			run_params+=(--env USERID=$(id -u))
+			run_params+=(--env GROUPID=$(id -g))
 		fi
 	fi
 
 	if [[ "$running" == "true" ]]; then
 		if [[ "$with_args" ]]; then
 			args_="${args[@]}"
-			$container_engine exec ${run_params} -it $name bash -lc "$args_"
+			$container_engine exec "${run_params[@]}" -it $name bash -lc "$args_"
 		else
-			$container_engine exec ${run_params} -it $name bash -l
+			$container_engine exec "${run_params[@]}" -it $name bash -l
 		fi
 	else
 		if [[ "$exists" == "true" ]]; then
@@ -185,9 +219,9 @@ container-run ()
 		fi
 		if [[ "$with_args" ]]; then
 			args_="${args[@]}"
-			$container_engine ${run_params} $image bash -lc "$args_"
+			$container_engine "${run_params[@]}" $image bash -lc "$args_"
 		else
-			$container_engine ${run_params} $image bash -l
+			$container_engine "${run_params[@]}" $image bash -l
 		fi
 	fi
 
