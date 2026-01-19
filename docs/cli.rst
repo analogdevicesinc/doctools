@@ -152,7 +152,7 @@ For example:
 
    $ adoc search ad9084 profile
     [1] [documentation] AD9084
-    https://analogdevicesinc.github.io/documentation/software/iio-oscilloscope/ad9084/index.html
+    https://analogdevicesinc.github.io/.../ad9084/index.html
     :external+documentation:ref:`ad9084 iio-oscilloscope` ...
       AD9084 Capture Window Main receivers are handled by the axi-ad9081-rx-hpc
       IIO device, The number of channels depend on the JESD mode (M) p...
