@@ -5,7 +5,7 @@ it=false ; [ -z "$PS1" ] || it=true
 if git rev-parse --is-inside-work-tree  > /dev/null 2>&1 ; then
 	pushd $(realpath $(git rev-parse --git-common-dir)/..) 1>/dev/null
 
-	ci_worktree=$(git worktree list | grep '\[_ci\]' | cut -f1 -d " ")
+	ci_worktree=$(git worktree list | grep '\[ci\]' | cut -f1 -d " ")
 	if [[ ! -z "$ci_worktree" ]]; then
 		export CI_WORKTREE=$ci_worktree
 		if [[ -f "$ci_worktree/user.sh" ]]; then
