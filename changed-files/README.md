@@ -7,6 +7,13 @@ passed explicitely, or obtained through the github action context. The
 resolution is equal to doctools/checkout@action, and the action can be added
 right after.
 
+Output:
+
+- all_changed_files: rule grouped list of changed files
+- changed_keys: comma separated list of rules that matches (`packages`, `doc`, ...)
+
+`changed_keys` can be used to skip jobs (e.g, no doc changes -> skip doc job).
+
 Usage:
 
 ```
@@ -43,9 +50,9 @@ jobs:
   state:
     runs-on: [self-hosted, repo-only]
     outputs:
-      changed: ${{ steps.state.outputs.changed_keys }}
+      changed_keys: ${{ steps.state.outputs.changed_keys }}
     steps:
-    - uses: analogdevicesinc/doctools/changed-files@action-debug
+    - uses: analogdevicesinc/doctools/changed-files@action
       id: state
       with:
         rules: |
@@ -55,17 +62,18 @@ jobs:
 
   build-package:
     needs: [state]
-    if: contains(needs.state.outputs.changed, 'pakage')
+    # Skip if no changes to ./adi_doctools/ (rule package)
+    if: contains(needs.state.outputs.changed_keys, 'package')
     uses: ./.github/workflows/build-package.yml
     secrets: inherit
 
   debug-state:
-    runs-on: [self-hosted, repo-only]
+    runs-on: ubuntu-latest
     needs: [state]
     env:
-      changed: ${{ needs.state.outputs.changed }}
+      changed_keys: ${{ needs.state.outputs.changed_keys }}
     steps:
-      - run: echo $changed
-      - run: echo ${{ needs.state.outputs.changed }}
+      - run: echo $changed_keys
+      - run: echo ${{ needs.state.outputs.changed_keys }}
 
 ```
