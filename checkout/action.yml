@@ -135,6 +135,7 @@ runs:
             git reset --hard ${{ github.event.pull_request.head.sha }}
           else
             git fetch origin --depth=$fetch_depth $GITHUB_SHA
+            git fetch origin --depth=1 ${{ github.event.pull_request.base.sha }}
             git reset --hard ${{ github.event.pull_request.head.sha }}
             while ! git rebase --rebase-merges $keep_empty ${{ github.event.pull_request.base.sha }}; do
               git rebase --abort
