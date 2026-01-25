@@ -52,7 +52,7 @@ def directive_toctree_preview_doctree_resolved(app, doctree, fromdocname):
 
             ref = nodes.reference('', '', internal=True)
             ref['refuri'] = app.builder.get_relative_uri(
-                app.env.docname, docname
+                fromdocname, docname
             )
             ref += nodes.Text(title)
 
