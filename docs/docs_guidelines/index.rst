@@ -447,6 +447,17 @@ filter navigation entries dynamically. This can be enabled via:
 This mechanism is meant to be used alongside the ``topic`` metadata defined in
 ``lut.py`` so that top-level links remain consistent across topics.
 
+With preview
+~~~~~~~~~~~~
+
+Doctools extends ``toctree`` with a ``toctree-preview``, that adds a
+description of the page right below the link. Only the first level is shown,
+even if ``maxdepth`` is set. Internally it uses the result of the
+:ref:`description` directive.
+
+It is useful when you have a list of projects and wants to provide a quick
+overview.
+
 .. _version:
 
 Versioning

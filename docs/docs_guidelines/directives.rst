@@ -125,6 +125,8 @@ By default, it clears ``both`` sides.
 With the ``break`` option, it will break the page when generating a PDF
 (behaves similar to LaTeX *cleardoublepage*).
 
+.. _description:
+
 Description
 ~~~~~~~~~~~
 

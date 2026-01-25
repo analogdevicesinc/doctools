@@ -65,6 +65,15 @@ def parse_rst(state, content, uid: Optional[str] = None):
     return node
 
 
+def get_document_description(doctree):
+    for node in doctree.traverse(nodes.paragraph):
+        if node.parent.tagname != 'meta':
+            content = node.astext().strip()
+            if content:
+                return content
+    return None
+
+
 def directive_description_doctree_resolved(app, doctree, fromdocname):
     has_meta = any(
         isinstance(node, nodes.meta) and node.get('name') == 'description'
@@ -73,11 +82,7 @@ def directive_description_doctree_resolved(app, doctree, fromdocname):
     if has_meta:
         return
 
-    content = None
-    for node in doctree.traverse(nodes.paragraph):
-        if node.parent.tagname != 'meta':
-            content = node.astext().strip()
-            break
+    content = get_document_description(doctree)
     if not content:
         return
 
