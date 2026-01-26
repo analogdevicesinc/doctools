@@ -109,6 +109,7 @@
 <li><a class="reference internal" href="#position-matters">Position matters</a></li>
 <li><a class="reference internal" href="#top-level-caption">Top-level caption</a></li>
 <li><a class="reference internal" href="#filtering-multiple-topics">Filtering multiple topics</a></li>
+<li><a class="reference internal" href="#with-preview">With preview</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#versioning">Versioning</a></li>
@@ -584,6 +585,15 @@ filter navigation entries dynamically. This can be enabled via:</p>
 </ul>
 <p>This mechanism is meant to be used alongside the <code class="docutils literal notranslate"><span class="pre">topic</span></code> metadata defined in
 <code class="docutils literal notranslate"><span class="pre">lut.py</span></code> so that top-level links remain consistent across topics.</p>
+</section>
+<section id="with-preview">
+<h3>With preview<a class="headerlink" href="#with-preview" title="Link to this heading"></a></h3>
+<p>Doctools extends <code class="docutils literal notranslate"><span class="pre">toctree</span></code> with a <code class="docutils literal notranslate"><span class="pre">toctree-preview</span></code>, that adds a
+description of the page right below the link. Only the first level is shown,
+even if <code class="docutils literal notranslate"><span class="pre">maxdepth</span></code> is set. Internally it uses the result of the
+<a class="reference internal" href="directives.html#description"><span class="std std-ref">Description</span></a> directive.</p>
+<p>It is useful when you have a list of projects and wants to provide a quick
+overview.</p>
 </section>
 </section>
 <section id="versioning">
