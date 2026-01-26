@@ -1,5 +1,5 @@
 "use strict";
-export {DOM, Animate}
+export {DOM}
 
 /** Make DOM element */
 class DOM {
