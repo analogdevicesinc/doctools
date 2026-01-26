@@ -16,16 +16,15 @@ cd Python-$PYTHON_VERSION
 ./configure \
     --prefix=/opt/python/$1 \
     --enable-shared \
-    --enable-optimizations
+    --enable-optimizations \
+    --with-ensurepip=no
 
 make -s -j5
 make install
 
 ln -s "/opt/python/$1/bin/python$2" "/usr/local/bin/python$2"
-ln -s "/opt/python/$1/bin/pip$2" "/usr/local/bin/pip$2"
 echo "/opt/python/$1/lib" >> /etc/ld.so.conf.d/python$1.conf
 ldconfig
-/opt/python/$1/bin/python$2 -m pip install --upgrade pip
 
 cd ..
 rm -r Python-$PYTHON_VERSION python.tar.xz

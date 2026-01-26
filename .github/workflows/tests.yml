@@ -5,7 +5,7 @@ permissions:
 
 jobs:
   tests:
-    runs-on: [self-hosted, repo-only, v1]
+    runs-on: [self-hosted, repo-only, v2]
 
     steps:
     - uses: analogdevicesinc/doctools/checkout@action
@@ -20,24 +20,25 @@ jobs:
 
     - name: Install pip packages
       run: |
-        python3.13 -m venv venv/3.13/tests
-        source ./venv/3.13/tests/bin/activate
-        pip3.13 install pip sphinx pytest ruff --upgrade
-        pip3.13 install dist/*.tar.gz
+        python3 -m venv venv/3/tests
+        source ./venv/3/tests/bin/activate
+        python3 -m ensurepip
+        pip3 install sphinx pytest ruff --upgrade
+        pip3 install dist/*.tar.gz
 
     - name: Run tests
       working-directory: tests
       run: |
-        source ../venv/3.13/tests/bin/activate
+        source ../venv/3/tests/bin/activate
         pytest
 
     - name: Ruff lint
       run: |
-        source ./venv/3.13/tests/bin/activate
+        source ./venv/3/tests/bin/activate
         ruff check --output-format=github .
 
     - name: Run linkcheck
       working-directory: docs
       run: |
-        source ../venv/3.13/tests/bin/activate
+        source ../venv/3/tests/bin/activate
         make linkcheck
