@@ -251,13 +251,13 @@ on the container, for example:
 .. shell::
 
    ~/doctools
-   $cr adi/doctools:v1 .
-   $python3.13 -m venv venv
-   $source venv/bin/activate ; \
-   $    pip3.13 install -e . ; \
-   $    pip3.13 install pytest
-   $cd tests ; pytest
-   $exit
+   $ cr adi/doctools:v1 .
+   $ python3 -m venv venv
+   $ source venv/bin/activate ; \
+         pip3 install -e . ; \
+         pip3 install pytest
+   $ cd tests ; pytest
+   $ exit
 
 .. _podman-run:
 

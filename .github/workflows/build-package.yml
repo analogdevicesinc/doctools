@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: [self-hosted, repo-only, v1]
+    runs-on: [self-hosted, repo-only, v2]
 
     outputs:
       asset_alias_name: ${{ steps.get_asset.outputs.asset_alias_name }}
@@ -79,10 +79,11 @@ jobs:
 
     - name: Build a binary wheel and a source tarball
       run: |
-        python3.13 -m venv venv/3.13/build-package
-        source ./venv/3.13/build-package/bin/activate
-        pip3.13 install build
-        python3.13 -m build
+        python3 -m venv venv/3/build-package
+        source ./venv/3/build-package/bin/activate
+        python3 -m ensurepip
+        pip3 install build
+        python3 -m build
 
     - name: Get asset name
       id: get_asset
