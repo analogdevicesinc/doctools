@@ -293,6 +293,22 @@ The doc version set, either via ``conf.py`` or ``ADOC_DOC_VERSION``
 (:ref:`more info <version>`), should match a value on the ``name`` column, and
 not the ``path`` column.
 
+Git LFS
+~~~~~~~
+
+GitHub Pages does not support git lfs pointers. The tool is able to convert git
+lfs pointers into GitHub raw links
+(``https://media.githubusercontent.com/media/org/repo/branch/path/to/image``), with:
+
+.. code:: bash
+
+   export GIT_LFS_TO_LINKS="true"
+   export GIT_ORG_REPOSITORY="${{ github.repository }}"
+   [ "${{ github.event_name }}" = "pull_request" ] \
+     && export GIT_BRANCH="${{ github.event.pull_request.head.ref }}" \
+     || export GIT_BRANCH="${{ github.ref_name }}"
+   make html
+
 Further notes
 -------------
 
