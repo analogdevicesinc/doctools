@@ -119,7 +119,6 @@ runs:
         # --empty was added on git 2.26.0
         [[ "${{ runner.debug }}" == "1" ]] && set -x
         has_keep=$(git rebase -help 2>&1 | grep "\--empty" | wc -l) || true
-        echo $has_keep
         if [[ "$has_keep" -gt "0" ]]; then
           keep_empty="--empty=keep"
         else
@@ -134,8 +133,8 @@ runs:
             git fetch origin --depth=$fetch_depth ${{ github.event.pull_request.head.sha }}
             git reset --hard FETCH_HEAD
           else
-          while ! git merge-base ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }}; do
-              echo "deepening by $fetch_depth commits"
+          echo "Fetching commits in batches of $fetch_depth"
+          while ! git merge-base ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} &>/dev/null ; do
               git fetch origin --deepen=$fetch_depth $GITHUB_SHA
             done
             git reset --hard ${{ github.event.pull_request.base.sha }}
