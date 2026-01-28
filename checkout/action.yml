@@ -140,6 +140,7 @@ runs:
             done
             git reset --hard ${{ github.event.pull_request.base.sha }}
             git rebase --rebase-merges $keep_empty ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }}
+            git switch -C trunk
           fi
         else
           git fetch origin --depth=$fetch_depth $GITHUB_SHA
