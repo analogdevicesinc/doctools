@@ -21,7 +21,7 @@ runs:
       shell: bash
       run: |
         # Prepare git
-        [[ "$ACTIONS_STEP_DEBUG" == "true" ]] && set -x
+        [[ "${{ runner.debug }}" == "1" ]] && set -x
         if command -v git-lfs >/dev/null 2>&1; then
           if [ "${{ inputs.lfs }}" = "true" ]; then
             git lfs install
@@ -77,7 +77,7 @@ runs:
       shell: bash
       run: |
         # Get commit depth
-        [[ "$ACTIONS_STEP_DEBUG" == "true" ]] && set -x
+        [[ "${{ runner.debug }}" == "1" ]] && set -x
         if [[ "${{ github.event_name }}" == "pull_request" ]]; then
           json=$(curl -s -L \
             -H "Accept: application/vnd.github+json" \
@@ -117,7 +117,7 @@ runs:
       run: |
         # Fetch & reset
         # --empty was added on git 2.26.0
-        [[ "$ACTIONS_STEP_DEBUG" == "true" ]] && set -x
+        [[ "${{ runner.debug }}" == "1" ]] && set -x
         has_keep=$(git rebase -help 2>&1 | grep "\--empty" | wc -l) || true
         echo $has_keep
         if [[ "$has_keep" -gt "0" ]]; then
@@ -178,14 +178,14 @@ runs:
       shell: bash
       run: |
         # Log commit range
-        [[ "$ACTIONS_STEP_DEBUG" == "true" ]] && set -x
+        [[ "${{ runner.debug }}" == "1" ]] && set -x
         git log --oneline --reverse $base_sha..$head_sha
 
     - name: Generate cache branches & rename
       shell: bash
       run: |
         # Generate cache branches & rename
-        [[ "$ACTIONS_STEP_DEBUG" == "true" ]] && set -x
+        [[ "${{ runner.debug }}" == "1" ]] && set -x
         if [[ "${{ github.event_name }}" == "pull_request" ]]; then
           branch=${{ github.base_ref }}
           commit=${{ github.event.pull_request.base.sha }}
