@@ -129,19 +129,17 @@ runs:
         if [[ "${{ github.event_name }}" == "pull_request" ]]; then
           if [[ "$checkout_fallback" == "true" ]]; then
             git fetch origin --depth=$fetch_depth $GITHUB_SHA
-            git reset --hard $GITHUB_SHA
+            git reset --hard FETCH_HEAD
           elif [[ "$behind_by" -eq 0 ]]; then
             git fetch origin --depth=$fetch_depth ${{ github.event.pull_request.head.sha }}
-            git reset --hard ${{ github.event.pull_request.head.sha }}
+            git reset --hard FETCH_HEAD
           else
-            git fetch origin --depth=$fetch_depth $GITHUB_SHA
-            git fetch origin --depth=1 ${{ github.event.pull_request.base.sha }}
-            git reset --hard ${{ github.event.pull_request.head.sha }}
-            while ! git rebase --rebase-merges $keep_empty ${{ github.event.pull_request.base.sha }}; do
-              git rebase --abort
+          while ! git merge-base ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }}; do
               echo "deepening by $fetch_depth commits"
               git fetch origin --deepen=$fetch_depth $GITHUB_SHA
             done
+            git reset --hard ${{ github.event.pull_request.base.sha }}
+            git rebase --rebase-merges $keep_empty ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }}
           fi
         else
           git fetch origin --depth=$fetch_depth $GITHUB_SHA
