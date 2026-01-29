@@ -346,6 +346,7 @@ def serve(directory, port, dev, selenium, once, builder):
 
     watch_file_src = {}
     watch_file_rst = {}
+    git_ref = None
     if dev:
         w_files = []
         # Check if minified files exists, if not, run rollup once
@@ -645,6 +646,7 @@ def serve(directory, port, dev, selenium, once, builder):
 
     def check_files(scheduler):
         global app, first_run, trigger_rst
+        nonlocal git_ref
         update_sphinx = False
         update_dev = False
         git_lfs_pull = []
@@ -679,6 +681,13 @@ def serve(directory, port, dev, selenium, once, builder):
             # User did make clean
             update_sphinx = True
             deep_clean = True
+
+        if git_top_level:
+            git_ref_ = stat(path.join(git_top_level, '.git', 'HEAD')).st_mtime
+            if git_ref is not None and git_ref < git_ref_:
+                update_sphinx = True
+                deep_clean = True
+            git_ref = git_ref_
 
         if first_run is True:
             first_run = False
