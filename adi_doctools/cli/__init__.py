@@ -6,6 +6,7 @@ from .hdl_gen import hdl_gen
 from .aggregate import aggregate
 from .custom_doc import custom_doc
 from .search import search
+from .jsonl_tail import jsonl_tail
 
 
 class AliasGroup(click.Group):
@@ -39,6 +40,7 @@ commands = [
     aggregate,
     custom_doc,
     search,
+    jsonl_tail,
 ]
 
 for cmd in commands:
