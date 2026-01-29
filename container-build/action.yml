@@ -34,6 +34,7 @@ runs:
       shell: bash
       run: |
         # Detect engine
+        [[ "${{ runner.debug }}" == "1" ]] && set -x
         if command -v docker &> /dev/null; then
           echo "container=docker" >> "$GITHUB_ENV"
         elif command -v podman &> /dev/null; then
@@ -48,6 +49,7 @@ runs:
       shell: bash
       run: |
         # Prepare name and version from context
+        [[ "${{ runner.debug }}" == "1" ]] && set -x
         if [[ ! -f "${{ inputs.containerfile }}" ]]; then
           echo "::error ::Containerfile not found at ${{ inputs.containerfile }}"
           exit 1
@@ -86,6 +88,7 @@ runs:
       shell: bash
       run: |
         # Build container
+        [[ "${{ runner.debug }}" == "1" ]] && set -x
         $container build --tag $image_name:$version -f ${{ inputs.containerfile }} .
 
     - name: Save container
@@ -99,6 +102,7 @@ runs:
       if: ${{ inputs.sbom-cve }}
       run: |
         # Prepare SBOM tools
+        [[ "${{ runner.debug }}" == "1" ]] && set -x
         get_tools() {
           command -v syft || curl -sSfL https://get.anchore.io/syft | $1 sh -s -- -b /usr/local/bin
           command -v grype || curl -sSfL https://get.anchore.io/grype | $1 sh -s -- -b /usr/local/bin
@@ -119,6 +123,7 @@ runs:
       if: ${{ inputs.sbom-cve }}
       run: |
         # Run SBOM tools
+        [[ "${{ runner.debug }}" == "1" ]] && set -x
         run_sbom_tools () {
           pushd $1
           syft --from file -o cyclonedx-json -o table "$2" > .sbom
