@@ -113,7 +113,7 @@ def serve(directory, port, dev, selenium, once, builder):
     import subprocess
     import sys
 
-    global builddir
+    global app, builddir
 
     def symbolic_assert(file, msg):
         if not path.isfile(file):
@@ -644,7 +644,7 @@ def serve(directory, port, dev, selenium, once, builder):
 
 
     def check_files(scheduler):
-        global first_run, trigger_rst
+        global app, first_run, trigger_rst
         update_sphinx = False
         update_dev = False
         git_lfs_pull = []
@@ -674,11 +674,11 @@ def serve(directory, port, dev, selenium, once, builder):
                 update_dev = True
                 watch_file_src[file] = ctime
 
-        use_subprocess = False
+        deep_clean = False
         if not path.isdir(builddir):
             # User did make clean
             update_sphinx = True
-            use_subprocess = True
+            deep_clean = True
 
         if first_run is True:
             first_run = False
@@ -708,8 +708,14 @@ def serve(directory, port, dev, selenium, once, builder):
             #   Maybe importlib.reload() + monkey patch could be an alternative,
             #   but not triggering full env reload would be tricky, so this is
             #   good enough.
-            if dev or use_subprocess:
+            if dev:
                 app_subprocess_build()
+            elif deep_clean:
+                from sphinx.testing.util import _clean_up_global_state
+                _clean_up_global_state()
+                app_subprocess_build()
+                app = Sphinx(directory, directory,  builddir,
+                             doctreedir, builder, parallel=0)
             else:
                 app.build()
         if update_dev:
