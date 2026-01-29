@@ -60,18 +60,21 @@ runs:
           if [[ -z "$version" ]]; then
             echo "::error ::Could not extract version from $init_file, is it set at '__version__'?"
             exit 1
+          else
+            version=v$version
           fi
         fi
 
         # Try container version
-        [[ -z "$version" ]] && version=$(grep "^ENV runner_labels" ${{ inputs.containerfile }} | sed -n 's/.*ENV runner_labels.*,v\([^,]*\).*/\1/p' | head -1)
+        [[ -z "$version" ]] && version=$(grep "^ENV version" ${{ inputs.containerfile }} | sed -n 's/.*ENV version=\(.*\)/\1/p' | head -1)
+        [[ -z "$version" ]] && version=$(grep "^ENV runner_labels" ${{ inputs.containerfile }} | sed -n 's/.*ENV runner_labels.*,v\([^,]*\).*/v\1/p' | head -1)
         if [[ -z "$version" ]]; then
           echo "::error ::Could not extract version from ${{ inputs.containerfile }}, is it set at 'runner_labels'?"
           exit 1
         fi
-        echo "version=v$version" >> "$GITHUB_ENV"
-        echo "version=v$version" >> "$GITHUB_OUTPUT"
-        echo "version: v$version"
+        echo "version=$version" >> "$GITHUB_ENV"
+        echo "version=$version" >> "$GITHUB_OUTPUT"
+        echo "version: $version"
         image_name="$(echo "${{ inputs.image-name }}" | tr '-' '_')"
         echo "image_name=$image_name" >> "$GITHUB_ENV"
         image_archive="$(mktemp -d)/$(echo $image_name | tr '/' '_').tar"
