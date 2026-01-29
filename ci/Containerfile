@@ -84,5 +84,5 @@ WORKDIR /home/runner
 RUN curl -o .bashrc -L ${bashrc} ; \
     chmod +x .bashrc
 
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+ENTRYPOINT ["/bin/bash"]
 
