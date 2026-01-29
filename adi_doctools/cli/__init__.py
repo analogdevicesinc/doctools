@@ -35,6 +35,13 @@ def main_search():
 
     search()
 
+
+def main_llm():
+    from .llm import llm
+
+    llm()
+
+
 def entry_point():
     set_logging()
     cmd = get_command()
@@ -51,6 +58,8 @@ def entry_point():
         main_custom_doc()
     elif cmd == 'search':
         main_search()
+    elif cmd == 'llm':
+        main_llm()
     elif cmd == 'help':
         show_help()
     else:

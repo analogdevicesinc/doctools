@@ -38,6 +38,7 @@ Commands:
     aggregate    Creates a symbolic-aggregated documentation out of every repo documentation.
     custom-doc   Creates an aggregated documentation out the repos in the doc.yaml file.
     search       Search Sphinx documentation.
+    llm          Tail and format JSONL files, CI/CD friendly.
 
 'adoc COMMAND --help' list available subcommands
 """)
@@ -163,6 +164,22 @@ def get_arguments_search():
                         help='Fetch file by index from previous search results, or provide a full url')
     parser.add_argument('--format', choices=['html', 'src', 'md'], default='md',
                         help='Format for fetched content: html (page html), src (source .rst/.md file), md (converted to markdown, default)')
+
+    args = parser.parse_args()
+    return args
+
+
+def get_arguments_llm():
+    """Parse arguments for the llm command."""
+    parser = argparse.ArgumentParser(
+        prog='adoc llm',
+        description='Tail and format JSONL files, CI/CD friendly.')
+    parser.add_argument('file', nargs='?', default=None,
+                        help="Path to JSONL file or prompt file")
+    parser.add_argument('-F', '--no-follow', action='store_true',
+                        help="Don't follow the file")
+    parser.add_argument('-p', '--prompt', default=None,
+                        help='Prompt to run')
 
     args = parser.parse_args()
     return args
