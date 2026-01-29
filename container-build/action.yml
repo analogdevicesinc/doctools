@@ -71,7 +71,7 @@ runs:
         [[ -z "$version" ]] && version=$(grep "^ENV version" ${{ inputs.containerfile }} | sed -n 's/.*ENV version=\(.*\)/\1/p' | head -1 || true)
         [[ -z "$version" ]] && version=$(grep "^ENV runner_labels" ${{ inputs.containerfile }} | sed -n 's/.*ENV runner_labels.*,v\([^,]*\).*/v\1/p' | head -1 || true)
         if [[ -z "$version" ]]; then
-          echo "::error ::Could not extract version from ${{ inputs.containerfile }}, is it set at 'runner_labels'?"
+          echo "::error ::Could not extract version from ${{ inputs.containerfile }}, is it set at 'version' (or old 'runner_labels')?"
           exit 1
         fi
         echo "version=$version" >> "$GITHUB_ENV"
