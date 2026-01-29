@@ -1,37 +1,16 @@
-"""
-Tail and format JSONL files (Claude Code transcripts).
-"""
-
+import signal
 import json
 import sys
 import time
 import click
-from os import getcwd
+import threading
+from os import getcwd, environ, killpg, getpgid, path
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-_tool_use_registry = {}
+from .aux_git import get_git_top_level
 
-
-def _find_latest_session() -> Optional[Path]:
-    """Find the latest Claude session for the current directory."""
-    # /mnt/data/repos/repo -> -mnt-data-repos-repo
-    cwd = getcwd()
-    project_dir = cwd.replace('/', '-')
-
-    home = Path.home()
-    claude_dir = home / '.claude' / 'projects' / project_dir
-
-    if not claude_dir.exists():
-        return None
-
-    jsonl_files = list(claude_dir.glob('*.jsonl'))
-    if not jsonl_files:
-        return None
-
-    jsonl_files.sort(key=lambda p: p.stat().st_mtime, reverse=True)
-
-    return jsonl_files[0]
+tool_use_registry = {}
 
 
 def _format_tool_call(tool_name: str, tool_input: Dict[str, Any]) -> str:
@@ -87,7 +66,7 @@ def _format_tool_call(tool_name: str, tool_input: Dict[str, Any]) -> str:
 
 def format_entry(entry: Dict[str, Any]) -> Optional[str]:
     """Format a JSONL entry for plain text output."""
-    global _tool_use_registry
+    global tool_use_registry
 
     entry_type = entry.get('type')
 
@@ -102,7 +81,7 @@ def format_entry(entry: Dict[str, Any]) -> Optional[str]:
                     tool_use_id = block.get('tool_use_id')
                     tool_content = block.get('content', '')
 
-                    tool_info = _tool_use_registry.get(tool_use_id, {})
+                    tool_info = tool_use_registry.get(tool_use_id, {})
                     tool_name = tool_info.get('name', 'unknown')
                     output_preview = tool_content
 
@@ -141,7 +120,7 @@ def format_entry(entry: Dict[str, Any]) -> Optional[str]:
                 tool_input = block.get('input', {})
 
                 if tool_id:
-                    _tool_use_registry[tool_id] = {
+                    tool_use_registry[tool_id] = {
                         'name': tool_name,
                         'input': tool_input,
                     }
@@ -150,7 +129,10 @@ def format_entry(entry: Dict[str, Any]) -> Optional[str]:
                 if formatted:
                     results.append(formatted)
 
-        return '\n'.join(results) if results else None
+        if results:
+            return '\n'.join(results)
+        else:
+            return None
 
     elif entry_type == 'progress':
         parent_tool_id = entry.get('parentToolUseID')
@@ -169,56 +151,125 @@ def format_entry(entry: Dict[str, Any]) -> Optional[str]:
                         progress_str += f":\n{output}"
                     return progress_str
 
-    # Skip others
     return None
 
 
 @click.command()
-@click.argument('file', type=click.Path(exists=True), required=False)
-@click.option(
-    '--follow', '-f',
-    is_flag=True,
-    help='Follow the file (like tail -f)'
+@click.argument('file',
+    type=click.Path(exists=True),
+    required=False
 )
-def jsonl_tail(file, follow):
-    """Tail and format JSONL files (Claude Code transcripts).
-
-    Displays JSONL transcript files in a human-readable format.
-    Each line in the JSONL file is a JSON object representing a
-    conversation turn, tool use, or other event.
-
-    If FILE is not provided, automatically finds and tails the most
-    recent Claude session for the current directory.
-
-    Examples:
-
-        # Tail the latest session for current directory
-        adoc jsonl-tail
-
-        # Tail a specific file
-        adoc jsonl-tail /path/to/transcript.jsonl
-
-        # Follow the latest session (like tail -f)
-        adoc jsonl-tail -f
+@click.option(
+    '--no-follow', '-F',
+    is_flag=True,
+    help="Don't follow the file"
+)
+@click.option(
+    '--prompt', '-p',
+    is_flag=False,
+    default=None,
+    help='Prompt to run.'
+)
+def agent(file, no_follow, prompt):
     """
-    if not file:
-        file_path = _find_latest_session()
-        if not file_path:
-            click.echo("Error: No Claude sessions found for current directory", err=True)
-            raise click.Abort()
+    Tail and format JSONL files, CI/CD friendly, usage:
 
-        session_id = file_path.stem
-        click.echo(f"Tailing latest session: {session_id}")
-        click.echo(f"File: {file_path}")
-        if follow:
-            click.echo("Press Ctrl+C to stop")
-        click.echo("")
+      # Tail a prompt
+      adoc agent --prompt "What's up?"
+
+      # Tail a prompt from a file
+      adoc agent /path/to/prompt.md
+
+      # Tail a session (must end with .jsonl)
+      adoc agent /path/to/<uuid>.jsonl
+    """
+
+    if prompt and file:
+        click.echo("Error: --prompt and FILE cannot be used together", err=True)
+        raise click.Abort()
+    if prompt and no_follow:
+        click.echo("Error: --prompt and --no-follow cannot be used together", err=True)
+        raise click.Abort()
+
+    prompt_file = None
+    if file and not file.endswith('.jsonl'):
+            prompt_file = file
+            file = None
+
+    def handle_sigint(signum, frame):
+        stop_event.set()
+
+    stop_event = threading.Event()
+    signal.signal(signal.SIGINT, handle_sigint)
+
+    cwd_ = getcwd()
+    if gitcwd_ := get_git_top_level(cwd_):
+        cwd_ = gitcwd_
+
+    def run_claude():
+        env = environ.copy()
+        args=['claude', '--session-id', session_id, '--add-dir', cwd_, '--permission-mode', 'bypassPermissions']
+        if prompt_file:
+            print(f"prompt file: {prompt_file}")
+            stdin_=subprocess.PIPE
+        else:
+            args.extend(['-p', prompt])
+            stdin_=None
+
+        print("args:", " ".join(args))
+
+        proc = subprocess.Popen(args, cwd=cwd_, env=env,
+                                stdin=stdin_,
+                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,)
+        if prompt_file:
+            with open(prompt_file, "rb") as f:
+                for line in f:
+                    proc.stdin.write(line)
+                    proc.stdin.flush()
+            proc.stdin.close()
+
+        kill=True
+        while not stop_event.is_set():
+            rc = proc.poll()
+            if rc is not None:
+                print(f"Claude exited with code {rc}")
+                kill=False
+                stop_event.set()
+                return
+
+            stop_event.wait(0.5)
+
+        if kill:
+            killpg(getpgid(proc.pid), signal.SIGTERM)
+
+    if prompt or prompt_file:
+        import subprocess
+        import uuid
+
+        session_id = str(uuid.uuid4())
+
+        thread = threading.Thread(target=run_claude)
+        thread.start()
+
+    if prompt or prompt_file:
+        project_dir = cwd_.replace('/', '-')
+
+        home = Path.home()
+        file_path = home / '.claude' / 'projects' / project_dir / f"{session_id}.jsonl"
+        click.echo(f"session: {file_path}")
+
+        retries_=10
+        while not path.exists(file_path) and retries_:
+            retries_ -= 1
+            time.sleep(1)
+
+        if not retries_:
+            stop_event.set()
+            sys.exit(0)
     else:
         file_path = Path(file)
 
-        if not file_path.exists():
-            click.echo(f"Error: File not found: {file}", err=True)
-            raise click.Abort()
+    session_id = file_path.stem
 
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
@@ -238,11 +289,11 @@ def jsonl_tail(file, follow):
             except json.JSONDecodeError as e:
                 click.echo(f"Failed to parse JSON: {e}", err=True)
 
-        if follow:
+        if not no_follow:
             with open(file_path, 'r', encoding='utf-8') as f:
                 f.seek(0, 2)
 
-                while True:
+                while not stop_event.is_set():
                     line = f.readline()
                     if not line:
                         time.sleep(0.1)
@@ -261,7 +312,9 @@ def jsonl_tail(file, follow):
                         click.echo(f"Error: Failed to parse JSON: {e}", err=True)
 
     except KeyboardInterrupt:
-        sys.exit(0)
+        pass
     except Exception as e:
         click.echo(f"Error: {e}", err=True)
         raise click.Abort()
+
+    sys.exit(0)
