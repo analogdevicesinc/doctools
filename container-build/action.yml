@@ -58,7 +58,7 @@ runs:
         # Try python version
         init_file="$(echo "${{ inputs.containerfile }}" | cut -d/ -f1)/__init__.py"
         if [[ -f "$init_file" ]]; then
-          version=$(grep "^__version__" "$init_file" | sed -nE "s/^__version__[[:space:]]*=[[:space:]]*['\"]([^'\"]+)['\"]/\1/p" | head -1)
+          version=$(grep "^__version__" "$init_file" | sed -nE "s/^__version__[[:space:]]*=[[:space:]]*['\"]([^'\"]+)['\"]/\1/p" | head -1 || true)
           if [[ -z "$version" ]]; then
             echo "::error ::Could not extract version from $init_file, is it set at '__version__'?"
             exit 1
@@ -68,8 +68,8 @@ runs:
         fi
 
         # Try container version
-        [[ -z "$version" ]] && version=$(grep "^ENV version" ${{ inputs.containerfile }} | sed -n 's/.*ENV version=\(.*\)/\1/p' | head -1)
-        [[ -z "$version" ]] && version=$(grep "^ENV runner_labels" ${{ inputs.containerfile }} | sed -n 's/.*ENV runner_labels.*,v\([^,]*\).*/v\1/p' | head -1)
+        [[ -z "$version" ]] && version=$(grep "^ENV version" ${{ inputs.containerfile }} | sed -n 's/.*ENV version=\(.*\)/\1/p' | head -1 || true)
+        [[ -z "$version" ]] && version=$(grep "^ENV runner_labels" ${{ inputs.containerfile }} | sed -n 's/.*ENV runner_labels.*,v\([^,]*\).*/v\1/p' | head -1 || true)
         if [[ -z "$version" ]]; then
           echo "::error ::Could not extract version from ${{ inputs.containerfile }}, is it set at 'runner_labels'?"
           exit 1
