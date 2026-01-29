@@ -1,5 +1,6 @@
 #!/bin/bash
 
+version_=$version
 github_token_=$github_token
 runner_token_=$runner_token
 org_repository_=$org_repository
@@ -7,6 +8,7 @@ runner_labels_=$runner_labels
 config_flags_=$config_flags
 name_label_=$name_label
 
+unset version
 unset github_token
 unset runner_token
 unset org_repository
@@ -16,6 +18,9 @@ unset name_label
 
 if [[ -z "$runner_labels_" ]]; then
     runner_labels_="repo-only"
+fi
+if [[ -n "$version_" ]]; then
+    runner_labels_="$version_,$runner_labels_"
 fi
 
 if [[ -z "$config_flags_" ]]; then
@@ -58,7 +63,7 @@ if [[ -z "$name_label_" ]]; then
     name_label_=$(echo $runner_token_ | sha256sum | head -c4)
 fi
 
-name=$(echo $org_repository_ | sed 's|/|-|g')-$name_label_
+name=$(echo $org_repository_ | sed 's|/|-|g')-$version_-$name_label_
 
 set -e
 
