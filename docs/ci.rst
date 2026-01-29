@@ -178,8 +178,8 @@ To build the container image, use your favorite container engine:
 .. shell::
 
    $cd ~/doctools
-   $alias container=podman # or docker, ...
-   $container build --tag adi/doctools:v1 ci
+   # or docker, ...
+   $podman build --tag adi/doctools:latest ci
 
 You may want to build the container in a host, where you have all your tools installed,
 and then deploy to a server.
@@ -191,7 +191,7 @@ In this case, export the image and then import on the server:
    :group: host
 
    ~/doctools
-   $container save -o adi-doctools.tar adi/doctools:v1
+   $podman save -o adi-doctools.tar adi/doctools:latest
    $scp adi-doctools.tar server:/tmp/
 
 .. shell::
@@ -200,7 +200,7 @@ In this case, export the image and then import on the server:
    :group: server
 
    /tmp
-   $container load -i adi-doctools.tar
+   $podman load -i adi-doctools.tar
 
 Or if you are feeling adventurous:
 
@@ -210,7 +210,7 @@ Or if you are feeling adventurous:
    :group: host
 
    ~/doctools
-   $container save adi/doctools:v1 | ssh server "cat - | podman load"
+   $podman save adi/doctools:latest | ssh server "cat - | podman load"
 
 .. _interactive-run:
 
@@ -251,7 +251,7 @@ on the container, for example:
 .. shell::
 
    ~/doctools
-   $ cr adi/doctools:v1 .
+   $ cr adi/doctools .
    $ python3 -m venv venv
    $ source venv/bin/activate ; \
          pip3 install -e . ; \
@@ -285,8 +285,8 @@ is ignored and a new one is requested.
    $podman run \
    $    --secret public_doctools_org_repository,type=env,target=org_repository \
    $    --secret public_doctools_runner_token,type=env,target=runner_token \
-   $    --env runner_labels=repo-only,v1,big_cpu \
-   $    adi/doctools:v1
+   $    --env runner_labels=repo-only,big_cpu \
+   $    adi/doctools
 
 .. collapsible:: Docker alternative
 
@@ -300,15 +300,18 @@ is ignored and a new one is requested.
       $docker run \
       $    --env public_doctools_org_repository=$(gpg --quiet --batch --decrypt /run/secrets/public_doctools_org_repository.gpg) \
       $    --env public_doctools_runner_token=$(gpg --quiet --batch --decrypt /run/secrets/public_doctools_runner_token.gpg) \
-      $    --env runner_labels=repo-only,v1,big_cpu \
-      $    localhost/adi/doctools:v1
+      $    --env runner_labels=repo-only,big_cpu \
+      $    localhost/adi/doctools
 
    Or ``systemd-creds``. If your system supports, consider protecting with TPM2.
 
 The environment variable runner_labels (comma-separated), set the runner labels.
 If not provided on the Containerfile as ``ENV runner_labels=<labels,>`` or as argument
-``--env runner_labels=<labels,>``, it defaults to ``v1``.
-Most of the time, you want to use the Containerfile-set environment variable.
+``--env runner_labels=<labels,>``, it defaults to ``repo-only``.
+``version``, also an environment variable, also is concatanated to ``runner_labels`` and
+``name_label``, so the effective final ``runner_labels`` is ``<version>,<labels,>``
+Version should always be set in the Containerfile. Most of the time, you want
+to use the Containerfile-set environment variable.
 
 The ``repo-only`` label ensures that the jobs run only in the repository-scoped runners,
 avoiding them to assigned to organization-level runners.
@@ -342,7 +345,6 @@ Below is a suggested systemd service at *~/.config/systemd/user/container-public
    Restart=on-success
    ExecStart=/bin/podman run \
              --env name_label=%H-%i \
-             --env runner_labels=repo-only,v1 \
              --secret public_doctools_org_repository,type=env,target=org_repository \
              --secret public_doctools_runner_token,type=env,target=runner_token \
              --conmon-pidfile %t/%n-pid --cidfile %t/%n-cid \
@@ -351,7 +353,7 @@ Below is a suggested systemd service at *~/.config/systemd/user/container-public
              --memory-swap=20g \
              --memory=16g \
              --cpus=4 \
-             -d adi/doctools:v1 top
+             -d adi/doctools:latest top
    ExecStop=/bin/sh -c "/bin/podman stop -t 300 $(cat %t/%n-cid) && /bin/podman rm $(cat %t/%n-cid)"
    ExecStopPost=/bin/rm %t/%n-pid %t/%n-cid
    TimeoutStopSec=600
@@ -375,7 +377,6 @@ Below is a suggested systemd service at *~/.config/systemd/user/container-public
       Restart=on-success
       ExecStart=/bin/sh -c "/bin/docker run \
                 --env name_label=%H-%i \
-                --env runner_labels=repo-only,v1 \
                 --env org_repository=$(gpg --quiet --batch --decrypt /run/secrets/public_doctools_org_repository.gpg) \
                 --env runner_token=$(gpg --quiet --batch --decrypt /run/secrets/public_doctools_runner_token.gpg) \
                 --cidfile %t/%n-cid \
@@ -385,7 +386,7 @@ Below is a suggested systemd service at *~/.config/systemd/user/container-public
                 --memory=16g \
                 --cpus=4 \
                 --log-driver=journald \
-                -d localhost/adi/doctools:v1 top"
+                -d localhost/adi/doctools:latest top"
       RemainAfterExit=yes
       ExecStop=/bin/sh -c "/bin/docker stop -t 300 $(cat %t/%n-cid) && /bin/docker rm $(cat %t/%n-cid)"
       ExecStopPost=/bin/rm %t/%n-cid
