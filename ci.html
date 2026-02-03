@@ -8,7 +8,7 @@
 
     <title>Continuous integration &#8212; Doctools  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8e8a900e" />
-    <link rel="stylesheet" type="text/css" href="_static/app.min.css?v=5d595293" />
+    <link rel="stylesheet" type="text/css" href="_static/app.min.css?v=22cbc7d3" />
     <script async="async" src="_static/app.umd.js?v=46a18818"></script>
     <link rel="icon" href="_static/icon.svg"/>
     <link rel="index" title="Index" href="genindex.html" />
@@ -313,16 +313,13 @@ sudo<span class="w"> </span>mount<span class="w"> </span>~/.local/share/containe
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>~/doctools
 </pre></div>
 </div>
-<div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~/doctools$
-</pre></div>
-</div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">alias</span><span class="w"> </span><span class="nv">container</span><span class="o">=</span>podman<span class="w"> </span><span class="c1"># or docker, ...</span>
+<div class="clear-left"></div></div><div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># or docker, ...</span>
 </pre></div>
 </div>
 <div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~/doctools$
 </pre></div>
 </div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>container<span class="w"> </span>build<span class="w"> </span>--tag<span class="w"> </span>adi/doctools:v1<span class="w"> </span>ci
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>podman<span class="w"> </span>build<span class="w"> </span>--tag<span class="w"> </span>adi/doctools:latest<span class="w"> </span>ci
 </pre></div>
 </div>
 <div class="clear-left"></div></div></div><p>You may want to build the container in a host, where you have all your tools installed,
@@ -331,7 +328,7 @@ In this case, export the image and then import on the server:</p>
 <div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>user@host:~/doctools$
 </pre></div>
 </div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>container<span class="w"> </span>save<span class="w"> </span>-o<span class="w"> </span>adi-doctools.tar<span class="w"> </span>adi/doctools:v1
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>podman<span class="w"> </span>save<span class="w"> </span>-o<span class="w"> </span>adi-doctools.tar<span class="w"> </span>adi/doctools:latest
 </pre></div>
 </div>
 <div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>user@host:~/doctools$
@@ -343,14 +340,14 @@ In this case, export the image and then import on the server:</p>
 <div class="clear-left"></div></div></div><div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>admin@server:/tmp$
 </pre></div>
 </div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>container<span class="w"> </span>load<span class="w"> </span>-i<span class="w"> </span>adi-doctools.tar
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>podman<span class="w"> </span>load<span class="w"> </span>-i<span class="w"> </span>adi-doctools.tar
 </pre></div>
 </div>
 <div class="clear-left"></div></div></div><p>Or if you are feeling adventurous:</p>
 <div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>user@host:~/doctools$
 </pre></div>
 </div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>container<span class="w"> </span>save<span class="w"> </span>adi/doctools:v1<span class="w"> </span><span class="p">|</span><span class="w"> </span>ssh<span class="w"> </span>server<span class="w"> </span><span class="s2">&quot;cat - | podman load&quot;</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>podman<span class="w"> </span>save<span class="w"> </span>adi/doctools:latest<span class="w"> </span><span class="p">|</span><span class="w"> </span>ssh<span class="w"> </span>server<span class="w"> </span><span class="s2">&quot;cat - | podman load&quot;</span>
 </pre></div>
 </div>
 <div class="clear-left"></div></div></div></section>
@@ -393,7 +390,7 @@ on the container, for example:</p>
 <div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~/doctools$
 </pre></div>
 </div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cr<span class="w"> </span>adi/doctools:v1<span class="w"> </span>.
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cr<span class="w"> </span>adi/doctools<span class="w"> </span>.
 </pre></div>
 </div>
 <div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~/doctools$
@@ -454,12 +451,12 @@ is ignored and a new one is requested.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>podman<span class="w"> </span>run<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--secret<span class="w"> </span>public_doctools_org_repository,type<span class="o">=</span>env,target<span class="o">=</span>org_repository<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--secret<span class="w"> </span>public_doctools_runner_token,type<span class="o">=</span>env,target<span class="o">=</span>runner_token<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--env<span class="w"> </span><span class="nv">runner_labels</span><span class="o">=</span>repo-only,v1,big_cpu<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>adi/doctools:v1
+<span class="w">    </span>--env<span class="w"> </span><span class="nv">runner_labels</span><span class="o">=</span>repo-only,big_cpu<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>adi/doctools
 </pre></div>
 </div>
 <div class="clear-left"></div></div></div><div><div class="collapsible docutils container">
-<input class="collapsible_input" id="6c0c02ea33af4cbc332d9bc2650cc6b615efc51c" name="6c0c02ea33af4cbc332d9bc2650cc6b615efc51c" type="checkbox"></input><label for="6c0c02ea33af4cbc332d9bc2650cc6b615efc51c"><p>Docker alternative</p>
+<input class="collapsible_input" id="ebe05b10844b943b2c7bfb6c3f905dcdeef955ff" name="ebe05b10844b943b2c7bfb6c3f905dcdeef955ff" type="checkbox"></input><label for="ebe05b10844b943b2c7bfb6c3f905dcdeef955ff"><p>Docker alternative</p>
 <div class="icon"></div></label><div class="collapsible_content docutils container">
 <p><code class="docutils literal notranslate"><span class="pre">docker</span></code> does <strong>not</strong> have a built-in keyring, instead you pass directly
 to <code class="docutils literal notranslate"><span class="pre">run</span></code> command. <span class="red">Consider hardening strategies to mitigate risks</span>,
@@ -470,8 +467,8 @@ like using other keyring software as below.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>run<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--env<span class="w"> </span><span class="nv">public_doctools_org_repository</span><span class="o">=</span><span class="k">$(</span>gpg<span class="w"> </span>--quiet<span class="w"> </span>--batch<span class="w"> </span>--decrypt<span class="w"> </span>/run/secrets/public_doctools_org_repository.gpg<span class="k">)</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--env<span class="w"> </span><span class="nv">public_doctools_runner_token</span><span class="o">=</span><span class="k">$(</span>gpg<span class="w"> </span>--quiet<span class="w"> </span>--batch<span class="w"> </span>--decrypt<span class="w"> </span>/run/secrets/public_doctools_runner_token.gpg<span class="k">)</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--env<span class="w"> </span><span class="nv">runner_labels</span><span class="o">=</span>repo-only,v1,big_cpu<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>localhost/adi/doctools:v1
+<span class="w">    </span>--env<span class="w"> </span><span class="nv">runner_labels</span><span class="o">=</span>repo-only,big_cpu<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>localhost/adi/doctools
 </pre></div>
 </div>
 <div class="clear-left"></div></div></div><p>Or <code class="docutils literal notranslate"><span class="pre">systemd-creds</span></code>. If your system supports, consider protecting with TPM2.</p>
@@ -479,8 +476,11 @@ like using other keyring software as below.</p>
 </div>
 </div><p>The environment variable runner_labels (comma-separated), set the runner labels.
 If not provided on the Containerfile as <code class="docutils literal notranslate"><span class="pre">ENV</span> <span class="pre">runner_labels=&lt;labels,&gt;</span></code> or as argument
-<code class="docutils literal notranslate"><span class="pre">--env</span> <span class="pre">runner_labels=&lt;labels,&gt;</span></code>, it defaults to <code class="docutils literal notranslate"><span class="pre">v1</span></code>.
-Most of the time, you want to use the Containerfile-set environment variable.</p>
+<code class="docutils literal notranslate"><span class="pre">--env</span> <span class="pre">runner_labels=&lt;labels,&gt;</span></code>, it defaults to <code class="docutils literal notranslate"><span class="pre">repo-only</span></code>.
+<code class="docutils literal notranslate"><span class="pre">version</span></code>, also an environment variable, also is concatanated to <code class="docutils literal notranslate"><span class="pre">runner_labels</span></code> and
+<code class="docutils literal notranslate"><span class="pre">name_label</span></code>, so the effective final <code class="docutils literal notranslate"><span class="pre">runner_labels</span></code> is <code class="docutils literal notranslate"><span class="pre">&lt;version&gt;,&lt;labels,&gt;</span></code>
+Version should always be set in the Containerfile. Most of the time, you want
+to use the Containerfile-set environment variable.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">repo-only</span></code> label ensures that the jobs run only in the repository-scoped runners,
 avoiding them to assigned to organization-level runners.</p>
 <p>If you are in an environment as described in <a class="reference internal" href="#podman-sssd"><span class="std std-ref">Network users &amp; partitions</span></a>, append these flags
@@ -506,7 +506,6 @@ systemd services, instead of for example, container compose solutions.</p>
 <span class="na">Restart</span><span class="o">=</span><span class="s">on-success</span>
 <span class="na">ExecStart</span><span class="o">=</span><span class="s">/bin/podman run </span>\
 <span class="w">          </span><span class="s">--env name_label=%H-%i </span>\
-<span class="w">          </span><span class="s">--env runner_labels=repo-only,v1 </span>\
 <span class="w">          </span><span class="s">--secret public_doctools_org_repository,type=env,target=org_repository </span>\
 <span class="w">          </span><span class="s">--secret public_doctools_runner_token,type=env,target=runner_token </span>\
 <span class="w">          </span><span class="s">--conmon-pidfile %t/%n-pid --cidfile %t/%n-cid </span>\
@@ -515,7 +514,7 @@ systemd services, instead of for example, container compose solutions.</p>
 <span class="w">          </span><span class="s">--memory-swap=20g </span>\
 <span class="w">          </span><span class="s">--memory=16g </span>\
 <span class="w">          </span><span class="s">--cpus=4 </span>\
-<span class="w">          </span><span class="s">-d adi/doctools:v1 top</span>
+<span class="w">          </span><span class="s">-d adi/doctools:latest top</span>
 <span class="na">ExecStop</span><span class="o">=</span><span class="s">/bin/sh -c &quot;/bin/podman stop -t 300 $(cat %t/%n-cid) &amp;&amp; /bin/podman rm $(cat %t/%n-cid)&quot;</span>
 <span class="na">ExecStopPost</span><span class="o">=</span><span class="s">/bin/rm %t/%n-pid %t/%n-cid</span>
 <span class="na">TimeoutStopSec</span><span class="o">=</span><span class="s">600</span>
@@ -527,7 +526,7 @@ systemd services, instead of for example, container compose solutions.</p>
 </pre></div>
 </div>
 <div><div class="collapsible docutils container">
-<input class="collapsible_input" id="ece968691cbd677c8d43ccfe3eb12f4753745316" name="ece968691cbd677c8d43ccfe3eb12f4753745316" type="checkbox"></input><label for="ece968691cbd677c8d43ccfe3eb12f4753745316"><p>Docker alternative</p>
+<input class="collapsible_input" id="524554c6ff399a45e6446897eeb515680027aa0e" name="524554c6ff399a45e6446897eeb515680027aa0e" type="checkbox"></input><label for="524554c6ff399a45e6446897eeb515680027aa0e"><p>Docker alternative</p>
 <div class="icon"></div></label><div class="collapsible_content docutils container">
 <div class="highlight-systemd notranslate"><div class="highlight"><pre><span></span><span class="k">[Unit]</span>
 <span class="na">Description</span><span class="o">=</span><span class="s">container public doctools ci %i</span>
@@ -539,7 +538,6 @@ systemd services, instead of for example, container compose solutions.</p>
 <span class="na">Restart</span><span class="o">=</span><span class="s">on-success</span>
 <span class="na">ExecStart</span><span class="o">=</span><span class="s">/bin/sh -c &quot;/bin/docker run </span>\
 <span class="w">          </span><span class="s">--env name_label=%H-%i </span>\
-<span class="w">          </span><span class="s">--env runner_labels=repo-only,v1 </span>\
 <span class="w">          </span><span class="s">--env org_repository=$(gpg --quiet --batch --decrypt /run/secrets/public_doctools_org_repository.gpg) </span>\
 <span class="w">          </span><span class="s">--env runner_token=$(gpg --quiet --batch --decrypt /run/secrets/public_doctools_runner_token.gpg) </span>\
 <span class="w">          </span><span class="s">--cidfile %t/%n-cid </span>\
@@ -549,7 +547,7 @@ systemd services, instead of for example, container compose solutions.</p>
 <span class="w">          </span><span class="s">--memory=16g </span>\
 <span class="w">          </span><span class="s">--cpus=4 </span>\
 <span class="w">          </span><span class="s">--log-driver=journald </span>\
-<span class="w">          </span><span class="s">-d localhost/adi/doctools:v1 top&quot;</span>
+<span class="w">          </span><span class="s">-d localhost/adi/doctools:latest top&quot;</span>
 <span class="na">RemainAfterExit</span><span class="o">=</span><span class="s">yes</span>
 <span class="na">ExecStop</span><span class="o">=</span><span class="s">/bin/sh -c &quot;/bin/docker stop -t 300 $(cat %t/%n-cid) &amp;&amp; /bin/docker rm $(cat %t/%n-cid)&quot;</span>
 <span class="na">ExecStopPost</span><span class="o">=</span><span class="s">/bin/rm %t/%n-cid</span>

@@ -8,7 +8,7 @@
 
     <title>Custom directives &#8212; Doctools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8e8a900e" />
-    <link rel="stylesheet" type="text/css" href="../_static/app.min.css?v=5d595293" />
+    <link rel="stylesheet" type="text/css" href="../_static/app.min.css?v=22cbc7d3" />
     <script async="async" src="../_static/app.umd.js?v=46a18818"></script>
     <link rel="icon" href="../_static/icon.svg"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -110,6 +110,7 @@
 <li><a class="reference internal" href="#shell">Shell</a></li>
 <li><a class="reference internal" href="#svg">SVG</a></li>
 <li><a class="reference internal" href="#collapsible">Collapsible</a></li>
+<li><a class="reference internal" href="#tabs">Tabs</a></li>
 <li><a class="reference internal" href="#video">Video</a></li>
 <li><a class="reference internal" href="#esd-warning">ESD warning</a></li>
 <li><a class="reference internal" href="#hdl-directives">HDL directives</a><ul>
@@ -722,6 +723,38 @@ hover effects.</p>
 </div>
 </div>
 </div><p>Notice how you can use any Sphinx syntax, even nest other directives.</p>
+</section>
+<section id="tabs">
+<h2>Tabs<a class="headerlink" href="#tabs" title="Link to this heading"></a></h2>
+<p>The tabs directive creates a selectable tabs content.</p>
+<p>The directive syntax is:</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">tab-set</span><span class="p">::</span>
+
+<span class="p">   ..</span> <span class="ow">tab-item</span><span class="p">::</span> <span class="nt">&lt;label&gt;</span>
+
+      &lt;content&gt;
+</pre></div>
+</div>
+<p>For example:</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">tab-set</span><span class="p">::</span>
+
+<span class="p">   ..</span> <span class="ow">tab-item</span><span class="p">::</span> Text
+
+      Hello World!
+
+<span class="p">   ..</span> <span class="ow">tab-item</span><span class="p">::</span> Python
+
+<span class="p">      ..</span> <span class="ow">code</span><span class="p">::</span> python
+
+         print(&quot;Hello World!&quot;)
+</pre></div>
+</div>
+<p>Renders as:</p>
+<div class="tab-set docutils"><input checked="checked" id="tab-item-053910d767acec2108188304bee4285b06a935d5-0" name="tab-set-053910d767acec2108188304bee4285b06a935d5" type="radio"></input><label class="tab-label" for="tab-item-053910d767acec2108188304bee4285b06a935d5-0">Text</label><div class="tab-content docutils"><p>Hello World!</p>
+</div><input id="tab-item-053910d767acec2108188304bee4285b06a935d5-1" name="tab-set-053910d767acec2108188304bee4285b06a935d5" type="radio"></input><label class="tab-label" for="tab-item-053910d767acec2108188304bee4285b06a935d5-1">Python</label><div class="tab-content docutils"><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Hello World!&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div></div><p>Notice how you can use any Sphinx syntax, even nest other directives.</p>
 </section>
 <section id="video">
 <h2>Video<a class="headerlink" href="#video" title="Link to this heading"></a></h2>
