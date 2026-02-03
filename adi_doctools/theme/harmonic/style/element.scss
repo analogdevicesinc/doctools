@@ -315,7 +315,7 @@ iframe {
 }
 
 @media print {
-    .esd-warning {
+    .ewarning {
         break-inside: avoid;
         border: 1px solid yellow;
     }
@@ -380,6 +380,57 @@ figcaption p {
 hr {
     border-top: 1px dashed var(--text-color2);
     border-bottom: None;
+}
+
+.tab-set > input {
+    display: none;
+}
+
+.tab-set {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.tab-set > label:hover {
+    color:  var(--accent-color);
+    border-bottom: 2px solid var(--accent-color);
+}
+
+.tab-content {
+    width: 100%;
+}
+
+@media print {
+    .tab-set > label {
+        font-weight: bold;
+        margin-bottom: .25em;
+    }
+}
+
+@media screen {
+    .tab-set > label {
+        cursor: pointer;
+        user-select: none;
+        padding: .5em .5em;
+        margin: 0 .25em;
+        border-bottom: 2px solid rgba(0,0,0,0);
+    }
+    .tab-set > input:checked + label {
+        color: var(--accent-color);
+        border-bottom: 2px solid var(--accent-color);
+    }
+
+    .tab-content {
+        display: none;
+        order: 99;
+        border-top: 1px solid rgba(125,125,125,.5);
+        border-bottom: 1px solid rgba(125,125,125,.5);
+        padding: 0.5em 0.5em 0;
+    }
+}
+
+.tab-set > input:checked + label + .tab-content {
+    display: block;
 }
 
 @media (min-width: variable.$screen-1) {

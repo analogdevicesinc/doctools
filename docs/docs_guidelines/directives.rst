@@ -529,6 +529,53 @@ Renders as:
 
 Notice how you can use any Sphinx syntax, even nest other directives.
 
+Tabs
+~~~~
+
+The tabs directive creates a selectable tabs content.
+
+The directive syntax is:
+
+.. code:: rst
+
+   .. tab-set::
+
+      .. tab-item:: <label>
+
+         <content>
+
+For example:
+
+.. code:: rst
+
+   .. tab-set::
+
+      .. tab-item:: Text
+
+         Hello World!
+
+      .. tab-item:: Python
+
+         .. code:: python
+
+            print("Hello World!")
+
+Renders as:
+
+.. tab-set::
+
+   .. tab-item:: Text
+
+      Hello World!
+
+   .. tab-item:: Python
+
+      .. code:: python
+
+         print("Hello World!")
+
+Notice how you can use any Sphinx syntax, even nest other directives.
+
 Video
 ~~~~~
 
