@@ -8,7 +8,7 @@ import importlib
 from sphinx.application import Sphinx
 
 from .aux_os import aux_killpg
-from .aux_git import get_git_top_level, is_git_lfs_installed, get_lfs_sha
+from .aux_git import get_git_top_level, get_git_dir, is_git_lfs_installed, get_lfs_sha
 
 log = {
     'no_lfs': "File .gitattributes contains lfs rules, but git-lfs is not installed.",
@@ -272,6 +272,7 @@ def serve(directory, port, dev, selenium, once, builder):
         sys.exit(1)
 
     types_lfs = []
+    git_dir = get_git_dir(directory)
     if git_top_level := get_git_top_level(directory):
         git_attr = path.join(git_top_level, ".gitattributes")
         if path.isfile(git_attr):
@@ -682,8 +683,8 @@ def serve(directory, port, dev, selenium, once, builder):
             update_sphinx = True
             deep_clean = True
 
-        if git_top_level:
-            git_ref_ = stat(path.join(git_top_level, '.git', 'HEAD')).st_mtime
+        if git_dir:
+            git_ref_ = stat(path.join(git_dir, 'HEAD')).st_mtime
             if git_ref is not None and git_ref < git_ref_:
                 update_sphinx = True
                 deep_clean = True

@@ -16,6 +16,21 @@ def get_git_top_level(path_):
 
     return p_.stdout.decode("utf-8").strip()
 
+def get_git_dir(path_):
+    """
+    Return absolute path of git directory, with support to worktrees.
+    """
+    if git_top_level := get_git_top_level(path_):
+        git_ = path.join(git_top_level, '.git')
+        if path.isfile(git_):
+            # Is worktree
+            with open(git_) as f:
+                line = f.readline().strip()
+                if not line.startswith('gitdir: '):
+                    return None
+                return line[len('gitdir: '):]
+        return path.join(git_top_level, '.git')
+    return None
 
 def is_git_lfs_installed():
     """
