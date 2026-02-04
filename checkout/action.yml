@@ -2,6 +2,12 @@ name: Git Checkout
 description: A git checkout for local runners and runs
 
 inputs:
+  base-sha:
+    description: "Base SHA, for workflow_dispatch event"
+    required: false
+  head-sha:
+    description: "Head SHA, for workflow_dispatch event"
+    required: false
   gh-token:
     description: "GitHub Token"
     default: ${{ github.token }}
@@ -13,6 +19,7 @@ inputs:
 # behaviour:
 # cache/ branches are created to avoid base refs from being garbage collected.
 # on PRs, the github automatic merge commit is flattened, allowing to check per commit.
+# on workflow_dispatch event, must define the base-sha, head-sha.
 
 runs:
   using: composite
@@ -78,7 +85,17 @@ runs:
       run: |
         # Get commit depth
         [[ "${{ runner.debug }}" == "1" ]] && set -x
-        if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+        if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          if [[ -z "${{ inputs.base-sha }}" ]] || [[ -z "${{ inputs.head-sha }}" ]]; then
+            echo "::error ::On workflow dispatch, you must provide base-sha and head-sha as inputs."
+            exit 1
+          fi
+          echo "dispatch_mode=true" >> $GITHUB_ENV
+          echo "base_sha=${{ inputs.base-sha }}" >> $GITHUB_ENV
+          echo "head_sha=${{ inputs.head-sha }}" >> $GITHUB_ENV
+          echo "GITHUB_SHA=${{ inputs.head-sha }}" >> $GITHUB_ENV
+          echo "fetch_depth=6" >> $GITHUB_ENV
+        elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
           json=$(curl -s -L \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${{ inputs.gh-token }}" \
@@ -125,7 +142,10 @@ runs:
           keep_empty="--keep-empty"
         fi
 
-        if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+        if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          git fetch origin --depth=$fetch_depth $head_sha
+          git reset --hard FETCH_HEAD
+        elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
           if [[ "$checkout_fallback" == "true" ]]; then
             git fetch origin --depth=$fetch_depth $GITHUB_SHA
             git reset --hard FETCH_HEAD
@@ -152,7 +172,7 @@ runs:
           else
             base_sha=$(git rev-parse @~)
           fi
-        else
+        elif [[ "${{ github.event_name }}" == "push" ]]; then
           if [[ "$checkout_fallback" != "true" ]]; then
             base_sha=${{ github.event.before }}
           else
@@ -182,6 +202,7 @@ runs:
 
     - name: Generate cache branches & rename
       shell: bash
+      if: ${{ github.event_name != 'workflow_dispatch' }}
       run: |
         # Generate cache branches & rename
         [[ "${{ runner.debug }}" == "1" ]] && set -x
