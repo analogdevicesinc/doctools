@@ -247,14 +247,14 @@ features, but <a class="reference internal" href="#extension-third-party"><span 
 <span id="extension-third-party"></span><h3>Third-party directives and roles<a class="headerlink" href="#third-party-directives-and-roles" title="Link to this heading"></a></h3>
 <p>Repositories have the freedom to choose the third-party extensions they want to
 include in their documentation.
-They are listed on the <em>requirements.tst</em> file, and are installed with:</p>
+They are listed in the <em>requirements.txt</em> file, and are installed with:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
 </pre></div>
 </div>
 <p>The recommendation is to avoid using extensions that render content on the
 client-side using JavaScript, because it requires:</p>
 <ul class="simple">
-<li><p>Fetching third-party scripts at someone-else server most of the time; and</p></li>
+<li><p>Fetching third-party scripts from someone else’s server most of the time; and</p></li>
 <li><p>Makes exporting to other formats (like pdf) harder, because it is then necessary to
 patch and replace with another non-JavaScript renderer.</p></li>
 <li><p>Requires managing these added scripts to ensure they apply on hot reload.</p></li>
@@ -264,7 +264,7 @@ patch and replace with another non-JavaScript renderer.</p></li>
 <p>Hot reload is a feature that reloads only parts of a webpage, allowing super
 fast content-loading, cool animations, and a better user experience.</p>
 <p>However, for third-party client-side JavaScript, it is necessary to map the
-added globals to hot reload module.</p>
+added globals to the hot reload module.</p>
 <p>On <a class="icon git reference external" href="https://github.com/analogdevicesinc/doctools/tree/main/adi_doctools/theme/harmonic/scripts/hot_reload.js" target="_blank">adi_doctools/theme/harmonic/scripts/hot_reload.js</a>, extend the
 <code class="docutils literal notranslate"><span class="pre">script_remove</span></code> and <code class="docutils literal notranslate"><span class="pre">script_add</span></code> to include hooks for your particular added
 script.</p>
@@ -440,8 +440,8 @@ like this:</p>
 </section>
 <section id="table-of-contents">
 <h2>Table of contents<a class="headerlink" href="#table-of-contents" title="Link to this heading"></a></h2>
-<p>The Table of Contents (ToC) are created with the <code class="docutils literal notranslate"><span class="pre">toctree</span></code> directive, content
-added to to it are included to the navigations bars and table of contents.</p>
+<p>The Table of Contents (ToC) is created with the <code class="docutils literal notranslate"><span class="pre">toctree</span></code> directive, and content
+added to it is included in the navigation bars and table of contents.</p>
 <p>The basic structure of a <code class="docutils literal notranslate"><span class="pre">toctree</span></code> is:</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">toctree</span><span class="p">::</span>
    <span class="nc">:maxdepth:</span> <span class="nt">&lt;depth&gt;</span>
@@ -477,7 +477,7 @@ injected when generating a PDF.</p>
 <span class="gh">User guides</span>
 <span class="gh">-----------</span>
 
-To simplify speed-up bring-up, a ... .
+To simplify and speed up bring-up, a ... .
 They describe how ... .
 
 <span class="p">..</span> <span class="ow">toctree</span><span class="p">::</span>
@@ -497,7 +497,7 @@ They describe how ... .
 
 ## User guides
 
-To simplify speed-up bring-up, a ... .
+To simplify and speed up bring-up, a ... .
 They describe how ... .
 The user-guides are provided at:
 
@@ -616,7 +616,7 @@ to an empty string.</p>
 <aside class="footnote-list brackets">
 <aside class="footnote brackets" id="f1" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
-<p>Quick cheat sheet for <code class="docutils literal notranslate"><span class="pre">gihtub.ref_name</span></code> values on event:</p>
+<p>Quick cheat sheet for <code class="docutils literal notranslate"><span class="pre">github.ref_name</span></code> values on event:</p>
 <ul class="simple">
 <li><p>push branch: <code class="docutils literal notranslate"><span class="pre">main</span></code>, <code class="docutils literal notranslate"><span class="pre">dev</span></code>, …</p></li>
 <li><p>push tag: <code class="docutils literal notranslate"><span class="pre">v2.2.2</span></code>, <code class="docutils literal notranslate"><span class="pre">new-feature</span></code>, …</p></li>
@@ -655,7 +655,7 @@ from pip and use with <a class="reference internal" href="../cli.html#serve"><sp
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>adoc<span class="w"> </span>serve<span class="w"> </span>--directory<span class="w"> </span>.<span class="w"> </span>--builder<span class="w"> </span>pdf
 </pre></div>
 </div>
-<div class="clear-left"></div></div></div><p>The advantage of WeasyPrint is that the design styles (CSS stylesheet) is
+<div class="clear-left"></div></div></div><p>The advantage of WeasyPrint is that the design styles (CSS stylesheet) are
 respected.</p>
 <section id="inner-working">
 <h3>Inner working<a class="headerlink" href="#inner-working" title="Link to this heading"></a></h3>
@@ -827,7 +827,7 @@ writing that the paragraphs are concise and well structured.</p>
 <p>For <strong>vscode</strong>, you can install
 <a class="icon link reference external" href="https://marketplace.visualstudio.com/items?itemName=stkb.rewrap" target="_blank">Rewrap</a>,
 select the block and wrap with <code class="docutils literal notranslate"><span class="pre">Alt+Q</span></code>.</p>
-<p>As a last resort, youcan use the <code class="code docutils literal notranslate"><span class="pre">fold</span></code> command to break the lines of the
+<p>As a last resort, you can use the <code class="code docutils literal notranslate"><span class="pre">fold</span></code> command to break the lines of the
 imported text while respecting word-breaks:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cat<span class="w"> </span>imported.txt<span class="w"> </span><span class="p">|</span><span class="w"> </span>fold<span class="w"> </span>-sw<span class="w"> </span><span class="m">80</span><span class="w"> </span>&gt;<span class="w"> </span>imported.rst
 </pre></div>
@@ -858,8 +858,8 @@ since they are hard to update.</p>
 <section id="lists">
 <h2>Lists<a class="headerlink" href="#lists" title="Link to this heading"></a></h2>
 <p>Unordered lists use <code class="docutils literal notranslate"><span class="pre">*</span></code> or <code class="docutils literal notranslate"><span class="pre">-</span></code> and ordered lists <code class="docutils literal notranslate"><span class="pre">#.</span></code>.</p>
-<p>Child items must be aligned with the first letter of the parent item, that means,
-2 spaces for unordered list and 3 spaces for ordered lists, for example:</p>
+<p>Child items must be aligned with the first letter of the parent item; that means,
+2 spaces for unordered lists and 3 spaces for ordered lists, for example:</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="m">#.</span> Parent ordered item.
 
    <span class="m">*</span> Child unordered item.

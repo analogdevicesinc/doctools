@@ -222,7 +222,7 @@ that watches the git tags (e.g.
 <p>This approach allows having a single defined version on <code class="docutils literal notranslate"><span class="pre">adi_doctools/__init__.py</span></code>,
 and have the tags created and releases created/updated without much fuzz.</p>
 <p>The philosophy is to have <code class="docutils literal notranslate"><span class="pre">latest</span></code> updated on tag increment and first
-successful run, and <code class="docutils literal notranslate"><span class="pre">pre-relese</span></code> updated on successful run without tag change.
+successful run, and <code class="docutils literal notranslate"><span class="pre">pre-release</span></code> updated on successful run without tag change.
 These releases exist to provide a pointer to the latest/pre-release packages, e.g.
 <a class="icon link reference external" href="https://github.com/analogdevicesinc/doctools/releases/download/latest/adi-doctools.tar.gz" target="_blank">releases/download/latest/adi-doctools.tar.gz</a>.</p>
 <p>Non-handled corner-cases mitigations:</p>
@@ -235,7 +235,7 @@ These releases exist to provide a pointer to the latest/pre-release packages, e.
 <p>Below are suggested instructions for setting up <code class="docutils literal notranslate"><span class="pre">podman</span></code> on a Linux environment,
 if you wish to use it as your container engine. If you already use something else
 like <code class="docutils literal notranslate"><span class="pre">docker</span></code>, <strong>keep it</strong> and skip this section.</p>
-<p>Adjust to your preference as needed, and skip the steps marked in <span class="green">green</span>
+<p>Adjust to your preferences as needed, and skip the steps marked in <span class="green">green</span>
 if not using WSL2.</p>
 <p>Install <code class="docutils literal notranslate"><span class="pre">podman</span></code> from your package manager.</p>
 <p><span class="green">Ensure cgroup v2 on wsl2’s .wslconfig:</span></p>
@@ -294,8 +294,8 @@ environments:</p>
 </div>
 <p>Ensure apply with <code class="docutils literal notranslate"><span class="pre">podman</span> <span class="pre">system</span> <span class="pre">migrate</span></code> and see the changed settings with
 <code class="docutils literal notranslate"><span class="pre">podman</span> <span class="pre">info</span></code>.</p>
-<p>An alternative mitigation for nfs is to create a xfs disk image and mount, but
-since mount requires a root permission it is unlikely to be helpful for most
+<p>An alternative mitigation for nfs is to create an xfs disk image and mount it, but
+since mount requires root permission it is unlikely to be helpful for most
 users:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>truncate<span class="w"> </span>-s<span class="w"> </span>100g<span class="w"> </span>~/.local/share/containers-xfs.img
 mkfs.xfs<span class="w"> </span>-m<span class="w"> </span><span class="nv">reflink</span><span class="o">=</span><span class="m">1</span><span class="w">  </span>~/.local/share/containers-xfs.img<span class="w"> </span>-m<span class="w"> </span><span class="nv">bigtime</span><span class="o">=</span><span class="m">1</span>,inobtcount<span class="o">=</span><span class="m">1</span><span class="w"> </span>-i<span class="w"> </span><span class="nv">nrext64</span><span class="o">=</span><span class="m">0</span>

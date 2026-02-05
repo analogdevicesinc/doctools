@@ -185,14 +185,14 @@ features, such as videos and shell code snippets.</p>
 <p>Below, every added directive is explained with examples.</p>
 <section id="container">
 <h2>Container<a class="headerlink" href="#container" title="Link to this heading"></a></h2>
-<p>To allow disposing content in a tabular manner but still respecting the multiple
-screen sizes and both HTML and PDF output, two container directives are available,
+<p>To allow arranging content in a tabular manner while still respecting multiple
+screen sizes for both HTML and PDF output, two container directives are available:
 <code class="docutils literal notranslate"><span class="pre">flex</span></code> and <code class="docutils literal notranslate"><span class="pre">grid</span></code>.</p>
 <section id="flex">
 <span id="directive-flex"></span><h3>Flex<a class="headerlink" href="#flex" title="Link to this heading"></a></h3>
-<p>The grid directive implements a subset of
+<p>The flex directive implements a subset of
 <a class="icon link reference external" href="https://css-tricks.com/snippets/css/a-guide-to-flexbox/" target="_blank">CSS Flex</a>.
-And is used to dispose elements without worrying about number of columns and sizes,
+It is used to arrange elements without worrying about number of columns and sizes,
 while still obtaining a fairly good result.</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">flex</span><span class="p">::</span>
    <span class="nc">:class:</span> [badges, ...]
@@ -206,13 +206,13 @@ status, code quality, among others.</p>
 <span id="directive-grid"></span><h3>Grid<a class="headerlink" href="#grid" title="Link to this heading"></a></h3>
 <p>The grid directive implements a subset of
 <a class="icon link reference external" href="https://css-tricks.com/css-grid-layout-guide/" target="_blank">CSS Grids</a>.
-And is used to dispose elements with exact number of columns and width control.</p>
+It is used to arrange elements with exact number of columns and width control.</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">grid</span><span class="p">::</span>
    <span class="nc">:widths:</span> 25 25% 150px
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">widths</span></code> options allow units (<code class="docutils literal notranslate"><span class="pre">px</span></code>, <code class="docutils literal notranslate"><span class="pre">%</span></code>, etc.) and without an explicit
-unit it is inferred percentile.
+<p>The <code class="docutils literal notranslate"><span class="pre">widths</span></code> options allow units (<code class="docutils literal notranslate"><span class="pre">px</span></code>, <code class="docutils literal notranslate"><span class="pre">%</span></code>, etc.), and without an explicit
+unit it is inferred as a percentage.
 This option is required, since it is not possible to infer the number of
 columns in a sane manner.</p>
 </section>
@@ -315,13 +315,13 @@ the content, forcing any following content to be moved below any preceding
 content.
 It is useful when working with images
 aligned/<a class="icon link reference external" href="https://developer.mozilla.org/en-US/docs/Web/CSS/float" target="_blank">float</a>
-left/right and wants to ensure the next section does not also get “squashed”.</p>
+left/right and you want to ensure the next section does not also get “squashed”.</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">clear-content</span><span class="p">::</span>
    <span class="nc">:side:</span> [both,left,right]
    <span class="nc">:break:</span>
 </pre></div>
 </div>
-<p>It can clear content to it’s <code class="docutils literal notranslate"><span class="pre">left</span></code>, <code class="docutils literal notranslate"><span class="pre">right</span></code> or <code class="docutils literal notranslate"><span class="pre">both</span></code> sides.
+<p>It can clear content to its <code class="docutils literal notranslate"><span class="pre">left</span></code>, <code class="docutils literal notranslate"><span class="pre">right</span></code> or <code class="docutils literal notranslate"><span class="pre">both</span></code> sides.
 By default, it clears <code class="docutils literal notranslate"><span class="pre">both</span></code> sides.</p>
 <p>With the <code class="docutils literal notranslate"><span class="pre">break</span></code> option, it will break the page when generating a PDF
 (behaves similar to LaTeX <em>cleardoublepage</em>).</p>
@@ -330,9 +330,9 @@ By default, it clears <code class="docutils literal notranslate"><span class="pr
 <span id="id1"></span><h2>Description<a class="headerlink" href="#description" title="Link to this heading"></a></h2>
 <p>The description directive sets the HTML meta description tag
 required by search engines for good SEO.</p>
-<p>The content should be up to 160 characters, if it exceeds this length, a
-warning is raised. If not present, try to use the page’s first paragraph as the
-content for HTML meta description.</p>
+<p>The content should be up to 160 characters; if it exceeds this length, a
+warning is raised. If not present, the page’s first paragraph is used as the
+content for the HTML meta description.</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">description</span><span class="p">::</span>
 
    &lt;content&gt;
@@ -544,7 +544,7 @@ iio_reg &lt;device&gt; &lt;register&gt; [&lt;value&gt;]
 the current directory and output cannot be selected.</p>
 </div>
 <p>To show the user and user group, add the <code class="docutils literal notranslate"><span class="pre">:show-user:</span></code> flag.</p>
-<p>For Windows, set bash type as <code class="docutils literal notranslate"><span class="pre">ps1</span></code> (PowerShell), for example:</p>
+<p>For Windows, set the bash type to <code class="docutils literal notranslate"><span class="pre">ps1</span></code> (PowerShell), for example:</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">shell</span><span class="p">::</span> ps1
    <span class="nc">:user:</span> Analog
 
@@ -689,7 +689,7 @@ hover effects.</p>
    &lt;caption&gt;
 </pre></div>
 </div>
-<p>At it’s core, for the HTML builder, it is somewhat equivalent to:</p>
+<p>At its core, for the HTML builder, it is somewhat equivalent to:</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">raw</span><span class="p">::</span> html
    <span class="nc">:file:</span> path
 </pre></div>
@@ -817,9 +817,9 @@ table (<em>output.md</em>) and generates a table with the build statuses.</p>
    <span class="nc">:file:</span> <span class="nt">&lt;build_status_file&gt;</span>
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">:path:</span></code> option is optional, in the sense that if it’s not provided, no table
+<p>The <code class="docutils literal notranslate"><span class="pre">:path:</span></code> option is optional; if it’s not provided, no table
 is generated.
-If provided, but the build status file does not exist, an error is
+If provided but the build status file does not exist, an error is
 thrown.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>

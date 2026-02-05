@@ -173,8 +173,8 @@ Content on this topic
 <span id="cli"></span><h1>Command line interface<a class="headerlink" href="#command-line-interface" title="Link to this heading"></a></h1>
 <p>The Doctools bundles a command line interface called <code class="docutils literal notranslate"><span class="pre">adoc</span></code> meant to ease both
 continuous integration and local builds of the documentation.</p>
-<p>Below, it is briefly described each command, and it is worth noting that every
-command supports the <code class="docutils literal notranslate"><span class="pre">--help</span></code> option for quick look up.</p>
+<p>Below, each command is briefly described, and it is worth noting that every
+command supports the <code class="docutils literal notranslate"><span class="pre">--help</span></code> option for quick lookup.</p>
 <section id="serve">
 <span id="id1"></span><h2>Serve<a class="headerlink" href="#serve" title="Link to this heading"></a></h2>
 <p>Watches the docs and source code to rebuild it on edit.
@@ -198,7 +198,7 @@ and so on.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>adoc<span class="w"> </span>serve
 </pre></div>
 </div>
-<div class="clear-left"></div></div></div><p>Where <code class="docutils literal notranslate"><span class="pre">/path/to/docs</span></code> is the path to the folder contain the Sphinx’s <code class="docutils literal notranslate"><span class="pre">Makefile</span></code>.</p>
+<div class="clear-left"></div></div></div><p>Where <code class="docutils literal notranslate"><span class="pre">/path/to/docs</span></code> is the path to the folder containing the Sphinx <code class="docutils literal notranslate"><span class="pre">Makefile</span></code>.</p>
 <p>To also watch changes made to theme itself, use the <code class="docutils literal notranslate"><span class="pre">--dev</span></code> option, just make
 sure to have Doctools as <a class="reference internal" href="install.html#development-install"><span class="std std-ref">Development install</span></a>.</p>
 <p>For PDF output, do:</p>
@@ -368,7 +368,7 @@ https://analogdevicesinc.github.io/scopy/plugins/ad9084/ad9084.html
 <p>Generates custom documents with filtered content from all documentations of the
 watched repositories (see <a class="icon git reference external" href="https://github.com/analogdevicesinc/doctools/tree/main/adi_doctools/lut.py" target="_blank">adi_doctools/lut.py</a>).</p>
 <p>For PDF output, <a class="icon link reference external" href="https://weasyprint.org/" target="_blank">WeasyPrint</a> is used (ensure to install it).</p>
-<p>To quick start, run the tool twice in an empty directly.</p>
+<p>To quick start, run the tool twice in an empty directory.</p>
 <div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
 </pre></div>
 </div>
@@ -478,8 +478,8 @@ step) are looked for lfs pointers, so artifacts from other steps are missed, suc
 from the download directive.</p>
 <section id="working-with-multiple-docs">
 <h3>Working with multiple docs<a class="headerlink" href="#working-with-multiple-docs" title="Link to this heading"></a></h3>
-<p>Suppose you edited and tested multiple docs together, it could be useful
-helpful to try a local inventory file first, to check references before publication.</p>
+<p>Suppose you edited and tested multiple docs together, it could be helpful
+to try a local inventory file first, to check references before publication.</p>
 <p>Having this in mind, if you build the edited documentation first, and then execute
 <code class="docutils literal notranslate"><span class="pre">custom-doc</span></code>, it will consider the local inventory <em>objects.inv</em> also.</p>
 <p>Here is a example of auto-resolved <em>intersphinx_mapping</em> by <code class="docutils literal notranslate"><span class="pre">custom-doc</span></code>, at the

@@ -4,7 +4,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta content="What belongs to this tools and core principles." name="description" />
+<meta content="What belongs to this tool and core principles." name="description" />
 
     <title>Fundamentals &#8212; Doctools  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8e8a900e" />
@@ -156,8 +156,8 @@ Content on this topic
 <span id="id1"></span><h1>Fundamentals<a class="headerlink" href="#fundamentals" title="Link to this heading"></a></h1>
 <section id="documentation-hierarchical-structure">
 <h2>Documentation hierarchical structure<a class="headerlink" href="#documentation-hierarchical-structure" title="Link to this heading"></a></h2>
-<p>Doctools is the central piece to aggregate multiple documentations together,
-expanding the documentation standard hierarchical, mono-repo configuration.</p>
+<p>Doctools is the central piece for aggregating multiple documentations together,
+expanding the standard hierarchical, mono-repo documentation configuration.</p>
 <p>The content is organized in three levels:</p>
 <ul class="simple">
 <li><p>repotoc: Listing of repositories in the same organization that contain
@@ -169,15 +169,15 @@ split each toctree on its own repotoc entry, as if they were stored in multiple
 repositories.
 The <code class="docutils literal notranslate"><span class="pre">topic</span></code> entry must contain one landing page associated with the toctree title,
 e.g. <code class="docutils literal notranslate"><span class="pre">topic:</span> <span class="pre">{'eval':</span> <span class="pre">'Evaluation</span> <span class="pre">Boards',</span> <span class="pre">'university':</span> <span class="pre">'University</span> <span class="pre">Program'}</span></code>,
-then the <em>index.rst</em> must a toctree titled <code class="docutils literal notranslate"><span class="pre">Evaluation</span> <span class="pre">Boards</span></code> and the page
+then the <em>index.rst</em> must have a toctree titled <code class="docutils literal notranslate"><span class="pre">Evaluation</span> <span class="pre">Boards</span></code> and the page
 <code class="docutils literal notranslate"><span class="pre">eval/index.rst</span></code> must exist.
-In the html output, is displayed on the top header.</p></li>
+In the HTML output, it is displayed in the top header.</p></li>
 <li><p>toc: Table of contents of a repository documentation; the displayed depth
 is customizable, but in general a doc page (<code class="docutils literal notranslate"><span class="pre">.rst</span></code>, <code class="docutils literal notranslate"><span class="pre">.md</span></code>) generates one toc
 entry.
-In the html output, is displayed on the left of the webpage.</p></li>
+In the HTML output, it is displayed on the left of the webpage.</p></li>
 <li><p>localtoc: Contents on the current doc page/toc entry.
-In the html output, is displayed on the right of the webpage, identified by the
+In the HTML output, it is displayed on the right of the webpage, identified by the
 “On this page” header.</p></li>
 </ul>
 <div class="admonition note">
@@ -186,8 +186,8 @@ In the html output, is displayed on the right of the webpage, identified by the
 not a native Sphinx feature.
 <code class="docutils literal notranslate"><span class="pre">toc</span></code> and <code class="docutils literal notranslate"><span class="pre">localtoc</span></code> are concepts inherited from Sphinx.</p>
 </div>
-<p>By the concept of <code class="docutils literal notranslate"><span class="pre">repotoc</span></code>, it is possible to each doc to reference other
-repository doc using the <a class="reference internal" href="docs_guidelines/index.html#in-org-ref"><span class="std std-ref">In organization reference</span></a> role.</p>
+<p>By the concept of <code class="docutils literal notranslate"><span class="pre">repotoc</span></code>, it is possible for each doc to reference other
+repository docs using the <a class="reference internal" href="docs_guidelines/index.html#in-org-ref"><span class="std std-ref">In organization reference</span></a> role.</p>
 </section>
 </section>
 
