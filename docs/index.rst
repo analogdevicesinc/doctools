@@ -1,8 +1,6 @@
 Analog Devices Doctools
 =======================
 
-Hello
-
 :adi:`Analog Devices Inc. </>`
 documentation extensions, themes, and tools for multiple repositories in the
 organization.
