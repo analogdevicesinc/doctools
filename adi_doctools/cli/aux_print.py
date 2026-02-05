@@ -3,10 +3,12 @@ from packaging.version import Version
 from sphinx.__init__ import __version__ as __sphinx_version__
 from os import path
 from lxml import html, etree
-from click import echo
 import importlib.util
+import logging
 
 from .aux_cover import generate_wave_cover
+
+logger = logging.getLogger(__name__)
 
 def sanitize_singlehtml(file) -> str:
     """
@@ -40,7 +42,7 @@ def sanitize_singlehtml(file) -> str:
         elif i_.startswith('index.html#'):
             i_ = i_[11:]
         else:
-            echo(f"Toctree link '{i_}' is not internal, skipped")
+            logger.warning(f"Toctree link '{i_}' is not internal, skipped")
             continue
         volumes.append([c.text, i_])
 
@@ -77,7 +79,7 @@ def sanitize_singlehtml(file) -> str:
         first_page = first_page[0]
         first_page.insert(1, ele_desc)
     else:
-        echo("Logo not found, skipped adding description")
+        logger.info("Logo not found, skipped adding description")
 
     header = root.xpath("//header")
     if len(header):
@@ -88,13 +90,13 @@ def sanitize_singlehtml(file) -> str:
         # Insert as first child of header
         header.insert(0, svg_elem)
     else:
-        echo("Header not found, skipped main cover generation")
+        logger.info("Header not found, skipped main cover generation")
 
     # Find indexes and add volumes
     for c, i in volumes:
         e_ = bwrap.xpath(f".//span[@id='{i}']")
         if len(e_) == 0:
-            echo(f"Failed to find index for id '{i}', skipped")
+            logger.warning(f"Failed to find index for id '{i}', skipped")
             continue
         e_ = e_[0]
         ele_ = etree.Element("div")
@@ -148,8 +150,8 @@ def sanitize_singlehtml(file) -> str:
 
     # Render LaTeX math with matplotlib.mathtext
     if not importlib.util.find_spec("matplotlib"):
-        echo("Package 'matplotlib' required to render LaTeX math formulas is not "
-             "installed, these formulas will show as the LaTeX source code.")
+        logger.warning("Package 'matplotlib' required to render LaTeX math formulas is not "
+                       "installed, these formulas will show as the LaTeX source code.")
     else:
         import matplotlib.pyplot as plt
         import io

@@ -13,6 +13,7 @@ import re
 import shutil
 import sys
 import time
+import logging
 from packaging.version import Version
 from concurrent.futures import ThreadPoolExecutor
 from html.parser import HTMLParser
@@ -21,20 +22,20 @@ from urllib.request import urlopen
 from urllib.error import URLError, HTTPError
 from urllib.parse import urljoin, urlparse
 
-import click
 import snowballstemmer
 
 from ..lut import repos, remote_doc, source_hostname_raw
 from .aux_html2md import convert_html_to_markdown
+from .argument_parser import get_arguments_search
 from .string_search import (
     format_desc_converted_markdown,
     format_desc_source_rest_markdown,
-    format_help_cli,
     format_available,
     error_format_src_not_applicable,
     error_format_src_requires_index_1,
     error_format_src_requires_index_2,
 )
+from .logging import DIM, BLUE, RESET, NC
 
 from pathlib import Path
 from sphinx import __version__ as __sphinx_version__
@@ -45,9 +46,7 @@ if Version(__sphinx_version__) < Version('9.0.0'):
 else:
     from sphinx.ext.intersphinx._load import _fetch_inventory_data, _load_inventory
 
-
-BLUE = '\033[94m'
-RESET = '\033[0m'
+logger = logging.getLogger(__name__)
 
 CACHE_DIR = Path('/tmp/adoc.search')
 CACHE_VALIDITY = 3600  # 1 hour
@@ -140,7 +139,8 @@ def truncate_text(text, max_chars, query_terms=None, add_ellipsis=True):
         for term in query_terms:
             if term.lower() not in STOPWORDS:
                 pattern = re.compile(re.escape(term), re.IGNORECASE)
-                result = pattern.sub(lambda m: click.style(m.group(), fg='yellow'), result)
+                # Yellow text: \033[93m
+                result = pattern.sub(lambda m: f'\033[93m{m.group()}\033[0m', result)
 
     return result
 
@@ -319,52 +319,52 @@ def load_search_results():
 def fetch_url_content(url, format='md'):
     """Fetch content from URL in specified format."""
     if format == 'src':
-        click.echo(error_format_src_not_applicable, err=True)
-        click.echo(error_format_src_requires_index_1, err=True)
-        click.echo(error_format_src_requires_index_2, err=True)
-        raise click.Abort()
+        print(error_format_src_not_applicable, file=sys.stderr)
+        print(error_format_src_requires_index_1, file=sys.stderr)
+        print(error_format_src_requires_index_2, file=sys.stderr)
+        sys.exit(1)
 
-    click.echo("")
-    click.echo(f"{BLUE}Format:{RESET} {format.upper()}", nl=False)
+    print("")
+    print(f"{BLUE}Format:{RESET} {format.upper()}", end='')
     if format == 'md':
-        click.echo(format_desc_converted_markdown)
+        print(format_desc_converted_markdown)
     elif format == 'html':
-        click.echo(" (html)")
+        print(" (html)")
 
-    click.echo(click.style(format_available, dim=True))
-    click.echo(f"\n{BLUE}Fetching:{RESET} {url}\n")
+    logger.debug(format_available)
+    print(f"\n{BLUE}Fetching:{RESET} {url}\n")
 
     try:
         with urlopen(url, timeout=30) as response:
             html_content = response.read().decode('utf-8')
     except HTTPError as e:
-        click.echo(f"Error: HTTP {e.code} - {url}", err=True)
-        raise click.Abort()
+        logger.error(f"HTTP {e.code} - {url}", file=sys.stderr)
+        sys.exit(1)
     except URLError as e:
-        click.echo(f"Error: Failed to fetch URL - {e.reason}", err=True)
-        raise click.Abort()
+        logger.error(f"Failed to fetch URL - {e.reason}", file=sys.stderr)
+        sys.exit(1)
     except Exception as e:
-        click.echo(f"Error: {e}", err=True)
-        raise click.Abort()
+        logger.error(f"{e}", file=sys.stderr)
+        sys.exit(1)
 
-    click.echo("─" * get_terminal_width())
+    print("─" * get_terminal_width())
 
     if format == 'html':
-        click.echo(html_content)
+        print(html_content)
     elif format == 'md':
         markdown = convert_html_to_markdown(url, html_content)
         if markdown is None:
-            click.echo("Error: Failed to convert HTML to Markdown", err=True)
-            raise click.Abort()
-        click.echo(markdown)
+            logger.error("Failed to convert HTML to Markdown", file=sys.stderr)
+            sys.exit(1)
+        print(markdown)
 
 def fetch_source_file(index, format='src'):
     """Fetch and display file from previous search results in specified format."""
     results = load_search_results()
 
     if results is None:
-        click.echo("Error: No previous search results found. Run a search first.", err=True)
-        raise click.Abort()
+        logger.error("No previous search results found. Run a search first.", file=sys.stderr)
+        sys.exit(1)
 
     result = None
     for r in results:
@@ -373,54 +373,54 @@ def fetch_source_file(index, format='src'):
             break
 
     if result is None:
-        click.echo(f"Error: No result found at index {index}. Valid indices: 1-{len(results)}", err=True)
-        raise click.Abort()
+        logger.error(f"No result found at index {index}. Valid indices: 1-{len(results)}", file=sys.stderr)
+        sys.exit(1)
 
     result_url = result['url']
 
-    click.echo("")
-    click.echo(f"{BLUE}Format:{RESET} {format.upper()}", nl=False)
+    print("")
+    print(f"{BLUE}Format:{RESET} {format.upper()}", end='')
     if format == 'md':
-        click.echo(format_desc_converted_markdown)
+        print(format_desc_converted_markdown)
     elif format == 'src':
-        click.echo(format_desc_source_rest_markdown)
+        print(format_desc_source_rest_markdown)
     elif format == 'html':
-        click.echo(" (html)")
-    click.echo(click.style(format_available, dim=True))
+        print(" (html)")
+    logger.debug(format_available)
 
     if format == 'html':
-        click.echo(f"\n{BLUE}Fetching from:{RESET} [{index}] {result['title']}")
-        click.echo(f"{BLUE}URL:{RESET} {result_url}\n")
+        print(f"\n{BLUE}Fetching from:{RESET} [{index}] {result['title']}")
+        print(f"{BLUE}URL:{RESET} {result_url}\n")
 
         try:
             with urlopen(result_url, timeout=30) as response:
                 html_content = response.read().decode('utf-8')
         except Exception as e:
-            click.echo(f"Error: Failed to fetch HTML - {e}", err=True)
-            raise click.Abort()
+            logger.error(f"Failed to fetch HTML - {e}", file=sys.stderr)
+            sys.exit(1)
 
-        click.echo("─" * get_terminal_width())
-        click.echo(html_content)
+        print("─" * get_terminal_width())
+        print(html_content)
         return
 
     elif format == 'md':
-        click.echo(f"\n{BLUE}Fetching from:{RESET} [{index}] {result['title']}")
-        click.echo(f"{BLUE}URL:{RESET} {result_url}\n")
+        print(f"\n{BLUE}Fetching from:{RESET} [{index}] {result['title']}")
+        print(f"{BLUE}URL:{RESET} {result_url}\n")
 
         try:
             with urlopen(result_url, timeout=30) as response:
                 html_content = response.read().decode('utf-8')
         except Exception as e:
-            click.echo(f"Error: Failed to fetch HTML - {e}", err=True)
-            raise click.Abort()
+            logger.error(f"Failed to fetch HTML - {e}", file=sys.stderr)
+            sys.exit(1)
 
         markdown = convert_html_to_markdown(result_url, html_content)
         if markdown is None:
-            click.echo("Error: Failed to convert HTML to Markdown", err=True)
-            raise click.Abort()
+            logger.error("Failed to convert HTML to Markdown", file=sys.stderr)
+            sys.exit(1)
 
-        click.echo("─" * get_terminal_width())
-        click.echo(markdown)
+        print("─" * get_terminal_width())
+        print(markdown)
         return
 
     # format == 'src' - fetch source file
@@ -428,9 +428,9 @@ def fetch_source_file(index, format='src'):
     docname = result['docname']
 
     if not repo_name or repo_name not in repos:
-        click.echo(f"Error: Unknown source location for '{repo_name or 'unknown'}'.", err=True)
-        click.echo("  " + ", ".join(sorted(repos.keys())), err=True)
-        raise click.Abort()
+        logger.error(f"Unknown source location for '{repo_name or 'unknown'}'.")
+        print("  " + ", ".join(sorted(repos.keys())))
+        sys.exit(1)
 
     repo_info = repos[repo_name]
     pathname = repo_info['pathname']
@@ -441,9 +441,9 @@ def fetch_source_file(index, format='src'):
     # or could be other extensions
     source_extensions = ['.rst', '.md']
 
-    click.echo(f"\n{BLUE}Fetching from:{RESET} [{index}] {result['title']}")
-    click.echo(f"{BLUE}Repository:{RESET} {repo_name}")
-    click.echo(f"{BLUE}Document:{RESET} {docname}\n")
+    print(f"\n{BLUE}Fetching from:{RESET} [{index}] {result['title']}")
+    print(f"{BLUE}Repository:{RESET} {repo_name}")
+    print(f"{BLUE}Document:{RESET} {docname}\n")
 
     source_url = None
     content = None
@@ -476,9 +476,9 @@ def fetch_source_file(index, format='src'):
             continue
 
     if content is None:
-        click.echo(f"Error: Could not fetch source file. Tried extensions: {', '.join(source_extensions)}", err=True)
-        click.echo(f"URL: {result['url']}", err=True)
-        raise click.Abort()
+        logger.error(f"Could not fetch source file. Tried extensions: {', '.join(source_extensions)}")
+        print(f"URL: {result['url']}")
+        sys.exit(1)
 
     include_pattern = re.compile(r'^\s*\.\.\s+include::\s+(.+?)\s*$', re.MULTILINE)
     lines = [line for line in content.strip().split('\n') if line.strip() and not line.strip().startswith('..') or line.strip().startswith('.. include::')]
@@ -521,22 +521,22 @@ def fetch_source_file(index, format='src'):
             )
 
             try:
-                click.echo(f"{BLUE}Following include directive to:{RESET} {include_path}\n")
+                print(f"{BLUE}Following include directive to:{RESET} {include_path}\n")
                 response = urlopen(included_url)
                 content = response.read().decode('utf-8')
                 source_url = included_url
             except HTTPError as e:
                 if e.code == 404:
-                    click.echo("Warning: Could not fetch included file (404). Showing original content.", err=True)
-                    click.echo(f"Attempted URL: {included_url}\n", err=True)
+                    logger.warning("Could not fetch included file (404). Showing original content.")
+                    print(f"Attempted URL: {included_url}\n")
                 else:
-                    click.echo(f"Warning: Could not fetch included file (HTTP {e.code}). Showing original content.", err=True)
+                    logger.warning(f"Could not fetch included file (HTTP {e.code}). Showing original content.")
             except Exception as e:
-                click.echo(f"Warning: Could not fetch included file: {e}. Showing original content.", err=True)
+                logger.warning(f"Could not fetch included file: {e}. Showing original content.")
 
-    click.echo(f"{BLUE}Source URL:{RESET} {source_url}\n")
-    click.echo("─" * get_terminal_width())
-    click.echo(content)
+    print(f"{BLUE}Source URL:{RESET} {source_url}\n")
+    print("─" * get_terminal_width())
+    print(content)
 
 
 def get_inventory_cache_path(base_url):
@@ -788,7 +788,7 @@ def get_summary(html_content, query_terms, anchor=None, max_chars=480):
         if term.lower() in STOPWORDS:
             continue
         pattern = re.compile(re.escape(term), re.IGNORECASE)
-        summary = pattern.sub(lambda m: click.style(m.group(), fg='yellow'), summary)
+        summary = pattern.sub(lambda m: f'\033[93m{m.group()}\033[0m', summary)
 
     prefix = "..." if start_pos > 0 else ""
     suffix = "..." if start_pos + max_chars < len(text) else ""
@@ -918,7 +918,7 @@ async def update_result_summary(result_num, url, query_terms, anchor, result_lin
 
     if not sys.stdout.isatty():
         if summary:
-            click.echo(f"  [{result_num}] {summary}")
+            print(f"  [{result_num}] {summary}")
         return
 
     max_chars_per_line = terminal_width - 2
@@ -984,39 +984,7 @@ async def fetch_and_display_summaries(formatted_results, query_terms, base_url, 
         await asyncio.gather(*tasks)
 
 
-@click.command()
-@click.option(
-    '--url',
-    help='Explicit url to documentation (searchindex.js)'
-)
-@click.option(
-    '--repo',
-    help='Repository name(s), comma-separated (e.g., "documentation,hdl,no-OS"), "all" searches all repositories.'
-)
-@click.option(
-    '--limit',
-    default=None,
-    type=int,
-    help='Maximum number of results to show'
-)
-@click.option(
-    '--verbose', '-v',
-    is_flag=True,
-    help='Show result scores'
-)
-@click.option(
-    '--fetch', '-f',
-    default=None,
-    help='Fetch file by index from previous search results, or provide a full url'
-)
-@click.option(
-    '--format',
-    type=click.Choice(['html', 'src', 'md'], case_sensitive=False),
-    default='md',
-    help=format_help_cli
-)
-@click.argument('query', nargs=-1, required=False)
-def search(url, repo, limit, verbose, fetch, format, query):
+def search():
     """Search Sphinx documentation.
 
     Fetches the search index from a Sphinx-generated documentation site
@@ -1047,27 +1015,31 @@ def search(url, repo, limit, verbose, fetch, format, query):
         src:  Source file (.rst or .md)
         md:   Page html onverted to Markdown (default)
     """
-    if fetch is not None:
-        if isinstance(fetch, str) and (fetch.startswith('http://') or fetch.startswith('https://')):
-            fetch_url_content(fetch, format=format)
+    args = get_arguments_search()
+
+    if args.fetch is not None:
+        if isinstance(args.fetch, str) and (args.fetch.startswith('http://') or args.fetch.startswith('https://')):
+            fetch_url_content(args.fetch, format=args.format)
         else:
             try:
-                index = int(fetch)
-                fetch_source_file(index, format=format)
+                index = int(args.fetch)
+                fetch_source_file(index, format=args.format)
             except ValueError:
-                click.echo("Error: --fetch must be either an integer index or a full URL", err=True)
-                click.echo(f"Got: {fetch}", err=True)
-                raise click.Abort()
+                logger.error("--fetch must be either an integer index or a full URL", file=sys.stderr)
+                print(f"Got: {args.fetch}", file=sys.stderr)
+                sys.exit(1)
         return
 
-    if not query:
-        click.echo("Error: Query is required", err=True)
-        raise click.Abort()
+    if not args.query:
+        logger.error("Query is required", file=sys.stderr)
+        sys.exit(1)
 
-    if url and repo:
-        click.echo("Error: Cannot specify both --url and --repo", err=True)
-        raise click.Abort()
+    if args.url and args.repo:
+        logger.error("Cannot specify both --url and --repo", file=sys.stderr)
+        sys.exit(1)
 
+    url = args.url
+    repo = args.repo
     if url and not url.endswith('searchindex.js'):
         if not url.endswith('/'):
             url += '/'
@@ -1076,6 +1048,7 @@ def search(url, repo, limit, verbose, fetch, format, query):
     if not url and not repo:
         repo = 'all'
 
+    limit = args.limit
     if limit is None:
         limit = calculate_limit_from_terminal()
 
@@ -1083,15 +1056,15 @@ def search(url, repo, limit, verbose, fetch, format, query):
     if repo:
         if repo.strip() == 'all':
             repo_names = sorted(repos.keys())
-            click.echo(f"Searching {len(repo_names)} repositories...")
+            print(f"Searching {len(repo_names)} repositories...")
         else:
             repo_names = [r.strip() for r in repo.split(',')]
 
             unknown_repos = [r for r in repo_names if r not in repos]
             if unknown_repos:
-                click.echo(f"Error: Unknown repository(ies): {' '.join(unknown_repos)}", err=True)
-                click.echo(f"Available repositories: {' '.join(sorted(repos.keys()))}", err=True)
-                raise click.Abort()
+                logger.error(f"Unknown repository(ies): {' '.join(unknown_repos)}", file=sys.stderr)
+                print(f"Available repositories: {' '.join(sorted(repos.keys()))}", file=sys.stderr)
+                sys.exit(1)
 
         for repo_name in repo_names:
             repo_url = f"{remote_doc}{repo_name}/searchindex.js"
@@ -1100,7 +1073,7 @@ def search(url, repo, limit, verbose, fetch, format, query):
         repo_sources = [(None, url)]
 
     # At this time, don't allow multiword exact match.
-    query = split_strings_in_tuple(query)
+    query = split_strings_in_tuple(tuple(args.query))
     query_str = ' '.join(query)
 
     stemmer = snowballstemmer.stemmer('porter')
@@ -1138,16 +1111,16 @@ def search(url, repo, limit, verbose, fetch, format, query):
                     })
 
             except Exception as e:
-                click.echo(f"Warning: Failed to search {repo_name or repo_url}: {e}", err=True)
+                logger.warning(f"Failed to search {repo_name or repo_url}: {e}")
                 continue
 
         if not all_results:
-            click.echo(f"\nNo results found for \"{query_str}\"")
+            print(f"\nNo results found for \"{query_str}\"")
             return
 
         all_results.sort(key=lambda x: (-x['score'], x['title'].lower()))
         total = len(all_results)
-        click.echo(f"\nFound {total} result{'s' if total != 1 else ''} for \"{query_str}\"")
+        print(f"\nFound {total} result{'s' if total != 1 else ''} for \"{query_str}\"")
 
         all_results = all_results[:limit]
 
@@ -1155,9 +1128,9 @@ def search(url, repo, limit, verbose, fetch, format, query):
         showing = len(formatted_results)
 
         if showing < total:
-            click.echo(f"Top {showing} results:\n")
+            print(f"Top {showing} results:\n")
         else:
-            click.echo()
+            print("")
 
         terminal_width = get_terminal_width()
 
@@ -1172,7 +1145,7 @@ def search(url, repo, limit, verbose, fetch, format, query):
 
             number_prefix = f"[{i}] "
 
-            if verbose:
+            if args.verbose:
                 if len(repo_sources) > 1 and repo_name:
                     title_line = f"{number_prefix}{blue}[Score: {score}] [{repo_name}] {title}{reset}"
                 else:
@@ -1235,7 +1208,7 @@ def search(url, repo, limit, verbose, fetch, format, query):
                         refs_text = ' '.join(included_refs)
                         if len(included_refs) < len(refs_parts):
                             refs_text += " ..."
-                        refs_line = click.style(refs_text, dim=True)
+                        refs_line = f"{DIM}{refs_text}{NC}"
                     else:
                         refs_line = ""
                 else:
@@ -1266,13 +1239,13 @@ def search(url, repo, limit, verbose, fetch, format, query):
 
             result_line_counts.append(lines_count)
 
-            click.echo(title_line)
-            click.echo(url_line)
-            click.echo(refs_line)
+            print(title_line)
+            print(url_line)
+            print(refs_line)
             if show_summary_lines:
-                click.echo(summary_line1)
-                click.echo(summary_line2)
-            click.echo()
+                print(summary_line1)
+                print(summary_line2)
+            print()
 
         save_search_results(formatted_results)
 
@@ -1280,16 +1253,16 @@ def search(url, repo, limit, verbose, fetch, format, query):
         asyncio.run(fetch_and_display_summaries(formatted_for_async, query, None, result_line_counts, terminal_width))
 
         if sys.stdout.isatty():
-            click.echo()
+            print()
 
-        click.echo(click.style("Fetch source with: adoc search --fetch <index>", dim=True))
+        logger.debug("Fetch source with: adoc search --fetch <index>")
 
     except URLError as e:
-        click.echo(f"Error: {e}", err=True)
-        raise click.Abort()
+        logger.error(str(e), file=sys.stderr)
+        sys.exit(1)
     except ValueError as e:
-        click.echo(f"Error: {e}", err=True)
-        raise click.Abort()
+        logger.error(str(e), file=sys.stderr)
+        sys.exit(1)
     except Exception as e:
-        click.echo(f"Unexpected error: {e}", err=True)
-        raise click.Abort()
+        logger.error(str(e), file=sys.stderr)
+        sys.exit(1)

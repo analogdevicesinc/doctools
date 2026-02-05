@@ -2,10 +2,14 @@ from typing import Tuple, List
 from sphinx.util.osutil import SEP
 
 from os import mkdir, path, pardir, environ
-import click
 import subprocess
+import logging
 
+from .argument_parser import get_arguments_aggregate
+from .logging import FAIL, NC
 from ..lut import get_lut
+
+logger = logging.getLogger(__name__)
 
 dry_run = True
 no_parallel = True
@@ -21,9 +25,9 @@ class pr:
             p__ = subprocess.Popen(cmd, cwd=cwd, env=env)
             p__.wait() if no_parallel else p.append(p__)
         elif cwd is not None:
-            click.echo(f"cd {cwd}; {' '.join(cmd)}")
+            print(f"cd {cwd}; {' '.join(cmd)}")
         else:
-            click.echo(' '.join(cmd))
+            print(' '.join(cmd))
         return p
 
     @staticmethod
@@ -32,9 +36,9 @@ class pr:
         if not dry_run:
             subprocess.run(cmd, shell=True, cwd=cwd)
         elif cwd is not None:
-            click.echo(f"cd {cwd}; {cmd}")
+            print(f"cd {cwd}; {cmd}")
         else:
-            click.echo(f"{cmd}")
+            print(f"{cmd}")
 
     @staticmethod
     def wait(p):
@@ -47,7 +51,7 @@ class pr:
         if not dry_run:
             mkdir(d)
         else:
-            click.echo(f"mkdir {d}")
+            print(f"mkdir {d}")
 
 
 def patch_index(name, docsdir, indexfile):
@@ -117,8 +121,7 @@ def patch_index(name, docsdir, indexfile):
         body = data_[i+1:]
 
         if len(toctree) > 1:
-            click.echo(click.style(f"Repo {name} containes multiple toctrees!",
-                                   fg='red'))
+            logger.error(f"{FAIL}Repo {name} containes multiple toctrees!{NC}")
         for tc in toctree:
             header.append(".. toctree::\n")
             header.append(f"   :caption: {repos[name]['name']}\n")
@@ -135,7 +138,7 @@ def patch_index(name, docsdir, indexfile):
 def get_sphinx_dirs(cwd) -> Tuple[bool, str, str]:
     conf_py = path.join(cwd, 'conf.py')
     if not path.isfile(conf_py):
-        click.echo(click.style(f"{conf_py} does not exist, skipped!", fg='red'))
+        logger.error(f"{FAIL}{conf_py} does not exist, skipped!{NC}")
         return (True, '')
 
     builddir = path.join(cwd, "_build/html")
@@ -186,67 +189,22 @@ def gen_symbolic_doc(repo_dir):
     pr.wait(p)
 
 
-@click.command()
-@click.option(
-    '--directory',
-    '-d',
-    is_flag=False,
-    type=click.Path(exists=False),
-    default='.',
-    required=True,
-    help="Path to create aggregated output."
-)
-@click.option(
-    '--extra',
-    '-e',
-    is_flag=True,
-    default=False,
-    help="Compile extra features."
-)
-@click.option(
-    '--no-parallel',
-    '-t',
-    'no_parallel_',
-    is_flag=True,
-    default=False,
-    help="Run all steps in sequence."
-)
-@click.option(
-    '--dry-run',
-    '-n',
-    'dry_run_',
-    is_flag=True,
-    default=False,
-    help="Don't actually run; just print them."
-)
-@click.option(
-    '--open',
-    '-x',
-    'open_',
-    is_flag=True,
-    default=False,
-    help="Open after generation (xdg-open)."
-)
-@click.option(
-    '--ssh',
-    '-s',
-    is_flag=True,
-    default=False,
-    help="Clone repositories with SSH instead of HTTPS."
-)
-def aggregate(directory, extra, no_parallel_, dry_run_, open_, ssh):
+def aggregate():
     """
     Creates a symbolic-aggregated documentation out of every repo
     documentation.
     To resolve interrepo-references, run the tool twice.
     """
     global dry_run, no_parallel
-    no_parallel = no_parallel_
-    dry_run = dry_run_
-    directory = path.abspath(directory)
 
-    if not extra:
-        click.echo("Extra features disabled, use --extra to enable.")
+    args = get_arguments_aggregate()
+
+    no_parallel = args.no_parallel
+    dry_run = args.dry_run
+    directory = path.abspath(args.directory)
+
+    if not args.extra:
+        logger.info("Extra features disabled, use --extra to enable.")
 
     repos_dir = path.join(directory, 'repos')
     if not dry_run:
@@ -256,7 +214,7 @@ def aggregate(directory, extra, no_parallel_, dry_run_, open_, ssh):
             pr.mkdir(repos_dir)
 
     p = []
-    remote = lut['remote_https'] if not ssh else lut['remote_ssh']
+    remote = lut['remote_https'] if not args.ssh else lut['remote_ssh']
     for r in repos:
         cwd = path.join(repos_dir, r)
         if not path.isdir(cwd):
@@ -268,12 +226,12 @@ def aggregate(directory, extra, no_parallel_, dry_run_, open_, ssh):
             pr.popen(git_cmd, p, cwd)
     pr.wait(p)
 
-    if extra:
+    if args.extra:
         do_extra_steps(repos_dir)
 
     gen_symbolic_doc(repos_dir)
 
-    click.echo(f"Done, documentation written to {directory}/html")
+    logger.info(f"Done, documentation written to {directory}/html")
 
-    if open_ and not dry_run:
+    if args.open and not dry_run:
         subprocess.call(f"xdg-open {directory}/html/index.html", shell=True)

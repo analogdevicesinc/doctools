@@ -2,13 +2,17 @@ from os import path, listdir, remove, mkdir
 from os import pardir
 from os import environ, stat, utime
 from shutil import copy2, which, move
-import click
+import logging
 import importlib
 
 from sphinx.application import Sphinx
 
 from .aux_os import aux_killpg
 from .aux_git import get_git_top_level, get_git_dir, is_git_lfs_installed, get_lfs_sha
+from .argument_parser import get_arguments_serve
+from .logging import BLUE, FAIL, NC
+
+logger = logging.getLogger(__name__)
 
 log = {
     'no_lfs': "File .gitattributes contains lfs rules, but git-lfs is not installed.",
@@ -46,62 +50,13 @@ static_common_path = path.join(theme_path, 'static_common')
 static_core_path = path.join(theme_path, 'static_core')
 dev_pool_val = b""
 
-BLUE = '\033[94m'
-FAIL = '\033[91m'
-NC = '\033[0m'
-
-@click.command()
-@click.option(
-    '--directory',
-    '-d',
-    is_flag=False,
-    type=click.Path(exists=True),
-    default='.',
-    help="Path to the docs folder with the Makefile."
-)
-@click.option(
-    '--port',
-    '-p',
-    is_flag=False,
-    type=int,
-    default=8000,
-    help="Port to host the docs."
-)
-@click.option(
-    '--dev',
-    '-r',
-    is_flag=True,
-    default=False,
-    help="Watch web source code (requires symbolic install)."
-)
-@click.option(
-    '--selenium',
-    is_flag=True,
-    default=False,
-    help="Use selenium/Firefox instead of pooling method (html builder only)."
-)
-@click.option(
-    '--once',
-    '-o',
-    is_flag=True,
-    default=False,
-    help="Generate the build and exit."
-)
-@click.option(
-    '--builder',
-    '-b',
-    is_flag=False,
-    default="html",
-    help="Builder to use, valid options are: html, pdf (WeasyPrint) (default: html)."
-)
-def serve(directory, port, dev, selenium, once, builder):
+def serve():
     """
     Watch the docs and source code to rebuild it on edit.
     Two html live update strategies are available:
     Pooling: The webpage pools timestamp changes on the .dev-pool file.
     Selenium: Page reloads through Firefox's API.
     """
-
     import glob
     import re
     import sched
@@ -115,31 +70,33 @@ def serve(directory, port, dev, selenium, once, builder):
 
     global app, builddir
 
+    args = get_arguments_serve()
+
     def symbolic_assert(file, msg):
         if not path.isfile(file):
-            click.echo(msg.format(file))
+            logger.error(msg.format(file))
             return True
         else:
             return False
 
     def dir_assert(file, msg):
         if not path.isdir(file):
-            click.echo(msg.format(file))
+            logger.error(msg.format(file))
             return True
         else:
             return False
 
-    if builder not in ['html', 'pdf']:
-        click.echo(log['builder'].format(builder))
+    if args.builder not in ['html', 'pdf']:
+        logger.error(log['builder'].format(args.builder))
         return
-    if builder == 'pdf':
+    if args.builder == 'pdf':
         environ["ADOC_MEDIA_PRINT"] = ""
         if not importlib.util.find_spec("weasyprint"):
-            click.echo(log['no_weasyprint'])
+            logger.error(log['no_weasyprint'])
             return
         from weasyprint import HTML, CSS
         from weasyprint.text.fonts import FontConfiguration
-        builder = 'singlehtml'
+        args.builder = 'singlehtml'
 
     source_common_files = {
         'app.umd.js', 'app.umd.js.map',
@@ -153,18 +110,18 @@ def serve(directory, port, dev, selenium, once, builder):
     }
 
     def signal_handler(sig, frame):
-        if builder == 'html':
-            click.echo("Shutting down server")
+        if args.builder == 'html':
+            logger.info("Shutting down server")
             with lock:
                 shutdown_event.set()
                 reload_event.set()
                 http.shutdown()
                 http.server_close()
             http_thread.join()
-        if dev:
+        if args.dev:
             aux_killpg(rollup_p)
             aux_killpg(sass_p)
-        click.echo("Terminated")
+        logger.info("Terminated")
         sys.exit()
 
     def fetch_compiled(path_):
@@ -201,7 +158,7 @@ def serve(directory, port, dev, selenium, once, builder):
                 mkdir(path.join(path_, static_core_path))
             copy2(src, dest)
         rmtree(dist)
-        click.echo("Success fetching the pre-compiled files!")
+        logger.info("Success fetching the pre-compiled files!")
 
     src_dir = path.abspath(path.join(path.dirname(__file__), pardir))
     par_dir = path.abspath(path.join(src_dir, pardir))
@@ -213,9 +170,9 @@ def serve(directory, port, dev, selenium, once, builder):
     sass_conf_2 = path.join(style_path, 'extra.bundle.scss') + ':' + path.join(static_core_path, 'extra.min.css')
     sass_conf_3 = path.join(style_path, 'doxygen.bundle.scss') + ':' + path.join(static_core_path, 'doxygen.min.css')
     sass_conf = sass_conf_1 + ' ' +  sass_conf_2 + ' ' + sass_conf_3
-    if dev:
+    if args.dev:
         if which("node") is None:
-            click.echo(log['node'])
+            logger.error(log['node'])
             sys.exit(1)
         if symbolic_assert(rollup_conf, log['rollup'].format(rollup_conf)):
             sys.exit(1)
@@ -233,39 +190,40 @@ def serve(directory, port, dev, selenium, once, builder):
                 with_sources = False
 
         if not with_sources:
-            click.echo(log['comp'])
+            logger.error(log['comp'])
             if which("node") is None:
-                click.echo(log['node_alt'])
+                logger.error(log['node_alt'])
             elif symbolic_assert(rollup_bin, log['no_node_modules']):
                 pass
             else:
-                click.echo(log['with_node_modules'])
+                logger.info(log['with_node_modules'])
                 return
-            if click.confirm(log['fetch']):
+            fetch_resp = input(log['fetch'] + " (y/n): ").strip().lower()
+            if fetch_resp in ['y', 'yes']:
                 if fetch_compiled(par_dir):
                     return
             else:
                 return
 
-    if directory is None:
-        click.echo("Please provide a --directory.")
+    if args.directory is None:
+        logger.error("Please provide a --directory.")
         return
 
     with_selenium = False
-    if selenium and builder == 'html':
+    if args.selenium and args.builder == 'html':
         if importlib.util.find_spec("selenium"):
             with_selenium = True
         else:
-            click.echo(log['no_selenium'])
+            logger.error(log['no_selenium'])
             sys.exit(1)
 
-    directory = path.abspath(directory)
+    directory = path.abspath(args.directory)
     conf_py = path.join(directory, 'conf.py')
     if symbolic_assert(conf_py, log['no_conf_py']):
         sys.exit(1)
 
     builddir_ = "_build"
-    builddir = path.join(directory, builddir_, builder)
+    builddir = path.join(directory, builddir_, args.builder)
     doctreedir = path.join(builddir_, "doctrees")
     sourcedir = directory
     if dir_assert(sourcedir, log['inv_srcdir']):
@@ -285,11 +243,11 @@ def serve(directory, port, dev, selenium, once, builder):
                             types_lfs.append('.'+match.group(1))
             if len(types_lfs) > 0:
                 if not is_git_lfs_installed():
-                    click.echo(log['no_lfs'])
+                    logger.info(log['no_lfs'])
                     types_lfs = []
                 elif ("GIT_LFS_SKIP_SMUDGE" in environ and
                       environ["GIT_LFS_SKIP_SMUDGE"] == "1"):
-                    click.echo(f"{FAIL}{log['lfs_skip_smudge']}{NC}")
+                    logger.error(f"{FAIL}{log['lfs_skip_smudge']}{NC}")
 
     # Define PDF generation
     def generate_toctree(bookmarks, indent=0):
@@ -305,14 +263,14 @@ def serve(directory, port, dev, selenium, once, builder):
         return outline_str
 
 
-    if builder == 'singlehtml':
+    if args.builder == 'singlehtml':
         singlehtml_file = path.join(builddir, 'index.html')
         from .aux_print import sanitize_singlehtml
 
     def update_pdf():
         html_ = sanitize_singlehtml(singlehtml_file)
 
-        click.echo("preparing pdf styles...")
+        logger.info("preparing pdf styles...")
 
         font_config = FontConfiguration()
         src_dir = path.abspath(path.join(path.dirname(__file__), pardir))
@@ -321,34 +279,34 @@ def serve(directory, port, dev, selenium, once, builder):
         css_extra = CSS(path.join(src_dir, 'theme', 'harmonic', 'style', 'weasyprint.css'),
                         font_config=font_config)
 
-        click.echo("rendering pdf content...")
+        logger.info("rendering pdf content...")
         html = HTML(string=html_, base_url=path.dirname(singlehtml_file))
 
         document = html.render(stylesheets=[css, css_extra])
 
-        click.echo("writing pdf...")
+        logger.info("writing pdf...")
         document.write_pdf(path.join(builddir, '..', 'output.pdf'))
-        if not once:
-            click.echo("wrote pdf! waiting new user changes...")
+        if not args.once:
+            logger.info("wrote pdf! waiting new user changes...")
         else:
-            click.echo("wrote pdf!")
+            logger.info("wrote pdf!")
 
-    if not with_selenium and builder == 'html':
+    if not with_selenium and args.builder == 'html':
         environ["ADOC_DEVPOOL"] = ""
         if not path.isfile(path.join(builddir, '_static', 'dev-pool.js')):
           # Verify if cached is without dev-pool
-          click.echo(log["no_dev_pool"])
+          logger.info(log["no_dev_pool"])
           subprocess.call(f"sphinx-build -M clean . {builddir} -j auto",
                           shell=True, cwd=directory)
 
     def app_subprocess_build():
-        subprocess.call(f"sphinx-build -b {builder} . {builddir} -d {doctreedir} -j auto",
+        subprocess.call(f"sphinx-build -b {args.builder} . {builddir} -d {doctreedir} -j auto",
                         shell=True, cwd=directory)
 
     watch_file_src = {}
     watch_file_rst = {}
     git_ref = None
-    if dev:
+    if args.dev:
         w_files = []
         # Check if minified files exists, if not, run rollup once
         rollup_cache = True
@@ -377,7 +335,7 @@ def serve(directory, port, dev, selenium, once, builder):
         app_subprocess_build()
         for f in w_files:
             watch_file_src[f] = stat(f).st_mtime
-        if not once:
+        if not args.once:
             # Run rollup and sass in watch mode
             cmd_rollup = f"{rollup_bin} -c {rollup_conf} --watch"
             cmd_sass = f"{sass_bin} --style compressed --watch {sass_conf}"
@@ -385,21 +343,21 @@ def serve(directory, port, dev, selenium, once, builder):
                                         stdout=subprocess.DEVNULL)
             sass_p = subprocess.Popen(cmd_sass, shell=True, cwd=par_dir,
                                       stdout=subprocess.DEVNULL)
-        elif builder == "singlehtml":
+        elif args.builder == "singlehtml":
             update_pdf()
     else:
         # Build doc the first time
         app_subprocess_build()
-        if builder == "singlehtml":
+        if args.builder == "singlehtml":
             update_pdf()
 
-    if once:
+    if args.once:
         return
 
     # app.build() doesn't handle the cache well in parallel,
     # instead, we call through subprocess if needed
     app = Sphinx(directory, directory,  builddir,
-                 doctreedir, builder, parallel=0)
+                 doctreedir, args.builder, parallel=0)
 
     def get_source_lfs_file(path_, ext):
         """
@@ -431,7 +389,7 @@ def serve(directory, port, dev, selenium, once, builder):
         else:
             return None
 
-    builddir = path.join(directory, builddir_, builder)
+    builddir = path.join(directory, builddir_, args.builder)
     shutdown_event = threading.Event()
     reload_event = threading.Event()
     dev_pool_lock = threading.Lock()
@@ -479,7 +437,7 @@ def serve(directory, port, dev, selenium, once, builder):
                             tmp_f = path.join(directory, builddir_, path.basename(lfs_f))
                             stat_ = stat(lfs_f)
                             lfs_f_ = path.relpath(lfs_f, git_top_level)
-                            click.echo(f"git lfs smudging file {lfs_f_}")
+                            logger.info(f"git lfs smudging file {lfs_f_}")
                             try:
                                 with open(path_, "rb") as fin, open(tmp_f, "wb") as fout:
                                     subprocess.run(["git", "lfs", "smudge"], stdin=fin, stdout=fout, check=True)
@@ -522,26 +480,26 @@ def serve(directory, port, dev, selenium, once, builder):
         """
         try:
             from urllib.request import urlopen
-            urlopen(f"http://0.0.0.0:{port}")
+            urlopen(f"http://0.0.0.0:{args.port}")
         except Exception as e:
-            click.echo(e)
+            logger.debug(str(e))
 
-    if builder == "html":
+    if args.builder == "html":
         try:
-            http = socketserver.ThreadingTCPServer(("", port), Handler)
+            http = socketserver.ThreadingTCPServer(("", args.port), Handler)
             lock = threading.Lock()
             http_thread = threading.Thread(target=http.serve_forever)
             http_thread.daemon = True
             http_thread.start()
-            click.echo(f"\n{BLUE}Running server on http://0.0.0.0:{port}{NC}\n")
+            print(f"\n{BLUE}Running server on http://0.0.0.0:{args.port}{NC}\n")
 
             scheduler = sched.scheduler(time.time, time.sleep)
             scheduler.enter(1, 1, wsl2_networking, (scheduler,))
             scheduler.run()
         except Exception:
-            click.echo(f"{FAIL}Could not start server on http://0.0.0.0:{port}{NC}")
-            click.echo(f"  {BLUE}Tip{NC}: pass another port with {BLUE}--port{NC}")
-            if dev:
+            logger.error(f"{FAIL}Could not start server on http://0.0.0.0:{args.port}{NC}")
+            logger.info(f"  {BLUE}Tip{NC}: pass another port with {BLUE}--port{NC}")
+            if args.dev:
                 aux_killpg(rollup_p)
                 aux_killpg(sass_p)
             return
@@ -571,8 +529,8 @@ def serve(directory, port, dev, selenium, once, builder):
 
         driver = webdriver.Firefox()
 
-        driver.get(f"http://0.0.0.0:{port}")
-    elif builder == "html":
+        driver.get(f"http://0.0.0.0:{args.port}")
+    elif args.builder == "html":
         update_dev_pool("")
 
 
@@ -698,7 +656,7 @@ def serve(directory, port, dev, selenium, once, builder):
         if len(git_lfs_pull) > 0:
             git_lfs_pull = [path.relpath(gf, git_top_level) for gf in git_lfs_pull]
             lfs_f_s = ' -I '.join(git_lfs_pull)
-            click.echo(f"git lfs smudging file(s): {' '.join(git_lfs_pull)}")
+            logger.info(f"git lfs smudging file(s): {' '.join(git_lfs_pull)}")
             try:
                 subprocess.run(["git", "lfs", "pull", "-I", lfs_f_s], check=True,
                                 cwd=git_top_level)
@@ -718,14 +676,14 @@ def serve(directory, port, dev, selenium, once, builder):
             #   Maybe importlib.reload() + monkey patch could be an alternative,
             #   but not triggering full env reload would be tricky, so this is
             #   good enough.
-            if dev:
+            if args.dev:
                 app_subprocess_build()
             elif deep_clean:
                 from sphinx.testing.util import _clean_up_global_state
                 _clean_up_global_state()
                 app_subprocess_build()
                 app = Sphinx(directory, directory,  builddir,
-                             doctreedir, builder, parallel=0)
+                             doctreedir, args.builder, parallel=0)
             else:
                 app.build()
         if update_dev:
@@ -736,8 +694,8 @@ def serve(directory, port, dev, selenium, once, builder):
                 try:
                     driver.execute_script(f"location.replace('{trigger_rst[1]}');")
                 except Exception:
-                    click.echo("Browser disconnected")
-                    if dev:
+                    logger.info("Browser disconnected")
+                    if args.dev:
                         aux_killpg(rollup_p)
                         aux_killpg(sass_p)
                     with lock:
@@ -747,9 +705,9 @@ def serve(directory, port, dev, selenium, once, builder):
                         http.server_close()
                     http_thread.join()
                     return
-            elif builder == "html":
+            elif args.builder == "html":
                 update_dev_pool("@code-changed" if update_dev else trigger_rst[1])
-            elif builder == 'singlehtml':
+            elif args.builder == 'singlehtml':
                 update_pdf()
 
         scheduler.enter(1, 1, check_files, (scheduler,))

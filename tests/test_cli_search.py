@@ -2,7 +2,6 @@
 from contextlib import ExitStack
 from unittest.mock import patch, MagicMock
 
-from click.testing import CliRunner
 from packaging.version import Version
 from sphinx import __version__ as __sphinx_version__
 from adi_doctools.cli.search import search
@@ -65,9 +64,9 @@ def mock_load_inventory(*args, **kwargs):
     return mock_inv
 
 
-def test_cli_search_basic():
+def test_cli_search_basic(monkeypatch, capsys):
     """Test basic search functionality with --url."""
-    runner = CliRunner()
+    monkeypatch.setattr('sys.argv', ['pytest', '--url', 'https://example.com/searchindex.js', '--limit', '3', 'tutorial'])
 
     with ExitStack() as stack:
         stack.enter_context(patch('adi_doctools.cli.search.urlopen', side_effect=mock_urlopen_searchindex))
@@ -78,20 +77,21 @@ def test_cli_search_basic():
             stack.enter_context(patch('adi_doctools.cli.search._fetch_inventory_data', side_effect=mock_fetch_inventory_data))
             stack.enter_context(patch('adi_doctools.cli.search._load_inventory', side_effect=mock_load_inventory))
 
-        result = runner.invoke(search, [
-            '--url', 'https://example.com/searchindex.js',
-            '--limit', '3',
-            'tutorial'
-        ])
+        try:
+            search()
+            exit_code = 0
+        except SystemExit as e:
+            exit_code = e.code if e.code is not None else 0
 
-    assert result.exit_code == 0
-    assert 'Tutorial' in result.output
-    assert 'example.com' in result.output
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert 'Tutorial' in captured.out
+    assert 'example.com' in captured.out
 
 
-def test_cli_search_no_results():
+def test_cli_search_no_results(monkeypatch, capsys):
     """Test search with no matching results."""
-    runner = CliRunner()
+    monkeypatch.setattr('sys.argv', ['pytest', '--url', 'https://example.com/searchindex.js', '--limit', '3', 'nonexistent'])
 
     with ExitStack() as stack:
         stack.enter_context(patch('adi_doctools.cli.search.urlopen', side_effect=mock_urlopen_searchindex))
@@ -102,19 +102,20 @@ def test_cli_search_no_results():
             stack.enter_context(patch('adi_doctools.cli.search._fetch_inventory_data', side_effect=mock_fetch_inventory_data))
             stack.enter_context(patch('adi_doctools.cli.search._load_inventory', side_effect=mock_load_inventory))
 
-        result = runner.invoke(search, [
-            '--url', 'https://example.com/searchindex.js',
-            '--limit', '3',
-            'nonexistent'
-        ])
+        try:
+            search()
+            exit_code = 0
+        except SystemExit as e:
+            exit_code = e.code if e.code is not None else 0
 
-    assert result.exit_code == 0
-    assert 'No results found' in result.output
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert 'No results found' in captured.out
 
 
-def test_cli_search_multiple_terms():
+def test_cli_search_multiple_terms(monkeypatch, capsys):
     """Test search with multiple query terms."""
-    runner = CliRunner()
+    monkeypatch.setattr('sys.argv', ['pytest', '--url', 'https://example.com/searchindex.js', '--limit', '3', 'getting', 'started'])
 
     with ExitStack() as stack:
         stack.enter_context(patch('adi_doctools.cli.search.urlopen', side_effect=mock_urlopen_searchindex))
@@ -125,12 +126,13 @@ def test_cli_search_multiple_terms():
             stack.enter_context(patch('adi_doctools.cli.search._fetch_inventory_data', side_effect=mock_fetch_inventory_data))
             stack.enter_context(patch('adi_doctools.cli.search._load_inventory', side_effect=mock_load_inventory))
 
-        result = runner.invoke(search, [
-            '--url', 'https://example.com/searchindex.js',
-            '--limit', '3',
-            'getting', 'started'
-        ])
+        try:
+            search()
+            exit_code = 0
+        except SystemExit as e:
+            exit_code = e.code if e.code is not None else 0
 
-    assert result.exit_code == 0
-    assert 'Tutorial' in result.output or 'Getting Started' in result.output
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert 'Tutorial' in captured.out or 'Getting Started' in captured.out
 

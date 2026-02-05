@@ -1,6 +1,5 @@
 import subprocess
 import shutil
-from click import echo
 from os import path
 
 
@@ -11,7 +10,7 @@ def get_git_top_level(path_):
     p_ = subprocess.run("git rev-parse --show-toplevel", shell=True,
                         capture_output=True, cwd=path_)
     if p_.returncode != 0:
-        echo(p_.stderr)
+        print(p_.stderr)
         return None
 
     return p_.stdout.decode("utf-8").strip()

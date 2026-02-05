@@ -1,10 +1,10 @@
 from typing import Dict, Tuple
-
-import click
-import re
 from os import path, walk, chdir, getcwd
 from glob import glob
+import logging
+import re
 
+from .argument_parser import get_arguments_hdl_gen
 from ..typing.hdl import vendors, Library, Carrier, Project
 from ..parser.hdl import parse_hdl_regmap
 from ..parser.hdl import resolve_hdl_regmap
@@ -21,36 +21,9 @@ from ..writer.hdl import write_hdl_library_makefile
 from ..writer.hdl import write_hdl_project_makefile
 from .aux_git import get_git_top_level
 
+logger = logging.getLogger(__name__)
 
-@click.command()
-@click.option(
-    '--input',
-    '-i',
-    'input_',
-    is_flag=False,
-    type=click.Path(exists=True),
-    default='.',
-    help="Path to any folder in the HDL repo."
-)
-@click.option(
-    '--no-regmap',
-    is_flag=True,
-    default=False,
-    help="Disable SystemVerilog RegisterMap generation, also disables RegMap parsing."
-)
-@click.option(
-    '--no-makefile',
-    is_flag=True,
-    default=False,
-    help="Disable Makefile generation, also disables Library, Project and Carrier parsing."
-)
-@click.option(
-    '--no-write',
-    is_flag=True,
-    default=False,
-    help="Disable file generation, useful to run only the parsing."
-)
-def hdl_gen(input_, no_regmap, no_makefile, no_write):
+def hdl_gen():
     """
     Generate HDL auxiliary files.
 
@@ -60,7 +33,9 @@ def hdl_gen(input_, no_regmap, no_makefile, no_write):
 
     Run from any path at hdl, including hdl/testbenches.
     """
-    hdldir = get_git_top_level(input_)
+    args = get_arguments_hdl_gen()
+
+    hdldir = get_git_top_level(args.input)
     if not hdldir:
         return
 
@@ -69,23 +44,23 @@ def hdl_gen(input_, no_regmap, no_makefile, no_write):
     chdir(hdldir)
 
     if not path.isfile('LICENSE_ADIJESD204'):
-        click.echo("'LICENSE_ADIJESD204' not found,"
-                   " are you sure this is the HDL repo?")
+        logger.info("'LICENSE_ADIJESD204' not found,"
+                    " are you sure this is the HDL repo?")
         return
 
     if not (has_tb := path.isdir('testbenches')):
-        click.echo("'testbenches' not found, tb files will be skipped.")
+        logger.info("'testbenches' not found, tb files will be skipped.")
 
-    if not no_makefile:
+    if not args.no_makefile:
         project, library = makefile_pre()
 
-    if not no_regmap:
+    if not args.no_regmap:
         regmap = regmap_pre()
 
-    if not no_makefile and not no_write:
+    if not args.no_makefile and not args.no_write:
         makefile_post(library, project)
 
-    if has_tb and not no_regmap and not no_write:
+    if has_tb and not args.no_regmap and not args.no_write:
         regmap_post(regmap)
 
     chdir(call_dir)
@@ -98,7 +73,7 @@ def makefile_pre() -> Tuple[Dict[str, Project], Dict[str, Library]]:
         file_ = path.join('projects', 'scripts', f"adi_project_{v}.tcl")
         carrier[v], msg = parse_hdl_vendor(file_)
         for m in msg:
-            click.echo(f"{file_}: {m}")
+            print(f"{file_}: {m}")
 
     # TODO do something with the parsed carriers,
     # like get/validate library and project dicts

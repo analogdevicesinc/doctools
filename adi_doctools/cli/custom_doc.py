@@ -8,7 +8,7 @@ from shutil import copy2
 import importlib.util
 import importlib.machinery
 import subprocess
-import click
+import logging
 import yaml
 import sys
 import re
@@ -19,6 +19,10 @@ from adi_doctools import __version__
 
 from ..lut import get_lut, remote_doc
 from .aux_git import is_git_lfs_installed, get_lfs_sha
+from .argument_parser import get_arguments_custom_doc
+from .logging import BLUE, FAIL, NC
+
+logger = logging.getLogger(__name__)
 
 no_parallel = True
 lut = get_lut()
@@ -29,10 +33,6 @@ default_config = {
     'branch': 'main',
     'extra': False,
 }
-
-BLUE = '\033[94m'
-FAIL = '\033[91m'
-NC = '\033[0m'
 
 
 class pr:
@@ -60,7 +60,7 @@ class pr:
 def get_sphinx_dirs(cwd) -> Tuple[bool, str, str]:
     conf_py = path.join(cwd, 'conf.py')
     if not path.isfile(conf_py):
-        click.echo(click.style(f"{conf_py} does not exist, skipped!", fg='red'))
+        logger.error(f"{FAIL}{conf_py} does not exist, skipped!{NC}")
         return (True, '')
 
     builddir = path.join(cwd, "_build")
@@ -75,11 +75,11 @@ def do_extra_steps(repo_dir, doc):
             continue
 
         if l_ not in repos:
-            click.echo(f"Requested extra steps for unmapped repo '{l_}'.")
+            logger.info(f"Requested extra steps for unmapped repo '{l_}'.")
             continue
 
         if 'extra' not in repos[l_]:
-            click.echo(f"Requested extra steps for repo '{l_}',"
+            logger.info(f"Requested extra steps for repo '{l_}',"
                        "but there aren't any.")
             continue
 
@@ -496,7 +496,7 @@ def prepare_doc(doc, repos_dir, doc_dir, drop_ext):
     for path_ in doc['include']:
         r = doc['config'][path_]['repository'] if doc['config'][path_]['repository'] else path_
         if r not in repos:
-            click.echo(f"Unknown repo '{r}', skipped")
+            logger.info(f"Unknown repo '{r}', skipped")
             continue
 
         sourcedir = path.join(repos_dir, path_, repos[r]['pathname'])
@@ -561,7 +561,7 @@ def prepare_doc(doc, repos_dir, doc_dir, drop_ext):
             if path.isfile(d__) or path.isdir(d__):
                 pr.run(f"cp -r --parents {d} {dstdir}", sourcedir)
             else:
-                click.echo(f"{path_}: source file/dir '{d}' does not exist, skipped.")
+                logger.info(f"{path_}: source file/dir '{d}' does not exist, skipped.")
 
         # Infeer toctree entries
         toc_resolve = []
@@ -571,7 +571,7 @@ def prepare_doc(doc, repos_dir, doc_dir, drop_ext):
                 if path.isfile(index_):
                     d = index_
                 else:
-                    click.echo(f"{path_}: source dir '{d}' does not contain index.rst, "
+                    logger.info(f"{path_}: source dir '{d}' does not contain index.rst, "
                                "won't try to resolve toctree for this folder.")
                     continue
             elif not path.isfile(d):
@@ -651,7 +651,7 @@ def prepare_doc(doc, repos_dir, doc_dir, drop_ext):
                 if not found:
                     i += 1
                     if i > len(d_):
-                        click.echo(f"Unable to resolve {SEP.join(d_)}")
+                        logger.info(f"Unable to resolve {SEP.join(d_)}")
                         break
                 else:
                     # Now look for the parent
@@ -676,21 +676,21 @@ def prepare_doc(doc, repos_dir, doc_dir, drop_ext):
     if len(missing_ext) > 0:
         ext = defaultdict(list)
         [ext[r].append(ext_) for r, ext_ in missing_ext]
-        click.echo(f"Some inferred extensions are {FAIL}not installed{NC}: "
+        logger.error(f"Some inferred extensions are {FAIL}not installed{NC}: "
                    f"{dict(ext)}")
         if not drop_ext:
-            click.echo("If they are not necessary, use "
+            logger.info("If they are not necessary, use "
                        f"{BLUE}--drop-missing-extensions{NC} to remove them.")
             sys.exit(1)
         else:
-            click.echo("And will not be added to the configuration file.")
+            logger.info("And will not be added to the configuration file.")
 
     # Copy over custom pages
     for c in doc['custom']:
         if path.isfile(c) or path.isdir(c):
             pr.run(f"cp -r --parents {c} {doc_dir}", repos_dir)
         else:
-            click.echo(f"custom source file/dir '{c}' does not exist, skipped.")
+            logger.info(f"custom source file/dir '{c}' does not exist, skipped.")
 
     conf_file = path.join(doc_dir, 'conf.py')
     config_f = template_config
@@ -931,7 +931,7 @@ def patch_doc(doc, repos_dir, doc_dir, git_lfs, sphinx_builder):
                  warning=warning)
     app.build()
     with open(warnfile, "r") as f:
-        click.echo(f.read())
+        logger.info(f.read())
 
 
 def gen_pdf(index_file):
@@ -945,7 +945,7 @@ def gen_pdf(index_file):
 
     html_ = sanitize_singlehtml(index_file)
 
-    click.echo("preparing pdf styles...")
+    logger.info("preparing pdf styles...")
 
     font_config = FontConfiguration()
     src_dir = path.abspath(path.join(path.dirname(__file__), pardir, pardir))
@@ -956,12 +956,12 @@ def gen_pdf(index_file):
     css_extra = CSS(path.join(src_dir, harmonic, 'style', 'weasyprint.css'),
                     font_config=font_config)
 
-    click.echo("rendering pdf content...")
+    logger.info("rendering pdf content...")
     html = HTML(string=html_, base_url=base_url)
 
     document = html.render(stylesheets=[css, css_extra])
 
-    click.echo("writing pdf...")
+    logger.info("writing pdf...")
     document.write_pdf(path.abspath(path.join(path.dirname(index_file), '..', 'output.pdf')))
 
 
@@ -975,61 +975,7 @@ def organize_include(doc):
     doc['include'] = include
 
 
-@click.command()
-@click.option(
-    '--directory',
-    '-d',
-    is_flag=False,
-    type=click.Path(exists=False),
-    default='.',
-    required=True,
-    help="Path to host custom doc, contain the repositories and doc (workdir)."
-)
-@click.option(
-    '--extra',
-    '-e',
-    is_flag=True,
-    default=False,
-    help="Compile extra features."
-)
-@click.option(
-    '--no-parallel',
-    '-t',
-    'no_parallel_',
-    is_flag=True,
-    default=False,
-    help="Run all steps in sequence."
-)
-@click.option(
-    '--open',
-    '-x',
-    'open_',
-    is_flag=True,
-    default=False,
-    help="Open after generation (xdg-open)."
-)
-@click.option(
-    '--builder',
-    '-b',
-    is_flag=False,
-    default="html",
-    help="Builder to use, valid options are: html, pdf (WeasyPrint) (default: html)."
-)
-@click.option(
-    '--ssh',
-    '-s',
-    is_flag=True,
-    default=False,
-    help="Clone repositories with SSH instead of HTTPS."
-)
-@click.option(
-    '--drop-missing-extensions',
-    'drop_ext',
-    is_flag=True,
-    default=False,
-    help="Drop extensions not installed, useful when the pages don't use them anyway."
-)
-def custom_doc(directory, extra, no_parallel_, open_, builder, ssh, drop_ext):
+def custom_doc():
     """
     Creates an aggregated documentation out the repos
     in the doc.yaml file.
@@ -1037,15 +983,17 @@ def custom_doc(directory, extra, no_parallel_, open_, builder, ssh, drop_ext):
     watching for warnings and patching accordingly.
     """
     global no_parallel
-    no_parallel = no_parallel_
-    directory = path.abspath(directory)
+
+    args = get_arguments_custom_doc()
+    no_parallel = args.no_parallel
+    directory = path.abspath(args.directory)
 
     doc_yaml = path.join(directory, 'doc.yaml')
     doc_dir = path.join(directory, 'sources')
     if not path.isdir(directory):
         mkdir(directory)
     if not path.isfile(doc_yaml):
-        click.echo(f"Configuration file doc.yaml {FAIL}not found{NC}, created template at:\n"
+        logger.info(f"Configuration file doc.yaml {FAIL}not found{NC}, created template at:\n"
                    f"{BLUE}{doc_yaml}{NC}\n"
                    "Update it with the desired sources and rerun the tool.")
         with open(doc_yaml, "w") as f:
@@ -1055,15 +1003,15 @@ def custom_doc(directory, extra, no_parallel_, open_, builder, ssh, drop_ext):
     with open(doc_yaml) as f:
         doc = yaml.safe_load(f)
         if 'include' not in doc:
-            click.echo("Invalid yaml file, no 'include' entry.")
+            logger.error("Invalid yaml file, no 'include' entry.")
             return
 
-    if builder not in ['html', 'pdf']:
-        click.echo(f"Unknown builder '{builder}', valid options are: html, pdf.")
+    if args.builder not in ['html', 'pdf']:
+        logger.error(f"Unknown builder '{args.builder}', valid options are: html, pdf.")
 
-    if builder == 'pdf':
+    if args.builder == 'pdf':
         if not importlib.util.find_spec("weasyprint"):
-            click.echo("Package 'weasyprint' required for PDF generation is not "
+            logger.error("Package 'weasyprint' required for PDF generation is not "
                        "installed.")
             return
         sphinx_builder = 'singlehtml'
@@ -1072,7 +1020,7 @@ def custom_doc(directory, extra, no_parallel_, open_, builder, ssh, drop_ext):
 
     git_lfs = is_git_lfs_installed()
     if not git_lfs:
-        click.echo(f"{FAIL}git-lfs not installed{NC}, lfs pointers won't be resolved.")
+        logger.error(f"{FAIL}git-lfs not installed{NC}, lfs pointers won't be resolved.")
 
     # Fill gaps
     organize_include(doc)
@@ -1107,7 +1055,7 @@ def custom_doc(directory, extra, no_parallel_, open_, builder, ssh, drop_ext):
         repo = doc['config'][k]['repository']
         if repo:
             if not k.startswith(repo + '_'):
-                click.echo(f"Label '{k}' does {FAIL}not{NC} start with '{repo}_' (repository + '_'), "
+                logger.error(f"Label '{k}' does {FAIL}not{NC} start with '{repo}_' (repository + '_'), "
                            "this is required due to the cross-references.")
                 return
         else:
@@ -1121,11 +1069,11 @@ def custom_doc(directory, extra, no_parallel_, open_, builder, ssh, drop_ext):
         except ModuleNotFoundError:
             missing_ext.append(ext)
     if len(missing_ext) > 0:
-        click.echo(f"Missing requested extension(s): {missing_ext}")
+        logger.error(f"Missing requested extension(s): {missing_ext}")
         return
 
     p = []
-    remote = lut['remote_https'] if not ssh else lut['remote_ssh']
+    remote = lut['remote_https'] if not args.ssh else lut['remote_ssh']
     for path_ in doc['include']:
         r = doc['config'][path_]['repository'] if doc['config'][path_]['repository'] else path_
         cwd = path.join(directory, path_)
@@ -1134,18 +1082,18 @@ def custom_doc(directory, extra, no_parallel_, open_, builder, ssh, drop_ext):
                        doc['config'][path_]['branch'], '--', cwd]
             pr.popen(git_cmd, p)
     if pr.wait(p) != 0:
-        click.echo("Failed to clone one or more repositories (hint: --ssh flag).")
+        logger.error("Failed to clone one or more repositories (hint: --ssh flag).")
 
     environ["ADOC_CUSTOM_DOC"] = ""
     environ["ADOC_NO_COLLECTIONS"] = ""
-    if builder == "pdf":
+    if args.builder == "pdf":
         environ["ADOC_MEDIA_PRINT"] = ""
 
     do_extra_steps(directory, doc)
 
     # Messing with WeasyPrint?
     # Comment the four lines below to skip Sphinx generation
-    prepare_doc(doc, directory, doc_dir, drop_ext)
+    prepare_doc(doc, directory, doc_dir, args.drop_missing_extensions)
     parse_warnings(doc_dir)
     parse_status(doc_dir)
     post_prepare_doc(doc_dir)
@@ -1154,14 +1102,14 @@ def custom_doc(directory, extra, no_parallel_, open_, builder, ssh, drop_ext):
         patch_doc(doc, directory, doc_dir, git_lfs, sphinx_builder)
         break
 
-    if builder == "pdf":
+    if args.builder == "pdf":
         singlehtml = path.join(directory, "build", "html", "index.html")
         gen_pdf(singlehtml)
         f__ = "output.pdf"
     else:
         f__ = f"html{SEP}index.html"
 
-    click.echo(f"Done, {builder} documentation written to {directory}{SEP}build{SEP}{f__}")
+    logger.info(f"Done, {args.builder} documentation written to {directory}{SEP}build{SEP}{f__}")
 
-    if open_:
+    if args.open:
         subprocess.call(f"xdg-open {directory}{SEP}build{SEP}{f__}", shell=True)

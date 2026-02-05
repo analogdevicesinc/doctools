@@ -28,7 +28,6 @@ dependencies = [
     "docutils",
     "sphinx",
     "lxml",
-    "click",
     "pygments >= 2.7",
     "PyYAML",
 ]

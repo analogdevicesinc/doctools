@@ -1,11 +1,15 @@
 from os import path
 
-from click.testing import CliRunner
-from adi_doctools.cli import serve
+from adi_doctools.cli.serve import serve
 
-def test_cli_serve():
 
-    runner = CliRunner()
-    result = runner.invoke(serve, ['--once', '--directory', path.join('..', 'docs')])
+def test_cli_serve(monkeypatch):
+    monkeypatch.setattr('sys.argv', ['pytest', '--once', '--directory', path.join('..', 'docs')])
 
-    assert result.exit_code == 0
+    try:
+        serve()
+        exit_code = 0
+    except SystemExit as e:
+        exit_code = e.code if e.code is not None else 0
+
+    assert exit_code == 0
