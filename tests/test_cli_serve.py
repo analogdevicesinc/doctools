@@ -1,10 +1,11 @@
-from os import path
+from pathlib import Path
 
 from adi_doctools.cli.serve import serve
 
 
 def test_cli_serve(monkeypatch):
-    monkeypatch.setattr('sys.argv', ['pytest', '--once', '--directory', path.join('..', 'docs')])
+    docs_dir = (Path(__file__).parent / '..' / 'docs').resolve()
+    monkeypatch.setattr('sys.argv', ['pytest', '--once', '--directory', str(docs_dir)])
 
     try:
         serve()

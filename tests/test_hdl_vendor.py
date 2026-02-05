@@ -1,12 +1,13 @@
 import logging
-from os import path
+from pathlib import Path
 
 from adi_doctools.parser.hdl import parse_hdl_vendor
 
 logger = logging.getLogger(__name__)
 
 
-def test_hdl_regmap(tmp_path):
+def test_hdl_regmap(monkeypatch, tmp_path):
+    monkeypatch.chdir(Path(__file__).parent)
 
     def log_assert(msg):
         for m in msg:
@@ -14,9 +15,9 @@ def test_hdl_regmap(tmp_path):
 
         assert len(msg) == 0
 
-    file = path.join('asset', "adi_project_vendor.tcl")
+    file = Path("asset/adi_project_vendor.tcl")
 
-    carrier, msg = parse_hdl_vendor(file)
+    carrier, msg = parse_hdl_vendor(str(file))
     logger.info(carrier)
     log_assert(msg)
 

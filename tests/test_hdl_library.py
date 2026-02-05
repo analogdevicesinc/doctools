@@ -1,18 +1,17 @@
-from os import path, chdir
+from pathlib import Path
 
 from adi_doctools.parser.hdl import parse_hdl_library
 
 
-def test_hdl_library(tmp_path):
+def test_hdl_library(monkeypatch, tmp_path):
+    monkeypatch.chdir(Path(__file__).parent / 'asset' / 'hdl')
 
     def log_info(obj):
         import json
         print(json.dumps(obj, indent=4))
 
-    chdir(path.join("asset", "hdl"))
-    file = path.join("library", "core", "core_ip.tcl")
-    obj, path_, ip_name = parse_hdl_library(file)
-    chdir(path.join("..", ".."))
+    file = Path("library/core/core_ip.tcl")
+    obj, path_, ip_name = parse_hdl_library(str(file))
 
     log_info(obj)
 

@@ -1,4 +1,4 @@
-from os import path
+from pathlib import Path
 
 from adi_doctools.parser.hdl import parse_hdl_interfaces
 from adi_doctools.typing.hdl import Intf
@@ -32,9 +32,9 @@ def test_hdl_interfaces(tmp_path):
         import json
         print(json.dumps(obj, indent=4))
 
-    file = path.join("asset", "interfaces_ip.tcl")
+    file = (Path(__file__).parent / 'asset' / 'interfaces_ip.tcl').resolve()
 
-    interfaces = parse_hdl_interfaces(file)
+    interfaces = parse_hdl_interfaces(str(file))
     log_info(interfaces)
 
     assert len(interfaces) == 4
