@@ -172,15 +172,20 @@ def llm():
     """
     args = get_arguments_llm()
 
-    if args.prompt and args.file:
-        logger.error("Error: --prompt and FILE cannot be used together")
+    file = args.file
+    prompt = args.prompt
+    no_follow = args.no_follow
+    if file and not path.isfile(file):
+        logger.error(f"FILE {file} does not exist")
         sys.exit(1)
-    if args.prompt and args.no_follow:
-        logger.error("Error: --prompt and --no-follow cannot be used together")
+    if prompt and file:
+        logger.error("--prompt and FILE cannot be used together")
+        sys.exit(1)
+    if prompt and no_follow:
+        logger.error("--prompt and --no-follow cannot be used together")
         sys.exit(1)
 
     prompt_file = None
-    file = args.file
     if file and not file.endswith('.jsonl'):
             prompt_file = file
             file = None
@@ -199,13 +204,13 @@ def llm():
         env = environ.copy()
         cmd_args=['claude', '--session-id', session_id, '--add-dir', cwd_, '--permission-mode', 'bypassPermissions']
         if prompt_file:
-            print(f"prompt file: {prompt_file}")
+            logger.info(f"prompt file: {prompt_file}")
             stdin_=subprocess.PIPE
         else:
             cmd_args.extend(['-p', args.prompt])
             stdin_=None
 
-        print("args:", " ".join(cmd_args))
+        logger.info(f"args: {' '.join(cmd_args)}")
 
         proc = subprocess.Popen(cmd_args, cwd=cwd_, env=env,
                                 stdin=stdin_,
@@ -221,7 +226,7 @@ def llm():
         while not stop_event.is_set():
             rc = proc.poll()
             if rc is not None:
-                print(f"Claude exited with code {rc}")
+                logger.info(f"Claude exited with code {rc}")
                 kill=False
                 stop_event.set()
                 return
@@ -231,7 +236,7 @@ def llm():
         if kill:
             killpg(getpgid(proc.pid), signal.SIGTERM)
 
-    if args.prompt or prompt_file:
+    if prompt or prompt_file:
         import subprocess
         import uuid
 
@@ -240,12 +245,12 @@ def llm():
         thread = threading.Thread(target=run_claude)
         thread.start()
 
-    if args.prompt or prompt_file:
+    if prompt or prompt_file:
         project_dir = cwd_.replace('/', '-').replace('_', '-')
 
         home = Path.home()
         file_path = home / '.claude' / 'projects' / project_dir / f"{session_id}.jsonl"
-        print(f"session: {file_path}")
+        logger.info(f"session: {file_path}")
 
         retries_=10
         while not path.exists(file_path) and retries_:
@@ -276,9 +281,9 @@ def llm():
                 if formatted:
                     print(formatted)
             except json.JSONDecodeError as e:
-                print(f"Failed to parse JSON: {e}")
+                logger.error(str(e))
 
-        if not args.no_follow:
+        if not no_follow:
             with open(file_path, 'r', encoding='utf-8') as f:
                 f.seek(0, 2)
 
@@ -298,12 +303,12 @@ def llm():
                         if formatted:
                             print(formatted)
                     except json.JSONDecodeError as e:
-                        print(f"Error: Failed to parse JSON: {e}")
+                        logger.error(str(e))
 
     except KeyboardInterrupt:
         pass
     except Exception as e:
-        print(f"Error: {e}")
+        logger.error(str(e))
         sys.exit(1)
 
     sys.exit(0)

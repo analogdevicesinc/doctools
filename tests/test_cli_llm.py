@@ -1,23 +1,21 @@
-"""Tests for llm CLI command."""
-
+from pathlib import Path
 import json
-from os import path
 
 from adi_doctools.cli.llm import format_entry, llm
 
 
-sample = path.join("asset", "sample.jsonl")
-
-def test_format():
+def test_format(monkeypatch):
     """Test formatting of user messages from sample file."""
-    with open(sample, 'r', encoding='utf-8') as f:
+    monkeypatch.chdir(Path(__file__).parent)
+    with open(str(Path("asset/sample.jsonl")), 'r', encoding='utf-8') as f:
         for line in f:
             entry = json.loads(line.strip())
             format_entry(entry)
 
 def test_jsonl_tail_basic(monkeypatch, capsys):
     """Test basic JSONL tail functionality with sample file."""
-    monkeypatch.setattr('sys.argv', ['pytest', '--no-follow', sample])
+    monkeypatch.chdir(Path(__file__).parent)
+    monkeypatch.setattr('sys.argv', ['pytest', '--no-follow', str(Path("asset/sample.jsonl"))])
 
     try:
         llm()
