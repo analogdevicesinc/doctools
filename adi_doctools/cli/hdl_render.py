@@ -1,6 +1,6 @@
-import os
 import logging
 import subprocess
+from os import makedirs, path
 
 from .argument_parser import get_arguments_hdl_render
 from ..parser.hdl import parse_hdl_component
@@ -15,28 +15,27 @@ def hdl_render():
     """
     args = get_arguments_hdl_render()
 
-    input_ = os.path.abspath(args.input)
+    input_ = path.abspath(args.input)
     if args.output == "":
         output = input_
     else:
         output = args.output
 
-    file = os.path.join(input_, "component.xml")
-    out_file = os.path.join(output, "component.svg")
+    file = path.join(input_, "component.xml")
+    out_file = path.join(output, "component.svg")
 
-    lib_name = os.path.basename(input_)
-    if not os.path.isfile(file):
+    lib_name = path.basename(input_)
+    if not path.isfile(file):
         logger.error(f"Component {file} not found!")
         if args.open:
             tree = hdl_component.render_placeholder(file)
         else:
             return
     else:
-        lib = parse_hdl_component(file, os.path.getctime(file))
+        lib = parse_hdl_component(file, path.getctime(file))
         tree = hdl_component.render(lib_name, lib)
 
-    if not os.path.exists(output):
-        os.makedirs(output)
+    makedirs(output, exist_ok=True)
     tree.write(out_file)
 
     if args.open:

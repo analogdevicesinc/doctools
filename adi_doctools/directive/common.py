@@ -405,8 +405,7 @@ def directive_collection_build_finished(app, exc):
     dest_dir = path.abspath(path.join(app.builder.outdir, pardir,
                                       'managed'))
     file_map = path.join(dest_dir, 'collection_image_map.json')
-    if not path.exists(dest_dir):
-        makedirs(dest_dir)
+    makedirs(dest_dir, exist_ok=True)
     json_map = {}
     if path.exists(file_map):
         with open(file_map) as f:

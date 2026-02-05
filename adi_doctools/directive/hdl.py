@@ -504,8 +504,7 @@ def hdl_component_write_managed(env, tree, lib):
                                       'managed'))
     dest_file = path.join(dest_dir, hdl_component.get_name(lib))
 
-    if not path.exists(dest_dir):
-        makedirs(dest_dir)
+    makedirs(dest_dir, exist_ok=True)
     tree.write(dest_file)
 
 
