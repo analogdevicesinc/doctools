@@ -1,4 +1,4 @@
-.. description:: What belongs to this tools and core principles.
+.. description:: What belongs to this tool and core principles.
 
 .. _fundamentals:
 
@@ -8,8 +8,8 @@ Fundamentals
 Documentation hierarchical structure
 ------------------------------------
 
-Doctools is the central piece to aggregate multiple documentations together,
-expanding the documentation standard hierarchical, mono-repo configuration.
+Doctools is the central piece for aggregating multiple documentations together,
+expanding the standard hierarchical, mono-repo documentation configuration.
 
 The content is organized in three levels:
 
@@ -22,15 +22,15 @@ The content is organized in three levels:
   repositories.
   The ``topic`` entry must contain one landing page associated with the toctree title,
   e.g. ``topic: {'eval': 'Evaluation Boards', 'university': 'University Program'}``,
-  then the *index.rst* must a toctree titled ``Evaluation Boards`` and the page
+  then the *index.rst* must have a toctree titled ``Evaluation Boards`` and the page
   ``eval/index.rst`` must exist.
-  In the html output, is displayed on the top header.
+  In the HTML output, it is displayed in the top header.
 * toc: Table of contents of a repository documentation; the displayed depth
   is customizable, but in general a doc page (``.rst``, ``.md``) generates one toc
   entry.
-  In the html output, is displayed on the left of the webpage.
+  In the HTML output, it is displayed on the left of the webpage.
 * localtoc: Contents on the current doc page/toc entry.
-  In the html output, is displayed on the right of the webpage, identified by the
+  In the HTML output, it is displayed on the right of the webpage, identified by the
   "On this page" header.
 
 .. note::
@@ -39,5 +39,5 @@ The content is organized in three levels:
    not a native Sphinx feature.
    ``toc`` and ``localtoc`` are concepts inherited from Sphinx.
 
-By the concept of ``repotoc``, it is possible to each doc to reference other
-repository doc using the :ref:`in-org-ref` role.
+By the concept of ``repotoc``, it is possible for each doc to reference other
+repository docs using the :ref:`in-org-ref` role.

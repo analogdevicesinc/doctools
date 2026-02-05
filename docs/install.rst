@@ -3,8 +3,8 @@ Installing
 
 How to do a release install, and a development install of Doctools.
 
-Guarantee to work with Python newer than 3.8 and distros released on or after
-20H1 (e.g. Ubuntu 20.04 LTS).
+Guaranteed to work with Python 3.8 or newer and distributions released on or after
+20H1 (e.g., Ubuntu 20.04 LTS).
 
 .. _release-install:
 
@@ -59,7 +59,7 @@ For next builds, just activate the virtual environment:
 Release links and optional dependencies
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The release link are always:
+The release links are always:
 
 - | https://github.com/analogdevicesinc/doctools/releases/download/latest/adi-doctools.tar.gz
   | latest (commit at tag bump).
@@ -104,7 +104,7 @@ not provided, a default is also set with unicode characters.
 Development install
 -------------------
 
-Development install allows editing the source code and apply the changes without
+Development install allows editing the source code and applying changes without
 reinstalling.
 Also extends :ref:`serve` to watch changes on the webpage source code
 (use `--dev`/`-r` option to enable this).

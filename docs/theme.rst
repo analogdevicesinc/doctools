@@ -3,8 +3,8 @@
 Sphinx theme
 ============
 
-A Sphinx themed called *harmonic* (old *cosmic*) is available and
-is deeply based on ADI's *harmonic* design language.
+A Sphinx theme called *harmonic* (formerly *cosmic*) is available and
+is based on ADI's *harmonic* design language.
 
 Shortcuts
 ---------
@@ -76,7 +76,7 @@ The values and their effects are:
 * ``body-class``: Add classes to the body HTML tag, scoping the whole webpage.
   Useful for customizing the header, sidebars.
 
-When visiting a page with the ``stub`` metadata, the scripts searches for the
-suggested alternative to redirect to. Useful for then the content is in under
+When visiting a page with the ``stub`` metadata, the script searches for the
+suggested alternative to redirect to. Useful for when the content is under
 review in a pull request or different tag. The suggested alternative is the
-value and is for example ``:stub: pull/1234``.
+value, for example ``:stub: pull/1234``.

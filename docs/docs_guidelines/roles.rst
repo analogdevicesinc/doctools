@@ -10,8 +10,8 @@ Below, every added role is explained with examples.
 
 .. note::
 
-   Link-like roles use the :code:`:role:\`text <link>\`` synthax, like external
-   links, but without the undescore in the end.
+   Link-like roles use the :code:`:role:\`text <link>\`` syntax, like external
+   links, but without the underscore at the end.
 
 Color
 ~~~~~
@@ -24,7 +24,7 @@ Link
 The link roles are a group of roles defined by ``adi_links.py``.
 
 The ``validate_links`` global option is used to validate each link during build.
-These links are not managed, that means, only links from changed files are checked.
+These links are not managed; that means only links from changed files are checked.
 You can run a build with it set to False, then touch the desired files to check
 the links of only these files.
 
@@ -33,7 +33,7 @@ the links of only these files.
 Git
 +++
 
-The Git role allows to create links to the Git repository with a shorter syntax.
+The Git role allows creating links to the Git repository with a shorter syntax.
 The role syntax is :code:`:git-repo:\`text <type+branch:path>\``, for example:
 
 * :code:`:git-hdl:\`main:docs/user_guide/docs_guidelines.rst\``
@@ -51,10 +51,10 @@ When the branch field is not present, it will be filled with the current branch.
 It is recommended to not provide this field when it is a link to its own repository,
 because it is useful to auto-fill it for documentation releases
 (e.g. ``hdl_2023_r2``).
-A scenario where it is recommended to provide the branch is when linking others
+A scenario where it is recommended to provide the branch is when linking to other
 repositories.
 
-They type field is also optional and the values are:
+The type field is also optional and the values are:
 
 * *gui*: To view rendered on the Git server web GUI [default].
 * *raw*: To download/view as raw.

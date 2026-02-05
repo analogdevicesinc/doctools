@@ -239,8 +239,8 @@ But first, store each version in separated folders in the root path, e.g.
 String array form
 ~~~~~~~~~~~~~~~~~
 
-The simple ``tags.json`` is a plain array with each version/path on the
-and generate a ``tags.json``, e.g. ``["v1.1", "v2.2", "main", "dev", ""]``
+The simple ``tags.json`` is a plain array with each version/path,
+e.g., ``["v1.1", "v2.2", "main", "dev", ""]``
 (an empty string means there is a built doc on the root and will be named
 ``main (unstable)``).
 The first tag will be labeled with ``latest``.

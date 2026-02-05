@@ -71,7 +71,7 @@ This approach allows having a single defined version on ``adi_doctools/__init__.
 and have the tags created and releases created/updated without much fuzz.
 
 The philosophy is to have ``latest`` updated on tag increment and first
-successful run, and ``pre-relese`` updated on successful run without tag change.
+successful run, and ``pre-release`` updated on successful run without tag change.
 These releases exist to provide a pointer to the latest/pre-release packages, e.g.
 `releases/download/latest/adi-doctools.tar.gz <https://github.com/analogdevicesinc/doctools/releases/download/latest/adi-doctools.tar.gz>`_.
 
@@ -89,7 +89,7 @@ Below are suggested instructions for setting up ``podman`` on a Linux environmen
 if you wish to use it as your container engine. If you already use something else
 like ``docker``, **keep it** and skip this section.
 
-Adjust to your preference as needed, and skip the steps marked in :green:`green`
+Adjust to your preferences as needed, and skip the steps marked in :green:`green`
 if not using WSL2.
 
 Install ``podman`` from your package manager.
@@ -158,8 +158,8 @@ environments:
 Ensure apply with ``podman system migrate`` and see the changed settings with
 ``podman info``.
 
-An alternative mitigation for nfs is to create a xfs disk image and mount, but
-since mount requires a root permission it is unlikely to be helpful for most
+An alternative mitigation for nfs is to create an xfs disk image and mount it, but
+since mount requires root permission it is unlikely to be helpful for most
 users:
 
 .. code:: bash

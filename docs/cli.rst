@@ -12,8 +12,8 @@ Command line interface
 The Doctools bundles a command line interface called ``adoc`` meant to ease both
 continuous integration and local builds of the documentation.
 
-Below, it is briefly described each command, and it is worth noting that every
-command supports the ``--help`` option for quick look up.
+Below, each command is briefly described, and it is worth noting that every
+command supports the ``--help`` option for quick lookup.
 
 .. _serve:
 
@@ -36,7 +36,7 @@ To launch a watched instance, do:
    $cd /path/to/docs
    $adoc serve
 
-Where ``/path/to/docs`` is the path to the folder contain the Sphinx's ``Makefile``.
+Where ``/path/to/docs`` is the path to the folder containing the Sphinx ``Makefile``.
 
 To also watch changes made to theme itself, use the ``--dev`` option, just make
 sure to have Doctools as :ref:`development-install`.
@@ -201,7 +201,7 @@ watched repositories (see :git-doctools:`adi_doctools/lut.py`).
 
 For PDF output, `WeasyPrint <https://weasyprint.org/>`__ is used (ensure to install it).
 
-To quick start, run the tool twice in an empty directly.
+To quick start, run the tool twice in an empty directory.
 
 .. shell::
 
@@ -309,8 +309,8 @@ from the download directive.
 Working with multiple docs
 ++++++++++++++++++++++++++
 
-Suppose you edited and tested multiple docs together, it could be useful
-helpful to try a local inventory file first, to check references before publication.
+Suppose you edited and tested multiple docs together, it could be helpful
+to try a local inventory file first, to check references before publication.
 
 Having this in mind, if you build the edited documentation first, and then execute
 ``custom-doc``, it will consider the local inventory *objects.inv* also.

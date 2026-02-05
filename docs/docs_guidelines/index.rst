@@ -65,7 +65,7 @@ Third-party directives and roles
 
 Repositories have the freedom to choose the third-party extensions they want to
 include in their documentation.
-They are listed on the *requirements.tst* file, and are installed with:
+They are listed in the *requirements.txt* file, and are installed with:
 
 .. code:: bash
 
@@ -74,7 +74,7 @@ They are listed on the *requirements.tst* file, and are installed with:
 The recommendation is to avoid using extensions that render content on the
 client-side using JavaScript, because it requires:
 
-* Fetching third-party scripts at someone-else server most of the time; and
+* Fetching third-party scripts from someone else's server most of the time; and
 * Makes exporting to other formats (like pdf) harder, because it is then necessary to
   patch and replace with another non-JavaScript renderer.
 * Requires managing these added scripts to ensure they apply on hot reload.
@@ -86,7 +86,7 @@ Hot reload is a feature that reloads only parts of a webpage, allowing super
 fast content-loading, cool animations, and a better user experience.
 
 However, for third-party client-side JavaScript, it is necessary to map the
-added globals to hot reload module.
+added globals to the hot reload module.
 
 On :git-doctools:`adi_doctools/theme/harmonic/scripts/hot_reload.js`, extend the
 ``script_remove`` and ``script_add`` to include hooks for your particular added
@@ -278,8 +278,8 @@ Renders as:
 Table of contents
 -----------------
 
-The Table of Contents (ToC) are created with the ``toctree`` directive, content
-added to to it are included to the navigations bars and table of contents.
+The Table of Contents (ToC) is created with the ``toctree`` directive, and content
+added to it is included in the navigation bars and table of contents.
 
 The basic structure of a ``toctree`` is:
 
@@ -328,7 +328,7 @@ A recommended usage looks like:
    User guides
    -----------
 
-   To simplify speed-up bring-up, a ... .
+   To simplify and speed up bring-up, a ... .
    They describe how ... .
 
    .. toctree::
@@ -350,7 +350,7 @@ In HTML output, this renders as:
 
    ## User guides
 
-   To simplify speed-up bring-up, a ... .
+   To simplify and speed up bring-up, a ... .
    They describe how ... .
    The user-guides are provided at:
 
@@ -482,7 +482,7 @@ in the pipeline (e.g. ``main``, ``v1.0.0``), for GitHub Actions, that can be
 If both environment variable and ``version`` on ``conf.py`` are unset, it defaults
 to an empty string.
 
-.. [#f1] Quick cheat sheet for ``gihtub.ref_name`` values on event:
+.. [#f1] Quick cheat sheet for ``github.ref_name`` values on event:
 
          * push branch: ``main``, ``dev``, ...
          * push tag: ``v2.2.2``, ``new-feature``, ...
@@ -524,7 +524,7 @@ from pip and use with :ref:`serve`:
    ~/some_repository/docs
    $adoc serve --directory . --builder pdf
 
-The advantage of WeasyPrint is that the design styles (CSS stylesheet) is
+The advantage of WeasyPrint is that the design styles (CSS stylesheet) are
 respected.
 
 Inner working
@@ -737,7 +737,7 @@ For **vscode**, you can install
 `Rewrap <https://marketplace.visualstudio.com/items?itemName=stkb.rewrap>`__,
 select the block and wrap with ``Alt+Q``.
 
-As a last resort, youcan use the :code:`fold` command to break the lines of the
+As a last resort, you can use the :code:`fold` command to break the lines of the
 imported text while respecting word-breaks:
 
 .. code:: bash
@@ -777,8 +777,8 @@ Lists
 
 Unordered lists use ``*`` or ``-`` and ordered lists ``#.``.
 
-Child items must be aligned with the first letter of the parent item, that means,
-2 spaces for unordered list and 3 spaces for ordered lists, for example:
+Child items must be aligned with the first letter of the parent item; that means,
+2 spaces for unordered lists and 3 spaces for ordered lists, for example:
 
 .. code-block:: rst
 

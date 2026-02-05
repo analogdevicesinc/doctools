@@ -11,8 +11,8 @@ Below, every added directive is explained with examples.
 Container
 ~~~~~~~~~
 
-To allow disposing content in a tabular manner but still respecting the multiple
-screen sizes and both HTML and PDF output, two container directives are available,
+To allow arranging content in a tabular manner while still respecting multiple
+screen sizes for both HTML and PDF output, two container directives are available:
 ``flex`` and ``grid``.
 
 .. _directive flex:
@@ -20,9 +20,9 @@ screen sizes and both HTML and PDF output, two container directives are availabl
 Flex
 ++++
 
-The grid directive implements a subset of
+The flex directive implements a subset of
 `CSS Flex <https://css-tricks.com/snippets/css/a-guide-to-flexbox/>`__.
-And is used to dispose elements without worrying about number of columns and sizes,
+It is used to arrange elements without worrying about number of columns and sizes,
 while still obtaining a fairly good result.
 
 .. code:: rst
@@ -41,15 +41,15 @@ Grid
 
 The grid directive implements a subset of
 `CSS Grids <https://css-tricks.com/css-grid-layout-guide/>`__.
-And is used to dispose elements with exact number of columns and width control.
+It is used to arrange elements with exact number of columns and width control.
 
 .. code:: rst
 
    .. grid::
       :widths: 25 25% 150px
 
-The ``widths`` options allow units (``px``, ``%``, etc.) and without an explicit
-unit it is inferred percentile.
+The ``widths`` options allow units (``px``, ``%``, etc.), and without an explicit
+unit it is inferred as a percentage.
 This option is required, since it is not possible to infer the number of
 columns in a sane manner.
 
@@ -111,7 +111,7 @@ the content, forcing any following content to be moved below any preceding
 content.
 It is useful when working with images
 aligned/`float <https://developer.mozilla.org/en-US/docs/Web/CSS/float>`__
-left/right and wants to ensure the next section does not also get "squashed".
+left/right and you want to ensure the next section does not also get "squashed".
 
 .. code:: rst
 
@@ -119,7 +119,7 @@ left/right and wants to ensure the next section does not also get "squashed".
       :side: [both,left,right]
       :break:
 
-It can clear content to it's ``left``, ``right`` or ``both`` sides.
+It can clear content to its ``left``, ``right`` or ``both`` sides.
 By default, it clears ``both`` sides.
 
 With the ``break`` option, it will break the page when generating a PDF
@@ -133,9 +133,9 @@ Description
 The description directive sets the HTML meta description tag
 required by search engines for good SEO.
 
-The content should be up to 160 characters, if it exceeds this length, a
-warning is raised. If not present, try to use the page's first paragraph as the
-content for HTML meta description.
+The content should be up to 160 characters; if it exceeds this length, a
+warning is raised. If not present, the page's first paragraph is used as the
+content for the HTML meta description.
 
 .. code:: rst
 
@@ -372,7 +372,7 @@ Renders as:
 
 To show the user and user group, add the ``:show-user:`` flag.
 
-For Windows, set bash type as ``ps1`` (PowerShell), for example:
+For Windows, set the bash type to ``ps1`` (PowerShell), for example:
 
 .. code:: rst
 
@@ -487,7 +487,7 @@ The syntax is:
 
       <caption>
 
-At it's core, for the HTML builder, it is somewhat equivalent to:
+At its core, for the HTML builder, it is somewhat equivalent to:
 
 .. code:: rst
 
@@ -656,9 +656,9 @@ The directive syntax is:
    .. hdl-build-status::
       :file: <build_status_file>
 
-The ``:path:`` option is optional, in the sense that if it's not provided, no table
+The ``:path:`` option is optional; if it's not provided, no table
 is generated.
-If provided, but the build status file does not exist, an error is
+If provided but the build status file does not exist, an error is
 thrown.
 
 .. note::
