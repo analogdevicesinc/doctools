@@ -67,7 +67,9 @@ name=$(echo $org_repository_ | sed 's|/|-|g')-$version_-$name_label_
 
 set -e
 
-(cd /home/runner/actions-runner ; ./config.sh \
+[[ -x /home/runner/config.sh ]] && runner_dir="/home/runner" || runner_dir="/home/runner/actions-runner"
+readonly runner_dir
+(cd "$runner_dir" ; ./config.sh \
     --url https://github.com/$org_repository_ \
     --token $runner_token_ \
     --labels "$runner_labels_" \
@@ -79,7 +81,7 @@ set -e
 function cleanup () {
     get_runner_token
 
-    (cd /home/runner/actions-runner ; ./config.sh remove \
+    (cd "$runner_dir" ; ./config.sh remove \
         --token $runner_token_)
 }
 
