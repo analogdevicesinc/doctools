@@ -86,14 +86,19 @@ runs:
         # Get commit depth
         [[ "${{ runner.debug }}" == "1" ]] && set -x
         if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-          if [[ -z "${{ inputs.base-sha }}" ]] || [[ -z "${{ inputs.head-sha }}" ]]; then
-            echo "::error ::On workflow dispatch, you must provide base-sha and head-sha as inputs."
-            exit 1
+          head_sha="${{ inputs.head-sha }}"
+          if [[ -z "$head_sha" ]]; then
+            head_sha="${{ github.sha }}"
+            echo "::warning ::No head-sha provided, setting to $head_sha (ref branch current head)."
           fi
-          echo "dispatch_mode=true" >> $GITHUB_ENV
-          echo "base_sha=${{ inputs.base-sha }}" >> $GITHUB_ENV
-          echo "head_sha=${{ inputs.head-sha }}" >> $GITHUB_ENV
-          echo "GITHUB_SHA=${{ inputs.head-sha }}" >> $GITHUB_ENV
+          base_sha="${{ inputs.base-sha }}"
+          if [[ -z "$base_sha" ]]; then
+            base_sha="$head_sha~6"
+            echo "::warning ::No base-sha provided, setting to $base_sha."
+          fi
+          echo "base_sha=$base_sha" >> $GITHUB_ENV
+          echo "head_sha=$head_sha" >> $GITHUB_ENV
+          echo "GITHUB_SHA=$head_sha" >> $GITHUB_ENV
           echo "fetch_depth=6" >> $GITHUB_ENV
         elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
           json=$(curl -s -L \
