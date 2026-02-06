@@ -35,6 +35,7 @@ runs:
           local org_repository="$2"
           local head_sha="$3"
           local run_id="$4"
+          local annotations_file="$5"
 
           local check_run_ids=()
           local check_run_names=()
@@ -129,10 +130,11 @@ runs:
                   ] | join(",")
                 ) as $metadata
                 | "::\(.level)\(" " + $metadata)::\(.msg)\(if .count > 1 then " (\(.count) occurrences)" else "" end)"
-              '
+              ' >> $annotations_file
               page=$((page + 1))
             done
           done
+          wc -l "$annotations_file"
 
           return 0
         }
@@ -141,7 +143,7 @@ runs:
         gh_annotations "${{ inputs.github-token }}" \
                        "${{ inputs.repository }}" \
                        "${{ inputs.head-sha }}" \
-                       "${{ inputs.run-id }}" > "$annotations_file"
-        wc -l "$annotations_file"
+                       "${{ inputs.run-id }}" \
+                       "$annotations_file"
         echo "annotations_file=$annotations_file" >> "$GITHUB_OUTPUT"
         echo "annotations_file=$annotations_file" >> "$GITHUB_ENV"
