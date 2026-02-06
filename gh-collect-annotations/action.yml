@@ -1,0 +1,147 @@
+name: GH Collect Annotations
+description: Collect and output annotations from GitHub check runs
+
+inputs:
+  github-token:
+    description: "GitHub Token"
+    default: ${{ github.token }}
+  repository:
+    description: "Repository in org/repo format"
+    default: ${{ github.repository }}
+  head-sha:
+    description: "Commit SHA to get annotations for"
+    required: true
+  run-id:
+    description: "Workflow run ID (optional, will be inferred if not provided)"
+    default: ""
+
+outputs:
+  annotations_file:
+    description: "File with collected annotations from check runs"
+    value: ${{ steps.collect.outputs.annotations_file }}
+
+runs:
+  using: composite
+  steps:
+    - name: Collect annotations
+      id: collect
+      shell: bash
+      run: |
+        # Collect annotations
+        [[ "${{ runner.debug }}" == "1" ]] && set -x
+
+        gh_annotations() {
+          local github_token="$1"
+          local org_repository="$2"
+          local head_sha="$3"
+          local run_id="$4"
+
+          local check_run_ids=()
+          local check_run_names=()
+          local page=1
+
+          echo "$org_repository" "$head_sha" "$run_id"
+
+          while :; do
+            resp=$(curl -s \
+              -H "Authorization: Bearer $github_token" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/$org_repository/commits/$head_sha/check-runs?per_page=100&page=$page")
+            http_code=$(echo "$resp" | jq -r '.status')
+            [ "$http_code" == "401" ] && { echo "$resp" ; return 1 ; }
+
+            count=$(echo "$resp" | jq '.check_runs | length')
+            [ "$count" -eq 0 ] && break
+
+            # Get latest run_id if not provided
+            if [ -z "$run_id" ]; then
+              run_id=$(echo "$resp" | jq -r '
+                [.check_runs[]
+                | select(.app.slug == "github-actions")
+                | {
+                  run_id: (.details_url | capture("/actions/runs/(?<id>[0-9]+)/") | .id),
+                  started_at: .started_at
+                }]
+                | group_by(.run_id)
+                | map({run_id: .[0].run_id, started_at: (map(.started_at) | min)})
+                | sort_by(.started_at)
+                | reverse
+                | .[0].run_id
+              ')
+
+              echo "inferred run_id: $run_id"
+            fi
+
+            mapfile -t check_run_id < <(
+              echo "$resp" | jq -r --arg run_id "$run_id" '
+                .check_runs[]
+                | select(.app.slug == "github-actions")
+                | select(.details_url | contains("/actions/runs/" + $run_id + "/"))
+                | .id
+              '
+            )
+            mapfile -t check_run_name < <(
+              echo "$resp" | jq -r --arg run_id "$run_id" '
+                .check_runs[]
+                | select(.app.slug == "github-actions")
+                | select(.details_url | contains("/actions/runs/" + $run_id + "/"))
+                | .name
+              '
+            )
+
+            check_run_ids+=("${check_run_id[@]}")
+            check_run_names+=("${check_run_name[@]}")
+            page=$((page + 1))
+          done
+
+          for i in "${!check_run_ids[@]}"; do
+            check_run_id="${check_run_ids[$i]}"
+            job_name="${check_run_names[$i]}"
+            page=1
+
+            while :; do
+              resp=$(curl -s \
+                -H "Authorization: Bearer $github_token" \
+                -H "Accept: application/vnd.github+json" \
+                "https://api.github.com/repos/$org_repository/check-runs/$check_run_id/annotations?per_page=100&page=$page")
+
+              count=$(echo "$resp" | jq 'length')
+              [ "$count" -eq 0 ] && break
+
+              # Basic grouping if path + message are the same to reduce noise (e.g. 'DOS line ending')
+              echo "$resp" | jq -r --arg job_name "$job_name" '
+                ($job_name | gsub(" "; "")) as $job_name_
+                | map(select(.path != null))
+                | group_by(.path, .message)[]
+                | {
+                  level: .[0].annotation_level,
+                  path: .[0].path,
+                  line: .[0].start_line,
+                  col: .[0].start_column,
+                  msg: .[0].message,
+                  count: length
+                } | (
+                  [
+                    "job=\($job_name_)",
+                    "file=\(.path)",
+                    (if .line != null then "line=\(.line)" else empty end),
+                    (if .col != null then "col=\(.col)" else empty end)
+                  ] | join(",")
+                ) as $metadata
+                | "::\(.level)\(" " + $metadata)::\(.msg)\(if .count > 1 then " (\(.count) occurrences)" else "" end)"
+              '
+              page=$((page + 1))
+            done
+          done
+
+          return 0
+        }
+
+        annotations_file=$(mktemp --suffix=.txt)
+        gh_annotations "${{ inputs.github-token }}" \
+                       "${{ inputs.repository }}" \
+                       "${{ inputs.head-sha }}" \
+                       "${{ inputs.run-id }}" > "$annotations_file"
+        wc -l "$annotations_file"
+        echo "annotations_file=$annotations_file" >> "$GITHUB_OUTPUT"
+        echo "annotations_file=$annotations_file" >> "$GITHUB_ENV"
