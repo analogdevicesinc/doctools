@@ -21,7 +21,7 @@ Flex
 ++++
 
 The flex directive implements a subset of
-`CSS Flex <https://css-tricks.com/snippets/css/a-guide-to-flexbox/>`__.
+`CSS Flex <https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Flexible_box_layout>`__.
 It is used to arrange elements without worrying about number of columns and sizes,
 while still obtaining a fairly good result.
 
@@ -40,7 +40,7 @@ Grid
 ++++
 
 The grid directive implements a subset of
-`CSS Grids <https://css-tricks.com/css-grid-layout-guide/>`__.
+`CSS Grids <https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Grid_layout>`__.
 It is used to arrange elements with exact number of columns and width control.
 
 .. code:: rst
