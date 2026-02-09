@@ -191,6 +191,18 @@ For a search, you can chain the ``adoc search --fetch`` command, for example:
         :image: eval-angle.png
         :label: eval user-guide
 
+Search dokuwiki
++++++++++++++++
+
+As a transition tool, it is also possible to search the DokuWiki
+(https://wiki.analog.com):
+
+.. shell::
+
+   $ adoc search-wiki ad9084 profile
+
+Usage is identical, but the fetch output is either DokuWiki markup or html.
+
 .. _custom-doc:
 
 Custom Doc

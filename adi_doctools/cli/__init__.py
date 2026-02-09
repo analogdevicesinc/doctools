@@ -36,6 +36,12 @@ def main_search():
     search()
 
 
+def main_search_wiki():
+    from .search_wiki import search_wiki_cli
+
+    search_wiki_cli()
+
+
 def main_llm():
     from .llm import llm
 
@@ -58,6 +64,8 @@ def entry_point():
         main_custom_doc()
     elif cmd == 'search':
         main_search()
+    elif cmd == 'search-wiki':
+        main_search_wiki()
     elif cmd == 'llm':
         main_llm()
     elif cmd == 'help':

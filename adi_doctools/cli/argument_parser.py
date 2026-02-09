@@ -37,7 +37,8 @@ Commands:
     hdl-gen      Generate HDL auxiliary files.
     aggregate    Creates a symbolic-aggregated documentation out of every repo documentation.
     custom-doc   Creates an aggregated documentation out the repos in the doc.yaml file.
-    search       Search Sphinx documentation.
+    search       Search Analog Devices Sphinx documentation.
+    search-wiki  Search Analog Devices DokuWiki (legacy).
     llm          Tail and format JSONL files, CI/CD friendly.
 
 'adoc COMMAND --help' list available subcommands
@@ -180,6 +181,26 @@ def get_arguments_llm():
                         help="Don't follow the file")
     parser.add_argument('-p', '--prompt', default=None,
                         help='Prompt to run')
+
+    args = parser.parse_args()
+    return args
+
+
+def get_arguments_search_wiki():
+    """Parse arguments for the search-wiki command."""
+    parser = argparse.ArgumentParser(
+        prog='adoc search-wiki',
+        description='Search Analog Devices wiki (DokuWiki) at wiki.analog.com.')
+    parser.add_argument('query', nargs='*',
+                        help="Search query terms")
+    parser.add_argument('--limit', type=int, default=None,
+                        help='Maximum number of results to show')
+    parser.add_argument('-v', '--verbose', action='store_true',
+                        help='Show additional details')
+    parser.add_argument('-f', '--fetch', default=None,
+                        help='Fetch page by index from previous search results, or provide a full url')
+    parser.add_argument('--format', choices=['raw', 'html'], default='raw',
+                        help='Format for fetched content: raw (DokuWiki markup, default), html')
 
     args = parser.parse_args()
     return args

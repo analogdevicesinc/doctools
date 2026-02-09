@@ -39,3 +39,29 @@ error_index_or_url_required = "Error: Either 'index' or 'url' must be provided"
 error_format_src_not_applicable = "Error: --format src is not applicable for URL fetch."
 error_format_src_requires_index_1 = "The 'src' format fetches source files (.rst/.md) from repositories,"
 error_format_src_requires_index_2 = "which requires using an index from previous search results."
+
+tool_desc_search_wiki = (
+    "Search Analog Devices DokuWiki (wiki.analog.com). "
+    "Use this to find legacy documentation, reference designs, evaluation boards, "
+    "and technical articles for ADI components. "
+    "ADI devices typically start with ad* (e.g., ad9081), "
+    "max* (e.g., max78000), or lt* (e.g., lt3045). "
+    "Returns search results with URLs and snippets."
+)
+
+tool_desc_fetch_wiki = (
+    "Fetch full content from a wiki page by index from previous search, "
+    "or directly from a URL. Must run 'search_wiki' first to get indices. "
+    "Returns the wiki page content in the requested format."
+)
+
+query_param_desc_wiki = "Search query for ADI wiki (e.g., 'ad9081', 'axi_dmac', 'eval board')"
+
+format_option_desc_wiki = (
+    "Output format: "
+    "'raw' (DokuWiki markup, default), "
+    "'html' (exported html)"
+)
+
+error_query_required_wiki = "Error: Search query is required"
+error_index_or_url_required_wiki = "Error: Either 'index' or 'url' must be provided"
