@@ -1,46 +1,58 @@
 """Search searchindex.js and relate to objects.inv
+
 Translated to python from
 ./adi_doctools/themes/harmonic/scripts/search.js
 That is a fork from sphinx provided search.
 """
 
 import asyncio
-import hashlib
 import json
-import os
 import pickle
 import re
-import shutil
 import sys
 import time
 import logging
-from packaging.version import Version
 from concurrent.futures import ThreadPoolExecutor
+from email.utils import parsedate_to_datetime
 from html.parser import HTMLParser
 from io import StringIO
-from urllib.request import urlopen, Request
-from urllib.error import URLError, HTTPError
+from packaging.version import Version
+from pathlib import Path
+from urllib.error import HTTPError, URLError
 from urllib.parse import urljoin, urlparse
-from email.utils import parsedate_to_datetime
+from urllib.request import urlopen
 
 import snowballstemmer
+from sphinx import __version__ as __sphinx_version__
+from sphinx.ext.intersphinx._load import _InvConfig
 
 from ..lut import repos, remote_doc, source_hostname_raw
-from .aux_html2md import convert_html_to_markdown
 from .argument_parser import get_arguments_search
+from .aux_html2md import convert_html_to_markdown
+from .logging import BLUE, DIM, NC, RESET
+from .search_utils import (
+    STOPWORDS,
+    SearchResultsCache,
+    calculate_limit_from_terminal,
+    calculate_wrapped_lines,
+    clear_line,
+    fetch_batch,
+    fetch_last_modified,
+    get_terminal_size,
+    make_clickable_link,
+    move_cursor_down,
+    move_cursor_up,
+    strip_ansi,
+    truncate_text,
+)
 from .string_search import (
-    format_desc_converted_markdown,
-    format_desc_source_rest_markdown,
-    format_available,
     error_format_src_not_applicable,
     error_format_src_requires_index_1,
     error_format_src_requires_index_2,
+    format_available,
+    format_desc_converted_markdown,
+    format_desc_source_rest_markdown,
 )
-from .logging import DIM, BLUE, RESET, NC
-
-from pathlib import Path
-from sphinx import __version__ as __sphinx_version__
-from sphinx.ext.intersphinx._load import _InvConfig
 
 if Version(__sphinx_version__) < Version('9.0.0'):
     from sphinx.ext.intersphinx._load import _fetch_inventory
@@ -50,19 +62,7 @@ else:
 logger = logging.getLogger(__name__)
 
 CACHE_DIR = Path('/tmp/adoc.search')
-RESULTS_FILE = CACHE_DIR / f'last_results_{hashlib.md5(os.getcwd().encode()).hexdigest()}.json'
-
-STOPWORDS = {
-    'a', 'and', 'are', 'as', 'at',
-    'be', 'but', 'by',
-    'for',
-    'if', 'in', 'into', 'is', 'it',
-    'near', 'no', 'not',
-    'of', 'on', 'or',
-    'such',
-    'that', 'the', 'their', 'then', 'there', 'these', 'they', 'this', 'to',
-    'was', 'will', 'with',
-}
+_results_cache = SearchResultsCache(CACHE_DIR, 'last_results')
 
 SCORE_TITLE = 15
 SCORE_PARTIAL_TITLE = 8
@@ -78,105 +78,6 @@ def split_strings_in_tuple(t):
         else:
             out.append(item)
     return tuple(out)
-
-
-def get_terminal_width():
-    """Get the current terminal width."""
-    return shutil.get_terminal_size().columns
-
-
-def get_terminal_height():
-    """Get the current terminal height."""
-    return shutil.get_terminal_size().lines
-
-
-def calculate_limit_from_terminal():
-    """Calculate result limit based on terminal height.
-
-    The result takes 6 lines
-    - Title line
-    - URL line
-    - References line (label refs + doc ref)
-    - Summary line 1
-    - Summary line 2
-    - Blank line
-
-    10 is the header size.
-    """
-    height = get_terminal_height()
-    limit = max(3, (height - 10) // 6)
-    return limit
-
-
-def calculate_wrapped_lines(text, width):
-    """Calculate how many lines text will take when wrapped."""
-    if not text:
-        return 1
-
-    # Strip ANSI codes
-    ansi_escape = re.compile(r'\x1b\[[0-9;]*m|\x1b\]8;;[^\x1b]*\x1b\\|\x1b\]8;;\x1b\\')
-    visible_text = ansi_escape.sub('', text)
-    visible_length = len(visible_text)
-
-    return max(1, (visible_length + width - 1) // width)
-
-
-def truncate_text(text, max_chars, query_terms=None, add_ellipsis=True):
-    """Truncate text to fit within max characters."""
-    # Strip all ANSI codes
-    ansi_escape = re.compile(r'\x1b\[[0-9;]*m|\x1b\]8;;[^\x1b]*\x1b\\|\x1b\]8;;\x1b\\')
-    plain_text = ansi_escape.sub('', text)
-
-    if len(plain_text) <= max_chars:
-        result = plain_text
-    else:
-        if add_ellipsis:
-            result = plain_text[:max_chars - 3] + "..."
-        else:
-            result = plain_text[:max_chars]
-
-    if query_terms:
-        for term in query_terms:
-            if term.lower() not in STOPWORDS:
-                pattern = re.compile(re.escape(term), re.IGNORECASE)
-                # Yellow text: \033[93m
-                result = pattern.sub(lambda m: f'\033[93m{m.group()}\033[0m', result)
-
-    return result
-
-
-def move_cursor_up(lines):
-    """Move cursor up by specified number of lines."""
-    if lines > 0 and sys.stdout.isatty():
-        sys.stdout.write(f'\033[{lines}A')
-        sys.stdout.flush()
-
-
-def move_cursor_down(lines):
-    """Move cursor down by specified number of lines."""
-    if lines > 0 and sys.stdout.isatty():
-        sys.stdout.write(f'\033[{lines}B')
-        sys.stdout.flush()
-
-
-def clear_line():
-    """Clear the current line."""
-    if sys.stdout.isatty():
-        sys.stdout.write('\r\033[2K')
-        sys.stdout.flush()
-
-
-def make_clickable_link(url, display_text=None):
-    """Create a clickable terminal link using OSC 8."""
-    if display_text is None:
-        display_text = url
-
-    if not sys.stdout.isatty():
-        # In non-TTY mode, just return the display text (no hyperlink codes)
-        return display_text
-
-    # OSC 8 format: \033]8;;URL\033\\DISPLAY_TEXT\033]8;;\033\\
-    return f"\033]8;;{url}\033\\{display_text}\033]8;;\033\\"
 
 
 def extract_path_from_url(url):
@@ -238,37 +139,6 @@ def get_cache_path(url):
     filename = '.'.join(parts) + '.json'
 
     return CACHE_DIR / filename
-
-
-def fetch_last_modified(url):
-    """Fetch Last-Modified header from URL using HEAD request."""
-    try:
-        request = Request(url, method='HEAD')
-        with urlopen(request, timeout=10) as response:
-            last_modified = response.headers.get('Last-Modified')
-            if last_modified:
-                return parsedate_to_datetime(last_modified)
-    except HTTPError:
-        pass
-    return None
-
-
-def fetch_last_modified_batch(urls):
-    """Fetch Last-Modified headers for multiple URLs in parallel.
-    Returns dict mapping URL to Last-Modified datetime
-    """
-    results = {}
-
-    def fetch_one(url):
-        return url, fetch_last_modified(url)
-
-    with ThreadPoolExecutor(max_workers=min(len(urls), 20)) as executor:
-        futures = [executor.submit(fetch_one, url) for url in urls]
-        for future in futures:
-            url, last_modified = future.result()
-            results[url] = last_modified
-
-    return results
 
 
 def fetch_repo_data_batch(repo_sources, last_modified_map):
@@ -371,8 +241,6 @@ def save_error_to_cache(cache_path, error_type, url):
 
 def save_search_results(results):
     """Save search results to temp file for --fetch option."""
-    RESULTS_FILE.parent.mkdir(parents=True, exist_ok=True)
-
     results_data = []
     for i, (title, url, score, repo_name, doc_ref, label_refs, docname) in enumerate(results, 1):
         results_data.append({
@@ -384,29 +252,20 @@ def save_search_results(results):
             'docname': docname,
             'doc_ref': doc_ref
         })
-
-    with open(RESULTS_FILE, 'w', encoding='utf-8') as f:
-        json.dump(results_data, f, indent=2)
+    _results_cache.save(results_data)
 
 
 def load_search_results():
     """Load previous search results from temp file."""
-    if not RESULTS_FILE.exists():
-        return None
-
-    try:
-        with open(RESULTS_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except json.JSONDecodeError:
-        return None
+    return _results_cache.load()
 
 
 def fetch_url_content(url, format='md'):
     """Fetch content from URL in specified format."""
     if format == 'src':
-        print(error_format_src_not_applicable, file=sys.stderr)
-        print(error_format_src_requires_index_1, file=sys.stderr)
-        print(error_format_src_requires_index_2, file=sys.stderr)
+        print(error_format_src_not_applicable)
+        print(error_format_src_requires_index_1)
+        print(error_format_src_requires_index_2)
         sys.exit(1)
 
     print("")
@@ -423,32 +282,34 @@ def fetch_url_content(url, format='md'):
         with urlopen(url, timeout=30) as response:
             html_content = response.read().decode('utf-8')
     except HTTPError as e:
-        logger.error(f"HTTP {e.code} - {url}", file=sys.stderr)
+        logger.error(f"HTTP {e.code} - {url}")
         sys.exit(1)
     except URLError as e:
-        logger.error(f"Failed to fetch URL - {e.reason}", file=sys.stderr)
+        logger.error(f"Failed to fetch URL - {e.reason}")
         sys.exit(1)
     except Exception as e:
-        logger.error(f"{e}", file=sys.stderr)
+        logger.error(f"{e}")
         sys.exit(1)
 
-    print("─" * get_terminal_width())
+    terminal_width, _ = get_terminal_size()
+    print("─" * terminal_width)
 
     if format == 'html':
         print(html_content)
     elif format == 'md':
         markdown = convert_html_to_markdown(url, html_content)
         if markdown is None:
-            logger.error("Failed to convert HTML to Markdown", file=sys.stderr)
+            logger.error("Failed to convert HTML to Markdown")
             sys.exit(1)
         print(markdown)
+
 
 def fetch_source_file(index, format='src'):
     """Fetch and display file from previous search results in specified format."""
     results = load_search_results()
 
     if results is None:
-        logger.error("No previous search results found. Run a search first.", file=sys.stderr)
+        logger.error("No previous search results found. Run a search first.")
         sys.exit(1)
 
     result = None
@@ -458,7 +319,7 @@ def fetch_source_file(index, format='src'):
             break
 
     if result is None:
-        logger.error(f"No result found at index {index}. Valid indices: 1-{len(results)}", file=sys.stderr)
+        logger.error(f"No result found at index {index}. Valid indices: 1-{len(results)}")
         sys.exit(1)
 
     result_url = result['url']
@@ -481,10 +342,11 @@ def fetch_source_file(index, format='src'):
             with urlopen(result_url, timeout=30) as response:
                 html_content = response.read().decode('utf-8')
         except Exception as e:
-            logger.error(f"Failed to fetch HTML - {e}", file=sys.stderr)
+            logger.error(f"Failed to fetch HTML - {e}")
             sys.exit(1)
 
-        print("─" * get_terminal_width())
+        terminal_width, _ = get_terminal_size()
+        print("─" * terminal_width)
         print(html_content)
         return
 
@@ -496,15 +358,16 @@ def fetch_source_file(index, format='src'):
             with urlopen(result_url, timeout=30) as response:
                 html_content = response.read().decode('utf-8')
         except Exception as e:
-            logger.error(f"Failed to fetch HTML - {e}", file=sys.stderr)
+            logger.error(f"Failed to fetch HTML - {e}")
             sys.exit(1)
 
         markdown = convert_html_to_markdown(result_url, html_content)
         if markdown is None:
-            logger.error("Failed to convert HTML to Markdown", file=sys.stderr)
+            logger.error("Failed to convert HTML to Markdown")
             sys.exit(1)
 
-        print("─" * get_terminal_width())
+        terminal_width, _ = get_terminal_size()
+        print("─" * terminal_width)
         print(markdown)
         return
 
@@ -614,8 +477,9 @@ def fetch_source_file(index, format='src'):
             except Exception as e:
                 logger.warning(f"Could not fetch included file: {e}. Showing original content.")
 
+    terminal_width, _ = get_terminal_size()
     print(f"{BLUE}Source URL:{RESET} {source_url}\n")
-    print("─" * get_terminal_width())
+    print("─" * terminal_width)
     print(content)
 
 
@@ -1054,9 +918,7 @@ async def update_result_summary(result_num, url, query_terms, anchor, result_lin
 
     max_chars_per_line = terminal_width - 2
     if summary:
-        # Strip ANSI codes to calculate visible length
-        ansi_escape = re.compile(r'\x1b\[[0-9;]*m|\x1b\]8;;[^\x1b]*\x1b\\|\x1b\]8;;\x1b\\')
-        visible_summary = ansi_escape.sub('', summary)
+        visible_summary = strip_ansi(summary)
 
         has_second_line = len(visible_summary) > max_chars_per_line
         line1 = truncate_text(summary, max_chars_per_line, query_terms, add_ellipsis=not has_second_line)
@@ -1156,17 +1018,17 @@ def search():
                 index = int(args.fetch)
                 fetch_source_file(index, format=args.format)
             except ValueError:
-                logger.error("--fetch must be either an integer index or a full URL", file=sys.stderr)
-                print(f"Got: {args.fetch}", file=sys.stderr)
+                logger.error("--fetch must be either an integer index or a full URL")
+                print(f"Got: {args.fetch}")
                 sys.exit(1)
         return
 
     if not args.query:
-        logger.error("Query is required", file=sys.stderr)
+        logger.error("Query is required")
         sys.exit(1)
 
     if args.url and args.repo:
-        logger.error("Cannot specify both --url and --repo", file=sys.stderr)
+        logger.error("Cannot specify both --url and --repo")
         sys.exit(1)
 
     url = args.url
@@ -1193,8 +1055,8 @@ def search():
 
             unknown_repos = [r for r in repo_names if r not in repos]
             if unknown_repos:
-                logger.error(f"Unknown repository(ies): {' '.join(unknown_repos)}", file=sys.stderr)
-                print(f"Available repositories: {' '.join(sorted(repos.keys()))}", file=sys.stderr)
+                logger.error(f"Unknown repository(ies): {' '.join(unknown_repos)}")
+                print(f"Available repositories: {' '.join(sorted(repos.keys()))}")
                 sys.exit(1)
 
         for repo_name in repo_names:
@@ -1218,7 +1080,7 @@ def search():
             base_url = get_base_url(repo_url)
             urls_to_check.append(base_url + 'objects.inv')  # objects.inv URL
 
-        last_modified_map = fetch_last_modified_batch(urls_to_check)
+        last_modified_map = fetch_batch(urls_to_check, fetch_last_modified)
 
         repo_data_map = fetch_repo_data_batch(repo_sources, last_modified_map)
 
@@ -1269,7 +1131,7 @@ def search():
         else:
             print("")
 
-        terminal_width = get_terminal_width()
+        terminal_width, _ = get_terminal_size()
 
         result_line_counts = []
         for i, (title, url, score, repo_name, doc_ref, label_refs, docname) in enumerate(formatted_results, 1):
@@ -1307,15 +1169,12 @@ def search():
                 refs_parts.append(clickable_doc_ref)
 
             if refs_parts:
-                # Strip ANSI codes
-                ansi_escape = re.compile(r'\x1b\[[0-9;]*m|\x1b\]8;;[^\x1b]*\x1b\\|\x1b\]8;;\x1b\\')
-
                 max_width = terminal_width
                 included_refs = []
                 current_length = 0
 
                 for ref in refs_parts:
-                    visible_ref = ansi_escape.sub('', ref)
+                    visible_ref = strip_ansi(ref)
                     ref_length = len(visible_ref)
 
                     separator_length = 1 if included_refs else 0
@@ -1330,12 +1189,12 @@ def search():
 
                 # Build the final refs line
                 if included_refs:
-                    # If we dropped refs and " ..." doesn't fit, drop refs from the end until it does
+                    # If we dropped refs and " ..." doesn't fit, drop refs from the end
                     if len(included_refs) < len(refs_parts):
                         ellipsis_length = 4  # len(" ...")
                         while included_refs and current_length + ellipsis_length > max_width:
                             dropped_ref = included_refs.pop()
-                            visible_dropped = ansi_escape.sub('', dropped_ref)
+                            visible_dropped = strip_ansi(dropped_ref)
                             if included_refs:
                                 current_length -= len(visible_dropped) + 1  # +1 for " "
                             else:
@@ -1395,11 +1254,11 @@ def search():
         logger.debug("Fetch source with: adoc search --fetch <index>")
 
     except URLError as e:
-        logger.error(str(e), file=sys.stderr)
+        logger.error(str(e))
         sys.exit(1)
     except ValueError as e:
-        logger.error(str(e), file=sys.stderr)
+        logger.error(str(e))
         sys.exit(1)
     except Exception as e:
-        logger.error(str(e), file=sys.stderr)
+        logger.error(str(e))
         sys.exit(1)

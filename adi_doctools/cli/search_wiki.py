@@ -5,44 +5,28 @@ Uses the DokuWiki search API:
 - Raw content: https://wiki.analog.com/<pagename>?do=export_raw
 """
 
-import hashlib
-import json
-import os
-import re
-import shutil
-import sys
 import logging
-from urllib.request import urlopen, Request
-from urllib.error import URLError, HTTPError
+import re
+import sys
+from pathlib import Path
+from urllib.error import HTTPError, URLError
 from urllib.parse import quote
 
 from .argument_parser import get_arguments_search_wiki
-from .logging import DIM, BLUE, NC
-
-from pathlib import Path
+from .logging import BLUE, DIM, NC
+from .search_utils import (
+    SearchResultsCache,
+    calculate_limit_from_terminal,
+    fetch_url,
+    get_terminal_size,
+    highlight_query_terms,
+)
 
 logger = logging.getLogger(__name__)
 
 WIKI_BASE_URL = "https://wiki.analog.com"
 CACHE_DIR = Path('/tmp/adoc.search-wiki')
-RESULTS_FILE = CACHE_DIR / f'last_results_{hashlib.md5(os.getcwd().encode()).hexdigest()}.json'
-
-
-def get_terminal_width():
-    """Get the current terminal width."""
-    return shutil.get_terminal_size().columns
-
-
-def get_terminal_height():
-    """Get the current terminal height."""
-    return shutil.get_terminal_size().lines
-
-
-def calculate_limit_from_terminal():
-    """Calculate result limit based on terminal height."""
-    height = get_terminal_height()
-    limit = max(3, (height - 10) // 4)
-    return limit
+_results_cache = SearchResultsCache(CACHE_DIR, 'last_results')
 
 
 def parse_wiki_search_results(html: str) -> list:
@@ -111,20 +95,6 @@ def parse_wiki_search_results(html: str) -> list:
     return results
 
 
-def fetch_url(url: str) -> str:
-    """Fetch URL content with error handling."""
-    try:
-        req = Request(url, headers={'User-Agent': 'adoc-search-wiki/1.0'})
-        with urlopen(req, timeout=30) as response:
-            return response.read().decode('utf-8')
-    except HTTPError as e:
-        logger.error(f"HTTP error {e.code}: {url}")
-        raise
-    except URLError as e:
-        logger.error(f"URL error: {e.reason}")
-        raise
-
-
 def search_wiki(query: str, limit: int = 10) -> list:
     """Search the wiki and return results."""
     search_url = f"{WIKI_BASE_URL}/{quote(query)}?do=search"
@@ -141,20 +111,12 @@ def search_wiki(query: str, limit: int = 10) -> list:
 
 def save_search_results(results: list):
     """Save search results to cache for later fetch."""
-    CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    with open(RESULTS_FILE, 'w') as f:
-        json.dump(results, f)
+    _results_cache.save(results)
 
 
 def load_search_results() -> list:
     """Load previous search results from cache."""
-    if not RESULTS_FILE.exists():
-        return []
-    try:
-        with open(RESULTS_FILE, 'r') as f:
-            return json.load(f)
-    except (json.JSONDecodeError, IOError):
-        return []
+    return _results_cache.load() or []
 
 
 def fetch_wiki_page(url: str, format: str = 'md') -> str:
@@ -199,7 +161,7 @@ def display_results(results: list, query: str, verbose: bool = False):
         print("No results found.")
         return
 
-    terminal_width = get_terminal_width()
+    terminal_width, _ = get_terminal_size()
 
     for i, result in enumerate(results):
         title = result.get('title', 'Untitled')
@@ -207,14 +169,7 @@ def display_results(results: list, query: str, verbose: bool = False):
         snippet = result.get('snippet', '')
 
         # Highlight query terms in title
-        highlighted_title = title
-        for term in query.split():
-            if len(term) > 2:
-                pattern = re.compile(re.escape(term), re.IGNORECASE)
-                highlighted_title = pattern.sub(
-                    lambda m: f'\033[93m{m.group()}\033[0m',
-                    highlighted_title
-                )
+        highlighted_title = highlight_query_terms(title, query.split())
 
         # Format output
         index_str = f"[{i}]"
@@ -261,7 +216,7 @@ def search_wiki_cli():
     query = ' '.join(args.query)
     limit = args.limit
     if limit is None:
-        limit = calculate_limit_from_terminal()
+        limit = calculate_limit_from_terminal(lines_per_result=4)
 
     print(f"Searching wiki.analog.com for: {query}")
     print()

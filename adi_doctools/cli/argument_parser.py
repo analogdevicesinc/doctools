@@ -19,7 +19,7 @@ def get_command():
     if cmd in aliases:
         original_cmd = cmd
         cmd = aliases[cmd]
-        logger.info(f"Redirected command '{original_cmd}' to '{cmd}'", file=sys.stderr)
+        logger.info(f"Redirected command '{original_cmd}' to '{cmd}'")
 
     sys.argv.remove(sys.argv[1])
     return cmd
