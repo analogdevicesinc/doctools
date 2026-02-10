@@ -18,9 +18,10 @@ from packaging.version import Version
 from concurrent.futures import ThreadPoolExecutor
 from html.parser import HTMLParser
 from io import StringIO
-from urllib.request import urlopen
+from urllib.request import urlopen, Request
 from urllib.error import URLError, HTTPError
 from urllib.parse import urljoin, urlparse
+from email.utils import parsedate_to_datetime
 
 import snowballstemmer
 
@@ -49,7 +50,6 @@ else:
 logger = logging.getLogger(__name__)
 
 CACHE_DIR = Path('/tmp/adoc.search')
-CACHE_VALIDITY = 3600  # 1 hour
 RESULTS_FILE = CACHE_DIR / f'last_results_{hashlib.md5(os.getcwd().encode()).hexdigest()}.json'
 
 STOPWORDS = {
@@ -240,13 +240,88 @@ def get_cache_path(url):
     return CACHE_DIR / filename
 
 
-def is_cache_valid(cache_path):
-    """Check if cache file exists and is less than 10 minutes old."""
-    if not cache_path.exists():
+def fetch_last_modified(url):
+    """Fetch Last-Modified header from URL using HEAD request."""
+    try:
+        request = Request(url, method='HEAD')
+        with urlopen(request, timeout=10) as response:
+            last_modified = response.headers.get('Last-Modified')
+            if last_modified:
+                return parsedate_to_datetime(last_modified)
+    except HTTPError:
+        pass
+    return None
+
+
+def fetch_last_modified_batch(urls):
+    """Fetch Last-Modified headers for multiple URLs in parallel.
+    Returns dict mapping URL to Last-Modified datetime
+    """
+    results = {}
+
+    def fetch_one(url):
+        return url, fetch_last_modified(url)
+
+    with ThreadPoolExecutor(max_workers=min(len(urls), 20)) as executor:
+        futures = [executor.submit(fetch_one, url) for url in urls]
+        for future in futures:
+            url, last_modified = future.result()
+            results[url] = last_modified
+
+    return results
+
+
+def fetch_repo_data_batch(repo_sources, last_modified_map):
+    """Fetch search indexes and inventories for all repos in parallel."""
+    results = {}
+
+    def fetch_repo(repo_name, repo_url):
+        searchindex_last_modified = last_modified_map.get(repo_url)
+        base_url = get_base_url(repo_url)
+        inv_url = base_url + 'objects.inv'
+        inv_last_modified = last_modified_map.get(inv_url)
+
+        try:
+            index_data = fetch_search_index(repo_url, searchindex_last_modified)
+            if index_data is None:
+                return repo_url, (None, None, base_url)
+
+            inventory = fetch_intersphinx_inventory(base_url, inv_last_modified)
+            return repo_url, (index_data, inventory, base_url)
+        except URLError as e:
+            logger.warning(f"Failed to fetch {repo_name or repo_url}: {e}")
+            return repo_url, (None, None, base_url)
+
+    with ThreadPoolExecutor(max_workers=min(len(repo_sources), 20)) as executor:
+        futures = [executor.submit(fetch_repo, name, url) for name, url in repo_sources]
+        for future in futures:
+            repo_url, data = future.result()
+            results[repo_url] = data
+
+    return results
+
+
+def is_cache_valid(cache_path, remote_last_modified):
+    """Check if cache file exists and is still valid based on Last-Modified header."""
+    if not cache_path.exists() or not remote_last_modified:
         return False
 
-    file_age = time.time() - cache_path.stat().st_mtime
-    return file_age < CACHE_VALIDITY
+    try:
+        with open(cache_path, 'r', encoding='utf-8') as f:
+            cached_data = json.load(f)
+    except (json.JSONDecodeError, OSError, IOError) as e:
+        logger.debug(f"Failed to load cache {cache_path}: {e}")
+        return False
+
+    if isinstance(cached_data, dict) and cached_data.get('__cache_error__'):
+        return False
+
+    cached_last_modified_str = cached_data.get('__cache_metadata__', {}).get('last_modified')
+    if not cached_last_modified_str:
+        return False
+
+    cached_last_modified = parsedate_to_datetime(cached_last_modified_str)
+    return remote_last_modified <= cached_last_modified
 
 
 def load_from_cache(cache_path):
@@ -257,16 +332,26 @@ def load_from_cache(cache_path):
     if isinstance(data, dict) and data.get('__cache_error__'):
         return None
 
+    if isinstance(data, dict) and '__cache_metadata__' in data:
+        data = {k: v for k, v in data.items() if k != '__cache_metadata__'}
+
     return data
 
 
-def save_to_cache(cache_path, data):
-    """Save search index to cache file."""
-    # Ensure cache directory exists
+def save_to_cache(cache_path, data, last_modified=None):
+    """Save search index to cache file with Last-Modified metadata."""
     cache_path.parent.mkdir(parents=True, exist_ok=True)
 
+    cache_data = dict(data) if isinstance(data, dict) else data
+
+    if last_modified:
+        if isinstance(cache_data, dict):
+            cache_data['__cache_metadata__'] = {
+                'last_modified': last_modified.strftime('%a, %d %b %Y %H:%M:%S GMT') if hasattr(last_modified, 'strftime') else str(last_modified)
+            }
+
     with open(cache_path, 'w', encoding='utf-8') as f:
-        json.dump(data, f)
+        json.dump(cache_data, f)
 
 
 def save_error_to_cache(cache_path, error_type, url):
@@ -312,7 +397,7 @@ def load_search_results():
     try:
         with open(RESULTS_FILE, 'r', encoding='utf-8') as f:
             return json.load(f)
-    except Exception:
+    except json.JSONDecodeError:
         return None
 
 
@@ -468,12 +553,7 @@ def fetch_source_file(index, format='src'):
             source_url = test_url
             break
         except HTTPError as e:
-            if e.code == 404:
-                continue
-            else:
-                raise
-        except Exception:
-            continue
+            logger.error(str(e))
 
     if content is None:
         logger.error(f"Could not fetch source file. Tried extensions: {', '.join(source_extensions)}")
@@ -554,34 +634,83 @@ def get_inventory_cache_path(base_url):
     return CACHE_DIR / filename
 
 
+def get_inventory_metadata_path(cache_path):
+    """Get metadata file path for inventory cache."""
+    return cache_path.with_suffix('.meta.json')
+
+
+def is_inventory_cache_valid(cache_path, remote_last_modified):
+    """Check if inventory cache is valid based on Last-Modified header."""
+    if not cache_path.exists():
+        return False
+
+    if not remote_last_modified:
+        return False
+
+    metadata_path = get_inventory_metadata_path(cache_path)
+    if not metadata_path.exists():
+        return False
+
+    try:
+        with open(metadata_path, 'r', encoding='utf-8') as f:
+            metadata = json.load(f)
+    except json.JSONDecodeError as e:
+        logger.error(f"Failed to load inventory metadata {metadata_path}: {e}")
+        return False
+
+    if metadata.get('__cache_error__'):
+        return False
+
+    cached_last_modified_str = metadata.get('last_modified')
+    if not cached_last_modified_str:
+        return False
+
+    cached_last_modified = parsedate_to_datetime(cached_last_modified_str)
+
+    return remote_last_modified <= cached_last_modified
+
+
 def load_inventory_from_cache(cache_path):
     """Load inventory from cache file."""
-    with open(cache_path, 'rb') as f:
-        # First byte indicates if it's an error marker
-        first_bytes = f.read(10)
-        f.seek(0)
+    metadata_path = get_inventory_metadata_path(cache_path)
 
-        if first_bytes.startswith(b'{'):
-            f.close()
-            with open(cache_path, 'r', encoding='utf-8') as jf:
-                data = json.load(jf)
-                if isinstance(data, dict) and data.get('__cache_error__'):
+    if metadata_path.exists():
+        try:
+            with open(metadata_path, 'r', encoding='utf-8') as f:
+                metadata = json.load(f)
+                if metadata.get('__cache_error__'):
                     return None
+        except (json.JSONDecodeError, OSError, IOError):
+            pass
 
+    with open(cache_path, 'rb') as f:
         return pickle.load(f)
 
 
-def save_inventory_to_cache(cache_path, inventory):
-    """Save inventory to cache file."""
+def save_inventory_to_cache(cache_path, inventory, last_modified=None):
+    """Save inventory to cache file with Last-Modified metadata."""
     cache_path.parent.mkdir(parents=True, exist_ok=True)
 
     with open(cache_path, 'wb') as f:
         pickle.dump(inventory, f)
 
+    metadata_path = get_inventory_metadata_path(cache_path)
+    metadata = {}
+    if last_modified:
+        if hasattr(last_modified, 'strftime'):
+            metadata['last_modified'] = last_modified.strftime('%a, %d %b %Y %H:%M:%S GMT')
+        else:
+            metadata['last_modified'] = str(last_modified)
+
+    with open(metadata_path, 'w', encoding='utf-8') as f:
+        json.dump(metadata, f)
+
 
 def save_inventory_error_to_cache(cache_path, error_type, url):
     """Save an error marker for inventory cache."""
     cache_path.parent.mkdir(parents=True, exist_ok=True)
+
+    metadata_path = get_inventory_metadata_path(cache_path)
 
     error_marker = {
         '__cache_error__': True,
@@ -590,23 +719,25 @@ def save_inventory_error_to_cache(cache_path, error_type, url):
         'timestamp': time.time()
     }
 
-    with open(cache_path, 'w', encoding='utf-8') as f:
+    with open(metadata_path, 'w', encoding='utf-8') as f:
         json.dump(error_marker, f)
 
 
-def fetch_search_index(url):
-    """Fetch and parse searchindex.js from URL, with caching."""
+def fetch_search_index(url, remote_last_modified=None):
+    """Fetch and parse searchindex.js from URL, with Last-Modified based caching."""
     cache_path = get_cache_path(url)
 
-    if is_cache_valid(cache_path):
+    if is_cache_valid(cache_path, remote_last_modified):
         cached_data = load_from_cache(cache_path)
-        if cached_data is None:
-            return None
-        return cached_data
+        if cached_data is not None:
+            return cached_data
 
     try:
         with urlopen(url, timeout=30) as response:
             content = response.read().decode('utf-8')
+            if remote_last_modified is None:
+                last_modified_str = response.headers.get('Last-Modified')
+                remote_last_modified = parsedate_to_datetime(last_modified_str) if last_modified_str else None
     except HTTPError as e:
         if e.code == 404:
             save_error_to_cache(cache_path, '404', url)
@@ -622,28 +753,27 @@ def fetch_search_index(url):
     json_str = match.group(1)
     try:
         data = json.loads(json_str)
-        save_to_cache(cache_path, data)
+        save_to_cache(cache_path, data, remote_last_modified)
         return data
     except json.JSONDecodeError as e:
         raise ValueError(f"Failed to parse searchindex.js JSON: {e}")
 
 
-def fetch_intersphinx_inventory(base_url):
-    """Fetch and parse intersphinx objects.inv file, with caching."""
+def fetch_intersphinx_inventory(base_url, remote_last_modified=None):
+    """Fetch and parse intersphinx objects.inv file, with Last-Modified based caching."""
     if not base_url.endswith('/'):
         base_url += '/'
 
     inv_url = base_url + 'objects.inv'
     cache_path = get_inventory_cache_path(base_url)
 
-    if is_cache_valid(cache_path):
+    if is_inventory_cache_valid(cache_path, remote_last_modified):
         try:
             cached_inv = load_inventory_from_cache(cache_path)
-            if cached_inv is None:
-                return None
-            return cached_inv
-        except Exception:
-            pass
+            if cached_inv is not None:
+                return cached_inv
+        except (pickle.UnpicklingError, OSError, IOError, EOFError) as e:
+            logger.debug(f"Failed to load inventory cache: {e}")
 
     config = _InvConfig(
         intersphinx_cache_limit=5,
@@ -670,14 +800,15 @@ def fetch_intersphinx_inventory(base_url):
                 cache_path=None,
             )
             inv = _load_inventory(raw_data, target_uri=target_uri)
-        save_inventory_to_cache(cache_path, inv)
+        save_inventory_to_cache(cache_path, inv, remote_last_modified)
         return inv
     except HTTPError as e:
         if e.code == 404:
             save_inventory_error_to_cache(cache_path, '404', inv_url)
             return None
         raise
-    except Exception:
+    except URLError as e:
+        logger.debug(f"Failed to fetch inventory {inv_url}: {e.reason}")
         return None
 
 
@@ -758,7 +889,7 @@ def extract_html_text(html_content, anchor=None):
 
         text = re.sub(r'\s+', ' ', text).strip()
         return text
-    except Exception:
+    except (re.error, ValueError, TypeError, AttributeError):
         return ""
 
 
@@ -906,7 +1037,7 @@ async def fetch_single_summary(url, query_terms, anchor, executor):
             with urlopen(url, timeout=10) as response:
                 html_content = response.read().decode('utf-8')
                 return get_summary(html_content, query_terms, anchor)
-        except Exception:
+        except HTTPError:
             return None
 
     return await loop.run_in_executor(executor, fetch_sync)
@@ -1081,38 +1212,44 @@ def search():
     try:
         all_results = []
 
+        urls_to_check = []
         for repo_name, repo_url in repo_sources:
-            try:
-                index_data = fetch_search_index(repo_url)
-                if index_data is None:
-                    continue
+            urls_to_check.append(repo_url)  # searchindex.js URL
+            base_url = get_base_url(repo_url)
+            urls_to_check.append(base_url + 'objects.inv')  # objects.inv URL
 
-                base_url = get_base_url(repo_url)
+        last_modified_map = fetch_last_modified_batch(urls_to_check)
 
-                inventory = fetch_intersphinx_inventory(base_url)
-                results = search_index(index_data, query, stemmer)
+        repo_data_map = fetch_repo_data_batch(repo_sources, last_modified_map)
 
-                for (docname, anchor), (title, score) in results.items():
-                    result_url = urljoin(base_url, f"{docname}.html")
-                    if anchor:
-                        result_url += f"#{anchor}"
-
-                    refs = get_intersphinx_references(inventory, docname, repo_name, base_url)
-
-                    all_results.append({
-                        'repo': repo_name,
-                        'title': title,
-                        'url': result_url,
-                        'score': score,
-                        'anchor': anchor,
-                        'docname': docname,
-                        'doc_ref': refs['doc_ref'],
-                        'label_refs': refs['label_refs']
-                    })
-
-            except Exception as e:
-                logger.warning(f"Failed to search {repo_name or repo_url}: {e}")
+        for repo_name, repo_url in repo_sources:
+            data = repo_data_map.get(repo_url)
+            if data is None:
                 continue
+
+            index_data, inventory, base_url = data
+            if index_data is None:
+                continue
+
+            results = search_index(index_data, query, stemmer)
+
+            for (docname, anchor), (title, score) in results.items():
+                result_url = urljoin(base_url, f"{docname}.html")
+                if anchor:
+                    result_url += f"#{anchor}"
+
+                refs = get_intersphinx_references(inventory, docname, repo_name, base_url)
+
+                all_results.append({
+                    'repo': repo_name,
+                    'title': title,
+                    'url': result_url,
+                    'score': score,
+                    'anchor': anchor,
+                    'docname': docname,
+                    'doc_ref': refs['doc_ref'],
+                    'label_refs': refs['label_refs']
+                })
 
         if not all_results:
             print(f"\nNo results found for \"{query_str}\"")

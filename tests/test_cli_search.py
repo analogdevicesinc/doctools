@@ -1,6 +1,7 @@
 """Tests for the search CLI command."""
 from contextlib import ExitStack
 from unittest.mock import patch, MagicMock
+from urllib.request import Request
 
 from packaging.version import Version
 from sphinx import __version__ as __sphinx_version__
@@ -35,12 +36,24 @@ SAMPLE_SEARCHINDEX = '''Search.setIndex({
 })'''
 
 
-def mock_urlopen_searchindex(url, timeout=None):
-    """Mock urlopen to return searchindex.js."""
+def mock_urlopen_searchindex(url_or_request, timeout=None):
+    """Mock urlopen to return searchindex.js or handle HEAD requests."""
     mock_response = MagicMock()
-    mock_response.read.return_value = SAMPLE_SEARCHINDEX.encode('utf-8')
+
+    is_head_request = isinstance(url_or_request, Request) and url_or_request.method == 'HEAD'
+
+    if is_head_request:
+        mock_response.read.return_value = b''
+    else:
+        mock_response.read.return_value = SAMPLE_SEARCHINDEX.encode('utf-8')
+
     mock_response.__enter__.return_value = mock_response
     mock_response.__exit__.return_value = None
+
+    headers_dict = {'Last-Modified': 'Mon, 01 Jan 2024 00:00:00 GMT'}
+    mock_response.headers = MagicMock()
+    mock_response.headers.get = lambda key, default=None: headers_dict.get(key, default)
+
     return mock_response
 
 
@@ -70,6 +83,8 @@ def test_cli_search_basic(monkeypatch, capsys):
 
     with ExitStack() as stack:
         stack.enter_context(patch('adi_doctools.cli.search.urlopen', side_effect=mock_urlopen_searchindex))
+        stack.enter_context(patch('adi_doctools.cli.search.save_to_cache'))
+        stack.enter_context(patch('adi_doctools.cli.search.save_inventory_to_cache'))
 
         if Version(__sphinx_version__) < Version('9.0.0'):
             stack.enter_context(patch('adi_doctools.cli.search._fetch_inventory', side_effect=mock_fetch_inventory))
@@ -95,6 +110,8 @@ def test_cli_search_no_results(monkeypatch, capsys):
 
     with ExitStack() as stack:
         stack.enter_context(patch('adi_doctools.cli.search.urlopen', side_effect=mock_urlopen_searchindex))
+        stack.enter_context(patch('adi_doctools.cli.search.save_to_cache'))
+        stack.enter_context(patch('adi_doctools.cli.search.save_inventory_to_cache'))
 
         if Version(__sphinx_version__) < Version('9.0.0'):
             stack.enter_context(patch('adi_doctools.cli.search._fetch_inventory', side_effect=mock_fetch_inventory))
@@ -119,6 +136,8 @@ def test_cli_search_multiple_terms(monkeypatch, capsys):
 
     with ExitStack() as stack:
         stack.enter_context(patch('adi_doctools.cli.search.urlopen', side_effect=mock_urlopen_searchindex))
+        stack.enter_context(patch('adi_doctools.cli.search.save_to_cache'))
+        stack.enter_context(patch('adi_doctools.cli.search.save_inventory_to_cache'))
 
         if Version(__sphinx_version__) < Version('9.0.0'):
             stack.enter_context(patch('adi_doctools.cli.search._fetch_inventory', side_effect=mock_fetch_inventory))
