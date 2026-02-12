@@ -129,6 +129,10 @@ runs:
           syft --from file -o cyclonedx-json -o table "$2" > .sbom
           head -n 1 .sbom > sbom.json
 
+          # The CVE check intent is immediate feedback,
+          # the results are considered 'expired' right after the check.
+          # Continuous monitoring the SBOM is required.
+          # We store just for illustrative and sanity purposes.
           grype db update
           grype -o json -o table \
                 --fail-on "${{ inputs.fail-on }}" \
