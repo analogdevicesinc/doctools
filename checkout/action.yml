@@ -185,14 +185,19 @@ runs:
           fi
         fi
 
-        while ! git rev-parse $base_sha ; do
+        while ! git rev-parse $base_sha~ ; do
           git fetch origin --deepen=$fetch_depth $GITHUB_SHA
         done
 
         if [[ "$checkout_fallback" != "true" ]]; then
-          echo "Applying fixups"
-          git rebase $keep_empty --rebase-merges --autosquash $base_sha \
-            || git rebase --abort || true
+          if git log --oneline --pretty=format:'%s' $base_sha..$head_sha | grep ^fixup! ; then
+            echo "Has fixups! in range, applying"
+            git rebase $keep_empty --rebase-merges --autosquash $base_sha \
+              || git rebase --abort || true
+          else
+            echo "No fixups! in range"
+          fi
+
         fi
 
         echo "head_sha=$(git rev-parse @)" >> "$GITHUB_ENV"
