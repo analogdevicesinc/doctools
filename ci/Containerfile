@@ -24,14 +24,12 @@ RUN zypper install -y --no-recommends \
     wget make git openssl openssl-devel ca-certificates ca-certificates-mozilla \
     xz libpango-1_0-0 fontconfig lato-fonts
 
-# git-lfs: install latest, dangerously bundles go packages.
-ARG git_lfs_version=3.7.1
-ARG git_lfs_version_sha=1c0b6ee5200ca708c5cebebb18fdeb0e1c98f1af5c1a9cba205a4c0ab5a5ec08
-RUN curl -o git-lfs.tar.gz -L https://github.com/git-lfs/git-lfs/releases/download/v${git_lfs_version}/git-lfs-linux-amd64-v${git_lfs_version}.tar.gz && \
-    echo "${git_lfs_version_sha} git-lfs.tar.gz" | sha256sum -c && \
-    tar xzf git-lfs.tar.gz && rm git-lfs.tar.gz
-RUN ./git-lfs-${git_lfs_version}/install.sh
-RUN rm -r ./git-lfs-${git_lfs_version}
+COPY ci/install-git-lfs.sh .
+RUN chmod +x install-git-lfs.sh ; \
+    ./install-git-lfs.sh \
+        3.7.1 \
+        8f56058622edfea1d111e50e9844ef2f5ce670b2dbe4d55d48e765c943af4351
+RUN rm install-git-lfs.sh
 
 RUN update-ca-certificates
 RUN fc-cache -f && fc-list
