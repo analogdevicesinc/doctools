@@ -29,8 +29,8 @@ jobs:
   build-container:
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       id-token: write
-      contents: write
 
     steps:
       - uses: actions/checkout@v5
