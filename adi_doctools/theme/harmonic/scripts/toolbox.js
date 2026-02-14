@@ -168,7 +168,7 @@ class Toolbox {
       }, checkInterval)
     })
   }
-  static reducedMotion = () => {
-    return window.matchMedia(`(prefers-reduced-motion: reduce)`).matches == true
+  static reducedMotion = (force = false) => {
+    return force || window.matchMedia(`(prefers-reduced-motion: reduce)`).matches == true
   }
 }

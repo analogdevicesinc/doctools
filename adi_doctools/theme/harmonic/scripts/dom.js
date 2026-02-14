@@ -322,4 +322,14 @@ class DOM {
       DOM.get(`#${key}`, element)[param] = props[key]
     }
   }
+  /**
+   * Gets the inner text of a dom, excluding children.
+   * @param {Object} dom - Element to extract.
+   */
+  static getOwnText(elem) {
+    return Array.from(elem.childNodes)
+      .filter(n => n.nodeType === Node.TEXT_NODE)
+      .map(n => n.textContent)
+      .join("");
+  }
 }

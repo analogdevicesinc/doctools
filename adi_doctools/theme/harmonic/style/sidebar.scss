@@ -319,11 +319,11 @@
 }
 
 @media screen {
-    a:not(.current) {
+    .toc-tree a:not(.current), .tocwrapper a:not(.current) {
       letter-spacing: .005em;
     }
 
-    a.current {
+    .toc-tree a.current, .tocwrapper a.current {
       color: var(--accent-color);
       font-weight: bold;
       letter-spacing: -.008em;

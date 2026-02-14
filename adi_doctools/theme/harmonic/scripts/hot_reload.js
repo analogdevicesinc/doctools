@@ -192,7 +192,24 @@ export class HotReload {
 
     observer.observe(this.$.bodywrapper)
   }
-  replace (dom, url, txt) {
+  /**
+   * Highlight changed doms.
+   */
+  highlight_change (old_texts, new_texts, doms) {
+    const _apply = (elem) => {
+      elem.classList.add('highlight-changes')
+      setTimeout(() => {
+        elem.classList.remove('highlight-changes')
+      }, 3000)
+    }
+    for (const [i, value] of doms.entries()) {
+      if (old_texts[i] !== new_texts[i]) {
+        _apply(value)
+        return value
+      }
+    }
+  }
+  replace (dom, url, txt, track_changes = false) {
 
     const parser = new DOMParser()
     const doc = parser.parseFromString(txt, 'text/html');
@@ -226,9 +243,24 @@ export class HotReload {
       container: "all"
     });
 
+    const block_selector = 'p, pre, ul, ol, dl, table, blockquote, .admonition'
+    let old_texts, new_texts, doms
+    let changed_dom
+    if (track_changes)
+      old_texts = Array.from(this.$.content.querySelectorAll(block_selector))
+        .map(n => DOM.getOwnText(n).replace(/\s+/g, " ").trim());
+
     this.parent.state.content_root = State.content_root(doc)
     this.$.content.innerHTML = content.innerHTML
     this.$.localtoc.innerHTML = localtoc.innerHTML
+
+    if (track_changes) {
+      let doms = Array.from(this.$.content.querySelectorAll(block_selector))
+      new_texts = doms
+        .map(n => DOM.getOwnText(n).replace(/\s+/g, " ").trim());
+      if (old_texts.length > 0)
+        changed_dom = this.highlight_change(old_texts, new_texts, doms)
+    }
     this.$.related.innerHTML = related.innerHTML
     this.$.title.innerText = title.innerText
 
@@ -243,7 +275,11 @@ export class HotReload {
 
     if (!this.reduced_motion)
       window.scrollTo({ top: 0, left: 0, behavior: "instant" })
-    if (url.hash && isNaN(this.scrollY)) {
+    if (track_changes && changed_dom) {
+      const rect = changed_dom.getBoundingClientRect();
+      if (rect.bottom < 0 || rect.top > window.innerHeight)
+        changed_dom.scrollIntoView({ behavior: 'auto', block: 'center' })
+    } else if (url.hash && isNaN(this.scrollY)) {
       setTimeout(() => {
         let anchor = document.querySelector(`${url.hash}`)
         if (anchor) {
@@ -271,18 +307,18 @@ export class HotReload {
    * Force forces refetching and replacing, even if is the same page.
    * state: popstate event state or false to store current state.
    */
-  load (dom, pathname, state, force) {
+  load (dom, pathname, state, track_changes = false) {
     if (pathname === '#' || this.lock_load === true)
       return
 
-    this.reduced_motion = Toolbox.reducedMotion()
+    this.reduced_motion = Toolbox.reducedMotion(track_changes)
 
     let current_url = new URL(this.location_href)
     let request_url = new URL(pathname, current_url)
     this.location_href = request_url.href
     if (current_url.pathname === request_url.pathname &&
         current_url.origin === request_url.origin) {
-      if (force) {
+      if (track_changes) {
         this.scrollY = window.scrollY
       } else {
         const hash = request_url.hash === '' ? '#top-anchor': request_url.hash
@@ -336,7 +372,7 @@ export class HotReload {
       elem.classList.remove('current')
     })
 
-    if (force)
+    if (track_changes)
       request_url.searchParams.append(Toolbox.UID(), '')
     const time_ = Date.now()
     const response = fetch(
@@ -347,7 +383,7 @@ export class HotReload {
       .then(txt => {
         const timeout = this.reduced_motion ? 0 : 125 - (Date.now() - time_)
         const body_= setTimeout(() => {
-          this.replace(dom, request_url, txt)
+          this.replace(dom, request_url, txt, track_changes)
         }, timeout)
       })
       .catch(error => {

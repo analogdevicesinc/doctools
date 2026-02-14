@@ -462,3 +462,17 @@ hr {
         grid-template-rows: auto;
     }
 }
+
+.body .highlight-changes {
+  animation: highlight-changes 3s ease-out;
+  border-radius: 4px;
+}
+
+@keyframes highlight-changes {
+  0% {
+    background-color: rgba(255, 220, 100, 0.3);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
