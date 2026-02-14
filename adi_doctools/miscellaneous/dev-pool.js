@@ -222,6 +222,16 @@ pool_changes.search(PoolChanges.get_paths()).then(obj => {
     pool_changes.$.state.classList.add('disconnected')
     return
   }
+
+  let url_root = new URL(url, location.origin)
+  /* At first hit, always reload toctree for added/removde pages */
+  if (Object.hasOwn(window, 'app') &&
+      Object.hasOwn(app, 'hot_reload') &&
+      typeof app.hot_reload.load_toctree === "function"
+      ) {
+        app.hot_reload.load_toctree(new URL("_toctree.html", url_root), true)
+  }
+
   do_pool = () => {
     PoolChanges.do(url).then(obj => {
       obj = obj.split("\n")
@@ -231,15 +241,18 @@ pool_changes.search(PoolChanges.get_paths()).then(obj => {
       }
       if (this.pool_timestamp < Number(obj[0])) {
         let url__ = obj.map(l => l.match(/^@docname\s+(.+)$/)).find(Boolean)?.[1].trim() || "";
-        url_ = new URL(url, location.origin)
-        url_ = new URL(url__, url_)
+        let url_ = new URL(url__, url_root)
         if (Object.hasOwn(window, 'app') &&
             Object.hasOwn(app, 'hot_reload') &&
             typeof app.hot_reload.load_href === "function") {
-          if (obj.includes("@code-changed"))
+          if (obj.includes("@code-changed")) {
             location.reload()
-          else
-            app.hot_reload.load_href(url_, obj.includes("@toctree-changed"))
+          } else if (obj.includes("@toctree-changed")) {
+            app.hot_reload.load_toctree(new URL("_toctree.html", url_root), false)
+              .then(() => app.hot_reload.load_href(url_))
+          } else {
+            app.hot_reload.load_href(url_)
+          }
         } else {
           pool_preserve_scroll = true
           if (document.visibilityState === 'visible' && url__ !== "")

@@ -358,35 +358,26 @@ export class HotReload {
       })
   }
   init_toctree () {
-    const append_load = (dom) => {
-      // Make absolute and strip trailling #
-      dom.href = dom.href.replace(/#$/, '')
-      this.toctree.set(dom.href, dom)
-
-      dom.onclick = (ev) => {
-        ev.preventDefault()
-        this.load(dom, dom.href, false, false)
-      }
-    }
-    DOM.getAll('.reference.internal', this.$.toctree)
-      .forEach(dom => append_load(dom))
-  }
-  init_others () {
     const append_load = (dom, alt_dom) => {
+      if (alt_dom === undefined)
+        alt_dom = dom
       // Make absolute and strip trailing #
       alt_dom.href = alt_dom.href.replace(/#$/, '')
+      this.toctree.set(alt_dom.href, alt_dom)
 
       alt_dom.onclick = (ev) => {
         ev.preventDefault()
         this.load(dom, alt_dom.href, false, false)
       }
     }
-    const dom = DOM.get('header a#logo')
-    append_load(dom, dom)
+    DOM.getAll('.reference.internal', this.$.toctree)
+      .forEach(dom => append_load(dom))
     const alt_dom = DOM.get('.sphinxsidebarwrapper > a')
+    const dom = DOM.get('header a#logo')
     append_load(dom, alt_dom)
-    this.toctree.set(dom.href, dom)
-
+    append_load(dom)
+  }
+  init_others () {
     // Map scripts
     const scripts = document.querySelector('head')?.querySelectorAll('script') || []
     for (let i = 0; i < scripts.length; i++) {
@@ -434,15 +425,62 @@ export class HotReload {
       location.href = location.href
   }
   /**
+   * Hot reload the toctree.
+   */
+  load_toctree (toctree_url, reselect) {
+    const checked_names = new Set()
+    DOM.getAll('input.toctree-collapse:checked', this.$.toctree).forEach(input => {
+      checked_names.add(input.name)
+    })
+
+    toctree_url.searchParams.append(Toolbox.UID(), '')
+    return fetch(
+      new Request(toctree_url)
+    )
+      .then(response => response.text())
+      .then(txt => {
+        this.$.toctree.innerHTML = txt
+
+        const content_root = this.parent.state.content_root
+        DOM.getAll('a[href]', this.$.toctree).forEach(a => {
+          a.href = content_root + a.getAttribute('href')
+        })
+
+        this.toctree.clear()
+        this.init_toctree()
+
+        checked_names.forEach(name => {
+          const input = this.$.toctree.querySelector(`input[name="${name}"]`)
+          if (input) input.checked = true
+        })
+
+        if (reselect) {
+          let current_url = new URL(this.location_href)
+          current_url.hash = ''
+          let node = this.toctree.get(current_url.href)
+          if (node) {
+            while (node && node !== this.$.toctree) {
+              node.classList.add('current')
+              node = node.parentElement
+            }
+          }
+        }
+      })
+      .catch(error => {
+        console.warn("hot_reload: failed to fetch at load_toctree", error)
+      })
+  }
+  /**
    * Expose load call to arbitrary consumers, like dev-pool.js.
    */
-  load_href (url, toctree_changed) {
+  load_href (url) {
     url.hash = ''
     let dom = this.toctree.get(url.href)
     if (dom !== undefined)
       this.load(dom, url.href, false, true)
-    else // Fallback
-      location.href = location.href
+    else {
+      location.href = url.href
+    }
   }
   /**
    * If some of the elements are missing in the page,
