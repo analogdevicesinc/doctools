@@ -230,18 +230,19 @@ pool_changes.search(PoolChanges.get_paths()).then(obj => {
         return
       }
       if (this.pool_timestamp < Number(obj[0])) {
+        let url__ = obj.map(l => l.match(/^@docname\s+(.+)$/)).find(Boolean)?.[1].trim() || "";
         url_ = new URL(url, location.origin)
-        url_ = new URL(obj[1], url_)
+        url_ = new URL(url__, url_)
         if (Object.hasOwn(window, 'app') &&
             Object.hasOwn(app, 'hot_reload') &&
             typeof app.hot_reload.load_href === "function") {
-          if (obj[1] === "@code-changed")
+          if (obj.includes("@code-changed"))
             location.reload()
           else
-            app.hot_reload.load_href(url_)
+            app.hot_reload.load_href(url_, obj.includes("@toctree-changed"))
         } else {
           pool_preserve_scroll = true
-          if (document.visibilityState === 'visible' && obj[1] !== "")
+          if (document.visibilityState === 'visible' && url__ !== "")
             location.href = url_
           else
             location.reload()

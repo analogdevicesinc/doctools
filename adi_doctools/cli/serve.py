@@ -298,6 +298,9 @@ def serve():
     watch_file_src = {}
     watch_file_rst = {}
     git_ref = None
+    toctree_file = path.join(builddir, '_toctree.html')
+    toctree_mtime = None
+    toctree_content = None
     if args.dev:
         w_files = []
         # Check if minified files exists, if not, run rollup once
@@ -499,9 +502,9 @@ def serve():
 
     dev_pool = path.join(builddir, '.dev-pool')
 
-    def update_dev_pool(file):
+    def update_dev_pool(message):
         global dev_pool_val
-        dev_pool_val_ = f"{str(time.time())}\n{file}\n"
+        dev_pool_val_ = f"{str(time.time())}\n{message}"
         # For XHR
         with dev_pool_lock:
             dev_pool_val = bytes(dev_pool_val_, 'utf-8')
@@ -587,7 +590,7 @@ def serve():
 
     def check_files(scheduler):
         global app, first_run, trigger_rst
-        nonlocal git_ref
+        nonlocal git_ref, toctree_mtime, toctree_content
         update_sphinx = False
         update_dev = False
         git_lfs_pull = []
@@ -671,11 +674,29 @@ def serve():
         if update_dev:
             for f in w_files:
                 copy2(f, path.join(builddir, '_static', path.basename(f)))
-        if update_sphinx or update_dev:
-            if args.builder == "html":
-                update_dev_pool("@code-changed" if update_dev else trigger_rst[1])
-            elif args.builder == 'singlehtml':
+
+        toctree_changed = False
+        if update_sphinx and path.isfile(toctree_file):
+            new_mtime = stat(toctree_file).st_mtime
+            if toctree_mtime is None or new_mtime > toctree_mtime:
+                toctree_mtime = new_mtime
+                with open(toctree_file, 'r', encoding='utf-8') as f:
+                    _toctree_content = f.read()
+                if _toctree_content != toctree_content:
+                    toctree_changed = True
+                toctree_content = _toctree_content
+
+        if args.builder == 'singlehtml':
+            if update_sphinx or update_dev:
                 update_pdf()
+        elif args.builder == "html":
+            if update_sphinx:
+                message = f"@docname {trigger_rst[1]}\n"
+                if toctree_changed:
+                    message += "@toctree-changed\n"
+                update_dev_pool(message)
+            elif update_dev:
+                update_dev_pool("@code-changed\n")
 
         scheduler.enter(1, 1, check_files, (scheduler,))
 

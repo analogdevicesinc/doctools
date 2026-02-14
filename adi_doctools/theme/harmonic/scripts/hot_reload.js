@@ -436,7 +436,7 @@ export class HotReload {
   /**
    * Expose load call to arbitrary consumers, like dev-pool.js.
    */
-  load_href (url) {
+  load_href (url, toctree_changed) {
     url.hash = ''
     let dom = this.toctree.get(url.href)
     if (dom !== undefined)
