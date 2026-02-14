@@ -20,7 +20,6 @@ log = {
     'no_conf_py': "File conf.py not found, is {} a docs folder?",
     'inv_f': "Could not find {}, check rollup output.",
     'inv_srcdir': "Could not find SOURCEDIR {}.",
-    'no_selenium': "Package 'selenium' is not installed.",
     'no_dev_pool': "Built docs doesn't have dev-pool.js, discarted.",
     'rollup': "Couldn't find {}, ensure this a symbolic install.",
     'node': "Couldn't find the node executable, please install nodejs.",
@@ -209,14 +208,6 @@ def serve():
         logger.error("Please provide a --directory.")
         return
 
-    with_selenium = False
-    if args.selenium and args.builder == 'html':
-        if importlib.util.find_spec("selenium"):
-            with_selenium = True
-        else:
-            logger.error(log['no_selenium'])
-            sys.exit(1)
-
     directory = path.abspath(args.directory)
     conf_py = path.join(directory, 'conf.py')
     if symbolic_assert(conf_py, log['no_conf_py']):
@@ -291,7 +282,7 @@ def serve():
         else:
             logger.info("wrote pdf!")
 
-    if not with_selenium and args.builder == 'html':
+    if args.builder == 'html':
         environ["ADOC_DEVPOOL"] = ""
         if (path.isdir(builddir) and
             not path.isfile(path.join(builddir, '_static', 'dev-pool.js'))):
@@ -415,7 +406,7 @@ def serve():
                 return
 
             try:
-                if not with_selenium and self.path == "/.dev-pool":
+                if self.path == "/.dev-pool":
                     if self.headers.get("no-wait") is not None:
                         send_dev_pool()
                         return
@@ -521,17 +512,7 @@ def serve():
             dev_f.write(dev_pool_val_)
             dev_f.close()
 
-    if with_selenium:
-        from selenium import webdriver
-
-        # Remove pooling method flag
-        if path.isfile(dev_pool):
-            remove(dev_pool)
-
-        driver = webdriver.Firefox()
-
-        driver.get(f"http://0.0.0.0:{args.port}")
-    elif args.builder == "html":
+    if args.builder == "html":
         update_dev_pool("")
 
 
@@ -691,22 +672,7 @@ def serve():
             for f in w_files:
                 copy2(f, path.join(builddir, '_static', path.basename(f)))
         if update_sphinx or update_dev:
-            if with_selenium:
-                try:
-                    driver.execute_script(f"location.replace('{trigger_rst[1]}');")
-                except Exception:
-                    logger.info("Browser disconnected")
-                    if args.dev:
-                        aux_killpg(rollup_p)
-                        aux_killpg(sass_p)
-                    with lock:
-                        shutdown_event.set()
-                        reload_event.set()
-                        http.shutdown()
-                        http.server_close()
-                    http_thread.join()
-                    return
-            elif args.builder == "html":
+            if args.builder == "html":
                 update_dev_pool("@code-changed" if update_dev else trigger_rst[1])
             elif args.builder == 'singlehtml':
                 update_pdf()

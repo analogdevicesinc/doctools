@@ -55,8 +55,6 @@ def get_arguments_serve():
                         help="Port to host the docs (default: 8000)")
     parser.add_argument('-r', '--dev', action='store_true', default=False,
                         help="Watch web source code (requires symbolic install)")
-    parser.add_argument('--selenium', action='store_true', default=False,
-                        help="Use selenium/Firefox instead of pooling method (html builder only)")
     parser.add_argument('-o', '--once', action='store_true', default=False,
                         help="Generate the build and exit")
     parser.add_argument('-b', '--builder', default='html',
