@@ -311,7 +311,7 @@ export class HotReload {
     if (pathname === '#' || this.lock_load === true)
       return
 
-    this.reduced_motion = Toolbox.reducedMotion(track_changes)
+    this.reduced_motion = Toolbox.reducedMotion(track_changes && location.href === pathname)
 
     let current_url = new URL(this.location_href)
     let request_url = new URL(pathname, current_url)
