@@ -293,7 +293,8 @@ def serve():
 
     if not with_selenium and args.builder == 'html':
         environ["ADOC_DEVPOOL"] = ""
-        if not path.isfile(path.join(builddir, '_static', 'dev-pool.js')):
+        if (path.isdir(builddir) and
+            not path.isfile(path.join(builddir, '_static', 'dev-pool.js'))):
           # Verify if cached is without dev-pool
           logger.info(log["no_dev_pool"])
           subprocess.call(f"sphinx-build -M clean . {builddir} -j auto",
