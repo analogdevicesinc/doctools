@@ -85,12 +85,14 @@ export class HotReload {
     document.querySelectorAll('.reference.internal', this.$.content).forEach(attach_load)
     document.querySelectorAll('a[href]', this.$.breadcrumb).forEach(attach_load)
   }
-  script_remove (key) {
+  remove_script (key) {
     /* Nothing to do */
   }
-  script_add (key) {
-    const elem = this.js_script_memory.get(key)
-    document.querySelector('head')?.append(elem)
+  /**
+   * Adds scripts is missing, or call to regen to the updated page.
+   */
+  ensure_script (value, key, map) {
+    document.querySelector('head')?.append(value)
 
     if (!key.startsWith("https://"))
       return
@@ -102,7 +104,7 @@ export class HotReload {
         MathJax.typeset()
       // For reference only, if custom initialization was necessary
       //else
-      //  elem.onload = () => { console.log("MathJax loaded") }
+      //  value.onload = () => { console.log("MathJax loaded") }
     } else if (new RegExp("^https://cdn\\.jsdelivr\\.net/npm/mermaid@[^/]+/dist/mermaid\\.esm\\.min\\.mjs$").test(key)) {
       if (typeof Mermaid !== 'undefined')
         Mermaid.run()
@@ -141,10 +143,7 @@ export class HotReload {
     const added = [...js_script.keys()].filter(k => !this.js_script_current.has(k));
     const removed = [...this.js_script_current.keys()].filter(k => !js_script.has(k));
 
-    /* Sync */
-    removed.forEach((item) => {
-      this.script_remove(item)
-    })
+    removed.forEach((item) => { this.remove_script(item) })
 
     this.js_script_current = new Set(js_script.keys())
 
@@ -162,8 +161,6 @@ export class HotReload {
         script.innerHTML = cache.innerHTML
       this.js_script_memory.set(item, script)
     })
-
-    return added
   }
   /**
    * Replaces all meta tags with the new page meta tags.
@@ -206,7 +203,7 @@ export class HotReload {
     const scripts = doc.head.querySelectorAll('script') || []
     const title = doc.querySelector('head title')
 
-    const added = this.sync_scripts(scripts)
+    this.sync_scripts(scripts)
     this.sync_meta(doc)
 
     if (!content || !localtoc) {
@@ -265,9 +262,7 @@ export class HotReload {
         this.scrollY = undefined
     }
 
-    added.forEach((item) => {
-      this.script_add(item)
-    })
+    this.js_script_memory.forEach(this.ensure_script)
 
     this.hot_links()
     this.lock_load = false
