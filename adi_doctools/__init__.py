@@ -117,6 +117,28 @@ def builder_inited(app):
         else:
             app.add_css_file("third-party.css", priority=500)
 
+def write_toctree_html(app):
+    """
+    Generate toctree HTML, used for dev-pool.
+    """
+    from sphinx.environment.adapters.toctree import TocTree
+
+    toctree_html = TocTree(app.env).get_toctree_for(
+        'index', app.builder,
+        collapse=False,
+        titles_only=True,
+        maxdepth=-1,
+        includehidden=True
+    )
+    if toctree_html is not None:
+        toc_tree, _, _, _ = navigation_tree(
+            app, app.builder.render_partial(toctree_html)['fragment'],
+            './', 'index')
+        toctree_file = path.join(app.builder.outdir, '_toctree.html')
+        with open(toctree_file, 'w', encoding='utf-8') as f:
+            f.write(toc_tree)
+
+
 def build_finished(app, exc):
     """
     Injects assets.
@@ -137,6 +159,7 @@ def build_finished(app, exc):
     if app.builder.format == 'html' and not exc:
         if getenv("ADOC_DEVPOOL") is not None:
             copy_asset(app, "dev-pool.js")
+            write_toctree_html(app)
 
         if app.env.config.html_theme not in theme_names:
             copy_asset(app, "third-party.css")
