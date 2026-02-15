@@ -463,14 +463,28 @@ hr {
     }
 }
 
-.body .highlight-changes {
-  animation: highlight-changes 3s ease-out;
-  border-radius: 4px;
+.body .highlight-added,
+.body .highlight-modified,
+.body .highlight-deleted {
+    animation: highlight-change 3s ease-out;
+    border-radius: 4px;
 }
 
-@keyframes highlight-changes {
+.body .highlight-added {
+    --hl-color: rgba(120, 220, 140, 0.35);
+}
+
+.body .highlight-modified {
+    --hl-color: rgba(255, 220, 100, 0.35);
+}
+
+.body .highlight-deleted {
+    --hl-color: rgba(255, 120, 120, 0.35);
+}
+
+@keyframes highlight-change {
   0% {
-    background-color: rgba(255, 220, 100, 0.3);
+    background-color: var(--hl-color);
   }
   100% {
     background-color: transparent;

@@ -171,4 +171,38 @@ class Toolbox {
   static reducedMotion = (force = false) => {
     return force || window.matchMedia(`(prefers-reduced-motion: reduce)`).matches == true
   }
+  /**
+   * Computes the longest common subsequence for two string arrays.
+   * Returns a object with added, modified and deleted.
+   */
+  static LCS = (a, b) => {
+    const m = a.length, n = b.length;
+    /* LCS table */
+    const dp = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
+
+    for (let i = m - 1; i >= 0; i--)
+      for (let j = n - 1; j >= 0; j--)
+        dp[i][j] = a[i] === b[j]
+          ? dp[i + 1][j + 1] + 1
+          : Math.max(dp[i + 1][j], dp[i][j + 1]);
+
+    let i = 0, j = 0, added = [], deleted = [];
+    while (i < m && j < n) {
+      if (a[i] === b[j]) { i++; j++; }
+      else if (dp[i + 1][j] >= dp[i][j + 1]) { deleted.push(j); i++; }
+      else { added.push(j); j++; }
+    }
+    while (i++ < m) deleted.push(j);
+    while (j++ < n) added.push(j - 1);
+
+    // merge same-position add+delete → modified
+    const A = new Set(added), D = new Set(deleted), modified = [];
+    for (const k of A) if (D.has(k)) {
+      modified.push(k);
+      A.delete(k);
+      D.delete(k);
+    }
+
+    return { added: [...A], deleted: [...D], modified };
+  }
 }
