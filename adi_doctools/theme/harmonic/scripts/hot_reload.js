@@ -46,7 +46,7 @@ export class HotReload {
     let arr = []
     while (node && node !== this.$.toctree) {
       node = node.parentElement
-      if (node.tagName == 'LI') {
+      if (node && node.tagName == 'LI') {
         if (node.childNodes[1]) {
           let elem = node.childNodes[1].childNodes[0]
           arr.push(elem)
