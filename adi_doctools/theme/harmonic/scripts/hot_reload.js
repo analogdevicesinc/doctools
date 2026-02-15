@@ -253,7 +253,7 @@ export class HotReload {
       container: "all"
     });
 
-    const block_selector = 'h1, h2, h3, h4, h5, h6, p, pre, ul, ol, dl, table, blockquote, .admonition'
+    const block_selector = 'h1, h2, h3, h4, h5, h6, p, pre, pre > span, span.pre, a, ul, ol, dl, table, blockquote'
     let old_texts, new_texts, doms
     let changed_dom
     if (track_changes)
