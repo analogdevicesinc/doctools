@@ -204,18 +204,24 @@ def serve():
             else:
                 return
 
-    if args.directory is None:
-        logger.error("Please provide a --directory.")
-        return
+    _directory = path.abspath(args.directory)
+    common_paths = [".", "docs", path.join("doc", "source"), path.join("doc", "sphinx", "source")]
+    for path_ in common_paths:
+        conf_py = path.join(_directory, path_, 'conf.py')
+        if path.isfile(conf_py):
+            directory = path.join(_directory, path_)
+            break
 
-    directory = path.abspath(args.directory)
-    conf_py = path.join(directory, 'conf.py')
-    if symbolic_assert(conf_py, log['no_conf_py']):
+    if not path.isfile(conf_py):
+        logger.error(log['no_conf_py'].format(_directory))
         sys.exit(1)
 
-    builddir_ = "_build"
+    if path.basename(directory) == "source":
+        builddir_ = path.join("..", "build")
+    else:
+        builddir_ = "_build"
     builddir = path.join(directory, builddir_, args.builder)
-    doctreedir = path.join(builddir_, "doctrees")
+    doctreedir = path.join(directory, builddir_, "doctrees")
     sourcedir = directory
     if dir_assert(sourcedir, log['inv_srcdir']):
         sys.exit(1)
@@ -366,7 +372,8 @@ def serve():
             pattern = path.join(directory, '**', f'*{ext}')
             files = []
             for file_path in glob.glob(pattern, recursive=True):
-                if ('/_build/' not in path.normpath(file_path) and
+                if ("/_build/" not in path.normpath(file_path) and
+                    "/build/" not in path.normpath(file_path) and
                     name_ in path.basename(file_path)):
                     files.append(file_path)
 
@@ -384,7 +391,6 @@ def serve():
         else:
             return None
 
-    builddir = path.join(directory, builddir_, args.builder)
     shutdown_event = threading.Event()
     reload_event = threading.Event()
     dev_pool_lock = threading.Lock()
