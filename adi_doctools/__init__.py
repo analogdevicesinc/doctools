@@ -101,6 +101,9 @@ def builder_inited(app):
     if app.builder.format == 'html':
         # Add include regardless of theme.
         if getenv("ADOC_DEVPOOL") is not None:
+            app.config.html_static_path.append(
+                path.join(path.dirname(__file__), 'miscellaneous', 'static')
+            )
             app.add_js_file("dev-pool.js", priority=500, loading_method="async")
 
         theme_path = path.join(path.dirname(__file__), 'theme', 'harmonic')
@@ -158,7 +161,6 @@ def build_finished(app, exc):
 
     if app.builder.format == 'html' and not exc:
         if getenv("ADOC_DEVPOOL") is not None:
-            copy_asset(app, "dev-pool.js")
             write_toctree_html(app)
 
         if app.env.config.html_theme not in theme_names:
