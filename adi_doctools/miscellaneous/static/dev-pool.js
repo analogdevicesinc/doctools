@@ -223,8 +223,8 @@ pool_changes.search(PoolChanges.get_paths()).then(obj => {
     return
   }
 
-  let url_root = new URL(url, location.origin)
-  /* At first hit, always reload toctree for added/removde pages */
+  let url_root = new URL('./', new URL(url, location.origin))
+  /* At first hit, always reload toctree for added/removed pages */
   if (Object.hasOwn(window, 'app') &&
       Object.hasOwn(app, 'hot_reload') &&
       typeof app.hot_reload.load_toctree === "function"
