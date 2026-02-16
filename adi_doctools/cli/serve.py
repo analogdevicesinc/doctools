@@ -552,7 +552,7 @@ def serve():
             files.extend(__files)
             for f in __files:
                 ctime.append(stat(f).st_mtime)
-        if path.isfile(f):
+        if path.isfile(conf_py):
             files.append(conf_py)
             ctime.append(stat(conf_py).st_mtime)
         dirs = [d for d in listdir(sourcedir)
