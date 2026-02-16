@@ -283,6 +283,11 @@ export class HotReload {
     this.$.tocwrapper.classList.remove('fetch')
     this.$.loader.classList.remove('fetch')
 
+
+    this.js_script_memory.forEach(this.ensure_script)
+
+    this.hot_links()
+
     if (!this.reduced_motion && !track_changes)
       window.scrollTo({ top: 0, left: 0, behavior: "instant" })
     if (track_changes) {
@@ -290,6 +295,11 @@ export class HotReload {
         const rect = changed_dom.getBoundingClientRect();
         if (rect.bottom < 0 || rect.top > window.innerHeight)
           changed_dom.scrollIntoView({ behavior: 'auto', block: 'center' })
+        else {
+          window.scrollTo({ top: this.scrollY, left: 0, behavior: "instant" })
+        }
+      } else {
+        window.scrollTo({ top: this.scrollY, left: 0, behavior: "instant" })
       }
     } else if (url.hash && isNaN(this.scrollY)) {
       setTimeout(() => {
@@ -309,10 +319,8 @@ export class HotReload {
       else
         this.scrollY = undefined
     }
+    this.$.content.style.minHeight = ""
 
-    this.js_script_memory.forEach(this.ensure_script)
-
-    this.hot_links()
     this.lock_load = false
   }
   /**
@@ -343,6 +351,8 @@ export class HotReload {
           history.replaceState({}, "", hash)
         }
         return
+      } else {
+        this.scrollY = window.scrollY
       }
     }
     this.lock_load = true
@@ -362,14 +372,19 @@ export class HotReload {
         this.scrollY = state.scrollY
     }
 
-    this.$.tocwrapper.classList.add('fetch')
-    this.$.bodywrapper.classList.add('fetch')
-    const loader_= setTimeout(() => {
-      this.$.loader.classList.add('fetch')
-    }, 500)
-    if (this.$.loader.classList.contains('fail')) {
-      this.$.loader.classList.add('fetch')
-      this.$.loader.classList.remove('fail')
+    this.$.content.style.minHeight = this.$.content.getBoundingClientRect().height + "px"
+
+    let loader_
+    if (!track_changes || !is_same_page) {
+      this.$.tocwrapper.classList.add('fetch')
+      this.$.bodywrapper.classList.add('fetch')
+      loader_= setTimeout(() => {
+        this.$.loader.classList.add('fetch')
+      }, 500)
+      if (this.$.loader.classList.contains('fail')) {
+        this.$.loader.classList.add('fetch')
+        this.$.loader.classList.remove('fail')
+      }
     }
 
     setTimeout(() =>  {
@@ -399,10 +414,13 @@ export class HotReload {
         }, timeout)
       })
       .catch(error => {
+        this.$.tocwrapper.classList.add('fetch')
+        this.$.bodywrapper.classList.add('fetch')
         this.$.loader.classList.add('fail')
       })
       .finally(() => {
-        clearTimeout(loader_)
+        if (loader_ !== undefined)
+          clearTimeout(loader_)
       })
   }
   init_toctree () {
