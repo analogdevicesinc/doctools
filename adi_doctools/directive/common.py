@@ -1107,8 +1107,9 @@ class directive_svg(SphinxDirective):
         )
         if self.state.document.settings.file_insertion_enabled:
             try:
-                f = open(self.arguments[0].strip())
-                svg_raw = f.read()
+                _, filename = self.env.relfn2path(self.arguments[0].strip())
+                with open(filename, "r") as f:
+                    svg_raw = f.read()
                 svg = nodes.raw('fsdf', svg_raw, format='html')
                 figure_node += svg
             except Exception as e:
