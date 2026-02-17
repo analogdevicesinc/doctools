@@ -29,7 +29,7 @@ class lfs_to_links(SphinxPostTransform):
             for line in f:
                 line = line.strip()
                 if line and not line.startswith("#") and 'filter=lfs' in line:
-                    match = re.match(r"\*\.([a-zA-Z0-9]+)", line)
+                    match = re.match(r"\*\.(\S+)", line)
                     if match:
                         types_lfs.append('.'+match.group(1))
         return types_lfs
