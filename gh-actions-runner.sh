@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 runner_version=2.331.0
 runner_version_sha=5fcc01bd546ba5c3f1291c2803658ebd3cedb3836489eda3be357d41bfcf28a7
 node20_version=20.20.0
@@ -27,7 +29,7 @@ curl -o node24.tar.gz -L https://nodejs.org/dist/v${node24_version}/node-v${node
     rm node24.tar.gz
 ./externals/node20/bin/node ./externals/node20/lib/node_modules/npm/bin/npm-cli.js --prefix ./externals/node20 -g update
 ./externals/node24/bin/node ./externals/node24/lib/node_modules/npm/bin/npm-cli.js --prefix ./externals/node24 -g update
-rm -r ./.npm
+rm -r ~/.npm
 curl -o actions-runner-k8s.zip -L https://github.com/actions/runner-container-hooks/releases/download/v${k8s_version}/actions-runner-hooks-k8s-${k8s_version}.zip && \
     echo "${k8s_version_sha} actions-runner-k8s.zip" | sha256sum -c && \
     unzip actions-runner-k8s.zip && rm actions-runner-k8s.zip
