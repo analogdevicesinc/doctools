@@ -88,10 +88,10 @@ To build you will need, at least:
    $ zypper install \
        texlive-latexmk \
        texlive-collection-basic \
-       texlive-collection \
-       texlive-collection \
-       texlive-collection \
-       texlive-collection \
+       texlive-collection-latex \
+       texlive-collection-latexrecommended \
+       texlive-collection-latexextra \
+       texlive-collection-fontsrecommended \
        texlive-fncychap \
        gnu-free-fonts texlive-gnu-freefont texlive-gnu-freefont-fonts
 
