@@ -27,8 +27,8 @@ RUN zypper install -y --no-recommends \
 COPY ci/install-git-lfs.sh .
 RUN chmod +x install-git-lfs.sh ; \
     ./install-git-lfs.sh \
-        3.7.1 \
-        8f56058622edfea1d111e50e9844ef2f5ce670b2dbe4d55d48e765c943af4351
+        9afaf60b9c47e96f031f86d04089ef2e0b79a1fa \
+        c9af709654580451d9600ce67ed1a17fd674f39e60e89bc359c1f28984702116
 RUN rm install-git-lfs.sh
 
 RUN update-ca-certificates
