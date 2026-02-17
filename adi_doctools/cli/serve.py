@@ -4,13 +4,14 @@ from os import environ, stat, utime
 from shutil import copy2, which, move
 import logging
 import importlib
+import tempfile
 
 from sphinx.application import Sphinx
 
 from .aux_os import aux_killpg
 from .aux_git import get_git_top_level, get_git_dir, is_git_lfs_installed, get_lfs_sha
 from .argument_parser import get_arguments_serve
-from .logging import BLUE, FAIL, NC
+from .logging import BLUE, FAIL, RED, NC
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +49,7 @@ style_path = path.join(theme_path, 'style')
 static_common_path = path.join(theme_path, 'static_common')
 static_core_path = path.join(theme_path, 'static_core')
 dev_pool_val = b""
+
 
 def serve():
     """
@@ -297,9 +299,21 @@ def serve():
           subprocess.call(f"sphinx-build -M clean . {builddir} -j auto",
                           shell=True, cwd=directory)
 
+    if not args.verbose:
+        print(f"\nTip: enable full Sphinx output with {BLUE}--verbose{NC}\n")
+
     def app_subprocess_build():
-        subprocess.call(f"sphinx-build -b {args.builder} . {builddir} -d {doctreedir} -j auto",
-                        shell=True, cwd=directory)
+        warn_file = tempfile.NamedTemporaryFile(mode='w+', suffix='.log')
+
+        print("-- Building --")
+        subprocess.run(f"sphinx-build -b {args.builder} . {builddir} -d {doctreedir} -j auto --warning-file {warn_file.name}",
+                       shell=True, cwd=directory, capture_output=not(args.verbose))
+
+        if not(args.verbose) and path.getsize(warn_file.name) > 0:
+            with open(warn_file.name, 'r') as f:
+                print(RED, f.read(), NC)
+        print("---- Done ----")
+        warn_file.close()
 
     watch_file_src = {}
     watch_file_rst = {}
@@ -357,8 +371,9 @@ def serve():
 
     # app.build() doesn't handle the cache well in parallel,
     # instead, we call through subprocess if needed
-    app = Sphinx(directory, directory,  builddir,
-                 doctreedir, args.builder, parallel=0)
+    app = Sphinx(directory, directory, builddir,
+                 doctreedir, args.builder, parallel=0,
+                 status=sys.stdout if args.verbose else None)
 
     def get_source_lfs_file(path_, ext):
         """
@@ -495,7 +510,7 @@ def serve():
             http_thread = threading.Thread(target=http.serve_forever)
             http_thread.daemon = True
             http_thread.start()
-            print(f"\n{BLUE}Running server on http://0.0.0.0:{args.port}{NC}\n")
+            print(f"\nRunning server on {BLUE}http://0.0.0.0:{args.port}{NC}\n")
 
             if path.isdir("/mnt/wsl"):
                 wsl2_thread = threading.Thread(target=wsl2_networking)
@@ -503,7 +518,7 @@ def serve():
                 wsl2_thread.start()
         except Exception:
             logger.error(f"{FAIL}Could not start server on http://0.0.0.0:{args.port}{NC}")
-            logger.info(f"  {BLUE}Tip{NC}: pass another port with {BLUE}--port{NC}")
+            print(f"  {BLUE}Tip{NC}: pass another port with {BLUE}--port{NC}")
             if args.dev:
                 aux_killpg(rollup_p)
                 aux_killpg(sass_p)
@@ -677,10 +692,13 @@ def serve():
                 from sphinx.testing.util import _clean_up_global_state
                 _clean_up_global_state()
                 app_subprocess_build()
-                app = Sphinx(directory, directory,  builddir,
-                             doctreedir, args.builder, parallel=0)
+                app = Sphinx(directory, directory, builddir,
+                             doctreedir, args.builder, parallel=0,
+                             status=sys.stdout if args.verbose else None)
             else:
+                print("-- Building --")
                 app.build()
+                print("---- Done ----")
         if update_dev:
             for f in w_files:
                 copy2(f, path.join(builddir, '_static', path.basename(f)))

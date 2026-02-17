@@ -59,6 +59,8 @@ def get_arguments_serve():
                         help="Generate the build and exit")
     parser.add_argument('-b', '--builder', default='html',
                         help="Builder to use, valid options are: html, pdf (WeasyPrint) (default: html)")
+    parser.add_argument('-v', '--verbose', action='store_true', default=False,
+                        help="Show full Sphinx output")
 
     args = parser.parse_args()
     return args
