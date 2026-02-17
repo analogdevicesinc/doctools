@@ -487,6 +487,7 @@ def serve():
 
     if args.builder == "html":
         try:
+            socketserver.ThreadingTCPServer.allow_reuse_address = True
             http = socketserver.ThreadingTCPServer(("", args.port), Handler)
             lock = threading.Lock()
             http_thread = threading.Thread(target=http.serve_forever)
