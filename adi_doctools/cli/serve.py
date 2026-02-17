@@ -475,13 +475,15 @@ def serve():
         def log_message(self, format, *args):
             return
 
-    def wsl2_networking(scheduler):
+    def wsl2_networking():
         """
         Helps Windows pick-up WSL2 exposed port.
         """
+        if shutdown_event.wait(0.5):
+            return
         try:
             from urllib.request import urlopen
-            urlopen(f"http://0.0.0.0:{args.port}")
+            urlopen(f"http://0.0.0.0:{args.port}", timeout=0.5)
         except Exception as e:
             logger.debug(str(e))
 
@@ -495,9 +497,10 @@ def serve():
             http_thread.start()
             print(f"\n{BLUE}Running server on http://0.0.0.0:{args.port}{NC}\n")
 
-            scheduler = sched.scheduler(time.time, time.sleep)
-            scheduler.enter(1, 1, wsl2_networking, (scheduler,))
-            scheduler.run()
+            if path.isdir("/mnt/wsl"):
+                wsl2_thread = threading.Thread(target=wsl2_networking)
+                wsl2_thread.daemon = True
+                wsl2_thread.start()
         except Exception:
             logger.error(f"{FAIL}Could not start server on http://0.0.0.0:{args.port}{NC}")
             logger.info(f"  {BLUE}Tip{NC}: pass another port with {BLUE}--port{NC}")
