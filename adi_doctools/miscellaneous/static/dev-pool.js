@@ -1,6 +1,5 @@
 /*
  * Serve watch mode, reload webpage on changes.
- * Browser agnostic alternative to the selenium mode.
  * This is an exceptional asset that gets inject to
  * the html regardless of the theme.
  */
@@ -213,7 +212,6 @@ class PoolChanges {
 let pool_changes = new PoolChanges()
 /*
  * Serve watch mode, reload webpage on changes.
- * Alternative to selenium.
  */
 pool_changes.search(PoolChanges.get_paths()).then(obj => {
   const [url, obj_] = obj

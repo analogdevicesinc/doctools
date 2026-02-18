@@ -54,9 +54,7 @@ dev_pool_val = b""
 def serve():
     """
     Watch the docs and source code to rebuild it on edit.
-    Two html live update strategies are available:
-    Pooling: The webpage pools timestamp changes on the .dev-pool file.
-    Selenium: Page reloads through Firefox's API.
+    The webpage pools timestamp changes and commands on the .dev-pool file.
     """
     import glob
     import re

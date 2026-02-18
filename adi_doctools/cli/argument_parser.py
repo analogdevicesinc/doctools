@@ -48,7 +48,7 @@ Commands:
 def get_arguments_serve():
     parser = argparse.ArgumentParser(
         prog='adoc serve',
-        description='Watch the docs and source code to rebuild it on edit. Two html live update strategies are available: Pooling and Selenium.')
+        description='Watch the docs and source code to rebuild it on edit.')
     parser.add_argument('-d', '--directory', default='.',
                         help="Path to the docs folder with the Makefile (default: .)")
     parser.add_argument('-p', '--port', type=int, default=8000,

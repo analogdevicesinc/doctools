@@ -24,10 +24,7 @@ Watches the docs and source code to rebuild it on edit.
 Similar to ``mkdocs serve``, ``webpack serve``, ``npm run start``, ``hugo server``,
 and so on.
 
-Two HTML live update strategies are available:
-
-* pooling: The webpage pools timestamp changes on the ``.dev-pool`` file (default).
-* selenium: Page reloads through Firefox's API (optional).
+The webpage pools timestamp changes and commands on the ``.dev-pool`` file.
 
 To launch a watched instance, do:
 
