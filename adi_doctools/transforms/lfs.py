@@ -52,11 +52,17 @@ class lfs_to_links(SphinxPostTransform):
                 if self.is_not_lfs(uri):
                     continue
 
-                ouri = node['original_uri']
+                # sphinx/environment/collectors/asset.py
+                # conditionally creates original_uri
+                if 'original_uri' in node:
+                    ouri = node['original_uri']
+                else:
+                    ouri = node['uri']
                 ouri = path.abspath(path.join(f"/{docname}", '..', ouri))
 
                 node['candidates']['?'] = f"{url}{ouri}"
-                node['original_uri'] = f"{url}{ouri}"
+                if 'original_uri' in node:
+                    node['original_uri'] = f"{url}{ouri}"
                 node['uri'] = f"{url}{ouri}"
                 del node['candidates']['*']
 
