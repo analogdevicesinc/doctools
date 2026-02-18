@@ -98,7 +98,6 @@ runs:
           fi
           echo "base_sha=$base_sha" >> $GITHUB_ENV
           echo "head_sha=$head_sha" >> $GITHUB_ENV
-          echo "GITHUB_SHA=$head_sha" >> $GITHUB_ENV
           echo "fetch_depth=6" >> $GITHUB_ENV
         elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
           json=$(curl -s -L \
@@ -134,6 +133,14 @@ runs:
           echo "checkout_fallback=true" >> $GITHUB_ENV
         fi
 
+        # Manipulate the github_sha to mock another context
+        if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          echo "_GITHUB_SHA=$head_sha" >> $GITHUB_ENV
+          echo "GITHUB_SHA=$head_sha" >> $GITHUB_ENV
+        else
+          echo "_GITHUB_SHA=${{ github.sha }}" >> $GITHUB_ENV
+        fi
+
     - name: Fetch & reset
       shell: bash
       run: |
@@ -152,7 +159,7 @@ runs:
           git reset --hard FETCH_HEAD
         elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
           if [[ "$checkout_fallback" == "true" ]]; then
-            git fetch origin --depth=$fetch_depth $GITHUB_SHA
+            git fetch origin --depth=$fetch_depth $_GITHUB_SHA
             git reset --hard FETCH_HEAD
           elif [[ "$behind_by" -eq 0 ]]; then
             git fetch origin --depth=$fetch_depth ${{ github.event.pull_request.head.sha }}
@@ -160,15 +167,15 @@ runs:
           else
           echo "Fetching commits in batches of $fetch_depth"
           while ! git merge-base ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} &>/dev/null ; do
-              git fetch origin --deepen=$fetch_depth $GITHUB_SHA
+              git fetch origin --deepen=$fetch_depth $_GITHUB_SHA
             done
             git reset --hard ${{ github.event.pull_request.base.sha }}
             git rebase --rebase-merges $keep_empty ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }}
             git switch -C trunk
           fi
         else
-          git fetch origin --depth=$fetch_depth $GITHUB_SHA
-          git reset --hard $GITHUB_SHA
+          git fetch origin --depth=$fetch_depth $_GITHUB_SHA
+          git reset --hard $_GITHUB_SHA
         fi
 
         if [[ "${{ github.event_name }}" == "pull_request" ]]; then
@@ -186,7 +193,7 @@ runs:
         fi
 
         while ! git rev-parse $base_sha~ ; do
-          git fetch origin --deepen=$fetch_depth $GITHUB_SHA
+          git fetch origin --deepen=$fetch_depth $_GITHUB_SHA
         done
 
         if [[ "$checkout_fallback" != "true" ]]; then
