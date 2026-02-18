@@ -51,8 +51,8 @@ def get_arguments_serve():
         description='Watch the docs and source code to rebuild it on edit.')
     parser.add_argument('-d', '--directory', default='.',
                         help="Path to the docs folder with the Makefile (default: .)")
-    parser.add_argument('-p', '--port', type=int, default=8000,
-                        help="Port to host the docs (default: 8000)")
+    parser.add_argument('-p', '--port', type=int, default=8080,
+                        help="Port to host the docs (default: 8080)")
     parser.add_argument('-r', '--dev', action='store_true', default=False,
                         help="Watch web source code (requires symbolic install)")
     parser.add_argument('-o', '--once', action='store_true', default=False,
