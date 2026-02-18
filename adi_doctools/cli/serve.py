@@ -69,6 +69,8 @@ def serve():
     import subprocess
     import sys
 
+    from uuid import uuid4
+
     global app, builddir
 
     args = get_arguments_serve()
@@ -300,7 +302,7 @@ def serve():
                           shell=True, cwd=directory)
 
     if not args.verbose:
-        print(f"\nTip: enable full Sphinx output with {BLUE}--verbose{NC}\n")
+        print(f"\nTip: enable full output with {BLUE}--verbose{NC}\n")
 
     def app_subprocess_build():
         warn_file = tempfile.NamedTemporaryFile(mode='w+', suffix='.log')
@@ -510,14 +512,14 @@ def serve():
             http_thread = threading.Thread(target=http.serve_forever)
             http_thread.daemon = True
             http_thread.start()
-            print(f"\nRunning server on {BLUE}http://0.0.0.0:{args.port}{NC}\n")
+            print(f"\nRunning server on http://0.0.0.0:{BLUE}{args.port}{NC}?v={str(uuid4())[:2]}\n")
 
             if path.isdir("/mnt/wsl"):
                 wsl2_thread = threading.Thread(target=wsl2_networking)
                 wsl2_thread.daemon = True
                 wsl2_thread.start()
         except Exception:
-            logger.error(f"{FAIL}Could not start server on http://0.0.0.0:{args.port}{NC}")
+            logger.error(f"Could not start server on http://0.0.0.0:{FAIL}{args.port}{NC}")
             print(f"  {BLUE}Tip{NC}: pass another port with {BLUE}--port{NC}")
             if args.dev:
                 aux_killpg(rollup_p)
