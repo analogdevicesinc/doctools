@@ -76,7 +76,7 @@ def get_document_description(doctree):
 
 def directive_description_doctree_resolved(app, doctree, fromdocname):
     has_meta = any(
-        isinstance(node, nodes.meta) and node.get('name') == 'description'
+        node.get('name') == 'description'
         for node in doctree.traverse(nodes.meta)
     )
     if has_meta:

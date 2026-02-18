@@ -45,7 +45,14 @@ def directive_toctree_preview_doctree_resolved(app, doctree, fromdocname):
             doctree = app.env.get_doctree(docname)
             # doctree_resolved may not have been yield for doctree yet,
             # so do the same call as the directive_description_doctree_resolved
-            description = get_document_description(doctree)
+
+            meta = next(
+                    (node for node in doctree.traverse(nodes.meta)
+                     if node.get('name') == 'description'),
+                    None
+                   )
+
+            description= meta['content'] if meta else get_document_description(doctree)
 
             node_list_item = nodes.list_item()
             node_title = nodes.paragraph()
