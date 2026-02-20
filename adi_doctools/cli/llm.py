@@ -202,7 +202,7 @@ def llm():
 
     def run_claude():
         env = environ.copy()
-        cmd_args=['claude', '--session-id', session_id, '--add-dir', cwd_, '--permission-mode', 'bypassPermissions']
+        cmd_args=['claude', '--session-id', session_id, '--add-dir', cwd_, '--permission-mode', 'bypassPermissions', '--disallowed-tools', 'WebSearch']
         if prompt_file:
             logger.info(f"prompt file: {prompt_file}")
             stdin_=subprocess.PIPE
