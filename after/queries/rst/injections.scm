@@ -18,15 +18,15 @@
  (#set! injection.combined))
 
 ; ==========
-; markdown directive - inject markdown
-; .. markdown::
-;    <markdown content>
+; include-template directive - yaml
+; .. include-template:: <jinja source>
+;    <yaml content>
 ; ==========
 ((directive
   name: (type) @_type
   body: (body
     (content) @injection.content))
- (#eq? @_type "markdown")
- (#set! injection.language "markdown")
+ (#eq? @_type "include-template")
+ (#set! injection.language "yaml")
  (#set! injection.combined))
 

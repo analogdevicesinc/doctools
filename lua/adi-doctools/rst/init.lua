@@ -12,58 +12,72 @@ M.config = {
   github_org = 'analogdevicesinc',  -- default org for :git-<repo>:
 }
 
--- Role registry: define info (for <leader>rr) and action (for gx)
--- info: returns echo chunks {{text, hl}, ...} or string
+-- Role registry: define inspect and action
+-- inspect: returns echo chunks {{text, hl}, ...} or string
 -- action: function to execute, nil means "No action available"
 M.roles = {
   test = {
-    info = function(content)
+    inspect = function(title, target)
       return {
         { 'The value of ', 'Normal' },
         { '`test`', 'Special' },
         { ' is ', 'Normal' },
-        { '`' .. content .. '`', 'String' },
+        { '`' .. target .. '`', 'String' },
       }
     end,
   },
   adi = {
-    info = function(content)
-      local url = M.config.url_mappings.adi .. content
+    inspect = function(title, target)
+      local url = M.config.url_mappings.adi .. target
       return { { 'URL: ', 'Normal' }, { url, 'String' } }
     end,
-    action = function(content)
-      local url = M.config.url_mappings.adi.. content
+    action = function(title, target)
+      local url = M.config.url_mappings.adi.. target
       vim.notify('Opening: ' .. url, vim.log.levels.INFO)
       vim.fn.jobstart({ 'xdg-open', url }, { detach = true })
     end,
   },
   dokuwiki = {
-    info = function(content)
-      local url = M.config.url_mappings.dokuwiki .. content
+    inspect = function(title, target)
+      local url = M.config.url_mappings.dokuwiki .. target
       return { { 'URL: ', 'Normal' }, { url, 'String' } }
     end,
-    action = function(content)
-      local url = M.config.url_mappings.dokuwiki.. content
+    action = function(title, target)
+      local url = M.config.url_mappings.dokuwiki..target
       vim.notify('Opening: ' .. url, vim.log.levels.INFO)
       vim.fn.jobstart({ 'xdg-open', url }, { detach = true })
     end,
   },
 }
 
--- Resolve role: returns {info, action} or nil
+-- Resolve role: returns {inspect, action} or nil
 -- Handles exact matches and patterns like git-<repo>
-local function resolve_role(role, content)
+local function resolve_role(role, title, target)
   -- Exact match first
   if M.roles[role] then
     return M.roles[role], nil
   end
 
-  -- Pattern: git-<repo> -> github.com/org/repo/path
+  -- Pattern: git-<repo> -> github.com/org/repo/...
+  -- `releases+` -> github.com/org/repo/releases
+  -- `path/to/file.c` -> github.com/org/repo/tree/main/path/to/file.c
+  -- `dev:path/to/file.c` -> github.com/org/repo/tree/dev/path/to/file.c
   local repo = role:match('^git%-(.+)$')
   if repo then
-    local url = 'https://github.com/' .. M.config.github_org .. '/' .. repo .. '/tree/main/' .. content
+    local pathname
+    if target:sub(-1) == '+' then
+      pathname = '/' .. target:sub(1, -2)
+    else
+      local branch, path = target:match('^([^:]+):(.+)$')
+      if not branch then
+        branch = 'main'
+        path = target
+      end
+      pathname = '/tree/' .. branch .. '/' .. path
+    end
+    local url = 'https://github.com/' .. M.config.github_org .. '/' .. repo .. pathname
     return {
-      info = function() return { { 'URL: ', 'Normal' }, { url, 'String' } } end,
+      inspect = function() return { { 'URL: ', 'Normal' }, { url, 'String' } } end,
       action = function()
         vim.notify('Opening: ' .. url, vim.log.levels.INFO)
         vim.fn.jobstart({ 'xdg-open', url }, { detach = true })
@@ -104,67 +118,61 @@ local function get_role_at_cursor()
   end
   if not node then return nil end
 
-  local role, content
+  local role, content, title, target
   for child in node:iter_children() do
     local t = child:type()
     if t == 'role' then
       role = vim.treesitter.get_node_text(child, bufnr):match('^:?([^:]+):?$')
     elseif t:match('interpreted_text') then
       content = vim.treesitter.get_node_text(child, bufnr):match('^`([^`]+)`$')
+      title, target = content:match('^%s*(.-)%s*<%s*(.-)%s*>%s*$')
+      if target then
+        if title == '' then title = nil end
+      else
+        target = content
+      end
     end
   end
-  return role, content
+  return role, title, target
 end
 
--- Info handler (<leader>rr)
-function M.info()
-  local role, content = get_role_at_cursor()
-  if not role or not content then
+-- Inspect handler
+function M.inspect()
+  local role, title, target = get_role_at_cursor()
+  if not role or not target then
     vim.notify('No role at cursor', vim.log.levels.WARN)
     return
   end
 
-  local def = resolve_role(role, content)
-  if def and def.info then
-    local result = def.info(content)
+  local def = resolve_role(role, title, target)
+  if def and def.inspect then
+    local result = def.inspect (title, target)
     if type(result) == 'string' then
       vim.notify(result, vim.log.levels.INFO)
     else
       vim.api.nvim_echo(result, true, {})
     end
   else
-    vim.notify(':' .. role .. ': `' .. content .. '`', vim.log.levels.INFO)
+    vim.notify(':' .. role .. ': `' .. target .. '`', vim.log.levels.INFO)
   end
 end
 
--- Action handler (gx)
+-- Action handler
 function M.action()
-  local role, content = get_role_at_cursor()
-  if not role or not content then
+  local role, title, target = get_role_at_cursor()
+  if not role or not target then
     vim.cmd('normal! gx')
     return
   end
 
-  local def = resolve_role(role, content)
+  local def = resolve_role(role, title, target)
   if def and def.action then
-    def.action(content)
+    def.action(title, target)
   elseif def then
-    vim.notify('No action available', vim.log.levels.INFO)
+    vim.notify('No action available for ' ..  role, vim.log.levels.INFO)
   else
     vim.cmd('normal! gx')
   end
-end
-
--- Setup keymaps
-function M.setup_keymaps()
-  vim.api.nvim_create_autocmd('FileType', {
-    pattern = 'rst',
-    callback = function()
-      local opts = { buffer = true, silent = true }
-      vim.keymap.set('n', '<leader>rr', M.info, vim.tbl_extend('force', opts, { desc = 'RST: Role info' }))
-      vim.keymap.set('n', 'gx', M.action, vim.tbl_extend('force', opts, { desc = 'RST: Role action' }))
-    end,
-  })
 end
 
 return M
