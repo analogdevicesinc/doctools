@@ -15,13 +15,13 @@ Ensure pip is newer than 23.0 [#f1]_:
 
 .. shell::
 
-   $pip install pip --upgrade
+   $ pip install pip --upgrade
 
 Install the documentation tools, which will fetch this repository release:
 
 .. shell::
 
-   $(cd docs ; pip install -r requirements.txt)
+   $ pip install adi-doctools
 
 Test it building this documentation:
 
@@ -29,10 +29,8 @@ Test it building this documentation:
 
    $(cd docs ; make html)
 
-
 .. [#f1] There is a `known bug <https://github.com/pypa/setuptools/issues/3269>`_
    with pip shipped with Ubuntu 22.04.
-
 
 Using a Python virtual environment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -45,8 +43,11 @@ To create and activate the environment, do before the previous instructions:
 
 .. shell::
 
-   $python3 -m venv venv
-   $source venv/bin/activate
+   $ python3 -m venv venv
+   $ source venv/bin/activate
+
+Don't create the `venv` inside the docs/ folder, since its files will be caught
+by the Sphinx builder.
 
 Use ``deactivate`` to exit the virtual environment.
 
@@ -54,7 +55,7 @@ For next builds, just activate the virtual environment:
 
 .. shell::
 
-   $source venv/bin/activate
+   $ source venv/bin/activate
 
 Release links and optional dependencies
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -74,6 +75,46 @@ Optional dependencies can be installed with:
 
    # test, cli, ...
    pip install 'adi_doctools[test] @ https://github.com/analogdevicesinc/doctools/releases/download/latest/adi-doctools.tar.gz'
+
+Neovim support
+~~~~~~~~~~~~~~
+
+A `Neovim <https://neovim.io/>`__ extension is available to add support and
+actions to the documentation. By using the modern
+[tree-sitter](https://tree-sitter.github.io/), the parser is extended to
+understand the custom directives and roles, including adding actions to preview
+and open links.
+
+To install, add to your LazyVim configuration:
+
+.. code:: lua
+
+   {
+     'analogdevicesinc/doctools',
+     branch = 'nvim'
+     config = function()
+       require("adi-doctools").setup()
+       vim.keymap.set('n', '<leader>rr', '<cmd>DInspect<cr>')
+       vim.keymap.set('n', '<leader>ra', '<cmd>DACtion<cr>')
+     end,
+   }
+
+Configure the shortcut as desired.
+
+Make sure you have common parsers installed, at least:
+
+::
+
+   :TSInstall rst
+   :TSInstall markdown
+   :TSInstall yaml
+   :TSInstall json
+
+You can inspect the tree with ``:InspectTree``.
+
+Not-implemented:
+
+- ``.md`` support.
 
 .. _latex:
 
@@ -128,10 +169,10 @@ At the repository root, install the `npm` dependencies locally:
 
 .. shell::
 
-   $npm install rollup \
-   $    @rollup/plugin-terser \
-   $    sass \
-   $    --save-dev
+   $ npm install rollup \
+         @rollup/plugin-terser \
+         sass \
+         --save-dev
 
 * rollup/plugin: Module bundler.
 * @rollup/plugin-terser: Minified bundle with terser.
@@ -149,7 +190,7 @@ Fetch third-party fonts:
 
 .. shell::
 
-   $./ci/fetch-fonts.sh
+   $ ./ci/fetch-fonts.sh
 
 Install the repository
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -158,7 +199,7 @@ Finally, do a symbolic installation of this repo:
 
 .. shell::
 
-   $pip install -e . --upgrade
+   $ pip install -e . --upgrade
 
 .. caution::
 
@@ -169,6 +210,18 @@ Finally, do a symbolic installation of this repo:
    packages outside the environment to not have access to the packages inside
    of it, breaking most CLIs.
 
+Neovim support
+~~~~~~~~~~~~~~
+
+Add to you lazyvim config the path to the branch ``nvim``:
+
+.. code:: lua
+
+   {
+     dir = '/path/to/doctools/nvim',
+     -- ...
+   }
+
 .. _removing:
 
 Removing
@@ -178,4 +231,4 @@ To remove, either release or development, do:
 
 .. shell::
 
-   $pip uninstall adi-doctools
+   $ pip uninstall adi-doctools
