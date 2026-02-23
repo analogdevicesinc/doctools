@@ -98,6 +98,7 @@
 <li><a class="reference internal" href="#release-install">Release install</a><ul>
 <li><a class="reference internal" href="#using-a-python-virtual-environment">Using a Python virtual environment</a></li>
 <li><a class="reference internal" href="#release-links-and-optional-dependencies">Release links and optional dependencies</a></li>
+<li><a class="reference internal" href="#neovim-support">Neovim support</a></li>
 <li><a class="reference internal" href="#latex-support">LaTeX support</a></li>
 </ul>
 </li>
@@ -105,6 +106,7 @@
 <li><a class="reference internal" href="#install-the-web-compiler">Install the web compiler</a></li>
 <li><a class="reference internal" href="#fetch-third-party-resources">Fetch third-party resources</a></li>
 <li><a class="reference internal" href="#install-the-repository">Install the repository</a></li>
+<li><a class="reference internal" href="#id4">Neovim support</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#removing">Removing</a></li>
@@ -182,7 +184,7 @@ Content on this topic
 <div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
 </pre></div>
 </div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">(</span><span class="nb">cd</span><span class="w"> </span>docs<span class="w"> </span><span class="p">;</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt<span class="o">)</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>adi-doctools
 </pre></div>
 </div>
 <div class="clear-left"></div></div></div><p>Test it building this documentation:</p>
@@ -217,7 +219,9 @@ ubuntu 22.04).</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">source</span><span class="w"> </span>venv/bin/activate
 </pre></div>
 </div>
-<div class="clear-left"></div></div></div><p>Use <code class="docutils literal notranslate"><span class="pre">deactivate</span></code> to exit the virtual environment.</p>
+<div class="clear-left"></div></div></div><p>Don’t create the <cite>venv</cite> inside the docs/ folder, since its files will be caught
+by the Sphinx builder.</p>
+<p>Use <code class="docutils literal notranslate"><span class="pre">deactivate</span></code> to exit the virtual environment.</p>
 <p>For next builds, just activate the virtual environment:</p>
 <div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
 </pre></div>
@@ -251,6 +255,39 @@ ubuntu 22.04).</p>
 pip<span class="w"> </span>install<span class="w"> </span><span class="s1">&#39;adi_doctools[test] @ https://github.com/analogdevicesinc/doctools/releases/download/latest/adi-doctools.tar.gz&#39;</span>
 </pre></div>
 </div>
+</section>
+<section id="neovim-support">
+<h3>Neovim support<a class="headerlink" href="#neovim-support" title="Link to this heading"></a></h3>
+<p>A <a class="icon link reference external" href="https://neovim.io/" target="_blank">Neovim</a> extension is available to add support and
+actions to the documentation. By using the modern
+[tree-sitter](<a class="icon link reference external" href="https://tree-sitter.github.io/" target="_blank">https://tree-sitter.github.io/</a>), the parser is extended to
+understand the custom directives and roles, including adding actions to preview
+and open links.</p>
+<p>To install, add to your LazyVim configuration:</p>
+<div class="highlight-lua notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="s1">&#39;analogdevicesinc/doctools&#39;</span><span class="p">,</span>
+<span class="w">  </span><span class="nv">branch</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;nvim&#39;</span>
+<span class="w">  </span><span class="nv">config</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
+<span class="w">    </span><span class="nb">require</span><span class="p">(</span><span class="s2">&quot;adi-doctools&quot;</span><span class="p">).</span><span class="nf">setup</span><span class="p">()</span>
+<span class="w">    </span><span class="nv">vim</span><span class="p">.</span><span class="py">keymap</span><span class="p">.</span><span class="nf">set</span><span class="p">(</span><span class="s1">&#39;n&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;&lt;leader&gt;rr&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;&lt;cmd&gt;DInspect&lt;cr&gt;&#39;</span><span class="p">)</span>
+<span class="w">    </span><span class="nv">vim</span><span class="p">.</span><span class="py">keymap</span><span class="p">.</span><span class="nf">set</span><span class="p">(</span><span class="s1">&#39;n&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;&lt;leader&gt;ra&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;&lt;cmd&gt;DACtion&lt;cr&gt;&#39;</span><span class="p">)</span>
+<span class="w">  </span><span class="kr">end</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Configure the shortcut as desired.</p>
+<p>Make sure you have common parsers installed, at least:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">:</span><span class="n">TSInstall</span> <span class="n">rst</span>
+<span class="p">:</span><span class="n">TSInstall</span> <span class="n">markdown</span>
+<span class="p">:</span><span class="n">TSInstall</span> <span class="n">yaml</span>
+<span class="p">:</span><span class="n">TSInstall</span> <span class="n">json</span>
+</pre></div>
+</div>
+<p>You can inspect the tree with <code class="docutils literal notranslate"><span class="pre">:InspectTree</span></code>.</p>
+<p>Not-implemented:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">.md</span></code> support.</p></li>
+</ul>
 </section>
 <section id="latex-support">
 <span id="latex"></span><h3>LaTeX support<a class="headerlink" href="#latex-support" title="Link to this heading"></a></h3>
@@ -297,9 +334,9 @@ section’s last paragraph.</p>
 </pre></div>
 </div>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>npm<span class="w"> </span>install<span class="w"> </span>rollup<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>@rollup/plugin-terser<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>sass<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--save-dev
+<span class="w">     </span>@rollup/plugin-terser<span class="w"> </span><span class="se">\</span>
+<span class="w">     </span>sass<span class="w"> </span><span class="se">\</span>
+<span class="w">     </span>--save-dev
 </pre></div>
 </div>
 <div class="clear-left"></div></div></div><ul class="simple">
@@ -340,9 +377,19 @@ packages outside the environment to not have access to the packages inside
 of it, breaking most CLIs.</p>
 </div>
 </section>
+<section id="id4">
+<h3>Neovim support<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
+<p>Add to you lazyvim config the path to the branch <code class="docutils literal notranslate"><span class="pre">nvim</span></code>:</p>
+<div class="highlight-lua notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nv">dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;/path/to/doctools/nvim&#39;</span><span class="p">,</span>
+<span class="w">  </span><span class="c1">-- ...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
 </section>
 <section id="removing">
-<span id="id4"></span><h2>Removing<a class="headerlink" href="#removing" title="Link to this heading"></a></h2>
+<span id="id5"></span><h2>Removing<a class="headerlink" href="#removing" title="Link to this heading"></a></h2>
 <p>To remove, either release or development, do:</p>
 <div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
 </pre></div>
