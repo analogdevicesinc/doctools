@@ -145,6 +145,7 @@ runs:
       shell: bash
       run: |
         # Fetch & reset
+        _fetch_depth=$(( fetch_depth > 500 ? 500 : fetch_depth ))
         # --empty was added on git 2.26.0
         [[ "${{ runner.debug }}" == "1" ]] && set -x
         has_keep=$(git rebase -help 2>&1 | grep "\--empty" | wc -l) || true
@@ -155,26 +156,26 @@ runs:
         fi
 
         if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-          git fetch origin --depth=$fetch_depth $head_sha
+          git fetch origin --depth=$_fetch_depth $head_sha
           git reset --hard FETCH_HEAD
         elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
           if [[ "$checkout_fallback" == "true" ]]; then
-            git fetch origin --depth=$fetch_depth $_GITHUB_SHA
+            git fetch origin --depth=$_fetch_depth $_GITHUB_SHA
             git reset --hard FETCH_HEAD
           elif [[ "$behind_by" -eq 0 ]]; then
-            git fetch origin --depth=$fetch_depth ${{ github.event.pull_request.head.sha }}
+            git fetch origin --depth=$_fetch_depth ${{ github.event.pull_request.head.sha }}
             git reset --hard FETCH_HEAD
           else
-          echo "Fetching commits in batches of $fetch_depth"
+          echo "Fetching commits in batches of $_fetch_depth"
           while ! git merge-base ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} &>/dev/null ; do
-              git fetch origin --deepen=$fetch_depth $_GITHUB_SHA
+              git fetch origin --deepen=$_fetch_depth $_GITHUB_SHA
             done
             git reset --hard ${{ github.event.pull_request.base.sha }}
             git rebase --rebase-merges $keep_empty ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }}
             git switch -C trunk
           fi
         else
-          git fetch origin --depth=$fetch_depth $_GITHUB_SHA
+          git fetch origin --depth=$_fetch_depth $_GITHUB_SHA
           git reset --hard $_GITHUB_SHA
         fi
 
@@ -188,12 +189,12 @@ runs:
           if [[ "$checkout_fallback" != "true" ]]; then
             base_sha=${{ github.event.before }}
           else
-            base_sha=$(git rev-parse @~$((fetch_depth - 1)))
+            base_sha=$(git rev-parse @~$((_fetch_depth - 1)))
           fi
         fi
 
         while ! git rev-parse $base_sha~ ; do
-          git fetch origin --deepen=$fetch_depth $_GITHUB_SHA
+          git fetch origin --deepen=$_fetch_depth $_GITHUB_SHA
         done
 
         if [[ "$checkout_fallback" != "true" ]]; then
