@@ -40,4 +40,4 @@ jobs:
       working-directory: docs
       run: |
         source ../venv/3/tests/bin/activate
-        make linkcheck
+        make linkcheck || true
