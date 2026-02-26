@@ -336,14 +336,3 @@ For :ref:`in-org-ref`, the doc shall target a specific version by suffixing
 the target the version on the ``interref_repos`` variable, e.g.
 ``interref_repos = ['pyadi-iio/dev', 'other-repo/v1.1']``.
 
-What happened to ``ADOC_TARGET_DEPTH``?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Previously there was also a ``ADOC_TARGET_DEPTH`` environment variables
-to create full relative links between versions, but this was deprecated
-by instead just using the root ``/`` for those links, e.g.
-``/doctools/v1.0.0`` instead of ``../../../doctools/v1.0.0`` from
-``doctools/v2.0.0/some/page.html``.
-
-This has the side effect of requiring to repository docs to be hosted right
-at the root.

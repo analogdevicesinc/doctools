@@ -1,4 +1,4 @@
-from os import path, getenv
+from os import path
 from packaging.version import Version
 
 from lxml import etree
@@ -24,7 +24,6 @@ def theme_config_setup(app):
     # Setup meta tag with target depth
     app.add_config_value('target_depth', None, 'env', [str])
 
-    app.connect("config-inited", config_inited)
     app.connect("builder-inited", builder_inited)
     app.connect("build-finished", build_finished)
 
@@ -36,16 +35,6 @@ setup = [
 
 names = ['cosmic', 'harmonic']
 
-
-def config_inited(app, config):
-    """
-    Overwrite theme options with enviroment variables.
-    Config values have higher precedance.
-    Meant for value injection during CI.
-    """
-    # DEPRECATED
-    if config.target_depth is not None or getenv("ADOC_TARGET_DEPTH", default=None) is not None:
-        logger.info("ADOC_TARGET_DEPTH is deprecated and has no effect.")
 
 def builder_inited(app):
     """
