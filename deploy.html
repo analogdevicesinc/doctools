@@ -107,7 +107,6 @@
 <li><a class="reference internal" href="#further-notes">Further notes</a><ul>
 <li><a class="reference internal" href="#i-don-t-want-a-doc-at-the-root">I don’t want a doc at the root</a></li>
 <li><a class="reference internal" href="#how-do-i-cross-reference-a-specific-version">How do I cross-reference a specific version?</a></li>
-<li><a class="reference internal" href="#what-happened-to-adoc-target-depth">What happened to <code class="docutils literal notranslate"><span class="pre">ADOC_TARGET_DEPTH</span></code>?</a></li>
 </ul>
 </li>
 </ul>
@@ -137,8 +136,7 @@ Content on this topic
 
 </div>
 <div class="toc-tree">
-  <html>
-  <body><ul class="current">
+  <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="fundamentals.html">Fundamentals</a></li>
 <li class="toctree-l1"><input class="toctree-collapse" type="checkbox" name="toctree-collapse-1" id="toctree-collapse-1"/><div class="collapse"><a class="reference internal" href="docs_guidelines/index.html">Documentation guidelines</a><label for="toctree-collapse-1"><div class="icon"></div></label></div><ul>
@@ -151,8 +149,7 @@ Content on this topic
 <li class="toctree-l1"><a class="reference internal" href="ci.html">Continuous integration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="theme.html">Sphinx theme</a></li>
 </ul>
-</body>
-</html>
+
 
 </div>
         </div>
@@ -464,16 +461,6 @@ to the main/stable version:</p>
 <p>For <a class="reference internal" href="docs_guidelines/index.html#in-org-ref"><span class="std std-ref">In organization reference</span></a>, the doc shall target a specific version by suffixing
 the target the version on the <code class="docutils literal notranslate"><span class="pre">interref_repos</span></code> variable, e.g.
 <code class="docutils literal notranslate"><span class="pre">interref_repos</span> <span class="pre">=</span> <span class="pre">['pyadi-iio/dev',</span> <span class="pre">'other-repo/v1.1']</span></code>.</p>
-</section>
-<section id="what-happened-to-adoc-target-depth">
-<h3>What happened to <code class="docutils literal notranslate"><span class="pre">ADOC_TARGET_DEPTH</span></code>?<a class="headerlink" href="#what-happened-to-adoc-target-depth" title="Link to this heading"></a></h3>
-<p>Previously there was also a <code class="docutils literal notranslate"><span class="pre">ADOC_TARGET_DEPTH</span></code> environment variables
-to create full relative links between versions, but this was deprecated
-by instead just using the root <code class="docutils literal notranslate"><span class="pre">/</span></code> for those links, e.g.
-<code class="docutils literal notranslate"><span class="pre">/doctools/v1.0.0</span></code> instead of <code class="docutils literal notranslate"><span class="pre">../../../doctools/v1.0.0</span></code> from
-<code class="docutils literal notranslate"><span class="pre">doctools/v2.0.0/some/page.html</span></code>.</p>
-<p>This has the side effect of requiring to repository docs to be hosted right
-at the root.</p>
 </section>
 </section>
 </section>

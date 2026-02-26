@@ -108,7 +108,6 @@
 <li><a class="reference internal" href="#table-of-contents">Table of contents</a><ul>
 <li><a class="reference internal" href="#position-matters">Position matters</a></li>
 <li><a class="reference internal" href="#top-level-caption">Top-level caption</a></li>
-<li><a class="reference internal" href="#filtering-multiple-topics">Filtering multiple topics</a></li>
 <li><a class="reference internal" href="#with-preview">With preview</a></li>
 </ul>
 </li>
@@ -167,8 +166,7 @@ Content on this topic
 
 </div>
 <div class="toc-tree">
-  <html>
-  <body><ul class="current">
+  <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../install.html">Installing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../fundamentals.html">Fundamentals</a></li>
 <li class="toctree-l1 current"><input class="toctree-collapse" type="checkbox" name="toctree-collapse-1" id="toctree-collapse-1" checked=""/><div class="collapse"><a class="current reference internal" href="#">Documentation guidelines</a><label for="toctree-collapse-1"><div class="icon"></div></label></div><ul>
@@ -181,8 +179,7 @@ Content on this topic
 <li class="toctree-l1"><a class="reference internal" href="../ci.html">Continuous integration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../theme.html">Sphinx theme</a></li>
 </ul>
-</body>
-</html>
+
 
 </div>
         </div>
@@ -574,17 +571,6 @@ phrases like <code class="docutils literal notranslate"><span class="pre">Tutori
 <p>You can think of top-level <code class="docutils literal notranslate"><span class="pre">toctree</span></code> captions as book volumes. For example,
 the <a class="icon git reference external" href="https://github.com/analogdevicesinc/documentation/tree/main/" target="_blank">ADI System Level Documentation repository</a> uses them to organize areas like evaluation boards,
 university programs, and Linux drivers.</p>
-</section>
-<section id="filtering-multiple-topics">
-<h3>Filtering multiple topics<a class="headerlink" href="#filtering-multiple-topics" title="Link to this heading"></a></h3>
-<p>For large documentation sets with multiple topic areas, it can be useful to
-filter navigation entries dynamically. This can be enabled via:</p>
-<ul class="simple">
-<li><p>Setting the environment variable <code class="docutils literal notranslate"><span class="pre">ADOC_FILTER_TOCTREE=1</span></code>.</p></li>
-<li><p>Or, setting <code class="docutils literal notranslate"><span class="pre">filter_toctree</span></code> in <code class="docutils literal notranslate"><span class="pre">conf.py</span></code> (this takes precedence).</p></li>
-</ul>
-<p>This mechanism is meant to be used alongside the <code class="docutils literal notranslate"><span class="pre">topic</span></code> metadata defined in
-<code class="docutils literal notranslate"><span class="pre">lut.py</span></code> so that top-level links remain consistent across topics.</p>
 </section>
 <section id="with-preview">
 <h3>With preview<a class="headerlink" href="#with-preview" title="Link to this heading"></a></h3>
