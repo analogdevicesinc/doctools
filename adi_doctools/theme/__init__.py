@@ -21,8 +21,6 @@ def theme_config_setup(app):
     app.add_config_value('monolithic', False, 'env', [bool])
     # Include sources of metadata, scripts, and styles
     app.add_config_value('core_repo', False, 'env', [bool])
-    # Hide topics from the toctree expect the current one
-    app.add_config_value('filter_toctree', None, 'env', [bool])
     # Setup meta tag with target depth
     app.add_config_value('target_depth', None, 'env', [str])
 
@@ -45,12 +43,6 @@ def config_inited(app, config):
     Config values have higher precedance.
     Meant for value injection during CI.
     """
-    if config.filter_toctree is None:
-        ftoc = getenv("ADOC_FILTER_TOCTREE", default="0")
-        config.filter_toctree = True if ftoc == "1" else False
-    else:
-        config.filter_toctree = True if config.filter_toctree else False
-
     # DEPRECATED
     if config.target_depth is not None or getenv("ADOC_TARGET_DEPTH", default=None) is not None:
         logger.info("ADOC_TARGET_DEPTH is deprecated and has no effect.")
@@ -204,50 +196,6 @@ def navigation_tree(app, toctree_html, content_root, pagename):
 
     lvl = [0]
 
-    def get_topic(pagename):
-        i = pagename.find('/')
-        return pagename[0:i] if i != -1 else ''
-
-    def filter_toctree(root, pagename):
-        """
-        Filter-out non-current topics/"toctrees-titles".
-        Non-titled toctrees are squashed with the last toctree, e.g.
-         toctrees                          |  visible
-         1, 2, 3 (current)                 -> 1, 2, 3
-         1 (current), 2 Info, 3, 4 User, 5 -> 1
-         1, 2 Info, 3, 4 User (current), 5 -> 4, 5
-         1, 2 Info, 3, 4 User, 5 (current) -> 4, 5
-         1, 2 Info, 3, 4 User, 5           -> 1, 2, 3, 4, 5
-
-        It is done like this because one reason to have multiple toctrees
-        is to tweak the max depth option depending on the content,
-        but still on the same topic.
-        Only the System Level Documentation should have toctrees with captions.
-        """
-        body = root.find('./body')
-
-        found = False
-        #      Current, Elements
-        tocs = [[False, []]]
-        for e in body.getchildren():
-            if e.tag == 'ul':
-                if e.get("class") == "current":
-                    tocs[-1][0] = True
-                    found = True
-            elif e.tag == 'p':
-                tocs.append([False,[]])
-            tocs[-1][1].append(e)
-
-        # If page not on toctree, do not filter
-        # e.g. /index.html, /search.html, orphan
-        if not found:
-            return
-
-        for t in tocs:
-            if not t[0]:
-                for e in t[1]:
-                    body.remove(e)
-
     def iterate(elem):
         for ul in elem.findall('./ul'):
             lvl[-1] += 1
@@ -288,15 +236,16 @@ def navigation_tree(app, toctree_html, content_root, pagename):
 
     if toctree_html:
         parser = etree.HTMLParser()
-        root = etree.fromstring(toctree_html, parser)
+        body = etree.fromstring(toctree_html, parser).find('./body')
 
-        if app.env.config.filter_toctree:
-            filter_toctree(root, pagename)
-        for ul in root.findall('./body/ul'):
+        for ul in body.findall('./ul'):
             for li in ul.findall('./li[@class]'):
                 iterate(li)
 
-        toctree_html = etree.tostring(root, pretty_print=True, encoding='unicode')
+        toctree_html = ''.join(
+            etree.tostring(child, pretty_print=True, encoding='unicode')
+            for child in body
+        )
 
     _repotoc_tree, _current = repotoc_tree(content_root, conf_vars, pagename)
     if conf_vars[0] in conf_vars[1]:
