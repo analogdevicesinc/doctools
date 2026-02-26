@@ -1,7 +1,6 @@
 include adi_doctools/miscellaneous/*.js
 include adi_doctools/miscellaneous/*.svg
 include adi_doctools/miscellaneous/*.css
-include adi_doctools/miscellaneous/static/*.js
 include adi_doctools/theme/harmonic/style/*.css
 include adi_doctools/theme/harmonic/static/*.svg
 include adi_doctools/theme/harmonic/static_common/*.umd.js

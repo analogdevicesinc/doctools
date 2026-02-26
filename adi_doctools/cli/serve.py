@@ -25,7 +25,6 @@ log = {
     'no_conf_py': "File conf.py not found, is {} a docs folder?",
     'inv_f': "Could not find {}, check rollup output.",
     'inv_srcdir': "Could not find SOURCEDIR {}.",
-    'no_dev_pool': "Built docs doesn't have dev-pool.js, discarted.",
     'rollup': "Couldn't find {}, ensure this a symbolic install.",
     'node': "Couldn't find the node executable, please install nodejs.",
     'node_alt': "And the node executable is not installed.",
@@ -298,15 +297,6 @@ def serve():
         else:
             logger.info("wrote pdf!")
 
-    if args.builder == 'html':
-        environ["ADOC_DEVPOOL"] = ""
-        if (path.isdir(builddir) and
-            not path.isfile(path.join(builddir, '_static', 'dev-pool.js'))):
-          # Verify if cached is without dev-pool
-          logger.info(log["no_dev_pool"])
-          subprocess.call(f"sphinx-build -M clean . {builddir} -j auto",
-                          shell=True, cwd=directory)
-
     if not args.verbose:
         print(f"\nTip: enable full output with {BLUE}--verbose{NC}\n")
 
@@ -420,9 +410,12 @@ def serve():
     shutdown_event = threading.Event()
     reload_event = threading.Event()
     dev_pool_lock = threading.Lock()
+
+    with open(path.join(src_dir, 'miscellaneous', 'dev-pool.js'), 'r') as f:
+        dev_pool_script = f'<script id="dev-pool">\n{f.read()}</script>\n</body>'.encode()
+
     class Handler(http.server.SimpleHTTPRequestHandler):
         def __init__(self, *args, **kwargs):
-            global builddir
             super().__init__(*args, directory=builddir, **kwargs)
 
         def do_GET(self):
@@ -431,29 +424,37 @@ def serve():
             if shutdown_event.is_set():
                 return
 
-            def send_dev_pool():
-                self.send_response(200)
-                self.send_header("Content-type", "text/plain")
-                self.end_headers()
-                with dev_pool_lock:
-                    self.wfile.write(dev_pool_val)
-                self.end_headers()
-                return
-
             try:
                 if self.path == "/.dev-pool":
-                    if self.headers.get("no-wait") is not None:
-                        send_dev_pool()
-                        return
-                    if reload_event.wait(timeout=30):
+                    self.send_response(200)
+                    self.send_header("Content-type", "text/plain")
+                    self.end_headers()
+                    if self.headers.get("no-wait") is None:
+                        if not reload_event.wait(timeout=30):
+                            with dev_pool_lock:
+                                dev_pool_val = f"{time.time()}\n@timed-out\n".encode()
                         reload_event.clear()
-                        send_dev_pool()
-                    else:
-                        with dev_pool_lock:
-                            dev_pool_val_ = f"{str(time.time())}\n@timed-out\n"
-                            dev_pool_val = bytes(dev_pool_val_, 'utf-8')
-                        send_dev_pool()
+                    with dev_pool_lock:
+                        self.wfile.write(dev_pool_val)
                     return
+
+                url_path = self.path.split('?')[0]
+                if url_path.endswith('/'):
+                    url_path += 'index.html'
+                elif not path.splitext(url_path)[1]:
+                    url_path += '/index.html'
+
+                if url_path.endswith('.html'):
+                    file_path = path.join(builddir, url_path.lstrip('/'))
+                    if path.isfile(file_path):
+                        with open(file_path, 'rb') as f:
+                            content = f.read().replace(b'</body>', dev_pool_script)
+                        self.send_response(200)
+                        self.send_header("Content-type", "text/html")
+                        self.send_header("Content-Length", len(content))
+                        self.end_headers()
+                        self.wfile.write(content)
+                        return
 
                 for ext in types_lfs:
                     if self.path.endswith(ext):
