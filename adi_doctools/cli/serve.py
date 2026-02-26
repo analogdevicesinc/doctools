@@ -6,7 +6,9 @@ import logging
 import importlib
 import tempfile
 
+from packaging.version import Version
 from sphinx.application import Sphinx
+from sphinx import __version__ as __sphinx_version__
 
 from ..monkeypatch import monkeypatch_check_dependents
 from .aux_os import aux_killpg
@@ -17,6 +19,7 @@ from .logging import BLUE, FAIL, RED, NC
 logger = logging.getLogger(__name__)
 
 log = {
+    'sphinx_too_old': "Serve does not support sphinx < 7.3.0, current installed is {}.",
     'no_lfs': "File .gitattributes contains lfs rules, but git-lfs is not installed.",
     'lfs_skip_smudge': "GIT_LFS_SKIP_SMUDGE=1 is set, GET requests won't smudge files, only touching the source!",
     'no_conf_py': "File conf.py not found, is {} a docs folder?",
@@ -73,6 +76,10 @@ def serve():
     global app, builddir
 
     args = get_arguments_serve()
+
+    if Version(__sphinx_version__) < Version('7.3.0'):
+        logger.error(log["sphinx_too_old"].format(__sphinx_version__))
+        return True
 
     def symbolic_assert(file, msg):
         if not path.isfile(file):
