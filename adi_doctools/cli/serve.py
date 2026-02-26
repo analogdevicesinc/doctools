@@ -10,6 +10,7 @@ from packaging.version import Version
 from sphinx.application import Sphinx
 from sphinx import __version__ as __sphinx_version__
 
+from ..monkeypatch import monkeypatch_build_environment
 from .aux_os import aux_killpg
 from .aux_git import get_git_top_level, get_git_dir, is_git_lfs_installed, get_lfs_sha
 from .argument_parser import get_arguments_serve
@@ -477,6 +478,8 @@ def serve():
     app = Sphinx(directory, directory, builddir,
                  doctreedir, args.builder, confoverrides=confoverrides,
                  parallel=0, status=sys.stdout if args.verbose else None)
+
+    monkeypatch_build_environment()
 
     def get_source_lfs_file(path_, ext):
         """
