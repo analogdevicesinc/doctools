@@ -8,6 +8,7 @@ import tempfile
 
 from sphinx.application import Sphinx
 
+from ..monkeypatch import monkeypatch_check_dependents
 from .aux_os import aux_killpg
 from .aux_git import get_git_top_level, get_git_dir, is_git_lfs_installed, get_lfs_sha
 from .argument_parser import get_arguments_serve
@@ -374,6 +375,9 @@ def serve():
     app = Sphinx(directory, directory, builddir,
                  doctreedir, args.builder, parallel=0,
                  status=sys.stdout if args.verbose else None)
+
+    # Skip env-get-updated unless toctree structure changes
+    monkeypatch_check_dependents()
 
     def get_source_lfs_file(path_, ext):
         """

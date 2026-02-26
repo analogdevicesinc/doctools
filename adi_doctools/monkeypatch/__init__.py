@@ -2,6 +2,34 @@ from docutils import nodes
 from sphinx.environment.collectors.toctree import TocTreeCollector
 from sphinx.builders.singlehtml import SingleFileHTMLBuilder
 from sphinx.writers.html5 import HTML5Translator
+from sphinx.environment import BuildEnvironment
+
+_toctree_changed = False
+
+
+def monkeypatch_check_dependents():
+    """
+    Patch BuildEnvironment to skip the env-get-updated event.
+
+    Skips env-get-updated unless the toctree structure changed.
+    Used for the live server incremental dirty builds.
+    """
+    old_get_outdated_files = BuildEnvironment.get_outdated_files
+    old_check_dependents = BuildEnvironment.check_dependents
+
+    def get_outdated_files(self, config_changed):
+        global _toctree_changed
+        added, changed, removed = old_get_outdated_files(self, config_changed)
+        _toctree_changed = bool(added or removed)
+        return added, changed, removed
+
+    def check_dependents(self, app, already):
+        if not _toctree_changed:
+            return iter([])
+        return old_check_dependents(self, app, already)
+
+    BuildEnvironment.get_outdated_files = get_outdated_files
+    BuildEnvironment.check_dependents = check_dependents
 
 
 def monkeypatch_figure_numbers():
