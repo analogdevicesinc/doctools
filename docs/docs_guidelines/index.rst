@@ -435,18 +435,6 @@ You can think of top-level ``toctree`` captions as book volumes. For example,
 the :git-documentation:`/` uses them to organize areas like evaluation boards,
 university programs, and Linux drivers.
 
-Filtering multiple topics
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-For large documentation sets with multiple topic areas, it can be useful to
-filter navigation entries dynamically. This can be enabled via:
-
-* Setting the environment variable ``ADOC_FILTER_TOCTREE=1``.
-* Or, setting ``filter_toctree`` in ``conf.py`` (this takes precedence).
-
-This mechanism is meant to be used alongside the ``topic`` metadata defined in
-``lut.py`` so that top-level links remain consistent across topics.
-
 With preview
 ~~~~~~~~~~~~
 
