@@ -53,6 +53,93 @@ static_core_path = path.join(theme_path, 'static_core')
 dev_pool_val = b""
 
 
+def _exclude_siblings(basedir, path_parts, exclude_patterns, prefix=''):
+    """
+    Recursively exclude sibling directories at each level of the sparse path.
+    """
+    if len(path_parts) < 2:
+        return
+
+    current = path_parts[0]
+    current_path = path.join(basedir, current)
+    current_prefix = f'{prefix}/{current}' if prefix else current
+
+    if not path.isdir(current_path):
+        return
+
+    for sibling in listdir(current_path):
+        sibling_path = path.join(current_path, sibling)
+        if not path.isdir(sibling_path):
+            continue
+        if sibling == path_parts[1]:
+            _exclude_siblings(current_path, path_parts[1:], exclude_patterns, current_prefix)
+        else:
+            relative = f'{current_prefix}/{sibling}'
+            exclude_patterns.append(relative)
+
+
+def compute_sparse_config(directory, sparse, verbose):
+    """
+    Compute confoverrides dict for sparse builds.
+    """
+    if not sparse:
+        return confoverrides
+
+    spec = importlib.util.spec_from_file_location("conf", path.join(directory, 'conf.py'))
+    conf = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(conf)
+
+    exclude_patterns = list(conf.exclude_patterns) if hasattr(conf, 'exclude_patterns') else []
+
+    sparse = sparse.rstrip('/')
+    if sparse.endswith('.rst'):
+        sparse = sparse[:-4]
+    elif sparse.endswith('.md'):
+        sparse = sparse[:-3]
+    sparse_parts = sparse.split('/')
+
+    for item in listdir(directory):
+        item_path = path.join(directory, item)
+        if item.startswith('.') or item.startswith('_'):
+            continue
+        if item in exclude_patterns:
+            continue
+
+        if path.isdir(item_path):
+            if item == sparse_parts[0]:
+                _exclude_siblings(directory, sparse_parts, exclude_patterns)
+            else:
+                index_rst = path.join(item_path, 'index.rst')
+                if path.isfile(index_rst):
+                    exclude_patterns.extend([f'{item}/index', f'{item}/*'])
+                else:
+                    exclude_patterns.append(item)
+        elif item.endswith('.rst') or item.endswith('.md'):
+            name = item[:-4] if item.endswith('.rst') else item[:-3]
+            if name != sparse_parts[0] and name != 'index':
+                exclude_patterns.append(item)
+
+    suppress_warnings = conf.suppress_warnings if hasattr(conf, 'suppress_warnings') else []
+    for w in ['toc.excluded', 'toc.empty_glob']:
+        if w not in suppress_warnings:
+            suppress_warnings.append(w)
+
+    interref_repos = conf.interref_repos if hasattr(conf, 'interref_repos') else []
+    if hasattr(conf, 'repository') and conf.repository not in interref_repos:
+        interref_repos.append(conf.repository)
+
+    confoverrides = {
+        'intersphinx_disabled_reftypes': [],
+        'exclude_patterns': exclude_patterns,
+        'suppress_warnings': suppress_warnings,
+        'interref_repos': interref_repos,
+    }
+    if verbose:
+        logger.info("Setting confoverrides: " + str(confoverrides))
+
+    return confoverrides
+
+
 def serve():
     """
     Watch the docs and source code to rebuild it on edit.
@@ -230,8 +317,7 @@ def serve():
         builddir_ = "_build"
     builddir = path.join(directory, builddir_, args.builder)
     doctreedir = path.join(directory, builddir_, "doctrees")
-    sourcedir = directory
-    if dir_assert(sourcedir, log['inv_srcdir']):
+    if dir_assert(directory, log['inv_srcdir']):
         sys.exit(1)
 
     types_lfs = []
@@ -253,6 +339,8 @@ def serve():
                 elif ("GIT_LFS_SKIP_SMUDGE" in environ and
                       environ["GIT_LFS_SKIP_SMUDGE"] == "1"):
                     logger.error(f"{FAIL}{log['lfs_skip_smudge']}{NC}")
+
+    confoverrides = compute_sparse_config(directory, args.sparse, args.verbose)
 
     # Define PDF generation
     def generate_toctree(bookmarks, indent=0):
@@ -299,11 +387,20 @@ def serve():
     if not args.verbose:
         print(f"\nTip: enable full output with {BLUE}--verbose{NC}\n")
 
+    def _confoverrides_to_arg():
+        override_args = []
+        for key, value in confoverrides.items():
+            if isinstance(value, list):
+                override_args.append(f"-D {key}={','.join(value)}")
+            else:
+                override_args.append(f"-D {key}={value}")
+        return ' '.join(override_args)
+
     def app_subprocess_build():
         warn_file = tempfile.NamedTemporaryFile(mode='w+', suffix='.log')
-
+        confoverride_str = _confoverrides_to_arg()
         print("-- Building --")
-        subprocess.run(f"sphinx-build -b {args.builder} . {builddir} -d {doctreedir} -j auto --warning-file {warn_file.name}",
+        subprocess.run(f"sphinx-build -b {args.builder} . {builddir} -d {doctreedir} -j auto {confoverride_str} --warning-file {warn_file.name}",
                        shell=True, cwd=directory, capture_output=not(args.verbose))
 
         if not(args.verbose) and path.getsize(warn_file.name) > 0:
@@ -369,8 +466,8 @@ def serve():
     # app.build() doesn't handle the cache well in parallel,
     # instead, we call through subprocess if needed
     app = Sphinx(directory, directory, builddir,
-                 doctreedir, args.builder, parallel=0,
-                 status=sys.stdout if args.verbose else None)
+                 doctreedir, args.builder, confoverrides=confoverrides,
+                 parallel=0, status=sys.stdout if args.verbose else None)
 
     def get_source_lfs_file(path_, ext):
         """
@@ -573,7 +670,7 @@ def serve():
         files = []
         ctime = []
         for typ in types:
-            glob_ = path.join(sourcedir, typ)
+            glob_ = path.join(directory, typ)
             _files = glob.glob(glob_)
             __files = [path.abspath(f) for f in _files]
             files.extend(__files)
@@ -582,13 +679,13 @@ def serve():
         if path.isfile(conf_py):
             files.append(conf_py)
             ctime.append(stat(conf_py).st_mtime)
-        dirs = [d for d in listdir(sourcedir)
-                if path.isdir(path.join(sourcedir, d))]
+        dirs = [d for d in listdir(directory)
+                if path.isdir(path.join(directory, d))]
         if builddir_ in dirs:
             dirs.remove(builddir_)
         for d in dirs:
             for typ in types:
-                glob_ = path.join(sourcedir, d, '**', typ)
+                glob_ = path.join(directory, d, '**', typ)
                 _files = glob.glob(glob_, recursive=True)
                 __files = [path.abspath(f) for f in _files]
                 for f in __files:
@@ -614,7 +711,7 @@ def serve():
         else:
             return trigger_rst_
 
-        path_ = path.relpath(file, sourcedir)[:c] + ".html"
+        path_ = path.relpath(file, directory)[:c] + ".html"
         if path_.startswith("../"):
             # Outside of source dir, unsupported
             return trigger_rst_
@@ -701,8 +798,8 @@ def serve():
                 _clean_up_global_state()
                 app_subprocess_build()
                 app = Sphinx(directory, directory, builddir,
-                             doctreedir, args.builder, parallel=0,
-                             status=sys.stdout if args.verbose else None)
+                             doctreedir, args.builder, confoverrides=confoverrides,
+                             parallel=0, status=sys.stdout if args.verbose else None)
             else:
                 print("-- Building --")
                 app.build()
