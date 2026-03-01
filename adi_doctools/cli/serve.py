@@ -10,7 +10,7 @@ from packaging.version import Version
 from sphinx.application import Sphinx
 from sphinx import __version__ as __sphinx_version__
 
-from ..monkeypatch import monkeypatch_build_environment
+from ..monkeypatch import monkeypatch_build_environment, monkeypatch_set_changed_files
 from .aux_os import aux_killpg
 from .aux_git import get_git_top_level, get_git_dir, is_git_lfs_installed, get_lfs_sha
 from .argument_parser import get_arguments_serve
@@ -814,6 +814,7 @@ def serve():
                              parallel=0, status=sys.stdout if args.verbose else None)
             else:
                 print("-- Building --")
+                monkeypatch_set_changed_files(changed_files, toctree_structure_changed)
                 app.build()
                 print("---- Done ----")
         if update_dev:

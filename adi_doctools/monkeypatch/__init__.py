@@ -4,21 +4,46 @@ from sphinx.builders.singlehtml import SingleFileHTMLBuilder
 from sphinx.writers.html5 import HTML5Translator
 from sphinx.environment import BuildEnvironment
 
+_serve_changed_files: list[str] | None = None
 _toctree_changed = False
+
+
+def monkeypatch_set_changed_files(changed_files: list[str] | None, toctree_changed: bool = False):
+    """
+    Set the list of changed files from serve.py.
+    When set, get_outdated_files uses this instead of scanning.
+    """
+    global _serve_changed_files, _toctree_changed
+    _serve_changed_files = changed_files
+    _toctree_changed = toctree_changed
 
 
 def monkeypatch_build_environment():
     """
-    Patch BuildEnvironment to skip the env-get-updated event.
-
-    Skips env-get-updated unless the toctree structure changed.
-    Used for the live server incremental dirty builds.
+    Allow overwriting list of changed files and supress env-get-updated
+    from being emitted.
     """
     old_get_outdated_files = BuildEnvironment.get_outdated_files
     old_check_dependents = BuildEnvironment.check_dependents
 
     def get_outdated_files(self, config_changed):
-        global _toctree_changed
+        global _serve_changed_files, _toctree_changed
+
+        if _serve_changed_files is not None:
+            changed_files = _serve_changed_files
+            _serve_changed_files = None
+
+            changed = set()
+            for filepath in changed_files:
+                docname = self.path2doc(filepath)
+                if docname and docname in self.all_docs:
+                    changed.add(docname)
+
+            if _toctree_changed:
+                return old_get_outdated_files(self, config_changed)
+
+            return set(), changed, set()
+
         added, changed, removed = old_get_outdated_files(self, config_changed)
         _toctree_changed = bool(added or removed)
         return added, changed, removed
