@@ -78,12 +78,22 @@ def _exclude_siblings(basedir, path_parts, exclude_patterns, prefix=''):
             exclude_patterns.append(relative)
 
 
+def _normalize_sparse_path(sparse):
+    """Normalize a sparse path by stripping extensions and trailing slashes."""
+    sparse = sparse.rstrip('/')
+    if sparse.endswith('.rst'):
+        sparse = sparse[:-4]
+    elif sparse.endswith('.md'):
+        sparse = sparse[:-3]
+    return sparse
+
+
 def compute_sparse_config(directory, sparse, verbose):
     """
     Compute confoverrides dict for sparse builds.
     """
     if not sparse:
-        return confoverrides
+        return {}
 
     spec = importlib.util.spec_from_file_location("conf", path.join(directory, 'conf.py'))
     conf = importlib.util.module_from_spec(spec)
@@ -91,12 +101,9 @@ def compute_sparse_config(directory, sparse, verbose):
 
     exclude_patterns = list(conf.exclude_patterns) if hasattr(conf, 'exclude_patterns') else []
 
-    sparse = sparse.rstrip('/')
-    if sparse.endswith('.rst'):
-        sparse = sparse[:-4]
-    elif sparse.endswith('.md'):
-        sparse = sparse[:-3]
-    sparse_parts = sparse.split('/')
+    sparse_paths = [_normalize_sparse_path(s) for s in sparse]
+    sparse_parts_list = [s.split('/') for s in sparse_paths]
+    top_level_includes = {parts[0] for parts in sparse_parts_list}
 
     for item in listdir(directory):
         item_path = path.join(directory, item)
@@ -106,8 +113,10 @@ def compute_sparse_config(directory, sparse, verbose):
             continue
 
         if path.isdir(item_path):
-            if item == sparse_parts[0]:
-                _exclude_siblings(directory, sparse_parts, exclude_patterns)
+            if item in top_level_includes:
+                for sparse_parts in sparse_parts_list:
+                    if sparse_parts[0] == item:
+                        _exclude_siblings(directory, sparse_parts, exclude_patterns)
             else:
                 index_rst = path.join(item_path, 'index.rst')
                 if path.isfile(index_rst):
@@ -116,7 +125,7 @@ def compute_sparse_config(directory, sparse, verbose):
                     exclude_patterns.append(item)
         elif item.endswith('.rst') or item.endswith('.md'):
             name = item[:-4] if item.endswith('.rst') else item[:-3]
-            if name != sparse_parts[0] and name != 'index':
+            if name not in top_level_includes and name != 'index':
                 exclude_patterns.append(item)
 
     suppress_warnings = conf.suppress_warnings if hasattr(conf, 'suppress_warnings') else []
