@@ -57,7 +57,22 @@ All options can be listed with:
 
 .. shell::
 
-   $adoc serve --help
+   $ adoc serve --help
+
+.. _serve sparse:
+
+Sparse builds
++++++++++++++
+
+Inspired on git sparse clones, it is possible to build only some parts of the
+documentation, for example:
+
+.. shell::
+
+   # Include only learning/**/* and solutions/**/*
+   $ adoc serve --sparse learning solution/
+
+This is a critical feature to build large docs, ensuring snappy live reloads.
 
 .. _serve lfs:
 
