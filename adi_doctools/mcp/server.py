@@ -19,6 +19,8 @@ from mcp.types import Tool, TextContent
 
 app = Server("adoc")
 
+background_processes: set[subprocess.Popen] = set()
+
 tool_desc_search = (
     "Search Analog Devices documentation repositories. "
     "Use this to find datasheets, HDL projects, no-OS drivers, "
@@ -100,6 +102,37 @@ async def list_tools() -> list[Tool]:
 ]
 
 
+async def run_adoc_command_background(cmd: list[str]) -> dict[str, Any]:
+    loop = asyncio.get_event_loop()
+    process = await loop.run_in_executor(
+        None,
+        lambda: subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+    )
+
+    await asyncio.sleep(0.5)
+
+    if process.poll() is not None:
+        stdout, stderr = process.communicate()
+        return {
+            "success": False,
+            "output": stderr or stdout,
+            "exit_code": process.returncode,
+        }
+
+    background_processes.add(process)
+
+    return {
+        "success": True,
+        "output": f"Process running in the background, pid {process.pid}\n",
+        "exit_code": 0,
+    }
+
+
 async def run_adoc_command(command: str, args: list[str]) -> dict[str, Any]:
     """Run an adoc CLI command using subprocess.
 
@@ -108,6 +141,9 @@ async def run_adoc_command(command: str, args: list[str]) -> dict[str, Any]:
     :return: Dictionary containing the command output and status
     """
     cmd = ["adoc", command] + args
+
+    if command == "serve" and "--once" not in args:
+        return await run_adoc_command_background(cmd)
 
     loop = asyncio.get_event_loop()
     result = await loop.run_in_executor(
@@ -155,6 +191,9 @@ async def main():
 
     def signal_handler(signum, frame):
         """Handle SIGTERM by triggering graceful shutdown."""
+        for process in background_processes:
+            if process.poll() is None:
+                process.terminate()
         shutdown_event.set()
 
     signal.signal(signal.SIGTERM, signal_handler)
