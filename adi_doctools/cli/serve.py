@@ -88,6 +88,41 @@ def _normalize_sparse_path(sparse):
     return sparse
 
 
+def _parse_toctree_entries(index_path):
+    """
+    Parse toctree entries from an rst file.
+    Returns a list of toctree entry patterns (e.g., 'solutions/*/index').
+    Uses same parsing approach as custom_doc.py _patch_index.
+    """
+    entries = []
+    if not path.isfile(index_path):
+        return entries
+
+    with open(index_path, 'r') as f:
+        data = f.readlines()
+
+    if ".. toctree::\n" not in data:
+        return entries
+
+    while ".. toctree::\n" in data:
+        data = data[data.index(".. toctree::\n") + 1:]
+
+        for i in range(0, len(data)):
+            line = data[i]
+            if line != '\n' and not line.rstrip().startswith('   '):
+                break
+            elif line.startswith('   :'):
+                continue
+            elif line[0:3] == '   ' and line[0:4] != '   :':
+                entry = line.strip()
+                pos = entry.find('<')
+                if pos != -1 and entry.endswith('>'):
+                    entry = entry[pos + 1:-1]
+                entries.append(entry)
+
+    return entries
+
+
 def compute_sparse_config(directory, sparse, verbose):
     """
     Compute confoverrides dict for sparse builds.
@@ -108,6 +143,15 @@ def compute_sparse_config(directory, sparse, verbose):
     sparse_parts_list = [s.split('/') for s in sparse_paths]
     top_level_includes = {parts[0] for parts in sparse_parts_list}
 
+    toctree_entries = _parse_toctree_entries(path.join(directory, 'index.rst'))
+
+    toctree_by_toplevel = {}
+    for entry in toctree_entries:
+        toplevel = entry.split('/')[0]
+        if toplevel not in toctree_by_toplevel:
+            toctree_by_toplevel[toplevel] = []
+        toctree_by_toplevel[toplevel].append(entry)
+
     for item in listdir(directory):
         item_path = path.join(directory, item)
         if item.startswith('.') or item.startswith('_'):
@@ -121,11 +165,15 @@ def compute_sparse_config(directory, sparse, verbose):
                     if sparse_parts[0] == item:
                         _exclude_siblings(directory, sparse_parts, exclude_patterns)
             else:
-                index_rst = path.join(item_path, 'index.rst')
-                if path.isfile(index_rst):
-                    exclude_patterns.extend([f'{item}/index', f'{item}/*'])
+                if item in toctree_by_toplevel:
+                    exclude_patterns.extend(toctree_by_toplevel[item])
+                    exclude_patterns.append(f'{item}/*')
                 else:
-                    exclude_patterns.append(item)
+                    index_rst = path.join(item_path, 'index.rst')
+                    if path.isfile(index_rst):
+                        exclude_patterns.extend([f'{item}/index', f'{item}/*'])
+                    else:
+                        exclude_patterns.append(item)
         elif item.endswith('.rst') or item.endswith('.md'):
             name = item[:-4] if item.endswith('.rst') else item[:-3]
             if name not in top_level_includes and name != 'index':
