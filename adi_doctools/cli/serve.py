@@ -95,6 +95,9 @@ def compute_sparse_config(directory, sparse, verbose):
     if not sparse:
         return {}
 
+    for i, sp in enumerate(sparse):
+        sparse[i] = path.relpath(path.abspath(sp), directory)
+
     spec = importlib.util.spec_from_file_location("conf", path.join(directory, 'conf.py'))
     conf = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(conf)
