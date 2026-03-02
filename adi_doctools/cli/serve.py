@@ -477,96 +477,17 @@ def serve():
         print("---- Done ----")
         warn_file.close()
 
-    watch_file_src = {}
-    watch_file_rst = {}
-    git_ref = None
-    toctree_file = path.join(builddir, '_toctree.html')
-    toctree_mtime = None
-    toctree_content = None
-    if args.dev:
-        w_files = []
-        # Check if minified files exists, if not, run rollup once
-        rollup_cache = True
-        for f in source_common_files:
-            if not path.isfile(f):
-                rollup_cache = False
-        for f in source_core_files:
-            if not path.isfile(f):
-                rollup_cache = False
-        if not rollup_cache:
-            subprocess.call(f"{rollup_bin} -c {rollup_conf}",
-                            shell=True, cwd=par_dir)
-            subprocess.call(f"{sass_bin} --style compressed {sass_conf}",
-                            shell=True, cwd=par_dir)
-        for t in ['*.umd.js*', '*.min.css*']:
-            f = glob.glob(path.join(src_dir, 'theme', 'harmonic', 'static_common', t))
-            w_files.extend(f)
-        for t in ['*.umd.js*', '*.min.css*']:
-            f = glob.glob(path.join(src_dir, 'theme', 'harmonic', 'static_core', t))
-            w_files.extend(f)
-        for f in w_files:
-            if symbolic_assert(f, log['inv_f']):
-                sys.exit(1)
-
-        # Build doc the first time
-        app_subprocess_build()
-        for f in w_files:
-            watch_file_src[f] = stat(f).st_mtime
-        if not args.once:
-            # Run rollup and sass in watch mode
-            cmd_rollup = f"{rollup_bin} -c {rollup_conf} --watch"
-            cmd_sass = f"{sass_bin} --style compressed --watch {sass_conf}"
-            rollup_p = subprocess.Popen(cmd_rollup, shell=True, cwd=par_dir,
-                                        stdout=subprocess.DEVNULL)
-            sass_p = subprocess.Popen(cmd_sass, shell=True, cwd=par_dir,
-                                      stdout=subprocess.DEVNULL)
-        elif args.builder == "singlehtml":
-            update_pdf()
-    else:
-        # Build doc the first time
-        app_subprocess_build()
-        if args.builder == "singlehtml":
-            update_pdf()
-
-    if args.once:
-        return
-
-    # app.build() doesn't handle the cache well in parallel,
-    # instead, we call through subprocess if needed
-    app = Sphinx(directory, directory, builddir,
-                 doctreedir, args.builder, confoverrides=confoverrides,
-                 parallel=0, status=sys.stdout if args.verbose else None)
-
-    def get_source_lfs_file(path_, ext):
+    def wsl2_networking():
         """
-        Check if _build binary file is a git lfs pointer,
-        and if so, search and return the source file path.
-        If any step fails, returns None
+        Helps Windows pick-up WSL2 exposed port.
         """
-        if sha := get_lfs_sha(path_):
-            name_ = path.basename(path_)
-            name_ = re.sub(r'(_?\d+)?\.\w+$', '', name_)
-            pattern = path.join(directory, '**', f'*{ext}')
-            files = []
-            for file_path in glob.glob(pattern, recursive=True):
-                if ("/_build/" not in path.normpath(file_path) and
-                    "/build/" not in path.normpath(file_path) and
-                    name_ in path.basename(file_path)):
-                    files.append(file_path)
-
-            for file in files:
-                try:
-                    with open(file, 'rb') as f:
-                        f.seek(54)
-                        sha_ = f.read(64)
-                        if sha == sha_:
-                            return file
-                except Exception:
-                    pass
-
-            return None
-        else:
-            return None
+        if shutdown_event.wait(0.5):
+            return
+        try:
+            from urllib.request import urlopen
+            urlopen(f"http://0.0.0.0:{args.port}", timeout=0.5)
+        except Exception as e:
+            logger.debug(str(e))
 
     shutdown_event = threading.Event()
     reload_event = threading.Event()
@@ -663,19 +584,9 @@ def serve():
         def log_message(self, format, *args):
             return
 
-    def wsl2_networking():
-        """
-        Helps Windows pick-up WSL2 exposed port.
-        """
-        if shutdown_event.wait(0.5):
-            return
-        try:
-            from urllib.request import urlopen
-            urlopen(f"http://0.0.0.0:{args.port}", timeout=0.5)
-        except Exception as e:
-            logger.debug(str(e))
-
-    if args.builder == "html":
+    rollup_p = None
+    sass_p = None
+    if not args.once and args.builder == "html":
         try:
             socketserver.ThreadingTCPServer.allow_reuse_address = True
             http = socketserver.ThreadingTCPServer(("", args.port), Handler)
@@ -683,19 +594,116 @@ def serve():
             http_thread = threading.Thread(target=http.serve_forever)
             http_thread.daemon = True
             http_thread.start()
-            print(f"\nRunning server on http://0.0.0.0:{BLUE}{args.port}{NC}?v={str(uuid4())[:2]}\n")
 
             if path.isdir("/mnt/wsl"):
                 wsl2_thread = threading.Thread(target=wsl2_networking)
                 wsl2_thread.daemon = True
                 wsl2_thread.start()
-        except Exception:
-            logger.error(f"Could not start server on http://0.0.0.0:{FAIL}{args.port}{NC}")
-            print(f"  {BLUE}Tip{NC}: pass another port with {BLUE}--port{NC}")
+        except Exception as e:
+            if str(e) == "[Errno 98] Address already in use":
+                logger.error(f"Could not start server on http://0.0.0.0:{FAIL}{args.port}{NC}, port in use")
+                print(f"  {BLUE}Tip{NC}: pass another port with {BLUE}--port{NC}")
+            else:
+                logger.error(f"Could not start server on http://0.0.0.0:{FAIL}{args.port}{NC}, {str(e)}")
             if args.dev:
                 aux_killpg(rollup_p)
                 aux_killpg(sass_p)
             return
+
+    watch_file_src = {}
+    watch_file_rst = {}
+    git_ref = None
+    toctree_file = path.join(builddir, '_toctree.html')
+    toctree_mtime = None
+    toctree_content = None
+    if args.dev:
+        w_files = []
+        # Check if minified files exists, if not, run rollup once
+        rollup_cache = True
+        for f in source_common_files:
+            if not path.isfile(f):
+                rollup_cache = False
+        for f in source_core_files:
+            if not path.isfile(f):
+                rollup_cache = False
+        if not rollup_cache:
+            subprocess.call(f"{rollup_bin} -c {rollup_conf}",
+                            shell=True, cwd=par_dir)
+            subprocess.call(f"{sass_bin} --style compressed {sass_conf}",
+                            shell=True, cwd=par_dir)
+        for t in ['*.umd.js*', '*.min.css*']:
+            f = glob.glob(path.join(src_dir, 'theme', 'harmonic', 'static_common', t))
+            w_files.extend(f)
+        for t in ['*.umd.js*', '*.min.css*']:
+            f = glob.glob(path.join(src_dir, 'theme', 'harmonic', 'static_core', t))
+            w_files.extend(f)
+        for f in w_files:
+            if symbolic_assert(f, log['inv_f']):
+                sys.exit(1)
+
+        # Build doc the first time
+        app_subprocess_build()
+        for f in w_files:
+            watch_file_src[f] = stat(f).st_mtime
+        if not args.once:
+            # Run rollup and sass in watch mode
+            cmd_rollup = f"{rollup_bin} -c {rollup_conf} --watch"
+            cmd_sass = f"{sass_bin} --style compressed --watch {sass_conf}"
+            rollup_p = subprocess.Popen(cmd_rollup, shell=True, cwd=par_dir,
+                                        stdout=subprocess.DEVNULL)
+            sass_p = subprocess.Popen(cmd_sass, shell=True, cwd=par_dir,
+                                      stdout=subprocess.DEVNULL)
+        elif args.builder == "singlehtml":
+            update_pdf()
+    else:
+        # Build doc the first time
+        app_subprocess_build()
+        if args.builder == "singlehtml":
+            update_pdf()
+
+    if args.once:
+        return
+
+    # app.build() doesn't handle the cache well in parallel,
+    # instead, we call through subprocess if needed
+    app = Sphinx(directory, directory, builddir,
+                 doctreedir, args.builder, confoverrides=confoverrides,
+                 parallel=0, status=sys.stdout if args.verbose else None)
+
+    def get_source_lfs_file(path_, ext):
+        """
+        Check if _build binary file is a git lfs pointer,
+        and if so, search and return the source file path.
+        If any step fails, returns None
+        """
+        if sha := get_lfs_sha(path_):
+            name_ = path.basename(path_)
+            name_ = re.sub(r'(_?\d+)?\.\w+$', '', name_)
+            pattern = path.join(directory, '**', f'*{ext}')
+            files = []
+            for file_path in glob.glob(pattern, recursive=True):
+                if ("/_build/" not in path.normpath(file_path) and
+                    "/build/" not in path.normpath(file_path) and
+                    name_ in path.basename(file_path)):
+                    files.append(file_path)
+
+            for file in files:
+                try:
+                    with open(file, 'rb') as f:
+                        f.seek(54)
+                        sha_ = f.read(64)
+                        if sha == sha_:
+                            return file
+                except Exception:
+                    pass
+
+            return None
+        else:
+            return None
+
+    if args.builder == "html":
+        print(f"\nRunning server on http://0.0.0.0:{BLUE}{args.port}{NC}?v={str(uuid4())[:2]}\n")
+
     signal.signal(signal.SIGINT, signal_handler)
 
     dev_pool = path.join(builddir, '.dev-pool')
