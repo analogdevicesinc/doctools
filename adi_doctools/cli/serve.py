@@ -137,12 +137,19 @@ def compute_sparse_config(directory, sparse, verbose):
     if hasattr(conf, 'repository') and conf.repository not in interref_repos:
         interref_repos.append(conf.repository)
 
+    # Sphinx parses -D key= as "" which convert_overrides() turns into ['']
+    # via "".split(','), not []. This causes config changed to be triggered
+    # between subprocess and app.build() calls,
     confoverrides = {
-        'intersphinx_disabled_reftypes': [],
+        'intersphinx_disabled_reftypes': [''], # Match any
         'exclude_patterns': exclude_patterns,
         'suppress_warnings': suppress_warnings,
         'interref_repos': interref_repos,
     }
+
+    confoverrides = {k: v for k, v in confoverrides.items()
+                     if not (isinstance(v, list) and len(v) == 0)}
+
     if verbose:
         logger.info("Setting confoverrides: " + str(confoverrides))
 
@@ -397,6 +404,7 @@ def serve():
         print(f"\nTip: enable full output with {BLUE}--verbose{NC}\n")
 
     def _confoverrides_to_arg():
+        """Convert confoverrides dict to CLI arguments for sphinx-build."""
         override_args = []
         for key, value in confoverrides.items():
             if isinstance(value, list):
