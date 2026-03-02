@@ -270,20 +270,35 @@ def serve():
         'doxygen.umd.js', 'doxygen.umd.js.map',
     }
 
+    rollup_p = None
+    sass_p = None
+    http_p = None
+    shutdown_lock = threading.Lock()
+    shutdown_called = [False]
+
     def signal_handler(sig, frame):
-        if args.builder == 'html':
-            logger.info("Shutting down server")
-            with lock:
-                shutdown_event.set()
-                reload_event.set()
-                http.shutdown()
-                http.server_close()
-            http_thread.join()
-        if args.dev:
+        with shutdown_lock:
+            if shutdown_called[0]:
+                return
+            shutdown_called[0] = True
+
+        logger.info("Shutting down server")
+        shutdown_event.set()
+        reload_event.set()
+
+        if rollup_p is not None:
             aux_killpg(rollup_p)
+        if sass_p is not None:
             aux_killpg(sass_p)
+        if http_p is not None:
+            http_p.shutdown()
+            http_p.server_close()
+            http_thread.join()
+
         logger.info("Terminated")
-        sys.exit()
+
+    if not args.once:
+        signal.signal(signal.SIGINT, signal_handler)
 
     def fetch_compiled(path_):
         req = path.join(path_, 'docs', 'requirements.txt')
@@ -584,14 +599,11 @@ def serve():
         def log_message(self, format, *args):
             return
 
-    rollup_p = None
-    sass_p = None
     if not args.once and args.builder == "html":
         try:
             socketserver.ThreadingTCPServer.allow_reuse_address = True
-            http = socketserver.ThreadingTCPServer(("", args.port), Handler)
-            lock = threading.Lock()
-            http_thread = threading.Thread(target=http.serve_forever)
+            http_p = socketserver.ThreadingTCPServer(("", args.port), Handler)
+            http_thread = threading.Thread(target=http_p.serve_forever)
             http_thread.daemon = True
             http_thread.start()
 
@@ -606,8 +618,10 @@ def serve():
             else:
                 logger.error(f"Could not start server on http://0.0.0.0:{FAIL}{args.port}{NC}, {str(e)}")
             if args.dev:
-                aux_killpg(rollup_p)
-                aux_killpg(sass_p)
+                if rollup_p is not None:
+                    aux_killpg(rollup_p)
+                if sass_p is not None:
+                    aux_killpg(sass_p)
             return
 
     watch_file_src = {}
@@ -703,8 +717,6 @@ def serve():
 
     if args.builder == "html":
         print(f"\nRunning server on http://0.0.0.0:{BLUE}{args.port}{NC}?v={str(uuid4())[:2]}\n")
-
-    signal.signal(signal.SIGINT, signal_handler)
 
     dev_pool = path.join(builddir, '.dev-pool')
 
@@ -907,7 +919,8 @@ def serve():
             elif update_dev:
                 update_dev_pool("@code-changed\n")
 
-        scheduler.enter(1, 1, check_files, (scheduler,))
+        if not shutdown_event.is_set():
+            scheduler.enter(1, 1, check_files, (scheduler,))
 
     scheduler = sched.scheduler(time.time, time.sleep)
     scheduler.enter(1, 1, check_files, (scheduler,))
