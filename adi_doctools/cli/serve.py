@@ -467,7 +467,7 @@ def serve():
     def app_subprocess_build():
         warn_file = tempfile.NamedTemporaryFile(mode='w+', suffix='.log')
         confoverride_str = _confoverrides_to_arg()
-        print("-- Building --")
+        print("-- Building -- (subprocess)")
         subprocess.run(f"sphinx-build -b {args.builder} . {builddir} -d {doctreedir} -j auto {confoverride_str} --warning-file {warn_file.name}",
                        shell=True, cwd=directory, capture_output=not(args.verbose))
 
