@@ -242,7 +242,7 @@ def save_error_to_cache(cache_path, error_type, url):
 def save_search_results(results):
     """Save search results to temp file for --fetch option."""
     results_data = []
-    for i, (title, url, score, repo_name, doc_ref, label_refs, docname) in enumerate(results, 1):
+    for i, (title, url, score, repo_name, doc_ref, label_refs, docname) in enumerate(results):
         results_data.append({
             'index': i,
             'title': title,
@@ -965,7 +965,7 @@ async def fetch_and_display_summaries(formatted_results, query_terms, base_url, 
     """Fetch summaries asynchronously and update display."""
     with ThreadPoolExecutor(max_workers=10) as executor:
         tasks = []
-        for i, (title, url, score) in enumerate(formatted_results, 1):
+        for i, (title, url, score) in enumerate(formatted_results):
             anchor = None
             if '#' in url:
                 url_parts = url.split('#', 1)
@@ -1134,7 +1134,7 @@ def search():
         terminal_width, _ = get_terminal_size()
 
         result_line_counts = []
-        for i, (title, url, score, repo_name, doc_ref, label_refs, docname) in enumerate(formatted_results, 1):
+        for i, (title, url, score, repo_name, doc_ref, label_refs, docname) in enumerate(formatted_results):
             if sys.stdout.isatty():
                 blue = BLUE
                 reset = RESET
