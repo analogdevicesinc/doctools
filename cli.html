@@ -96,7 +96,10 @@
           <ul>
 <li><a class="reference internal" href="#">Command line interface</a><ul>
 <li><a class="reference internal" href="#serve">Serve</a><ul>
-<li><a class="reference internal" href="#sparse-builds">Sparse builds</a></li>
+<li><a class="reference internal" href="#sparse-builds">Sparse builds</a><ul>
+<li><a class="reference internal" href="#how-does-it-even-work">How does it even work?</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#git-lfs-integration">Git LFS integration</a></li>
 <li><a class="reference internal" href="#how-can-i-rebuild-the-whole-documentation-within-serve">How can I rebuild the whole documentation within Serve?</a></li>
 <li><a class="reference internal" href="#why-is-the-output-missing-styling-css-stylesheet">Why is the output missing styling (CSS stylesheet)?</a></li>
@@ -228,10 +231,28 @@ documentation, for example:</p>
 <div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
 </pre></div>
 </div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>adoc<span class="w"> </span>serve<span class="w"> </span>--sparse<span class="w"> </span>learning<span class="w"> </span>solution/
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>adoc<span class="w"> </span>serve<span class="w"> </span>--sparse<span class="w"> </span>learning<span class="w"> </span>solutions
 </pre></div>
 </div>
 <div class="clear-left"></div></div></div><p>This is a critical feature to build large docs, ensuring snappy live reloads.</p>
+<section id="how-does-it-even-work">
+<h4>How does it even work?<a class="headerlink" href="#how-does-it-even-work" title="Link to this heading"></a></h4>
+<p>It sets up multiple Sphinx configurations:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">interref_repos:</span> <span class="pre">[...,</span> <span class="pre">&lt;repo&gt;]</span></code>: Add current repository to <code class="docutils literal notranslate"><span class="pre">intersphinx</span></code>
+cross-references.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">intersphinx_disabled_reftypes:</span> <span class="pre">['']</span></code>: Resolve any local reference as
+cross-reference, if not found locally.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">exclude_patterns:</span> <span class="pre">[...]</span></code>: Exclude all files masked by <code class="docutils literal notranslate"><span class="pre">--sparse</span></code>, using
+known patterns.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">suppress_warnings:</span> <span class="pre">[...,</span> <span class="pre">'toc.excluded',</span> <span class="pre">'toc.empty_glob']</span></code>: Suppress some
+toctree warnings caused by the mask.</p></li>
+</ul>
+<p>The result is: the exclude list excludes files from being read, and if the
+built pages have local references and they are not found, they are linked to
+the remote inventory <em>./objects.inv</em>, finally, the suppress warning list drops
+the warnings related to the excluded files in the table of contents.</p>
+</section>
 </section>
 <section id="git-lfs-integration">
 <span id="serve-lfs"></span><h3>Git LFS integration<a class="headerlink" href="#git-lfs-integration" title="Link to this heading"></a></h3>
