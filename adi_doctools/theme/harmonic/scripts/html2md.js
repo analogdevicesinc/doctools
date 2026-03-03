@@ -39,6 +39,8 @@ export class HTMLToMarkdown {
 
     if (tag.match(/^h[1-6]$/)) {
       this.handleHeading(elem)
+    } else if (tag === 'svg') {
+      this.handleSVG(elem)
     } else if (tag === 'p') {
       this.handleParagraph(elem)
     } else if (tag === 'pre') {
@@ -107,6 +109,20 @@ export class HTMLToMarkdown {
       this.output.push('#'.repeat(level) + ' ' + text)
       this.output.push('')
     }
+  }
+
+  /**
+   * Append svg to Markdown.
+   * @param {HTMLElement} elem - Heading element
+   */
+  handleSVG (elem) {
+    if (elem.innerHTML.length > 20000)
+      console.info("html2md: large svg skipped", elem)
+      return
+
+    this.output.push('```svg')
+    this.output.push(elem.innerHTML)
+    this.output.push('```')
   }
 
   /**
