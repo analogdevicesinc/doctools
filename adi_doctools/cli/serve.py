@@ -38,6 +38,7 @@ log = {
     'fetch': "Do you want to fetch from the release?",
     'builder': "Unknown builder '{}', valid options are: html, pdf.",
     'no_weasyprint': "Package 'weasyprint' required for PDF generation is not installed.",
+    'sparse_not_found': "Sparse path '{}' does not exist.",
 }
 
 # Hall of shame of poorly managed artifacts
@@ -129,6 +130,10 @@ def compute_sparse_config(directory, sparse, verbose):
     """
     if not sparse:
         return {}
+
+    for s in sparse:
+        if not path.isdir(s) and not path.isfile(s):
+            logger.warning(log['sparse_not_found'].format(s))
 
     for i, sp in enumerate(sparse):
         sparse[i] = path.relpath(path.abspath(sp), directory)
