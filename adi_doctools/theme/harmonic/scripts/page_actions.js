@@ -66,8 +66,7 @@ export class PageActions {
 
     this.$.copy_button = DOM.new('button', {
       'className': 'copy-as-markdown',
-      'title': 'Copy this page as markdown',
-      'innerText': 'Copy content'
+      'title': 'Copy this page as markdown'
     })
     this.$.copy_button.addEventListener('click', (ev) => {
       const selector = '.documentwrapper .body'
@@ -92,8 +91,7 @@ export class PageActions {
 
     this.$.edit_button = DOM.new('button', {
       'className': 'edit-source',
-      'title': 'See and edit this page source',
-      'innerText': 'Edit'
+      'title': 'See and edit this page source'
     })
     this.$.edit_button.addEventListener('mousedown', (ev) => {
       ev.preventDefault()
