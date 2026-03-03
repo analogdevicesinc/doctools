@@ -146,7 +146,11 @@ class HTMLToMarkdown:
                 output.append(code_)
             else: #bash
                 language = language_
-                output[-1] += code_
+                if len(output) > 0:
+                    output[-1] += code_
+                else:
+                    output.append(code_)
+
 
         self.output.append('')
         self.output.append(f'```{language}')

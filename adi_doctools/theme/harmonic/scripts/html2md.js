@@ -154,7 +154,10 @@ export class HTMLToMarkdown {
         output.push(result.code)
       } else { // bash
         language = result.language
-        output[output.length - 1] += result.code
+        if (output.length > 0)
+          output[output.length - 1] += result.code
+        else
+          output.push(result.code)
       }
     })
 
