@@ -13,6 +13,7 @@ div[class^='highlight-'] {
 
 div.highlight {
     @include mixin_icons.icons(("copy"));
+    @include mixin_icons.icons(("checkmark"));
 
     button.copy {
         border-radius: variable.$border-radius;
