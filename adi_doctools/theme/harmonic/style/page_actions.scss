@@ -22,6 +22,8 @@
         border-radius: variable.$border-radius;
         color: var(--text-color2);
         display: inline-flex;
+        align-items: center;
+        font-size: 0.9em;
         padding: .33rem .37rem .37rem .33rem;
 
         &::before {
