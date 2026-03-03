@@ -105,6 +105,15 @@ export class PageActions {
         true
       )
     })
+    this.$.edit_button.addEventListener('keypress', (ev) => {
+      if (event.key !== "Enter")
+        return
+      Toolbox.try_include(
+        this.edit_button_tgt_raw,
+        this.$.edit_button.alt_href,
+        true
+      )
+    })
 
     this.$.container.append(this.$.copy_button)
     this.$.container.append(this.$.edit_button)

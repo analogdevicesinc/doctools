@@ -68,9 +68,12 @@ header {
         border-radius: variable.$border-radius;
     }
 
-    button:hover, label:hover,
-    button:focus, label:focus {
+    button:hover, label:hover {
         background-color: var(--bg-color2);
+    }
+
+    button:focus-visible, label:focus-visible {
+        outline: .125em solid var(--accent-color);
     }
 }
 
@@ -208,8 +211,10 @@ header {
     }
 
     #logo {
-        padding-left: 0.5rem;
-        height: 3.5rem;
+        margin-left: 0.25rem;
+        padding: 0 0.25rem;
+        min-height: 2rem;
+        border-radius: variable.$border-radius;
         overflow: hidden;
         display: flex;
         align-items: center;

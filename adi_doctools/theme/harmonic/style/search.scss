@@ -70,8 +70,12 @@
         cursor: pointer;
         border-radius: variable.$border-radius;
 
-        &:hover, &:focus {
+        &:hover {
             background-color: var(--bg-color1);
+        }
+
+        &:focus-visible {
+          outline: .125em solid var(--accent-color);
         }
     }
 
@@ -146,6 +150,10 @@
                 background: var(--bg-color3);
                 border-color: var(--text-color2);
                 color: var(--text-color1);
+            }
+
+            &:focus-visible {
+              outline: .125em solid var(--accent-color);
             }
         }
         input:not(:checked) ~ button.version-filter {

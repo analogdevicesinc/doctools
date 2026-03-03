@@ -362,7 +362,8 @@
       cursor: pointer;
       filter: invert(var(--is-dark-theme));
       margin-left: .25rem;
-      opacity: 0.75
+      opacity: 0.75;
+      border-radius: variable.$border-radius;
     }
 
     #scroll-up:before {

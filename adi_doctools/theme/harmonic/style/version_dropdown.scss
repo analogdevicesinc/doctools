@@ -68,16 +68,12 @@ header .version-dropdown {
 
     button {
         cursor: pointer;
-        display: contents;
+        display: inline-flex;
+        justify-content: space-evenly;
         border-radius: variable.$border-radius;
+        padding: .5em;
 
-        div:first-child {
-            border-radius: variable.$border-radius 0 0 variable.$border-radius;
-            padding: .5em 0 .5em .5em;
-        }
         div:last-child {
-            border-radius: 0 variable.$border-radius variable.$border-radius 0;
-            padding: .5em .5em .5em 0;
             text-align: center;
         }
 
@@ -85,9 +81,21 @@ header .version-dropdown {
             color: var(--text-color2);
         }
 
-        &:hover div {
+        &:before {
+            display: inline-block;
+            content: '';
+        }
+
+        &:hover {
             background-color: var(--bg-color1);
+        }
+
+        &:hover div {
             color: var(--text-color1);
+        }
+
+        &:focus-within, &:focus-visible {
+            outline: .125em solid var(--accent-color);
         }
     }
 

@@ -145,6 +145,25 @@ export class Versioned {
     this.render(obj)
   }
   /**
+   * Got to a version, tries current docname and anchor
+   */
+  select_version(entry, new_tab) {
+    const start = app.state.path.length > 0 ?
+                  this.prefix + app.state.path + '/' :
+                  this.prefix
+    if (location.href.startsWith(start)) {
+      const pathname = location.href.substring(start.length)
+      let url = new URL(pathname, entry.dataset['alt_href'])
+      url.hash = location.hash
+      Toolbox.try_redirect(url, entry.dataset['alt_href'], new_tab)
+    } else {
+      if (new_tab)
+        window.open(entry.dataset['alt_href'], '_blank').focus()
+      else
+        location.href = entry.dataset['alt_href']
+    }
+  }
+  /**
    * Create Tag/Version dropdown at the left sidebar.
    */
   render (obj) {
@@ -161,7 +180,7 @@ export class Versioned {
     let nav_bar = DOM.get('header #right .reverse')
     let body = DOM.get('body')
 
-    let i = Object.keys(obj).length > 10 ? 4 : 2
+    let i = Object.keys(obj).length > 10 ? 2 : 1
     let cols = " auto".repeat(i)
     let container2 = DOM.new('div', {
       'className': 'version-dropdown-list',
@@ -189,22 +208,12 @@ export class Versioned {
       entry.addEventListener('mouseup', (ev) => {
         if (ev.which !== 1 && ev.which !== 2)
           return
-        const new_tab = ev.which === 2
 
-        const start = app.state.path.length > 0 ?
-                      this.prefix + app.state.path + '/' :
-                      this.prefix
-        if (location.href.startsWith(start)) {
-          const pathname = location.href.substring(start.length)
-          let url = new URL(pathname, entry.dataset['alt_href'])
-          url.hash = location.hash
-          Toolbox.try_redirect(url, entry.dataset['alt_href'], new_tab)
-        } else {
-          if (new_tab)
-            window.open(entry.dataset['alt_href'], '_blank').focus()
-          else
-            location.href = entry.dataset['alt_href']
-        }
+          this.select_version(entry, ev.which === 2)
+      })
+      entry.addEventListener('keydown', (ev) => {
+        if (event.key === "Enter")
+          this.select_version(entry, false)
       })
       let entry_ = DOM.new('div')
       let label_ = DOM.new('div')
@@ -218,6 +227,7 @@ export class Versioned {
       entry.append(label_)
       container2.append(entry)
     }
+
     if (Object.keys(obj).length <= 1) {
       container2.classList.add('no-other')
     }
@@ -229,7 +239,8 @@ export class Versioned {
 
     let container = DOM.new('div', {
       'className': 'version-dropdown',
-      'title': 'Change version'
+      'title': 'Change version',
+      'tabIndex': '0'
     })
     container.innerText = version
     let label_ = DOM.new('span', {
@@ -241,7 +252,15 @@ export class Versioned {
     toc_tree.insertAdjacentElement('afterbegin', container)
     let container3 = container.cloneNode(true)
 
+    container.addEventListener('keypress', (ev) => {
+      if (event.key === "Enter")
+        this.show(container, true)
+    })
     container.onclick = (ev) => { this.show(container, true) }
+    container3.addEventListener('keypress', (ev) => {
+      if (event.key === "Enter")
+        this.show(container3, true)
+    })
     container3.onclick = (ev) => { this.show(container3, true) }
     cancel_dropdown.onclick = (ev) => {this.show(undefined, false) }
     onresize = (ev) => { this.show(undefined, false) }
@@ -278,5 +297,6 @@ export class Versioned {
     }
     this.$.cancel.classList.add('on')
     this.$.list.classList.add('on')
+    this.$.list.firstChild?.focus()
   }
 }

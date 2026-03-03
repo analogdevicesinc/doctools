@@ -164,7 +164,7 @@ export class Search {
     let url = new URL(location)
     url.searchParams.delete('q')
     url.searchParams.delete('r')
-    history.replaceState({}, null, url);
+    history.replaceState({}, null, url)
   }
   /*
    * Helper function used by query() to order search results.
@@ -321,7 +321,9 @@ export class Search {
       this.$.searchInput.$.select()
       this.set_default()
     } else if (e.code === 'Escape') {
-      if (this.$.searchArea.classList.contains('on')) {
+      if (this.$.list.classList.contains('on'))
+        this._show_version_dropdown(undefined, false)
+      else if (this.$.searchArea.classList.contains('on')) {
         this.cancel_search()
       }
     }
@@ -913,7 +915,7 @@ export class Search {
 
     this.clean_versions_dropdown()
 
-    let i = Object.keys(obj).length > 10 ? 4 : 2
+    let i = Object.keys(obj).length > 10 ? 2 : 1
     let cols = " auto".repeat(i)
     this.$.list.style = `grid-template-columns:${cols}`
     if (Object.keys(obj).length <= 1)
@@ -935,6 +937,13 @@ export class Search {
         ev.preventDefault()
         this.select_version(key, version)
       })
+      entry.addEventListener('keydown', (ev) => {
+        if (event.key !== "Enter")
+          return
+
+        ev.preventDefault()
+        this.select_version(key, version)
+      })
       let entry_ = DOM.new('div')
       let label_ = DOM.new('div')
       entry_.innerText = obj[version][0]
@@ -948,7 +957,8 @@ export class Search {
       this.$.list.append(entry)
     }
 
-    this.show(version_button.$, true)
+    this.$.list.firstChild?.focus()
+    this._show_version_dropdown(version_button.$, true)
   }
   /**
    * Deinit version in dropdowns
@@ -989,9 +999,10 @@ export class Search {
         })
     }
 
-    this.show(undefined, false)
+    this.$.searchInput.focus()
+    this._show_version_dropdown(undefined, false)
   }
-  show (dom, show) {
+  _show_version_dropdown(dom, show) {
     if (!show) {
       this.$.cancel.classList.remove('on')
       this.$.list.classList.remove('on')
@@ -1034,8 +1045,8 @@ export class Search {
     body.append(cancel_dropdown)
     body.append(container2)
 
-    addEventListener("resize", (ev) => { this.show(undefined, false) })
-    cancel_dropdown.onclick = (ev) => {this.show(undefined, false) }
+    addEventListener("resize", (ev) => { this._show_version_dropdown(undefined, false) })
+    cancel_dropdown.onclick = (ev) => { this._show_version_dropdown(undefined, false) }
 
     this.$.list = container2
     this.$.cancel = cancel_dropdown
