@@ -8,7 +8,7 @@ from urllib.parse import urljoin
 from lxml import html as lxml_html
 
 
-class SphinxHTMLToMarkdown:
+class HTMLToMarkdown:
     """Convert Sphinx-generated HTML to Markdown."""
 
     def __init__(self, base_url):
@@ -32,7 +32,8 @@ class SphinxHTMLToMarkdown:
             self.anchor = self.base_url[index+1:]
 
         # Find main content area
-        main_content = tree.find('.//div[@role="main"]')
+        main_content = tree.find('.//div[@role="main"][@class="body"]')
+        # Alternatives to work with any sphinx build
         if main_content is None:
             main_content = tree.find('.//div[@class="document"]')
         if main_content is None:
@@ -59,8 +60,8 @@ class SphinxHTMLToMarkdown:
         """Recursively process HTML elements."""
         tag = elem.tag
 
-        # Skip navigation, headers, footers, and sphinx-specific UI elements
         classes = elem.get('class', '')
+        # Skip navigation, headers, footers (to work with any sphinx build)
         if any(skip in classes for skip in [
             'headerlink', 'sphinxsidebar', 'related', 'footer',
             'document-nav', 'breadcrumb', 'toctree-wrapper'
@@ -404,7 +405,7 @@ class SphinxHTMLToMarkdown:
 def convert_html_to_markdown(url, html_content):
     """Convert Sphinx HTML to Markdown format."""
     try:
-        converter = SphinxHTMLToMarkdown(url)
+        converter = HTMLToMarkdown(url)
         return converter.convert(html_content)
     except Exception:
         traceback.print_exc()

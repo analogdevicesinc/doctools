@@ -996,7 +996,7 @@ def search():
         adoc search --repo hdl --limit 10 -- axi
 
         # Fetch by index from previous search
-        adoc search --fetch 3                     # Default: converted markfown
+        adoc search --fetch 3                     # Default: converted markdown
         adoc search --fetch 3 --format src        # Source file (.rst or .md)
         adoc search --fetch 3 --format html       # html
 
