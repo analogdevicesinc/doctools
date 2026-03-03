@@ -34,11 +34,17 @@ div.highlight {
             mask-image: var(--icon-copy);
             mask-repeat: no-repeat;
         }
+        &.success::before {
+            mask-image: var(--icon-checkmark);
+        }
     }
 
+    &:hover button.copy::before {
+        background-color: var(--accent-color);
+    }
     &:hover button.copy {
         opacity: 1;
-        background: var(--bg-color2);
+        background: var(--bg-color1);
     }
 }
 

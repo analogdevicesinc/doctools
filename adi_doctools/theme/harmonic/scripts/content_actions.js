@@ -41,7 +41,12 @@ export class ContentActions {
         title: `Copy "${text}"`,
       }).onclick(this, (item, e) => {
         navigator.clipboard.writeText(item.textContent)
-          .then(() => {})
+          .then(() => {
+            button.classList.add(`success`)
+            setTimeout(() => {
+              button.classList.remove(`success`)
+            }, 1000)
+          })
           .catch((err) => {
             console.error(err)
           })

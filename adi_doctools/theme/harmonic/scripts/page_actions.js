@@ -1,11 +1,13 @@
 "use strict";
 import {DOM} from './dom.js'
 import {Toolbox} from './toolbox.js'
+import {HTMLToMarkdown} from './html2md.js'
 
 /**
  * Shows page actions buttons to the right side of the title.
  * The actions are:
  * * An edit page button to open the page source code on the git hosting website.
+ * * An copy as markdown button
  * * Resolve stub pages
  */
 export class PageActions {
@@ -20,6 +22,7 @@ export class PageActions {
       this.construct()
 
     this.parent.versioned.then(this.handler_stub.bind(this))
+    this.md_converter = new HTMLToMarkdown(location.href)
 
     app.page_actions = this
   }
@@ -60,11 +63,38 @@ export class PageActions {
     this.$.container = DOM.new('div', {
       'className': 'page-actions'
     })
-    this.$.edit_button = DOM.new('button', {
-      'className': 'edit-source',
-      'title': 'See and edit this page source'
+
+    this.$.copy_button = DOM.new('button', {
+      'className': 'copy-as-markdown',
+      'title': 'Copy this page as markdown',
+      'innerText': 'Copy content'
+    })
+    this.$.copy_button.addEventListener('click', (ev) => {
+      const selector = '.documentwrapper .body'
+      const element = DOM.get(selector)
+      if (!element) {
+        console.warn(`page_actions: got null for selector '${selector}'`)
+        return
+      }
+
+      const md = this.md_converter.convert(element)
+      navigator.clipboard.writeText(md)
+        .then(() => {
+          this.$.copy_button.classList.add(`success`)
+          setTimeout(() => {
+            this.$.copy_button.classList.remove(`success`)
+          }, 1000)
+        })
+        .catch((err) => {
+          console.error(err)
+        })
     })
 
+    this.$.edit_button = DOM.new('button', {
+      'className': 'edit-source',
+      'title': 'See and edit this page source',
+      'innerText': 'Edit'
+    })
     this.$.edit_button.addEventListener('mousedown', (ev) => {
       ev.preventDefault()
     })
@@ -77,6 +107,8 @@ export class PageActions {
         true
       )
     })
+
+    this.$.container.append(this.$.copy_button)
     this.$.container.append(this.$.edit_button)
   }
   preinit_page_source () {
