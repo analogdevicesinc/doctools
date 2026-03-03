@@ -70,9 +70,28 @@ documentation, for example:
 .. shell::
 
    # Include only learning/**/* and solutions/**/*
-   $ adoc serve --sparse learning solution/
+   $ adoc serve --sparse learning solutions
 
 This is a critical feature to build large docs, ensuring snappy live reloads.
+
+How does it even work?
+~~~~~~~~~~~~~~~~~~~~~~
+
+It sets up multiple Sphinx configurations:
+
+* ``interref_repos: [..., <repo>]``: Add current repository to ``intersphinx``
+  cross-references.
+* ``intersphinx_disabled_reftypes: ['']``: Resolve any local reference as
+  cross-reference, if not found locally.
+* ``exclude_patterns: [...]``: Exclude all files masked by ``--sparse``, using
+  known patterns.
+* ``suppress_warnings: [..., 'toc.excluded', 'toc.empty_glob']``: Suppress some
+  toctree warnings caused by the mask.
+
+The result is: the exclude list excludes files from being read, and if the
+built pages have local references and they are not found, they are linked to
+the remote inventory *./objects.inv*, finally, the suppress warning list drops
+the warnings related to the excluded files in the table of contents.
 
 .. _serve lfs:
 
