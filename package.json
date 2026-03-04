@@ -1,0 +1,94 @@
+{
+  "name": "adi-doctools",
+  "displayName": "Doctools",
+  "description": "Tree-sitter RST support with custom Sphinx roles and directives",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "publisher": "analogdevicesinc",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/analogdevicesinc/doctools"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "onLanguage:restructuredtext"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "adi-doctools.inspect",
+        "title": "Doctools: Inspect Role"
+      },
+      {
+        "command": "adi-doctools.action",
+        "title": "Doctools: Execute Role Action"
+      },
+      {
+        "command": "adi-doctools.reload",
+        "title": "Doctools: Reload"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "adi-doctools.inspect",
+        "key": "ctrl+shift+i",
+        "mac": "cmd+shift+i",
+        "when": "editorTextFocus && editorLangId == restructuredtext"
+      },
+      {
+        "command": "adi-doctools.action",
+        "key": "ctrl+shift+o",
+        "mac": "cmd+shift+o",
+        "when": "editorTextFocus && editorLangId == restructuredtext"
+      }
+    ],
+    "configuration": {
+      "title": "Doctools",
+      "properties": {
+        "adi-doctools.urlMappings": {
+          "type": "object",
+          "default": {
+            "adi": "https://analog.com/",
+            "dokuwiki": "https://wiki.analog.com/"
+          },
+          "description": "URL mappings for custom roles"
+        },
+        "adi-doctools.githubOrg": {
+          "type": "string",
+          "default": "analogdevicesinc",
+          "description": "GitHub organization for :git-<repo>: roles"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "fetch": "node scripts/fetch.js",
+    "copy-wasm": "cp node_modules/web-tree-sitter/web-tree-sitter.wasm dist/",
+    "prebuild": "npm run fetch",
+    "build": "webpack --mode production && npm run copy-wasm",
+    "watch": "webpack --watch",
+    "package": "npm run build && vsce package",
+    "lint": "eslint src --ext ts"
+  },
+  "devDependencies": {
+    "@types/node": "^25.3.3",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^8.56.1",
+    "@typescript-eslint/parser": "^8.56.1",
+    "@vscode/vsce": "^3.7.1",
+    "eslint": "^10.0.2",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.3.0",
+    "webpack": "^5.90.0",
+    "webpack-cli": "^6.0.1"
+  },
+  "dependencies": {
+    "web-tree-sitter": "^0.26.6"
+  }
+}
