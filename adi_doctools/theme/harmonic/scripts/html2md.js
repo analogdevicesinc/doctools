@@ -178,6 +178,14 @@ export class HTMLToMarkdown {
     let language = ''
     const parent = elem.parentElement?.parentElement
 
+    if (elem.classList.contains('mermaid') && "originalCode" in elem.dataset) {
+      // For diagrams, return original code
+      this.output.push('```mermaid')
+      this.output.push(elem.dataset.originalCode)
+      this.output.push('```' + language)
+      return
+    }
+
     const getLanguage = (elem) => {
       const classes = elem.className || ''
       const langMatch = classes.match(/highlight-(\w+)|language-(\w+)/)
