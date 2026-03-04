@@ -94,25 +94,29 @@ export class HotReload {
   ensure_script (value, key, map) {
     document.querySelector('head')?.append(value)
 
-    if (!key.startsWith("https://"))
-      return
-
-    if (new RegExp("^https://cdn\\.jsdelivr\\.net/npm/mathjax@[^/]+/(?:es5/)?tex-mml-chtml\\.js$").test(key)) {
-      // MathJax will apply on load, so only call if already loaded,
-      // instead of having to wait if it to be loaded to call.
-      if (typeof MathJax !== 'undefined')
-        MathJax.typeset()
-      // For reference only, if custom initialization was necessary
-      //else
-      //  value.onload = () => { console.log("MathJax loaded") }
-    } else if (new RegExp("^https://cdn\\.jsdelivr\\.net/npm/mermaid@[^/]+/dist/mermaid\\.esm\\.min\\.mjs$").test(key)) {
-      if (typeof Mermaid !== 'undefined')
-        Mermaid.run()
-      else
-        import(key).then(m => {
-          window.Mermaid = m.default
+    if (key.startsWith("https://")) {
+      if (new RegExp("^https://cdn\\.jsdelivr\\.net/npm/mathjax@[^/]+/(?:es5/)?tex-mml-chtml\\.js$").test(key)) {
+        // MathJax will apply on load, so only call if already loaded,
+        // instead of having to wait if it to be loaded to call.
+        if (typeof MathJax !== 'undefined')
+          MathJax.typeset()
+        // For reference only, if custom initialization was necessary
+        //else
+        //  value.onload = () => { console.log("MathJax loaded") }
+      } else if (new RegExp("^https://cdn\\.jsdelivr\\.net/npm/mermaid@[^/]+/dist/mermaid\\.esm\\.min\\.mjs$").test(key)) {
+        if (typeof Mermaid !== 'undefined')
           Mermaid.run()
-        })
+        else
+          import(key).then(m => {
+            window.Mermaid = m.default
+            Mermaid.run()
+          })
+      }
+    } else {
+      if (new RegExp("^import mermaid from \"https://cdn\\.jsdelivr\\.net/npm/mermaid@[^/]+/dist/mermaid\\.esm\\.min\\.mjs\";").test(key)) {
+        if (typeof runMermaid !== 'undefined')
+          runMermaid(true)
+      }
     }
   }
   get_script_key (script) {
