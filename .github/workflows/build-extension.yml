@@ -1,0 +1,30 @@
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: [self-hosted, repo-only, v2]
+
+    outputs:
+      asset_alias_name: ${{ steps.get_asset.outputs.asset_alias_name }}
+      asset_path: ${{ steps.get_asset.outputs.asset_path }}
+      new_tag: ${{ steps.get_new_tag.outputs.new_tag }}
+      tag: ${{ steps.get_tag.outputs.tag }}
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Ensure clean dist
+      run: rm -rf dist
+
+    - name: Build
+      run: make all
+
+    - name: Store the distribution packages
+      uses: actions/upload-artifact@v4
+      with:
+        name: dist
+        path: adi-doctools-*.vsix

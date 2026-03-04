@@ -1,0 +1,13 @@
+on:
+  push:
+    branches:
+      - vscode
+      - vscode/*
+  pull_request:
+
+jobs:
+  build-package:
+    uses: ./.github/workflows/build-extension.yml
+    secrets: inherit
+    permissions:
+      contents: read
