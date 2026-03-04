@@ -108,6 +108,7 @@ async function main() {
     console.log('\nFailed to fetch deps.');
     process.exit(1);
   }
+  console.log('Done');
 }
 
 main();

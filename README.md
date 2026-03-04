@@ -13,10 +13,7 @@ Sphinx roles and directives support using tree-sitter.
 ## Building & Installing
 
 ```bash
-npm install
-npm run build
-npx vsce package --allow-missing-repository
-codium --install-extension adi-doctools-0.1.0.vsix --force
+make all
 ```
 
 ## Configuration

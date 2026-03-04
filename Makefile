@@ -9,7 +9,7 @@ all: build install
 build:
 	npm install
 	npm run build
-	npx vsce package --allow-missing-repository
+	npm run package
 
 install:
 	command -v codium && codium --install-extension adi-doctools-0.1.0.vsix --force || true

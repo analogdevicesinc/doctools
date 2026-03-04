@@ -18,6 +18,12 @@
   "activationEvents": [
     "onLanguage:restructuredtext"
   ],
+  "files": [
+    "dist",
+    "deps",
+    "README.md",
+    "LICENSE"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
@@ -68,13 +74,9 @@
     }
   },
   "scripts": {
-    "fetch": "node scripts/fetch.js",
-    "copy-wasm": "cp node_modules/web-tree-sitter/web-tree-sitter.wasm dist/",
-    "prebuild": "npm run fetch",
-    "build": "webpack --mode production && npm run copy-wasm",
-    "watch": "webpack --watch",
-    "package": "npm run build && vsce package",
-    "lint": "eslint src --ext ts"
+    "prebuild": "node scripts/fetch.js",
+    "build": "webpack --mode production && cp node_modules/web-tree-sitter/web-tree-sitter.wasm dist/",
+    "package": "vsce package"
   },
   "devDependencies": {
     "@types/node": "^25.3.3",
