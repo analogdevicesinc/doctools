@@ -167,13 +167,13 @@ img {
 
 @media (prefers-color-scheme: dark) {
     body:not(.light) .body img:not(.no-background),
-    body:not(.light) .body svg:not(.no-background) {
+    body:not(.light) .body svg:not(.no-background):not(.flowchart) {
         background: #fff;
         border-radius: variable.$border-radius;
     }
 }
 body.dark .body img:not(.no-background),
-body.dark .body svg:not(.no-background) {
+body.dark .body svg:not(.no-background):not(.flowchart) {
     background: #fff;
     border-radius: variable.$border-radius;
 }
