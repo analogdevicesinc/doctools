@@ -163,6 +163,13 @@ class HTMLToMarkdown:
         language = ''
         parent = elem.getparent().getparent()
 
+        if 'mermaid' in elem.get('class', ''):
+            # For diagrams, return original code
+            self.output.append('```mermaid')
+            self.output.append(elem.text_content())
+            self.output.append('```' + language)
+            return
+
         def get_language(elem_):
             classes = elem_.get('class', '')
             lang_match = re.search(r'highlight-(\w+)|language-(\w+)', classes)
