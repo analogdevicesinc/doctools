@@ -36,7 +36,7 @@
             "category": "driver",
             "visibility": "public",
             "pathname": "docs",
-            "branch": "main",
+            "branch": "ci",
             "url_doc": "https://analogdevicesinc.github.io/linux",
             "url_source": "https://github.com/analogdevicesinc/linux.git"
         },
