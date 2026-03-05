@@ -62,20 +62,52 @@ local function resolve_role(role, title, target)
   -- `releases+` -> github.com/org/repo/releases
   -- `path/to/file.c` -> github.com/org/repo/tree/main/path/to/file.c
   -- `dev:path/to/file.c` -> github.com/org/repo/tree/dev/path/to/file.c
-  local repo = role:match('^git%-(.+)$')
+  local variant, repo = role:match('^(git)%-([^%s]+)$')
+  if not variant then
+    variant, repo = role:match('^(downgit)%-([^%s]+)$')
+  end
   if repo then
-    local pathname
-    if target:sub(-1) == '+' then
-      pathname = '/' .. target:sub(1, -2)
-    else
-      local branch, path = target:match('^([^:]+):(.+)$')
+    local pos = target:find('+', 1, true)
+    local type_ = 'gui'
+
+    if pos then
+      local prefix = target:sub(1, pos - 1)
+      if prefix == "raw" then
+        type_ = "raw"
+        target = target:sub(pos + 1)
+      elseif prefix == "gui" then
+        type_ = "gui"
+        target = target:sub(pos + 1)
+      elseif pos == #target then
+        type_ = prefix
+        target = ''
+      end
+    end
+
+    if target == '/' then
+      target = ''
+    end
+
+    local url = ''
+
+    if type_ == 'raw' or type_ == 'gui' then
+      local branch, file = target:match('^([^:]+):(.*)$')
       if not branch then
         branch = 'main'
-        path = target
+        file = target
       end
-      pathname = '/tree/' .. branch .. '/' .. path
+
+      local down_prefix = (variant == 'downgit') and 'https://analogdevicesinc.github.io/DownGit/#/home?url=' or ''
+
+      if type_ == 'gui' then
+        url = down_prefix .. 'https://github.com/' .. M.config.github_org .. '/' .. repo .. '/tree/' .. branch .. '/' .. file
+      elseif type_ == 'raw' then
+        url = down_prefix .. 'https://raw.githubusercontent.com/' .. M.config.github_org .. '/' .. repo .. '/' .. branch .. '/' .. file
+      end
+    else
+      url = 'https://github.com/' .. M.config.github_org .. '/' .. repo .. '/' .. type_
     end
-    local url = 'https://github.com/' .. M.config.github_org .. '/' .. repo .. pathname
+
     return {
       inspect = function() return { { 'URL: ', 'Normal' }, { url, 'String' } } end,
       action = function()
