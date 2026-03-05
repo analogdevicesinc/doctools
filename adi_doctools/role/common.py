@@ -22,7 +22,7 @@ dft_url = {
     'git_gui': 'https://github.com/analogdevicesinc/{repo}/tree',
     'git_raw': 'https://raw.githubusercontent.com/analogdevicesinc/{repo}',
     'git_other': 'https://github.com/analogdevicesinc/{repo}/{other}',
-    'git_down': 'https://analogdevicesinc.github.io/DownGit/#/home?url={url}',
+    'git_down': 'https://analogdevicesinc.github.io/DownGit/#/home?url=',
     'adi': 'https://www.analog.com',
     'xilinx': 'https://www.xilinx.com',
     'intel': 'https://www.intel.com',
@@ -157,7 +157,7 @@ class GitRole(SphinxRole):
         assert self.name.startswith('downgit-' if self.down else 'git-')
         repo_ = self.orig_name[8 if self.down else 4:]
         repo = repo_.lower()
-        text, path = get_outer_inner(self.text)
+        text, target = get_outer_inner(self.text)
 
         if repo not in git_repos:
             alt_name = repo_
@@ -166,40 +166,39 @@ class GitRole(SphinxRole):
             alt_name = git_repos[repo][1]
             repo = git_repos[repo][0]
 
-        pos = path.find('+')
-        if path[0:pos] == "raw":
+        pos = target.find('+')
+        if target[0:pos] == "raw":
             type_ = "raw"
-            path = path[pos+1:]
-        elif path[0:pos] == "gui":
+            target = target[pos+1:]
+        elif target[0:pos] == "gui":
             type_ = "gui"
-            path = path[pos+1:]
-        elif pos == len(path)-1:
-            type_ = path[:-1]
-            path = ''
+            target = target[pos+1:]
+        elif pos == len(target)-1:
+            type_ = target[:-1]
+            target = ''
         else:
             type_ = "gui"
 
         if type_ in ['raw', 'gui']:
-            pos = path.find(':')
+            pos = target.find(':')
             if pos in [0, -1]:
                 branch = get_default_brach(repo, self.inliner)
             else:
-                branch = path[0:pos]
-            path = path[pos+1:]
+                branch = target[0:pos]
+            target = target[pos+1:]
             if text is None:
-                if path == '/' or path == '':
+                if target == '/' or target == '':
                     text = "ADI " + alt_name + " repository"
                     if branch != 'main':
                         text += "'s branch " + branch
                 else:
-                    text = path
-            if path == '/':
-                path = ''
+                    text = target
+            if target == '/':
+                target = ''
 
+            down_ = get_url_config('git_down', self.inliner) if self.down else ''
             url = get_url_config('git_'+type_, self.inliner).format(repo=repo)
-            url = url + '/' + branch + '/' + path
-            if self.down:
-                url = get_url_config('git_down', self.inliner).format(url=url)
+            url = down_ + url + '/' + branch + '/' + target
         else:
             if text is None:
                     text = "ADI " + alt_name + " repository"
