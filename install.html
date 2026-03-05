@@ -98,6 +98,7 @@
 <li><a class="reference internal" href="#release-install">Release install</a><ul>
 <li><a class="reference internal" href="#using-a-python-virtual-environment">Using a Python virtual environment</a></li>
 <li><a class="reference internal" href="#release-links-and-optional-dependencies">Release links and optional dependencies</a></li>
+<li><a class="reference internal" href="#vscode-support">VSCode support</a></li>
 <li><a class="reference internal" href="#neovim-support">Neovim support</a></li>
 <li><a class="reference internal" href="#latex-support">LaTeX support</a></li>
 </ul>
@@ -254,11 +255,29 @@ pip<span class="w"> </span>install<span class="w"> </span><span class="s1">&#39;
 </pre></div>
 </div>
 </section>
+<section id="vscode-support">
+<h3>VSCode support<a class="headerlink" href="#vscode-support" title="Link to this heading"></a></h3>
+<p>A <a class="icon link reference external" href="https://vscodium.com/" target="_blank">vscodium</a>/<a class="icon link reference external" href="https://github.com/microsoft/vscode" target="_blank">vscode</a>
+extension is available to add support and actions to the documentation. By
+using the modern
+<a class="icon link reference external" href="https://tree-sitter.github.io/" target="_blank">tree-sitter</a>, the parser is extended to
+understand the custom directives and roles, including adding actions to preview
+and open links.</p>
+<p>It is not currently shipped by the marketplace, but you can get a copy at the
+<a class="icon git reference external" href="https://github.com/analogdevicesinc/doctools/actions/workflows/top-level.yml?query=branch%3Avscode" target="_blank">pipeline here</a>.</p>
+<p>The extension already bundles the WASM parsers, please see
+<a class="icon git reference external" href="https://github.com/analogdevicesinc/doctools/tree/vscode/README.md" target="_blank">README.md</a> for the list of dependencies it uses, as well as
+useful information.</p>
+<p>Not-implemented:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">.md</span></code> support.</p></li>
+</ul>
+</section>
 <section id="neovim-support">
 <h3>Neovim support<a class="headerlink" href="#neovim-support" title="Link to this heading"></a></h3>
 <p>A <a class="icon link reference external" href="https://neovim.io/" target="_blank">Neovim</a> extension is available to add support and
 actions to the documentation. By using the modern
-[tree-sitter](<a class="icon link reference external" href="https://tree-sitter.github.io/" target="_blank">https://tree-sitter.github.io/</a>), the parser is extended to
+<a class="icon link reference external" href="https://tree-sitter.github.io/" target="_blank">tree-sitter</a>, the parser is extended to
 understand the custom directives and roles, including adding actions to preview
 and open links.</p>
 <p>To install, add to your LazyVim configuration:</p>
