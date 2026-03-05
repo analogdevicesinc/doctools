@@ -37,6 +37,7 @@ jobs:
         ruff check --output-format=github .
 
     - name: Run linkcheck
+      if: ${{ github.event_name == 'pull_request' }}
       working-directory: docs
       run: |
         source ../venv/3/tests/bin/activate
