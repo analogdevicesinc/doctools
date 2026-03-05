@@ -911,11 +911,6 @@ which contains the basic metadata and the list of the extra scripts and styles.
    Path ``version`` is present and set if ``latest`` exists at
    ``{content_root}/../doctools`` and the stored version can be extracted.
 
-.. tip::
-
-   To keep the documentation lean, the metadata file is cached on localStorage
-   and is only fetched again after the threshold time expires.
-
 To add new JavaScript modules and CSS styles:
 
 * Update :git-doctools:`ci/rollup.config.app.mjs`.

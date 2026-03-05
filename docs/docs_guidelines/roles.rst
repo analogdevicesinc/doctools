@@ -40,7 +40,7 @@ The role syntax is :code:`:git-repo:\`text <type+branch:path>\``, for example:
   renders as :git-hdl:`main:docs/user_guide/docs_guidelines.rst`.
 * :code:`:git-hdl:\`Guidelines <docs/user_guide/docs_guidelines.rst>\``
   renders as :git-hdl:`Guidelines <docs/user_guide/docs_guidelines.rst>`.
-* :code:`:git-wiki-scripts:\`raw+linux/build_zynq_kernel_image.sh`\``
+* :code:`:git-wiki-scripts:\`raw+linux/build_zynq_kernel_image.sh\``
   renders as :git-wiki-scripts:`raw+linux/build_zynq_kernel_image.sh`.
 
 .. important::
