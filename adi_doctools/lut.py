@@ -49,7 +49,7 @@ repos = {
         pathname='docs',
         name='System Level',
         description='User guides and tutorials for evaluation boards, software and hardware.',
-        category='system-level',
+        category='system',
         branch='main',
         visibility='public'
     ),
@@ -86,7 +86,7 @@ repos = {
         pathname='docs',
         name='Kuiper',
         description='A Debian-based Linux distribution designed for our hardware and evaluation boards.',
-        category='os',
+        category='system',
         branch='main',
         visibility='public'
     ),
@@ -137,7 +137,7 @@ repos = {
         pathname='doc/sphinx',
         name='Precision Converters Firmware',
         description='Embedded firmware applications for precision converters on SDP-K1 and others.',
-        category='library',
+        category='system',
         branch='main',
         visibility='public'
     ),
@@ -153,7 +153,7 @@ repos = {
         pathname='src/adi_ros2/doc',
         name='ROS2',
         description='Robotics SDK with ROS 2 packages and tools in pre-configured container images.',
-        category='toolkit',
+        category='sdk',
         branch='humble',
         visibility='public'
     ),
