@@ -79,7 +79,7 @@ repos = {
         name='Linux',
         description='Reduced Linux kernel documentation for staging or non-upstream drivers.',
         category='driver',
-        branch='main',
+        branch='ci',
         visibility='public'
     ),
     'adi-kuiper-gen': Repo(
