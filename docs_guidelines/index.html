@@ -967,11 +967,6 @@ which contains the basic metadata and the list of the extra scripts and styles.<
 <p>Path <code class="docutils literal notranslate"><span class="pre">version</span></code> is present and set if <code class="docutils literal notranslate"><span class="pre">latest</span></code> exists at
 <code class="docutils literal notranslate"><span class="pre">{content_root}/../doctools</span></code> and the stored version can be extracted.</p>
 </div>
-<div class="admonition tip">
-<p class="admonition-title">Tip</p>
-<p>To keep the documentation lean, the metadata file is cached on localStorage
-and is only fetched again after the threshold time expires.</p>
-</div>
 <p>To add new JavaScript modules and CSS styles:</p>
 <ul class="simple">
 <li><p>Update <a class="icon git reference external" href="https://github.com/analogdevicesinc/doctools/tree/main/ci/rollup.config.app.mjs" target="_blank">ci/rollup.config.app.mjs</a>.</p></li>
