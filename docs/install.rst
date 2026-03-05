@@ -76,12 +76,33 @@ Optional dependencies can be installed with:
    # test, cli, ...
    pip install 'adi_doctools[test] @ https://github.com/analogdevicesinc/doctools/releases/download/latest/adi-doctools.tar.gz'
 
+VSCode support
+~~~~~~~~~~~~~~
+
+A `vscodium <https://vscodium.com/>`__/`vscode <https://github.com/microsoft/vscode>`__
+extension is available to add support and actions to the documentation. By
+using the modern
+`tree-sitter <https://tree-sitter.github.io/>`__, the parser is extended to
+understand the custom directives and roles, including adding actions to preview
+and open links.
+
+It is not currently shipped by the marketplace, but you can get a copy at the
+:git-doctools:`pipeline here <actions/workflows/top-level.yml?query=branch%3Avscode+>`.
+
+The extension already bundles the WASM parsers, please see
+:git-doctools:`vscode:README.md` for the list of dependencies it uses, as well as
+useful information.
+
+Not-implemented:
+
+- ``.md`` support.
+
 Neovim support
 ~~~~~~~~~~~~~~
 
 A `Neovim <https://neovim.io/>`__ extension is available to add support and
 actions to the documentation. By using the modern
-[tree-sitter](https://tree-sitter.github.io/), the parser is extended to
+`tree-sitter <https://tree-sitter.github.io/>`__, the parser is extended to
 understand the custom directives and roles, including adding actions to preview
 and open links.
 
