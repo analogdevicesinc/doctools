@@ -83,13 +83,35 @@ function resolveRoleUrl(role: string, target: string): string | null {
     return cfg.urlMappings[role] + target;
   }
 
-  const repo = role.match(/^git-(.+)$/)?.[1];
+  const [, variant, repo] = role.match(/^(git|downgit)-(.+)$/) || [,,];
+
   if (repo) {
-    if (target.endsWith('+')) {
-      return `https://github.com/${cfg.githubOrg}/${repo}/${target.slice(0, -1)}`;
+    const pos = target.indexOf('+');
+    let type_ = 'gui'
+    if (target.slice(0, pos) === "raw") {
+      type_ = "raw";
+      target = target.slice(pos+1);
+    } else if (target.slice(0, pos) === "gui") {
+      type_ = "gui";
+      target = target.slice(0, -1);
+    } else if (target.endsWith('+')) {
+      type_ = target.slice(0, pos);
+      target='';
     }
-    const [, branch, file] = target.match(/^([^:]+):(.+)$/) || [, 'main', target];
-    return `https://github.com/${cfg.githubOrg}/${repo}/tree/${branch}/${file}`;
+
+    if (target == '/')
+      target = ''
+
+    if (['raw', 'gui'].includes(type_)) {
+      const [, branch, file] = target.match(/^([^:]+):(.+)$/) || [, 'main', target];
+      const down_ = variant == 'downgit' ? 'https://analogdevicesinc.github.io/DownGit/#/home?url=' : ''
+      if (type_ === 'gui')
+        return `${down_}https://github.com/${cfg.githubOrg}/${repo}/tree/${branch}/${file}`;
+      else if (type_ === 'raw')
+        return `${down_}https://raw.githubusercontent.com/${cfg.githubOrg}/${repo}/${branch}/${file}`;
+    }
+
+    return `https://github.com/${cfg.githubOrg}/${repo}/${type_}`;
   }
 
   return null;
