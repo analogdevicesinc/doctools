@@ -3,7 +3,7 @@
         "documentation": {
             "name": "System Level",
             "description": "User guides and tutorials for evaluation boards, software and hardware.",
-            "category": "system-level",
+            "category": "system",
             "visibility": "public",
             "pathname": "docs",
             "branch": "main",
@@ -43,7 +43,7 @@
         "adi-kuiper-gen": {
             "name": "Kuiper",
             "description": "A Debian-based Linux distribution designed for our hardware and evaluation boards.",
-            "category": "os",
+            "category": "system",
             "visibility": "public",
             "pathname": "docs",
             "branch": "main",
@@ -103,7 +103,7 @@
         "precision-converters-firmware": {
             "name": "Precision Converters Firmware",
             "description": "Embedded firmware applications for precision converters on SDP-K1 and others.",
-            "category": "library",
+            "category": "system",
             "visibility": "public",
             "pathname": "doc/sphinx",
             "branch": "main",
@@ -123,7 +123,7 @@
         "adi_ros2": {
             "name": "ROS2",
             "description": "Robotics SDK with ROS 2 packages and tools in pre-configured container images.",
-            "category": "toolkit",
+            "category": "sdk",
             "visibility": "public",
             "pathname": "src/adi_ros2/doc",
             "branch": "humble",
