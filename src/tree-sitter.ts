@@ -2,6 +2,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import * as vscode from 'vscode'
 import { Parser, Language, Tree, Node, Query, QueryMatch } from 'web-tree-sitter'
+import { lspSend } from './python'
 
 const TOKEN_TYPES = [
   'namespace', 'class', 'enum', 'interface', 'struct', 'typeParameter',
@@ -23,75 +24,19 @@ interface LangConfig {
   injections?: Query
 }
 
-const resPath = (f: string) => path.join(__dirname, '..', 'deps', f)
-
-function getConfig() {
-  const c = vscode.workspace.getConfiguration('adi-doctools')
-  return {
-    urlMappings: c.get<Record<string, string>>('urlMappings', {
-      adi: 'https://analog.com/',
-      dokuwiki: 'https://wiki.analog.com/',
-    }),
-    githubOrg: c.get<string>('githubOrg', 'analogdevicesinc'),
-  }
+type Role = {
+  role?: string
+  title?: string
+  target?: string
 }
+
+const resPath = (f: string) => path.join(__dirname, '..', 'deps', f)
 
 function findChild(node: Node, type: string): Node | null {
   for (let i = 0; i < node.childCount; i++) {
     const child = node.child(i)
     if (child?.type === type) return child
   }
-  return null
-}
-
-function getRoleAtCursor(tree: Tree, pos: vscode.Position) {
-  let node: Node | null = tree.rootNode.descendantForPosition({
-    row: pos.line,
-    column: pos.character,
-  })
-
-  while (node && node.type !== 'interpreted_text') node = node.parent
-  if (!node) return null
-
-  let role = findChild(node, 'role')
-  if (!role && node.parent?.type === 'interpreted_text') {
-    node = node.parent
-    role = findChild(node, 'role')
-  }
-  if (!role) return null
-
-  const roleMatch = role.text.match(/^:([^:]+):$/)
-  if (!roleMatch) return null
-
-  const inner = findChild(node, 'interpreted_text')
-  const contentMatch = inner?.text.match(/^`([^`]+)`$/)
-  if (!contentMatch) return null
-
-  const content = contentMatch[1]
-  const titleMatch = content.match(/^\s*(.+?)\s*<\s*(.+?)\s*>\s*$/)
-  return {
-    role: roleMatch[1],
-    title: titleMatch?.[1],
-    target: titleMatch ? titleMatch[2] : content,
-  }
-}
-
-function resolveRoleUrl(role: string, target: string): string | null {
-  const cfg = getConfig()
-
-  if (cfg.urlMappings[role]) {
-    return cfg.urlMappings[role] + target
-  }
-
-  const repo = role.match(/^git-(.+)$/)?.[1]
-  if (repo) {
-    if (target.endsWith('+')) {
-      return `https://github.com/${cfg.githubOrg}/${repo}/${target.slice(0, -1)}`
-    }
-    const [, branch, file] = target.match(/^([^:]+):(.+)$/) || [, 'main', target]
-    return `https://github.com/${cfg.githubOrg}/${repo}/tree/${branch}/${file}`
-  }
-
   return null
 }
 
@@ -206,10 +151,45 @@ export class SemanticTokensProvider implements vscode.DocumentSemanticTokensProv
   }
 
   getRoleAtCursor(tree: Tree, pos: vscode.Position) {
-    return getRoleAtCursor(tree, pos)
+    let node: Node | null = tree.rootNode.descendantForPosition({
+      row: pos.line,
+      column: pos.character,
+    })
+
+    while (node && node.type !== 'interpreted_text') node = node.parent
+    if (!node) return null
+
+    let role = findChild(node, 'role')
+    if (!role && node.parent?.type === 'interpreted_text') {
+      node = node.parent
+      role = findChild(node, 'role')
+    }
+    if (!role) return null
+
+    const roleMatch = role.text.match(/^:([^:]+):$/)
+    if (!roleMatch) return null
+
+    const inner = findChild(node, 'interpreted_text')
+    const contentMatch = inner?.text.match(/^`([^`]+)`$/)
+    if (!contentMatch) return null
+
+    const content = contentMatch[1]
+    const titleMatch = content.match(/^\s*(.+?)\s*<\s*(.+?)\s*>\s*$/)
+    return {
+      role: roleMatch[1],
+      title: titleMatch?.[1],
+      target: titleMatch ? titleMatch[2] : content,
+    }
   }
 
-  resolveRoleUrl(role: string, target: string) {
-    return resolveRoleUrl(role, target)
+  async resolveRole(info: object): Promise<Role | undefined> {
+    try {
+      const role = await lspSend(info)
+      if (role?.target)
+        return role
+    } catch (err) {
+      console.error('LSP communication error:', err)
+    }
+    return
   }
 }

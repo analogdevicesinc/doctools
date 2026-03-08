@@ -61,19 +61,6 @@
     "configuration": {
       "title": "Doctools",
       "properties": {
-        "adi-doctools.urlMappings": {
-          "type": "object",
-          "default": {
-            "adi": "https://analog.com/",
-            "dokuwiki": "https://wiki.analog.com/"
-          },
-          "description": "URL mappings for custom roles"
-        },
-        "adi-doctools.githubOrg": {
-          "type": "string",
-          "default": "analogdevicesinc",
-          "description": "GitHub organization for :git-<repo>: roles"
-        }
       }
     }
   },

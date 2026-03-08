@@ -1,16 +1,43 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import * as vscode from 'vscode'
+import * as readline from 'readline'
 import { spawn, ChildProcess } from 'child_process'
 
 let py_process: ChildProcess | undefined
 let output: vscode.OutputChannel
+let lineReader: readline.Interface | undefined
+
+export async function lspSend(msg: object): Promise<any> {
+  if (!py_process || !py_process.stdin || !lineReader) {
+    throw new Error('LSP process not running')
+  }
+
+  return new Promise((resolve, reject) => {
+    const json = JSON.stringify(msg)
+    output.appendLine(`[send] ${json}`)
+
+    const handler = (line: string) => {
+      output.appendLine(`[recv] ${line}`)
+      try {
+        const response = JSON.parse(line)
+        resolve(response)
+      } catch (err) {
+        reject(new Error(`Invalid JSON response: ${line}`))
+      }
+      lineReader!.off('line', handler)
+    }
+
+    lineReader!.once('line', handler)
+    py_process!.stdin!.write(json + '\n')
+  })
+}
 
 export function setOutputChannel(channel: vscode.OutputChannel) {
   output = channel
 }
 
-async function ensure_venv(): Promise<string> {
+async function ensureVenv(): Promise<string> {
   const workspace = vscode.workspace.workspaceFolders?.[0]
   if (!workspace) {
     throw new Error('No workspace folder open')
@@ -39,10 +66,10 @@ async function ensure_venv(): Promise<string> {
   })
 }
 
-export async function start_py_process() {
+export async function startPyProcess() {
   output.appendLine(`Starting py process`)
 
-  const python = await ensure_venv()
+  const python = await ensureVenv()
   output.appendLine(`With ${python}`)
 
   const proc = spawn(python, ['-m', 'adi_doctools.lsp'])
@@ -54,7 +81,7 @@ export async function start_py_process() {
 
   proc.stderr.on('data', (data) => {
     const msg = data.toString()
-    output.appendLine(msg)
+    output.appendLine(`[stderr] ${msg}`)
 
     if (msg.includes('ModuleNotFoundError') && msg.includes('adi_doctools')) {
       vscode.window.showErrorMessage(
@@ -63,18 +90,20 @@ export async function start_py_process() {
     }
   })
 
-  proc.stdout.on('data', (data) => {
-    output.appendLine(data.toString())
-  })
-
   proc.on('exit', (code) => {
     output.appendLine(`LSP exited with code ${code}`)
+    lineReader = undefined
+  })
+
+  lineReader = readline.createInterface({
+    input: proc.stdout!,
+    crlfDelay: Infinity
   })
 
   py_process = proc
   output.appendLine("LSP server started")
 }
 
-export function stop_py_process() {
+export function stopPyProcess() {
   py_process?.kill()
 }

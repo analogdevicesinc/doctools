@@ -1,6 +1,6 @@
 import * as vscode from 'vscode'
 import { SemanticTokensProvider, LEGEND } from './tree-sitter'
-import { start_py_process, stop_py_process, setOutputChannel } from './python'
+import { startPyProcess, stopPyProcess, setOutputChannel } from './python'
 
 let output: vscode.OutputChannel
 let provider: SemanticTokensProvider
@@ -28,8 +28,11 @@ export async function activate(ctx: vscode.ExtensionContext) {
         return
       }
 
-      const url = provider.resolveRoleUrl(info.role, info.target)
-      vscode.window.showInformationMessage(url ? `URL: ${url}` : `:${info.role}:\`${info.target}\``)
+      const obj = await provider.resolveRole(info)
+      if (obj)
+        vscode.window.showInformationMessage(`target: ${obj.target}, title: ${obj.title}`)
+      else
+        vscode.window.showInformationMessage(`:${info.role}:\`${info.target}\``)
     }),
 
     vscode.commands.registerCommand('adi-doctools.action', async () => {
@@ -41,8 +44,9 @@ export async function activate(ctx: vscode.ExtensionContext) {
       const info = tree && provider.getRoleAtCursor(tree, ed.selection.active)
       if (!info) return
 
-      const url = provider.resolveRoleUrl(info.role, info.target)
-      if (url) vscode.env.openExternal(vscode.Uri.parse(url))
+      const obj = await provider.resolveRole(info)
+      if (obj?.target) // TODO: is url?
+        vscode.env.openExternal(vscode.Uri.parse(obj.target))
     }),
 
     vscode.commands.registerCommand('adi-doctools.reload', () => {
@@ -53,7 +57,7 @@ export async function activate(ctx: vscode.ExtensionContext) {
     }),
 
     vscode.commands.registerCommand('adi-doctools.init-server', () => {
-      start_py_process()
+      startPyProcess()
     })
   )
 
@@ -61,5 +65,5 @@ export async function activate(ctx: vscode.ExtensionContext) {
 }
 
 export function deactivate() {
-  stop_py_process()
+  stopPyProcess()
 }
