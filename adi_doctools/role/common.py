@@ -50,10 +50,11 @@ vendors = ['xilinx', 'intel', 'mw']
 suppliers = ['digikey', 'mouser', 'arrow']
 
 
-def get_url_config(name, inliner):
-    app = inliner.document.settings.env.app
-    return getattr(app.config, "url_"+name)
-
+def get_url_config(name, config=None):
+    if config:
+        return getattr(config, "url_"+name)
+    else:
+        return dft_url[name]
 
 def get_outer_inner(text):
     """
@@ -92,7 +93,8 @@ def dokuwiki():
             text = path[path.rfind('/')+1:]
         if len(path) > 0 and path[0] == '/':
             path = path[1:]
-        url = get_url_config('dokuwiki', inliner) + '/' + path
+        config = inliner.document.settings.env.app.config
+        url = get_url_config('dokuwiki', config) + '/' + path
         node = nodes.reference(rawtext, text, refuri=url,
                                classes=['icon', 'dokuwiki'], **options)
         return [node], []
@@ -105,7 +107,8 @@ def ez():
         text, path = get_outer_inner(text)
         if path == '/':
             path = ''
-        url = get_url_config('ez', inliner) + '/' + path
+        config = inliner.document.settings.env.app.config
+        url = get_url_config('ez', config) + '/' + path
         if text is None:
             text = "EngineerZone"
         node = nodes.reference(rawtext, text, refuri=url,
@@ -115,14 +118,16 @@ def ez():
     return role
 
 
-def get_default_brach(repo, inliner):
+def get_default_brach(repo, repos):
     """
     Get default branch for each repo.
     If it is not known, returns 'main'
     """
-    app = inliner.document.settings.env.app
-    if repo in app.lut['repos']:
-        return app.lut['repos'][repo]['branch']
+    if not repos:
+        from ..lut import repos
+
+    if repo in repos:
+        return repos[repo]['branch']
     else:
         return 'main'
 
@@ -155,13 +160,25 @@ class GitRole(SphinxRole):
     def run(self) -> Tuple[List[Node], List[system_message]]:
         assert self.name == self.orig_name.lower()
         assert self.name.startswith('downgit-' if self.down else 'git-')
-        repo_ = self.orig_name[8 if self.down else 4:]
+
+        app = self.inliner.document.settings.env.app
+        repos = app.lut['repos']
+        config = app.config
+        text, path = get_outer_inner(self.text)
+        url, text = self.resolve(self.orig_name, text, path, self.down, config, repos)
+
+        node = nodes.reference(self.rawtext, text, refuri=url,
+                               classes=['icon', 'git'], **self.options)
+        return [node], []
+
+    @staticmethod
+    def resolve(config, repos, name, text, target, down):
+        repo_ = name[8 if down else 4:]
         repo = repo_.lower()
-        text, target = get_outer_inner(self.text)
 
         if repo not in git_repos:
             alt_name = repo_
-            repo = self.orig_name[8 if self.down else 4:]
+            repo = name[8 if down else 4:]
         else:
             alt_name = git_repos[repo][1]
             repo = git_repos[repo][0]
@@ -182,7 +199,7 @@ class GitRole(SphinxRole):
         if type_ in ['raw', 'gui']:
             pos = target.find(':')
             if pos in [0, -1]:
-                branch = get_default_brach(repo, self.inliner)
+                branch = get_default_brach(repo, repos)
             else:
                 branch = target[0:pos]
             target = target[pos+1:]
@@ -196,29 +213,34 @@ class GitRole(SphinxRole):
             if target == '/':
                 target = ''
 
-            down_ = get_url_config('git_down', self.inliner) if self.down else ''
-            url = get_url_config('git_'+type_, self.inliner).format(repo=repo)
+            down_ = get_url_config('git_down', config) if down else ''
+            url = get_url_config('git_'+type_, config).format(repo=repo)
             url = down_ + url + '/' + branch + '/' + target
         else:
             if text is None:
                     text = "ADI " + alt_name + " repository"
                     if type_ != '':
                         text += f" ({type_})"
-            url = get_url_config('git_other', self.inliner).format(repo=repo, other=type_)
+            url = get_url_config('git_other', config).format(repo=repo, other=type_)
 
-        node = nodes.reference(self.rawtext, text, refuri=url,
-                               classes=['icon', 'git'], **self.options)
-        return [node], []
+        return (url, text)
+
+
+def adi_resolve(text, target, config=None):
+    if text is None:
+        text = target
+    target = '' if target == '/' else target
+    url = get_url_config('adi', config) + '/' + target
+
+    return (url, text)
 
 
 def adi():
     def role(name, rawtext, text, lineno, inliner, options={}, content=[]):
-        name, adi_id = get_outer_inner(text)
-        if name is None:
-            name = adi_id
-        adi_id = '' if adi_id == '/' else adi_id
-        url = get_url_config('adi', inliner) + '/' + adi_id
-        node = nodes.reference(rawtext, name, refuri=url,
+        text, target = get_outer_inner(text)
+        config = inliner.document.settings.env.app.config
+        url, text = adi_resolve(text, target, config)
+        node = nodes.reference(rawtext, text, refuri=url,
                                classes=['icon', 'adi'], **options)
         return [node], []
 
@@ -230,7 +252,8 @@ def vendor(vendor_name):
         text, path = get_outer_inner(text)
         if text is None:
             text = path[path.rfind('/')+1:]
-        url = get_url_config(vendor_name, inliner) + '/' + path
+        config = inliner.document.settings.env.app.config
+        url = get_url_config(vendor_name, config) + '/' + path
         node = nodes.reference(rawtext, text, refuri=url, **options)
         return [node], []
 
@@ -242,7 +265,8 @@ def supplier(supplier_name):
         text, path = get_outer_inner(text)
         if text is None:
             text = path
-        url = get_url_config(supplier_name, inliner) + path
+        config = inliner.document.settings.env.app.config
+        url = get_url_config(supplier_name, config) + path
         node = nodes.reference(rawtext, text, refuri=url, **options)
         return [node], []
 
@@ -271,11 +295,11 @@ def links_target_blank(app, doctree, fromdocname):
 
 
 def common_setup(app):
-    app.add_role("red",             color('red'))
-    app.add_role("green",           color('green'))
-    app.add_role("datasheet",       datasheet())
-    app.add_role("ez",              ez())
-    app.add_role("adi",             adi())
+    app.add_role("red",                 color('red'))
+    app.add_role("green",               color('green'))
+    app.add_role("datasheet",           datasheet())
+    app.add_role("ez",                  ez())
+    app.add_role("adi",                 adi())
     app.add_role("dokuwiki",            dokuwiki())
     app.add_role("dokuwiki+deprecated", dokuwiki())
     for name in vendors:
