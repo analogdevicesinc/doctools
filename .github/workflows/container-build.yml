@@ -60,7 +60,7 @@ on:
         description: 'Fail on vulnerability severity'
         type: string
     secrets:
-      CLOUDSMITH_SERVICE_SLUG_CONTAINERS:
+      CLOUDSMITH_SERVICE_SLUG:
         required: false
       CLOUDSMITH_API_KEY:
         required: false
@@ -91,7 +91,7 @@ jobs:
           namespace: ${{ vars.CLOUDSMITH_NAMESPACE }}
           repository: ${{ vars.CLOUDSMITH_REPOSITORY_CONTAINERS }}
           api-key: ${{ secrets.CLOUDSMITH_API_KEY }}
-          service-slug: ${{ secrets.CLOUDSMITH_SERVICE_SLUG_CONTAINERS }}
+          service-slug: ${{ secrets.CLOUDSMITH_SERVICE_SLUG }}
 
       - uses: analogdevicesinc/doctools/cloudsmith-upload-raw@action
         with:
@@ -100,4 +100,4 @@ jobs:
           namespace: ${{ vars.CLOUDSMITH_NAMESPACE }}
           repository: ${{ vars.CLOUDSMITH_REPOSITORY_CONTAINERS }}
           api-key: ${{ secrets.CLOUDSMITH_API_KEY }}
-          service-slug: ${{ secrets.CLOUDSMITH_SERVICE_SLUG_CONTAINERS }}
+          service-slug: ${{ secrets.CLOUDSMITH_SERVICE_SLUG }}
