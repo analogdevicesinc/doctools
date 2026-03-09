@@ -49,6 +49,12 @@ runs:
           git init --initial-branch=trunk .
           git config core.pager cat
           git remote add origin "$url"
+          local_ref="/mnt/git/${{ github.repository }}.git"
+          if [[ -d $local_ref ]]; then
+            git remote add local "file://$local_ref"
+            git fetch local --depth 10
+            git remote rm local
+          fi
         else
           git config core.pager cat
           git remote set-url origin "$url"
