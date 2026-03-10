@@ -11,6 +11,9 @@ inputs:
   gh-token:
     description: "GitHub Token"
     default: ${{ github.token }}
+  path:
+    description: "Path to checkout"
+    default: '.'
   lfs:
     description: "Enable Git LFS"
     default: 'false'
@@ -29,6 +32,7 @@ runs:
       run: |
         # Prepare git
         [[ "${{ runner.debug }}" == "1" ]] && set -x
+        mkdir -p "${{ inputs.path }}" ; cd "${{ inputs.path }}"
         if command -v git-lfs >/dev/null 2>&1; then
           if [ "${{ inputs.lfs }}" = "true" ]; then
             git lfs install
@@ -91,6 +95,7 @@ runs:
       run: |
         # Get commit depth
         [[ "${{ runner.debug }}" == "1" ]] && set -x
+        cd "${{ inputs.path }}"
         if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
           head_sha="${{ inputs.head-sha }}"
           if [[ -z "$head_sha" ]]; then
@@ -151,9 +156,10 @@ runs:
       shell: bash
       run: |
         # Fetch & reset
+        [[ "${{ runner.debug }}" == "1" ]] && set -x
+        cd "${{ inputs.path }}"
         _fetch_depth=$(( fetch_depth > 500 ? 500 : fetch_depth ))
         # --empty was added on git 2.26.0
-        [[ "${{ runner.debug }}" == "1" ]] && set -x
         has_keep=$(git rebase -help 2>&1 | grep "\--empty" | wc -l) || true
         if [[ "$has_keep" -gt "0" ]]; then
           keep_empty="--empty=keep"
@@ -222,6 +228,7 @@ runs:
       run: |
         # Log commit range
         [[ "${{ runner.debug }}" == "1" ]] && set -x
+        cd "${{ inputs.path }}"
         git log --oneline --reverse $base_sha..$head_sha
 
     - name: Generate cache branches & rename
@@ -230,6 +237,7 @@ runs:
       run: |
         # Generate cache branches & rename
         [[ "${{ runner.debug }}" == "1" ]] && set -x
+        cd "${{ inputs.path }}"
         if [[ "${{ github.event_name }}" == "pull_request" ]]; then
           branch=${{ github.base_ref }}
           commit=${{ github.event.pull_request.base.sha }}
