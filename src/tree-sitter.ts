@@ -30,6 +30,8 @@ type Role = {
   target?: string
 }
 
+const KNOWN_ROLES = ['adi', 'wiki']
+
 const resPath = (f: string) => path.join(__dirname, '..', 'deps', f)
 
 function findChild(node: Node, type: string): Node | null {
@@ -191,5 +193,56 @@ export class SemanticTokensProvider implements vscode.DocumentSemanticTokensProv
       console.error('LSP communication error:', err)
     }
     return
+  }
+}
+
+export class RoleCompletionProvider implements vscode.CompletionItemProvider {
+  provideCompletionItems(
+    document: vscode.TextDocument,
+    position: vscode.Position
+  ): vscode.CompletionItem[] {
+    const linePrefix = document.lineAt(position).text.substring(0, position.character)
+
+    // Only trigger if we just typed ':'
+    if (!linePrefix.endsWith(':')) {
+      return []
+    }
+
+    return KNOWN_ROLES.map(role => {
+      const item = new vscode.CompletionItem(role, vscode.CompletionItemKind.Keyword)
+      item.insertText = `${role}:\``
+      item.detail = `Role: ${role}`
+      return item
+    })
+  }
+}
+
+export class RoleHoverProvider implements vscode.HoverProvider {
+  constructor(private provider: SemanticTokensProvider) {}
+
+  async provideHover(
+    document: vscode.TextDocument,
+    position: vscode.Position
+  ): Promise<vscode.Hover | undefined> {
+    const rst = await this.provider.init()
+    const tree = rst.parser.parse(document.getText())
+    if (!tree) return
+
+    const info = this.provider.getRoleAtCursor(tree, position)
+    if (!info) return
+
+    const resolved = await this.provider.resolveRole(info)
+    if (!resolved) return
+
+    const md = new vscode.MarkdownString()
+    md.appendMarkdown(`**Role:** \`${info.role}\`\n\n`)
+    if (resolved.title) {
+      md.appendMarkdown(`**Title:** ${resolved.title}\n\n`)
+    }
+    if (resolved.target) {
+      md.appendMarkdown(`**Target:** ${resolved.target}`)
+    }
+
+    return new vscode.Hover(md)
   }
 }

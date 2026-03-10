@@ -1,18 +1,24 @@
 import * as vscode from 'vscode'
-import { SemanticTokensProvider, LEGEND } from './tree-sitter'
+import { SemanticTokensProvider, RoleCompletionProvider, RoleHoverProvider, LEGEND } from './tree-sitter'
 import { startPyProcess, stopPyProcess, buildServer, setOutputChannel } from './python'
 
 let output: vscode.OutputChannel
 let provider: SemanticTokensProvider
+let completionProvider: RoleCompletionProvider
+let hoverProvider: RoleHoverProvider
 
 export async function activate(ctx: vscode.ExtensionContext) {
   output = vscode.window.createOutputChannel("Doctools")
   setOutputChannel(output)
   provider = new SemanticTokensProvider()
+  completionProvider = new RoleCompletionProvider()
+  hoverProvider = new RoleHoverProvider(provider)
 
   ctx.subscriptions.push(
     output,
     vscode.languages.registerDocumentSemanticTokensProvider({ language: 'restructuredtext' }, provider, LEGEND),
+    vscode.languages.registerCompletionItemProvider({ language: 'restructuredtext' }, completionProvider, ':'),
+    vscode.languages.registerHoverProvider({ language: 'restructuredtext' }, hoverProvider),
 
     vscode.commands.registerCommand('adi-doctools.inspect', async () => {
       const ed = vscode.window.activeTextEditor
