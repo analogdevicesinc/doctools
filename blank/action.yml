@@ -2,6 +2,12 @@ name: Git Blank
 description: A git init for local runners
 
 inputs:
+  repository:
+    description: "Repository to init"
+    default: ${{ github.repository }}
+  path:
+    description: "Path to checkout"
+    default: '.'
   gh-token:
     description: "GitHub Token"
     default: ${{ github.token }}
@@ -15,7 +21,14 @@ runs:
     - name: Prepare git
       shell: bash
       run: |
-        url="https://x-access-token:${{ inputs.gh-token }}@github.com/${{ github.repository }}.git"
+        # Prepare git
+        [[ "${{ runner.debug }}" == "1" ]] && set -x
+        mkdir -p "${{ inputs.path }}" ; cd "${{ inputs.path }}"
+        if [[ "${{ inputs.repository }}" =~ ^(git@|ssh://|https://) ]]; then
+          url="${{ inputs.repository }}"
+        else
+          url="https://x-access-token:${{ inputs.gh-token }}@github.com/${{ inputs.repository }}.git"
+        fi
 
         if [[ -f .git/shallow.lock ]] || [[ -f .git/index.lock ]]; then
           rm -rf -- ..?* .[!.]* *
