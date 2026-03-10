@@ -2,11 +2,14 @@ name: Git Checkout
 description: A git checkout for local runners and runs
 
 inputs:
+  repository:
+    description: "Repository to checkout"
+    default: ${{ github.repository }}
   base-sha:
-    description: "Base SHA, for workflow_dispatch event"
+    description: "Base SHA for fetch depth"
     required: false
   head-sha:
-    description: "Head SHA, for workflow_dispatch event"
+    description: "Head SHA to checkout"
     required: false
   gh-token:
     description: "GitHub Token"
@@ -22,11 +25,21 @@ inputs:
 # behaviour:
 # cache/ branches are created to avoid base refs from being garbage collected.
 # on PRs, the github automatic merge commit is flattened, allowing to check per commit.
-# on workflow_dispatch event, must define the base-sha, head-sha.
+# if head-sha is set, uses simple fetch flow (for external repos, including
+# submodules, or workflow_dispatch).
 
 runs:
   using: composite
   steps:
+    - name: Sanity check
+      shell: bash
+      run: |
+        # Sanity check
+        if [[ -z "${{ inputs.head-sha }}" ]] && [[ -n "${{ inputs.base-sha }}" ]]; then
+          echo "::error ::Cannot set base-sha without specifying a head-sha."
+          exit 1
+        fi
+
     - name: Prepare git
       shell: bash
       run: |
@@ -43,7 +56,13 @@ runs:
           echo "::warning ::Git LFS set to true, but git-lfs is not installed."
         fi
         # Prepare git
-        url="https://x-access-token:${{ inputs.gh-token }}@github.com/${{ github.repository }}.git"
+        if [[ "${{ inputs.repository }}" =~ ^(git@|ssh://|https://) ]]; then
+          url="${{ inputs.repository }}"
+          org_repository=$(echo "${{ inputs.repository }}" | sed -E 's|.*[:/]([^/]+/[^/.]+)(\.git)?$|\1|')
+        else
+          url="https://x-access-token:${{ inputs.gh-token }}@github.com/${{ inputs.repository }}.git"
+          org_repository="${{ inputs.repository }}"
+        fi
 
         if [[ -f .git/shallow.lock ]] || [[ -f .git/index.lock ]]; then
           rm -rf -- ..?* .[!.]* *
@@ -53,7 +72,7 @@ runs:
           git init --initial-branch=trunk .
           git config core.pager cat
           git remote add origin "$url"
-          local_ref="/mnt/git/${{ github.repository }}.git"
+          local_ref="/mnt/git/$org_repository.git"
           if [[ -d $local_ref ]]; then
             git remote add local "file://$local_ref"
             git fetch local --depth 10
@@ -96,21 +115,12 @@ runs:
         # Get commit depth
         [[ "${{ runner.debug }}" == "1" ]] && set -x
         cd "${{ inputs.path }}"
-        if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+
+        if [[ -n "${{ inputs.head-sha }}" ]]; then
           head_sha="${{ inputs.head-sha }}"
-          if [[ -z "$head_sha" ]]; then
-            head_sha="${{ github.sha }}"
-            echo "::warning ::No head-sha provided, setting to $head_sha (ref branch current head)."
-          fi
-          base_sha="${{ inputs.base-sha }}"
-          if [[ -z "$base_sha" ]]; then
-            base_sha="$head_sha~6"
-            echo "::warning ::No base-sha provided, setting to $base_sha."
-          fi
-          echo "base_sha=$base_sha" >> $GITHUB_ENV
           echo "head_sha=$head_sha" >> $GITHUB_ENV
           echo "fetch_depth=6" >> $GITHUB_ENV
-        elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
+        elif [[ "${{ inputs.repository }}" == "${{ github.repository }}" ]] && [[ "${{ github.event_name }}" == "pull_request" ]]; then
           json=$(curl -s -L \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${{ inputs.gh-token }}" \
@@ -129,27 +139,25 @@ runs:
             echo "behind_by=$behind_by" >> $GITHUB_ENV
             echo "fetch_depth=$fetch_depth" >> $GITHUB_ENV
           fi
-        elif [[ ! "${{ github.event.before }}" =~ "0000000000000000" ]] && [[ "${{ github.event.forced }}" == "false" ]]; then
-          echo "setting fetch_depth based on github.event.before"
-          commits_sha='${{ toJSON(github.event.commits.*.id) }}' ;
-          fetch_depth=$(( $(jq <<<"$commits_sha" length) + 1 )) ;
-          echo "fetch_depth=$fetch_depth" >> $GITHUB_ENV ;
-        else
-          if [[ "${{ github.event.before }}" =~ "0000000000000000" ]]; then
-            echo "::notice ::New branch, will set base commit as last 5 commits."
+        elif [[ "${{ inputs.repository }}" == "${{ github.repository }}" ]] && [[ "${{ github.event_name }}" == "push" ]]; then
+          if [[ ! "${{ github.event.before }}" =~ "0000000000000000" ]] && [[ "${{ github.event.forced }}" == "false" ]]; then
+            echo "setting fetch_depth based on github.event.before"
+            commits_sha='${{ toJSON(github.event.commits.*.id) }}' ;
+            fetch_depth=$(( $(jq <<<"$commits_sha" length) + 1 )) ;
+            echo "fetch_depth=$fetch_depth" >> $GITHUB_ENV ;
           else
-            echo "::notice ::Force pushed, will set base commit as last 5 commits."
+            if [[ "${{ github.event.before }}" =~ "0000000000000000" ]]; then
+              echo "::notice ::New branch, will set base commit as last 5 commits."
+            else
+              echo "::notice ::Force pushed, will set base commit as last 5 commits."
+            fi
+            echo "fetch_depth=6" >> $GITHUB_ENV
+            echo "checkout_fallback=true" >> $GITHUB_ENV
           fi
-          echo "fetch_depth=6" >> $GITHUB_ENV
-          echo "checkout_fallback=true" >> $GITHUB_ENV
-        fi
-
-        # Manipulate the github_sha to mock another context
-        if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-          echo "_GITHUB_SHA=$head_sha" >> $GITHUB_ENV
-          echo "GITHUB_SHA=$head_sha" >> $GITHUB_ENV
         else
-          echo "_GITHUB_SHA=${{ github.sha }}" >> $GITHUB_ENV
+          head_sha=$(git ls-remote origin HEAD | awk '{print $1}' | tail -1)
+          echo "head_sha=$head_sha" >> $GITHUB_ENV
+          echo "fetch_depth=2" >> $GITHUB_ENV
         fi
 
     - name: Fetch & reset
@@ -167,60 +175,62 @@ runs:
           keep_empty="--keep-empty"
         fi
 
-        if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+        if [[ -n "$head_sha" ]]; then
           git fetch origin --depth=$_fetch_depth $head_sha
           git reset --hard FETCH_HEAD
-        elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
+          if [[ -n "${{ inputs.base-sha }}" ]]; then
+            base_sha="${{ inputs.base-sha }}"
+          else
+            base_sha="$head_sha~$((_fetch_depth - 1))"
+          fi
+        elif [[ "${{ inputs.repository }}" == "${{ github.repository }}" ]] && [[ "${{ github.event_name }}" == "pull_request" ]]; then
           if [[ "$checkout_fallback" == "true" ]]; then
-            git fetch origin --depth=$_fetch_depth $_GITHUB_SHA
+            git fetch origin --depth=$_fetch_depth ${{ github.sha }}
             git reset --hard FETCH_HEAD
           elif [[ "$behind_by" -eq 0 ]]; then
             git fetch origin --depth=$_fetch_depth ${{ github.event.pull_request.head.sha }}
             git reset --hard FETCH_HEAD
           else
-          echo "Fetching commits in batches of $_fetch_depth"
-          while ! git merge-base ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} &>/dev/null ; do
-              git fetch origin --deepen=$_fetch_depth $_GITHUB_SHA
+            echo "Fetching commits in batches of $_fetch_depth"
+            while ! git merge-base ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} &>/dev/null ; do
+              git fetch origin --deepen=$_fetch_depth ${{ github.sha }}
             done
             git reset --hard ${{ github.event.pull_request.base.sha }}
             git rebase --rebase-merges $keep_empty ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }}
             git switch -C trunk
           fi
-        else
-          git fetch origin --depth=$_fetch_depth $_GITHUB_SHA
-          git reset --hard $_GITHUB_SHA
-        fi
-
-        if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+          head_sha=$(git rev-parse @)
           if [[ "$checkout_fallback" != "true" ]]; then
             base_sha=${{ github.event.pull_request.base.sha }}
           else
-            base_sha=$(git rev-parse @~)
+            base_sha="@~"
           fi
-        elif [[ "${{ github.event_name }}" == "push" ]]; then
+        elif [[ "${{ inputs.repository }}" == "${{ github.repository }}" ]] && [[ "${{ github.event_name }}" == "push" ]]; then
+          git fetch origin --depth=$_fetch_depth ${{ github.sha }}
+          git reset --hard FETCH_HEAD
+          head_sha=$(git rev-parse @)
           if [[ "$checkout_fallback" != "true" ]]; then
             base_sha=${{ github.event.before }}
           else
-            base_sha=$(git rev-parse @~$((_fetch_depth - 1)))
+            base_sha="@~$((_fetch_depth - 1))"
           fi
         fi
 
         while ! git rev-parse $base_sha~ ; do
-          git fetch origin --deepen=$_fetch_depth $_GITHUB_SHA
+          git fetch origin --deepen=$_fetch_depth $head_sha
         done
+        base_sha=$(git rev-parse $base_sha)
 
-        if [[ "$checkout_fallback" != "true" ]]; then
-          if git log --oneline --pretty=format:'%s' $base_sha..$head_sha | grep ^fixup! ; then
-            echo "Has fixups! in range, applying"
-            git rebase $keep_empty --rebase-merges --autosquash $base_sha \
-              || git rebase --abort || true
-          else
-            echo "No fixups! in range"
-          fi
-
+        if git log --oneline --pretty=format:'%s' $base_sha..$head_sha | grep ^fixup! ; then
+          echo "Has fixups! in range, applying"
+          git rebase $keep_empty --rebase-merges --autosquash $base_sha \
+            || git rebase --abort || true
+        else
+          echo "No fixups! in range"
         fi
+        head_sha=$(git rev-parse @)
 
-        echo "head_sha=$(git rev-parse @)" >> "$GITHUB_ENV"
+        echo "head_sha=$head_sha" >> "$GITHUB_ENV"
         echo "base_sha=$base_sha" >> "$GITHUB_ENV"
 
     - name: Log commit range
@@ -233,7 +243,7 @@ runs:
 
     - name: Generate cache branches & rename
       shell: bash
-      if: ${{ github.event_name != 'workflow_dispatch' }}
+      if: ${{ github.repository == inputs.repository && inputs.head-sha == '' }}
       run: |
         # Generate cache branches & rename
         [[ "${{ runner.debug }}" == "1" ]] && set -x

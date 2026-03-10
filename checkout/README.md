@@ -23,6 +23,11 @@ Key-points:
 * Sets the `fetch_depth`, `base_sha`, `head_sha` and `ahead_by` to
   ease running check scripts.
 
-For `workflow_dispatch` events, you must provide the `base-sha` and `head-sha`
-inputs to define the commit range. This does not apply to other event types.
-`base-sha` as `<sha>~` for easy copy and paste from a pull request is supported.
+You may provide `base-sha` and `head-sha` inputs to define the commit range.
+Those will take precedence over any event type.
+
+If you don't pass `head-sha` and event type is not `pull_request` or `push`,
+`head_sha` is set to the current HEAD SHA at the remote default branch.
+
+You may pass a full git remote (git, ssh, https) to the `repository` input,
+or just `org/repo` to expand to github url with the github token set.
