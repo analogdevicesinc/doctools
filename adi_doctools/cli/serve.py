@@ -9,6 +9,7 @@ import threading
 
 from packaging.version import Version
 from sphinx.application import Sphinx
+from sphinx.testing.util import _clean_up_global_state
 from sphinx import __version__ as __sphinx_version__
 
 from .aux_os import aux_killpg
@@ -60,13 +61,13 @@ class Serve:
 
     @classmethod
     def start(cls, directory='.', port=8080, dev=False, once=False,
-              builder='html', sparse=None, verbose=False):
+              builder='html', sparse=None, verbose=False, jsonrpc=False):
         """Start the server."""
         with cls._lock:
             if cls._instance is not None:
                 logger.warning("Server already running")
                 return False
-            cls._instance = cls(directory, port, dev, once, builder, sparse, verbose)
+            cls._instance = cls(directory, port, dev, once, builder, sparse, verbose, jsonrpc)
             error = cls._instance._setup()
             if error:
                 cls._instance = None
@@ -82,6 +83,7 @@ class Serve:
                 logger.debug("No server running")
                 return
             cls._instance._shutdown()
+            _clean_up_global_state()
             cls._instance = None
 
     @classmethod
@@ -90,7 +92,7 @@ class Serve:
         with cls._lock:
             return cls._instance is not None
 
-    def __init__(self, directory, port, dev, once, builder, sparse, verbose):
+    def __init__(self, directory, port, dev, once, builder, sparse, verbose, jsonrpc=False):
         self.directory = directory
         self.port = port
         self.dev = dev
@@ -98,6 +100,7 @@ class Serve:
         self.builder = builder
         self.sparse = sparse
         self.verbose = verbose
+        self.jsonrpc = jsonrpc
 
         # Process handles
         self.rollup_p = None
@@ -360,8 +363,17 @@ class Serve:
                 else:
                     logger.info("wrote pdf!")
 
-        if not self.verbose:
-            print(f"\nTip: enable full output with {BLUE}--verbose{NC}\n")
+        if self.jsonrpc:
+            from ..lsp.logging import notify
+            from sphinx._cli.util.colour import disable_colour
+
+            disable_colour()
+        else:
+            def notify(method, params=None):
+                pass
+
+        if not self.verbose and not self.jsonrpc:
+            logger.info(f"\nTip: enable full output with {BLUE}--verbose{NC}\n")
 
         def _confoverrides_to_arg():
             override_args = []
@@ -372,16 +384,25 @@ class Serve:
                     override_args.append(f"-D {key}={value}")
             return ' '.join(override_args)
 
+        def build_notify(event: str, mode=False):
+            if self.jsonrpc:
+                notify(f"build/{event}", { "mode": 'subprocess' if mode else 'incremental' })
+            else:
+                if event == "started":
+                    print("-- Building -- (subprocess)" if mode else "-- Building --", flush=True)
+                elif event == "completed":
+                    print("---- Done ----", flush=True)
+
         def app_subprocess_build():
             warn_file = tempfile.NamedTemporaryFile(mode='w+', suffix='.log')
             confoverride_str = _confoverrides_to_arg()
-            print("-- Building -- (subprocess)")
-            subprocess.run(f"sphinx-build -b {builder} . {builddir} -d {doctreedir} -j auto {confoverride_str} --warning-file {warn_file.name}",
+            build_notify("started", mode=True)
+            subprocess.run(f"{sys.executable} -m sphinx -b {builder} . {builddir} -d {doctreedir} -j auto {confoverride_str} --warning-file {warn_file.name}",
                            shell=True, cwd=directory, capture_output=not self.verbose)
             if not self.verbose and path.getsize(warn_file.name) > 0:
                 with open(warn_file.name, 'r') as f:
                     print(RED, f.read(), NC)
-            print("---- Done ----")
+            build_notify("completed")
             warn_file.close()
 
         def wsl2_networking():
@@ -503,8 +524,8 @@ class Serve:
                     wsl2_thread.start()
             except Exception as e:
                 if str(e) == "[Errno 98] Address already in use":
-                    logger.error(f"Could not start server on http://0.0.0.0:{FAIL}{self.port}{NC}, port in use")
-                    print(f"  {BLUE}Tip{NC}: pass another port with {BLUE}--port{NC}")
+                    logger.error(f"Could not start server on http://0.0.0.0:{FAIL}{self.port}{NC}, port in use\n"
+                                 f"  {BLUE}Tip{NC}: pass another port with {BLUE}--port{NC}")
                 else:
                     logger.error(f"Could not start server on http://0.0.0.0:{FAIL}{self.port}{NC}, {str(e)}")
                 if self.dev:
@@ -601,7 +622,11 @@ class Serve:
             return None
 
         if builder == "html":
-            print(f"\nRunning server on http://0.0.0.0:{BLUE}{self.port}{NC}?v={str(uuid4())[:2]}\n")
+            server_url = f"http://0.0.0.0:{self.port}?v={str(uuid4())[:2]}"
+            if self.jsonrpc:
+                notify("server/started", {"port": self.port, "url": server_url})
+            else:
+                logger.info(f"\nRunning server on {BLUE}{server_url}{NC}\n")
 
         dev_pool = path.join(builddir, '.dev-pool')
 
@@ -751,16 +776,15 @@ class Serve:
                 if self.dev:
                     app_subprocess_build()
                 elif deep_clean:
-                    from sphinx.testing.util import _clean_up_global_state
                     _clean_up_global_state()
                     app_subprocess_build()
                     self.app = Sphinx(directory, directory, builddir,
                                       doctreedir, builder, confoverrides=confoverrides,
                                       parallel=0, status=sys.stdout if self.verbose else None)
                 else:
-                    print("-- Building --")
+                    build_notify("started", mode=False)
                     self.app.build()
-                    print("---- Done ----")
+                    build_notify("completed")
 
             if update_dev:
                 for f in w_files:

@@ -1,10 +1,15 @@
+import logging as logging_
+
 import sys
 import json
 
+from .logging import set_logging
 from ..role.common import GitRole
 from ..role.common import adi_resolve
 
-from ..cli import Serve
+from ..cli.serve import Serve
+
+logger = logging_.getLogger(__name__)
 
 def handle_cmd(cmd: dict) -> dict:
     if 'role' in cmd and 'title' in cmd and 'target' in cmd:
@@ -20,7 +25,7 @@ def handle_cmd(cmd: dict) -> dict:
         return { 'target': target, 'title': title }
     elif 'server' in cmd:
         if cmd['server'] == 'start':
-            Serve.start()
+            Serve.start(jsonrpc=True)
 
             return { 'return': 'success' }
         elif cmd['server'] == 'stop':
@@ -29,6 +34,8 @@ def handle_cmd(cmd: dict) -> dict:
             return { 'return': 'success' }
 
     return {'error': 'Unknown command'}
+
+set_logging()
 
 for line in sys.stdin:
     line = line.strip()
