@@ -4,6 +4,8 @@ import json
 from ..role.common import GitRole
 from ..role.common import adi_resolve
 
+from ..cli import Serve
+
 def handle_cmd(cmd: dict) -> dict:
     if 'role' in cmd and 'title' in cmd and 'target' in cmd:
         role = cmd['role']
@@ -16,6 +18,15 @@ def handle_cmd(cmd: dict) -> dict:
             target, title = adi_resolve(title, target)
 
         return { 'target': target, 'title': title }
+    elif 'server' in cmd:
+        if cmd['server'] == 'start':
+            Serve.start()
+
+            return { 'return': 'success' }
+        elif cmd['server'] == 'stop':
+
+            Serve.stop()
+            return { 'return': 'success' }
 
     return {'error': 'Unknown command'}
 

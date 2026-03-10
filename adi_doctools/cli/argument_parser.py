@@ -64,8 +64,7 @@ def get_arguments_serve():
     parser.add_argument('-v', '--verbose', action='store_true', default=False,
                         help="Show full Sphinx output")
 
-    args = parser.parse_args()
-    return args
+    return vars(parser.parse_args())
 
 
 def get_arguments_hdl_render():
