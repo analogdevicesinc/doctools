@@ -8,6 +8,71 @@ let py_process: ChildProcess | undefined
 let output: vscode.OutputChannel
 let lineReader: readline.Interface | undefined
 
+const lsp_message_type: Record<number, string> = {
+  1: 'error',
+  2: 'warning',
+  3: 'info',
+  4: 'log'
+}
+
+let pendingResolve: ((value: any) => void) | null = null
+let pendingReject: ((reason: any) => void) | null = null
+
+function handleNotification(parsed: any) {
+  const { method, params } = parsed
+
+  switch (method) {
+    case 'window/logMessage': {
+      const level = lsp_message_type[params.type] || 'LOG'
+      output.appendLine(`[${level}] ${params.message}`)
+      break
+    }
+    case 'build/started': {
+      output.appendLine(`-- Building -- (${params.mode})`)
+      break
+    }
+    case 'build/output': {
+      output.appendLine(params.line)
+      break
+    }
+    case 'build/completed': {
+      output.appendLine(`---- Done ----`)
+      break
+    }
+    case 'server/started': {
+      output.appendLine(`[server] Running on ${params.url}`)
+      vscode.window.showInformationMessage(`Server running on ${params.url}`)
+      break
+    }
+    case 'server/stopped': {
+      output.appendLine(`[server] Stopped`)
+      break
+    }
+    default:
+      output.appendLine(`[notification] ${method}: ${JSON.stringify(params)}`)
+  }
+}
+
+function handleLine(line: string) {
+  try {
+    const parsed = JSON.parse(line)
+
+    if (parsed.method) {
+      handleNotification(parsed)
+      return
+    }
+
+    if (pendingResolve) {
+      output.appendLine(`[recv] ${line}`)
+      pendingResolve(parsed)
+      pendingResolve = null
+      pendingReject = null
+    }
+  } catch (err) {
+    output.appendLine(line)
+  }
+}
+
 export async function lspSend(msg: object): Promise<any> {
   if (!py_process || !py_process.stdin || !lineReader) {
     throw new Error('LSP process not running')
@@ -17,18 +82,8 @@ export async function lspSend(msg: object): Promise<any> {
     const json = JSON.stringify(msg)
     output.appendLine(`[send] ${json}`)
 
-    const handler = (line: string) => {
-      output.appendLine(`[recv] ${line}`)
-      try {
-        const response = JSON.parse(line)
-        resolve(response)
-      } catch (err) {
-        reject(new Error(`Invalid JSON response: ${line}`))
-      }
-      lineReader!.off('line', handler)
-    }
-
-    lineReader!.once('line', handler)
+    pendingResolve = resolve
+    pendingReject = reject
     py_process!.stdin!.write(json + '\n')
   })
 }
@@ -79,12 +134,21 @@ async function ensureVenv(): Promise<string> {
 }
 
 export async function startPyProcess() {
+  const workspace = vscode.workspace.workspaceFolders?.[0]
+  if (!workspace) {
+    throw new Error('No workspace folder open')
+  }
   output.appendLine(`Starting py process`)
 
   const python = await ensureVenv()
   output.appendLine(`With ${python}`)
 
-  const proc = spawn(python, ['-m', 'adi_doctools.lsp'])
+  const proc = spawn(python, ['-m', 'adi_doctools.lsp'], {
+    cwd: workspace.uri.fsPath,
+    env: {
+      ...process.env
+    }
+  })
 
   proc.on('error', (err: any) => {
     output.appendLine(err.message)
@@ -92,13 +156,22 @@ export async function startPyProcess() {
   })
 
   proc.stderr.on('data', (data) => {
-    const msg = data.toString()
-    output.appendLine(`[stderr] ${msg}`)
+    const msg = data.toString().trim()
+    if (!msg) return
 
     if (msg.includes('ModuleNotFoundError') && msg.includes('adi_doctools')) {
-      vscode.window.showErrorMessage(
-        '"adi-doctools" is not installed'
-      )
+      vscode.window.showErrorMessage('"adi-doctools" is not installed')
+      return
+    }
+
+    for (const line of msg.split('\n')) {
+      try {
+        const log = JSON.parse(line)
+        const level = log.level || 'LOG'
+        output.appendLine(`[${level}] ${log.message}`)
+      } catch {
+        output.appendLine(line)
+      }
     }
   })
 
@@ -111,6 +184,7 @@ export async function startPyProcess() {
     input: proc.stdout!,
     crlfDelay: Infinity
   })
+  lineReader.on('line', handleLine)
 
   py_process = proc
   output.appendLine("LSP server started")
