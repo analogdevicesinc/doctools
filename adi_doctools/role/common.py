@@ -245,6 +245,8 @@ def adi():
                                classes=['icon', 'adi'], **options)
         return [node], []
 
+    return role
+
 
 def vendor(vendor_name):
     def role(name, rawtext, text, lineno, inliner, options={}, content=[]):
@@ -294,11 +296,11 @@ def links_target_blank(app, doctree, fromdocname):
 
 
 def common_setup(app):
-    app.add_role("red",             color('red'))
-    app.add_role("green",           color('green'))
-    app.add_role("datasheet",       datasheet())
-    app.add_role("ez",              ez())
-    app.add_role("adi",             adi())
+    app.add_role("red",                 color('red'))
+    app.add_role("green",               color('green'))
+    app.add_role("datasheet",           datasheet())
+    app.add_role("ez",                  ez())
+    app.add_role("adi",                 adi())
     app.add_role("dokuwiki",            dokuwiki())
     app.add_role("dokuwiki+deprecated", dokuwiki())
     for name in vendors:
