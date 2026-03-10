@@ -36,8 +36,12 @@
         "title": "Doctools: Execute Role Action"
       },
       {
-        "command": "adi-doctools.init-server",
-        "title": "Doctools: Init server"
+        "command": "adi-doctools.start-server",
+        "title": "Doctools: Start server"
+      },
+      {
+        "command": "adi-doctools.stop-server",
+        "title": "Doctools: Stop server"
       },
       {
         "command": "adi-doctools.reload",

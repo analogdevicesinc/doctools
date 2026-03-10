@@ -1,6 +1,6 @@
 import * as vscode from 'vscode'
 import { SemanticTokensProvider, LEGEND } from './tree-sitter'
-import { startPyProcess, stopPyProcess, setOutputChannel } from './python'
+import { startPyProcess, stopPyProcess, buildServer, setOutputChannel } from './python'
 
 let output: vscode.OutputChannel
 let provider: SemanticTokensProvider
@@ -56,12 +56,11 @@ export async function activate(ctx: vscode.ExtensionContext) {
       vscode.window.showInformationMessage('Doctools reloaded')
     }),
 
-    vscode.commands.registerCommand('adi-doctools.init-server', () => {
-      startPyProcess()
-    })
+    vscode.commands.registerCommand('adi-doctools.start-server', buildServer.start),
+    vscode.commands.registerCommand('adi-doctools.stop-server', buildServer.stop)
   )
 
-  await vscode.commands.executeCommand('adi-doctools.init-server')
+  await startPyProcess()
 }
 
 export function deactivate() {

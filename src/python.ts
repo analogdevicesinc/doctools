@@ -33,6 +33,18 @@ export async function lspSend(msg: object): Promise<any> {
   })
 }
 
+export class buildServer {
+  constructor () {}
+
+  static async start (): Promise<any> {
+    lspSend({ 'server': 'start' })
+  }
+
+  static async stop (): Promise<any> {
+    lspSend({ 'server': 'stop' })
+  }
+}
+
 export function setOutputChannel(channel: vscode.OutputChannel) {
   output = channel
 }
