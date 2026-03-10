@@ -119,7 +119,7 @@ runs:
         if [[ -n "${{ inputs.head-sha }}" ]]; then
           head_sha="${{ inputs.head-sha }}"
           echo "head_sha=$head_sha" >> $GITHUB_ENV
-          echo "fetch_depth=6" >> $GITHUB_ENV
+          echo "fetch_depth=7" >> $GITHUB_ENV
         elif [[ "${{ inputs.repository }}" == "${{ github.repository }}" ]] && [[ "${{ github.event_name }}" == "pull_request" ]]; then
           json=$(curl -s -L \
             -H "Accept: application/vnd.github+json" \
@@ -132,7 +132,7 @@ runs:
           merge_base_sha=$(echo $json | jq '.merge_base_sha')
           if [[ "$merge_base_sha" == "null" ]]; then
             echo "::warning ::GitHub API failed to determine merge base sha, will checkout merge commit."
-            echo "fetch_depth=2" >> $GITHUB_ENV
+            echo "fetch_depth=3" >> $GITHUB_ENV
             echo "checkout_fallback=true" >> $GITHUB_ENV
           else
             fetch_depth=$(( ahead_by + behind_by + 2 ))
@@ -151,13 +151,13 @@ runs:
             else
               echo "::notice ::Force pushed, will set base commit as last 5 commits."
             fi
-            echo "fetch_depth=6" >> $GITHUB_ENV
+            echo "fetch_depth=7" >> $GITHUB_ENV
             echo "checkout_fallback=true" >> $GITHUB_ENV
           fi
         else
           head_sha=$(git ls-remote origin HEAD | awk '{print $1}' | tail -1)
           echo "head_sha=$head_sha" >> $GITHUB_ENV
-          echo "fetch_depth=2" >> $GITHUB_ENV
+          echo "fetch_depth=3" >> $GITHUB_ENV
         fi
 
     - name: Fetch & reset
@@ -181,7 +181,7 @@ runs:
           if [[ -n "${{ inputs.base-sha }}" ]]; then
             base_sha="${{ inputs.base-sha }}"
           else
-            base_sha="$head_sha~$((_fetch_depth - 1))"
+            base_sha="$head_sha~$((_fetch_depth - 2))"
           fi
         elif [[ "${{ inputs.repository }}" == "${{ github.repository }}" ]] && [[ "${{ github.event_name }}" == "pull_request" ]]; then
           if [[ "$checkout_fallback" == "true" ]]; then
@@ -212,7 +212,7 @@ runs:
           if [[ "$checkout_fallback" != "true" ]]; then
             base_sha=${{ github.event.before }}
           else
-            base_sha="@~$((_fetch_depth - 1))"
+            base_sha="@~$((_fetch_depth - 2))"
           fi
         fi
 
