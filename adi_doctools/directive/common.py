@@ -29,6 +29,7 @@ from .node import node_iframe, node_video
 
 logger = logging.getLogger(__name__)
 
+manager = Manager()
 dft_hide_collapsible_content = True
 
 
@@ -388,7 +389,6 @@ class directive_include_template(Include):
 
 def directive_collection_before_read_docs(app, env, docnames):
     if not hasattr(app.builder, "collection_image"):
-        manager = Manager()
         app.builder.collection_image = manager.dict()
 
 
