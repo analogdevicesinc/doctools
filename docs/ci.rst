@@ -243,21 +243,31 @@ But at a specific minimum and maximum supported environment version.
 
 Doing the relevant step on host covers most issues that the CI would catch.
 
-You can use the :ref:`container image <image-podman>` with
-:git-doctools:`this suggested bash method <ci/scripts/container-run.sh>`
+You can use the :ref:`container image <image-podman>` with the
+:git-doctools:`container-run.sh <ci/scripts/container-run.sh>` script.
 to interactive login into an image, mounting the provided path, to run the steps
 on the container, for example:
 
 .. shell::
 
    ~/doctools
-   $ cr adi/doctools .
+   $ container-run adi/doctools .
    $ python3 -m venv venv
    $ source venv/bin/activate ; \
          pip3 install -e . ; \
          pip3 install pytest
    $ cd tests ; pytest
    $ exit
+
+You can also use just ``cr adi/doctools``.
+One liner to install:
+
+.. shell::
+
+   $ grep "/container-run.sh" ~/.bashrc || \
+       { curl "https://raw.githubusercontent.com/analogdevicesinc/doctools/refs/heads/main/ci/scripts/container-run.sh" \
+         -o .local/bin/container-run.sh && \
+       echo "source ~/.local/bin/container-run.sh" >> .bashrc ; }
 
 .. _podman-run:
 
