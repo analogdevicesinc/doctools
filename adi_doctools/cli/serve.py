@@ -92,6 +92,11 @@ class Serve:
         with cls._lock:
             return cls._instance is not None
 
+    @classmethod
+    def get_sphinx_app(cls):
+        with cls._lock:
+            return cls._instance.app if cls._instance else None
+
     def __init__(self, directory, port, dev, once, builder, sparse, verbose, jsonrpc=False):
         self.directory = directory
         self.port = port
