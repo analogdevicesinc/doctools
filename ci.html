@@ -381,14 +381,14 @@ In this case, export the image and then import on the server:</p>
 </pre></div>
 </div>
 <div class="clear-left"></div></div></div><p>Doing the relevant step on host covers most issues that the CI would catch.</p>
-<p>You can use the <a class="reference internal" href="#image-podman"><span class="std std-ref">container image</span></a> with
-<a class="icon git reference external" href="https://github.com/analogdevicesinc/doctools/tree/main/ci/scripts/container-run.sh" target="_blank">this suggested bash method</a>
+<p>You can use the <a class="reference internal" href="#image-podman"><span class="std std-ref">container image</span></a> with the
+<a class="icon git reference external" href="https://github.com/analogdevicesinc/doctools/tree/main/ci/scripts/container-run.sh" target="_blank">container-run.sh</a> script.
 to interactive login into an image, mounting the provided path, to run the steps
 on the container, for example:</p>
 <div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~/doctools$
 </pre></div>
 </div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cr<span class="w"> </span>adi/doctools<span class="w"> </span>.
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>container-run<span class="w"> </span>adi/doctools<span class="w"> </span>.
 </pre></div>
 </div>
 <div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~/doctools$
@@ -415,6 +415,17 @@ on the container, for example:</p>
 </pre></div>
 </div>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">exit</span>
+</pre></div>
+</div>
+<div class="clear-left"></div></div></div><p>You can also use just <code class="docutils literal notranslate"><span class="pre">cr</span> <span class="pre">adi/doctools</span></code>.
+One liner to install:</p>
+<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>grep<span class="w"> </span><span class="s2">&quot;/container-run.sh&quot;</span><span class="w"> </span>~/.bashrc<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="se">\</span>
+<span class="w">   </span><span class="o">{</span><span class="w"> </span>curl<span class="w"> </span><span class="s2">&quot;https://raw.githubusercontent.com/analogdevicesinc/doctools/refs/heads/main/ci/scripts/container-run.sh&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">     </span>-o<span class="w"> </span>.local/bin/container-run.sh<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">   </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;source ~/.local/bin/container-run.sh&quot;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>.bashrc<span class="w"> </span><span class="p">;</span><span class="w"> </span><span class="o">}</span>
 </pre></div>
 </div>
 <div class="clear-left"></div></div></div></section>
