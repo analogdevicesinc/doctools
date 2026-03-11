@@ -3,6 +3,8 @@ import logging as logging_
 import sys
 import json
 
+from sphinx.util.nodes import clean_astext
+
 from .logging import set_logging
 from ..role.common import GitRole
 from ..role.common import adi_resolve
@@ -11,16 +13,41 @@ from ..cli.serve import Serve
 
 logger = logging_.getLogger(__name__)
 
+def handle_xfer(typ, target) -> dict | None:
+    app = Serve.get_sphinx_app()
+    if not app:
+        return (None, None)
+
+    if typ == 'ref':
+        std_domain = app.env.domains.standard_domain
+        docname, labelid, sectname = std_domain.labels.get(target, ('', '', ''))
+        if docname == '':
+            return (None, None)
+
+        title=sectname
+        target=f"{docname}#{labelid}"
+        return (target, title)
+    elif typ == 'doc':
+        if target not in app.env.titles:
+            return (None, None)
+        title = clean_astext(app.env.titles[target])
+        return (target, title)
+
+    return (None, None)
+
 def handle_cmd(cmd: dict) -> dict:
-    if 'role' in cmd and 'title' in cmd and 'target' in cmd:
+
+    if 'role' in cmd and 'target' in cmd:
         role = cmd['role']
-        title = cmd['title']
         target = cmd['target']
+        title = cmd.get('title', None)
 
         if role.startswith('downgit-') or role.startswith('git-'):
             target, title = GitRole.resolve(role, title, target, role.startswith('downgit-'))
         elif role == 'adi':
             target, title = adi_resolve(title, target)
+        elif role in ['ref', 'doc']:
+            target, title = handle_xfer(role, target)
 
         return { 'target': target, 'title': title }
     elif 'server' in cmd:
