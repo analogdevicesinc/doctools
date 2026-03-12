@@ -173,6 +173,14 @@ repos = {
         branch='main',
         visibility='public'
     ),
+    'analog-attach': Repo(
+        pathname='docs',
+        name='Analog Attach',
+        description='VS Code extension for configuring Device Tree files and overlays.',
+        category='tool',
+        branch='main',
+        visibility='public'
+    ),
 }
 
 banner = Banner(
