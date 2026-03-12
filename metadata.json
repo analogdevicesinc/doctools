@@ -149,6 +149,16 @@
             "branch": "main",
             "url_doc": "https://analogdevicesinc.github.io/doctools",
             "url_source": "https://github.com/analogdevicesinc/doctools.git"
+        },
+        "analog-attach": {
+            "name": "Analog Attach",
+            "description": "VS Code extension for configuring Device Tree files and overlays.",
+            "category": "tool",
+            "visibility": "public",
+            "pathname": "docs",
+            "branch": "main",
+            "url_doc": "https://analogdevicesinc.github.io/analog-attach",
+            "url_source": "https://github.com/analogdevicesinc/analog-attach.git"
         }
     },
     "modules": {
