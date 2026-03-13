@@ -40,15 +40,15 @@
             "url_doc": "https://analogdevicesinc.github.io/linux",
             "url_source": "https://github.com/analogdevicesinc/linux.git"
         },
-        "adi-kuiper-gen": {
+        "kuiper": {
             "name": "Kuiper",
             "description": "A Debian-based Linux distribution designed for our hardware and evaluation boards.",
             "category": "system",
             "visibility": "public",
             "pathname": "docs",
             "branch": "main",
-            "url_doc": "https://analogdevicesinc.github.io/adi-kuiper-gen",
-            "url_source": "https://github.com/analogdevicesinc/adi-kuiper-gen.git"
+            "url_doc": "https://analogdevicesinc.github.io/kuiper",
+            "url_source": "https://github.com/analogdevicesinc/kuiper.git"
         },
         "pyadi-iio": {
             "name": "pyadi-iio",
@@ -140,16 +140,6 @@
             "url_doc": "https://analogdevicesinc.github.io/scopy",
             "url_source": "https://github.com/analogdevicesinc/scopy.git"
         },
-        "doctools": {
-            "name": "Doctools",
-            "description": "Documentation guidelines, extensions, and tools.",
-            "category": "tool",
-            "visibility": "public",
-            "pathname": "docs",
-            "branch": "main",
-            "url_doc": "https://analogdevicesinc.github.io/doctools",
-            "url_source": "https://github.com/analogdevicesinc/doctools.git"
-        },
         "analog-attach": {
             "name": "Analog Attach",
             "description": "VS Code extension for configuring Device Tree files and overlays.",
@@ -159,6 +149,16 @@
             "branch": "main",
             "url_doc": "https://analogdevicesinc.github.io/analog-attach",
             "url_source": "https://github.com/analogdevicesinc/analog-attach.git"
+        },
+        "doctools": {
+            "name": "Doctools",
+            "description": "Documentation guidelines, extensions, and tools.",
+            "category": "tool",
+            "visibility": "public",
+            "pathname": "docs",
+            "branch": "main",
+            "url_doc": "https://analogdevicesinc.github.io/doctools",
+            "url_source": "https://github.com/analogdevicesinc/doctools.git"
         }
     },
     "modules": {
