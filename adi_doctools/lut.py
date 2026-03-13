@@ -165,18 +165,18 @@ repos = {
         branch='main',
         visibility='public'
     ),
-    'doctools': Repo(
-        pathname='docs',
-        name='Doctools',
-        description='Documentation guidelines, extensions, and tools.',
-        category='tool',
-        branch='main',
-        visibility='public'
-    ),
     'analog-attach': Repo(
         pathname='docs',
         name='Analog Attach',
         description='VS Code extension for configuring Device Tree files and overlays.',
+        category='tool',
+        branch='main',
+        visibility='public'
+    ),
+    'doctools': Repo(
+        pathname='docs',
+        name='Doctools',
+        description='Documentation guidelines, extensions, and tools.',
         category='tool',
         branch='main',
         visibility='public'
