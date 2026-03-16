@@ -264,6 +264,22 @@ export class RoleCompletionProvider implements vscode.CompletionItemProvider {
       return this.getRoleCompletions(role, partial, position, skip, '`')
     }
 
+    // :external+proj:[cursor] - complete intersphinx role
+    const externalRoleMatch = linePrefix.match(/:external\+(\w+):(\w*)$/)
+    if (externalRoleMatch) {
+      const [, proj, partial] = externalRoleMatch
+      const skip = suffix.startsWith(':`') ? 2 : suffix.startsWith(':') ? 1 : 0
+      return this.getExternalRoles(proj, partial, position, skip)
+    }
+
+    // :external+[cursor] - complete intersphinx doc-project
+    const externalProjMatch = linePrefix.match(/:external\+(\w*)$/)
+    if (externalProjMatch) {
+      const [, partial] = externalProjMatch
+      const skip = suffix.startsWith(':') ? 1 : 0
+      return this.getExternalProjects(partial, position, skip)
+    }
+
     // :[cursor] - complete role name
     if (linePrefix.endsWith(':') &&
         (linePrefix.length === 1 || /\s/.test(linePrefix[linePrefix.length - 2]))) {
@@ -275,6 +291,28 @@ export class RoleCompletionProvider implements vscode.CompletionItemProvider {
     }
 
     return []
+  }
+
+  private getExternalProjects(partial: string, pos: vscode.Position, skip: number): vscode.CompletionItem[] {
+    const projects = ['cat', 'dog']
+    const range = new vscode.Range(pos.translate(0, -partial.length), pos.translate(0, skip))
+    return projects.map(p => {
+      const item = new vscode.CompletionItem(p, vscode.CompletionItemKind.Module)
+      item.insertText = p + ':'
+      item.range = range
+      return item
+    })
+  }
+
+  private getExternalRoles(proj: string, partial: string, pos: vscode.Position, skip: number): vscode.CompletionItem[] {
+    const roles = ['ref', 'doc']
+    const range = new vscode.Range(pos.translate(0, -partial.length), pos.translate(0, skip))
+    return roles.map(r => {
+      const item = new vscode.CompletionItem(r, vscode.CompletionItemKind.Function)
+      item.insertText = r + ':`'
+      item.range = range
+      return item
+    })
   }
 
   private getRoleCompletions(role: string, partial: string, pos: vscode.Position, skip: number, suffix: string): vscode.CompletionItem[] {
