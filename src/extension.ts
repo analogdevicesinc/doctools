@@ -20,27 +20,6 @@ export async function activate(ctx: vscode.ExtensionContext) {
     vscode.languages.registerCompletionItemProvider({ language: 'restructuredtext' }, completionProvider, ':', '`', '<', '+', '.', ' '),
     vscode.languages.registerHoverProvider({ language: 'restructuredtext' }, hoverProvider),
 
-    vscode.commands.registerCommand('adi-doctools.inspect', async () => {
-      const ed = vscode.window.activeTextEditor
-      if (!ed || ed.document.languageId !== 'restructuredtext') return
-
-      const rst = await provider.init()
-      const tree = rst.parser.parse(ed.document.getText())
-      if (!tree) return
-
-      const info = provider.getRoleAtCursor(tree, ed.selection.active)
-      if (!info) {
-        vscode.window.showInformationMessage('No role at cursor')
-        return
-      }
-
-      const obj = await provider.resolveRole(info)
-      if (obj)
-        vscode.window.showInformationMessage(`target: ${obj.target}, title: ${obj.title}`)
-      else
-        vscode.window.showInformationMessage(`:${info.role}:\`${info.target}\``)
-    }),
-
     vscode.commands.registerCommand('adi-doctools.action', async () => {
       const ed = vscode.window.activeTextEditor
       if (!ed || ed.document.languageId !== 'restructuredtext') return

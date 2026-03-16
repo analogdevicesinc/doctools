@@ -28,10 +28,6 @@
   "contributes": {
     "commands": [
       {
-        "command": "adi-doctools.inspect",
-        "title": "Doctools: Inspect Role"
-      },
-      {
         "command": "adi-doctools.action",
         "title": "Doctools: Execute Role Action"
       },
@@ -50,7 +46,7 @@
     ],
     "keybindings": [
       {
-        "command": "adi-doctools.inspect",
+        "command": "editor.action.showHover",
         "key": "ctrl+shift+i",
         "mac": "cmd+shift+i",
         "when": "editorTextFocus && editorLangId == restructuredtext"
