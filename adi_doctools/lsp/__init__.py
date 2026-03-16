@@ -31,17 +31,17 @@ def handle_xfer(app, typ, target) -> tuple:
 
     return (None, None, f"Unknown type '{typ}'")
 
-def handle_external_xfer(app, inv, typ, target) -> tuple:
+def handle_external_xfer(app, inv, role, target) -> tuple:
     if not hasattr(app.env, 'intersphinx_named_inventory'):
         return (None, None, 'Intersphinx not enabled')
 
     named_inv = app.env.intersphinx_named_inventory.get(inv)
     if not named_inv:
-        return (None, None, f"Intesphinx inventory '{inv}' not found")
+        return (None, None, f"Intersphinx inventory '{inv}' not found")
 
-    obj_type = f'std:{typ}'
-    if obj_type not in named_inv or target not in named_inv[obj_type]:
-        return (None, None, f"Target '{target}' in '{typ}' at inventory '{inv}' not found")
+    obj_type = role_to_objtype(role, named_inv)
+    if not obj_type or obj_type not in named_inv or target not in named_inv[obj_type]:
+        return (None, None, f"Target '{target}' for role '{role}' in inventory '{inv}' not found")
 
     item = named_inv[obj_type][target]
     return (item.uri, item.display_name if item.display_name != '-' else None, None)
@@ -74,12 +74,23 @@ OBJTYPE_TO_ROLE = {
     'js:data': 'data',
 }
 
+ROLE_TO_OBJTYPE = {v: k for k, v in OBJTYPE_TO_ROLE.items()}
+
 def objtype_to_role(objtype: str) -> str | None:
     if objtype in OBJTYPE_TO_ROLE:
         return OBJTYPE_TO_ROLE[objtype]
-    # Fallback: domain:type -> type (e.g., py:property -> property)
     if ':' in objtype:
         return objtype.split(':')[1]
+    return None
+
+def role_to_objtype(role: str, inv: dict) -> str | None:
+    if role in ROLE_TO_OBJTYPE:
+        objtype = ROLE_TO_OBJTYPE[role]
+        if objtype in inv:
+            return objtype
+    for objtype in inv.keys():
+        if objtype_to_role(objtype) == role:
+            return objtype
     return None
 
 def completion_inventory(app) -> tuple:
@@ -131,6 +142,27 @@ def complention_inventory_types(app, inv: str) -> tuple:
             }
     return (list(roles.values()), None)
 
+def completion_inventory_targets(app, inv: str, role: str) -> tuple:
+    if not hasattr(app.env, 'intersphinx_named_inventory'):
+        return (None, "Intersphinx not enabled")
+
+    named_inv = app.env.intersphinx_named_inventory.get(inv)
+    if not named_inv:
+        return (None, f"Inventory '{inv}' not found")
+
+    objtype = role_to_objtype(role, named_inv)
+    if not objtype or objtype not in named_inv:
+        return (None, f"Role '{role}' not found in inventory '{inv}'")
+
+    result = []
+    for target, item in named_inv[objtype].items():
+        result.append({
+            'name': target,
+            'display': item.display_name if item.display_name != '-' else None,
+            'uri': item.uri
+        })
+    return (result, None)
+
 def handle_cmd(cmd: dict) -> dict:
 
     if 'role' in cmd and 'target' in cmd:
@@ -175,6 +207,15 @@ def handle_cmd(cmd: dict) -> dict:
             if not inv:
                 return {'error': 'Missing inventory parameter'}
             list_, error = complention_inventory_types(app, inv)
+            if error:
+                return {'error': error}
+            return {'list': list_}
+        elif completion == 'inventory_targets':
+            inv = cmd.get('inventory')
+            role = cmd.get('role')
+            if not inv or not role:
+                return {'error': 'Missing inventory or role parameter'}
+            list_, error = completion_inventory_targets(app, inv, role)
             if error:
                 return {'error': error}
             return {'list': list_}
