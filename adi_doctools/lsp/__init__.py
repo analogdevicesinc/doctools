@@ -186,6 +186,32 @@ def completion_inventory_targets(app, inv: str, role: str) -> tuple:
         })
     return (result, None)
 
+def completion_roles(app) -> tuple:
+    from docutils.parsers.rst import roles as docutils_roles
+
+    result = []
+    seen = set()
+
+    partial_roles = ['external+', 'git+', 'git-', 'downgit+', 'downgit-']
+    for r in partial_roles:
+        result.append({'name': r, 'partial': True})
+        seen.add(r)
+
+    # Std domain (ref, doc, ...)
+    std_domain = app.env.domains.standard_domain
+    for role_name in std_domain.roles.keys():
+        if role_name not in seen:
+            result.append({'name': role_name, 'partial': False})
+            seen.add(role_name)
+
+    # Custom roles (app.add_role)
+    for role_name in docutils_roles._roles.keys():
+        if role_name not in seen:
+            result.append({'name': role_name, 'partial': False})
+            seen.add(role_name)
+
+    return (result, None)
+
 def handle_cmd(cmd: dict) -> dict:
 
     if 'role' in cmd and 'target' in cmd:
@@ -247,6 +273,11 @@ def handle_cmd(cmd: dict) -> dict:
             if not role:
                 return {'error': 'Missing role parameter'}
             list_, error = completion_local_targets(app, role)
+            if error:
+                return {'error': error}
+            return {'list': list_}
+        elif completion == 'roles':
+            list_, error = completion_roles(app)
             if error:
                 return {'error': error}
             return {'list': list_}
