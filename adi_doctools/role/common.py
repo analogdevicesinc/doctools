@@ -50,11 +50,8 @@ vendors = ['xilinx', 'intel', 'mw']
 suppliers = ['digikey', 'mouser', 'arrow']
 
 
-def get_url_config(name, config=None):
-    if config:
-        return getattr(config, "url_"+name)
-    else:
-        return dft_url[name]
+def get_url_config(name, config):
+    return getattr(config, "url_"+name)
 
 def get_outer_inner(text):
     """
@@ -140,14 +137,14 @@ class GitRoleDispatcher(CustomReSTDispatcher):
         self, role_name: str, language_module: ModuleType, lineno: int, reporter: Reporter,
     ) -> Tuple[RoleFunction, List[system_message]]:
         if len(role_name) > 4 and role_name.startswith(('git-')):
-            return GitRole(role_name, False), []
+            return git_role(role_name, False), []
         elif len(role_name) > 8 and role_name.startswith(('downgit-')):
-            return GitRole(role_name, True), []
+            return git_role(role_name, True), []
         else:
             return super().role(role_name, language_module, lineno, reporter)
 
 
-class GitRole(SphinxRole):
+class git_role(SphinxRole):
     """
     Create links to git upstream.
     Prefers knowns repositories, but will generate for other repositories
@@ -165,7 +162,7 @@ class GitRole(SphinxRole):
         repos = app.lut['repos']
         config = app.config
         text, path = get_outer_inner(self.text)
-        url, text = self.resolve(self.orig_name, text, path, self.down, config, repos)
+        url, text = self.resolve(config, repos, self.orig_name, text, path, self.down)
 
         node = nodes.reference(self.rawtext, text, refuri=url,
                                classes=['icon', 'git'], **self.options)
@@ -226,7 +223,7 @@ class GitRole(SphinxRole):
         return (url, text)
 
 
-def adi_resolve(text, target, config=None):
+def adi_resolve(config, text, target):
     if text is None:
         text = target
     target = '' if target == '/' else target
@@ -239,7 +236,7 @@ def adi():
     def role(name, rawtext, text, lineno, inliner, options={}, content=[]):
         text, target = get_outer_inner(text)
         config = inliner.document.settings.env.app.config
-        url, text = adi_resolve(text, target, config)
+        url, text = adi_resolve(config, text, target)
         node = nodes.reference(rawtext, text, refuri=url,
                                classes=['icon', 'adi'], **options)
         return [node], []
