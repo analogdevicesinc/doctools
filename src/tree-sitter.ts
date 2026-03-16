@@ -240,10 +240,10 @@ export class SemanticTokensProvider implements vscode.DocumentSemanticTokensProv
 }
 
 export class RoleCompletionProvider implements vscode.CompletionItemProvider {
-  provideCompletionItems(
+  async provideCompletionItems(
     document: vscode.TextDocument,
     position: vscode.Position
-  ): vscode.CompletionItem[] {
+  ): Promise<vscode.CompletionItem[]> {
     const line = document.lineAt(position).text
     const linePrefix = line.substring(0, position.character)
     const suffix = line.substring(position.character)
@@ -272,12 +272,12 @@ export class RoleCompletionProvider implements vscode.CompletionItemProvider {
       return this.getExternalRoles(proj, partial, position, skip)
     }
 
-    // :external+[cursor] - complete intersphinx doc-project
+    // :external+[cursor] - complete intersphinx inventory
     const externalProjMatch = linePrefix.match(/:external\+(\w*)$/)
     if (externalProjMatch) {
       const [, partial] = externalProjMatch
       const skip = suffix.startsWith(':') ? 1 : 0
-      return this.getExternalProjects(partial, position, skip)
+      return this.getInventories(partial, position, skip)
     }
 
     // :[cursor] - complete role name
@@ -287,7 +287,7 @@ export class RoleCompletionProvider implements vscode.CompletionItemProvider {
         const item = new vscode.CompletionItem(role, vscode.CompletionItemKind.Keyword)
         if (role.endsWith('+') || role.endsWith('-'))
           item.insertText = role
-	else
+        else
           item.insertText = `${role}:\``
         item.command = { command: 'editor.action.triggerSuggest', title: '' }
         return item
@@ -315,16 +315,29 @@ export class RoleCompletionProvider implements vscode.CompletionItemProvider {
     })
   }
 
-  private getExternalProjects(partial: string, pos: vscode.Position, skip: number): vscode.CompletionItem[] {
-    const projects = ['cat', 'dog']
+  private async getInventories(partial: string, pos: vscode.Position, skip: number): Promise<vscode.CompletionItem[]> {
     const range = new vscode.Range(pos.translate(0, -partial.length), pos.translate(0, skip))
-    return projects.map(p => {
-      const item = new vscode.CompletionItem(p, vscode.CompletionItemKind.Module)
-      item.insertText = p + ':'
-      item.range = range
-      item.command = { command: 'editor.action.triggerSuggest', title: '' }
-      return item
-    })
+    try {
+      const result = await lspSend({ completion: 'inventory' })
+      if (result.error || !result.list) return []
+
+      return result.list.map((inv: any) => {
+        const item = new vscode.CompletionItem(inv.name, vscode.CompletionItemKind.Module)
+        item.insertText = inv.name + ':'
+        item.range = range
+        item.detail = inv.project ? `${inv.project} ${inv.version || ''}`.trim() : undefined
+        if (inv.uri || inv.types?.length) {
+          const md = new vscode.MarkdownString()
+          if (inv.uri) md.appendMarkdown(`**URI:** ${inv.uri}\n\n`)
+          if (inv.types?.length) md.appendMarkdown(`**Types:** \`${inv.types.join('`, `')}\``)
+          item.documentation = md
+        }
+        item.command = { command: 'editor.action.triggerSuggest', title: '' }
+        return item
+      })
+    } catch {
+      return []
+    }
   }
 
   private getExternalRoles(proj: string, partial: string, pos: vscode.Position, skip: number): vscode.CompletionItem[] {
