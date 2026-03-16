@@ -32,7 +32,7 @@ type Role = {
   target?: string
 }
 
-const KNOWN_ROLES = ['adi', 'wiki']
+const KNOWN_ROLES = ['adi', 'wiki', 'external+']
 
 type Token = { range: vscode.Range; type: string; mods: string[] }
 
@@ -285,7 +285,12 @@ export class RoleCompletionProvider implements vscode.CompletionItemProvider {
         (linePrefix.length === 1 || /\s/.test(linePrefix[linePrefix.length - 2]))) {
       return KNOWN_ROLES.map(role => {
         const item = new vscode.CompletionItem(role, vscode.CompletionItemKind.Keyword)
-        item.insertText = `${role}:\``
+        if (role.endsWith('+')) {
+          item.insertText = role
+          item.command = { command: 'editor.action.triggerSuggest', title: '' }
+        } else {
+          item.insertText = `${role}:\``
+        }
         return item
       })
     }
@@ -300,6 +305,7 @@ export class RoleCompletionProvider implements vscode.CompletionItemProvider {
       const item = new vscode.CompletionItem(p, vscode.CompletionItemKind.Module)
       item.insertText = p + ':'
       item.range = range
+      item.command = { command: 'editor.action.triggerSuggest', title: '' }
       return item
     })
   }
@@ -311,6 +317,7 @@ export class RoleCompletionProvider implements vscode.CompletionItemProvider {
       const item = new vscode.CompletionItem(r, vscode.CompletionItemKind.Function)
       item.insertText = r + ':`'
       item.range = range
+      item.command = { command: 'editor.action.triggerSuggest', title: '' }
       return item
     })
   }
