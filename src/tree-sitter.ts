@@ -288,7 +288,7 @@ export class RoleCompletionProvider implements vscode.CompletionItemProvider {
     const directiveMatch = linePrefix.match(/^\s*\.\.\s+(\w*)$/)
     if (directiveMatch) {
       const [, partial] = directiveMatch
-      return this.getDirectives(partial, position)
+      return await this.getDirectives(partial, position)
     }
 
     return []
@@ -315,15 +315,22 @@ export class RoleCompletionProvider implements vscode.CompletionItemProvider {
     }
   }
 
-  private getDirectives(partial: string, pos: vscode.Position): vscode.CompletionItem[] {
-    const directives = ['note', 'warning']
+  private async getDirectives(partial: string, pos: vscode.Position): Promise<vscode.CompletionItem[]> {
     const range = new vscode.Range(pos.translate(0, -partial.length), pos)
-    return directives.map(d => {
-      const item = new vscode.CompletionItem(d, vscode.CompletionItemKind.Snippet)
-      item.insertText = d + '::'
-      item.range = range
-      return item
-    })
+    try {
+      const result = await lspSend({ completion: 'directives' })
+      if (result.error || !result.list) return []
+
+      return result.list.map((d: any) => {
+        const item = new vscode.CompletionItem(d.name, vscode.CompletionItemKind.Snippet)
+        item.insertText = d.name + '::'
+        item.range = range
+        if (d.domain) item.detail = d.domain
+        return item
+      })
+    } catch {
+      return []
+    }
   }
 
   private async getInventories(partial: string, pos: vscode.Position, skip: number): Promise<vscode.CompletionItem[]> {
