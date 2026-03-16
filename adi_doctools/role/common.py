@@ -83,15 +83,21 @@ def datasheet():
     return role
 
 
+def dokuwiki_resolve(config, text, target):
+    path = target
+    if text is None:
+        text = path[path.rfind('/')+1:] if '/' in path else path
+    if len(path) > 0 and path[0] == '/':
+        path = path[1:]
+    url = get_url_config('dokuwiki', config) + '/' + path
+    return (url, text)
+
+
 def dokuwiki():
     def role(name, rawtext, text, lineno, inliner, options={}, content=[]):
         text, path = get_outer_inner(text)
-        if text is None:
-            text = path[path.rfind('/')+1:]
-        if len(path) > 0 and path[0] == '/':
-            path = path[1:]
         config = inliner.document.settings.env.app.config
-        url = get_url_config('dokuwiki', config) + '/' + path
+        url, text = dokuwiki_resolve(config, text, path)
         node = nodes.reference(rawtext, text, refuri=url,
                                classes=['icon', 'dokuwiki'], **options)
         return [node], []
@@ -99,15 +105,21 @@ def dokuwiki():
     return role
 
 
+def ez_resolve(config, text, target):
+    path = target
+    if path == '/':
+        path = ''
+    url = get_url_config('ez', config) + '/' + path
+    if text is None:
+        text = "EngineerZone"
+    return (url, text)
+
+
 def ez():
     def role(name, rawtext, text, lineno, inliner, options={}, content=[]):
         text, path = get_outer_inner(text)
-        if path == '/':
-            path = ''
         config = inliner.document.settings.env.app.config
-        url = get_url_config('ez', config) + '/' + path
-        if text is None:
-            text = "EngineerZone"
+        url, text = ez_resolve(config, text, path)
         node = nodes.reference(rawtext, text, refuri=url,
                                classes=['icon', 'ez'], **options)
         return [node], []
@@ -231,7 +243,6 @@ def adi_resolve(config, text, target):
 
     return (url, text)
 
-
 def adi():
     def role(name, rawtext, text, lineno, inliner, options={}, content=[]):
         text, target = get_outer_inner(text)
@@ -244,26 +255,38 @@ def adi():
     return role
 
 
+def vendor_resolve(config, vendor_name, text, target):
+    path = target
+    if text is None:
+        text = path[path.rfind('/')+1:] if '/' in path else path
+    url = get_url_config(vendor_name, config) + '/' + path
+    return (url, text)
+
+
 def vendor(vendor_name):
     def role(name, rawtext, text, lineno, inliner, options={}, content=[]):
         text, path = get_outer_inner(text)
-        if text is None:
-            text = path[path.rfind('/')+1:]
         config = inliner.document.settings.env.app.config
-        url = get_url_config(vendor_name, config) + '/' + path
+        url, text = vendor_resolve(config, vendor_name, text, path)
         node = nodes.reference(rawtext, text, refuri=url, **options)
         return [node], []
 
     return role
 
 
+def supplier_resolve(config, supplier_name, text, target):
+    path = target
+    if text is None:
+        text = path
+    url = get_url_config(supplier_name, config) + path
+    return (url, text)
+
+
 def supplier(supplier_name):
     def role(name, rawtext, text, lineno, inliner, options={}, content=[]):
         text, path = get_outer_inner(text)
-        if text is None:
-            text = path
         config = inliner.document.settings.env.app.config
-        url = get_url_config(supplier_name, config) + path
+        url, text = supplier_resolve(config, supplier_name, text, path)
         node = nodes.reference(rawtext, text, refuri=url, **options)
         return [node], []
 

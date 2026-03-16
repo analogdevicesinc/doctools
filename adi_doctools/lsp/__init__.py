@@ -7,7 +7,8 @@ from sphinx.util.nodes import clean_astext
 
 from .logging import set_logging
 from ..role.common import git_role
-from ..role.common import adi_resolve
+from ..role.common import adi_resolve, dokuwiki_resolve, ez_resolve
+from ..role.common import vendor_resolve, supplier_resolve, vendors, suppliers
 
 from ..cli.serve import Serve
 
@@ -258,6 +259,14 @@ def handle_cmd(cmd: dict) -> dict:
             target, title = git_role.resolve(app.config, app.lut['repos'], role, title, target, role.startswith('downgit'))
         elif role == 'adi':
             target, title = adi_resolve(app.config, title, target)
+        elif role == 'dokuwiki' or role == 'dokuwiki+deprecated':
+            target, title = dokuwiki_resolve(app.config, title, target)
+        elif role == 'ez':
+            target, title = ez_resolve(app.config, title, target)
+        elif role in vendors:
+            target, title = vendor_resolve(app.config, role, title, target)
+        elif role in suppliers:
+            target, title = supplier_resolve(app.config, role, title, target)
         elif role.startswith('external+') and ':' in role:
             role_ = role.split('+')[1].split(':')
             target, title, error = handle_external_xfer(app, role_[0], role_[1], target)
