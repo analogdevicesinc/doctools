@@ -264,12 +264,12 @@ export class RoleCompletionProvider implements vscode.CompletionItemProvider {
       return this.getRoleCompletions(role, partial, position, skip, '`')
     }
 
-    // :external+proj:[cursor] - complete intersphinx role
+    // :external+inv:[cursor] - complete intersphinx role
     const externalRoleMatch = linePrefix.match(/:external\+(\w+):(\w*)$/)
     if (externalRoleMatch) {
-      const [, proj, partial] = externalRoleMatch
+      const [, inv, partial] = externalRoleMatch
       const skip = suffix.startsWith(':`') ? 2 : suffix.startsWith(':') ? 1 : 0
-      return this.getExternalRoles(proj, partial, position, skip)
+      return this.getInvetoryTypes(inv, partial, position, skip)
     }
 
     // :external+[cursor] - complete intersphinx inventory
@@ -340,16 +340,29 @@ export class RoleCompletionProvider implements vscode.CompletionItemProvider {
     }
   }
 
-  private getExternalRoles(proj: string, partial: string, pos: vscode.Position, skip: number): vscode.CompletionItem[] {
-    const roles = ['ref', 'doc']
+  private async getInvetoryTypes(inv: string, partial: string, pos: vscode.Position, skip: number): Promise<vscode.CompletionItem[]> {
     const range = new vscode.Range(pos.translate(0, -partial.length), pos.translate(0, skip))
-    return roles.map(r => {
-      const item = new vscode.CompletionItem(r, vscode.CompletionItemKind.Function)
-      item.insertText = r + ':`'
-      item.range = range
-      item.command = { command: 'editor.action.triggerSuggest', title: '' }
-      return item
-    })
+    try {
+      const result = await lspSend({ completion: 'inventory_types', inventory: inv })
+      if (result.error || !result.list) return []
+
+      return result.list.map((r: any) => {
+        const item = new vscode.CompletionItem(r.name, vscode.CompletionItemKind.Function)
+        item.insertText = r.name + ':`'
+        item.range = range
+        item.detail = r.domain !== 'std' ? r.domain : undefined
+        if (r.count || r.objtype) {
+          const md = new vscode.MarkdownString()
+          if (r.objtype) md.appendMarkdown(`**Type:** \`${r.objtype}\`\n\n`)
+          if (r.count) md.appendMarkdown(`**Entries:** ${r.count}`)
+          item.documentation = md
+        }
+        item.command = { command: 'editor.action.triggerSuggest', title: '' }
+        return item
+      })
+    } catch {
+      return []
+    }
   }
 
   private getRoleCompletions(role: string, partial: string, pos: vscode.Position, skip: number, suffix: string): vscode.CompletionItem[] {
