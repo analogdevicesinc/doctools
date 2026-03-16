@@ -22,6 +22,7 @@ interface LangConfig {
   lang: Language
   highlights: Query
   injections?: Query
+  locals?: Query
 }
 
 type Role = {
@@ -33,7 +34,7 @@ type Role = {
 
 const KNOWN_ROLES = ['adi', 'wiki']
 
-const resPath = (f: string) => path.join(__dirname, '..', 'deps', f)
+const depsPath = (f: string) => path.join(__dirname, '..', 'deps', f)
 
 function findChild(node: Node, type: string): Node | null {
   for (let i = 0; i < node.childCount; i++) {
@@ -59,31 +60,24 @@ export class SemanticTokensProvider implements vscode.DocumentSemanticTokensProv
     await Parser.init({
       locateFile: (name: string) => path.join(__dirname, name),
     })
-    await this.loadLang('rst', 'tree-sitter-rst.wasm', 'rst-highlights.scm', 'rst-injections.scm')
+    await this.loadLang('rst', 'tree-sitter-rst.wasm', 'rst-highlights.scm', ['rst-injections.scm', 'rst-injections-doctools.scm'], ['rst-locals.scm'])
     await this.loadLang('bash', 'tree-sitter-bash.wasm', 'bash-highlights.scm')
     await this.loadLang('yaml', 'tree-sitter-yaml.wasm', 'yaml-highlights.scm')
   }
 
-  private async loadLang(name: string, wasm: string, highlights: string, injections?: string) {
+  private async loadLang(name: string, wasm: string, highlights: string, injections?:string[], locals?:string[]) {
     const parser = new Parser()
-    const lang = await Language.load(resPath(wasm))
+    const lang = await Language.load(depsPath(wasm))
     parser.setLanguage(lang)
 
-    const hText = fs.readFileSync(resPath(highlights), 'utf-8')
-      .split('\n').filter(l => !l.trim().startsWith('; inherits')).join('\n')
-    const hQuery = new Query(lang, hText)
+    const readQuery = (file: string) => fs.readFileSync(depsPath(file), 'utf-8')
+      .split('\n').filter(l => !l.trim().startsWith('; inherits') && !l.trim().startsWith('; extends')).join('\n')
 
-    let iQuery: Query | undefined
-    if (injections) {
-      const iPath = resPath(injections)
-      if (fs.existsSync(iPath)) {
-        const iText = fs.readFileSync(iPath, 'utf-8')
-          .split('\n').filter(l => !l.includes('; extends')).join('\n')
-        try { iQuery = new Query(lang, iText); } catch {}
-      }
-    }
+    const hQuery = new Query(lang, readQuery(highlights))
+    const iQuery = injections ? new Query(lang, injections.map(readQuery).join('\n')) : undefined
+    const lQuery = locals ? new Query(lang, locals.map(readQuery).join('\n')) : undefined
 
-    this.langs.set(name, { parser, lang, highlights: hQuery, injections: iQuery })
+    this.langs.set(name, { parser, lang, highlights: hQuery, injections: iQuery, locals: lQuery })
   }
 
   async provideDocumentSemanticTokens(doc: vscode.TextDocument): Promise<vscode.SemanticTokens> {

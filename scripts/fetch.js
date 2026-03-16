@@ -25,7 +25,15 @@ const RESOURCES = [
   },
   {
     name: 'rst-injections.scm',
+    url: 'https://raw.githubusercontent.com/nvim-treesitter/nvim-treesitter/master/queries/rst/injections.scm',
+  },
+  {
+    name: 'rst-injections-doctools.scm',
     url: 'https://raw.githubusercontent.com/analogdevicesinc/doctools/refs/heads/nvim/after/queries/rst/injections.scm',
+  },
+  {
+    name: 'rst-locals.scm',
+    url: 'https://raw.githubusercontent.com/nvim-treesitter/nvim-treesitter/master/queries/rst/locals.scm',
   },
   {
     name: 'bash-highlights.scm',
