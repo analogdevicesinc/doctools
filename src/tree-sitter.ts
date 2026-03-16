@@ -244,19 +244,52 @@ export class RoleCompletionProvider implements vscode.CompletionItemProvider {
     document: vscode.TextDocument,
     position: vscode.Position
   ): vscode.CompletionItem[] {
-    const linePrefix = document.lineAt(position).text.substring(0, position.character)
+    const line = document.lineAt(position).text
+    const linePrefix = line.substring(0, position.character)
+    const suffix = line.substring(position.character)
 
-    // Only trigger if we just typed ':'
-    if (!linePrefix.endsWith(':')) {
-      return []
+    // :role:`title <[cursor] - complete target
+    const roleTitleMatch = linePrefix.match(/:(\w+):`[^`]*<([^>]*)$/)
+    if (roleTitleMatch) {
+      const [, role, partial] = roleTitleMatch
+      const skip = suffix.startsWith('>`') ? 2 : suffix.startsWith('>') ? 1 : 0
+      return this.getRoleCompletions(role, partial, position, skip, '>`')
     }
 
-    return KNOWN_ROLES.map(role => {
-      const item = new vscode.CompletionItem(role, vscode.CompletionItemKind.Keyword)
-      item.insertText = `${role}:\``
-      item.detail = `Role: ${role}`
+    // :role:`[cursor] - complete target (user may do a title)
+    const roleContentMatch = linePrefix.match(/:(\w+):`([^`]*)$/)
+    if (roleContentMatch) {
+      const [, role, partial] = roleContentMatch
+      const skip = suffix.startsWith('`') ? 1 : 0
+      return this.getRoleCompletions(role, partial, position, skip, '`')
+    }
+
+    // :[cursor] - complete role name
+    if (linePrefix.endsWith(':') &&
+        (linePrefix.length === 1 || /\s/.test(linePrefix[linePrefix.length - 2]))) {
+      return KNOWN_ROLES.map(role => {
+        const item = new vscode.CompletionItem(role, vscode.CompletionItemKind.Keyword)
+        item.insertText = `${role}:\``
+        return item
+      })
+    }
+
+    return []
+  }
+
+  private getRoleCompletions(role: string, partial: string, pos: vscode.Position, skip: number, suffix: string): vscode.CompletionItem[] {
+    const suggestions = this.fetchSuggestions(role)
+    const range = new vscode.Range(pos.translate(0, -partial.length), pos.translate(0, skip))
+    return suggestions.map(s => {
+      const item = new vscode.CompletionItem(s, vscode.CompletionItemKind.Reference)
+      item.insertText = s + suffix
+      item.range = range
       return item
     })
+  }
+
+  private fetchSuggestions(_role: string): string[] {
+    return ['apple', 'banana']
   }
 }
 

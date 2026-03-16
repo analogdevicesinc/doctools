@@ -17,7 +17,7 @@ export async function activate(ctx: vscode.ExtensionContext) {
   ctx.subscriptions.push(
     output,
     vscode.languages.registerDocumentSemanticTokensProvider({ language: 'restructuredtext' }, provider, LEGEND),
-    vscode.languages.registerCompletionItemProvider({ language: 'restructuredtext' }, completionProvider, ':'),
+    vscode.languages.registerCompletionItemProvider({ language: 'restructuredtext' }, completionProvider, ':', '`', '<'),
     vscode.languages.registerHoverProvider({ language: 'restructuredtext' }, hoverProvider),
 
     vscode.commands.registerCommand('adi-doctools.inspect', async () => {
