@@ -21,8 +21,8 @@ def handle_xfer(app, typ, target) -> tuple:
             return (None, None, f"Reference '{target}' not found")
 
         title = sectname
-        target = f"{docname}#{labelid}"
-        return (target, title, None)
+        uri = f"{docname}#{labelid}" if labelid else docname
+        return (uri, title, None)
     elif typ == 'doc':
         if target not in app.env.titles:
             return (None, None, f"Docname '{target}' not found")
@@ -142,6 +142,29 @@ def complention_inventory_types(app, inv: str) -> tuple:
             }
     return (list(roles.values()), None)
 
+def completion_local_targets(app, role: str) -> tuple:
+    if role == 'ref':
+        std_domain = app.env.domains.standard_domain
+        result = []
+        for target, (docname, labelid, sectname) in std_domain.labels.items():
+            result.append({
+                'name': target,
+                'display': str(sectname) if sectname else None,
+                'uri': f"{docname}#{labelid}" if labelid else docname
+            })
+        return (result, None)
+    elif role == 'doc':
+        result = []
+        for docname, title_node in app.env.titles.items():
+            title = clean_astext(title_node)
+            result.append({
+                'name': docname,
+                'display': str(title) if title else None,
+                'uri': docname
+            })
+        return (result, None)
+    return (None, f"Unknown role '{role}'")
+
 def completion_inventory_targets(app, inv: str, role: str) -> tuple:
     if not hasattr(app.env, 'intersphinx_named_inventory'):
         return (None, "Intersphinx not enabled")
@@ -216,6 +239,14 @@ def handle_cmd(cmd: dict) -> dict:
             if not inv or not role:
                 return {'error': 'Missing inventory or role parameter'}
             list_, error = completion_inventory_targets(app, inv, role)
+            if error:
+                return {'error': error}
+            return {'list': list_}
+        elif completion == 'local_targets':
+            role = cmd.get('role')
+            if not role:
+                return {'error': 'Missing role parameter'}
+            list_, error = completion_local_targets(app, role)
             if error:
                 return {'error': error}
             return {'list': list_}
