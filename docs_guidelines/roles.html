@@ -184,13 +184,13 @@ the links of only these files.</p>
 <section id="git">
 <span id="role-git"></span><h3>Git<a class="headerlink" href="#git" title="Link to this heading"></a></h3>
 <p>The Git role allows creating links to the Git repository with a shorter syntax.
-The role syntax is <code class="code docutils literal notranslate"><span class="pre">:git-repo:`text</span> <span class="pre">&lt;type+branch:path&gt;`</span></code>, for example:</p>
+The role syntax is <code class="code docutils literal notranslate"><span class="pre">:git+repo:`text</span> <span class="pre">&lt;type+branch:path&gt;`</span></code>, for example:</p>
 <ul class="simple">
-<li><p><code class="code docutils literal notranslate"><span class="pre">:git-hdl:`main:docs/user_guide/docs_guidelines.rst`</span></code>
+<li><p><code class="code docutils literal notranslate"><span class="pre">:git+hdl:`main:docs/user_guide/docs_guidelines.rst`</span></code>
 renders as <a class="icon git reference external" href="https://github.com/analogdevicesinc/hdl/tree/main/docs/user_guide/docs_guidelines.rst" target="_blank">docs/user_guide/docs_guidelines.rst</a>.</p></li>
-<li><p><code class="code docutils literal notranslate"><span class="pre">:git-hdl:`Guidelines</span> <span class="pre">&lt;docs/user_guide/docs_guidelines.rst&gt;`</span></code>
+<li><p><code class="code docutils literal notranslate"><span class="pre">:git+hdl:`Guidelines</span> <span class="pre">&lt;docs/user_guide/docs_guidelines.rst&gt;`</span></code>
 renders as <a class="icon git reference external" href="https://github.com/analogdevicesinc/hdl/tree/main/docs/user_guide/docs_guidelines.rst" target="_blank">Guidelines</a>.</p></li>
-<li><p><code class="code docutils literal notranslate"><span class="pre">:git-wiki-scripts:`raw+linux/build_zynq_kernel_image.sh`</span></code>
+<li><p><code class="code docutils literal notranslate"><span class="pre">:git+wiki-scripts:`raw+linux/build_zynq_kernel_image.sh`</span></code>
 renders as <a class="icon git reference external" href="https://raw.githubusercontent.com/analogdevicesinc/wiki-scripts/main/linux/build_zynq_kernel_image.sh" target="_blank">linux/build_zynq_kernel_image.sh</a>.</p></li>
 </ul>
 <div class="admonition important">
@@ -207,13 +207,13 @@ repositories.</p>
 <ul class="simple">
 <li><p><em>gui</em>: To view rendered on the Git server web GUI [default].</p></li>
 <li><p><em>raw</em>: To download/view as raw.</p></li>
-<li><p><em>{}</em>: Any other Git server web GUI link, e.g. <code class="code docutils literal notranslate"><span class="pre">:git-hdl:`releases+`</span></code>.
+<li><p><em>{}</em>: Any other Git server web GUI link, e.g. <code class="code docutils literal notranslate"><span class="pre">:git+hdl:`releases+`</span></code>.
 The last character must be <code class="docutils literal notranslate"><span class="pre">+</span></code>, since filenames/path may contain this character
 also.</p></li>
 </ul>
 <p>The text field is optional and will be filled with the full path.</p>
-<p>Finally, you can do <code class="code docutils literal notranslate"><span class="pre">:git-repo:`/`</span></code> for a link to the root of the
-repository with pretty naming, for example, <code class="code docutils literal notranslate"><span class="pre">:git-hdl:`/`</span></code> is rendered
+<p>Finally, you can do <code class="code docutils literal notranslate"><span class="pre">:git+repo:`/`</span></code> for a link to the root of the
+repository with pretty naming, for example, <code class="code docutils literal notranslate"><span class="pre">:git+hdl:`/`</span></code> is rendered
 as <a class="icon git reference external" href="https://github.com/analogdevicesinc/hdl/tree/main/" target="_blank">ADI HDL repository</a>.</p>
 </section>
 <section id="downgit">
