@@ -13,7 +13,7 @@ from ..cli.serve import Serve
 
 logger = logging_.getLogger(__name__)
 
-def handle_xfer(app, typ, target) -> dict | None:
+def handle_xfer(app, typ, target) -> tuple:
     if typ == 'ref':
         std_domain = app.env.domains.standard_domain
         docname, labelid, sectname = std_domain.labels.get(target, ('', '', ''))
@@ -25,13 +25,13 @@ def handle_xfer(app, typ, target) -> dict | None:
         return (target, title, None)
     elif typ == 'doc':
         if target not in app.env.titles:
-            return (None, None, f"Docame '{target}' not found")
+            return (None, None, f"Docname '{target}' not found")
         title = clean_astext(app.env.titles[target])
         return (target, title, None)
 
-    return (None, None)
+    return (None, None, f"Unknown type '{typ}'")
 
-def handle_external_xfer(app, inv, typ, target) -> dict | None:
+def handle_external_xfer(app, inv, typ, target) -> tuple:
     if not hasattr(app.env, 'intersphinx_named_inventory'):
         return (None, None, 'Intersphinx not enabled')
 
@@ -46,15 +46,42 @@ def handle_external_xfer(app, inv, typ, target) -> dict | None:
     item = named_inv[obj_type][target]
     return (item.uri, item.display_name if item.display_name != '-' else None, None)
 
+def completion_inventory(app) -> tuple:
+    if not hasattr(app.env, 'intersphinx_named_inventory'):
+        return (None, "Intersphinx not enabled")
+
+    result = []
+    for name, inv in app.env.intersphinx_named_inventory.items():
+        project_name = None
+        project_version = None
+        target_uri = None
+        types = list(inv.keys())
+        for typ_entries in inv.values():
+            for item in typ_entries.values():
+                project_name = item.project_name
+                project_version = item.project_version
+                target_uri = item.uri.rsplit('/', 1)[0] if '/' in item.uri else item.uri
+                break
+            if project_name:
+                break
+        result.append({
+            'name': name,
+            'project': project_name,
+            'version': project_version,
+            'uri': target_uri,
+            'types': types
+        })
+    return (result, None)
+
 def handle_cmd(cmd: dict) -> dict:
 
     if 'role' in cmd and 'target' in cmd:
         role = cmd['role']
         target = cmd['target']
         title = cmd.get('title', None)
+        error = None
 
         app = Serve.get_sphinx_app()
-        error = None
         if not app:
             return {'error': 'Serve not running'}
 
@@ -72,6 +99,18 @@ def handle_cmd(cmd: dict) -> dict:
         if error:
             return {'error': error}
         return { 'target': target, 'title': title }
+    elif 'completion' in cmd:
+        completion = cmd['completion']
+        error = None
+
+        app = Serve.get_sphinx_app()
+        if not app:
+            return {'error': 'Serve not running'}
+
+        elif completion == 'inventory':
+            list_, error = completion_inventory(app)
+            return {'list': list_}
+
     elif 'server' in cmd:
         if cmd['server'] == 'start':
             Serve.start(jsonrpc=True)
