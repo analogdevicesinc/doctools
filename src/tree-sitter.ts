@@ -25,6 +25,7 @@ interface LangConfig {
 }
 
 type Role = {
+  error?: string
   role?: string
   title?: string
   target?: string
@@ -187,7 +188,7 @@ export class SemanticTokensProvider implements vscode.DocumentSemanticTokensProv
   async resolveRole(info: object): Promise<Role | undefined> {
     try {
       const role = await lspSend(info)
-      if (role?.target)
+      if (role?.target || role?.error)
         return role
     } catch (err) {
       console.error('LSP communication error:', err)
@@ -235,12 +236,16 @@ export class RoleHoverProvider implements vscode.HoverProvider {
     if (!resolved) return
 
     const md = new vscode.MarkdownString()
-    md.appendMarkdown(`**Role:** \`${info.role}\`\n\n`)
-    if (resolved.title) {
-      md.appendMarkdown(`**Title:** ${resolved.title}\n\n`)
-    }
-    if (resolved.target) {
-      md.appendMarkdown(`**Target:** ${resolved.target}`)
+    if (!resolved?.error) {
+      md.appendMarkdown(`**Role:** \`${info.role}\`\n\n`)
+      if (resolved.title) {
+        md.appendMarkdown(`**Title:** ${resolved.title}\n\n`)
+      }
+      if (resolved.target) {
+        md.appendMarkdown(`**Target:** ${resolved.target}`)
+      }
+    } else {
+      md.appendMarkdown(`**Error:** ${resolved.error}\n`)
     }
 
     return new vscode.Hover(md)
