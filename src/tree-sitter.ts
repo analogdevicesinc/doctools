@@ -32,8 +32,6 @@ type Role = {
   target?: string
 }
 
-const KNOWN_ROLES = ['adi', 'wiki', 'external+', 'git-']
-
 type Token = { range: vscode.Range; type: string; mods: string[] }
 
 const LANG_MAP: Record<string, string> = {
@@ -283,15 +281,7 @@ export class RoleCompletionProvider implements vscode.CompletionItemProvider {
     // :[cursor] - complete role name
     if (linePrefix.endsWith(':') &&
         (linePrefix.length === 1 || /\s/.test(linePrefix[linePrefix.length - 2]))) {
-      return KNOWN_ROLES.map(role => {
-        const item = new vscode.CompletionItem(role, vscode.CompletionItemKind.Keyword)
-        if (role.endsWith('+') || role.endsWith('-'))
-          item.insertText = role
-        else
-          item.insertText = `${role}:\``
-        item.command = { command: 'editor.action.triggerSuggest', title: '' }
-        return item
-      })
+      return this.getRoles()
     }
 
     // .. [cursor] - complete directive name
@@ -302,6 +292,27 @@ export class RoleCompletionProvider implements vscode.CompletionItemProvider {
     }
 
     return []
+  }
+
+  private async getRoles(): Promise<vscode.CompletionItem[]> {
+    try {
+      const result = await lspSend({ completion: 'roles' })
+      if (result.error || !result.list) return []
+
+      return result.list.map((r: any) => {
+        const item = new vscode.CompletionItem(r.name, vscode.CompletionItemKind.Keyword)
+        if (r.partial) {
+          item.insertText = r.name
+        } else {
+          item.insertText = `${r.name}:\``
+        }
+        if (r.domain) item.detail = r.domain
+        item.command = { command: 'editor.action.triggerSuggest', title: '' }
+        return item
+      })
+    } catch {
+      return []
+    }
   }
 
   private getDirectives(partial: string, pos: vscode.Position): vscode.CompletionItem[] {
