@@ -34,10 +34,6 @@
       {
         "command": "adi-doctools.stop-server",
         "title": "Doctools: Stop server"
-      },
-      {
-        "command": "adi-doctools.reload",
-        "title": "Doctools: Reload"
       }
     ],
     "configuration": {

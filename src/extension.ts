@@ -38,13 +38,6 @@ export async function activate(ctx: vscode.ExtensionContext) {
       }, 300)
     }),
 
-    vscode.commands.registerCommand('adi-doctools.reload', () => {
-      ctx.subscriptions.forEach(s => s.dispose())
-      ctx.subscriptions.length = 0
-      activate(ctx)
-      vscode.window.showInformationMessage('Doctools reloaded')
-    }),
-
     vscode.commands.registerCommand('adi-doctools.start-server', buildServer.start),
     vscode.commands.registerCommand('adi-doctools.stop-server', buildServer.stop)
   )
