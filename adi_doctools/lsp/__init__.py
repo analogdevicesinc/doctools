@@ -212,6 +212,35 @@ def completion_roles(app) -> tuple:
 
     return (result, None)
 
+def completion_directives(app) -> tuple:
+    from docutils.parsers.rst import directives as docutils_directives
+
+    result = []
+    seen = set()
+
+    # Std domain directives (toctree, etc.)
+    std_domain = app.env.domains.standard_domain
+    for directive_name in std_domain.directives.keys():
+        if directive_name not in seen:
+            result.append({'name': directive_name})
+            seen.add(directive_name)
+
+    # Custom directives (app.add_directive)
+    for directive_name in docutils_directives._directives.keys():
+        if directive_name not in seen:
+            result.append({'name': directive_name})
+            seen.add(directive_name)
+
+    # Sphinx domains (py, c, cpp, etc.)
+    for domain_name, domain in app.env.domains.items():
+        for directive_name in domain.directives.keys():
+            full_name = f"{domain_name}:{directive_name}" if domain_name != 'std' else directive_name
+            if full_name not in seen:
+                result.append({'name': full_name, 'domain': domain_name})
+                seen.add(full_name)
+
+    return (result, None)
+
 def handle_cmd(cmd: dict) -> dict:
 
     if 'role' in cmd and 'target' in cmd:
@@ -278,6 +307,11 @@ def handle_cmd(cmd: dict) -> dict:
             return {'list': list_}
         elif completion == 'roles':
             list_, error = completion_roles(app)
+            if error:
+                return {'error': error}
+            return {'list': list_}
+        elif completion == 'directives':
+            list_, error = completion_directives(app)
             if error:
                 return {'error': error}
             return {'list': list_}
