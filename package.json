@@ -40,14 +40,6 @@
         "title": "Doctools: Reload"
       }
     ],
-    "keybindings": [
-      {
-        "command": "editor.action.showHover",
-        "key": "ctrl+shift+i",
-        "mac": "cmd+shift+i",
-        "when": "editorTextFocus && editorLangId == restructuredtext"
-      }
-    ],
     "configuration": {
       "title": "Doctools",
       "properties": {
