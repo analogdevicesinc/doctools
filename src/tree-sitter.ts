@@ -34,9 +34,21 @@ type Role = {
 
 const KNOWN_ROLES = ['adi', 'wiki']
 
-const depsPath = (f: string) => path.join(__dirname, '..', 'deps', f)
+type Token = { range: vscode.Range; type: string; mods: string[] }
 
-function findChild(node: Node, type: string): Node | null {
+const LANG_MAP: Record<string, string> = {
+  bash: 'bash', sh: 'bash',
+  yaml: 'yaml', yml: 'yaml',
+  rst: 'rst', restructuredtext: 'rst'
+}
+
+const depsPath = (f: string) => path.join(__dirname, '..', 'deps', f)
+const readQuery = (file: string) => fs.readFileSync(depsPath(file), 'utf-8')
+  .split('\n')
+  .filter(l => !l.trim().startsWith('; inherits') && !l.trim().startsWith('; extends'))
+  .join('\n')
+
+const findChild = (node: Node, type: string): Node | null => {
   for (let i = 0; i < node.childCount; i++) {
     const child = node.child(i)
     if (child?.type === type) return child
@@ -70,68 +82,77 @@ export class SemanticTokensProvider implements vscode.DocumentSemanticTokensProv
     const lang = await Language.load(depsPath(wasm))
     parser.setLanguage(lang)
 
-    const readQuery = (file: string) => fs.readFileSync(depsPath(file), 'utf-8')
-      .split('\n').filter(l => !l.trim().startsWith('; inherits') && !l.trim().startsWith('; extends')).join('\n')
-
-    const hQuery = new Query(lang, readQuery(highlights))
-    const iQuery = new Query(lang, injections.map(readQuery).join('\n'))
-    const lQuery = new Query(lang, locals.map(readQuery).join('\n'))
-
-    this.langs.set(name, { parser, lang, highlights: hQuery, injections: iQuery, locals: lQuery })
+    this.langs.set(name, {
+      parser, lang,
+      highlights: new Query(lang, readQuery(highlights)),
+      injections: new Query(lang, injections.map(readQuery).join('\n')),
+      locals: new Query(lang, locals.map(readQuery).join('\n'))
+    })
   }
 
   async provideDocumentSemanticTokens(doc: vscode.TextDocument): Promise<vscode.SemanticTokens> {
     const rst = await this.init()
     const tokens = await this.getTokens(rst, doc.getText(), 0, 0)
+    const deduped = this.deduplicateTokens(tokens)
+
     const builder = new vscode.SemanticTokensBuilder(LEGEND)
-    for (const t of tokens) {
-      if (TOKEN_TYPES.includes(t.type)) {
-        builder.push(t.range, t.type, t.mods.filter(m => TOKEN_MODIFIERS.includes(m)))
-      }
+    for (const t of deduped) {
+      builder.push(t.range, t.type, t.mods.filter(m => TOKEN_MODIFIERS.includes(m)))
     }
     return builder.build()
   }
 
-  private async getTokens(cfg: LangConfig, text: string, rowOff: number, colOff: number) {
+  private deduplicateTokens(tokens: Token[]): Token[] {
+    const sorted = tokens
+      .filter(t => TOKEN_TYPES.includes(t.type))
+      .sort((a, b) => a.range.start.line - b.range.start.line || a.range.start.character - b.range.start.character)
+
+    const deduped: Token[] = []
+    for (const t of sorted) {
+      const last = deduped[deduped.length - 1]
+      if (!last || !last.range.intersection(t.range)) deduped.push(t)
+    }
+    return deduped
+  }
+
+  private async getTokens(cfg: LangConfig, text: string, rowOff: number, colOff: number): Promise<Token[]> {
     const tree = cfg.parser.parse(text)
     if (!tree) return []
 
     let tokens = this.extractTokens(cfg.highlights.matches(tree.rootNode), rowOff, colOff)
 
-    if (cfg.injections) {
-      for (const m of cfg.injections.matches(tree.rootNode)) {
-        const cap = m.captures.find(c => c.name === 'injection.content')
-        if (!cap) continue
+    for (const m of cfg.injections.matches(tree.rootNode)) {
+      const cap = m.captures.find(c => c.name === 'injection.content')
+      if (!cap) continue
 
-        const props = (m as any).setProperties || (cap as any).setProperties || {}
-        const langMap: Record<string, string> = { bash: 'bash', sh: 'bash', yaml: 'yaml', yml: 'yaml' }
-        const injLang = langMap[props['injection.language'] as string]
-        const target = injLang && this.langs.get(injLang)
-        if (!target) continue
+      const props = (m as any).setProperties || (cap as any).setProperties || {}
+      const injLang = LANG_MAP[props['injection.language'] as string]
+      const target = injLang && this.langs.get(injLang)
+      if (!target) continue
 
-        const node = cap.node
-        const injTokens = await this.getTokens(target, node.text, node.startPosition.row, node.startPosition.column)
-        const range = new vscode.Range(
-          node.startPosition.row, node.startPosition.column,
-          node.endPosition.row, node.endPosition.column
-        )
-        tokens = tokens.filter(t => !range.contains(t.range)).concat(injTokens)
-      }
+      const { node } = cap
+      const nodeRow = node.startPosition.row + rowOff
+      const nodeCol = node.startPosition.row === 0 ? node.startPosition.column + colOff : node.startPosition.column
+      const injTokens = await this.getTokens(target, node.text, nodeRow, nodeCol)
+      const range = new vscode.Range(nodeRow, nodeCol, node.endPosition.row + rowOff,
+        node.endPosition.row === 0 ? node.endPosition.column + colOff : node.endPosition.column)
+      tokens = tokens.filter(t => !range.contains(t.range)).concat(injTokens)
     }
     return tokens
   }
 
-  private extractTokens(matches: QueryMatch[], rowOff: number, colOff: number) {
-    const tokens: { range: vscode.Range; type: string; mods: string[] }[] = []
+  private extractTokens(matches: QueryMatch[], rowOff: number, colOff: number): Token[] {
+    const tokens: Token[] = []
     for (const m of matches) {
       for (const c of m.captures) {
         if (c.name.startsWith('_') || c.name.startsWith('injection.')) continue
 
         const [type, ...mods] = c.name.split('.')
-        const sr = c.node.startPosition.row + rowOff
-        const sc = c.node.startPosition.row === 0 ? c.node.startPosition.column + colOff : c.node.startPosition.column
-        const er = c.node.endPosition.row + rowOff
-        const ec = c.node.endPosition.row === 0 ? c.node.endPosition.column + colOff : c.node.endPosition.column
+        const { node } = c
+        const sr = node.startPosition.row + rowOff
+        const sc = node.startPosition.row === 0 ? node.startPosition.column + colOff : node.startPosition.column
+        const er = node.endPosition.row + rowOff
+        const ec = node.endPosition.row === 0 ? node.endPosition.column + colOff : node.endPosition.column
 
         if (sr === er) {
           tokens.push({ range: new vscode.Range(sr, sc, er, ec), type, mods })
@@ -148,34 +169,61 @@ export class SemanticTokensProvider implements vscode.DocumentSemanticTokensProv
   }
 
   getRoleAtCursor(tree: Tree, pos: vscode.Position) {
-    let node: Node | null = tree.rootNode.descendantForPosition({
-      row: pos.line,
-      column: pos.character,
-    })
+    const cfg = this.langs.get('rst')
+    if (!cfg) return null
+    return this.findRoleWithInjections(cfg, tree, pos, 0, 0)
+  }
 
+  private findRoleWithInjections(cfg: LangConfig, tree: Tree, pos: vscode.Position, rowOff: number, colOff: number): ReturnType<typeof this.findRoleInTree> {
+    for (const m of cfg.injections.matches(tree.rootNode)) {
+      const cap = m.captures.find(c => c.name === 'injection.content')
+      if (!cap) continue
+
+      const props = (m as any).setProperties || {}
+      if (props['injection.language'] !== 'rst') continue
+
+      const { node } = cap
+      const absRow = node.startPosition.row + rowOff
+      const absCol = node.startPosition.row === 0 ? node.startPosition.column + colOff : node.startPosition.column
+      const absEndRow = node.endPosition.row + rowOff
+      const absEndCol = node.endPosition.row === 0 ? node.endPosition.column + colOff : node.endPosition.column
+      const range = new vscode.Range(absRow, absCol, absEndRow, absEndCol)
+
+      if (range.contains(pos)) {
+        const injTree = cfg.parser.parse(node.text)
+        if (!injTree) continue
+
+        return this.findRoleWithInjections(cfg, injTree, pos, absRow, absCol)
+      }
+    }
+
+    const relPos = {
+      row: pos.line - rowOff,
+      column: pos.line === rowOff ? pos.character - colOff : pos.character
+    }
+    return this.findRoleInTree(tree, relPos)
+  }
+
+  private findRoleInTree(tree: Tree, pos: { row: number, column: number }) {
+    let node: Node | null = tree.rootNode.descendantForPosition(pos)
     while (node && node.type !== 'interpreted_text') node = node.parent
     if (!node) return null
 
-    let role = findChild(node, 'role')
-    if (!role && node.parent?.type === 'interpreted_text') {
-      node = node.parent
-      role = findChild(node, 'role')
-    }
-    if (!role) return null
+    if (node.parent?.type === 'interpreted_text') node = node.parent
+    const role = findChild(node, 'role')
+    const inner = findChild(node, 'interpreted_text')
+    if (!role || !inner) return null
 
     const roleMatch = role.text.match(/^:([^:]+):$/)
-    if (!roleMatch) return null
-
-    const inner = findChild(node, 'interpreted_text')
-    const contentMatch = inner?.text.match(/^`([^`]+)`$/)
-    if (!contentMatch) return null
+    const contentMatch = inner.text.match(/^`([^`]+)`$/)
+    if (!roleMatch || !contentMatch) return null
 
     const content = contentMatch[1]
     const titleMatch = content.match(/^\s*(.+?)\s*<\s*(.+?)\s*>\s*$/)
     return {
       role: roleMatch[1],
       title: titleMatch?.[1],
-      target: titleMatch ? titleMatch[2] : content,
+      target: titleMatch?.[2] ?? content,
     }
   }
 
