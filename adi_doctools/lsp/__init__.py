@@ -41,8 +41,9 @@ def handle_cmd(cmd: dict) -> dict:
         app = Serve.get_sphinx_app()
         if not app:
             return {'error': 'Serve not running'}
-        if role.startswith('downgit-') or role.startswith('git-'):
-            target, title = git_role.resolve(app.config, app.lut['repos'], role, title, target, role.startswith('downgit-'))
+        if (role.startswith('downgit-') or role.startswith('downgit+') or
+            role.startswith('git-') or role.startswith('git+')):
+            target, title = git_role.resolve(app.config, app.lut['repos'], role, title, target, role.startswith('downgit'))
         elif role == 'adi':
             target, title = adi_resolve(app.config, title, target)
         elif role in ['ref', 'doc']:

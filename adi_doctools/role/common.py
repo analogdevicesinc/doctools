@@ -136,9 +136,9 @@ class GitRoleDispatcher(CustomReSTDispatcher):
     def role(
         self, role_name: str, language_module: ModuleType, lineno: int, reporter: Reporter,
     ) -> Tuple[RoleFunction, List[system_message]]:
-        if len(role_name) > 4 and role_name.startswith(('git-')):
+        if len(role_name) > 4 and (role_name.startswith(('git-')) or role_name.startswith(('git+'))):
             return git_role(role_name, False), []
-        elif len(role_name) > 8 and role_name.startswith(('downgit-')):
+        elif len(role_name) > 8 and (role_name.startswith(('downgit-')) or role_name.startswith(('downgit+'))):
             return git_role(role_name, True), []
         else:
             return super().role(role_name, language_module, lineno, reporter)
@@ -156,7 +156,7 @@ class git_role(SphinxRole):
 
     def run(self) -> Tuple[List[Node], List[system_message]]:
         assert self.name == self.orig_name.lower()
-        assert self.name.startswith('downgit-' if self.down else 'git-')
+        assert self.name.startswith('downgit' if self.down else 'git')
 
         app = self.inliner.document.settings.env.app
         repos = app.lut['repos']

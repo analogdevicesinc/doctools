@@ -34,14 +34,14 @@ Git
 +++
 
 The Git role allows creating links to the Git repository with a shorter syntax.
-The role syntax is :code:`:git-repo:\`text <type+branch:path>\``, for example:
+The role syntax is :code:`:git+repo:\`text <type+branch:path>\``, for example:
 
-* :code:`:git-hdl:\`main:docs/user_guide/docs_guidelines.rst\``
-  renders as :git-hdl:`main:docs/user_guide/docs_guidelines.rst`.
-* :code:`:git-hdl:\`Guidelines <docs/user_guide/docs_guidelines.rst>\``
-  renders as :git-hdl:`Guidelines <docs/user_guide/docs_guidelines.rst>`.
-* :code:`:git-wiki-scripts:\`raw+linux/build_zynq_kernel_image.sh\``
-  renders as :git-wiki-scripts:`raw+linux/build_zynq_kernel_image.sh`.
+* :code:`:git+hdl:\`main:docs/user_guide/docs_guidelines.rst\``
+  renders as :git+hdl:`main:docs/user_guide/docs_guidelines.rst`.
+* :code:`:git+hdl:\`Guidelines <docs/user_guide/docs_guidelines.rst>\``
+  renders as :git+hdl:`Guidelines <docs/user_guide/docs_guidelines.rst>`.
+* :code:`:git+wiki-scripts:\`raw+linux/build_zynq_kernel_image.sh\``
+  renders as :git+wiki-scripts:`raw+linux/build_zynq_kernel_image.sh`.
 
 .. important::
 
@@ -58,20 +58,20 @@ The type field is also optional and the values are:
 
 * *gui*: To view rendered on the Git server web GUI [default].
 * *raw*: To download/view as raw.
-* *{}*: Any other Git server web GUI link, e.g. :code:`:git-hdl:\`releases+\``.
+* *{}*: Any other Git server web GUI link, e.g. :code:`:git+hdl:\`releases+\``.
   The last character must be ``+``, since filenames/path may contain this character
   also.
 
 The text field is optional and will be filled with the full path.
 
-Finally, you can do :code:`:git-repo:\`/\`` for a link to the root of the
-repository with pretty naming, for example, :code:`:git-hdl:\`/\`` is rendered
-as :git-hdl:`/`.
+Finally, you can do :code:`:git+repo:\`/\`` for a link to the root of the
+repository with pretty naming, for example, :code:`:git+hdl:\`/\`` is rendered
+as :git+hdl:`/`.
 
 DownGit
 +++++++
 
-Same as the :ref:`role git` but wrapping the address with the :git-DownGit:`+`
+Same as the :ref:`role git` but wrapping the address with the :git+DownGit:`+`
 fork.
 
 ADI
