@@ -46,6 +46,42 @@ def handle_external_xfer(app, inv, typ, target) -> tuple:
     item = named_inv[obj_type][target]
     return (item.uri, item.display_name if item.display_name != '-' else None, None)
 
+# From sphinx/domains/std/__init__.py and other domains
+OBJTYPE_TO_ROLE = {
+    'std:label': 'ref',
+    'std:term': 'term',
+    'std:token': 'token',
+    'std:doc': 'doc',
+    'std:confval': 'confval',
+    'std:envvar': 'envvar',
+    'std:cmdoption': 'option',
+    'py:function': 'func',
+    'py:class': 'class',
+    'py:method': 'meth',
+    'py:attribute': 'attr',
+    'py:data': 'data',
+    'py:module': 'mod',
+    'py:exception': 'exc',
+    'c:function': 'func',
+    'c:macro': 'macro',
+    'c:type': 'type',
+    'c:var': 'var',
+    'cpp:function': 'func',
+    'cpp:class': 'class',
+    'cpp:type': 'type',
+    'js:function': 'func',
+    'js:class': 'class',
+    'js:data': 'data',
+}
+
+def objtype_to_role(objtype: str) -> str | None:
+    if objtype in OBJTYPE_TO_ROLE:
+        return OBJTYPE_TO_ROLE[objtype]
+    # Fallback: domain:type -> type (e.g., py:property -> property)
+    if ':' in objtype:
+        return objtype.split(':')[1]
+    return None
+
 def completion_inventory(app) -> tuple:
     if not hasattr(app.env, 'intersphinx_named_inventory'):
         return (None, "Intersphinx not enabled")
@@ -72,6 +108,28 @@ def completion_inventory(app) -> tuple:
             'types': types
         })
     return (result, None)
+
+def complention_inventory_types(app, inv: str) -> tuple:
+    if not hasattr(app.env, 'intersphinx_named_inventory'):
+        return (None, "Intersphinx not enabled")
+
+    named_inv = app.env.intersphinx_named_inventory.get(inv)
+    if not named_inv:
+        return (None, f"Inventory '{inv}' not found")
+
+    roles = {}
+    for objtype in named_inv.keys():
+        role = objtype_to_role(objtype)
+        if role and role not in roles:
+            count = len(named_inv[objtype])
+            domain = objtype.split(':')[0] if ':' in objtype else 'std'
+            roles[role] = {
+                'name': role,
+                'objtype': objtype,
+                'domain': domain,
+                'count': count
+            }
+    return (list(roles.values()), None)
 
 def handle_cmd(cmd: dict) -> dict:
 
@@ -109,6 +167,16 @@ def handle_cmd(cmd: dict) -> dict:
 
         elif completion == 'inventory':
             list_, error = completion_inventory(app)
+            if error:
+                return {'error': error}
+            return {'list': list_}
+        elif completion == 'inventory_types':
+            inv = cmd.get('inventory')
+            if not inv:
+                return {'error': 'Missing inventory parameter'}
+            list_, error = complention_inventory_types(app, inv)
+            if error:
+                return {'error': error}
             return {'list': list_}
 
     elif 'server' in cmd:
