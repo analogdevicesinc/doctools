@@ -373,12 +373,32 @@ class Serve:
             from sphinx._cli.util.colour import disable_colour
 
             disable_colour()
+
+            class WarningStream:
+                """Captures warning lines and send as notification."""
+                def __init__(self):
+                    self.buffer = ""
+
+                def write(self, text):
+                    self.buffer += text
+                    while '\n' in self.buffer:
+                        line, self.buffer = self.buffer.split('\n', 1)
+                        if line.strip():
+                            notify("build/output", {"line": line})
+
+                def flush(self):
+                    if self.buffer.strip():
+                        notify("build/output", {"line": self.buffer.strip()})
+                        self.buffer = ""
+
+            warning_stream = WarningStream()
         else:
             def notify(method, params=None):
                 pass
+            warning_stream = None
 
         if not self.verbose and not self.jsonrpc:
-            logger.info(f"\nTip: enable full output with {BLUE}--verbose{NC}\n")
+            logger.info(f"Enable full output with {BLUE}--verbose{NC}\n")
 
         def _confoverrides_to_arg():
             override_args = []
@@ -406,7 +426,13 @@ class Serve:
                            shell=True, cwd=directory, capture_output=not self.verbose)
             if not self.verbose and path.getsize(warn_file.name) > 0:
                 with open(warn_file.name, 'r') as f:
-                    print(RED, f.read(), NC)
+                    warnings = f.read()
+                if self.jsonrpc:
+                    for line in warnings.strip().split('\n'):
+                        if line:
+                            notify("build/output", {"line": line})
+                elif not self.verbose:
+                    print(RED, warnings, NC)
             build_notify("completed")
             warn_file.close()
 
@@ -595,7 +621,8 @@ class Serve:
         # instead, we call through subprocess if needed
         self.app = Sphinx(directory, directory, builddir,
                           doctreedir, builder, confoverrides=confoverrides,
-                          parallel=0, status=sys.stdout if self.verbose else None)
+                          parallel=0, status=sys.stdout if self.verbose else None,
+                          warning=warning_stream)
 
         def get_source_lfs_file(path_, ext):
             """
@@ -785,10 +812,13 @@ class Serve:
                     app_subprocess_build()
                     self.app = Sphinx(directory, directory, builddir,
                                       doctreedir, builder, confoverrides=confoverrides,
-                                      parallel=0, status=sys.stdout if self.verbose else None)
+                                      parallel=0, status=sys.stdout if self.verbose else None,
+                                      warning=warning_stream)
                 else:
                     build_notify("started", mode=False)
                     self.app.build()
+                    if warning_stream:
+                        warning_stream.flush()
                     build_notify("completed")
 
             if update_dev:

@@ -120,7 +120,7 @@ def completion_inventory(app) -> tuple:
         })
     return (result, None)
 
-def complention_inventory_types(app, inv: str) -> tuple:
+def completion_inventory_types(app, inv: str) -> tuple:
     if not hasattr(app.env, 'intersphinx_named_inventory'):
         return (None, "Intersphinx not enabled")
 
@@ -263,6 +263,8 @@ def handle_cmd(cmd: dict) -> dict:
             target, title, error = handle_external_xfer(app, role_[0], role_[1], target)
         elif role in ['ref', 'doc']:
             target, title, error = handle_xfer(app, role, target)
+        else:
+            return {} # May exist, but unhandled
 
         if error:
             return {'error': error}
@@ -284,7 +286,7 @@ def handle_cmd(cmd: dict) -> dict:
             inv = cmd.get('inventory')
             if not inv:
                 return {'error': 'Missing inventory parameter'}
-            list_, error = complention_inventory_types(app, inv)
+            list_, error = completion_inventory_types(app, inv)
             if error:
                 return {'error': error}
             return {'list': list_}
