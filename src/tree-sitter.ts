@@ -32,7 +32,7 @@ type Role = {
   target?: string
 }
 
-const KNOWN_ROLES = ['adi', 'wiki', 'external+']
+const KNOWN_ROLES = ['adi', 'wiki', 'external+', 'git-']
 
 type Token = { range: vscode.Range; type: string; mods: string[] }
 
@@ -214,7 +214,7 @@ export class SemanticTokensProvider implements vscode.DocumentSemanticTokensProv
     const inner = findChild(node, 'interpreted_text')
     if (!role || !inner) return null
 
-    const roleMatch = role.text.match(/^:([^:]+):$/)
+    const roleMatch = role.text.match(/^:(\S+):$/)
     const contentMatch = inner.text.match(/^`([^`]+)`$/)
     if (!roleMatch || !contentMatch) return null
 
@@ -249,7 +249,7 @@ export class RoleCompletionProvider implements vscode.CompletionItemProvider {
     const suffix = line.substring(position.character)
 
     // :role:`title <[cursor] - complete target
-    const roleTitleMatch = linePrefix.match(/:(\w+):`[^`]*<([^>]*)$/)
+    const roleTitleMatch = linePrefix.match(/:(\S+):`[^`]*<([^>]*)$/)
     if (roleTitleMatch) {
       const [, role, partial] = roleTitleMatch
       const skip = suffix.startsWith('>`') ? 2 : suffix.startsWith('>') ? 1 : 0
@@ -257,7 +257,7 @@ export class RoleCompletionProvider implements vscode.CompletionItemProvider {
     }
 
     // :role:`[cursor] - complete target (user may do a title)
-    const roleContentMatch = linePrefix.match(/:(\w+):`([^`]*)$/)
+    const roleContentMatch = linePrefix.match(/:(\S+):`([^`]*)$/)
     if (roleContentMatch) {
       const [, role, partial] = roleContentMatch
       const skip = suffix.startsWith('`') ? 1 : 0
@@ -285,12 +285,11 @@ export class RoleCompletionProvider implements vscode.CompletionItemProvider {
         (linePrefix.length === 1 || /\s/.test(linePrefix[linePrefix.length - 2]))) {
       return KNOWN_ROLES.map(role => {
         const item = new vscode.CompletionItem(role, vscode.CompletionItemKind.Keyword)
-        if (role.endsWith('+')) {
+        if (role.endsWith('+') || role.endsWith('-'))
           item.insertText = role
-          item.command = { command: 'editor.action.triggerSuggest', title: '' }
-        } else {
+	else
           item.insertText = `${role}:\``
-        }
+        item.command = { command: 'editor.action.triggerSuggest', title: '' }
         return item
       })
     }
