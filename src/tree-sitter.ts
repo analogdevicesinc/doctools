@@ -21,8 +21,8 @@ interface LangConfig {
   parser: Parser
   lang: Language
   highlights: Query
-  injections?: Query
-  locals?: Query
+  injections: Query
+  locals: Query
 }
 
 type Role = {
@@ -61,11 +61,11 @@ export class SemanticTokensProvider implements vscode.DocumentSemanticTokensProv
       locateFile: (name: string) => path.join(__dirname, name),
     })
     await this.loadLang('rst', 'tree-sitter-rst.wasm', 'rst-highlights.scm', ['rst-injections.scm', 'rst-injections-doctools.scm'], ['rst-locals.scm'])
-    await this.loadLang('bash', 'tree-sitter-bash.wasm', 'bash-highlights.scm')
-    await this.loadLang('yaml', 'tree-sitter-yaml.wasm', 'yaml-highlights.scm')
+    await this.loadLang('bash', 'tree-sitter-bash.wasm', 'bash-highlights.scm', [], [])
+    await this.loadLang('yaml', 'tree-sitter-yaml.wasm', 'yaml-highlights.scm', [], [])
   }
 
-  private async loadLang(name: string, wasm: string, highlights: string, injections?:string[], locals?:string[]) {
+  private async loadLang(name: string, wasm: string, highlights: string, injections: string[], locals: string[]) {
     const parser = new Parser()
     const lang = await Language.load(depsPath(wasm))
     parser.setLanguage(lang)
@@ -74,8 +74,8 @@ export class SemanticTokensProvider implements vscode.DocumentSemanticTokensProv
       .split('\n').filter(l => !l.trim().startsWith('; inherits') && !l.trim().startsWith('; extends')).join('\n')
 
     const hQuery = new Query(lang, readQuery(highlights))
-    const iQuery = injections ? new Query(lang, injections.map(readQuery).join('\n')) : undefined
-    const lQuery = locals ? new Query(lang, locals.map(readQuery).join('\n')) : undefined
+    const iQuery = new Query(lang, injections.map(readQuery).join('\n'))
+    const lQuery = new Query(lang, locals.map(readQuery).join('\n'))
 
     this.langs.set(name, { parser, lang, highlights: hQuery, injections: iQuery, locals: lQuery })
   }
