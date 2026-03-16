@@ -263,7 +263,7 @@ export class RoleCompletionProvider implements vscode.CompletionItemProvider {
     }
 
     // :external+inv:[cursor] - complete intersphinx role
-    const externalRoleMatch = linePrefix.match(/:external\+(\w+):(\w*)$/)
+    const externalRoleMatch = linePrefix.match(/:external\+([^\s:]+):(\w*)$/)
     if (externalRoleMatch) {
       const [, inv, partial] = externalRoleMatch
       const skip = suffix.startsWith(':`') ? 2 : suffix.startsWith(':') ? 1 : 0
@@ -271,7 +271,7 @@ export class RoleCompletionProvider implements vscode.CompletionItemProvider {
     }
 
     // :external+[cursor] - complete intersphinx inventory
-    const externalProjMatch = linePrefix.match(/:external\+(\w*)$/)
+    const externalProjMatch = linePrefix.match(/:external\+(\S*)$/)
     if (externalProjMatch) {
       const [, partial] = externalProjMatch
       const skip = suffix.startsWith(':') ? 1 : 0
@@ -380,7 +380,7 @@ export class RoleCompletionProvider implements vscode.CompletionItemProvider {
     const range = new vscode.Range(pos.translate(0, -partial.length), pos.translate(0, skip))
 
     // :external+inv:role:`target` - fetch from intersphinx
-    const externalMatch = role.match(/^external\+(\w+):(\w+)$/)
+    const externalMatch = role.match(/^external\+([^\s:]+):(\S+)$/)
     if (externalMatch) {
       const [, inv, roleType] = externalMatch
       try {
