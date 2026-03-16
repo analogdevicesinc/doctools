@@ -375,35 +375,58 @@ export class RoleCompletionProvider implements vscode.CompletionItemProvider {
       try {
         const result = await lspSend({ completion: 'inventory_targets', inventory: inv, role: roleType })
         if (result.error || !result.list) return []
-
-        return result.list.map((t: any) => {
-          const item = new vscode.CompletionItem(t.name, vscode.CompletionItemKind.Reference)
-          item.insertText = t.name + suffix
-          item.range = range
-          if (t.display) item.detail = t.display
-          if (t.uri) {
-            item.documentation = new vscode.MarkdownString(`[${t.uri}](${t.uri})`)
-          }
-          return item
-        })
+        return this.buildTargetCompletions(result.list, range, suffix)
       } catch {
         return []
       }
     }
 
-    // Other roles - mock for now
-    const suggestions = this.fetchSuggestions(role)
-    return suggestions.map(s => {
-      const item = new vscode.CompletionItem(s, vscode.CompletionItemKind.Reference)
-      item.insertText = s + suffix
+    // :ref: and :doc: - fetch local targets
+    if (role === 'ref' || role === 'doc') {
+      try {
+        const result = await lspSend({ completion: 'local_targets', role })
+        if (result.error || !result.list) return []
+        return this.buildTargetCompletions(result.list, range, suffix)
+      } catch {
+        return []
+      }
+    }
+
+    return []
+  }
+
+  private buildTargetCompletions(list: any[], range: vscode.Range, suffix: string): vscode.CompletionItem[] {
+    return list.map((t: any) => {
+      const item = new vscode.CompletionItem(t.name, vscode.CompletionItemKind.Reference)
+      item.insertText = t.name + suffix
       item.range = range
+      if (t.display) item.detail = t.display
+      if (t.uri) {
+        const uri = docnameToFileUri(t.uri)
+        const md = new vscode.MarkdownString(`[${t.uri}](${uri})`)
+        item.documentation = md
+      }
       return item
     })
   }
+}
+const docnameToFileUri = (target: string): string => {
+  if (target.startsWith('http://') || target.startsWith('https://'))
+    return target
 
-  private fetchSuggestions(_role: string): string[] {
-    return ['apple', 'banana']
+  const workspace = vscode.workspace.workspaceFolders?.[0]
+  if (!workspace) return target
+
+  const [docname, _] = target.split('#')
+  const docsDir = path.join(workspace.uri.fsPath, 'docs')
+
+  for (const ext of ['.rst', '.md']) {
+    const filePath = path.join(docsDir, docname + ext)
+    if (fs.existsSync(filePath)) {
+      return `file://${filePath}`
+    }
   }
+  return target
 }
 
 export class RoleHoverProvider implements vscode.HoverProvider {
@@ -430,7 +453,8 @@ export class RoleHoverProvider implements vscode.HoverProvider {
         md.appendMarkdown(`**Title:** ${resolved.title}\n\n`)
       }
       if (resolved.target) {
-        md.appendMarkdown(`**Target:** ${resolved.target}`)
+        const fileUri = docnameToFileUri(resolved.target)
+        md.appendMarkdown(`**Target:** [${resolved.target}](${fileUri})`)
       }
     } else {
       md.appendMarkdown(`**Error:** ${resolved.error}\n`)
