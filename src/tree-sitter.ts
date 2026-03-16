@@ -295,7 +295,25 @@ export class RoleCompletionProvider implements vscode.CompletionItemProvider {
       })
     }
 
+    // .. [cursor] - complete directive name
+    const directiveMatch = linePrefix.match(/^\s*\.\.\s+(\w*)$/)
+    if (directiveMatch) {
+      const [, partial] = directiveMatch
+      return this.getDirectives(partial, position)
+    }
+
     return []
+  }
+
+  private getDirectives(partial: string, pos: vscode.Position): vscode.CompletionItem[] {
+    const directives = ['note', 'warning']
+    const range = new vscode.Range(pos.translate(0, -partial.length), pos)
+    return directives.map(d => {
+      const item = new vscode.CompletionItem(d, vscode.CompletionItemKind.Snippet)
+      item.insertText = d + '::'
+      item.range = range
+      return item
+    })
   }
 
   private getExternalProjects(partial: string, pos: vscode.Position, skip: number): vscode.CompletionItem[] {
