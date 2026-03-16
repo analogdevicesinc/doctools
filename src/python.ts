@@ -1,8 +1,11 @@
-import * as fs from 'fs'
-import * as path from 'path'
 import * as vscode from 'vscode'
 import * as readline from 'readline'
 import { spawn, ChildProcess } from 'child_process'
+import {
+  setOutputChannel as setInitOutputChannel,
+  initializePython,
+  installRequirements
+} from './python-init'
 
 let py_process: ChildProcess | undefined
 let output: vscode.OutputChannel
@@ -40,8 +43,21 @@ function handleNotification(parsed: any) {
       break
     }
     case 'server/started': {
+      const url = vscode.Uri.parse(params.url, true)
       output.appendLine(`[server] Running on ${params.url}`)
-      vscode.window.showInformationMessage(`Server running on ${params.url}`)
+      vscode.window.showInformationMessage(
+        `Server running on ${params.url}`,
+        'Open Preview', 'Open in Browser'
+      ).then(choice => {
+        if (choice === 'Open Preview') {
+          vscode.commands.executeCommand('simpleBrowser.api.open', url.toString(), {
+            viewColumn: vscode.ViewColumn.Beside,
+            preserveFocus: true
+          })
+        } else if (choice === 'Open in Browser') {
+          vscode.env.openExternal(url)
+        }
+      })
       break
     }
     case 'server/stopped': {
@@ -102,52 +118,22 @@ export class buildServer {
 
 export function setOutputChannel(channel: vscode.OutputChannel) {
   output = channel
-}
-
-async function ensureVenv(): Promise<string> {
-  const workspace = vscode.workspace.workspaceFolders?.[0]
-  if (!workspace) {
-    throw new Error('No workspace folder open')
-  }
-
-  const venvPath = path.join(workspace.uri.fsPath, '.venv')
-  const pythonPath = path.join(venvPath, 'bin', 'python')
-
-  if (fs.existsSync(pythonPath)) {
-    output.appendLine(`Using existing venv: ${pythonPath}`)
-    return pythonPath
-  }
-
-  return new Promise((resolve, reject) => {
-    const proc = spawn('python3', ['-m', 'venv', venvPath])
-
-    proc.on('close', (code) => {
-      if (code !== 0) {
-        reject(new Error(`Failed to create venv (exit code ${code})`))
-        return
-      }
-
-      output.appendLine(`Created venv: ${pythonPath}`)
-      resolve(pythonPath)
-    })
-  })
+  setInitOutputChannel(channel)
 }
 
 export async function startPyProcess() {
-  const workspace = vscode.workspace.workspaceFolders?.[0]
-  if (!workspace) {
-    throw new Error('No workspace folder open')
-  }
-  output.appendLine(`Starting py process`)
+  const init = await initializePython()
+  if (!init) return
 
-  const python = await ensureVenv()
-  output.appendLine(`With ${python}`)
+  await startLspProcess(init.pythonPath, init.workspacePath, init.requirementsPath)
+}
 
-  const proc = spawn(python, ['-m', 'adi_doctools.lsp'], {
-    cwd: workspace.uri.fsPath,
-    env: {
-      ...process.env
-    }
+async function startLspProcess(pythonPath: string, workspacePath: string, requirementsPath: string | null) {
+  output.appendLine(`Starting LSP with ${pythonPath}`)
+
+  const proc = spawn(pythonPath, ['-m', 'adi_doctools.lsp'], {
+    cwd: workspacePath,
+    env: { ...process.env }
   })
 
   proc.on('error', (err: any) => {
@@ -155,12 +141,32 @@ export async function startPyProcess() {
     vscode.window.showErrorMessage('Failed to start python3')
   })
 
-  proc.stderr.on('data', (data) => {
+  proc.stderr.on('data', async (data) => {
     const msg = data.toString().trim()
     if (!msg) return
 
-    if (msg.includes('ModuleNotFoundError') && msg.includes('adi_doctools')) {
-      vscode.window.showErrorMessage('"adi-doctools" is not installed')
+    if (msg.includes('ModuleNotFoundError')) {
+      output.appendLine(msg)
+      proc.kill()
+
+      const match = msg.match(/No module named '([^']+)'/)
+      const moduleName = match ? match[1] : 'unknown'
+
+      if (requirementsPath) {
+        const installChoice = await vscode.window.showErrorMessage(
+          `Missing Python module '${moduleName}'. Install dependencies?`,
+          'Yes', 'No'
+        )
+
+        if (installChoice === 'Yes') {
+          const success = await installRequirements(pythonPath, requirementsPath, false)
+          if (success) {
+            await startLspProcess(pythonPath, workspacePath, requirementsPath)
+          }
+        }
+      } else {
+        vscode.window.showErrorMessage(`Missing module '${moduleName}' and no requirements.txt found`)
+      }
       return
     }
 
@@ -178,6 +184,7 @@ export async function startPyProcess() {
   proc.on('exit', (code) => {
     output.appendLine(`LSP exited with code ${code}`)
     lineReader = undefined
+    py_process = undefined
   })
 
   lineReader = readline.createInterface({
@@ -187,7 +194,18 @@ export async function startPyProcess() {
   lineReader.on('line', handleLine)
 
   py_process = proc
-  output.appendLine("LSP server started")
+  output.appendLine("LSP process started")
+
+  const startServerChoice = await vscode.window.showInformationMessage(
+    'Start the Doctools Sphinx server (adoc serve)?',
+    'Yes', 'No'
+  )
+
+  if (startServerChoice === 'Yes') {
+    await buildServer.start()
+  } else {
+    vscode.window.showInformationMessage('Use "Doctools: Start Server" command to start anytime')
+  }
 }
 
 export function stopPyProcess() {

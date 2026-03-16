@@ -12,5 +12,5 @@ build:
 	npm run package
 
 install:
-	command -v codium && codium --install-extension adi-doctools-0.1.0.vsix --force || true
-	command -v code && code --install-extension adi-doctools-0.1.0.vsix --force || true
+	command -v codium && codium --install-extension adi-doctools-*.vsix --force || true
+	command -v code && code --install-extension adi-doctools-*.vsix --force || true
