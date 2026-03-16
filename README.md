@@ -2,13 +2,16 @@
 
 Sphinx roles and directives support using tree-sitter.
 
+## Behaviour
+
+On hover (mouse or keyboard cursor), shows relevant information.
+
 ## Commands
 
-| Command                         | Keybinding     | Description                        |
-|---------------------------------|----------------|------------------------------------|
-| `Doctools: Inspect Role`        | `Ctrl+Shift+I` | Show info about the role at cursor |
-| `Doctools: Execute Role Action` | `Ctrl+Shift+O` | Open URL or execute role action    |
-| `Doctools: Reload`              | -              | Reload the extension               |
+| Command                         | Description                                         |
+|---------------------------------|-----------------------------------------------------|
+| `Doctools: Start Server`        | Start Doctools Sphinx server                        |
+| `Doctools: Stop Server`         | Stop Doctools Sphinx server                         |
 
 ## Building & Installing
 
@@ -16,19 +19,7 @@ Sphinx roles and directives support using tree-sitter.
 make all
 ```
 
-## Configuration
-
-```json
-{
-  "adi-doctools.urlMappings": {
-    "adi": "https://analog.com/",
-    "dokuwiki": "https://wiki.analog.com/"
-  },
-  "adi-doctools.githubOrg": "analogdevicesinc"
-}
-```
-
-## Uses
+## Dependencies
 
 This extension combines these great sources:
 
