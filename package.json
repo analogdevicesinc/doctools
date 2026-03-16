@@ -28,10 +28,6 @@
   "contributes": {
     "commands": [
       {
-        "command": "adi-doctools.action",
-        "title": "Doctools: Execute Role Action"
-      },
-      {
         "command": "adi-doctools.start-server",
         "title": "Doctools: Start server"
       },
@@ -49,12 +45,6 @@
         "command": "editor.action.showHover",
         "key": "ctrl+shift+i",
         "mac": "cmd+shift+i",
-        "when": "editorTextFocus && editorLangId == restructuredtext"
-      },
-      {
-        "command": "adi-doctools.action",
-        "key": "ctrl+shift+o",
-        "mac": "cmd+shift+o",
         "when": "editorTextFocus && editorLangId == restructuredtext"
       }
     ],

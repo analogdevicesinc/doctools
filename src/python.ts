@@ -9,7 +9,59 @@ import {
 
 let py_process: ChildProcess | undefined
 let output: vscode.OutputChannel
+let debugOutput: vscode.OutputChannel
 let lineReader: readline.Interface | undefined
+let diagnosticCollection: vscode.DiagnosticCollection
+
+function stripAnsi(str: string): string {
+  return str.replace(/\x1B\[[0-9;]*[a-zA-Z]/g, '')
+            .replace(/\[9\dm/g, '')
+            .replace(/\[39;49;00m/g, '')
+}
+
+// Sphinx warning patterns
+// file:line: WARNING: message or file:line: ERROR: message
+const WARNING_PATTERN = /^(.+?):(\d+):\s*(WARNING|ERROR):\s*(.+)$/
+const WARNING_NO_LINE_PATTERN = /^(.+?):\s*(WARNING|ERROR):\s*(.+)$/
+
+interface ParsedWarning {
+  file: string
+  line: number
+  message: string
+  severity: vscode.DiagnosticSeverity
+}
+
+function parseWarningLine(line: string): ParsedWarning | null {
+  const cleaned = stripAnsi(line).trim()
+
+  let match = cleaned.match(WARNING_PATTERN)
+  if (match) {
+    return {
+      file: match[1],
+      line: parseInt(match[2], 10),
+      message: match[4],
+      severity: match[3] === 'ERROR'
+        ? vscode.DiagnosticSeverity.Error
+        : vscode.DiagnosticSeverity.Warning
+    }
+  }
+
+  match = cleaned.match(WARNING_NO_LINE_PATTERN)
+  if (match) {
+    return {
+      file: match[1],
+      line: 1,
+      message: match[3],
+      severity: match[2] === 'ERROR'
+        ? vscode.DiagnosticSeverity.Error
+        : vscode.DiagnosticSeverity.Warning
+    }
+  }
+
+  return null
+}
+
+const fileDiagnostics = new Map<string, vscode.Diagnostic[]>()
 
 const lsp_message_type: Record<number, string> = {
   1: 'error',
@@ -32,14 +84,21 @@ function handleNotification(parsed: any) {
     }
     case 'build/started': {
       output.appendLine(`-- Building -- (${params.mode})`)
+      clearDiagnostics()
       break
     }
     case 'build/output': {
       output.appendLine(params.line)
+      const warning = parseWarningLine(params.line)
+      if (warning) {
+        debugOutput.appendLine(`[diagnostic] ${warning.file}:${warning.line} - ${warning.message}`)
+        addDiagnostic(warning)
+      }
       break
     }
     case 'build/completed': {
       output.appendLine(`---- Done ----`)
+      const count = Array.from(fileDiagnostics.values()).reduce((sum, arr) => sum + arr.length, 0)
       break
     }
     case 'server/started': {
@@ -47,16 +106,10 @@ function handleNotification(parsed: any) {
       output.appendLine(`[server] Running on ${params.url}`)
       vscode.window.showInformationMessage(
         `Server running on ${params.url}`,
-        'Open Preview', 'Open in Browser'
-      ).then(choice => {
-        if (choice === 'Open Preview') {
-          vscode.commands.executeCommand('simpleBrowser.api.open', url.toString(), {
-            viewColumn: vscode.ViewColumn.Beside,
-            preserveFocus: true
-          })
-        } else if (choice === 'Open in Browser') {
-          vscode.env.openExternal(url)
-        }
+      )
+      vscode.commands.executeCommand('simpleBrowser.api.open', url.toString(), {
+        viewColumn: vscode.ViewColumn.Beside,
+        preserveFocus: true
       })
       break
     }
@@ -79,7 +132,7 @@ function handleLine(line: string) {
     }
 
     if (pendingResolve) {
-      output.appendLine(`[recv] ${line}`)
+      debugOutput.appendLine(`[recv] ${line}`)
       pendingResolve(parsed)
       pendingResolve = null
       pendingReject = null
@@ -96,7 +149,7 @@ export async function lspSend(msg: object): Promise<any> {
 
   return new Promise((resolve, reject) => {
     const json = JSON.stringify(msg)
-    output.appendLine(`[send] ${json}`)
+    debugOutput.appendLine(`[send] ${json}`)
 
     pendingResolve = resolve
     pendingReject = reject
@@ -118,7 +171,35 @@ export class buildServer {
 
 export function setOutputChannel(channel: vscode.OutputChannel) {
   output = channel
+  debugOutput = vscode.window.createOutputChannel("Doctools Debug")
+  diagnosticCollection = vscode.languages.createDiagnosticCollection("doctools")
   setInitOutputChannel(channel)
+}
+
+export function getDebugOutputChannel(): vscode.OutputChannel {
+  return debugOutput
+}
+
+export function getDiagnosticCollection(): vscode.DiagnosticCollection {
+  return diagnosticCollection
+}
+
+function addDiagnostic(warning: ParsedWarning) {
+  const uri = vscode.Uri.file(warning.file)
+  const line = Math.max(0, warning.line - 1)
+  const range = new vscode.Range(line, 0, line, 1000)
+  const diagnostic = new vscode.Diagnostic(range, warning.message, warning.severity)
+  diagnostic.source = 'Sphinx'
+
+  const existing = fileDiagnostics.get(warning.file) || []
+  existing.push(diagnostic)
+  fileDiagnostics.set(warning.file, existing)
+  diagnosticCollection.set(uri, existing)
+}
+
+function clearDiagnostics() {
+  fileDiagnostics.clear()
+  diagnosticCollection.clear()
 }
 
 export async function startPyProcess() {
@@ -202,6 +283,7 @@ async function startLspProcess(pythonPath: string, workspacePath: string, requir
   )
 
   if (startServerChoice === 'Yes') {
+    output.show(true)
     await buildServer.start()
   } else {
     vscode.window.showInformationMessage('Use "Doctools: Start Server" command to start anytime')

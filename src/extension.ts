@@ -1,6 +1,6 @@
 import * as vscode from 'vscode'
 import { SemanticTokensProvider, RoleCompletionProvider, RoleHoverProvider, LEGEND } from './tree-sitter'
-import { startPyProcess, stopPyProcess, buildServer, setOutputChannel } from './python'
+import { startPyProcess, stopPyProcess, buildServer, setOutputChannel, getDebugOutputChannel, getDiagnosticCollection } from './python'
 
 let output: vscode.OutputChannel
 let provider: SemanticTokensProvider
@@ -16,23 +16,11 @@ export async function activate(ctx: vscode.ExtensionContext) {
 
   ctx.subscriptions.push(
     output,
+    getDebugOutputChannel(),
+    getDiagnosticCollection(),
     vscode.languages.registerDocumentSemanticTokensProvider({ language: 'restructuredtext' }, provider, LEGEND),
     vscode.languages.registerCompletionItemProvider({ language: 'restructuredtext' }, completionProvider, ':', '`', '<', '+', '.', ' '),
     vscode.languages.registerHoverProvider({ language: 'restructuredtext' }, hoverProvider),
-
-    vscode.commands.registerCommand('adi-doctools.action', async () => {
-      const ed = vscode.window.activeTextEditor
-      if (!ed || ed.document.languageId !== 'restructuredtext') return
-
-      const rst = await provider.init()
-      const tree = rst.parser.parse(ed.document.getText())
-      const info = tree && provider.getRoleAtCursor(tree, ed.selection.active)
-      if (!info) return
-
-      const obj = await provider.resolveRole(info)
-      if (obj?.target) // TODO: is url?
-        vscode.env.openExternal(vscode.Uri.parse(obj.target))
-    }),
 
     vscode.commands.registerCommand('adi-doctools.reload', () => {
       ctx.subscriptions.forEach(s => s.dispose())
