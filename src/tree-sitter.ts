@@ -365,9 +365,34 @@ export class RoleCompletionProvider implements vscode.CompletionItemProvider {
     }
   }
 
-  private getRoleCompletions(role: string, partial: string, pos: vscode.Position, skip: number, suffix: string): vscode.CompletionItem[] {
-    const suggestions = this.fetchSuggestions(role)
+  private async getRoleCompletions(role: string, partial: string, pos: vscode.Position, skip: number, suffix: string): Promise<vscode.CompletionItem[]> {
     const range = new vscode.Range(pos.translate(0, -partial.length), pos.translate(0, skip))
+
+    // :external+inv:role:`target` - fetch from intersphinx
+    const externalMatch = role.match(/^external\+(\w+):(\w+)$/)
+    if (externalMatch) {
+      const [, inv, roleType] = externalMatch
+      try {
+        const result = await lspSend({ completion: 'inventory_targets', inventory: inv, role: roleType })
+        if (result.error || !result.list) return []
+
+        return result.list.map((t: any) => {
+          const item = new vscode.CompletionItem(t.name, vscode.CompletionItemKind.Reference)
+          item.insertText = t.name + suffix
+          item.range = range
+          if (t.display) item.detail = t.display
+          if (t.uri) {
+            item.documentation = new vscode.MarkdownString(`[${t.uri}](${t.uri})`)
+          }
+          return item
+        })
+      } catch {
+        return []
+      }
+    }
+
+    // Other roles - mock for now
+    const suggestions = this.fetchSuggestions(role)
     return suggestions.map(s => {
       const item = new vscode.CompletionItem(s, vscode.CompletionItemKind.Reference)
       item.insertText = s + suffix
