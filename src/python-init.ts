@@ -89,7 +89,7 @@ export async function createVenv(workspacePath: string): Promise<boolean> {
   })
 }
 
-export function getAdiDoctoolsVersion(pythonPath: string): string | null {
+export function getDoctoolsVersion(pythonPath: string): string | null {
   try {
     const result = execSync(
       `${pythonPath} -c "import adi_doctools; print(adi_doctools.__version__)"`,
@@ -114,19 +114,29 @@ export function compareVersions(v1: string, v2: string): number {
   return 0
 }
 
-export async function installRequirements(pythonPath: string, requirementsPath: string, upgrade: boolean): Promise<boolean> {
-  const args = ['-m', 'pip', 'install', '-r', requirementsPath, '--upgrade']
+async function ensurePip(pythonPath: string): Promise<void> {
+  return new Promise((resolve) => {
+    const proc = spawn(pythonPath, ['-m', 'ensurepip', '--upgrade'])
+    proc.on('close', () => resolve())
+    proc.on('error', () => resolve())
+  })
+}
+
+async function pipInstall(pythonPath: string, args: string[], title: string): Promise<boolean> {
+  await ensurePip(pythonPath)
+
+  const fullArgs = ['-m', 'pip', 'install', ...args]
 
   output.show(true)
 
   return vscode.window.withProgress({
     location: vscode.ProgressLocation.Notification,
-    title: upgrade ? 'Upgrading dependencies...' : 'Installing dependencies...',
+    title,
     cancellable: false
   }, async (progress) => {
     return new Promise<boolean>((resolve) => {
-      output.appendLine(`Running: ${pythonPath} ${args.join(' ')}`)
-      const proc = spawn(pythonPath, args)
+      output.appendLine(`Running: ${pythonPath} ${fullArgs.join(' ')}`)
+      const proc = spawn(pythonPath, fullArgs)
 
       let lineCount = 0
       const updateProgress = () => {
@@ -145,10 +155,9 @@ export async function installRequirements(pythonPath: string, requirementsPath: 
 
       proc.on('close', async (code) => {
         if (code === 0) {
-          output.appendLine(`Requirements installed successfully`)
           resolve(true)
         } else {
-          output.appendLine(`Failed to install requirements (exit code ${code})`)
+          output.appendLine(`pip install failed (exit code ${code})`)
           const choice = await vscode.window.showErrorMessage(
             'Failed to install dependencies',
             'Show Output'
@@ -163,10 +172,41 @@ export async function installRequirements(pythonPath: string, requirementsPath: 
   })
 }
 
+export async function installRequirements(pythonPath: string, requirementsPath: string, upgrade: boolean): Promise<boolean> {
+  const title = upgrade ? 'Upgrading dependencies...' : 'Installing dependencies...'
+  const success = await pipInstall(pythonPath, ['-r', requirementsPath, '--upgrade'], title)
+
+  if (success) {
+    output.appendLine(`Requirements installed successfully`)
+    await installDoctools(pythonPath, upgrade)
+  }
+
+  return success
+}
+
+export async function installDoctools(pythonPath: string, upgrade: boolean): Promise<boolean> {
+  const installedVersion = getDoctoolsVersion(pythonPath)
+
+  if (installedVersion && !upgrade) {
+    output.appendLine(`adi-doctools already installed (${installedVersion})`)
+    return true
+  }
+
+  const title = upgrade ? 'Upgrading adi-doctools...' : 'Installing adi-doctools...'
+  const args = upgrade ? ['adi-doctools', '--upgrade'] : ['adi-doctools']
+  const success = await pipInstall(pythonPath, args, title)
+
+  if (success) {
+    output.appendLine(`adi-doctools installed successfully`)
+  }
+
+  return success
+}
+
 export interface InitResult {
   pythonPath: string
   workspacePath: string
-  requirementsPath: string | null
+  requirementsPath: string
 }
 
 export async function initializePython(): Promise<InitResult | null> {
@@ -193,12 +233,12 @@ export async function initializePython(): Promise<InitResult | null> {
 
   const pythonPath = getVenvPythonPath(workspacePath)
 
-  if (!venvExists(workspacePath)) {
-    if (!requirementsPath) {
-      vscode.window.showWarningMessage('No virtual environment or dependencies file (requirements.txt) found.')
-      return null
-    }
+  if (!requirementsPath) {
+    vscode.window.showWarningMessage('No requirements file (requirements.txt or requirements_doc.txt) found')
+    return null
+  }
 
+  if (!venvExists(workspacePath)) {
     const setupChoice = await vscode.window.showInformationMessage(
       `No Python environment found. Create venv and install dependencies from ${path.basename(requirementsPath)}?`,
       'Yes', 'No'
@@ -217,24 +257,19 @@ export async function initializePython(): Promise<InitResult | null> {
 
     await installRequirements(pythonPath, requirementsPath, false)
   } else {
-    const installedVersion = getAdiDoctoolsVersion(pythonPath)
+    const installedVersion = getDoctoolsVersion(pythonPath)
 
     if (!installedVersion) {
       output.appendLine("Doctools (adi-doctools) is not installed")
 
-      if (requirementsPath) {
-        const installChoice = await vscode.window.showInformationMessage(
-          `Doctools (adi-doctools) is not installed, install from ${path.basename(requirementsPath)}?`,
-          'Yes', 'No'
-        )
+      const installChoice = await vscode.window.showInformationMessage(
+        `Doctools (adi-doctools) is not installed, install from ${path.basename(requirementsPath)}?`,
+        'Yes', 'No'
+      )
 
-        if (installChoice === 'Yes') {
-          await installRequirements(pythonPath, requirementsPath, false)
-        } else {
-          return null
-        }
+      if (installChoice === 'Yes') {
+        await installRequirements(pythonPath, requirementsPath, false)
       } else {
-        vscode.window.showErrorMessage('Doctools (adi-doctools) not installed and no requirements.txt found')
         return null
       }
     } else {
@@ -242,7 +277,7 @@ export async function initializePython(): Promise<InitResult | null> {
       output.appendLine(`adi_doctools version: ${installedVersion}`)
       output.appendLine(`Extension version: ${extVersion}`)
 
-      if (compareVersions(extVersion, installedVersion) > 0 && requirementsPath) {
+      if (compareVersions(extVersion, installedVersion) > 0) {
         const upgradeChoice = await vscode.window.showInformationMessage(
           `Extension version (${extVersion}) > adi-doctools (${installedVersion}), upgrade dependencies?`,
           'Yes', 'No'
