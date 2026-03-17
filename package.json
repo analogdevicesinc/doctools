@@ -1,7 +1,7 @@
 {
   "name": "adi-doctools",
   "displayName": "Doctools",
-  "description": "Tree-sitter RST support with custom Sphinx roles and directives",
+  "description": "Live editing server for Sphinx documentations with tree-sitter linting",
   "version": "0.4.39",
   "license": "Apache-2.0",
   "publisher": "analogdevicesinc",
