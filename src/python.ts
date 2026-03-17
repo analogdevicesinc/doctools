@@ -72,6 +72,7 @@ const lsp_message_type: Record<number, string> = {
 
 let pendingResolve: ((value: any) => void) | null = null
 let pendingReject: ((reason: any) => void) | null = null
+let serverStartResolve: (() => void) | null = null
 
 function handleNotification(parsed: any) {
   const { method, params } = parsed
@@ -102,6 +103,10 @@ function handleNotification(parsed: any) {
       break
     }
     case 'server/started': {
+      if (serverStartResolve) {
+        serverStartResolve()
+        serverStartResolve = null
+      }
       const url = vscode.Uri.parse(params.url, true)
       output.appendLine(`[server] Running on ${params.url}`)
       vscode.window.showInformationMessage(
@@ -160,11 +165,20 @@ export async function lspSend(msg: object): Promise<any> {
 export class buildServer {
   constructor () {}
 
-  static async start (): Promise<any> {
-    lspSend({ 'server': 'start' })
+  static async start (): Promise<void> {
+    await vscode.window.withProgress({
+      location: vscode.ProgressLocation.Notification,
+      title: 'Building documentation for the first time...',
+      cancellable: false
+    }, async () => {
+      return new Promise<void>((resolve) => {
+        serverStartResolve = resolve
+        lspSend({ 'server': 'start' })
+      })
+    })
   }
 
-  static async stop (): Promise<any> {
+  static async stop (): Promise<void> {
     lspSend({ 'server': 'stop' })
   }
 }
