@@ -9,6 +9,7 @@
     "type": "git",
     "url": "https://github.com/analogdevicesinc/doctools"
   },
+  "icon": "assets/icon.png",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -22,7 +23,8 @@
     "dist",
     "deps",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "assets/icon.png"
   ],
   "main": "./dist/extension.js",
   "contributes": {
