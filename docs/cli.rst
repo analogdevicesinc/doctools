@@ -59,6 +59,8 @@ All options can be listed with:
 
    $ adoc serve --help
 
+To how to integrate with your, please see :ref:`ide-support`.
+
 .. _serve sparse:
 
 Sparse builds

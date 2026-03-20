@@ -43,10 +43,10 @@ To create and activate the environment, do before the previous instructions:
 
 .. shell::
 
-   $ python3 -m venv venv
-   $ source venv/bin/activate
+   $ python3 -m venv .venv
+   $ source .venv/bin/activate
 
-Don't create the `venv` inside the docs/ folder, since its files will be caught
+Don't create the `.venv` inside the docs/ folder, since its files will be caught
 by the Sphinx builder.
 
 Use ``deactivate`` to exit the virtual environment.
@@ -55,7 +55,7 @@ For next builds, just activate the virtual environment:
 
 .. shell::
 
-   $ source venv/bin/activate
+   $ source .venv/bin/activate
 
 Release links and optional dependencies
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -76,52 +76,40 @@ Optional dependencies can be installed with:
    # test, cli, ...
    pip install 'adi_doctools[test] @ https://github.com/analogdevicesinc/doctools/releases/download/latest/adi-doctools.tar.gz'
 
-VSCode support
-~~~~~~~~~~~~~~
+.. _ide-support:
 
-A `vscodium <https://vscodium.com/>`__/`vscode <https://github.com/microsoft/vscode>`__
-extension is available to add support and actions to the documentation. By
-using the modern
-`tree-sitter <https://tree-sitter.github.io/>`__, the parser is extended to
-understand the custom directives and roles, including adding actions to preview
-and open links.
+IDE support
+~~~~~~~~~~~
 
-It is not currently shipped by the marketplace, but you can get a copy at the
-:git-doctools:`pipeline here <actions/workflows/top-level.yml?query=branch%3Avscode+>`.
+:external+esbonio:doc:`index` is an extensively developed
+Language Server Protocol and Visual Studio Code extension for sphinx.
 
-The extension already bundles the WASM parsers, please see
-:git-doctools:`vscode:README.md` for the list of dependencies it uses, as well as
-useful information.
+.. tip::
 
-Not-implemented:
+   Setup the virtual environment first before opening the text editor, to
+   avoid triggering fallback behaviours.
 
-- ``.md`` support.
 
-Neovim support
-~~~~~~~~~~~~~~
+:ref:`serve` is able to generate Estobio pyproject.toml entry with
+(including :ref:`serve sparse`):
 
-A `Neovim <https://neovim.io/>`__ extension is available to add support and
-actions to the documentation. By using the modern
-`tree-sitter <https://tree-sitter.github.io/>`__, the parser is extended to
-understand the custom directives and roles, including adding actions to preview
-and open links.
+.. shell::
 
-To install, add to your LazyVim configuration:
+   ~/git-repo
+   $ adoc serve --esbonio \
+        --sparse docs/docs_guidelines docs/cli.rst | tee -a pyproject.toml
 
-.. code:: lua
+VSCode
+++++++
 
-   {
-     'analogdevicesinc/doctools',
-     branch = 'nvim'
-     config = function()
-       require("adi-doctools").setup()
-       vim.keymap.set('n', '<leader>rr', '<cmd>DInspect<cr>')
-       vim.keymap.set('n', '<leader>ra', '<cmd>DACtion<cr>')
-     end,
-   }
+See Esbonio :external+esbonio:ref:`lsp-getting-started`.
 
-Configure the shortcut as desired.
+Neovim
+++++++
 
+See :external+esbonio:std:ref:`integrate-nvim`.
+
+It is also recomemded to use the modern `tree-sitter <https://tree-sitter.github.io/>`__.
 Make sure you have common parsers installed, at least:
 
 ::
@@ -132,10 +120,6 @@ Make sure you have common parsers installed, at least:
    :TSInstall json
 
 You can inspect the tree with ``:InspectTree``.
-
-Not-implemented:
-
-- ``.md`` support.
 
 .. _latex:
 

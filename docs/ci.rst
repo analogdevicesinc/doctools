@@ -252,8 +252,8 @@ on the container, for example:
 
    ~/doctools
    $ container-run adi/doctools .
-   $ python3 -m venv venv
-   $ source venv/bin/activate ; \
+   $ python3 -m venv .venv
+   $ source .venv/bin/activate ; \
          pip3 install -e . ; \
          pip3 install pytest
    $ cd tests ; pytest

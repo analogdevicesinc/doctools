@@ -63,6 +63,8 @@ def get_arguments_serve():
                         help="Include only some paths to build (e.g., --sparse learning solutions)")
     parser.add_argument('-v', '--verbose', action='store_true', default=False,
                         help="Show full Sphinx output")
+    parser.add_argument('-E', '--esbonio', action='store_true', default=False,
+                        help="Print a Esbonio pyproject.toml and exit")
 
     return vars(parser.parse_args())
 

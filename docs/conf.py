@@ -35,7 +35,8 @@ core_repo = True
 # -- External docs configuration ----------------------------------------------
 
 intersphinx_mapping = {
-    'sphinx': ('https://www.sphinx-doc.org/en/master', None)
+    'sphinx': ('https://www.sphinx-doc.org/en/master', None),
+    'esbonio': ('https://docs.esbon.io/en/latest', None)
 }
 
 # -- Options for HTML output --------------------------------------------------

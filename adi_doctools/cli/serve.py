@@ -54,6 +54,26 @@ static_common_path = path.join(theme_path, 'static_common')
 static_core_path = path.join(theme_path, 'static_core')
 dev_pool_val = b""
 
+common_paths = [".", "docs", path.join("doc", "source"), path.join("doc", "sphinx", "source")]
+
+
+def find_confdir(directory):
+    """
+    Find the conf.py directory and return (confdir, builddir_, conf_py).
+    Returns (None, None, None) if not found.
+    """
+    _directory = path.abspath(directory)
+    for path_ in common_paths:
+        conf_py = path.join(_directory, path_, 'conf.py')
+        if path.isfile(conf_py):
+            confdir = path.join(_directory, path_)
+            if path.basename(confdir) == "source":
+                builddir_ = path.join("..", "build")
+            else:
+                builddir_ = "_build"
+            return confdir, builddir_, conf_py
+    return None, None, None
+
 
 class Serve:
     _instance = None
@@ -97,7 +117,57 @@ class Serve:
         with cls._lock:
             return cls._instance.app if cls._instance else None
 
-    def __init__(self, directory, port, dev, once, builder, sparse, verbose, jsonrpc=False):
+    @staticmethod
+    def esbonio_pyproject(directory_, sparse, verbose):
+        """Generate Esbonio pyproject.toml configuration."""
+        directory, builddir_, _ = find_confdir(directory_)
+        if directory is None:
+            logger.error(log['no_conf_py'].format(directory_))
+            return True
+
+        git_top_level = get_git_top_level(directory)
+        if not git_top_level:
+            git_top_level = path.abspath(directory_)
+
+        srcdir_rel = path.relpath(directory, git_top_level)
+        builddir_rel = path.join(srcdir_rel, builddir_, "html")
+        doctreedir_rel = path.join(srcdir_rel, builddir_, "doctrees")
+
+        confoverrides = compute_sparse_config(directory, sparse, verbose)
+
+        override_args = []
+        for key, value in confoverrides.items():
+            if isinstance(value, list):
+                override_args.extend(["-D", f"{key}={','.join(value)}"])
+            else:
+                override_args.extend(["-D", f"{key}={value}"])
+
+        build_args = [
+            "sphinx-build", "-b", "html",
+            srcdir_rel, builddir_rel,
+            "-d", doctreedir_rel,
+            "-j", "auto"
+        ] + override_args
+
+        build_args_str = ', '.join(f'"{arg}"' for arg in build_args)
+        cwd_display = f'"${{scopeFsPath}}/{srcdir_rel}"' if srcdir_rel != "." else '"${scopeFsPath}"'
+
+        print(f"""
+[tool.esbonio.sphinx]
+buildArguments = [{build_args_str}]
+
+[tool.esbonio.sphinx.pythonCommand]
+command = ["${{venv:.venv}}"]
+cwd = {cwd_display}""")
+
+        return False
+
+    def __init__(self, directory, port, dev, once, builder, sparse, verbose, jsonrpc=False, esbonio=False):
+        self.esbonio = esbonio
+        if esbonio:
+            Serve.esbonio_pyproject(directory, sparse, verbose)
+            return
+
         self.directory = directory
         self.port = port
         self.dev = dev
@@ -301,23 +371,11 @@ class Serve:
                 else:
                     return
 
-        directory = self.directory
-        _directory = path.abspath(directory)
-        common_paths = [".", "docs", path.join("doc", "source"), path.join("doc", "sphinx", "source")]
-        for path_ in common_paths:
-            conf_py = path.join(_directory, path_, 'conf.py')
-            if path.isfile(conf_py):
-                directory = path.join(_directory, path_)
-                break
-
-        if not path.isfile(conf_py):
-            logger.error(log['no_conf_py'].format(_directory))
+        directory, builddir_, conf_py = find_confdir(self.directory)
+        if directory is None:
+            logger.error(log['no_conf_py'].format(self.directory))
             return
 
-        if path.basename(directory) == "source":
-            builddir_ = path.join("..", "build")
-        else:
-            builddir_ = "_build"
         builddir = path.join(directory, builddir_, builder)
         self.builddir = builddir
         doctreedir = path.join(directory, builddir_, "doctrees")
@@ -1021,6 +1079,9 @@ def serve():
     from .argument_parser import get_arguments_serve
 
     instance = Serve(**get_arguments_serve())
+    if instance.esbonio:
+        return
+
     if instance._setup():
         return True
 
