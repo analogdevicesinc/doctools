@@ -411,11 +411,11 @@ def handle_cmd(cmd: dict) -> dict:
 
     elif 'server' in cmd:
         if cmd['server'] == 'start':
+            if Serve.is_running():
+                return { 'return': 'already_running' }
             Serve.start(jsonrpc=True)
-
             return { 'return': 'success' }
         elif cmd['server'] == 'stop':
-
             Serve.stop()
             return { 'return': 'success' }
 
