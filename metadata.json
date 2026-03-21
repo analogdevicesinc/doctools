@@ -7,6 +7,7 @@
             "visibility": "public",
             "pathname": "docs",
             "branch": "main",
+            "alt": "system-level",
             "url_doc": "https://analogdevicesinc.github.io/documentation",
             "url_source": "https://github.com/analogdevicesinc/documentation.git"
         },
@@ -97,6 +98,7 @@
             "visibility": "public",
             "pathname": "doc/sphinx/source",
             "branch": "main",
+            "alt": "no-os",
             "url_doc": "https://analogdevicesinc.github.io/no-OS",
             "url_source": "https://github.com/analogdevicesinc/no-OS.git"
         },
@@ -117,6 +119,7 @@
             "visibility": "public",
             "pathname": "docs/source",
             "branch": "main",
+            "alt": "precision-toolbox",
             "url_doc": "https://analogdevicesinc.github.io/PrecisionToolbox",
             "url_source": "https://github.com/analogdevicesinc/PrecisionToolbox.git"
         },
@@ -127,6 +130,7 @@
             "visibility": "public",
             "pathname": "src/adi_ros2/doc",
             "branch": "humble",
+            "alt": "adi-ros2",
             "url_doc": "https://analogdevicesinc.github.io/adi_ros2",
             "url_source": "https://github.com/analogdevicesinc/adi_ros2.git"
         },
