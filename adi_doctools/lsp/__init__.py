@@ -14,23 +14,43 @@ from ..cli.serve import Serve
 
 logger = logging_.getLogger(__name__)
 
-def handle_xfer(app, typ, target) -> tuple:
-    if typ == 'ref':
+def handle_xfer(app, role, target) -> tuple:
+    if role == 'ref':
         std_domain = app.env.domains.standard_domain
         docname, labelid, sectname = std_domain.labels.get(target, ('', '', ''))
         if docname == '':
             return (None, None, f"Reference '{target}' not found")
 
-        title = sectname
         uri = f"{docname}#{labelid}" if labelid else docname
-        return (uri, title, None)
-    elif typ == 'doc':
+        return (uri, sectname, None)
+
+    if role == 'doc':
         if target not in app.env.titles:
             return (None, None, f"Docname '{target}' not found")
         title = clean_astext(app.env.titles[target])
         return (target, title, None)
 
-    return (None, None, f"Unknown type '{typ}'")
+    domain_name = 'std'
+    role_name = role
+    if ':' in role:
+        domain_name, role_name = role.split(':', 1)
+
+    if domain_name not in app.env.domains:
+        return (None, None, None)
+
+    domain = app.env.domains[domain_name]
+    objtypes = domain.objtypes_for_role(role_name)
+
+    if not objtypes:
+        return (None, None, None)
+
+    for name, dispname, obj_type, docname, anchor, priority in domain.get_objects():
+        if obj_type in objtypes and name == target:
+            uri = f"{docname}#{anchor}" if anchor else docname
+            title = dispname if dispname != '-' else None
+            return (uri, title, None)
+
+    return (None, None, f"Target '{target}' for role '{role}' not found")
 
 def handle_external_xfer(app, inv, role, target) -> tuple:
     if not hasattr(app.env, 'intersphinx_named_inventory'):
@@ -138,10 +158,50 @@ def completion_inventory_types(app, inv: str) -> tuple:
             }
     return (list(roles.values()), None)
 
+def completion_local_types(app) -> tuple:
+    result = []
+    seen = set()
+
+    for domain_name, domain in app.env.domains.items():
+        type_counts = {}
+        for name, dispname, obj_type, docname, anchor, priority in domain.get_objects():
+            type_counts[obj_type] = type_counts.get(obj_type, 0) + 1
+
+        for obj_type, count in type_counts.items():
+            role = objtype_to_role(f"{domain_name}:{obj_type}")
+            if role and role not in seen:
+                seen.add(role)
+                result.append({
+                    'name': role,
+                    'objtype': f"{domain_name}:{obj_type}",
+                    'domain': domain_name,
+                    'count': count
+                })
+
+    std_domain = app.env.domains.standard_domain
+    if std_domain.labels and 'ref' not in seen:
+        result.append({
+            'name': 'ref',
+            'objtype': 'std:label',
+            'domain': 'std',
+            'count': len(std_domain.labels)
+        })
+    if app.env.titles and 'doc' not in seen:
+        result.append({
+            'name': 'doc',
+            'objtype': 'std:doc',
+            'domain': 'std',
+            'count': len(app.env.titles)
+        })
+
+    return (result, None)
+
 def completion_local_targets(app, role: str) -> tuple:
+    """Return targets for a given role from local documentation."""
+    std_domain = app.env.domains.standard_domain
+    result = []
+
     if role == 'ref':
-        std_domain = app.env.domains.standard_domain
-        result = []
         for target, (docname, labelid, sectname) in std_domain.labels.items():
             result.append({
                 'name': target,
@@ -149,8 +209,8 @@ def completion_local_targets(app, role: str) -> tuple:
                 'uri': f"{docname}#{labelid}" if labelid else docname
             })
         return (result, None)
-    elif role == 'doc':
-        result = []
+
+    if role == 'doc':
         for docname, title_node in app.env.titles.items():
             title = clean_astext(title_node)
             result.append({
@@ -159,7 +219,31 @@ def completion_local_targets(app, role: str) -> tuple:
                 'uri': docname
             })
         return (result, None)
-    return (None, f"Unknown role '{role}'")
+
+    domain_name = 'std'
+    role_name = role
+    if ':' in role:
+        domain_name, role_name = role.split(':', 1)
+
+    if domain_name not in app.env.domains:
+        return (None, f"Domain '{domain_name}' not found")
+
+    domain = app.env.domains[domain_name]
+    objtypes = domain.objtypes_for_role(role_name) or [role_name]
+
+    for name, dispname, obj_type, docname, anchor, priority in domain.get_objects():
+        if obj_type in objtypes:
+            uri = f"{docname}#{anchor}" if anchor else docname
+            result.append({
+                'name': name,
+                'display': dispname if dispname != '-' else None,
+                'uri': uri
+            })
+
+    if result:
+        return (result, None)
+
+    return (None, f"No targets found for role '{role}'")
 
 def completion_inventory_targets(app, inv: str, role: str) -> tuple:
     if not hasattr(app.env, 'intersphinx_named_inventory'):
@@ -265,10 +349,8 @@ def handle_cmd(cmd: dict) -> dict:
         elif role.startswith('external+') and ':' in role:
             role_ = role.split('+')[1].split(':', 1)
             target, title, error = handle_external_xfer(app, role_[0], role_[1], target)
-        elif role in ['ref', 'doc']:
-            target, title, error = handle_xfer(app, role, target)
         else:
-            return {} # May exist, but unhandled
+            target, title, error = handle_xfer(app, role, target)
 
         if error:
             return {'error': error}
@@ -300,6 +382,11 @@ def handle_cmd(cmd: dict) -> dict:
             if not inv or not role:
                 return {'error': 'Missing inventory or role parameter'}
             list_, error = completion_inventory_targets(app, inv, role)
+            if error:
+                return {'error': error}
+            return {'list': list_}
+        elif completion == 'local_types':
+            list_, error = completion_local_types(app)
             if error:
                 return {'error': error}
             return {'list': list_}
