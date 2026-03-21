@@ -66,7 +66,7 @@ runs:
       run: >
         git ls-remote --exit-code --heads origin refs/heads/${{ inputs.branch }} &&
         (
-          git fetch origin ${{ inputs.branch }}:${{ inputs.branch }} -f ;
+          git fetch origin ${{ inputs.branch }}:${{ inputs.branch }} --depth 1 -f ;
           git switch ${{ inputs.branch }} ;
           if [[ "${{ github.event_name }}" == "push" ]]; then
             built_docs=$(find . -mindepth 2 -name objects.inv -exec sh -c 'dirname {}' ';') ;
