@@ -163,9 +163,12 @@ export async function lspSend(msg: object): Promise<any> {
 }
 
 export class buildServer {
-  constructor () {}
-
   static async start (): Promise<void> {
+    const result = await lspSend({ 'server': 'start' })
+    if (result?.return === 'already_running') {
+      return
+    }
+
     await vscode.window.withProgress({
       location: vscode.ProgressLocation.Notification,
       title: 'Building documentation for the first time...',
@@ -173,7 +176,6 @@ export class buildServer {
     }, async () => {
       return new Promise<void>((resolve) => {
         serverStartResolve = resolve
-        lspSend({ 'server': 'start' })
       })
     })
   }
