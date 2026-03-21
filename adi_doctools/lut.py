@@ -13,6 +13,7 @@ class Modules(TypedDict):
 
 
 class Repo(TypedDict):
+    alt: Optional[str]
     pathname: str
     name: str
     longname: Optional[str]
@@ -46,6 +47,7 @@ source_hostname_raw = "https://raw.githubusercontent.com/analogdevicesinc/{repos
 
 repos = {
     'documentation': Repo(
+        alt='system-level',
         pathname='docs',
         name='System Level',
         description='User guides and tutorials for evaluation boards, software and hardware.',
@@ -126,6 +128,7 @@ repos = {
         visibility='public'
     ),
     'no-OS': Repo(
+        alt='no-os',
         pathname='doc/sphinx/source',
         name='no-OS',
         description='Bare-metal software framework for drivers and applications.',
@@ -142,6 +145,7 @@ repos = {
         visibility='public'
     ),
     'PrecisionToolbox': Repo(
+        alt='precision-toolbox',
         pathname='docs/source',
         name='Precision Toolbox',
         description='Set of tools to interface precision converters within MATLAB and Simulink.',
@@ -150,6 +154,7 @@ repos = {
         visibility='public'
     ),
     'adi_ros2': Repo(
+        alt='adi-ros2',
         pathname='src/adi_ros2/doc',
         name='ROS2',
         description='Robotics SDK with ROS 2 packages and tools in pre-configured container images.',

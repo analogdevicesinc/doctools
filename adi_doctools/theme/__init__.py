@@ -80,6 +80,8 @@ def build_finished(app, exc):
                     'pathname': app.lut['repos'][key]['pathname'],
                     'branch': app.lut['repos'][key]['branch']
                 }
+                if 'alt' in app.lut['repos'][key]:
+                    repos[key]['alt'] = app.lut['repos'][key]['alt']
                 # Miscellaneous expansions
                 repos[key]['url_doc'] = app.lut['remote_doc'] + key
                 repos[key]['url_source'] = app.lut['remote_https'].format(key)
