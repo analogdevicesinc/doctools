@@ -399,18 +399,13 @@ export class RoleCompletionProvider implements vscode.CompletionItemProvider {
       }
     }
 
-    // :ref: and :doc: - fetch local targets
-    if (role === 'ref' || role === 'doc') {
-      try {
-        const result = await lspSend({ completion: 'local_targets', role })
-        if (result.error || !result.list) return []
-        return this.buildTargetCompletions(result.list, range, suffix)
-      } catch {
-        return []
-      }
+    try {
+      const result = await lspSend({ completion: 'local_targets', role })
+      if (result.error || !result.list) return []
+      return this.buildTargetCompletions(result.list, range, suffix)
+    } catch {
+      return []
     }
-
-    return []
   }
 
   private buildTargetCompletions(list: any[], range: vscode.Range, suffix: string): vscode.CompletionItem[] {
