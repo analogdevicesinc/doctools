@@ -42,56 +42,50 @@ def handle_external_xfer(app, inv, role, target) -> tuple:
 
     obj_type = role_to_objtype(role, named_inv)
     if not obj_type or obj_type not in named_inv or target not in named_inv[obj_type]:
-        return (None, None, f"Target '{target}' for role '{role}' in inventory '{inv}' not found")
+        return (None, None, f"Target '{target}' for type '{role}' in inventory '{inv}' not found")
 
     item = named_inv[obj_type][target]
     return (item.uri, item.display_name if item.display_name != '-' else None, None)
 
-# From sphinx/domains/std/__init__.py and other domains
+# From sphinx/domains/std/__init__.py
 OBJTYPE_TO_ROLE = {
-    'std:label': 'ref',
-    'std:term': 'term',
-    'std:token': 'token',
-    'std:doc': 'doc',
-    'std:confval': 'confval',
-    'std:envvar': 'envvar',
-    'std:cmdoption': 'option',
-    'py:function': 'func',
-    'py:class': 'class',
-    'py:method': 'meth',
-    'py:attribute': 'attr',
-    'py:data': 'data',
-    'py:module': 'mod',
-    'py:exception': 'exc',
-    'c:function': 'func',
-    'c:macro': 'macro',
-    'c:type': 'type',
-    'c:var': 'var',
-    'cpp:function': 'func',
-    'cpp:class': 'class',
-    'cpp:type': 'type',
-    'js:function': 'func',
-    'js:class': 'class',
-    'js:data': 'data',
+    'label': 'ref',
+    'term': 'term',
+    'token': 'token',
+    'doc': 'doc',
+    'confval': 'confval',
+    'envvar': 'envvar',
+    'cmdoption': 'option',
+    'function': 'func',
+    'exception': 'exc',
+    'attribute': 'attr',
+    'method': 'meth',
+    'module': 'mod',
 }
 
 ROLE_TO_OBJTYPE = {v: k for k, v in OBJTYPE_TO_ROLE.items()}
 
 def objtype_to_role(objtype: str) -> str | None:
-    if objtype in OBJTYPE_TO_ROLE:
-        return OBJTYPE_TO_ROLE[objtype]
-    if ':' in objtype:
-        return objtype.split(':')[1]
-    return None
+    domain, objtype = objtype.split(':', 1)
+    role = OBJTYPE_TO_ROLE.get(objtype, objtype)
+    return role if domain == 'std' else f"{domain}:{role}"
 
 def role_to_objtype(role: str, inv: dict) -> str | None:
-    if role in ROLE_TO_OBJTYPE:
-        objtype = ROLE_TO_OBJTYPE[role]
-        if objtype in inv:
-            return objtype
-    for objtype in inv.keys():
-        if objtype_to_role(objtype) == role:
-            return objtype
+    # Domain 'std' with higher precedence if not explicit
+    domain = 'std'
+    if ':' in role:
+        domain, role = role.split(':', 1)
+    role = ROLE_TO_OBJTYPE.get(role, role)
+    objtype = f"{domain}:{role}"
+
+    if objtype in inv.keys():
+        return objtype
+
+    # Sphinx will match any domain, do the same if 'std:<role>' fails
+    for objtype_ in inv.keys():
+        if objtype_.endswith(f":{role}"):
+            return objtype_
+
     return None
 
 def completion_inventory(app) -> tuple:
@@ -135,8 +129,9 @@ def completion_inventory_types(app, inv: str) -> tuple:
         if role and role not in roles:
             count = len(named_inv[objtype])
             domain = objtype.split(':')[0] if ':' in objtype else 'std'
+            role_name = role
             roles[role] = {
-                'name': role,
+                'name': role_name,
                 'objtype': objtype,
                 'domain': domain,
                 'count': count
@@ -268,7 +263,7 @@ def handle_cmd(cmd: dict) -> dict:
         elif role in suppliers:
             target, title = supplier_resolve(app.config, role, title, target)
         elif role.startswith('external+') and ':' in role:
-            role_ = role.split('+')[1].split(':')
+            role_ = role.split('+')[1].split(':', 1)
             target, title, error = handle_external_xfer(app, role_[0], role_[1], target)
         elif role in ['ref', 'doc']:
             target, title, error = handle_xfer(app, role, target)
