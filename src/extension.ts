@@ -55,6 +55,18 @@ export async function activate(ctx: vscode.ExtensionContext) {
       output.appendLine('==============================\n')
       output.appendLine(result)
       output.show()
+    }),
+    vscode.commands.registerCommand('adi-doctools.inspect-language', async () => {
+      const editor = vscode.window.activeTextEditor
+      if (!editor || editor.document.languageId !== 'restructuredtext') {
+        vscode.window.showWarningMessage('Open a reStructuredText file first')
+        return
+      }
+
+      const result = await provider.inspectLanguage(editor.document.getText())
+      output.clear()
+      output.appendLine(result)
+      output.show()
     })
   )
 

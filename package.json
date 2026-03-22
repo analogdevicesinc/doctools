@@ -40,6 +40,10 @@
       {
         "command": "adi-doctools.inspect-tree",
         "title": "Doctools: Inspect Tree"
+      },
+      {
+        "command": "adi-doctools.inspect-language",
+        "title": "Doctools: Inspect Language"
       }
     ],
     "configuration": {

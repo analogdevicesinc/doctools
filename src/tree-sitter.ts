@@ -34,6 +34,17 @@ type Role = {
 
 type Token = { range: vscode.Range; type: string; mods: string[] }
 
+type AnnotatedSegment = {
+  type: 'text' | 'markup'
+  text: string
+  reason?: string
+  // Position tracking for whitespace reconstruction
+  startRow?: number
+  startCol?: number
+  endRow?: number
+  endCol?: number
+}
+
 const LANG_MAP: Record<string, string> = {
   bash: 'bash', sh: 'bash',
   yaml: 'yaml', yml: 'yaml',
@@ -52,6 +63,13 @@ const RST_DIRECTIVES = new Set([
 const CODE_DIRECTIVES = new Set([
   'code', 'code-block', 'sourcecode', 'raw', 'math', 'csv-table', 'shell', 'include-template'
 ])
+
+// Role types for LanguageTool processing
+// Format roles: spellchecked (addText)
+const FORMAT_ROLES = new Set(['red', 'green'])
+// Literal roles: never checked (addMarkup)
+const LITERAL_ROLES = new Set(['code'])
+// All other roles are reference roles
 
 const depsPath = (f: string) => path.join(__dirname, '..', 'deps', f)
 const readQuery = (file: string) => fs.readFileSync(depsPath(file), 'utf-8')
@@ -425,6 +443,254 @@ export class SemanticTokensProvider implements vscode.DocumentSemanticTokensProv
       // Fallback - might be a simple reference without URL
       lines.push(`${indent}[SKIP] reference @${pos}`)
     }
+  }
+
+  // ========== Inspect Language (AnnotatedTextBuilder simulation) ==========
+
+  async inspectLanguage(text: string): Promise<string> {
+    const rst = await this.init()
+    const tree = rst.parser.parse(text)
+    if (!tree) return '(empty tree)'
+
+    const segments: AnnotatedSegment[] = []
+    this.buildAnnotatedText(rst, tree.rootNode, segments)
+
+    return this.formatAnnotatedOutput(segments)
+  }
+
+  private buildAnnotatedText(cfg: LangConfig, node: Node, segments: AnnotatedSegment[], rowOff = 0, colOff = 0): void {
+    const startRow = node.startPosition.row + rowOff
+    const startCol = node.startPosition.row === 0 ? node.startPosition.column + colOff : node.startPosition.column
+    const endRow = node.endPosition.row + rowOff
+    const endCol = node.endPosition.row === 0 ? node.endPosition.column + colOff : node.endPosition.column
+
+    // Skip nodes that should not be grammar checked
+    if (this.shouldSkipNode(node)) {
+      segments.push({ type: 'markup', text: node.text, reason: node.type, startRow, startCol, endRow, endCol })
+      return
+    }
+
+    // Handle directives specially
+    if (node.type === 'directive') {
+      this.buildDirectiveAnnotation(cfg, node, segments, rowOff, colOff)
+      return
+    }
+
+    // Handle interpreted_text (roles)
+    if (node.type === 'interpreted_text') {
+      this.buildRoleAnnotation(node, segments, rowOff, colOff)
+      return
+    }
+
+    // Handle references (inline links)
+    if (node.type === 'reference') {
+      this.buildReferenceAnnotation(node, segments, rowOff, colOff)
+      return
+    }
+
+    // Handle standalone hyperlinks (bare URLs)
+    if (node.type === 'standalone_hyperlink') {
+      segments.push({ type: 'markup', text: node.text, reason: 'url', startRow, startCol, endRow, endCol })
+      return
+    }
+
+    // Leaf text nodes - actual text content
+    if (this.isLeafTextNode(node)) {
+      segments.push({ type: 'text', text: node.text, startRow, startCol, endRow, endCol })
+      return
+    }
+
+    // Container nodes - recurse into children
+    for (let i = 0; i < node.childCount; i++) {
+      const child = node.child(i)
+      if (child) this.buildAnnotatedText(cfg, child, segments, rowOff, colOff)
+    }
+  }
+
+  private buildDirectiveAnnotation(cfg: LangConfig, node: Node, segments: AnnotatedSegment[], rowOff: number, colOff: number): void {
+    const nameNode = findChild(node, 'type')
+    const directiveName = nameNode?.text || 'unknown'
+
+    const startRow = node.startPosition.row + rowOff
+    const startCol = node.startPosition.row === 0 ? node.startPosition.column + colOff : node.startPosition.column
+    const endRow = node.endPosition.row + rowOff
+    const endCol = node.endPosition.row === 0 ? node.endPosition.column + colOff : node.endPosition.column
+
+    // Code directives - skip entirely
+    if (CODE_DIRECTIVES.has(directiveName)) {
+      segments.push({ type: 'markup', text: node.text, reason: `directive::${directiveName}`, startRow, startCol, endRow, endCol })
+      return
+    }
+
+    // RST directives - add directive marker as markup, recurse into body
+    if (RST_DIRECTIVES.has(directiveName)) {
+      // Add ".. directive::" part as markup
+      const bodyNode = findChild(node, 'body')
+      if (bodyNode) {
+        const markerEnd = bodyNode.startIndex - node.startIndex
+        const marker = node.text.slice(0, markerEnd)
+        const bodyStartRow = bodyNode.startPosition.row + rowOff
+        const bodyStartCol = bodyNode.startPosition.row === 0 ? bodyNode.startPosition.column + colOff : bodyNode.startPosition.column
+        segments.push({ type: 'markup', text: marker, reason: `directive::${directiveName}`, startRow, startCol, endRow: bodyStartRow, endCol: bodyStartCol })
+
+        // Parse and process body content as RST
+        const contentNode = findChild(bodyNode, 'content') || bodyNode
+        const contentRowOff = contentNode.startPosition.row + rowOff
+        const contentColOff = contentNode.startPosition.row === 0 ? contentNode.startPosition.column + colOff : contentNode.startPosition.column
+        const injTree = cfg.parser.parse(contentNode.text)
+        if (injTree) {
+          this.buildAnnotatedText(cfg, injTree.rootNode, segments, contentRowOff, contentColOff)
+        }
+      }
+      return
+    }
+
+    // Unknown directive - skip
+    segments.push({ type: 'markup', text: node.text, reason: `directive::${directiveName}`, startRow, startCol, endRow, endCol })
+  }
+
+  private buildRoleAnnotation(node: Node, segments: AnnotatedSegment[], rowOff: number, colOff: number): void {
+    const roleNode = findChild(node, 'role')
+    const innerNode = findChild(node, 'interpreted_text')
+
+    const startRow = node.startPosition.row + rowOff
+    const startCol = node.startPosition.row === 0 ? node.startPosition.column + colOff : node.startPosition.column
+    const endRow = node.endPosition.row + rowOff
+    const endCol = node.endPosition.row === 0 ? node.endPosition.column + colOff : node.endPosition.column
+
+    if (!roleNode || !innerNode) {
+      segments.push({ type: 'markup', text: node.text, reason: 'malformed role', startRow, startCol, endRow, endCol })
+      return
+    }
+
+    const roleMatch = roleNode.text.match(/^:(\S+):$/)
+    const contentMatch = innerNode.text.match(/^`([^`]+)`$/)
+
+    if (!roleMatch || !contentMatch) {
+      segments.push({ type: 'markup', text: node.text, reason: 'parse error', startRow, startCol, endRow, endCol })
+      return
+    }
+
+    const roleName = roleMatch[1]
+    const content = contentMatch[1]
+
+    // Calculate inner content position (after the opening backtick)
+    const innerStartCol = innerNode.startPosition.row === 0
+      ? innerNode.startPosition.column + colOff + 1  // +1 for backtick
+      : innerNode.startPosition.column + 1
+    const innerStartRow = innerNode.startPosition.row + rowOff
+
+    // Check role type
+    if (LITERAL_ROLES.has(roleName)) {
+      // Literal roles - never checked (full markup)
+      segments.push({ type: 'markup', text: node.text, reason: `literal role :${roleName}:`, startRow, startCol, endRow, endCol })
+      return
+    }
+
+    if (FORMAT_ROLES.has(roleName)) {
+      // Format roles - content is spellchecked
+      // Add role markers as markup, content as text
+      segments.push({ type: 'markup', text: `:${roleName}:\``, reason: `format role :${roleName}:`, startRow, startCol, endRow: innerStartRow, endCol: innerStartCol })
+      segments.push({ type: 'text', text: content, startRow: innerStartRow, startCol: innerStartCol, endRow, endCol: endCol - 1 })
+      segments.push({ type: 'markup', text: '`', reason: 'role end', startRow: endRow, startCol: endCol - 1, endRow, endCol })
+      return
+    }
+
+    // Reference roles (default)
+    const titleMatch = content.match(/^\s*(.+?)\s*<\s*(.+?)\s*>\s*$/)
+
+    if (titleMatch) {
+      // Has custom title - only check the title
+      const title = titleMatch[1]
+      const titleEnd = innerStartCol + content.indexOf('<') - 1
+      segments.push({ type: 'markup', text: `:${roleName}:\``, reason: `ref role :${roleName}:`, startRow, startCol, endRow: innerStartRow, endCol: innerStartCol })
+      segments.push({ type: 'text', text: title, startRow: innerStartRow, startCol: innerStartCol, endRow: innerStartRow, endCol: titleEnd })
+      segments.push({ type: 'markup', text: ` <${titleMatch[2]}>\``, reason: 'ref target', startRow: innerStartRow, startCol: titleEnd, endRow, endCol })
+    } else {
+      // No title - skip entirely (reference target)
+      segments.push({ type: 'markup', text: node.text, reason: `ref target :${roleName}:`, startRow, startCol, endRow, endCol })
+    }
+  }
+
+  private buildReferenceAnnotation(node: Node, segments: AnnotatedSegment[], rowOff: number, colOff: number): void {
+    const startRow = node.startPosition.row + rowOff
+    const startCol = node.startPosition.row === 0 ? node.startPosition.column + colOff : node.startPosition.column
+    const endRow = node.endPosition.row + rowOff
+    const endCol = node.endPosition.row === 0 ? node.endPosition.column + colOff : node.endPosition.column
+
+    const titleMatch = node.text.match(/^`\s*(.+?)\s*<([^>]+)>`(_+)$/)
+
+    if (titleMatch) {
+      const [, title, url, underscores] = titleMatch
+      const titleStart = startCol + 1  // after backtick
+      const titleEnd = titleStart + title.length
+      segments.push({ type: 'markup', text: '`', reason: 'link start', startRow, startCol, endRow: startRow, endCol: titleStart })
+      segments.push({ type: 'text', text: title, startRow, startCol: titleStart, endRow: startRow, endCol: titleEnd })
+      segments.push({ type: 'markup', text: ` <${url}>\`${underscores}`, reason: 'link target', startRow, startCol: titleEnd, endRow, endCol })
+    } else {
+      // Fallback - skip entire reference
+      segments.push({ type: 'markup', text: node.text, reason: 'reference', startRow, startCol, endRow, endCol })
+    }
+  }
+
+  private formatAnnotatedOutput(segments: AnnotatedSegment[]): string {
+    const lines: string[] = []
+
+    lines.push('=== AnnotatedTextBuilder Output ===')
+    lines.push('TEXT segments are sent to LanguageTool (addText)')
+    lines.push('MARKUP segments are skipped (addMarkup)')
+    lines.push('===================================\n')
+
+    // Show segments with boundaries
+    lines.push('--- Segments ---')
+    for (const seg of segments) {
+      const escaped = seg.text.replace(/\n/g, '\\n').replace(/\r/g, '\\r')
+      const preview = escaped.length > 70 ? escaped.slice(0, 70) + '...' : escaped
+      const pos = seg.startRow !== undefined ? ` @${seg.startRow}:${seg.startCol}` : ''
+      if (seg.type === 'text') {
+        lines.push(`[TEXT]   "${preview}"${pos}`)
+      } else {
+        lines.push(`[MARKUP] "${preview}" (${seg.reason})${pos}`)
+      }
+    }
+
+    // Show reconstructed text (what LanguageTool sees) with whitespace preservation
+    lines.push('\n--- LanguageTool Input (TEXT only, with spacing) ---')
+    const ltText = this.reconstructTextWithSpacing(segments)
+    lines.push(ltText || '(empty)')
+
+    return lines.join('\n')
+  }
+
+  private reconstructTextWithSpacing(segments: AnnotatedSegment[]): string {
+    const textSegments = segments.filter(s => s.type === 'text' && s.startRow !== undefined)
+    if (textSegments.length === 0) return ''
+
+    const result: string[] = []
+    let lastRow = textSegments[0].startRow!
+    let lastCol = textSegments[0].startCol!
+
+    for (const seg of textSegments) {
+      const row = seg.startRow!
+      const col = seg.startCol!
+
+      // Insert newlines for row changes
+      if (row > lastRow) {
+        result.push('\n'.repeat(row - lastRow))
+        lastCol = 0
+      }
+
+      // Insert spaces for column gaps on same row
+      if (col > lastCol) {
+        result.push(' ')
+      }
+
+      result.push(seg.text)
+      lastRow = seg.endRow ?? row
+      lastCol = seg.endCol ?? (col + seg.text.length)
+    }
+
+    return result.join('')
   }
 }
 
