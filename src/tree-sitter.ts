@@ -51,25 +51,25 @@ const LANG_MAP: Record<string, string> = {
   rst: 'rst', restructuredtext: 'rst'
 }
 
-// Directives whose body contains RST (recursive injection)
+// These constants are also in language-tool.ts for the checker
+// Keep here for inspect commands
 const RST_DIRECTIVES = new Set([
   'attention', 'caution', 'danger', 'error', 'hint', 'important', 'note', 'tip', 'warning', 'admonition',
   'line-block', 'parsed-literal', 'epigraph', 'highlights', 'pull-quote', 'compound', 'header', 'footer',
-  'meta', 'replace', 'figure', 'topic', 'sidebar', 'container', 'table', 'list-table', 'class', 'role',
+  'meta', 'replace', 'topic', 'sidebar', 'container', 'table', 'list-table', 'class', 'role',
   'restructuredtext-test-directive'
 ])
 
-// Directives that inject other languages (skip for grammar checking)
 const CODE_DIRECTIVES = new Set([
   'code', 'code-block', 'sourcecode', 'raw', 'math', 'csv-table', 'shell', 'include-template'
 ])
 
-// Role types for LanguageTool processing
-// Format roles: spellchecked (addText)
+const PATH_ARG_DIRECTIVES = new Set([
+  'figure', 'image', 'include', 'literalinclude', 'toctree'
+])
+
 const FORMAT_ROLES = new Set(['red', 'green'])
-// Literal roles: never checked (addMarkup)
 const LITERAL_ROLES = new Set(['code'])
-// All other roles are reference roles
 
 const depsPath = (f: string) => path.join(__dirname, '..', 'deps', f)
 const readQuery = (file: string) => fs.readFileSync(depsPath(file), 'utf-8')
@@ -366,6 +366,26 @@ export class SemanticTokensProvider implements vscode.DocumentSemanticTokensProv
     // Check if directive injects code (skip entirely)
     if (CODE_DIRECTIVES.has(directiveName)) {
       lines.push(`${indent}[SKIP] directive::${directiveName} @${pos} (code injection)`)
+      return
+    }
+
+    // Path argument directives - skip args, check content only
+    if (PATH_ARG_DIRECTIVES.has(directiveName)) {
+      const bodyNode = findChild(node, 'body')
+      if (bodyNode) {
+        const contentNode = findChild(bodyNode, 'content')
+        if (contentNode) {
+          lines.push(`${indent}directive::${directiveName} @${pos} (path arg, content only)`)
+          const injTree = cfg.parser.parse(contentNode.text)
+          if (injTree) {
+            this.walkTreeForLanguageTool(cfg, injTree.rootNode, depth + 1, lines)
+          }
+        } else {
+          lines.push(`${indent}[SKIP] directive::${directiveName} @${pos} (path arg, no content)`)
+        }
+      } else {
+        lines.push(`${indent}[SKIP] directive::${directiveName} @${pos} (path arg, no body)`)
+      }
       return
     }
 

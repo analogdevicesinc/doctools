@@ -47,6 +47,7 @@ This extension proudly integrates the following open source projects:
 | [tree-sitter/tree-sitter-bash](https://github.com/tree-sitter/tree-sitter-bash) | MIT | Bash grammar |
 | [tree-sitter-grammars/tree-sitter-yaml](https://github.com/tree-sitter-grammars/tree-sitter-yaml) | MIT | YAML grammar |
 | [web-tree-sitter](https://github.com/tree-sitter/tree-sitter/tree/master/lib/binding_web) | MIT | WebAssembly bindings |
+| [language_tool_python](https://github.com/jxmorris12/language_tool_python) | GPL-3.0 | Language Tool Python Wrapper |
 
 ## Documentation
 

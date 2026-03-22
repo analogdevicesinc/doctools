@@ -44,6 +44,10 @@
       {
         "command": "adi-doctools.inspect-language",
         "title": "Doctools: Inspect Language"
+      },
+      {
+        "command": "adi-doctools.check-grammar",
+        "title": "Doctools: Check Grammar"
       }
     ],
     "configuration": {
