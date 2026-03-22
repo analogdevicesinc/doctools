@@ -1,8 +1,8 @@
 import * as vscode from 'vscode'
 import * as fs from 'fs'
 import * as path from 'path'
-import { spawn } from 'child_process'
-import { Parser, Language, Node } from 'web-tree-sitter'
+import { Parser, Language, Node, Query } from 'web-tree-sitter'
+import { lspSend } from './python'
 
 // Directives whose body contains RST (recursive injection)
 const RST_DIRECTIVES = new Set([
@@ -51,36 +51,21 @@ export interface TextSegment {
   renderMode?: 'silent' | 'backticks' | 'literal'
 }
 
-// Vale alert structure (from JSON output)
-interface ValeAction {
-  Name: string
-  Params: string[]
-}
-
-interface ValeAlert {
-  Action: ValeAction
-  Span: [number, number]  // [start, end] column (1-based)
-  Check: string
-  Description: string
-  Link: string
-  Message: string
-  Severity: 'suggestion' | 'warning' | 'error'
-  Match: string
-  Line: number  // 1-based line number
-}
-
-type ValeOutput = Record<string, ValeAlert[]>
-
-// Mapped match for diagnostics
-export interface StyleMatch {
+export interface LTMatch {
   message: string
+  offset: number
+  length: number
   replacements: string[]
   ruleId: string
-  severity: 'suggestion' | 'warning' | 'error'
   // Mapped back to source
-  srcOffset: number
-  srcLength: number
-  matchedText: string
+  srcOffset?: number
+  srcLength?: number
+  matchedText?: string
+}
+
+export interface LTResult {
+  error?: string
+  matches: LTMatch[]
 }
 
 interface LangConfig {
@@ -96,65 +81,9 @@ const findChild = (node: Node, type: string): Node | null => {
   return null
 }
 
-// Extract replacement suggestions from Vale message
-function extractReplacementsFromMessage(message: string, matchedText?: string): string[] {
-  const replacements: string[] = []
-
-  // Pattern: "Use 'X' instead of 'Y'." - this has actual suggestions
-  const useMatch = message.match(/Use '([^']+)' instead of/)
-  if (useMatch) {
-    replacements.push(...expandValeReplacement(useMatch[1]))
-    return replacements
-  }
-
-  // Pattern: "Consider using 'X'" - this has actual suggestions
-  const considerMatch = message.match(/Consider using '([^']+)'/)
-  if (considerMatch) {
-    replacements.push(...expandValeReplacement(considerMatch[1]))
-    return replacements
-  }
-
-  // Pattern: "Did you really mean 'X'?" - often just echoes the misspelled word
-  // Only use if X is different from the matched text
-  const meanMatch = message.match(/Did you really mean '([^']+)'\?/)
-  if (meanMatch) {
-    const suggestion = meanMatch[1]
-    if (!matchedText || suggestion.toLowerCase() !== matchedText.toLowerCase()) {
-      replacements.push(...expandValeReplacement(suggestion))
-    }
-    return replacements
-  }
-
-  return replacements
-}
-
-// Expand Vale patterns like [Pp]ll to actual values: Pll, pll
-function expandValeReplacement(pattern: string): string[] {
-  // Check if pattern contains character class like [Aa]
-  const charClassMatch = pattern.match(/\[([^\]]+)\]/)
-  if (!charClassMatch) {
-    return [pattern]  // No pattern, return as-is
-  }
-
-  // Expand character class
-  const chars = charClassMatch[1].split('')
-  const prefix = pattern.substring(0, charClassMatch.index)
-  const suffix = pattern.substring(charClassMatch.index! + charClassMatch[0].length)
-
-  const results: string[] = []
-  for (const char of chars) {
-    // Recursively expand in case there are multiple character classes
-    const expanded = expandValeReplacement(prefix + char + suffix)
-    results.push(...expanded)
-  }
-
-  return results
-}
-
 export class AnnotatedTextBuilder {
   private segments: TextSegment[] = []
   private langConfig: LangConfig | null = null
-  private lineStarts: number[] = []  // offset where each line starts in output text
 
   setLangConfig(config: LangConfig) {
     this.langConfig = config
@@ -162,7 +91,6 @@ export class AnnotatedTextBuilder {
 
   clear() {
     this.segments = []
-    this.lineStarts = []
   }
 
   addText(content: string, srcStart: number, srcEnd: number) {
@@ -177,12 +105,11 @@ export class AnnotatedTextBuilder {
     return this.segments
   }
 
-  // Build the text that will be sent to Vale
+  // Build the text that will be sent to LanguageTool
   buildText(sourceText: string): string {
     let outPos = 0
     const parts: string[] = []
     let lastSrcEnd = 0
-    this.lineStarts = [0]  // Line 1 starts at offset 0
 
     for (const seg of this.segments) {
       // Insert whitespace/newlines that exist between segments in source
@@ -192,11 +119,9 @@ export class AnnotatedTextBuilder {
         const hasNewline = gap.includes('\n')
         if (hasNewline) {
           const newlineCount = (gap.match(/\n/g) || []).length
-          for (let i = 0; i < newlineCount; i++) {
-            parts.push('\n')
-            outPos += 1
-            this.lineStarts.push(outPos)  // Track start of each new line
-          }
+          const whitespace = '\n'.repeat(newlineCount)
+          parts.push(whitespace)
+          outPos += whitespace.length
         } else if (/\s/.test(gap)) {
           // Any whitespace in gap - add single space
           parts.push(' ')
@@ -206,12 +131,6 @@ export class AnnotatedTextBuilder {
 
       if (seg.type === 'text') {
         seg.outStart = outPos
-        // Track newlines within the text content
-        for (let i = 0; i < seg.content.length; i++) {
-          if (seg.content[i] === '\n') {
-            this.lineStarts.push(outPos + i + 1)
-          }
-        }
         parts.push(seg.content)
         outPos += seg.content.length
         seg.outEnd = outPos
@@ -225,12 +144,6 @@ export class AnnotatedTextBuilder {
       } else if (seg.renderMode === 'literal') {
         // Literal mode - output content as-is
         seg.outStart = outPos
-        // Track newlines within literal content
-        for (let i = 0; i < seg.content.length; i++) {
-          if (seg.content[i] === '\n') {
-            this.lineStarts.push(outPos + i + 1)
-          }
-        }
         parts.push(seg.content)
         outPos += seg.content.length
         seg.outEnd = outPos
@@ -241,25 +154,6 @@ export class AnnotatedTextBuilder {
     }
 
     return parts.join('')
-  }
-
-  // Convert Vale's line/column to absolute offset in output text
-  lineColumnToOffset(line: number, column: number): number {
-    // Vale uses 1-based line and column numbers
-    const lineIndex = line - 1
-    if (lineIndex < 0 || lineIndex >= this.lineStarts.length) {
-      return -1
-    }
-    const lineStart = this.lineStarts[lineIndex]
-    return lineStart + column - 1  // column is 1-based
-  }
-
-  // Map Vale's line/span to source position
-  mapLineSpanToSource(line: number, span: [number, number]): { srcOffset: number; srcLength: number } | null {
-    const outStart = this.lineColumnToOffset(line, span[0])
-    const outEnd = this.lineColumnToOffset(line, span[1])
-    if (outStart < 0 || outEnd < 0) return null
-    return this.mapToSource(outStart, outEnd - outStart)
   }
 
   // Map a position in LanguageTool output back to source position
@@ -631,7 +525,7 @@ export class GrammarCodeActionProvider implements vscode.CodeActionProvider {
     const actions: vscode.CodeAction[] = []
 
     for (const diagnostic of context.diagnostics) {
-      if (diagnostic.source !== 'Vale') continue
+      if (diagnostic.source !== 'LanguageTool') continue
 
       const replacements = (diagnostic as any).replacements as string[] | undefined
       const ruleId = diagnostic.code as string | undefined
@@ -819,111 +713,7 @@ async function findRejectedWords(text: string): Promise<RejectMatch[]> {
   return matches
 }
 
-// Run a command and return stdout
-function runCommand(cmd: string, args: string[], stdin?: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const proc = spawn(cmd, args, { stdio: ['pipe', 'pipe', 'pipe'] })
-    let stdout = ''
-    let stderr = ''
-
-    proc.stdout.on('data', (data) => { stdout += data.toString() })
-    proc.stderr.on('data', (data) => { stderr += data.toString() })
-
-    proc.on('close', (code) => {
-      // Vale exits with 1 on style errors, which is fine
-      if (code !== null && code <= 1) {
-        resolve(stdout)
-      } else {
-        reject(new Error(stderr || stdout || `Exit code ${code}`))
-      }
-    })
-
-    proc.on('error', reject)
-
-    if (stdin !== undefined) {
-      proc.stdin.write(stdin)
-      proc.stdin.end()
-    }
-  })
-}
-
-// Find Vale executable
-async function findValeExecutable(): Promise<string | null> {
-  const homeDir = process.env.HOME || process.env.USERPROFILE || ''
-
-  // Check common locations
-  const candidates = [
-    'vale',  // In PATH
-    '/usr/local/bin/vale',
-    '/usr/bin/vale',
-    path.join(homeDir, '.local', 'bin', 'vale'),
-    path.join(homeDir, 'bin', 'vale'),
-  ]
-
-  for (const candidate of candidates) {
-    try {
-      await runCommand(candidate, ['--version'])
-      return candidate
-    } catch {
-      // Not found, try next
-    }
-  }
-
-  return null
-}
-
-// Find Vale config files
-async function findValeConfigs(): Promise<string[]> {
-  const configs: string[] = []
-  const workspaceFolders = vscode.workspace.workspaceFolders
-  if (!workspaceFolders) return configs
-
-  for (const folder of workspaceFolders) {
-    // Check .github/styles/*.ini first (multiple configs)
-    const stylesDir = path.join(folder.uri.fsPath, '.github', 'styles')
-    if (fs.existsSync(stylesDir)) {
-      try {
-        const files = fs.readdirSync(stylesDir)
-        for (const file of files) {
-          if (file.endsWith('.ini')) {
-            configs.push(path.join(stylesDir, file))
-          }
-        }
-      } catch {
-        // Ignore read errors
-      }
-    }
-
-    // Fall back to root config files if no .github/styles configs found
-    if (configs.length === 0) {
-      const rootCandidates = [
-        path.join(folder.uri.fsPath, '.vale.ini'),
-        path.join(folder.uri.fsPath, '_vale.ini'),
-      ]
-
-      for (const candidate of rootCandidates) {
-        if (fs.existsSync(candidate)) {
-          configs.push(candidate)
-          break  // Only use one root config
-        }
-      }
-    }
-  }
-
-  return configs
-}
-
-let valeExecutable: string | null | undefined = undefined
-let valeOutput: vscode.OutputChannel | null = null
-
-function getValeOutput(): vscode.OutputChannel {
-  if (!valeOutput) {
-    valeOutput = vscode.window.createOutputChannel('Doctools Vale')
-  }
-  return valeOutput
-}
-
-// Vale-based style checker
+// LanguageTool checker that uses the Python backend
 export class LanguageToolChecker {
   private builder = new AnnotatedTextBuilder()
   private diagnosticCollection: vscode.DiagnosticCollection
@@ -932,17 +722,11 @@ export class LanguageToolChecker {
     this.diagnosticCollection = diagnosticCollection
   }
 
-  getOutputChannel(): vscode.OutputChannel {
-    return getValeOutput()
-  }
-
   setLangConfig(config: LangConfig) {
     this.builder.setLangConfig(config)
   }
 
-  async check(document: vscode.TextDocument, tree: Node): Promise<StyleMatch[]> {
-    const out = getValeOutput()
-
+  async check(document: vscode.TextDocument, tree: Node): Promise<LTMatch[]> {
     // Check if grammar checking is enabled
     const config = vscode.workspace.getConfiguration('adi-doctools.grammar')
     if (!config.get<boolean>('enabled', true)) {
@@ -950,121 +734,66 @@ export class LanguageToolChecker {
       return []
     }
 
-    // Find Vale executable (cache result)
-    if (valeExecutable === undefined) {
-      valeExecutable = await findValeExecutable()
-      if (valeExecutable) {
-        out.appendLine(`[Vale] Found executable: ${valeExecutable}`)
-      } else {
-        out.appendLine('[Vale] Executable not found. Install Vale for style checking.')
-        out.appendLine('[Vale] Searched: vale (PATH), /usr/local/bin/vale, /usr/bin/vale, ~/.local/bin/vale, ~/bin/vale')
-      }
-    }
-
-    if (!valeExecutable) {
-      this.diagnosticCollection.delete(document.uri)
-      return []
-    }
-
     const sourceText = document.getText()
 
-    // Build annotated text using tree-sitter
+    // Build annotated text
     this.builder.buildFromTree(tree, sourceText)
-    const extractedText = this.builder.buildText(sourceText)
+    const text = this.builder.buildText(sourceText)
 
-    if (!extractedText.trim()) {
-      out.appendLine('[Vale] No text to check (empty after extraction)')
+    if (!text.trim()) {
       this.diagnosticCollection.delete(document.uri)
       return []
     }
-
-    out.appendLine(`[Vale] Checking ${document.fileName} (${extractedText.length} chars extracted)`)
-    out.appendLine(`[Vale] Extracted text preview:\n${extractedText.substring(0, 500)}${extractedText.length > 500 ? '\n...' : ''}`)
 
     // Get filter settings
     const disabledRules = new Set(config.get<string[]>('disabledRules', []) || [])
 
     try {
-      // Find all Vale config files
-      const valeConfigs = await findValeConfigs()
+      // Send to Python backend
+      const result: LTResult = await lspSend({
+        languageTool: 'check',
+        text: text
+      })
 
-      if (valeConfigs.length === 0) {
-        out.appendLine('[Vale] No config files found in workspace')
-        out.appendLine('[Vale] Searched: .github/styles/*.ini, .vale.ini, _vale.ini')
-        this.diagnosticCollection.delete(document.uri)
+      if (result.error) {
+        console.error('LanguageTool error:', result.error)
         return []
       }
 
-      out.appendLine(`[Vale] Found ${valeConfigs.length} config(s): ${valeConfigs.map(c => path.basename(c)).join(', ')}`)
+      // Map matches back to source positions and filter
+      const mappedMatches: LTMatch[] = []
+      for (const match of result.matches || []) {
+        // Filter by disabled rules
+        if (disabledRules.has(match.ruleId)) continue
 
-      // Run Vale with each config and collect all alerts
-      const allAlerts: ValeAlert[] = []
-
-      for (const valeConfig of valeConfigs) {
-        const args = ['--output=JSON', '--ext=.txt', '--no-exit', `--config=${valeConfig}`]
-
-        out.appendLine(`[Vale] Running with ${path.basename(valeConfig)}...`)
-
-        try {
-          const stdout = await runCommand(valeExecutable, args, extractedText)
-
-          out.appendLine(`[Vale] ${path.basename(valeConfig)} raw output: ${stdout.substring(0, 300)}`)
-
-          // Parse JSON output
-          const valeResult: ValeOutput = JSON.parse(stdout)
-          const alerts = Object.values(valeResult).flat()
-
-          out.appendLine(`[Vale] ${path.basename(valeConfig)}: ${alerts.length} alerts`)
-          allAlerts.push(...alerts)
-        } catch (configErr: any) {
-          // Log error but continue with other configs
-          out.appendLine(`[Vale] ${path.basename(valeConfig)} error: ${configErr.message || configErr}`)
-        }
-      }
-
-      out.appendLine(`[Vale] Total: ${allAlerts.length} alerts from all configs`)
-
-      // Map alerts back to source positions
-      const mappedMatches: StyleMatch[] = []
-
-      for (const alert of allAlerts) {
-          // Filter by disabled rules
-          if (disabledRules.has(alert.Check)) continue
-
-          // Map Vale's line/span to source position
-          const mapped = this.builder.mapLineSpanToSource(alert.Line, alert.Span)
-          if (!mapped) continue
-
-          // Get matched text from source
+        const mapped = this.builder.mapToSource(match.offset, match.length)
+        if (mapped) {
+          // Get the matched text from source
           const matchedText = sourceText.slice(mapped.srcOffset, mapped.srcOffset + mapped.srcLength)
 
-          // Filter by Vale vocabulary (accept.txt patterns)
+          // Filter by Vale vocabulary patterns
           if (await isWordAllowed(matchedText)) continue
 
-          // Extract replacements from Vale's Message field
-          const replacements = extractReplacementsFromMessage(alert.Message, alert.Match)
-
           mappedMatches.push({
-            message: alert.Message,
-            replacements,
-            ruleId: alert.Check,
-            severity: alert.Severity,
+            ...match,
             srcOffset: mapped.srcOffset,
             srcLength: mapped.srcLength,
             matchedText
           })
         }
+      }
 
-      // Also check for rejected words from reject.txt
-      const rejectedWords = await findRejectedWords(extractedText)
+      // Find rejected words in the text sent to LanguageTool
+      const rejectedWords = await findRejectedWords(text)
       for (const rejected of rejectedWords) {
         const mapped = this.builder.mapToSource(rejected.offset, rejected.length)
         if (mapped) {
           mappedMatches.push({
             message: `"${rejected.word}" is a rejected term`,
+            offset: rejected.offset,
+            length: rejected.length,
             replacements: [],
-            ruleId: 'Vocabulary.Reject',
-            severity: 'error',
+            ruleId: 'VALE_REJECT',
             srcOffset: mapped.srcOffset,
             srcLength: mapped.srcLength,
             matchedText: rejected.word
@@ -1075,58 +804,39 @@ export class LanguageToolChecker {
       // Update diagnostics
       this.updateDiagnostics(document, mappedMatches)
 
-      out.appendLine(`[Vale] Mapped ${mappedMatches.length} issues to source positions`)
-
       return mappedMatches
-    } catch (err: any) {
-      // Log error to output channel
-      const errStr = err.message || String(err)
-      out.appendLine(`[Vale] Error: ${errStr}`)
-
-      // Try to parse error output as JSON (Vale error format)
-      try {
-        const errOutput = JSON.parse(errStr)
-        if (errOutput.Code) {
-          out.appendLine(`[Vale] Error code: ${errOutput.Code}, text: ${errOutput.Text}`)
-        }
-      } catch {
-        console.error('Vale check failed:', errStr)
-      }
+    } catch (err) {
+      console.error('LanguageTool check failed:', err)
       return []
     }
   }
 
-  private updateDiagnostics(document: vscode.TextDocument, matches: StyleMatch[]) {
+  private updateDiagnostics(document: vscode.TextDocument, matches: LTMatch[]) {
     const diagnostics: vscode.Diagnostic[] = []
 
     for (const match of matches) {
+      if (match.srcOffset === undefined || match.srcLength === undefined) continue
+
       const startPos = document.positionAt(match.srcOffset)
       const endPos = document.positionAt(match.srcOffset + match.srcLength)
       const range = new vscode.Range(startPos, endPos)
 
-      // Map Vale severity to VS Code severity
-      let severity: vscode.DiagnosticSeverity
-      switch (match.severity) {
-        case 'error':
-          severity = vscode.DiagnosticSeverity.Error
-          break
-        case 'warning':
-          severity = vscode.DiagnosticSeverity.Warning
-          break
-        default:
-          severity = vscode.DiagnosticSeverity.Information
-      }
-
-      const diagnostic = new vscode.Diagnostic(range, match.message, severity)
-      diagnostic.source = 'Vale'
+      const diagnostic = new vscode.Diagnostic(
+        range,
+        match.message,
+        vscode.DiagnosticSeverity.Information
+      )
+      diagnostic.source = 'LanguageTool'
       diagnostic.code = match.ruleId
 
-      if (match.replacements.length > 0) {
+      if (match.replacements && match.replacements.length > 0) {
         // Store replacements for quick fix
-        ;(diagnostic as any).replacements = match.replacements
+        (diagnostic as any).replacements = match.replacements
       }
 
-      ;(diagnostic as any).matchedText = match.matchedText
+      if (match.matchedText) {
+        (diagnostic as any).matchedText = match.matchedText
+      }
 
       diagnostics.push(diagnostic)
     }
