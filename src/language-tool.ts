@@ -510,6 +510,40 @@ export class AnnotatedTextBuilder {
   }
 }
 
+// CodeActionProvider for grammar fix suggestions
+export class GrammarCodeActionProvider implements vscode.CodeActionProvider {
+  static readonly providedCodeActionKinds = [vscode.CodeActionKind.QuickFix]
+
+  provideCodeActions(
+    document: vscode.TextDocument,
+    range: vscode.Range,
+    context: vscode.CodeActionContext
+  ): vscode.CodeAction[] {
+    const actions: vscode.CodeAction[] = []
+
+    for (const diagnostic of context.diagnostics) {
+      if (diagnostic.source !== 'LanguageTool') continue
+
+      const replacements = (diagnostic as any).replacements as string[] | undefined
+      if (!replacements || replacements.length === 0) continue
+
+      for (const replacement of replacements) {
+        const action = new vscode.CodeAction(
+          `Replace with "${replacement}"`,
+          vscode.CodeActionKind.QuickFix
+        )
+        action.edit = new vscode.WorkspaceEdit()
+        action.edit.replace(document.uri, diagnostic.range, replacement)
+        action.diagnostics = [diagnostic]
+        action.isPreferred = replacements.indexOf(replacement) === 0
+        actions.push(action)
+      }
+    }
+
+    return actions
+  }
+}
+
 // LanguageTool checker that uses the Python backend
 export class LanguageToolChecker {
   private builder = new AnnotatedTextBuilder()

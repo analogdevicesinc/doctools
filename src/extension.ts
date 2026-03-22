@@ -1,7 +1,7 @@
 import * as vscode from 'vscode'
 import { SemanticTokensProvider, RoleCompletionProvider, RoleHoverProvider, LEGEND } from './tree-sitter'
 import { startPyProcess, stopPyProcess, buildServer, setOutputChannel, getDebugOutputChannel, getDiagnosticCollection } from './python'
-import { LanguageToolChecker } from './language-tool'
+import { LanguageToolChecker, GrammarCodeActionProvider } from './language-tool'
 
 let output: vscode.OutputChannel
 let provider: SemanticTokensProvider
@@ -29,6 +29,11 @@ export async function activate(ctx: vscode.ExtensionContext) {
     vscode.languages.registerDocumentSemanticTokensProvider({ language: 'restructuredtext' }, provider, LEGEND),
     vscode.languages.registerCompletionItemProvider({ language: 'restructuredtext' }, completionProvider, ':', '`', '<', '+', '.', ' '),
     vscode.languages.registerHoverProvider({ language: 'restructuredtext' }, hoverProvider),
+    vscode.languages.registerCodeActionsProvider(
+      { language: 'restructuredtext' },
+      new GrammarCodeActionProvider(),
+      { providedCodeActionKinds: GrammarCodeActionProvider.providedCodeActionKinds }
+    ),
 
     vscode.window.onDidChangeTextEditorSelection(async (e) => {
       if (e.textEditor.document.languageId !== 'restructuredtext') return
