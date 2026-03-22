@@ -40,6 +40,19 @@ const LANG_MAP: Record<string, string> = {
   rst: 'rst', restructuredtext: 'rst'
 }
 
+// Directives whose body contains RST (recursive injection)
+const RST_DIRECTIVES = new Set([
+  'attention', 'caution', 'danger', 'error', 'hint', 'important', 'note', 'tip', 'warning', 'admonition',
+  'line-block', 'parsed-literal', 'epigraph', 'highlights', 'pull-quote', 'compound', 'header', 'footer',
+  'meta', 'replace', 'figure', 'topic', 'sidebar', 'container', 'table', 'list-table', 'class', 'role',
+  'restructuredtext-test-directive'
+])
+
+// Directives that inject other languages (skip for grammar checking)
+const CODE_DIRECTIVES = new Set([
+  'code', 'code-block', 'sourcecode', 'raw', 'math', 'csv-table', 'shell', 'include-template'
+])
+
 const depsPath = (f: string) => path.join(__dirname, '..', 'deps', f)
 const readQuery = (file: string) => fs.readFileSync(depsPath(file), 'utf-8')
   .split('\n')
@@ -234,6 +247,184 @@ export class SemanticTokensProvider implements vscode.DocumentSemanticTokensProv
       console.error('LSP communication error:', err)
     }
     return
+  }
+
+  async inspectTree(text: string): Promise<string> {
+    const rst = await this.init()
+    const tree = rst.parser.parse(text)
+    if (!tree) return '(empty tree)'
+
+    const lines: string[] = []
+    this.walkTreeForLanguageTool(rst, tree.rootNode, 0, lines)
+    return lines.join('\n')
+  }
+
+  private walkTreeForLanguageTool(cfg: LangConfig, node: Node, depth: number, lines: string[]): void {
+    const indent = '  '.repeat(depth)
+    const pos = `${node.startPosition.row}:${node.startPosition.column}`
+
+    // Skip nodes that should not be grammar checked
+    if (this.shouldSkipNode(node)) {
+      lines.push(`${indent}[SKIP] ${node.type} @${pos}`)
+      return
+    }
+
+    // Handle directives specially
+    if (node.type === 'directive') {
+      this.walkDirective(cfg, node, depth, lines)
+      return
+    }
+
+    // Handle interpreted_text (roles)
+    if (node.type === 'interpreted_text') {
+      this.walkRole(node, depth, lines)
+      return
+    }
+
+    // Handle references (inline links)
+    if (node.type === 'reference') {
+      this.walkReference(node, depth, lines)
+      return
+    }
+
+    // Handle standalone hyperlinks (bare URLs)
+    if (node.type === 'standalone_hyperlink') {
+      lines.push(`${indent}[SKIP] standalone_hyperlink @${pos}`)
+      return
+    }
+
+    // Leaf text nodes - actual text content
+    if (this.isLeafTextNode(node)) {
+      const preview = node.text.length > 60 ? node.text.slice(0, 60) + '...' : node.text
+      const escaped = preview.replace(/\n/g, '\\n')
+      lines.push(`${indent}[TEXT] ${node.type} @${pos}: "${escaped}"`)
+      return
+    }
+
+    // Inline markup (emphasis, strong) - show and recurse
+    if (this.isInlineMarkup(node)) {
+      lines.push(`${indent}${node.type} @${pos}`)
+      for (let i = 0; i < node.childCount; i++) {
+        const child = node.child(i)
+        if (child) this.walkTreeForLanguageTool(cfg, child, depth + 1, lines)
+      }
+      return
+    }
+
+    // Container nodes (paragraph, section, title, etc.) - recurse into children
+    lines.push(`${indent}${node.type} @${pos}`)
+    for (let i = 0; i < node.childCount; i++) {
+      const child = node.child(i)
+      if (child) this.walkTreeForLanguageTool(cfg, child, depth + 1, lines)
+    }
+  }
+
+  private shouldSkipNode(node: Node): boolean {
+    const skipTypes = new Set([
+      'literal_block', 'doctest_block', 'comment', 'line_block',
+      'substitution_definition', 'footnote', 'citation',
+      'target', 'directive_marker', 'field_list'
+    ])
+    return skipTypes.has(node.type)
+  }
+
+  private isLeafTextNode(node: Node): boolean {
+    // Only actual text nodes are leaves - containers like paragraph have children
+    return node.type === 'text'
+  }
+
+  private isInlineMarkup(node: Node): boolean {
+    // Inline nodes that contain text and should recurse
+    return node.type === 'emphasis' || node.type === 'strong'
+  }
+
+  private walkDirective(cfg: LangConfig, node: Node, depth: number, lines: string[]): void {
+    const indent = '  '.repeat(depth)
+    const pos = `${node.startPosition.row}:${node.startPosition.column}`
+
+    const nameNode = findChild(node, 'type')
+    const directiveName = nameNode?.text || 'unknown'
+
+    // Check if directive injects code (skip entirely)
+    if (CODE_DIRECTIVES.has(directiveName)) {
+      lines.push(`${indent}[SKIP] directive::${directiveName} @${pos} (code injection)`)
+      return
+    }
+
+    // Check if directive contains nested RST
+    if (RST_DIRECTIVES.has(directiveName)) {
+      lines.push(`${indent}directive::${directiveName} @${pos} (nested RST)`)
+
+      const bodyNode = findChild(node, 'body')
+      if (bodyNode) {
+        // Find content node (may be directly body or nested content)
+        const contentNode = findChild(bodyNode, 'content') || bodyNode
+        if (contentNode) {
+          // Parse content as RST and recurse
+          const injTree = cfg.parser.parse(contentNode.text)
+          if (injTree) {
+            this.walkTreeForLanguageTool(cfg, injTree.rootNode, depth + 1, lines)
+          }
+        }
+      }
+      return
+    }
+
+    // Unknown directive - show but don't recurse into body
+    lines.push(`${indent}[SKIP] directive::${directiveName} @${pos} (unknown)`)
+  }
+
+  private walkRole(node: Node, depth: number, lines: string[]): void {
+    const indent = '  '.repeat(depth)
+    const pos = `${node.startPosition.row}:${node.startPosition.column}`
+
+    const roleNode = findChild(node, 'role')
+    const innerNode = findChild(node, 'interpreted_text')
+
+    if (!roleNode || !innerNode) {
+      lines.push(`${indent}[SKIP] interpreted_text @${pos} (malformed)`)
+      return
+    }
+
+    const roleMatch = roleNode.text.match(/^:(\S+):$/)
+    const contentMatch = innerNode.text.match(/^`([^`]+)`$/)
+
+    if (!roleMatch || !contentMatch) {
+      lines.push(`${indent}[SKIP] interpreted_text @${pos} (parse error)`)
+      return
+    }
+
+    const roleName = roleMatch[1]
+    const content = contentMatch[1]
+
+    // Check for title <target> pattern
+    const titleMatch = content.match(/^\s*(.+?)\s*<\s*(.+?)\s*>\s*$/)
+
+    if (titleMatch) {
+      // Has custom title - only check the title, skip target
+      const title = titleMatch[1]
+      lines.push(`${indent}[TEXT] :${roleName}: @${pos}: "${title}" (title only, target skipped)`)
+    } else {
+      // No title - this is a reference target, skip entirely
+      lines.push(`${indent}[SKIP] :${roleName}: @${pos}: "${content}" (reference target)`)
+    }
+  }
+
+  private walkReference(node: Node, depth: number, lines: string[]): void {
+    const indent = '  '.repeat(depth)
+    const pos = `${node.startPosition.row}:${node.startPosition.column}`
+
+    // Reference text is like `title <url>`__ or `title <url>`_
+    // Extract title from the pattern
+    const titleMatch = node.text.match(/^`\s*(.+?)\s*<[^>]+>`_*$/)
+
+    if (titleMatch) {
+      const title = titleMatch[1]
+      lines.push(`${indent}[TEXT] reference @${pos}: "${title}" (title only, target skipped)`)
+    } else {
+      // Fallback - might be a simple reference without URL
+      lines.push(`${indent}[SKIP] reference @${pos}`)
+    }
   }
 }
 

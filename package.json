@@ -36,6 +36,10 @@
       {
         "command": "adi-doctools.stop-server",
         "title": "Doctools: Stop server"
+      },
+      {
+        "command": "adi-doctools.inspect-tree",
+        "title": "Doctools: Inspect Tree"
       }
     ],
     "configuration": {

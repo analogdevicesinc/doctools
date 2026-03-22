@@ -39,7 +39,23 @@ export async function activate(ctx: vscode.ExtensionContext) {
     }),
 
     vscode.commands.registerCommand('adi-doctools.start-server', buildServer.start),
-    vscode.commands.registerCommand('adi-doctools.stop-server', buildServer.stop)
+    vscode.commands.registerCommand('adi-doctools.stop-server', buildServer.stop),
+    vscode.commands.registerCommand('adi-doctools.inspect-tree', async () => {
+      const editor = vscode.window.activeTextEditor
+      if (!editor || editor.document.languageId !== 'restructuredtext') {
+        vscode.window.showWarningMessage('Open a reStructuredText file first')
+        return
+      }
+
+      const result = await provider.inspectTree(editor.document.getText())
+      output.clear()
+      output.appendLine('=== Doctools: Inspect Tree ===')
+      output.appendLine('Nodes marked [TEXT] will be piped to LanguageTool')
+      output.appendLine('Nodes marked [SKIP] will be excluded')
+      output.appendLine('==============================\n')
+      output.appendLine(result)
+      output.show()
+    })
   )
 
   await startPyProcess()
