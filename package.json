@@ -58,13 +58,54 @@
           "default": true,
           "description": "Enable grammar checking with LanguageTool"
         },
+        "adi-doctools.grammar.mode": {
+          "type": "string",
+          "enum": ["local", "api"],
+          "default": "api",
+          "enumDescriptions": [
+            "Use local LanguageTool (requires Java)",
+            "Use LanguageTool public API (no installation required, but rate-limited)"
+          ],
+          "description": "LanguageTool backend mode"
+        },
+        "adi-doctools.grammar.apiUsername": {
+          "type": "string",
+          "default": "",
+          "description": "LanguageTool API username (improve rate-limit)."
+        },
+        "adi-doctools.grammar.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "LanguageTool API key (improve rate-limit)."
+        },
         "adi-doctools.grammar.disabledRules": {
           "type": "array",
           "items": { "type": "string" },
           "default": [],
           "description": "LanguageTool rule IDs to disable (e.g., MORFOLOGIK_RULE_EN_US)"
+        },
+        "adi-doctools.debug": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable debug commands"
         }
       }
+    },
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "adi-doctools.inspect-tree",
+          "when": "config.adi-doctools.debug"
+        },
+        {
+          "command": "adi-doctools.inspect-language",
+          "when": "config.adi-doctools.debug"
+        },
+        {
+          "command": "adi-doctools.check-grammar",
+          "when": "config.adi-doctools.debug"
+        }
+      ]
     }
   },
   "scripts": {

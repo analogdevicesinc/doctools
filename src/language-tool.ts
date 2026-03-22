@@ -65,7 +65,14 @@ export interface LTMatch {
 
 export interface LTResult {
   error?: string
-  matches: LTMatch[]
+  message?: string
+  matches?: LTMatch[]
+}
+
+export interface LTStatusResult {
+  installed: boolean
+  initialized: boolean
+  language: string | null
 }
 
 interface LangConfig {
@@ -734,6 +741,11 @@ export class LanguageToolChecker {
       return []
     }
 
+    const mode = config.get<string>('mode', 'api')
+    const apiUsername = config.get<string>('apiUsername', '')
+    const apiKey = config.get<string>('apiKey', '')
+    const language = 'en-US'  // Default language
+
     const sourceText = document.getText()
 
     // Build annotated text
@@ -752,11 +764,16 @@ export class LanguageToolChecker {
       // Send to Python backend
       const result: LTResult = await lspSend({
         languageTool: 'check',
-        text: text
+        text: text,
+        mode: mode,
+        language: language,
+        username: apiUsername,
+        apiKey: apiKey
       })
 
+      // Handle errors with user-friendly prompts
       if (result.error) {
-        console.error('LanguageTool error:', result.error)
+        await this.handleError(result.error, result.message || '', mode)
         return []
       }
 
@@ -846,5 +863,25 @@ export class LanguageToolChecker {
 
   clearDiagnostics(document: vscode.TextDocument) {
     this.diagnosticCollection.delete(document.uri)
+  }
+
+  private async handleError(error: string, message: string, mode: string) {
+    if (error === 'init_failed' && mode === 'local') {
+      vscode.window.showErrorMessage(
+        `LanguageTool initialization failed: ${message}. Make sure Java is installed.`
+      )
+    } else if (error === 'rate_limited') {
+      vscode.window.showWarningMessage(
+        'LanguageTool API rate limit exceeded. Try again later or switch to local mode.'
+      )
+    } else if (error === 'connection_error') {
+      vscode.window.showWarningMessage('Could not connect to LanguageTool API.')
+    } else if (error === 'api_error') {
+      vscode.window.showErrorMessage(
+        `LanguageTool API error: ${message}. Consider switching to local mode.`
+      )
+    } else {
+      console.error('LanguageTool error:', error, message)
+    }
   }
 }

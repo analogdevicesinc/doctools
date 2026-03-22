@@ -218,14 +218,14 @@ function clearDiagnostics() {
   diagnosticCollection.clear()
 }
 
-export async function startPyProcess() {
+export async function startPyProcess(autoStartServer: boolean = false) {
   const init = await initializePython()
   if (!init) return
 
-  await startLspProcess(init.pythonPath, init.workspacePath, init.requirementsPath)
+  await startLspProcess(init.pythonPath, init.workspacePath, init.requirementsPath, autoStartServer)
 }
 
-async function startLspProcess(pythonPath: string, workspacePath: string, requirementsPath: string | null) {
+async function startLspProcess(pythonPath: string, workspacePath: string, requirementsPath: string | null, autoStartServer: boolean = false) {
   output.appendLine(`Starting LSP with ${pythonPath}`)
 
   const proc = spawn(pythonPath, ['-m', 'adi_doctools.lsp'], {
@@ -293,16 +293,29 @@ async function startLspProcess(pythonPath: string, workspacePath: string, requir
   py_process = proc
   output.appendLine("LSP process started")
 
-  const startServerChoice = await vscode.window.showInformationMessage(
-    'Start the Doctools Sphinx server (adoc serve)?',
-    'Yes', 'No'
-  )
-
-  if (startServerChoice === 'Yes') {
+  if (autoStartServer) {
     output.show(true)
     await buildServer.start()
   } else {
-    vscode.window.showInformationMessage('Use "Doctools: Start Server" command to start anytime')
+    // Capture the current process to detect if it changes during the prompt
+    const currentProc = proc
+    const startServerChoice = await vscode.window.showInformationMessage(
+      'Start the Doctools Sphinx server (adoc serve)?',
+      'Yes', 'No'
+    )
+
+    // Ignore response if process was restarted while prompt was open
+    if (py_process !== currentProc) {
+      return
+    }
+
+    if (startServerChoice === 'Yes') {
+      output.show(true)
+      await buildServer.start()
+    } else if (startServerChoice === 'No') {
+      vscode.window.showInformationMessage('Use "Doctools: Start Server" command to start anytime')
+    }
+    // If dismissed (undefined), do nothing
   }
 }
 

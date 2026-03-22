@@ -122,7 +122,7 @@ async function ensurePip(pythonPath: string): Promise<void> {
   })
 }
 
-async function pipInstall(pythonPath: string, args: string[], title: string): Promise<boolean> {
+export async function pipInstall(pythonPath: string, args: string[], title: string): Promise<boolean> {
   await ensurePip(pythonPath)
 
   const fullArgs = ['-m', 'pip', 'install', ...args]
@@ -187,13 +187,10 @@ export async function installRequirements(pythonPath: string, requirementsPath: 
 export async function installDoctools(pythonPath: string, upgrade: boolean): Promise<boolean> {
   const installedVersion = getDoctoolsVersion(pythonPath)
 
-  if (installedVersion && !upgrade) {
-    output.appendLine(`adi-doctools already installed (${installedVersion})`)
-    return true
-  }
-
   const title = upgrade ? 'Upgrading adi-doctools...' : 'Installing adi-doctools...'
-  const args = upgrade ? ['adi-doctools', '--upgrade'] : ['adi-doctools']
+  const args = upgrade
+    ? ['adi-doctools', 'language_tool_python', '--upgrade']
+    : ['adi-doctools', 'language_tool_python']
   const success = await pipInstall(pythonPath, args, title)
 
   if (success) {
