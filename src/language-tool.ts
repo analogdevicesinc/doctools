@@ -1,4 +1,6 @@
 import * as vscode from 'vscode'
+import * as fs from 'fs'
+import * as path from 'path'
 import { Parser, Language, Node, Query } from 'web-tree-sitter'
 import { lspSend } from './python'
 
@@ -58,6 +60,7 @@ export interface LTMatch {
   // Mapped back to source
   srcOffset?: number
   srcLength?: number
+  matchedText?: string
 }
 
 export interface LTResult {
@@ -525,23 +528,189 @@ export class GrammarCodeActionProvider implements vscode.CodeActionProvider {
       if (diagnostic.source !== 'LanguageTool') continue
 
       const replacements = (diagnostic as any).replacements as string[] | undefined
-      if (!replacements || replacements.length === 0) continue
+      const ruleId = diagnostic.code as string | undefined
 
-      for (const replacement of replacements) {
-        const action = new vscode.CodeAction(
-          `Replace with "${replacement}"`,
+      // Add replacement suggestions
+      if (replacements && replacements.length > 0) {
+        for (const replacement of replacements) {
+          const action = new vscode.CodeAction(
+            `Replace with "${replacement}"`,
+            vscode.CodeActionKind.QuickFix
+          )
+          action.edit = new vscode.WorkspaceEdit()
+          action.edit.replace(document.uri, diagnostic.range, replacement)
+          action.diagnostics = [diagnostic]
+          action.isPreferred = replacements.indexOf(replacement) === 0
+          actions.push(action)
+        }
+      }
+
+      // Add "Disable rule" action
+      if (ruleId) {
+        const disableRule = new vscode.CodeAction(
+          `Disable rule "${ruleId}"`,
           vscode.CodeActionKind.QuickFix
         )
-        action.edit = new vscode.WorkspaceEdit()
-        action.edit.replace(document.uri, diagnostic.range, replacement)
-        action.diagnostics = [diagnostic]
-        action.isPreferred = replacements.indexOf(replacement) === 0
-        actions.push(action)
+        disableRule.command = {
+          command: 'adi-doctools.disable-grammar-rule',
+          title: 'Disable rule',
+          arguments: [ruleId]
+        }
+        disableRule.diagnostics = [diagnostic]
+        actions.push(disableRule)
       }
     }
 
     return actions
   }
+}
+
+// Vale vocabulary loading
+interface ValeVocabulary {
+  accept: RegExp[]
+  reject: { pattern: RegExp; original: string }[]
+  lastLoaded: number
+}
+
+let valeVocabulary: ValeVocabulary | null = null
+const VALE_CACHE_TTL = 30000 // 30 seconds
+
+function expandValePattern(pattern: string): RegExp | null {
+  try {
+    // Check for case-insensitive flag
+    let flags = ''
+    let regexStr = pattern
+
+    if (pattern.startsWith('(?i)')) {
+      flags = 'i'
+      regexStr = pattern.slice(4)
+    }
+
+    // Escape special regex chars except those Vale uses
+    // Vale patterns can use: (s)?, [Aa], etc.
+    // We need to make it match the whole word
+    return new RegExp(`^${regexStr}$`, flags)
+  } catch {
+    return null
+  }
+}
+
+function expandValePatternForSearch(pattern: string): RegExp | null {
+  try {
+    // Check for case-insensitive flag
+    let flags = 'g'
+    let regexStr = pattern
+
+    if (pattern.startsWith('(?i)')) {
+      flags = 'gi'
+      regexStr = pattern.slice(4)
+    }
+
+    // Word boundary search
+    return new RegExp(`\\b(${regexStr})\\b`, flags)
+  } catch {
+    return null
+  }
+}
+
+async function loadValeVocabulariesAsync(): Promise<{ accept: RegExp[]; reject: { pattern: RegExp; original: string }[] }> {
+  const accept: RegExp[] = []
+  const reject: { pattern: RegExp; original: string }[] = []
+
+  try {
+    // Find all accept.txt and reject.txt files matching the pattern
+    const acceptFiles = await vscode.workspace.findFiles('**/config/vocabularies/*/accept.txt')
+    const rejectFiles = await vscode.workspace.findFiles('**/config/vocabularies/*/reject.txt')
+
+    for (const file of acceptFiles) {
+      try {
+        const content = fs.readFileSync(file.fsPath, 'utf-8')
+        for (const line of content.split('\n')) {
+          const trimmed = line.trim()
+          if (!trimmed || trimmed.startsWith('#')) continue
+
+          const regex = expandValePattern(trimmed)
+          if (regex) accept.push(regex)
+        }
+      } catch {
+        // Skip unreadable files
+      }
+    }
+
+    for (const file of rejectFiles) {
+      try {
+        const content = fs.readFileSync(file.fsPath, 'utf-8')
+        for (const line of content.split('\n')) {
+          const trimmed = line.trim()
+          if (!trimmed || trimmed.startsWith('#')) continue
+
+          const regex = expandValePatternForSearch(trimmed)
+          if (regex) reject.push({ pattern: regex, original: trimmed })
+        }
+      } catch {
+        // Skip unreadable files
+      }
+    }
+  } catch (err) {
+    console.error('Failed to load Vale vocabularies:', err)
+  }
+
+  return { accept, reject }
+}
+
+let vocabLoadPromise: Promise<void> | null = null
+
+async function ensureValeVocabulary(): Promise<ValeVocabulary> {
+  const now = Date.now()
+
+  if (valeVocabulary && (now - valeVocabulary.lastLoaded) < VALE_CACHE_TTL) {
+    return valeVocabulary
+  }
+
+  // Avoid concurrent loads
+  if (!vocabLoadPromise) {
+    vocabLoadPromise = (async () => {
+      const { accept, reject } = await loadValeVocabulariesAsync()
+      valeVocabulary = { accept, reject, lastLoaded: Date.now() }
+      vocabLoadPromise = null
+    })()
+  }
+
+  await vocabLoadPromise
+  return valeVocabulary!
+}
+
+async function isWordAllowed(word: string): Promise<boolean> {
+  const vocab = await ensureValeVocabulary()
+  return vocab.accept.some(p => p.test(word))
+}
+
+interface RejectMatch {
+  word: string
+  offset: number
+  length: number
+  pattern: string
+}
+
+async function findRejectedWords(text: string): Promise<RejectMatch[]> {
+  const vocab = await ensureValeVocabulary()
+  const matches: RejectMatch[] = []
+
+  for (const { pattern, original } of vocab.reject) {
+    // Reset lastIndex for global regex
+    pattern.lastIndex = 0
+    let match
+    while ((match = pattern.exec(text)) !== null) {
+      matches.push({
+        word: match[1] || match[0],
+        offset: match.index,
+        length: match[0].length,
+        pattern: original
+      })
+    }
+  }
+
+  return matches
 }
 
 // LanguageTool checker that uses the Python backend
@@ -558,6 +727,13 @@ export class LanguageToolChecker {
   }
 
   async check(document: vscode.TextDocument, tree: Node): Promise<LTMatch[]> {
+    // Check if grammar checking is enabled
+    const config = vscode.workspace.getConfiguration('adi-doctools.grammar')
+    if (!config.get<boolean>('enabled', true)) {
+      this.diagnosticCollection.delete(document.uri)
+      return []
+    }
+
     const sourceText = document.getText()
 
     // Build annotated text
@@ -565,8 +741,12 @@ export class LanguageToolChecker {
     const text = this.builder.buildText(sourceText)
 
     if (!text.trim()) {
+      this.diagnosticCollection.delete(document.uri)
       return []
     }
+
+    // Get filter settings
+    const disabledRules = new Set(config.get<string[]>('disabledRules', []) || [])
 
     try {
       // Send to Python backend
@@ -580,15 +760,43 @@ export class LanguageToolChecker {
         return []
       }
 
-      // Map matches back to source positions
+      // Map matches back to source positions and filter
       const mappedMatches: LTMatch[] = []
       for (const match of result.matches || []) {
+        // Filter by disabled rules
+        if (disabledRules.has(match.ruleId)) continue
+
         const mapped = this.builder.mapToSource(match.offset, match.length)
         if (mapped) {
+          // Get the matched text from source
+          const matchedText = sourceText.slice(mapped.srcOffset, mapped.srcOffset + mapped.srcLength)
+
+          // Filter by Vale vocabulary patterns
+          if (await isWordAllowed(matchedText)) continue
+
           mappedMatches.push({
             ...match,
             srcOffset: mapped.srcOffset,
-            srcLength: mapped.srcLength
+            srcLength: mapped.srcLength,
+            matchedText
+          })
+        }
+      }
+
+      // Find rejected words in the text sent to LanguageTool
+      const rejectedWords = await findRejectedWords(text)
+      for (const rejected of rejectedWords) {
+        const mapped = this.builder.mapToSource(rejected.offset, rejected.length)
+        if (mapped) {
+          mappedMatches.push({
+            message: `"${rejected.word}" is a rejected term`,
+            offset: rejected.offset,
+            length: rejected.length,
+            replacements: [],
+            ruleId: 'VALE_REJECT',
+            srcOffset: mapped.srcOffset,
+            srcLength: mapped.srcLength,
+            matchedText: rejected.word
           })
         }
       }
@@ -624,6 +832,10 @@ export class LanguageToolChecker {
       if (match.replacements && match.replacements.length > 0) {
         // Store replacements for quick fix
         (diagnostic as any).replacements = match.replacements
+      }
+
+      if (match.matchedText) {
+        (diagnostic as any).matchedText = match.matchedText
       }
 
       diagnostics.push(diagnostic)

@@ -53,6 +53,17 @@
     "configuration": {
       "title": "Doctools",
       "properties": {
+        "adi-doctools.grammar.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable grammar checking with LanguageTool"
+        },
+        "adi-doctools.grammar.disabledRules": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "description": "LanguageTool rule IDs to disable (e.g., MORFOLOGIK_RULE_EN_US)"
+        }
       }
     }
   },

@@ -73,6 +73,20 @@ export async function activate(ctx: vscode.ExtensionContext) {
       }
       await checkGrammar(editor.document)
     }),
+    vscode.commands.registerCommand('adi-doctools.disable-grammar-rule', async (ruleId: string) => {
+      const config = vscode.workspace.getConfiguration('adi-doctools.grammar')
+      const disabledRules = config.get<string[]>('disabledRules', []) || []
+      if (!disabledRules.includes(ruleId)) {
+        disabledRules.push(ruleId)
+        await config.update('disabledRules', disabledRules, vscode.ConfigurationTarget.Workspace)
+        vscode.window.showInformationMessage(`Disabled rule "${ruleId}"`)
+        // Re-check current document
+        const editor = vscode.window.activeTextEditor
+        if (editor?.document.languageId === 'restructuredtext') {
+          await checkGrammar(editor.document)
+        }
+      }
+    }),
     vscode.commands.registerCommand('adi-doctools.inspect-tree', async () => {
       const editor = vscode.window.activeTextEditor
       if (!editor || editor.document.languageId !== 'restructuredtext') {
