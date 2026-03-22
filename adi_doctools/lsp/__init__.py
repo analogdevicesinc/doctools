@@ -6,6 +6,7 @@ import json
 from sphinx.util.nodes import clean_astext
 
 from .logging import set_logging
+from .language_tool import check_text as lt_check_text, get_status as lt_get_status
 from ..role.common import git_role
 from ..role.common import adi_resolve, dokuwiki_resolve, ez_resolve
 from ..role.common import vendor_resolve, supplier_resolve, vendors, suppliers
@@ -418,6 +419,18 @@ def handle_cmd(cmd: dict) -> dict:
         elif cmd['server'] == 'stop':
             Serve.stop()
             return { 'return': 'success' }
+
+    elif 'languageTool' in cmd:
+        action = cmd['languageTool']
+        if action == 'check':
+            text = cmd.get('text', '')
+            mode = cmd.get('mode', 'api')
+            language = cmd.get('language', 'en-US')
+            username = cmd.get('username', '')
+            api_key = cmd.get('apiKey', '')
+            return lt_check_text(text, mode, language, username, api_key)
+        elif action == 'status':
+            return lt_get_status()
 
     return {'error': 'Unknown command'}
 
