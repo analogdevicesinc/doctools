@@ -18,7 +18,7 @@ export async function activate(ctx: vscode.ExtensionContext) {
   provider = new SemanticTokensProvider()
   completionProvider = new RoleCompletionProvider()
   hoverProvider = new RoleHoverProvider(provider)
-  grammarDiagnostics = vscode.languages.createDiagnosticCollection('grammar')
+  grammarDiagnostics = vscode.languages.createDiagnosticCollection('vale')
   grammarChecker = new LanguageToolChecker(grammarDiagnostics)
 
   ctx.subscriptions.push(
@@ -26,6 +26,7 @@ export async function activate(ctx: vscode.ExtensionContext) {
     getDebugOutputChannel(),
     getDiagnosticCollection(),
     grammarDiagnostics,
+    grammarChecker.getOutputChannel(),
     vscode.languages.registerDocumentSemanticTokensProvider({ language: 'restructuredtext' }, provider, LEGEND),
     vscode.languages.registerCompletionItemProvider({ language: 'restructuredtext' }, completionProvider, ':', '`', '<', '+', '.', ' '),
     vscode.languages.registerHoverProvider({ language: 'restructuredtext' }, hoverProvider),
@@ -97,7 +98,7 @@ export async function activate(ctx: vscode.ExtensionContext) {
       const result = await provider.inspectTree(editor.document.getText())
       output.clear()
       output.appendLine('=== Doctools: Inspect Tree ===')
-      output.appendLine('Nodes marked [TEXT] will be piped to LanguageTool')
+      output.appendLine('Nodes marked [TEXT] will be piped to Vale')
       output.appendLine('Nodes marked [SKIP] will be excluded')
       output.appendLine('==============================\n')
       output.appendLine(result)

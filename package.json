@@ -1,7 +1,7 @@
 {
   "name": "adi-doctools",
   "displayName": "Doctools",
-  "description": "Live editing server for Sphinx documentations with tree-sitter linting",
+  "description": "Live editing server for Sphinx documentations with tree-sitter linting and Vale style checking",
   "version": "0.4.39",
   "license": "Apache-2.0",
   "publisher": "analogdevicesinc",
@@ -47,7 +47,7 @@
       },
       {
         "command": "adi-doctools.check-grammar",
-        "title": "Doctools: Check Grammar"
+        "title": "Doctools: Check Style (Vale)"
       }
     ],
     "configuration": {
@@ -56,13 +56,13 @@
         "adi-doctools.grammar.enabled": {
           "type": "boolean",
           "default": true,
-          "description": "Enable grammar checking with LanguageTool"
+          "description": "Enable style checking with Vale"
         },
         "adi-doctools.grammar.disabledRules": {
           "type": "array",
           "items": { "type": "string" },
           "default": [],
-          "description": "LanguageTool rule IDs to disable (e.g., MORFOLOGIK_RULE_EN_US)"
+          "description": "Vale rule IDs to disable (e.g., Vale.Spelling)"
         }
       }
     }
