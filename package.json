@@ -38,14 +38,6 @@
         "title": "Doctools: Stop server"
       },
       {
-        "command": "adi-doctools.inspect-tree",
-        "title": "Doctools: Inspect Tree"
-      },
-      {
-        "command": "adi-doctools.inspect-language",
-        "title": "Doctools: Inspect Language"
-      },
-      {
         "command": "adi-doctools.check-grammar",
         "title": "Doctools: Check Grammar"
       }
@@ -93,14 +85,6 @@
     },
     "menus": {
       "commandPalette": [
-        {
-          "command": "adi-doctools.inspect-tree",
-          "when": "config.adi-doctools.debug"
-        },
-        {
-          "command": "adi-doctools.inspect-language",
-          "when": "config.adi-doctools.debug"
-        },
         {
           "command": "adi-doctools.check-grammar",
           "when": "config.adi-doctools.debug"
