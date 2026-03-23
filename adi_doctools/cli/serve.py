@@ -513,6 +513,35 @@ cwd = {cwd_display}""")
         reload_event = self._reload_event
         dev_pool_lock = self._dev_pool_lock
 
+        def get_source_lfs_file(path_, ext):
+            """
+            Check if _build binary file is a git lfs pointer,
+            and if so, search and return the source file path.
+            If any step fails, returns None
+            """
+            if sha := get_lfs_sha(path_):
+                name_ = path.basename(path_)
+                name_ = re.sub(r'(_?\d+)?\.\w+$', '', name_)
+                pattern = path.join(directory, '**', f'*{ext}')
+                files = []
+                for file_path in glob.glob(pattern, recursive=True):
+                    if ("/_build/" not in path.normpath(file_path) and
+                        "/build/" not in path.normpath(file_path) and
+                        name_ in path.basename(file_path)):
+                        files.append(file_path)
+
+                for file in files:
+                    try:
+                        with open(file, 'rb') as f:
+                            f.seek(54)
+                            sha_ = f.read(64)
+                            if sha == sha_:
+                                return file
+                    except Exception:
+                        pass
+                return None
+            return None
+
         class Handler(http.server.SimpleHTTPRequestHandler):
             def __init__(_self, *args, **kwargs):
                 super().__init__(*args, directory=builddir, **kwargs)
@@ -681,35 +710,6 @@ cwd = {cwd_display}""")
                           doctreedir, builder, confoverrides=confoverrides,
                           parallel=0, status=sys.stdout if self.verbose else None,
                           warning=warning_stream)
-
-        def get_source_lfs_file(path_, ext):
-            """
-            Check if _build binary file is a git lfs pointer,
-            and if so, search and return the source file path.
-            If any step fails, returns None
-            """
-            if sha := get_lfs_sha(path_):
-                name_ = path.basename(path_)
-                name_ = re.sub(r'(_?\d+)?\.\w+$', '', name_)
-                pattern = path.join(directory, '**', f'*{ext}')
-                files = []
-                for file_path in glob.glob(pattern, recursive=True):
-                    if ("/_build/" not in path.normpath(file_path) and
-                        "/build/" not in path.normpath(file_path) and
-                        name_ in path.basename(file_path)):
-                        files.append(file_path)
-
-                for file in files:
-                    try:
-                        with open(file, 'rb') as f:
-                            f.seek(54)
-                            sha_ = f.read(64)
-                            if sha == sha_:
-                                return file
-                    except Exception:
-                        pass
-                return None
-            return None
 
         if builder == "html":
             server_url = f"http://0.0.0.0:{self.port}?v={str(uuid4())[:2]}"
