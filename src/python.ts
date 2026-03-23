@@ -6,6 +6,7 @@ import {
   initializePython,
   installRequirements
 } from './python-init'
+import { openBrowserPanel, closeBrowserPanel } from './browser'
 
 let py_process: ChildProcess | undefined
 let output: vscode.OutputChannel
@@ -107,19 +108,14 @@ function handleNotification(parsed: any) {
         serverStartResolve()
         serverStartResolve = null
       }
-      const url = vscode.Uri.parse(params.url, true)
       output.appendLine(`[server] Running on ${params.url}`)
-      vscode.window.showInformationMessage(
-        `Server running on ${params.url}`,
-      )
-      vscode.commands.executeCommand('simpleBrowser.api.open', url.toString(), {
-        viewColumn: vscode.ViewColumn.Beside,
-        preserveFocus: true
-      })
+      vscode.window.showInformationMessage(`Server running on ${params.url}`)
+      openBrowserPanel(params.url)
       break
     }
     case 'server/stopped': {
       output.appendLine(`[server] Stopped`)
+      closeBrowserPanel()
       break
     }
     default:
