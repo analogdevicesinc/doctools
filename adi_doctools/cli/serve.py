@@ -712,7 +712,7 @@ cwd = {cwd_display}""")
                           warning=warning_stream)
 
         if builder == "html":
-            server_url = f"http://0.0.0.0:{self.port}?v={str(uuid4())[:2]}"
+            server_url = f"http://127.0.0.1:{self.port}?v={str(uuid4())[:2]}"
             if self.jsonrpc:
                 notify("server/started", {"port": self.port, "url": server_url})
             else:
