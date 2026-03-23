@@ -180,7 +180,12 @@ def sanitize_singlehtml(file) -> str:
 
 
         for m_ in m:
-            svg_ = latex_to_svg(m_.text)
+            m__ = m_.text
+            try:
+                svg_ = latex_to_svg(m__)
+            except Exception as e:
+                logger.warning(f"Failed to convert formulat to svg, {e}")
+                continue
             svg = etree.fromstring(svg_)
             m_.text=""
             m_.append(svg)
