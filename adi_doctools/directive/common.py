@@ -118,13 +118,13 @@ class directive_base(Directive):
     @staticmethod
     def get_descriptions(content):
         items = {}
-        key = ''
+        key = None
         for line in content:
             # TODO match any delimiter (*,-)
             if line.startswith('* -'):
                 key = line[line.find('* -')+3:].split()[0]
                 items[key] = []
-            else:
+            elif key:
                 if line.startswith('  - '):
                     line.replace('  - ', '', 1)
                 line = line.strip()

@@ -40,6 +40,7 @@ log = {
     'builder': "Unknown builder '{}', valid options are: html, pdf.",
     'no_weasyprint': "Package 'weasyprint' required for PDF generation is not installed.",
     'sparse_not_found': "Sparse path '{}' does not exist.",
+    'doc_not_built': "Docname '{}' is not built.",
 }
 
 # Hall of shame of poorly managed artifacts
@@ -66,7 +67,7 @@ def find_confdir(directory):
     for path_ in common_paths:
         conf_py = path.join(_directory, path_, 'conf.py')
         if path.isfile(conf_py):
-            confdir = path.join(_directory, path_)
+            confdir = path.abspath(path.join(_directory, path_))
             if path.basename(confdir) == "source":
                 builddir_ = path.join("..", "build")
             else:
@@ -462,6 +463,9 @@ cwd = {cwd_display}""")
                     while '\n' in self.buffer:
                         line, self.buffer = self.buffer.split('\n', 1)
                         if line.strip():
+                            # https://github.com/sphinx-doc/sphinx/pull/14325
+                            if "WARNING: toctree glob pattern" in line:
+                                continue
                             notify("build/output", {"line": line})
 
                 def flush(self):
@@ -505,6 +509,13 @@ cwd = {cwd_display}""")
             if not self.verbose and path.getsize(warn_file.name) > 0:
                 with open(warn_file.name, 'r') as f:
                     warnings = f.read()
+
+                if self.sparse:
+                    # https://github.com/sphinx-doc/sphinx/pull/14325
+                    warnings = "".join(
+                        line for line in warnings.splitlines(keepends=True)
+                        if "WARNING: toctree glob pattern" not in line
+                    )
                 if self.jsonrpc:
                     for line in warnings.strip().split('\n'):
                         if line:
@@ -833,6 +844,7 @@ cwd = {cwd_display}""")
                 confoverrides = compute_sparse_config(directory, new_sparse, self.verbose)
                 update_sphinx = True
                 deep_clean = True
+                trigger_rst = ("", "")
                 logger.info(f"Sparse paths updated: {new_sparse}")
 
             for file, ctime in zip(*get_doc_sources()):
@@ -926,7 +938,13 @@ cwd = {cwd_display}""")
                     update_pdf()
             elif builder == "html":
                 if update_sphinx:
-                    message = f"@docname {trigger_rst[1]}\n"
+                    message = ""
+                    if trigger_rst[0] == '':
+                        pass
+                    elif path.isfile(path.join(self.builddir, trigger_rst[1])):
+                        message += f"@docname {trigger_rst[1]}\n"
+                    else:
+                        logger.warning(log['doc_not_built'].format(trigger_rst[0]))
                     if toctree_changed:
                         message += "@toctree-changed\n"
                     update_dev_pool(message)
@@ -941,7 +959,7 @@ cwd = {cwd_display}""")
         scheduler.run()
 
 
-def _exclude_siblings(basedir, path_parts, exclude_patterns, prefix=''):
+def _exclude_siblings(basedir, sparse, path_parts, exclude_patterns, lpath=''):
     """
     Recursively exclude sibling directories at each level of the sparse path.
     """
@@ -950,7 +968,7 @@ def _exclude_siblings(basedir, path_parts, exclude_patterns, prefix=''):
 
     current = path_parts[0]
     current_path = path.join(basedir, current)
-    current_prefix = f'{prefix}/{current}' if prefix else current
+    lpath = path.join(lpath, current) if lpath else current
 
     if not path.isdir(current_path):
         return
@@ -960,10 +978,15 @@ def _exclude_siblings(basedir, path_parts, exclude_patterns, prefix=''):
         if not path.isdir(sibling_path):
             continue
         if sibling == path_parts[1]:
-            _exclude_siblings(current_path, path_parts[1:], exclude_patterns, current_prefix)
+            _exclude_siblings(current_path, sparse, path_parts[1:], exclude_patterns, lpath)
         else:
-            relative = f'{current_prefix}/{sibling}'
-            exclude_patterns.append(relative)
+            relative = f'{lpath}/{sibling}'
+            mask = True
+            for s in sparse:
+                if s.startswith(relative):
+                    mask = False
+            if mask:
+                exclude_patterns.append(relative)
 
 
 def _normalize_sparse_path(sparse):
@@ -974,41 +997,6 @@ def _normalize_sparse_path(sparse):
     elif sparse.endswith('.md'):
         sparse = sparse[:-3]
     return sparse
-
-
-def _parse_toctree_entries(index_path):
-    """
-    Parse toctree entries from an rst file.
-    Returns a list of toctree entry patterns (e.g., 'solutions/*/index').
-    Uses same parsing approach as custom_doc.py _patch_index.
-    """
-    entries = []
-    if not path.isfile(index_path):
-        return entries
-
-    with open(index_path, 'r') as f:
-        data = f.readlines()
-
-    if ".. toctree::\n" not in data:
-        return entries
-
-    while ".. toctree::\n" in data:
-        data = data[data.index(".. toctree::\n") + 1:]
-
-        for i in range(0, len(data)):
-            line = data[i]
-            if line != '\n' and not line.rstrip().startswith('   '):
-                break
-            elif line.startswith('   :'):
-                continue
-            elif line[0:3] == '   ' and line[0:4] != '   :':
-                entry = line.strip()
-                pos = entry.find('<')
-                if pos != -1 and entry.endswith('>'):
-                    entry = entry[pos + 1:-1]
-                entries.append(entry)
-
-    return entries
 
 
 def compute_sparse_config(directory, sparse, verbose):
@@ -1035,15 +1023,6 @@ def compute_sparse_config(directory, sparse, verbose):
     sparse_parts_list = [s.split('/') for s in sparse_paths]
     top_level_includes = {parts[0] for parts in sparse_parts_list}
 
-    toctree_entries = _parse_toctree_entries(path.join(directory, 'index.rst'))
-
-    toctree_by_toplevel = {}
-    for entry in toctree_entries:
-        toplevel = entry.split('/')[0]
-        if toplevel not in toctree_by_toplevel:
-            toctree_by_toplevel[toplevel] = []
-        toctree_by_toplevel[toplevel].append(entry)
-
     for item in listdir(directory):
         item_path = path.join(directory, item)
         if item.startswith('.') or item.startswith('_'):
@@ -1055,24 +1034,20 @@ def compute_sparse_config(directory, sparse, verbose):
             if item in top_level_includes:
                 for sparse_parts in sparse_parts_list:
                     if sparse_parts[0] == item:
-                        _exclude_siblings(directory, sparse_parts, exclude_patterns)
+                        _exclude_siblings(directory, sparse, sparse_parts, exclude_patterns)
             else:
-                if item in toctree_by_toplevel:
-                    exclude_patterns.extend(toctree_by_toplevel[item])
-                    exclude_patterns.append(f'{item}/*')
+                index_rst = path.join(item_path, 'index.rst')
+                if path.isfile(index_rst):
+                    exclude_patterns.extend([f'{item}/index', f'{item}/*'])
                 else:
-                    index_rst = path.join(item_path, 'index.rst')
-                    if path.isfile(index_rst):
-                        exclude_patterns.extend([f'{item}/index', f'{item}/*'])
-                    else:
-                        exclude_patterns.append(item)
+                    exclude_patterns.append(item)
         elif item.endswith('.rst') or item.endswith('.md'):
             name = item[:-4] if item.endswith('.rst') else item[:-3]
             if name not in top_level_includes and name != 'index':
                 exclude_patterns.append(item)
 
     suppress_warnings = conf.suppress_warnings if hasattr(conf, 'suppress_warnings') else []
-    for w in ['toc.excluded', 'toc.empty_glob']:
+    for w in ['toc.excluded', 'toc.empty_glob', 'toc.not_readable']:
         if w not in suppress_warnings:
             suppress_warnings.append(w)
 
