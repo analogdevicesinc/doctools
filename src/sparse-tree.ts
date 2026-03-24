@@ -253,6 +253,9 @@ export class SparseTreeProvider implements vscode.TreeDataProvider<SparseTreeIte
       if (entry.name === 'node_modules') continue
 
       const fullPath = path.join(this.docsRoot, entry.name)
+
+      if (!await this.containDoc(fullPath)) continue
+
       const hasSubDirs = await this.hasSubDirectories(fullPath)
 
       items.push({
@@ -278,6 +281,9 @@ export class SparseTreeProvider implements vscode.TreeDataProvider<SparseTreeIte
         if (entry.name.startsWith('.') || entry.name.startsWith('_')) continue
 
         const fullPath = path.join(dirPath, entry.name)
+
+        if (!await this.containDoc(fullPath)) continue
+
         const relativePath = path.join(parentRelative, entry.name)
         const hasSubDirs = await this.hasSubDirectories(fullPath)
 
@@ -302,6 +308,28 @@ export class SparseTreeProvider implements vscode.TreeDataProvider<SparseTreeIte
         !e.name.startsWith('.') &&
         !e.name.startsWith('_')
       )
+    } catch {
+      return false
+    }
+  }
+
+  private async containDoc(dirPath: string): Promise<boolean> {
+    try {
+      const entries = await fs.promises.readdir(dirPath, { withFileTypes: true })
+
+      const hasRstFiles = entries.some(e => e.isFile() && e.name.endsWith('.rst'))
+      if (hasRstFiles) return true
+
+      for (const entry of entries) {
+        if (entry.isDirectory() && !entry.name.startsWith('.') && !entry.name.startsWith('_')) {
+          const subPath = path.join(dirPath, entry.name)
+          if (await this.containDoc(subPath)) {
+            return true
+          }
+        }
+      }
+
+      return false
     } catch {
       return false
     }
