@@ -2,6 +2,7 @@ import * as vscode from 'vscode'
 import { SemanticTokensProvider, RoleCompletionProvider, RoleHoverProvider, LEGEND } from './tree-sitter'
 import { startPyProcess, stopPyProcess, buildServer, setOutputChannel, getDebugOutputChannel, getDiagnosticCollection } from './python'
 import { LanguageToolChecker, GrammarCodeActionProvider } from './language-tool'
+import { openBrowserPanel } from './browser'
 
 let output: vscode.OutputChannel
 let provider: SemanticTokensProvider
@@ -65,6 +66,9 @@ export async function activate(ctx: vscode.ExtensionContext) {
 
     vscode.commands.registerCommand('adi-doctools.start-server', buildServer.start),
     vscode.commands.registerCommand('adi-doctools.stop-server', buildServer.stop),
+    vscode.commands.registerCommand('adi-doctools.open-preview', () => {
+      openBrowserPanel()
+    }),
     vscode.commands.registerCommand('adi-doctools.check-grammar', async () => {
       const editor = vscode.window.activeTextEditor
       if (!editor || editor.document.languageId !== 'restructuredtext') {

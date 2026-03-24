@@ -38,6 +38,10 @@
         "title": "Doctools: Stop server"
       },
       {
+        "command": "adi-doctools.open-preview",
+        "title": "Doctools: Open Preview"
+      },
+      {
         "command": "adi-doctools.check-grammar",
         "title": "Doctools: Check Grammar"
       }

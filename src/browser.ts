@@ -3,11 +3,15 @@ import * as vscode from 'vscode'
 let panel: vscode.WebviewPanel | undefined
 let currentUrl: string | undefined
 
-export function openBrowserPanel(url: string) {
-  currentUrl = url
+export function openBrowserPanel(url?: string) {
+  if (url)
+    currentUrl = url
+
+  if (!currentUrl)
+    return
 
   if (panel) {
-    panel.webview.html = getWebviewContent(url)
+    panel.webview.html = getWebviewContent(currentUrl)
     panel.reveal(vscode.ViewColumn.Beside, true)
     return
   }
@@ -22,7 +26,7 @@ export function openBrowserPanel(url: string) {
     }
   )
 
-  panel.webview.html = getWebviewContent(url)
+  panel.webview.html = getWebviewContent(currentUrl)
 
   panel.onDidDispose(() => {
     panel = undefined
