@@ -234,14 +234,14 @@ function clearDiagnostics() {
   diagnosticCollection.clear()
 }
 
-export async function startPyProcess(autoStartServer: boolean = false) {
+export async function startPyProcess() {
   const init = await initializePython()
   if (!init) return
 
-  await startLspProcess(init.pythonPath, init.workspacePath, init.requirementsPath, autoStartServer)
+  await startLspProcess(init.pythonPath, init.workspacePath, init.requirementsPath)
 }
 
-async function startLspProcess(pythonPath: string, workspacePath: string, requirementsPath: string | null, autoStartServer: boolean = false) {
+async function startLspProcess(pythonPath: string, workspacePath: string, requirementsPath: string | null) {
   output.appendLine(`Starting LSP with ${pythonPath}`)
 
   const proc = spawn(pythonPath, ['-m', 'adi_doctools.lsp'], {
@@ -310,23 +310,19 @@ async function startLspProcess(pythonPath: string, workspacePath: string, requir
   py_process = proc
   output.appendLine("LSP process started")
 
-  if (autoStartServer) {
-    output.show(true)
-    await buildServer.start()
-  } else {
-    const currentProc = proc
-    vscode.window.showInformationMessage(
-      'Start the Doctools Sphinx server (adoc serve)?',
-      'Yes', 'No'
-    ).then(choice => {
-      if (py_process !== currentProc) return
+  const currentProc = proc
+  vscode.window.showInformationMessage(
+    'Start the Doctools Sphinx server (adoc serve)?',
+    'Yes', 'No'
+  ).then(choice => {
+    if (py_process !== currentProc) return
 
-      if (choice === 'Yes') {
+    if (choice === 'Yes') {
+      buildServer.start()
+      if (vscode.workspace.getConfiguration('adi-doctools').get('debug'))
         output.show(true)
-        buildServer.start()
-      }
-    })
-  }
+    }
+  })
 }
 
 export function stopPyProcess() {
