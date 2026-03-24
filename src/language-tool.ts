@@ -724,6 +724,7 @@ async function findRejectedWords(text: string): Promise<RejectMatch[]> {
 export class LanguageToolChecker {
   private builder = new AnnotatedTextBuilder()
   private diagnosticCollection: vscode.DiagnosticCollection
+  private lastCheckedUri: vscode.Uri | undefined
 
   constructor(diagnosticCollection: vscode.DiagnosticCollection) {
     this.diagnosticCollection = diagnosticCollection
@@ -858,11 +859,11 @@ export class LanguageToolChecker {
       diagnostics.push(diagnostic)
     }
 
-    this.diagnosticCollection.set(document.uri, diagnostics)
-  }
+    if (this.lastCheckedUri && this.lastCheckedUri.toString() !== document.uri.toString())
+      this.diagnosticCollection.delete(this.lastCheckedUri)
 
-  clearDiagnostics(document: vscode.TextDocument) {
-    this.diagnosticCollection.delete(document.uri)
+    this.diagnosticCollection.set(document.uri, diagnostics)
+    this.lastCheckedUri = document.uri
   }
 
   private async handleError(error: string, message: string, mode: string) {
