@@ -14,6 +14,13 @@ let hoverTimeout: NodeJS.Timeout | undefined
 let checkTimeout: NodeJS.Timeout | undefined
 
 export async function activate(ctx: vscode.ExtensionContext) {
+  const remoteConfig = vscode.workspace.getConfiguration('remote')
+  const portsAttributes = remoteConfig.get<Record<string, unknown>>('portsAttributes') || {}
+  if (!portsAttributes['8080'] || (portsAttributes['8080'] as any).onAutoForward !== 'ignore') {
+    portsAttributes['8080'] = { onAutoForward: 'ignore' }
+    await remoteConfig.update('portsAttributes', portsAttributes, vscode.ConfigurationTarget.Workspace)
+  }
+
   output = vscode.window.createOutputChannel("Doctools")
   setOutputChannel(output)
   provider = new SemanticTokensProvider()
