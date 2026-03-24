@@ -611,14 +611,11 @@ cwd = {cwd_display}""")
                                         subprocess.run(["git", "update-index", "--", lfs_f],
                                                        capture_output=True, text=True, check=True)
                                     except subprocess.CalledProcessError as e:
-                                        if e.returncode == 128:
-                                            if ".git/index.lock" in e.stderr:
+                                        if e.returncode == 128 and "/index.lock" in e.stderr:
                                                 time.sleep(0.1)
                                                 continue
-                                            else:
-                                                raise
                                         else:
-                                            raise
+                                            logger.error("%s\nstderr=%r", e, e.stderr)
                                     break
 
                     super().do_GET()
