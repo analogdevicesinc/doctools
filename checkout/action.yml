@@ -216,7 +216,7 @@ runs:
           fi
         fi
 
-        while ! git rev-parse $base_sha~ ; do
+        while ! git rev-list --count $base_sha~..$head_sha ; do
           git fetch origin --deepen=$_fetch_depth $head_sha
         done
         base_sha=$(git rev-parse $base_sha)
