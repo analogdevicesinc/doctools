@@ -75,6 +75,10 @@ let pendingResolve: ((value: any) => void) | null = null
 let pendingReject: ((reason: any) => void) | null = null
 let serverStartResolve: (() => void) | null = null
 
+export type BuildStatus = 'off' | 'building' | 'ready'
+export const buildStatusEmitter = new vscode.EventEmitter<BuildStatus>()
+export const onBuildStatusChanged = buildStatusEmitter.event
+
 function handleNotification(parsed: any) {
   const { method, params } = parsed
 
@@ -87,6 +91,7 @@ function handleNotification(parsed: any) {
     case 'build/started': {
       output.appendLine(`-- Building -- (${params.mode})`)
       clearDiagnostics()
+      buildStatusEmitter.fire('building')
       break
     }
     case 'build/output': {
@@ -101,6 +106,7 @@ function handleNotification(parsed: any) {
     case 'build/completed': {
       output.appendLine(`---- Done ----`)
       const count = Array.from(fileDiagnostics.values()).reduce((sum, arr) => sum + arr.length, 0)
+      buildStatusEmitter.fire('ready')
       break
     }
     case 'server/started': {
@@ -111,11 +117,13 @@ function handleNotification(parsed: any) {
       output.appendLine(`[server] Running on ${params.url}`)
       vscode.window.showInformationMessage(`Server running on ${params.url}`)
       openBrowserPanel(params.url)
+      buildStatusEmitter.fire('ready')
       break
     }
     case 'server/stopped': {
       output.appendLine(`[server] Stopped`)
       closeBrowserPanel()
+      buildStatusEmitter.fire('off')
       break
     }
     default:
@@ -159,15 +167,22 @@ export async function lspSend(msg: object): Promise<any> {
 }
 
 export class buildServer {
+  private static sparsePathsGetter: (() => string[] | null) | null = null
+
+  static setSparsePathsGetter(getter: () => string[] | null) {
+    buildServer.sparsePathsGetter = getter
+  }
+
   static async start (): Promise<void> {
-    const result = await lspSend({ 'server': 'start' })
+    const sparse = buildServer.sparsePathsGetter?.() ?? null
+    const result = await lspSend({ 'server': 'start', 'sparse': sparse })
     if (result?.return === 'already_running') {
       return
     }
 
     await vscode.window.withProgress({
       location: vscode.ProgressLocation.Notification,
-      title: 'Building documentation for the first time...',
+      title: `Building documentation...`,
       cancellable: false
     }, async () => {
       return new Promise<void>((resolve) => {
@@ -178,6 +193,11 @@ export class buildServer {
 
   static async stop (): Promise<void> {
     lspSend({ 'server': 'stop' })
+  }
+
+  static async updateSparse (): Promise<void> {
+    const sparse = buildServer.sparsePathsGetter?.() ?? null
+    await lspSend({ 'server': 'update_sparse', 'sparse': sparse })
   }
 }
 
@@ -278,6 +298,7 @@ async function startLspProcess(pythonPath: string, workspacePath: string, requir
     output.appendLine(`LSP exited with code ${code}`)
     lineReader = undefined
     py_process = undefined
+    buildStatusEmitter.fire('off')
   })
 
   lineReader = readline.createInterface({
@@ -293,25 +314,18 @@ async function startLspProcess(pythonPath: string, workspacePath: string, requir
     output.show(true)
     await buildServer.start()
   } else {
-    // Capture the current process to detect if it changes during the prompt
     const currentProc = proc
-    const startServerChoice = await vscode.window.showInformationMessage(
+    vscode.window.showInformationMessage(
       'Start the Doctools Sphinx server (adoc serve)?',
       'Yes', 'No'
-    )
+    ).then(choice => {
+      if (py_process !== currentProc) return
 
-    // Ignore response if process was restarted while prompt was open
-    if (py_process !== currentProc) {
-      return
-    }
-
-    if (startServerChoice === 'Yes') {
-      output.show(true)
-      await buildServer.start()
-    } else if (startServerChoice === 'No') {
-      vscode.window.showInformationMessage('Use "Doctools: Start Server" command to start anytime')
-    }
-    // If dismissed (undefined), do nothing
+      if (choice === 'Yes') {
+        output.show(true)
+        buildServer.start()
+      }
+    })
   }
 }
 

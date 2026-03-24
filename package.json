@@ -46,6 +46,15 @@
         "title": "Doctools: Check Grammar"
       }
     ],
+    "views": {
+      "explorer": [
+        {
+          "id": "adi-doctools.sparse-tree",
+          "name": "Doctools Sparse Build",
+          "when": "workspaceFolderCount > 0"
+        }
+      ]
+    },
     "configuration": {
       "title": "Doctools",
       "properties": {

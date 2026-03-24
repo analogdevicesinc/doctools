@@ -1,8 +1,9 @@
 import * as vscode from 'vscode'
 import { SemanticTokensProvider, RoleCompletionProvider, RoleHoverProvider, LEGEND } from './tree-sitter'
-import { startPyProcess, stopPyProcess, buildServer, setOutputChannel, getDebugOutputChannel, getDiagnosticCollection } from './python'
+import { startPyProcess, stopPyProcess, buildServer, setOutputChannel, getDebugOutputChannel, getDiagnosticCollection, onBuildStatusChanged } from './python'
 import { LanguageToolChecker, GrammarCodeActionProvider } from './language-tool'
 import { openBrowserPanel } from './browser'
+import { SparseTreeProvider, SparseTreeItem } from './sparse-tree'
 
 let output: vscode.OutputChannel
 let provider: SemanticTokensProvider
@@ -12,6 +13,7 @@ let grammarChecker: LanguageToolChecker
 let grammarDiagnostics: vscode.DiagnosticCollection
 let hoverTimeout: NodeJS.Timeout | undefined
 let checkTimeout: NodeJS.Timeout | undefined
+let sparseTreeProvider: SparseTreeProvider
 
 export async function activate(ctx: vscode.ExtensionContext) {
   const remoteConfig = vscode.workspace.getConfiguration('remote')
@@ -28,6 +30,30 @@ export async function activate(ctx: vscode.ExtensionContext) {
   hoverProvider = new RoleHoverProvider(provider)
   grammarDiagnostics = vscode.languages.createDiagnosticCollection('grammar')
   grammarChecker = new LanguageToolChecker(grammarDiagnostics)
+
+  sparseTreeProvider = new SparseTreeProvider(ctx)
+
+  const workspaceFolder = vscode.workspace.workspaceFolders?.[0]
+  if (workspaceFolder) {
+    sparseTreeProvider.setDocsRoot(workspaceFolder.uri.fsPath)
+  }
+
+  buildServer.setSparsePathsGetter(() => sparseTreeProvider.getSparsePaths())
+  sparseTreeProvider.setOnSparseChanged(() => buildServer.updateSparse())
+  onBuildStatusChanged((status) => sparseTreeProvider.setBuildStatus(status))
+
+  const treeView = vscode.window.createTreeView('adi-doctools.sparse-tree', {
+    treeDataProvider: sparseTreeProvider,
+    manageCheckboxStateManually: true
+  })
+
+  const checkboxHandler = treeView.onDidChangeCheckboxState(e => {
+    for (const [item] of e.items) {
+      if (item instanceof SparseTreeItem && item.itemType === 'directory') {
+        sparseTreeProvider.togglePath(item.relativePath)
+      }
+    }
+  })
 
   ctx.subscriptions.push(
     output,
@@ -73,9 +99,7 @@ export async function activate(ctx: vscode.ExtensionContext) {
 
     vscode.commands.registerCommand('adi-doctools.start-server', buildServer.start),
     vscode.commands.registerCommand('adi-doctools.stop-server', buildServer.stop),
-    vscode.commands.registerCommand('adi-doctools.open-preview', () => {
-      openBrowserPanel()
-    }),
+    vscode.commands.registerCommand('adi-doctools.open-preview', openBrowserPanel),
     vscode.commands.registerCommand('adi-doctools.check-grammar', async () => {
       const editor = vscode.window.activeTextEditor
       if (!editor || editor.document.languageId !== 'restructuredtext') {
@@ -98,6 +122,9 @@ export async function activate(ctx: vscode.ExtensionContext) {
         }
       }
     }),
+
+    treeView,
+    checkboxHandler,
   )
 
   await startPyProcess()
