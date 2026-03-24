@@ -1,5 +1,6 @@
 import * as vscode from 'vscode'
 import * as readline from 'readline'
+import * as fs from 'fs/promises'
 import { spawn, ChildProcess } from 'child_process'
 import {
   setOutputChannel as setInitOutputChannel,
@@ -63,6 +64,35 @@ function parseWarningLine(line: string): ParsedWarning | null {
 }
 
 const fileDiagnostics = new Map<string, vscode.Diagnostic[]>()
+const canonicalPathCache = new Map<string, string>()
+
+async function getCanonicalPath(filePath: string): Promise<string> {
+  const cached = canonicalPathCache.get(filePath)
+  if (cached) return cached
+
+  try {
+    const canonical = await fs.realpath(filePath)
+    canonicalPathCache.set(filePath, canonical)
+    return canonical
+  } catch {
+    return filePath
+  }
+}
+
+async function findMatchingDocumentUri(filePath: string): Promise<vscode.Uri> {
+  const canonical = await getCanonicalPath(filePath)
+
+  for (const doc of vscode.workspace.textDocuments) {
+    if (doc.uri.scheme === 'file') {
+      const docCanonical = await getCanonicalPath(doc.uri.fsPath)
+      if (docCanonical === canonical) {
+        return doc.uri
+      }
+    }
+  }
+
+  return vscode.Uri.file(filePath)
+}
 
 const lsp_message_type: Record<number, string> = {
   1: 'error',
@@ -99,7 +129,7 @@ function handleNotification(parsed: any) {
       const warning = parseWarningLine(params.line)
       if (warning) {
         debugOutput.appendLine(`[diagnostic] ${warning.file}:${warning.line} - ${warning.message}`)
-        addDiagnostic(warning)
+        addDiagnostic(warning).catch(() => {})
       }
       break
     }
@@ -216,22 +246,25 @@ export function getDiagnosticCollection(): vscode.DiagnosticCollection {
   return diagnosticCollection
 }
 
-function addDiagnostic(warning: ParsedWarning) {
-  const uri = vscode.Uri.file(warning.file)
+async function addDiagnostic(warning: ParsedWarning) {
+  const uri = await findMatchingDocumentUri(warning.file)
+  const uriKey = uri.toString()
+
   const line = Math.max(0, warning.line - 1)
   const range = new vscode.Range(line, 0, line, 1000)
   const diagnostic = new vscode.Diagnostic(range, warning.message, warning.severity)
   diagnostic.source = 'Sphinx'
 
-  const existing = fileDiagnostics.get(warning.file) || []
+  const existing = fileDiagnostics.get(uriKey) || []
   existing.push(diagnostic)
-  fileDiagnostics.set(warning.file, existing)
+  fileDiagnostics.set(uriKey, existing)
   diagnosticCollection.set(uri, existing)
 }
 
 function clearDiagnostics() {
   fileDiagnostics.clear()
   diagnosticCollection.clear()
+  canonicalPathCache.clear()
 }
 
 export async function startPyProcess() {
