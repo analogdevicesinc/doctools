@@ -97,6 +97,11 @@ export async function activate(ctx: vscode.ExtensionContext) {
       checkTimeout = setTimeout(() => checkGrammar(e.document), 1000)
     }),
 
+    vscode.window.onDidChangeActiveTextEditor(async (editor) => {
+      if (!editor || editor.document.languageId !== 'restructuredtext') return
+      await checkGrammar(editor.document)
+    }),
+
     vscode.commands.registerCommand('adi-doctools.start-server', buildServer.start),
     vscode.commands.registerCommand('adi-doctools.stop-server', buildServer.stop),
     vscode.commands.registerCommand('adi-doctools.open-preview', openBrowserPanel),
@@ -128,6 +133,11 @@ export async function activate(ctx: vscode.ExtensionContext) {
   )
 
   await startPyProcess()
+
+  const activeEditor = vscode.window.activeTextEditor
+  if (activeEditor && activeEditor.document.languageId === 'restructuredtext') {
+    await checkGrammar(activeEditor.document)
+  }
 }
 
 async function checkGrammar(doc: vscode.TextDocument) {
