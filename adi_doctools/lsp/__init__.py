@@ -414,10 +414,17 @@ def handle_cmd(cmd: dict) -> dict:
         if cmd['server'] == 'start':
             if Serve.is_running():
                 return { 'return': 'already_running' }
-            Serve.start(jsonrpc=True)
+            sparse = cmd.get('sparse')
+            Serve.start(jsonrpc=True, sparse=sparse)
             return { 'return': 'success' }
         elif cmd['server'] == 'stop':
             Serve.stop()
+            return { 'return': 'success' }
+        elif cmd['server'] == 'update_sparse':
+            if not Serve.is_running():
+                return { 'return': 'not_running' }
+            sparse = cmd.get('sparse')
+            Serve.update_sparse(sparse)
             return { 'return': 'success' }
 
     elif 'languageTool' in cmd:

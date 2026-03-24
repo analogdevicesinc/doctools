@@ -1,7 +1,7 @@
 from os import path, listdir, remove, mkdir
 from os import pardir
 from os import environ, stat, utime
-from shutil import copy2, which, move
+from shutil import copy2, which, move, rmtree
 import logging
 import importlib
 import tempfile
@@ -117,6 +117,16 @@ class Serve:
         with cls._lock:
             return cls._instance.app if cls._instance else None
 
+    @classmethod
+    def update_sparse(cls, sparse):
+        with cls._lock:
+            if cls._instance is None:
+                return False
+            with cls._instance._sparse_lock:
+                cls._instance.sparse = sparse
+                cls._instance._sparse_update_event.set()
+            return True
+
     @staticmethod
     def esbonio_pyproject(directory_, sparse, verbose):
         """Generate Esbonio pyproject.toml configuration."""
@@ -185,7 +195,9 @@ cwd = {cwd_display}""")
         # Threading
         self._shutdown_event = threading.Event()
         self._reload_event = threading.Event()
+        self._sparse_update_event = threading.Event()
         self._shutdown_lock = threading.Lock()
+        self._sparse_lock = threading.Lock()
         self._shutdown_called = False
         self._server_thread = None
         self._http_thread = None
@@ -403,6 +415,10 @@ cwd = {cwd_display}""")
                         logger.error(f"{FAIL}{log['lfs_skip_smudge']}{NC}")
 
         confoverrides = compute_sparse_config(directory, self.sparse, self.verbose)
+        if self.sparse:
+            # FIXME: cache check confoverrides to not have to discard sparse
+            # builds.
+            rmtree(path.join(directory, builddir_), ignore_errors=True)
 
         if builder == 'singlehtml':
             singlehtml_file = path.join(builddir, 'index.html')
@@ -799,10 +815,21 @@ cwd = {cwd_display}""")
         first_run = True
 
         def check_files(scheduler):
-            nonlocal git_ref, toctree_mtime, toctree_content, first_run, trigger_rst
+            nonlocal git_ref, toctree_mtime, toctree_content, first_run, trigger_rst, confoverrides
             update_sphinx = False
             update_dev = False
+            deep_clean = False
             git_lfs_pull = []
+
+            # Check for sparse path updates
+            if self._sparse_update_event.is_set():
+                self._sparse_update_event.clear()
+                with self._sparse_lock:
+                    new_sparse = self.sparse
+                confoverrides = compute_sparse_config(directory, new_sparse, self.verbose)
+                update_sphinx = True
+                deep_clean = True
+                logger.info(f"Sparse paths updated: {new_sparse}")
 
             for file, ctime in zip(*get_doc_sources()):
                 if file in watch_file_rst and ctime > watch_file_rst[file]:
@@ -829,7 +856,6 @@ cwd = {cwd_display}""")
                     update_dev = True
                     watch_file_src[file] = ctime
 
-            deep_clean = False
             if not path.isdir(builddir):
                 update_sphinx = True
                 deep_clean = True
