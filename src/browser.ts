@@ -18,7 +18,7 @@ export function openBrowserPanel(url?: string) {
 
   panel = vscode.window.createWebviewPanel(
     'doctoolsBrowser',
-    'Sphinx Preview',
+    'Doctools Sphinx Preview',
     { viewColumn: vscode.ViewColumn.Beside, preserveFocus: true },
     {
       enableScripts: true,
