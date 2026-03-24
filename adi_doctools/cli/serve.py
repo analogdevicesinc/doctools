@@ -258,6 +258,10 @@ cwd = {cwd_display}""")
         if self._server_thread is not None and self._server_thread.is_alive():
             self._server_thread.join(timeout=10)
 
+        if self.jsonrpc:
+            from ..lsp.logging import notify
+            notify("server/stopped", {})
+
         logger.info("Server terminated")
 
     def _run(self):
