@@ -138,6 +138,7 @@ runs:
             fetch_depth=$(( ahead_by + behind_by + 2 ))
             echo "behind_by=$behind_by" >> $GITHUB_ENV
             echo "fetch_depth=$fetch_depth" >> $GITHUB_ENV
+            [ "$fetch_depth" -gt 1000 ] && echo "checkout_fallback=true" >> $GITHUB_ENV || true
           fi
         elif [[ "${{ inputs.repository }}" == "${{ github.repository }}" ]] && [[ "${{ github.event_name }}" == "push" ]]; then
           if [[ ! "${{ github.event.before }}" =~ "0000000000000000" ]] && [[ "${{ github.event.forced }}" == "false" ]]; then
@@ -200,19 +201,19 @@ runs:
             git switch -C trunk
           fi
           head_sha=$(git rev-parse @)
-          if [[ "$checkout_fallback" != "true" ]]; then
-            base_sha=${{ github.event.pull_request.base.sha }}
-          else
+          if [[ "$checkout_fallback" == "true" ]]; then
             base_sha="@~"
+          else
+            base_sha=${{ github.event.pull_request.base.sha }}
           fi
         elif [[ "${{ inputs.repository }}" == "${{ github.repository }}" ]] && [[ "${{ github.event_name }}" == "push" ]]; then
           git fetch origin --depth=$_fetch_depth ${{ github.sha }}
           git reset --hard FETCH_HEAD
           head_sha=$(git rev-parse @)
-          if [[ "$checkout_fallback" != "true" ]]; then
-            base_sha=${{ github.event.before }}
-          else
+          if [[ "$checkout_fallback" == "true" ]]; then
             base_sha="@~$((_fetch_depth - 2))"
+          else
+            base_sha=${{ github.event.before }}
           fi
         fi
 
@@ -221,7 +222,9 @@ runs:
         done
         base_sha=$(git rev-parse $base_sha)
 
-        if git log --oneline --pretty=format:'%s' $base_sha..$head_sha | grep ^fixup! ; then
+        if [[ "$checkout_fallback" == "true" ]]; then
+          :
+        elif git log --oneline --pretty=format:'%s' $base_sha..$head_sha | grep ^fixup! ; then
           echo "Has fixups! in range, applying"
           git rebase $keep_empty --rebase-merges --autosquash $base_sha \
             || git rebase --abort || true
