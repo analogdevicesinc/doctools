@@ -40,9 +40,6 @@ def get_tool(language: str = 'en-US'):
     try:
         import language_tool_python
         logger.info(f"Initializing LanguageTool with language '{language}'...")
-        _tool = language_tool_python.LanguageTool(language)
-        logger.info("LanguageTool initialized successfully")
-        return _tool
     except ImportError:
         logger.warning("Language Tool (language_tool_python) not installed")
         return None
@@ -50,6 +47,13 @@ def get_tool(language: str = 'en-US'):
         logger.error(f"Failed to initialize LanguageTool: {e}")
         return None
 
+    try:
+        _tool = language_tool_python.LanguageTool(language)
+        logger.info("LanguageTool initialized successfully")
+        return _tool
+    except Exception as e:
+        logger.error(f"Failed to initialize LanguageTool: {e}")
+        return None
 
 def check_text_local(text: str, language: str = 'en-US') -> dict:
     """Check text using local LanguageTool (requires Java)."""
