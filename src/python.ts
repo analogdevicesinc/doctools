@@ -342,20 +342,6 @@ async function startLspProcess(pythonPath: string, workspacePath: string, requir
 
   py_process = proc
   output.appendLine("LSP process started")
-
-  const currentProc = proc
-  vscode.window.showInformationMessage(
-    'Start the Doctools Sphinx server (adoc serve)?',
-    'Yes', 'No'
-  ).then(choice => {
-    if (py_process !== currentProc) return
-
-    if (choice === 'Yes') {
-      buildServer.start()
-      if (vscode.workspace.getConfiguration('adi-doctools').get('debug'))
-        output.show(true)
-    }
-  })
 }
 
 export function stopPyProcess() {
