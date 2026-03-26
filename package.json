@@ -58,20 +58,16 @@
     "configuration": {
       "title": "Doctools",
       "properties": {
-        "adi-doctools.grammar.enabled": {
-          "type": "boolean",
-          "default": true,
-          "description": "Enable grammar checking with LanguageTool"
-        },
         "adi-doctools.grammar.mode": {
           "type": "string",
-          "enum": ["local", "api"],
-          "default": "api",
+          "enum": ["off", "local", "api"],
+          "default": "off",
           "enumDescriptions": [
+            "Disable grammar checking",
             "Use local LanguageTool (requires Java)",
             "Use LanguageTool public API (no installation required, but rate-limited)"
           ],
-          "description": "LanguageTool backend mode"
+          "description": "LanguageTool grammar checking mode"
         },
         "adi-doctools.grammar.apiUsername": {
           "type": "string",

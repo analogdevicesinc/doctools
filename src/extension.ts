@@ -14,6 +14,7 @@ let grammarDiagnostics: vscode.DiagnosticCollection
 let hoverTimeout: NodeJS.Timeout | undefined
 let checkTimeout: NodeJS.Timeout | undefined
 let sparseTreeProvider: SparseTreeProvider
+let grammarStatusBarItem: vscode.StatusBarItem
 
 export async function activate(ctx: vscode.ExtensionContext) {
   const remoteConfig = vscode.workspace.getConfiguration('remote')
@@ -38,6 +39,11 @@ export async function activate(ctx: vscode.ExtensionContext) {
     sparseTreeProvider.setDocsRoot(workspaceFolder.uri.fsPath)
   }
 
+  grammarStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 99)
+  grammarStatusBarItem.command = 'adi-doctools.cycle-grammar-mode'
+  updateGrammarStatusBar()
+  grammarStatusBarItem.show()
+
   buildServer.setSparsePathsGetter(() => sparseTreeProvider.getSparsePaths())
   sparseTreeProvider.setOnSparseChanged(() => buildServer.updateSparse())
   onBuildStatusChanged((status) => sparseTreeProvider.setBuildStatus(status))
@@ -60,6 +66,7 @@ export async function activate(ctx: vscode.ExtensionContext) {
     getDebugOutputChannel(),
     getDiagnosticCollection(),
     grammarDiagnostics,
+    grammarStatusBarItem,
     vscode.languages.registerDocumentSemanticTokensProvider({ language: 'restructuredtext' }, provider, LEGEND),
     vscode.languages.registerCompletionItemProvider({ language: 'restructuredtext' }, completionProvider, ':', '`', '<', '+', '.', ' '),
     vscode.languages.registerHoverProvider({ language: 'restructuredtext' }, hoverProvider),
@@ -102,6 +109,16 @@ export async function activate(ctx: vscode.ExtensionContext) {
       await checkGrammar(editor.document)
     }),
 
+    vscode.workspace.onDidChangeConfiguration(async (e) => {
+      if (e.affectsConfiguration('adi-doctools.grammar.mode')) {
+        updateGrammarStatusBar()
+        const editor = vscode.window.activeTextEditor
+        if (editor?.document.languageId === 'restructuredtext') {
+          await checkGrammar(editor.document)
+        }
+      }
+    }),
+
     vscode.commands.registerCommand('adi-doctools.start-server', buildServer.start),
     vscode.commands.registerCommand('adi-doctools.stop-server', buildServer.stop),
     vscode.commands.registerCommand('adi-doctools.open-preview', openBrowserPanel),
@@ -121,6 +138,46 @@ export async function activate(ctx: vscode.ExtensionContext) {
         await config.update('disabledRules', disabledRules, vscode.ConfigurationTarget.Workspace)
         vscode.window.showInformationMessage(`Disabled rule "${ruleId}"`)
         // Re-check current document
+        const editor = vscode.window.activeTextEditor
+        if (editor?.document.languageId === 'restructuredtext') {
+          await checkGrammar(editor.document)
+        }
+      }
+    }),
+    vscode.commands.registerCommand('adi-doctools.cycle-grammar-mode', async () => {
+      const config = vscode.workspace.getConfiguration('adi-doctools.grammar')
+      const currentMode = config.get<string>('mode', 'api')
+
+      const options = [
+        {
+          label: '$(circle-slash) Off',
+          description: 'Turn off grammar check',
+          value: 'off',
+          picked: currentMode === 'off'
+        },
+        {
+          label: '$(desktop-download) Local',
+          description: 'Use local Language Tool (requires Java)',
+          value: 'local',
+          picked: currentMode === 'local'
+        },
+        {
+          label: '$(cloud) Cloud',
+          description: 'Use LanguageTool API (rate-limited)',
+          value: 'api',
+          picked: currentMode === 'api'
+        }
+      ]
+
+      const selected = await vscode.window.showQuickPick(options, {
+        placeHolder: 'Select grammar check provider',
+        title: 'Grammar Check Mode'
+      })
+
+      if (selected && selected.value !== currentMode) {
+        await config.update('mode', selected.value, vscode.ConfigurationTarget.Workspace)
+        updateGrammarStatusBar()
+
         const editor = vscode.window.activeTextEditor
         if (editor?.document.languageId === 'restructuredtext') {
           await checkGrammar(editor.document)
@@ -150,6 +207,26 @@ async function checkGrammar(doc: vscode.TextDocument) {
     }
   } catch (err) {
     console.error('Grammar check failed:', err)
+  }
+}
+
+function updateGrammarStatusBar() {
+  const config = vscode.workspace.getConfiguration('adi-doctools.grammar')
+  const mode = config.get<string>('mode', 'api')
+
+  switch (mode) {
+    case 'off':
+      grammarStatusBarItem.text = '$(book) Spell check: Off'
+      grammarStatusBarItem.tooltip = 'Grammar checking is off.'
+      break
+    case 'local':
+      grammarStatusBarItem.text = '$(book) Spell Check: Local'
+      grammarStatusBarItem.tooltip = 'Grammar checking using local LanguageTool.'
+      break
+    case 'api':
+      grammarStatusBarItem.text = '$(book) Spell check: Cloud'
+      grammarStatusBarItem.tooltip = 'Grammar checking using LanguageTool API.'
+      break
   }
 }
 

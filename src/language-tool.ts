@@ -737,12 +737,12 @@ export class LanguageToolChecker {
   async check(document: vscode.TextDocument, tree: Node): Promise<LTMatch[]> {
     // Check if grammar checking is enabled
     const config = vscode.workspace.getConfiguration('adi-doctools.grammar')
-    if (!config.get<boolean>('enabled', true)) {
+    const mode = config.get<string>('mode', 'api')
+
+    if (mode === 'off') {
       this.diagnosticCollection.delete(document.uri)
       return []
     }
-
-    const mode = config.get<string>('mode', 'api')
     const apiUsername = config.get<string>('apiUsername', '')
     const apiKey = config.get<string>('apiKey', '')
     const language = 'en-US'  // Default language
