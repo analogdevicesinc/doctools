@@ -60,7 +60,9 @@ export function findRequirements(workspacePath: string, confPyPath: string | nul
 }
 
 export function getVenvPythonPath(workspacePath: string): string {
-  return path.join(workspacePath, '.venv', 'bin', 'python')
+  if (process.platform === 'win32')
+    return path.join(workspacePath, '.venv', 'Scripts', 'python.exe')
+  return path.join(workspacePath, '.venv', 'bin', 'python3')
 }
 
 export function venvExists(workspacePath: string): boolean {
