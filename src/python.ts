@@ -210,6 +210,8 @@ export class buildServer {
       return
     }
 
+    buildStatusEmitter.fire('building')
+
     await vscode.window.withProgress({
       location: vscode.ProgressLocation.Notification,
       title: `Building documentation...`,
