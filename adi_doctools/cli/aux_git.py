@@ -7,12 +7,15 @@ def get_git_top_level(path_):
     """
     Return absolute path of git repository, or None on failure.
     """
-    p_ = subprocess.run("git rev-parse --show-toplevel", shell=True,
-                        capture_output=True, cwd=path_)
+    p_ = subprocess.run(
+        ["git", "rev-parse", "--show-toplevel"],
+        capture_output=True,
+        cwd=path_,
+        stdin=subprocess.DEVNULL
+    )
     if p_.returncode != 0:
         print(p_.stderr)
         return None
-
     return p_.stdout.decode("utf-8").strip()
 
 def get_git_dir(path_):

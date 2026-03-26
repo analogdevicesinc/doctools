@@ -1,9 +1,10 @@
 from os import path, listdir, remove, mkdir
 from os import pardir
 from os import environ, stat, utime
-from shutil import copy2, which, move, rmtree
+from shutil import copy2, which, rmtree
 import logging
 import importlib
+import mimetypes
 import tempfile
 import threading
 
@@ -486,10 +487,10 @@ cwd = {cwd_display}""")
             override_args = []
             for key, value in confoverrides.items():
                 if isinstance(value, list):
-                    override_args.append(f"-D {key}={','.join(value)}")
+                    override_args.extend(["-D", f"{key}={','.join(value)}"])
                 else:
-                    override_args.append(f"-D {key}={value}")
-            return ' '.join(override_args)
+                    override_args.extend(["-D", f"{key}={value}"])
+            return override_args
 
         def build_notify(event: str, mode=False):
             if self.jsonrpc:
@@ -501,13 +502,26 @@ cwd = {cwd_display}""")
                     print("---- Done ----", flush=True)
 
         def app_subprocess_build():
-            warn_file = tempfile.NamedTemporaryFile(mode='w+', suffix='.log')
-            confoverride_str = _confoverrides_to_arg()
+            # Windows lock the file, cannot keep open
+            warn_file = tempfile.NamedTemporaryFile(mode='w+', suffix='.log', delete=False)
+            warn_file_name = warn_file.name
+            warn_file.close()
+
+            confoverride_args = _confoverrides_to_arg()
             build_notify("started", mode=True)
-            subprocess.run(f"{sys.executable} -m sphinx -b {builder} . {builddir} -d {doctreedir} -j auto {confoverride_str} --warning-file {warn_file.name}",
-                           shell=True, cwd=directory, capture_output=not self.verbose)
-            if not self.verbose and path.getsize(warn_file.name) > 0:
-                with open(warn_file.name, 'r') as f:
+            cmd = [
+                sys.executable, "-m", "sphinx",
+                "-b", builder,
+                ".", builddir,
+                "-d", doctreedir,
+                "-j", "auto",
+                *confoverride_args,
+                "--warning-file", warn_file_name
+            ]
+            subprocess.run(cmd, cwd=directory, capture_output=not self.verbose,
+                           stdin=subprocess.DEVNULL)
+            if not self.verbose and path.getsize(warn_file_name) > 0:
+                with open(warn_file_name, 'r') as f:
                     warnings = f.read()
 
                 if self.sparse:
@@ -523,7 +537,8 @@ cwd = {cwd_display}""")
                 elif not self.verbose:
                     print(RED, warnings, NC)
             build_notify("completed")
-            warn_file.close()
+            if path.exists(warn_file_name):
+                remove(warn_file_name)
 
         def wsl2_networking():
             """
@@ -556,8 +571,9 @@ cwd = {cwd_display}""")
                 pattern = path.join(directory, '**', f'*{ext}')
                 files = []
                 for file_path in glob.glob(pattern, recursive=True):
-                    if ("/_build/" not in path.normpath(file_path) and
-                        "/build/" not in path.normpath(file_path) and
+                    norm_path = path.normpath(file_path).replace('\\', '/')
+                    if ("/_build/" not in norm_path and
+                        "/build/" not in norm_path and
                         name_ in path.basename(file_path)):
                         files.append(file_path)
 
@@ -604,7 +620,7 @@ cwd = {cwd_display}""")
                         url_path += '/index.html'
 
                     if url_path.endswith('.html'):
-                        file_path = path.join(builddir, url_path.lstrip('/'))
+                        file_path = path.join(builddir, url_path.lstrip('/').replace('/', path.sep))
                         if path.isfile(file_path):
                             with open(file_path, 'rb') as f:
                                 content = f.read().replace(b'</body>', dev_pool_script)
@@ -617,25 +633,32 @@ cwd = {cwd_display}""")
 
                     for ext in types_lfs:
                         if _self.path.endswith(ext):
-                            path_ = path.join(builddir, _self.path[1:])
+                            url_relative = _self.path[1:].replace('/', path.sep)
+                            path_ = path.join(builddir, url_relative)
                             lfs_f = get_source_lfs_file(path_, ext)
                             if lfs_f is not None:
-                                tmp_f = path.join(directory, builddir_, path.basename(lfs_f))
                                 stat_ = stat(lfs_f)
                                 lfs_f_ = path.relpath(lfs_f, git_top_level)
                                 logger.info(f"git lfs smudging file {lfs_f_}")
                                 try:
-                                    with open(path_, "rb") as fin, open(tmp_f, "wb") as fout:
-                                        subprocess.run(["git", "lfs", "smudge"], stdin=fin, stdout=fout, check=True)
+                                    with open(path_, "rb") as fin:
+                                        result = subprocess.run(["git", "lfs", "smudge"], stdin=fin, stdout=subprocess.PIPE, check=True)
+                                        blob = result.stdout
                                 except Exception as e:
                                     if e.returncode == 2:
                                         pass
                                     else:
                                         raise
-                                copy2(tmp_f, lfs_f)
+
+                                content_type, _ = mimetypes.guess_type(_self.path)
+                                _self.send_response(200)
+                                _self.send_header("Content-type", content_type or "application/octet-stream")
+                                _self.send_header("Content-Length", len(blob))
+                                _self.end_headers()
+                                _self.wfile.write(blob)
+                                with open(lfs_f, "wb") as f:
+                                    f.write(blob)
                                 utime(lfs_f, (stat_.st_atime, stat_.st_mtime))
-                                move(tmp_f, path_)
-                                utime(path_, (stat_.st_atime, stat_.st_mtime))
 
                                 while True:
                                     try:
@@ -648,6 +671,8 @@ cwd = {cwd_display}""")
                                         else:
                                             logger.error("%s\nstderr=%r", e, e.stderr)
                                     break
+
+                                return
 
                     super().do_GET()
                 except (BrokenPipeError, ConnectionResetError):
@@ -968,7 +993,7 @@ def _exclude_siblings(basedir, sparse, path_parts, exclude_patterns, lpath=''):
 
     current = path_parts[0]
     current_path = path.join(basedir, current)
-    lpath = path.join(lpath, current) if lpath else current
+    lpath = f"{lpath}/{current}" if lpath else current
 
     if not path.isdir(current_path):
         return
@@ -980,7 +1005,7 @@ def _exclude_siblings(basedir, sparse, path_parts, exclude_patterns, lpath=''):
         if sibling == path_parts[1]:
             _exclude_siblings(current_path, sparse, path_parts[1:], exclude_patterns, lpath)
         else:
-            relative = f'{lpath}/{sibling}'
+            relative = f"{lpath}/{sibling}"
             mask = True
             for s in sparse:
                 if s.startswith(relative):
@@ -991,7 +1016,7 @@ def _exclude_siblings(basedir, sparse, path_parts, exclude_patterns, lpath=''):
 
 def _normalize_sparse_path(sparse):
     """Normalize a sparse path by stripping extensions and trailing slashes."""
-    sparse = sparse.rstrip('/')
+    sparse = sparse.rstrip('/\\')
     if sparse.endswith('.rst'):
         sparse = sparse[:-4]
     elif sparse.endswith('.md'):
@@ -1006,12 +1031,16 @@ def compute_sparse_config(directory, sparse, verbose):
     if not sparse:
         return {}
 
-    for s in sparse:
+    sparse_os = [s.replace('/', path.sep) for s in sparse]
+
+    for s in sparse_os:
         if not path.isdir(s) and not path.isfile(s):
             logger.warning(log['sparse_not_found'].format(s))
 
-    for i, sp in enumerate(sparse):
-        sparse[i] = path.relpath(path.abspath(sp), directory)
+    sparse = []
+    for sp in sparse_os:
+        rel = path.relpath(path.abspath(sp), directory)
+        sparse.append(rel.replace(path.sep, '/'))
 
     spec = importlib.util.spec_from_file_location("conf", path.join(directory, 'conf.py'))
     conf = importlib.util.module_from_spec(spec)
