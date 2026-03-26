@@ -23,6 +23,23 @@ Sphinx Python object directly.
 ## Requirements
 
 - **Python 3** with virtual environments.
+- Grammar correction: OpenJDK (Java)
+
+### Linux/Mac:
+
+For grammar correction, install OpenJDK from you package manager.
+
+### Windows
+
+It is highly recommended to install under [WSL2](https://learn.microsoft.com/en-us/windows/wsl/install) and use the [store your files in the WSL file system](https://learn.microsoft.com/en-us/windows/wsl/filesystems#file-storage-and-performance-across-file-systems).
+
+If for unknown reasons you still want to use on native Windows follow the lines below.
+
+For grammar correction, install OpenJDK from Microsoft distribution [here](https://learn.microsoft.com/en-us/java/openjdk/download)
+([direct link](https://download.visualstudio.microsoft.com/download/pr/cc04eebf-9582-40aa-aaf7-3c60932ab808/1b08c9fae820c7030a2aca38ceb19666/microsoft-jdk-25.0.2-windows-x64.msi
+u)).
+Must re-open VSCode (not just reload the window).
+
 
 `sphinx`, `adi-doctools` are installed automatically (with user confirmation) at ./.venv (current workspace/open folder).
 Do not open the sphinx source folder as the workspace folder, it may consider the venv files as source files.
