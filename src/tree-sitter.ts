@@ -241,17 +241,20 @@ export class RoleCompletionProvider implements vscode.CompletionItemProvider {
   async provideCompletionItems(
     document: vscode.TextDocument,
     position: vscode.Position
-  ): Promise<vscode.CompletionItem[]> {
+  ): Promise<vscode.CompletionList | vscode.CompletionItem[]> {
     const line = document.lineAt(position).text
     const linePrefix = line.substring(0, position.character)
     const suffix = line.substring(position.character)
+
+    const exclusive = (items: vscode.CompletionItem[]) =>
+      new vscode.CompletionList(items, false)
 
     // :role:`title <[cursor] - complete target
     const roleTitleMatch = linePrefix.match(/:(\S+):`[^`]*<([^>]*)$/)
     if (roleTitleMatch) {
       const [, role, partial] = roleTitleMatch
       const skip = suffix.startsWith('>`') ? 2 : suffix.startsWith('>') ? 1 : 0
-      return this.getRoleCompletions(role, partial, position, skip, '>`')
+      return exclusive(await this.getRoleCompletions(role, partial, position, skip, '>`'))
     }
 
     // :role:`[cursor] - complete target (user may do a title)
@@ -259,7 +262,7 @@ export class RoleCompletionProvider implements vscode.CompletionItemProvider {
     if (roleContentMatch) {
       const [, role, partial] = roleContentMatch
       const skip = suffix.startsWith('`') ? 1 : 0
-      return this.getRoleCompletions(role, partial, position, skip, '`')
+      return exclusive(await this.getRoleCompletions(role, partial, position, skip, '`'))
     }
 
     // :external+inv:[cursor] - complete intersphinx role
@@ -267,7 +270,7 @@ export class RoleCompletionProvider implements vscode.CompletionItemProvider {
     if (externalRoleMatch) {
       const [, inv, partial] = externalRoleMatch
       const skip = suffix.startsWith(':`') ? 2 : suffix.startsWith(':') ? 1 : 0
-      return this.getInvetoryTypes(inv, partial, position, skip)
+      return exclusive(await this.getInvetoryTypes(inv, partial, position, skip))
     }
 
     // :external+[cursor] - complete intersphinx inventory
@@ -275,20 +278,20 @@ export class RoleCompletionProvider implements vscode.CompletionItemProvider {
     if (externalProjMatch) {
       const [, partial] = externalProjMatch
       const skip = suffix.startsWith(':') ? 1 : 0
-      return this.getInventories(partial, position, skip)
+      return exclusive(await this.getInventories(partial, position, skip))
     }
 
     // :[cursor] - complete role name
     if (linePrefix.endsWith(':') &&
         (linePrefix.length === 1 || /\s/.test(linePrefix[linePrefix.length - 2]))) {
-      return this.getRoles()
+      return exclusive(await this.getRoles())
     }
 
     // .. [cursor] - complete directive name
     const directiveMatch = linePrefix.match(/^\s*\.\.\s+(\w*)$/)
     if (directiveMatch) {
       const [, partial] = directiveMatch
-      return await this.getDirectives(partial, position)
+      return exclusive(await this.getDirectives(partial, position))
     }
 
     return []
