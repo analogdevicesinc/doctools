@@ -152,17 +152,17 @@ export class SparseTreeProvider implements vscode.TreeDataProvider<SparseTreeIte
   private updateStatusBar() {
     switch (this.buildStatus) {
       case 'off':
-        this.statusBarItem.text = '$(circle-slash) Stopped'
+        this.statusBarItem.text = '$(circle-slash) Docs: Stopped'
         this.statusBarItem.tooltip = 'Documentation server not running'
         this.statusBarItem.backgroundColor = undefined
         break
       case 'building':
-        this.statusBarItem.text = '$(sync~spin) Building...'
+        this.statusBarItem.text = '$(sync~spin) Docs: Building...'
         this.statusBarItem.tooltip = 'Building the documentation'
         this.statusBarItem.backgroundColor = undefined
         break
       case 'ready':
-        this.statusBarItem.text = '$(check) Up-to-date'
+        this.statusBarItem.text = '$(check) Docs: Up-to-date'
         this.statusBarItem.tooltip = 'The documentation build is up-to-date.'
         this.statusBarItem.backgroundColor = undefined
         break
