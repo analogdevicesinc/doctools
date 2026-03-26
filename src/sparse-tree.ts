@@ -31,6 +31,8 @@ export class SparseTreeProvider implements vscode.TreeDataProvider<SparseTreeIte
   private watcher: vscode.FileSystemWatcher | undefined
   private refreshTimeout: NodeJS.Timeout | undefined
   private cachedDirs: DirectoryItem[] | undefined
+  private cachedTotalCount: number = 0
+  private walkthroughShown: boolean = false
 
   constructor(context: vscode.ExtensionContext) {
     this.context = context
@@ -294,7 +296,52 @@ export class SparseTreeProvider implements vscode.TreeDataProvider<SparseTreeIte
     }
 
     this.cachedDirs = items.sort((a, b) => a.name.localeCompare(b.name))
+
+    this.cachedTotalCount = await this.countDocDirectories()
+
+    if (!this.walkthroughShown && this.state.paths.size === 0 && this.cachedTotalCount >= 100) {
+      this.walkthroughShown = true
+      const action = await vscode.window.showInformationMessage(
+        `This docs has ${this.cachedTotalCount}+ pages, use Sparse Build to build only the sections you're working on.`,
+        'Show Sparse Build',
+        'Dismiss'
+      )
+
+      if (action === 'Show Sparse Build') {
+        vscode.commands.executeCommand('adi-doctools.sparse-tree.focus')
+      }
+    }
+
     return this.cachedDirs
+  }
+
+  private async countDocDirectories(): Promise<number> {
+    if (!this.docsRoot) return 0
+
+    let count = 0
+    const countInDir = async (dirPath: string): Promise<void> => {
+      try {
+        const entries = await fs.promises.readdir(dirPath, { withFileTypes: true })
+
+        for (const entry of entries) {
+          if (!entry.isDirectory()) continue
+          if (entry.name.startsWith('.') || entry.name.startsWith('_')) continue
+          if (entry.name === 'node_modules') continue
+
+          const fullPath = path.join(dirPath, entry.name)
+
+          if (await this.containDoc(fullPath)) {
+            count++
+            if (count < 100) {
+              await countInDir(fullPath)
+            }
+          }
+        }
+      } catch { }
+    }
+
+    await countInDir(this.docsRoot)
+    return count
   }
 
   private async getSubDirectories(dirPath: string, parentRelative: string): Promise<DirectoryItem[]> {
