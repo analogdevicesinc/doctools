@@ -29,6 +29,8 @@ export class SparseTreeProvider implements vscode.TreeDataProvider<SparseTreeIte
   private sparseUpdateTimeout: NodeJS.Timeout | undefined
   private buildStatus: 'off' | 'building' | 'ready' = 'off'
   private watcher: vscode.FileSystemWatcher | undefined
+  private refreshTimeout: NodeJS.Timeout | undefined
+  private cachedDirs: DirectoryItem[] | undefined
 
   constructor(context: vscode.ExtensionContext) {
     this.context = context
@@ -65,13 +67,28 @@ export class SparseTreeProvider implements vscode.TreeDataProvider<SparseTreeIte
 
     this.watcher?.dispose()
     this.watcher = vscode.workspace.createFileSystemWatcher(
-      new vscode.RelativePattern(docsRoot, '**/')
+      new vscode.RelativePattern(docsRoot, '**/*.rst')
     )
-    this.watcher.onDidCreate(() => this.refresh())
-    this.watcher.onDidDelete(() => this.refresh())
+    this.watcher.onDidCreate(() => this.debouncedRefresh())
+    this.watcher.onDidDelete(() => this.debouncedRefresh())
     this.context.subscriptions.push(this.watcher)
 
+    this.invalidateCache()
     this.refresh()
+  }
+
+  private debouncedRefresh() {
+    if (this.refreshTimeout) {
+      clearTimeout(this.refreshTimeout)
+    }
+    this.refreshTimeout = setTimeout(() => {
+      this.invalidateCache()
+      this.refresh()
+    }, 1000)
+  }
+
+  private invalidateCache() {
+    this.cachedDirs = undefined
   }
 
   private getSelectionState(relativePath: string): 'all' | 'some' | 'none' {
@@ -249,6 +266,10 @@ export class SparseTreeProvider implements vscode.TreeDataProvider<SparseTreeIte
   private async getTopLevelDirectories(): Promise<DirectoryItem[]> {
     if (!this.docsRoot) return []
 
+    if (this.cachedDirs) {
+      return this.cachedDirs
+    }
+
     const items: DirectoryItem[] = []
     const entries = await fs.promises.readdir(this.docsRoot, { withFileTypes: true })
 
@@ -272,7 +293,8 @@ export class SparseTreeProvider implements vscode.TreeDataProvider<SparseTreeIte
       })
     }
 
-    return items.sort((a, b) => a.name.localeCompare(b.name))
+    this.cachedDirs = items.sort((a, b) => a.name.localeCompare(b.name))
+    return this.cachedDirs
   }
 
   private async getSubDirectories(dirPath: string, parentRelative: string): Promise<DirectoryItem[]> {
