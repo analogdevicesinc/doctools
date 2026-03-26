@@ -121,6 +121,59 @@ export async function activate(ctx: vscode.ExtensionContext) {
 
     vscode.commands.registerCommand('adi-doctools.start-server', buildServer.start),
     vscode.commands.registerCommand('adi-doctools.stop-server', buildServer.stop),
+    vscode.commands.registerCommand('adi-doctools.server-menu', async () => {
+      const status = sparseTreeProvider.getBuildStatus()
+      const isRunning = status !== 'off'
+
+      const options = isRunning
+        ? [
+            {
+              label: '$(debug-stop) Stop Server',
+              description: 'Stop the documentation server',
+              action: 'stop'
+            },
+            {
+              label: '$(refresh) Restart Server',
+              description: 'Restart the documentation server',
+              action: 'restart'
+            },
+            {
+              label: '$(globe) Open Preview',
+              description: 'Open the documentation in a panel',
+              action: 'preview'
+            }
+          ]
+        : [
+            {
+              label: '$(play) Start Server',
+              description: 'Start the documentation server',
+              action: 'start'
+            }
+          ]
+
+      const selected = await vscode.window.showQuickPick(options, {
+        placeHolder: isRunning ? 'The service is currently running' : 'The service is currently stopped',
+        title: 'Doctools Sphinx Server'
+      })
+
+      if (selected) {
+        switch (selected.action) {
+          case 'start':
+            buildServer.start()
+            break
+          case 'stop':
+            buildServer.stop()
+            break
+          case 'restart':
+            buildServer.stop()
+            setTimeout(() => buildServer.start(), 500)
+            break
+          case 'preview':
+            openBrowserPanel()
+            break
+        }
+      }
+    }),
     vscode.commands.registerCommand('adi-doctools.open-preview', openBrowserPanel),
     vscode.commands.registerCommand('adi-doctools.check-grammar', async () => {
       const editor = vscode.window.activeTextEditor

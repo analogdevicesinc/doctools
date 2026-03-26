@@ -33,10 +33,15 @@ export class SparseTreeProvider implements vscode.TreeDataProvider<SparseTreeIte
   constructor(context: vscode.ExtensionContext) {
     this.context = context
     this.statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100)
+    this.statusBarItem.command = 'adi-doctools.server-menu'
     context.subscriptions.push(this.statusBarItem)
 
     this.loadState()
     this.updateStatusBar()
+  }
+
+  getBuildStatus(): 'off' | 'building' | 'ready' {
+    return this.buildStatus
   }
 
   private loadState() {
