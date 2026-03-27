@@ -8,7 +8,7 @@
 
     <title>Custom directives &#8212; Doctools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8e8a900e" />
-    <link rel="stylesheet" type="text/css" href="../_static/app.min.css?v=5c8d5ce8" />
+    <link rel="stylesheet" type="text/css" href="../_static/app.min.css?v=7fafc32c" />
     <script async="async" src="../_static/app.umd.js?v=f78f54ff"></script>
     <link rel="icon" href="../_static/icon.svg"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -98,6 +98,8 @@
 <li><a class="reference internal" href="#container">Container</a><ul>
 <li><a class="reference internal" href="#flex">Flex</a></li>
 <li><a class="reference internal" href="#grid">Grid</a></li>
+<li><a class="reference internal" href="#card">Card</a></li>
+<li><a class="reference internal" href="#usage-example">Usage example</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#include-template">Include template</a></li>
@@ -206,14 +208,61 @@ status, code quality, among others.</p>
 <a class="icon link reference external" href="https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Grid_layout" target="_blank">CSS Grids</a>.
 It is used to arrange elements with exact number of columns and width control.</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">grid</span><span class="p">::</span>
+   <span class="nc">:columns:</span> 3
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">columns</span></code> wraps the content in N equal columns with auto responsive behavior.</p>
+<p>Alternatively, you can explicit set the <code class="docutils literal notranslate"><span class="pre">widths</span></code> option:</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">grid</span><span class="p">::</span>
    <span class="nc">:widths:</span> 25 25% 150px
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">widths</span></code> options allow units (<code class="docutils literal notranslate"><span class="pre">px</span></code>, <code class="docutils literal notranslate"><span class="pre">%</span></code>, etc.), and without an explicit
-unit it is inferred as a percentage.
-This option is required, since it is not possible to infer the number of
-columns in a sane manner.</p>
+<p>It allow units (<code class="docutils literal notranslate"><span class="pre">px</span></code>, <code class="docutils literal notranslate"><span class="pre">%</span></code>, etc.), and without an explicit unit it is
+inferred as a percentage. However, in small screens, it fallbacks to a flex
+element.</p>
+<p>On of the options are required.</p>
 </section>
+<section id="card">
+<h3>Card<a class="headerlink" href="#card" title="Link to this heading"></a></h3>
+<p>A card directive is meant to be used inside a <a class="reference internal" href="#directive-grid"><span class="std std-ref">Grid</span></a> or
+<a class="reference internal" href="#directive-flex"><span class="std std-ref">Flex</span></a>. It creates a card element and allows to link to a
+reference. Only references are allowed by design, to discourage arbitrary
+linking.</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">card</span><span class="p">::</span> <span class="nt">&lt;title&gt;</span>
+   <span class="nc">:ref:</span> <span class="nt">&lt;ref&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="usage-example">
+<h3>Usage example<a class="headerlink" href="#usage-example" title="Link to this heading"></a></h3>
+<p>Puting all together:</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">grid</span><span class="p">::</span>
+   <span class="nc">:columns:</span> 3
+
+<span class="p">   ..</span> <span class="ow">card</span><span class="p">::</span> Flex directive
+      <span class="nc">:ref:</span> directive flex
+
+      Learn about the flex directive.
+
+<span class="p">   ..</span> <span class="ow">card</span><span class="p">::</span> Grid directive
+      <span class="nc">:ref:</span> directive grid
+
+      Learn about the grid directive.
+
+<span class="p">   ..</span> <span class="ow">card</span><span class="p">::</span> All directives
+      <span class="nc">:ref:</span> directive
+
+      More about all directives.
+</pre></div>
+</div>
+<p>Renders at:</p>
+<div class="grid grid-repeat" style="grid-template-columns: repeat(auto-fit, minmax(19.3em, 1fr));"><div class="card link"><p class="header">Flex directive</p>
+<p>Learn about the flex directive.</p>
+<span class="link-overlay"><a class="icon link reference internal" href="#directive-flex"><span class="std std-ref">Read more</span></a></span></div><div class="card link"><p class="header">Grid directive</p>
+<p>Learn about the grid directive.</p>
+<span class="link-overlay"><a class="icon link reference internal" href="#directive-grid"><span class="std std-ref">Read more</span></a></span></div><div class="card link"><p class="header">All directives</p>
+<p>More about all directives.</p>
+<span class="link-overlay"><a class="icon link reference internal" href="#directive"><span class="std std-ref">Read more</span></a></span></div></div></section>
 </section>
 <section id="include-template">
 <h2>Include template<a class="headerlink" href="#include-template" title="Link to this heading"></a></h2>
