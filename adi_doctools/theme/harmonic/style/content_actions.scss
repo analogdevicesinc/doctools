@@ -18,7 +18,7 @@ div.highlight {
     button.copy {
         border-radius: variable.$border-radius;
         transition: .25s ease opacity;
-        background: var(--bg-color3);
+        background: var(--bg-color2);
         position: absolute;
         cursor: pointer;
         padding: .25em;
@@ -45,7 +45,7 @@ div.highlight {
     }
     &:hover button.copy {
         opacity: 1;
-        background: var(--bg-color1);
+        background: var(--bg-color3);
     }
 }
 

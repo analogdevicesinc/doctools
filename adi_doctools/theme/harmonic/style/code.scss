@@ -33,14 +33,21 @@ em.sig-param, em.property {
     padding-bottom: .25em;
 }
 
+.code-shell, .highlight {
+    border: 1px solid rgba(125,125,125,.25)
+}
+
+.code-shell .highlight {
+    border: none
+}
 
 .highlight {
-    background-color: var(--bg-color3) !important;
+    background-color: var(--bg-color2) !important;
 }
 
 // TODO Port to third-party themes
 .code-shell {
-    background-color: var(--bg-color3);
+    background-color: var(--bg-color2);
     border-radius: variable.$border-radius;
     padding: .75em;
     margin-bottom: .5em;

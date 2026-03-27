@@ -441,13 +441,97 @@ hr {
     display: block;
 }
 
+.body .card {
+    border-radius: variable.$border-radius;
+    padding: .75em;
+    margin: .25em;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+@media screen {
+    .body .card {
+        border: 1px solid rgba(125, 125, 125, 0.25);
+        background: var(--bg-color1);
+        box-shadow: var(--subtle-box-shadow);
+    }
+}
+
+@media print {
+    .body .card {
+        border: 1px solid var(--text-color3);
+    }
+}
+
+@media print {
+    .body .card {
+        .link-overlay {
+            margin-top: .5em;
+            text-align: right;
+        }
+    }
+}
+
+@media screen {
+    .body .card {
+        position: relative;
+
+        .link-overlay,
+        .link-overlay > a {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        .link-overlay > a {
+            font-size: 0;
+            border: none !important;
+            border-radius: variable.$border-radius;
+        }
+
+        &.link:hover {
+            border: 1px solid var(--accent-color);
+        }
+    }
+}
+
+.body .card .header {
+  font-weight: bold;
+}
+
+.body .card img {
+    max-height: 10em;
+}
+
 @media (min-width: variable.$screen-1) {
     .body .flex {
         display: flex;
         flex-wrap: wrap;
     }
+}
 
-    .body .grid {
+.body .grid-repeat {
+    display: grid;
+    grid-template-rows: auto;
+}
+
+@media (max-width: variable.$screen-1) {
+    .body .grid-flex {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .body .grid-flex > * {
+        flex: 1 1 calc(50% - .5em);
+    }
+}
+
+@media (min-width: variable.$screen-1) {
+    .body .grid-flex {
         display: grid;
         grid-template-rows: auto;
     }
@@ -460,7 +544,7 @@ hr {
         flex-wrap: wrap;
     }
 
-    .body .grid {
+    .body .grid-repeat, .body .grid-flex {
         display: grid;
         /* grid-template-columns set inline */
         grid-template-rows: auto;

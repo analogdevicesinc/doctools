@@ -769,16 +769,22 @@ class directive_flex(Directive):
 
 class directive_grid(Directive):
     """
-    Wraps the content in div with the grid class.
-    This class losely sets CSS grid rules to show content side-by-side
-    with defined number of columns.
+    Wraps the content in div with the grid class. This class losely sets CSS
+    grid rules to show content side-by-side with defined number of columns.
     Widths is converted to CSS grid-template-columns.
+
+    If columns is set, creates N equal columns using repeat(auto-fit, minmax(...))
+    for auto responsive behavior.
+    If width is set (explicit column widths), uses flex fallback on small
+    screens.
+
+    If both are provided, widths takes precedence. One of them is required.
     """
     option_spec = {
         'class': directives.class_option,
+        'columns': directives.positive_int,
         'widths': length_or_percentage_or_unitless_list,
     }
-    has_content = False
     has_content = True
     add_index = True
     final_argument_whitespace = True
@@ -786,23 +792,80 @@ class directive_grid(Directive):
     required_arguments = 0
     optional_arguments = 0
 
+    reference_width = 58 # roughly min-max-width body size
+
     def run(self):
         set_classes(self.options)
         widths = self.options.pop('widths', None)
-        if widths is None:
+        columns = self.options.pop('columns', None)
+
+        if widths is None and columns is None:
             raise self.error(
-                'Error in "%s" directive: "widths" option is required.'
+                'Error in "%s" directive: "columns" or "widths" option is required.'
                 % (self.name))
 
         classes_ = ['grid']
         if 'classes' in self.options:
             classes_.extend(self.options.get('classes'))
-        node = node_div(
-            classes=classes_
-        )
-        widths = ' '.join([(w + '%' if w[-1].isnumeric() else w) for w in widths])
-        node['style'] = f"grid-template-columns: {widths};"
+
+        if widths:
+            classes_.append('grid-flex')
+            node = node_div(classes=classes_)
+            widths_str = ' '.join([(w + '%' if w[-1].isnumeric() else w) for w in widths])
+            node['style'] = f"grid-template-columns: {widths_str};"
+        else:
+            classes_.append('grid-repeat')
+            node = node_div(classes=classes_)
+            min_width = self.reference_width / columns
+            node['style'] = f"grid-template-columns: repeat(auto-fit, minmax({min_width:.1f}em, 1fr));"
+
         self.state.nested_parse(self.content, self.content_offset, node)
+
+        return [node]
+
+class directive_card(SphinxDirective):
+    """A node with optional title and ref link."""
+    has_content = True
+    required_arguments = 0
+    optional_arguments = 1
+    final_argument_whitespace = True
+
+    option_spec = {
+        'ref': directives.unchanged,
+    }
+
+    def run(self):
+        from sphinx import addnodes
+
+
+        ref_target = self.options.get('ref')
+        _classes=['card', 'link'] if ref_target else ['card']
+        node = node_div(classes=_classes)
+
+        if self.arguments:
+            title = nodes.paragraph(classes=['header'], text=self.arguments[0])
+            node += title
+
+        if self.content:
+            self.state.nested_parse(self.content, self.content_offset, node)
+
+        if ref_target:
+            refnode = addnodes.pending_xref(
+                '',
+                classes=['icon', 'link'],
+                refdoc=self.env.docname,
+                refdomain='std',
+                reftype='ref',
+                refexplicit=True,
+                refwarn=True,
+            )
+            refnode['reftarget'] = ref_target.lower()
+            refnode += nodes.inline(
+                '', 'Read more', classes=['xref', 'std', 'std-ref']
+            )
+            node_ = nodes.inline(classes=['link-overlay'])
+            node_ += refnode
+            node += node_
 
         return [node]
 
@@ -1158,6 +1221,7 @@ def common_setup(app):
     app.add_directive('video', directive_video)
     app.add_directive('flex', directive_flex)
     app.add_directive('grid', directive_grid)
+    app.add_directive('card', directive_card)
     app.add_directive('clear-content', directive_clear_content)
     app.add_directive('shell', directive_shell)
     app.add_directive('svg', directive_svg)

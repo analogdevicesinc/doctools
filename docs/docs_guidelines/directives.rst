@@ -46,12 +46,80 @@ It is used to arrange elements with exact number of columns and width control.
 .. code:: rst
 
    .. grid::
+      :columns: 3
+
+The ``columns`` wraps the content in N equal columns with auto responsive behavior.
+
+Alternatively, you can explicit set the ``widths`` option:
+
+.. code:: rst
+
+   .. grid::
       :widths: 25 25% 150px
 
-The ``widths`` options allow units (``px``, ``%``, etc.), and without an explicit
-unit it is inferred as a percentage.
-This option is required, since it is not possible to infer the number of
-columns in a sane manner.
+It allow units (``px``, ``%``, etc.), and without an explicit unit it is
+inferred as a percentage. However, in small screens, it fallbacks to a flex
+element.
+
+On of the options are required.
+
+Card
+++++
+
+A card directive is meant to be used inside a :ref:`directive grid` or
+:ref:`directive flex`. It creates a card element and allows to link to a
+reference. Only references are allowed by design, to discourage arbitrary
+linking.
+
+.. code:: rst
+
+   .. card:: <title>
+      :ref: <ref>
+
+Usage example
++++++++++++++
+
+Puting all together:
+
+.. code:: rst
+
+   .. grid::
+      :columns: 3
+
+      .. card:: Flex directive
+         :ref: directive flex
+
+         Learn about the flex directive.
+
+      .. card:: Grid directive
+         :ref: directive grid
+
+         Learn about the grid directive.
+
+      .. card:: All directives
+         :ref: directive
+
+         More about all directives.
+
+Renders at:
+
+.. grid::
+   :columns: 3
+
+   .. card:: Flex directive
+      :ref: directive flex
+
+      Learn about the flex directive.
+
+   .. card:: Grid directive
+      :ref: directive grid
+
+      Learn about the grid directive.
+
+   .. card:: All directives
+      :ref: directive
+
+      More about all directives.
 
 Include template
 ~~~~~~~~~~~~~~~~
