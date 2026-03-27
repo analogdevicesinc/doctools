@@ -23,11 +23,13 @@ Sphinx Python object directly.
 ## Requirements
 
 - **Python 3** with virtual environments.
-- Grammar correction: OpenJDK (Java)
+- Grammar correction (local, optional): OpenJDK (Java)
+
+If you plan to use grammar correction only through the Language Tool API, Java is not required
 
 ### Linux/Mac:
 
-For grammar correction, install OpenJDK from you package manager.
+For local grammar correction, install OpenJDK from you package manager.
 
 ### Windows
 
