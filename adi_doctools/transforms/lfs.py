@@ -22,7 +22,8 @@ class lfs_to_links(SphinxPostTransform):
     formats = ("html",)
     default_priority = 20
 
-    def get_lfs_types(self, srcdir):
+    @staticmethod
+    def get_lfs_types(srcdir):
         types_lfs = []
         git_attr = path.join(srcdir, "..", ".gitattributes")
         with open(git_attr, "r") as f:
@@ -42,7 +43,7 @@ class lfs_to_links(SphinxPostTransform):
         return not is_lfs
 
     def run(self, **kwargs) -> None:
-        self.types_lfs = self.get_lfs_types(self.env.srcdir)
+        self.types_lfs = lfs_to_links.get_lfs_types(self.env.srcdir)
         url = f"https://media.githubusercontent.com/media/{environ['GIT_ORG_REPOSITORY']}/{environ['GIT_BRANCH']}/docs"
 
         docname = self.env.docname
@@ -81,10 +82,20 @@ class lfs_to_links(SphinxPostTransform):
             node['refuri'] = f"{url}{targetname}"
 
 
+def lfs_to_links_write_started(app, builder):
+    """Remove lfs files from dlfiles before copy_assets is called."""
+    types_lfs = lfs_to_links.get_lfs_types(app.env.srcdir)
+
+    to_remove = [p for p in app.env.dlfiles if any(str(p).endswith(e) for e in types_lfs)]
+    for p in to_remove:
+        del app.env.dlfiles[p]
+
+
 def lfs_setup(app):
     if "GIT_LFS_TO_LINKS" in environ:
         if "GIT_ORG_REPOSITORY" in environ and "GIT_BRANCH" in environ:
             app.add_post_transform(lfs_to_links)
+            app.connect('write-started', lfs_to_links_write_started)
         else:
             logger.error("lfs_to_links: 'GIT_LFS_TO_LINKS' in env, but 'GIT_ORG_REPOSITORY' or/and 'GIT_BRANCH' is not, skipped!")
 
