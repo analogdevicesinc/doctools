@@ -1,4 +1,9 @@
-# Analog Devices Doctools - Visual Studio Code Extension
+# Doctools - Visual Studio Code Extension
+
+> [!IMPORTANT]
+> Doctools is not an official product of Analog Devices Inc. It is a collection
+> of open-source tools bundled as an extension and is provided without support
+> or warranty.
 
 ## Overview
 
