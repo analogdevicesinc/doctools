@@ -1,0 +1,57 @@
+on:
+  workflow_call:
+    outputs:
+      asset_alias_name:
+        value: ${{ jobs.build.outputs.asset_alias_name }}
+      asset_path:
+        value: ${{ jobs.build.outputs.asset_path }}
+      new_tag:
+        value: ${{ jobs.build.outputs.new_tag }}
+      tag:
+        value: ${{ jobs.build.outputs.tag }}
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: [self-hosted, repo-only, v2]
+
+    outputs:
+      asset_alias_name: ${{ steps.get_vars.outputs.asset_alias_name }}
+      asset_path: ${{ steps.get_vars.outputs.asset_path }}
+      new_tag: ${{ steps.get_vars.outputs.new_tag }}
+      tag: ${{ steps.get_vars.outputs.tag }}
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Ensure clean dist
+      run: rm -rf dist *.vsix
+
+    - name: Build
+      run: |
+        npm install
+        npm run build
+        npm run package
+
+    - name: Get variables
+      id: get_vars
+      run: |
+        asset_alias_name=$(jq -r '.name' package.json)
+        tag=v$(jq -r '.version' package.json)
+        asset_path=$(find . -maxdepth 1 -name "*.vsix" -print -quit)
+        git fetch --tags --prune --prune-tags --force
+        echo "asset_alias_name=$asset_alias_name.vsix" >> "$GITHUB_OUTPUT"
+        echo "asset_path=$asset_path" >> "$GITHUB_OUTPUT"
+        echo "tag=$tag" >> "$GITHUB_OUTPUT"
+        if [ "${{ github.ref }}" == "refs/heads/vscode" ]; then
+          if ! [ $(git tag -l "vscode/$tag") ] ; then
+            echo "new_tag=true" >> "$GITHUB_OUTPUT"
+          fi
+        fi
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: dist
+        path: "*.vsix"
