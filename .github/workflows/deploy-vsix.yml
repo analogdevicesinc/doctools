@@ -1,0 +1,155 @@
+on:
+  workflow_call:
+    inputs:
+      asset_alias_name:
+        required: true
+        type: string
+      asset_path:
+        required: true
+        type: string
+      new_tag:
+        required: true
+        type: string
+      tag:
+        required: true
+        type: string
+    secrets:
+      VSCE_TOKEN:
+        required: false
+      OVSX_TOKEN:
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  deploy-vsce:
+    if: ${{ inputs.new_tag == 'true' }}
+    runs-on: [self-hosted, repo-only]
+
+    steps:
+    - uses: actions/download-artifact@v5
+      with:
+        name: dist
+        path: .
+
+    - name: Publish VSCode
+      env:
+        VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }}
+      if: ${{ env.VSCE_TOKEN != '' }}
+      run: |
+        npm install @vscode/vsce
+        npm exec @vscode/vsce -- publish --packagePath "${{ inputs.asset_path }}" -p ${{ secrets.VSCE_TOKEN }}
+
+    - name: Publish Open VSX Registry
+      env:
+        OVSX_TOKEN: ${{ secrets.OVSX_TOKEN }}
+      if: ${{ env.OVSX_TOKEN != '' }}
+      run: |
+        npm install ovsx
+        npm exec ovsx -- publish "${{ inputs.asset_path }}" -p ${{ secrets.OVSX_TOKEN }}
+
+  deploy-github:
+    runs-on: [self-hosted, repo-only]
+
+    steps:
+    - uses: actions/download-artifact@v5
+      with:
+        name: dist
+        path: .
+
+    - name: Create git tag
+      if: ${{ inputs.new_tag == 'true' }}
+      run: |
+        curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -L -o github-api.sh \
+          https://raw.githubusercontent.com/analogdevicesinc/doctools/refs/heads/main/ci/github-api.sh
+        source ./github-api.sh
+
+        # After PyPi package
+        release_id=$(
+          gh-get-release-id ${{ secrets.GITHUB_TOKEN }} \
+                            ${{ github.repository }} \
+                            ${{ inputs.tag }} \
+                            tag_release_id
+        )
+
+        gh-upload-asset ${{ secrets.GITHUB_TOKEN }} \
+                        ${{ github.repository }} \
+                        $release_id \
+                        ${{ inputs.asset_alias_name }} \
+                        ${{ inputs.asset_path }}
+
+        gh-create-tag ${{ secrets.GITHUB_TOKEN }} \
+                      ${{ github.repository }} \
+                      "vscode/${{ inputs.tag }}" \
+                      ${{ github.sha }}
+
+    - name: Get pre-release vars
+      run: |
+        source ./github-api.sh
+        release_id=$(
+          gh-get-release-id ${{ secrets.GITHUB_TOKEN }} \
+                            ${{ github.repository }} \
+                            pre-release \
+                            pre_release_id
+        )
+
+        asset_id=$(
+          gh-get-asset-id ${{ secrets.GITHUB_TOKEN }} \
+                          ${{ github.repository }} \
+                          $release_id \
+                          ${{ inputs.asset_alias_name }} \
+                          pre_release_asset_id
+        )
+
+    - name: Get latest vars
+      if: ${{ inputs.new_tag == 'true' }}
+      run: |
+        source ./github-api.sh
+        release_id=$(
+          gh-get-release-id ${{ secrets.GITHUB_TOKEN }} \
+                            ${{ github.repository }} \
+                            latest \
+                            latest_id
+        )
+
+        asset_id=$(
+          gh-get-asset-id ${{ secrets.GITHUB_TOKEN }} \
+                          ${{ github.repository }} \
+                          $release_id \
+                          ${{ inputs.asset_alias_name }} \
+                          latest_asset_id
+        )
+
+    - name: GitHub upload pre-release asset
+      run: |
+        source ./github-api.sh
+        if [[ ! "$pre_release_asset_id" == "" ]]; then
+          gh-delete-asset ${{ secrets.GITHUB_TOKEN }} \
+                          ${{ github.repository }} \
+                          $pre_release_asset_id
+        fi
+
+        gh-upload-asset ${{ secrets.GITHUB_TOKEN }} \
+                        ${{ github.repository }} \
+                        $pre_release_id \
+                        ${{ inputs.asset_alias_name }} \
+                        ${{ inputs.asset_path }}
+
+    - name: GitHub upload latest asset
+      if: ${{ inputs.new_tag == 'true' }}
+      run: |
+        source ./github-api.sh
+        if [[ ! "$latest_asset_id" == "" ]]; then
+          gh-delete-asset ${{ secrets.GITHUB_TOKEN }} \
+                          ${{ github.repository }} \
+                          $latest_asset_id
+        fi
+
+        gh-upload-asset ${{ secrets.GITHUB_TOKEN }} \
+                        ${{ github.repository }} \
+                        $latest_id \
+                        ${{ inputs.asset_alias_name }} \
+                        ${{ inputs.asset_path }}
+
+

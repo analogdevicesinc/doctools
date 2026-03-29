@@ -6,8 +6,21 @@ on:
   pull_request:
 
 jobs:
-  build-package:
-    uses: ./.github/workflows/build-extension.yml
-    secrets: inherit
+  build:
+    uses: ./.github/workflows/build-vsix.yml
     permissions:
       contents: read
+
+  deploy:
+    uses: ./.github/workflows/deploy-vsix.yml
+    needs: [build]
+    secrets:
+      VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }}
+      OVSX_TOKEN: ${{ secrets.OVSX_TOKEN }}
+    permissions:
+      contents: write
+    with:
+      asset_alias_name: ${{ needs.build.outputs.asset_alias_name }}
+      asset_path: ${{ needs.build.outputs.asset_path }}
+      new_tag: ${{ needs.build.outputs.new_tag }}
+      tag: ${{ needs.build.outputs.tag }}
