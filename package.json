@@ -2,7 +2,7 @@
   "name": "adi-doctools",
   "displayName": "Doctools",
   "description": "Live editing server for Sphinx documentations with tree-sitter linting",
-  "version": "0.4.39",
+  "version": "0.4.40",
   "license": "Apache-2.0",
   "publisher": "gastmaier",
   "repository": {
