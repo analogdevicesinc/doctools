@@ -114,8 +114,19 @@ export class HotReload {
       }
     } else {
       if (new RegExp("^import mermaid from \"https://cdn\\.jsdelivr\\.net/npm/mermaid@[^/]+/dist/mermaid\\.esm\\.min\\.mjs\";").test(key)) {
-        if (typeof runMermaid !== 'undefined')
+        if (typeof runMermaid !== 'undefined') {
           runMermaid(true)
+        } else {
+          // Needs custom initialization, use one-shot setter
+          Object.defineProperty(window, 'runMermaid', {
+            configurable: true,
+            set: f => {
+              delete window.runMermaid
+              window.runMermaid = f
+              f(true)
+            }
+          })
+        }
       }
     }
   }
