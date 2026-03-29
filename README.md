@@ -1,4 +1,9 @@
-# Analog Devices Doctools - Visual Studio Code Extension
+# Doctools - Visual Studio Code Extension
+
+> [!IMPORTANT]
+> Doctools is not an official product of Analog Devices Inc. It is a collection
+> of open-source tools bundled as an extension and is provided without support
+> or warranty.
 
 ## Overview
 
@@ -37,9 +42,9 @@ It is highly recommended to install under [WSL2](https://learn.microsoft.com/en-
 
 If for unknown reasons you still want to use on native Windows follow the lines below.
 
-For grammar correction, install OpenJDK from Microsoft distribution [here](https://learn.microsoft.com/en-us/java/openjdk/download)
-([direct link](https://download.visualstudio.microsoft.com/download/pr/cc04eebf-9582-40aa-aaf7-3c60932ab808/1b08c9fae820c7030a2aca38ceb19666/microsoft-jdk-25.0.2-windows-x64.msi
-u)).
+For grammar correction, install OpenJDK from the
+[Microsoft distribution](https://learn.microsoft.com/en-us/java/openjdk/download)
+([direct link](https://download.visualstudio.microsoft.com/download/pr/cc04eebf-9582-40aa-aaf7-3c60932ab808/1b08c9fae820c7030a2aca38ceb19666/microsoft-jdk-25.0.2-windows-x64.msi)).
 Must re-open VSCode (not just reload the window).
 
 
@@ -52,6 +57,15 @@ Do not open the sphinx source folder as the workspace folder, it may consider th
 |----------------------------|------------------------------------|
 | `Doctools: Start Server`   | Start Doctools Sphinx server       |
 | `Doctools: Stop Server`    | Stop Doctools Sphinx server        |
+
+## Alternative
+
+[Esbonio](https://docs.esbon.io/en/latest/index.html) is an extensively developed Language Server Protocol and Visual Studio Code extension for sphinx.
+
+The Doctools cli is generates Estobio pyproject.toml entry with (including [Sparse builds](https://analogdevicesinc.github.io/doctools/cli.html#serve-sparse)):
+```
+adoc serve --esbonio --sparse docs/learning | tee pyproject.toml
+```
 
 ## Third Party Sources
 
@@ -70,6 +84,6 @@ This extension proudly integrates the following open source projects:
 
 ## Documentation
 
-For comprehensive documentation on the Analog Devices Doctools project, visit:
+For comprehensive documentation on the Doctools project, visit:
 
 [analogdevicesinc.github.io/doctools](https://analogdevicesinc.github.io/doctools)
