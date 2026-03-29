@@ -640,6 +640,7 @@ cwd = {cwd_display}""")
                                 stat_ = stat(lfs_f)
                                 lfs_f_ = path.relpath(lfs_f, git_top_level)
                                 logger.info(f"git lfs smudging file {lfs_f_}")
+                                blob = b''
                                 try:
                                     with open(path_, "rb") as fin:
                                         result = subprocess.run(["git", "lfs", "smudge"], stdin=fin, stdout=subprocess.PIPE, check=True)
@@ -655,6 +656,10 @@ cwd = {cwd_display}""")
                                 _self.send_header("Content-type", content_type or "application/octet-stream")
                                 _self.send_header("Content-Length", len(blob))
                                 _self.end_headers()
+
+                                if not len(blob):
+                                    return
+
                                 _self.wfile.write(blob)
                                 with open(lfs_f, "wb") as f:
                                     f.write(blob)
