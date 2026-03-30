@@ -109,6 +109,8 @@ runs:
       if: ${{ env.gh_pages_deploy_run == 'true' }}
       shell: bash
       run: |
+        # Commit and push to gh-pages
+        [[ "${{ runner.debug }}" == "1" ]] && set -x
         git add . >> /dev/null
         if git diff --cached --quiet ; then
           echo "::notice ::No changes, nothing to commit"
