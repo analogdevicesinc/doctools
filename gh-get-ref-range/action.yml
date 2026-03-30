@@ -1,0 +1,136 @@
+name: GH Get Ref Range
+description: Resolve a ref (branch, tag, SHA, or PR number) to head and base SHAs
+
+inputs:
+  github-token:
+    description: "GitHub Token"
+    default: ${{ github.token }}
+  repository:
+    description: "Repository in org/repo format"
+    default: ${{ github.repository }}
+  ref:
+    description: "The branch, tag, SHA, or PR number (e.g. 123 or pull/123) to resolve"
+    required: true
+
+outputs:
+  head_sha:
+    description: "Resolved head commit SHA"
+    value: ${{ steps.resolve.outputs.head_sha }}
+  base_sha:
+    description: "Resolved base commit SHA (from PR if available)"
+    value: ${{ steps.resolve.outputs.base_sha }}
+  pr_number:
+    description: "Pull request number (if ref is a PR or branch has an open PR)"
+    value: ${{ steps.resolve.outputs.pr_number }}
+  pr_base_ref:
+    description: "Pull request base branch name"
+    value: ${{ steps.resolve.outputs.pr_base_ref }}
+
+runs:
+  using: composite
+  steps:
+    - name: Resolve refs
+      id: resolve
+      shell: bash
+      run: |
+        # Resolve refs
+        [[ "${{ runner.debug }}" == "1" ]] && set -x
+
+        gh_get_ref_range() {
+          local github_token="$1"
+          local org_repository="$2"
+          local ref="$3"
+
+          local pr_number=""
+          local pr_base_ref=""
+
+          head_sha=""
+          base_sha=""
+
+          if [[ "$ref" =~ ^([0-9]+|pull/[0-9]+)(/head)?$ ]]; then
+            pr_number="${ref#pull/}"
+            pr_number="${pr_number%/head}"
+
+            resp=$(curl -s \
+              -H "Authorization: Bearer $github_token" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/$org_repository/pulls/$pr_number")
+            http_code=$(echo "$resp" | jq -r '.status // empty')
+            [[ "$http_code" == "404" ]] && { echo "PR #$pr_number not found"; return 1; }
+
+            head_sha=$(echo "$resp" | jq -r '.head.sha')
+            pr_base_ref=$(echo "$resp" | jq -r '.base.ref')
+            echo "pr_base_ref: $pr_base_ref"
+            echo "head_sha: $head_sha"
+
+            resp=$(curl -s \
+              -H "Authorization: Bearer $github_token" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/$org_repository/commits/$pr_base_ref")
+            http_code=$(echo "$resp" | jq -r '.status // empty')
+            [[ "$http_code" == "404" ]] && return 1 || true
+
+            base_sha=$(echo "$resp" | jq -r '.sha')
+            echo "base_sha: $base_sha (base: $pr_base_ref)"
+
+          else
+            local branch_name="${ref#refs/heads/}"
+
+            resp=$(curl -s \
+              -H "Authorization: Bearer $github_token" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/$org_repository/commits/$ref")
+            http_code=$(echo "$resp" | jq -r '.status // empty')
+            [[ "$http_code" == "404" ]] && return 1 || true
+
+            head_sha=$(echo "$resp" | jq -r '.sha')
+            if [[ "$head_sha" == "null" ]]; then
+                head_sha=""
+                return 1
+            fi
+            echo "head_sha: $head_sha"
+
+            local owner="${org_repository%%/*}"
+            resp=$(curl -s \
+              -H "Authorization: Bearer $github_token" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/$org_repository/pulls?head=$owner:$branch_name&state=open")
+
+            local pr_json
+            pr_json=$(echo "$resp" | jq '.[0]')
+            if [[ "$pr_json" == "null" ]]; then
+              resp=$(curl -s \
+                -H "Authorization: Bearer $github_token" \
+                -H "Accept: application/vnd.github+json" \
+                "https://api.github.com/repos/$org_repository/commits/$head_sha/pulls")
+              pr_json=$(echo "$resp" | jq '.[0]')
+            fi
+            if [[ -n "$pr_json" && "$pr_json" != "null" ]]; then
+              pr_number=$(echo "$pr_json" | jq -r '.number')
+              pr_base_ref=$(echo "$pr_json" | jq -r '.base.ref')
+              echo "got pr: #$pr_number (base: $pr_base_ref)"
+
+              resp=$(curl -s \
+                -H "Authorization: Bearer $github_token" \
+                -H "Accept: application/vnd.github+json" \
+                "https://api.github.com/repos/$org_repository/commits/$pr_base_ref")
+              http_code=$(echo "$resp" | jq -r '.status // empty')
+              [[ "$http_code" == "404" ]] && { echo "Base ref '$pr_base_ref' not found"; return 1; }
+
+              base_sha=$(echo "$resp" | jq -r '.sha')
+              echo "base_sha: $base_sha (base: $pr_base_ref)"
+            fi
+          fi
+
+          return 0
+        }
+
+        gh_get_ref_range "${{ inputs.github-token }}" \
+                         "${{ inputs.repository }}" \
+                         "${{ inputs.ref }}"
+
+        echo "head_sha=$head_sha" >> "$GITHUB_OUTPUT"
+        echo "base_sha=$base_sha" >> "$GITHUB_OUTPUT"
+
+        echo "head_sha=$head_sha" >> "$GITHUB_ENV"
+        echo "base_sha=$base_sha" >> "$GITHUB_ENV"
