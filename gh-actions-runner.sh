@@ -1,9 +1,11 @@
 #!/bin/bash
 
-set -e
+set -eo
 
 runner_version=2.333.0
 runner_version_sha=7ce6b3fd8f879797fcc252c2918a23e14a233413dc6e6ab8e0ba8768b5d54475
+node20_version=20.20.2
+node20_version_sha=19e56f0825510207dd904f087fe52faa0a4eb6b2aab5f0ea7a33830d04888b8b
 node24_version=24.14.0
 node24_version_sha=dbf5b8665dec15e59e6359a517fefb47b23fdb9152d8def975b9bca3dfc6d355
 k8s_version=0.8.1
