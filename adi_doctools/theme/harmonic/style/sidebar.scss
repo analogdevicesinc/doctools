@@ -1,6 +1,7 @@
 @use 'sass:map';
 
 @use "variable";
+@use "mixin_icons";
 @use "size";
 
 .sphinxsidebar {
@@ -372,11 +373,9 @@
         width: 1.5rem;
         height: 1.5rem;
         margin: .25rem;
-        background: url('./icons.svg');
-    }
-
-    #scroll-up:before {
-        background-position: left calc(-1.5rem*3) top;
+        background-color: var(--text-color1);
+        mask-image: var(--icon-arrow-up);
+        mask-repeat: no-repeat;
     }
 }
 
@@ -437,16 +436,16 @@
         display: block;
         width: 1.5rem;
         height: 1.5rem;
-        background: url('./icons.svg');
-        filter: invert(var(--is-dark-theme));
+        background-color: var(--text-color1);
+        mask-repeat: no-repeat;
     }
 
     #show-repotoc:before {
-        background-position: left calc(-1.5rem*5) bottom;
+        mask-image: var(--icon-arrow-left);
     }
 
     #show-toc:after {
-        background-position: left calc(-1.5rem*5) top;
+        mask-image: var(--icon-arrow-right);
     }
 }
 

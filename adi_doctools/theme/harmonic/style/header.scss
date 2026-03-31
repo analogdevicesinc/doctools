@@ -1,4 +1,5 @@
 @use "variable";
+@use "mixin_icons";
 
 @media screen {
     header {
@@ -32,16 +33,16 @@ header {
         width: 1.5rem;
         height: 1.5rem;
         margin: .5rem .25rem;
-        background: url('./icons.svg');
-        filter: invert(var(--is-dark-theme));
+        background-color: var(--text-color1);
+        mask-repeat: no-repeat;
     }
 
     #search:before {
-        background-position: left calc(-1.5rem*4) top;
+        mask-image: var(--icon-search);
     }
 
     #theme:before {
-        background-position: left calc(-1.5rem*1) bottom;
+        mask-image: var(--icon-sun);
     }
 
     #left {
@@ -55,13 +56,13 @@ header {
     }
 
     #show-sidebar:before {
-        background-position: left calc(-1.5rem*0) top;
-        transition: .25s ease background-position;
+        mask-image: var(--icon-menu);
+        transition: transform .25s ease;
     }
 
     #show-localtoc:before {
-        background-position: left calc(-1.5rem*2) top;
-        transition: .25s ease background-position;
+        mask-image: var(--icon-list);
+        transition: transform .25s ease;
     }
 
     button, label {
@@ -138,24 +139,29 @@ header {
 
 
 #input-show-toc:checked ~ header #show-sidebar:before {
-    background-position: left calc(-1.5rem*0) bottom;
+    mask-image: var(--icon-close);
+    transform: rotate(90deg);
 }
 
 #input-show-localtoc:checked ~ header #show-localtoc:before {
-    background-position: left calc(-1.5rem*2) bottom;
+    mask-image: var(--icon-close);
+    transform: rotate(90deg);
 }
 
 .dark header #theme:before {
-    background-position: left calc(-1.5rem*1) top;
+    mask-image: var(--icon-moon);
+    transform: none;
 }
 
 @media (prefers-color-scheme: dark) {
     header #theme:before {
-        background-position: left calc(-1.5rem*1) top;
+        mask-image: var(--icon-moon);
+        transform: none;
     }
 
     .light header #theme:before {
-        background-position: left calc(-1.5rem*1) bottom;
+        mask-image: var(--icon-sun);
+        transform: scale(1.1);
     }
 }
 

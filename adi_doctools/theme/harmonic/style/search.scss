@@ -1,4 +1,5 @@
 @use "variable";
+@use "mixin_icons";
 
 .overflow-hidden {
     overflow: hidden;
@@ -60,6 +61,8 @@
     padding: .5rem;
     height: 3.5rem;
 
+    @include mixin_icons.icons(("close"));
+
     input {
         color: var(--text-color1);
         width: 100%;
@@ -85,12 +88,9 @@
         width: 1.5rem;
         height: 1.5rem;
         margin: .25rem;
-        background: url('./icons.svg');
-        filter: invert(var(--is-dark-theme));
-    }
-
-    button:before {
-        background-position: left calc(0*4) bottom;
+        background-color: var(--text-color1);
+        mask-image: var(--icon-close);
+        mask-repeat: no-repeat;
     }
 }
 
