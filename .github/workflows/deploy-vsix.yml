@@ -58,11 +58,14 @@ jobs:
         name: dist
         path: .
 
-    - name: Create git tag
-      if: ${{ inputs.new_tag == 'true' }}
+    - name: Get sources
       run: |
         curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -L -o github-api.sh \
           https://raw.githubusercontent.com/analogdevicesinc/doctools/refs/heads/main/ci/github-api.sh
+
+    - name: Create git tag
+      if: ${{ inputs.new_tag == 'true' }}
+      run: |
         source ./github-api.sh
 
         # After PyPi package
