@@ -15,7 +15,7 @@ WORKDIR /home/runner
 
 ENV FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true
 ADD ${gh_actions_runner_sh} .
-RUN bash ./gh-actions-runner.sh ; rm ./gh-actions-runner.sh
+RUN bash ./gh-actions-runner.sh && rm ./gh-actions-runner.sh
 
 #user: bash-completion openssh
 #core: wget make git openssl ca-certificates ca-certificates-mozilla
@@ -61,7 +61,7 @@ ADD ${entrypoint_sh} .
 RUN chmod +rx ./entrypoint.sh
 
 ADD ${git_defaults_sh} .
-RUN bash ./git-defaults.sh ; rm ./git-defaults.sh
+RUN bash ./git-defaults.sh && rm ./git-defaults.sh
 
 USER runner
 WORKDIR /home/runner
