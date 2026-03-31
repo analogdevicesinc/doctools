@@ -60,12 +60,20 @@ Must re-open the IDE (not just reload the window).
 `sphinx`, `adi-doctools` are installed automatically (with user confirmation) at ./.venv (current workspace/open folder).
 Do not open the sphinx source folder as the workspace folder, it may consider the venv files as source files.
 
-## Commands
+## Quick start
 
-| Command                    | Description                        |
-|----------------------------|------------------------------------|
-| `Doctools: Start Server`   | Start Doctools Sphinx server       |
-| `Doctools: Stop Server`    | Stop Doctools Sphinx server        |
+- Install the extension.
+- Open a repository with documentation.
+- Open a `.rst` file to activate the extension.
+- Click `yes` in the prompt to install the virtual enviroment.
+- Use the `Explorer > Doctools Sparse Build` to select just some pages to build.
+
+  - Drastically improves first time build time.
+
+- Use the bottom panel `Docs` and `Spell Check` to configure the features.
+
+  - `Docs`: Start/stop server, open preview.
+  - `Spell Check`: Switch between off, local and cloud grammar correction.
 
 ## Alternative
 
