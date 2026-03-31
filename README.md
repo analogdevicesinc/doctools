@@ -1,4 +1,4 @@
-# Doctools - Visual Studio Code Extension
+# Doctools - VSCode/VSCodium Extension
 
 > [!IMPORTANT]
 > Doctools is not an official product of Analog Devices Inc. It is a collection
@@ -7,9 +7,9 @@
 
 ## Overview
 
-A Visual Studio Code extension that provides language support for
-reStructuredText (RST) documentation, powered by tree-sitter.
-This extension offers intelligent editing capabilities for Sphinx documentation
+A Visual Studio Code (VSCode/VSCodium) extension that provides language support
+for reStructuredText (RST) documentation, powered by tree-sitter. This
+extension offers intelligent editing capabilities for Sphinx documentation
 projects, with support for custom roles and directives by interfacing with the
 Sphinx Python object directly.
 
@@ -28,25 +28,34 @@ Sphinx Python object directly.
 ## Requirements
 
 - **Python 3** with virtual environments.
-- Grammar correction (local, optional): OpenJDK (Java)
+- OpenJDK (Java): Optional, for **local** grammar correction.
 
-If you plan to use grammar correction only through the Language Tool API, Java is not required
+For grammar correction with the Language Tool API, Java is not required.
 
 ### Linux/Mac:
 
-For local grammar correction, install OpenJDK from you package manager.
+For **local** grammar correction, install OpenJDK from you package manager.
+
+```
+# Ubuntu
+apt install openjdk-25-jdk
+# Fedora
+dnf install java-25-openjdk
+# OpenSuse
+zypper install java-25-openjdk
+```
 
 ### Windows
 
 It is highly recommended to install under [WSL2](https://learn.microsoft.com/en-us/windows/wsl/install) and use the [store your files in the WSL file system](https://learn.microsoft.com/en-us/windows/wsl/filesystems#file-storage-and-performance-across-file-systems).
+With [VSCodium](https://vscodium.com/), [Open Remote - WSL](https://open-vsx.org/extension/jeanp413/open-remote-wsl) allows to connect to WSL2.
 
-If for unknown reasons you still want to use on native Windows follow the lines below.
+If for **unknown reasons** you still want to use on native Windows, follow the guide below.
 
 For grammar correction, install OpenJDK from the
 [Microsoft distribution](https://learn.microsoft.com/en-us/java/openjdk/download)
 ([direct link](https://download.visualstudio.microsoft.com/download/pr/cc04eebf-9582-40aa-aaf7-3c60932ab808/1b08c9fae820c7030a2aca38ceb19666/microsoft-jdk-25.0.2-windows-x64.msi)).
-Must re-open VSCode (not just reload the window).
-
+Must re-open the IDE (not just reload the window).
 
 `sphinx`, `adi-doctools` are installed automatically (with user confirmation) at ./.venv (current workspace/open folder).
 Do not open the sphinx source folder as the workspace folder, it may consider the venv files as source files.
