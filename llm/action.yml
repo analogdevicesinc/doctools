@@ -3,9 +3,9 @@ name: LLM Agent
 inputs:
   ref:
     description: "The branch, tag, PR number, or SHA to checkout"
-    required: false
+    required: true
   run-id:
-    description: "Explicit workflow run to analyse, optional"
+    description: "Explicit workflow run to analyse"
     required: false
   prompt-file:
     description: "File with the prompt to use"
@@ -15,6 +15,10 @@ inputs:
     description: "Model size"
     required: false
     default: "medium"
+  py-venv:
+    description: "Python virtual enviroment"
+    required: false
+    default: ""
   gh-token:
     description: "GitHub Token"
     default: ${{ github.token }}
@@ -57,20 +61,6 @@ runs:
         echo "summary_file=$(mktemp --suffix=.md)" >> "$GITHUB_ENV"
         echo "llm_py=$(mktemp --suffix=.py)" >> "$GITHUB_ENV"
         echo "patches_path=$(mktemp -d)" >> "$GITHUB_ENV"
-        echo "venv_path=$(mktemp -d)" >> "$GITHUB_ENV"
-
-    - name: Prepare tools
-      shell: bash
-      if: ${{ env.LLM_AGENT_RUN == 'true' }}
-      run: |
-        # Prepare tools
-        python3 -m venv $venv_path
-        source $venv_path/bin/activate
-        python3 -m ensurepip --upgrade
-        pip install adi-doctools camelot-py
-
-        curl -sL -H "Authorization: Bearer ${{ inputs.gh-token }}" -o "$llm_py" \
-          https://raw.githubusercontent.com/analogdevicesinc/doctools/action/llm/llm.py
 
     - name: Setup pi
       shell: bash
@@ -78,6 +68,8 @@ runs:
       run: |
         # Setup pi
         npm install @mariozechner/pi-coding-agent@0.64.0
+        curl -sL -H "Authorization: Bearer ${{ inputs.gh-token }}" -o "$llm_py" \
+          https://raw.githubusercontent.com/analogdevicesinc/doctools/action/llm/llm.py
 
     - name: Run pi
       shell: bash
@@ -86,7 +78,8 @@ runs:
         PORTKEY_API_KEY: ${{ inputs.api-key }}
       run: |
         # Run pi
-        source $venv_path/bin/activate
+        [[ -f "${{ inputs.py-venv }}/bin/activate" ]] && \
+          source "${{ inputs.py-venv }}/bin/activate"
         python3 "$llm_py" "${{ inputs.prompt-file }}" \
           --provider "portkey" --model "${{ inputs.model }}" \
           --session "$session_file" || true
@@ -149,4 +142,3 @@ runs:
         rm -rf "$HOME/.pi"
         rm -f "$annotations_file" "$summary_file" "$session_file" "$llm_py"
         rm -rf "$patches_path"
-        rm -rf "$venv_path"
