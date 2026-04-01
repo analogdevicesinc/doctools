@@ -42,12 +42,6 @@ def main_search_wiki():
     search_wiki_cli()
 
 
-def main_llm():
-    from .llm import llm
-
-    llm()
-
-
 def entry_point():
     set_logging()
     cmd = get_command()
@@ -66,8 +60,6 @@ def entry_point():
         main_search()
     elif cmd == 'search-wiki':
         main_search_wiki()
-    elif cmd == 'llm':
-        main_llm()
     elif cmd == 'help':
         show_help()
     else:
