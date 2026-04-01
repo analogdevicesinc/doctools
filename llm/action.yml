@@ -1,0 +1,152 @@
+name: LLM Agent
+
+inputs:
+  ref:
+    description: "The branch, tag, PR number, or SHA to checkout"
+    required: false
+  run-id:
+    description: "Explicit workflow run to analyse, optional"
+    required: false
+  prompt-file:
+    description: "File with the prompt to use"
+    required: true
+    default: ""
+  model:
+    description: "Model size"
+    required: false
+    default: "medium"
+  gh-token:
+    description: "GitHub Token"
+    default: ${{ github.token }}
+  api-key:
+    description: 'LLM API Key'
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Check if should run
+      shell: bash
+      if: ${{ inputs.api-key != '' && inputs.api-key != ' ' }}
+      run: |
+        echo "LLM_AGENT_RUN=true" >> "$GITHUB_ENV"
+
+    - uses: analogdevicesinc/doctools/gh-get-ref-range@action
+      if: ${{ env.LLM_AGENT_RUN == 'true' }}
+      with:
+        ref: ${{ inputs.ref }}
+
+    - uses: analogdevicesinc/doctools/gh-collect-annotations@action
+      if: ${{ env.LLM_AGENT_RUN == 'true' }}
+      with:
+        head-sha: ${{ env.head_sha }}
+        run-id: ${{ inputs.run-id }}
+
+    - uses: analogdevicesinc/doctools/checkout@action
+      if: ${{ env.LLM_AGENT_RUN == 'true' }}
+      with:
+        base-sha: ${{ env.base_sha }}
+        head-sha: ${{ env.head_sha }}
+
+    - name: Prepare files
+      shell: bash
+      if: ${{ env.LLM_AGENT_RUN == 'true' }}
+      run: |
+        # Prepare files
+        echo "session_file=$(mktemp --suffix=.jsonl)" >> "$GITHUB_ENV"
+        echo "summary_file=$(mktemp --suffix=.md)" >> "$GITHUB_ENV"
+        echo "llm_py=$(mktemp --suffix=.py)" >> "$GITHUB_ENV"
+        echo "patches_path=$(mktemp -d)" >> "$GITHUB_ENV"
+        echo "venv_path=$(mktemp -d)" >> "$GITHUB_ENV"
+
+    - name: Prepare tools
+      shell: bash
+      if: ${{ env.LLM_AGENT_RUN == 'true' }}
+      run: |
+        # Prepare tools
+        python3 -m venv $venv_path
+        source $venv_path/bin/activate
+        python3 -m ensurepip --upgrade
+        pip install adi-doctools camelot-py
+
+        curl -sL -H "Authorization: Bearer ${{ inputs.gh-token }}" -o "$llm_py" \
+          https://raw.githubusercontent.com/analogdevicesinc/doctools/action/llm/llm.py
+
+    - name: Setup pi
+      shell: bash
+      if: ${{ env.LLM_AGENT_RUN == 'true' }}
+      run: |
+        # Setup pi
+        npm install @mariozechner/pi-coding-agent@0.64.0
+
+    - name: Run pi
+      shell: bash
+      if: ${{ env.LLM_AGENT_RUN == 'true' }}
+      env:
+        PORTKEY_API_KEY: ${{ inputs.api-key }}
+      run: |
+        # Run pi
+        source $venv_path/bin/activate
+        python3 "$llm_py" "${{ inputs.prompt-file }}" \
+          --provider "portkey" --model "${{ inputs.model }}" \
+          --session "$session_file" || true
+
+    - name: Collect results
+      shell: bash
+      if: ${{ env.LLM_AGENT_RUN == 'true' }}
+      run: |
+        # Collect results
+        [[ -s "$summary_file" ]] && cat "$summary_file" >> $GITHUB_STEP_SUMMARY || true
+
+    - name: Store suggested patches
+      if: ${{ env.LLM_AGENT_RUN == 'true' }}
+      id: upload_patches
+      uses: actions/upload-artifact@v6
+      with:
+        name: llm-patches
+        path: ${{ env.patches_path }}
+        if-no-files-found: ignore
+
+    - name: Store session log
+      if: ${{ env.LLM_AGENT_RUN == 'true' }}
+      id: upload_session
+      uses: actions/upload-artifact@v6
+      with:
+        name: llm-session
+        path: ${{ env.session_file }}
+        if-no-files-found: ignore
+
+    - name: Add patches to summary
+      shell: bash
+      if: ${{ env.LLM_AGENT_RUN == 'true' }}
+      run: |
+        # Add patches to summary
+        [[ -z "$(ls -A "$patches_path")" ]] && exit 0
+
+        # Requires upload-artifact@v6
+        url="${{ steps.upload_patches.outputs.artifact-url }}"
+        echo "## Suggested patches" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Suggested patches are provided at the [llm-patches]($url) artifact." >> $GITHUB_STEP_SUMMARY
+
+    - name: Add session to summary
+      shell: bash
+      if: ${{ env.LLM_AGENT_RUN == 'true' }}
+      run: |
+        # Add session to summary
+        [[ -s "$session_file" ]] || exit 0
+
+        url="${{ steps.upload_session.outputs.artifact-url }}"
+        echo "## Session" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "The session is provided at the [llm-session]($url) artifact." >> $GITHUB_STEP_SUMMARY
+
+    - name: Clean-up
+      shell: bash
+      if: ${{ env.LLM_AGENT_RUN == 'true' && always() }}
+      run: |
+        # Clean-up
+        rm -rf "$HOME/.pi"
+        rm -f "$annotations_file" "$summary_file" "$session_file" "$llm_py"
+        rm -rf "$patches_path"
+        rm -rf "$venv_path"
