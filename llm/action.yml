@@ -19,6 +19,9 @@ inputs:
     description: "Python virtual enviroment"
     required: false
     default: ""
+  sh-source:
+    description: "Bash script to source"
+    required: false
   gh-token:
     description: "GitHub Token"
     default: ${{ github.token }}
@@ -80,6 +83,8 @@ runs:
         # Run pi
         [[ -f "${{ inputs.py-venv }}/bin/activate" ]] && \
           source "${{ inputs.py-venv }}/bin/activate"
+        [[ -f "${{ inputs.sh-source }}" ]] && \
+          source "${{ inputs.sh-source}}"
         python3 "$llm_py" "${{ inputs.prompt-file }}" \
           --provider "portkey" --model "${{ inputs.model }}" \
           --session "$session_file" || true
