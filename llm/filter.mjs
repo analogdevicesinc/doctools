@@ -19,6 +19,12 @@ function formatToolCall(name, args) {
 	}
 }
 
+async function write(text) {
+	if (!process.stdout.write(text)) {
+		await new Promise((resolve) => process.stdout.once("drain", resolve))
+	}
+}
+
 const rl = readline.createInterface({ input: process.stdin })
 
 for await (const line of rl) {
@@ -27,7 +33,7 @@ for await (const line of rl) {
 
 		switch (event.type) {
 			case "tool_execution_start":
-				process.stdout.write(`> ${formatToolCall(event.toolName, event.args)}\n`)
+				await write(`> ${formatToolCall(event.toolName, event.args)}\n`)
 				break
 
 			case "tool_execution_end":
@@ -37,7 +43,7 @@ for await (const line of rl) {
 							const text = item.text.length > MAX_OUTPUT
 								? item.text.slice(0, MAX_OUTPUT) + "...\n"
 								: item.text
-							process.stdout.write(text)
+							await write(text)
 						}
 					}
 				}
@@ -46,9 +52,9 @@ for await (const line of rl) {
 			case "message_update": {
 				const evt = event.assistantMessageEvent
 				if (evt?.type === "text_delta") {
-					process.stdout.write(evt.delta)
+					await write(evt.delta)
 				} else if (evt?.type === "thinking_delta") {
-					process.stdout.write(evt.delta)
+					await write(evt.delta)
 				}
 				break
 			}
