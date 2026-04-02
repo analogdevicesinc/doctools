@@ -22,7 +22,7 @@ def expand_vars(text: str) -> str:
 def get_arguments_llm():
     """Parse arguments for the llm command."""
     parser = argparse.ArgumentParser(
-        prog='adoc llm' if __name__ != '__main__' else 'llm',
+        prog='llm',
         description="Run llm cli 'pi' pretty-printed stream output.")
     parser.add_argument('file',
                         help="Path to prompt file (.md) or session file (.jsonl)")
