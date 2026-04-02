@@ -126,10 +126,16 @@ runs:
           source "${{ inputs.py-venv }}/bin/activate"
         [[ -f "${{ inputs.sh-source }}" ]] && \
           source "${{ inputs.sh-source}}"
+
+        node "$filter_mjs" "$session_file" &
+        filter_pid=$!
+
         cat "${{ inputs.prompt-file }}" | \
-          ./node_modules/.bin/pi -p --mode json \
+          ./node_modules/.bin/pi -p \
             --provider "portkey" --model "${{ inputs.model }}" \
-            --session "$session_file" | node $filter_mjs
+            --session "$session_file"
+
+        kill $filter_pid 2>/dev/null
 
     - name: Collect results
       shell: bash
