@@ -2,11 +2,15 @@ import json
 import shutil
 import signal
 import subprocess
+import threading
 import logging
 import argparse
 import re
+import sys
+from time import sleep
 from os import environ, path
 from pathlib import Path
+from collections import deque
 
 logger = logging.getLogger(__name__)
 
@@ -212,35 +216,63 @@ def llm():
         bufsize=1
     )
 
+    output_queue = deque(maxlen=100)
+    stop_event = threading.Event()
+
+    def reader_thread(stream, queue):
+        try:
+            for line in stream:
+                if stop_event.is_set():
+                    break
+                queue.append(line)
+        except Exception:
+            pass
+        finally:
+            stream.close()
+
+    stdout_t = threading.Thread(target=reader_thread, args=(proc.stdout, output_queue))
+    stderr_t = threading.Thread(target=reader_thread, args=(proc.stderr, deque(maxlen=10)))
+    stdout_t.daemon = True
+    stderr_t.daemon = True
+    stdout_t.start()
+    stderr_t.start()
+
     def handle_sigint(signum, frame):
+        stop_event.set()
         proc.terminate()
-        return 130
+        sys.exit(128 + signum)
 
     signal.signal(signal.SIGINT, handle_sigint)
 
-    proc.stdin.write(content)
-    proc.stdin.close()
+    try:
+        proc.stdin.write(content)
+        proc.stdin.close()
+    except BrokenPipeError:
+        pass
 
-    for line in proc.stdout:
-        line = line.strip()
+    while proc.poll() is None or output_queue:
+        if not output_queue:
+            sleep(0.01)
+            continue
+
+        line = output_queue.popleft().strip()
         if not line:
             continue
+
         try:
             event = json.loads(line)
         except json.JSONDecodeError:
             print(line)
             continue
+        except Exception as e:
+            logger.error(str(e))
+            continue
 
         pretty_print(event)
 
+    stop_event.set()
     proc.wait()
-
-    if proc.returncode != 0:
-        stderr = proc.stderr.read()
-        if stderr:
-            logger.error(stderr)
-
-    return 0
+    return proc.returncode
 
 if __name__ == "__main__":
     llm()
