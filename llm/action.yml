@@ -38,6 +38,12 @@ runs:
       run: |
         echo "LLM_AGENT_RUN=true" >> "$GITHUB_ENV"
 
+    - name: Warn on won't run
+      shell: bash
+      if: ${{ inputs.api-key == '' || inputs.api-key == ' ' }}
+      run: |
+        echo "::warning ::llm: Input 'api-key' empty, won't run"
+
     - uses: analogdevicesinc/doctools/gh-get-ref-range@action
       if: ${{ env.LLM_AGENT_RUN == 'true' }}
       with:
