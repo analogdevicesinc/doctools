@@ -71,6 +71,18 @@ runs:
         echo "llm_py=$(mktemp --suffix=.py)" >> "$GITHUB_ENV"
         echo "patches_path=$(mktemp -d)" >> "$GITHUB_ENV"
 
+    - name: Ensure node
+      shell: bash
+      if: ${{ env.LLM_AGENT_RUN == 'true' }}
+      run: |
+        if ! which node ; then
+          if [[ -d "/home/runner/externals/node24/bin" ]]; then
+            echo "/home/runner/externals/node24/bin" >> "$GITHUB_PATH"
+          elif [[ -d "/home/runner/externals/node20/bin" ]]; then
+            echo "/home/runner/externals/node20/bin" >> "$GITHUB_PATH"
+          fi
+        fi
+
     - name: Setup pi
       shell: bash
       if: ${{ env.LLM_AGENT_RUN == 'true' }}
