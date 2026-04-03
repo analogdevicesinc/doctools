@@ -46,7 +46,7 @@ runs:
         # Warn on won't run
         echo "::warning ::llm: Input 'api-key' empty, won't run"
 
-    - uses: analogdevicesinc/doctools/gh-get-ref-range@action
+    - uses: analogdevicesinc/doctools/checkout@action-next
       if: ${{ env.LLM_AGENT_RUN == 'true' }}
       with:
         ref: ${{ inputs.ref }}
@@ -56,12 +56,6 @@ runs:
       with:
         head-sha: ${{ env.head_sha }}
         run-id: ${{ inputs.run-id }}
-
-    - uses: analogdevicesinc/doctools/checkout@action
-      if: ${{ env.LLM_AGENT_RUN == 'true' }}
-      with:
-        base-sha: ${{ env.base_sha }}
-        head-sha: ${{ env.head_sha }}
 
     - name: Prepare files
       shell: bash
