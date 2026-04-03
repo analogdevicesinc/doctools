@@ -222,10 +222,19 @@ runs:
           base_sha=$(git rev-parse $base_sha~)
         else
           mode="branch"
-          git fetch origin --depth=$fetch_depth "${{ inputs.ref }}"
-
-          head_sha=$(git rev-parse "${{ inputs.ref }}")
-          base_sha=$(git rev-parse $head_sha~$fetch_depth)
+          if [[ ! "${{ github.event.before }}" =~ "0000000000000000" ]] && \
+             [[ "${{ github.event.forced }}" == "false" ]] && \
+             [[ "${{ inputs.ref }}" == "${{ github.sha }}" ]]; then
+            head_sha="${{ github.sha }}"
+            base_sha="${{ github.event.before }}"
+            while ! git rev-list --count $base_sha~..$head_sha ; do
+              git fetch origin --deepen=$fetch_depth "${{ inputs.ref }}"
+            done
+          else
+            git fetch origin --depth=$fetch_depth "${{ inputs.ref }}"
+            head_sha=$(git rev-parse "${{ inputs.ref }}")
+            base_sha=$(git rev-parse $head_sha~$fetch_depth)
+          fi
         fi
 
         git reset --hard FETCH_HEAD
