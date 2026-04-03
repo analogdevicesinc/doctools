@@ -36,12 +36,14 @@ runs:
       shell: bash
       if: ${{ inputs.api-key != '' && inputs.api-key != ' ' }}
       run: |
+        # Check if should run
         echo "LLM_AGENT_RUN=true" >> "$GITHUB_ENV"
 
     - name: Warn on won't run
       shell: bash
       if: ${{ inputs.api-key == '' || inputs.api-key == ' ' }}
       run: |
+        # Warn on won't run
         echo "::warning ::llm: Input 'api-key' empty, won't run"
 
     - uses: analogdevicesinc/doctools/gh-get-ref-range@action
@@ -68,7 +70,6 @@ runs:
         # Prepare files
         echo "session_file=$(mktemp --suffix=.jsonl)" >> "$GITHUB_ENV"
         echo "summary_file=$(mktemp --suffix=.md)" >> "$GITHUB_ENV"
-        echo "filter_mjs=$(mktemp --suffix=.mjs)" >> "$GITHUB_ENV"
         echo "patches_path=$(mktemp -d)" >> "$GITHUB_ENV"
 
     - name: Ensure node
@@ -91,8 +92,10 @@ runs:
         # Setup pi
         npm install @mariozechner/pi-coding-agent@0.64.0
 
-        curl -sL -H "Authorization: Bearer ${{ inputs.gh-token }}" -o "$filter_mjs" \
-          https://raw.githubusercontent.com/analogdevicesinc/doctools/action/llm/filter.mjs
+        curl -sL -H "Authorization: Bearer ${{ inputs.gh-token }}" -o "/tmp/fmt_args.py" \
+          https://raw.githubusercontent.com/analogdevicesinc/doctools/action/llm/fmt_args.py
+        curl -sL -H "Authorization: Bearer ${{ inputs.gh-token }}" -o "/tmp/observer.py" \
+          https://raw.githubusercontent.com/analogdevicesinc/doctools/action/llm/observer.py
 
         cat <<'EOF' > ~/.pi/agent/models.json
         {
@@ -127,15 +130,15 @@ runs:
         [[ -f "${{ inputs.sh-source }}" ]] && \
           source "${{ inputs.sh-source}}"
 
-        node "$filter_mjs" "$session_file" &
-        filter_pid=$!
+        python3 /tmp/observer.py "$session_file" &
+        observer_pid=$!
 
-        cat "${{ inputs.prompt-file }}" | \
+        python3 /tmp/fmt_args.py "${{ inputs.prompt-file }}" | \
           ./node_modules/.bin/pi -p \
             --provider "portkey" --model "${{ inputs.model }}" \
             --session "$session_file"
 
-        kill $filter_pid 2>/dev/null
+        kill $observer_pid
 
     - name: Collect results
       shell: bash
@@ -193,5 +196,5 @@ runs:
       run: |
         # Clean-up
         rm -rf "$HOME/.pi"
-        rm -f "$annotations_file" "$summary_file" "$session_file" "$filter_mjs"
+        rm -f "$annotations_file" "$summary_file" "$session_file"
         rm -rf "$patches_path"
