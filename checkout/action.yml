@@ -44,11 +44,11 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Resolve ref to PR
+    - name: Resolve ref to pr
       id: resolve
       shell: bash
       run: |
-        # Resolve ref to PR
+        # Resolve ref to pr
         [[ "${{ runner.debug }}" == "1" ]] && set -x
 
         ref="${{ inputs.ref }}"
@@ -148,6 +148,7 @@ runs:
         fi
 
         if [[ ! -d .git ]]; then
+          echo "git init"
           git init --initial-branch=trunk .
           git config core.pager cat
           git remote add origin "$url"
@@ -158,6 +159,7 @@ runs:
             git remote rm local
           fi
         else
+          echo "git reset"
           git config core.pager cat
           git remote set-url origin "$url"
 
@@ -212,6 +214,7 @@ runs:
         fetch_depth=7
 
         git_fetch_deepen () {
+          echo "fetch $fetch_depth commits"
           git fetch origin --deepen=$fetch_depth "$1"
           fetch_depth=$((fetch_depth * 2))
           [[ $fetch_depth -gt 500 ]] && fetch_depth=500 || true
@@ -222,7 +225,7 @@ runs:
           git fetch origin --depth=1 "refs/pull/$pr/merge"
           fetch_head=$(git rev-parse FETCH_HEAD)
 
-          while ! git merge-base $fetch_head^1 $fetch_head^2 ; do
+          while ! git merge-base $fetch_head^1 $fetch_head^2 2>/dev/null ; do
             git_fetch_deepen "$fetch_head"
           done
 
@@ -237,7 +240,7 @@ runs:
              [[ "${{ inputs.ref }}" == "${{ github.sha }}" ]]; then
             head_sha="${{ github.sha }}"
             base_sha="${{ github.event.before }}"
-            while ! git rev-list --count $base_sha~..$head_sha ; do
+            while ! git rev-list --count $base_sha~..$head_sha 2>/dev/null ; do
               git_fetch_deepen "${{ inputs.ref }}"
             done
           else
