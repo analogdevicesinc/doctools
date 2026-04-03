@@ -85,11 +85,14 @@ runs:
             resp=$(curl -s \
               -H "Authorization: Bearer ${{ inputs.gh-token }}" \
               -H "Accept: application/vnd.github+json" \
-              "https://api.github.com/repos/$repository/commits/$sha/pulls?state=open")
+              "https://api.github.com/repos/$repository/commits/$sha/pulls")
             pr_json=$(echo "$resp" | jq '.[0]')
           fi
 
-          pr=$(echo "$pr_json" | jq -r '.number')
+          state=$(echo "$pr_json" | jq -r '.state')
+          if [[ "state" == "open" ]]; then
+            pr=$(echo "$pr_json" | jq -r '.number')
+          fi
         else
           # pr number
           pr="${ref#pull/}"
@@ -215,6 +218,7 @@ runs:
         }
         if [[ -n "$pr" ]]; then
           mode="pr"
+          # refs/pull/*/merge exist only on open pr
           git fetch origin --depth=1 "refs/pull/$pr/merge"
           fetch_head=$(git rev-parse FETCH_HEAD)
 
