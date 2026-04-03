@@ -207,13 +207,19 @@ runs:
         fi
 
         fetch_depth=7
+
+        git_fetch_deepen () {
+          git fetch origin --deepen=$fetch_depth "$1"
+          fetch_depth=$((fetch_depth * 2))
+          [[ $fetch_depth -gt 500 ]] && fetch_depth=500 || true
+        }
         if [[ -n "$pr" ]]; then
           mode="pr"
           git fetch origin --depth=1 "refs/pull/$pr/merge"
           fetch_head=$(git rev-parse FETCH_HEAD)
 
           while ! git merge-base $fetch_head^1 $fetch_head^2 ; do
-            git fetch origin --deepen=$fetch_depth $fetch_head
+            git_fetch_deepen "$fetch_head"
           done
 
           head_sha=$(git rev-parse $fetch_head^2)
@@ -228,7 +234,7 @@ runs:
             head_sha="${{ github.sha }}"
             base_sha="${{ github.event.before }}"
             while ! git rev-list --count $base_sha~..$head_sha ; do
-              git fetch origin --deepen=$fetch_depth "${{ inputs.ref }}"
+              git_fetch_deepen "${{ inputs.ref }}"
             done
           else
             git fetch origin --depth=$fetch_depth "${{ inputs.ref }}"
