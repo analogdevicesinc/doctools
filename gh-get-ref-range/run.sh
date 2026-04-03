@@ -5,6 +5,7 @@ gh_get_ref_range() {
 
   local pr_number=""
   local pr_base_ref=""
+  local merge_commit_sha=""
 
   head_sha=""
   base_sha=""
@@ -24,6 +25,13 @@ gh_get_ref_range() {
     pr_base_ref=$(echo "$resp" | jq -r '.base.ref')
     echo "pr_base_ref: $pr_base_ref"
     echo "head_sha: $head_sha"
+
+    merge_commit_sha=$(echo "$resp" | jq -r '.merge_commit_sha')
+    if [[ "$merge_commit_sha" == "null" ]]; then
+      echo "::error ::gh-get-ref-range: Pull request '$pr_number' has conflicts."
+      return 1
+    fi
+    echo "merge_commit_sha: $merge_commit_sha"
 
     resp=$(curl -s \
       -H "Authorization: Bearer $github_token" \
@@ -72,12 +80,19 @@ gh_get_ref_range() {
       pr_base_ref=$(echo "$pr_json" | jq -r '.base.ref')
       echo "got pr: #$pr_number (base: $pr_base_ref)"
 
+      merge_commit_sha=$(echo "$resp" | jq -r '.merge_commit_sha')
+      if [[ "$merge_commit_sha" == "null" ]]; then
+        echo "::error ::gh-get-ref-range: Pull request '$pr_number' has conflicts."
+        return 1
+      fi
+      echo "merge_commit_sha: $merge_commit_sha"
+
       resp=$(curl -s \
         -H "Authorization: Bearer $github_token" \
         -H "Accept: application/vnd.github+json" \
         "https://api.github.com/repos/$org_repository/commits/$pr_base_ref")
       http_code=$(echo "$resp" | jq -r '.status // empty')
-      [[ "$http_code" == "404" ]] && { echo "Base ref '$pr_base_ref' not found"; return 1; }
+      [[ "$http_code" == "404" ]] && { echo "::error ::Base ref '$pr_base_ref' not found"; return 1; }
 
       base_sha=$(echo "$resp" | jq -r '.sha')
       echo "base_sha: $base_sha (base: $pr_base_ref)"

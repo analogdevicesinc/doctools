@@ -14,13 +14,13 @@ inputs:
 
 outputs:
   head_sha:
-    description: "Resolved head commit SHA"
+    description: "Head commit SHA"
     value: ${{ steps.resolve.outputs.head_sha }}
   base_sha:
-    description: "Resolved base commit SHA (from PR if available)"
+    description: "Base commit SHA (if PR available)"
     value: ${{ steps.resolve.outputs.base_sha }}
   pr_number:
-    description: "Pull request number (if ref is a PR or branch has an open PR)"
+    description: "Pull request number (if PR available)"
     value: ${{ steps.resolve.outputs.pr_number }}
   pr_base_ref:
     description: "Pull request base branch name"
@@ -43,6 +43,7 @@ runs:
 
           local pr_number=""
           local pr_base_ref=""
+          local merge_commit_sha=""
 
           head_sha=""
           base_sha=""
@@ -62,6 +63,13 @@ runs:
             pr_base_ref=$(echo "$resp" | jq -r '.base.ref')
             echo "pr_base_ref: $pr_base_ref"
             echo "head_sha: $head_sha"
+
+            merge_commit_sha=$(echo "$resp" | jq -r '.merge_commit_sha')
+            if [[ "$merge_commit_sha" == "null" ]]; then
+              echo "::error ::gh-get-ref-range: Pull request '$pr_number' has conflicts."
+              return 1
+            fi
+            echo "merge_commit_sha: $merge_commit_sha"
 
             resp=$(curl -s \
               -H "Authorization: Bearer $github_token" \
@@ -110,12 +118,19 @@ runs:
               pr_base_ref=$(echo "$pr_json" | jq -r '.base.ref')
               echo "got pr: #$pr_number (base: $pr_base_ref)"
 
+              merge_commit_sha=$(echo "$resp" | jq -r '.merge_commit_sha')
+              if [[ "$merge_commit_sha" == "null" ]]; then
+                echo "::error ::gh-get-ref-range: Pull request '$pr_number' has conflicts."
+                return 1
+              fi
+              echo "merge_commit_sha: $merge_commit_sha"
+
               resp=$(curl -s \
                 -H "Authorization: Bearer $github_token" \
                 -H "Accept: application/vnd.github+json" \
                 "https://api.github.com/repos/$org_repository/commits/$pr_base_ref")
               http_code=$(echo "$resp" | jq -r '.status // empty')
-              [[ "$http_code" == "404" ]] && { echo "Base ref '$pr_base_ref' not found"; return 1; }
+              [[ "$http_code" == "404" ]] && { echo "::error ::Base ref '$pr_base_ref' not found"; return 1; }
 
               base_sha=$(echo "$resp" | jq -r '.sha')
               echo "base_sha: $base_sha (base: $pr_base_ref)"
