@@ -130,7 +130,7 @@ runs:
         python3 /tmp/fmt_args.py "${{ inputs.prompt-file }}" | \
           ./node_modules/.bin/pi -p \
             --provider "portkey" --model "${{ inputs.model }}" \
-            --session "$session_file"
+            --session "$session_file" || true
 
         kill $observer_pid
 
