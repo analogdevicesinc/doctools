@@ -257,7 +257,8 @@ runs:
             base_sha=$into_head_sha
           } || {
             git rebase --abort
-            checkout_fail_pr_rebase="true"
+            echo "checkout_fail_pr_rebase=true" >> "$GITHUB_ENV"
+            echo "checkout_fail_pr_rebase=true" >> "$GITHUB_OUTPUT"
           }
 
           # apply fixups
@@ -267,7 +268,8 @@ runs:
               head_sha=$(git rev-parse HEAD)
             } || {
               git rebase --abort
-              checkout_fail_pr_fixup="true"
+              echo "checkout_fail_pr_fixup=true" >> "$GITHUB_ENV"
+              echo "checkout_fail_pr_fixup=true" >> "$GITHUB_OUTPUT"
             }
           } || true
         fi
@@ -278,11 +280,6 @@ runs:
 
         echo "head_sha=$head_sha" >> "$GITHUB_OUTPUT"
         echo "base_sha=$base_sha" >> "$GITHUB_OUTPUT"
-        echo "checkout_fail_pr_rebase=$checkout_fail_pr_rebase" >> "$GITHUB_OUTPUT"
-        echo "checkout_fail_pr_fixup=$checkout_fail_pr_fixup" >> "$GITHUB_OUTPUT"
-
         echo "head_sha=$head_sha" >> "$GITHUB_ENV"
         echo "base_sha=$base_sha" >> "$GITHUB_ENV"
-        echo "checkout_fail_pr_rebase=$checkout_fail_pr_rebase" >> "$GITHUB_ENV"
-        echo "checkout_fail_pr_fixup=$checkout_fail_pr_fixup" >> "$GITHUB_ENV"
 
