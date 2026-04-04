@@ -7,7 +7,7 @@ inputs:
     default: ${{ github.repository }}
   ref:
     description: "The branch, tag, SHA, or PR number (e.g. 123 or pull/123) to resolve"
-    default: ${{ github.event.pull_request.number || github.sha }}
+    default: ${{ github.sha }}
   gh-token:
     description: "GitHub Token"
     default: ${{ github.token }}
@@ -19,9 +19,6 @@ inputs:
     default: 'false'
 
 outputs:
-  pr:
-    description: "Pull request number"
-    value: ${{ steps.resolve.outputs.pr }}
   head_sha:
     description: "Head commit sha"
     value: ${{ steps.checkout.outputs.head_sha }}
@@ -36,16 +33,33 @@ outputs:
     value: ${{ steps.checkout.outputs.checkout_fail_pr_fixup }}
 
 # Behaviour:
-# If a PR is associated with the ref, it is used:
-# - The history is rebased into the target branch head (fail -> checkout_fail_pr_rebase)
-# - Fixup commits are auto squashed (fail -> checkout_fail_pr_fixup)
-# If no PR is associated, just checkout N commits.
+# Event:
+# - dispatch:
+#   - lookup pr associated with the ref, if found, pr flow, else, branch flow.
+# - push:
+#   - fetch til base-sha if not force pushed or new branch, if it is, fixed depth (branch flow).
+# - pull request:
+#   - The history is rebased into the target branch head (fail -> checkout_fail_pr_rebase)
+#   - Fixup commits are auto squashed (fail -> checkout_fail_pr_fixup)
+#
+# Note: do not use this action to dispatch a checkout at the branch head, it
+# will fall into the pr flow if a pull request is associated with the
+# github.sha (e.g., merged), use blank@action instead.
 
 runs:
   using: composite
   steps:
+    - name: Use pull request context
+      if: ${{ github.event_name == "pull_request" && inputs.repository == github.repository && inputs.ref == github.sha }}
+      shell: bash
+      run: |
+        # Use pull request context
+        echo "merge_commit_sha=${{ github.sha }}" >> "$GITHUB_ENV"
+        echo "pr=${{ github.event.pull_request.number }}" >> "$GITHUB_ENV"
+
     - name: Resolve ref to pr number and merge commit sha
       id: resolve
+      if: ${{ github.event_name == "workflow_dispatch" && inputs.repository == github.repository }}
       shell: bash
       run: |
         # Resolve ref to pr number and merge commit sha
@@ -118,8 +132,7 @@ runs:
           fi
         fi
 
-        echo "merge_commit_sha=$merge_commit_sha" >> "$GITHUB_OUTPUT"
-        echo "pr=$pr" >> "$GITHUB_OUTPUT"
+        echo "merge_commit_sha=$merge_commit_sha" >> "$GITHUB_ENV"
         echo "pr=$pr" >> "$GITHUB_ENV"
 
     - name: Prepare git
@@ -204,8 +217,8 @@ runs:
         cd "${{ inputs.path }}"
 
         repository="${{ inputs.repository }}"
-        pr="${{ steps.resolve.outputs.pr }}"
-        merge_commit_sha="${{ steps.resolve.outputs.merge_commit_sha }}"
+        pr="${{ env.pr }}"
+        merge_commit_sha="${{ env.merge_commit_sha }}"
 
         # --empty was added on git 2.26.0
         has_keep=$(git rebase -help 2>&1 | grep "\--empty" | wc -l) || true
@@ -215,7 +228,7 @@ runs:
           keep_empty="--keep-empty"
         fi
 
-        fetch_depth=7
+        fetch_depth=5
 
         git_fetch_deepen () {
           echo "fetch $fetch_depth commits"
@@ -225,7 +238,7 @@ runs:
         }
         if [[ -n "$pr" ]]; then
           mode="pr"
-          # use merge commit sha because refs/pull/*/merge exist only on open pr
+          # use merge commit sha because refs/pull/*/merge exist only if pr is open
           git fetch origin --depth=1 "$merge_commit_sha"
           fetch_head=$(git rev-parse FETCH_HEAD)
 
@@ -249,9 +262,9 @@ runs:
               git_fetch_deepen "${{ inputs.ref }}"
             done
           else
-            git fetch origin --depth=$fetch_depth "${{ inputs.ref }}"
+            git fetch origin --depth=1 "${{ inputs.ref }}"
             head_sha=$(git rev-parse "${{ inputs.ref }}")
-            base_sha=$(git rev-parse $head_sha~$fetch_depth)
+            base_sha=$(git rev-parse $head_sha~) || true
           fi
         fi
 
