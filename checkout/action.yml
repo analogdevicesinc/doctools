@@ -241,6 +241,7 @@ runs:
           mode="branch"
           if [[ ! "${{ github.event.before }}" =~ "0000000000000000" ]] && \
              [[ "${{ github.event.forced }}" == "false" ]] && \
+             [[ "${{ inputs.repository }}" == "${{ github.repository }}" ]] && \
              [[ "${{ inputs.ref }}" == "${{ github.sha }}" ]]; then
             head_sha="${{ github.sha }}"
             base_sha="${{ github.event.before }}"
