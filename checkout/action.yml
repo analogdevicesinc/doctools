@@ -89,9 +89,9 @@ runs:
             pr_json=$(echo "$resp" | jq '.[0]')
           fi
 
-          state=$(echo "$pr_json" | jq -r '.state')
-          if [[ "state" == "open" ]]; then
-            pr=$(echo "$pr_json" | jq -r '.number')
+          pr=$(echo "$pr_json" | jq -r '.number')
+          if [[ "$pr" == "null" ]]; then
+            pr=""
           fi
         else
           # pr number
