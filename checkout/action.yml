@@ -50,16 +50,17 @@ runs:
   using: composite
   steps:
     - name: Use pull request context
-      if: ${{ github.event_name == "pull_request" && inputs.repository == github.repository && inputs.ref == github.sha }}
+      if: ${{ github.event_name == 'pull_request' && inputs.repository == github.repository && inputs.ref == github.sha }}
       shell: bash
       run: |
         # Use pull request context
         echo "merge_commit_sha=${{ github.sha }}" >> "$GITHUB_ENV"
         echo "pr=${{ github.event.pull_request.number }}" >> "$GITHUB_ENV"
+        echo "branch=${{ github.head_ref }}" >> "$GITHUB_ENV"
 
     - name: Resolve ref to pr number and merge commit sha
       id: resolve
-      if: ${{ github.event_name == "workflow_dispatch" && inputs.repository == github.repository }}
+      if: ${{ github.event_name == 'workflow_dispatch' && inputs.repository == github.repository }}
       shell: bash
       run: |
         # Resolve ref to pr number and merge commit sha
@@ -81,16 +82,16 @@ runs:
           # branch/commit
 
           # try branch
-          branch="${ref#refs/heads/}"
-          [[ "$branch" == *":"* ]] || {
+          branch_="${ref#refs/heads/}"
+          [[ "$branch_" == *":"* ]] || {
             owner="${repository%/*}"
-            branch="$owner:$branch"
+            branch_="$owner:$branch_"
           }
           # some-user:my-fix
           resp=$(curl -s \
             -H "Authorization: Bearer ${{ inputs.gh-token }}" \
             -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/$repository/pulls?head=$branch&state=open")
+            "https://api.github.com/repos/$repository/pulls?head=$branch_&state=open")
 
           pr_json=$(echo "$resp" | jq '.[0]')
           if [[ "$pr_json" == "null" ]]; then
@@ -124,16 +125,20 @@ runs:
             pr=""
           else
             merge_commit_sha=$(echo "$resp" | jq -r '.merge_commit_sha')
+            branch="$(echo "$pr_json" | jq '.head.ref')"
             if [[ "$merge_commit_sha" == "null" ]]; then
               # has conflicts
               merge_commit_sha=""
               pr=""
             fi
           fi
+        else
+          branch="trunk"
         fi
 
         echo "merge_commit_sha=$merge_commit_sha" >> "$GITHUB_ENV"
         echo "pr=$pr" >> "$GITHUB_ENV"
+        echo "branch=$branch" >> "$GITHUB_ENV"
 
     - name: Prepare git
       shell: bash
@@ -219,6 +224,7 @@ runs:
         repository="${{ inputs.repository }}"
         pr="${{ env.pr }}"
         merge_commit_sha="${{ env.merge_commit_sha }}"
+        branch="${{ env.branch || github.ref_name }}"
 
         # --empty was added on git 2.26.0
         has_keep=$(git rebase -help 2>&1 | grep "\--empty" | wc -l) || true
