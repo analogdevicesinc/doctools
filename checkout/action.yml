@@ -44,11 +44,11 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Resolve ref to pr
+    - name: Resolve ref to pr number and merge commit sha
       id: resolve
       shell: bash
       run: |
-        # Resolve ref to pr
+        # Resolve ref to pr number and merge commit sha
         [[ "${{ runner.debug }}" == "1" ]] && set -x
 
         ref="${{ inputs.ref }}"
@@ -112,11 +112,13 @@ runs:
             merge_commit_sha=$(echo "$resp" | jq -r '.merge_commit_sha')
             if [[ "$merge_commit_sha" == "null" ]]; then
               # has conflicts
+              merge_commit_sha=""
               pr=""
             fi
           fi
         fi
 
+        echo "merge_commit_sha=$merge_commit_sha" >> "$GITHUB_OUTPUT"
         echo "pr=$pr" >> "$GITHUB_OUTPUT"
         echo "pr=$pr" >> "$GITHUB_ENV"
 
@@ -203,6 +205,7 @@ runs:
 
         repository="${{ inputs.repository }}"
         pr="${{ steps.resolve.outputs.pr }}"
+        merge_commit_sha="${{ steps.resolve.outputs.merge_commit_sha }}"
 
         # --empty was added on git 2.26.0
         has_keep=$(git rebase -help 2>&1 | grep "\--empty" | wc -l) || true
@@ -222,8 +225,8 @@ runs:
         }
         if [[ -n "$pr" ]]; then
           mode="pr"
-          # refs/pull/*/merge exist only on open pr
-          git fetch origin --depth=1 "refs/pull/$pr/merge"
+          # use merge commit sha because refs/pull/*/merge exist only on open pr
+          git fetch origin --depth=1 "$merge_commit_sha"
           fetch_head=$(git rev-parse FETCH_HEAD)
 
           while ! git merge-base $fetch_head^1 $fetch_head^2 2>/dev/null ; do
