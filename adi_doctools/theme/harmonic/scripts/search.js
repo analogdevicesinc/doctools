@@ -4,61 +4,37 @@ import {Versioned} from './versioned.js'
 import {Toolbox} from './toolbox.js'
 import {DOM} from './dom.js'
 
-/**
- * Simple result scoring code.
- */
-if (typeof Scorer === "undefined") {
-  var Scorer = {
-    // Implement the following function to further tweak the score for each result
-    // The function takes a result array [docname, title, anchor, descr, score, filename]
-    // and returns the new score.
-    /*
-    score: result => {
-      const [docname, title, anchor, descr, score, filename, kind] = result
-      return score
-    },
-    */
+// Testing:
+// - Populate: adoc doc2vector --docs path/to/$repo/gh-pages --version $version --output vector-search/mock/$repo/$version
+// - Run server: node vector-search/serve.mjs 3000
+const INV_PREFIX = 'http://localhost:3000/'
+//const INV_PREFIX = 'https://raw.githubusercontent.com/analogdevicesinc/doctools/refs/heads/vector/'
 
-    // query matches the full name of an object
-    objNameMatch: 11,
-    // or matches in the last dotted part of the object name
-    objPartialMatch: 6,
-    // Additive scores depending on the priority of the object
-    objPrio: {
-      0: 15, // used to be importantResults
-      1: 5, // used to be objectResults
-      2: -5, // used to be unimportantResults
-    },
-    //  Used when the priority is not in the mapping.
-    objPrioDefault: 0,
-
-    // query found in title
-    title: 15,
-    partialTitle: 7,
-    // query found in terms
-    term: 5,
-    partialTerm: 2,
-  };
-}
+const POOL_SIZE     = 30     // candidate passages considered before grouping
+const MAX_ENTRIES   = 4      // max section entries per page group
+const HEADING_BOOST = 0.02   // boost for hierarchy (breadcrumb + section headings)
+const TERM_BOOST    = 0.05   // per query term found in hierarchy
+const TITLE_BOOST   = 0.04   // extra per term found in the section's own heading ('User Guide')
 
 /**
- * See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#escaping
- */
-const _escapeRegExp = (string) =>
-  string.replace(/[.*+\-?^${}()|[\]\\]/g, "\\$&"); // $& means the whole matched string
-
-/**
- * A fork of Sphinx search tools with multi doc support.
+ * Vector search replacement for Sphinx keyword search.
+ * Uses TurboQuant WASM + all-MiniLM-L6-v2 (via @xenova/transformers).
  */
 export class Search {
   constructor (app) {
     this.parent = app
 
-    this.index = {}
+    // Per-key loaded vector data
+    this.indexData = {} // key → {tq, passages, compressedConcat, bytesPerVector, dim}
     this.index_state = {}
     this.key_prefix = {}
     this.versions_available = {}
     this.search_page = new URL(`${this.parent.state.content_root}search.html`, location).pathname
+
+    this._tqClassPromise = null // Promise<TurboQuant class>
+    this.embedder = null
+    this.embedderLoading = false
+    this.pendingQuery = null    // query deferred until embedder is ready
 
     let $ = this.$ = {}
     $.keyCheckbox = {}
@@ -119,7 +95,7 @@ export class Search {
 
     $.searchButton = new DOM(DOM.get('header button#search')) /* polyfill < v0.4.8 */
     if ($.searchButton.$ === null) {
-	    $.searchButton = new DOM('button', {
+      $.searchButton = new DOM('button', {
         id:'search',
         className:'icon',
         title:'Search (/)'
@@ -144,19 +120,66 @@ export class Search {
 
     app.search = this
   }
+
   /**
-   * Default split_query function. Can be overridden in ``sphinx.search`` with a
-   * custom function per language (TODO look for split_query and allow injection).
-   *
-   * The regular expression works by splitting the string on consecutive characters
-   * that are not Unicode letters, numbers, underscores, or emoji characters.
-   * This is the same as ``\W+`` in Python, preserving the surrogate pair area.
+   * Lazy load turboquant-wasm
+   * Uses Function constructor to bypass rollup's import() transform. TODO use proper external
    */
-  split_query (query) {
-     return query
-        .split(/[^\p{Letter}\p{Number}_\p{Emoji_Presentation}]+/gu)
-        .filter(term => term)
+  _getTurboQuantClass () {
+    if (!this._tqClassPromise) {
+      const url = new URL(
+        `${this.parent.state.content_root}_static/turboquant-wasm.js`, // TODO review how to deploy
+        location
+      ).href
+      const imp = new Function('u', 'return import(u)')
+      this._tqClassPromise = imp(url).then(m => m.TurboQuant)
+    }
+    return this._tqClassPromise
   }
+
+  /**
+   * Lazily load @xenova/transformers and initialise all-MiniLM-L6-v2.
+   * Runs a deferred query if one was queued.
+   */
+  async initEmbedder () {
+    if (this.embedder || this.embedderLoading) return
+    this.embedderLoading = true
+    try {
+      const imp = new Function('u', 'return import(u)')
+      const { pipeline, env } = await imp(`${INV_PREFIX}node_modules/@xenova/transformers/dist/transformers.js`)
+      env.allowLocalModels = false // no /models
+      env.backends.onnx.wasm.wasmPaths = `${INV_PREFIX}node_modules/@xenova/transformers/dist/`
+      this.embedder = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2')
+      if (this.pendingQuery) {
+        const q = this.pendingQuery
+        this.pendingQuery = null
+        this.query(q)
+      }
+    } catch (err) {
+      console.error('Vector search: failed to load embedding model:', err)
+    } finally {
+      this.embedderLoading = false
+    }
+  }
+
+  async embedQuery (text) {
+    const out = await this.embedder([text], { pooling: 'mean', normalize: true })
+    return new Float32Array(out.data)
+  }
+
+  parseTqvHeader (buffer) {
+    const view = new DataView(buffer)
+    const magic = new Uint8Array(buffer, 0, 4)
+    if (magic[0] !== 0x54 || magic[1] !== 0x51 || magic[2] !== 0x56 || magic[3] !== 0x00)
+      throw new Error('Invalid vector db magic')
+    return {
+      numVectors:     view.getUint32(5, true),
+      dim:            view.getUint16(9, true),
+      seed:           view.getUint32(11, true),
+      bytesPerVector: view.getUint16(15, true),
+    }
+  }
+
   cancel_search () {
     this.$.searchArea.classList.remove('on')
     this.$.searchAreaBg.classList.remove('on')
@@ -166,25 +189,11 @@ export class Search {
     url.searchParams.delete('r')
     history.replaceState({}, null, url)
   }
-  /*
-   * Helper function used by query() to order search results.
-   * Each input is an array of [docname, title, anchor, descr, score, filename, kind].
-   * Order the results by score (in opposite order of appearance, since the
-   * `_displayNextItem` function uses pop() to retrieve items) and then alphabetically.
+
+  /**
+   * Returns the remote doc URL the given key and optional version.
    */
-   _orderResultsByScoreThenName = (a, b) => {
-    const leftScore = a[4];
-    const rightScore = b[4];
-    if (leftScore === rightScore) {
-      // same score: sort alphabetically
-      const leftTitle = a[1].toLowerCase();
-      const rightTitle = b[1].toLowerCase();
-      if (leftTitle === rightTitle) return 0;
-      return leftTitle > rightTitle ? -1 : 1; // inverted is intentional
-    }
-    return leftScore > rightScore ? 1 : -1;
-  };
-  async get_searchindex(key, not_sub_hosted, version=null) {
+  async get_searchindex (key, not_sub_hosted, version=null) {
     const prefix = not_sub_hosted && key === "local" ?
                    location.origin : `${this.parent.state.metadata.remote_doc}${key}`
     let guess_default = (arr) => {
@@ -233,15 +242,16 @@ export class Search {
           this.index_state[key].version = null
           this.$.keyVersion[key].innerText = "-"
       }
-      return path.length > 0 ? `${prefix}/${path}/` : `${prefix}/`
+      return [`${prefix}/`, path.length > 0 ? `${path}/` : ``]
     }
 
     return await Toolbox.fetch_each(`${prefix}/tags.json`).then((obj) => {
-      this.key_prefix[key] = process(obj)
-
-      return `${this.key_prefix[key]}searchindex.js`
+      const [base, path] = process(obj)
+      this.key_prefix[key] = `${base}${path}`
+      return `${INV_PREFIX}inv/${key}/${path}`
     })
   }
+
   check_toc (key, ev) {
     if (ev.target.checked) {
       if (this.index_state[key].requested === false) {
@@ -249,8 +259,8 @@ export class Search {
         const selected_version = this.index_state[key].version
         this.get_searchindex(key, not_sub_hosted, selected_version)
           .then((url) => {
-            let search_ = new URL(url)
-            this.load_index(search_.href, key)
+            console.log(url)
+            this.load_index(url, key)
             this.index_state[key].requested = true
             this.$.keyCheckbox[key].classList.add('requested')
             this.$.keyCheckbox[key].classList.remove('failed')
@@ -265,6 +275,7 @@ export class Search {
     }
     this.renew_search()
   }
+
   renew_search () {
     let searchUL_ = []
     for (const [key, value] of Object.entries(this.index_state)) {
@@ -289,16 +300,13 @@ export class Search {
       this.$.searchResults.$.insertAdjacentElement('afterbegin', item.$)
     })
   }
+
   set_default () {
     /* Return if filter initialized */
     for (const [key, value] of Object.entries(this.$.keyCheckbox)) {
       if (value.$.checked)
         return
     }
-    /**
-     * When writing the docs, it is a better user experience to be able to search
-     * the local built docs.
-     */
     let key = this.parent.state.subhost === '' || this.parent.state.subhost === undefined || this.parent.state.standalone ?
               'local' : this.parent.state.repository
     if (this.parent.state.version !== undefined)
@@ -309,6 +317,7 @@ export class Search {
     this.$.keyCheckbox[key].$.checked = true
     this.$.keyCheckbox[key].$.dispatchEvent(event)
   }
+
   /* Search shortcut */
   search_shortcut (e) {
     if (((e.code === 'IntlRo' || e.code === 'Slash') ||
@@ -328,319 +337,229 @@ export class Search {
       }
     }
   }
+
   /**
-   * Load index of search sources.
+   * Load compressed.tqv + passages.json for key, init TurboQuant instance.
+   * Called after get_searchindex() resolves.
    */
-  load_index = (url, key) => {
-    let onfailure = (error) => {
-      console.warn(error)
+  load_index = async (url, key) => {
+    const onfailure = (error) => {
+      console.warn('load_index:', error)
       this.index_state[key].requested = false
       this.$.keyCheckbox[key].classList.remove('requested')
       this.$.keyCheckbox[key].classList.add('failed')
       this.$.keyCheckbox[key].$.checked = false
     }
-    const request = new Request(url)
-    fetch (request)
-      .then((response) => response.text())
-      .then((text) => {
-        try {
-          if (text.substring(0, 16) != "Search.setIndex(" || text.substring(text.length-1) != ")")
-            throw new Error(`Search index of key '${key}' is impropetly formatted`)
-          this.index[key] = JSON.parse(text.substring(16, text.length-1))
-          this.index_state[key].ready = true
-          this.$.keyCheckbox[key].classList.remove('requested')
-          this.$.keyCheckbox[key].classList.add('ready')
-          this.query(this.$.searchInput.$.value)
-        } catch (error) {
-          onfailure(error)
-        }
+    const url_passages = `${url}passages.json`
+    const url_vec = `${url}embeddings-minilml6-dim384.bin`
+    try {
+      const [TurboQuant, response_passages, response_vec] = await Promise.all([
+        this._getTurboQuantClass(),
+        fetch(new Request(url_passages)),
+        fetch(new Request(url_vec)),
+      ])
+
+      if (!response_passages.ok) throw new Error(`fetch ${url_passages} failed`)
+      if (!response_vec.ok)      throw new Error(`fetch ${response_vec.status} failed`)
+
+      const passages = await response_passages.json()
+      const tqvBuf   = await response_vec.arrayBuffer()
+      const hdr      = this.parseTqvHeader(tqvBuf)
+      const compressedConcat = new Uint8Array(tqvBuf, 17, hdr.numVectors * hdr.bytesPerVector)
+      const tq = await TurboQuant.init({ dim: hdr.dim, seed: hdr.seed })
+
+      this.indexData[key] = { tq, passages, compressedConcat, bytesPerVector: hdr.bytesPerVector, dim: hdr.dim }
+      this.index_state[key].ready = true
+      this.$.keyCheckbox[key].classList.remove('requested')
+      this.$.keyCheckbox[key].classList.add('ready')
+
+      this.initEmbedder()
+
+      this.query(this.$.searchInput.$.value)
+    } catch (error) {
+      onfailure(error)
+    }
+  }
+
+  _headingMatchScore (queryTerms, passage) {
+    const hierarchy = ((passage.hierarchy || []).join(' ')).toLowerCase()
+    const heading = (passage.hierarchy[passage.hierarchy.length - 1] || '').toLowerCase()
+
+    let score = 0
+    for (const t of queryTerms) {
+      if (hierarchy.includes(t)) {
+        score += TERM_BOOST
+        if (heading.includes(t)) score += TITLE_BOOST
+      }
+    }
+    return score
+  }
+
+  _vector_search (queryVec, queryText, key) {
+    const data = this.indexData[key]
+    const scores = data.tq.dotBatch(queryVec, data.compressedConcat, data.bytesPerVector)
+    const queryTerms = queryText.toLowerCase().split(/\s+/).filter(t => t.length > 1)
+
+    for (let i = 0; i < scores.length; i++) {
+      const p = data.passages[i]
+      const bDepth = p.hierarchy ? p.hierarchy.length : 0
+      scores[i] += HEADING_BOOST / (1 + bDepth)
+      if (queryTerms.length > 0)
+        scores[i] += this._headingMatchScore(queryTerms, p)
+    }
+
+    const indices = Array.from({ length: scores.length }, (_, i) => i)
+    indices.sort((a, b) => scores[b] - scores[a])
+    return { pool: indices.slice(0, POOL_SIZE), scores }
+  }
+
+  _url_page (url) {
+    const i = url.indexOf('#')
+    return i === -1 ? url : url.slice(0, i)
+  }
+
+  _build_page_index (passages) {
+    const idx = new Map()
+    for (let i = 0; i < passages.length; i++) {
+      const base = this._url_page(passages[i].url)
+      if (!idx.has(base)) idx.set(base, [])
+      idx.get(base).push(i)
+    }
+    return idx
+  }
+
+  _group_results(pool, scores, passages) {
+    const groups = pool.reduce((acc, idx) => {
+      const item = passages[idx]
+      const key = `${item.hierarchy[0]} / ${item.hierarchy[1]}` || item.hierarchy[0] || 'General'
+
+      if (!acc[key])
+        acc[key] = []
+
+      acc[key].push({ idx: idx, score: scores[idx] })
+
+      return acc
+    }, {})
+
+    const sorted_groups = Object.entries(groups)
+      .map(([name, entries]) => {
+        const rank = entries
+          .filter(m => m.score > 0.4)
+          .reduce((sum, m) => sum + m.score, 0);
+
+        return { name, entries, rank }
       })
-      .catch(onfailure)
+      .sort((a, b) => b.rank - a.rank)
+
+    return sorted_groups
   }
-  /**
-   * search for object names
-   */
-  perform_object_search (object, objectTerms, searchOn) {
-    const filenames = this.index[searchOn].filenames;
-    const docNames = this.index[searchOn].docnames;
-    const objects = this.index[searchOn].objects;
-    const objNames = this.index[searchOn].objnames;
-    const titles = this.index[searchOn].titles;
 
-    const results = [];
-
-    const objectSearchCallback = (prefix, match) => {
-      const name = match[4]
-      const fullname = (prefix ? prefix + "." : "") + name;
-      const fullnameLower = fullname.toLowerCase();
-      if (fullnameLower.indexOf(object) < 0) return;
-
-      let score = 0;
-      const parts = fullnameLower.split(".");
-
-      // check for different match types: exact matches of full name or
-      // "last name" (i.e. last dotted part)
-      if (fullnameLower === object || parts.slice(-1)[0] === object)
-        score += Scorer.objNameMatch;
-      else if (parts.slice(-1)[0].indexOf(object) > -1)
-        score += Scorer.objPartialMatch; // matches in last name
-
-      const objName = objNames[match[1]][2];
-      const title = titles[match[0]];
-
-      // If more than one term searched for, we require other words to be
-      // found in the name/title/description
-      const otherTerms = new Set(objectTerms);
-      otherTerms.delete(object);
-      if (otherTerms.size > 0) {
-        const haystack = `${prefix} ${name} ${objName} ${title}`.toLowerCase();
-        if (
-          [...otherTerms].some((otherTerm) => haystack.indexOf(otherTerm) < 0)
-        )
-          return;
-      }
-
-      let anchor = match[3];
-      if (anchor === "") anchor = fullname;
-      else if (anchor === "-") anchor = objNames[match[1]][1] + "-" + fullname;
-
-      const descr = objName + ", in " + title;
-
-      // add custom score for some objects according to scorer
-      if (Scorer.objPrio.hasOwnProperty(match[2]))
-        score += Scorer.objPrio[match[2]];
-      else score += Scorer.objPrioDefault;
-
-      results.push([
-        docNames[match[0]],
-        fullname,
-        "#" + anchor,
-        descr,
-        score,
-        filenames[match[0]],
-        "object",
-      ]);
-    };
-    Object.keys(objects).forEach((prefix) =>
-      objects[prefix].forEach((array) =>
-        objectSearchCallback(prefix, array)
-      )
-    );
-    return results;
+  _entry_label (passage, slice) {
+    const h = passage.hierarchy || []
+    if (h.length <= 1) return h[0] || ''
+    return h.slice(slice).join(' / ')
   }
-  /**
-   * search for full-text terms in the index
-   */
-  perform_terms_search (searchTerms, excludedTerms, searchOn) {
-    // prepare search
-    const terms = this.index[searchOn].terms;
-    const titleTerms = this.index[searchOn].titleterms;
-    const filenames = this.index[searchOn].filenames;
-    const docNames = this.index[searchOn].docnames;
-    const titles = this.index[searchOn].titles;
 
-    // Collect multiple result groups to be sorted separately and then ordered.
-    // Each is an array of [docname, title, anchor, descr, score, filename, kind].
-    const normalResults = []
-    const nonMainIndexResults = []
+  _render_group (key, group, passages) {
+    let li = new DOM('li', { className: 'group' })
 
-    const scoreMap = new Map();
-    const fileMap = new Map();
-
-    // perform the search on the required terms
-    searchTerms.forEach((word) => {
-      const files = [];
-      // find documents, if any, containing the query word in their text/title term indices
-      // use Object.hasOwnProperty to avoid mismatching against prototype properties
-      const arr = [
-        { files: terms.hasOwnProperty(word) ? terms[word] : undefined, score: Scorer.term },
-        { files: titleTerms.hasOwnProperty(word) ? titleTerms[word] : undefined, score: Scorer.title },
-      ];
-      // add support for partial matches
-      if (word.length > 2) {
-        const escapedWord = _escapeRegExp(word);
-        if (!terms.hasOwnProperty(word)) {
-          Object.keys(terms).forEach((term) => {
-            if (term.match(escapedWord))
-              arr.push({ files: terms[term], score: Scorer.partialTerm });
-          });
-        }
-        if (!titleTerms.hasOwnProperty(word)) {
-          Object.keys(titleTerms).forEach((term) => {
-            if (term.match(escapedWord))
-              arr.push({ files: titleTerms[term], score: Scorer.partialTitle });
-          });
-        }
-      }
-
-      // no match but word was a required one
-      if (arr.every((record) => record.files === undefined)) return;
-
-      // found search word in contents
-      arr.forEach((record) => {
-        if (record.files === undefined) return;
-
-        let recordFiles = record.files;
-        if (recordFiles.length === undefined) recordFiles = [recordFiles];
-        files.push(...recordFiles);
-
-        // set score for the word in each file
-        recordFiles.forEach((file) => {
-          if (!scoreMap.has(file)) scoreMap.set(file, new Map());
-          const fileScores = scoreMap.get(file);
-          fileScores.set(word, record.score);
-        });
-      });
-
-      // create the mapping
-      files.forEach((file) => {
-        if (!fileMap.has(file)) fileMap.set(file, [word]);
-        else if (fileMap.get(file).indexOf(word) === -1) fileMap.get(file).push(word);
-      });
-    });
-
-    // now check if the files don't contain excluded terms
-    const results = [];
-    for (const [file, wordList] of fileMap) {
-      // check if all requirements are matched
-
-      // as search terms with length < 3 are discarded
-      const filteredTermCount = [...searchTerms].filter(
-        (term) => term.length > 2
-      ).length;
-      if (
-        wordList.length !== searchTerms.size &&
-        wordList.length !== filteredTermCount
-      )
-        continue;
-
-      // ensure that none of the excluded terms is in the search result
-      if (
-        [...excludedTerms].some(
-          (term) =>
-            terms[term] === file ||
-            titleTerms[term] === file ||
-            (terms[term] || []).includes(file) ||
-            (titleTerms[term] || []).includes(file)
-        )
-      )
-        break;
-
-      // select one (max) score for the file.
-      const score = Math.max(...wordList.map((w) => scoreMap.get(file).get(w)));
-      // add result to the result list
-      results.push([
-        docNames[file],
-        titles[file],
-        "",
-        null,
-        score,
-        filenames[file],
-        "text",
-      ]);
-    }
-    return results;
-  }
-  /**
-   * Execute search (requires search index to be loaded)
-   */
-  perform_search (query, searchTerms, excludedTerms, highlightTerms, objectTerms, searchOn) {
-    const filenames = this.index[searchOn].filenames
-    const docNames = this.index[searchOn].docnames
-    const titles = this.index[searchOn].titles
-    const allTitles = this.index[searchOn].alltitles
-    const indexEntries = this.index[searchOn].indexentries
-
-    // Collect multiple result groups to be sorted separately and then ordered.
-    // Each is an array of [docname, title, anchor, descr, score, filename, kind].
-    const normalResults = []
-    const nonMainIndexResults = []
-
-    //_removeChildren(document.getElementById("search-progress"));
-
-    const queryLower = query.toLowerCase().trim();
-    for (const [title, foundTitles] of Object.entries(allTitles)) {
-      if (title.toLowerCase().trim().includes(queryLower) && (queryLower.length >= title.length/2)) {
-        for (const [file, id] of foundTitles) {
-          const score = Math.round(Scorer.title * queryLower.length / title.length)
-          const boost = titles[file] === title ? 1 : 0  // add a boost for document titles
-          normalResults.push([
-            docNames[file],
-            titles[file] !== title ? `${titles[file]} > ${title}` : title,
-            id !== null ? "#" + id : "",
-            null,
-            score + boost,
-            filenames[file],
-            "title",
-          ]);
-        }
-      }
+    if (group.entries.length == 1) {
+      const p = passages[group.entries[0].idx]
+      let link = new DOM('a', {
+        className: 'group-title',
+        innerText: this._entry_label(p, 1),
+        href: `${this.key_prefix[key]}${p.url}`
+      })
+      link.append(new DOM('span', {
+        innerText: p.text || ''
+      }))
+      li.append(link)
+      return li
     }
 
-    // search for explicit entries in index directives
-    for (const [entry, foundEntries] of Object.entries(indexEntries)) {
-      if (entry.includes(queryLower) && (queryLower.length >= entry.length/2)) {
-        for (const [file, id, isMain] of foundEntries) {
-          const score = Math.round(100 * queryLower.length / entry.length)
-          const result = [
-            docNames[file],
-            titles[file],
-            id ? "#" + id : "",
-            null,
-            score,
-            filenames[file],
-            "index",
-          ];
-          if (isMain) {
-            normalResults.push(result);
-          } else {
-            nonMainIndexResults.push(result);
-          }
-        }
-      }
+    let link = new DOM('div', {
+      className: 'group-title',
+      innerText: group.name
+    })
+    li.append(link)
+
+    for (const e of group.entries.slice(0,5)) {
+      const p = passages[e.idx]
+      let link_ = new DOM('a', {
+        className: 'entry',
+        innerText: this._entry_label(p, 2),
+        href: `${this.key_prefix[key]}${p.url}`
+      })
+      link_.append(new DOM('span', {
+        innerText: p.text || ''
+      }))
+      li.append(link_)
     }
-
-    // lookup as object
-    objectTerms.forEach((term) =>
-      normalResults.push(...this.perform_object_search(term, objectTerms, searchOn))
-    );
-
-    // lookup as search terms in fulltext
-    normalResults.push(...this.perform_terms_search(searchTerms, excludedTerms, searchOn))
-
-    // let the scorer override scores with a custom scoring function
-    if (Scorer.score) {
-      normalResults.forEach((item) => (item[4] = Scorer.score(item)))
-      nonMainIndexResults.forEach((item) => (item[4] = Scorer.score(item)))
-    }
-
-    // Sort each group of results by score and then alphabetically by name.
-    normalResults.sort(this._orderResultsByScoreThenName)
-    nonMainIndexResults.sort(this._orderResultsByScoreThenName)
-
-    // Combine the result groups in (reverse) order.
-    // Non-main index entries are typically arbitrary cross-references,
-    // so display them after other results.
-    let results = [...nonMainIndexResults, ...normalResults]
-
-    // remove duplicate search results
-    // note the reversing of results, so that in the case of duplicates, the highest-scoring entry is kept
-    let seen = new Set();
-    results = results.reverse().reduce((acc, result) => {
-      let resultStr = result.slice(0, 4).concat([result[5]]).map(v => String(v)).join(',')
-      if (!seen.has(resultStr)) {
-        acc.push(result);
-        seen.add(resultStr);
-      }
-      return acc;
-    }, []);
-
-    return results.reverse();
+    return li
   }
+
+  _render_results (key, groups, passages) {
+    const ul = this.$.searchUL[key]
+    // Clear previous results
+    while (ul.$.firstElementChild)
+      ul.$.removeChild(ul.$.lastChild)
+
+    if (groups.length === 0) {
+      this.$.searchLI[key].classList.add('empty')
+      return
+    }
+    this.$.searchLI[key].classList.remove('empty')
+
+    const items = groups.map(group => {
+      return this._render_group(key, group, passages)
+    })
+    ul.append(items)
+  }
+
+  async query (query) {
+    this.get_tags_and_update_url(query)
+    this.renew_search()
+
+    if (!query.trim()) return
+
+    const enabledKeys = Object.keys(this.index_state).filter(
+      key => this.$.keyCheckbox[key]?.$.checked &&
+             this.index_state[key].ready &&
+             this.indexData[key]
+    )
+    if (enabledKeys.length === 0) return
+
+    // Queue and show placeholder if embedder is not ready
+    if (!this.embedder) {
+      if (!this.embedderLoading) this.initEmbedder()
+      this.pendingQuery = query
+      for (const key of enabledKeys) {
+        const ul = this.$.searchUL[key]
+        while (ul.$.firstElementChild) ul.$.removeChild(ul.$.lastChild)
+        const li = new DOM('li')
+        li.append(new DOM('span', { className: 'loading' }))
+        ul.append([li])
+      }
+      return
+    }
+
+    try {
+      const queryVec = await this.embedQuery(query)
+      for (const key of enabledKeys) {
+        const data = this.indexData[key]
+        const { pool, scores } = this._vector_search(queryVec, query, key)
+        const groups = this._group_results(pool, scores, data.passages)
+        this._render_results(key, groups, data.passages)
+      }
+    } catch (err) {
+      console.error('Vector search query error:', err)
+    }
+  }
+
   get_tags_and_update_url (query) {
     const enabledTags = []
     for (const [key, value] of Object.entries(this.index_state)) {
-      if (this.$.keyCheckbox[key].$.checked === true && this.index[key] !== undefined) {
+      if (this.$.keyCheckbox[key].$.checked === true && this.indexData[key] !== undefined) {
         if (value['version'] === null)
           enabledTags.push(key)
         else
@@ -659,147 +578,7 @@ export class Search {
     history.replaceState({}, null, url);
     return enabledTags
   }
-  html_to_text (text, anchor) {
-    const htmlElement = new DOMParser().parseFromString(text, 'text/html');
-    for (const removalQuery of [".headerlink", "script", "style"]) {
-      htmlElement.querySelectorAll(removalQuery).forEach((el) => { el.remove() });
-    }
-    if (anchor) {
-      const anchorContent = htmlElement.querySelector(`[role="main"] ${anchor}`);
-      if (anchorContent)
-        return anchorContent.textContent;
 
-      console.warn(`Anchored content block '[role=main] ${anchor}' not found.`);
-    }
-
-    // if anchor not specified or not found, fall back to main content
-    const docContent = htmlElement.querySelector('[role="main"]');
-    if (docContent)
-      return docContent.textContent;
-
-    console.warn(`Anchored content block '[role=main] ${anchor}' not found.`);
-    return "";
-  }
-  get_summary (data, keywords, anchor, p_) {
-    const text = this.html_to_text(data, anchor);
-    if (text === "")
-      return
-
-    const textLower = text.toLowerCase();
-    const actualStartPosition = [...keywords]
-      .map((k) => textLower.indexOf(k.toLowerCase()))
-      .filter((i) => i > -1)
-      .slice(-1)[0]
-    const startWithContext = Math.max(actualStartPosition - 120, 0)
-
-    const top = startWithContext === 0 ? "" : "..."
-    const tail = startWithContext + 240 < text.length ? "..." : ""
-
-    p_.$.textContent = top + text.substr(startWithContext, 240).trim() + tail
-    p_.$.classList.remove('loading')
-  }
-  query (query) {
-    /* language data not loaded yet */
-    if (typeof Stemmer === "undefined")
-      return
-
-    const [searchQuery, searchTerms, excludedTerms, highlightTerms, objectTerms] = this.parse_query(query)
-    this.renew_search()
-    let enabledTags = this.get_tags_and_update_url(query)
-    enabledTags.forEach((key) => {
-      key = key.split('@')
-      const results = this.perform_search(searchQuery, searchTerms, excludedTerms, highlightTerms, objectTerms, key[0])
-      while (this.$.searchUL[key[0]].$.firstElementChild) {
-        this.$.searchUL[key[0]].$.removeChild(this.$.searchUL[key[0]].$.lastChild)
-      }
-
-      let searchResults_ = []
-      results.reverse()
-      results.forEach((item) => {
-        const [docName, title, anchor, descr, score, _filename, kind] = item;
-        let href_ = `${this.key_prefix[key[0]]}${docName}.html${anchor}`
-        let li_ = new DOM('li').append(
-          new DOM('a', {
-            href: href_,
-            innerText: title,
-          })
-          //highlightTerms.forEach((term) => _highlightText(listItem, term, "highlighted"))
-        )
-        if (descr) {
-          li_.append(
-            new DOM('span', {
-              innerText: `(${descr})`
-            }
-          ))
-        } else {
-          let p_ = new DOM('p', {
-            className: 'context',
-          })
-          // Make cached snappier
-          // To fully remove flickering it would be required to reuse the previous search DOMs.
-          const loading_ = setTimeout(() => {
-            p_.classList.add('loading')
-          }, 50)
-          li_.append(p_)
-          fetch(href_)
-            .then((response) => response.text())
-            .then((data) => {
-              if (data)
-                this.get_summary(data, searchTerms, anchor, p_)
-                //highlightTerms.forEach((term) => _highlightText(listItem, term, "highlighted"))
-            })
-            .finally(() => {
-              clearTimeout(loading_)
-            })
-        }
-        searchResults_.push(li_)
-      })
-      this.$.searchUL[key[0]].append(searchResults_)
-      if (results.length === 0)
-        this.$.searchLI[key[0]].classList.add('empty')
-      else
-        this.$.searchLI[key[0]].classList.remove('empty')
-    })
-
-  }
-  parse_query (query) {
-    // stem the search terms and add them to the correct list
-    const stemmer = new Stemmer();
-    const searchTerms = new Set();
-    const excludedTerms = new Set();
-    const highlightTerms = new Set();
-    const objectTerms = new Set(this.split_query(query.toLowerCase().trim()));
-    this.split_query(query.trim()).forEach((queryTerm) => {
-      const queryTermLower = queryTerm.toLowerCase();
-
-      // polyfill: starting from sphinx#13575, it is a Set
-      if (stopwords instanceof Set) {
-        // stopwords set is from language_data.js
-        if (stopwords.has(queryTermLower) || queryTerm.match(/^\d+$/))
-          return;
-      } else {
-        // stopwords array is from language_data.js
-        if (
-         stopwords.indexOf(queryTermLower) !== -1 ||
-         queryTerm.match(/^\d+$/)
-        )
-          return;
-      }
-
-      // stem the word
-      let word = stemmer.stemWord(queryTermLower);
-      // select the correct list
-      if (word[0] === "-") excludedTerms.add(word.substr(1));
-      else {
-        searchTerms.add(word);
-        highlightTerms.add(queryTermLower);
-      }
-    });
-
-    localStorage.setItem("sphinx_highlight_terms", [...highlightTerms].join(" "))
-
-    return [query, searchTerms, excludedTerms, highlightTerms, objectTerms];
-  }
   select_filter_tags (e) {
     if (!this.$.searchArea.classList.contains('on') ||
         !this.$.searchTags.classList.contains('on'))
@@ -813,6 +592,7 @@ export class Search {
       }
     })
   }
+
   keyup (e) {
     switch (e.code) {
       case 'IntlRo':
@@ -827,6 +607,7 @@ export class Search {
         break
     }
   }
+
   keydown (e) {
     switch (e.code) {
       case 'IntlRo':
@@ -844,11 +625,12 @@ export class Search {
     }
     this.select_filter_tags(e)
   }
+
   focus (e) {
-    // Resolve keyDown not captured due to browser Ctrl shortcut
     if (this.$.searchTags.classList.contains('on'))
         this.$.searchTags.classList.remove('on')
   }
+
   include_item (key, name, shortcut) {
     this.index_state[key] = {
       ready: false,
@@ -893,6 +675,7 @@ export class Search {
     this.$.keyVersion[key] = version_button
     this.$.keyCheckbox[key] = input_
   }
+
   get_class_labels (text) {
     if (text === '')
       return ''
@@ -903,10 +686,11 @@ export class Search {
       labels += ' unstable'
     return labels
   }
+
   /**
    * Show version dropdown for a specific search entry
    */
-  show_version_dropdown(key, version_button, ev) {
+  show_version_dropdown (key, version_button, ev) {
     let obj = this.versions_available[key]
     if (!obj) {
       console.warn(`No versions available for key: ${key}`)
@@ -960,21 +744,21 @@ export class Search {
     this.$.list.firstChild?.focus()
     this._show_version_dropdown(version_button.$, true)
   }
+
   /**
    * Deinit version in dropdowns
    */
-  clean_versions_dropdown() {
+  clean_versions_dropdown () {
     while (this.$.list.firstElementChild) {
       this.$.list.removeChild(this.$.list.lastChild)
     }
   }
+
   /**
    * Select a version for a specific search entry
    */
-  async select_version(key, version) {
+  async select_version (key, version) {
     this.index_state[key].version = version
-
-    const version_label = version === "" ? "main" : this.versions_available[key][version][0]
 
     if (this.$.keyCheckbox[key].$.checked && this.index_state[key].ready) {
       this.index_state[key].ready = false
@@ -985,14 +769,13 @@ export class Search {
       let not_sub_hosted = this.parent.state.subhost === '' || this.parent.state.subhost === undefined
       this.get_searchindex(key, not_sub_hosted, version)
         .then((url) => {
-          let search_ = new URL(url)
-          this.load_index(search_.href, key)
+          this.load_index(url, key)
           this.index_state[key].requested = true
           this.$.keyCheckbox[key].classList.remove('failed')
           this.renew_search()
         })
         .catch((error) => {
-          console.warn(`Failed to load search index for ${key} version ${version}:`, error)
+          console.warn(`Failed to load search index for '${key}' version '${version}':`, error)
           this.index_state[key].requested = false
           this.$.keyCheckbox[key].classList.remove('requested')
           this.$.keyCheckbox[key].classList.add('failed')
@@ -1002,7 +785,8 @@ export class Search {
     this.$.searchInput.focus()
     this._show_version_dropdown(undefined, false)
   }
-  _show_version_dropdown(dom, show) {
+
+  _show_version_dropdown (dom, show) {
     if (!show) {
       this.$.cancel.classList.remove('on')
       this.$.list.classList.remove('on')
@@ -1029,8 +813,9 @@ export class Search {
     this.$.cancel.classList.add('on')
     this.$.list.classList.add('on')
   }
+
   /**
-   * Create Tag/Version dropdown to be re-used.
+   * Create version-dropdown overlay (reused across open/close cycles).
    */
   render () {
     let body = DOM.get('body')
@@ -1051,6 +836,7 @@ export class Search {
     this.$.list = container2
     this.$.cancel = cancel_dropdown
   }
+
   /**
    * Construct offline search.
    */
@@ -1072,8 +858,9 @@ export class Search {
       document.querySelector('head')?.append(script)
     }
   }
+
   /**
-   * Construct search.
+   * Construct online search: register all repos from metadata + local build.
    */
   construct () {
     let alphanumeric = Toolbox.get_alphanumeric()
@@ -1082,15 +869,6 @@ export class Search {
     drop_.forEach(letter => {
 	alphanumeric.splice(alphanumeric.indexOf(letter), 1);
     })
-    let language_data_script = new URL(`${this.parent.state.content_root}_static/language_data.js`,
-                                       location)
-    this.$.language_data = new DOM('script', {
-      src: language_data_script.href,
-      async: true
-    }).onevent("load", this, (e) => {
-      this.$.searchForm.$.action = ""
-    })
-    this.$.body.append([this.$.language_data])
 
     if (!this.parent.state.standalone)
       for (const [key, value] of Object.entries(this.parent.state.metadata.repotoc)) {

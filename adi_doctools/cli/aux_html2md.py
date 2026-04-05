@@ -28,34 +28,6 @@ def find_main_content(tree):
             return main
 
 
-def get_plain_text(elem):
-    parts = []
-
-    if elem.text:
-        parts.append(elem.text)
-
-    for child in elem:
-        classes = child.get('class', '')
-        if classes is not None and 'headerlink' in classes:
-            if child.tail:
-                parts.append(child.tail)
-            continue
-
-        tag = child.tag
-        if isinstance(tag, str):
-            if tag in ('code',):
-                parts.append(child.text_content())
-            elif tag == 'br':
-                parts.append('\n')
-            else:
-                parts.append(get_plain_text(child))
-
-        if child.tail:
-            parts.append(child.tail)
-
-    return ''.join(parts)
-
-
 class HTMLToMarkdown:
     """Convert Sphinx-generated HTML to Markdown."""
 

@@ -149,7 +149,7 @@ def write_tqv(output_path, blobs, num_vectors, bytes_per_vector):
 
 
 def embed_chunks(chunks, model):
-    texts = [c["text"] for c in chunks]
+    texts = [c["chunk"] for c in chunks]
     vectors = []
 
     for i in range(0, len(texts), BATCH_SIZE):
@@ -252,16 +252,15 @@ def doc2vector():
 
     os.makedirs(output_dir, exist_ok=True)
 
-    tqv_path = os.path.join(output_dir, "compressed.tqv")
+    tqv_path = os.path.join(output_dir, "embeddings-minilml6-dim384.bin")
     write_tqv(tqv_path, blobs, len(chunks), bytes_per_vector)
 
     passages_path = os.path.join(output_dir, "passages.json")
     passages = [
         {
-            "text": c["displayText"],
+            "text": c["text"],
             "url": c["url"],
-            "headings": c["headings"],
-            "breadcrumb": c["breadcrumb"],
+            "hierarchy": [*c["breadcrumb"], *c["headings"]],
         }
         for c in chunks
     ]

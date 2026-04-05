@@ -7,43 +7,74 @@ from pathlib import Path
 from lxml import html as lxml_html
 
 from .aux_html2md import SKIP_CLASSES
-from .aux_html2md import find_main_content, get_plain_text
+from .aux_html2md import find_main_content
 
 
-def _remove_by_xpath(elem, xpath):
-    for el in elem.xpath(xpath):
-        el.getparent().remove(el)
+HEADING_TAGS = frozenset(('h1', 'h2', 'h3', 'h4', 'h5', 'h6'))
 
 
-def _clean_section(section):
-    clone = deepcopy(section)
-    for s in clone.xpath('./section'):
-        clone.remove(s)
-    for cls in SKIP_CLASSES:
-        _remove_by_xpath(clone, f".//*[contains(@class, '{cls}')]")
-    return clone
+def _get_plain_text(elem):
+    parts = []
+
+    if elem.text:
+        parts.append(elem.text)
+
+    for child in elem:
+        classes = child.get('class', '')
+        if classes is not None and 'headerlink' in classes:
+            if child.tail:
+                parts.append(child.tail)
+            continue
+
+        tag = child.tag
+        if isinstance(tag, str):
+            if tag in ('code',):
+                parts.append(child.text_content())
+            elif tag == 'br':
+                parts.append('\n')
+            else:
+                parts.append(_get_plain_text(child))
+
+        if child.tail:
+            parts.append(child.tail)
+
+    return ''.join(parts)
 
 
-def _section_text(section):
-    clone = _clean_section(section)
-    return re.sub(r'\s+', ' ', get_plain_text(clone)).strip()
-
-
-def _direct_heading(section):
-    for tag in ('h1', 'h2', 'h3', 'h4', 'h5', 'h6'):
+def _heading_text(section):
+    for tag in HEADING_TAGS:
         h = section.find(tag)
         if h is not None:
-            return h
-    return None
+            return h.text_content().replace('¶', '').strip()
+    return ''
+
+
+def _section_body(section):
+    clone = deepcopy(section)
+
+    for s in clone.xpath('./section'):
+        clone.remove(s)
+
+    for tag in HEADING_TAGS:
+        h = clone.find(tag)
+        if h is not None:
+            clone.remove(h)
+            break
+
+    for cls in SKIP_CLASSES:
+        for el in clone.xpath(f".//*[contains(@class, '{cls}')]"):
+            el.getparent().remove(el)
+
+    return re.sub(r'\s+', ' ', _get_plain_text(clone)).strip()
 
 
 def _heading_chain(section, page_title):
     chain = []
     el = section
     while el is not None:
-        heading = _direct_heading(el)
-        if heading is not None:
-            chain.insert(0, heading.text_content().replace('¶', '').strip())
+        title = _heading_text(el)
+        if title:
+            chain.insert(0, title)
         parent = el.getparent()
         el = parent if parent is not None and parent.tag == 'section' else None
     if not chain:
@@ -54,27 +85,12 @@ def _heading_chain(section, page_title):
 def _child_summaries(section, chars_per=100):
     summaries = []
     for child in section.xpath('./section'):
-        heading = _direct_heading(child)
-        title = ''
-        if heading is not None:
-            title = heading.text_content().replace('¶', '').strip()
-
+        title = _heading_text(child)
         if not title:
             continue
-        text = _section_text(child)
+        text = _section_body(child)
         summaries.append(title + (': ' + text[:chars_per] if text else ''))
     return summaries
-
-
-def _build_context(breadcrumb, headings):
-    parts = []
-    if breadcrumb:
-        parts.append(' / '.join(breadcrumb))
-    if headings:
-        parts.append(' / '.join(headings))
-    if not parts:
-        return ''
-    return ' — '.join(parts) + ': '
 
 
 def _extract_breadcrumb(tree):
@@ -89,11 +105,7 @@ def _extract_breadcrumb(tree):
 
 
 def HTMLToChunks(html_path, docs_root, max_text_chars=1000):
-    """Parse one Sphinx HTML file and return section-level chunks.
-
-    Each chunk is a dict with keys:
-        text, displayText, url, pageTitle, headings, breadcrumb, anchor
-    """
+    """Parse one Sphinx HTML file and return section-level chunks."""
     with open(html_path, 'r', encoding='utf-8', errors='replace') as f:
         html_content = f.read()
 
@@ -119,15 +131,14 @@ def HTMLToChunks(html_path, docs_root, max_text_chars=1000):
         if not body_text:
             return []
         headings = [page_title]
-        context = _build_context(breadcrumb, headings)
+        context = ' / '.join([*breadcrumb, *headings]) + ': '
         return [{
-            'text': (context + body_text)[:max_text_chars],
-            'displayText': body_text[:300],
+            'chunk': (context + body_text)[:max_text_chars],
+            'text': body_text[:300],
             'url': rel_path,
-            'pageTitle': page_title,
-            'headings': headings,
+            'title': page_title,
             'breadcrumb': breadcrumb,
-            'anchor': '',
+            'headings': headings,
         }]
 
     chunks = []
@@ -135,25 +146,24 @@ def HTMLToChunks(html_path, docs_root, max_text_chars=1000):
         anchor = sec.get('id', '')
         headings = _heading_chain(sec, page_title)
 
-        body_text = _section_text(sec)
+        body = _section_body(sec)
         child_sums = _child_summaries(sec)
 
         if child_sums:
-            body_text = (body_text + '. ' if body_text else '') + '. '.join(child_sums)
+            body = (body + '. ' if body else '') + '. '.join(child_sums)
 
-        if not body_text:
+        if not body:
             continue
 
-        display_text = _section_text(sec) or (child_sums[0] if child_sums else body_text)
-        context = _build_context(breadcrumb, headings)
+        hierarchy = [*breadcrumb, *headings]
+        context = ' / '.join(hierarchy) + ': ' if hierarchy else ''
 
         chunks.append({
-            'text': (context + body_text)[:max_text_chars],
-            'displayText': display_text[:300],
+            'chunk': (context + body)[:max_text_chars],
+            'text': body[:300],
             'url': rel_path + ('#' + anchor if anchor else ''),
-            'pageTitle': page_title,
-            'headings': headings,
+            'title': page_title,
             'breadcrumb': breadcrumb,
-            'anchor': anchor,
+            'headings': headings,
         })
     return chunks
