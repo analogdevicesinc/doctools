@@ -7,6 +7,54 @@ import traceback
 from urllib.parse import urljoin
 from lxml import html as lxml_html
 
+SKIP_CLASSES = [
+    'headerlink', 'sphinxsidebar', 'related', 'footer',
+    'document-nav', 'breadcrumb', 'toctree-wrapper', 'body-header',
+    'search-header',
+]
+
+def find_main_content(tree):
+    for selector in (
+        './/div[@role="main"][@class="body"]',
+        './/*[@role="main"]',
+        './/*[@class="body"]',
+        './/div[@class="document"]',
+        './/div[@class="documentwrapper"]',
+        './/main',
+        './/body',
+    ):
+        main = tree.find(selector)
+        if main is not None:
+            return main
+
+
+def get_plain_text(elem):
+    parts = []
+
+    if elem.text:
+        parts.append(elem.text)
+
+    for child in elem:
+        classes = child.get('class', '')
+        if classes is not None and 'headerlink' in classes:
+            if child.tail:
+                parts.append(child.tail)
+            continue
+
+        tag = child.tag
+        if isinstance(tag, str):
+            if tag in ('code',):
+                parts.append(child.text_content())
+            elif tag == 'br':
+                parts.append('\n')
+            else:
+                parts.append(get_plain_text(child))
+
+        if child.tail:
+            parts.append(child.tail)
+
+    return ''.join(parts)
+
 
 class HTMLToMarkdown:
     """Convert Sphinx-generated HTML to Markdown."""
@@ -31,17 +79,7 @@ class HTMLToMarkdown:
         if index != -1:
             self.anchor = self.base_url[index+1:]
 
-        # Find main content area
-        main_content = tree.find('.//div[@role="main"][@class="body"]')
-        # Alternatives to work with any sphinx build
-        if main_content is None:
-            main_content = tree.find('.//div[@class="document"]')
-        if main_content is None:
-            main_content = tree.find('.//div[@class="documentwrapper"]')
-        if main_content is None:
-            main_content = tree.find('.//main')
-        if main_content is None:
-            main_content = tree.find('.//body')
+        main_content = find_main_content(tree)
 
         if main_content is None:
             return None
@@ -62,10 +100,7 @@ class HTMLToMarkdown:
 
         classes = elem.get('class', '')
         # Skip navigation, headers, footers (to work with any sphinx build)
-        if any(skip in classes for skip in [
-            'headerlink', 'sphinxsidebar', 'related', 'footer',
-            'document-nav', 'breadcrumb', 'toctree-wrapper'
-        ]):
+        if any(skip in classes for skip in SKIP_CLASSES):
             return
 
         if tag in ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']:

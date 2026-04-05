@@ -39,6 +39,7 @@ Commands:
     custom-doc   Creates an aggregated documentation out the repos in the doc.yaml file.
     search       Search Analog Devices Sphinx documentation.
     search-wiki  Search Analog Devices DokuWiki (legacy).
+    doc2vector   Vectorize documentation.
 
 'adoc COMMAND --help' list available subcommands
 """)
@@ -188,5 +189,24 @@ def get_arguments_search_wiki():
     parser.add_argument('--format', choices=['raw', 'html'], default='raw',
                         help='Format for fetched content: raw (DokuWiki markup, default), html')
 
+    args = parser.parse_args()
+    return args
+
+
+def get_arguments_doc2vector():
+    """Parse arguments for the doc2vector command."""
+    parser = argparse.ArgumentParser(
+            prog='adoc doc2vector',
+            description="Vectorize documentation")
+    parser.add_argument("--docs", required=True,
+                        help="Root path of Sphinx html output")
+    parser.add_argument("--version", required=True,
+                        help='Version to process (e.g. "v0.4.40", ".")')
+    parser.add_argument("--output", default='output',
+                        help="Output directory")
+    parser.add_argument("--wasm", required=True,
+                        help="Path to turboquant.wasm")
+    parser.add_argument("--workers", type=int, default=None,
+                        help="Number of parallel workers")
     args = parser.parse_args()
     return args

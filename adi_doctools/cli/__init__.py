@@ -42,6 +42,12 @@ def main_search_wiki():
     search_wiki_cli()
 
 
+def main_doc2vector():
+    from .doc2vector import doc2vector
+
+    doc2vector()
+
+
 def entry_point():
     set_logging()
     cmd = get_command()
@@ -60,6 +66,8 @@ def entry_point():
         main_search()
     elif cmd == 'search-wiki':
         main_search_wiki()
+    elif cmd == 'doc2vector':
+        main_doc2vector()
     elif cmd == 'help':
         show_help()
     else:
