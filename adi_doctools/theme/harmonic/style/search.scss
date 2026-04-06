@@ -432,14 +432,15 @@
 
     .group-title {
         display: block;
-        margin-bottom: .2em;
+        padding: .2em .25em;
+        border-radius: variable.$border-radius;
     }
 
     .entry {
         display: block;
         font-size: .95em;
-        margin-top: .2em;
-        margin-left: .5em;
+        padding: .2em .5em;
+        border-radius: variable.$border-radius;
     }
 
     .group span {

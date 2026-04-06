@@ -4,37 +4,34 @@ import {Versioned} from './versioned.js'
 import {Toolbox} from './toolbox.js'
 import {DOM} from './dom.js'
 
-// Testing:
-// - Populate: adoc doc2vector --docs path/to/$repo/gh-pages --version $version --output vector-search/mock/$repo/$version
-// - Run server: node vector-search/serve.mjs 3000
-const INV_PREFIX = 'http://localhost:3000/'
-//const INV_PREFIX = 'https://raw.githubusercontent.com/analogdevicesinc/doctools/refs/heads/vector/'
+import * as LLM from './search-llm.js'
+import * as Sphinx from './search-sphinx.js'
 
-const POOL_SIZE     = 30     // candidate passages considered before grouping
-const MAX_ENTRIES   = 4      // max section entries per page group
-const HEADING_BOOST = 0.02   // boost for hierarchy (breadcrumb + section headings)
-const TERM_BOOST    = 0.05   // per query term found in hierarchy
-const TITLE_BOOST   = 0.04   // extra per term found in the section's own heading ('User Guide')
+// Testing:
+// - Populate: adoc doc2vector --docs path/to/$repo/gh-pages --version $version --output path/to/mock/$repo/$version --wasm /path/to/wasm
+const INV_PREFIX = 'https://raw.githubusercontent.com/analogdevicesinc/doctools/refs/heads/vector/'
 
 /**
- * Vector search replacement for Sphinx keyword search.
- * Uses TurboQuant WASM + all-MiniLM-L6-v2 (via @xenova/transformers).
+ * Multi-backend search with LLM vector search (primary) and Sphinx keyword
+ * search (fallback).
+ *
+ * When the embedding model or TurboQuant vectors are unavailable the system
+ * automatically falls back to classic Sphinx search.  Both paths reuse the
+ * passages.json file for result snippets and the grouped rendering UI.
  */
 export class Search {
   constructor (app) {
     this.parent = app
 
-    // Per-key loaded vector data
-    this.indexData = {} // key → {tq, passages, compressedConcat, bytesPerVector, dim}
+    // Per-key index data
+    //   backend === 'llm':    { tq, passages, compressedConcat, bytesPerVector, dim }
+    //   backend === 'sphinx': { index (searchindex), passages (may be null) }
+    this.indexData = {}
+    this.indexBackend = {} // key → 'llm' | 'sphinx'
     this.index_state = {}
     this.key_prefix = {}
     this.versions_available = {}
     this.search_page = new URL(`${this.parent.state.content_root}search.html`, location).pathname
-
-    this._tqClassPromise = null // Promise<TurboQuant class>
-    this.embedder = null
-    this.embedderLoading = false
-    this.pendingQuery = null    // query deferred until embedder is ready
 
     let $ = this.$ = {}
     $.keyCheckbox = {}
@@ -121,65 +118,6 @@ export class Search {
     app.search = this
   }
 
-  /**
-   * Lazy load turboquant-wasm
-   * Uses Function constructor to bypass rollup's import() transform. TODO use proper external
-   */
-  _getTurboQuantClass () {
-    if (!this._tqClassPromise) {
-      const url = new URL(
-        `${this.parent.state.content_root}_static/turboquant-wasm.js`, // TODO review how to deploy
-        location
-      ).href
-      const imp = new Function('u', 'return import(u)')
-      this._tqClassPromise = imp(url).then(m => m.TurboQuant)
-    }
-    return this._tqClassPromise
-  }
-
-  /**
-   * Lazily load @xenova/transformers and initialise all-MiniLM-L6-v2.
-   * Runs a deferred query if one was queued.
-   */
-  async initEmbedder () {
-    if (this.embedder || this.embedderLoading) return
-    this.embedderLoading = true
-    try {
-      const imp = new Function('u', 'return import(u)')
-      const { pipeline, env } = await imp(`${INV_PREFIX}node_modules/@xenova/transformers/dist/transformers.js`)
-      env.allowLocalModels = false // no /models
-      env.backends.onnx.wasm.wasmPaths = `${INV_PREFIX}node_modules/@xenova/transformers/dist/`
-      this.embedder = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2')
-      if (this.pendingQuery) {
-        const q = this.pendingQuery
-        this.pendingQuery = null
-        this.query(q)
-      }
-    } catch (err) {
-      console.error('Vector search: failed to load embedding model:', err)
-    } finally {
-      this.embedderLoading = false
-    }
-  }
-
-  async embedQuery (text) {
-    const out = await this.embedder([text], { pooling: 'mean', normalize: true })
-    return new Float32Array(out.data)
-  }
-
-  parseTqvHeader (buffer) {
-    const view = new DataView(buffer)
-    const magic = new Uint8Array(buffer, 0, 4)
-    if (magic[0] !== 0x54 || magic[1] !== 0x51 || magic[2] !== 0x56 || magic[3] !== 0x00)
-      throw new Error('Invalid vector db magic')
-    return {
-      numVectors:     view.getUint32(5, true),
-      dim:            view.getUint16(9, true),
-      seed:           view.getUint32(11, true),
-      bytesPerVector: view.getUint16(15, true),
-    }
-  }
-
   cancel_search () {
     this.$.searchArea.classList.remove('on')
     this.$.searchAreaBg.classList.remove('on')
@@ -191,7 +129,11 @@ export class Search {
   }
 
   /**
-   * Returns the remote doc URL the given key and optional version.
+   * Resolve the remote doc URL and the inventory prefix for a key.
+   * Returns [keyPrefix, invUrl, sphinxUrl]:
+   *   keyPrefix  - base URL for building result links
+   *   invUrl     - path to vector search assets (passages.json, .bin)
+   *   sphinxUrl  - URL to the Sphinx searchindex.js
    */
   async get_searchindex (key, not_sub_hosted, version=null) {
     const prefix = not_sub_hosted && key === "local" ?
@@ -248,7 +190,9 @@ export class Search {
     return await Toolbox.fetch_each(`${prefix}/tags.json`).then((obj) => {
       const [base, path] = process(obj)
       this.key_prefix[key] = `${base}${path}`
-      return `${INV_PREFIX}inv/${key}/${path}`
+      const invUrl = `${INV_PREFIX}${key}/${path}`
+      const sphinxUrl = `${base}${path}searchindex.js`
+      return { invUrl, sphinxUrl }
     })
   }
 
@@ -258,9 +202,8 @@ export class Search {
         let not_sub_hosted = this.parent.state.subhost === '' || this.parent.state.subhost === undefined
         const selected_version = this.index_state[key].version
         this.get_searchindex(key, not_sub_hosted, selected_version)
-          .then((url) => {
-            console.log(url)
-            this.load_index(url, key)
+          .then((urls) => {
+            this.load_index(urls, key)
             this.index_state[key].requested = true
             this.$.keyCheckbox[key].classList.add('requested')
             this.$.keyCheckbox[key].classList.remove('failed')
@@ -339,10 +282,13 @@ export class Search {
   }
 
   /**
-   * Load compressed.tqv + passages.json for key, init TurboQuant instance.
-   * Called after get_searchindex() resolves.
+   * Load search index for a key.
+   *
+   * Tries the LLM vector backend first (passages.json + embeddings .bin).
+   * On failure, falls back to Sphinx searchindex.js (+ passages.json for
+   * richer snippets if available).
    */
-  load_index = async (url, key) => {
+  load_index = async ({invUrl, sphinxUrl}, key) => {
     const onfailure = (error) => {
       console.warn('load_index:', error)
       this.index_state[key].requested = false
@@ -350,108 +296,54 @@ export class Search {
       this.$.keyCheckbox[key].classList.add('failed')
       this.$.keyCheckbox[key].$.checked = false
     }
-    const url_passages = `${url}passages.json`
-    const url_vec = `${url}embeddings-minilml6-dim384.bin`
-    try {
-      const [TurboQuant, response_passages, response_vec] = await Promise.all([
-        this._getTurboQuantClass(),
-        fetch(new Request(url_passages)),
-        fetch(new Request(url_vec)),
-      ])
 
-      if (!response_passages.ok) throw new Error(`fetch ${url_passages} failed`)
-      if (!response_vec.ok)      throw new Error(`fetch ${response_vec.status} failed`)
-
-      const passages = await response_passages.json()
-      const tqvBuf   = await response_vec.arrayBuffer()
-      const hdr      = this.parseTqvHeader(tqvBuf)
-      const compressedConcat = new Uint8Array(tqvBuf, 17, hdr.numVectors * hdr.bytesPerVector)
-      const tq = await TurboQuant.init({ dim: hdr.dim, seed: hdr.seed })
-
-      this.indexData[key] = { tq, passages, compressedConcat, bytesPerVector: hdr.bytesPerVector, dim: hdr.dim }
+    // Main: LLM search (.bin)
+    const data = await LLM.loadVectorIndex(invUrl, this.parent.state.content_root)
+    if (data) {
+      this.indexData[key] = data
+      this.indexBackend[key] = 'llm'
       this.index_state[key].ready = true
       this.$.keyCheckbox[key].classList.remove('requested')
       this.$.keyCheckbox[key].classList.add('ready')
 
-      this.initEmbedder()
+      // Load Sphinx index in background for interim results while embedder downloads
+      Sphinx.load_sphinx_index(sphinxUrl).then((index) => {
+        if (index) {
+          this.indexData[key].sphinxIndex = index
+          // If embedder still loading and there's a pending query, show Sphinx results now
+          if (!LLM.isEmbedderReady() && this.$.searchInput.$.value.trim())
+            this.query(this.$.searchInput.$.value)
+        }
+      }).catch(() => {})
+
+      LLM.initEmbedder(INV_PREFIX, (q) => this.query(q))
 
       this.query(this.$.searchInput.$.value)
-    } catch (error) {
-      onfailure(error)
-    }
-  }
-
-  _headingMatchScore (queryTerms, passage) {
-    const hierarchy = ((passage.hierarchy || []).join(' ')).toLowerCase()
-    const heading = (passage.hierarchy[passage.hierarchy.length - 1] || '').toLowerCase()
-
-    let score = 0
-    for (const t of queryTerms) {
-      if (hierarchy.includes(t)) {
-        score += TERM_BOOST
-        if (heading.includes(t)) score += TITLE_BOOST
-      }
-    }
-    return score
-  }
-
-  _vector_search (queryVec, queryText, key) {
-    const data = this.indexData[key]
-    const scores = data.tq.dotBatch(queryVec, data.compressedConcat, data.bytesPerVector)
-    const queryTerms = queryText.toLowerCase().split(/\s+/).filter(t => t.length > 1)
-
-    for (let i = 0; i < scores.length; i++) {
-      const p = data.passages[i]
-      const bDepth = p.hierarchy ? p.hierarchy.length : 0
-      scores[i] += HEADING_BOOST / (1 + bDepth)
-      if (queryTerms.length > 0)
-        scores[i] += this._headingMatchScore(queryTerms, p)
+      return
     }
 
-    const indices = Array.from({ length: scores.length }, (_, i) => i)
-    indices.sort((a, b) => scores[b] - scores[a])
-    return { pool: indices.slice(0, POOL_SIZE), scores }
-  }
+    console.warn(`'${key}' does not contain llm .bin`)
 
-  _url_page (url) {
-    const i = url.indexOf('#')
-    return i === -1 ? url : url.slice(0, i)
-  }
+    // Fallback: Sphinx (searchindex.js)
+    let passages = null
+    try {
+      const resp = await fetch(new Request(`${invUrl}passages.json`))
+      if (resp.ok) passages = await resp.json()
+    } catch (_) { /* passages not available */ }
 
-  _build_page_index (passages) {
-    const idx = new Map()
-    for (let i = 0; i < passages.length; i++) {
-      const base = this._url_page(passages[i].url)
-      if (!idx.has(base)) idx.set(base, [])
-      idx.get(base).push(i)
+    const index = await Sphinx.load_sphinx_index(sphinxUrl)
+    if (!index) {
+      onfailure(new Error(`searchindex.js unavailable for '${key}'`))
+      return
     }
-    return idx
-  }
 
-  _group_results(pool, scores, passages) {
-    const groups = pool.reduce((acc, idx) => {
-      const item = passages[idx]
-      const key = `${item.hierarchy[0]} / ${item.hierarchy[1]}` || item.hierarchy[0] || 'General'
+    this.indexData[key] = { index, passages }
+    this.indexBackend[key] = 'sphinx'
+    this.index_state[key].ready = true
+    this.$.keyCheckbox[key].classList.remove('requested')
+    this.$.keyCheckbox[key].classList.add('ready')
 
-      if (!acc[key])
-        acc[key] = []
-
-      acc[key].push({ idx: idx, score: scores[idx] })
-
-      return acc
-    }, {})
-
-    const sorted_groups = Object.entries(groups)
-      .map(([name, entries]) => {
-        const rank = entries
-          .filter(m => m.score > 0.4)
-          .reduce((sum, m) => sum + m.score, 0);
-
-        return { name, entries, rank }
-      })
-      .sort((a, b) => b.rank - a.rank)
-
-    return sorted_groups
+    this.query(this.$.searchInput.$.value)
   }
 
   _entry_label (passage, slice) {
@@ -460,11 +352,11 @@ export class Search {
     return h.slice(slice).join(' / ')
   }
 
-  _render_group (key, group, passages) {
+  _render_group (key, group, items) {
     let li = new DOM('li', { className: 'group' })
 
     if (group.entries.length == 1) {
-      const p = passages[group.entries[0].idx]
+      const p = items[group.entries[0].idx]
       let link = new DOM('a', {
         className: 'group-title',
         innerText: this._entry_label(p, 1),
@@ -483,8 +375,8 @@ export class Search {
     })
     li.append(link)
 
-    for (const e of group.entries.slice(0,5)) {
-      const p = passages[e.idx]
+    for (const e of group.entries.slice(0, 5)) {
+      const p = items[e.idx]
       let link_ = new DOM('a', {
         className: 'entry',
         innerText: this._entry_label(p, 2),
@@ -498,9 +390,8 @@ export class Search {
     return li
   }
 
-  _render_results (key, groups, passages) {
+  _render_results (key, groups, items) {
     const ul = this.$.searchUL[key]
-    // Clear previous results
     while (ul.$.firstElementChild)
       ul.$.removeChild(ul.$.lastChild)
 
@@ -510,10 +401,10 @@ export class Search {
     }
     this.$.searchLI[key].classList.remove('empty')
 
-    const items = groups.map(group => {
-      return this._render_group(key, group, passages)
+    const rendered = groups.map(group => {
+      return this._render_group(key, group, items)
     })
-    ul.append(items)
+    ul.append(rendered)
   }
 
   async query (query) {
@@ -529,30 +420,57 @@ export class Search {
     )
     if (enabledKeys.length === 0) return
 
-    // Queue and show placeholder if embedder is not ready
-    if (!this.embedder) {
-      if (!this.embedderLoading) this.initEmbedder()
-      this.pendingQuery = query
-      for (const key of enabledKeys) {
-        const ul = this.$.searchUL[key]
-        while (ul.$.firstElementChild) ul.$.removeChild(ul.$.lastChild)
-        const li = new DOM('li')
-        li.append(new DOM('span', { className: 'loading' }))
-        ul.append([li])
-      }
-      return
-    }
+    for (const key of enabledKeys) {
+      const backend = this.indexBackend[key]
 
-    try {
-      const queryVec = await this.embedQuery(query)
-      for (const key of enabledKeys) {
+      if (backend === 'llm') {
+        if (!LLM.isEmbedderReady()) {
+          if (!LLM.isEmbedderLoading())
+            LLM.initEmbedder(INV_PREFIX, (q) => this.query(q))
+          LLM.setPendingQuery(query)
+
+          // Use Sphinx results while embedder is downloading
+          const sphinxIndex = this.indexData[key].sphinxIndex
+          if (sphinxIndex && typeof Stemmer !== "undefined") {
+            const [searchQuery, searchTerms, excludedTerms, highlightTerms, objectTerms] =
+              Sphinx.parse_query(query)
+            const results = Sphinx.perform_search(
+              searchQuery, searchTerms, excludedTerms, highlightTerms, objectTerms, sphinxIndex
+            )
+            const { groups, items } = Sphinx.sphinx_results_to_groups(results, this.indexData[key].passages)
+            this._render_results(key, groups, items)
+          } else {
+            const ul = this.$.searchUL[key]
+            while (ul.$.firstElementChild) ul.$.removeChild(ul.$.lastChild)
+            const li = new DOM('li')
+            li.append(new DOM('span', { className: 'loading' }))
+            ul.append([li])
+          }
+          continue
+        }
+
+        try {
+          const data = this.indexData[key]
+          const queryVec = await LLM.embedQuery(query)
+          const { pool, scores } = LLM.vector_search(queryVec, query, data)
+          const groups = LLM.group_results(pool, scores, data.passages)
+          this._render_results(key, groups, data.passages)
+        } catch (err) {
+          console.error('Vector search query error:', err)
+        }
+
+      } else if (backend === 'sphinx') {
+        if (typeof Stemmer === "undefined") continue
+
         const data = this.indexData[key]
-        const { pool, scores } = this._vector_search(queryVec, query, key)
-        const groups = this._group_results(pool, scores, data.passages)
-        this._render_results(key, groups, data.passages)
+        const [searchQuery, searchTerms, excludedTerms, highlightTerms, objectTerms] =
+          Sphinx.parse_query(query)
+        const results = Sphinx.perform_search(
+          searchQuery, searchTerms, excludedTerms, highlightTerms, objectTerms, data.index
+        )
+        const { groups, items } = Sphinx.sphinx_results_to_groups(results, data.passages)
+        this._render_results(key, groups, items)
       }
-    } catch (err) {
-      console.error('Vector search query error:', err)
     }
   }
 
@@ -768,8 +686,8 @@ export class Search {
 
       let not_sub_hosted = this.parent.state.subhost === '' || this.parent.state.subhost === undefined
       this.get_searchindex(key, not_sub_hosted, version)
-        .then((url) => {
-          this.load_index(url, key)
+        .then((urls) => {
+          this.load_index(urls, key)
           this.index_state[key].requested = true
           this.$.keyCheckbox[key].classList.remove('failed')
           this.renew_search()
@@ -860,14 +778,24 @@ export class Search {
   }
 
   /**
-   * Construct online search: register all repos from metadata + local build.
+   * Construct search.
    */
   construct () {
+    let language_data_script = new URL(`${this.parent.state.content_root}_static/language_data.js`,
+                                       location)
+    this.$.language_data = new DOM('script', {
+      src: language_data_script.href,
+      async: true
+    }).onevent("load", this, (e) => {
+      this.$.searchForm.$.action = ""
+    })
+    this.$.body.append([this.$.language_data])
+
     let alphanumeric = Toolbox.get_alphanumeric()
     // Remove common text-manipulation shortcuts
     const drop_ = ['a', 'c', 'f']
     drop_.forEach(letter => {
-	alphanumeric.splice(alphanumeric.indexOf(letter), 1);
+	    alphanumeric.splice(alphanumeric.indexOf(letter), 1);
     })
 
     if (!this.parent.state.standalone)
