@@ -97,12 +97,20 @@
 <li><a class="reference internal" href="#">Installing</a><ul>
 <li><a class="reference internal" href="#release-install">Release install</a><ul>
 <li><a class="reference internal" href="#using-a-python-virtual-environment">Using a Python virtual environment</a></li>
+<li><a class="reference internal" href="#release-links-and-optional-dependencies">Release links and optional dependencies</a></li>
+<li><a class="reference internal" href="#ide-support">IDE support</a><ul>
+<li><a class="reference internal" href="#vscode">VSCode</a></li>
+<li><a class="reference internal" href="#neovim">Neovim</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#latex-support">LaTeX support</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#development-install">Development install</a><ul>
 <li><a class="reference internal" href="#install-the-web-compiler">Install the web compiler</a></li>
 <li><a class="reference internal" href="#fetch-third-party-resources">Fetch third-party resources</a></li>
 <li><a class="reference internal" href="#install-the-repository">Install the repository</a></li>
+<li><a class="reference internal" href="#neovim-support">Neovim support</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#removing">Removing</a></li>
@@ -163,8 +171,8 @@ Content on this topic
   <section id="installing">
 <h1>Installing<a class="headerlink" href="#installing" title="Link to this heading"></a></h1>
 <p>How to do a release install, and a development install of Doctools.</p>
-<p>Guarantee to work with Python newer than 3.8 and distros released on or after
-20H1 (e.g. Ubuntu 20.04 LTS).</p>
+<p>Guaranteed to work with Python 3.8 or newer and distributions released on or after
+20H1 (e.g., Ubuntu 20.04 LTS).</p>
 <section id="release-install">
 <span id="id1"></span><h2>Release install<a class="headerlink" href="#release-install" title="Link to this heading"></a></h2>
 <p>Ensure pip is newer than 23.0 <a class="footnote-reference brackets" href="#f1" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>:</p>
@@ -178,7 +186,7 @@ Content on this topic
 <div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
 </pre></div>
 </div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">(</span><span class="nb">cd</span><span class="w"> </span>docs<span class="w"> </span><span class="p">;</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt<span class="o">)</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>adi-doctools
 </pre></div>
 </div>
 <div class="clear-left"></div></div></div><p>Test it building this documentation:</p>
@@ -204,28 +212,114 @@ ubuntu 22.04).</p>
 <div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
 </pre></div>
 </div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv
 </pre></div>
 </div>
 <div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
 </pre></div>
 </div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">source</span><span class="w"> </span>venv/bin/activate
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">source</span><span class="w"> </span>.venv/bin/activate
 </pre></div>
 </div>
-<div class="clear-left"></div></div></div><p>Use <code class="docutils literal notranslate"><span class="pre">deactivate</span></code> to exit the virtual environment.</p>
+<div class="clear-left"></div></div></div><p>Don’t create the <cite>.venv</cite> inside the docs/ folder, since its files will be caught
+by the Sphinx builder.</p>
+<p>Use <code class="docutils literal notranslate"><span class="pre">deactivate</span></code> to exit the virtual environment.</p>
 <p>For next builds, just activate the virtual environment:</p>
 <div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
 </pre></div>
 </div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">source</span><span class="w"> </span>venv/bin/activate
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">source</span><span class="w"> </span>.venv/bin/activate
 </pre></div>
 </div>
 <div class="clear-left"></div></div></div></section>
+<section id="release-links-and-optional-dependencies">
+<h3>Release links and optional dependencies<a class="headerlink" href="#release-links-and-optional-dependencies" title="Link to this heading"></a></h3>
+<p>The release links are always:</p>
+<ul>
+<li><div class="line-block">
+<div class="line"><a class="icon link reference external" href="https://github.com/analogdevicesinc/doctools/releases/download/latest/adi-doctools.tar.gz" target="_blank">https://github.com/analogdevicesinc/doctools/releases/download/latest/adi-doctools.tar.gz</a></div>
+<div class="line">latest (commit at tag bump).</div>
+</div>
+</li>
+<li><div class="line-block">
+<div class="line"><a class="icon link reference external" href="https://github.com/analogdevicesinc/doctools/releases/download/pre-release/adi-doctools.tar.gz" target="_blank">https://github.com/analogdevicesinc/doctools/releases/download/pre-release/adi-doctools.tar.gz</a></div>
+<div class="line">pre-release (main head commit).</div>
+</div>
+</li>
+<li><div class="line-block">
+<div class="line"><a class="icon link reference external" href="https://github.com/analogdevicesinc/doctools/releases/download/v0.4.32/adi-doctools.tar.gz" target="_blank">https://github.com/analogdevicesinc/doctools/releases/download/v0.4.32/adi-doctools.tar.gz</a></div>
+<div class="line">specific version.</div>
+</div>
+</li>
+</ul>
+<p>Optional dependencies can be installed with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># test, cli, ...</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="s1">&#39;adi_doctools[test] @ https://github.com/analogdevicesinc/doctools/releases/download/latest/adi-doctools.tar.gz&#39;</span>
+</pre></div>
+</div>
+</section>
+<section id="ide-support">
+<span id="id3"></span><h3>IDE support<a class="headerlink" href="#ide-support" title="Link to this heading"></a></h3>
+<p><a class="icon link reference external" href="https://docs.esbon.io/en/latest/index.html" target="_blank" title="(in Esbonio)"><span>Esbonio</span></a> is an extensively developed
+Language Server Protocol and Visual Studio Code extension for sphinx.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Setup the virtual environment first before opening the text editor, to
+avoid triggering fallback behaviours.</p>
+</div>
+<p><a class="reference internal" href="cli.html#serve"><span class="std std-ref">Serve</span></a> is able to generate Estobio pyproject.toml entry with
+(including <a class="reference internal" href="cli.html#serve-sparse"><span class="std std-ref">Sparse builds</span></a>):</p>
+<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~/git-repo$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>adoc<span class="w"> </span>serve<span class="w"> </span>--esbonio<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--sparse<span class="w"> </span>docs/docs_guidelines<span class="w"> </span>docs/cli.rst<span class="w"> </span><span class="p">|</span><span class="w"> </span>tee<span class="w"> </span>-a<span class="w"> </span>pyproject.toml
+</pre></div>
+</div>
+<div class="clear-left"></div></div></div><section id="vscode">
+<h4>VSCode<a class="headerlink" href="#vscode" title="Link to this heading"></a></h4>
+<p>See Esbonio <a class="icon link reference external" href="https://docs.esbon.io/en/latest/usage/getting-started.html#lsp-getting-started" target="_blank" title="(in Esbonio)"><span>Getting Started</span></a>.</p>
+</section>
+<section id="neovim">
+<h4>Neovim<a class="headerlink" href="#neovim" title="Link to this heading"></a></h4>
+<p>See <a class="icon link reference external" href="https://docs.esbon.io/en/latest/integrating/howto/nvim.html#integrate-nvim" target="_blank" title="(in Esbonio)"><span>How To Integrate Esbonio with Neovim</span></a>.</p>
+<p>It is also recomemded to use the modern <a class="icon link reference external" href="https://tree-sitter.github.io/" target="_blank">tree-sitter</a>.
+Make sure you have common parsers installed, at least:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">:</span><span class="n">TSInstall</span> <span class="n">rst</span>
+<span class="p">:</span><span class="n">TSInstall</span> <span class="n">markdown</span>
+<span class="p">:</span><span class="n">TSInstall</span> <span class="n">yaml</span>
+<span class="p">:</span><span class="n">TSInstall</span> <span class="n">json</span>
+</pre></div>
+</div>
+<p>You can inspect the tree with <code class="docutils literal notranslate"><span class="pre">:InspectTree</span></code>.</p>
+</section>
+</section>
+<section id="latex-support">
+<span id="latex"></span><h3>LaTeX support<a class="headerlink" href="#latex-support" title="Link to this heading"></a></h3>
+<p>Beyond the HTML harmonic theme, limited LaTeX support is available.
+To build you will need, at least:</p>
+<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>zypper<span class="w"> </span>install<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>texlive-latexmk<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>texlive-collection-basic<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>texlive-collection-latex<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>texlive-collection-latexrecommended<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>texlive-collection-latexextra<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>texlive-collection-fontsrecommended<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>texlive-fncychap<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>gnu-free-fonts<span class="w"> </span>texlive-gnu-freefont<span class="w"> </span>texlive-gnu-freefont-fonts
+</pre></div>
+</div>
+<div class="clear-left"></div></div></div><p>Due to unicode support, <code class="docutils literal notranslate"><span class="pre">latex_engine</span></code> is set to <code class="docutils literal notranslate"><span class="pre">xelatex</span></code> internally if
+the value is Sphinx default’s <code class="docutils literal notranslate"><span class="pre">pdflatex</span></code>. If <code class="docutils literal notranslate"><span class="pre">latex_elements['fontpkg']</span></code> is
+not provided, a default is also set with unicode characters.</p>
+</section>
 </section>
 <section id="development-install">
-<span id="id3"></span><h2>Development install<a class="headerlink" href="#development-install" title="Link to this heading"></a></h2>
-<p>Development install allows editing the source code and apply the changes without
+<span id="id4"></span><h2>Development install<a class="headerlink" href="#development-install" title="Link to this heading"></a></h2>
+<p>Development install allows editing the source code and applying changes without
 reinstalling.
 Also extends <a class="reference internal" href="cli.html#serve"><span class="std std-ref">Serve</span></a> to watch changes on the webpage source code
 (use <cite>–dev</cite>/<cite>-r</cite> option to enable this).</p>
@@ -245,9 +339,9 @@ section’s last paragraph.</p>
 </pre></div>
 </div>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>npm<span class="w"> </span>install<span class="w"> </span>rollup<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>@rollup/plugin-terser<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>sass<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--save-dev
+<span class="w">     </span>@rollup/plugin-terser<span class="w"> </span><span class="se">\</span>
+<span class="w">     </span>sass<span class="w"> </span><span class="se">\</span>
+<span class="w">     </span>--save-dev
 </pre></div>
 </div>
 <div class="clear-left"></div></div></div><ul class="simple">
@@ -288,9 +382,19 @@ packages outside the environment to not have access to the packages inside
 of it, breaking most CLIs.</p>
 </div>
 </section>
+<section id="neovim-support">
+<h3>Neovim support<a class="headerlink" href="#neovim-support" title="Link to this heading"></a></h3>
+<p>Add to you lazyvim config the path to the branch <code class="docutils literal notranslate"><span class="pre">nvim</span></code>:</p>
+<div class="highlight-lua notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nv">dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;/path/to/doctools/nvim&#39;</span><span class="p">,</span>
+<span class="w">  </span><span class="c1">-- ...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
 </section>
 <section id="removing">
-<span id="id4"></span><h2>Removing<a class="headerlink" href="#removing" title="Link to this heading"></a></h2>
+<span id="id5"></span><h2>Removing<a class="headerlink" href="#removing" title="Link to this heading"></a></h2>
 <p>To remove, either release or development, do:</p>
 <div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
 </pre></div>

@@ -101,12 +101,12 @@
 <li><a class="reference internal" href="#versioned">Versioned</a></li>
 <li><a class="reference internal" href="#string-array-form">String array form</a></li>
 <li><a class="reference internal" href="#fine-grained-form">Fine-grained form</a></li>
+<li><a class="reference internal" href="#git-lfs">Git LFS</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#further-notes">Further notes</a><ul>
 <li><a class="reference internal" href="#i-don-t-want-a-doc-at-the-root">I don’t want a doc at the root</a></li>
 <li><a class="reference internal" href="#how-do-i-cross-reference-a-specific-version">How do I cross-reference a specific version?</a></li>
-<li><a class="reference internal" href="#what-happened-to-adoc-target-depth">What happened to <code class="docutils literal notranslate"><span class="pre">ADOC_TARGET_DEPTH</span></code>?</a></li>
 </ul>
 </li>
 </ul>
@@ -374,8 +374,8 @@ fine-grained to allow full control.</p>
 </section>
 <section id="string-array-form">
 <h3>String array form<a class="headerlink" href="#string-array-form" title="Link to this heading"></a></h3>
-<p>The simple <code class="docutils literal notranslate"><span class="pre">tags.json</span></code> is a plain array with each version/path on the
-and generate a <code class="docutils literal notranslate"><span class="pre">tags.json</span></code>, e.g. <code class="docutils literal notranslate"><span class="pre">[&quot;v1.1&quot;,</span> <span class="pre">&quot;v2.2&quot;,</span> <span class="pre">&quot;main&quot;,</span> <span class="pre">&quot;dev&quot;,</span> <span class="pre">&quot;&quot;]</span></code>
+<p>The simple <code class="docutils literal notranslate"><span class="pre">tags.json</span></code> is a plain array with each version/path,
+e.g., <code class="docutils literal notranslate"><span class="pre">[&quot;v1.1&quot;,</span> <span class="pre">&quot;v2.2&quot;,</span> <span class="pre">&quot;main&quot;,</span> <span class="pre">&quot;dev&quot;,</span> <span class="pre">&quot;&quot;]</span></code>
 (an empty string means there is a built doc on the root and will be named
 <code class="docutils literal notranslate"><span class="pre">main</span> <span class="pre">(unstable)</span></code>).
 The first tag will be labeled with <code class="docutils literal notranslate"><span class="pre">latest</span></code>.</p>
@@ -425,6 +425,20 @@ was used to provide a concise but clearer name to this entry.</p>
 (<a class="reference internal" href="docs_guidelines/index.html#version"><span class="std std-ref">more info</span></a>), should match a value on the <code class="docutils literal notranslate"><span class="pre">name</span></code> column, and
 not the <code class="docutils literal notranslate"><span class="pre">path</span></code> column.</p>
 </section>
+<section id="git-lfs">
+<h3>Git LFS<a class="headerlink" href="#git-lfs" title="Link to this heading"></a></h3>
+<p>GitHub Pages does not support git lfs pointers. The tool is able to convert git
+lfs pointers into GitHub raw links
+(<code class="docutils literal notranslate"><span class="pre">https://media.githubusercontent.com/media/org/repo/branch/path/to/image</span></code>), with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">GIT_LFS_TO_LINKS</span><span class="o">=</span><span class="s2">&quot;true&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">GIT_ORG_REPOSITORY</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="p">{ github.repository </span><span class="si">}</span><span class="s2">}&quot;</span>
+<span class="o">[</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="p">{ github.event_name </span><span class="si">}</span><span class="s2">}&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;pull_request&quot;</span><span class="w"> </span><span class="o">]</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">export</span><span class="w"> </span><span class="nv">GIT_BRANCH</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="p">{ github.event.pull_request.head.ref </span><span class="si">}</span><span class="s2">}&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="o">||</span><span class="w"> </span><span class="nb">export</span><span class="w"> </span><span class="nv">GIT_BRANCH</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="p">{ github.ref_name </span><span class="si">}</span><span class="s2">}&quot;</span>
+make<span class="w"> </span>html
+</pre></div>
+</div>
+</section>
 </section>
 <section id="further-notes">
 <h2>Further notes<a class="headerlink" href="#further-notes" title="Link to this heading"></a></h2>
@@ -447,16 +461,6 @@ to the main/stable version:</p>
 <p>For <a class="reference internal" href="docs_guidelines/index.html#in-org-ref"><span class="std std-ref">In organization reference</span></a>, the doc shall target a specific version by suffixing
 the target the version on the <code class="docutils literal notranslate"><span class="pre">interref_repos</span></code> variable, e.g.
 <code class="docutils literal notranslate"><span class="pre">interref_repos</span> <span class="pre">=</span> <span class="pre">['pyadi-iio/dev',</span> <span class="pre">'other-repo/v1.1']</span></code>.</p>
-</section>
-<section id="what-happened-to-adoc-target-depth">
-<h3>What happened to <code class="docutils literal notranslate"><span class="pre">ADOC_TARGET_DEPTH</span></code>?<a class="headerlink" href="#what-happened-to-adoc-target-depth" title="Link to this heading"></a></h3>
-<p>Previously there was also a <code class="docutils literal notranslate"><span class="pre">ADOC_TARGET_DEPTH</span></code> environment variables
-to create full relative links between versions, but this was deprecated
-by instead just using the root <code class="docutils literal notranslate"><span class="pre">/</span></code> for those links, e.g.
-<code class="docutils literal notranslate"><span class="pre">/doctools/v1.0.0</span></code> instead of <code class="docutils literal notranslate"><span class="pre">../../../doctools/v1.0.0</span></code> from
-<code class="docutils literal notranslate"><span class="pre">doctools/v2.0.0/some/page.html</span></code>.</p>
-<p>This has the side effect of requiring to repository docs to be hosted right
-at the root.</p>
 </section>
 </section>
 </section>

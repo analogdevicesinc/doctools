@@ -98,6 +98,8 @@
 <li><a class="reference internal" href="#container">Container</a><ul>
 <li><a class="reference internal" href="#flex">Flex</a></li>
 <li><a class="reference internal" href="#grid">Grid</a></li>
+<li><a class="reference internal" href="#card">Card</a></li>
+<li><a class="reference internal" href="#usage-example">Usage example</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#include-template">Include template</a></li>
@@ -110,6 +112,7 @@
 <li><a class="reference internal" href="#shell">Shell</a></li>
 <li><a class="reference internal" href="#svg">SVG</a></li>
 <li><a class="reference internal" href="#collapsible">Collapsible</a></li>
+<li><a class="reference internal" href="#tabs">Tabs</a></li>
 <li><a class="reference internal" href="#video">Video</a></li>
 <li><a class="reference internal" href="#esd-warning">ESD warning</a></li>
 <li><a class="reference internal" href="#hdl-directives">HDL directives</a><ul>
@@ -182,14 +185,14 @@ features, such as videos and shell code snippets.</p>
 <p>Below, every added directive is explained with examples.</p>
 <section id="container">
 <h2>Container<a class="headerlink" href="#container" title="Link to this heading"></a></h2>
-<p>To allow disposing content in a tabular manner but still respecting the multiple
-screen sizes and both HTML and PDF output, two container directives are available,
+<p>To allow arranging content in a tabular manner while still respecting multiple
+screen sizes for both HTML and PDF output, two container directives are available:
 <code class="docutils literal notranslate"><span class="pre">flex</span></code> and <code class="docutils literal notranslate"><span class="pre">grid</span></code>.</p>
 <section id="flex">
 <span id="directive-flex"></span><h3>Flex<a class="headerlink" href="#flex" title="Link to this heading"></a></h3>
-<p>The grid directive implements a subset of
-<a class="icon link reference external" href="https://css-tricks.com/snippets/css/a-guide-to-flexbox/" target="_blank">CSS Flex</a>.
-And is used to dispose elements without worrying about number of columns and sizes,
+<p>The flex directive implements a subset of
+<a class="icon link reference external" href="https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Flexible_box_layout" target="_blank">CSS Flex</a>.
+It is used to arrange elements without worrying about number of columns and sizes,
 while still obtaining a fairly good result.</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">flex</span><span class="p">::</span>
    <span class="nc">:class:</span> [badges, ...]
@@ -202,17 +205,64 @@ status, code quality, among others.</p>
 <section id="grid">
 <span id="directive-grid"></span><h3>Grid<a class="headerlink" href="#grid" title="Link to this heading"></a></h3>
 <p>The grid directive implements a subset of
-<a class="icon link reference external" href="https://css-tricks.com/snippets/css/complete-guide-grid/" target="_blank">CSS Grids</a>.
-And is used to dispose elements with exact number of columns and width control.</p>
+<a class="icon link reference external" href="https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Grid_layout" target="_blank">CSS Grids</a>.
+It is used to arrange elements with exact number of columns and width control.</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">grid</span><span class="p">::</span>
+   <span class="nc">:columns:</span> 3
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">columns</span></code> wraps the content in N equal columns with auto responsive behavior.</p>
+<p>Alternatively, you can explicit set the <code class="docutils literal notranslate"><span class="pre">widths</span></code> option:</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">grid</span><span class="p">::</span>
    <span class="nc">:widths:</span> 25 25% 150px
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">widths</span></code> options allow units (<code class="docutils literal notranslate"><span class="pre">px</span></code>, <code class="docutils literal notranslate"><span class="pre">%</span></code>, etc.) and without an explicit
-unit it is inferred percentile.
-This option is required, since it is not possible to infer the number of
-columns in a sane manner.</p>
+<p>It allow units (<code class="docutils literal notranslate"><span class="pre">px</span></code>, <code class="docutils literal notranslate"><span class="pre">%</span></code>, etc.), and without an explicit unit it is
+inferred as a percentage. However, in small screens, it fallbacks to a flex
+element.</p>
+<p>On of the options are required.</p>
 </section>
+<section id="card">
+<h3>Card<a class="headerlink" href="#card" title="Link to this heading"></a></h3>
+<p>A card directive is meant to be used inside a <a class="reference internal" href="#directive-grid"><span class="std std-ref">Grid</span></a> or
+<a class="reference internal" href="#directive-flex"><span class="std std-ref">Flex</span></a>. It creates a card element and allows to link to a
+reference. Only references are allowed by design, to discourage arbitrary
+linking.</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">card</span><span class="p">::</span> <span class="nt">&lt;title&gt;</span>
+   <span class="nc">:ref:</span> <span class="nt">&lt;ref&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="usage-example">
+<h3>Usage example<a class="headerlink" href="#usage-example" title="Link to this heading"></a></h3>
+<p>Puting all together:</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">grid</span><span class="p">::</span>
+   <span class="nc">:columns:</span> 3
+
+<span class="p">   ..</span> <span class="ow">card</span><span class="p">::</span> Flex directive
+      <span class="nc">:ref:</span> directive flex
+
+      Learn about the flex directive.
+
+<span class="p">   ..</span> <span class="ow">card</span><span class="p">::</span> Grid directive
+      <span class="nc">:ref:</span> directive grid
+
+      Learn about the grid directive.
+
+<span class="p">   ..</span> <span class="ow">card</span><span class="p">::</span> All directives
+      <span class="nc">:ref:</span> directive
+
+      More about all directives.
+</pre></div>
+</div>
+<p>Renders at:</p>
+<div class="grid grid-repeat" style="grid-template-columns: repeat(auto-fit, minmax(19.3em, 1fr));"><div class="card link"><p class="header">Flex directive</p>
+<p>Learn about the flex directive.</p>
+<span class="link-overlay"><a class="icon link reference internal" href="#directive-flex"><span class="std std-ref">Read more</span></a></span></div><div class="card link"><p class="header">Grid directive</p>
+<p>Learn about the grid directive.</p>
+<span class="link-overlay"><a class="icon link reference internal" href="#directive-grid"><span class="std std-ref">Read more</span></a></span></div><div class="card link"><p class="header">All directives</p>
+<p>More about all directives.</p>
+<span class="link-overlay"><a class="icon link reference internal" href="#directive"><span class="std std-ref">Read more</span></a></span></div></div></section>
 </section>
 <section id="include-template">
 <h2>Include template<a class="headerlink" href="#include-template" title="Link to this heading"></a></h2>
@@ -312,24 +362,24 @@ the content, forcing any following content to be moved below any preceding
 content.
 It is useful when working with images
 aligned/<a class="icon link reference external" href="https://developer.mozilla.org/en-US/docs/Web/CSS/float" target="_blank">float</a>
-left/right and wants to ensure the next section does not also get “squashed”.</p>
+left/right and you want to ensure the next section does not also get “squashed”.</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">clear-content</span><span class="p">::</span>
    <span class="nc">:side:</span> [both,left,right]
    <span class="nc">:break:</span>
 </pre></div>
 </div>
-<p>It can clear content to it’s <code class="docutils literal notranslate"><span class="pre">left</span></code>, <code class="docutils literal notranslate"><span class="pre">right</span></code> or <code class="docutils literal notranslate"><span class="pre">both</span></code> sides.
+<p>It can clear content to its <code class="docutils literal notranslate"><span class="pre">left</span></code>, <code class="docutils literal notranslate"><span class="pre">right</span></code> or <code class="docutils literal notranslate"><span class="pre">both</span></code> sides.
 By default, it clears <code class="docutils literal notranslate"><span class="pre">both</span></code> sides.</p>
 <p>With the <code class="docutils literal notranslate"><span class="pre">break</span></code> option, it will break the page when generating a PDF
 (behaves similar to LaTeX <em>cleardoublepage</em>).</p>
 </section>
 <section id="description">
-<h2>Description<a class="headerlink" href="#description" title="Link to this heading"></a></h2>
+<span id="id1"></span><h2>Description<a class="headerlink" href="#description" title="Link to this heading"></a></h2>
 <p>The description directive sets the HTML meta description tag
 required by search engines for good SEO.</p>
-<p>The content should be up to 160 characters, if it exceeds this length, a
-warning is raised. If not present, try to use the page’s first paragraph as the
-content for HTML meta description.</p>
+<p>The content should be up to 160 characters; if it exceeds this length, a
+warning is raised. If not present, the page’s first paragraph is used as the
+content for the HTML meta description.</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">description</span><span class="p">::</span>
 
    &lt;content&gt;
@@ -521,8 +571,8 @@ example:</p>
 </pre></div>
 </div>
 <p>Renders as:</p>
-<div class="literal-block-wrapper docutils container" id="id1">
-<div class="code-block-caption"><span class="caption-text">iio_reg help</span><a class="headerlink" href="#id1" title="Link to this code"></a></div>
+<div class="literal-block-wrapper docutils container" id="id2">
+<div class="code-block-caption"><span class="caption-text">iio_reg help</span><a class="headerlink" href="#id2" title="Link to this code"></a></div>
 <div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>user@analog:~$
 </pre></div>
 </div>
@@ -541,7 +591,7 @@ iio_reg &lt;device&gt; &lt;register&gt; [&lt;value&gt;]
 the current directory and output cannot be selected.</p>
 </div>
 <p>To show the user and user group, add the <code class="docutils literal notranslate"><span class="pre">:show-user:</span></code> flag.</p>
-<p>For Windows, set bash type as <code class="docutils literal notranslate"><span class="pre">ps1</span></code> (PowerShell), for example:</p>
+<p>For Windows, set the bash type to <code class="docutils literal notranslate"><span class="pre">ps1</span></code> (PowerShell), for example:</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">shell</span><span class="p">::</span> ps1
    <span class="nc">:user:</span> Analog
 
@@ -686,7 +736,7 @@ hover effects.</p>
    &lt;caption&gt;
 </pre></div>
 </div>
-<p>At it’s core, for the HTML builder, it is somewhat equivalent to:</p>
+<p>At its core, for the HTML builder, it is somewhat equivalent to:</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">raw</span><span class="p">::</span> html
    <span class="nc">:file:</span> path
 </pre></div>
@@ -720,6 +770,38 @@ hover effects.</p>
 </div>
 </div>
 </div><p>Notice how you can use any Sphinx syntax, even nest other directives.</p>
+</section>
+<section id="tabs">
+<h2>Tabs<a class="headerlink" href="#tabs" title="Link to this heading"></a></h2>
+<p>The tabs directive creates a selectable tabs content.</p>
+<p>The directive syntax is:</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">tab-set</span><span class="p">::</span>
+
+<span class="p">   ..</span> <span class="ow">tab-item</span><span class="p">::</span> <span class="nt">&lt;label&gt;</span>
+
+      &lt;content&gt;
+</pre></div>
+</div>
+<p>For example:</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">tab-set</span><span class="p">::</span>
+
+<span class="p">   ..</span> <span class="ow">tab-item</span><span class="p">::</span> Text
+
+      Hello World!
+
+<span class="p">   ..</span> <span class="ow">tab-item</span><span class="p">::</span> Python
+
+<span class="p">      ..</span> <span class="ow">code</span><span class="p">::</span> python
+
+         print(&quot;Hello World!&quot;)
+</pre></div>
+</div>
+<p>Renders as:</p>
+<div class="tab-set docutils"><input checked="checked" id="tab-item-053910d767acec2108188304bee4285b06a935d5-0" name="tab-set-053910d767acec2108188304bee4285b06a935d5" type="radio"></input><label class="tab-label" for="tab-item-053910d767acec2108188304bee4285b06a935d5-0">Text</label><div class="tab-content docutils"><p>Hello World!</p>
+</div><input id="tab-item-053910d767acec2108188304bee4285b06a935d5-1" name="tab-set-053910d767acec2108188304bee4285b06a935d5" type="radio"></input><label class="tab-label" for="tab-item-053910d767acec2108188304bee4285b06a935d5-1">Python</label><div class="tab-content docutils"><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Hello World!&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div></div><p>Notice how you can use any Sphinx syntax, even nest other directives.</p>
 </section>
 <section id="video">
 <h2>Video<a class="headerlink" href="#video" title="Link to this heading"></a></h2>
@@ -782,9 +864,9 @@ table (<em>output.md</em>) and generates a table with the build statuses.</p>
    <span class="nc">:file:</span> <span class="nt">&lt;build_status_file&gt;</span>
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">:path:</span></code> option is optional, in the sense that if it’s not provided, no table
+<p>The <code class="docutils literal notranslate"><span class="pre">:path:</span></code> option is optional; if it’s not provided, no table
 is generated.
-If provided, but the build status file does not exist, an error is
+If provided but the build status file does not exist, an error is
 thrown.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>

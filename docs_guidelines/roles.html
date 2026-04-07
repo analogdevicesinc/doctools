@@ -167,8 +167,8 @@ formatting, like font coloring.</p>
 <p>Below, every added role is explained with examples.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Link-like roles use the <code class="code docutils literal notranslate"><span class="pre">:role:`text</span> <span class="pre">&lt;link&gt;`</span></code> synthax, like external
-links, but without the undescore in the end.</p>
+<p>Link-like roles use the <code class="code docutils literal notranslate"><span class="pre">:role:`text</span> <span class="pre">&lt;link&gt;`</span></code> syntax, like external
+links, but without the underscore at the end.</p>
 </div>
 <section id="color">
 <h2>Color<a class="headerlink" href="#color" title="Link to this heading"></a></h2>
@@ -178,19 +178,19 @@ links, but without the undescore in the end.</p>
 <h2>Link<a class="headerlink" href="#link" title="Link to this heading"></a></h2>
 <p>The link roles are a group of roles defined by <code class="docutils literal notranslate"><span class="pre">adi_links.py</span></code>.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">validate_links</span></code> global option is used to validate each link during build.
-These links are not managed, that means, only links from changed files are checked.
+These links are not managed; that means only links from changed files are checked.
 You can run a build with it set to False, then touch the desired files to check
 the links of only these files.</p>
 <section id="git">
 <span id="role-git"></span><h3>Git<a class="headerlink" href="#git" title="Link to this heading"></a></h3>
-<p>The Git role allows to create links to the Git repository with a shorter syntax.
-The role syntax is <code class="code docutils literal notranslate"><span class="pre">:git-repo:`text</span> <span class="pre">&lt;type+branch:path&gt;`</span></code>, for example:</p>
+<p>The Git role allows creating links to the Git repository with a shorter syntax.
+The role syntax is <code class="code docutils literal notranslate"><span class="pre">:git+repo:`text</span> <span class="pre">&lt;type+branch:path&gt;`</span></code>, for example:</p>
 <ul class="simple">
-<li><p><code class="code docutils literal notranslate"><span class="pre">:git-hdl:`main:docs/user_guide/docs_guidelines.rst`</span></code>
+<li><p><code class="code docutils literal notranslate"><span class="pre">:git+hdl:`main:docs/user_guide/docs_guidelines.rst`</span></code>
 renders as <a class="icon git reference external" href="https://github.com/analogdevicesinc/hdl/tree/main/docs/user_guide/docs_guidelines.rst" target="_blank">docs/user_guide/docs_guidelines.rst</a>.</p></li>
-<li><p><code class="code docutils literal notranslate"><span class="pre">:git-hdl:`Guidelines</span> <span class="pre">&lt;docs/user_guide/docs_guidelines.rst&gt;`</span></code>
+<li><p><code class="code docutils literal notranslate"><span class="pre">:git+hdl:`Guidelines</span> <span class="pre">&lt;docs/user_guide/docs_guidelines.rst&gt;`</span></code>
 renders as <a class="icon git reference external" href="https://github.com/analogdevicesinc/hdl/tree/main/docs/user_guide/docs_guidelines.rst" target="_blank">Guidelines</a>.</p></li>
-<li><p><code class="code docutils literal notranslate"><span class="pre">:git-wiki-scripts:`raw+linux/build_zynq_kernel_image.sh</span></code>``
+<li><p><code class="code docutils literal notranslate"><span class="pre">:git+wiki-scripts:`raw+linux/build_zynq_kernel_image.sh`</span></code>
 renders as <a class="icon git reference external" href="https://raw.githubusercontent.com/analogdevicesinc/wiki-scripts/main/linux/build_zynq_kernel_image.sh" target="_blank">linux/build_zynq_kernel_image.sh</a>.</p></li>
 </ul>
 <div class="admonition important">
@@ -201,19 +201,19 @@ renders as <a class="icon git reference external" href="https://raw.githubuserco
 It is recommended to not provide this field when it is a link to its own repository,
 because it is useful to auto-fill it for documentation releases
 (e.g. <code class="docutils literal notranslate"><span class="pre">hdl_2023_r2</span></code>).
-A scenario where it is recommended to provide the branch is when linking others
+A scenario where it is recommended to provide the branch is when linking to other
 repositories.</p>
-<p>They type field is also optional and the values are:</p>
+<p>The type field is also optional and the values are:</p>
 <ul class="simple">
 <li><p><em>gui</em>: To view rendered on the Git server web GUI [default].</p></li>
 <li><p><em>raw</em>: To download/view as raw.</p></li>
-<li><p><em>{}</em>: Any other Git server web GUI link, e.g. <code class="code docutils literal notranslate"><span class="pre">:git-hdl:`releases+`</span></code>.
+<li><p><em>{}</em>: Any other Git server web GUI link, e.g. <code class="code docutils literal notranslate"><span class="pre">:git+hdl:`releases+`</span></code>.
 The last character must be <code class="docutils literal notranslate"><span class="pre">+</span></code>, since filenames/path may contain this character
 also.</p></li>
 </ul>
 <p>The text field is optional and will be filled with the full path.</p>
-<p>Finally, you can do <code class="code docutils literal notranslate"><span class="pre">:git-repo:`/`</span></code> for a link to the root of the
-repository with pretty naming, for example, <code class="code docutils literal notranslate"><span class="pre">:git-hdl:`/`</span></code> is rendered
+<p>Finally, you can do <code class="code docutils literal notranslate"><span class="pre">:git+repo:`/`</span></code> for a link to the root of the
+repository with pretty naming, for example, <code class="code docutils literal notranslate"><span class="pre">:git+hdl:`/`</span></code> is rendered
 as <a class="icon git reference external" href="https://github.com/analogdevicesinc/hdl/tree/main/" target="_blank">ADI HDL repository</a>.</p>
 </section>
 <section id="downgit">
