@@ -96,20 +96,11 @@
           <ul>
 <li><a class="reference internal" href="#">Command line interface</a><ul>
 <li><a class="reference internal" href="#serve">Serve</a><ul>
-<li><a class="reference internal" href="#sparse-builds">Sparse builds</a><ul>
-<li><a class="reference internal" href="#how-does-it-even-work">How does it even work?</a></li>
-</ul>
-</li>
 <li><a class="reference internal" href="#git-lfs-integration">Git LFS integration</a></li>
 <li><a class="reference internal" href="#how-can-i-rebuild-the-whole-documentation-within-serve">How can I rebuild the whole documentation within Serve?</a></li>
 <li><a class="reference internal" href="#why-is-the-output-missing-styling-css-stylesheet">Why is the output missing styling (CSS stylesheet)?</a></li>
 <li><a class="reference internal" href="#why-is-the-python-source-code-of-this-repo-not-watched">Why is the Python source code of this repo not watched?</a></li>
 <li><a class="reference internal" href="#why-was-author-mode-renamed-to-serve">Why was Author Mode renamed to Serve?</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#search-docs">Search docs</a><ul>
-<li><a class="reference internal" href="#fetch-source">Fetch source</a></li>
-<li><a class="reference internal" href="#search-dokuwiki">Search dokuwiki</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#custom-doc">Custom Doc</a><ul>
@@ -176,14 +167,18 @@ Content on this topic
 <span id="cli"></span><h1>Command line interface<a class="headerlink" href="#command-line-interface" title="Link to this heading"></a></h1>
 <p>The Doctools bundles a command line interface called <code class="docutils literal notranslate"><span class="pre">adoc</span></code> meant to ease both
 continuous integration and local builds of the documentation.</p>
-<p>Below, each command is briefly described, and it is worth noting that every
-command supports the <code class="docutils literal notranslate"><span class="pre">--help</span></code> option for quick lookup.</p>
+<p>Below, it is briefly described each command, and it is worth noting that every
+command supports the <code class="docutils literal notranslate"><span class="pre">--help</span></code> option for quick look up.</p>
 <section id="serve">
 <span id="id1"></span><h2>Serve<a class="headerlink" href="#serve" title="Link to this heading"></a></h2>
 <p>Watches the docs and source code to rebuild it on edit.
 Similar to <code class="docutils literal notranslate"><span class="pre">mkdocs</span> <span class="pre">serve</span></code>, <code class="docutils literal notranslate"><span class="pre">webpack</span> <span class="pre">serve</span></code>, <code class="docutils literal notranslate"><span class="pre">npm</span> <span class="pre">run</span> <span class="pre">start</span></code>, <code class="docutils literal notranslate"><span class="pre">hugo</span> <span class="pre">server</span></code>,
 and so on.</p>
-<p>The webpage pools timestamp changes and commands on the <code class="docutils literal notranslate"><span class="pre">.dev-pool</span></code> file.</p>
+<p>Two HTML live update strategies are available:</p>
+<ul class="simple">
+<li><p>pooling: The webpage pools timestamp changes on the <code class="docutils literal notranslate"><span class="pre">.dev-pool</span></code> file (default).</p></li>
+<li><p>selenium: Page reloads through Firefox’s API (optional).</p></li>
+</ul>
 <p>To launch a watched instance, do:</p>
 <div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
 </pre></div>
@@ -197,7 +192,7 @@ and so on.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>adoc<span class="w"> </span>serve
 </pre></div>
 </div>
-<div class="clear-left"></div></div></div><p>Where <code class="docutils literal notranslate"><span class="pre">/path/to/docs</span></code> is the path to the folder containing the Sphinx <code class="docutils literal notranslate"><span class="pre">Makefile</span></code>.</p>
+<div class="clear-left"></div></div></div><p>Where <code class="docutils literal notranslate"><span class="pre">/path/to/docs</span></code> is the path to the folder contain the Sphinx’s <code class="docutils literal notranslate"><span class="pre">Makefile</span></code>.</p>
 <p>To also watch changes made to theme itself, use the <code class="docutils literal notranslate"><span class="pre">--dev</span></code> option, just make
 sure to have Doctools as <a class="reference internal" href="install.html#development-install"><span class="std std-ref">Development install</span></a>.</p>
 <p>For PDF output, do:</p>
@@ -221,41 +216,7 @@ and automatically reloads, such as Gnome PDF (Evince).</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>adoc<span class="w"> </span>serve<span class="w"> </span>--help
 </pre></div>
 </div>
-<div class="clear-left"></div></div></div><p>To how to integrate with your, please see <a class="reference internal" href="install.html#ide-support"><span class="std std-ref">IDE support</span></a>.</p>
-<section id="sparse-builds">
-<span id="serve-sparse"></span><h3>Sparse builds<a class="headerlink" href="#sparse-builds" title="Link to this heading"></a></h3>
-<p>Inspired on git sparse clones, it is possible to build only some parts of the
-documentation, for example:</p>
-<div class="code-shell"><div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Include only learning/**/* and solutions/**/*</span>
-</pre></div>
-</div>
-<div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
-</pre></div>
-</div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>adoc<span class="w"> </span>serve<span class="w"> </span>--sparse<span class="w"> </span>learning<span class="w"> </span>solutions
-</pre></div>
-</div>
-<div class="clear-left"></div></div></div><p>This is a critical feature to build large docs, ensuring snappy live reloads.</p>
-<section id="how-does-it-even-work">
-<h4>How does it even work?<a class="headerlink" href="#how-does-it-even-work" title="Link to this heading"></a></h4>
-<p>It sets up multiple Sphinx configurations:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">interref_repos:</span> <span class="pre">[...,</span> <span class="pre">&lt;repo&gt;]</span></code>: Add current repository to <code class="docutils literal notranslate"><span class="pre">intersphinx</span></code>
-cross-references.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">intersphinx_disabled_reftypes:</span> <span class="pre">['']</span></code>: Resolve any local reference as
-cross-reference, if not found locally.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">exclude_patterns:</span> <span class="pre">[...]</span></code>: Exclude all files masked by <code class="docutils literal notranslate"><span class="pre">--sparse</span></code>, using
-known patterns.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">suppress_warnings:</span> <span class="pre">[...,</span> <span class="pre">'toc.excluded',</span> <span class="pre">'toc.empty_glob']</span></code>: Suppress some
-toctree warnings caused by the mask.</p></li>
-</ul>
-<p>The result is: the exclude list excludes files from being read, and if the
-built pages have local references and they are not found, they are linked to
-the remote inventory <em>./objects.inv</em>, finally, the suppress warning list drops
-the warnings related to the excluded files in the table of contents.</p>
-</section>
-</section>
-<section id="git-lfs-integration">
+<div class="clear-left"></div></div></div><section id="git-lfs-integration">
 <span id="serve-lfs"></span><h3>Git LFS integration<a class="headerlink" href="#git-lfs-integration" title="Link to this heading"></a></h3>
 <p>Serve detects if a repository uses <a class="icon link reference external" href="https://git-lfs.com" target="_blank">Git Large File Storage</a>
 to fetch (smudge) the watched binaries on demand.</p>
@@ -324,96 +285,12 @@ with the edited Python code.</p>
 <code class="docutils literal notranslate"><span class="pre">npm</span> <span class="pre">run</span> <span class="pre">start</span></code>, <code class="docutils literal notranslate"><span class="pre">hugo</span> <span class="pre">server</span></code>.</p>
 </section>
 </section>
-<section id="search-docs">
-<span id="id2"></span><h2>Search docs<a class="headerlink" href="#search-docs" title="Link to this heading"></a></h2>
-<p>Search Sphinx documentations. Works by fetching the <code class="docutils literal notranslate"><span class="pre">searchindex.json</span></code> and
-<code class="docutils literal notranslate"><span class="pre">objects.inv</span></code> Uses the same search algorithm as Sphinx’s JavaScript search.</p>
-<p>For example:</p>
-<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
-</pre></div>
-</div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>adoc<span class="w"> </span>search<span class="w"> </span>ad9084<span class="w"> </span>profile
-</pre></div>
-</div>
-<div class="clear-left"></div></div><div><div class="no-select highlight-text notranslate"><div class="highlight"><pre><span></span>[1] [documentation] AD9084
-https://analogdevicesinc.github.io/.../ad9084/index.html
-:external+documentation:ref:`ad9084 iio-oscilloscope` ...
-  AD9084 Capture Window Main receivers are handled by the axi-ad9081-rx-hpc
-  IIO device, The number of channels depend on the JESD mode (M) p...
-
-[2] [scopy] AD9084
-https://analogdevicesinc.github.io/scopy/plugins/ad9084/ad9084.html
-:external+scopy:ref:`ad9084` :external+scopy:doc:`plugins/ad9084/ad9084`
-  AD9084 Overview The AD9084 instrument for Scopy enables integration
-  and control of the Apollo MxFE platform within the Scopy soft...
-</pre></div>
-</div>
-<div class="clear-left"></div></div></div><p>More examples:</p>
-<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
-</pre></div>
-</div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>adoc<span class="w"> </span>search<span class="w"> </span>--repo<span class="w"> </span>documentation<span class="w"> </span>--<span class="w"> </span>user<span class="w"> </span>guide
-</pre></div>
-</div>
-<div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
-</pre></div>
-</div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>adoc<span class="w"> </span>search<span class="w"> </span>--repo<span class="w"> </span>documentation,hdl,no-OS<span class="w"> </span>--<span class="w"> </span>axi
-</pre></div>
-</div>
-<div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
-</pre></div>
-</div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>adoc<span class="w"> </span>search<span class="w"> </span>--url<span class="w"> </span>https://analogdevicesinc.github.io/hdl/2023_R2<span class="w"> </span>--<span class="w"> </span>ad4630
-</pre></div>
-</div>
-<div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
-</pre></div>
-</div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>adoc<span class="w"> </span>search<span class="w"> </span>--repo<span class="w"> </span>hdl<span class="w"> </span>--limit<span class="w"> </span><span class="m">10</span><span class="w"> </span>--<span class="w"> </span>axi
-</pre></div>
-</div>
-<div class="clear-left"></div></div></div><section id="fetch-source">
-<h3>Fetch source<a class="headerlink" href="#fetch-source" title="Link to this heading"></a></h3>
-<p>For a search, you can chain the <code class="docutils literal notranslate"><span class="pre">adoc</span> <span class="pre">search</span> <span class="pre">--fetch</span></code> command, for example:</p>
-<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
-</pre></div>
-</div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>adoc<span class="w"> </span>search<span class="w"> </span>--fetch<span class="w"> </span><span class="m">1</span>
-</pre></div>
-</div>
-<div class="clear-left"></div></div><div><div class="no-select highlight-text notranslate"><div class="highlight"><pre><span></span> Fetching source for: [2] EVAL-AD4060/AD4062-ARDZ
- Repository: documentation
- Document: solutions/reference-designs/ad4062-ardz/index
-
- Source URL: https://.../reference-designs/ad4062-ardz/index.rst
-
- .. collection:: EVAL-AD4060/AD4062-ARDZ
-    :subtitle: Evaluating the AD4060/AD4062 Compact, Low Power, 12-Bit/16-Bit, 2 MSPS Easy Drive SAR ADCs
-    :image: eval-angle.png
-    :label: eval user-guide
-</pre></div>
-</div>
-<div class="clear-left"></div></div></div></section>
-<section id="search-dokuwiki">
-<h3>Search dokuwiki<a class="headerlink" href="#search-dokuwiki" title="Link to this heading"></a></h3>
-<p>As a transition tool, it is also possible to search the DokuWiki
-(<a class="icon link reference external" href="https://wiki.analog.com" target="_blank">https://wiki.analog.com</a>):</p>
-<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
-</pre></div>
-</div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>adoc<span class="w"> </span>search-wiki<span class="w"> </span>ad9084<span class="w"> </span>profile
-</pre></div>
-</div>
-<div class="clear-left"></div></div></div><p>Usage is identical, but the fetch output is either DokuWiki markup or html.</p>
-</section>
-</section>
 <section id="custom-doc">
-<span id="id3"></span><h2>Custom Doc<a class="headerlink" href="#custom-doc" title="Link to this heading"></a></h2>
+<span id="id2"></span><h2>Custom Doc<a class="headerlink" href="#custom-doc" title="Link to this heading"></a></h2>
 <p>Generates custom documents with filtered content from all documentations of the
 watched repositories (see <a class="icon git reference external" href="https://github.com/analogdevicesinc/doctools/tree/main/adi_doctools/lut.py" target="_blank">adi_doctools/lut.py</a>).</p>
 <p>For PDF output, <a class="icon link reference external" href="https://weasyprint.org/" target="_blank">WeasyPrint</a> is used (ensure to install it).</p>
-<p>To quick start, run the tool twice in an empty directory.</p>
+<p>To quick start, run the tool twice in an empty directly.</p>
 <div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
 </pre></div>
 </div>
@@ -523,8 +400,8 @@ step) are looked for lfs pointers, so artifacts from other steps are missed, suc
 from the download directive.</p>
 <section id="working-with-multiple-docs">
 <h3>Working with multiple docs<a class="headerlink" href="#working-with-multiple-docs" title="Link to this heading"></a></h3>
-<p>Suppose you edited and tested multiple docs together, it could be helpful
-to try a local inventory file first, to check references before publication.</p>
+<p>Suppose you edited and tested multiple docs together, it could be useful
+helpful to try a local inventory file first, to check references before publication.</p>
 <p>Having this in mind, if you build the edited documentation first, and then execute
 <code class="docutils literal notranslate"><span class="pre">custom-doc</span></code>, it will consider the local inventory <em>objects.inv</em> also.</p>
 <p>Here is a example of auto-resolved <em>intersphinx_mapping</em> by <code class="docutils literal notranslate"><span class="pre">custom-doc</span></code>, at the
