@@ -268,7 +268,7 @@ runs:
               git_fetch_deepen "${{ inputs.ref }}"
             done
           else
-            git fetch origin --depth=1 "${{ inputs.ref }}"
+            git fetch origin --depth=2 "${{ inputs.ref }}"
             head_sha=$(git rev-parse "${{ inputs.ref }}")
             base_sha=$(git rev-parse $head_sha~) || true
           fi
