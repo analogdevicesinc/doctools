@@ -1,0 +1,127 @@
+name: Docs2vector
+run-name: Docs2vector  ${{ inputs.repository }}@${{ inputs.ref }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      organization:
+        description: 'Organization name'
+        required: true
+        type: string
+        default: 'analogdevicesinc'
+      repository:
+        description: "Repository name"
+        required: true
+        type: string
+      ref:
+        description: "The branch, tag, SHA to resolve"
+        required: true
+        type: string
+        default: 'gh-pages'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: [self-hosted, repo-only, v2]
+
+    steps:
+    - uses: analogdevicesinc/doctools/blank@action
+      with:
+        repository: ${{ github.repository }}
+        path: vector
+
+    - uses: analogdevicesinc/doctools/blank@action
+      with:
+        repository: ${{ inputs.repository }}
+        path: pages
+
+    - name: Setup vector branch
+      run: |
+        cd vector
+        git fetch origin vector --depth 1
+        git switch -c vector FETCH_HEAD
+
+    - name: Setup context
+      run: |
+        pages_base_sha="vector/${{ inputs.repository }}/commit"
+        [[ -f "$pages_base_sha" ]] && \
+          echo "pages_base_sha=$(cat $pages_base_sha)" >> $GITHUB_ENV
+
+    - name: Setup remote ref
+      run: |
+        cd pages
+        git fetch origin --depth 1 "${{ inputs.ref }}"
+        pages_head_sha=$(git rev-parse FETCH_HEAD)
+        git switch -c pages FETCH_HEAD
+
+        fetch_depth=5
+
+        git_fetch_deepen () {
+          echo "fetch $fetch_depth commits"
+          git fetch origin --deepen=$fetch_depth "$1"
+          fetch_depth=$((fetch_depth * 2))
+          [[ $fetch_depth -gt 500 ]] && fetch_depth=500 || true
+        }
+
+        if [[ -n "$pages_base_sha" ]]; then
+          while ! git rev-list --count $pages_base_sha~..$pages_head_sha ; do
+            git fetch origin --deepen=7 "$1"
+            git_fetch_deepen "$pages_head_sha"
+          done
+        fi
+
+    - name: Get touched versions
+      run: |
+        if [[ -n "$pages_base_sha" ]]; then
+          files=$(git diff --diff-filter=ACM --no-renames --name-only "$pages_base_sha~..$pages_head_sha")
+        fi
+
+        built_docs=$(find . -name objects.inv -exec sh -c 'dirname {}' ';' | sed 's|^\./||; s|^$|.|')
+        if [[ -z "$files" ]]; then
+          echo "versions=$built_docs" >> $GITHUB_ENV
+          exit 0
+        fi
+
+        versions=$(
+          for file in $files; do
+            _version="${file%%/*}"
+            if echo "$built_docs" | grep -Fxq "$_version"; then
+              echo "$_version"
+            else
+              echo "."
+            fi
+        done | sort -u)
+        echo "versions=$versions" >> $GITHUB_ENV
+
+    - name: Setup tools
+      run: |
+        py_venv=$(mktemp -d)
+        python3 -m venv "$py_venv"
+        source "$py_venv/bin/activate"
+        python3 -m ensurepip
+        pip3 install adi-doctools
+
+        echo "py_venv=$py_venv" >> $GITHUB_ENV
+
+    - name: Vectorize versions
+      run: |
+        for version in $versions; do
+          echo adoc doc2vector --docs gh-pages --version $version --output vector/${{ inputs.repository }}/$version
+          #adoc doc2vector --docs gh-pages --version $version --output vector/${{ inputs.repository }}/$version
+        done
+
+        echo "$pages_head_sha" > vector/${{ inputs.repository }}/commit
+
+    - name: Commit and push
+      run: |
+        cd vector
+        git add .
+        git commit -m "deploy: ${{ inputs.repository }}@$pages_head_sha"
+        git push origin HEAD:vector
+
+    - name: Clean-up
+      if: always()
+      run: |
+        rm -rf "$py_venv"
