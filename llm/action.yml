@@ -91,6 +91,7 @@ runs:
         curl -sL -H "Authorization: Bearer ${{ inputs.gh-token }}" -o "/tmp/observer.py" \
           https://raw.githubusercontent.com/analogdevicesinc/doctools/action/llm/observer.py
 
+        mkdir -p ~/.pi/agent
         cat <<'EOF' > ~/.pi/agent/models.json
         {
             "providers": {
