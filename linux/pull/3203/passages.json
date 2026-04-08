@@ -1,0 +1,1144 @@
+{
+  "text": [
+    "Index",
+    "Device driver for Analog Devices Inc. AD35XXR series of DACs. The module name is ad3552r. With the same module name, two different driver variants are available, the generic spi variant, to be used with any classic SPI controllers, and the hs (high speed) variant, for an ADI axi-dac (IP core) based ",
+    "AD3541R AD3542R AD3551R AD3552R",
+    "Generic SPI: Use the classic SPI S_CLK/CS/SDO/SDI connection.. High speed (using axi-dac backend): .-----------------. .-------. | |--- D/QSPI -----| | | DAC IP CORE |--- SPI S_CLK --| DAC | | |--- S",
+    "Use the classic SPI S_CLK/CS/SDO/SDI connection.",
+    ".-----------------. .-------. | |--- D/QSPI -----| | | DAC IP CORE |--- SPI S_CLK --| DAC | | |--- SPI CS -----| | | |--- LDAC -------| | | |--- RESET ------| | |_________________| |_______|",
+    "Device attributes: The following table shows the ad35xxr related device debug files, found in the specific debugfs path. Usage examples: root:/sys/bus/iio/devices/iio:device0# cat data_source normal root:/sys/bus/iio/devices/iio:device0#",
+    "The following table shows the ad35xxr related device debug files, found in the specific debugfs path /sys/kernel/debug/iio/iio:deviceX. Debugfs device files Description data_source The used data source, as normal, ramp-16bit, etc. data_source_available The available data sources.",
+    "root:/sys/bus/iio/devices/iio:device0# cat data_source normal root:/sys/bus/iio/devices/iio:device0# echo -n ramp-16bit > data_source root:/sys/bus/iio/devices/iio:device0# cat data_source ramp-16bit",
+    "Analog Devices Inc. Linux documentation. This documentation contains information only about this and the device drivers it includes. For the Linux Kernel documentation, please consult at https://docs.kernel.org/.",
+    "Device driver for Analog Devices Inc. AD4000 series of ADCs.. Supported devices: AD4000 AD4001 AD4002 AD4003 AD4004 AD4005 AD4006 AD4007 AD4008 AD4010 AD4011 AD4020 AD4021 AD4022 AD",
+    "AD4000 AD4001 AD4002 AD4003 AD4004 AD4005 AD4006 AD4007 AD4008 AD4010 AD4011 AD4020 AD4021 AD4022 ADAQ4001 ADAQ4003. Wiring connections: Devices of the AD4000 series can be connected to the SPI host controller in a few different modes.",
+    "Devices of the AD4000 series can be connected to the SPI host controller in a few different modes.. CS mode, 3-wire turbo mode: Datasheet \u201c3-wire\u201d mode is what most resembles standard SPI connection which, for these devices, com. CS mode, 3-wire, without busy indicator: Another wiring configuration ",
+    "Datasheet \u201c3-wire\u201d mode is what most resembles standard SPI connection which, for these devices, comprises of connecting the controller CS line to device CNV pin and other SPI lines as usual. This configuration is (misleadingly) called \u201cCS Mode, 3-Wire Turbo Mode\u201d connection in datasheets. NOTE: The",
+    "Another wiring configuration supported as \u201c3-wire\u201d mode has the SDI pin hard-wired to digital input/output interface supply (VIO). In this setup, the controller is not required to support SPI_MOSI_IDLE_HIGH but register access is not possible. This connection mode saves one wire and works with any S",
+    "In datasheet \u201c4-wire\u201d mode, the controller CS line is connected to the ADC SDI pin and a GPIO is connected to the ADC CNV pin. This connection mode may better suit scenarios where multiple ADCs can share one CNV trigger. Set adi,sdi-pin to \"cs\" to select this mode. +-------------+ + ----------------",
+    "Industrial I/O Kernel Drivers",
+    "Description: The Linux kernel in this repository is the Linux kernel from Xilinx together with drivers & patches . How to build: For build instructions check the wiki.. Release branches: All release branches have the [YEAR]_R[NUM] format. There are some special release branches sometime. Rebased bra",
+    "The Linux kernel in this repository is the Linux kernel from Xilinx together with drivers & patches applied from Analog Devices. Details about the drivers that are of interest and supported by this repository can be found on the Analog Devices wiki. This readme focuses on details specific to how thi",
+    "For build instructions check the wiki.",
+    "All release branches have the [YEAR]_R[NUM] format. There are some special release branches sometimes (like 2014_R2_altera, because it wasn\u2019t always possible to match the Linux repo between Xilinx & Intel/Altera. Each release is matched with a release from the HDL repo. The branching name/model for ",
+    "Starting with ADI Linux repository\u2019s branch adi-4.9.0 there are rebased branches. They\u2019re typically rebased branches from Xilinx with the ADI patches on top so that it\u2019s easier to identify patches that are not yet upstreamed. For ADI Linux repository\u2019s branch adi-4.9.0 the base was branch xlnx_rebas",
+    "These provide a kernel that is good to run on a Raspberry Pi board. All the drivers present in the master branch should be automatically cherry-picked into the latest rpi branch. As in the rebased branches, the latest rpi branch should be in accordance with the current kernel version supported in ma",
+    "Because the kernel versions that Intel/Altera were usually not in sync with Xilinx\u2019s, altera-* branches were created: altera_4.0 altera_4.4 altera_4.6 altera_4.9 altera_4.14 These branches are derived from the Intel/Altera linux kernel repo, together with some merged versions of old master branches.",
+    "ADC driver for Analog Devices Inc. AD7944 and similar devices. The module name is ad7944.. Supported devices: The following chips are supported by this driver: AD7944 AD7985 AD7986. Supported features. Device attributes: There are two types of ADCs in this family, pseudo-differential and fully diffe",
+    "The following chips are supported by this driver: AD7944 AD7985 AD7986",
+    "SPI wiring modes: The driver currently supports three of the many possible SPI wiring configurations.. Reference voltage: All 3 possible reference voltage sources are supported: Internal reference External 1.2V reference a. Unimplemented features: BUSY indication",
+    "The driver currently supports three of the many possible SPI wiring configurations.. CS mode, 3-wire, without busy indicator: +-------------+ +--------------------| CS | v | | VIO +--------------------+ | HOST | | | CNV | | | . CS mode, 4-wire, without busy indicator: +-------------+ +--------------",
+    "+-------------+ +--------------------| CS | v | | VIO +--------------------+ | HOST | | | CNV | | | +--->| SDI AD7944 SDO |-------->| SDI | | SCK | | | +--------------------+ | | ^ | | +--------------------| SCLK | +-------------+ To select this mode in the device tree, set the adi,spi-mode property",
+    "+-------------+ +-----------------------------------| CS | | | | | +--------------------| GPIO | | v | | | +--------------------+ | HOST | | | CNV | | | +--->| SDI AD7944 SDO |-------->| SDI | | SCK | | | +--------------------+ | | ^ | | +--------------------| SCLK | +-------------+ To select this m",
+    "+-------------+ +-------------------------+--------------------| CS | v v | | +--------------------+ +--------------------+ | HOST | | CNV | | CNV | | | +--->| SDI AD7944 SDO |--->| SDI AD7944 SDO |-------->| SDI | | | SCK | | SCK | | | GND +--------------------+ +--------------------+ | | ^ ^ | | +",
+    "All 3 possible reference voltage sources are supported: Internal reference External 1.2V reference and internal buffer External reference The source is determined by the device tree. If ref-supply is present, then the external reference is used. If refin-supply is present, then the internal buffer i",
+    "BUSY indication",
+    "There are two types of ADCs in this family, pseudo-differential and fully differential. The channel name is different depending on the type of ADC.. Pseudo-differential ADCs: AD7944 and AD7985 are pseudo-differential ADCs and have the following attributes: Attribute Descript. Fully-differential ADCs",
+    "AD7944 and AD7985 are pseudo-differential ADCs and have the following attributes: Attribute Description in_voltage0_raw Raw ADC voltage value (IN+ referenced to ground sense). in_voltage0_scale Scale factor to convert raw value to mV. In \u201cchain\u201d mode, additional chips will appear as additional volta",
+    "AD7986 is a fully-differential ADC and has the following attributes: Attribute Description in_voltage0-voltage1_raw Raw ADC voltage value (IN+ - IN-). in_voltage0-voltage1_scale Scale factor to convert raw value to mV. In \u201cchain\u201d mode, additional chips will appear as additional voltage input channel",
+    "To be able to achieve the maximum sample rate, the driver can be used with the AXI SPI Engine to provide SPI offload support. When SPI offload is being used, some attributes will be different. trigger directory is removed. in_voltage0_sampling_frequency attribute is added for setting the sample rate",
+    "This driver supports IIO triggered buffers. See Industrial IIO device buffers for more information.",
+    "Device driver for Analog Devices AD7191 ADC.. Supported devices: AD7191 The AD7191 is a high precision, low noise, 24-bit \u03a3-\u0394 ADC with integrated PGA. It features tw. Devicetree. Channel Configuration: The device provides three channels: Temperature Sensor - 24-bit unsigned - Internal temperature me",
+    "AD7191 The AD7191 is a high precision, low noise, 24-bit \u03a3-\u0394 ADC with integrated PGA. It features two differential input channels, an internal temperature sensor, and configurable sampling rates.",
+    "Pin Configuration: The driver supports both pin-strapped and GPIO-controlled configurations for ODR (Output Data Rate) . Clock Configuration: The AD7191 supports both internal and external clock sources: When CLKSEL pin is tied LOW: Uses inte. SPI Interface Requirements: The AD7191 has specific SPI ",
+    "The driver supports both pin-strapped and GPIO-controlled configurations for ODR (Output Data Rate) and PGA (Programmable Gain Amplifier) settings. These configurations are mutually exclusive - you must use either pin-strapped or GPIO control for each setting, not both.. ODR Configuration: The ODR c",
+    "The ODR can be configured either through GPIO control or pin-strapping: When using GPIO control, specify the \u201codr-gpios\u201d property in the device tree For pin-strapped configuration, specify the \u201cadi,odr-value\u201d property in the device tree Available ODR settings: 120 Hz (ODR1=0, ODR2=0) 60 Hz (ODR1=0, ",
+    "The PGA can be configured either through GPIO control or pin-strapping: When using GPIO control, specify the \u201cpga-gpios\u201d property in the device tree For pin-strapped configuration, specify the \u201cadi,pga-value\u201d property in the device tree Available PGA gain settings: 1x (PGA1=0, PGA2=0) 8x (PGA1=0, PG",
+    "The AD7191 supports both internal and external clock sources: When CLKSEL pin is tied LOW: Uses internal 4.92MHz clock (no clock property needed) When CLKSEL pin is tied HIGH: Requires external clock source - Can be a crystal between MCLK1 and MCLK2 pins - Or a CMOS-compatible clock driving MCLK2 pi",
+    "The AD7191 has specific SPI interface requirements: The DOUT/RDY output is dual-purpose and requires SPI bus locking DOUT/RDY must be connected to an interrupt-capable GPIO The SPI controller\u2019s chip select must be connected to the PDOWN pin of the ADC When CS (PDOWN) is high, the device powers down ",
+    "The device requires the following power supplies: AVdd: Analog power supply DVdd: Digital power supply Vref: Reference voltage supply (external) All power supplies must be specified in the device tree.",
+    "The device provides three channels: Temperature Sensor - 24-bit unsigned - Internal temperature measurement - Temperature in millidegrees Celsius Differential Input (AIN1-AIN2) - 24-bit unsigned - Differential voltage measurement - Configurable gain via PGA Differential Input (AIN3-AIN4) - 24-bit un",
+    "This driver supports IIO triggered buffers. See Documentation/iio/iio_devbuf.rst for more information about IIO triggered buffers.",
+    "ADC driver for Analog Devices Inc. AD4695 and similar devices. The module name is ad4695.. Supported devices: The following chips are supported by this driver: AD4695 AD4696 AD4697 AD4698. Supported features. SPI offload support: To be able to achieve the maximum sample rate, the driver can be used ",
+    "The following chips are supported by this driver: AD4695 AD4696 AD4697 AD4698",
+    "SPI wiring modes: The driver currently supports the following SPI wiring configuration:. Channel configuration: Since the chip supports multiple ways to configure each channel, this must be described in the devic. VCC supply: The chip supports being powered by an external LDO via the VCC input or an",
+    "The driver currently supports the following SPI wiring configuration:. 4-wire mode: In this mode, CNV and CS are tied together and there is a single SDO line. +-------------+ +--------. SPI offload wiring: When used with a SPI offload, the supported wiring configuration is: +-------------+ +--------",
+    "In this mode, CNV and CS are tied together and there is a single SDO line. +-------------+ +-------------+ | CS |<-+------| CS | | CNV |<-+ | | | ADC | | HOST | | | | | | SDI |<--------| SDO | | SDO |-------->| SDI | | SCLK |<--------| SCLK | +-------------+ +-------------+ To use this mode, in the ",
+    "When used with a SPI offload, the supported wiring configuration is: +-------------+ +-------------+ | GP0/BUSY |-------->| TRIGGER | | CS |<--------| CS | | | | | | ADC | | SPI | | | | | | SDI |<--------| SDO | | SDO |-------->| SDI | | SCLK |<--------| SCLK | | | | | | | +-------------+ | CNV |<--",
+    "Since the chip supports multiple ways to configure each channel, this must be described in the device tree based on what is actually wired up to the inputs. There are three typical configurations: An INx pin is used as the positive input with the REFGND, COM or the next INx pin as the negative input",
+    "Each INx pin can be used as a pseudo-differential input in conjunction with the REFGND pin. The device tree will look like this: channel@0 { reg = <0>; /* IN0 */ }; If no other channel properties are needed (e.g. adi,no-high-z), the channel node can be omitted entirely. This will appear on the IIO b",
+    "Each INx pin can be used as a pseudo-differential input in conjunction with the COM pin. The device tree will look like this: com-supply = <&vref_div_2>; channel@1 { reg = <1>; /* IN1 */ common-mode-channel = <AD4695_COMMON_MODE_COM>; bipolar; }; This will appear on the IIO bus as the voltage1 chann",
+    "An even-numbered INx pin and the following odd-numbered INx pin can be used as a pseudo-differential input. The device tree for using IN2 as the positive input and IN3 as the negative input will look like this: in3-supply = <&vref_div_2>; channel@2 { reg = <2>; /* IN2 */ common-mode-channel = <3>; /",
+    "The chip supports being powered by an external LDO via the VCC input or an internal LDO via the LDO_IN input. The driver looks at the device tree to determine which is being used. If ldo-supply is present, then the internal LDO is used. If vcc-supply is present, then the external LDO is used and the",
+    "The chip supports an external reference voltage via the REF input or an internal buffered reference voltage via the REFIN input. The driver looks at the device tree to determine which is being used. If ref-supply is present, then the external reference voltage is used and the internal buffer is disa",
+    "System calibration is supported using the channel gain and offset registers via the calibscale and calibbias attributes respectively.",
+    "The chip supports per-channel oversampling when SPI offload is being used, with available oversampling ratios (OSR) of 1 (default), 4, 16, and 64. Enabling oversampling on a channel raises the effective number of bits of sampled data to 17 (OSR == 4), 18 (16), or 19 (64), respectively. This can be s",
+    "Additional wiring modes Threshold events GPIO support CRC support",
+    "To be able to achieve the maximum sample rate, the driver can be used with the AXI SPI Engine to provide SPI offload support. See also SPI offload wiring When SPI offload is being used, some attributes will be different. trigger directory is removed. in_voltage0_sampling_frequency attributes are add",
+    "This driver supports hardware triggered buffers. This uses the \u201cadvanced sequencer\u201d feature of the chip to trigger a burst of conversions. Also see Industrial IIO device buffers for more general information.. Effective sample rate for buffered reads: When SPI offload is not used, the sample rate is ",
+    "When SPI offload is not used, the sample rate is determined by the trigger that is manually configured in userspace. All enabled channels will be read in a burst when the trigger is received. When SPI offload is used, the sample rate is configured per channel. All channels will have the same rate, s",
+    "ADC driver for Analog Devices Inc. AD7625, AD7626, AD7960, and AD7961 devices. The module name is ad7625.. Supported devices: The following chips are supported by this driver: AD7625 AD7626 AD7960 AD7961 The driver requires us. Supported features. Device attributes: The AD762x is a fully-differentia",
+    "The following chips are supported by this driver: AD7625 AD7626 AD7960 AD7961 The driver requires use of the Pulsar LVDS HDL project: Pulsar LVDS HDL To trigger conversions and enable subsequent data transfer, the devices require coupled PWM signals with a phase offset.",
+    "Conversion control modes: The driver currently supports one of two possible LVDS conversion control methods.. Reference voltage: Three possible reference voltage sources are supported: Internal reference (only available on AD7625. Unimplemented features: Self-clocked mode",
+    "The driver currently supports one of two possible LVDS conversion control methods.. Echoed-Clock interface mode: +----------------+ +xxxxxxxxxxxxxxxxxxxxxxxxxx| CNV | X | | v | HOST | +----------------------------",
+    "+----------------+ +xxxxxxxxxxxxxxxxxxxxxxxxxx| CNV | X | | v | HOST | +----------------------------+ | | | CNV+/CNV- DCO+/DCO- |xxxxxxx>| CLK_IN | | | | | | | | | | AD7625 D+/D- |xxxxxxx>| DATA_IN | | | | | | | | | | CLK+/CLK- |<xxxxxxx| CLK & CLK_GATE | +----------------------------+ | | +--------",
+    "Three possible reference voltage sources are supported: Internal reference (only available on AD7625 and AD7626) External reference and internal buffer External reference The source is determined by the device tree. If ref-supply is present, then the external reference is used. If refin-supply is pr",
+    "Self-clocked mode",
+    "The AD762x is a fully-differential ADC and has the following attributes: Attribute Description scale Scale factor to convert raw value from buffered reads to mV.",
+    "This driver supports IIO triggered buffers. See Industrial IIO device buffers for more information.",
+    "This driver supports Analog Device\u2019s IMUs on SPI bus.. 1. Supported devices: ADIS16375 ADIS16480 ADIS16485 ADIS16488 ADIS16490 ADIS16495 ADIS16497 ADIS16545 ADIS16547 Each suppo. 2. Device attributes: Accelerometer, gyroscope measurements are always provided. Furthermore, the driver offers the capab",
+    "ADIS16375 ADIS16480 ADIS16485 ADIS16488 ADIS16490 ADIS16495 ADIS16497 ADIS16545 ADIS16547 Each supported device is a complete inertial system that includes a triaxial gyroscope and a triaxial accelerometer. Each inertial sensor in device combines with signal conditioning that optimizes dynamic perfo",
+    "Accelerometer, gyroscope measurements are always provided. Furthermore, the driver offers the capability to retrieve the delta angle and the delta velocity measurements computed by the device. The delta angle measurements represent a calculation of angular displacement between each sample update, wh",
+    "A channel value can be read from its _raw attribute. The value returned is the raw value as reported by the devices. To get the processed value of the channel, apply the following formula: processed value = (_raw + _offset) * _scale Where _offset and _scale are device attributes. If no _offset attri",
+    "Show device name: root:/sys/bus/iio/devices/iio:device0> cat name adis16545-1 Show accelerometer channels value: root:/sys/bus/iio/devices/iio:device0> cat in_accel_x_raw 1376728 root:/sys/bus/iio/devices/iio:device0> cat in_accel_y_raw 4487621 root:/sys/bus/iio/devices/iio:device0> cat in_accel_z_r",
+    "This driver supports IIO buffers. All devices support retrieving the raw acceleration, gyroscope and temperature measurements using buffers. The following device families also support retrieving the delta velocity, delta angle and temperature measurements using buffers: ADIS16545 ADIS16547 However, ",
+    "Set device trigger in current_trigger, if not already set: root:/sys/bus/iio/devices/iio:device0> cat trigger/current_trigger root:/sys/bus/iio/devices/iio:device0> echo adis16545-1-dev0 > trigger/current_trigger root:/sys/bus/iio/devices/iio:device0> cat trigger/current_trigger adis16545-1-dev0 Sel",
+    "See Documentation/iio/iio_tools.rst for the description of the available IIO interfacing tools.",
+    "This page serves the purpose of providing pointers and a brief introduction to contributing to the Linux Kernel, using the tools available as well as wrappers maintained by Analog Devices Inc. Tip When using ADI Linux repository\u2019s branch ci, the Continuous integration system automates most checks in",
+    "There are many checkers to catch issues before submitting changes to the Kernel mailing lists. ci/build.sh combines all of the checkers so that they can be run with one command using a standard configuration. The checkers supported by build.sh are as follows.. Checkpatch: Checkpatch (scripts/checkpa",
+    "Checkpatch (scripts/checkpatch.pl) is a perl script which checks for trivial style violations in patches and optionally corrects them. Checkpatch can also be run on file contexts and without the kernel tree. It is the bare-minimum tool before submitting any patch series. Usage: ./scripts/checkpatch.",
+    "Sparse is a semantic checker for C programs; it can be used to find a number of potential problems with kernel code. Usage: ~/linux$ make C=1 And Smatch is a static analysis tool for C mostly for the linux kernel. Usage: ~/linux$ make C=1 CHECK=\"smatch -p=kernel\" Further reading: Finding locking bug",
+    "GCC\u2019s -fanalyzer enables an static analysis of program flow which looks for \u201cinteresting\u201d interprocedural paths through the code, and issues warnings for problems found on them. Since it is a flag, it must be appended to the compile command, either to the KCFLAGS: ~/linux$ make KCFLAGS=\" -fanalyzer\"",
+    "Clang static analyzer is a source code analysis tool that finds bugs in C, C++, and Objective-C programs. Since it is a flag, it must be appended to the compile command, either to the KCFLAGS: ~/linux$ make LLVM=1 KCFLAGS=\" --analyze -Xanalyzer\" To analyze a single file, generate compile commands wi",
+    "The \u201cOpen Firmware Device Tree\u201d, or simply Devicetree (DT), is a data structure and language for describing hardware. More specifically, it is a description of hardware that is readable by an operating system so that the operating system doesn\u2019t need to hard code details of the machine. Even though ",
+    "B4 is a tool created to make it easier for project developers and maintainers to use a distributed development workflow that relies on patches and distribution lists for code contributions and review. Take some time to try it out, and understand how it simplies many tasks. B4 tools is not currently ",
+    "The Linux kernel is organized into subsystems\u2014logical divisions around functionality such as core APIs (memory, scheduling, locking, timers), driver interfaces (networking, storage, input, etc.), and various device-oriented modules (IIO, USB, SPI, etc.). Each subsystem encapsulates its own APIs, con",
+    "The Industrial I/O subsystem is intended to provide support for devices that in some senses are analog to digital or digital to analog converters (ADCs, DACs). Devices that fall into this category are: ADCs, accelerometers, gyros, IMUs, capacitance to digital converters, pressure sensors, light and ",
+    "1. Overview: The Industrial I/O core offers a way for continuous data capture based on a trigger source. Multiple. 2. Buffer attributes: An IIO buffer has an associated attributes directory under /sys/bus/iio/iio:deviceX/bufferY/. The at",
+    "The Industrial I/O core offers a way for continuous data capture based on a trigger source. Multiple data channels can be read at once from /dev/iio:deviceX character device node, thus reducing the CPU load. Devices with buffer support feature an additional sub-directory in the /sys/bus/iio/devices/",
+    "An IIO buffer has an associated attributes directory under /sys/bus/iio/iio:deviceX/bufferY/. The attributes are described below.. length: Read / Write attribute which states the total number of data samples (capacity) that can be stored b. enable: Read / Write attribute which starts / stops the buf",
+    "Read / Write attribute which states the total number of data samples (capacity) that can be stored by the buffer.",
+    "Read / Write attribute which starts / stops the buffer capture. This file should be written last, after length and selection of scan elements. Writing a non-zero value may result in an error, such as EINVAL, if, for example, an unsupported combination of channels is given.",
+    "Read / Write positive integer attribute specifying the maximum number of scan elements to wait for. Poll will block until the watermark is reached. Blocking read will wait until the minimum between the requested read amount or the low watermark is available. Non-blocking read will retrieve the avail",
+    "Read-only attribute indicating the bytes of data available in the buffer. In the case of an output buffer, this indicates the amount of empty space available to write data to. In the case of an input buffer, this indicates the amount of data available for reading.",
+    "The meta information associated with a channel data placed in a buffer is called a scan element. The scan elements attributes are presented below. _en Read / Write attribute used for enabling a channel. If and only if its value is non-zero, then a triggered capture will contain data samples for this",
+    "ADC driver for Analog Devices Inc. AD7380 and similar devices. The module name is ad7380.. Supported devices: The following chips are supported by this driver: AD7380 AD7381 AD7383 AD7384 AD7386 AD7387 AD7388 A. Supported features. SPI offload support: To be able to achieve the maximum sample rate, ",
+    "The following chips are supported by this driver: AD7380 AD7381 AD7383 AD7384 AD7386 AD7387 AD7388 AD7380-4 AD7381-4 AD7383-4 AD7384-4 AD7386-4 AD7387-4 AD7388-4 AD7389-4 ADAQ4370-4 ADAQ4380-4 ADAQ4381-4",
+    "SPI wiring modes: ad738x ADCs can output data on several SDO lines (1/2/4). The driver currently supports only 1 SDO l. Reference voltage. Oversampling and resolution boost: This family supports 2 types of oversampling: normal average and rolling average. Only normal averag. Alert: 2 channels varian",
+    "ad738x ADCs can output data on several SDO lines (1/2/4). The driver currently supports only 1 SDO line.",
+    "ad7380-4: ad7380-4 supports only an external reference voltage (2.5V to 3.3V). It must be declared in the devi. ad7389-4: ad7389-4 supports only an internal reference voltage. refin-supply and refio-supply properties are b. ADAQ devices: ADAQ devices don\u2019t have an external reference, but use a 3.3V ",
+    "ad7380-4 supports only an external reference voltage (2.5V to 3.3V). It must be declared in the device tree as refin-supply.",
+    "ad7389-4 supports only an internal reference voltage. refin-supply and refio-supply properties are both omitted in this case.",
+    "ADAQ devices don\u2019t have an external reference, but use a 3.3V internal reference derived from one of its supplies (refin-supply)",
+    "All other devices from ad738x support 2 possible reference voltage sources: Internal reference (2.5V) External reference (2.5V to 3.3V) The source is determined by the device tree. If refio-supply is present, then it is used as external reference, else the internal reference is used.",
+    "This family supports 2 types of oversampling: normal average and rolling average. Only normal average is supported by the driver, as rolling average can be achieved by processing a captured data buffer. The following ratios are available: 1 (oversampling disabled)/2/4/8/16/32. When the on-chip overs",
+    "2 channels variants of the ad738x family, can use the SDOB line as an alert pin when configured in 1 SDO line mode. 4 channels variants, can use SDOD as an alert pin when configured in 1 or 2 SDO line(s) mode, although only 1 SDO line mode is currently supported by the driver (see SPI wiring modes).",
+    "Single-ended chips of this family (ad7386/7/8(-4)) have a 2:1 multiplexer in front of each ADC. They also include additional configuration registers that allow for either manual selection or automatic switching (sequencer mode), of the multiplexer inputs. From an IIO point of view, all inputs are ex",
+    "ADAQ devices have a pin selectable gain in front of each ADC. The appropriate gain is selectable from device tree using the adi,gain-milli property. Refer to the typical connection diagrams section of the datasheet for pin wiring.",
+    "2/4 SDO lines Rolling average oversampling Power down mode CRC indication",
+    "To be able to achieve the maximum sample rate, the driver can be used with the AXI SPI Engine to provide SPI offload support. When SPI offload is being used, some attributes will be different. trigger directory is removed. in_voltage0_sampling_frequency attribute is added for setting the sample rate",
+    "This driver supports IIO triggered buffers. See Industrial IIO device buffers for more information.",
+    "Linux has a continuous deployment integration pipeline that works as follows: push (main) pull-request \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2510 \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510 \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2510 \u2502Checks\u251c\u2500#\u2500\u25ba\u2502Build Kernel * \u251c\u2500#\u2500\u25ba\u2502Assert\u2502 \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2518 \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518 \u25b2 \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2518 \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510 \u2502 \u2502Build Kernel arm\u251c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518 \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518 \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500",
+    "The continuous integration has some features that are described in this section.. Warning and error handling: Each tool will have its own outputs and the standard to consider something an error, a warning or so. Checking steps description: The purpose of the continuous integrations is to run all the",
+    "Each tool will have its own outputs and the standard to consider something an error, a warning or something else. So the workflows separate the steps outputs into steps events named err, fail, and warn: err: What a method return, if not captured (|| true), fails the CI. fail: Indicates that a warnin",
+    "The purpose of the continuous integrations is to run all the latest and greatest code checkers. To reduce noise, the checkers are run on the commit range or changed files only, when possible. The checkers are, followed by which step event they raise: Check job: checkpatch: runs on every commit of th",
+    "If the defconfig of a target doesn\u2019t exist, it falls back to the default configuration of that architecture. A \u201ctemporary\u201d commit can be used to manipulate the defconfigs for faster build times.",
+    "Cocci and bash scripts at ci/prerun are executed right after the .config is generated and before it is saved and the kernel compiled. For the check job, they are applied right after checkout. It allows manipulating the source code depending on the run conditions, and can be used as \u201cadapters\u201d when t",
+    "In this section there are instructions to bring-up your own continuous integration, either to run locally, in a self-hosted runner or even in a cluster.. Configure podman: Below are suggested instructions for setting up podman on a Linux environment. Adjust to your prefer. Build the container image:",
+    "Below are suggested instructions for setting up podman on a Linux environment. Adjust to your preference as needed, and skip the steps marked in green if not using WSL2. Install podman from your package manager. Ensure cgroup v2 on wsl2\u2019s .wslconfig: [wsl2] kernelCommandLine = cgroup_no_v1=all syste",
+    "Podman default configuration expects a local user to be able to create a user namespace where multiple IDs are mapped and a compatible partition to use as the storage location graphRoot. Note The ideal solution is to create a local non-root user and storage location. Podman processes should then be ",
+    "To build the container image, use your favorite container engine: ~$ cd ~/linux ~/linux$ podman build --tag adi/linux:latest ci You may want to build the container in a host, where you have all your tools installed, and then deploy to a server. In this case, export the image and then import on the s",
+    "The container-run.sh is a suggested container command to interactive login into an image, mounting the provided path. You can leverage it to compile/runs checks using persistent cache, for example: ~/linux$ cr adi/linux:v1 ~/linux$ set_arch gcc_aarch64 ARCH=arm64 CXX=gcc-14 CROSS_COMPILE=aarch64-sus",
+    "To host your GitHub Actions Runner, set up your secrets: # e.g. analogdevicesinc/linux ~$ printf ORG_REPOSITORY | podman secret create public_linux_org_repository - # e.g. MyVerYSecRunnerToken ~$ printf RUNNER_TOKEN | podman secret create public_linux_runner_token - The runner token is obtained from",
+    "To host a cluster of self-hosted runners, the recommended approach is to use systemd services, instead of for example, container compose solutions. Below is a suggested systemd service at ~/.config/systemd/user/container-public-linux@.service. [Unit] Description=container public linux ci %i Wants=ne",
+    "This driver supports Analog Device\u2019s IMUs on SPI bus.. 1. Supported devices: ADIS16465 ADIS16467 ADIS16470 ADIS16475 ADIS16477 ADIS16500 ADIS16505 ADIS16507 Each supported devic. 2. Device attributes: Accelerometer, gyroscope measurements are always provided. Furthermore, the driver offers the capab",
+    "ADIS16465 ADIS16467 ADIS16470 ADIS16475 ADIS16477 ADIS16500 ADIS16505 ADIS16507 Each supported device is a precision, miniature microelectromechanical system (MEMS) inertial measurement unit (IMU) that includes a triaxial gyroscope and a triaxial accelerometer. Each inertial sensor in the IMU device",
+    "Accelerometer, gyroscope measurements are always provided. Furthermore, the driver offers the capability to retrieve the delta angle and the delta velocity measurements computed by the device. The delta angle measurements represent a calculation of angular displacement between each sample update, wh",
+    "A channel value can be read from its _raw attribute. The value returned is the raw value as reported by the devices. To get the processed value of the channel, apply the following formula: processed value = (_raw + _offset) * _scale Where _offset and _scale are device attributes. If no _offset attri",
+    "Show device name: root:/sys/bus/iio/devices/iio:device0> cat name adis16505-2 Show accelerometer channels value: root:/sys/bus/iio/devices/iio:device0> cat in_accel_x_raw -275924 root:/sys/bus/iio/devices/iio:device0> cat in_accel_y_raw -30142222 root:/sys/bus/iio/devices/iio:device0> cat in_accel_z",
+    "This driver supports IIO buffers. All devices support retrieving the raw acceleration, gyroscope and temperature measurements using buffers. The following device families also support retrieving the delta velocity, delta angle and temperature measurements using buffers: ADIS16477 ADIS16500 ADIS16505",
+    "Set device trigger in current_trigger, if not already set: root:/sys/bus/iio/devices/iio:device0> cat trigger/current_trigger root:/sys/bus/iio/devices/iio:device0> echo adis16505-2-dev0 > trigger/current_trigger root:/sys/bus/iio/devices/iio:device0> cat trigger/current_trigger adis16505-2-dev0 Sel",
+    "See Documentation/iio/iio_tools.rst for the description of the available IIO interfacing tools.",
+    "This driver supports Analog Device\u2019s ADXL380/382 on SPI/I2C bus.. 1. Supported devices: ADXL380 ADXL382 The ADXL380/ADXL382 is a low noise density, low power, 3-axis accelerometer with sel. 2. Device attributes: Accelerometer measurements are always provided. Temperature data are also provided. This",
+    "ADXL380 ADXL382 The ADXL380/ADXL382 is a low noise density, low power, 3-axis accelerometer with selectable measurement ranges. The ADXL380 supports the \u00b14 g, \u00b18 g, and \u00b116 g ranges, and the ADXL382 supports \u00b115 g, \u00b130 g, and \u00b160 g ranges.",
+    "Accelerometer measurements are always provided. Temperature data are also provided. This data can be used to monitor the internal system temperature or to improve the temperature stability of the device via calibration. Each IIO device, has a device folder under /sys/bus/iio/devices/iio:deviceX, whe",
+    "A channel value can be read from its _raw attribute. The value returned is the raw value as reported by the devices. To get the processed value of the channel, apply the following formula: processed value = (_raw + _offset) * _scale Where _offset and _scale are device attributes. If no _offset attri",
+    "Show device name: root:/sys/bus/iio/devices/iio:device0> cat name adxl382 Show accelerometer channels value: root:/sys/bus/iio/devices/iio:device0> cat in_accel_x_raw -1771 root:/sys/bus/iio/devices/iio:device0> cat in_accel_y_raw 282 root:/sys/bus/iio/devices/iio:device0> cat in_accel_z_raw -1523 r",
+    "This driver supports IIO buffers. All devices support retrieving the raw acceleration and temperature measurements using buffers.. Usage examples: Select channels for buffer read: root:/sys/bus/iio/devices/iio:device0> echo 1 > scan_elements/in_ac",
+    "Select channels for buffer read: root:/sys/bus/iio/devices/iio:device0> echo 1 > scan_elements/in_accel_x_en root:/sys/bus/iio/devices/iio:device0> echo 1 > scan_elements/in_accel_y_en root:/sys/bus/iio/devices/iio:device0> echo 1 > scan_elements/in_accel_z_en root:/sys/bus/iio/devices/iio:device0> ",
+    "See Documentation/iio/iio_tools.rst for the description of the available IIO interfacing tools.",
+    "This driver supports Analog Device\u2019s IMUs on SPI bus.. 1. Supported devices: ADIS16550 The ADIS16550 is a complete inertial system that includes a triaxis gyroscope and a triaxi. 2. Device attributes: Accelerometer, gyroscope measurements are always provided. Furthermore, the driver offers the capab",
+    "ADIS16550 The ADIS16550 is a complete inertial system that includes a triaxis gyroscope and a triaxis accelerometer. The factory calibration characterizes each sensor for sensitivity, bias, and alignment. As a result, each sensor has its own dynamic compensation formulas that provide accurate sensor",
+    "Accelerometer, gyroscope measurements are always provided. Furthermore, the driver offers the capability to retrieve the delta angle and the delta velocity measurements computed by the device. The delta angle measurements represent a calculation of angular displacement between each sample update, wh",
+    "A channel value can be read from its _raw attribute. The value returned is the raw value as reported by the devices. To get the processed value of the channel, apply the following formula: processed value = (_raw + _offset) * _scale Where _offset and _scale are device attributes. If no _offset attri",
+    "Show device name: root:/sys/bus/iio/devices/iio:device0> cat name adis16550 Show accelerometer channels value: root:/sys/bus/iio/devices/iio:device0> cat in_accel_x_raw 6903851 root:/sys/bus/iio/devices/iio:device0> cat in_accel_y_raw 5650550 root:/sys/bus/iio/devices/iio:device0> cat in_accel_z_raw",
+    "This driver supports IIO buffers. The device supports retrieving the raw acceleration, gyroscope, delta velocity, delta angle and temperature measurements using buffers. However, when retrieving acceleration or gyroscope data using buffers, delta readings will not be available and vice versa. This i",
+    "Set device trigger in current_trigger, if not already set: root:/sys/bus/iio/devices/iio:device0> cat trigger/current_trigger root:/sys/bus/iio/devices/iio:device0> echo adis16550-dev0 > trigger/current_trigger root:/sys/bus/iio/devices/iio:device0> cat trigger/current_trigger adis16550-dev0 Select ",
+    "See Documentation/iio/iio_tools.rst for the description of the available IIO interfacing tools."
+  ],
+  "url": [
+    "genindex.html",
+    "iio/ad3552r.html",
+    "iio/ad3552r.html#supported-devices",
+    "iio/ad3552r.html#wiring-connections",
+    "iio/ad3552r.html#generic-spi",
+    "iio/ad3552r.html#high-speed-using-axi-dac-backend",
+    "iio/ad3552r.html#high-speed-features",
+    "iio/ad3552r.html#device-attributes",
+    "iio/ad3552r.html#usage-examples",
+    "index.html",
+    "iio/ad4000.html",
+    "iio/ad4000.html#supported-devices",
+    "iio/ad4000.html#wiring-connections",
+    "iio/ad4000.html#cs-mode-3-wire-turbo-mode",
+    "iio/ad4000.html#cs-mode-3-wire-without-busy-indicator",
+    "iio/ad4000.html#cs-mode-4-wire-without-busy-indicator",
+    "iio/index.html",
+    "getting_started.html",
+    "getting_started.html#description",
+    "getting_started.html#how-to-build",
+    "getting_started.html#release-branches",
+    "getting_started.html#rebased-branches",
+    "getting_started.html#raspberry-pi-branches",
+    "getting_started.html#intel-altera-branches",
+    "iio/ad7944.html",
+    "iio/ad7944.html#supported-devices",
+    "iio/ad7944.html#supported-features",
+    "iio/ad7944.html#spi-wiring-modes",
+    "iio/ad7944.html#cs-mode-3-wire-without-busy-indicator",
+    "iio/ad7944.html#cs-mode-4-wire-without-busy-indicator",
+    "iio/ad7944.html#chain-mode-without-busy-indicator",
+    "iio/ad7944.html#reference-voltage",
+    "iio/ad7944.html#unimplemented-features",
+    "iio/ad7944.html#device-attributes",
+    "iio/ad7944.html#pseudo-differential-adcs",
+    "iio/ad7944.html#fully-differential-adcs",
+    "iio/ad7944.html#spi-offload-support",
+    "iio/ad7944.html#device-buffers",
+    "iio/ad7191.html",
+    "iio/ad7191.html#supported-devices",
+    "iio/ad7191.html#devicetree",
+    "iio/ad7191.html#pin-configuration",
+    "iio/ad7191.html#odr-configuration",
+    "iio/ad7191.html#pga-configuration",
+    "iio/ad7191.html#clock-configuration",
+    "iio/ad7191.html#spi-interface-requirements",
+    "iio/ad7191.html#power-supply-requirements",
+    "iio/ad7191.html#channel-configuration",
+    "iio/ad7191.html#buffer-support",
+    "iio/ad4695.html",
+    "iio/ad4695.html#supported-devices",
+    "iio/ad4695.html#supported-features",
+    "iio/ad4695.html#spi-wiring-modes",
+    "iio/ad4695.html#wire-mode",
+    "iio/ad4695.html#spi-offload-wiring",
+    "iio/ad4695.html#channel-configuration",
+    "iio/ad4695.html#pairing-with-refgnd",
+    "iio/ad4695.html#pairing-with-com",
+    "iio/ad4695.html#pairing-two-inx-pins",
+    "iio/ad4695.html#vcc-supply",
+    "iio/ad4695.html#reference-voltage",
+    "iio/ad4695.html#gain-offset-calibration",
+    "iio/ad4695.html#oversampling",
+    "iio/ad4695.html#unimplemented-features",
+    "iio/ad4695.html#spi-offload-support",
+    "iio/ad4695.html#device-buffers",
+    "iio/ad4695.html#effective-sample-rate-for-buffered-reads",
+    "iio/ad7625.html",
+    "iio/ad7625.html#supported-devices",
+    "iio/ad7625.html#supported-features",
+    "iio/ad7625.html#conversion-control-modes",
+    "iio/ad7625.html#echoed-clock-interface-mode",
+    "iio/ad7625.html#reference-voltage",
+    "iio/ad7625.html#unimplemented-features",
+    "iio/ad7625.html#device-attributes",
+    "iio/ad7625.html#device-buffers",
+    "iio/adis16480.html",
+    "iio/adis16480.html#supported-devices",
+    "iio/adis16480.html#device-attributes",
+    "iio/adis16480.html#channels-processed-values",
+    "iio/adis16480.html#usage-examples",
+    "iio/adis16480.html#device-buffers",
+    "iio/adis16480.html#id1",
+    "iio/adis16480.html#iio-interfacing-tools",
+    "contribute.html",
+    "contribute.html#code-checkers",
+    "contribute.html#checkpatch",
+    "contribute.html#sparse-and-smatch",
+    "contribute.html#gcc-fanalyzer",
+    "contribute.html#clang-static-analyzer",
+    "contribute.html#devicetree",
+    "contribute.html#b4",
+    "contribute.html#subsytems",
+    "contribute.html#iio-subsytem",
+    "iio/iio_devbuf.html",
+    "iio/iio_devbuf.html#overview",
+    "iio/iio_devbuf.html#buffer-attributes",
+    "iio/iio_devbuf.html#length",
+    "iio/iio_devbuf.html#enable",
+    "iio/iio_devbuf.html#watermark",
+    "iio/iio_devbuf.html#data-available",
+    "iio/iio_devbuf.html#scan-elements",
+    "iio/ad7380.html",
+    "iio/ad7380.html#supported-devices",
+    "iio/ad7380.html#supported-features",
+    "iio/ad7380.html#spi-wiring-modes",
+    "iio/ad7380.html#reference-voltage",
+    "iio/ad7380.html#id1",
+    "iio/ad7380.html#id2",
+    "iio/ad7380.html#adaq-devices",
+    "iio/ad7380.html#all-other-devices-from-ad738x-family",
+    "iio/ad7380.html#oversampling-and-resolution-boost",
+    "iio/ad7380.html#alert",
+    "iio/ad7380.html#channel-selection-and-sequencer-single-end-chips-only",
+    "iio/ad7380.html#gain-adaq-devices-only",
+    "iio/ad7380.html#unimplemented-features",
+    "iio/ad7380.html#spi-offload-support",
+    "iio/ad7380.html#device-buffers",
+    "ci.html",
+    "ci.html#features",
+    "ci.html#warning-and-error-handling",
+    "ci.html#checking-steps-description",
+    "ci.html#defconfigs",
+    "ci.html#source-code-manipulation",
+    "ci.html#setting-up-and-running",
+    "ci.html#configure-podman",
+    "ci.html#network-users-partitions",
+    "ci.html#build-the-container-image",
+    "ci.html#interactive-run",
+    "ci.html#self-hosted-runner",
+    "ci.html#self-hosted-cluster",
+    "iio/adis16475.html",
+    "iio/adis16475.html#supported-devices",
+    "iio/adis16475.html#device-attributes",
+    "iio/adis16475.html#channels-processed-values",
+    "iio/adis16475.html#usage-examples",
+    "iio/adis16475.html#device-buffers",
+    "iio/adis16475.html#id1",
+    "iio/adis16475.html#iio-interfacing-tools",
+    "iio/adxl380.html",
+    "iio/adxl380.html#supported-devices",
+    "iio/adxl380.html#device-attributes",
+    "iio/adxl380.html#channels-processed-values",
+    "iio/adxl380.html#usage-examples",
+    "iio/adxl380.html#device-buffers",
+    "iio/adxl380.html#id1",
+    "iio/adxl380.html#iio-interfacing-tools",
+    "iio/adis16550.html",
+    "iio/adis16550.html#supported-devices",
+    "iio/adis16550.html#device-attributes",
+    "iio/adis16550.html#channels-processed-values",
+    "iio/adis16550.html#usage-examples",
+    "iio/adis16550.html#device-buffers",
+    "iio/adis16550.html#id1",
+    "iio/adis16550.html#iio-interfacing-tools"
+  ],
+  "hierarchy": [
+    [
+      "Index"
+    ],
+    [
+      "Industrial I/O",
+      "AD3552R driver"
+    ],
+    [
+      "Industrial I/O",
+      "AD3552R driver",
+      "Supported devices"
+    ],
+    [
+      "Industrial I/O",
+      "AD3552R driver",
+      "Wiring connections"
+    ],
+    [
+      "Industrial I/O",
+      "AD3552R driver",
+      "Wiring connections",
+      "Generic SPI"
+    ],
+    [
+      "Industrial I/O",
+      "AD3552R driver",
+      "Wiring connections",
+      "High speed (using axi-dac backend)"
+    ],
+    [
+      "Industrial I/O",
+      "AD3552R driver",
+      "High speed features"
+    ],
+    [
+      "Industrial I/O",
+      "AD3552R driver",
+      "High speed features",
+      "Device attributes"
+    ],
+    [
+      "Industrial I/O",
+      "AD3552R driver",
+      "High speed features",
+      "Usage examples"
+    ],
+    [
+      "Analog Devices Linux"
+    ],
+    [
+      "Industrial I/O",
+      "AD4000 driver"
+    ],
+    [
+      "Industrial I/O",
+      "AD4000 driver",
+      "Supported devices"
+    ],
+    [
+      "Industrial I/O",
+      "AD4000 driver",
+      "Supported devices",
+      "Wiring connections"
+    ],
+    [
+      "Industrial I/O",
+      "AD4000 driver",
+      "Supported devices",
+      "Wiring connections",
+      "CS mode, 3-wire turbo mode"
+    ],
+    [
+      "Industrial I/O",
+      "AD4000 driver",
+      "Supported devices",
+      "Wiring connections",
+      "CS mode, 3-wire, without busy indicator"
+    ],
+    [
+      "Industrial I/O",
+      "AD4000 driver",
+      "Supported devices",
+      "Wiring connections",
+      "CS mode, 4-wire without busy indicator"
+    ],
+    [
+      "Industrial I/O"
+    ],
+    [
+      "Getting Started"
+    ],
+    [
+      "Getting Started",
+      "Description"
+    ],
+    [
+      "Getting Started",
+      "How to build"
+    ],
+    [
+      "Getting Started",
+      "Release branches"
+    ],
+    [
+      "Getting Started",
+      "Rebased branches"
+    ],
+    [
+      "Getting Started",
+      "Raspberry Pi branches"
+    ],
+    [
+      "Getting Started",
+      "Intel/Altera branches"
+    ],
+    [
+      "Industrial I/O",
+      "AD7944 driver"
+    ],
+    [
+      "Industrial I/O",
+      "AD7944 driver",
+      "Supported devices"
+    ],
+    [
+      "Industrial I/O",
+      "AD7944 driver",
+      "Supported features"
+    ],
+    [
+      "Industrial I/O",
+      "AD7944 driver",
+      "Supported features",
+      "SPI wiring modes"
+    ],
+    [
+      "Industrial I/O",
+      "AD7944 driver",
+      "Supported features",
+      "SPI wiring modes",
+      "CS mode, 3-wire, without busy indicator"
+    ],
+    [
+      "Industrial I/O",
+      "AD7944 driver",
+      "Supported features",
+      "SPI wiring modes",
+      "CS mode, 4-wire, without busy indicator"
+    ],
+    [
+      "Industrial I/O",
+      "AD7944 driver",
+      "Supported features",
+      "SPI wiring modes",
+      "Chain mode, without busy indicator"
+    ],
+    [
+      "Industrial I/O",
+      "AD7944 driver",
+      "Supported features",
+      "Reference voltage"
+    ],
+    [
+      "Industrial I/O",
+      "AD7944 driver",
+      "Supported features",
+      "Unimplemented features"
+    ],
+    [
+      "Industrial I/O",
+      "AD7944 driver",
+      "Device attributes"
+    ],
+    [
+      "Industrial I/O",
+      "AD7944 driver",
+      "Device attributes",
+      "Pseudo-differential ADCs"
+    ],
+    [
+      "Industrial I/O",
+      "AD7944 driver",
+      "Device attributes",
+      "Fully-differential ADCs"
+    ],
+    [
+      "Industrial I/O",
+      "AD7944 driver",
+      "SPI offload support"
+    ],
+    [
+      "Industrial I/O",
+      "AD7944 driver",
+      "Device buffers"
+    ],
+    [
+      "Industrial I/O",
+      "AD7191 driver"
+    ],
+    [
+      "Industrial I/O",
+      "AD7191 driver",
+      "Supported devices"
+    ],
+    [
+      "Industrial I/O",
+      "AD7191 driver",
+      "Devicetree"
+    ],
+    [
+      "Industrial I/O",
+      "AD7191 driver",
+      "Devicetree",
+      "Pin Configuration"
+    ],
+    [
+      "Industrial I/O",
+      "AD7191 driver",
+      "Devicetree",
+      "Pin Configuration",
+      "ODR Configuration"
+    ],
+    [
+      "Industrial I/O",
+      "AD7191 driver",
+      "Devicetree",
+      "Pin Configuration",
+      "PGA Configuration"
+    ],
+    [
+      "Industrial I/O",
+      "AD7191 driver",
+      "Devicetree",
+      "Clock Configuration"
+    ],
+    [
+      "Industrial I/O",
+      "AD7191 driver",
+      "Devicetree",
+      "SPI Interface Requirements"
+    ],
+    [
+      "Industrial I/O",
+      "AD7191 driver",
+      "Devicetree",
+      "Power Supply Requirements"
+    ],
+    [
+      "Industrial I/O",
+      "AD7191 driver",
+      "Channel Configuration"
+    ],
+    [
+      "Industrial I/O",
+      "AD7191 driver",
+      "Buffer Support"
+    ],
+    [
+      "Industrial I/O",
+      "AD4695 driver"
+    ],
+    [
+      "Industrial I/O",
+      "AD4695 driver",
+      "Supported devices"
+    ],
+    [
+      "Industrial I/O",
+      "AD4695 driver",
+      "Supported features"
+    ],
+    [
+      "Industrial I/O",
+      "AD4695 driver",
+      "Supported features",
+      "SPI wiring modes"
+    ],
+    [
+      "Industrial I/O",
+      "AD4695 driver",
+      "Supported features",
+      "SPI wiring modes",
+      "4-wire mode"
+    ],
+    [
+      "Industrial I/O",
+      "AD4695 driver",
+      "Supported features",
+      "SPI wiring modes",
+      "SPI offload wiring"
+    ],
+    [
+      "Industrial I/O",
+      "AD4695 driver",
+      "Supported features",
+      "Channel configuration"
+    ],
+    [
+      "Industrial I/O",
+      "AD4695 driver",
+      "Supported features",
+      "Channel configuration",
+      "Pairing with REFGND"
+    ],
+    [
+      "Industrial I/O",
+      "AD4695 driver",
+      "Supported features",
+      "Channel configuration",
+      "Pairing with COM"
+    ],
+    [
+      "Industrial I/O",
+      "AD4695 driver",
+      "Supported features",
+      "Channel configuration",
+      "Pairing two INx pins"
+    ],
+    [
+      "Industrial I/O",
+      "AD4695 driver",
+      "Supported features",
+      "VCC supply"
+    ],
+    [
+      "Industrial I/O",
+      "AD4695 driver",
+      "Supported features",
+      "Reference voltage"
+    ],
+    [
+      "Industrial I/O",
+      "AD4695 driver",
+      "Supported features",
+      "Gain/offset calibration"
+    ],
+    [
+      "Industrial I/O",
+      "AD4695 driver",
+      "Supported features",
+      "Oversampling"
+    ],
+    [
+      "Industrial I/O",
+      "AD4695 driver",
+      "Supported features",
+      "Unimplemented features"
+    ],
+    [
+      "Industrial I/O",
+      "AD4695 driver",
+      "SPI offload support"
+    ],
+    [
+      "Industrial I/O",
+      "AD4695 driver",
+      "Device buffers"
+    ],
+    [
+      "Industrial I/O",
+      "AD4695 driver",
+      "Device buffers",
+      "Effective sample rate for buffered reads"
+    ],
+    [
+      "Industrial I/O",
+      "AD7625 driver"
+    ],
+    [
+      "Industrial I/O",
+      "AD7625 driver",
+      "Supported devices"
+    ],
+    [
+      "Industrial I/O",
+      "AD7625 driver",
+      "Supported features"
+    ],
+    [
+      "Industrial I/O",
+      "AD7625 driver",
+      "Supported features",
+      "Conversion control modes"
+    ],
+    [
+      "Industrial I/O",
+      "AD7625 driver",
+      "Supported features",
+      "Conversion control modes",
+      "Echoed-Clock interface mode"
+    ],
+    [
+      "Industrial I/O",
+      "AD7625 driver",
+      "Supported features",
+      "Reference voltage"
+    ],
+    [
+      "Industrial I/O",
+      "AD7625 driver",
+      "Supported features",
+      "Unimplemented features"
+    ],
+    [
+      "Industrial I/O",
+      "AD7625 driver",
+      "Device attributes"
+    ],
+    [
+      "Industrial I/O",
+      "AD7625 driver",
+      "Device buffers"
+    ],
+    [
+      "Industrial I/O",
+      "ADIS16480 driver"
+    ],
+    [
+      "Industrial I/O",
+      "ADIS16480 driver",
+      "1. Supported devices"
+    ],
+    [
+      "Industrial I/O",
+      "ADIS16480 driver",
+      "2. Device attributes"
+    ],
+    [
+      "Industrial I/O",
+      "ADIS16480 driver",
+      "2. Device attributes",
+      "Channels processed values"
+    ],
+    [
+      "Industrial I/O",
+      "ADIS16480 driver",
+      "2. Device attributes",
+      "Usage examples"
+    ],
+    [
+      "Industrial I/O",
+      "ADIS16480 driver",
+      "3. Device buffers"
+    ],
+    [
+      "Industrial I/O",
+      "ADIS16480 driver",
+      "3. Device buffers",
+      "Usage examples"
+    ],
+    [
+      "Industrial I/O",
+      "ADIS16480 driver",
+      "4. IIO Interfacing Tools"
+    ],
+    [
+      "Contribution guidelines"
+    ],
+    [
+      "Contribution guidelines",
+      "Code checkers"
+    ],
+    [
+      "Contribution guidelines",
+      "Code checkers",
+      "Checkpatch"
+    ],
+    [
+      "Contribution guidelines",
+      "Code checkers",
+      "Sparse and smatch"
+    ],
+    [
+      "Contribution guidelines",
+      "Code checkers",
+      "GCC fanalyzer"
+    ],
+    [
+      "Contribution guidelines",
+      "Code checkers",
+      "Clang static analyzer"
+    ],
+    [
+      "Contribution guidelines",
+      "Devicetree"
+    ],
+    [
+      "Contribution guidelines",
+      "B4"
+    ],
+    [
+      "Contribution guidelines",
+      "Subsytems"
+    ],
+    [
+      "Contribution guidelines",
+      "Subsytems",
+      "IIO Subsytem"
+    ],
+    [
+      "Industrial I/O",
+      "Industrial IIO device buffers"
+    ],
+    [
+      "Industrial I/O",
+      "Industrial IIO device buffers",
+      "1. Overview"
+    ],
+    [
+      "Industrial I/O",
+      "Industrial IIO device buffers",
+      "2. Buffer attributes"
+    ],
+    [
+      "Industrial I/O",
+      "Industrial IIO device buffers",
+      "2. Buffer attributes",
+      "length"
+    ],
+    [
+      "Industrial I/O",
+      "Industrial IIO device buffers",
+      "2. Buffer attributes",
+      "enable"
+    ],
+    [
+      "Industrial I/O",
+      "Industrial IIO device buffers",
+      "2. Buffer attributes",
+      "watermark"
+    ],
+    [
+      "Industrial I/O",
+      "Industrial IIO device buffers",
+      "2. Buffer attributes",
+      "Data available"
+    ],
+    [
+      "Industrial I/O",
+      "Industrial IIO device buffers",
+      "2. Buffer attributes",
+      "Scan elements"
+    ],
+    [
+      "Industrial I/O",
+      "AD7380 driver"
+    ],
+    [
+      "Industrial I/O",
+      "AD7380 driver",
+      "Supported devices"
+    ],
+    [
+      "Industrial I/O",
+      "AD7380 driver",
+      "Supported features"
+    ],
+    [
+      "Industrial I/O",
+      "AD7380 driver",
+      "Supported features",
+      "SPI wiring modes"
+    ],
+    [
+      "Industrial I/O",
+      "AD7380 driver",
+      "Supported features",
+      "Reference voltage"
+    ],
+    [
+      "Industrial I/O",
+      "AD7380 driver",
+      "Supported features",
+      "Reference voltage",
+      "ad7380-4"
+    ],
+    [
+      "Industrial I/O",
+      "AD7380 driver",
+      "Supported features",
+      "Reference voltage",
+      "ad7389-4"
+    ],
+    [
+      "Industrial I/O",
+      "AD7380 driver",
+      "Supported features",
+      "Reference voltage",
+      "ADAQ devices"
+    ],
+    [
+      "Industrial I/O",
+      "AD7380 driver",
+      "Supported features",
+      "Reference voltage",
+      "All other devices from ad738x family"
+    ],
+    [
+      "Industrial I/O",
+      "AD7380 driver",
+      "Supported features",
+      "Oversampling and resolution boost"
+    ],
+    [
+      "Industrial I/O",
+      "AD7380 driver",
+      "Supported features",
+      "Alert"
+    ],
+    [
+      "Industrial I/O",
+      "AD7380 driver",
+      "Supported features",
+      "Channel selection and sequencer (single-end chips only)"
+    ],
+    [
+      "Industrial I/O",
+      "AD7380 driver",
+      "Supported features",
+      "Channel selection and sequencer (single-end chips only)",
+      "Gain (ADAQ devices only)"
+    ],
+    [
+      "Industrial I/O",
+      "AD7380 driver",
+      "Supported features",
+      "Unimplemented features"
+    ],
+    [
+      "Industrial I/O",
+      "AD7380 driver",
+      "SPI offload support"
+    ],
+    [
+      "Industrial I/O",
+      "AD7380 driver",
+      "Device buffers"
+    ],
+    [
+      "Continuous integration"
+    ],
+    [
+      "Continuous integration",
+      "Features"
+    ],
+    [
+      "Continuous integration",
+      "Features",
+      "Warning and error handling"
+    ],
+    [
+      "Continuous integration",
+      "Features",
+      "Checking steps description"
+    ],
+    [
+      "Continuous integration",
+      "Features",
+      "Defconfigs"
+    ],
+    [
+      "Continuous integration",
+      "Features",
+      "Source code manipulation"
+    ],
+    [
+      "Continuous integration",
+      "Setting up and running"
+    ],
+    [
+      "Continuous integration",
+      "Setting up and running",
+      "Configure podman"
+    ],
+    [
+      "Continuous integration",
+      "Setting up and running",
+      "Configure podman",
+      "Network users & partitions"
+    ],
+    [
+      "Continuous integration",
+      "Setting up and running",
+      "Build the container image"
+    ],
+    [
+      "Continuous integration",
+      "Setting up and running",
+      "Interactive run"
+    ],
+    [
+      "Continuous integration",
+      "Setting up and running",
+      "Self-hosted runner"
+    ],
+    [
+      "Continuous integration",
+      "Setting up and running",
+      "Self-hosted cluster"
+    ],
+    [
+      "Industrial I/O",
+      "ADIS16475 driver"
+    ],
+    [
+      "Industrial I/O",
+      "ADIS16475 driver",
+      "1. Supported devices"
+    ],
+    [
+      "Industrial I/O",
+      "ADIS16475 driver",
+      "2. Device attributes"
+    ],
+    [
+      "Industrial I/O",
+      "ADIS16475 driver",
+      "2. Device attributes",
+      "Channels processed values"
+    ],
+    [
+      "Industrial I/O",
+      "ADIS16475 driver",
+      "2. Device attributes",
+      "Usage examples"
+    ],
+    [
+      "Industrial I/O",
+      "ADIS16475 driver",
+      "3. Device buffers"
+    ],
+    [
+      "Industrial I/O",
+      "ADIS16475 driver",
+      "3. Device buffers",
+      "Usage examples"
+    ],
+    [
+      "Industrial I/O",
+      "ADIS16475 driver",
+      "4. IIO Interfacing Tools"
+    ],
+    [
+      "Industrial I/O",
+      "ADXL380 driver"
+    ],
+    [
+      "Industrial I/O",
+      "ADXL380 driver",
+      "1. Supported devices"
+    ],
+    [
+      "Industrial I/O",
+      "ADXL380 driver",
+      "2. Device attributes"
+    ],
+    [
+      "Industrial I/O",
+      "ADXL380 driver",
+      "2. Device attributes",
+      "Channels processed values"
+    ],
+    [
+      "Industrial I/O",
+      "ADXL380 driver",
+      "2. Device attributes",
+      "Usage examples"
+    ],
+    [
+      "Industrial I/O",
+      "ADXL380 driver",
+      "3. Device buffers"
+    ],
+    [
+      "Industrial I/O",
+      "ADXL380 driver",
+      "3. Device buffers",
+      "Usage examples"
+    ],
+    [
+      "Industrial I/O",
+      "ADXL380 driver",
+      "4. IIO Interfacing Tools"
+    ],
+    [
+      "Industrial I/O",
+      "ADIS16550 driver"
+    ],
+    [
+      "Industrial I/O",
+      "ADIS16550 driver",
+      "1. Supported devices"
+    ],
+    [
+      "Industrial I/O",
+      "ADIS16550 driver",
+      "2. Device attributes"
+    ],
+    [
+      "Industrial I/O",
+      "ADIS16550 driver",
+      "2. Device attributes",
+      "Channels processed values"
+    ],
+    [
+      "Industrial I/O",
+      "ADIS16550 driver",
+      "2. Device attributes",
+      "Usage examples"
+    ],
+    [
+      "Industrial I/O",
+      "ADIS16550 driver",
+      "3. Device buffers"
+    ],
+    [
+      "Industrial I/O",
+      "ADIS16550 driver",
+      "3. Device buffers",
+      "Usage examples"
+    ],
+    [
+      "Industrial I/O",
+      "ADIS16550 driver",
+      "4. IIO Interfacing Tools"
+    ]
+  ]
+}
