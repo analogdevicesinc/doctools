@@ -7,12 +7,6 @@ import traceback
 from urllib.parse import urljoin
 from lxml import html as lxml_html
 
-SKIP_CLASSES = [
-    'headerlink', 'sphinxsidebar', 'related', 'footer',
-    'document-nav', 'breadcrumb', 'toctree-wrapper', 'body-header',
-    'search-header',
-]
-
 def find_main_content(tree):
     for selector in (
         './/div[@role="main"][@class="body"]',
@@ -35,16 +29,10 @@ class HTMLToMarkdown:
         self.base_url = base_url
         self.anchor = None
         self.output = []
+        self.chunk_only = False
 
     def convert(self, html_content):
-        """Convert HTML content to Markdown.
-
-        Args:
-            html_content: HTML string to convert
-
-        Returns:
-            Markdown string
-        """
+        """Convert HTML content to Markdown."""
         tree = lxml_html.fromstring(html_content)
 
         index = self.base_url.rfind('#')
@@ -70,11 +58,7 @@ class HTMLToMarkdown:
         """Recursively process HTML elements."""
         tag = elem.tag
 
-        classes = elem.get('class', '')
-        # Skip navigation, headers, footers (to work with any sphinx build)
-        if any(skip in classes for skip in SKIP_CLASSES):
-            return
-
+        classes = elem.get('class') or ''
         if tag in ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']:
             self.handle_heading(elem)
         elif tag == 'p':
@@ -94,7 +78,8 @@ class HTMLToMarkdown:
         elif tag == 'a':
             self.process_children(elem, list_depth)
         elif tag == 'section':
-            self.process_children(elem, list_depth)
+            if not self.chunk_only:
+                self.process_children(elem, list_depth)
         elif 'admonition' in classes or tag == 'div' and any(
             adm in classes for adm in ['note', 'warning', 'attention', 'important', 'tip', 'caution']
         ):
@@ -233,7 +218,12 @@ class HTMLToMarkdown:
         alt = elem.get('alt', '')
         original_src = elem.get('src', '')
 
-        if src:
+        if self.chunk_only:
+            if alt != src:
+                self.output.append('')
+                self.output.append(f'{alt}')
+                self.output.append('')
+        elif src:
             src = urljoin(self.base_url, src)
 
             # Clear alt if it equals the url
@@ -288,6 +278,12 @@ class HTMLToMarkdown:
                 rows.append(cells)
 
         if not rows:
+            return
+
+        if self.chunk_only:
+            for row in rows:
+                 self.output.append('|' + '|'.join(row) + '|')
+            self.output.append('')
             return
 
         max_cols = max(len(row) for row in rows)
@@ -385,7 +381,9 @@ class HTMLToMarkdown:
                 href = child.get('href', '')
                 link_text = self.get_text(child, inline=True).strip()
 
-                if href:
+                if self.chunk_only:
+                    child_text = link_text
+                elif href:
                     href = urljoin(self.base_url, href)
                     child_text = f'[{link_text}]({href})'
                 else:

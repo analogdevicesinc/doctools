@@ -76,9 +76,9 @@ def find_html_files(directory, version, ignore_paths):
 
 
 def _extract_chunks_worker(args):
-    html_path, docs_root = args
-    return html_path, HTMLToChunks(html_path, docs_root,
-                                     max_text_chars=1000) # ~250 tokens
+    converter = HTMLToChunks()
+
+    return converter.convert(*args)
 
 class TurboQuant:
     def __init__(self, wasm_path, dim, seed):
@@ -197,8 +197,6 @@ def doc2vector():
         logger.error("File 'turboquant.wasm' does not exist.")
         return
 
-    from sentence_transformers import SentenceTransformer
-
     root = Path(args.docs).resolve()
     version = Path(args.version)
 
@@ -232,13 +230,12 @@ def doc2vector():
     with ProcessPoolExecutor(max_workers=args.workers) as pool:
         futures = {pool.submit(_extract_chunks_worker, item): item for item in work_items}
         for future in as_completed(futures):
-            html_path, page_chunks = future.result()
+            page_chunks = future.result()
             chunks.extend(page_chunks)
 
     logger.info("got %d chunks", len(chunks))
 
-    if not chunks:
-        sys.exit(1)
+    from sentence_transformers import SentenceTransformer
 
     model_cache = script_dir / "model"
     if model_cache.is_dir():
