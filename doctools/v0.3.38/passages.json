@@ -1,82 +1,75 @@
 {
   "text": [
-    "Index",
-    "Search Please activate JavaScript to enable the search functionality. Searching for multiple words only shows matches that contain all words.",
-    "A Sphinx themed called cosmic is available. It is deeply based on ADI\u2019s harmonic design language.. Shortcuts: Alt+Shift+ArrowLeft goes to the previous page and Alt+Shift+ArrowRight to the next page. Ctrl+Alt+Sh",
-    "Alt+Shift+ArrowLeft goes to the previous page and Alt+Shift+ArrowRight to the next page. Ctrl+Alt+Shift+ArrowLeft/Right preserves the current page anchor, for example, if the current section is project_0.html#details, Ctrl+Alt+Shift+ArrowRight goes to project_1.html#details, even if details does not",
-    "Analog Devices Inc. documentation extensions, themes, and tools for multiple repositories in the organization. Read the Documentation guidelines for more documentation rules and information on the directives and roles packaged on this repository. And read the Command line interface for information a",
-    "Doctools package pipeline: Doctools has a continuous deployment integration pipeline that works as follows: \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500. Documentation build and deployment: Doctools is developed to work offline, in a local server, as a rolling release (e.g. on GitHub Page)",
-    "Doctools has a continuous deployment integration pipeline that works as follows: \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510 \u250c\u2500\u25ba\u2502Build Doc & Deploy\u251c\u2500\u2510 \u2502 \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518 \u2502 \u2502 \u2502 \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510 \u2502 \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510 \u2502 \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510 \u2502Build Package\u251c\u2500\u253c\u2500\u25ba\u2502Build Doc on Min\u251c\u2500\u2500\u2500\u253c\u2500\u25ba\u2502Deploy Package\u2502 \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518 \u2502 \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500",
-    "Doctools is developed to work offline, in a local server, as a rolling release (e.g. on GitHub Page)s and versioned in a dedicated server (with orchestration).. Local: For offline and local server, a make html suffice to generate the documentation. To serve the build . Rolling release: For a rolling",
-    "For offline and local server, a make html suffice to generate the documentation. To serve the build in a local server, Python built-in server can be used: python -m http.server -d /path/to/docs/_build/html Or with hot reload using Author Mode: adoc author-mode -d /path/to/docs",
-    "For a rolling release, a workflow file is used. With GitHub Actions, the following workflow file is recommended: on: push: branches: - main pull_request: jobs: build-doc: runs-on: ubuntu-latest steps: - uses: actions/checkout@v4 - uses: actions/setup-python@v5 with: python-version: \"3.x\" - name: Ins",
-    "The live versioned version requires additional orchestration than the Rolling release. Store each version in separated folders in the root path, e.g. v1.1, v2.2, main, dev and generate a tags.json containing a plain array with each version on the root path, e.g. [\"v1.1\", \"v2.2\", \"main\", \"dev\"] (a em",
-    "Documentation hierarchical structure: Doctools is the central piece to aggregate multiple documentations together, expanding the documenta",
-    "Doctools is the central piece to aggregate multiple documentations together, expanding the documentation standard hierarchical, mono-repo configuration. The content is organized in three levels: repotoc: Listing of repositories in the same organization that contain documentations. In general, a repo",
-    "Below is described how to do a release install and a development install of Doctools. Guarantee to work with Python newer than 3.8 and distros released on or after 20H1 (e.g. Ubuntu 20.04 LTS).. Release install: Ensure pip is newer than 23.0 [1]: pip install pip --upgrade Install the documentation t",
-    "Ensure pip is newer than 23.0 [1]: pip install pip --upgrade Install the documentation tools, which will fetch this repository release: (cd docs ; pip install -r requirements.txt) Test it building this documentation: (cd docs ; make html) [1] There is a known bug with pip shipped with Ubuntu 22.04..",
-    "Installing packages at user level through pip is not always recommended, instead, consider using a Python virtual environment (python3-venv on ubuntu 22.04). To create and activate the environment, do before the previous instructions: python3 -m venv ./venv source ./venv/bin/activate Use deactivate ",
-    "Development install allows to edit the source code and apply the changes without reinstalling. Also extends Author Mode to watch changes on the webpage source code (use \u2013dev/-r option to enable this).. Install the web compiler: If you care about the web scripts (js modules) and style sheets (sass), ",
-    "If you care about the web scripts (js modules) and style sheets (sass), install npm first, if not, just skip this section. Note If the npm provided by your package manager is too old and updating with npm install npm -g fails, consider installing with NodeSource. At the repository root, install the ",
-    "Fetch third-party fonts: ./ci/fetch-fonts.sh",
-    "Finally, do a symbolic install of this repo: pip install -e . --upgrade",
-    "To remove, either release or development, do: pip uninstall adi-doctools",
-    "The Doctools bundles a command line interface called adoc meant to ease both continuous integration and local builds of the documentation. Below, it is briefly described each command, and it is worth noting that every command supports the --help option for quick look up.. Author Mode: Watches the do",
-    "Watches the docs and source code to rebuild it on edit. Two live update strategies are available: selenium: Page reloads through Firefox\u2019s API (default). pooling: The webpage pools timestamp changes on the .dev-pool file (fallback). To launch a watched instance, do: adoc author-mode --directory /pat",
-    "Since a Python scripts change would affect rebuilding the whole documentation, those files are not watched by design even with the --dev option. Extensions at the doc itself are, however. Alternatively, touch the source doc of the open page to rebuild only it with the edited Python code.",
-    "Warning This feature is under elaboration. Generates all documentations of the watched repositories, which currently are: ADI System Level Documentation repository ADI HDL repository ADI no-OS repository ADI PyADI-IIO repository ADI Doctools repository Two generation strategies are available: monoli",
-    "Exposes the HDL component diagram generator as a CLI. It converts IP-XACT files into SVGs. To generate and open the diagram, provide the path containing the IP-XACT and use the --open option: adoc hdl-render --input PATH --open For example: adoc hdl-render --input hdl/library/axi_dmac --open For all",
-    "A brief set-of-rules for the documentation. Note The old wiki uses dokuwiki. When importing text from there, consider the automated options that are provided in this page to convert it to reST.. Indentation: Directives are indented with 3 space, which is Sphinx\u2019s default. At code directives, the cod",
-    "Directives are indented with 3 space, which is Sphinx\u2019s default. At code directives, the code keeps its original indentation (e.g. 2 spaces for Verilog code), but is offset by 3 spaces at the beginning of every line, to instruct Sphinx the beginning and end of the code directive.",
-    "The relation between pages are created with the toctree directive, which allows to generate the table of contents and navigation bars. Each page may have only one toctree, since they are the equivalent of the volumes of a book, and it does not make sense to have multiple \u201cvolumes\u201d at the repository ",
-    "To avoid having the version set in multiple places or having to tweak conf.py to obtain it from somewhere else, continuous integration can set the environment variable ADOC_DOC_VERSION to set the version value. Still, the version value on conf.py has higher precedence, and ADOC_DOC_VERSION will be i",
-    "References have the format library/project context, e.g. :ref:`vivado block-diagrams` renders as Vivado block-diagrams. Notice how neither library nor project are present in the label, since there is no naming collision between libraries or projects (no project will ever be named axi_dmac). Also, fo",
-    "For references to Sphinx docs inside the organization (repos listed in the repotoc), the ref role is extended with the syntax :ref-<external>:`label` where external is a mapped source, for example, :ref-hdl:`spi_engine control-interface`. It is also possible to customize the text, e.g. :ref-hdl:`Cus",
-    "To create references to other Sphinx documentations, sphinx.ext.intersphinx can be added to the conf.py extension list. The syntax is :external+<external>:<domain>:`label`, where external is a mapped source and the domain is the reference type, for example, :external+sphinx:doc:`development/theming`",
-    "Each line must be less than 80 columns wide. You can use the fold command to break the lines of the imported text while respecting word-breaks: cat imported.txt | fold -sw 80 > imported.rst Or use pandoc: pandoc imported.txt -f dokuwiki -t rst --columns=80 -s -o imported.rst",
-    "Prefer list-tables and imported csv-tables (using the file option), because they are faster to create, easier to maintain and the 80 column-width rule can be respected with list-tables. You can use the following command: pandoc imported.txt -f dokuwiki -t rst --columns=80 -s -o imported.rst --list-t",
-    "Unordered lists use * or - and ordered lists #.. Child items must be aligned with the first letter of the parent item, that means, 2 spaces for unordered list and 3 spaces for ordered lists, for example: #. Parent ordered item. * Child unordeded item. #. Child ordered item. #. Child ordered item. Re",
-    "Prefer code-blocks to code directives, because code-blocks have more options, such as showing line numbers and emphasizing lines. For example, .. code-block:: python :linenos: :emphasize-lines: 2 def hello_world(): string = \"Hello world\" print(string) Renders as 1def hello_world(): 2 string = \"Hello",
-    "Prefer the SVG format for images, and save it as Optimized SVG in inkscape to use less space. Store them in a hierarchically, do not use images subdirectories. The idea is to have simpler relative paths, for example, e.g.: .. image:: ad2234_sdz_schematic.svg Instead of over complicated paths like: .",
-    "Where applicable, Git Large File Storage (LFS) is used to replace large files with text pointers inside Git, reducing cloning time. To setup, install from your package manager and init: apt install git-lfs git lfs install The files that will use Git LFS are tracked at .gitattributes, to add new file",
-    "Vivado block-diagrams can be exported as PDF and then converted to SVG with Inkscape.",
-    "There is no way to export Vivado waveform data as vectors. Therefore, the recommended method is to take a PNG screenshot and use GIMP to export as 8bpc RGB with all metadata options disabled. Note Always use the Export As.. Ctrl+Shift+E option. To reduce even further the size, you can use Color > Di",
-    "Third-party tools are used to expand Sphinx functionality, if you haven\u2019t already, do: pip install -r requirements.txt",
-    "To expand Sphinx functionality beyond existing tools, custom directives and roles have been written, which are located in the docs/extensions folder. Extensions are straight forward to create, if some functionality is missing, consider requesting or creating one. Note Link-like roles use the :role:`",
-    "To print text in red or green, use :red:`text` and :green:`text`.",
-    "The link roles are a group of roles defined by adi_links.py. The validate_links global option is used to validate each link during build. These links are not managed, that means, only links from changed files are checked. You can run a build with it set to False, then touch the desired files to chec",
-    "The Git role allows to create links to the Git repository with a shorter syntax. The role syntax is :git-repo:`text <branch:path>`, for example: :git-hdl:`main:docs/user_guide/docs_guidelines.rst` renders as docs/user_guide/docs_guidelines.rst. :git-hdl:`Guidelines <docs/user_guide/docs_guidelines.r",
-    "The adi role creates links for a webpage to the Analog Devices Inc. website. The role syntax is :adi:`text <webpage>`, for example, :adi:`AD7175-2 <ad7175-2>`. Since links are case insensitive, you can also reduce it to :adi:`AD7175-2`, when webpage is the same as text and will render as AD7175-2.",
-    "The dokuwiki role creates links to the Analog Devices Inc. wiki website. The role syntax is :dokuwiki:`text <path>`, for example, :dokuwiki:`pulsar-adc-pmods <resources/eval/user-guides/circuits-from-the-lab/pulsar-adc-pmods>` gets rendered as pulsar-adc-pmods.",
-    "The ez role creates links to the Analog Devices Inc. EngineerZone support website. The role syntax is :ez:`community`, for example, :ez:`fpga` gets rendered as EngineerZone. For Linux Software Drivers, it is :ez:`linux-software-drivers`. For Microcontroller no-OS Drivers it is :ez:`microcontroller-n",
-    "The vendor role creates links to the vendor\u2019s website. The role syntax is :vendor:`text <path>`, for example, :xilinx:`Zynq-7000 SoC Overview <support/documentation/data_sheets/ds190-Zynq-7000-Overview.pdf>` gets rendered Zynq-7000 SoC Overview. The text parameter is optional, if absent, the file na",
-    "The HDL build status directive gets information from a markdown formatted status table (output.md) and generates a table with the build statuses. The directive syntax is: .. hdl-build-status:: :file: <build_status_file> The :path: option is optional, in the sense that if it\u2019s not provided, no table ",
-    "The HDL parameters directive gets information parsed from IP-XACT (component.xml) library and generates a table with the IP parameters. Note The IP-XACT files are generated by Vivado during the library build and not by the documentation tooling. The directive syntax is: .. hdl-parameters:: :path: <i",
-    "The HDL interfaces directive gets information parsed from component.xml library and generates tables with the IP interfaces, both buses and ports. Note The component.xml files are generated by Vivado during the library build and not by the documentation tooling. The directive syntax is: .. hdl-inter",
-    "The HDL component diagram directive gets information parsed from component.xml library and generates a component diagram for the IP with buses and ports information. Note The component.xml files are generated by Vivado during the library build and not by the documentation tooling. The directive synt",
-    "The HDL regmap directive gets information from docs/regmap/adi_regmap_*.txt files and generates tables with the register maps. The directive syntax is: .. hdl-regmap:: :name: <regmap_name> :no-type-info: For example: .. hdl-regmap:: :name: DMAC Note The register map name is the title-tool, the value",
-    "The collapsible directive creates a collapsible/dropdown/\u201dHTML details\u201d. The directive syntax is: .. collapsible:: <label> <content> For example: .. collapsible:: Python code example. .. code:: python print(\"Hello World!\") Renders as: Python code example. print(\"Hello World!\") Notice how you can use",
-    "The video directive creates a embedded video. Currently, direct MP4 and youtube embed links are supported, but could be easily expanded to support third-party services. The directive syntax is: .. video:: <url> For example: .. video:: http://ftp.fau.de/fosdem/2015/devroom-software_defined_radio/iios",
-    "The ESD warning directive creates a ESD warning, for example: .. esd-warning:: Renders as: All the products described on this page include ESD (electrostatic discharge) sensitive devices. Electrostatic charges as high as 4000V readily accumulate on the human body or test equipment and can discharge ",
-    "Set hide_collapsible_content to True to hide the collapsibles by default. Set validate_links to True to validate each link during build. These links are not managed, that means, only links from changed files are checked. You can run a build with it set to False, then touch the desired files to check",
-    "HDL common sections: The More information and Support sections that are present in the HDL project documentation, are act",
-    "The More information and Support sections that are present in the HDL project documentation, are actually separate pages inserted as links. They\u2019re located at hdl/projects/common/more_information.rst and /support.rst, and cannot be referenced here because they don\u2019t have an ID at the beginning of th",
-    "Dynamic elements refer to sections of the generated webpage that updates when loaded online from a source of truth, in general, doctools/*.json files; it uses a concept similar to \u201creact components\u201d. These *.json files are generated when doctools_export_metadata is true in the conf.py. From the Java"
+    "Doctools is the central piece to aggregate multiple documentations together,\nexpanding the documentation standard hierarchical, mono-repo configuration.\nThe content is organized in three levels:\n\n- repotoc: Listing of repositories in the same organization that contain\n  documentations.\n  In general,",
+    "Analog Devices Inc.\ndocumentation extensions, themes, and tools for multiple repositories in the\norganization.\n\nRead the Documentation guidelines for more documentation rules and information\non the directives and roles packaged on this repository.\n\nAnd read the Command line interface for information",
+    "- Installing\n- Fundamentals\n- Documentation guidelines\n- Command line interface\n- Continuous integration\n- Sphinx theme\n",
+    "A Sphinx themed called *cosmic* is available.\nIt is deeply based on ADI\u2019s *harmonic* design language.\n",
+    "`Alt+Shift+ArrowLeft` goes to the previous page and `Alt+Shift+ArrowRight`\nto the next page.\n`Ctrl+Alt+Shift+ArrowLeft/Right` preserves the current page anchor, for example,\nif the current section is *project_0.html#details*, `Ctrl+Alt+Shift+ArrowRight`\ngoes to *project_1.html#details*, even if *det",
+    "The Doctools bundles a command line interface called `adoc` meant to ease both\ncontinuous integration and local builds of the documentation.\n\nBelow, it is briefly described each command, and it is worth noting that every\ncommand supports the `--help` option for quick look up.\n",
+    "Watches the docs and source code to rebuild it on edit.\n\nTwo live update strategies are available:\n\n- selenium: Page reloads through Firefox\u2019s API (default).\n- pooling: The webpage pools timestamp changes on the `.dev-pool` file (fallback).\n\n\nTo launch a watched instance, do:\n\n```default\nadoc author",
+    "Since a Python scripts change would affect rebuilding the whole documentation,\nthose files are not watched by design even with the `--dev` option.\nExtensions at the doc itself are, however.\n\nAlternatively, touch the source doc of the open page to rebuild only it\nwith the edited Python code.\n",
+    "> **Warning**\n>\n> This feature is under elaboration.\n\n\nGenerates all documentations of the watched repositories, which currently are:\n\n- ADI System Level Documentation repository\n- ADI HDL repository\n- ADI no-OS repository\n- ADI PyADI-IIO repository\n- ADI Doctools repository\n\n\nTwo generation strateg",
+    "Exposes the HDL component diagram generator as a CLI.\nIt converts IP-XACT files into SVGs.\n\nTo generate and open the diagram, provide the path containing the IP-XACT and use\nthe `--open` option:\n\n```default\nadoc hdl-render --input PATH --open\n```\n\n\nFor example:\n\n```default\nadoc hdl-render --input hd",
+    "Below is described how to do a release install and a development install of Doctools.\n\nGuarantee to work with Python newer than 3.8 and distros released on or after 20H1\n(e.g. Ubuntu 20.04 LTS).\n",
+    "Ensure pip is newer than 23.0 [1]:\n\n```default\npip install pip --upgrade\n```\n\n\nInstall the documentation tools, which will fetch this repository release:\n\n```default\n(cd docs ; pip install -r requirements.txt)\n```\n\n\nTest it building this documentation:\n\n```default\n(cd docs ; make html)\n```\n\n\nThere i",
+    "Installing packages at user level through pip is not always recommended, instead,\nconsider using a Python virtual environment (`python3-venv` on ubuntu 22.04).\n\nTo create and activate the environment, do before the previous instructions:\n\n```default\npython3 -m venv ./venv\nsource ./venv/bin/activate\n",
+    "Development install allows to edit the source code and apply the changes without\nreinstalling.\nAlso extends Author Mode to watch changes on the webpage source code\n(use \u2013dev/-r option to enable this).\n",
+    "If you care about the web scripts (js modules) and style sheets (sass),\ninstall `npm` first, if not, just skip this section.\n\n> **Note**\n>\n> If the `npm` provided by your package manager is too old and updating with\n> `npm install npm -g` fails, consider installing with\n> NodeSource.\n\n\nAt the reposi",
+    "Fetch third-party fonts:\n\n```default\n./ci/fetch-fonts.sh\n```\n",
+    "Finally, do a symbolic install of this repo:\n\n```default\npip install -e . --upgrade\n```\n",
+    "To remove, either release or development, do:\n\n```default\npip uninstall adi-doctools\n```\n",
+    "Doctools has a continuous deployment integration pipeline that works as follows:\n\n```default\n                   \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n                \u250c\u2500\u25ba\u2502Build Doc & Deploy\u251c\u2500\u2510\n                \u2502  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518 \u2502\n                \u2502                       \u2502\n\u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510 \u2502  \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510   \u2502",
+    "Doctools is developed to work offline, in a local server, as a rolling release\n(e.g. on GitHub Page)s and versioned in a dedicated server (with orchestration).\n",
+    "For offline and local server, a `make html` suffice to generate the\ndocumentation.\n\nTo serve the build in a local server, Python built-in server can be used:\n\n```bash\npython -m http.server -d /path/to/docs/_build/html\n```\n\n\nOr with hot reload using Author Mode:\n\n```bash\nadoc author-mode -d /path/to/",
+    "For a rolling release, a workflow file is used.\n\nWith GitHub Actions, the following workflow file is recommended:\n\n```yaml\non:\n  push:\n    branches:\n      - main\n  pull_request:\n\njobs:\n  build-doc:\n    runs-on: ubuntu-latest\n\n    steps:\n    - uses: actions/checkout@v4\n    - uses: actions/setup-pytho",
+    "The live versioned version requires additional orchestration than the\nRolling release.\nStore each version in separated folders in the root path, e.g.\n`v1.1`, `v2.2`, `main`, `dev` and generate a `tags.json`\ncontaining a plain array with each version on the root path,\ne.g. `[\"v1.1\", \"v2.2\", \"main\", \"",
+    "A brief set-of-rules for the documentation.\n\n> **Note**\n>\n> The old wiki uses dokuwiki. When\n> importing text from there, consider the automated options that are provided\n> in this page to convert it to reST.\n",
+    "Directives are indented with 3 space, which is Sphinx\u2019s default.\nAt code directives, the code keeps its original indentation (e.g. 2 spaces for\nVerilog code), but is offset by 3 spaces at the beginning of every line, to\ninstruct Sphinx the beginning and end of the code directive.\n",
+    "The relation between pages are created with the `toctree` directive,\nwhich allows to generate the table of contents and navigation bars.\n\nEach page may have only one toctree, since they are the equivalent of the\nvolumes of a book, and it does not make sense to have multiple \u201cvolumes\u201d at\nthe reposito",
+    "To avoid having the version set in multiple places or having to tweak `conf.py`\nto obtain it from somewhere else, continuous integration can set the environment\nvariable `ADOC_DOC_VERSION` to set the version value.\n\nStill, the `version` value on `conf.py` has higher precedence, and\n`ADOC_DOC_VERSION",
+    "References have the format `library/project context`, e.g.\n`:ref:`vivado block-diagrams`` renders as Vivado block-diagrams.\nNotice how neither *library* nor *project* are present in the label, since there is no\nnaming collision between libraries or projects (no project will ever be named\n*axi_dmac*)",
+    "For references to Sphinx docs inside the organization (repos listed in the repotoc),\nthe `ref` role is extended with the syntax\n`:ref-<external>:`label`` where `external` is a mapped source,\nfor example, `:ref-hdl:`spi_engine control-interface``.\nIt is also possible to customize the text, e.g.\n`:ref",
+    "To create references to other Sphinx documentations, `sphinx.ext.intersphinx`\ncan be added to the `conf.py` extension list.\nThe syntax is `:external+<external>:<domain>:`label``, where `external`\nis a mapped source and the domain is the reference type,\nfor example, `:external+sphinx:doc:`development",
+    "Each line must be less than 80 columns wide.\nYou can use the `fold` command to break the lines of the imported text\nwhile respecting word-breaks:\n\n```bash\ncat imported.txt | fold -sw 80 > imported.rst\n```\n\n\nOr use `pandoc`:\n\n```bash\npandoc imported.txt -f dokuwiki -t rst --columns=80 -s -o imported.",
+    "Prefer\nlist-tables\nand imported\ncsv-tables\n(using the file option), because they are faster to create, easier to maintain\nand the 80 column-width rule can be respected with list-tables.\n\nYou can use the following command:\n\n```bash\npandoc imported.txt -f dokuwiki -t rst --columns=80 -s -o imported.rs",
+    "Unordered lists use `*` or `-` and ordered lists `#.`.\n\nChild items must be aligned with the first letter of the parent item, that means,\n2 spaces for unordered list and 3 spaces for ordered lists, for example:\n\n```rst\n#. Parent ordered item.\n\n   * Child unordeded item.\n\n     #. Child ordered item.\n",
+    "Prefer\ncode-blocks\nto\ncode\ndirectives, because code-blocks have more options, such as showing line numbers\nand emphasizing lines.\n\nFor example,\n\n```rst\n.. code-block:: python\n   :linenos:\n   :emphasize-lines: 2\n\n   def hello_world():\n       string = \"Hello world\"\n       print(string)\n```\n\n\nRenders a",
+    "Prefer the SVG format for images, and save it as *Optimized SVG* in\ninkscape to use less space.\n\nStore them in a hierarchically, do not use `images` subdirectories.\nThe idea is to have simpler relative paths, for example, e.g.:\n\n```rst\n.. image:: ad2234_sdz_schematic.svg\n```\n\n\nInstead of over compli",
+    "Where applicable, Git Large File Storage (LFS) is used to replace large files\nwith text pointers inside Git, reducing cloning time.\n\nTo setup, install from your package manager and init:\n\n```bash\napt install git-lfs\ngit lfs install\n```\n\n\nThe files that will use Git LFS are tracked at `.gitattributes",
+    "Vivado block-diagrams can be exported as PDF and then converted to SVG with\nInkscape.\n",
+    "There is no way to export Vivado waveform data as vectors.\nTherefore, the recommended method is to take a PNG screenshot and use\nGIMP to export as **8bpc RGB** with all metadata options\ndisabled.\n\n> **Note**\n>\n> Always use the *Export As..* `Ctrl+Shift+E` option.\n\n\nTo reduce even further the size, y",
+    "Third-party tools are used to expand Sphinx functionality, if you haven\u2019t already,\ndo:\n\n```bash\npip install -r requirements.txt\n```\n",
+    "To expand Sphinx functionality beyond existing tools, custom directives and roles\nhave been written, which are located in the *docs/extensions* folder.\nExtensions are straight forward to create, if some functionality is missing,\nconsider requesting or creating one.\n\n> **Note**\n>\n> Link-like roles us",
+    "To print text in red or green, use `:red:`text`` and `:green:`text``.\n",
+    "The link roles are a group of roles defined by `adi_links.py`.\n\nThe `validate_links` global option is used to validate each link during build.\nThese links are not managed, that means, only links from changed files are checked.\nYou can run a build with it set to False, then touch the desired files to",
+    "The Git role allows to create links to the Git repository with a shorter syntax.\nThe role syntax is `:git-repo:`text <branch:path>``, for example:\n\n- `:git-hdl:`main:docs/user_guide/docs_guidelines.rst``\n  renders as docs/user_guide/docs_guidelines.rst.\n- `:git-hdl:`Guidelines <docs/user_guide/docs_",
+    "The adi role creates links for a webpage to the Analog Devices Inc. website.\n\nThe role syntax is `:adi:`text <webpage>``, for example,\n`:adi:`AD7175-2 <ad7175-2>``.\nSince links are case insensitive, you can also reduce it to\n`:adi:`AD7175-2``, when *webpage* is the same as *text* and will render\nas ",
+    "The dokuwiki role creates links to the Analog Devices Inc. wiki website.\nThe role syntax is `:dokuwiki:`text <path>``, for example,\n`:dokuwiki:`pulsar-adc-pmods <resources/eval/user-guides/circuits-from-the-lab/pulsar-adc-pmods>``\ngets rendered as\npulsar-adc-pmods.\n",
+    "The ez role creates links to the Analog Devices Inc. EngineerZone support website.\nThe role syntax is `:ez:`community``, for example, `:ez:`fpga``\ngets rendered as EngineerZone.\n\nFor Linux Software Drivers, it is `:ez:`linux-software-drivers``.\n\nFor Microcontroller no-OS Drivers it is `:ez:`microcon",
+    "The vendor role creates links to the vendor\u2019s website.\nThe role syntax is `:vendor:`text <path>``, for example,\n`:xilinx:`Zynq-7000 SoC Overview <support/documentation/data_sheets/ds190-Zynq-7000-Overview.pdf>``\ngets rendered\nZynq-7000 SoC Overview.\n\nThe text parameter is optional, if absent, the fi",
+    "The HDL build status directive gets information from a markdown formatted status\ntable (*output.md*) and generates a table with the build statuses.\n\nThe directive syntax is:\n\n```rst\n.. hdl-build-status::\n   :file: <build_status_file>\n```\n\n\nThe `:path:` option is optional, in the sense that if it\u2019s n",
+    "The HDL parameters directive gets information parsed from IP-XACT (*component.xml*)\nlibrary and generates a table with the IP parameters.\n\n> **Note**\n>\n> The IP-XACT files are generated by Vivado during the library build and not by\n> the documentation tooling.\n\n\nThe directive syntax is:\n\n```rst\n.. h",
+    "The HDL interfaces directive gets information parsed from *component.xml* library\nand generates tables with the IP interfaces, both buses and ports.\n\n> **Note**\n>\n> The *component.xml* files are generated by Vivado during the library build\n> and not by the documentation tooling.\n\n\nThe directive synt",
+    "The HDL component diagram directive gets information parsed from *component.xml*\nlibrary and generates a component diagram for the IP with buses and ports\ninformation.\n\n> **Note**\n>\n> The *component.xml* files are generated by Vivado during the library build\n> and not by the documentation tooling.\n\n",
+    "The HDL regmap directive gets information from *docs/regmap/adi_regmap_*.txt* files\nand generates tables with the register maps.\n\nThe directive syntax is:\n\n```rst\n.. hdl-regmap::\n   :name: <regmap_name>\n   :no-type-info:\n```\n\n\nFor example:\n\n```rst\n.. hdl-regmap::\n   :name: DMAC\n```\n\n\n> **Note**\n>\n> ",
+    "The collapsible directive creates a collapsible/dropdown/\u201dHTML details\u201d.\n\nThe directive syntax is:\n\n```rst\n.. collapsible:: <label>\n\n   <content>\n```\n\n\nFor example:\n\n```rst\n.. collapsible:: Python code example.\n\n   .. code:: python\n\n      print(\"Hello World!\")\n```\n\n\nRenders as:\n\nPython code example.",
+    "The video directive creates a embedded video.\nCurrently, direct MP4 and youtube embed links  are supported, but could be easily\nexpanded to support third-party services.\n\nThe directive syntax is:\n\n```rst\n.. video:: <url>\n```\n\n\nFor example:\n\n```rst\n.. video:: http://ftp.fau.de/fosdem/2015/devroom-sof",
+    "The ESD warning directive creates a ESD warning, for example:\n\n```rst\n.. esd-warning::\n```\n\n\nRenders as:\n\n> **Warning**\n>\n> All the products described on this page include ESD (electrostatic discharge) sensitive devices. Electrostatic charges as high as 4000V readily accumulate on the human body or ",
+    "Set `hide_collapsible_content` to `True` to hide the *collapsibles* by default.\n\nSet `validate_links` to `True` to validate each link during build.\nThese links are not managed, that means, only links from changed files are checked.\nYou can run a build with it set to False, then touch the desired fil",
+    "The **More information** and **Support** sections that are present in\nthe HDL project documentation, are actually separate pages inserted as links.\nThey\u2019re located at *hdl/projects/common/more_information.rst* and */support.rst*,\nand cannot be referenced here because they don\u2019t have an ID at the beg",
+    "Dynamic elements refer to sections of the generated webpage that updates when\nloaded online from a source of truth, in general, `doctools/*.json` files;\nit uses a concept similar to \u201creact components\u201d.\n\nThese `*.json` files are generated when `doctools_export_metadata` is true\nin the `conf.py`.\nFrom"
   ],
   "url": [
-    "genindex.html",
-    "search.html",
+    "fundamentals.html#documentation-hierarchical-structure",
+    "index.html",
+    "index.html",
     "theme.html",
     "theme.html#shortcuts",
-    "index.html",
-    "ci.html",
-    "ci.html#doctools-package-pipeline",
-    "ci.html#documentation-build-and-deployment",
-    "ci.html#local",
-    "ci.html#rolling-release",
-    "ci.html#versioned",
-    "fundamentals.html",
-    "fundamentals.html#documentation-hierarchical-structure",
+    "cli.html",
+    "cli.html#author-mode",
+    "cli.html#why-is-the-python-source-code-of-this-repo-not-watched",
+    "cli.html#aggregate",
+    "cli.html#hdl-render",
     "install.html",
     "install.html#release-install",
     "install.html#using-a-python-virtual-environment",
@@ -85,11 +78,11 @@
     "install.html#fetch-third-party-resources",
     "install.html#install-the-repository",
     "install.html#removing",
-    "cli.html",
-    "cli.html#author-mode",
-    "cli.html#why-is-the-python-source-code-of-this-repo-not-watched",
-    "cli.html#aggregate",
-    "cli.html#hdl-render",
+    "ci.html#doctools-package-pipeline",
+    "ci.html#documentation-build-and-deployment",
+    "ci.html#local",
+    "ci.html#rolling-release",
+    "ci.html#versioned",
     "docs_guidelines.html",
     "docs_guidelines.html#indentation",
     "docs_guidelines.html#table-of-contents",
@@ -123,16 +116,19 @@
     "docs_guidelines.html#video-directive",
     "docs_guidelines.html#esd-warning-directive",
     "docs_guidelines.html#global-options-for-directives",
-    "docs_guidelines.html#common-sections",
     "docs_guidelines.html#hdl-common-sections",
     "docs_guidelines.html#dynamic-elements"
   ],
   "hierarchy": [
     [
-      "Index"
+      "Fundamentals",
+      "Documentation hierarchical structure"
     ],
     [
-      "Search"
+      "Analog Devices Doctools"
+    ],
+    [
+      "Contents"
     ],
     [
       "Sphinx theme"
@@ -142,40 +138,24 @@
       "Shortcuts"
     ],
     [
-      "Analog Devices Doctools"
+      "Command line interface"
     ],
     [
-      "Continuous integration"
+      "Command line interface",
+      "Author Mode"
     ],
     [
-      "Continuous integration",
-      "Doctools package pipeline"
+      "Command line interface",
+      "Author Mode",
+      "Why is the Python source code of this repo not watched?"
     ],
     [
-      "Continuous integration",
-      "Documentation build and deployment"
+      "Command line interface",
+      "Aggregate"
     ],
     [
-      "Continuous integration",
-      "Documentation build and deployment",
-      "Local"
-    ],
-    [
-      "Continuous integration",
-      "Documentation build and deployment",
-      "Rolling release"
-    ],
-    [
-      "Continuous integration",
-      "Documentation build and deployment",
-      "Versioned"
-    ],
-    [
-      "Fundamentals"
-    ],
-    [
-      "Fundamentals",
-      "Documentation hierarchical structure"
+      "Command line interface",
+      "HDL Render"
     ],
     [
       "Installing"
@@ -213,24 +193,27 @@
       "Removing"
     ],
     [
-      "Command line interface"
+      "Continuous integration",
+      "Doctools package pipeline"
     ],
     [
-      "Command line interface",
-      "Author Mode"
+      "Continuous integration",
+      "Documentation build and deployment"
     ],
     [
-      "Command line interface",
-      "Author Mode",
-      "Why is the Python source code of this repo not watched?"
+      "Continuous integration",
+      "Documentation build and deployment",
+      "Local"
     ],
     [
-      "Command line interface",
-      "Aggregate"
+      "Continuous integration",
+      "Documentation build and deployment",
+      "Rolling release"
     ],
     [
-      "Command line interface",
-      "HDL Render"
+      "Continuous integration",
+      "Documentation build and deployment",
+      "Versioned"
     ],
     [
       "Documentation guidelines"
@@ -387,11 +370,6 @@
       "Documentation guidelines",
       "Custom directives and roles",
       "Global options for directives"
-    ],
-    [
-      "Documentation guidelines",
-      "Custom directives and roles",
-      "Common sections"
     ],
     [
       "Documentation guidelines",
