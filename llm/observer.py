@@ -55,7 +55,6 @@ def pretty_print(entry) -> None:
                         strings[i] = crop(s)
                     strings_ =' '.join(filter(None, strings))
                     print(f"\n  > {tool} {strings_}")
-            usage = msg.get("usage", {})
         elif role == "toolResult":
             content = msg.get("content", [{}])
             text = crop(content[0].get("text", ""))
@@ -81,7 +80,7 @@ def pretty_print(entry) -> None:
         msg = entry.get("message", {})
         role = msg.get("role")
         if role == "assistant":
-            usage = msg.get("usage", {})
+            pass
         elif role == "toolResult":
             content = msg.get("content", [{}])
             if content and isinstance(content[0], dict):
@@ -128,7 +127,7 @@ if __name__ == "__main__":
         for line in tail(f):
             try:
                 entry = json.loads(line)
-            except json.JSONDecodeError as e:
+            except json.JSONDecodeError:
                 print(f"raw: {line}", end='')
                 continue
 
