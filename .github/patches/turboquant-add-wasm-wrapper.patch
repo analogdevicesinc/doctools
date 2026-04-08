@@ -1,0 +1,770 @@
+From ced4ef5a531df55f8b2a0369d1a26d2140caf179 Mon Sep 17 00:00:00 2001
+From: Jorge Marques <jorge.marques@analog.com>
+Date: Wed, 8 Apr 2026 15:31:25 +0200
+Subject: [PATCH] wasm: add wasm wrapper
+
+---
+ .gitignore                        |   6 +
+ turboquant/.npmignore             |  20 ++
+ turboquant/build.zig              |  28 +++
+ turboquant/package.json           |  56 ++++++
+ turboquant/scripts/embed-wasm.mjs |  45 +++++
+ turboquant/src/js/index.ts        | 297 ++++++++++++++++++++++++++++++
+ turboquant/src/turboquant.zig     |  25 ++-
+ turboquant/src/wasm_exports.zig   | 161 ++++++++++++++++
+ turboquant/tsconfig.json          |  18 ++
+ 9 files changed, 648 insertions(+), 8 deletions(-)
+ create mode 100644 turboquant/.npmignore
+ create mode 100644 turboquant/package.json
+ create mode 100644 turboquant/scripts/embed-wasm.mjs
+ create mode 100644 turboquant/src/js/index.ts
+ create mode 100644 turboquant/src/wasm_exports.zig
+ create mode 100644 turboquant/tsconfig.json
+
+diff --git a/.gitignore b/.gitignore
+index 1de8496..b01385c 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -17,6 +17,12 @@ qjl
+ *.trace/
+ *.sample.txt
+ 
++# Node/npm
++node_modules/
++dist/
++package-lock.json
++turboquant-wasm.generated.ts
++
+ # OS
+ .DS_Store
+ 
+diff --git a/turboquant/.npmignore b/turboquant/.npmignore
+new file mode 100644
+index 0000000..796182e
+--- /dev/null
++++ b/turboquant/.npmignore
+@@ -0,0 +1,20 @@
++# Source
++src/
++zig-out/
++.zig-cache/
++zig-cache/
++benchmarks/
++scripts/
++build.zig
++build.zig.zon
++
++# Dev tools
++.github/
++.claude/
++.gitignore
++tsconfig.json
++package-lock.json
++
++# OS files
++.DS_Store
++*.log
+diff --git a/turboquant/build.zig b/turboquant/build.zig
+index ecb2ebb..32c31d3 100644
+--- a/turboquant/build.zig
++++ b/turboquant/build.zig
+@@ -55,4 +55,32 @@ pub fn build(b: *std.Build) void {
+ 
+     const bench_step = b.step("bench", "Run benchmarks");
+     bench_step.dependOn(&bench_run.step);
++
++    // -- WASM build (relaxed SIMD) --
++    const wasm_target = b.resolveTargetQuery(.{
++        .cpu_arch = .wasm32,
++        .os_tag = .wasi,
++        .cpu_features_add = std.Target.wasm.featureSet(&.{ .simd128, .relaxed_simd }),
++    });
++
++    const wasm_mod = b.createModule(.{
++        .root_source_file = b.path("src/wasm_exports.zig"),
++        .target = wasm_target,
++        .optimize = .ReleaseFast,
++    });
++
++    const wasm_lib = b.addExecutable(.{
++        .name = "turboquant",
++        .root_module = wasm_mod,
++    });
++    wasm_lib.entry = .disabled;
++    wasm_lib.rdynamic = true;
++    wasm_lib.root_module.strip = true;
++
++    const install_wasm = b.addInstallArtifact(wasm_lib, .{
++        .dest_dir = .{ .override = .{ .custom = "../dist" } },
++    });
++
++    const wasm_step = b.step("wasm", "Build WASM module");
++    wasm_step.dependOn(&install_wasm.step);
+ }
+diff --git a/turboquant/package.json b/turboquant/package.json
+new file mode 100644
+index 0000000..a71418a
+--- /dev/null
++++ b/turboquant/package.json
+@@ -0,0 +1,56 @@
++{
++  "name": "turboquant-wasm",
++  "version": "0.0.1",
++  "description": "A Zig implementation of Google's TurboQuant compiled to WASM.",
++  "type": "module",
++  "main": "dist/index.js",
++  "module": "dist/index.js",
++  "types": "dist/index.d.ts",
++  "exports": {
++    ".": {
++      "types": "./dist/index.d.ts",
++      "import": "./dist/index.js",
++      "default": "./dist/index.js"
++    },
++    "./turboquant.wasm": "./dist/turboquant.wasm"
++  },
++  "files": [
++    "dist/",
++    "LICENSE"
++  ],
++  "engines": {
++    "node": ">=24"
++  },
++  "scripts": {
++    "build:zig": "mkdir -p dist && zig build-exe -target wasm32-wasi -mcpu=generic+simd128+relaxed_simd -O ReleaseSmall src/wasm_exports.zig --name turboquant -fno-entry -rdynamic && mv turboquant.wasm dist/",
++    "build:opt": "wasm-opt -Oz --strip-producers --strip-target-features dist/turboquant.wasm -o dist/turboquant.wasm --enable-simd --enable-bulk-memory --enable-nontrapping-float-to-int --enable-sign-ext --enable-mutable-globals --enable-relaxed-simd",
++    "build:embed": "node scripts/embed-wasm.mjs",
++    "build:types": "npx tsc --emitDeclarationOnly",
++    "build:js": "npx esbuild src/js/index.ts --bundle --outfile=dist/index.js --format=esm --minify --sourcemap=external --platform=node && npm run build:types",
++    "build": "npm run build:zig && npm run build:opt && npm run build:embed && npm run build:js",
++    "test:zig": "zig test -target aarch64-macos src/turboquant.zig",
++    "prepublishOnly": "npm run build"
++  },
++  "keywords": [
++    "vector",
++    "compression",
++    "quantization",
++    "wasm",
++    "simd",
++    "relaxed-simd",
++    "embedding",
++    "dot-product",
++    "nearest-neighbor"
++  ],
++  "repository": {
++    "type": "git",
++    "url": "git+https://github.com/botirk38/turboquant.git"
++  },
++  "author": " Botir Khaltaev",
++  "license": "MIT",
++  "devDependencies": {
++    "@types/node": "^22.0.0",
++    "esbuild": "^0.25.0",
++    "typescript": "^5.7.0"
++  }
++}
+diff --git a/turboquant/scripts/embed-wasm.mjs b/turboquant/scripts/embed-wasm.mjs
+new file mode 100644
+index 0000000..1740cc0
+--- /dev/null
++++ b/turboquant/scripts/embed-wasm.mjs
+@@ -0,0 +1,45 @@
++/**
++ * Embed WASM binary as base64 string in a TypeScript module.
++ * Reads dist/turboquant.wasm -> writes src/js/turboquant-wasm.generated.ts
++ */
++import { readFileSync, writeFileSync, existsSync } from "node:fs";
++import { dirname, join } from "node:path";
++import { fileURLToPath } from "node:url";
++
++const root = join(dirname(fileURLToPath(import.meta.url)), "..");
++const wasmPath = join(root, "dist", "turboquant.wasm");
++const outPath = join(root, "src", "js", "turboquant-wasm.generated.ts");
++
++if (!existsSync(wasmPath)) {
++  console.error(`WASM file not found: ${wasmPath}`);
++  console.error("   Run 'npm run build:zig' first.");
++  process.exit(1);
++}
++
++const wasmBytes = readFileSync(wasmPath);
++
++// Validate WASM magic number: \0asm (0x00 0x61 0x73 0x6d)
++if (
++  wasmBytes.length < 4 ||
++  wasmBytes[0] !== 0x00 ||
++  wasmBytes[1] !== 0x61 ||
++  wasmBytes[2] !== 0x73 ||
++  wasmBytes[3] !== 0x6d
++) {
++  console.error(`Invalid WASM file: ${wasmPath}`);
++  console.error(
++    `   Expected magic bytes \\0asm, got: ${wasmBytes.slice(0, 4).toString("hex")}`,
++  );
++  process.exit(1);
++}
++
++const b64 = wasmBytes.toString("base64");
++
++writeFileSync(
++  outPath,
++  `// AUTO-GENERATED by scripts/embed-wasm.mjs — do not edit\nexport const wasmBase64 = "${b64}";\n`,
++);
++
++console.log(
++  `Embedded ${wasmBytes.length} bytes (${(b64.length / 1024).toFixed(1)} KB base64) -> ${outPath}`,
++);
+diff --git a/turboquant/src/js/index.ts b/turboquant/src/js/index.ts
+new file mode 100644
+index 0000000..00eb83b
+--- /dev/null
++++ b/turboquant/src/js/index.ts
+@@ -0,0 +1,297 @@
++/**
++ * TurboQuant — WASM SIMD vector compression (3 bits/dim)
++ *
++ * Architecture:
++ *   JS Float32Array -> [Zig WASM + relaxed SIMD] -> compressed bytes
++ *
++ * The Zig engine (turboquant.wasm) compresses vectors using polar + QJL
++ * quantization with Gaussian QR rotation, all SIMD-accelerated.
++ *
++ * Browser requirements:
++ *   - WASM SIMD128:     Chrome 91+, Firefox 89+, Safari 16.4+
++ *   - WASM Relaxed SIMD: Chrome 114+, Firefox 128+, Safari 18+
++ *
++ * Usage:
++ *   import { TurboQuant } from "turboquant";
++ *   const tq = await TurboQuant.init({ dim: 1024, seed: 42 });
++ *   const compressed = tq.encode(myFloat32Array);
++ *   const score = tq.dot(queryVector, compressed);
++ *   tq.destroy();
++ */
++
++import { wasmBase64 } from "./turboquant-wasm.generated.js";
++
++function decodeBase64(b64: string): Uint8Array {
++  if (typeof Buffer !== "undefined") {
++    const buf = Buffer.from(b64, "base64");
++    return new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
++  }
++  const bin = atob(b64);
++  const bytes = new Uint8Array(bin.length);
++  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
++  return bytes;
++}
++
++// --- WASM export types ---
++
++interface TurboQuantExports {
++  memory: WebAssembly.Memory;
++  tq_engine_create(dim: number, seed: number): number;
++  tq_engine_destroy(handle: number): void;
++  tq_encode(handle: number, inputPtr: number, dim: number, outLenPtr: number): number;
++  tq_decode(handle: number, compPtr: number, compLen: number, outLenPtr: number): number;
++  tq_dot(handle: number, queryPtr: number, dim: number, compPtr: number, compLen: number): number;
++  tq_dot_batch(handle: number, queryPtr: number, dim: number, compPtr: number, bytesPerVector: number, numVectors: number, outScoresPtr: number): void;
++  tq_alloc(len: number): number;
++  tq_free(ptr: number, len: number): void;
++  tq_alloc_f32(count: number): number;
++  tq_free_f32(ptr: number, count: number): void;
++}
++
++// --- Singleton WASM instance ---
++
++let wasmInstance: TurboQuantExports | null = null;
++let wasmReady: Promise<TurboQuantExports> | null = null;
++
++async function getWasm(): Promise<TurboQuantExports> {
++  if (wasmInstance) return wasmInstance;
++  if (wasmReady) return wasmReady;
++
++  wasmReady = (async () => {
++    const bytes = decodeBase64(wasmBase64);
++    const module = await WebAssembly.compile(bytes as BufferSource);
++    const instance = await WebAssembly.instantiate(module, {});
++    wasmInstance = instance.exports as unknown as TurboQuantExports;
++    return wasmInstance;
++  })();
++
++  return wasmReady;
++}
++
++/**
++ * Load from an external WASM source instead of the embedded binary.
++ * Useful for streaming instantiation in browsers:
++ *   TurboQuant.init({ dim: 1024, seed: 42, wasm: fetch("/turboquant.wasm") })
++ */
++async function getWasmFrom(
++  source: Response | Promise<Response> | BufferSource,
++): Promise<TurboQuantExports> {
++  let instance: WebAssembly.Instance;
++  if (source instanceof Response || source instanceof Promise) {
++    const r = await WebAssembly.instantiateStreaming(source, {});
++    instance = r.instance;
++  } else {
++    const r = await WebAssembly.instantiate(source, {});
++    instance = (r as unknown as WebAssembly.WebAssemblyInstantiatedSource).instance;
++  }
++  wasmInstance = instance.exports as unknown as TurboQuantExports;
++  return wasmInstance;
++}
++
++// --- Helpers ---
++
++function wasmWriteF32(ex: TurboQuantExports, data: Float32Array): number {
++  const ptr = ex.tq_alloc(data.byteLength);
++  if (!ptr) throw new Error("TurboQuant: WASM alloc failed");
++  new Float32Array(ex.memory.buffer, ptr, data.length).set(data);
++  return ptr;
++}
++
++function wasmWriteU8(ex: TurboQuantExports, data: Uint8Array): number {
++  const ptr = ex.tq_alloc(data.length);
++  if (!ptr) throw new Error("TurboQuant: WASM alloc failed");
++  new Uint8Array(ex.memory.buffer, ptr, data.length).set(data);
++  return ptr;
++}
++
++function wasmAllocU32(ex: TurboQuantExports): number {
++  const ptr = ex.tq_alloc(4);
++  if (!ptr) throw new Error("TurboQuant: WASM alloc failed");
++  return ptr;
++}
++
++function wasmReadU32(ex: TurboQuantExports, ptr: number): number {
++  return new Uint32Array(ex.memory.buffer, ptr, 1)[0];
++}
++
++// --- Public API ---
++
++export interface TurboQuantConfig {
++  /** Vector dimension (must be a power of 2). */
++  dim: number;
++  /** Deterministic seed for rotation matrix. */
++  seed: number;
++  /** Optional external WASM source (Response, Promise<Response>, or ArrayBuffer). */
++  wasm?: Response | Promise<Response> | BufferSource;
++}
++
++export class TurboQuant {
++  readonly dim: number;
++  #handle: number;
++  #ex: TurboQuantExports;
++  #cachedRef: Uint8Array | null = null;
++  #cachedPtr: number = 0;
++  #cachedLen: number = 0;
++  #cachedBpv: number = 0;
++
++  private constructor(ex: TurboQuantExports, handle: number, dim: number) {
++    this.#ex = ex;
++    this.#handle = handle;
++    this.dim = dim;
++  }
++
++  /**
++   * Create a TurboQuant engine.
++   *
++   * ```ts
++   * const tq = await TurboQuant.init({ dim: 1024, seed: 42 });
++   * ```
++   */
++  static async init(config: TurboQuantConfig): Promise<TurboQuant> {
++    const ex = config.wasm ? await getWasmFrom(config.wasm) : await getWasm();
++    const handle = ex.tq_engine_create(config.dim, config.seed);
++    if (handle < 0) {
++      throw new Error(
++        `TurboQuant: failed to create engine (dim=${config.dim}, seed=${config.seed})`,
++      );
++    }
++    return new TurboQuant(ex, handle, config.dim);
++  }
++
++  /**
++   * Compress a float32 vector (~3 bits/dim).
++   * @param vector - Float32Array of length `dim`
++   * @returns Compressed bytes
++   */
++  encode(vector: Float32Array): Uint8Array {
++    if (vector.length !== this.dim) {
++      throw new Error(`TurboQuant: expected ${this.dim} dims, got ${vector.length}`);
++    }
++    const ex = this.#ex;
++    const inputPtr = wasmWriteF32(ex, vector);
++    const outLenPtr = wasmAllocU32(ex);
++
++    const resultPtr = ex.tq_encode(this.#handle, inputPtr, this.dim, outLenPtr);
++    const outLen = wasmReadU32(ex, outLenPtr);
++
++    ex.tq_free(inputPtr, vector.byteLength);
++    ex.tq_free(outLenPtr, 4);
++
++    if (!resultPtr) throw new Error("TurboQuant: encode failed");
++
++    const result = new Uint8Array(ex.memory.buffer, resultPtr, outLen).slice();
++    ex.tq_free(resultPtr, outLen);
++    return result;
++  }
++
++  /**
++   * Decompress back to a float32 vector.
++   * @param compressed - Bytes from `encode()`
++   * @returns Reconstructed Float32Array
++   */
++  decode(compressed: Uint8Array): Float32Array {
++    const ex = this.#ex;
++    const compPtr = wasmWriteU8(ex, compressed);
++    const outLenPtr = wasmAllocU32(ex);
++
++    const resultPtr = ex.tq_decode(this.#handle, compPtr, compressed.length, outLenPtr);
++    const outLen = wasmReadU32(ex, outLenPtr);
++
++    ex.tq_free(compPtr, compressed.length);
++    ex.tq_free(outLenPtr, 4);
++
++    if (!resultPtr) throw new Error("TurboQuant: decode failed");
++
++    const result = new Float32Array(ex.memory.buffer, resultPtr, outLen).slice();
++    ex.tq_free_f32(resultPtr, outLen);
++    return result;
++  }
++
++  /**
++   * Estimate dot product between a query and compressed vector.
++   * Faster than decode + manual dot — operates directly on compressed bytes.
++   *
++   * @param query - Float32Array of length `dim`
++   * @param compressed - Bytes from `encode()`
++   * @returns Estimated inner product
++   */
++  dot(query: Float32Array, compressed: Uint8Array): number {
++    if (query.length !== this.dim) {
++      throw new Error(`TurboQuant: expected ${this.dim} dims, got ${query.length}`);
++    }
++    const ex = this.#ex;
++    const qPtr = wasmWriteF32(ex, query);
++    const compPtr = wasmWriteU8(ex, compressed);
++
++    const score = ex.tq_dot(
++      this.#handle,
++      qPtr,
++      this.dim,
++      compPtr,
++      compressed.length,
++    );
++
++    ex.tq_free(qPtr, query.byteLength);
++    ex.tq_free(compPtr, compressed.length);
++
++    return score;
++  }
++
++  /**
++   * Batch dot product: compute dot(query, vectors[i]) for all vectors.
++   * Much faster than calling dot() in a loop — one WASM call, query rotated once.
++   *
++   * @param query - Float32Array of length `dim`
++   * @param compressedConcat - All compressed vectors concatenated into one Uint8Array
++   * @param bytesPerVector - Size of each compressed vector (from encode().length)
++   * @returns Float32Array of scores, one per vector
++   */
++  dotBatch(query: Float32Array, compressedConcat: Uint8Array, bytesPerVector: number): Float32Array {
++    if (query.length !== this.dim) {
++      throw new Error(`TurboQuant: expected ${this.dim} dims, got ${query.length}`);
++    }
++    const numVectors = Math.floor(compressedConcat.length / bytesPerVector);
++    const ex = this.#ex;
++
++    // Cache index in WASM — skip copy if same buffer
++    if (compressedConcat !== this.#cachedRef || bytesPerVector !== this.#cachedBpv) {
++      if (this.#cachedPtr) ex.tq_free(this.#cachedPtr, this.#cachedLen);
++      this.#cachedPtr = wasmWriteU8(ex, compressedConcat);
++      this.#cachedLen = compressedConcat.length;
++      this.#cachedRef = compressedConcat;
++      this.#cachedBpv = bytesPerVector;
++    }
++
++    // Only copy query each call (1.5KB for dim=384)
++    const qPtr = wasmWriteF32(ex, query);
++    const scoresPtr = ex.tq_alloc_f32(numVectors);
++    if (!scoresPtr) {
++      ex.tq_free(qPtr, query.byteLength);
++      throw new Error("TurboQuant: WASM alloc failed for scores");
++    }
++
++    ex.tq_dot_batch(
++      this.#handle, qPtr, this.dim,
++      this.#cachedPtr, bytesPerVector, numVectors, scoresPtr,
++    );
++
++    const scores = new Float32Array(ex.memory.buffer, scoresPtr, numVectors).slice();
++
++    ex.tq_free(qPtr, query.byteLength);
++    ex.tq_free_f32(scoresPtr, numVectors);
++
++    return scores;
++  }
++
++  /** Release engine resources. Call when done. */
++  destroy(): void {
++    if (this.#cachedPtr) {
++      this.#ex.tq_free(this.#cachedPtr, this.#cachedLen);
++      this.#cachedPtr = 0;
++      this.#cachedRef = null;
++    }
++    this.#ex.tq_engine_destroy(this.#handle);
++  }
++}
++
++export default TurboQuant;
+diff --git a/turboquant/src/turboquant.zig b/turboquant/src/turboquant.zig
+index f96225d..55edc64 100644
+--- a/turboquant/src/turboquant.zig
++++ b/turboquant/src/turboquant.zig
+@@ -5,7 +5,7 @@ pub const format = @import("format.zig");
+ const rotation = @import("rotation.zig");
+ pub const math = @import("math.zig");
+ pub const polar = @import("polar.zig");
+-const qjl = @import("qjl.zig");
++pub const qjl = @import("qjl.zig");
+ 
+ pub const EncodeError = error{ InvalidDimension, OutOfMemory };
+ pub const DecodeError = error{ InvalidHeader, InvalidPayload, OutOfMemory };
+@@ -125,19 +125,24 @@ pub const Engine = struct {
+             error.InvalidPayload => return DecodeError.InvalidPayload,
+         };
+ 
+-        const polar_decoded = try allocator.alloc(f32, e.dim);
+-        errdefer allocator.free(polar_decoded);
+-
+-        polar.decodeInto(polar_decoded, payload.polar, header.max_r) catch |err| switch (err) {
++        // polar decodes into rotated space
++        polar.decodeInto(e.scratch_polar_decoded, payload.polar, header.max_r) catch |err| switch (err) {
+             error.InvalidDimension => return DecodeError.InvalidPayload,
+             error.OutOfMemory => return DecodeError.OutOfMemory,
+         };
+ 
++        // qjl decodes into original space (applies R^T internally)
+         qjl.decodeInto(e.scratch_qjl_decoded, payload.qjl, header.gamma, &e.rot_op, &e.qjl_workspace);
+ 
+-        math.addInPlace(polar_decoded, e.scratch_qjl_decoded);
++        // inverse-rotate polar to original space
++        const result = try allocator.alloc(f32, dim);
++        errdefer allocator.free(result);
++        e.rot_op.matVecMulTransposed(e.scratch_polar_decoded, result);
++
++        // combine both in original space
++        math.addInPlace(result, e.scratch_qjl_decoded);
+ 
+-        return polar_decoded;
++        return result;
+     }
+ 
+     pub fn dot(e: *Engine, q: []const f32, compressed: []const u8) f32 {
+@@ -146,7 +151,11 @@ pub const Engine = struct {
+ 
+         const payload = format.slicePayload(compressed, header) catch return 0;
+ 
+-        const polar_sum = polar.dotProduct(q, payload.polar, header.max_r);
++        // rotate query into polar's rotated space
++        e.rot_op.rotate(q, e.scratch_rotated);
++
++        const polar_sum = polar.dotProduct(e.scratch_rotated, payload.polar, header.max_r);
++        // qjl rotates q internally, so pass original q
+         const qjl_sum = qjl.estimateDotWithWorkspace(q, payload.qjl, header.gamma, &e.rot_op, &e.qjl_workspace);
+ 
+         return polar_sum + qjl_sum;
+diff --git a/turboquant/src/wasm_exports.zig b/turboquant/src/wasm_exports.zig
+new file mode 100644
+index 0000000..e501361
+--- /dev/null
++++ b/turboquant/src/wasm_exports.zig
+@@ -0,0 +1,161 @@
++const std = @import("std");
++const turboquant = @import("turboquant.zig");
++
++// ---------------------------------------------------------------------------
++// WASM memory allocator
++// ---------------------------------------------------------------------------
++const wasm_allocator = std.heap.wasm_allocator;
++
++// ---------------------------------------------------------------------------
++// Engine slot table — maps integer handles to Engine pointers
++// ---------------------------------------------------------------------------
++const MAX_ENGINES = 16;
++var engine_slots: [MAX_ENGINES]?*turboquant.Engine = [_]?*turboquant.Engine{null} ** MAX_ENGINES;
++
++fn findSlot() ?usize {
++    for (engine_slots, 0..) |slot, i| {
++        if (slot == null) return i;
++    }
++    return null;
++}
++
++// ---------------------------------------------------------------------------
++// Exported C-ABI functions
++// ---------------------------------------------------------------------------
++
++/// Create an engine. Returns handle (>=0) on success, -1 on failure.
++export fn tq_engine_create(dim: u32, seed: u32) i32 {
++    const slot = findSlot() orelse return -1;
++
++    const engine_ptr = wasm_allocator.create(turboquant.Engine) catch return -1;
++    engine_ptr.* = turboquant.Engine.init(wasm_allocator, .{
++        .dim = @intCast(dim),
++        .seed = seed,
++    }) catch {
++        wasm_allocator.destroy(engine_ptr);
++        return -1;
++    };
++
++    engine_slots[slot] = engine_ptr;
++    return @intCast(slot);
++}
++
++/// Destroy an engine by handle.
++export fn tq_engine_destroy(handle: i32) void {
++    const idx: usize = @intCast(handle);
++    if (idx >= MAX_ENGINES) return;
++    if (engine_slots[idx]) |engine_ptr| {
++        engine_ptr.deinit(wasm_allocator);
++        wasm_allocator.destroy(engine_ptr);
++        engine_slots[idx] = null;
++    }
++}
++
++/// Encode a vector. Returns pointer to compressed data, writes length to out_len.
++/// Caller must free the returned pointer with tq_free.
++export fn tq_encode(handle: i32, input_ptr: [*]const f32, dim: u32, out_len: *u32) ?[*]u8 {
++    const idx: usize = @intCast(handle);
++    if (idx >= MAX_ENGINES) return null;
++    const engine_ptr = engine_slots[idx] orelse return null;
++
++    const input = input_ptr[0..dim];
++    const compressed = engine_ptr.encode(wasm_allocator, input) catch return null;
++    out_len.* = @intCast(compressed.len);
++    return compressed.ptr;
++}
++
++/// Decode compressed data back to floats. Returns pointer to f32 array.
++/// Caller must free the returned pointer with tq_free.
++export fn tq_decode(handle: i32, compressed_ptr: [*]const u8, compressed_len: u32, out_len: *u32) ?[*]f32 {
++    const idx: usize = @intCast(handle);
++    if (idx >= MAX_ENGINES) return null;
++    const engine_ptr = engine_slots[idx] orelse return null;
++
++    const compressed = compressed_ptr[0..compressed_len];
++    const decoded = engine_ptr.decode(wasm_allocator, compressed) catch return null;
++    out_len.* = @intCast(decoded.len);
++    return decoded.ptr;
++}
++
++/// Fast dot product between a query vector and compressed data.
++export fn tq_dot(handle: i32, query_ptr: [*]const f32, dim: u32, compressed_ptr: [*]const u8, compressed_len: u32) f32 {
++    const idx: usize = @intCast(handle);
++    if (idx >= MAX_ENGINES) return 0;
++    const engine_ptr = engine_slots[idx] orelse return 0;
++
++    const q = query_ptr[0..dim];
++    const compressed = compressed_ptr[0..compressed_len];
++    return engine_ptr.dot(q, compressed);
++}
++
++/// Batch dot product: compute dot(query, compressed[i]) for i in 0..num_vectors.
++/// compressed_ptr points to num_vectors * bytes_per_vector contiguous bytes.
++/// Writes results to out_scores (caller-allocated f32 array of length num_vectors).
++export fn tq_dot_batch(
++    handle: i32,
++    query_ptr: [*]const f32,
++    dim: u32,
++    compressed_ptr: [*]const u8,
++    bytes_per_vector: u32,
++    num_vectors: u32,
++    out_scores: [*]f32,
++) void {
++    const idx: usize = @intCast(handle);
++    if (idx >= MAX_ENGINES) return;
++    const engine_ptr = engine_slots[idx] orelse return;
++
++    const q = query_ptr[0..dim];
++
++    // Pre-rotate query once (engine.dot rotates every call)
++    engine_ptr.rot_op.rotate(q, engine_ptr.scratch_rotated);
++    const rotated_q = engine_ptr.scratch_rotated;
++
++    // Parse first header to get fixed layout (polar_bytes, qjl_bytes offsets)
++    // All vectors share the same dim/structure — only max_r and gamma differ.
++    const first = compressed_ptr[0..bytes_per_vector];
++    const h0 = turboquant.format.readHeader(first) catch return;
++    const polar_len = h0.polar_bytes;
++    const qjl_len = h0.qjl_bytes;
++    const polar_off = turboquant.format.HEADER_SIZE;
++    const qjl_off = polar_off + polar_len;
++
++    for (0..num_vectors) |i| {
++        const base = i * bytes_per_vector;
++        const blob = compressed_ptr[base .. base + bytes_per_vector];
++
++        // Read only max_r and gamma directly (bytes 14-21), skip full header parse
++        const max_r: f32 = @bitCast(std.mem.readInt(u32, blob[14..18], .little));
++        const gamma: f32 = @bitCast(std.mem.readInt(u32, blob[18..22], .little));
++
++        const polar_data = blob[polar_off .. polar_off + polar_len];
++        const qjl_data = blob[qjl_off .. qjl_off + qjl_len];
++
++        const polar_sum = turboquant.polar.dotProduct(rotated_q, polar_data, max_r);
++        // qjl rotates q internally, so pass original q
++        const qjl_sum = turboquant.qjl.estimateDotWithWorkspace(q, qjl_data, gamma, &engine_ptr.rot_op, &engine_ptr.qjl_workspace);
++
++        out_scores[i] = polar_sum + qjl_sum;
++    }
++}
++
++/// Allocate bytes in WASM linear memory (for JS to write into).
++export fn tq_alloc(len: u32) ?[*]u8 {
++    const slice = wasm_allocator.alloc(u8, len) catch return null;
++    return slice.ptr;
++}
++
++/// Free a pointer previously returned by tq_encode, tq_decode, or tq_alloc.
++export fn tq_free(ptr: [*]u8, len: u32) void {
++    wasm_allocator.free(ptr[0..len]);
++}
++
++/// Allocate f32 array in WASM linear memory (for JS to write query vectors).
++export fn tq_alloc_f32(count: u32) ?[*]f32 {
++    const slice = wasm_allocator.alloc(f32, count) catch return null;
++    return slice.ptr;
++}
++
++/// Free an f32 pointer.
++export fn tq_free_f32(ptr: [*]f32, count: u32) void {
++    wasm_allocator.free(ptr[0..count]);
++}
+diff --git a/turboquant/tsconfig.json b/turboquant/tsconfig.json
+new file mode 100644
+index 0000000..7cc7969
+--- /dev/null
++++ b/turboquant/tsconfig.json
+@@ -0,0 +1,18 @@
++{
++  "compilerOptions": {
++    "target": "ES2022",
++    "module": "ES2022",
++    "moduleResolution": "node",
++    "declaration": true,
++    "declarationMap": true,
++    "sourceMap": true,
++    "outDir": "dist",
++    "rootDir": "src/js",
++    "strict": true,
++    "esModuleInterop": true,
++    "skipLibCheck": true,
++    "forceConsistentCasingInFileNames": true
++  },
++  "include": ["src/js/**/*.ts"],
++  "exclude": ["node_modules", "dist"]
++}
+-- 
+2.51.1
+
