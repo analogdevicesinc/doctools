@@ -1,0 +1,152 @@
+{
+  "text": [
+    "This section collects debugging tips, logs, and common problems. Content will be\nexpanded step by step.\n\n- Logs and where to find them\n",
+    "Analog Attach writes logs to the VS Code extension log directory. You can find\nthe log file named `analog-attach.log` in the extension\u2019s log folder. The\npath is also printed in the **Extension Host** output at startup.\n",
+    "> **Important**\n>\n> Analog Attach requires a valid Linux kernel repository (for example,\n> `analogdevicesinc/linux`) to be configured in settings before the\n> extension can function.\n\n\n> **Important**\n>\n> Analog Attach also requires the following packages to enable all\n> features:\n> C compiler (gcc)",
+    "Analog Attach can be installed in two ways:\n\n1. VS Code Marketplace\n2. From a VSIX built by this project:\n  Download a VSIX from the project build artifacts.\n  In VS Code, open the Extensions view, click the three\u2011dot menu, and select\n  `Install from VSIX...`.\n  Choose the downloaded VSIX file to in",
+    "How to install\n\n- Requirements\n- Getting the Extension\n\n\nGetting Started\n\n- My First DTS\n  Final Result\n\n  - Final Result\n\n\nPlug and Play View\n\n- Overview\n- Setup (Merge DTS Into DTSO)\n- Adding Devices\n- Selecting a Parent\n- Managing the Device\n- Channels\n- Configuration and Validation\n- Topics\n\n\nTr",
+    "This section covers the Plug and Play editor experience. Content will be\nexpanded step by step.\n\nThe Plug and Play view is a minimal, more user friendly editor with more limited\ncontrol. For advanced or fine-grained control, use the Tree Config View instead:\nTree Config View.\nSee Switching Editors f",
+    "First, run the command `Analog Attach: Add Device Tree file to current overlay`.\nYou can do this by pressing `Ctrl+Shift+P` and selecting the command, or by\nclicking the Analog Attach (AA) icon in the left panel and choosing\n`merge dts into dtso`.\n\nLeft panel AA icon and merge action.\n\n\nThis provide",
+    "On the left side, you will see a list of supported devices, grouped by category.\nUse the search bar to find a device and click the plus icon to add it.\n\nDevice list, search bar, and add button.\n",
+    "After adding a device, Analog Attach parses the binding and suggests possible\nparents. If no parents are shown, it means no valid parent was found.\n\nIf you believe this is a mistake, let the developers know, or switch to the\nTree Config View for more control:\nTree Config View.\nSee Switching Editors ",
+    "After selecting a parent, the device appears in the middle part of the screen.\nFrom there, you can enable or delete it, open the configuration, and add\nchannels (when the device supports channels).\n\nAfter every modification, the updated `.dtso` is saved to the file.\n\nEach device card shows the paren",
+    "If the device supports channels, the number of channels is shown under the\ndevice name in the middle panel. Click the **+** button in the Channels\ndropdown to add one. The right panel will prompt you to enter a channel name\nand, optionally, an alias.\n\nYou can select a name from the list or enter a c",
+    "The configuration panel may show validation errors. This means required\nproperties are missing or invalid.\n\nSome properties are interdependent. Changing one property can make other\nproperties required or optional, or change their expected type and size.\n\nFrom the configuration panel you can:\n\n- Chan",
+    "- Overview (what the view is for)\n- Device list and search\n- Device configuration workflow\n- Channels and parent selection\n- Validation feedback\n",
+    "This tutorial walks you through creating your first device tree overlay using\nAnalog Attach. By the end, you will have a working overlay that configures an\nAD7124-8 ADC on SPI, complete with clock and voltage regulator definitions.\n\nThe video below demonstrates the complete workflow for creating an ",
+    "After following the steps in the video, your `.dtso` file should look like this:\n\n```dts\n/dts-v1/;\n/plugin/;\n\n&spi0 {\n    status = \"okay\";\n    ad7124-8@1 {\n        status = \"okay\";\n        compatible = \"adi,ad7124-8\";\n        reg = <1>;\n        clocks = <&ad7124_mclk>;\n        clock-names = \"mclk\";\n",
+    "This section contains shared workflows and UI concepts.\n\n- Commands and command palette\n- Left side panel\n- Opening files and selecting editors\n- Switching editors\n- Settings\n- Sidebar (Analog Attach panel)\n- File types (.dts, .dtso)\n- Save, validate, and compile flow\n- Behind the Scenes (Helpful Be",
+    "You can switch between editors for the current file in two ways:\n\n- Right-click the file tab and select `Reopen Editor With...`\n- Open the Analog Attach side panel and click `Switch View`\n\n\nSwitch view\n",
+    "Open settings with `Ctrl+,` or via **File > Preferences > Settings**.\nYou can also open settings from the Analog Attach side panel by clicking\n`Open Settings`.\nYou can search for `Analog Attach` in the Settings UI.\n\nKey settings:\n\n**`Analog Attach: Default Linux Repository`**\n:   Path to a Linux ker",
+    "Analog Attach performs a few automatic actions to reduce manual work. These\nbehaviors can be easy to miss at first:\n\n- **Auto-merge remembered DTS bases for DTSO files** when\n  `Enable Auto Merge Dtso Base` is enabled.\n- **Channel-aware validation** runs on configuration updates to highlight\n  missi",
+    "The Analog Attach side panel provides quick access to common actions and remote\nsettings.\n",
+    "- **Merge DTS into DTSO**: Run the merge command for the currently open overlay.\n- **Compile Device Tree**: Compile the current DTS/DTSO file.\n- **Deploy Device Tree**: Deploy the compiled device tree to the target.\n- **Open Settings**: Open Analog Attach settings.\n- **Switch View**: Switch between ",
+    "The Remote Settings section lets you edit the target connection details:\n\n- **IP Address**: Remote host address\n- **User**: Remote username\n- **Password**: Remote password\n\n\nWhen you update these fields, the extension updates the derived SSH commands\n(`analog-attach.sshConfig` and `analog-attach.ssh",
+    "This section covers the Tree Config (advanced) editor. Content will be\nexpanded step by step.\n\nThe Tree Config view is the default editor for `.dts` files. It displays the\nfull device tree structure for the opened file.\n\nWhen opening a `.dtso` file in the Tree Config view, you should merge a base\n`.",
+    "Click a node in the tree to view its configuration in the main panel.\nUse the **+** button to add a new node. Newly added nodes can be enabled,\nor deleted with the trash icon.\n\nWhen you press **+**, a list of possible devices is shown, with an option to\nadd a custom node. A custom node is not interp",
+    "The search bar matches against the full node path. Selecting a result focuses\nthe node in the tree.\n\nTree search results.\n",
+    "The configuration panel supports device aliases with built-in validation.\nCustom properties can be added and removed from the configuration list.\n\nConfiguration panel with alias and custom properties.\n",
+    "Some properties reference other nodes in the device tree (for example, phandle\nreferences). When a property has such a reference, the configuration panel shows\na dropdown listing the available target nodes. A button on the right side of the\ndropdown lets you navigate directly to the referenced node ",
+    "- Overview (what the view is for)\n- Tree navigation\n- Editing nodes and properties\n- Custom properties\n- Validation feedback\n"
+  ],
+  "url": [
+    "debugging/index.html",
+    "debugging/index.html",
+    "install-steps/index.html",
+    "install-steps/index.html",
+    "index.html",
+    "plug-and-play/index.html",
+    "plug-and-play/index.html",
+    "plug-and-play/index.html",
+    "plug-and-play/index.html",
+    "plug-and-play/index.html",
+    "plug-and-play/index.html",
+    "plug-and-play/index.html",
+    "plug-and-play/index.html",
+    "my-first-dts/index.html",
+    "my-first-dts/index.html#final-result",
+    "common/index.html",
+    "common/index.html",
+    "common/index.html",
+    "common/index.html",
+    "common/index.html",
+    "common/index.html#buttons",
+    "common/index.html#remote-settings",
+    "tree-config/index.html",
+    "tree-config/index.html",
+    "tree-config/index.html",
+    "tree-config/index.html",
+    "tree-config/index.html#go-to-node",
+    "tree-config/index.html"
+  ],
+  "hierarchy": [
+    [
+      "Topics"
+    ],
+    [
+      "Logs"
+    ],
+    [
+      "Requirements"
+    ],
+    [
+      "Getting the Extension"
+    ],
+    [
+      "Contents"
+    ],
+    [
+      "Overview"
+    ],
+    [
+      "Setup (Merge DTS Into DTSO)"
+    ],
+    [
+      "Adding Devices"
+    ],
+    [
+      "Selecting a Parent"
+    ],
+    [
+      "Managing the Device"
+    ],
+    [
+      "Channels"
+    ],
+    [
+      "Configuration and Validation"
+    ],
+    [
+      "Topics"
+    ],
+    [
+      "My First DTS"
+    ],
+    [
+      "My First DTS",
+      "Final Result"
+    ],
+    [
+      "Topics"
+    ],
+    [
+      "Switching Editors"
+    ],
+    [
+      "Settings"
+    ],
+    [
+      "Behind the Scenes (Helpful Behaviors)"
+    ],
+    [
+      "Sidebar (Analog Attach Panel)"
+    ],
+    [
+      "Sidebar (Analog Attach Panel)",
+      "Buttons"
+    ],
+    [
+      "Sidebar (Analog Attach Panel)",
+      "Remote Settings"
+    ],
+    [
+      "Overview"
+    ],
+    [
+      "Using the Tree"
+    ],
+    [
+      "Search"
+    ],
+    [
+      "Configuration"
+    ],
+    [
+      "Hidden Features",
+      "Go To Node"
+    ],
+    [
+      "Topics"
+    ]
+  ]
+}
