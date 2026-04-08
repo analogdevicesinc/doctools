@@ -353,10 +353,14 @@ export class Search {
   }
 
   _render_group (key, group, items) {
+    const get_passage = Array.isArray(items)
+      ? (idx) => items[idx]
+      : (idx) => ({ text: items.text[idx], url: items.url[idx], hierarchy: items.hierarchy[idx] })
+
     let li = new DOM('li', { className: 'group' })
 
     if (group.entries.length == 1) {
-      const p = items[group.entries[0].idx]
+      const p = get_passage(group.entries[0].idx)
       let link = new DOM('a', {
         className: 'group-title',
         innerText: this._entry_label(p, 1),
@@ -376,7 +380,7 @@ export class Search {
     li.append(link)
 
     for (const e of group.entries.slice(0, 5)) {
-      const p = items[e.idx]
+      const p = get_passage(e.idx)
       let link_ = new DOM('a', {
         className: 'entry',
         innerText: this._entry_label(p, 2),

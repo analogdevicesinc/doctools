@@ -114,13 +114,13 @@ export async function loadVectorIndex (url, contentRoot) {
   return { tq, passages, compressedConcat, bytesPerVector: hdr.bytesPerVector, dim: hdr.dim }
 }
 
-function _headingMatchScore (queryTerms, passage) {
-  const hierarchy = ((passage.hierarchy || []).join(' ')).toLowerCase()
-  const heading = (passage.hierarchy[passage.hierarchy.length - 1] || '').toLowerCase()
+function _heading_match_score (queryTerms, hierarchy) {
+  const hierarchy_str = (hierarchy || []).join(' ').toLowerCase()
+  const heading = (hierarchy[hierarchy.length - 1] || '').toLowerCase()
 
   let score = 0
   for (const t of queryTerms) {
-    if (hierarchy.includes(t)) {
+    if (hierarchy_str.includes(t)) {
       score += TERM_BOOST
       if (heading.includes(t)) score += TITLE_BOOST
     }
@@ -137,11 +137,11 @@ export function vector_search (queryVec, queryText, data) {
   const queryTerms = queryText.toLowerCase().split(/\s+/).filter(t => t.length > 1)
 
   for (let i = 0; i < scores.length; i++) {
-    const p = data.passages[i]
-    const bDepth = p.hierarchy ? p.hierarchy.length : 0
+    const hierarchy = data.passages.hierarchy[i]
+    const bDepth = hierarchy ? hierarchy.length : 0
     scores[i] += HEADING_BOOST / (1 + bDepth)
     if (queryTerms.length > 0)
-      scores[i] += _headingMatchScore(queryTerms, p)
+      scores[i] += _heading_match_score(queryTerms, hierarchy)
   }
 
   const indices = Array.from({ length: scores.length }, (_, i) => i)
@@ -155,8 +155,8 @@ export function vector_search (queryVec, queryText, data) {
  */
 export function group_results (pool, scores, passages) {
   const groups = pool.reduce((acc, idx) => {
-    const item = passages[idx]
-    const key = `${item.hierarchy[0]} / ${item.hierarchy[1]}` || item.hierarchy[0] || 'General'
+    const hierarchy = passages.hierarchy[idx]
+    const key = `${hierarchy[0]} / ${hierarchy[1]}` || hierarchy[0] || 'General'
 
     if (!acc[key])
       acc[key] = []

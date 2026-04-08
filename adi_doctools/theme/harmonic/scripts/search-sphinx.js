@@ -304,10 +304,10 @@ export function load_sphinx_index (url) {
  * Text snippets are pulled from passages.json when available.
  */
 export function sphinx_results_to_groups (results, passages) {
-  const passageByUrl = new Map()
+  const passages_url = new Map()
   if (passages) {
-    for (let i = 0; i < passages.length; i++)
-      passageByUrl.set(passages[i].url, passages[i])
+    for (let i = 0; i < passages.url.length; i++)
+      passages_url.set(passages.url[i], i)
   }
 
   const items = []
@@ -315,16 +315,16 @@ export function sphinx_results_to_groups (results, passages) {
 
   for (const result of results.reverse()) {
     const [docName, title, anchor, descr, score] = result
-    const pageUrl = `${docName}.html`
-    const fullUrl = anchor ? `${pageUrl}${anchor}` : pageUrl
+    const url_page = `${docName}.html`
+    const url_full = anchor ? `${url_page}${anchor}` : url_page
 
     let text = descr || ''
-    const passage = passageByUrl.get(fullUrl)
-    if (passage)
-      text = passage.text || text
+    const passage = passages_url.get(url_full)
+    if (passage !== undefined)
+      text = passages.text[passage] || text
 
     const idx = items.length
-    items.push({ url: fullUrl, hierarchy: [title], text })
+    items.push({ url: url_full, hierarchy: [title], text })
     groups.push({ name: title, entries: [{ idx, score }], rank: score })
   }
 

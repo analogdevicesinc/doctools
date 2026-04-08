@@ -256,14 +256,11 @@ def doc2vector():
     write_tqv(tqv_path, blobs, len(chunks), bytes_per_vector)
 
     passages_path = os.path.join(output_dir, "passages.json")
-    passages = [
-        {
-            "text": c["text"],
-            "url": c["url"],
-            "hierarchy": [*c["breadcrumb"], *c["headings"]],
-        }
-        for c in chunks
-    ]
+    passages = {
+        "text": [c["text"] for c in chunks],
+        "url": [c["url"] for c in chunks],
+        "hierarchy": [[*c["breadcrumb"], *c["headings"]] for c in chunks],
+    }
     with open(passages_path, "w", encoding="utf-8") as f:
         json.dump(passages, f, indent=2)
 
