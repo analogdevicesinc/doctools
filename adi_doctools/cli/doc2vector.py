@@ -40,17 +40,33 @@ def detect_versions(root):
     return versions
 
 
-def find_html_files(directory, version, ignore_paths):
-    pages = (directory / version).rglob('*.html')
-    i_ = str(directory / version)
+def find_doxygen_dirs(version_root):
+    doxygen_dirs = set()
+    for index_html in version_root.rglob('doxygen/index.html'):
+        with open(index_html, 'r', encoding='utf-8', errors='ignore') as f:
+            first_line = f.readline()
+        if first_line.startswith('<!-- HTML header for doxygen'):
+            doxygen_dirs.add(index_html.parent)
+            logger.info("doxygen:   %s (ignored)", index_html.parent)
+    return doxygen_dirs
 
-    ignore_paths = [ str(directory / i) for i in ignore_paths ]
+
+def find_html_files(directory, version, ignore_paths):
+    version_root = directory / version
+    pages = version_root.rglob('*.html')
+    i_ = str(version_root)
+
+    ignore_paths = [str(directory / i) for i in ignore_paths]
+    doxygen_dirs = find_doxygen_dirs(version_root)
+
     include_pages = []
     for p in pages:
         ignore = False
         if p.name.startswith('_'):
             ignore = True
         elif any(str(p).startswith(i) and i.startswith(i_) for i in ignore_paths):
+            ignore = True
+        elif any(str(p).startswith(str(d)) for d in doxygen_dirs):
             ignore = True
         if not ignore:
             include_pages.append(p)
