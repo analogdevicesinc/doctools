@@ -158,10 +158,11 @@ def HTMLToChunks(html_path, docs_root, max_text_chars=1000):
         hierarchy = [*breadcrumb, *headings]
         context = ' / '.join(hierarchy) + ': ' if hierarchy else ''
 
+        is_h1 = sec.find('h1') is not None
         chunks.append({
             'chunk': (context + body)[:max_text_chars],
             'text': body[:300],
-            'url': rel_path + ('#' + anchor if anchor else ''),
+            'url': rel_path if is_h1 else rel_path + ('#' + anchor if anchor else ''),
             'title': page_title,
             'breadcrumb': breadcrumb,
             'headings': headings,
