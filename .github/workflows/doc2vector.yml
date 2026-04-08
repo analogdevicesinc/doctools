@@ -31,6 +31,7 @@ jobs:
   build:
     concurrency:
       group: vector
+      cancel-in-progress: false
     runs-on: [self-hosted, repo-only, v2]
 
     steps:
