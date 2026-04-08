@@ -298,7 +298,7 @@ export class Search {
     }
 
     // Main: LLM search (.bin)
-    const data = await LLM.loadVectorIndex(invUrl, this.parent.state.content_root)
+    const data = await LLM.loadVectorIndex(invUrl, new URL('_static/', this.parent.fetch.base_url))
     if (data) {
       this.indexData[key] = data
       this.indexBackend[key] = 'llm'
@@ -316,7 +316,7 @@ export class Search {
         }
       }).catch(() => {})
 
-      LLM.initEmbedder(INV_PREFIX, (q) => this.query(q))
+      LLM.initEmbedder((q) => this.query(q))
 
       this.query(this.$.searchInput.$.value)
       return
@@ -430,7 +430,7 @@ export class Search {
       if (backend === 'llm') {
         if (!LLM.isEmbedderReady()) {
           if (!LLM.isEmbedderLoading())
-            LLM.initEmbedder(INV_PREFIX, (q) => this.query(q))
+            LLM.initEmbedder((q) => this.query(q))
           LLM.setPendingQuery(query)
 
           // Use Sphinx results while embedder is downloading

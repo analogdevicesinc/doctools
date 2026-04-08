@@ -39,6 +39,12 @@ jobs:
         make html SPHINXOPTS='-W --keep-going' ;
         rm -rf _build/html/_sources
 
+    - name: Add extra sources
+      working-directory: docs
+      run: |
+        curl -sL -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+               https://raw.githubusercontent.com/analogdevicesinc/doctools/refs/heads/vector/index.js -o _build/html/_static/turboquant-wasm.js
+
     - name: Store the generated doc
       uses: actions/upload-artifact@v4
       with:

@@ -1,5 +1,3 @@
-"use strict";
-
 /**
  * LLM / vector search backend.
  *
@@ -11,6 +9,7 @@ const POOL_SIZE     = 30
 const HEADING_BOOST = 0.02
 const TERM_BOOST    = 0.05
 const TITLE_BOOST   = 0.04
+const TRANSFORMERS_CDN = 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2'
 
 let _tqClassPromise = null
 let _embedder = null
@@ -20,14 +19,10 @@ let _pendingQuery = null
 /**
  * Lazy load TurboQuant WASM class.
  */
-export function getTurboQuantClass (contentRoot) {
+export function getTurboQuantClass (base_url) {
   if (!_tqClassPromise) {
-    const url = new URL(
-      `${contentRoot}_static/turboquant-wasm.js`,
-      location
-    ).href
     const imp = new Function('u', 'return import(u)')
-    _tqClassPromise = imp(url).then(m => m.TurboQuant)
+    _tqClassPromise = imp(new URL('turboquant-wasm.js', base_url).href).then(m => m.TurboQuant)
   }
   return _tqClassPromise
 }
@@ -36,15 +31,15 @@ export function getTurboQuantClass (contentRoot) {
  * Lazily load @xenova/transformers and initialise all-MiniLM-L6-v2.
  * When ready, calls `onReady(pendingQuery)` if a query was deferred.
  */
-export async function initEmbedder (invPrefix, onReady) {
+export async function initEmbedder (onReady) {
   if (_embedder || _embedderLoading) return
   _embedderLoading = true
   console.log('search-llm: loading transformer')
   try {
     const imp = new Function('u', 'return import(u)')
-    const { pipeline, env } = await imp(`${invPrefix}node_modules/@xenova/transformers/dist/transformers.js`)
+    const { pipeline, env } = await imp(TRANSFORMERS_CDN)
     env.allowLocalModels = false
-    env.backends.onnx.wasm.wasmPaths = `${invPrefix}node_modules/@xenova/transformers/dist/`
+    env.backends.onnx.wasm.wasmPaths = `${TRANSFORMERS_CDN}/dist/`
     _embedder = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2')
     console.log('search-llm: transformer ready')
     if (_pendingQuery && onReady) {
@@ -87,14 +82,14 @@ export function parseTqvHeader (buffer) {
  * Load compressed.tqv + passages.json, init TurboQuant instance.
  * Returns { tq, passages, compressedConcat, bytesPerVector, dim } on success.
  */
-export async function loadVectorIndex (url, contentRoot) {
+export async function loadVectorIndex (url, base_url) {
   const url_passages = `${url}passages.json`
   const url_vec      = `${url}embeddings-minilml6-dim384.bin`
 
   let TurboQuant, response_passages, response_vec
   try {
     ;[TurboQuant, response_passages, response_vec] = await Promise.all([
-      getTurboQuantClass(contentRoot),
+      getTurboQuantClass(base_url),
       fetch(new Request(url_passages)),
       fetch(new Request(url_vec)),
     ])
