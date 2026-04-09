@@ -86,12 +86,15 @@ runs:
         # Setup pi
         npm install @mariozechner/pi-coding-agent@0.66.1
 
+        mkdir -p ~/.pi/agent/extensions
+
         curl -sL -H "Authorization: Bearer ${{ inputs.gh-token }}" -o "/tmp/fmt_args.py" \
           https://raw.githubusercontent.com/analogdevicesinc/doctools/action/llm/fmt_args.py
         curl -sL -H "Authorization: Bearer ${{ inputs.gh-token }}" -o "/tmp/observer.py" \
           https://raw.githubusercontent.com/analogdevicesinc/doctools/action/llm/observer.py
+        curl -sL -H "Authorization: Bearer ${{ inputs.gh-token }}" -o "$HOME/.pi/agent/extensions/system-prompt.ts" \
+          https://raw.githubusercontent.com/analogdevicesinc/doctools/action/llm/system-prompt.ts
 
-        mkdir -p ~/.pi/agent
         cat <<'EOF' > ~/.pi/agent/models.json
         {
             "providers": {
