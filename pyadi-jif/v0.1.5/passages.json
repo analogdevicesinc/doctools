@@ -1,0 +1,1084 @@
+{
+  "text": [
+    "Clock chip models are the central components of the **pyadi-jif** library and govern the majority of most configuration limitations. Since clock chips are responsible for providing all the necessary clocks for the different components they must understand all component clock requirements.\n",
+    "In traditional systems clock chips work as frequency generation systems with multiple PLLs. One PLL, typically called PLL1, is used for synchronization and jitter cleanup. The second PLL, typically called PLL2, is used for frequency generation from a VCXO or PLL1 and will be divided down to provide ",
+    "Clock chip models can be used standalone if the required clocks are known. This requires them to be directly provided. Below is an example of a configuration of a clock chip where the three desired output clocks and VCXO are supplied but the internal dividers need to be determined. The input divider",
+    "- AD9081\n- AD9082\n- AD9084\n- AD9088\n- AD9144\n- AD9680\n- ADRV9009\n",
+    "- AD9523-1\n- AD9528\n- AD9545\n- HMC7044\n- LTC6952\n- LTC6953\n",
+    "- ADF4030\n- ADF4371\n",
+    "- FPGA Configuration\n  Xilinx FPGAs\n  Selecting QPLL or CPLL (7000 Series and UltraScale/UltraScale+)\n  Current known limitations\n  Versal FPGAs\n  Intel FPGAs\n  Example usage\n\n  - Xilinx FPGAs\n    Selecting QPLL or CPLL (7000 Series and UltraScale/UltraScale+)\n    Current known limitations\n\n    - Se",
+    "**pyadi-jif** has been extended to generate diagrams of the clock trees for components and systems. This is done using the d2lang language.\n",
+    "To generate the diagrams, you will need to leverage the d2 interface support provided by **pyadi-jif**. This is done by installing pyd2lang-native. pyd2lang-native is a binary distribution and may not exist on all feasible platform, similar to CPLEX.\n",
+    "Generating diagrams is done by calling the `draw` method on the system or component object. This will generate a diagram of the clock tree. Drawing is only valid once the component or system has been solved. Here is an example of generating a diagram for the AD9680 and dummy sources:\n\n```python\nimpo",
+    "The same process can be used to generate diagrams for systems. The only difference is that the system object must be used instead of the component object. Here is an example of generating a diagram for the AD9680 and AD9144:\n\n```python\nimport adijif\n\nvcxo = 125000000\n\nsys = adijif.system(\"ad9680\", \"",
+    "**pyadi-jif** uses a modern python flow based around Nox and uv. This is done to keep development isolated from the rest of developer\u2019s system and have consistent testing.\n",
+    "Python 3.9 is required for development as it is considered the *target* release. **Nox** tests other variants when available as well. If you do not have 3.9 installed, install uv and then use it to install the Python 3.9:\n\n```bash\nuv venv venv --python 3.9\nsource venv/bin/activate\n```\n\n\nIf Python 3.",
+    "**uv** is a python virtual environment manager that is a bit more modern than virtualenv. It is a good option for managing virtual environments and python versions. To install **uv** follow the instructions on the uv website.\n",
+    "Nox is a python automation tool that allows you to define reusable tasks in a `noxfile.py`. It is used to run tests, linters, and other tasks. To install nox:\n\n```bash\n(uv) pip install nox\n```\n",
+    "To run nox, simply run the following command:\n\n```bash\nnox -s <session>\n```\n\n\nWhere `<session>` is the name of the session defined in the `noxfile.py`. For example, to run the tests:\n\n```bash\nnox -s tests\n```\n",
+    "Make is muscle memory for most developers so it is a driver of **pyadi-jif** development if you want to use it. Running `make help` provides the possible operations. Note that the Makefile wraps most commands in nox calls so you do not necessarily need to have tools installed globally.\n\n```bash\nmake",
+    "Before committing code and creating pull-requests make sure all tests are passing. CI verifies commits but any assigned reviewers ignore any PRs that have not passed CI checks.\n\nPlease run the linters and formatters:\n\n```bash\nmake lint\n```\n\n\nThis command runs `ruff` for formatting and linting, as we",
+    "JESD204 is a protocol that is made up of layers to manage the different aspects of the data link between the converters and FPGA. On the converter side this is handled for you by the ASIC designer but the FPGA side requires a lot more work. This is heavily managed by the ADI JESD204 Framework, but i",
+    "Focusing on an individual chain, we can consider the diagram below where the individual clocks are detailed. These clocks can be provided externally or internally but must meet some basic requirements. Traditionally they will come from an external clocking devices, which can drastically save power a",
+    "There are two main unique cases when selecting the **ref clock** and **device clock**:\n\n- *N\u2019* is not 8 or 16, or when *F* != 1, 2, or 4\n- Otherwise\n\n\nIn case (1) the **ref clock** is unlikely to be derived from the **device clock**. Therefore, two separate clocks need to be provided to the FPGA. Ot",
+    "To manage the generation of these clocks, APIs are provided in the FPGA specific classes (*adijif.fpga.xilinx*). These are:\n\n- **out_clk_select**: Control {RX/TX}CLKSEL mux. Options are *XCVR_REFCLK*, *XCVR_REFCLK_DIV2*, *XCVR_PROGDIV_CLK*\n- **force_cpll**: Force use of CPLL (7000 Series and UltraSc",
+    "By default individual FPGA properties will be applies to all signal chains. However, if a specific only wants to be applied to the ADC or DAC side, or ADC1 but not ADC2, this configuration is possible. This is done through dictionary parameterization as following:\n\n```python\nsys = adijif.system([\"ad",
+    "With the introduction of ADF4030, it is possible to split the source of **SYSREF** and **ref clock**. Internally this is a similar concept to external PLL usage for converter clock references that directly drive the converter. The **SYSREF** source can be modified by using the *add_pll_sysref* metho",
+    "The main variation in the clock architecture is the source of the **device clock**. This can change due to availability of external clocks, subclass 1 requirements, and simplicity of the design. The **device clock** can be derived from the **ref clock**, **link clock**, or an external clock source. ",
+    "Before installing the module make sure **python 3.9+** is installed. **pyadi-jif** has been validated to function on Windows, Linux, and MacOS. However, not all internal solvers function across all architectures. Specifically the CPLEX solver will not function under ARM. This does not limit function",
+    "**pyadi-jif** can be installed from pip with all its dependencies:\n\n```bash\npip install 'pyadi-jif[cplex,draw]'\n```\n",
+    "Alternatively, **pyadi-jif** can be installed directly from source. This will require git to be installed\n\n```bash\ngit clone https://github.com/analogdevicesinc/pyadi-jif.git\ncd pyadi-jif\npip install \".[cplex,draw]\"\n```\n\n\n> **Note**\n>\n> pyadi-jif requires a solver to be installed. We recommend using",
+    "For developers check out the Developers section.\n",
+    "JESD parameterization definitions and helper functions.\n\n***class*adijif.jesd.jesd(*sample_clock: int*, *M: int*, *L: int*, *Np: int*, *K: int*)**\n:   Bases: `object`\n:   JESD interface class to manage JESD notations and definitions.\n:   *property*CF*: int | float*\n:   Get Control words per frame cl",
+    "**pyadi-jif** is a Python modeling and configuration tool that simplifies JESD204 interface setup for Analog Devices converters, clock chips, and FPGAs. It can automatically solve for valid clock divider settings and JESD204 link parameters at both the individual component level and across a complet",
+    "JESD204 is a high-speed serial interface standard used to connect data converters (ADCs and DACs) to FPGAs. Configuring a JESD204 system requires coordinating clock frequencies, lane rates, and link parameters across multiple chips simultaneously \u2014 a process that is error-prone when done manually.\n\n",
+    "- Automatic constraint solving for JESD204B/C clock and link parameters\n- Models for ADI converters (ADCs, DACs, MxFEs), clock chips (HMC7044, AD9523-1, AD9545), and FPGA transceivers (Xilinx, Intel)\n- Interactive web-based **JIF Tools Explorer** (`jiftools`) for graphical configuration and explorat",
+    "Install with pip and launch the interactive tools:\n\n```bash\npip install 'pyadi-jif[cplex,tools,draw]'\njiftools\n```\n\n\nOr use the Python API directly:\n\n```python\nimport adijif\n\n# System-level: solve converter + clock + FPGA together\nsys = adijif.system(\"ad9680\", \"ad9523_1\", \"xilinx\", vcxo=125e6)\nsys.c",
+    "The **JIF Tools Explorer** (`jiftools`) is a Streamlit web application with three tools:\n\n- **JESD204 Mode Selector** \u2014 browse and filter valid JESD204 modes for a given converter and sample rate\n- **Clock Configurator** \u2014 configure ADI clock chips to generate required output clocks\n- **System Confi",
+    "Four types of data converters are supported: ADCs, DACs, transceivers, and ADC/DAC combinations. However, fundamentally from a clocking perspective, it does not matter if a component is a DAC or ADC, and integrated parts like transceivers only have more constraints. It is also possible to connect mu",
+    "**pyadi-jif** supports both direct clocking and on-board PLL generation for different converters. Assuming the desired parts support those features. Usually, an external clock generation source, like a PLL, is used to have better phase noise performance. However, routing faster clocks can be challen",
+    "Currently converter objects cannot be used outside of the system class when leveraging solvers. Standalone they could be used to evaluate basic JESD parameters and clocks, but you cannot solve for internal dividers standalone. Here is an example below of examining different effective rates based on ",
+    "For devices with both ADCs and DACs like transceivers or mixed-signal front-ends, nested models are used that model both ADC and DAC paths together. This is important since they can share a common device clock or reference clock but have different JESD link configurations. AD9081 is an example of a ",
+    "Sometimes it is necessary to use an external PLL to clock a converter which may not necessarily come directly from a clock chip. This is done be inserting a PLL between the clock chip and the converter. The API do insert an external PLL is done through the system class\u2019s **add_pll_inline** method. B",
+    "Some advanced converters support configuration via external profile files (typically JSON) generated by design tools like Analog Devices\u2019 ACE (Analysis | Control | Evaluation) software. This allows complex datapath and JESD204 configurations to be imported directly into **pyadi-jif**.\n",
+    "The AD9084 MxFE supports loading JSON profiles using the **apply_profile_settings** method. This method parses the JSON file, extracts the sample rates, datapath decimation/interpolation, and JESD204C parameters, and applies them to the converter model.\n\n```python\nimport adijif\nimport os\n\n# Initiali",
+    "While the ADRV9009 does not use external JSON profiles in the same way as the MxFE series, it supports a \u201cQuick Configuration\u201d mode that allows selecting from a set of predefined profiles (modes). Each mode defines a specific combination of L, M, Np, and S parameters.\n\nYou can use the **set_quick_co",
+    "FPGA clock models focus upon the PLLs inside different FPGA variants that drive different transceivers which connect to data converters. Currently, only specific Xilinx FPGA models are supported, but more are planned. However, the configurations determined by **pyadi-jif** are in the context of the ",
+    "For Xilinx FPGAs both 7000 and Ultrascale device types can be parameterized. However, since specifications can vary widely depending on chip model or board, extensive configuration needs to be provided. A pre-existing table of boards can be leveraged through the `setup_by_dev_kit_name` method. This ",
+    "Both CPLL and QPLL types are supported and can either be automatically determined or forced to use either. This is done through two class properties:\n\n```python\nsys = adijif.system(\"ad9680\", \"ad9523_1\", \"xilinx\", vcxo)\n...\nsys.fpga.force_cpll = 1 # Force use of CPLL\n# or\nsys.fpga.force_qpll = 1 # Fo",
+    "- When multiple converters are connected to the same FPGA, or RX and TX from the same converter, the solver does not force the clocks to come from a single QTile.\n",
+    "Versal Premium FPGAs (XCVC/XCVP series) use a different PLL architecture from\nprevious generations. Instead of CPLL/QPLL, Versal transceivers have:\n\n- **RPLL (Ring PLL)**: VCO range 4.0\u20138.0 GHz. Simpler design for lower speeds.\n- **LCPLL (LC-Tank PLL)**: VCO range 8.0\u201316.375 GHz. Higher frequency ca",
+    "None supported yet.\n",
+    "As mentioned the FPGA classes can not be used standalone. Therefore, the system class must be used when interfacing with the solvers. Below is a simple example based around using the AD-FMCDAQ2-EBZ and a Xilinx ZC706.\n\n```python\nimport adijif\nimport pprint\n# Create instance of system class with desi",
+    "To better understand the system as a whole common definitions must be used between converters, clock chips, and FPGAs used within the system. This page will outline the different clocks and standard configuration parameters for JESD204B and JESD204C.\n",
+    "**E**\n: Number of multiblocks in an extended multiblock\n\n**F**\n: Octets per frame per link\n\n**HD**\n: High Density User Data Format\n\n**K**\n: Frames per multiframe\n\n**L**\n: Number of lanes\n\n**M**\n: Number of virtual converters\n\n**N**\n: Number of non-dummy bits per sample. Usually converter resolution.",
+    "**frame_clock**\n: Frames per second $$ \\text{frame clock} = \\frac{\\text{sample clock}}{S} $$. Clock rate at which samples are generated/processed. Has the same rate as the conversion clock, except for interpolating DACs or decimating DACs, where it is slower by the interpolation/decimation factor.\n\n",
+    "**/R/ K28.0**\n: Initial lane alignment sequence multi-frame start.\n\n**/A/ K28.3**\n: Lane alignment\n\n**/Q/ K28.4**\n: Initial lane alignment sequence configuration marker.\n\n**/K/ K28.5**\n: Code group synchronization.\n\n**/F/ K28.7**\n: Frame synchronization.\n",
+    "**CGS**\n: Code Group Synchronization\n\n**ILAS**\n: Initial Lane Alignment Sequence\n\n**LMFC**\n: Local Multi Frame Clock\n\n**LEMC**\n: Local Extended Multiblock Clock\n\n**MCDA**\n: Multiple Converter Device Alignment\n\n**NMCDA**\n: No Multiple Converter Device Alignment\n\n**RBD**\n: RX Buffer Delay\n\n**EMB**\n: E",
+    "The pyadi-jif **Model Context Protocol** (MCP) server provides a programmatic interface for\ninteracting with pyadi-jif functionalities, including querying JESD modes and performing\nsystem-level solving. This server leverages the `fastmcp` library to expose its capabilities\nas discoverable tools, mak",
+    "Install pyadi-jif with the `mcp` optional extras:\n\n```bash\npip install \"pyadi-jif[mcp]\"\n```\n",
+    "```bash\njifmcp\n```\n",
+    "```bash\njifmcp --transport http --port 8000\n```\n",
+    "Add the following snippet to your `claude_desktop_config.json` to connect pyadi-jif to\nClaude Desktop:\n\n```json\n{\n  \"mcpServers\": {\n    \"pyadi-jif\": {\n      \"command\": \"jifmcp\",\n      \"args\": []\n    }\n  }\n}\n```\n\n\nThe config file is located at:\n\n- **macOS**: `~/Library/Application Support/Claude/clau",
+    "Lists all available components of a given type.\n\n```default\nlist_components(component_type: str) -> dict\n```\n\n|Parameter|Type|Description|\n|`component_type`|str|One of `\"converter\"`, `\"clock\"`, or `\"fpga\"`.|\n\n\n**Returns** a dict with a `\"components\"` key containing a list of component name strings.\n",
+    "Retrieves the docstring, constructor signature, and public properties of a specific component.\n\n```default\nget_component_info(component_type: str, component_name: str) -> dict\n```\n\n|Parameter|Type|Description|\n|`component_type`|str|One of `\"converter\"`, `\"clock\"`, or `\"fpga\"`.|\n|`component_name`|str",
+    "Queries the available JESD modes for a converter component, optionally filtered by JESD\nparameters.\n\n```default\nquery_jesd_modes(component_name: str, jesd_params_json: str = \"{}\") -> dict\n```\n\n|Parameter|Type|Description|\n|`component_name`|str|Converter name (e.g. `\"AD9081_RX\"`, `\"ADRV9009_TX\"`).|\n|",
+    "Performs system-level clock and JESD solving based on a JSON configuration.\n\n```default\nsolve_system(system_config_json: str) -> dict\n```\n\n|Parameter|Type|Description|\n|`system_config_json`|str|JSON string describing the system. See schema below.|\n\n\n**Returns** a dict with keys `status` (`\"solved\"`)",
+    "```json\n{\n  \"conv\": \"AD9081_RX\",\n  \"clk\": \"HMC7044\",\n  \"fpga\": \"XILINX_BF\",\n  \"vcxo\": {\n    \"type\": \"fixed\",\n    \"value\": 100000000\n  },\n  \"solver\": \"CPLEX\",\n  \"converter_properties\": {\n    \"sample_clock\": 1000000000,\n    \"jesd_class\": \"jesd204c\",\n    \"M\": 4,\n    \"L\": 8,\n    \"F\": 1\n  },\n  \"clock_pro",
+    "```python\nimport asyncio\nimport json\nfrom fastmcp import Client\nfrom adijif.mcp_server import create_mcp_server\n\nasync def main():\n    server = create_mcp_server()\n    async with Client(server) as client:\n        # List available converters\n        result = await client.call_tool(\"list_components\", ",
+    "**pyadi-jif** at its core is a modeling tool for configuration and can be used to determine configurations at the component and system levels.\n\n- *Component level*: Certain components can be isolated or used standalone like clock chip models. This is useful when compartmentalizing a problem or check",
+    "When working at the component level each component\u2019s settings can be constrained or left unconstrained. Since each class\u2019s implementation will model possible settings as well as their limitations, any user-applied constraints are checked for validity. By default, all settings are left unconstrained.",
+    "```python\nimport adijif\nimport pprint\n# Create instance of AD9523-1 clocking model\nclk = adijif.ad9523_1()\n# Constrain feedback divider n2 to only 24\nclk.n2 = 24\n# Define clock sources and output clocks\nvcxo = 125000000\noutput_clocks = [1e9, 500e6, 7.8125e6]\nclock_names = [\"ADC\", \"FPGA\", \"SYSREF\"]\nc",
+    "When component constraints need to be mixed together the **system** class is used and is designed to support an FPGA, clock chip, and multiple data converters. Below is an example of the system class usage for a board similar to AD-FMCDAQ2-EBZ, but just looking at the ADC side alone.\n",
+    "```python\nimport adijif\nimport pprint\nvcxo = 125000000\n# Create instance of system class with desired parts\nsys = adijif.system(\"ad9680\", \"ad9523_1\", \"xilinx\", vcxo)\n# Set Converter clocking requirements\nsys.converter.sample_clock = 1e9\nsys.converter.decimation = 1\nsys.converter.L = 4\nsys.converter.",
+    "The `solve()` method (at the system level) or the `get_config()` method (at the component level) returns a dictionary containing the final configuration of all solved variables and rates.\n",
+    "When calling `sys.solve()`, the returned dictionary contains configurations for all components in the system, organized by component type and name:\n\n- **`clock`**: Configuration for the clock chip, including internal dividers and output clock rates.\n- **`converter_<name>`**: Configuration for each d",
+    "For standalone components, `get_config()` returns a dictionary specific to that device:\n\n- **Clock Chips**: Typically includes dividers like `r`, `n`, `m`, and a list of `out_dividers`. It also includes an `output_clocks` dictionary mapping names to rates and dividers.\n- **Converters**: Includes the",
+    "Get started with the JIF Tools Explorer in minutes!\n",
+    "1. **Install pyadi-jif:**\n  pip install 'pyadi-jif[cplex,tools,draw]'\n2. **Launch the tools:**\n  jiftools\n3. **Access the web interface:**\n  The application will open automatically in your browser at `http://localhost:8501`\n",
+    "**Goal:** Find a 4-lane JESD204B mode for the AD9680 running at 1 GSPS\n\n**Steps:**\n\n1. **Select Tool:** Click \u201cJESD204 Mode Selector\u201d in the sidebar\n2. **Select Part:** Choose \u201cad9680\u201d from the dropdown\n3. **Configure Datapath:**\n  Decimation: 1\n  Units: GHz\n  Converter Rate: 1.0\n\n  - Decimation: 1\n",
+    "**Goal:** Generate clocks for AD9680 and FPGA reference\n\n**Steps:**\n\n1. **Select Tool:** Click \u201cClock Configurator\u201d in the sidebar\n2. **Select Part:** Choose \u201chmc7044\u201d from the dropdown\n3. **Set Reference Clock:**\n  Reference Clock: 125000000 (125 MHz)\n\n  - Reference Clock: 125000000 (125 MHz)\n4. **",
+    "**Goal:** Configure complete AD9680 + HMC7044 + Xilinx ZCU102 system\n\n**Steps:**\n\n1. **Select Tool:** Click \u201cSystem Configurator\u201d in the sidebar\n2. **The tool will automatically:**\n  Set up AD9680 converter\n  Configure HMC7044 clock chip\n  Set Xilinx FPGA parameters\n  Use 125 MHz VCXO reference\n\n  -",
+    "1. Configure filters in JESD Mode Selector\n2. View results table\n3. Click data editor\n4. Use browser to copy/export data\n",
+    "1. Generate configuration in Clock Configurator\n2. Copy device tree fragment from output\n3. Save to file for use with Linux drivers\n",
+    "1. Select first part and note results\n2. Use browser back button or refresh\n3. Select different part\n4. Compare specifications\n",
+    "- Begin with default settings\n- Add one filter/constraint at a time\n- Verify each step works before proceeding\n",
+    "- Know your sample rate target\n- Understand FPGA lane rate limits\n- Consider available reference clocks\n",
+    "- Check derived settings after each change\n- Review diagrams to understand signal flow\n- Toggle valid/invalid modes to see constraints\n",
+    "- Start with broad filters, then narrow down\n- Try multiple configurations\n- Compare trade-offs (lanes vs rate)\n",
+    "- **Check:** Sample rate within device limits?\n- **Try:** Remove some filters\n- **Verify:** Decimation/interpolation correct?\n",
+    "- **Check:** Are output frequencies achievable from reference?\n- **Try:** Different reference frequency\n- **Verify:** Internal VCO ranges compatible?\n",
+    "- **Check:** All components compatible?\n- **Try:** Different JESD mode or lane count\n- **Verify:** FPGA supports required lane rate?\n",
+    "- **Check:** Python version (3.9+)\n- **Try:** Reinstall with `pip install --force-reinstall 'pyadi-jif[cplex]'`\n- **Verify:** No other Streamlit apps on port 8501\n",
+    "After completing the quick start:\n\n1. **Read Full Documentation:** JIF Tools Explorer Guide\n2. **Explore Python API:** Converter API\n3. **Learn About JESD204:** Flow Documentation\n4. **Advanced Features:** Drawing Tools\n",
+    "- **Documentation:** https://analogdevicesinc.github.io/pyadi-jif/\n- **GitHub Issues:** https://github.com/analogdevicesinc/pyadi-jif/issues\n- **ADI Support:** https://ez.analog.com/\n- **Examples:** Check `examples/` directory in repository\n",
+    "- ADCs: AD9680, AD9625, AD9208, etc.\n- DACs: AD9144, AD9136, AD9172, etc.\n- MxFEs: AD9081, AD9082, AD9084, etc.\n- Transceivers: ADRV9009, ADRV9002, etc.\n",
+    "- HMC7044 - High-performance jitter attenuator\n- AD9545 - Multi-input clock generator\n- AD9523-1 - Low jitter clock distribution\n",
+    "- **Xilinx:** 7-series, UltraScale, UltraScale+\n- **Intel (Altera):** Arria, Stratix\n",
+    "- ZC706, ZCU102 (Xilinx)\n- Various ADI evaluation boards\n\n\n**Ready to get started? Launch the tools with `jiftools` and try Example 1!**\n",
+    "- Converter Reference\n  AD9081\n  AD9081 RX diagram\n  AD9081 TX diagram\n  AD9082\n  AD9082 RX diagram\n  AD9084\n  AD9084 RX diagram\n  AD9088\n  AD9088 RX diagram\n  AD9680\n  AD9680 diagram\n  `ad9680`\n  `ad9680.get_config()`\n  `ad9680.get_required_clock_names()`\n  `ad9680.get_required_clocks()`\n  `ad9680.",
+    "```python\nimport adijif as jif\n\nconv = jif.ad9081_rx()\nconv.validate_config()\nrequired_clocks = conv.get_required_clocks()\nrequired_clock_names = conv.get_required_clock_names()\nclks = []\nfor clock, name in zip(required_clocks, required_clock_names):\n    clk = jif.types.arb_source(name)\n    conv._ad",
+    "```python\nimport adijif as jif\n\nconv = jif.ad9081_tx()\nconv.validate_config()\nrequired_clocks = conv.get_required_clocks()\nrequired_clock_names = conv.get_required_clock_names()\nclks = []\nfor clock, name in zip(required_clocks, required_clock_names):\n    clk = jif.types.arb_source(name)\n    conv._ad",
+    "```python\nimport adijif as jif\n\nconv = jif.ad9082_rx()\nconv.validate_config()\nrequired_clocks = conv.get_required_clocks()\nrequired_clock_names = conv.get_required_clock_names()\nclks = []\nfor clock, name in zip(required_clocks, required_clock_names):\n    clk = jif.types.arb_source(name)\n    conv._ad",
+    "```python\nimport adijif as jif\n\nconv = jif.ad9084_rx()\nconv.validate_config()\nrequired_clocks = conv.get_required_clocks()\nrequired_clock_names = conv.get_required_clock_names()\nclks = []\nfor clock, name in zip(required_clocks, required_clock_names):\n    clk = jif.types.arb_source(name)\n    conv._ad",
+    "```python\nimport adijif as jif\n\nconv = jif.ad9088_rx()\nconv.validate_config()\nrequired_clocks = conv.get_required_clocks()\nrequired_clock_names = conv.get_required_clock_names()\nclks = []\nfor clock, name in zip(required_clocks, required_clock_names):\n    clk = jif.types.arb_source(name)\n    conv._ad",
+    "```python\nimport adijif as jif\n\nconv = jif.ad9680()\nconv.validate_config()\nrequired_clocks = conv.get_required_clocks()\nrequired_clock_names = conv.get_required_clock_names()\nclks = []\nfor clock, name in zip(required_clocks, required_clock_names):\n    clk = jif.types.arb_source(name)\n    conv._add_e",
+    "```python\nimport adijif as jif\n\nconv = jif.ad9144()\nconv.validate_config()\nrequired_clocks = conv.get_required_clocks()\nrequired_clock_names = conv.get_required_clock_names()\nclks = []\nfor clock, name in zip(required_clocks, required_clock_names):\n    clk = jif.types.arb_source(name)\n    conv._add_e",
+    "```python\nimport adijif as jif\n\nconv = jif.ad9152()\nconv.validate_config()\nrequired_clocks = conv.get_required_clocks()\nrequired_clock_names = conv.get_required_clock_names()\nclks = []\nfor clock, name in zip(required_clocks, required_clock_names):\n    clk = jif.types.arb_source(name)\n    conv._add_e",
+    "```python\nimport adijif as jif\n\nconv = jif.adrv9009_rx()\nconv.sample_clock = 122.88e6\nconv.decimation = 4\nconv.set_quick_configuration_mode(\"17\", \"jesd204b\")\nconv.validate_config()\nrequired_clocks = conv.get_required_clocks()\nrequired_clock_names = conv.get_required_clock_names()\nclks = []\nfor clock",
+    "```python\nimport adijif as jif\n\nconv = jif.adrv9009_tx()\nconv.sample_clock = 122.88e6\nconv.interpolation = 4\nconv.set_quick_configuration_mode(\"6\", \"jesd204b\")\nconv.validate_config()\nrequired_clocks = conv.get_required_clocks()\nrequired_clock_names = conv.get_required_clock_names()\nclks = []\nfor clo",
+    "## ADF4030\n\n\nADF4030 10-Channel Precision Synchronizer.\n\n***class*adijif.plls.adf4030.adf4030(*model: None | CpoModel = None*, *solver: str | None = None*)**\n:   Bases: `pll`\n:   ADF4030 PLL model.\n:   This model currently supports all divider configurations\n:   https://www.analog.com/media/en/techn",
+    "The JIF Tools Explorer is an interactive web-based application built with Streamlit that provides a graphical interface for configuring and exploring JESD204 based systems with Analog Devices converters and clock chips.\n\n> **New to JIF Tools?**\n>\n> Check out the Quick Start Guide for step-by-step ex",
+    "The JIF Tools Explorer is included with the pyadi-jif package. Install it with:\n\n```bash\npip install 'pyadi-jif[cplex]'\n```\n\n\nFor development or to include Streamlit dependencies:\n\n```bash\npip install 'pyadi-jif[cplex,tools,draw]'\n```\n",
+    "Once installed, you can launch the JIF Tools Explorer from the command line:\n\n```bash\njiftools\n```\n\n\nThis will start a local web server and automatically open the application in your default web browser. The application typically runs at `http://localhost:8501`.\n",
+    "The JIF Tools Explorer provides three main tools accessible from the sidebar:\n\n1. **JESD204 Mode Selector** - Explore and filter JESD204 modes for ADI converters\n2. **Clock Configurator** - Configure clock distribution chips for your system\n3. **System Configurator** - Complete end-to-end system con",
+    "The JESD204 Mode Selector helps you find suitable JESD204 modes for your ADI converter based on your application requirements.\n",
+    "- **Part Selection**: Choose from a wide range of ADI converters (ADCs, DACs, MxFEs, Transceivers)\n- **Datapath Configuration**: Configure decimation/interpolation settings\n- **Sample Rate Control**: Set converter sample rates with flexible units (Hz, kHz, MHz, GHz)\n- **Mode Filtering**: Filter JESD",
+    "From the \u201cSelect a part\u201d dropdown, choose your converter. The list includes:\n\n- ADCs: AD9680, AD9625, etc.\n- DACs: AD9144, AD9136, etc.\n- MxFEs: AD9081, AD9082, etc.\n- Transceivers: adrv9009, etc.\n",
+    "In the \u201cDatapath Configuration\u201d section:\n\n**For ADCs:**\n\n- Set decimation values (CDDC, FDDC if available)\n- Configure converter sample rate\n\n\n**For DACs:**\n\n- Set interpolation values (CDUC, FDUC if available)\n- Configure converter sample rate\n",
+    "1. Select units (Hz, kHz, MHz, or GHz)\n2. Enter the desired converter rate\n3. The derived sample rate will be calculated automatically\n",
+    "Use the multiselect controls in the \u201cConfiguration\u201d section to filter modes by JESD204 parameters:\n\n- **M**: Number of converters\n- **L**: Number of lanes\n- **N**: Converter resolution\n- **Np**: Number of bits per sample\n- **F**: Octets per frame\n- **S**: Samples per converter per frame cycle\n- **K*",
+    "The \u201cJESD204 Modes\u201d section displays:\n\n- Valid modes matching your criteria\n- Lane rates and sample rates for each mode\n- Toggle to show/hide invalid modes\n",
+    "```python\n# Example: Configure AD9680 for 1 GSPS operation\n\n1. Select part: \"AD9680\"\n2. Set decimation: 1 (no decimation)\n3. Set units: GHz\n4. Set converter rate: 1.0 GHz\n5. Filter by L=4 (4 lanes)\n6. Review valid modes in the table\n7. Note lane rates for FPGA configuration\n```\n",
+    "The Clock Configurator helps you configure ADI clock distribution chips (e.g., HMC7044, AD9545) to generate the required clocks for your system.\n",
+    "- **Multi-Clock Output**: Configure multiple output clocks with different frequencies\n- **Reference Clock**: Set input reference clock frequency\n- **Internal Configuration**: Control internal clock chip parameters (VCO, dividers, etc.)\n- **Visual Diagrams**: View generated clock tree diagrams\n- **De",
+    "Choose from supported clock chips:\n\n- HMC7044 - High-performance clock distribution\n- AD9545 - Quad/Octal Clock Generator & Synchronizer\n- And more\u2026\n",
+    "**Reference Clock:**\n\n- Set the input reference clock frequency\n\n\n**Output Clocks:**\n\n1. Specify number of clock outputs needed\n2. For each output:\n  Set the desired frequency\n  Assign a descriptive name (e.g., \u201cADC_CLK\u201d, \u201cFPGA_REF\u201d)\n\n  - Set the desired frequency\n  - Assign a descriptive name (e.g.",
+    "Adjust internal parameters if needed:\n\n- VCO frequency ranges\n- Divider values\n- Distribution settings\n\n\nThe tool will automatically calculate valid configurations.\n",
+    "If a valid configuration is found:\n\n- Configuration parameters are displayed\n- Clock tree diagram shows the signal flow\n- Device tree fragment (if supported) for Linux driver integration\n",
+    "```python\n# Example: HMC7044 configuration for AD9680 + FPGA\n\n1. Select part: \"hmc7044\"\n2. Set reference clock: 125 MHz\n3. Configure outputs:\n   - Output 1: 1000 MHz (name: \"ADC_SAMPLE_CLK\")\n   - Output 2: 250 MHz (name: \"FPGA_REF_CLK\")\n4. Review generated configuration\n5. View clock tree diagram\n6.",
+    "The System Configurator provides end-to-end configuration of a complete JESD204 system including FPGA, converter, and clock chip.\n",
+    "- **Complete System**: Configure all components together\n- **FPGA Integration**: Set up FPGA transceiver parameters (Xilinx, Intel)\n- **Development Kit Presets**: Quick setup for common evaluation boards\n- **Automatic Solving**: Automatically finds valid configurations across all components\n- **Syst",
+    "Choose:\n\n- **Converter**: Your ADI converter (ADC/DAC/MxFE)\n- **Clock Chip**: Clock distribution chip\n- **FPGA**: Target FPGA vendor (Xilinx, Intel)\n",
+    "Set converter parameters:\n\n- Sample clock frequency\n- Decimation/interpolation\n- JESD204 mode\n",
+    "Select FPGA settings:\n\n- Development kit (optional)\n- Transceiver type (QPLL/CPLL for Xilinx)\n- Reference clock frequency\n",
+    "Specify the system reference clock (VCXO) frequency.\n",
+    "Click solve to:\n\n- Calculate complete system configuration\n- Validate all constraints are met\n- Generate system diagram\n- Show configuration for all components\n",
+    "```python\n# Example: AD9680 + HMC7044 + Xilinx ZCU102\n\n1. Create system:\n   - Converter: \"AD9680\"\n   - Clock: \"hmc7044\"\n   - FPGA: \"xilinx\"\n   - VCXO: 125 MHz\n\n2. Configure converter:\n   - Sample rate: 1 GSPS\n   - Decimation: 1\n   - Mode: 0x88\n   - K: 32\n\n3. Configure FPGA:\n   - Dev kit: \"zcu102\"\n  ",
+    "1. **Start Simple**: Begin with basic configurations before adding complexity\n2. **Use Filters**: Narrow down modes early to reduce computation\n3. **Valid Modes Toggle**: Hide invalid modes to focus on viable options\n",
+    "1. Set your sample rate requirement\n2. Filter by available lane count\n3. Review lane rates against FPGA capabilities\n4. Select mode with margin for PVT variation\n",
+    "1. Identify all required clocks (ADC, FPGA ref, SYSREF, etc.)\n2. Start with reference clock you have available\n3. Configure outputs in priority order\n4. Verify clock quality (jitter, phase noise)\n",
+    "1. Use System Configurator for initial feasibility\n2. Switch to individual tools for fine-tuning\n3. Validate with hardware using exported configurations\n",
+    "**No valid modes found:**\n\n- Relax filter constraints\n- Check sample rate is within device limits\n- Verify decimation/interpolation settings\n\n\n**Clock configuration fails:**\n\n- Check if output frequencies are achievable with selected reference\n- Verify VCO frequency ranges\n- Try different internal d",
+    "While the JIF Tools Explorer provides a graphical interface, all functionality is also available through the pyadi-jif Python API for scripting and automation:\n\n```python\nimport adijif\n\n# Example: Programmatic JESD mode search\nconverter = adijif.AD9680()\nconverter.sample_clock = 1e9\nconverter.decima",
+    "The mode selector interface showing filtered modes for AD9680:\n\n*Mode table with sample rates, lane rates, and configuration parameters*\n",
+    "HMC7044 configuration with multiple outputs:\n\n*Clock tree diagram showing signal distribution*\n",
+    "Complete system configuration view:\n\n*End-to-end system block diagram*\n",
+    "The JIF Tools Explorer is built using:\n\n- **Streamlit**: Web application framework\n- **pyadi-jif**: Core JESD204 configuration library\n- **docplex**: Constraint solver (CPLEX)\n- **D2**: Diagram generation\n",
+    "The application uses Streamlit\u2019s session state to maintain:\n\n- Part selections across tool switches\n- Configuration values\n- Generated diagrams (cached for performance)\n",
+    "- Diagram generation is cached per part\n- Mode searching is optimized with early filtering\n- Solver constraints are pre-validated\n",
+    "To contribute to JIF Tools Explorer:\n\n1. See Developer Documentation\n2. Test changes with: `streamlit run adijif/tools/explorer/main.py`\n3. Add tests in `tests/tools/`\n4. Update documentation as needed\n",
+    "For issues or questions:\n\n- GitHub Issues: https://github.com/analogdevicesinc/pyadi-jif/issues\n- Documentation: https://analogdevicesinc.github.io/pyadi-jif/\n- ADI Support: https://ez.analog.com/\n",
+    "- Installation Guide\n- Converter Documentation\n- Clock Documentation\n- FPGA Integration\n- Drawing Utilities\n",
+    "```python\nimport adijif as jif\n\nfpga = jif.xilinx()\nfpga.setup_by_dev_kit_name(\"vcu118\")\n\ndc = jif.ad9680()\n\nfpga_ref = jif.types.arb_source(\"FPGA_REF\")\nlink_out_ref = jif.types.arb_source(\"LINK_OUT_REF\")\n\nclocks = fpga.get_required_clocks(dc, fpga_ref(fpga.model), link_out_ref(fpga.model))\n\nsolutio",
+    "7 series transceiver model.\n\n***class*adijif.fpgas.xilinx.sevenseries.CPLL(*parent_transceiver: CpoModel*)**\n:   Bases: `PLLCommon`\n:   Channel PLL (CPLL) for 7 series FPGAs.\n:   *property*D*: int | List[int]*\n:   Get the D value for the CPLL.\n:   *property*M*: int | List[int]*\n:   Get the M value f",
+    "Ultrascale+ PLLs transceiver models.\n\n***class*adijif.fpgas.xilinx.ultrascaleplus.CPLL(*parent_transceiver: CpoModel*)**\n:   Bases: `CPLL`\n:   CPLL model for Ultrascale+ transceivers.\n:   *property*vco_max*: int*\n:   Get the VCO max frequency in Hz for CPLL.\n:   *property*vco_min*: int*\n:   Get the ",
+    "```python\nimport adijif as jif\n\nclk = jif.ad9523_1()\noutput_clocks = [1000000000, 500000000, 7812500]\nclock_names = [\"ADC\", \"FPGA\", \"SYSREF\"]\nclk.set_requested_clocks(125000000, output_clocks, clock_names)\nclk.solve()\nclk.get_config()\nimage_data = clk.draw()\nwith open(\"ad9523_diagram.svg\", \"w\") as f",
+    "```python\nimport adijif as jif\n\nclk = jif.ad9528()\noutput_clocks = [1000000000, 500000000, 7812500]\nclock_names = [\"ADC\", \"FPGA\", \"SYSREF\"]\nclk.set_requested_clocks(125000000, output_clocks, clock_names)\nclk.solve()\nclk.get_config()\nimage_data = clk.draw()\nwith open(\"ad9528_diagram.svg\", \"w\") as f:\n",
+    "```python\nimport adijif as jif\n\nclk = jif.ad9545()\ninput_refs = [(0, 1), (1, 10e6)]\noutput_clocks = [(0, 30720000)]\nclk.set_requested_clocks(input_refs, output_clocks)\nclk.solve()\nclk.get_config()\nimage_data = clk.draw()\nwith open(\"ad9545_diagram.svg\", \"w\") as f:\n    f.write(image_data)\n```\n\n\n![](..",
+    "```python\nimport adijif as jif\n\nclk = jif.hmc7044()\noutput_clocks = [1000000000, 500000000, 7812500]\nclock_names = [\"ADC\", \"FPGA\", \"SYSREF\"]\nclk.set_requested_clocks(125000000, output_clocks, clock_names)\nclk.solve()\nclk.get_config()\nimage_data = clk.draw()\nwith open(\"hmc7044_diagram.svg\", \"w\") as f",
+    "```python\nimport adijif as jif\n\nclk = jif.ltc6952()\noutput_clocks = [1000000000, 500000000, 7812500]\nclock_names = [\"ADC\", \"FPGA\", \"SYSREF\"]\nclk.set_requested_clocks(125000000, output_clocks, clock_names)\nclk.solve()\nclk.get_config()\nimage_data = clk.draw()\nwith open(\"ltc6952_diagram.svg\", \"w\") as f",
+    "```python\nimport adijif as jif\n\nclk = jif.ltc6953()\nref_in = jif.types.range(1000000000, 4500000000, 1000000, \"ref_in\")\noutput_clocks = [1000000000, 500000000, 7812500]\nclock_names = [\"ADC\", \"FPGA\", \"SYSREF\"]\nclk.set_requested_clocks(ref_in, output_clocks, clock_names)\nclk.solve()\nclk.get_config()\ni"
+  ],
+  "url": [
+    "clocks.html",
+    "clocks.html#theory-of-operation",
+    "clocks.html#standalone-usage",
+    "parts.html#data-converters",
+    "parts.html#clock-chips",
+    "parts.html#plls",
+    "fpgas/index.html",
+    "draw.html",
+    "draw.html#pre-requisites",
+    "draw.html#generating-diagrams",
+    "draw.html#generating-system-diagrams",
+    "developers.html",
+    "developers.html#set-up-python",
+    "developers.html#install-uv",
+    "developers.html#set-up-nox",
+    "developers.html#running-nox",
+    "developers.html#using-make",
+    "developers.html#when-committing-code",
+    "fpgas/fpga_internal.html",
+    "fpgas/fpga_internal.html#clocking-layout",
+    "fpgas/fpga_internal.html#search-strategy",
+    "fpgas/fpga_internal.html#api-controls",
+    "fpgas/fpga_internal.html#per-part-configuration",
+    "fpgas/fpga_internal.html#separate-sysref-sources",
+    "fpgas/fpga_internal.html#device-clock-source",
+    "install.html",
+    "install.html#installing-from-pip-recommended",
+    "install.html#installing-from-source",
+    "install.html#developers",
+    "devs/jesd.html",
+    "index.html",
+    "index.html#what-is-pyadi-jif",
+    "index.html#key-features",
+    "index.html#quick-start",
+    "index.html#interactive-tools",
+    "converters.html",
+    "converters.html#clocking-architectures",
+    "converters.html#configuring-converters",
+    "converters.html#nested-converters",
+    "converters.html#external-pll-clocking",
+    "converters.html#profile-based-configuration",
+    "converters.html#ad9084-mxfe-profiles",
+    "converters.html#adrv9009-quick-configuration",
+    "fpgas/fpgas.html",
+    "fpgas/fpgas.html#xilinx-fpgas",
+    "fpgas/fpgas.html#selecting-qpll-or-cpll-7000-series-and-ultrascale-ultrascale",
+    "fpgas/fpgas.html#current-known-limitations",
+    "fpgas/fpgas.html#versal-fpgas",
+    "fpgas/fpgas.html#intel-fpgas",
+    "fpgas/fpgas.html#example-usage",
+    "defs.html",
+    "defs.html#link-parameters",
+    "defs.html#clocks",
+    "defs.html#control-characters",
+    "defs.html#abbreviations",
+    "mcp_server.html",
+    "mcp_server.html#installation",
+    "mcp_server.html#stdio-default-for-claude-desktop-and-local-tools",
+    "mcp_server.html#http-transport",
+    "mcp_server.html#claude-desktop-integration",
+    "mcp_server.html#list-components",
+    "mcp_server.html#get-component-info",
+    "mcp_server.html#query-jesd-modes",
+    "mcp_server.html#solve-system",
+    "mcp_server.html#system-config-json-schema",
+    "mcp_server.html#python-client-example",
+    "flow.html",
+    "flow.html#component-level",
+    "flow.html#ad9523-1-component-example",
+    "flow.html#system-level",
+    "flow.html#ad-fmcdaq2-ebz-adc-side-system-example",
+    "flow.html#solve-output",
+    "flow.html#system-level-output",
+    "flow.html#component-level-output",
+    "tools_quickstart.html",
+    "tools_quickstart.html#installation-and-launch",
+    "tools_quickstart.html#quick-example-1-find-jesd-modes-for-ad9680",
+    "tools_quickstart.html#quick-example-2-configure-hmc7044-for-ad9680",
+    "tools_quickstart.html#quick-example-3-complete-system-configuration",
+    "tools_quickstart.html#export-jesd-mode-table",
+    "tools_quickstart.html#save-clock-configuration",
+    "tools_quickstart.html#compare-different-parts",
+    "tools_quickstart.html#start-simple",
+    "tools_quickstart.html#understand-your-requirements",
+    "tools_quickstart.html#use-visual-feedback",
+    "tools_quickstart.html#iterate",
+    "tools_quickstart.html#no-modes-found",
+    "tools_quickstart.html#no-valid-configuration-found-clock",
+    "tools_quickstart.html#system-solve-fails",
+    "tools_quickstart.html#application-won-t-start",
+    "tools_quickstart.html#next-steps",
+    "tools_quickstart.html#getting-help",
+    "tools_quickstart.html#supported-converters",
+    "tools_quickstart.html#supported-clock-chips",
+    "tools_quickstart.html#supported-fpgas",
+    "tools_quickstart.html#common-development-kits",
+    "devs/index.html",
+    "devs/converters.html#ad9081-rx-diagram",
+    "devs/converters.html#ad9081-tx-diagram",
+    "devs/converters.html#ad9082-rx-diagram",
+    "devs/converters.html#ad9084-rx-diagram",
+    "devs/converters.html#ad9088-rx-diagram",
+    "devs/converters.html#ad9680-diagram",
+    "devs/converters.html#ad9144-diagram",
+    "devs/converters.html#ad9152-diagram",
+    "devs/converters.html#adrv9009-rx-diagram",
+    "devs/converters.html#adrv9009-tx-diagram",
+    "devs/plls.html",
+    "tools.html",
+    "tools.html#installation",
+    "tools.html#launching-the-application",
+    "tools.html#application-overview",
+    "tools.html#jesd204-mode-selector",
+    "tools.html#features",
+    "tools.html#select-a-converter",
+    "tools.html#configure-datapath",
+    "tools.html#set-converter-rate",
+    "tools.html#filter-jesd-modes",
+    "tools.html#view-results",
+    "tools.html#example-workflow",
+    "tools.html#clock-configurator",
+    "tools.html#id1",
+    "tools.html#select-a-clock-chip",
+    "tools.html#configure-clocks",
+    "tools.html#internal-configuration",
+    "tools.html#id3",
+    "tools.html#id4",
+    "tools.html#system-configurator",
+    "tools.html#id5",
+    "tools.html#select-components",
+    "tools.html#configure-converter",
+    "tools.html#configure-fpga",
+    "tools.html#set-vcxo-reference",
+    "tools.html#solve-and-view",
+    "tools.html#id7",
+    "tools.html#performance-optimization",
+    "tools.html#finding-compatible-modes",
+    "tools.html#clock-system-design",
+    "tools.html#system-integration",
+    "tools.html#troubleshooting",
+    "tools.html#api-access",
+    "tools.html#id8",
+    "tools.html#id9",
+    "tools.html#id10",
+    "tools.html#architecture",
+    "tools.html#state-management",
+    "tools.html#performance-considerations",
+    "tools.html#contributing",
+    "tools.html#support",
+    "tools.html#see-also",
+    "devs/fpga_ref.html#xilinx-fpga-diagram",
+    "devs/fpga_ref.html#module-adijif.fpgas.xilinx.sevenseries",
+    "devs/fpga_ref.html#module-adijif.fpgas.xilinx.ultrascaleplus",
+    "devs/clocks.html#ad9523-1-diagram",
+    "devs/clocks.html#ad9528-diagram",
+    "devs/clocks.html#ad9545-diagram",
+    "devs/clocks.html#hmc7044-diagram",
+    "devs/clocks.html#ltc6952-diagram",
+    "devs/clocks.html#ltc6953-diagram"
+  ],
+  "hierarchy": [
+    [
+      "Clock chips"
+    ],
+    [
+      "Clock chips",
+      "Theory of operation"
+    ],
+    [
+      "Clock chips",
+      "Standalone usage"
+    ],
+    [
+      "Supported Parts",
+      "Data Converters"
+    ],
+    [
+      "Supported Parts",
+      "Clock Chips"
+    ],
+    [
+      "Supported Parts",
+      "PLLs"
+    ],
+    [
+      "FPGAs"
+    ],
+    [
+      "Drawings"
+    ],
+    [
+      "Drawings",
+      "Pre-requisites"
+    ],
+    [
+      "Drawings",
+      "Generating diagrams"
+    ],
+    [
+      "Drawings",
+      "Generating diagrams",
+      "Generating System Diagrams"
+    ],
+    [
+      "Developer documentation"
+    ],
+    [
+      "Developer documentation",
+      "Set up python"
+    ],
+    [
+      "Developer documentation",
+      "Set up python",
+      "Install uv"
+    ],
+    [
+      "Developer documentation",
+      "Set up Nox"
+    ],
+    [
+      "Developer documentation",
+      "Set up Nox",
+      "Running nox"
+    ],
+    [
+      "Developer documentation",
+      "Using make"
+    ],
+    [
+      "Developer documentation",
+      "When committing code"
+    ],
+    [
+      "FPGAs",
+      "FPGA Clocking"
+    ],
+    [
+      "FPGAs",
+      "FPGA Clocking",
+      "Clocking Layout"
+    ],
+    [
+      "FPGAs",
+      "FPGA Clocking",
+      "Clocking Layout",
+      "Search Strategy"
+    ],
+    [
+      "FPGAs",
+      "FPGA Clocking",
+      "API Controls"
+    ],
+    [
+      "FPGAs",
+      "FPGA Clocking",
+      "API Controls",
+      "Per Part Configuration"
+    ],
+    [
+      "FPGAs",
+      "FPGA Clocking",
+      "API Controls",
+      "Separate SYSREF Sources"
+    ],
+    [
+      "FPGAs",
+      "FPGA Clocking",
+      "Device Clock Source"
+    ],
+    [
+      "Installing PyADI-JIF"
+    ],
+    [
+      "Installing PyADI-JIF",
+      "Installing from pip (Recommended)"
+    ],
+    [
+      "Installing PyADI-JIF",
+      "Installing from source"
+    ],
+    [
+      "Installing PyADI-JIF",
+      "Developers"
+    ],
+    [
+      "Reference APIs",
+      "JESD204 Reference"
+    ],
+    [
+      "pyadi-jif: Python interface for the ADI JESD Interface Framework"
+    ],
+    [
+      "pyadi-jif: Python interface for the ADI JESD Interface Framework",
+      "What is pyadi-jif?"
+    ],
+    [
+      "pyadi-jif: Python interface for the ADI JESD Interface Framework",
+      "Key Features"
+    ],
+    [
+      "pyadi-jif: Python interface for the ADI JESD Interface Framework",
+      "Quick Start"
+    ],
+    [
+      "pyadi-jif: Python interface for the ADI JESD Interface Framework",
+      "Interactive Tools"
+    ],
+    [
+      "Data converters"
+    ],
+    [
+      "Data converters",
+      "Clocking architectures"
+    ],
+    [
+      "Data converters",
+      "Configuring converters"
+    ],
+    [
+      "Data converters",
+      "Nested converters"
+    ],
+    [
+      "Data converters",
+      "External PLL Clocking"
+    ],
+    [
+      "Data converters",
+      "Profile-based Configuration"
+    ],
+    [
+      "Data converters",
+      "Profile-based Configuration",
+      "AD9084 (MxFE) Profiles"
+    ],
+    [
+      "Data converters",
+      "Profile-based Configuration",
+      "ADRV9009 Quick Configuration"
+    ],
+    [
+      "FPGAs",
+      "FPGA Configuration"
+    ],
+    [
+      "FPGAs",
+      "FPGA Configuration",
+      "Xilinx FPGAs"
+    ],
+    [
+      "FPGAs",
+      "FPGA Configuration",
+      "Xilinx FPGAs",
+      "Selecting QPLL or CPLL (7000 Series and UltraScale/UltraScale+)"
+    ],
+    [
+      "FPGAs",
+      "FPGA Configuration",
+      "Xilinx FPGAs",
+      "Current known limitations"
+    ],
+    [
+      "FPGAs",
+      "FPGA Configuration",
+      "Versal FPGAs"
+    ],
+    [
+      "FPGAs",
+      "FPGA Configuration",
+      "Intel FPGAs"
+    ],
+    [
+      "FPGAs",
+      "FPGA Configuration",
+      "Example usage"
+    ],
+    [
+      "JESD204 Definitions"
+    ],
+    [
+      "JESD204 Definitions",
+      "Link parameters"
+    ],
+    [
+      "JESD204 Definitions",
+      "Clocks"
+    ],
+    [
+      "JESD204 Definitions",
+      "Control characters"
+    ],
+    [
+      "JESD204 Definitions",
+      "Abbreviations"
+    ],
+    [
+      "pyadi-jif MCP Server"
+    ],
+    [
+      "pyadi-jif MCP Server",
+      "Installation"
+    ],
+    [
+      "pyadi-jif MCP Server",
+      "Starting the Server",
+      "stdio (default \u2014 for Claude Desktop and local tools)"
+    ],
+    [
+      "pyadi-jif MCP Server",
+      "Starting the Server",
+      "HTTP transport"
+    ],
+    [
+      "pyadi-jif MCP Server",
+      "Claude Desktop Integration"
+    ],
+    [
+      "pyadi-jif MCP Server",
+      "Available Tools",
+      "list_components"
+    ],
+    [
+      "pyadi-jif MCP Server",
+      "Available Tools",
+      "get_component_info"
+    ],
+    [
+      "pyadi-jif MCP Server",
+      "Available Tools",
+      "query_jesd_modes"
+    ],
+    [
+      "pyadi-jif MCP Server",
+      "Available Tools",
+      "solve_system"
+    ],
+    [
+      "pyadi-jif MCP Server",
+      "system_config_json Schema"
+    ],
+    [
+      "pyadi-jif MCP Server",
+      "Python Client Example"
+    ],
+    [
+      "Usage Flows"
+    ],
+    [
+      "Usage Flows",
+      "Component Level"
+    ],
+    [
+      "Usage Flows",
+      "Component Level",
+      "AD9523-1 Component Example"
+    ],
+    [
+      "Usage Flows",
+      "System Level"
+    ],
+    [
+      "Usage Flows",
+      "System Level",
+      "AD-FMCDAQ2-EBZ ADC Side System Example"
+    ],
+    [
+      "Usage Flows",
+      "Solve Output"
+    ],
+    [
+      "Usage Flows",
+      "Solve Output",
+      "System-level Output"
+    ],
+    [
+      "Usage Flows",
+      "Solve Output",
+      "Component-level Output"
+    ],
+    [
+      "JIF Tools Quick Start Guide"
+    ],
+    [
+      "JIF Tools Quick Start Guide",
+      "Installation and Launch"
+    ],
+    [
+      "JIF Tools Quick Start Guide",
+      "Quick Example 1: Find JESD Modes for AD9680"
+    ],
+    [
+      "JIF Tools Quick Start Guide",
+      "Quick Example 2: Configure HMC7044 for AD9680"
+    ],
+    [
+      "JIF Tools Quick Start Guide",
+      "Quick Example 3: Complete System Configuration"
+    ],
+    [
+      "JIF Tools Quick Start Guide",
+      "Common Tasks",
+      "Export JESD Mode Table"
+    ],
+    [
+      "JIF Tools Quick Start Guide",
+      "Common Tasks",
+      "Save Clock Configuration"
+    ],
+    [
+      "JIF Tools Quick Start Guide",
+      "Common Tasks",
+      "Compare Different Parts"
+    ],
+    [
+      "JIF Tools Quick Start Guide",
+      "Tips for Success",
+      "Start Simple"
+    ],
+    [
+      "JIF Tools Quick Start Guide",
+      "Tips for Success",
+      "Understand Your Requirements"
+    ],
+    [
+      "JIF Tools Quick Start Guide",
+      "Tips for Success",
+      "Use Visual Feedback"
+    ],
+    [
+      "JIF Tools Quick Start Guide",
+      "Tips for Success",
+      "Iterate"
+    ],
+    [
+      "JIF Tools Quick Start Guide",
+      "Troubleshooting Quick Fixes",
+      "\u201cNo modes found\u201d"
+    ],
+    [
+      "JIF Tools Quick Start Guide",
+      "Troubleshooting Quick Fixes",
+      "\u201cNo valid configuration found\u201d (Clock)"
+    ],
+    [
+      "JIF Tools Quick Start Guide",
+      "Troubleshooting Quick Fixes",
+      "System solve fails"
+    ],
+    [
+      "JIF Tools Quick Start Guide",
+      "Troubleshooting Quick Fixes",
+      "Application won\u2019t start"
+    ],
+    [
+      "JIF Tools Quick Start Guide",
+      "Next Steps"
+    ],
+    [
+      "JIF Tools Quick Start Guide",
+      "Getting Help"
+    ],
+    [
+      "JIF Tools Quick Start Guide",
+      "Quick Reference",
+      "Supported Converters"
+    ],
+    [
+      "JIF Tools Quick Start Guide",
+      "Quick Reference",
+      "Supported Clock Chips"
+    ],
+    [
+      "JIF Tools Quick Start Guide",
+      "Quick Reference",
+      "Supported FPGAs"
+    ],
+    [
+      "JIF Tools Quick Start Guide",
+      "Quick Reference",
+      "Common Development Kits"
+    ],
+    [
+      "Reference APIs"
+    ],
+    [
+      "Reference APIs",
+      "Converter Reference",
+      "AD9081",
+      "AD9081 RX diagram"
+    ],
+    [
+      "Reference APIs",
+      "Converter Reference",
+      "AD9081",
+      "AD9081 TX diagram"
+    ],
+    [
+      "Reference APIs",
+      "Converter Reference",
+      "AD9082",
+      "AD9082 RX diagram"
+    ],
+    [
+      "Reference APIs",
+      "Converter Reference",
+      "AD9084",
+      "AD9084 RX diagram"
+    ],
+    [
+      "Reference APIs",
+      "Converter Reference",
+      "AD9088",
+      "AD9088 RX diagram"
+    ],
+    [
+      "Reference APIs",
+      "Converter Reference",
+      "AD9680",
+      "AD9680 diagram"
+    ],
+    [
+      "Reference APIs",
+      "Converter Reference",
+      "AD9144",
+      "AD9144 diagram"
+    ],
+    [
+      "Reference APIs",
+      "Converter Reference",
+      "AD9152",
+      "AD9152 diagram"
+    ],
+    [
+      "Reference APIs",
+      "Converter Reference",
+      "ADRV9009",
+      "ADRV9009 RX diagram"
+    ],
+    [
+      "Reference APIs",
+      "Converter Reference",
+      "ADRV9009",
+      "ADRV9009 TX diagram"
+    ],
+    [
+      "Reference APIs",
+      "PLLs Reference"
+    ],
+    [
+      "JIF Tools Explorer"
+    ],
+    [
+      "JIF Tools Explorer",
+      "Installation"
+    ],
+    [
+      "JIF Tools Explorer",
+      "Launching the Application"
+    ],
+    [
+      "JIF Tools Explorer",
+      "Application Overview"
+    ],
+    [
+      "JIF Tools Explorer",
+      "JESD204 Mode Selector"
+    ],
+    [
+      "JIF Tools Explorer",
+      "JESD204 Mode Selector",
+      "Features"
+    ],
+    [
+      "JIF Tools Explorer",
+      "JESD204 Mode Selector",
+      "Usage",
+      "1. Select a Converter"
+    ],
+    [
+      "JIF Tools Explorer",
+      "JESD204 Mode Selector",
+      "Usage",
+      "2. Configure Datapath"
+    ],
+    [
+      "JIF Tools Explorer",
+      "JESD204 Mode Selector",
+      "Usage",
+      "3. Set Converter Rate"
+    ],
+    [
+      "JIF Tools Explorer",
+      "JESD204 Mode Selector",
+      "Usage",
+      "4. Filter JESD Modes"
+    ],
+    [
+      "JIF Tools Explorer",
+      "JESD204 Mode Selector",
+      "Usage",
+      "5. View Results"
+    ],
+    [
+      "JIF Tools Explorer",
+      "JESD204 Mode Selector",
+      "Example Workflow"
+    ],
+    [
+      "JIF Tools Explorer",
+      "Clock Configurator"
+    ],
+    [
+      "JIF Tools Explorer",
+      "Clock Configurator",
+      "Features"
+    ],
+    [
+      "JIF Tools Explorer",
+      "Clock Configurator",
+      "Usage",
+      "1. Select a Clock Chip"
+    ],
+    [
+      "JIF Tools Explorer",
+      "Clock Configurator",
+      "Usage",
+      "2. Configure Clocks"
+    ],
+    [
+      "JIF Tools Explorer",
+      "Clock Configurator",
+      "Usage",
+      "3. Internal Configuration"
+    ],
+    [
+      "JIF Tools Explorer",
+      "Clock Configurator",
+      "Usage",
+      "4. View Results"
+    ],
+    [
+      "JIF Tools Explorer",
+      "Clock Configurator",
+      "Example Workflow"
+    ],
+    [
+      "JIF Tools Explorer",
+      "System Configurator"
+    ],
+    [
+      "JIF Tools Explorer",
+      "System Configurator",
+      "Features"
+    ],
+    [
+      "JIF Tools Explorer",
+      "System Configurator",
+      "Usage",
+      "1. Select Components"
+    ],
+    [
+      "JIF Tools Explorer",
+      "System Configurator",
+      "Usage",
+      "2. Configure Converter"
+    ],
+    [
+      "JIF Tools Explorer",
+      "System Configurator",
+      "Usage",
+      "3. Configure FPGA"
+    ],
+    [
+      "JIF Tools Explorer",
+      "System Configurator",
+      "Usage",
+      "4. Set VCXO/Reference"
+    ],
+    [
+      "JIF Tools Explorer",
+      "System Configurator",
+      "Usage",
+      "5. Solve and View"
+    ],
+    [
+      "JIF Tools Explorer",
+      "System Configurator",
+      "Example Workflow"
+    ],
+    [
+      "JIF Tools Explorer",
+      "Tips and Best Practices",
+      "Performance Optimization"
+    ],
+    [
+      "JIF Tools Explorer",
+      "Tips and Best Practices",
+      "Common Workflows",
+      "Finding Compatible Modes"
+    ],
+    [
+      "JIF Tools Explorer",
+      "Tips and Best Practices",
+      "Common Workflows",
+      "Clock System Design"
+    ],
+    [
+      "JIF Tools Explorer",
+      "Tips and Best Practices",
+      "Common Workflows",
+      "System Integration"
+    ],
+    [
+      "JIF Tools Explorer",
+      "Tips and Best Practices",
+      "Troubleshooting"
+    ],
+    [
+      "JIF Tools Explorer",
+      "API Access"
+    ],
+    [
+      "JIF Tools Explorer",
+      "Screenshots",
+      "JESD204 Mode Selector"
+    ],
+    [
+      "JIF Tools Explorer",
+      "Screenshots",
+      "Clock Configurator"
+    ],
+    [
+      "JIF Tools Explorer",
+      "Screenshots",
+      "System Configurator"
+    ],
+    [
+      "JIF Tools Explorer",
+      "Technical Details",
+      "Architecture"
+    ],
+    [
+      "JIF Tools Explorer",
+      "Technical Details",
+      "State Management"
+    ],
+    [
+      "JIF Tools Explorer",
+      "Technical Details",
+      "Performance Considerations"
+    ],
+    [
+      "JIF Tools Explorer",
+      "Contributing"
+    ],
+    [
+      "JIF Tools Explorer",
+      "Support"
+    ],
+    [
+      "JIF Tools Explorer",
+      "See Also"
+    ],
+    [
+      "Reference APIs",
+      "FPGA Reference",
+      "AMD (Xilinx)",
+      "Xilinx FPGA diagram"
+    ],
+    [
+      "Reference APIs",
+      "FPGA Reference",
+      "AMD (Xilinx)",
+      "AMD (Xilinx) Transceivers",
+      "AMD (Xilinx) 7 Series Transceivers"
+    ],
+    [
+      "Reference APIs",
+      "FPGA Reference",
+      "AMD (Xilinx)",
+      "AMD (Xilinx) Transceivers",
+      "AMD (Xilinx) UltraScale+ Transceivers"
+    ],
+    [
+      "Reference APIs",
+      "Clock Chip Reference",
+      "AD9523",
+      "AD9523-1 diagram"
+    ],
+    [
+      "Reference APIs",
+      "Clock Chip Reference",
+      "AD9528",
+      "AD9528 diagram"
+    ],
+    [
+      "Reference APIs",
+      "Clock Chip Reference",
+      "AD9545",
+      "AD9545 diagram"
+    ],
+    [
+      "Reference APIs",
+      "Clock Chip Reference",
+      "HMC7044",
+      "HMC7044 diagram"
+    ],
+    [
+      "Reference APIs",
+      "Clock Chip Reference",
+      "LTC6952",
+      "LTC6952 diagram"
+    ],
+    [
+      "Reference APIs",
+      "Clock Chip Reference",
+      "LTC6953",
+      "LTC6953 diagram"
+    ]
+  ]
+}
