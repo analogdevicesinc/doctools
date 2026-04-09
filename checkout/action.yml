@@ -67,6 +67,7 @@ runs:
         [[ "${{ runner.debug }}" == "1" ]] && set -x
 
         ref="${{ inputs.ref }}"
+        ref="${ref//[[:space:]]/}"
         repository="${{ inputs.repository }}"
 
         branch=
@@ -225,6 +226,8 @@ runs:
         pr="${{ env.pr }}"
         merge_commit_sha="${{ env.merge_commit_sha }}"
         branch="${{ env.branch || github.ref_name }}"
+        ref="${{ inputs.ref }}"
+        ref="${ref//[[:space:]]/}"
 
         # --empty was added on git 2.26.0
         has_keep=$(git rebase -help 2>&1 | grep "\--empty" | wc -l) || true
@@ -261,15 +264,15 @@ runs:
           if [[ ! "${{ github.event.before }}" =~ "0000000000000000" ]] && \
              [[ "${{ github.event.forced }}" == "false" ]] && \
              [[ "${{ inputs.repository }}" == "${{ github.repository }}" ]] && \
-             [[ "${{ inputs.ref }}" == "${{ github.sha }}" ]]; then
+             [[ "$ref" == "${{ github.sha }}" ]]; then
             head_sha="${{ github.sha }}"
             base_sha="${{ github.event.before }}"
             while ! git rev-list --count $base_sha~..$head_sha 2>/dev/null ; do
-              git_fetch_deepen "${{ inputs.ref }}"
+              git_fetch_deepen "$ref"
             done
           else
-            git fetch origin --depth=2 "${{ inputs.ref }}"
-            head_sha=$(git rev-parse "${{ inputs.ref }}")
+            git fetch origin --depth=2 "$ref"
+            head_sha=$(git rev-parse "$ref")
             base_sha=$(git rev-parse $head_sha~) || true
           fi
         fi
