@@ -165,12 +165,12 @@ jobs:
       run: |
         cd vector/${{ inputs.repository }}
 
-        built_vectors=$(find . -name commit -exec sh -c 'dirname {}' ';' | sed 's|^\./||; s|^$|.|')
+        built_vectors=$(find . -name passages.json -exec sh -c 'dirname {}' ';' | sed 's|^\./||; s|^$|.|')
 
         stale_versions=$(comm -23 <(echo "$built_vectors" | sort) <(echo "$built_docs" | sort))
 
         for version in $stale_versions; do
-          git rm -r "${{ inputs.repository }}/$version"
+          git rm -r "$version"
         done
 
     - name: Commit and push
