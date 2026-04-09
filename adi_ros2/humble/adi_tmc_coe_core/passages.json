@@ -1,0 +1,1305 @@
+{
+  "text": [
+    "- Defined in File adi_ethercat_grant.hpp\n",
+    "**const char *cap_string_ = \"cap_ipc_lock=ep cap_net_raw=ep cap_sys_nice=ep cap_net_admin=ep\"**\n",
+    "- Adding 1.0.0 of adi_tmc_coe, ROS2 Humble\n- Contributors: Jamila Macagba\n",
+    "- Defined in File tmc_coe_interpreter.hpp\n",
+    "**const uint8_t CW_NEW_POSITION_ABSOLUTE = 0**\n",
+    "- Defined in File tmc_coe_ros2.hpp\n",
+    "**const uint8_t INTERPOLATION_TIME_INDEX_MAX = 3**\n",
+    "- Defined in File tmc_coe_interpreter.hpp\n",
+    "**const int8_t CONTROL_WORD_SUCCESS = 0**\n",
+    "\u21b0 Parent directory (`include/adi_tmc_coe_core`)\n\nContents\n\n- Definition (`include/adi_tmc_coe_core/tmc_coe_bldc_motor.hpp`)\n- Includes\n- Classes\n- Enums\n",
+    "- Program Listing for File tmc_coe_bldc_motor.hpp\n",
+    "- `adi_tmc_coe_core/tmc_coe_motor.hpp` (File tmc_coe_motor.hpp)\n",
+    "- Class TmcCoeBldcMotor\n",
+    "- Enum bldc_comm_mode_t\n",
+    "- Defined in File tmc_coe_interpreter.hpp\n",
+    "**struct PACKED**\n:   Public Members\n:   int8_t modes_of_operation\n:   uint16_t control_word\n:   int32_t target_position\n:   int32_t target_velocity\n:   int16_t target_torque\n:   int8_t modes_of_operation_display\n:   uint16_t status_word\n:   int32_t position_demand_value\n:   int32_t position_actual_",
+    "- Defined in File tmc_coe_interpreter.hpp\n",
+    "**enum controlword_pos_t**\n:   Controlword \n:   *Values:*\n:   enumerator CW_SO_BIT\n:   enumerator CW_EV_BIT\n:   enumerator CW_QS_BIT\n:   enumerator CW_EO_BIT\n:   enumerator CW_OMS_NEW_SET_POINT_BIT\n:   enumerator CW_OMS_CHANGE_IMMEDIATELY_BIT\n:   enumerator CW_OMS_ABSOLUTE_RELATIVE_BIT\n:   enumerato",
+    "\u21b0 Return to documentation for file (`include/adi_tmc_coe_core/tmc_coe_bldc_motor.hpp`)\n\n```cpp\n#ifndef TMC_COE_BLDC_MOTOR_HPP\n#define TMC_COE_BLDC_MOTOR_HPP\n\n#include \"adi_tmc_coe_core/tmc_coe_motor.hpp\"\n\n/* Commutation Modes available for BLDC Motors */\ntypedef enum\n{\n  BLDC_DISABLED_MOTOR = 0,\n  B",
+    "- Defined in File tmc_coe_stepper_motor.hpp\n",
+    "**enum stepper_comm_mode_t**\n:   Copyright (c) 2024-2025 Analog Devices, Inc. All Rights Reserved. This software is proprietary to Analog Devices, Inc. and its licensors. \n:   *Values:*\n:   enumerator STEPPER_DISABLED_MOTOR\n:   enumerator STEPPER_OPENLOOP_MOTOR\n:   enumerator STEPPER_CLOSEDLOOP_MOTO",
+    "- Defined in File adi_ethercat_grant.hpp\n",
+    "**const std::string executable_ = \"/var/tmp/granted\"**\n:   Copyright (c) 2025 Analog Devices, Inc. All Rights Reserved. This software is proprietary to Analog Devices, Inc. and its licensors.\n",
+    "- Defined in File tmc_coe_motor.hpp\n",
+    "**const double PI = M_PI**\n",
+    "- Defined in File tmc_coe_interpreter.hpp\n",
+    "**typedef struct PACKED input_pdo_t**\n",
+    "- Defined in File tmc_coe_ros2.hpp\n",
+    "**const int8_t INTERPOLATION_TIME_INDEX_MIN = -3**\n",
+    "- Defined in File tmc_coe_ros2.hpp\n",
+    "**const uint8_t MOTOR_TYPE_STEPPER_MAX = 9**\n",
+    "- Defined in File tmc_coe_bldc_motor.hpp\n",
+    "**enum bldc_comm_mode_t**\n:   Copyright (c) 2024-2025 Analog Devices, Inc. All Rights Reserved. This software is proprietary to Analog Devices, Inc. and its licensors. \n:   *Values:*\n:   enumerator BLDC_DISABLED_MOTOR\n:   enumerator BLDC_OPENLOOP_MOTOR\n:   enumerator BLDC_CLOSEDLOOP_MOTOR\n",
+    "\u21b0 Parent directory (`include/adi_tmc_coe_core`)\n\nContents\n\n- Definition (`include/adi_tmc_coe_core/adi_ethercat_grant.hpp`)\n- Includes\n- Variables\n",
+    "- Program Listing for File adi_ethercat_grant.hpp\n",
+    "- `cstdlib`\n- `stdio.h`\n- `string`\n- `sys/capability.h`\n- `sys/prctl.h`\n- `unistd.h`\n",
+    "- Variable cap_string_\n- Variable executable_\n",
+    "- Defined in File tmc_coe_interpreter.hpp\n",
+    "**const uint8_t CW_NEW_SET_POINT_STOP = 0**\n",
+    "- Defined in File tmc_coe_interpreter.hpp\n",
+    "**const int8_t CONTROL_WORD_FAIL = -1**\n",
+    "\u21b0 Parent directory (`include/adi_tmc_coe_core`)\n\nContents\n\n- Definition (`include/adi_tmc_coe_core/tmc_coe_stepper_motor.hpp`)\n- Includes\n- Classes\n- Enums\n",
+    "- Program Listing for File tmc_coe_stepper_motor.hpp\n",
+    "- `adi_tmc_coe_core/tmc_coe_motor.hpp` (File tmc_coe_motor.hpp)\n",
+    "- Class TmcCoeStepperMotor\n",
+    "- Enum stepper_comm_mode_t\n",
+    "\u21b0 Return to documentation for file (`include/adi_tmc_coe_core/tmc_coe_motor.hpp`)\n\n```cpp\n#ifndef TMC_COE_MOTOR_HPP\n#define TMC_COE_MOTOR_HPP\n\n#define _USE_MATH_DEFINES\n#include <cmath>\n\n#include \"rclcpp/rclcpp.hpp\"\n#include \"geometry_msgs/msg/twist.hpp\"\n#include \"std_msgs/msg/int32.hpp\"\n#include \"a",
+    "- Defined in File tmc_coe_ros2.hpp\n",
+    "**const uint8_t MOTOR_TYPE_STEPPER_MIN = 0**\n",
+    "\u21b0 Parent directory (`include`)\n\n*Directory path:* `include/adi_tmc_coe_core`\n",
+    "- File adi_ethercat_grant.hpp\n- File tmc_coe_bldc_motor.hpp\n- File tmc_coe_interpreter.hpp\n- File tmc_coe_motor.hpp\n- File tmc_coe_ros2.hpp\n- File tmc_coe_stepper_motor.hpp\n",
+    "- Defined in File tmc_coe_stepper_motor.hpp\n",
+    "- `public TmcCoeMotor` (Class TmcCoeMotor)\n",
+    "**class TmcCoeStepperMotor : public TmcCoeMotor**\n:   Public Functions\n:   TmcCoeStepperMotor(rclcpp::Node::SharedPtr p_node, TmcCoeInterpreter *p_tmc_coe_interpreter, uint8_t slave_number, uint8_t motor_number, std::string device_name)\n:   virtual ~TmcCoeStepperMotor()\n:   virtual void init() overr",
+    "- Defined in File tmc_coe_ros2.hpp\n",
+    "**const uint8_t MOTOR_TYPE_BLDC = 6**\n:   Copyright (c) 2024-2025 Analog Devices, Inc. All Rights Reserved. This software is proprietary to Analog Devices, Inc. and its licensors.\n",
+    "- Defined in File tmc_coe_motor.hpp\n",
+    "**_USE_MATH_DEFINES**\n:   Copyright (c) 2024-2025 Analog Devices, Inc. All Rights Reserved. This software is proprietary to Analog Devices, Inc. and its licensors.\n",
+    "- Defined in File tmc_coe_interpreter.hpp\n",
+    "**typedef struct PACKED output_pdo_t**\n",
+    "- Defined in File tmc_coe_interpreter.hpp\n",
+    "**enum status_word_val_t**\n:   *Values:*\n:   enumerator NOT_READY_TO_SWITCH_ON_VAL\n:   enumerator SWITCH_ON_DISABLE_VAL\n:   enumerator READY_TO_SWITCH_ON_VAL\n:   enumerator SWITCHED_ON_VAL\n:   enumerator OPERATION_ENABLED_VAL\n:   enumerator QUICK_STOP_ACTIVE_VAL\n:   enumerator FAULT_REACTION_ACTIVE_",
+    "- Defined in File tmc_coe_interpreter.hpp\n",
+    "**const uint8_t TOTAL_WORK_COUNTER_PER_SLAVE = 3**\n",
+    "- Defined in File tmc_coe_motor.hpp\n",
+    "**const uint16_t ANGULAR_FULL_ROTATION = 360**\n",
+    "- Defined in File tmc_coe_interpreter.hpp\n",
+    "**enum fsa_state_t**\n:   *Values:*\n:   enumerator UNKNOWN\n:   enumerator NOT_READY_TO_SWITCH_ON\n:   enumerator SWITCH_ON_DISABLE\n:   enumerator READY_TO_SWITCH_ON\n:   enumerator SWITCHED_ON\n:   enumerator OPERATION_ENABLED\n:   enumerator QUICK_STOP_ACTIVE\n:   enumerator FAULT_REACTION_ACTIVE\n:   enu",
+    "- Defined in File tmc_coe_interpreter.hpp\n",
+    "**enum nmt_state_t**\n:   Copyright (c) 2024-2025 Analog Devices, Inc. All Rights Reserved. This software is proprietary to Analog Devices, Inc. and its licensors. \n:   *Values:*\n:   enumerator NONE\n:   enumerator INIT\n:   enumerator PRE_OP\n:   enumerator SAFE_OP\n:   enumerator OPERATIONAL\n:   enumer",
+    "- Struct PACKEDClass TmcCoeBldcMotorClass TmcCoeInterpreterClass TmcCoeMotorClass TmcCoeROS2Class TmcCoeStepperMotorEnum bldc_comm_mode_tEnum control_word_val_tEnum controlword_pos_tEnum fsa_state_tEnum mode_of_operation_tEnum nmt_state_tEnum status_word_val_tEnum statusword_pos_tEnum stepper_comm_m",
+    "- Directory includeDirectory adi_tmc_coe_coreFile adi_ethercat_grant.hppFile tmc_coe_bldc_motor.hppFile tmc_coe_interpreter.hppFile tmc_coe_motor.hppFile tmc_coe_ros2.hppFile tmc_coe_stepper_motor.hpp\n\n  - Directory includeDirectory adi_tmc_coe_coreFile adi_ethercat_grant.hppFile tmc_coe_bldc_motor.",
+    "- Struct PACKED\n\n\n- Class TmcCoeBldcMotor\n\n\n- Class TmcCoeInterpreter\n\n\n- Class TmcCoeMotor\n\n\n- Class TmcCoeROS2\n\n\n- Class TmcCoeStepperMotor\n",
+    "- Enum bldc_comm_mode_t\n\n\n- Enum control_word_val_t\n\n\n- Enum controlword_pos_t\n\n\n- Enum fsa_state_t\n\n\n- Enum mode_of_operation_t\n\n\n- Enum nmt_state_t\n\n\n- Enum status_word_val_t\n\n\n- Enum statusword_pos_t\n\n\n- Enum stepper_comm_mode_t\n",
+    "- Variable ANGULAR_FULL_ROTATION\n\n\n- Variable cap_string_\n\n\n- Variable CONTROL_WORD_FAIL\n\n\n- Variable CONTROL_WORD_SUCCESS\n\n\n- Variable CONTROL_WORD_TIMEOUT\n\n\n- Variable CW_NEW_POSITION_ABSOLUTE\n\n\n- Variable CW_NEW_POSITION_RELATIVE\n\n\n- Variable CW_NEW_SET_POINT_START\n\n\n- Variable CW_NEW_SET_POINT_S",
+    "- Define _USE_MATH_DEFINES\n",
+    "- Typedef input_pdo_t\n\n\n- Typedef output_pdo_t\n",
+    "- Directory include\n\n\n- Directory adi_tmc_coe_core\n",
+    "- File adi_ethercat_grant.hpp\n\n\n- File tmc_coe_bldc_motor.hpp\n\n\n- File tmc_coe_interpreter.hpp\n\n\n- File tmc_coe_motor.hpp\n\n\n- File tmc_coe_ros2.hpp\n\n\n- File tmc_coe_stepper_motor.hpp\n",
+    "- Defined in File tmc_coe_motor.hpp\n",
+    "**const uint8_t SECS_TO_MIN = 60**\n",
+    "- Defined in File tmc_coe_interpreter.hpp\n",
+    "**const uint16_t ERROR_CHECK_DELAY = 10000**\n",
+    "- Defined in File tmc_coe_motor.hpp\n",
+    "- `public TmcCoeBldcMotor` (Class TmcCoeBldcMotor)\n- `public TmcCoeStepperMotor` (Class TmcCoeStepperMotor)\n",
+    "**class TmcCoeMotor**\n:   Subclassed by TmcCoeBldcMotor, TmcCoeStepperMotor\n:   Public Functions\n:   TmcCoeMotor(rclcpp::Node::SharedPtr p_node, TmcCoeInterpreter *p_tmc_coe_interpreter, uint8_t slave_number, uint8_t motor_number, std::string device_name)\n:   virtual ~TmcCoeMotor()\n:   virtual void ",
+    "\u21b0 Return to documentation for file (`include/adi_tmc_coe_core/tmc_coe_stepper_motor.hpp`)\n\n```cpp\n#ifndef TMC_COE_STEPPER_MOTOR_HPP\n#define TMC_COE_STEPPER_MOTOR_HPP\n\n#include \"adi_tmc_coe_core/tmc_coe_motor.hpp\"\n\n/* Commutation Modes available for Stepper Motors */\ntypedef enum\n{\n  STEPPER_DISABLED",
+    "- Defined in File tmc_coe_interpreter.hpp\n",
+    "**const std::vector<int> status_state_mask_ = {(1 << SOD_BIT) | (1 << F_BIT) | (1 << OE_BIT) | (1 << SO_BIT) | (1 << RTSO_BIT), (1 << SOD_BIT) | (1 << F_BIT) | (1 << OE_BIT) | (1 << SO_BIT) | (1 << RTSO_BIT), (1 << SOD_BIT) | (1 << QS_BIT) | (1 << F_BIT) | (1 << OE_BIT) | (1 << SO_BIT) | (1 << RTSO_",
+    "- Defined in File tmc_coe_motor.hpp\n",
+    "**enum mode_of_operation_t**\n:   *Values:*\n:   enumerator MODE_OF_OPERATION_NONE\n:   enumerator PROFILE_POSITION\n:   enumerator PROFILE_VELOCITY\n:   enumerator HOMING_MODE\n:   enumerator CYCLIC_SYNC_POS\n:   enumerator CYCLIC_SYNC_VEL\n:   enumerator CYCLIC_SYNC_TRQ\n",
+    "- Defined in File tmc_coe_bldc_motor.hpp\n",
+    "- `public TmcCoeMotor` (Class TmcCoeMotor)\n",
+    "**class TmcCoeBldcMotor : public TmcCoeMotor**\n:   Public Functions\n:   TmcCoeBldcMotor(rclcpp::Node::SharedPtr p_node, TmcCoeInterpreter *p_tmc_coe_interpreter, uint8_t slave_number, uint8_t motor_number, std::string device_name)\n:   virtual ~TmcCoeBldcMotor()\n:   virtual void init() override\n",
+    "- Defined in File tmc_coe_interpreter.hpp\n",
+    "**const uint8_t CW_NEW_SET_POINT_START = 1**\n",
+    "- Defined in File tmc_coe_interpreter.hpp\n",
+    "**const uint16_t PROCESS_DATA_DELAY = 1000**\n",
+    "- Defined in File tmc_coe_interpreter.hpp\n",
+    "**const uint8_t CW_NEW_POSITION_RELATIVE = 1**\n",
+    "- Defined in File tmc_coe_interpreter.hpp\n",
+    "**const uint32_t IOMAP_SIZE = 4096**\n",
+    "- Defined in File tmc_coe_interpreter.hpp\n",
+    "**enum statusword_pos_t**\n:   Statusword \n:   *Values:*\n:   enumerator RTSO_BIT\n:   enumerator SO_BIT\n:   enumerator OE_BIT\n:   enumerator F_BIT\n:   enumerator VE_BIT\n:   enumerator QS_BIT\n:   enumerator SOD_BIT\n:   enumerator SPA_BIT\n",
+    "- Defined in File tmc_coe_interpreter.hpp\n",
+    "**const int8_t CONTROL_WORD_TIMEOUT = -2**\n",
+    "- Defined in File tmc_coe_ros2.hpp\n",
+    "**class TmcCoeROS2**\n:   Public Functions\n:   TmcCoeROS2(rclcpp::Node::SharedPtr p_node)\n:   ~TmcCoeROS2()\n:   bool initialize()\n:   void deInitialize()\n:   bool enableDeviceMotors()\n:   bool isInterfaceUnresponsive()\n",
+    "\u21b0 Parent directory (`include/adi_tmc_coe_core`)\n\nContents\n\n- Definition (`include/adi_tmc_coe_core/tmc_coe_ros2.hpp`)\n- Includes\n- Classes\n- Variables\n",
+    "- Program Listing for File tmc_coe_ros2.hpp\n",
+    "- `adi_tmc_coe_core/tmc_coe_interpreter.hpp` (File tmc_coe_interpreter.hpp)\n- `adi_tmc_coe_core/tmc_coe_motor.hpp` (File tmc_coe_motor.hpp)\n- `adi_tmc_coe_interfaces/srv/change_cia402_state.hpp`\n- `adi_tmc_coe_interfaces/srv/change_nmt_state.hpp`\n- `adi_tmc_coe_interfaces/srv/cyclic_sync_mode.hpp`\n-",
+    "- Class TmcCoeROS2\n",
+    "- Variable INTERPOLATION_TIME_INDEX_MAX\n- Variable INTERPOLATION_TIME_INDEX_MIN\n- Variable MOTOR_TYPE_BLDC\n- Variable MOTOR_TYPE_STEPPER_MAX\n- Variable MOTOR_TYPE_STEPPER_MIN\n",
+    "*Directory path:* `include`\n",
+    "- Directory adi_tmc_coe_core\n",
+    "\u21b0 Return to documentation for file (`include/adi_tmc_coe_core/adi_ethercat_grant.hpp`)\n\n```cpp\n#ifndef ADI_ETHERCAT_GRANT_HPP\n#define ADI_ETHERCAT_GRANT_HPP\n\n#include <stdio.h>\n#include <unistd.h>\n#include <string>\n#include <cstdlib>\n\n#include <sys/capability.h>\n#include <sys/prctl.h>\n\nconst std::st",
+    "- Supported TMC boards: TMCM-1461-CoE\n- Supported communication interface and interface driver: CANopen-over-etherCAT (SOEM)\n- Supported ROS and OS distro: Humble (Ubuntu 22.04)\n- Supported platform: Intel x86 64-bit (amd64)\n- Supported setup: Single/Multiple TMC in Single ECAT interface (namespace-",
+    "For the tested TMCM-1461-CoE setup, the following are used:\n\n- 1 x TMCM-1461-CoE\n- 1 x External 24V power supply\n- 1 x USB to LAN ethernet adapter\n\n\nAlso the following:\n\n- 1 x 4pin female M8-RJ45 etherCAT cable\n- 1 x 4 pin male M8 power supply cable\n\n\nThe image below shows the connection diagram of ",
+    "Assumptions before building this package:\n\n- Installed ROS Humble. If not, follow these steps.\n- Setup workspace (with workspace folder named as \u201cros2_ws\u201d). If not, follow these steps.\n",
+    "In the website:\n\n1. Make sure that the branch dropdown is set to \u201chumble\u201d.\n2. Click the \u201cClone\u201d or \u201cCode\u201d button, then copy the SSH or HTTPS link (eg, \u201c*.git\u201d).\n\n\nIn a terminal, do the following:\n\n```bash\n$ cd ~/ros2_ws/src\n$ git clone <copied SSH o HTTPS link here> adi_tmc_coe #clones repo to \"adi_",
+    "Do proper exports first:\n\n```bash\n# $ source /opt/ros/<ROS version>/setup.bash\n$ source /opt/ros/humble/setup.bash\n```\n\n\nWhere:\n\n- \u201cROS version\u201d is the user\u2019s actual ROS version\n\n\nThen, install all required dependencies (See SoftwareDependencies) using rosdep:\n\n```bash\n$ cd ~/ros2_ws\n$ rosdep init\n$",
+    "Not all Trinamic modules are on TMCL_IDE specially CoE due to different interface used. Check module first for other communication protocol than CoE (UART, USB or CAN). Proceed to next steps if module is available in TMCL_IDE.\n\n:memo: *Note: Different communication protocol might need different cabl",
+    "For a run-through/tutorial of how the calibration is done in the TMCL-IDE via its `Wizard Pool` feature, check this link.\n",
+    "For a run-through/tutorial of how the PI tuning is done in the TMCL-IDE via its `PI Tuning` feature, check this link.\n\n:memo: *Note: For all the calibration and tuning done, store all the parameters set from TMCL_IDE on the board\u2019s EEPROM. Do this by doing any of the following:*\n\n- *Clicking the \u201cSt",
+    "For a run-through/tutorial of how the calibration is done in the TMCL-IDE via its `Wizard Pool` feature, check this link.\n\nFor more information about Trinamic features on stepper motors, visit this link.\n\n:memo: *Note: For all the calibration and tuning done, store all the parameters set from TMCL_I",
+    "The ethercat_grant node/utility is needed to run the tmc_coe_ros2_node without root privileges.\n\nIf built from source, you will need to go through ethercat_grant/Installation.\n",
+    "Before launching the package, make sure that the *interface_name* on the yaml file is correct. Modify the corresponding yaml file depending on your setup:\n\n- If using 1 slave with 1 axis, modify 1slave_1axis.yaml,\n- If using 2 slaves with 1 axis per slave, modify 2slaves_1axis_per_slave.yaml,\n- If u",
+    "This package has 3 sample launch files for:\n\nsingle slave with single axis (used module is TMCM-1461-CoE)\n\n```bash\n$ ros2 launch adi_tmc_coe_core 1slave_1axis.launch\n```\n\n\n2 slaves with single axis on both slaves (used module is 2x TMCM-1461-CoE)\n\n```bash\n$ ros2 launch adi_tmc_coe_core 2slaves_1axis",
+    ":memo: *Note: For those with <slave_number> and <motor_number> in the topic names, these are the slave number and motor number respectively. For example, if there are 2 slaves/devices both with single motor used, there should be two published topics for tmc_coe_info, specifically /tmc_coe_info_1_0 f",
+    "These are the default topic names, topic names can be modified as a ROS parameter.\n\n- **/tmc_info_<slave_number>_<motor_number>** (adi_tmc_coe_interfaces/msg/TmcCoeInfo)\n  Publish information\n  Refer to adi_tmc_coe_interfaces/msg/TmcCoeInfo for more info\n\n  - Publish information\n  - Refer to adi_tmc",
+    "- **/cmd_vel_<slave_number>_<motor_number>** (geometry_msgs/msg/Twist)\n  Velocity command (rpm or m/s)\n\n  - Velocity command (rpm or m/s)\n- **/cmd_abspos_<slave_number>_<motor_number>** (std_msgs/msg/Int32)\n  Absolute position command (steps or degree angle)\n\n  - Absolute position command (steps or ",
+    "- **/read_SDO** (adi_tmc_coe_interfaces/srv/ReadWriteSDO)\n  Executes a read command using SDO protocol\n  The output contains raw data (velocity = rpm, position = steps) from the board. *Do not expect same unit from the publisher.*\n  Refer to adi_tmc_coe_interfaces/srv/ReadWriteSDO for more info\n\n  -",
+    ":memo: *Notes:*\n\n- *Communication Interface Parameter is essential in initializing etherCAT.*\n- *If any of these paramameters are not set/declared, default values will be used.*\n- *To know more details about each parameter, you can execute `$ ros2 param describe <node> <parameter>`*\n",
+    "- **interface_name** (string, default: \u201c\u201d)\n  Name of the NIC (Network Interface Card) detected by the PC. Use command `$ifconfig` to check the interface name, it usually starts with ethxxx or enxxxx.\n\n  - Name of the NIC (Network Interface Card) detected by the PC. Use command `$ifconfig` to check t",
+    "- **en_slave** (int[], default: [0])\n  Enables/disables device/slave connected. If disabled, settings for those motors will be ignored or not set.\n\n  - Enables/disables device/slave connected. If disabled, settings for those motors will be ignored or not set.\n- **adhoc_mode** (int[], default: [0])\n ",
+    ":memo: *Notes:*\n\n- *The following parameters can be provided for each motor of each slave, otherwise, default will be used*\n- _Resulting parameter will be prefixed by `slv<slave_number>.motor<motor_number>`. (e.g. `slv1.motor0.pub_rate_tmc_coe_info`)\n\n\n- **pub_rate_tmc_coe_info** (int, default: 10)\n",
+    ":memo: *Notes:*\n\n- *These parameters are generated per TMCM device which contain CANOpen Object Dictionary attributes*\n- *Be careful when changing these parameter values, as the behavior of the node/device may change*\n- *Resulting parameter will be prefixed by `tmcm_<device_number>.` (e.g. `tmcm_146",
+    "adi_ethercat_grant_node is a ROS2 node for ethercat_grant. Theoretically, if this package is available via binary installation, there should be no further instructions required.\n",
+    "If this package is installed via source, before running the launch file, do the steps below:\n\n1. Open /scripts directory\n2. Make script executable\n  `$ chmod +x ethercat_grant_installation.sh`\n3. Run the script with sudo\n  `$ sudo ./ethercat_grant_installation.sh`\n4. Run the launch file\n",
+    "To do a quick test of Velocity Mode, there is a fake velocity script that the user can run.\nIdea is, this script will send Velocity commands (as a ROS topic), then the first motor should be expected to:\n\n1. Increase velocity every 3secs, clockwise (in m/s: 3, 6, 9)\n2. Stop for 5secs\n3. Increase velo",
+    "To do a quick test of Position Mode, there is a fake position script that the user can run.\nIdea is, this script will send Position commands (as a ROS topic), then the first motor should be expected to:\n\n1. Rotate 360 degrees (clockwise) every 5 secs, 3 times\n2. Stop for 5secs\n3. Rotate 360 degrees ",
+    "1. Current modules that are tested does not include Profile Torque Mode but still included on topic names for ease of implementation if decided to continue.\n2. Homing Mode is not implemented.\n3. Cyclic Synchronous Modes only accepts raw value (no conversions of unit) and is not the same with subscri",
+    "- Defined in File tmc_coe_interpreter.hpp\n",
+    "**const std::vector<int> state_coding_val_ = {NOT_READY_TO_SWITCH_ON_VAL, SWITCH_ON_DISABLE_VAL, READY_TO_SWITCH_ON_VAL, SWITCHED_ON_VAL, OPERATION_ENABLED_VAL, QUICK_STOP_ACTIVE_VAL, FAULT_REACTION_ACTIVE_VAL, FAULT_VAL, SET_POINT_ACK_IN_PROCESS_VAL}**\n",
+    "Core package for Trinamic Motor Controllers (TMC) that uses CANopen-over-etherCAT(CoE) protocol.\n\n- Links\n  Rosindex\n\n  - Rosindex\n- C++ API\n  Class Hierarchy\n  File Hierarchy\n  Full C++ API\n\n  - Class Hierarchy\n  - File Hierarchy\n  - Full C++ API\n\n\n- Standard Documents\n  README\n  PACKAGE\n  CHANGELO",
+    "|adi_tmc_coe_core|\n|Core package for Trinamic Motor Controllers (TMC) that uses CANopen-over-etherCAT(CoE) protocol.|\n",
+    "- Supported TMC boards: TMCM-1461-CoE\n- Supported communication interface and interface driver: CANopen-over-etherCAT (SOEM)\n- Supported ROS and OS distro: Humble (Ubuntu 22.04)\n- Supported platform: Intel x86 64-bit (amd64)\n- Supported setup: Single/Multiple TMC in Single ECAT interface (namespace-",
+    "For the tested TMCM-1461-CoE setup, the following are used:\n\n- 1 x TMCM-1461-CoE\n- 1 x External 24V power supply\n- 1 x USB to LAN ethernet adapter\n\n\nAlso the following:\n\n- 1 x 4pin female M8-RJ45 etherCAT cable\n- 1 x 4 pin male M8 power supply cable\n\n\nThe image below shows the connection diagram of ",
+    "Assumptions before building this package:\n\n- Installed ROS Humble. If not, follow these steps.\n- Setup workspace (with workspace folder named as \u201cros2_ws\u201d). If not, follow these steps.\n",
+    "In the website:\n\n1. Make sure that the branch dropdown is set to \u201chumble\u201d.\n2. Click the \u201cClone\u201d or \u201cCode\u201d button, then copy the SSH or HTTPS link (eg, \u201c*.git\u201d).\n\n\nIn a terminal, do the following:\n\n```bash\n$ cd ~/ros2_ws/src\n$ git clone <copied SSH o HTTPS link here> adi_tmc_coe #clones repo to \"adi_",
+    "Do proper exports first:\n\n```bash\n# $ source /opt/ros/<ROS version>/setup.bash\n$ source /opt/ros/humble/setup.bash\n```\n\n\nWhere:\n\n- \u201cROS version\u201d is the user\u2019s actual ROS version\n\n\nThen, install all required dependencies (See SoftwareDependencies) using rosdep:\n\n```bash\n$ cd ~/ros2_ws\n$ rosdep init\n$",
+    "Not all Trinamic modules are on TMCL_IDE specially CoE due to different interface used. Check module first for other communication protocol than CoE (UART, USB or CAN). Proceed to next steps if module is available in TMCL_IDE.\n\n:memo: *Note: Different communication protocol might need different cabl",
+    "For a run-through/tutorial of how the calibration is done in the TMCL-IDE via its `Wizard Pool` feature, check this link.\n",
+    "For a run-through/tutorial of how the PI tuning is done in the TMCL-IDE via its `PI Tuning` feature, check this link.\n\n:memo: *Note: For all the calibration and tuning done, store all the parameters set from TMCL_IDE on the board\u2019s EEPROM. Do this by doing any of the following:*\n\n- *Clicking the \u201cSt",
+    "For a run-through/tutorial of how the calibration is done in the TMCL-IDE via its `Wizard Pool` feature, check this link.\n\nFor more information about Trinamic features on stepper motors, visit this link.\n\n:memo: *Note: For all the calibration and tuning done, store all the parameters set from TMCL_I",
+    "The ethercat_grant node/utility is needed to run the tmc_coe_ros2_node without root privileges.\n\nIf built from source, you will need to go through ethercat_grant/Installation.\n",
+    "Before launching the package, make sure that the *interface_name* on the yaml file is correct. Modify the corresponding yaml file depending on your setup:\n\n- If using 1 slave with 1 axis, modify 1slave_1axis.yaml,\n- If using 2 slaves with 1 axis per slave, modify 2slaves_1axis_per_slave.yaml,\n- If u",
+    "This package has 3 sample launch files for:\n\nsingle slave with single axis (used module is TMCM-1461-CoE)\n\n```bash\n$ ros2 launch adi_tmc_coe_core 1slave_1axis.launch\n```\n\n\n2 slaves with single axis on both slaves (used module is 2x TMCM-1461-CoE)\n\n```bash\n$ ros2 launch adi_tmc_coe_core 2slaves_1axis",
+    ":memo: *Note: For those with <slave_number> and <motor_number> in the topic names, these are the slave number and motor number respectively. For example, if there are 2 slaves/devices both with single motor used, there should be two published topics for tmc_coe_info, specifically /tmc_coe_info_1_0 f",
+    "These are the default topic names, topic names can be modified as a ROS parameter.\n\n- **/tmc_info_<slave_number>_<motor_number>** (adi_tmc_coe_interfaces/msg/TmcCoeInfo)\n  Publish information\n  Refer to adi_tmc_coe_interfaces/msg/TmcCoeInfo for more info\n\n  - Publish information\n  - Refer to adi_tmc",
+    "- **/cmd_vel_<slave_number>_<motor_number>** (geometry_msgs/msg/Twist)\n  Velocity command (rpm or m/s)\n\n  - Velocity command (rpm or m/s)\n- **/cmd_abspos_<slave_number>_<motor_number>** (std_msgs/msg/Int32)\n  Absolute position command (steps or degree angle)\n\n  - Absolute position command (steps or ",
+    "- **/read_SDO** (adi_tmc_coe_interfaces/srv/ReadWriteSDO)\n  Executes a read command using SDO protocol\n  The output contains raw data (velocity = rpm, position = steps) from the board. *Do not expect same unit from the publisher.*\n  Refer to adi_tmc_coe_interfaces/srv/ReadWriteSDO for more info\n\n  -",
+    ":memo: *Notes:*\n\n- *Communication Interface Parameter is essential in initializing etherCAT.*\n- *If any of these paramameters are not set/declared, default values will be used.*\n- *To know more details about each parameter, you can execute `$ ros2 param describe <node> <parameter>`*\n",
+    "- **interface_name** (string, default: \u201c\u201d)\n  Name of the NIC (Network Interface Card) detected by the PC. Use command `$ifconfig` to check the interface name, it usually starts with ethxxx or enxxxx.\n\n  - Name of the NIC (Network Interface Card) detected by the PC. Use command `$ifconfig` to check t",
+    "- **en_slave** (int[], default: [0])\n  Enables/disables device/slave connected. If disabled, settings for those motors will be ignored or not set.\n\n  - Enables/disables device/slave connected. If disabled, settings for those motors will be ignored or not set.\n- **adhoc_mode** (int[], default: [0])\n ",
+    ":memo: *Notes:*\n\n- *The following parameters can be provided for each motor of each slave, otherwise, default will be used*\n- _Resulting parameter will be prefixed by `slv<slave_number>.motor<motor_number>`. (e.g. `slv1.motor0.pub_rate_tmc_coe_info`)\n\n\n- **pub_rate_tmc_coe_info** (int, default: 10)\n",
+    ":memo: *Notes:*\n\n- *These parameters are generated per TMCM device which contain CANOpen Object Dictionary attributes*\n- *Be careful when changing these parameter values, as the behavior of the node/device may change*\n- *Resulting parameter will be prefixed by `tmcm_<device_number>.` (e.g. `tmcm_146",
+    "adi_ethercat_grant_node is a ROS2 node for ethercat_grant. Theoretically, if this package is available via binary installation, there should be no further instructions required.\n",
+    "If this package is installed via source, before running the launch file, do the steps below:\n\n1. Open /scripts directory\n2. Make script executable\n  `$ chmod +x ethercat_grant_installation.sh`\n3. Run the script with sudo\n  `$ sudo ./ethercat_grant_installation.sh`\n4. Run the launch file\n",
+    "To do a quick test of Velocity Mode, there is a fake velocity script that the user can run.\nIdea is, this script will send Velocity commands (as a ROS topic), then the first motor should be expected to:\n\n1. Increase velocity every 3secs, clockwise (in m/s: 3, 6, 9)\n2. Stop for 5secs\n3. Increase velo",
+    "To do a quick test of Position Mode, there is a fake position script that the user can run.\nIdea is, this script will send Position commands (as a ROS topic), then the first motor should be expected to:\n\n1. Rotate 360 degrees (clockwise) every 5 secs, 3 times\n2. Stop for 5secs\n3. Rotate 360 degrees ",
+    "1. Current modules that are tested does not include Profile Torque Mode but still included on topic names for ease of implementation if decided to continue.\n2. Homing Mode is not implemented.\n3. Cyclic Synchronous Modes only accepts raw value (no conversions of unit) and is not the same with subscri",
+    "- Defined in File tmc_coe_interpreter.hpp\n",
+    "**enum control_word_val_t**\n:   *Values:*\n:   enumerator SHUTDOWN\n:   enumerator SWITCH_ON\n:   enumerator SWITCH_ON_ENABLE_OPERATION\n:   enumerator DISABLE_VOLTAGE\n:   enumerator QUICK_STOP\n:   enumerator DISABLE_OPERATION\n:   enumerator ENABLE_OPERATION\n:   enumerator FAULT_RESET\n",
+    "\u21b0 Return to documentation for file (`include/adi_tmc_coe_core/tmc_coe_ros2.hpp`)\n\n```cpp\n#ifndef TMC_COE_ROS2_HPP\n#define TMC_COE_ROS2_HPP\n\n#include \"rclcpp/rclcpp.hpp\"\n#include \"adi_tmc_coe_core/tmc_coe_interpreter.hpp\"\n#include \"adi_tmc_coe_core/tmc_coe_motor.hpp\"\n\n// Custom srv\n#include \"adi_tmc_",
+    "\u21b0 Parent directory (`include/adi_tmc_coe_core`)\n\nContents\n\n- Definition (`include/adi_tmc_coe_core/tmc_coe_motor.hpp`)\n- Includes\n- Included By\n- Classes\n- Enums\n- Defines\n- Variables\n",
+    "- Program Listing for File tmc_coe_motor.hpp\n",
+    "- `adi_tmc_coe_core/tmc_coe_interpreter.hpp` (File tmc_coe_interpreter.hpp)\n- `adi_tmc_coe_interfaces/msg/tmc_coe_info.hpp`\n- `cmath`\n- `geometry_msgs/msg/twist.hpp`\n- `rclcpp/rclcpp.hpp`\n- `std_msgs/msg/int32.hpp`\n",
+    "- File tmc_coe_bldc_motor.hpp\n- File tmc_coe_ros2.hpp\n- File tmc_coe_stepper_motor.hpp\n",
+    "- Class TmcCoeMotor\n",
+    "- Enum mode_of_operation_t\n",
+    "- Define _USE_MATH_DEFINES\n",
+    "- Variable ANGULAR_FULL_ROTATION\n- Variable PI\n- Variable SECS_TO_MIN\n",
+    "\u21b0 Parent directory (`include/adi_tmc_coe_core`)\n\nContents\n\n- Definition (`include/adi_tmc_coe_core/tmc_coe_interpreter.hpp`)\n- Includes\n- Included By\n- Classes\n- Enums\n- Typedefs\n- Variables\n",
+    "- Program Listing for File tmc_coe_interpreter.hpp\n",
+    "- `osal.h`\n- `rclcpp/rclcpp.hpp`\n- `stdio.h`\n- `string`\n- `thread`\n- `vector`\n",
+    "- File tmc_coe_motor.hpp\n- File tmc_coe_ros2.hpp\n",
+    "- Struct PACKED\n- Class TmcCoeInterpreter\n",
+    "- Enum control_word_val_t\n- Enum controlword_pos_t\n- Enum fsa_state_t\n- Enum nmt_state_t\n- Enum status_word_val_t\n- Enum statusword_pos_t\n",
+    "- Typedef input_pdo_t\n- Typedef output_pdo_t\n",
+    "- Variable CONTROL_WORD_FAIL\n- Variable CONTROL_WORD_SUCCESS\n- Variable CONTROL_WORD_TIMEOUT\n- Variable CW_NEW_POSITION_ABSOLUTE\n- Variable CW_NEW_POSITION_RELATIVE\n- Variable CW_NEW_SET_POINT_START\n- Variable CW_NEW_SET_POINT_STOP\n- Variable ERROR_CHECK_DELAY\n- Variable IOMAP_SIZE\n- Variable PROCES",
+    "- Defined in File tmc_coe_interpreter.hpp\n",
+    "**class TmcCoeInterpreter**\n:   Public Functions\n:   TmcCoeInterpreter(uint8_t SDO_PDO_retries, double interface_timeout, std::string logger_prefix)\n:   ~TmcCoeInterpreter()\n:   uint8_t initInterface(std::string ifname)\n:   bool initDictionary(uint8_t slave_number, std::vector<std::string> all_obj_n",
+    "\u21b0 Return to documentation for file (`include/adi_tmc_coe_core/tmc_coe_interpreter.hpp`)\n\n```cpp\n#ifndef TMC_COE_INTERPRETER_HPP\n#define TMC_COE_INTERPRETER_HPP\n\n#include <stdio.h>\n#include <string>\n#include <vector>\n#include <thread>\n#include \"rclcpp/rclcpp.hpp\"\n\n// SOEM header/s\n#include \"osal.h\"\n\n"
+  ],
+  "url": [
+    "generated/variable_adi__ethercat__grant_8hpp_1a35d105ef9bb6570b0b2512b28314bf3e.html",
+    "generated/variable_adi__ethercat__grant_8hpp_1a35d105ef9bb6570b0b2512b28314bf3e.html#variable-documentation",
+    "CHANGELOG.html#id1",
+    "generated/variable_tmc__coe__interpreter_8hpp_1a6e403a07f1c9dbeacc3146f6a20b3b17.html",
+    "generated/variable_tmc__coe__interpreter_8hpp_1a6e403a07f1c9dbeacc3146f6a20b3b17.html#variable-documentation",
+    "generated/variable_tmc__coe__ros2_8hpp_1ab9c36efc7018eee0fdacd6dfc5d25da7.html",
+    "generated/variable_tmc__coe__ros2_8hpp_1ab9c36efc7018eee0fdacd6dfc5d25da7.html#variable-documentation",
+    "generated/variable_tmc__coe__interpreter_8hpp_1aeec79e79bd2cc8f5afdcdcbe8e076840.html",
+    "generated/variable_tmc__coe__interpreter_8hpp_1aeec79e79bd2cc8f5afdcdcbe8e076840.html#variable-documentation",
+    "generated/file_include_adi_tmc_coe_core_tmc_coe_bldc_motor.hpp.html",
+    "generated/file_include_adi_tmc_coe_core_tmc_coe_bldc_motor.hpp.html#definition-include-adi-tmc-coe-core-tmc-coe-bldc-motor-hpp",
+    "generated/file_include_adi_tmc_coe_core_tmc_coe_bldc_motor.hpp.html#includes",
+    "generated/file_include_adi_tmc_coe_core_tmc_coe_bldc_motor.hpp.html#classes",
+    "generated/file_include_adi_tmc_coe_core_tmc_coe_bldc_motor.hpp.html#enums",
+    "generated/structPACKED.html",
+    "generated/structPACKED.html#struct-documentation",
+    "generated/enum_tmc__coe__interpreter_8hpp_1a7f4559a19018424528fa0cb1c17996ec.html",
+    "generated/enum_tmc__coe__interpreter_8hpp_1a7f4559a19018424528fa0cb1c17996ec.html#enum-documentation",
+    "generated/program_listing_file_include_adi_tmc_coe_core_tmc_coe_bldc_motor.hpp.html",
+    "generated/enum_tmc__coe__stepper__motor_8hpp_1ad6a82bf7424cb9262d5b8bb3b0291cad.html",
+    "generated/enum_tmc__coe__stepper__motor_8hpp_1ad6a82bf7424cb9262d5b8bb3b0291cad.html#enum-documentation",
+    "generated/variable_adi__ethercat__grant_8hpp_1a41d43d48bf3eefa06ba41d1496dc135d.html",
+    "generated/variable_adi__ethercat__grant_8hpp_1a41d43d48bf3eefa06ba41d1496dc135d.html#variable-documentation",
+    "generated/variable_tmc__coe__motor_8hpp_1a952eac791b596a61bba0a133a3bb439f.html",
+    "generated/variable_tmc__coe__motor_8hpp_1a952eac791b596a61bba0a133a3bb439f.html#variable-documentation",
+    "generated/typedef_tmc__coe__interpreter_8hpp_1a7fd0bd98eeba43b321dd60803683d536.html",
+    "generated/typedef_tmc__coe__interpreter_8hpp_1a7fd0bd98eeba43b321dd60803683d536.html#typedef-documentation",
+    "generated/variable_tmc__coe__ros2_8hpp_1aea5ff73471c628c9b5360c5673d221f6.html",
+    "generated/variable_tmc__coe__ros2_8hpp_1aea5ff73471c628c9b5360c5673d221f6.html#variable-documentation",
+    "generated/variable_tmc__coe__ros2_8hpp_1a899e09be4c6a54f72f677dbce9075d93.html",
+    "generated/variable_tmc__coe__ros2_8hpp_1a899e09be4c6a54f72f677dbce9075d93.html#variable-documentation",
+    "generated/enum_tmc__coe__bldc__motor_8hpp_1a1816d86b864c1905cff927194c63785d.html",
+    "generated/enum_tmc__coe__bldc__motor_8hpp_1a1816d86b864c1905cff927194c63785d.html#enum-documentation",
+    "generated/file_include_adi_tmc_coe_core_adi_ethercat_grant.hpp.html",
+    "generated/file_include_adi_tmc_coe_core_adi_ethercat_grant.hpp.html#definition-include-adi-tmc-coe-core-adi-ethercat-grant-hpp",
+    "generated/file_include_adi_tmc_coe_core_adi_ethercat_grant.hpp.html#includes",
+    "generated/file_include_adi_tmc_coe_core_adi_ethercat_grant.hpp.html#variables",
+    "generated/variable_tmc__coe__interpreter_8hpp_1a2d083d253fb924d448d4e309772c05fc.html",
+    "generated/variable_tmc__coe__interpreter_8hpp_1a2d083d253fb924d448d4e309772c05fc.html#variable-documentation",
+    "generated/variable_tmc__coe__interpreter_8hpp_1ac00a5382754f2433356450e92e8a46de.html",
+    "generated/variable_tmc__coe__interpreter_8hpp_1ac00a5382754f2433356450e92e8a46de.html#variable-documentation",
+    "generated/file_include_adi_tmc_coe_core_tmc_coe_stepper_motor.hpp.html",
+    "generated/file_include_adi_tmc_coe_core_tmc_coe_stepper_motor.hpp.html#definition-include-adi-tmc-coe-core-tmc-coe-stepper-motor-hpp",
+    "generated/file_include_adi_tmc_coe_core_tmc_coe_stepper_motor.hpp.html#includes",
+    "generated/file_include_adi_tmc_coe_core_tmc_coe_stepper_motor.hpp.html#classes",
+    "generated/file_include_adi_tmc_coe_core_tmc_coe_stepper_motor.hpp.html#enums",
+    "generated/program_listing_file_include_adi_tmc_coe_core_tmc_coe_motor.hpp.html",
+    "generated/variable_tmc__coe__ros2_8hpp_1a311d16e01ec8e26f602abd99d8593846.html",
+    "generated/variable_tmc__coe__ros2_8hpp_1a311d16e01ec8e26f602abd99d8593846.html#variable-documentation",
+    "generated/dir_include_adi_tmc_coe_core.html",
+    "generated/dir_include_adi_tmc_coe_core.html#files",
+    "generated/classTmcCoeStepperMotor.html",
+    "generated/classTmcCoeStepperMotor.html#base-type",
+    "generated/classTmcCoeStepperMotor.html#class-documentation",
+    "generated/variable_tmc__coe__ros2_8hpp_1a83c3bbc75f51c63fe3fe9f8ae4562a52.html",
+    "generated/variable_tmc__coe__ros2_8hpp_1a83c3bbc75f51c63fe3fe9f8ae4562a52.html#variable-documentation",
+    "generated/define_tmc__coe__motor_8hpp_1a525335710b53cb064ca56b936120431e.html",
+    "generated/define_tmc__coe__motor_8hpp_1a525335710b53cb064ca56b936120431e.html#define-documentation",
+    "generated/typedef_tmc__coe__interpreter_8hpp_1ac1d88f679845fac493f9a3fb5d784460.html",
+    "generated/typedef_tmc__coe__interpreter_8hpp_1ac1d88f679845fac493f9a3fb5d784460.html#typedef-documentation",
+    "generated/enum_tmc__coe__interpreter_8hpp_1a2f89fe6f3f8997ff053343ba39d73d3a.html",
+    "generated/enum_tmc__coe__interpreter_8hpp_1a2f89fe6f3f8997ff053343ba39d73d3a.html#enum-documentation",
+    "generated/variable_tmc__coe__interpreter_8hpp_1a52b6a9b3d52d11567e711a2313787018.html",
+    "generated/variable_tmc__coe__interpreter_8hpp_1a52b6a9b3d52d11567e711a2313787018.html#variable-documentation",
+    "generated/variable_tmc__coe__motor_8hpp_1a8e38822bfb002baacfb0232828d25153.html",
+    "generated/variable_tmc__coe__motor_8hpp_1a8e38822bfb002baacfb0232828d25153.html#variable-documentation",
+    "generated/enum_tmc__coe__interpreter_8hpp_1a80e0016157d564b5dfcb8199c93589bb.html",
+    "generated/enum_tmc__coe__interpreter_8hpp_1a80e0016157d564b5dfcb8199c93589bb.html#enum-documentation",
+    "generated/enum_tmc__coe__interpreter_8hpp_1ac09f3621c48a441cdf902f8abbc66f15.html",
+    "generated/enum_tmc__coe__interpreter_8hpp_1ac09f3621c48a441cdf902f8abbc66f15.html#enum-documentation",
+    "generated/index.html#class-hierarchy",
+    "generated/index.html#file-hierarchy",
+    "generated/index.html#classes-and-structs",
+    "generated/index.html#enums",
+    "generated/index.html#variables",
+    "generated/index.html#defines",
+    "generated/index.html#typedefs",
+    "generated/index.html#directories",
+    "generated/index.html#files",
+    "generated/variable_tmc__coe__motor_8hpp_1a8383ae6f2dccc1f0628db5f80e4bf7fe.html",
+    "generated/variable_tmc__coe__motor_8hpp_1a8383ae6f2dccc1f0628db5f80e4bf7fe.html#variable-documentation",
+    "generated/variable_tmc__coe__interpreter_8hpp_1a25b31335e31a0190871ac3b0957d91fb.html",
+    "generated/variable_tmc__coe__interpreter_8hpp_1a25b31335e31a0190871ac3b0957d91fb.html#variable-documentation",
+    "generated/classTmcCoeMotor.html",
+    "generated/classTmcCoeMotor.html#derived-types",
+    "generated/classTmcCoeMotor.html#class-documentation",
+    "generated/program_listing_file_include_adi_tmc_coe_core_tmc_coe_stepper_motor.hpp.html",
+    "generated/variable_tmc__coe__interpreter_8hpp_1ac52bdf27dd7f21dc7359daccbb364682.html",
+    "generated/variable_tmc__coe__interpreter_8hpp_1ac52bdf27dd7f21dc7359daccbb364682.html#variable-documentation",
+    "generated/enum_tmc__coe__motor_8hpp_1af4700688ea7e689dfc046933e9c1dbb3.html",
+    "generated/enum_tmc__coe__motor_8hpp_1af4700688ea7e689dfc046933e9c1dbb3.html#enum-documentation",
+    "generated/classTmcCoeBldcMotor.html",
+    "generated/classTmcCoeBldcMotor.html#base-type",
+    "generated/classTmcCoeBldcMotor.html#class-documentation",
+    "generated/variable_tmc__coe__interpreter_8hpp_1a3d50796f5a7f47a6f5479cfe7f0a9f1f.html",
+    "generated/variable_tmc__coe__interpreter_8hpp_1a3d50796f5a7f47a6f5479cfe7f0a9f1f.html#variable-documentation",
+    "generated/variable_tmc__coe__interpreter_8hpp_1af28d059eba257197e80e4f49b4cc50a1.html",
+    "generated/variable_tmc__coe__interpreter_8hpp_1af28d059eba257197e80e4f49b4cc50a1.html#variable-documentation",
+    "generated/variable_tmc__coe__interpreter_8hpp_1a5185686528a78c5f318422c668cb6e6a.html",
+    "generated/variable_tmc__coe__interpreter_8hpp_1a5185686528a78c5f318422c668cb6e6a.html#variable-documentation",
+    "generated/variable_tmc__coe__interpreter_8hpp_1ad80f5c673299a4cc4f883dd8fa930f31.html",
+    "generated/variable_tmc__coe__interpreter_8hpp_1ad80f5c673299a4cc4f883dd8fa930f31.html#variable-documentation",
+    "generated/enum_tmc__coe__interpreter_8hpp_1a32673e1603dbea7f3a2b80849e9c4385.html",
+    "generated/enum_tmc__coe__interpreter_8hpp_1a32673e1603dbea7f3a2b80849e9c4385.html#enum-documentation",
+    "generated/variable_tmc__coe__interpreter_8hpp_1a0b4e6957d6b7b778189f59364ff2da72.html",
+    "generated/variable_tmc__coe__interpreter_8hpp_1a0b4e6957d6b7b778189f59364ff2da72.html#variable-documentation",
+    "generated/classTmcCoeROS2.html",
+    "generated/classTmcCoeROS2.html#class-documentation",
+    "generated/file_include_adi_tmc_coe_core_tmc_coe_ros2.hpp.html",
+    "generated/file_include_adi_tmc_coe_core_tmc_coe_ros2.hpp.html#definition-include-adi-tmc-coe-core-tmc-coe-ros2-hpp",
+    "generated/file_include_adi_tmc_coe_core_tmc_coe_ros2.hpp.html#includes",
+    "generated/file_include_adi_tmc_coe_core_tmc_coe_ros2.hpp.html#classes",
+    "generated/file_include_adi_tmc_coe_core_tmc_coe_ros2.hpp.html#variables",
+    "generated/dir_include.html",
+    "generated/dir_include.html#subdirectories",
+    "generated/program_listing_file_include_adi_tmc_coe_core_adi_ethercat_grant.hpp.html",
+    "README.html",
+    "README.html",
+    "README.html#software-dependencies",
+    "README.html",
+    "README.html",
+    "README.html",
+    "README.html#calibrate-the-motors",
+    "README.html#tune-the-pi-settings-of-the-motors",
+    "README.html#id1",
+    "README.html#pre-launch-one-time",
+    "README.html#config-launch-file",
+    "README.html",
+    "README.html#tmc-coe-ros2-node",
+    "README.html#published-topics",
+    "README.html#subscribed-topics",
+    "README.html#advertised-services",
+    "README.html#parameters",
+    "README.html#communication-interface-parameter",
+    "README.html#tmc-coe-ros-node-parameters",
+    "README.html#motor-configuration-settings",
+    "README.html#autogenerated-parameters",
+    "README.html#ethercat-grant",
+    "README.html#installation",
+    "README.html#test-velocity-mode",
+    "README.html#test-position-mode",
+    "README.html",
+    "generated/variable_tmc__coe__interpreter_8hpp_1ae77b0b38ea6759542ea784fbe05637f2.html",
+    "generated/variable_tmc__coe__interpreter_8hpp_1ae77b0b38ea6759542ea784fbe05637f2.html#variable-documentation",
+    "index.html",
+    "index.html",
+    "index.html#background",
+    "index.html#hardware",
+    "index.html#software-dependencies",
+    "index.html#clone",
+    "index.html#build",
+    "index.html#pre-launch-one-time-per-setup",
+    "index.html#calibrate-the-motors",
+    "index.html#tune-the-pi-settings-of-the-motors",
+    "index.html#id1",
+    "index.html#pre-launch-one-time",
+    "index.html#config-launch-file",
+    "index.html#launch",
+    "index.html#tmc-coe-ros2-node",
+    "index.html#published-topics",
+    "index.html#subscribed-topics",
+    "index.html#advertised-services",
+    "index.html#parameters",
+    "index.html#communication-interface-parameter",
+    "index.html#tmc-coe-ros-node-parameters",
+    "index.html#motor-configuration-settings",
+    "index.html#autogenerated-parameters",
+    "index.html#ethercat-grant",
+    "index.html#installation",
+    "index.html#test-velocity-mode",
+    "index.html#test-position-mode",
+    "index.html#limitations",
+    "generated/enum_tmc__coe__interpreter_8hpp_1a0fc1699381ace32d834faa646cdcf595.html",
+    "generated/enum_tmc__coe__interpreter_8hpp_1a0fc1699381ace32d834faa646cdcf595.html#enum-documentation",
+    "generated/program_listing_file_include_adi_tmc_coe_core_tmc_coe_ros2.hpp.html",
+    "generated/file_include_adi_tmc_coe_core_tmc_coe_motor.hpp.html",
+    "generated/file_include_adi_tmc_coe_core_tmc_coe_motor.hpp.html#definition-include-adi-tmc-coe-core-tmc-coe-motor-hpp",
+    "generated/file_include_adi_tmc_coe_core_tmc_coe_motor.hpp.html#includes",
+    "generated/file_include_adi_tmc_coe_core_tmc_coe_motor.hpp.html#included-by",
+    "generated/file_include_adi_tmc_coe_core_tmc_coe_motor.hpp.html#classes",
+    "generated/file_include_adi_tmc_coe_core_tmc_coe_motor.hpp.html#enums",
+    "generated/file_include_adi_tmc_coe_core_tmc_coe_motor.hpp.html#defines",
+    "generated/file_include_adi_tmc_coe_core_tmc_coe_motor.hpp.html#variables",
+    "generated/file_include_adi_tmc_coe_core_tmc_coe_interpreter.hpp.html",
+    "generated/file_include_adi_tmc_coe_core_tmc_coe_interpreter.hpp.html#definition-include-adi-tmc-coe-core-tmc-coe-interpreter-hpp",
+    "generated/file_include_adi_tmc_coe_core_tmc_coe_interpreter.hpp.html#includes",
+    "generated/file_include_adi_tmc_coe_core_tmc_coe_interpreter.hpp.html#included-by",
+    "generated/file_include_adi_tmc_coe_core_tmc_coe_interpreter.hpp.html#classes",
+    "generated/file_include_adi_tmc_coe_core_tmc_coe_interpreter.hpp.html#enums",
+    "generated/file_include_adi_tmc_coe_core_tmc_coe_interpreter.hpp.html#typedefs",
+    "generated/file_include_adi_tmc_coe_core_tmc_coe_interpreter.hpp.html#variables",
+    "generated/classTmcCoeInterpreter.html",
+    "generated/classTmcCoeInterpreter.html#class-documentation",
+    "generated/program_listing_file_include_adi_tmc_coe_core_tmc_coe_interpreter.hpp.html"
+  ],
+  "hierarchy": [
+    [
+      "C++ API",
+      "Variable cap_string_"
+    ],
+    [
+      "C++ API",
+      "Variable cap_string_",
+      "Variable Documentation"
+    ],
+    [
+      "Changelog for package adi_tmc_coe_core",
+      "1.0.0 (2025-03-06)"
+    ],
+    [
+      "C++ API",
+      "Variable CW_NEW_POSITION_ABSOLUTE"
+    ],
+    [
+      "C++ API",
+      "Variable CW_NEW_POSITION_ABSOLUTE",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Variable INTERPOLATION_TIME_INDEX_MAX"
+    ],
+    [
+      "C++ API",
+      "Variable INTERPOLATION_TIME_INDEX_MAX",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Variable CONTROL_WORD_SUCCESS"
+    ],
+    [
+      "C++ API",
+      "Variable CONTROL_WORD_SUCCESS",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "File tmc_coe_bldc_motor.hpp"
+    ],
+    [
+      "C++ API",
+      "File tmc_coe_bldc_motor.hpp",
+      "Definition (include/adi_tmc_coe_core/tmc_coe_bldc_motor.hpp)"
+    ],
+    [
+      "C++ API",
+      "File tmc_coe_bldc_motor.hpp",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File tmc_coe_bldc_motor.hpp",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "File tmc_coe_bldc_motor.hpp",
+      "Enums"
+    ],
+    [
+      "C++ API",
+      "Struct PACKED"
+    ],
+    [
+      "C++ API",
+      "Struct PACKED",
+      "Struct Documentation"
+    ],
+    [
+      "C++ API",
+      "Enum controlword_pos_t"
+    ],
+    [
+      "C++ API",
+      "Enum controlword_pos_t",
+      "Enum Documentation"
+    ],
+    [
+      "C++ API",
+      "File tmc_coe_bldc_motor.hpp",
+      "Program Listing for File tmc_coe_bldc_motor.hpp"
+    ],
+    [
+      "C++ API",
+      "Enum stepper_comm_mode_t"
+    ],
+    [
+      "C++ API",
+      "Enum stepper_comm_mode_t",
+      "Enum Documentation"
+    ],
+    [
+      "C++ API",
+      "Variable executable_"
+    ],
+    [
+      "C++ API",
+      "Variable executable_",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Variable PI"
+    ],
+    [
+      "C++ API",
+      "Variable PI",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Typedef input_pdo_t"
+    ],
+    [
+      "C++ API",
+      "Typedef input_pdo_t",
+      "Typedef Documentation"
+    ],
+    [
+      "C++ API",
+      "Variable INTERPOLATION_TIME_INDEX_MIN"
+    ],
+    [
+      "C++ API",
+      "Variable INTERPOLATION_TIME_INDEX_MIN",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Variable MOTOR_TYPE_STEPPER_MAX"
+    ],
+    [
+      "C++ API",
+      "Variable MOTOR_TYPE_STEPPER_MAX",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Enum bldc_comm_mode_t"
+    ],
+    [
+      "C++ API",
+      "Enum bldc_comm_mode_t",
+      "Enum Documentation"
+    ],
+    [
+      "C++ API",
+      "File adi_ethercat_grant.hpp"
+    ],
+    [
+      "C++ API",
+      "File adi_ethercat_grant.hpp",
+      "Definition (include/adi_tmc_coe_core/adi_ethercat_grant.hpp)"
+    ],
+    [
+      "C++ API",
+      "File adi_ethercat_grant.hpp",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File adi_ethercat_grant.hpp",
+      "Variables"
+    ],
+    [
+      "C++ API",
+      "Variable CW_NEW_SET_POINT_STOP"
+    ],
+    [
+      "C++ API",
+      "Variable CW_NEW_SET_POINT_STOP",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Variable CONTROL_WORD_FAIL"
+    ],
+    [
+      "C++ API",
+      "Variable CONTROL_WORD_FAIL",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "File tmc_coe_stepper_motor.hpp"
+    ],
+    [
+      "C++ API",
+      "File tmc_coe_stepper_motor.hpp",
+      "Definition (include/adi_tmc_coe_core/tmc_coe_stepper_motor.hpp)"
+    ],
+    [
+      "C++ API",
+      "File tmc_coe_stepper_motor.hpp",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File tmc_coe_stepper_motor.hpp",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "File tmc_coe_stepper_motor.hpp",
+      "Enums"
+    ],
+    [
+      "C++ API",
+      "File tmc_coe_motor.hpp",
+      "Program Listing for File tmc_coe_motor.hpp"
+    ],
+    [
+      "C++ API",
+      "Variable MOTOR_TYPE_STEPPER_MIN"
+    ],
+    [
+      "C++ API",
+      "Variable MOTOR_TYPE_STEPPER_MIN",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Directory adi_tmc_coe_core"
+    ],
+    [
+      "C++ API",
+      "Directory adi_tmc_coe_core",
+      "Files"
+    ],
+    [
+      "C++ API",
+      "Class TmcCoeStepperMotor"
+    ],
+    [
+      "C++ API",
+      "Class TmcCoeStepperMotor",
+      "Inheritance Relationships",
+      "Base Type"
+    ],
+    [
+      "C++ API",
+      "Class TmcCoeStepperMotor",
+      "Class Documentation"
+    ],
+    [
+      "C++ API",
+      "Variable MOTOR_TYPE_BLDC"
+    ],
+    [
+      "C++ API",
+      "Variable MOTOR_TYPE_BLDC",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Define _USE_MATH_DEFINES"
+    ],
+    [
+      "C++ API",
+      "Define _USE_MATH_DEFINES",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "Typedef output_pdo_t"
+    ],
+    [
+      "C++ API",
+      "Typedef output_pdo_t",
+      "Typedef Documentation"
+    ],
+    [
+      "C++ API",
+      "Enum status_word_val_t"
+    ],
+    [
+      "C++ API",
+      "Enum status_word_val_t",
+      "Enum Documentation"
+    ],
+    [
+      "C++ API",
+      "Variable TOTAL_WORK_COUNTER_PER_SLAVE"
+    ],
+    [
+      "C++ API",
+      "Variable TOTAL_WORK_COUNTER_PER_SLAVE",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Variable ANGULAR_FULL_ROTATION"
+    ],
+    [
+      "C++ API",
+      "Variable ANGULAR_FULL_ROTATION",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Enum fsa_state_t"
+    ],
+    [
+      "C++ API",
+      "Enum fsa_state_t",
+      "Enum Documentation"
+    ],
+    [
+      "C++ API",
+      "Enum nmt_state_t"
+    ],
+    [
+      "C++ API",
+      "Enum nmt_state_t",
+      "Enum Documentation"
+    ],
+    [
+      "C++ API",
+      "Class Hierarchy"
+    ],
+    [
+      "C++ API",
+      "File Hierarchy"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Classes and Structs"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Enums"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Variables"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Defines"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Typedefs"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Directories"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Files"
+    ],
+    [
+      "C++ API",
+      "Variable SECS_TO_MIN"
+    ],
+    [
+      "C++ API",
+      "Variable SECS_TO_MIN",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Variable ERROR_CHECK_DELAY"
+    ],
+    [
+      "C++ API",
+      "Variable ERROR_CHECK_DELAY",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Class TmcCoeMotor"
+    ],
+    [
+      "C++ API",
+      "Class TmcCoeMotor",
+      "Inheritance Relationships",
+      "Derived Types"
+    ],
+    [
+      "C++ API",
+      "Class TmcCoeMotor",
+      "Class Documentation"
+    ],
+    [
+      "C++ API",
+      "File tmc_coe_stepper_motor.hpp",
+      "Program Listing for File tmc_coe_stepper_motor.hpp"
+    ],
+    [
+      "C++ API",
+      "Variable status_state_mask_"
+    ],
+    [
+      "C++ API",
+      "Variable status_state_mask_",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Enum mode_of_operation_t"
+    ],
+    [
+      "C++ API",
+      "Enum mode_of_operation_t",
+      "Enum Documentation"
+    ],
+    [
+      "C++ API",
+      "Class TmcCoeBldcMotor"
+    ],
+    [
+      "C++ API",
+      "Class TmcCoeBldcMotor",
+      "Inheritance Relationships",
+      "Base Type"
+    ],
+    [
+      "C++ API",
+      "Class TmcCoeBldcMotor",
+      "Class Documentation"
+    ],
+    [
+      "C++ API",
+      "Variable CW_NEW_SET_POINT_START"
+    ],
+    [
+      "C++ API",
+      "Variable CW_NEW_SET_POINT_START",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Variable PROCESS_DATA_DELAY"
+    ],
+    [
+      "C++ API",
+      "Variable PROCESS_DATA_DELAY",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Variable CW_NEW_POSITION_RELATIVE"
+    ],
+    [
+      "C++ API",
+      "Variable CW_NEW_POSITION_RELATIVE",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Variable IOMAP_SIZE"
+    ],
+    [
+      "C++ API",
+      "Variable IOMAP_SIZE",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Enum statusword_pos_t"
+    ],
+    [
+      "C++ API",
+      "Enum statusword_pos_t",
+      "Enum Documentation"
+    ],
+    [
+      "C++ API",
+      "Variable CONTROL_WORD_TIMEOUT"
+    ],
+    [
+      "C++ API",
+      "Variable CONTROL_WORD_TIMEOUT",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Class TmcCoeROS2"
+    ],
+    [
+      "C++ API",
+      "Class TmcCoeROS2",
+      "Class Documentation"
+    ],
+    [
+      "C++ API",
+      "File tmc_coe_ros2.hpp"
+    ],
+    [
+      "C++ API",
+      "File tmc_coe_ros2.hpp",
+      "Definition (include/adi_tmc_coe_core/tmc_coe_ros2.hpp)"
+    ],
+    [
+      "C++ API",
+      "File tmc_coe_ros2.hpp",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File tmc_coe_ros2.hpp",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "File tmc_coe_ros2.hpp",
+      "Variables"
+    ],
+    [
+      "C++ API",
+      "Directory include"
+    ],
+    [
+      "C++ API",
+      "Directory include",
+      "Subdirectories"
+    ],
+    [
+      "C++ API",
+      "File adi_ethercat_grant.hpp",
+      "Program Listing for File adi_ethercat_grant.hpp"
+    ],
+    [
+      "Background"
+    ],
+    [
+      "Hardware"
+    ],
+    [
+      "Software",
+      "Software Dependencies"
+    ],
+    [
+      "Clone"
+    ],
+    [
+      "Build"
+    ],
+    [
+      "Pre-Launch (One-time per setup)"
+    ],
+    [
+      "Pre-Launch (One-time per setup)",
+      "BLDC Motors",
+      "Calibrate the motors"
+    ],
+    [
+      "Pre-Launch (One-time per setup)",
+      "BLDC Motors",
+      "Tune the PI settings of the motors"
+    ],
+    [
+      "Pre-Launch (One-time per setup)",
+      "Stepper Motors",
+      "Calibrate the motors"
+    ],
+    [
+      "Pre-Launch (One-time per setup)",
+      "Pre-Launch (One-time)"
+    ],
+    [
+      "Pre-Launch (One-time per setup)",
+      "Config/Launch File"
+    ],
+    [
+      "Launch"
+    ],
+    [
+      "Nodes",
+      "tmc_coe_ros2_node"
+    ],
+    [
+      "Nodes",
+      "tmc_coe_ros2_node",
+      "Published topics"
+    ],
+    [
+      "Nodes",
+      "tmc_coe_ros2_node",
+      "Subscribed topics"
+    ],
+    [
+      "Nodes",
+      "tmc_coe_ros2_node",
+      "Advertised services"
+    ],
+    [
+      "Nodes",
+      "tmc_coe_ros2_node",
+      "Parameters"
+    ],
+    [
+      "Nodes",
+      "tmc_coe_ros2_node",
+      "Parameters",
+      "Communication Interface Parameter"
+    ],
+    [
+      "Nodes",
+      "tmc_coe_ros2_node",
+      "Parameters",
+      "TMC COE ROS Node Parameters"
+    ],
+    [
+      "Nodes",
+      "tmc_coe_ros2_node",
+      "Parameters",
+      "Motor Configuration Settings"
+    ],
+    [
+      "Nodes",
+      "tmc_coe_ros2_node",
+      "Parameters",
+      "Autogenerated Parameters"
+    ],
+    [
+      "Nodes",
+      "ethercat_grant"
+    ],
+    [
+      "Nodes",
+      "ethercat_grant",
+      "Installation"
+    ],
+    [
+      "Quick Tests",
+      "Test Velocity Mode"
+    ],
+    [
+      "Quick Tests",
+      "Test Position Mode"
+    ],
+    [
+      "Limitations"
+    ],
+    [
+      "C++ API",
+      "Variable state_coding_val_"
+    ],
+    [
+      "C++ API",
+      "Variable state_coding_val_",
+      "Variable Documentation"
+    ],
+    [
+      "adi_tmc_coe_core"
+    ],
+    [
+      "README"
+    ],
+    [
+      "README",
+      "Background"
+    ],
+    [
+      "README",
+      "Hardware"
+    ],
+    [
+      "README",
+      "Software",
+      "Software Dependencies"
+    ],
+    [
+      "README",
+      "Clone"
+    ],
+    [
+      "README",
+      "Build"
+    ],
+    [
+      "README",
+      "Pre-Launch (One-time per setup)"
+    ],
+    [
+      "README",
+      "Pre-Launch (One-time per setup)",
+      "BLDC Motors",
+      "Calibrate the motors"
+    ],
+    [
+      "README",
+      "Pre-Launch (One-time per setup)",
+      "BLDC Motors",
+      "Tune the PI settings of the motors"
+    ],
+    [
+      "README",
+      "Pre-Launch (One-time per setup)",
+      "Stepper Motors",
+      "Calibrate the motors"
+    ],
+    [
+      "README",
+      "Pre-Launch (One-time per setup)",
+      "Pre-Launch (One-time)"
+    ],
+    [
+      "README",
+      "Pre-Launch (One-time per setup)",
+      "Config/Launch File"
+    ],
+    [
+      "README",
+      "Launch"
+    ],
+    [
+      "README",
+      "Nodes",
+      "tmc_coe_ros2_node"
+    ],
+    [
+      "README",
+      "Nodes",
+      "tmc_coe_ros2_node",
+      "Published topics"
+    ],
+    [
+      "README",
+      "Nodes",
+      "tmc_coe_ros2_node",
+      "Subscribed topics"
+    ],
+    [
+      "README",
+      "Nodes",
+      "tmc_coe_ros2_node",
+      "Advertised services"
+    ],
+    [
+      "README",
+      "Nodes",
+      "tmc_coe_ros2_node",
+      "Parameters"
+    ],
+    [
+      "README",
+      "Nodes",
+      "tmc_coe_ros2_node",
+      "Parameters",
+      "Communication Interface Parameter"
+    ],
+    [
+      "README",
+      "Nodes",
+      "tmc_coe_ros2_node",
+      "Parameters",
+      "TMC COE ROS Node Parameters"
+    ],
+    [
+      "README",
+      "Nodes",
+      "tmc_coe_ros2_node",
+      "Parameters",
+      "Motor Configuration Settings"
+    ],
+    [
+      "README",
+      "Nodes",
+      "tmc_coe_ros2_node",
+      "Parameters",
+      "Autogenerated Parameters"
+    ],
+    [
+      "README",
+      "Nodes",
+      "ethercat_grant"
+    ],
+    [
+      "README",
+      "Nodes",
+      "ethercat_grant",
+      "Installation"
+    ],
+    [
+      "README",
+      "Quick Tests",
+      "Test Velocity Mode"
+    ],
+    [
+      "README",
+      "Quick Tests",
+      "Test Position Mode"
+    ],
+    [
+      "README",
+      "Limitations"
+    ],
+    [
+      "C++ API",
+      "Enum control_word_val_t"
+    ],
+    [
+      "C++ API",
+      "Enum control_word_val_t",
+      "Enum Documentation"
+    ],
+    [
+      "C++ API",
+      "File tmc_coe_ros2.hpp",
+      "Program Listing for File tmc_coe_ros2.hpp"
+    ],
+    [
+      "C++ API",
+      "File tmc_coe_motor.hpp"
+    ],
+    [
+      "C++ API",
+      "File tmc_coe_motor.hpp",
+      "Definition (include/adi_tmc_coe_core/tmc_coe_motor.hpp)"
+    ],
+    [
+      "C++ API",
+      "File tmc_coe_motor.hpp",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File tmc_coe_motor.hpp",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File tmc_coe_motor.hpp",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "File tmc_coe_motor.hpp",
+      "Enums"
+    ],
+    [
+      "C++ API",
+      "File tmc_coe_motor.hpp",
+      "Defines"
+    ],
+    [
+      "C++ API",
+      "File tmc_coe_motor.hpp",
+      "Variables"
+    ],
+    [
+      "C++ API",
+      "File tmc_coe_interpreter.hpp"
+    ],
+    [
+      "C++ API",
+      "File tmc_coe_interpreter.hpp",
+      "Definition (include/adi_tmc_coe_core/tmc_coe_interpreter.hpp)"
+    ],
+    [
+      "C++ API",
+      "File tmc_coe_interpreter.hpp",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File tmc_coe_interpreter.hpp",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File tmc_coe_interpreter.hpp",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "File tmc_coe_interpreter.hpp",
+      "Enums"
+    ],
+    [
+      "C++ API",
+      "File tmc_coe_interpreter.hpp",
+      "Typedefs"
+    ],
+    [
+      "C++ API",
+      "File tmc_coe_interpreter.hpp",
+      "Variables"
+    ],
+    [
+      "C++ API",
+      "Class TmcCoeInterpreter"
+    ],
+    [
+      "C++ API",
+      "Class TmcCoeInterpreter",
+      "Class Documentation"
+    ],
+    [
+      "C++ API",
+      "File tmc_coe_interpreter.hpp",
+      "Program Listing for File tmc_coe_interpreter.hpp"
+    ]
+  ]
+}

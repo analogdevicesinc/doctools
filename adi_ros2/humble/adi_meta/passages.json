@@ -1,0 +1,465 @@
+{
+  "text": [
+    "- conf module\n",
+    "Developer Guides target developers and contributors to the ADI ROS2 repository.\n\n- Dockerfile Template Infrastructure\n- Adding ADI ROS2 Packages\n",
+    "How-to Guides provide direct and modular answers to \u201cHow-to\u201d questions.\n\n- ROS2 Docker Image Guide\n- ROS2 Documentation Guide\n",
+    "- How-to Guides\n  ROS2 Docker Image Guide\n  ROS2 Documentation Guide\n\n  - ROS2 Docker Image Guide\n  - ROS2 Documentation Guide\n- Developer Guides\n  Dockerfile Template Infrastructure\n  Adding ADI ROS2 Packages\n\n  - Dockerfile Template Infrastructure\n  - Adding ADI ROS2 Packages\n",
+    "Table of Contents\n\n- Introduction\n- Overview of the Dual System\n  Documentation Pipeline vs Docker Builds\n  Template System Integration\n\n  - Documentation Pipeline vs Docker Builds\n  - Template System Integration\n- Adding a New Package\n  Step 1: Add as Git Submodule (Documentation Pipeline)\n  Step 2",
+    "This guide outlines the dual process for adding a new Analog Devices ROS 2 package\nto this meta-repository. The repository uses two parallel approaches for package\nmanagement:\n\n1. **Git Submodules**: For documentation pipeline integration and development workflow\n2. **VCS Import Lists**: For Docker ",
+    "**Git Submodules** are used for:\n\n- Documentation generation with `rosdoc2` and `adi_doctools`\n- Developer workspace setup for local development\n- Cross-referencing between packages in documentation\n\n\n**VCS Import Lists** (like `adi_ros2-humble.yml`) are used for:\n\n- Docker container builds where sp",
+    "The repository uses a Jinja2-based template system (`scripts/templates.yml`) that allows:\n\n- Conditional building based on platform (e.g., `humble-amd64` vs `humble-l4t_r36.2.0`)\n- Version-controlled dependencies (e.g., `libiio_tag: \"libiio-v0\"`)\n- Architecture-specific package inclusion/exclusion\n-",
+    "1. **Navigate to the src directory of the `adi_ros2` workspace:**\n  cd ~/adi_ros2/src # Or your equivalent adi_ros2 workspace\n2. **Add the submodule:**\n  Replace <repository_url> with the URL of the new package\u2019s Git repository\n  and <path_to_submodule> with the desired location within the src/\n  di",
+    "1. **Update the VCS import file for your target ROS distribution:**\n  Edit `docker/adi_ros2-<ros_distro>.yml` (e.g., `docker/adi_ros2-humble.yml`):\n  # docker/adi_ros2-humble.yml\n  repositories:\n    # ...existing packages...\n    new_package_name:\n      type: git\n      url: https://github.com/analogd",
+    "1. **Review scripts/templates.yml for version control:** define the branch/tag\n  for the dependencies of the new package that need to be installed from sources.\n  # scripts/templates.yml\n  adi_ros2:\n    - name: humble-amd64\n      ros_distro: humble\n      arch: amd64\n      targets:\n        - target: ",
+    "1. **Test template generation:**\n  Use the provided script to regenerate Dockerfiles and verify your changes:\n  cd scripts/\n  python generate.py  # Regenerates Dockerfiles from templates\n  Note\n  Save the changes made to the Dockerfiles to a commit. Re-run the `generate.py`\n  and save the `docker/RE",
+    "Once everything is verified locally:\n\n1. **Commit and push all changes:**\n2. **Verify CI/CD pipeline:**\n  Check that GitHub Actions workflows complete successfully, particularly:\n  Documentation generation workflow\n  Docker image builds (if configured)\n\n  - Documentation generation workflow\n  - Dock",
+    "- [ ] **Submodule Integration**\n  [ ] Submodule added and initialized correctly\n  [ ] `.gitmodules` file updated and committed\n  [ ] Submodule points to correct branch/commit\n\n  - [ ] Submodule added and initialized correctly\n  - [ ] `.gitmodules` file updated and committed\n  - [ ] Submodule points ",
+    "Welcome to Analog Devices Inc ROS2 documentation!\n\n- Documentation\n  How-to Guides\n  Developer Guides\n\n  - How-to Guides\n  - Developer Guides\n\n\nTable of Contents\n\n- Analog Devices ROS2\n- Overview\n- Supported Platforms\n- Docker Image Variants\n- Getting Started\n- Repositories and Packages\n",
+    "The Analog Devices Robotics SDK provides a collection of ROS2 packages and 3rd\nparty tools for robotics applications.\nThe adi_ros2 Github Repository aggregates various ADI ROS2 packages into\npre-configured Docker images, offering a ready-to-use environment for diverse\nhardware platforms.\n",
+    "The Analog Devices Robotics SDK Docker images are available for multiple platforms\nand architectures to support diverse hardware deployments:\n",
+    "|Platform|Docker Repository|Use Cases|\n|**x86_64** (`amd64`)|astanea/adi_ros2|Development workstations, servers, edge computing devices, etc.|\n|**ARM64** (`arm64`)|astanea/adi_ros2|ARM-based servers, development boards (Raspberry Pi 4+), etc.|\n|**Jetson** (`arm64`)|astanea/adi_ros2-l4t|The image tar",
+    "The Analog Devices SDK provides three Docker image variants that incrementally\nadd more packages to address different user requirements:\n|Variant|Description|\n|**base**|Includes a basic ROS2 installation plus all Analog Devices ROS2 packages and their dependencies.|\n|**full**|Builds upon the base st",
+    "- ROS2 Humble Hawksbill (Ubuntu 22.04 LTS base)\n",
+    "> **Note**\n>\n> For a quick start, it is recommended to use one of the pre-build Docker images.\n> These images contain pre-built ROS2 packages installed in an overlay at\n> `/opt/ros/adi_ros2` which is automatically sourced when the container starts.\n> For a complete list of available tags and image v",
+    "Use this index to find the ROS2 packages you need provided by\nAnalog Devices Inc as well as examples on how to use them.\n|Repository Docs|Package Name|API Docs|Description|\n|adi_ros2|`adi_meta`|N/A|This package serves as a meta-package that aggregates all ROS2 packages provided by Analog Devices Inc",
+    "Table of Contents\n\n- Why Use a Docker Image?\n- Prerequisites\n- Cloning the Repository\n- Building the Docker Image\n- Advanced: Build the Docker Image Using Scripts\n\n\nThis guide explains how to build a Docker image containing the necessary system\ndependencies for Analog Devices ROS2 packages. By using",
+    "1. **Consistent Environment**Docker containers provide a reproducible setup where all the necessary libraries\n  and tools remain version-locked, reducing the chance of dependency conflicts or\n  mismatched package versions.\n2. **Simplified Setup**Instead of manually installing system dependencies for",
+    "- **Docker installed:** Ensure you have Docker installed and running on your\n  system. Refer to the official installation instructions.\n- **ROS2 Knowledge:** Familiarity with building and running ROS2 packages.\n",
+    "**Clone with Submodules:** Clone the repository containing the Analog Devices\nROS2 packages. Make sure to initialize and update the submodules to get all the\nneeded ADI ROS2 components (required for building the documentation):\n\n```bash\ngit clone https://github.com/analogdevicesinc/adi_ros2.git\ncd a",
+    "The repository contains ready-to-use Dockerfiles for different architectures\nand ROS2 distributions (`humble`).\n\n**Dockerfile Locations:**\n\n- **ARM64 and AMD64 platforms:** `docker/adi_ros2/` directory\n  `humble-amd64.Dockerfile` - For x86_64 systems\n  `humble-arm64.Dockerfile` - For ARM64 systems\n\n",
+    "To build a Docker image use one of the available Dockerfiles you can run the\nfollowing command, replacing the Dockerfile path and image tag as needed:\n\n```bash\n# Build AMD64 image for ROS2 Humble (base target)\ndocker buildx build \\\n    --platform linux/amd64 \\\n    --file docker/adi_ros2/humble-amd64",
+    "After building, verify that the image was created successfully:\n\n```bash\ndocker images | grep adi_ros2\n```\n",
+    "The ADI ROS2 Docker images use a template-based build system where Dockerfiles\nare generated from Jinja2 templates defined in `scripts/templates.yml`. This\napproach allows for consistent configuration across multiple image variants and\narchitectures. The provided build scripts are primarily used to ",
+    "The generate script is used to update Dockerfiles from Jinja2 templates. This\nallows you to customize the build configuration without manually editing\nDockerfiles.\n\n```bash\n# Generate Dockerfiles from templates\n./scripts/generate.py\n```\n",
+    "The build script is used to build specific targets from a Dockerfile. You can\npass options to build a specific target defined in the `templates.yml` file.\n\nTo see the help menu and available options, run:\n\n```bash\n# Help menu\n./scripts/build.py --help\n```\n\n\n> **Note**\n>\n> Ensure Docker engine is run",
+    "This document explains the template-based infrastructure used to generate Docker\nimages for the ADI ROS2 repository. The system uses Jinja2 templates to maintain\nconsistency across multiple image variants and architectures while reducing\ncode duplication.\n",
+    "The ADI ROS2 project uses a template system to generate Dockerfiles rather than\nmaintaining them manually. This approach provides several key benefits:\n\n- **Consistency**: many Dockerfiles can be generated from shared templates and\n  snippets\n- **Maintainability**: Changes to common functionality on",
+    "The template infrastructure consists of four main components:\n\n1. **Template Configuration** (`scripts/templates.yml`).\n2. **Jinja2 Templates** (`template/` directory).\n3. **Generation Scripts** (`scripts/generate.py` and `scripts/build.py`).\n4. **CI/CD Integration** (`.github/workflows/docker.yml`)",
+    "The `scripts/templates.yml` file defines all Docker image configurations.\nIt specifies:\n\n- **Repository variants**: `adi_ros2` (standard Ubuntu) and `adi_ros2-l4t`\n  (NVIDIA Jetson)\n- **Build targets**: `base`, `full`, and `desktop` stages\n- **Platform architectures**: `linux/amd64` and `linux/arm64",
+    "Templates are located in the `template/` directory and use Jinja2 syntax for\ndynamic content generation.\n\n**Main Templates:**\n\n- `adi_ros2.dockerfile.jinja`: Standard Ubuntu-based images\n- `adi_ros2-l4t.dockerfile.jinja`: NVIDIA Jetson-specific images\n- `docker_readme.md.jinja`: Auto-generated docum",
+    "All generated Dockerfiles use a multi-stage build approach:\n\n****1. Base Stage****\n:   Installs ADI ROS2 packages and core dependencies\n:   Builds libiio and other libraries from source\n:   Sets up the ADI ROS2 workspace overlay\n\n****2. Full Stage****\n:   Extends base with additional ROS2 packages\n:",
+    "The infrastructure includes two main Python scripts:\n",
+    "This script processes templates and creates the final Dockerfiles:\n\n```bash\n./scripts/generate.py\n```\n\n\n**Functions:**\n\n- Reads configuration from `templates.yml`\n- Renders Jinja2 templates with configuration variables\n- Outputs Dockerfiles to `docker/` subdirectories\n- Updates documentation and CI ",
+    "This script provides a convenient interface for building and testing images\nlocally:\n\n```bash\n./scripts/build.py [OPTIONS] IMAGE_NAME\n```\n\n\n**Key Options:**\n\n- `--generate`: Regenerate Dockerfiles from templates before building\n- `--no-push`: Skip pushing to registry (for local testing)\n- `--no-clea",
+    "The `.github/workflows/docker.yml` file automates the build and deployment process:\n\n****Trigger Conditions:****\n:   Pushes to `humble*`, `jazzy*`, or `rolling*` branches\n:   Pull requests (build only, no push)\n:   Manual workflow dispatch\n\n****Build Matrix:****\n:   Multiple architecture runners (`u",
+    "1. **Update Configuration**: Add new entries to `scripts/templates.yml`\n\n\n```yaml\nadi_ros2:\n  - name: rolling-amd64\n    ros_distro: rolling\n    arch: amd64\n    # ... additional configuration\n```\n\n\n1. **Test Generation**: Run the generation script to verify templates\n\n\n```bash\n./scripts/generate.py\n`",
+    "1. **Edit Templates**: Modify files in `template/` directory\n2. **Regenerate Dockerfiles**: Update all generated files\n\n\n```bash\n./scripts/generate.py\n```\n\n\n1. **Test Changes**: Build affected images locally\n\n\n```bash\n./scripts/build.py --generate --no-push --target base humble-amd64\n```\n\n\n1. **Vali",
+    "****Variable Naming:****\n:   Use descriptive names matching `templates.yml` keys\n:   Follow `snake_case` convention\n:   Include validation for required variables\n\n****Snippet Organization:****\n:   Keep snippets focused on single concerns\n:   Use descriptive filenames\n\n****Conditional Logic:****\n:   ",
+    "****Template Syntax Errors:****\n:   Verify Jinja2 syntax with `scripts/generate.py`\n:   Check variable names match `templates.yml`\n:   Ensure proper escaping of special characters\n\n****Build Failures:****\n:   Review generated Dockerfiles for syntax errors\n:   Check base image availability\n:   Verify",
+    "**Regular Updates:**\n\n- Keep base images current with latest security patches.\n- Keep the `docker/adi_ros2-{ros_distro}.yml` file updated with the latest\n  ROS2 package versions and dependencies.\n- Review and update system dependencies periodically.\n\n\n**Version Management:**\n\n- Tag template changes ",
+    "Table of Contents\n\n- Overview\n- Prerequisites\n- Setting Up the Environment\n- Understanding the Documentation Structure\n- Building the Documentation\n- Building Documentation for a Specific Package\n- Troubleshooting\n- Contributing to Documentation\n",
+    "This guide explains how to build and generate documentation for the ADI ROS2\nrepository. The documentation system uses rosdoc2 to generate both custom\ndocumentation (tutorials, guides) and auto-generated API references from source code.\nThe documentation styling follows Analog Devices guidelines thr",
+    "Before building documentation, ensure you have:\n\n- **Python 3.10+**: The documentation tools have been tested with Python 3.10\n- **Git submodules initialized**: Required for building complete documentation\n- **ROS2 packages**: Some API documentation requires ROS2 package metadata\n",
+    "To ensure a consistent build environment, set up a Python virtual environment:\n\n1. **Navigate to the repository root:**\n  cd /path/to/adi_ros2\n2. **Create and activate a virtual environment:**\n  python3 -m venv .venv\n  source .venv/bin/activate\n3. **Install documentation dependencies:**\n  pip instal",
+    "The ADI ROS2 documentation is organized in a hierarchical structure:\n",
+    "```text\nadi_ros2/\n\u251c\u2500\u2500 src/\n\u2502   \u251c\u2500\u2500 adi_ros2/\n\u2502   \u2502   \u2514\u2500\u2500 doc/                 # Meta-repository documentation\n\u2502   \u2502       \u251c\u2500\u2500 index.rst        # Main documentation entry point\n\u2502   \u2502       \u251c\u2500\u2500 conf.py          # Sphinx configuration\n\u2502   \u2502       \u2514\u2500\u2500 Documentation/   # Guides, tutorials, etc.\n\u2502   \u251c\u2500\u2500 a",
+    "1. **Meta-repository Documentation** (`src/adi_ros2/doc/`)\n  Overview of the entire ADI ROS2 ecosystem\n  Getting started guides\n  Docker setup instructions\n  Links to individual package documentation\n\n  - Overview of the entire ADI ROS2 ecosystem\n  - Getting started guides\n  - Docker setup instructi",
+    "- **conf.py**: Sphinx configuration defining build settings, theme, and extensions\n- **index.rst**: Main entry point providing navigation and overview\n- **rosdoc2.yaml**: Package-specific build configuration for rosdoc2\n",
+    "The documentation build process uses an automated script that handles all packages:\n\n1. **Run the Build Script**\n  Execute the build script from the repository root:\n  ./ci/build_doc.sh\n  This script will:\n  Set up the build environment\n  Process all packages with documentation\n  Generate API refere",
+    "For development and testing, you can build documentation for individual packages:\n\n```bash\n# Create build directory if it doesn't exist\nmkdir -p _build\ncd _build\n\n# Build specific package documentation\nrosdoc2 build --package-path ../src/adi_imu --debug\n```\n\n\n> **Tip**\n>\n> Use the `--debug` flag to ",
+    "Common Issues and Solutions:\n\n****Missing Dependencies:****\n:   If you encounter import errors, ensure all Python dependencies are installed:\n:   pip install -r src/adi_ros2/doc/requirements.txt\n\n****Submodule Issues:****\n:   The Git submodules may not be initialized or updated. Ensure you have\n:   ",
+    "When contributing to the documentation:\n\n1. **Follow reStructuredText conventions** for consistency\n2. **Test your changes** by building the documentation locally\n3. **Update both content and structure** when adding new packages\n4. **Include examples and code snippets** to illustrate usage\n\n\n> **War"
+  ],
+  "url": [
+    "modules.html",
+    "Documentation/Developer-Guides.html",
+    "Documentation/How-To-Guides.html",
+    "Documentation.html",
+    "Documentation/Developer-Guides/Adding-ADI-ROS2-Packages.html",
+    "Documentation/Developer-Guides/Adding-ADI-ROS2-Packages.html#introduction",
+    "Documentation/Developer-Guides/Adding-ADI-ROS2-Packages.html#documentation-pipeline-vs-docker-builds",
+    "Documentation/Developer-Guides/Adding-ADI-ROS2-Packages.html#template-system-integration",
+    "Documentation/Developer-Guides/Adding-ADI-ROS2-Packages.html#step-1-add-as-git-submodule-documentation-pipeline",
+    "Documentation/Developer-Guides/Adding-ADI-ROS2-Packages.html#step-2-add-to-vcs-import-lists-docker-builds",
+    "Documentation/Developer-Guides/Adding-ADI-ROS2-Packages.html#step-3-update-template-system-optional",
+    "Documentation/Developer-Guides/Adding-ADI-ROS2-Packages.html#update-dockerfiles",
+    "Documentation/Developer-Guides/Adding-ADI-ROS2-Packages.html#push-changes-and-ci-validation",
+    "Documentation/Developer-Guides/Adding-ADI-ROS2-Packages.html#final-checklist",
+    "index.html",
+    "index.html",
+    "index.html",
+    "index.html#host-platforms",
+    "index.html",
+    "index.html#supported-ros2-distributions",
+    "index.html",
+    "index.html",
+    "Documentation/How-To-Guides/ROS2-Docker-Image-Guide.html",
+    "Documentation/How-To-Guides/ROS2-Docker-Image-Guide.html#why-use-a-docker-image",
+    "Documentation/How-To-Guides/ROS2-Docker-Image-Guide.html#prerequisites",
+    "Documentation/How-To-Guides/ROS2-Docker-Image-Guide.html#cloning-the-repository",
+    "Documentation/How-To-Guides/ROS2-Docker-Image-Guide.html#building-the-docker-image",
+    "Documentation/How-To-Guides/ROS2-Docker-Image-Guide.html#local-docker-build-example",
+    "Documentation/How-To-Guides/ROS2-Docker-Image-Guide.html#verify-the-image-build",
+    "Documentation/How-To-Guides/ROS2-Docker-Image-Guide.html#advanced-build-the-docker-image-using-scripts",
+    "Documentation/How-To-Guides/ROS2-Docker-Image-Guide.html#generate-script",
+    "Documentation/How-To-Guides/ROS2-Docker-Image-Guide.html#build-script",
+    "Documentation/Developer-Guides/Dockerfile-Template-Infrastructure.html",
+    "Documentation/Developer-Guides/Dockerfile-Template-Infrastructure.html#overview",
+    "Documentation/Developer-Guides/Dockerfile-Template-Infrastructure.html#architecture",
+    "Documentation/Developer-Guides/Dockerfile-Template-Infrastructure.html#template-configuration",
+    "Documentation/Developer-Guides/Dockerfile-Template-Infrastructure.html#jinja2-templates",
+    "Documentation/Developer-Guides/Dockerfile-Template-Infrastructure.html#multi-stage-build-architecture",
+    "Documentation/Developer-Guides/Dockerfile-Template-Infrastructure.html#generation-scripts",
+    "Documentation/Developer-Guides/Dockerfile-Template-Infrastructure.html#generate-script-scripts-generate-py",
+    "Documentation/Developer-Guides/Dockerfile-Template-Infrastructure.html#build-script-scripts-build-py",
+    "Documentation/Developer-Guides/Dockerfile-Template-Infrastructure.html#ci-cd-integration",
+    "Documentation/Developer-Guides/Dockerfile-Template-Infrastructure.html#adding-new-image-variants",
+    "Documentation/Developer-Guides/Dockerfile-Template-Infrastructure.html#modifying-templates",
+    "Documentation/Developer-Guides/Dockerfile-Template-Infrastructure.html#template-best-practices",
+    "Documentation/Developer-Guides/Dockerfile-Template-Infrastructure.html#common-issues",
+    "Documentation/Developer-Guides/Dockerfile-Template-Infrastructure.html#maintenance-guidelines",
+    "Documentation/How-To-Guides/ROS2-Documentation-Guide.html",
+    "Documentation/How-To-Guides/ROS2-Documentation-Guide.html#overview",
+    "Documentation/How-To-Guides/ROS2-Documentation-Guide.html#prerequisites",
+    "Documentation/How-To-Guides/ROS2-Documentation-Guide.html#setting-up-the-environment",
+    "Documentation/How-To-Guides/ROS2-Documentation-Guide.html#understanding-the-documentation-structure",
+    "Documentation/How-To-Guides/ROS2-Documentation-Guide.html#repository-structure",
+    "Documentation/How-To-Guides/ROS2-Documentation-Guide.html#documentation-levels",
+    "Documentation/How-To-Guides/ROS2-Documentation-Guide.html#key-configuration-files",
+    "Documentation/How-To-Guides/ROS2-Documentation-Guide.html#building-the-documentation",
+    "Documentation/How-To-Guides/ROS2-Documentation-Guide.html#building-documentation-for-a-specific-package",
+    "Documentation/How-To-Guides/ROS2-Documentation-Guide.html#troubleshooting",
+    "Documentation/How-To-Guides/ROS2-Documentation-Guide.html#contributing-to-documentation"
+  ],
+  "hierarchy": [
+    [
+      "doc"
+    ],
+    [
+      "Documentation",
+      "Developer Guides"
+    ],
+    [
+      "Documentation",
+      "How-to Guides"
+    ],
+    [
+      "Documentation"
+    ],
+    [
+      "Documentation",
+      "Developer Guides",
+      "Adding ADI ROS2 Packages"
+    ],
+    [
+      "Documentation",
+      "Developer Guides",
+      "Adding ADI ROS2 Packages",
+      "Introduction"
+    ],
+    [
+      "Documentation",
+      "Developer Guides",
+      "Adding ADI ROS2 Packages",
+      "Overview of the Dual System",
+      "Documentation Pipeline vs Docker Builds"
+    ],
+    [
+      "Documentation",
+      "Developer Guides",
+      "Adding ADI ROS2 Packages",
+      "Overview of the Dual System",
+      "Template System Integration"
+    ],
+    [
+      "Documentation",
+      "Developer Guides",
+      "Adding ADI ROS2 Packages",
+      "Adding a New Package",
+      "Step 1: Add as Git Submodule (Documentation Pipeline)"
+    ],
+    [
+      "Documentation",
+      "Developer Guides",
+      "Adding ADI ROS2 Packages",
+      "Adding a New Package",
+      "Step 2: Add to VCS Import Lists (Docker Builds)"
+    ],
+    [
+      "Documentation",
+      "Developer Guides",
+      "Adding ADI ROS2 Packages",
+      "Adding a New Package",
+      "Step 3: Update Template System (Optional)"
+    ],
+    [
+      "Documentation",
+      "Developer Guides",
+      "Adding ADI ROS2 Packages",
+      "Update Dockerfiles"
+    ],
+    [
+      "Documentation",
+      "Developer Guides",
+      "Adding ADI ROS2 Packages",
+      "Push Changes and CI Validation"
+    ],
+    [
+      "Documentation",
+      "Developer Guides",
+      "Adding ADI ROS2 Packages",
+      "Final Checklist"
+    ],
+    [
+      "Analog Devices ROS2"
+    ],
+    [
+      "Overview"
+    ],
+    [
+      "Supported Platforms"
+    ],
+    [
+      "Supported Platforms",
+      "Host Platforms"
+    ],
+    [
+      "Docker Image Variants"
+    ],
+    [
+      "Docker Image Variants",
+      "Supported ROS2 Distributions:"
+    ],
+    [
+      "Getting Started"
+    ],
+    [
+      "Repositories and Packages"
+    ],
+    [
+      "Documentation",
+      "How-to Guides",
+      "ROS2 Docker Image Guide"
+    ],
+    [
+      "Documentation",
+      "How-to Guides",
+      "ROS2 Docker Image Guide",
+      "Why Use a Docker Image?"
+    ],
+    [
+      "Documentation",
+      "How-to Guides",
+      "ROS2 Docker Image Guide",
+      "Prerequisites"
+    ],
+    [
+      "Documentation",
+      "How-to Guides",
+      "ROS2 Docker Image Guide",
+      "Cloning the Repository"
+    ],
+    [
+      "Documentation",
+      "How-to Guides",
+      "ROS2 Docker Image Guide",
+      "Building the Docker Image"
+    ],
+    [
+      "Documentation",
+      "How-to Guides",
+      "ROS2 Docker Image Guide",
+      "Building the Docker Image",
+      "Local Docker Build Example"
+    ],
+    [
+      "Documentation",
+      "How-to Guides",
+      "ROS2 Docker Image Guide",
+      "Building the Docker Image",
+      "Verify the Image Build"
+    ],
+    [
+      "Documentation",
+      "How-to Guides",
+      "ROS2 Docker Image Guide",
+      "Advanced: Build the Docker Image Using Scripts"
+    ],
+    [
+      "Documentation",
+      "How-to Guides",
+      "ROS2 Docker Image Guide",
+      "Advanced: Build the Docker Image Using Scripts",
+      "Generate Script"
+    ],
+    [
+      "Documentation",
+      "How-to Guides",
+      "ROS2 Docker Image Guide",
+      "Advanced: Build the Docker Image Using Scripts",
+      "Build Script"
+    ],
+    [
+      "Documentation",
+      "Developer Guides",
+      "Dockerfile Template Infrastructure"
+    ],
+    [
+      "Documentation",
+      "Developer Guides",
+      "Dockerfile Template Infrastructure",
+      "Overview"
+    ],
+    [
+      "Documentation",
+      "Developer Guides",
+      "Dockerfile Template Infrastructure",
+      "Architecture"
+    ],
+    [
+      "Documentation",
+      "Developer Guides",
+      "Dockerfile Template Infrastructure",
+      "Architecture",
+      "Template Configuration"
+    ],
+    [
+      "Documentation",
+      "Developer Guides",
+      "Dockerfile Template Infrastructure",
+      "Architecture",
+      "Jinja2 Templates"
+    ],
+    [
+      "Documentation",
+      "Developer Guides",
+      "Dockerfile Template Infrastructure",
+      "Architecture",
+      "Multi-Stage Build Architecture"
+    ],
+    [
+      "Documentation",
+      "Developer Guides",
+      "Dockerfile Template Infrastructure",
+      "Generation Scripts"
+    ],
+    [
+      "Documentation",
+      "Developer Guides",
+      "Dockerfile Template Infrastructure",
+      "Generation Scripts",
+      "Generate Script (scripts/generate.py)"
+    ],
+    [
+      "Documentation",
+      "Developer Guides",
+      "Dockerfile Template Infrastructure",
+      "Generation Scripts",
+      "Build Script (scripts/build.py)"
+    ],
+    [
+      "Documentation",
+      "Developer Guides",
+      "Dockerfile Template Infrastructure",
+      "CI/CD Integration"
+    ],
+    [
+      "Documentation",
+      "Developer Guides",
+      "Dockerfile Template Infrastructure",
+      "Development Workflow",
+      "Adding New Image Variants"
+    ],
+    [
+      "Documentation",
+      "Developer Guides",
+      "Dockerfile Template Infrastructure",
+      "Development Workflow",
+      "Modifying Templates"
+    ],
+    [
+      "Documentation",
+      "Developer Guides",
+      "Dockerfile Template Infrastructure",
+      "Development Workflow",
+      "Template Best Practices"
+    ],
+    [
+      "Documentation",
+      "Developer Guides",
+      "Dockerfile Template Infrastructure",
+      "Troubleshooting",
+      "Common Issues"
+    ],
+    [
+      "Documentation",
+      "Developer Guides",
+      "Dockerfile Template Infrastructure",
+      "Maintenance Guidelines"
+    ],
+    [
+      "Documentation",
+      "How-to Guides",
+      "ROS2 Documentation Guide"
+    ],
+    [
+      "Documentation",
+      "How-to Guides",
+      "ROS2 Documentation Guide",
+      "Overview"
+    ],
+    [
+      "Documentation",
+      "How-to Guides",
+      "ROS2 Documentation Guide",
+      "Prerequisites"
+    ],
+    [
+      "Documentation",
+      "How-to Guides",
+      "ROS2 Documentation Guide",
+      "Setting Up the Environment"
+    ],
+    [
+      "Documentation",
+      "How-to Guides",
+      "ROS2 Documentation Guide",
+      "Understanding the Documentation Structure"
+    ],
+    [
+      "Documentation",
+      "How-to Guides",
+      "ROS2 Documentation Guide",
+      "Understanding the Documentation Structure",
+      "Repository Structure:"
+    ],
+    [
+      "Documentation",
+      "How-to Guides",
+      "ROS2 Documentation Guide",
+      "Understanding the Documentation Structure",
+      "Documentation Levels:"
+    ],
+    [
+      "Documentation",
+      "How-to Guides",
+      "ROS2 Documentation Guide",
+      "Understanding the Documentation Structure",
+      "Key Configuration Files:"
+    ],
+    [
+      "Documentation",
+      "How-to Guides",
+      "ROS2 Documentation Guide",
+      "Building the Documentation"
+    ],
+    [
+      "Documentation",
+      "How-to Guides",
+      "ROS2 Documentation Guide",
+      "Building Documentation for a Specific Package"
+    ],
+    [
+      "Documentation",
+      "How-to Guides",
+      "ROS2 Documentation Guide",
+      "Troubleshooting"
+    ],
+    [
+      "Documentation",
+      "How-to Guides",
+      "ROS2 Documentation Guide",
+      "Contributing to Documentation"
+    ]
+  ]
+}

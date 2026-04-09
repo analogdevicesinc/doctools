@@ -1,0 +1,1234 @@
+{
+  "text": [
+    "\u21b0 Parent directory (`include`)\n\nContents\n\n- Definition (`include/input_sensor.h`)\n- Includes\n- Included By\n- Classes\n",
+    "- Program Listing for File input_sensor.h\n",
+    "- `adi_camera.h` (File adi_camera.h)\n- `rclcpp/rclcpp.hpp`\n- `stdint.h`\n",
+    "- File adi_3dtof_adtf31xx.h\n- File input_sensor_adtf31xx.h\n- File input_sensor_factory.h\n- File input_sensor_file_rosbagbin.h\n",
+    "- Class IInputSensor\n",
+    "- Defined in File compression_common.h\n",
+    "**enum compressed_depth_image_transport::compressionFormat**\n:   *Values:*\n:   enumerator UNDEFINED\n:   enumerator INV_DEPTH\n",
+    "\u21b0 Parent directory (`include/ros-perception/image_transport_plugins`)\n\n*Directory path:* `include/ros-perception/image_transport_plugins/compressed_depth_image_transport`\n",
+    "- File compression_common.h\n- File rvl_codec.h\n",
+    "- Defined in File module_profile.h\n",
+    "**PROFILE_FUNCTION_END(ID)**\n",
+    "\u21b0 Parent directory (`include`)\n\n*Directory path:* `include/ros-perception`\n",
+    "- Directory image_transport_plugins\n",
+    "\u21b0 Return to documentation for file (`include/input_sensor_adtf31xx.h`)\n\n```cpp\n/******************************************************************************\nCopyright (c), 2023 - Analog Devices Inc. All Rights Reserved.\nThis software is PROPRIETARY & CONFIDENTIAL to Analog Devices, Inc.\nand its li",
+    "\u21b0 Parent directory (`include`)\n\nContents\n\n- Definition (`include/image_proc_utils.h`)\n- Includes\n- Included By\n- Classes\n",
+    "- Program Listing for File image_proc_utils.h\n",
+    "- `adi_camera.h` (File adi_camera.h)\n- `cmath`\n- `cv_bridge/cv_bridge.hpp`\n- `opencv2/calib3d.hpp`\n",
+    "- File adi_3dtof_adtf31xx.h\n",
+    "- Class ImageProcUtils\n",
+    "\u21b0 Return to documentation for file (`include/input_sensor.h`)\n\n```cpp\n/******************************************************************************\nCopyright (c), 2023 - Analog Devices Inc. All Rights Reserved.\nThis software is PROPRIETARY & CONFIDENTIAL to Analog Devices, Inc.\nand its licensors.\n",
+    "- Defined in File module_profile.h\n",
+    "**PROFILE_ID_START()**\n",
+    "The **ADI 3DToF ADTF31xx** is a ROS (Robot Operating System) package for working with ADI\u2019s EVAL-ADTF3175D-NXZ ToF sensor. This node captures the Depth and AB frames from the sensor and publishes them as ROS topics. The node uses *ADI ToF SDK* APIs to capture frames from the sensor. The node publish",
+    "- EVAL-ADTF3175D-NXZ Module\n- USB Type-C to Type-A cable - with 5gbps data speed support\n- Host laptop with intel i5 of higher cpu running Ubuntu-22.04LTS\n\n\n[!note]\nRefer the EVAL-ADTF3175D-NXZ User Guide to ensure the Eval module has adequate power supply during operation.\n\n[!important]\nThe EVAL-AD",
+    "This package has three different operation modes. Refer to the following intra-links to setup the package accordingly.\n\n1. Camera Sensor Mode\n2. File-IO Mode\n3. Network Mode\n",
+    "The package is built on the sensor module and directly interfaces with the image sensor. The adi_3dtof_nxp_ubuntu_20_04_relx.x.x.img provided for the EVAL-ADTF3175D-NXZ sensor already contains this ROS package and is pre-built. In order to use this package, first we need to connect the sensor to the",
+    "[!warning]\nThe time and date may be incorrect on the sensor and this can cause issues in updating the package. To update the time and date, refer to updating date and time.\n\nIn order to update and rebuild package to the latest version, run the following commands:\n\n```bash\ncd ~/ros2_ws/src/adi_3dtof_",
+    "In this camera mode, the package is built on the Host PC in order to evaluate the properties of the package by running a pre-recorded bin file which contains the outputs from the sensor module.\n",
+    "1. On your PC, create a workspace\n\n\n```bash\nmkdir -p ~/ros2_ws/src\n```\n\n\n1. Clone the repository\n\n\n```bash\ncd ~/ros2_ws/src\ngit clone https://github.com/analogdevicesinc/adi_3dtof_adtf31xx.git -b v2.1.0\ncd ..\n```\n\n\n1. Build the workspace\n\n\n```bash\nrosdep install --from-paths src --ignore-src -r -y\nc",
+    "In order to run the package in file-io, it needs input files provided in the release image. Follow the steps below to use existing bin files, or follow these steps to create your own bin files.\n\n1. Go to the installation directory of the ADI 3DToF ADTF31xx application `~/Analog Devices/ADI3DToFADTF3",
+    "The sensor can be operated in network mode where depth and AB (Active Brightness) images are fetched over the local area network. The simplest way to use this is to connect the sensor directly to the PC so that a network interface via USB is created with a default IP address of `10.43.0.1`. In order",
+    "The `adi_3dtof_adtf31xx` depends on libaditof in order to communicate with the sensor. So we will need to build this in the same workspace as `adi_3dtof_adtf31xx`.\n\n1. On your PC, create the workspace and clone the required repositories.\n\n\n```bash\nmkdir -p ~/ros2_ws/src\ncd ~/ros2_ws/src\ngit clone ht",
+    "To run the node in network mode, run\n\n```bash\nros2 launch adi_3dtof_adtf31xx adi_3dtof_adtf31xx_launch.py arg_input_sensor_mode:=3 arg_input_sensor_ip:=10.43.0.1\n```\n\n\n[!note]\nThe `arg_input_sensor_mode:=3` sets the node to operate in network mode. This value can be adjusted in the launch file. `arg",
+    "|Parameter|Type|Default|Description|\n|**arg_input_sensor_mode**|int|0|Input mode, `0:Real Time Sensor`, `2:FIle-io`, `3:Network Mode`|\n|**arg_in_file_name**|String|\u201cno name\u201d|Input filename : Applicable only if the input mode is 2|\n|**arg_ab_threshold**|int|10|abThreshold for the sensor|\n|**arg_confi",
+    "|Imager Type|Mode Name|Mode Value|\n|ADSD3100|sr-native|0|\n||lr-native|1|\n||sr-qnative|2|\n||lr-qnative|3|\n||sr-mixed|5|\n||lr-mixed|6|\n|ADSD3030|sr-native|0|\n||lr-native|1|\n||lr-qnative|3|\n||sr-mixed|5|\n||lr-mixed|6|\n|Other modes|-|-|\n",
+    "|Topic|Description|\n|**/depth_image**|16-bit Depth image of size|\n|**/ab_image**|16-bit AB image|\n|**/conf_image**|16-bit Confidence image|\n|**/camera_info**|Camera info|\n|**/depth_image/compressedDepth**|16-bit Depth image from sensor node compressed with RVL compression|\n|**/ab_image/compressedDep",
+    "Sample output images are shown below:\n\n`/cam1/depth_image`\n\n`/cam1/ab_image`\n",
+    "Some parameters of *adi_3dtof_adtf31xx* ROS node can be modified during run time. The Perspective file is present in `rqt_config/` folder.\n\nThe GUI can be started by running the following command.\n\n```bash\nros2 launch adi_3dtof_adtf31xx adi_3dtof_adtf31xx_rqt_launch.py\n```\n\n\nMake sure the *adi_3dtof",
+    "The customized ubuntu image loaded into the sensor will automatically connect to any WiFi hotspot with the SSID as `ADI` and password set as `analog123`. This network connection will automatically sync the system time using the available internet connection.\n",
+    "|Flag Name|Type|Default Value|Description|\n|**SENSOR_CONNECTED**|BOOL|TRUE|Indicates if the sensor is connected|\n|**BUILD_EXAMPLE_SUBSCRIBER_NODE**|BOOL|FALSE|Builds an example subscriber node that uncompresses depth and AB images|\n|**BUILD_READ_ROSBAG_NODE**|BOOL|FALSE|Builds a node that converts r",
+    "To check the existing firmware version, log into the sensore device via SSH.\n\n```bash\n$ ssh analog@10.43.0.1\n   Username: analog\n   Password: analog\n```\n\n\nRun command:\n\n```bash\ncd ~/Workspace/Tool/ctrl_app\n./ctrl_app\n```\n\n\nYour output would look like this:\n\n```default\nV4L2 custom control interface a",
+    "rosbag2, a utility provided by ROS, is used to record topics. The data is collected in bag format, and the adi_3dtof_adtf31xx_read_rosbag_node node converts it to bin file format.\nThe format of bin file as given below.\n\n```default\nstart of bin file\n\n4 byte uint32_t = total frames in bin file.\n4 byte",
+    "Change below parameters in `adi_3dtof_adtf31xx_read_rosbag_launch.py` file\n\n1. arg_in_file_name : The rosbag2 file name\n2. arg_camera_prefixes : Camera prefix, more than one camera prefixes can be passed. For example if the recorded topic names are /cam1/depth_image and /cam2/depth_image, arg_camera",
+    "The reason for this is that rosbags may store images in a disorganized order rather than in a sequential manner. For this reason, in order to produce the output, the FileIO code must queue up the publishing rosbag images and synchronize the depth and AB images. The FileIO process becomes slower as a",
+    "\u21b0 Return to documentation for file (`include/ros-perception/image_transport_plugins/compressed_depth_image_transport/rvl_codec.h`)\n\n```cpp\n#ifndef COMPRESSED_DEPTH_IMAGE_TRANSPORT_RVL_CODEC_H_\n#define COMPRESSED_DEPTH_IMAGE_TRANSPORT_RVL_CODEC_H_\n\nnamespace compressed_depth_image_transport {\n\nclass ",
+    "\u21b0 Return to documentation for file (`include/ros-perception/image_transport_plugins/compressed_depth_image_transport/compression_common.h`)\n\n```cpp\n/*********************************************************************\n* Software License Agreement (BSD License)\n*\n*  Copyright (c) 2012, Willow Garage",
+    "\u21b0 Return to documentation for file (`include/input_sensor_factory.h`)\n\n```cpp\n/******************************************************************************\nCopyright (c), 2023 - Analog Devices Inc. All Rights Reserved.\nThis software is PROPRIETARY & CONFIDENTIAL to Analog Devices, Inc.\nand its lic",
+    "- Defined in File input_sensor.h\n",
+    "- `public InputSensorADTF31XX` (Class InputSensorADTF31XX)\n- `public InputSensorFileRosbagBin` (Class InputSensorFileRosbagBin)\n",
+    "**class IInputSensor**\n:   This is input base class. \n:   Subclassed by InputSensorADTF31XX, InputSensorFileRosbagBin\n:   Public Functions\n:   virtual void openSensor(std::string sensor_name, int input_image_width, int input_image_height, std::string config_file_name, std::string input_sensor_ip) = ",
+    "\u21b0 Parent directory (`include/ros-perception`)\n\n*Directory path:* `include/ros-perception/image_transport_plugins`\n",
+    "- Directory compressed_depth_image_transport\n",
+    "- Defined in File compression_common.h\n",
+    "**struct ConfigHeader**\n:   Public Members\n:   compressionFormat format\n:   float depthParam[2]\n",
+    "- Defined in File module_profile.h\n",
+    "**CLOSE_FUNCTION_PROFILE()**\n",
+    "\u21b0 Return to documentation for file (`include/module_profile.h`)\n\n```cpp\n/******************************************************************************\nCopyright (c), 2023 - Analog Devices Inc. All Rights Reserved.\nThis software is PROPRIETARY & CONFIDENTIAL to Analog Devices, Inc.\nand its licensors",
+    "\u21b0 Parent directory (`include`)\n\nContents\n\n- Definition (`include/adi_3dtof_adtf31xx_frame_info.h`)\n- Includes\n- Included By\n- Classes\n",
+    "- Program Listing for File adi_3dtof_adtf31xx_frame_info.h\n",
+    "- `cstring`\n- `rclcpp/rclcpp.hpp`\n",
+    "- File adi_3dtof_adtf31xx.h\n",
+    "- Class ADI3DToFADTF31xxFrameInfo\n",
+    "\u21b0 Parent directory (`include/ros-perception/image_transport_plugins/compressed_depth_image_transport`)\n\nContents\n\n- Definition (`include/ros-perception/image_transport_plugins/compressed_depth_image_transport/compression_common.h`)\n- Included By\n- Namespaces\n- Classes\n- Enums\n",
+    "- Program Listing for File compression_common.h\n",
+    "- File adi_3dtof_adtf31xx.h\n",
+    "- Namespace compressed_depth_image_transport\n",
+    "- Struct ConfigHeader\n",
+    "- Enum compressionFormat\n",
+    "- Namespace compressed_depth_image_transportStruct ConfigHeaderClass RvlCodecEnum compressionFormatStruct CameraExtrinsicsStruct CameraIntrinsicsClass ADI3DToFADTF31xxStruct ADI3DToFADTF31xx::TunableParametersClass ADI3DToFADTF31xxFrameInfoClass ADI3DToFADTF31xxOutputInfoClass IInputSensorClass Imag",
+    "- Directory includeDirectory ros-perceptionDirectory image_transport_pluginsDirectory compressed_depth_image_transportFile compression_common.hFile rvl_codec.hFile adi_3dtof_adtf31xx.hFile adi_3dtof_adtf31xx_frame_info.hFile adi_3dtof_adtf31xx_output_info.hFile adi_camera.hFile image_proc_utils.hFil",
+    "- Namespace compressed_depth_image_transport\n\n\n- Namespace rclcpp\n\n\n- Namespace std::chrono_literals\n",
+    "- Struct ADI3DToFADTF31xx::TunableParameters\n\n\n- Struct CameraExtrinsics\n\n\n- Struct CameraIntrinsics\n\n\n- Struct ConfigHeader\n\n\n- Class ADI3DToFADTF31xx\n\n\n- Class ADI3DToFADTF31xxFrameInfo\n\n\n- Class ADI3DToFADTF31xxOutputInfo\n\n\n- Class RvlCodec\n\n\n- Class IInputSensor\n\n\n- Class ImageProcUtils\n\n\n- Clas",
+    "- Enum compressionFormat\n",
+    "- Define CLOSE_FUNCTION_PROFILE\n\n\n- Define FLUSH_FUNCTION_PROFILE\n\n\n- Define INIT_FUNCTION_PROFILE\n\n\n- Define PROFILE_FUNCTION_END\n\n\n- Define PROFILE_FUNCTION_START\n\n\n- Define PROFILE_ID\n\n\n- Define PROFILE_ID_END\n\n\n- Define PROFILE_ID_START\n",
+    "- Directory include\n\n\n- Directory ros-perception\n\n\n- Directory image_transport_plugins\n\n\n- Directory compressed_depth_image_transport\n",
+    "- File adi_3dtof_adtf31xx.h\n\n\n- File adi_3dtof_adtf31xx_frame_info.h\n\n\n- File adi_3dtof_adtf31xx_output_info.h\n\n\n- File adi_camera.h\n\n\n- File compression_common.h\n\n\n- File image_proc_utils.h\n\n\n- File input_sensor.h\n\n\n- File input_sensor_adtf31xx.h\n\n\n- File input_sensor_factory.h\n\n\n- File input_senso",
+    "- Defined in File module_profile.h\n",
+    "**FLUSH_FUNCTION_PROFILE()**\n",
+    "- Defined in File module_profile.h\n",
+    "**PROFILE_FUNCTION_START(ID)**\n",
+    "\u21b0 Parent directory (`include`)\n\nContents\n\n- Definition (`include/adi_camera.h`)\n- Includes\n- Included By\n- Classes\n",
+    "- Program Listing for File adi_camera.h\n",
+    "- `array`\n",
+    "- File image_proc_utils.h\n- File input_sensor.h\n",
+    "- Struct CameraExtrinsics\n- Struct CameraIntrinsics\n",
+    "- Defined in File module_profile.h\n",
+    "**INIT_FUNCTION_PROFILE()**\n",
+    "\u21b0 Parent directory (`include`)\n\nContents\n\n- Definition (`include/adi_3dtof_adtf31xx.h`)\n- Includes\n- Namespaces\n- Classes\n",
+    "- Program Listing for File adi_3dtof_adtf31xx.h\n",
+    "- `adi_3dtof_adtf31xx_frame_info.h` (File adi_3dtof_adtf31xx_frame_info.h)\n- `adi_3dtof_adtf31xx_output_info.h` (File adi_3dtof_adtf31xx_output_info.h)\n- `chrono`\n- `cv_bridge/cv_bridge.hpp`\n- `functional`\n- `image_geometry/pinhole_camera_model.hpp`\n- `image_proc_utils.h` (File image_proc_utils.h)\n-",
+    "- Namespace std::chrono_literals\n",
+    "- Struct ADI3DToFADTF31xx::TunableParameters\n- Class ADI3DToFADTF31xx\n",
+    "- Defined in File input_sensor_factory.h\n",
+    "**class InputSensorFactory**\n:   This class is input sensor factory. \n:   Public Static Functions\n:   static inline IInputSensor *getInputSensor(int input_sensor_type)\n:   Get the Input Sensor object. \n:   Parameters:\n:   **input_sensor_type** \u2013 \n:   Returns:\n:   IInputSensor*\n",
+    "- Defined in File input_sensor_adtf31xx.h\n",
+    "- `public IInputSensor` (Class IInputSensor)\n",
+    "**class InputSensorADTF31XX : public IInputSensor**\n:   This is input class for sensor as camera. \n:   Public Functions\n:   virtual void openSensor(std::string, int input_image_width, int input_image_height, std::string config_file_name, std::string input_sensor_ip) override\n:   virtual void configu",
+    "- Defined in File module_profile.h\n",
+    "**PROFILE_ID(id_name, id_num)**\n",
+    "- Defined in File module_profile.h\n",
+    "**PROFILE_ID_END()**\n",
+    "- Defined in File rvl_codec.h\n",
+    "**class RvlCodec**\n:   Public Functions\n:   RvlCodec()\n:   int CompressRVL(const unsigned short *input, unsigned char *output, int numPixels)\n:   void DecompressRVL(const unsigned char *input, unsigned short *output, int numPixels)\n",
+    "\u21b0 Parent directory (`include`)\n\nContents\n\n- Definition (`include/module_profile.h`)\n- Included By\n- Defines\n",
+    "- Program Listing for File module_profile.h\n",
+    "- File adi_3dtof_adtf31xx.h\n",
+    "- Define CLOSE_FUNCTION_PROFILE\n- Define FLUSH_FUNCTION_PROFILE\n- Define INIT_FUNCTION_PROFILE\n- Define PROFILE_FUNCTION_END\n- Define PROFILE_FUNCTION_START\n- Define PROFILE_ID\n- Define PROFILE_ID_END\n- Define PROFILE_ID_START\n",
+    "The ROS node to capture depth and AB images from ADI\u2019s 3D ToF ADTF31xx sensor\n\n- Links\n  Rosindex\n\n  - Rosindex\n- C++ API\n  Class Hierarchy\n  File Hierarchy\n  Full C++ API\n\n  - Class Hierarchy\n  - File Hierarchy\n  - Full C++ API\n\n\n- Standard Documents\n  LICENSE\n  README\n  PACKAGE\n\n  - LICENSE\n  - RE",
+    "The **ADI 3DToF ADTF31xx** is a ROS (Robot Operating System) package for working with ADI\u2019s EVAL-ADTF3175D-NXZ ToF sensor. This node captures the Depth and AB frames from the sensor and publishes them as ROS topics. The node uses *ADI ToF SDK* APIs to capture frames from the sensor. The node publish",
+    "- EVAL-ADTF3175D-NXZ Module\n- USB Type-C to Type-A cable - with 5gbps data speed support\n- Host laptop with intel i5 of higher cpu running Ubuntu-22.04LTS\n\n\n[!note]\nRefer the EVAL-ADTF3175D-NXZ User Guide to ensure the Eval module has adequate power supply during operation.\n\n[!important]\nThe EVAL-AD",
+    "This package has three different operation modes. Refer to the following intra-links to setup the package accordingly.\n\n1. Camera Sensor Mode\n2. File-IO Mode\n3. Network Mode\n",
+    "The package is built on the sensor module and directly interfaces with the image sensor. The adi_3dtof_nxp_ubuntu_20_04_relx.x.x.img provided for the EVAL-ADTF3175D-NXZ sensor already contains this ROS package and is pre-built. In order to use this package, first we need to connect the sensor to the",
+    "[!warning]\nThe time and date may be incorrect on the sensor and this can cause issues in updating the package. To update the time and date, refer to updating date and time.\n\nIn order to update and rebuild package to the latest version, run the following commands:\n\n```bash\ncd ~/ros2_ws/src/adi_3dtof_",
+    "In this camera mode, the package is built on the Host PC in order to evaluate the properties of the package by running a pre-recorded bin file which contains the outputs from the sensor module.\n",
+    "1. On your PC, create a workspace\n\n\n```bash\nmkdir -p ~/ros2_ws/src\n```\n\n\n1. Clone the repository\n\n\n```bash\ncd ~/ros2_ws/src\ngit clone https://github.com/analogdevicesinc/adi_3dtof_adtf31xx.git -b v2.1.0\ncd ..\n```\n\n\n1. Build the workspace\n\n\n```bash\nrosdep install --from-paths src --ignore-src -r -y\nc",
+    "In order to run the package in file-io, it needs input files provided in the release image. Follow the steps below to use existing bin files, or follow these steps to create your own bin files.\n\n1. Go to the installation directory of the ADI 3DToF ADTF31xx application `~/Analog Devices/ADI3DToFADTF3",
+    "The sensor can be operated in network mode where depth and AB (Active Brightness) images are fetched over the local area network. The simplest way to use this is to connect the sensor directly to the PC so that a network interface via USB is created with a default IP address of `10.43.0.1`. In order",
+    "The `adi_3dtof_adtf31xx` depends on libaditof in order to communicate with the sensor. So we will need to build this in the same workspace as `adi_3dtof_adtf31xx`.\n\n1. On your PC, create the workspace and clone the required repositories.\n\n\n```bash\nmkdir -p ~/ros2_ws/src\ncd ~/ros2_ws/src\ngit clone ht",
+    "To run the node in network mode, run\n\n```bash\nros2 launch adi_3dtof_adtf31xx adi_3dtof_adtf31xx_launch.py arg_input_sensor_mode:=3 arg_input_sensor_ip:=10.43.0.1\n```\n\n\n[!note]\nThe `arg_input_sensor_mode:=3` sets the node to operate in network mode. This value can be adjusted in the launch file. `arg",
+    "|Parameter|Type|Default|Description|\n|**arg_input_sensor_mode**|int|0|Input mode, `0:Real Time Sensor`, `2:FIle-io`, `3:Network Mode`|\n|**arg_in_file_name**|String|\u201cno name\u201d|Input filename : Applicable only if the input mode is 2|\n|**arg_ab_threshold**|int|10|abThreshold for the sensor|\n|**arg_confi",
+    "|Imager Type|Mode Name|Mode Value|\n|ADSD3100|sr-native|0|\n||lr-native|1|\n||sr-qnative|2|\n||lr-qnative|3|\n||sr-mixed|5|\n||lr-mixed|6|\n|ADSD3030|sr-native|0|\n||lr-native|1|\n||lr-qnative|3|\n||sr-mixed|5|\n||lr-mixed|6|\n|Other modes|-|-|\n",
+    "|Topic|Description|\n|**/depth_image**|16-bit Depth image of size|\n|**/ab_image**|16-bit AB image|\n|**/conf_image**|16-bit Confidence image|\n|**/camera_info**|Camera info|\n|**/depth_image/compressedDepth**|16-bit Depth image from sensor node compressed with RVL compression|\n|**/ab_image/compressedDep",
+    "Sample output images are shown below:\n\n`/cam1/depth_image`\n\n`/cam1/ab_image`\n",
+    "Some parameters of *adi_3dtof_adtf31xx* ROS node can be modified during run time. The Perspective file is present in `rqt_config/` folder.\n\nThe GUI can be started by running the following command.\n\n```bash\nros2 launch adi_3dtof_adtf31xx adi_3dtof_adtf31xx_rqt_launch.py\n```\n\n\nMake sure the *adi_3dtof",
+    "The customized ubuntu image loaded into the sensor will automatically connect to any WiFi hotspot with the SSID as `ADI` and password set as `analog123`. This network connection will automatically sync the system time using the available internet connection.\n",
+    "|Flag Name|Type|Default Value|Description|\n|**SENSOR_CONNECTED**|BOOL|TRUE|Indicates if the sensor is connected|\n|**BUILD_EXAMPLE_SUBSCRIBER_NODE**|BOOL|FALSE|Builds an example subscriber node that uncompresses depth and AB images|\n|**BUILD_READ_ROSBAG_NODE**|BOOL|FALSE|Builds a node that converts r",
+    "To check the existing firmware version, log into the sensore device via SSH.\n\n```bash\n$ ssh analog@10.43.0.1\n   Username: analog\n   Password: analog\n```\n\n\nRun command:\n\n```bash\ncd ~/Workspace/Tool/ctrl_app\n./ctrl_app\n```\n\n\nYour output would look like this:\n\n```default\nV4L2 custom control interface a",
+    "rosbag2, a utility provided by ROS, is used to record topics. The data is collected in bag format, and the adi_3dtof_adtf31xx_read_rosbag_node node converts it to bin file format.\nThe format of bin file as given below.\n\n```default\nstart of bin file\n\n4 byte uint32_t = total frames in bin file.\n4 byte",
+    "Change below parameters in `adi_3dtof_adtf31xx_read_rosbag_launch.py` file\n\n1. arg_in_file_name : The rosbag2 file name\n2. arg_camera_prefixes : Camera prefix, more than one camera prefixes can be passed. For example if the recorded topic names are /cam1/depth_image and /cam2/depth_image, arg_camera",
+    "The reason for this is that rosbags may store images in a disorganized order rather than in a sequential manner. For this reason, in order to produce the output, the FileIO code must queue up the publishing rosbag images and synchronize the depth and AB images. The FileIO process becomes slower as a",
+    "Contents\n\n- Classes\n- Enums\n",
+    "- Struct ConfigHeader\n- Class RvlCodec\n",
+    "- Enum compressionFormat\n",
+    "\u21b0 Parent directory (`include`)\n\nContents\n\n- Definition (`include/input_sensor_adtf31xx.h`)\n- Includes\n- Classes\n",
+    "- Program Listing for File input_sensor_adtf31xx.h\n",
+    "- `aditof/camera.h`\n- `aditof/frame.h`\n- `aditof/system.h`\n- `input_sensor.h` (File input_sensor.h)\n- `stdint.h`\n",
+    "- Class InputSensorADTF31XX\n",
+    "- Defined in File adi_3dtof_adtf31xx.h\n",
+    "This struct is a nested type of Class ADI3DToFADTF31xx.\n",
+    "**struct TunableParameters**\n:   Public Members\n:   int ab_threshold\n:   int confidence_threshold\n:   bool enable_depth_publish\n:   bool enable_ab_publish\n:   bool enable_conf_publish\n:   bool enable_xyz_publish\n:   bool enable_jblf_filter\n:   int jblf_filter_size\n:   int radial_threshold_min\n:   in",
+    "- Defined in File adi_camera.h\n",
+    "**struct CameraIntrinsics**\n:   Intrinsic parameters of the camera. \n:   Public Members\n:   float camera_matrix[9]\n:   Camera matrix = [fx, 0, cx, 0, fy, cy, 0, 0, 1] fx, fy : Camera focal lengths (pixels) cx, cy : Camera principal points or optical centers (pixels) \n:   float distortion_coeffs[8]\n:",
+    "\u21b0 Parent directory (`include`)\n\nContents\n\n- Definition (`include/input_sensor_factory.h`)\n- Includes\n- Included By\n- Classes\n",
+    "- Program Listing for File input_sensor_factory.h\n",
+    "- `input_sensor.h` (File input_sensor.h)\n- `input_sensor_file_rosbagbin.h` (File input_sensor_file_rosbagbin.h)\n",
+    "- File adi_3dtof_adtf31xx.h\n",
+    "- Class InputSensorFactory\n",
+    "*Directory path:* `include`\n",
+    "- Directory ros-perception\n",
+    "- File adi_3dtof_adtf31xx.h\n- File adi_3dtof_adtf31xx_frame_info.h\n- File adi_3dtof_adtf31xx_output_info.h\n- File adi_camera.h\n- File image_proc_utils.h\n- File input_sensor.h\n- File input_sensor_adtf31xx.h\n- File input_sensor_factory.h\n- File input_sensor_file_rosbagbin.h\n- File module_profile.h\n",
+    "- Defined in File adi_3dtof_adtf31xx_output_info.h\n",
+    "**class ADI3DToFADTF31xxOutputInfo**\n:   This is the class for adtf31xx sensor node output information. \n:   Public Functions\n:   inline ADI3DToFADTF31xxOutputInfo(int image_width, int image_height)\n:   Constructor. \n:   Parameters:\n:   **image_width** \u2013 - Image Width \n:   **image_height** \u2013 - Image",
+    "\u21b0 Return to documentation for file (`include/adi_3dtof_adtf31xx_output_info.h`)\n\n```cpp\n/******************************************************************************\nCopyright (c), 2023 - Analog Devices Inc. All Rights Reserved.\nThis software is PROPRIETARY & CONFIDENTIAL to Analog Devices, Inc.\na",
+    "- Defined in File image_proc_utils.h\n",
+    "**class ImageProcUtils**\n:   This class has image processing utilities. \n:   Public Functions\n:   ImageProcUtils() = default\n:   inline ImageProcUtils(CameraIntrinsics *camera_intrinsics, int image_width, int image_height)\n:   inline ~ImageProcUtils()\n:   inline void generateRangeTo3DLUT(CameraIntri",
+    "\u21b0 Parent directory (`include`)\n\nContents\n\n- Definition (`include/input_sensor_file_rosbagbin.h`)\n- Includes\n- Included By\n- Classes\n",
+    "- Program Listing for File input_sensor_file_rosbagbin.h\n",
+    "- `fstream`\n- `input_sensor.h` (File input_sensor.h)\n- `stdint.h`\n",
+    "- File input_sensor_factory.h\n",
+    "- Class InputSensorFileRosbagBin\n",
+    "\u21b0 Parent directory (`include/ros-perception/image_transport_plugins/compressed_depth_image_transport`)\n\nContents\n\n- Definition (`include/ros-perception/image_transport_plugins/compressed_depth_image_transport/rvl_codec.h`)\n- Included By\n- Namespaces\n- Classes\n",
+    "- Program Listing for File rvl_codec.h\n",
+    "- File adi_3dtof_adtf31xx.h\n",
+    "- Namespace compressed_depth_image_transport\n",
+    "- Class RvlCodec\n",
+    "- Defined in File input_sensor_file_rosbagbin.h\n",
+    "- `public IInputSensor` (Class IInputSensor)\n",
+    "**class InputSensorFileRosbagBin : public IInputSensor**\n:   This is input class for sensor as camera. \n:   Public Functions\n:   inline InputSensorFileRosbagBin()\n:   virtual void openSensor(std::string sensor_name, int input_image_width, int input_image_height, std::string config_file_name, std::st",
+    "\u21b0 Return to documentation for file (`include/image_proc_utils.h`)\n\n```cpp\n/******************************************************************************\nCopyright (c), 2023 - Analog Devices Inc. All Rights Reserved.\nThis software is PROPRIETARY & CONFIDENTIAL to Analog Devices, Inc.\nand its licenso",
+    "\u21b0 Parent directory (`include`)\n\nContents\n\n- Definition (`include/adi_3dtof_adtf31xx_output_info.h`)\n- Includes\n- Included By\n- Classes\n",
+    "- Program Listing for File adi_3dtof_adtf31xx_output_info.h\n",
+    "- `cstring`\n",
+    "- File adi_3dtof_adtf31xx.h\n",
+    "- Class ADI3DToFADTF31xxOutputInfo\n",
+    "\u21b0 Return to documentation for file (`include/adi_camera.h`)\n\n```cpp\n/******************************************************************************\nCopyright (c), 2023 - Analog Devices Inc. All Rights Reserved.\nThis software is PROPRIETARY & CONFIDENTIAL to Analog Devices, Inc.\nand its licensors.\n**",
+    "- Defined in File adi_camera.h\n",
+    "**struct CameraExtrinsics**\n:   Extrinsic parameters of the camera. \n:   Public Members\n:   float rotation_matrix[9]\n:   Camera rotation parameters. \n:   float translation_matrix[3]\n:   Camera translation matrix : [Tx,Ty,Tz].\n",
+    "\u21b0 Return to documentation for file (`include/input_sensor_file_rosbagbin.h`)\n\n```cpp\n/******************************************************************************\nCopyright (c), 2023 - Analog Devices Inc. All Rights Reserved.\nThis software is PROPRIETARY & CONFIDENTIAL to Analog Devices, Inc.\nand ",
+    "\u21b0 Return to documentation for file (`include/adi_3dtof_adtf31xx_frame_info.h`)\n\n```cpp\n/******************************************************************************\nCopyright (c), 2023 - Analog Devices Inc. All Rights Reserved.\nThis software is PROPRIETARY & CONFIDENTIAL to Analog Devices, Inc.\nan",
+    "- Defined in File adi_3dtof_adtf31xx.h\n",
+    "- Struct ADI3DToFADTF31xx::TunableParameters\n",
+    "- `public rclcpp::Node`\n",
+    "**class ADI3DToFADTF31xx : public rclcpp::Node**\n:   This is main class for this package. \n:   Public Functions\n:   inline ADI3DToFADTF31xx()\n:   Construct a new ADI3DToFADTF31xx object. \n:   Parameters:\n:   **camera_link** \u2013 \n:   **virtual_camera_link** \u2013 \n:   **safety_zone_radius_mtr** \u2013 \n:   **in",
+    "- Defined in File adi_3dtof_adtf31xx_frame_info.h\n",
+    "**class ADI3DToFADTF31xxFrameInfo**\n:   This is the class for adtf31xx sensor frame. \n:   Public Functions\n:   inline ADI3DToFADTF31xxFrameInfo(int image_width, int image_height)\n:   Constructor. \n:   Parameters:\n:   **image_width** \u2013 - Image Width \n:   **image_height** \u2013 - Image Height \n:   inline ",
+    "\u21b0 Return to documentation for file (`include/adi_3dtof_adtf31xx.h`)\n\n```cpp\n/******************************************************************************\nCopyright (c), 2023 - Analog Devices Inc. All Rights Reserved.\nThis software is PROPRIETARY & CONFIDENTIAL to Analog Devices, Inc.\nand its licen"
+  ],
+  "url": [
+    "generated/file_include_input_sensor.h.html",
+    "generated/file_include_input_sensor.h.html#definition-include-input-sensor-h",
+    "generated/file_include_input_sensor.h.html#includes",
+    "generated/file_include_input_sensor.h.html#included-by",
+    "generated/file_include_input_sensor.h.html#classes",
+    "generated/enum_compression__common_8h_1abf0e52bf009aab3e2dd271e9b817ef3f.html",
+    "generated/enum_compression__common_8h_1abf0e52bf009aab3e2dd271e9b817ef3f.html#enum-documentation",
+    "generated/dir_include_ros-perception_image_transport_plugins_compressed_depth_image_transport.html",
+    "generated/dir_include_ros-perception_image_transport_plugins_compressed_depth_image_transport.html#files",
+    "generated/define_module__profile_8h_1a429b699deab1043cbc596058f45199a4.html",
+    "generated/define_module__profile_8h_1a429b699deab1043cbc596058f45199a4.html#define-documentation",
+    "generated/dir_include_ros-perception.html",
+    "generated/dir_include_ros-perception.html#subdirectories",
+    "generated/program_listing_file_include_input_sensor_adtf31xx.h.html",
+    "generated/file_include_image_proc_utils.h.html",
+    "generated/file_include_image_proc_utils.h.html#definition-include-image-proc-utils-h",
+    "generated/file_include_image_proc_utils.h.html#includes",
+    "generated/file_include_image_proc_utils.h.html#included-by",
+    "generated/file_include_image_proc_utils.h.html#classes",
+    "generated/program_listing_file_include_input_sensor.h.html",
+    "generated/define_module__profile_8h_1a583d1cc3e71bed3ae9de020423e7df16.html",
+    "generated/define_module__profile_8h_1a583d1cc3e71bed3ae9de020423e7df16.html#define-documentation",
+    "README.html",
+    "README.html",
+    "README.html",
+    "README.html",
+    "README.html#updating-the-package",
+    "README.html",
+    "README.html#building-the-package-for-file-io",
+    "README.html#running-the-node-in-file-io",
+    "README.html",
+    "README.html#building-the-package",
+    "README.html#running-the-node-in-network-mode",
+    "README.html",
+    "README.html#camera-modes",
+    "README.html",
+    "README.html",
+    "README.html",
+    "README.html#updating-date-and-time",
+    "README.html#build-flags",
+    "README.html#upgrading-the-firmware",
+    "README.html#creating-bin-files-for-file-io",
+    "README.html#steps-to-use-adi-3dtof-adtf31xx-read-rosbag-node",
+    "README.html#why-is-this-required",
+    "generated/program_listing_file_include_ros-perception_image_transport_plugins_compressed_depth_image_transport_rvl_codec.h.html",
+    "generated/program_listing_file_include_ros-perception_image_transport_plugins_compressed_depth_image_transport_compression_common.h.html",
+    "generated/program_listing_file_include_input_sensor_factory.h.html",
+    "generated/classIInputSensor.html",
+    "generated/classIInputSensor.html#derived-types",
+    "generated/classIInputSensor.html#class-documentation",
+    "generated/dir_include_ros-perception_image_transport_plugins.html",
+    "generated/dir_include_ros-perception_image_transport_plugins.html#subdirectories",
+    "generated/structcompressed__depth__image__transport_1_1ConfigHeader.html",
+    "generated/structcompressed__depth__image__transport_1_1ConfigHeader.html#struct-documentation",
+    "generated/define_module__profile_8h_1ae9754691ecbda8a1f4e1fa719594ead1.html",
+    "generated/define_module__profile_8h_1ae9754691ecbda8a1f4e1fa719594ead1.html#define-documentation",
+    "generated/program_listing_file_include_module_profile.h.html",
+    "generated/file_include_adi_3dtof_adtf31xx_frame_info.h.html",
+    "generated/file_include_adi_3dtof_adtf31xx_frame_info.h.html#definition-include-adi-3dtof-adtf31xx-frame-info-h",
+    "generated/file_include_adi_3dtof_adtf31xx_frame_info.h.html#includes",
+    "generated/file_include_adi_3dtof_adtf31xx_frame_info.h.html#included-by",
+    "generated/file_include_adi_3dtof_adtf31xx_frame_info.h.html#classes",
+    "generated/file_include_ros-perception_image_transport_plugins_compressed_depth_image_transport_compression_common.h.html",
+    "generated/file_include_ros-perception_image_transport_plugins_compressed_depth_image_transport_compression_common.h.html#definition-include-ros-perception-image-transport-plugins-compressed-depth-image-transport-compression-common-h",
+    "generated/file_include_ros-perception_image_transport_plugins_compressed_depth_image_transport_compression_common.h.html#included-by",
+    "generated/file_include_ros-perception_image_transport_plugins_compressed_depth_image_transport_compression_common.h.html#namespaces",
+    "generated/file_include_ros-perception_image_transport_plugins_compressed_depth_image_transport_compression_common.h.html#classes",
+    "generated/file_include_ros-perception_image_transport_plugins_compressed_depth_image_transport_compression_common.h.html#enums",
+    "generated/index.html#class-hierarchy",
+    "generated/index.html#file-hierarchy",
+    "generated/index.html#namespaces",
+    "generated/index.html#classes-and-structs",
+    "generated/index.html#enums",
+    "generated/index.html#defines",
+    "generated/index.html#directories",
+    "generated/index.html#files",
+    "generated/define_module__profile_8h_1a8c99aba0aafd6b09dfe192ca2f5e5e98.html",
+    "generated/define_module__profile_8h_1a8c99aba0aafd6b09dfe192ca2f5e5e98.html#define-documentation",
+    "generated/define_module__profile_8h_1abbaf9260e2f08a572822692a7dcb60da.html",
+    "generated/define_module__profile_8h_1abbaf9260e2f08a572822692a7dcb60da.html#define-documentation",
+    "generated/file_include_adi_camera.h.html",
+    "generated/file_include_adi_camera.h.html#definition-include-adi-camera-h",
+    "generated/file_include_adi_camera.h.html#includes",
+    "generated/file_include_adi_camera.h.html#included-by",
+    "generated/file_include_adi_camera.h.html#classes",
+    "generated/define_module__profile_8h_1a6910e662af15cf76d6f7bbfaa5aae416.html",
+    "generated/define_module__profile_8h_1a6910e662af15cf76d6f7bbfaa5aae416.html#define-documentation",
+    "generated/file_include_adi_3dtof_adtf31xx.h.html",
+    "generated/file_include_adi_3dtof_adtf31xx.h.html#definition-include-adi-3dtof-adtf31xx-h",
+    "generated/file_include_adi_3dtof_adtf31xx.h.html#includes",
+    "generated/file_include_adi_3dtof_adtf31xx.h.html#namespaces",
+    "generated/file_include_adi_3dtof_adtf31xx.h.html#classes",
+    "generated/classInputSensorFactory.html",
+    "generated/classInputSensorFactory.html#class-documentation",
+    "generated/classInputSensorADTF31XX.html",
+    "generated/classInputSensorADTF31XX.html#base-type",
+    "generated/classInputSensorADTF31XX.html#class-documentation",
+    "generated/define_module__profile_8h_1a3b57e0ea2df2becbd1a6ba9e52e02da2.html",
+    "generated/define_module__profile_8h_1a3b57e0ea2df2becbd1a6ba9e52e02da2.html#define-documentation",
+    "generated/define_module__profile_8h_1a8abb00ce4360da17c2f4075aeec3a459.html",
+    "generated/define_module__profile_8h_1a8abb00ce4360da17c2f4075aeec3a459.html#define-documentation",
+    "generated/classcompressed__depth__image__transport_1_1RvlCodec.html",
+    "generated/classcompressed__depth__image__transport_1_1RvlCodec.html#class-documentation",
+    "generated/file_include_module_profile.h.html",
+    "generated/file_include_module_profile.h.html#definition-include-module-profile-h",
+    "generated/file_include_module_profile.h.html#included-by",
+    "generated/file_include_module_profile.h.html#defines",
+    "index.html",
+    "index.html#overview",
+    "index.html#hardware",
+    "index.html#operation-modes",
+    "index.html#camera-sensor-mode",
+    "index.html#updating-the-package",
+    "index.html#file-io-mode",
+    "index.html#building-the-package-for-file-io",
+    "index.html#running-the-node-in-file-io",
+    "index.html#network-mode",
+    "index.html#building-the-package",
+    "index.html#running-the-node-in-network-mode",
+    "index.html#parameters",
+    "index.html#camera-modes",
+    "index.html#topics",
+    "index.html#outputs",
+    "index.html#parameter-tuning",
+    "index.html#updating-date-and-time",
+    "index.html#build-flags",
+    "index.html#upgrading-the-firmware",
+    "index.html#creating-bin-files-for-file-io",
+    "index.html#steps-to-use-adi-3dtof-adtf31xx-read-rosbag-node",
+    "index.html#why-is-this-required",
+    "generated/namespace_compressed_depth_image_transport.html",
+    "generated/namespace_compressed_depth_image_transport.html#classes",
+    "generated/namespace_compressed_depth_image_transport.html#enums",
+    "generated/file_include_input_sensor_adtf31xx.h.html",
+    "generated/file_include_input_sensor_adtf31xx.h.html#definition-include-input-sensor-adtf31xx-h",
+    "generated/file_include_input_sensor_adtf31xx.h.html#includes",
+    "generated/file_include_input_sensor_adtf31xx.h.html#classes",
+    "generated/structADI3DToFADTF31xx_1_1TunableParameters.html",
+    "generated/structADI3DToFADTF31xx_1_1TunableParameters.html#nested-relationships",
+    "generated/structADI3DToFADTF31xx_1_1TunableParameters.html#struct-documentation",
+    "generated/structCameraIntrinsics.html",
+    "generated/structCameraIntrinsics.html#struct-documentation",
+    "generated/file_include_input_sensor_factory.h.html",
+    "generated/file_include_input_sensor_factory.h.html#definition-include-input-sensor-factory-h",
+    "generated/file_include_input_sensor_factory.h.html#includes",
+    "generated/file_include_input_sensor_factory.h.html#included-by",
+    "generated/file_include_input_sensor_factory.h.html#classes",
+    "generated/dir_include.html",
+    "generated/dir_include.html#subdirectories",
+    "generated/dir_include.html#files",
+    "generated/classADI3DToFADTF31xxOutputInfo.html",
+    "generated/classADI3DToFADTF31xxOutputInfo.html#class-documentation",
+    "generated/program_listing_file_include_adi_3dtof_adtf31xx_output_info.h.html",
+    "generated/classImageProcUtils.html",
+    "generated/classImageProcUtils.html#class-documentation",
+    "generated/file_include_input_sensor_file_rosbagbin.h.html",
+    "generated/file_include_input_sensor_file_rosbagbin.h.html#definition-include-input-sensor-file-rosbagbin-h",
+    "generated/file_include_input_sensor_file_rosbagbin.h.html#includes",
+    "generated/file_include_input_sensor_file_rosbagbin.h.html#included-by",
+    "generated/file_include_input_sensor_file_rosbagbin.h.html#classes",
+    "generated/file_include_ros-perception_image_transport_plugins_compressed_depth_image_transport_rvl_codec.h.html",
+    "generated/file_include_ros-perception_image_transport_plugins_compressed_depth_image_transport_rvl_codec.h.html#definition-include-ros-perception-image-transport-plugins-compressed-depth-image-transport-rvl-codec-h",
+    "generated/file_include_ros-perception_image_transport_plugins_compressed_depth_image_transport_rvl_codec.h.html#included-by",
+    "generated/file_include_ros-perception_image_transport_plugins_compressed_depth_image_transport_rvl_codec.h.html#namespaces",
+    "generated/file_include_ros-perception_image_transport_plugins_compressed_depth_image_transport_rvl_codec.h.html#classes",
+    "generated/classInputSensorFileRosbagBin.html",
+    "generated/classInputSensorFileRosbagBin.html#base-type",
+    "generated/classInputSensorFileRosbagBin.html#class-documentation",
+    "generated/program_listing_file_include_image_proc_utils.h.html",
+    "generated/file_include_adi_3dtof_adtf31xx_output_info.h.html",
+    "generated/file_include_adi_3dtof_adtf31xx_output_info.h.html#definition-include-adi-3dtof-adtf31xx-output-info-h",
+    "generated/file_include_adi_3dtof_adtf31xx_output_info.h.html#includes",
+    "generated/file_include_adi_3dtof_adtf31xx_output_info.h.html#included-by",
+    "generated/file_include_adi_3dtof_adtf31xx_output_info.h.html#classes",
+    "generated/program_listing_file_include_adi_camera.h.html",
+    "generated/structCameraExtrinsics.html",
+    "generated/structCameraExtrinsics.html#struct-documentation",
+    "generated/program_listing_file_include_input_sensor_file_rosbagbin.h.html",
+    "generated/program_listing_file_include_adi_3dtof_adtf31xx_frame_info.h.html",
+    "generated/classADI3DToFADTF31xx.html",
+    "generated/classADI3DToFADTF31xx.html#nested-types",
+    "generated/classADI3DToFADTF31xx.html#base-type",
+    "generated/classADI3DToFADTF31xx.html#class-documentation",
+    "generated/classADI3DToFADTF31xxFrameInfo.html",
+    "generated/classADI3DToFADTF31xxFrameInfo.html#class-documentation",
+    "generated/program_listing_file_include_adi_3dtof_adtf31xx.h.html"
+  ],
+  "hierarchy": [
+    [
+      "C++ API",
+      "File input_sensor.h"
+    ],
+    [
+      "C++ API",
+      "File input_sensor.h",
+      "Definition (include/input_sensor.h)"
+    ],
+    [
+      "C++ API",
+      "File input_sensor.h",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File input_sensor.h",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File input_sensor.h",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "Enum compressionFormat"
+    ],
+    [
+      "C++ API",
+      "Enum compressionFormat",
+      "Enum Documentation"
+    ],
+    [
+      "C++ API",
+      "Directory compressed_depth_image_transport"
+    ],
+    [
+      "C++ API",
+      "Directory compressed_depth_image_transport",
+      "Files"
+    ],
+    [
+      "C++ API",
+      "Define PROFILE_FUNCTION_END"
+    ],
+    [
+      "C++ API",
+      "Define PROFILE_FUNCTION_END",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "Directory ros-perception"
+    ],
+    [
+      "C++ API",
+      "Directory ros-perception",
+      "Subdirectories"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_adtf31xx.h",
+      "Program Listing for File input_sensor_adtf31xx.h"
+    ],
+    [
+      "C++ API",
+      "File image_proc_utils.h"
+    ],
+    [
+      "C++ API",
+      "File image_proc_utils.h",
+      "Definition (include/image_proc_utils.h)"
+    ],
+    [
+      "C++ API",
+      "File image_proc_utils.h",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File image_proc_utils.h",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File image_proc_utils.h",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "File input_sensor.h",
+      "Program Listing for File input_sensor.h"
+    ],
+    [
+      "C++ API",
+      "Define PROFILE_ID_START"
+    ],
+    [
+      "C++ API",
+      "Define PROFILE_ID_START",
+      "Define Documentation"
+    ],
+    [
+      "Overview"
+    ],
+    [
+      "Hardware"
+    ],
+    [
+      "Operation Modes"
+    ],
+    [
+      "Camera Sensor Mode"
+    ],
+    [
+      "Camera Sensor Mode",
+      "Updating the package"
+    ],
+    [
+      "File-IO Mode"
+    ],
+    [
+      "File-IO Mode",
+      "Building the package for file-io"
+    ],
+    [
+      "File-IO Mode",
+      "Running the node in file-io"
+    ],
+    [
+      "Network Mode"
+    ],
+    [
+      "Network Mode",
+      "Building the package"
+    ],
+    [
+      "Network Mode",
+      "Running the node in network mode"
+    ],
+    [
+      "Parameters"
+    ],
+    [
+      "Parameters",
+      "Camera Modes"
+    ],
+    [
+      "Topics"
+    ],
+    [
+      "Outputs"
+    ],
+    [
+      "Parameter Tuning"
+    ],
+    [
+      "Appendix",
+      "Updating Date and Time"
+    ],
+    [
+      "Appendix",
+      "Build Flags"
+    ],
+    [
+      "Appendix",
+      "Upgrading the firmware"
+    ],
+    [
+      "Appendix",
+      "Creating Bin files for File-IO"
+    ],
+    [
+      "Appendix",
+      "Creating Bin files for File-IO",
+      "Steps to use adi_3dtof_adtf31xx_read_rosbag_node:"
+    ],
+    [
+      "Appendix",
+      "Creating Bin files for File-IO",
+      "Why is this required?"
+    ],
+    [
+      "C++ API",
+      "File rvl_codec.h",
+      "Program Listing for File rvl_codec.h"
+    ],
+    [
+      "C++ API",
+      "File compression_common.h",
+      "Program Listing for File compression_common.h"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_factory.h",
+      "Program Listing for File input_sensor_factory.h"
+    ],
+    [
+      "C++ API",
+      "Class IInputSensor"
+    ],
+    [
+      "C++ API",
+      "Class IInputSensor",
+      "Inheritance Relationships",
+      "Derived Types"
+    ],
+    [
+      "C++ API",
+      "Class IInputSensor",
+      "Class Documentation"
+    ],
+    [
+      "C++ API",
+      "Directory image_transport_plugins"
+    ],
+    [
+      "C++ API",
+      "Directory image_transport_plugins",
+      "Subdirectories"
+    ],
+    [
+      "C++ API",
+      "Struct ConfigHeader"
+    ],
+    [
+      "C++ API",
+      "Struct ConfigHeader",
+      "Struct Documentation"
+    ],
+    [
+      "C++ API",
+      "Define CLOSE_FUNCTION_PROFILE"
+    ],
+    [
+      "C++ API",
+      "Define CLOSE_FUNCTION_PROFILE",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "File module_profile.h",
+      "Program Listing for File module_profile.h"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_adtf31xx_frame_info.h"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_adtf31xx_frame_info.h",
+      "Definition (include/adi_3dtof_adtf31xx_frame_info.h)"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_adtf31xx_frame_info.h",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_adtf31xx_frame_info.h",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_adtf31xx_frame_info.h",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "File compression_common.h"
+    ],
+    [
+      "C++ API",
+      "File compression_common.h",
+      "Definition (include/ros-perception/image_transport_plugins/compressed_depth_image_transport/compression_common.h)"
+    ],
+    [
+      "C++ API",
+      "File compression_common.h",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File compression_common.h",
+      "Namespaces"
+    ],
+    [
+      "C++ API",
+      "File compression_common.h",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "File compression_common.h",
+      "Enums"
+    ],
+    [
+      "C++ API",
+      "Class Hierarchy"
+    ],
+    [
+      "C++ API",
+      "File Hierarchy"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Namespaces"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Classes and Structs"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Enums"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Defines"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Directories"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Files"
+    ],
+    [
+      "C++ API",
+      "Define FLUSH_FUNCTION_PROFILE"
+    ],
+    [
+      "C++ API",
+      "Define FLUSH_FUNCTION_PROFILE",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "Define PROFILE_FUNCTION_START"
+    ],
+    [
+      "C++ API",
+      "Define PROFILE_FUNCTION_START",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "File adi_camera.h"
+    ],
+    [
+      "C++ API",
+      "File adi_camera.h",
+      "Definition (include/adi_camera.h)"
+    ],
+    [
+      "C++ API",
+      "File adi_camera.h",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File adi_camera.h",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File adi_camera.h",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "Define INIT_FUNCTION_PROFILE"
+    ],
+    [
+      "C++ API",
+      "Define INIT_FUNCTION_PROFILE",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_adtf31xx.h"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_adtf31xx.h",
+      "Definition (include/adi_3dtof_adtf31xx.h)"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_adtf31xx.h",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_adtf31xx.h",
+      "Namespaces"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_adtf31xx.h",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "Class InputSensorFactory"
+    ],
+    [
+      "C++ API",
+      "Class InputSensorFactory",
+      "Class Documentation"
+    ],
+    [
+      "C++ API",
+      "Class InputSensorADTF31XX"
+    ],
+    [
+      "C++ API",
+      "Class InputSensorADTF31XX",
+      "Inheritance Relationships",
+      "Base Type"
+    ],
+    [
+      "C++ API",
+      "Class InputSensorADTF31XX",
+      "Class Documentation"
+    ],
+    [
+      "C++ API",
+      "Define PROFILE_ID"
+    ],
+    [
+      "C++ API",
+      "Define PROFILE_ID",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "Define PROFILE_ID_END"
+    ],
+    [
+      "C++ API",
+      "Define PROFILE_ID_END",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "Class RvlCodec"
+    ],
+    [
+      "C++ API",
+      "Class RvlCodec",
+      "Class Documentation"
+    ],
+    [
+      "C++ API",
+      "File module_profile.h"
+    ],
+    [
+      "C++ API",
+      "File module_profile.h",
+      "Definition (include/module_profile.h)"
+    ],
+    [
+      "C++ API",
+      "File module_profile.h",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File module_profile.h",
+      "Defines"
+    ],
+    [
+      "adi_3dtof_adtf31xx"
+    ],
+    [
+      "README",
+      "Overview"
+    ],
+    [
+      "README",
+      "Hardware"
+    ],
+    [
+      "README",
+      "Operation Modes"
+    ],
+    [
+      "README",
+      "Camera Sensor Mode"
+    ],
+    [
+      "README",
+      "Camera Sensor Mode",
+      "Updating the package"
+    ],
+    [
+      "README",
+      "File-IO Mode"
+    ],
+    [
+      "README",
+      "File-IO Mode",
+      "Building the package for file-io"
+    ],
+    [
+      "README",
+      "File-IO Mode",
+      "Running the node in file-io"
+    ],
+    [
+      "README",
+      "Network Mode"
+    ],
+    [
+      "README",
+      "Network Mode",
+      "Building the package"
+    ],
+    [
+      "README",
+      "Network Mode",
+      "Running the node in network mode"
+    ],
+    [
+      "README",
+      "Parameters"
+    ],
+    [
+      "README",
+      "Parameters",
+      "Camera Modes"
+    ],
+    [
+      "README",
+      "Topics"
+    ],
+    [
+      "README",
+      "Outputs"
+    ],
+    [
+      "README",
+      "Parameter Tuning"
+    ],
+    [
+      "README",
+      "Appendix",
+      "Updating Date and Time"
+    ],
+    [
+      "README",
+      "Appendix",
+      "Build Flags"
+    ],
+    [
+      "README",
+      "Appendix",
+      "Upgrading the firmware"
+    ],
+    [
+      "README",
+      "Appendix",
+      "Creating Bin files for File-IO"
+    ],
+    [
+      "README",
+      "Appendix",
+      "Creating Bin files for File-IO",
+      "Steps to use adi_3dtof_adtf31xx_read_rosbag_node:"
+    ],
+    [
+      "README",
+      "Appendix",
+      "Creating Bin files for File-IO",
+      "Why is this required?"
+    ],
+    [
+      "C++ API",
+      "Namespace compressed_depth_image_transport"
+    ],
+    [
+      "C++ API",
+      "Namespace compressed_depth_image_transport",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "Namespace compressed_depth_image_transport",
+      "Enums"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_adtf31xx.h"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_adtf31xx.h",
+      "Definition (include/input_sensor_adtf31xx.h)"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_adtf31xx.h",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_adtf31xx.h",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "Struct ADI3DToFADTF31xx::TunableParameters"
+    ],
+    [
+      "C++ API",
+      "Struct ADI3DToFADTF31xx::TunableParameters",
+      "Nested Relationships"
+    ],
+    [
+      "C++ API",
+      "Struct ADI3DToFADTF31xx::TunableParameters",
+      "Struct Documentation"
+    ],
+    [
+      "C++ API",
+      "Struct CameraIntrinsics"
+    ],
+    [
+      "C++ API",
+      "Struct CameraIntrinsics",
+      "Struct Documentation"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_factory.h"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_factory.h",
+      "Definition (include/input_sensor_factory.h)"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_factory.h",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_factory.h",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_factory.h",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "Directory include"
+    ],
+    [
+      "C++ API",
+      "Directory include",
+      "Subdirectories"
+    ],
+    [
+      "C++ API",
+      "Directory include",
+      "Files"
+    ],
+    [
+      "C++ API",
+      "Class ADI3DToFADTF31xxOutputInfo"
+    ],
+    [
+      "C++ API",
+      "Class ADI3DToFADTF31xxOutputInfo",
+      "Class Documentation"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_adtf31xx_output_info.h",
+      "Program Listing for File adi_3dtof_adtf31xx_output_info.h"
+    ],
+    [
+      "C++ API",
+      "Class ImageProcUtils"
+    ],
+    [
+      "C++ API",
+      "Class ImageProcUtils",
+      "Class Documentation"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_file_rosbagbin.h"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_file_rosbagbin.h",
+      "Definition (include/input_sensor_file_rosbagbin.h)"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_file_rosbagbin.h",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_file_rosbagbin.h",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_file_rosbagbin.h",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "File rvl_codec.h"
+    ],
+    [
+      "C++ API",
+      "File rvl_codec.h",
+      "Definition (include/ros-perception/image_transport_plugins/compressed_depth_image_transport/rvl_codec.h)"
+    ],
+    [
+      "C++ API",
+      "File rvl_codec.h",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File rvl_codec.h",
+      "Namespaces"
+    ],
+    [
+      "C++ API",
+      "File rvl_codec.h",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "Class InputSensorFileRosbagBin"
+    ],
+    [
+      "C++ API",
+      "Class InputSensorFileRosbagBin",
+      "Inheritance Relationships",
+      "Base Type"
+    ],
+    [
+      "C++ API",
+      "Class InputSensorFileRosbagBin",
+      "Class Documentation"
+    ],
+    [
+      "C++ API",
+      "File image_proc_utils.h",
+      "Program Listing for File image_proc_utils.h"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_adtf31xx_output_info.h"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_adtf31xx_output_info.h",
+      "Definition (include/adi_3dtof_adtf31xx_output_info.h)"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_adtf31xx_output_info.h",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_adtf31xx_output_info.h",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_adtf31xx_output_info.h",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "File adi_camera.h",
+      "Program Listing for File adi_camera.h"
+    ],
+    [
+      "C++ API",
+      "Struct CameraExtrinsics"
+    ],
+    [
+      "C++ API",
+      "Struct CameraExtrinsics",
+      "Struct Documentation"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_file_rosbagbin.h",
+      "Program Listing for File input_sensor_file_rosbagbin.h"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_adtf31xx_frame_info.h",
+      "Program Listing for File adi_3dtof_adtf31xx_frame_info.h"
+    ],
+    [
+      "C++ API",
+      "Class ADI3DToFADTF31xx"
+    ],
+    [
+      "C++ API",
+      "Class ADI3DToFADTF31xx",
+      "Nested Relationships",
+      "Nested Types"
+    ],
+    [
+      "C++ API",
+      "Class ADI3DToFADTF31xx",
+      "Inheritance Relationships",
+      "Base Type"
+    ],
+    [
+      "C++ API",
+      "Class ADI3DToFADTF31xx",
+      "Class Documentation"
+    ],
+    [
+      "C++ API",
+      "Class ADI3DToFADTF31xxFrameInfo"
+    ],
+    [
+      "C++ API",
+      "Class ADI3DToFADTF31xxFrameInfo",
+      "Class Documentation"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_adtf31xx.h",
+      "Program Listing for File adi_3dtof_adtf31xx.h"
+    ]
+  ]
+}

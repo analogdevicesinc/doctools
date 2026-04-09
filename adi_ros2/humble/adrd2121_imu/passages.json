@@ -1,0 +1,1589 @@
+{
+  "text": [
+    "- Defined in File adi_imu_ros2.hpp\n",
+    "**const int TIME_BASE_MAX = 13**\n",
+    "- Defined in File bias_estimate_node_ros2.hpp\n",
+    "**TRIGGER_WAIT_TIME**\n",
+    "- Defined in File adi_imu_ros2.hpp\n",
+    "**MODE_DEFAULT**\n",
+    "- Defined in File imu_buf_ros2.hpp\n",
+    "**BURST_COUNT_MAX**\n",
+    "- Defined in File adi_imu_ros2.hpp\n",
+    "**class AdiImuRos2**\n:   Class for ADI IMU. \n:   Public Functions\n:   AdiImuRos2(const rclcpp::Node::SharedPtr &node, adi_imu_Device_t *p_device)\n:   Constructor for AdiImuRos2. \n:   Parameters:\n:   **node** \u2013 **[in]** Pointer to ROS2 node(adrd2121_imu_node)\n:   **p_device** \u2013 **[in]** Pointer to ad",
+    "- Defined in File adrd2121_imu_ros2_node.hpp\n",
+    "**void gracefulShutdownHandler(int signal)**\n",
+    "- Defined in File adrd2121_imu_ros2_common.hpp\n",
+    "**const uint32_t crc32_tab[]**\n:   CRC-32 Polynomial used in IEEE 802.3 See ADIS16495 Data Sheet for sample computation\n",
+    "- Defined in File imu_buf_ros2.hpp\n",
+    "**BUFFER_LIMIT**\n",
+    "\u21b0 Return to documentation for file (`include/adrd2121_imu/bias_estimate_node_ros2.hpp`)\n\n```cpp\n/*\n * Copyright (c) 2023-2024 Analog Devices, Inc. All Rights Reserved.\n * This software is proprietary to Analog Devices, Inc. and its licensors.\n*/\n\n#ifndef BIAS_ESTIMATE_ROS2\n#define BIAS_ESTIMATE_ROS2",
+    "- Defined in File imu_buf_ros2.hpp\n",
+    "**DEFAULT_BAUD_RATE**\n",
+    "\u21b0 Parent directory (`include/adrd2121_imu`)\n\nContents\n\n- Definition (`include/adrd2121_imu/imu_state_checker_ros2.hpp`)\n- Includes\n- Included By\n- Classes\n- Enums\n- Defines\n- Typedefs\n",
+    "- Program Listing for File imu_state_checker_ros2.hpp\n",
+    "- `adrd2121_imu/msg/adi_imu.hpp`\n- `adrd2121_imu/msg/imu_state.hpp`\n- `adrd2121_imu_ros2_common.hpp` (File adrd2121_imu_ros2_common.hpp)\n- `cmath`\n- `deque`\n- `rclcpp/rclcpp.hpp`\n- `sensor_msgs/msg/imu.hpp`\n- `unistd.h`\n",
+    "- File bias_estimate_node_ros2.hpp\n",
+    "- Class ImuStateCheckerRos2\n",
+    "- Enum e_imu_state\n",
+    "- Define BUFFER_LIMIT\n- Define DATA_LIMIT\n- Define WAIT_LIMIT\n",
+    "- Typedef e_imu_state\n",
+    "- Defined in File imu_buf_ros2.hpp\n",
+    "**MAX_CLEAR_TIMEOUT**\n",
+    "- Defined in File adrd2121_imu_ros2_common.hpp\n",
+    "**BIT_HIGH**\n",
+    "- Defined in File adrd2121_imu_ros2_common.hpp\n",
+    "**STREAM**\n",
+    "- Defined in File adrd2121_imu_ros2_common.hpp\n",
+    "**ADIS16500**\n",
+    "\u21b0 Return to documentation for file (`include/adrd2121_imu/imu_state_checker_ros2.hpp`)\n\n```cpp\n/*\n * Copyright (c) 2023-2024 Analog Devices, Inc. All Rights Reserved.\n * This software is proprietary to Analog Devices, Inc. and its licensors.\n*/\n\n#ifndef IMU_STATE_CHECKER_ROS2\n#define IMU_STATE_CHECK",
+    "- Defined in File adrd2121_imu_ros2_common.hpp\n",
+    "**enum msg_type_e**\n:   *Values:*\n:   enumerator SENSOR_MSGS_IMU\n:   enumerator ADI_IMU_MSG\n",
+    "- Defined in File imu_state_checker_ros2.hpp\n",
+    "**class ImuStateCheckerRos2**\n:   Checks state of IMU (STANDSTILL or MOVING) \n:   Public Functions\n:   ImuStateCheckerRos2(const rclcpp::Node::SharedPtr &node)\n:   Constructor for StateChecker. \n:   ~ImuStateCheckerRos2()\n:   Destructor for StateChecker. \n:   e_imu_state evaluateState(const sensor_m",
+    "\u21b0 Parent directory (`include/adrd2121_imu`)\n\nContents\n\n- Definition (`include/adrd2121_imu/adrd2121_imu_ros2_node.hpp`)\n- Includes\n- Namespaces\n- Functions\n",
+    "- Program Listing for File adrd2121_imu_ros2_node.hpp\n",
+    "- `adi_imu_buf_ros2.hpp` (File adi_imu_buf_ros2.hpp)\n- `adrd2121_imu_ros2_common.hpp` (File adrd2121_imu_ros2_common.hpp)\n- `iostream`\n- `memory`\n- `rclcpp/node.hpp`\n- `rclcpp/rclcpp.hpp`\n- `unistd.h`\n",
+    "- Namespace std\n",
+    "- Function gracefulShutdownHandler\n- Function shutdown(void)\n",
+    "\u21b0 Return to documentation for file (`include/adrd2121_imu/adrd2121_imu_ros2_common.hpp`)\n\n```cpp\n/*\n * Copyright (c) 2023-2024 Analog Devices, Inc. All Rights Reserved.\n * This software is proprietary to Analog Devices, Inc. and its licensors.\n*/\n\n#ifndef ADRD2121_IMU_ROS2_COMMON_H\n#define ADRD2121_",
+    "- Defined in File imu_state_checker_ros2.hpp\n",
+    "**WAIT_LIMIT**\n",
+    "- Defined in File adrd2121_imu_ros2_common.hpp\n",
+    "**void print_time(std::string debug_msg)**\n",
+    "\u21b0 Parent directory (`include`)\n\n*Directory path:* `include/adrd2121_imu`\n",
+    "- File adi_imu_buf_ros2.hpp\n- File adi_imu_ros2.hpp\n- File adrd2121_imu_ros2_common.hpp\n- File adrd2121_imu_ros2_node.hpp\n- File bias_estimate_node_ros2.hpp\n- File imu_buf_ros2.hpp\n- File imu_state_checker_ros2.hpp\n",
+    "- Defined in File bias_estimate_node_ros2.hpp\n",
+    "**MAX_WAIT_SERVICE**\n",
+    "- Defined in File adrd2121_imu_ros2_node.hpp\n",
+    "> **Warning**\n>\n> doxygenfunction: Unable to resolve function \u201cshutdown\u201d with arguments (void) in doxygen xml output for project \u201cadrd2121_imu Doxygen Project\u201d from directory: /home/runner/work/adi_ros2/adi_ros2/_build/docs_build/adrd2121_imu/output_staging/generated/doxygen/xml.\n> Potential matches",
+    "\u21b0 Parent directory (`include/adrd2121_imu`)\n\nContents\n\n- Definition (`include/adrd2121_imu/bias_estimate_node_ros2.hpp`)\n- Includes\n- Classes\n- Functions\n- Defines\n",
+    "- Program Listing for File bias_estimate_node_ros2.hpp\n",
+    "- `adrd2121_imu/srv/bias_estimate_cmd.hpp`\n- `adrd2121_imu/srv/imu_glob_cmd.hpp`\n- `adrd2121_imu_ros2_common.hpp` (File adrd2121_imu_ros2_common.hpp)\n- `chrono`\n- `imu_state_checker_ros2.hpp` (File imu_state_checker_ros2.hpp)\n- `iostream`\n- `rclcpp/rclcpp.hpp`\n",
+    "- Class BiasEstimateRos2\n",
+    "- Function biasGracefulShutdownHandler\n- Function shutdown(void)\n",
+    "- Define MAX_WAIT_SERVICE\n- Define TRIGGER_WAIT_TIME\n",
+    "- Defined in File adrd2121_imu_ros2_common.hpp\n",
+    "**BIT_LOW**\n",
+    "\u21b0 Return to documentation for file (`include/adrd2121_imu/adi_imu_ros2.hpp`)\n\n```cpp\n/*\n * Copyright (c) 2023-2024 Analog Devices, Inc. All Rights Reserved.\n * This software is proprietary to Analog Devices, Inc. and its licensors.\n*/\n\n#ifndef ADI_IMU_ROS2\n#define ADI_IMU_ROS2\n\n//ROS2 Headers\n#inclu",
+    "- Defined in File adi_imu_ros2.hpp\n",
+    "**TIME_BASE_CTRL_DEFAULT**\n",
+    "- Defined in File imu_buf_ros2.hpp\n",
+    "**RADIAN_CONSTANT**\n",
+    "- Defined in File adi_imu_ros2.hpp\n",
+    "**PROD_ID_DEFAULT**\n",
+    "- Defined in File adrd2121_imu_ros2_common.hpp\n",
+    "**RESET**\n",
+    "- Defined in File adi_imu_ros2.hpp\n",
+    "**DEC_RATE_CONST**\n",
+    "\u21b0 Return to documentation for file (`include/adrd2121_imu/adrd2121_imu_ros2_node.hpp`)\n\n```cpp\n/*\n * Copyright (c) 2023-2024 Analog Devices, Inc. All Rights Reserved.\n * This software is proprietary to Analog Devices, Inc. and its licensors.\n*/\n\n#ifndef ADRD2121_IMU_ROS2_NODE\n#define ADRD2121_IMU_RO",
+    "- Defined in File adi_imu_ros2.hpp\n",
+    "**const double GRAVITY_MAX = 9.81**\n",
+    "- Defined in File imu_buf_ros2.hpp\n",
+    "**enum buf_dio_pin_e**\n:   *Values:*\n:   enumerator BUF_NONE\n:   enumerator BUF_DIO1\n:   enumerator BUF_DIO2\n:   enumerator BUF_DIO3\n:   enumerator BUF_DIO4\n",
+    "- Defined in File adi_imu_ros2.hpp\n",
+    "**const int TIME_BASE_MIN = 0**\n",
+    "- Defined in File imu_buf_ros2.hpp\n",
+    "**MAX_CLEAR_RETRY**\n",
+    "- Defined in File adrd2121_imu_ros2_common.hpp\n",
+    "**TWICE**\n",
+    "- Defined in File imu_state_checker_ros2.hpp\n",
+    "**enum e_imu_state**\n:   State of IMU \n:   *Values:*\n:   enumerator STANDSTILL\n:   enumerator MOVING\n",
+    "- Defined in File bias_estimate_node_ros2.hpp\n",
+    "**class BiasEstimateRos2**\n:   Class for Bias Estimate Service. \n:   Public Functions\n:   BiasEstimateRos2(const rclcpp::Node::SharedPtr &node)\n:   Constructor for BiasEstimateRos2. \n:   ~BiasEstimateRos2()\n:   Destructor for BiasEstimateRos2. \n:   bool init(void)\n:   Initializes pre-service call re",
+    "- Defined in File adi_imu_ros2.hpp\n",
+    "**DATA_RATE_DEFAULT**\n",
+    "- Defined in File imu_buf_ros2.hpp\n",
+    "**MIN_CLEAR_TIMEOUT**\n",
+    "- Defined in File adrd2121_imu_ros2_common.hpp\n",
+    "**ADIS16470**\n",
+    "\u21b0 Return to documentation for file (`include/adrd2121_imu/adi_imu_buf_ros2.hpp`)\n\n```cpp\n/*\n * Copyright (c) 2023-2024 Analog Devices, Inc. All Rights Reserved.\n * This software is proprietary to Analog Devices, Inc. and its licensors.\n*/\n\n#ifndef ADI_IMU_BUF_ROS2\n#define ADI_IMU_BUF_ROS2\n\n//ROS2 He",
+    "- Defined in File adrd2121_imu_ros2_common.hpp\n",
+    "**RECOVERY**\n",
+    "- Defined in File imu_buf_ros2.hpp\n",
+    "**API_CALL_DELAY**\n",
+    "- Defined in File imu_state_checker_ros2.hpp\n",
+    "**typedef enum e_imu_state e_imu_state**\n",
+    "- Defined in File imu_buf_ros2.hpp\n",
+    "**class ImuBufRos2**\n:   Class for ADRD2121. \n:   Public Functions\n:   ImuBufRos2(const rclcpp::Node::SharedPtr &node, adi_imu_Device_t *p_device)\n:   ImuBufRos2 Constructor. \n:   Parameters:\n:   **node** \u2013 **[in]** Pointer to ROS2 node(adrd2121_imu_node) \n:   **p_device** \u2013 **[in]** Pointer to adi_",
+    "*Directory path:* `include`\n",
+    "- Directory adrd2121_imu\n",
+    "- Defined in File bias_estimate_node_ros2.hpp\n",
+    "**void biasGracefulShutdownHandler(int signal)**\n",
+    "\u21b0 Parent directory (`include/adrd2121_imu`)\n\nContents\n\n- Definition (`include/adrd2121_imu/adi_imu_ros2.hpp`)\n- Includes\n- Included By\n- Classes\n- Defines\n- Variables\n",
+    "- Program Listing for File adi_imu_ros2.hpp\n",
+    "- `adi_imu_driver.h`\n- `adi_imu_regmap.h`\n- `adrd2121_imu_ros2_common.hpp` (File adrd2121_imu_ros2_common.hpp)\n- `imu_spi_buffer.h`\n- `imu_spi_buffer_regmap.h`\n- `memory`\n- `rclcpp/rclcpp.hpp`\n- `unistd.h`\n",
+    "- File adi_imu_buf_ros2.hpp\n",
+    "- Class AdiImuRos2\n",
+    "- Define DATA_RATE_DEFAULT\n- Define DEC_RATE_CONST\n- Define MODE_DEFAULT\n- Define PROD_ID_DEFAULT\n- Define TIME_BASE_CTRL_DEFAULT\n",
+    "- Variable GRAVITY_DEFAULT\n- Variable GRAVITY_MAX\n- Variable IMU_ACCL_BIAS_SIZE\n- Variable IMU_ACCL_SCALE_SIZE\n- Variable IMU_GYRO_BIAS_SIZE\n- Variable IMU_GYRO_SCALE_SIZE\n- Variable TIME_BASE_MAX\n- Variable TIME_BASE_MIN\n",
+    "- Defined in File adi_imu_ros2.hpp\n",
+    "**const int IMU_GYRO_SCALE_SIZE = 3**\n:   Constant for imu_gyro_scale_ vector size.\n",
+    "- Defined in File bias_estimate_node_ros2.hpp\n",
+    "> **Warning**\n>\n> doxygenfunction: Unable to resolve function \u201cshutdown\u201d with arguments (void) in doxygen xml output for project \u201cadrd2121_imu Doxygen Project\u201d from directory: /home/runner/work/adi_ros2/adi_ros2/_build/docs_build/adrd2121_imu/output_staging/generated/doxygen/xml.\n> Potential matches",
+    "- Defined in File imu_buf_ros2.hpp\n",
+    "**THROW_LIMIT**\n",
+    "- Defined in File adi_imu_buf_ros2.hpp\n",
+    "**class AdiImuBufRos2**\n:   Class for ADI IMU + ADRD2121. \n:   Public Functions\n:   AdiImuBufRos2(const rclcpp::Node::SharedPtr &node)\n:   Constructor for AdiImuBufRos2. \n:   ~AdiImuBufRos2()\n:   Destructor for AdiImuBufRos2. \n:   void initParams(void)\n:   Loads ROS-related, ADI IMU (AdiImuRos2), an",
+    "- Defined in File adi_imu_ros2.hpp\n",
+    "**const int IMU_ACCL_SCALE_SIZE = 3**\n:   Constant for imu_accl_scale_ vector size.\n",
+    "- Defined in File imu_state_checker_ros2.hpp\n",
+    "**DATA_LIMIT**\n",
+    "\u21b0 Parent directory (`include/adrd2121_imu`)\n\nContents\n\n- Definition (`include/adrd2121_imu/imu_buf_ros2.hpp`)\n- Includes\n- Included By\n- Classes\n- Enums\n- Functions\n- Defines\n",
+    "- Program Listing for File imu_buf_ros2.hpp\n",
+    "- `adi_imu_driver.h`\n- `adrd2121_imu/msg/adi_imu.hpp`\n- `adrd2121_imu/srv/buf_status.hpp`\n- `adrd2121_imu/srv/imu_glob_cmd.hpp`\n- `adrd2121_imu_ros2_common.hpp` (File adrd2121_imu_ros2_common.hpp)\n- `chrono`\n- `imu_spi_buffer.h`\n- `memory`\n- `rclcpp/rclcpp.hpp`\n- `sensor_msgs/msg/imu.hpp`\n- `std_srv",
+    "- File adi_imu_buf_ros2.hpp\n",
+    "- Class ImuBufRos2\n",
+    "- Enum buf_dio_pin_e\n",
+    "- Function BUFDIOtoString\n",
+    "- Define API_CALL_DELAY\n- Define BUFFER_LIMIT\n- Define BURST_COUNT_MAX\n- Define BURST_COUNT_MIN\n- Define DEFAULT_BAUD_RATE\n- Define MAX_CLEAR_RETRY\n- Define MAX_CLEAR_TIMEOUT\n- Define MIN_CLEAR_TIMEOUT\n- Define RADIAN_CONSTANT\n- Define THROW_LIMIT\n",
+    "- Defined in File imu_buf_ros2.hpp\n",
+    "**BURST_COUNT_MIN**\n",
+    "\u21b0 Parent directory (`include/adrd2121_imu`)\n\nContents\n\n- Definition (`include/adrd2121_imu/adi_imu_buf_ros2.hpp`)\n- Includes\n- Included By\n- Classes\n",
+    "- Program Listing for File adi_imu_buf_ros2.hpp\n",
+    "- `adi_imu_driver.h`\n- `adi_imu_ros2.hpp` (File adi_imu_ros2.hpp)\n- `adrd2121_imu/srv/imu_glob_cmd.hpp`\n- `adrd2121_imu_ros2_common.hpp` (File adrd2121_imu_ros2_common.hpp)\n- `imu_buf_ros2.hpp` (File adi_imu_buf_ros2.hpp)\n- `imu_spi_buffer.h`\n- `iostream`\n- `memory`\n- `rclcpp/node.hpp`\n- `rclcpp/rcl",
+    "- File adrd2121_imu_ros2_node.hpp\n",
+    "- Class AdiImuBufRos2\n",
+    "- Defined in File adi_imu_ros2.hpp\n",
+    "**const double GRAVITY_DEFAULT = 1.0**\n:   Constants for range of gravity.\n",
+    "- Defined in File adrd2121_imu_ros2_common.hpp\n",
+    "**long long current_timestamp()**\n:   Returns:\n:   current timestamp in microseconds\n",
+    "- Defined in File adrd2121_imu_ros2_common.hpp\n",
+    "**uint32_t crc32_block(uint32_t crc, const uint16_t *data, int n)**\n",
+    "- Defined in File adi_imu_ros2.hpp\n",
+    "**const int IMU_GYRO_BIAS_SIZE = 3**\n:   Constant for imu_gyro_bias_ vector size.\n",
+    "- Defined in File adrd2121_imu_ros2_common.hpp\n",
+    "**ADIS16495**\n",
+    "This is a ROS message definition.\n\n**Source**\n\n```default\nstd_msgs/Header header\n\n# Message about state\nstring message\n\n# IMU State: STANDSTILL or MOVING\nstring state\n\n# IMU Stand still duration in seconds\nfloat64 stand_still_secs\n```\n",
+    "This is a ROS service definition.\n\n**Source**\n\n```default\n---\nbool success\nstring message\nstring state\nfloat64 stand_still_secs\n```\n",
+    "- Defined in File imu_buf_ros2.hpp\n",
+    "**const char *BUFDIOtoString(int dio)**\n",
+    "This is a ROS message definition.\n\n**Source**\n\n```default\nstd_msgs/Header header\n\n## Scaled IMU Data ##\ngeometry_msgs/Vector3 angular_velocity\ngeometry_msgs/Vector3 linear_acceleration\n\n## Data Counters ##\nuint64 imu_count\nuint64 driver_count\nuint64 drop_count\n\n## UTC Timestamp from HW ##\nuint32 buf",
+    "- Defined in File imu_state_checker_ros2.hpp\n",
+    "**BUFFER_LIMIT**\n",
+    "This is a ROS service definition.\n\n**Source**\n\n```default\n---\nbool success\nuint16 status\nstring status_hex\nstring message\n```\n",
+    "This is a ROS service definition.\n\n**Source**\n\n```default\nint16 bit\n---\nbool success\nstring message\n```\n",
+    "- Defined in File adi_imu_ros2.hpp\n",
+    "**const int IMU_ACCL_BIAS_SIZE = 3**\n:   Constant for imu_accl_bias_ vector size.\n",
+    "- Class AdiImuBufRos2Class AdiImuRos2Class BiasEstimateRos2Class ImuBufRos2Class ImuStateCheckerRos2Enum buf_dio_pin_eEnum e_imu_stateEnum msg_type_e\n\n  - Class AdiImuBufRos2\n  - Class AdiImuRos2\n  - Class BiasEstimateRos2\n  - Class ImuBufRos2\n  - Class ImuStateCheckerRos2\n  - Enum buf_dio_pin_e\n  -",
+    "- Directory includeDirectory adrd2121_imuFile adi_imu_buf_ros2.hppFile adi_imu_ros2.hppFile adrd2121_imu_ros2_common.hppFile adrd2121_imu_ros2_node.hppFile bias_estimate_node_ros2.hppFile imu_buf_ros2.hppFile imu_state_checker_ros2.hpp\n\n  - Directory includeDirectory adrd2121_imuFile adi_imu_buf_ros",
+    "- Namespace std\n",
+    "- Class AdiImuBufRos2\n\n\n- Class AdiImuRos2\n\n\n- Class BiasEstimateRos2\n\n\n- Class ImuBufRos2\n\n\n- Class ImuStateCheckerRos2\n",
+    "- Enum buf_dio_pin_e\n\n\n- Enum e_imu_state\n\n\n- Enum msg_type_e\n",
+    "- Function biasGracefulShutdownHandler\n\n\n- Function BUFDIOtoString\n\n\n- Function crc32_block\n\n\n- Function current_timestamp\n\n\n- Function gracefulShutdownHandler\n\n\n- Function print_time\n\n\n- Function shutdown(void)\n\n\n- Function shutdown(void)\n",
+    "- Variable crc32_tab\n\n\n- Variable GRAVITY_DEFAULT\n\n\n- Variable GRAVITY_MAX\n\n\n- Variable IMU_ACCL_BIAS_SIZE\n\n\n- Variable IMU_ACCL_SCALE_SIZE\n\n\n- Variable IMU_GYRO_BIAS_SIZE\n\n\n- Variable IMU_GYRO_SCALE_SIZE\n\n\n- Variable TIME_BASE_MAX\n\n\n- Variable TIME_BASE_MIN\n",
+    "- Define ADIS16470\n\n\n- Define ADIS16495\n\n\n- Define ADIS16500\n\n\n- Define API_CALL_DELAY\n\n\n- Define BIT_HIGH\n\n\n- Define BIT_LOW\n\n\n- Define BUFFER_LIMIT\n\n\n- Define BUFFER_LIMIT\n\n\n- Define BURST_COUNT_MAX\n\n\n- Define BURST_COUNT_MIN\n\n\n- Define DATA_LIMIT\n\n\n- Define DATA_RATE_DEFAULT\n\n\n- Define DEC_RATE_C",
+    "- Typedef e_imu_state\n",
+    "- Directory include\n\n\n- Directory adrd2121_imu\n",
+    "- File adi_imu_buf_ros2.hpp\n\n\n- File adi_imu_ros2.hpp\n\n\n- File adrd2121_imu_ros2_common.hpp\n\n\n- File adrd2121_imu_ros2_node.hpp\n\n\n- File bias_estimate_node_ros2.hpp\n\n\n- File imu_buf_ros2.hpp\n\n\n- File imu_state_checker_ros2.hpp\n",
+    "The ROS2 adrd2121_imu package\n\n- Links\n  Rosindex\n\n  - Rosindex\n- C++ API\n  Class Hierarchy\n  File Hierarchy\n  Full C++ API\n\n  - Class Hierarchy\n  - File Hierarchy\n  - Full C++ API\n\n\n- Message Definitions\n  AdiImu\n  ImuState\n\n  - AdiImu\n  - ImuState\n- Service Definitions\n  BiasEstimateCmd\n  BufStatu",
+    "- This ROS2 package is an implementation of the prior ROS1 driver, now adapted for ROS2.\n- The ADRD2121 is a hardware and software solution designed to buffer IMU data. (For more info, see: EVAL-ADRD2121-EBZ Evaluation board)\n- A C-based library is used as a dependency: adi_imu_driver Github\n- Suppo",
+    "Clone this package and its submodules into your workspace:\n\n```bash\ncd ~/ros2_ws/src\ngit clone <copied SSH or HTTPS link here> adrd2121_imu\n```\n",
+    "List of dependencies:\n\n- adi_imu_driver Github\n\n\n**IMPORTANT**: Dependencies will automatically be cloned and installed during *build*. **Proceed to Build**.\n",
+    "If not familiar with building a ROS2 package, you may visit here.\n\nHere is how to activate TIMING_DEBUG when building the package:\n\n*Build at ~/ros2_ws*\n\n```bash\n####### [TERMINAL 1] #######\n# Make sure that ROS2 environment variables are properly sourced\n## $ source/opt/ros/<ROS2 version>/setup.bas",
+    "- When the device is connected to the Host PC, it will be listed like `/dev/ttyACM0` where number can change depending on how many ACM devices are connected.\n- To access the device, listed below are two ways to so.\n  **IMPORTANT**: This is required before Launch, else launch will fail.\n",
+    "This method would be required every time the device was connected to the Host PC.\n\nStep 1. Before connecting run the following command in the terminal `dmesg -w`\n\nSample Result:\n\n```sh\n[ 1343.478484] usb 1-5: new full-speed USB device number 9 using xhci_hcd\n[ 1343.628368] usb 1-5: New USB device fo",
+    "This method would only be required on initial setup, but may vary on each device (e.g. if you have more than 1 ADRD2121 + IMU device, you need to create a udev rule for each one).\n\nStep 1. Before connecting run the following command in the terminal `dmesg -w`\n\nSample Result:\n\n```sh\n[ 1343.478484] us",
+    "This section will discuss how to use the launch files, and Launch files will run *adrd2121_imu_node* and (optionally) *bias_estimate_node_ros2* in sequence depending on the `TimerAction` delay.\n\nThe included launch files will run the following nodes:\n\n- For **ADIS16470**\n  adrd2121_imu_node\n  bias_e",
+    "```sh\n###### [TERMINAL 2] ######\n#Properly sourcing the overlay\n$ cd ~/ros2_ws\n$ source install/setup.bash\n\n# Launch\n## $ ros2 launch adrd2121_imu <imu_product>.launch.py\n## Example for launching ADIS16470\n$ ros2 launch adrd2121_imu adis16470.launch.py\n```\n\n\n**IMPORTANT**\n\n- Make sure that a separat",
+    "```sh\n## If the user wants to enable debug logs, launch the package with the following command:\n$ ros2 launch adrd2121_imu adis16470.launch.py log_level:=DEBUG\n\n## Other available log levels are as follows: INFO (default), WARN, ERROR\n```\n",
+    "- Another thing to take note is the delayed launching of the **bias_estimate** node, shown below:\n\n\n***adis16470.launch.py***\n\n```sh\n...\nOnProcessStart(\n                target_action=main_node_run,\n                on_start=[\n                    TimerAction(\n                        period=5.0,\n      ",
+    "- The user will be able to configure what mode to run through the ***mode_of_operation*** parameter.\n",
+    "- To set the board recovery during initialization, set the parameter **enable_init_recover** to true.\n- If enabled, the node will automatically check the status of the board and recover to working state if applicable.\n",
+    "- **/imu/data_raw** (default:`sensor_msgs/Imu` **or** custom msg:`adrd2121_imu/AdiImu`)\n  Raw IMU data containing angular velocity (x,y,z) and linear_acceleration (x,y,z)\n  See AdiImu.msg for more info on custom message.\n  Msg type is set in adi_imu_driver_node Parameters.\n\n  - Raw IMU data containi",
+    "- **/trigger_imu_glob_cmd** (adrd2121_imu/ImuGlobCmd)\n  Write 1 to specified BIT in GLOB_CMD IMU Register;\n  See custom service message: srv/ImuGlobCmd.srv\n  **NOT SUPPORTED** in **ADIS16500**\n\n  - Write 1 to specified BIT in GLOB_CMD IMU Register;\n  - See custom service message: srv/ImuGlobCmd.srv\n",
+    "**IMPORTANT**:\n\n- If any of these parameters are not set, the default values will be used. See config/[IMU_name].yaml on how these parameters are set.\n- There will be times that some parameters will not be declared if it will not be used in the whole runtime i.e. *if update_imu_accl_bias is false, i",
+    "- **topic_name** (string, default: imu/data_raw)\n  IMU topic name\n\n  - IMU topic name\n- **frame_name** (string, default: imu)\n  IMU frame name\n\n  - IMU frame name\n- **msg_type** (int, default: 1)\n  Message type of topic\n  \u201c1\u201d : sensor_msgs/Imu\n  \u201c2\u201d : adrd2121_imu/AdiImu\n\n  - Message type of topic\n ",
+    "- **usb_dev** (string, default: /dev/ttyACM0)\n  Device name\n\n  - Device name\n- **usb_baud** (int, default: 921600)\n  USB Baud Rate\n\n  - USB Baud Rate\n",
+    "- **buf_burst_count** (int, default: 1)\n  Burst Count is a parameter that allows multiple transactions in a single syscall\n\n  - Burst Count is a parameter that allows multiple transactions in a single syscall\n- **enable_imu_burst** (bool, default: true)\n  Enables IMU burst data capture for buffer en",
+    "- **imu_prod_id** (int, default: 16470)\n  IMU Product ID (16470, 16500)\n\n  - IMU Product ID (16470, 16500)\n- **gravity** (double, default: 1.0)\n  Gravity constant; if 1.0 accelerometer output is normalized to g\n\n  - Gravity constant; if 1.0 accelerometer output is normalized to g\n- **imu_data_format",
+    "- This Node has implements a standstill checker and makes sure that the IMU is standstill for at least 40s before triggering the Bias Correction Update (bit 0 of GLOB_CMD) via the /trigger_imu_glob_cmd.\n- **NOTE**: For multiple instances of IMU, this should be under the same <*group*> of the adrd212",
+    "- **/imu_state** (`adrd2121_imu/ImuState`)\n  Contains the state of the IMU (*MOVING* or *STANDSTILL*) based on the standstill checker\n  See msg/ImuState.msg\n\n  - Contains the state of the IMU (*MOVING* or *STANDSTILL*) based on the standstill checker\n  - See msg/ImuState.msg\n",
+    "- **/imu/data_raw** (default:`sensor_msgs/Imu` **or** custom msg:`adrd2121_imu/AdiImu`)\n  Raw IMU data containing angular velocity (x,y,z) and linear_acceleration (x,y,z)\n  **NOTE**: This topic should not be remapped (i.e. `<remap from=\"/imu/data_raw\" to=\"/adis16470/data_raw\"/>`), instead, be change",
+    "- **/bias_estimate** (adrd2121_imu/BiasEstimateCmd)\n  Will call the trigger_glob_cmd service and trigger the Bias Correction update\n  See custom service message: srv/BiasEstimateCmd.srv\n\n  - Will call the trigger_glob_cmd service and trigger the Bias Correction update\n  - See custom service message:",
+    "- **gyro_std_thresh** (double, default: 0.02)\n  The threshold for standard deviation of gyroscope magnitude;\n  This determines whther IMU is *MOVING* or *STANDSTILL*\n  The lower the value, the more sensitive (i.e. slight IMU movement may be considered as MOVING already)\n\n  - The threshold for standa",
+    "\u21b0 Parent directory (`include/adrd2121_imu`)\n\nContents\n\n- Definition (`include/adrd2121_imu/adrd2121_imu_ros2_common.hpp`)\n- Includes\n- Included By\n- Enums\n- Functions\n- Defines\n- Variables\n",
+    "- Program Listing for File adrd2121_imu_ros2_common.hpp\n",
+    "- `iostream`\n- `string`\n- `sys/time.h`\n",
+    "- File adi_imu_buf_ros2.hpp\n- File adi_imu_ros2.hpp\n- File adrd2121_imu_ros2_node.hpp\n- File bias_estimate_node_ros2.hpp\n- File imu_buf_ros2.hpp\n- File imu_state_checker_ros2.hpp\n",
+    "- Enum msg_type_e\n",
+    "- Function crc32_block\n- Function current_timestamp\n- Function print_time\n",
+    "- Define ADIS16470\n- Define ADIS16495\n- Define ADIS16500\n- Define BIT_HIGH\n- Define BIT_LOW\n- Define RECOVERY\n- Define RESET\n- Define STREAM\n- Define TWICE\n",
+    "- Variable crc32_tab\n",
+    "\u21b0 Return to documentation for file (`include/adrd2121_imu/imu_buf_ros2.hpp`)\n\n```cpp\n/*\n * Copyright (c) 2023-2024 Analog Devices, Inc. All Rights Reserved.\n * This software is proprietary to Analog Devices, Inc. and its licensors.\n*/\n\n#ifndef IMU_BUF_ROS2\n#define IMU_BUF_ROS2\n\n//ROS2 Header\n#includ",
+    "- This ROS2 package is an implementation of the prior ROS1 driver, now adapted for ROS2.\n- The ADRD2121 is a hardware and software solution designed to buffer IMU data. (For more info, see: EVAL-ADRD2121-EBZ Evaluation board)\n- A C-based library is used as a dependency: adi_imu_driver Github\n- Suppo",
+    "Clone this package and its submodules into your workspace:\n\n```bash\ncd ~/ros2_ws/src\ngit clone <copied SSH or HTTPS link here> adrd2121_imu\n```\n",
+    "List of dependencies:\n\n- adi_imu_driver Github\n\n\n**IMPORTANT**: Dependencies will automatically be cloned and installed during *build*. **Proceed to Build**.\n",
+    "If not familiar with building a ROS2 package, you may visit here.\n\nHere is how to activate TIMING_DEBUG when building the package:\n\n*Build at ~/ros2_ws*\n\n```bash\n####### [TERMINAL 1] #######\n# Make sure that ROS2 environment variables are properly sourced\n## $ source/opt/ros/<ROS2 version>/setup.bas",
+    "- When the device is connected to the Host PC, it will be listed like `/dev/ttyACM0` where number can change depending on how many ACM devices are connected.\n- To access the device, listed below are two ways to so.\n  **IMPORTANT**: This is required before Launch, else launch will fail.\n",
+    "This method would be required every time the device was connected to the Host PC.\n\nStep 1. Before connecting run the following command in the terminal `dmesg -w`\n\nSample Result:\n\n```sh\n[ 1343.478484] usb 1-5: new full-speed USB device number 9 using xhci_hcd\n[ 1343.628368] usb 1-5: New USB device fo",
+    "This method would only be required on initial setup, but may vary on each device (e.g. if you have more than 1 ADRD2121 + IMU device, you need to create a udev rule for each one).\n\nStep 1. Before connecting run the following command in the terminal `dmesg -w`\n\nSample Result:\n\n```sh\n[ 1343.478484] us",
+    "This section will discuss how to use the launch files, and Launch files will run *adrd2121_imu_node* and (optionally) *bias_estimate_node_ros2* in sequence depending on the `TimerAction` delay.\n\nThe included launch files will run the following nodes:\n\n- For **ADIS16470**\n  adrd2121_imu_node\n  bias_e",
+    "```sh\n###### [TERMINAL 2] ######\n#Properly sourcing the overlay\n$ cd ~/ros2_ws\n$ source install/setup.bash\n\n# Launch \n## $ ros2 launch adrd2121_imu <imu_product>.launch.py\n## Example for launching ADIS16470\n$ ros2 launch adrd2121_imu adis16470.launch.py\n```\n\n\n**IMPORTANT**\n\n- Make sure that a separa",
+    "```sh\n## If the user wants to enable debug logs, launch the package with the following command:\n$ ros2 launch adrd2121_imu adis16470.launch.py log_level:=DEBUG\n\n## Other available log levels are as follows: INFO (default), WARN, ERROR\n```\n",
+    "- Another thing to take note is the delayed launching of the **bias_estimate** node, shown below:\n\n\n***adis16470.launch.py***\n\n```sh\n...\nOnProcessStart(\n                target_action=main_node_run,\n                on_start=[\n                    TimerAction(\n                        period=5.0,\n      ",
+    "- The user will be able to configure what mode to run through the ***mode_of_operation*** parameter.\n",
+    "- To set the board recovery during initialization, set the parameter **enable_init_recover** to true.\n- If enabled, the node will automatically check the status of the board and recover to working state if applicable.\n",
+    "- **/imu/data_raw** (default:`sensor_msgs/Imu` **or** custom msg:`adrd2121_imu/AdiImu`)\n  Raw IMU data containing angular velocity (x,y,z) and linear_acceleration (x,y,z)\n  See AdiImu.msg for more info on custom message.\n  Msg type is set in adi_imu_driver_node Parameters.\n\n  - Raw IMU data containi",
+    "- **/trigger_imu_glob_cmd** (adrd2121_imu/ImuGlobCmd)\n  Write 1 to specified BIT in GLOB_CMD IMU Register;\n  See custom service message: srv/ImuGlobCmd.srv\n  **NOT SUPPORTED** in **ADIS16500**\n\n  - Write 1 to specified BIT in GLOB_CMD IMU Register;\n  - See custom service message: srv/ImuGlobCmd.srv\n",
+    "**IMPORTANT**:\n\n- If any of these parameters are not set, the default values will be used. See config/[IMU_name].yaml on how these parameters are set.\n- There will be times that some parameters will not be declared if it will not be used in the whole runtime i.e. *if update_imu_accl_bias is false, i",
+    "- **topic_name** (string, default: imu/data_raw)\n  IMU topic name\n\n  - IMU topic name\n- **frame_name** (string, default: imu)\n  IMU frame name\n\n  - IMU frame name\n- **msg_type** (int, default: 1)\n  Message type of topic\n  \u201c1\u201d : sensor_msgs/Imu\n  \u201c2\u201d : adrd2121_imu/AdiImu\n\n  - Message type of topic\n ",
+    "- **usb_dev** (string, default: /dev/ttyACM0)\n  Device name\n\n  - Device name\n- **usb_baud** (int, default: 921600)\n  USB Baud Rate\n\n  - USB Baud Rate\n",
+    "- **buf_burst_count** (int, default: 1)\n  Burst Count is a parameter that allows multiple transactions in a single syscall\n\n  - Burst Count is a parameter that allows multiple transactions in a single syscall\n- **enable_imu_burst** (bool, default: true)\n  Enables IMU burst data capture for buffer en",
+    "- **imu_prod_id** (int, default: 16470)\n  IMU Product ID (16470, 16500)\n\n  - IMU Product ID (16470, 16500)\n- **gravity** (double, default: 1.0)\n  Gravity constant; if 1.0 accelerometer output is normalized to g\n\n  - Gravity constant; if 1.0 accelerometer output is normalized to g\n- **imu_data_format",
+    "- This Node has implements a standstill checker and makes sure that the IMU is standstill for at least 40s before triggering the Bias Correction Update (bit 0 of GLOB_CMD) via the /trigger_imu_glob_cmd.\n- **NOTE**: For multiple instances of IMU, this should be under the same <*group*> of the adrd212",
+    "- **/imu_state** (`adrd2121_imu/ImuState`)\n  Contains the state of the IMU (*MOVING* or *STANDSTILL*) based on the standstill checker\n  See msg/ImuState.msg\n\n  - Contains the state of the IMU (*MOVING* or *STANDSTILL*) based on the standstill checker\n  - See msg/ImuState.msg\n",
+    "- **/imu/data_raw** (default:`sensor_msgs/Imu` **or** custom msg:`adrd2121_imu/AdiImu`)\n  Raw IMU data containing angular velocity (x,y,z) and linear_acceleration (x,y,z)\n  **NOTE**: This topic should not be remapped (i.e. `<remap from=\"/imu/data_raw\" to=\"/adis16470/data_raw\"/>`), instead, be change",
+    "- **/bias_estimate** (adrd2121_imu/BiasEstimateCmd)\n  Will call the trigger_glob_cmd service and trigger the Bias Correction update\n  See custom service message: srv/BiasEstimateCmd.srv\n\n  - Will call the trigger_glob_cmd service and trigger the Bias Correction update\n  - See custom service message:",
+    "- **gyro_std_thresh** (double, default: 0.02)\n  The threshold for standard deviation of gyroscope magnitude;\n  This determines whther IMU is *MOVING* or *STANDSTILL*\n  The lower the value, the more sensitive (i.e. slight IMU movement may be considered as MOVING already)\n\n  - The threshold for standa"
+  ],
+  "url": [
+    "generated/variable_adi__imu__ros2_8hpp_1af3bb35d37ad52fe832eb23035bbd0626.html",
+    "generated/variable_adi__imu__ros2_8hpp_1af3bb35d37ad52fe832eb23035bbd0626.html#variable-documentation",
+    "generated/define_bias__estimate__node__ros2_8hpp_1a7c7f143662b13c2f05cb7b3f3f8afee6.html",
+    "generated/define_bias__estimate__node__ros2_8hpp_1a7c7f143662b13c2f05cb7b3f3f8afee6.html#define-documentation",
+    "generated/define_adi__imu__ros2_8hpp_1aa2ac0f45d353352c766262721c40e3b8.html",
+    "generated/define_adi__imu__ros2_8hpp_1aa2ac0f45d353352c766262721c40e3b8.html#define-documentation",
+    "generated/define_imu__buf__ros2_8hpp_1aec48dbe1a76815928b060c1bae314737.html",
+    "generated/define_imu__buf__ros2_8hpp_1aec48dbe1a76815928b060c1bae314737.html#define-documentation",
+    "generated/classAdiImuRos2.html",
+    "generated/classAdiImuRos2.html#class-documentation",
+    "generated/function_adrd2121__imu__ros2__node_8hpp_1a9f65322fa10662aeacdf0c3dc14a7d11.html",
+    "generated/function_adrd2121__imu__ros2__node_8hpp_1a9f65322fa10662aeacdf0c3dc14a7d11.html#function-documentation",
+    "generated/variable_adrd2121__imu__ros2__common_8hpp_1a7c721e38ec2a9be581f718dc5405ace8.html",
+    "generated/variable_adrd2121__imu__ros2__common_8hpp_1a7c721e38ec2a9be581f718dc5405ace8.html#variable-documentation",
+    "generated/define_imu__buf__ros2_8hpp_1a5ac732de3c224518d2c8899ca63cac7a.html",
+    "generated/define_imu__buf__ros2_8hpp_1a5ac732de3c224518d2c8899ca63cac7a.html#define-documentation",
+    "generated/program_listing_file_include_adrd2121_imu_bias_estimate_node_ros2.hpp.html",
+    "generated/define_imu__buf__ros2_8hpp_1a68654b05f39a5e88db0453de6f7fd726.html",
+    "generated/define_imu__buf__ros2_8hpp_1a68654b05f39a5e88db0453de6f7fd726.html#define-documentation",
+    "generated/file_include_adrd2121_imu_imu_state_checker_ros2.hpp.html",
+    "generated/file_include_adrd2121_imu_imu_state_checker_ros2.hpp.html#definition-include-adrd2121-imu-imu-state-checker-ros2-hpp",
+    "generated/file_include_adrd2121_imu_imu_state_checker_ros2.hpp.html#includes",
+    "generated/file_include_adrd2121_imu_imu_state_checker_ros2.hpp.html#included-by",
+    "generated/file_include_adrd2121_imu_imu_state_checker_ros2.hpp.html#classes",
+    "generated/file_include_adrd2121_imu_imu_state_checker_ros2.hpp.html#enums",
+    "generated/file_include_adrd2121_imu_imu_state_checker_ros2.hpp.html#defines",
+    "generated/file_include_adrd2121_imu_imu_state_checker_ros2.hpp.html#typedefs",
+    "generated/define_imu__buf__ros2_8hpp_1a4116f60a17cb7d729e62e2a6f9a4bbde.html",
+    "generated/define_imu__buf__ros2_8hpp_1a4116f60a17cb7d729e62e2a6f9a4bbde.html#define-documentation",
+    "generated/define_adrd2121__imu__ros2__common_8hpp_1acb60c94ce7e3f7765041e4c7daae10ba.html",
+    "generated/define_adrd2121__imu__ros2__common_8hpp_1acb60c94ce7e3f7765041e4c7daae10ba.html#define-documentation",
+    "generated/define_adrd2121__imu__ros2__common_8hpp_1aa57974323bef0262551029d83546b8e9.html",
+    "generated/define_adrd2121__imu__ros2__common_8hpp_1aa57974323bef0262551029d83546b8e9.html#define-documentation",
+    "generated/define_adrd2121__imu__ros2__common_8hpp_1a27a50acf70ee47d1923c803b1d0e5ade.html",
+    "generated/define_adrd2121__imu__ros2__common_8hpp_1a27a50acf70ee47d1923c803b1d0e5ade.html#define-documentation",
+    "generated/program_listing_file_include_adrd2121_imu_imu_state_checker_ros2.hpp.html",
+    "generated/enum_adrd2121__imu__ros2__common_8hpp_1aaa0f26826fda2d00f0456131c8c2c091.html",
+    "generated/enum_adrd2121__imu__ros2__common_8hpp_1aaa0f26826fda2d00f0456131c8c2c091.html#enum-documentation",
+    "generated/classImuStateCheckerRos2.html",
+    "generated/classImuStateCheckerRos2.html#class-documentation",
+    "generated/file_include_adrd2121_imu_adrd2121_imu_ros2_node.hpp.html",
+    "generated/file_include_adrd2121_imu_adrd2121_imu_ros2_node.hpp.html#definition-include-adrd2121-imu-adrd2121-imu-ros2-node-hpp",
+    "generated/file_include_adrd2121_imu_adrd2121_imu_ros2_node.hpp.html#includes",
+    "generated/file_include_adrd2121_imu_adrd2121_imu_ros2_node.hpp.html#namespaces",
+    "generated/file_include_adrd2121_imu_adrd2121_imu_ros2_node.hpp.html#functions",
+    "generated/program_listing_file_include_adrd2121_imu_adrd2121_imu_ros2_common.hpp.html",
+    "generated/define_imu__state__checker__ros2_8hpp_1af54831edceb88f332cc0b4e6bb990ca3.html",
+    "generated/define_imu__state__checker__ros2_8hpp_1af54831edceb88f332cc0b4e6bb990ca3.html#define-documentation",
+    "generated/function_adrd2121__imu__ros2__common_8hpp_1a4ccfdd8dc3bc55a7fa3c46601f88d21b.html",
+    "generated/function_adrd2121__imu__ros2__common_8hpp_1a4ccfdd8dc3bc55a7fa3c46601f88d21b.html#function-documentation",
+    "generated/dir_include_adrd2121_imu.html",
+    "generated/dir_include_adrd2121_imu.html#files",
+    "generated/define_bias__estimate__node__ros2_8hpp_1a615881e33252c91b9d8ce98c2abf2167.html",
+    "generated/define_bias__estimate__node__ros2_8hpp_1a615881e33252c91b9d8ce98c2abf2167.html#define-documentation",
+    "generated/function_adrd2121__imu__ros2__node_8hpp_1a1c9d5e29ad8899afe0c34571ddee18f9.html",
+    "generated/function_adrd2121__imu__ros2__node_8hpp_1a1c9d5e29ad8899afe0c34571ddee18f9.html#function-documentation",
+    "generated/file_include_adrd2121_imu_bias_estimate_node_ros2.hpp.html",
+    "generated/file_include_adrd2121_imu_bias_estimate_node_ros2.hpp.html#definition-include-adrd2121-imu-bias-estimate-node-ros2-hpp",
+    "generated/file_include_adrd2121_imu_bias_estimate_node_ros2.hpp.html#includes",
+    "generated/file_include_adrd2121_imu_bias_estimate_node_ros2.hpp.html#classes",
+    "generated/file_include_adrd2121_imu_bias_estimate_node_ros2.hpp.html#functions",
+    "generated/file_include_adrd2121_imu_bias_estimate_node_ros2.hpp.html#defines",
+    "generated/define_adrd2121__imu__ros2__common_8hpp_1a580c407b0436c2fbdd0ebadfdb3af152.html",
+    "generated/define_adrd2121__imu__ros2__common_8hpp_1a580c407b0436c2fbdd0ebadfdb3af152.html#define-documentation",
+    "generated/program_listing_file_include_adrd2121_imu_adi_imu_ros2.hpp.html",
+    "generated/define_adi__imu__ros2_8hpp_1a176e0b5c6592cef13d8fc7fc9d85f374.html",
+    "generated/define_adi__imu__ros2_8hpp_1a176e0b5c6592cef13d8fc7fc9d85f374.html#define-documentation",
+    "generated/define_imu__buf__ros2_8hpp_1a0dd4961968dec6a15a7c22670e184bf4.html",
+    "generated/define_imu__buf__ros2_8hpp_1a0dd4961968dec6a15a7c22670e184bf4.html#define-documentation",
+    "generated/define_adi__imu__ros2_8hpp_1a8df6275beb940e0f6fb78021240a6582.html",
+    "generated/define_adi__imu__ros2_8hpp_1a8df6275beb940e0f6fb78021240a6582.html#define-documentation",
+    "generated/define_adrd2121__imu__ros2__common_8hpp_1ab702106cf3b3e96750b6845ded4e0299.html",
+    "generated/define_adrd2121__imu__ros2__common_8hpp_1ab702106cf3b3e96750b6845ded4e0299.html#define-documentation",
+    "generated/define_adi__imu__ros2_8hpp_1a9cbe04926e6fe11f1d69a60b27ac369c.html",
+    "generated/define_adi__imu__ros2_8hpp_1a9cbe04926e6fe11f1d69a60b27ac369c.html#define-documentation",
+    "generated/program_listing_file_include_adrd2121_imu_adrd2121_imu_ros2_node.hpp.html",
+    "generated/variable_adi__imu__ros2_8hpp_1adc477273c512b9c4f4c04e87501c813b.html",
+    "generated/variable_adi__imu__ros2_8hpp_1adc477273c512b9c4f4c04e87501c813b.html#variable-documentation",
+    "generated/enum_imu__buf__ros2_8hpp_1ac29e3db48d9959846a1fe65292f6fb9c.html",
+    "generated/enum_imu__buf__ros2_8hpp_1ac29e3db48d9959846a1fe65292f6fb9c.html#enum-documentation",
+    "generated/variable_adi__imu__ros2_8hpp_1a3188e5110d0c67f373778d9e9774fae1.html",
+    "generated/variable_adi__imu__ros2_8hpp_1a3188e5110d0c67f373778d9e9774fae1.html#variable-documentation",
+    "generated/define_imu__buf__ros2_8hpp_1a296edea00803a86b1d00dcbba8d830b2.html",
+    "generated/define_imu__buf__ros2_8hpp_1a296edea00803a86b1d00dcbba8d830b2.html#define-documentation",
+    "generated/define_adrd2121__imu__ros2__common_8hpp_1aefde6f6cde762d962933131d80b41a0f.html",
+    "generated/define_adrd2121__imu__ros2__common_8hpp_1aefde6f6cde762d962933131d80b41a0f.html#define-documentation",
+    "generated/enum_imu__state__checker__ros2_8hpp_1a9ebccd294ac8fd3cf7fdc78d05cb5613.html",
+    "generated/enum_imu__state__checker__ros2_8hpp_1a9ebccd294ac8fd3cf7fdc78d05cb5613.html#enum-documentation",
+    "generated/classBiasEstimateRos2.html",
+    "generated/classBiasEstimateRos2.html#class-documentation",
+    "generated/define_adi__imu__ros2_8hpp_1aabb08791e8ac41f5539087868f615963.html",
+    "generated/define_adi__imu__ros2_8hpp_1aabb08791e8ac41f5539087868f615963.html#define-documentation",
+    "generated/define_imu__buf__ros2_8hpp_1a39f75920a5c345ed47b80b16002ddb20.html",
+    "generated/define_imu__buf__ros2_8hpp_1a39f75920a5c345ed47b80b16002ddb20.html#define-documentation",
+    "generated/define_adrd2121__imu__ros2__common_8hpp_1a5c4024e530509ada4154685c628951d8.html",
+    "generated/define_adrd2121__imu__ros2__common_8hpp_1a5c4024e530509ada4154685c628951d8.html#define-documentation",
+    "generated/program_listing_file_include_adrd2121_imu_adi_imu_buf_ros2.hpp.html",
+    "generated/define_adrd2121__imu__ros2__common_8hpp_1a7fbc09303e386c588e56ccb264e4d580.html",
+    "generated/define_adrd2121__imu__ros2__common_8hpp_1a7fbc09303e386c588e56ccb264e4d580.html#define-documentation",
+    "generated/define_imu__buf__ros2_8hpp_1aa17bc8e7018f504a5eac115005d59970.html",
+    "generated/define_imu__buf__ros2_8hpp_1aa17bc8e7018f504a5eac115005d59970.html#define-documentation",
+    "generated/typedef_imu__state__checker__ros2_8hpp_1ad94c26128974472337480354af787839.html",
+    "generated/typedef_imu__state__checker__ros2_8hpp_1ad94c26128974472337480354af787839.html#typedef-documentation",
+    "generated/classImuBufRos2.html",
+    "generated/classImuBufRos2.html#class-documentation",
+    "generated/dir_include.html",
+    "generated/dir_include.html#subdirectories",
+    "generated/function_bias__estimate__node__ros2_8hpp_1acb496a8c6ccbe9acd3f506e3019f011f.html",
+    "generated/function_bias__estimate__node__ros2_8hpp_1acb496a8c6ccbe9acd3f506e3019f011f.html#function-documentation",
+    "generated/file_include_adrd2121_imu_adi_imu_ros2.hpp.html",
+    "generated/file_include_adrd2121_imu_adi_imu_ros2.hpp.html#definition-include-adrd2121-imu-adi-imu-ros2-hpp",
+    "generated/file_include_adrd2121_imu_adi_imu_ros2.hpp.html#includes",
+    "generated/file_include_adrd2121_imu_adi_imu_ros2.hpp.html#included-by",
+    "generated/file_include_adrd2121_imu_adi_imu_ros2.hpp.html#classes",
+    "generated/file_include_adrd2121_imu_adi_imu_ros2.hpp.html#defines",
+    "generated/file_include_adrd2121_imu_adi_imu_ros2.hpp.html#variables",
+    "generated/variable_adi__imu__ros2_8hpp_1ada468037ac7ff7bc3a91834b1ab7fc15.html",
+    "generated/variable_adi__imu__ros2_8hpp_1ada468037ac7ff7bc3a91834b1ab7fc15.html#variable-documentation",
+    "generated/function_bias__estimate__node__ros2_8hpp_1a1c9d5e29ad8899afe0c34571ddee18f9.html",
+    "generated/function_bias__estimate__node__ros2_8hpp_1a1c9d5e29ad8899afe0c34571ddee18f9.html#function-documentation",
+    "generated/define_imu__buf__ros2_8hpp_1a3c7f4fe59e65d63b5f4b2964f782876f.html",
+    "generated/define_imu__buf__ros2_8hpp_1a3c7f4fe59e65d63b5f4b2964f782876f.html#define-documentation",
+    "generated/classAdiImuBufRos2.html",
+    "generated/classAdiImuBufRos2.html#class-documentation",
+    "generated/variable_adi__imu__ros2_8hpp_1a63e45cd8a9fcbfd2c42cdaae89f54b57.html",
+    "generated/variable_adi__imu__ros2_8hpp_1a63e45cd8a9fcbfd2c42cdaae89f54b57.html#variable-documentation",
+    "generated/define_imu__state__checker__ros2_8hpp_1af7f0040405be9c6d9c1f8f2188fd2b57.html",
+    "generated/define_imu__state__checker__ros2_8hpp_1af7f0040405be9c6d9c1f8f2188fd2b57.html#define-documentation",
+    "generated/file_include_adrd2121_imu_imu_buf_ros2.hpp.html",
+    "generated/file_include_adrd2121_imu_imu_buf_ros2.hpp.html#definition-include-adrd2121-imu-imu-buf-ros2-hpp",
+    "generated/file_include_adrd2121_imu_imu_buf_ros2.hpp.html#includes",
+    "generated/file_include_adrd2121_imu_imu_buf_ros2.hpp.html#included-by",
+    "generated/file_include_adrd2121_imu_imu_buf_ros2.hpp.html#classes",
+    "generated/file_include_adrd2121_imu_imu_buf_ros2.hpp.html#enums",
+    "generated/file_include_adrd2121_imu_imu_buf_ros2.hpp.html#functions",
+    "generated/file_include_adrd2121_imu_imu_buf_ros2.hpp.html#defines",
+    "generated/define_imu__buf__ros2_8hpp_1a4e2a954616e66ac3579f146544db0386.html",
+    "generated/define_imu__buf__ros2_8hpp_1a4e2a954616e66ac3579f146544db0386.html#define-documentation",
+    "generated/file_include_adrd2121_imu_adi_imu_buf_ros2.hpp.html",
+    "generated/file_include_adrd2121_imu_adi_imu_buf_ros2.hpp.html#definition-include-adrd2121-imu-adi-imu-buf-ros2-hpp",
+    "generated/file_include_adrd2121_imu_adi_imu_buf_ros2.hpp.html#includes",
+    "generated/file_include_adrd2121_imu_adi_imu_buf_ros2.hpp.html#included-by",
+    "generated/file_include_adrd2121_imu_adi_imu_buf_ros2.hpp.html#classes",
+    "generated/variable_adi__imu__ros2_8hpp_1ab3ed92bd5a714ad9a6509d5bbeac8b49.html",
+    "generated/variable_adi__imu__ros2_8hpp_1ab3ed92bd5a714ad9a6509d5bbeac8b49.html#variable-documentation",
+    "generated/function_adrd2121__imu__ros2__common_8hpp_1ad0151c8de87f5caebaac20bfb8a470dd.html",
+    "generated/function_adrd2121__imu__ros2__common_8hpp_1ad0151c8de87f5caebaac20bfb8a470dd.html#function-documentation",
+    "generated/function_adrd2121__imu__ros2__common_8hpp_1a66f87630871cd77f84ac075e22c6bbc5.html",
+    "generated/function_adrd2121__imu__ros2__common_8hpp_1a66f87630871cd77f84ac075e22c6bbc5.html#function-documentation",
+    "generated/variable_adi__imu__ros2_8hpp_1a87b9734a0e1c4e2b19f48fa69430ca33.html",
+    "generated/variable_adi__imu__ros2_8hpp_1a87b9734a0e1c4e2b19f48fa69430ca33.html#variable-documentation",
+    "generated/define_adrd2121__imu__ros2__common_8hpp_1ad5661af5edf1a48a6eddc623c633ceb1.html",
+    "generated/define_adrd2121__imu__ros2__common_8hpp_1ad5661af5edf1a48a6eddc623c633ceb1.html#define-documentation",
+    "msg/ImuState.html",
+    "srv/BiasEstimateCmd.html",
+    "generated/function_imu__buf__ros2_8hpp_1a5410155f3e0de8650fc06ec12f7b08e4.html",
+    "generated/function_imu__buf__ros2_8hpp_1a5410155f3e0de8650fc06ec12f7b08e4.html#function-documentation",
+    "msg/AdiImu.html",
+    "generated/define_imu__state__checker__ros2_8hpp_1a5ac732de3c224518d2c8899ca63cac7a.html",
+    "generated/define_imu__state__checker__ros2_8hpp_1a5ac732de3c224518d2c8899ca63cac7a.html#define-documentation",
+    "srv/BufStatus.html",
+    "srv/ImuGlobCmd.html",
+    "generated/variable_adi__imu__ros2_8hpp_1a0e39b5a0cdf5b0953780a170fbe0cfdf.html",
+    "generated/variable_adi__imu__ros2_8hpp_1a0e39b5a0cdf5b0953780a170fbe0cfdf.html#variable-documentation",
+    "generated/index.html#class-hierarchy",
+    "generated/index.html#file-hierarchy",
+    "generated/index.html#namespaces",
+    "generated/index.html#classes-and-structs",
+    "generated/index.html#enums",
+    "generated/index.html#functions",
+    "generated/index.html#variables",
+    "generated/index.html#defines",
+    "generated/index.html#typedefs",
+    "generated/index.html#directories",
+    "generated/index.html#files",
+    "index.html",
+    "index.html#background",
+    "index.html#clone-this-repository",
+    "index.html#install-dependencies",
+    "index.html#build",
+    "index.html#access-to-device",
+    "index.html#temporary-access",
+    "index.html#permanent-access-via-custom-udev-rules",
+    "index.html#launch",
+    "index.html#default-launch",
+    "index.html#change-log-level-for-nodes",
+    "index.html#delayed-execution-of-bias-estimate-node",
+    "index.html#operation-modes",
+    "index.html#board-recovery",
+    "index.html#published-topics",
+    "index.html#advertised-services",
+    "index.html#parameters",
+    "index.html#ros-specific-parameters",
+    "index.html#communication-interface-parameters",
+    "index.html#adrd2121-parameters",
+    "index.html#imu-parameters",
+    "index.html#bias-estimate-node-ros2",
+    "index.html#id1",
+    "index.html#subscribed-topics",
+    "index.html#id2",
+    "index.html#id3",
+    "generated/file_include_adrd2121_imu_adrd2121_imu_ros2_common.hpp.html",
+    "generated/file_include_adrd2121_imu_adrd2121_imu_ros2_common.hpp.html#definition-include-adrd2121-imu-adrd2121-imu-ros2-common-hpp",
+    "generated/file_include_adrd2121_imu_adrd2121_imu_ros2_common.hpp.html#includes",
+    "generated/file_include_adrd2121_imu_adrd2121_imu_ros2_common.hpp.html#included-by",
+    "generated/file_include_adrd2121_imu_adrd2121_imu_ros2_common.hpp.html#enums",
+    "generated/file_include_adrd2121_imu_adrd2121_imu_ros2_common.hpp.html#functions",
+    "generated/file_include_adrd2121_imu_adrd2121_imu_ros2_common.hpp.html#defines",
+    "generated/file_include_adrd2121_imu_adrd2121_imu_ros2_common.hpp.html#variables",
+    "generated/program_listing_file_include_adrd2121_imu_imu_buf_ros2.hpp.html",
+    "README.html",
+    "README.html#clone-this-repository",
+    "README.html#install-dependencies",
+    "README.html#build",
+    "README.html#access-to-device",
+    "README.html#temporary-access",
+    "README.html#permanent-access-via-custom-udev-rules",
+    "README.html",
+    "README.html#default-launch",
+    "README.html#change-log-level-for-nodes",
+    "README.html#delayed-execution-of-bias-estimate-node",
+    "README.html#operation-modes",
+    "README.html#board-recovery",
+    "README.html#published-topics",
+    "README.html#advertised-services",
+    "README.html#parameters",
+    "README.html#ros-specific-parameters",
+    "README.html#communication-interface-parameters",
+    "README.html#adrd2121-parameters",
+    "README.html#imu-parameters",
+    "README.html#bias-estimate-node-ros2",
+    "README.html#id1",
+    "README.html#subscribed-topics",
+    "README.html#id2",
+    "README.html#id3"
+  ],
+  "hierarchy": [
+    [
+      "C++ API",
+      "Variable TIME_BASE_MAX"
+    ],
+    [
+      "C++ API",
+      "Variable TIME_BASE_MAX",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Define TRIGGER_WAIT_TIME"
+    ],
+    [
+      "C++ API",
+      "Define TRIGGER_WAIT_TIME",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "Define MODE_DEFAULT"
+    ],
+    [
+      "C++ API",
+      "Define MODE_DEFAULT",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "Define BURST_COUNT_MAX"
+    ],
+    [
+      "C++ API",
+      "Define BURST_COUNT_MAX",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "Class AdiImuRos2"
+    ],
+    [
+      "C++ API",
+      "Class AdiImuRos2",
+      "Class Documentation"
+    ],
+    [
+      "C++ API",
+      "Function gracefulShutdownHandler"
+    ],
+    [
+      "C++ API",
+      "Function gracefulShutdownHandler",
+      "Function Documentation"
+    ],
+    [
+      "C++ API",
+      "Variable crc32_tab"
+    ],
+    [
+      "C++ API",
+      "Variable crc32_tab",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Define BUFFER_LIMIT"
+    ],
+    [
+      "C++ API",
+      "Define BUFFER_LIMIT",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "File bias_estimate_node_ros2.hpp",
+      "Program Listing for File bias_estimate_node_ros2.hpp"
+    ],
+    [
+      "C++ API",
+      "Define DEFAULT_BAUD_RATE"
+    ],
+    [
+      "C++ API",
+      "Define DEFAULT_BAUD_RATE",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "File imu_state_checker_ros2.hpp"
+    ],
+    [
+      "C++ API",
+      "File imu_state_checker_ros2.hpp",
+      "Definition (include/adrd2121_imu/imu_state_checker_ros2.hpp)"
+    ],
+    [
+      "C++ API",
+      "File imu_state_checker_ros2.hpp",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File imu_state_checker_ros2.hpp",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File imu_state_checker_ros2.hpp",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "File imu_state_checker_ros2.hpp",
+      "Enums"
+    ],
+    [
+      "C++ API",
+      "File imu_state_checker_ros2.hpp",
+      "Defines"
+    ],
+    [
+      "C++ API",
+      "File imu_state_checker_ros2.hpp",
+      "Typedefs"
+    ],
+    [
+      "C++ API",
+      "Define MAX_CLEAR_TIMEOUT"
+    ],
+    [
+      "C++ API",
+      "Define MAX_CLEAR_TIMEOUT",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "Define BIT_HIGH"
+    ],
+    [
+      "C++ API",
+      "Define BIT_HIGH",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "Define STREAM"
+    ],
+    [
+      "C++ API",
+      "Define STREAM",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "Define ADIS16500"
+    ],
+    [
+      "C++ API",
+      "Define ADIS16500",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "File imu_state_checker_ros2.hpp",
+      "Program Listing for File imu_state_checker_ros2.hpp"
+    ],
+    [
+      "C++ API",
+      "Enum msg_type_e"
+    ],
+    [
+      "C++ API",
+      "Enum msg_type_e",
+      "Enum Documentation"
+    ],
+    [
+      "C++ API",
+      "Class ImuStateCheckerRos2"
+    ],
+    [
+      "C++ API",
+      "Class ImuStateCheckerRos2",
+      "Class Documentation"
+    ],
+    [
+      "C++ API",
+      "File adrd2121_imu_ros2_node.hpp"
+    ],
+    [
+      "C++ API",
+      "File adrd2121_imu_ros2_node.hpp",
+      "Definition (include/adrd2121_imu/adrd2121_imu_ros2_node.hpp)"
+    ],
+    [
+      "C++ API",
+      "File adrd2121_imu_ros2_node.hpp",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File adrd2121_imu_ros2_node.hpp",
+      "Namespaces"
+    ],
+    [
+      "C++ API",
+      "File adrd2121_imu_ros2_node.hpp",
+      "Functions"
+    ],
+    [
+      "C++ API",
+      "File adrd2121_imu_ros2_common.hpp",
+      "Program Listing for File adrd2121_imu_ros2_common.hpp"
+    ],
+    [
+      "C++ API",
+      "Define WAIT_LIMIT"
+    ],
+    [
+      "C++ API",
+      "Define WAIT_LIMIT",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "Function print_time"
+    ],
+    [
+      "C++ API",
+      "Function print_time",
+      "Function Documentation"
+    ],
+    [
+      "C++ API",
+      "Directory adrd2121_imu"
+    ],
+    [
+      "C++ API",
+      "Directory adrd2121_imu",
+      "Files"
+    ],
+    [
+      "C++ API",
+      "Define MAX_WAIT_SERVICE"
+    ],
+    [
+      "C++ API",
+      "Define MAX_WAIT_SERVICE",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "Function shutdown(void)"
+    ],
+    [
+      "C++ API",
+      "Function shutdown(void)",
+      "Function Documentation"
+    ],
+    [
+      "C++ API",
+      "File bias_estimate_node_ros2.hpp"
+    ],
+    [
+      "C++ API",
+      "File bias_estimate_node_ros2.hpp",
+      "Definition (include/adrd2121_imu/bias_estimate_node_ros2.hpp)"
+    ],
+    [
+      "C++ API",
+      "File bias_estimate_node_ros2.hpp",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File bias_estimate_node_ros2.hpp",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "File bias_estimate_node_ros2.hpp",
+      "Functions"
+    ],
+    [
+      "C++ API",
+      "File bias_estimate_node_ros2.hpp",
+      "Defines"
+    ],
+    [
+      "C++ API",
+      "Define BIT_LOW"
+    ],
+    [
+      "C++ API",
+      "Define BIT_LOW",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "File adi_imu_ros2.hpp",
+      "Program Listing for File adi_imu_ros2.hpp"
+    ],
+    [
+      "C++ API",
+      "Define TIME_BASE_CTRL_DEFAULT"
+    ],
+    [
+      "C++ API",
+      "Define TIME_BASE_CTRL_DEFAULT",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "Define RADIAN_CONSTANT"
+    ],
+    [
+      "C++ API",
+      "Define RADIAN_CONSTANT",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "Define PROD_ID_DEFAULT"
+    ],
+    [
+      "C++ API",
+      "Define PROD_ID_DEFAULT",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "Define RESET"
+    ],
+    [
+      "C++ API",
+      "Define RESET",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "Define DEC_RATE_CONST"
+    ],
+    [
+      "C++ API",
+      "Define DEC_RATE_CONST",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "File adrd2121_imu_ros2_node.hpp",
+      "Program Listing for File adrd2121_imu_ros2_node.hpp"
+    ],
+    [
+      "C++ API",
+      "Variable GRAVITY_MAX"
+    ],
+    [
+      "C++ API",
+      "Variable GRAVITY_MAX",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Enum buf_dio_pin_e"
+    ],
+    [
+      "C++ API",
+      "Enum buf_dio_pin_e",
+      "Enum Documentation"
+    ],
+    [
+      "C++ API",
+      "Variable TIME_BASE_MIN"
+    ],
+    [
+      "C++ API",
+      "Variable TIME_BASE_MIN",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Define MAX_CLEAR_RETRY"
+    ],
+    [
+      "C++ API",
+      "Define MAX_CLEAR_RETRY",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "Define TWICE"
+    ],
+    [
+      "C++ API",
+      "Define TWICE",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "Enum e_imu_state"
+    ],
+    [
+      "C++ API",
+      "Enum e_imu_state",
+      "Enum Documentation"
+    ],
+    [
+      "C++ API",
+      "Class BiasEstimateRos2"
+    ],
+    [
+      "C++ API",
+      "Class BiasEstimateRos2",
+      "Class Documentation"
+    ],
+    [
+      "C++ API",
+      "Define DATA_RATE_DEFAULT"
+    ],
+    [
+      "C++ API",
+      "Define DATA_RATE_DEFAULT",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "Define MIN_CLEAR_TIMEOUT"
+    ],
+    [
+      "C++ API",
+      "Define MIN_CLEAR_TIMEOUT",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "Define ADIS16470"
+    ],
+    [
+      "C++ API",
+      "Define ADIS16470",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "File adi_imu_buf_ros2.hpp",
+      "Program Listing for File adi_imu_buf_ros2.hpp"
+    ],
+    [
+      "C++ API",
+      "Define RECOVERY"
+    ],
+    [
+      "C++ API",
+      "Define RECOVERY",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "Define API_CALL_DELAY"
+    ],
+    [
+      "C++ API",
+      "Define API_CALL_DELAY",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "Typedef e_imu_state"
+    ],
+    [
+      "C++ API",
+      "Typedef e_imu_state",
+      "Typedef Documentation"
+    ],
+    [
+      "C++ API",
+      "Class ImuBufRos2"
+    ],
+    [
+      "C++ API",
+      "Class ImuBufRos2",
+      "Class Documentation"
+    ],
+    [
+      "C++ API",
+      "Directory include"
+    ],
+    [
+      "C++ API",
+      "Directory include",
+      "Subdirectories"
+    ],
+    [
+      "C++ API",
+      "Function biasGracefulShutdownHandler"
+    ],
+    [
+      "C++ API",
+      "Function biasGracefulShutdownHandler",
+      "Function Documentation"
+    ],
+    [
+      "C++ API",
+      "File adi_imu_ros2.hpp"
+    ],
+    [
+      "C++ API",
+      "File adi_imu_ros2.hpp",
+      "Definition (include/adrd2121_imu/adi_imu_ros2.hpp)"
+    ],
+    [
+      "C++ API",
+      "File adi_imu_ros2.hpp",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File adi_imu_ros2.hpp",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File adi_imu_ros2.hpp",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "File adi_imu_ros2.hpp",
+      "Defines"
+    ],
+    [
+      "C++ API",
+      "File adi_imu_ros2.hpp",
+      "Variables"
+    ],
+    [
+      "C++ API",
+      "Variable IMU_GYRO_SCALE_SIZE"
+    ],
+    [
+      "C++ API",
+      "Variable IMU_GYRO_SCALE_SIZE",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Function shutdown(void)"
+    ],
+    [
+      "C++ API",
+      "Function shutdown(void)",
+      "Function Documentation"
+    ],
+    [
+      "C++ API",
+      "Define THROW_LIMIT"
+    ],
+    [
+      "C++ API",
+      "Define THROW_LIMIT",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "Class AdiImuBufRos2"
+    ],
+    [
+      "C++ API",
+      "Class AdiImuBufRos2",
+      "Class Documentation"
+    ],
+    [
+      "C++ API",
+      "Variable IMU_ACCL_SCALE_SIZE"
+    ],
+    [
+      "C++ API",
+      "Variable IMU_ACCL_SCALE_SIZE",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Define DATA_LIMIT"
+    ],
+    [
+      "C++ API",
+      "Define DATA_LIMIT",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "File imu_buf_ros2.hpp"
+    ],
+    [
+      "C++ API",
+      "File imu_buf_ros2.hpp",
+      "Definition (include/adrd2121_imu/imu_buf_ros2.hpp)"
+    ],
+    [
+      "C++ API",
+      "File imu_buf_ros2.hpp",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File imu_buf_ros2.hpp",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File imu_buf_ros2.hpp",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "File imu_buf_ros2.hpp",
+      "Enums"
+    ],
+    [
+      "C++ API",
+      "File imu_buf_ros2.hpp",
+      "Functions"
+    ],
+    [
+      "C++ API",
+      "File imu_buf_ros2.hpp",
+      "Defines"
+    ],
+    [
+      "C++ API",
+      "Define BURST_COUNT_MIN"
+    ],
+    [
+      "C++ API",
+      "Define BURST_COUNT_MIN",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "File adi_imu_buf_ros2.hpp"
+    ],
+    [
+      "C++ API",
+      "File adi_imu_buf_ros2.hpp",
+      "Definition (include/adrd2121_imu/adi_imu_buf_ros2.hpp)"
+    ],
+    [
+      "C++ API",
+      "File adi_imu_buf_ros2.hpp",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File adi_imu_buf_ros2.hpp",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File adi_imu_buf_ros2.hpp",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "Variable GRAVITY_DEFAULT"
+    ],
+    [
+      "C++ API",
+      "Variable GRAVITY_DEFAULT",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Function current_timestamp"
+    ],
+    [
+      "C++ API",
+      "Function current_timestamp",
+      "Function Documentation"
+    ],
+    [
+      "C++ API",
+      "Function crc32_block"
+    ],
+    [
+      "C++ API",
+      "Function crc32_block",
+      "Function Documentation"
+    ],
+    [
+      "C++ API",
+      "Variable IMU_GYRO_BIAS_SIZE"
+    ],
+    [
+      "C++ API",
+      "Variable IMU_GYRO_BIAS_SIZE",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Define ADIS16495"
+    ],
+    [
+      "C++ API",
+      "Define ADIS16495",
+      "Define Documentation"
+    ],
+    [
+      "Message Definitions",
+      "ImuState"
+    ],
+    [
+      "Service Definitions",
+      "BiasEstimateCmd"
+    ],
+    [
+      "C++ API",
+      "Function BUFDIOtoString"
+    ],
+    [
+      "C++ API",
+      "Function BUFDIOtoString",
+      "Function Documentation"
+    ],
+    [
+      "Message Definitions",
+      "AdiImu"
+    ],
+    [
+      "C++ API",
+      "Define BUFFER_LIMIT"
+    ],
+    [
+      "C++ API",
+      "Define BUFFER_LIMIT",
+      "Define Documentation"
+    ],
+    [
+      "Service Definitions",
+      "BufStatus"
+    ],
+    [
+      "Service Definitions",
+      "ImuGlobCmd"
+    ],
+    [
+      "C++ API",
+      "Variable IMU_ACCL_BIAS_SIZE"
+    ],
+    [
+      "C++ API",
+      "Variable IMU_ACCL_BIAS_SIZE",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Class Hierarchy"
+    ],
+    [
+      "C++ API",
+      "File Hierarchy"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Namespaces"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Classes and Structs"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Enums"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Functions"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Variables"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Defines"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Typedefs"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Directories"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Files"
+    ],
+    [
+      "adrd2121_imu"
+    ],
+    [
+      "README",
+      "Background"
+    ],
+    [
+      "README",
+      "Software Setup",
+      "Clone this repository"
+    ],
+    [
+      "README",
+      "Software Setup",
+      "Install Dependencies"
+    ],
+    [
+      "README",
+      "Software Setup",
+      "Build"
+    ],
+    [
+      "README",
+      "Hardware Setup",
+      "Access to device"
+    ],
+    [
+      "README",
+      "Hardware Setup",
+      "Access to device",
+      "Temporary Access"
+    ],
+    [
+      "README",
+      "Hardware Setup",
+      "Access to device",
+      "Permanent Access (via custom udev rules)"
+    ],
+    [
+      "README",
+      "Launch"
+    ],
+    [
+      "README",
+      "Launch",
+      "Default launch"
+    ],
+    [
+      "README",
+      "Launch",
+      "Change log level for nodes"
+    ],
+    [
+      "README",
+      "Launch",
+      "Delayed execution of bias_estimate_node"
+    ],
+    [
+      "README",
+      "Nodes",
+      "adrd2121_imu_node",
+      "Operation modes"
+    ],
+    [
+      "README",
+      "Nodes",
+      "adrd2121_imu_node",
+      "Board recovery"
+    ],
+    [
+      "README",
+      "Nodes",
+      "adrd2121_imu_node",
+      "Published topics"
+    ],
+    [
+      "README",
+      "Nodes",
+      "adrd2121_imu_node",
+      "Advertised services"
+    ],
+    [
+      "README",
+      "Nodes",
+      "adrd2121_imu_node",
+      "Parameters"
+    ],
+    [
+      "README",
+      "Nodes",
+      "adrd2121_imu_node",
+      "Parameters",
+      "ROS Specific Parameters"
+    ],
+    [
+      "README",
+      "Nodes",
+      "adrd2121_imu_node",
+      "Parameters",
+      "Communication Interface Parameters"
+    ],
+    [
+      "README",
+      "Nodes",
+      "adrd2121_imu_node",
+      "Parameters",
+      "ADRD2121 Parameters"
+    ],
+    [
+      "README",
+      "Nodes",
+      "adrd2121_imu_node",
+      "Parameters",
+      "IMU Parameters"
+    ],
+    [
+      "README",
+      "Nodes",
+      "bias_estimate_node_ros2"
+    ],
+    [
+      "README",
+      "Nodes",
+      "bias_estimate_node_ros2",
+      "Published topics"
+    ],
+    [
+      "README",
+      "Nodes",
+      "bias_estimate_node_ros2",
+      "Subscribed Topics"
+    ],
+    [
+      "README",
+      "Nodes",
+      "bias_estimate_node_ros2",
+      "Advertised Services"
+    ],
+    [
+      "README",
+      "Nodes",
+      "bias_estimate_node_ros2",
+      "Parameters"
+    ],
+    [
+      "C++ API",
+      "File adrd2121_imu_ros2_common.hpp"
+    ],
+    [
+      "C++ API",
+      "File adrd2121_imu_ros2_common.hpp",
+      "Definition (include/adrd2121_imu/adrd2121_imu_ros2_common.hpp)"
+    ],
+    [
+      "C++ API",
+      "File adrd2121_imu_ros2_common.hpp",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File adrd2121_imu_ros2_common.hpp",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File adrd2121_imu_ros2_common.hpp",
+      "Enums"
+    ],
+    [
+      "C++ API",
+      "File adrd2121_imu_ros2_common.hpp",
+      "Functions"
+    ],
+    [
+      "C++ API",
+      "File adrd2121_imu_ros2_common.hpp",
+      "Defines"
+    ],
+    [
+      "C++ API",
+      "File adrd2121_imu_ros2_common.hpp",
+      "Variables"
+    ],
+    [
+      "C++ API",
+      "File imu_buf_ros2.hpp",
+      "Program Listing for File imu_buf_ros2.hpp"
+    ],
+    [
+      "Background"
+    ],
+    [
+      "Software Setup",
+      "Clone this repository"
+    ],
+    [
+      "Software Setup",
+      "Install Dependencies"
+    ],
+    [
+      "Software Setup",
+      "Build"
+    ],
+    [
+      "Hardware Setup",
+      "Access to device"
+    ],
+    [
+      "Hardware Setup",
+      "Access to device",
+      "Temporary Access"
+    ],
+    [
+      "Hardware Setup",
+      "Access to device",
+      "Permanent Access (via custom udev rules)"
+    ],
+    [
+      "Launch"
+    ],
+    [
+      "Launch",
+      "Default launch"
+    ],
+    [
+      "Launch",
+      "Change log level for nodes"
+    ],
+    [
+      "Launch",
+      "Delayed execution of bias_estimate_node"
+    ],
+    [
+      "Nodes",
+      "adrd2121_imu_node",
+      "Operation modes"
+    ],
+    [
+      "Nodes",
+      "adrd2121_imu_node",
+      "Board recovery"
+    ],
+    [
+      "Nodes",
+      "adrd2121_imu_node",
+      "Published topics"
+    ],
+    [
+      "Nodes",
+      "adrd2121_imu_node",
+      "Advertised services"
+    ],
+    [
+      "Nodes",
+      "adrd2121_imu_node",
+      "Parameters"
+    ],
+    [
+      "Nodes",
+      "adrd2121_imu_node",
+      "Parameters",
+      "ROS Specific Parameters"
+    ],
+    [
+      "Nodes",
+      "adrd2121_imu_node",
+      "Parameters",
+      "Communication Interface Parameters"
+    ],
+    [
+      "Nodes",
+      "adrd2121_imu_node",
+      "Parameters",
+      "ADRD2121 Parameters"
+    ],
+    [
+      "Nodes",
+      "adrd2121_imu_node",
+      "Parameters",
+      "IMU Parameters"
+    ],
+    [
+      "Nodes",
+      "bias_estimate_node_ros2"
+    ],
+    [
+      "Nodes",
+      "bias_estimate_node_ros2",
+      "Published topics"
+    ],
+    [
+      "Nodes",
+      "bias_estimate_node_ros2",
+      "Subscribed Topics"
+    ],
+    [
+      "Nodes",
+      "bias_estimate_node_ros2",
+      "Advertised Services"
+    ],
+    [
+      "Nodes",
+      "bias_estimate_node_ros2",
+      "Parameters"
+    ]
+  ]
+}

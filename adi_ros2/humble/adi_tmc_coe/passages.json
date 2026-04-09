@@ -1,0 +1,50 @@
+{
+  "text": [
+    "- Adding 1.0.0 of adi_tmc_coe, ROS2 Humble\n- Contributors: Jamila Macagba\n",
+    "See adi_tmc_coe_core/README.md\n",
+    "See adi_tmc_coe_interfaces/README.md\n\n:memo: *Note: In ROS1, there is only 1 package for the complete driver which is **adi_tmc_coe**; \nFor ROS2, **adi_tmc_coe** was made as a metapackage to group **adi_tmc_coe_core** (contains all ROS Nodes and Libraries) and **adi_tmc_coe_interfaces** (contains al",
+    "Metapackage for Trinamic Motor Controllers (TMC) that uses CANopen-over-etherCAT(CoE) protocol.\n\n- Links\n  Rosindex\n\n  - Rosindex\n\n\n- Standard Documents\n  README\n  PACKAGE\n  CHANGELOG\n\n  - README\n  - PACKAGE\n  - CHANGELOG\n",
+    "|adi_tmc_coe|\n|Metapackage for Official ROS Driver for Trinamic Motor Controllers (TMC) that uses CANopen-over-etherCAT(CoE) protocol.|\n",
+    "See adi_tmc_coe_core/README.md\n",
+    "See adi_tmc_coe_interfaces/README.md\n\n:memo: *Note: In ROS1, there is only 1 package for the complete driver which is **adi_tmc_coe**; \nFor ROS2, **adi_tmc_coe** was made as a metapackage to group **adi_tmc_coe_core** (contains all ROS Nodes and Libraries) and **adi_tmc_coe_interfaces** (contains al"
+  ],
+  "url": [
+    "CHANGELOG.html#id1",
+    "README.html#adi-tmc-coe-core",
+    "README.html#adi-tmc-coe-interfaces",
+    "index.html",
+    "index.html",
+    "index.html#adi-tmc-coe-core",
+    "index.html#adi-tmc-coe-interfaces"
+  ],
+  "hierarchy": [
+    [
+      "Changelog for package adi_tmc_coe",
+      "1.0.0 (2025-03-06)"
+    ],
+    [
+      "Packages",
+      "adi_tmc_coe_core"
+    ],
+    [
+      "Packages",
+      "adi_tmc_coe_interfaces"
+    ],
+    [
+      "adi_tmc_coe"
+    ],
+    [
+      "README"
+    ],
+    [
+      "README",
+      "Packages",
+      "adi_tmc_coe_core"
+    ],
+    [
+      "README",
+      "Packages",
+      "adi_tmc_coe_interfaces"
+    ]
+  ]
+}

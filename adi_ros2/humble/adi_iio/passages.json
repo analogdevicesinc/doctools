@@ -1,0 +1,2146 @@
+{
+  "text": [
+    "- Enhanced hardware testing workflow with environment variable controls.\n- Contributors: Adrian-Stanea\n",
+    "- Automated Hardware Testing Infrastructure:\n  Setup of test workflows on self-hosted runners, with access to Pluto SDR device.\n\n  - Setup of test workflows on self-hosted runners, with access to Pluto SDR device.\n- Added system test validation and documentation.\n- Examples and Documentation Enhance",
+    "- Defined in File iio_buffer.hpp\n",
+    "**BUFFER_WRITE_SUFFIX**\n",
+    "- Frequently Asked Questions (FAQ)\n- Examples/\n",
+    "- Defined in File iio_attr_topic.hpp\n",
+    "- `public UpdateCallback` (Class UpdateCallback)\n",
+    "**class IIOAttrTopic : public UpdateCallback**\n:   Public Types\n:   enum topicType_t\n:   *Values:*\n:   enumerator TYPE_STRING\n:   enumerator TYPE_INT\n:   enumerator TYPE_DOUBLE\n:   enumerator TYPE_BOOL\n:   Public Functions\n:   IIOAttrTopic(std::shared_ptr<IIONode> nh, std::string topicName, std::str",
+    "The `adi_iio_node` is a ROS 2 node that interfaces with Analog Devices IIO devices.\nIt provides a collection of services to read/write IIO attributes, and manage\nIIO buffers. You can also attach topics to the attributes/buffers\n",
+    "The package currently supports the ROS2 distribution indicated as the base\nbranch in the repository (**e.g., humble**). Other supported distributions\nmay also be available in separate branches named after each distribution.\nPlease refer to the repository branches for detailed compatibility informati",
+    "Instructions for installing the package can be found in the Installation section.\n",
+    "The project includes a script that builds libiio from source. For more information,\nrefer to the libiio_source_build section.\n",
+    "The nodes can be launched using the provided launch files that are part of\nthis project. For detailed instructions on how to run the nodes, please refer\nto the Launch section.\n\n> **Note**\n>\n> This FAQ is a living document. Contributions to improve or update the FAQ are welcome.\n",
+    "- Defined in File attr_publisher.hpp\n",
+    "**ATTR_QOS_QUEUE_SIZE**\n",
+    "\u21b0 Return to documentation for file (`include/adi_iio/attr_publisher.hpp`)\n\n```cpp\n// Copyright 2025 Analog Devices, Inc.\n//\n// Licensed under the Apache License, Version 2.0 (the \"License\");\n// you may not use this file except in compliance with the License.\n// You may obtain a copy of the License a",
+    "- Defined in File iio_buffer.hpp\n",
+    "**BUFFER_QOS_QUEUE_SIZE**\n",
+    "\u21b0 Return to documentation for file (`src/adi_iio.cpp`)\n\n```cpp\n// Copyright 2025 Analog Devices, Inc.\n//\n// Licensed under the Apache License, Version 2.0 (the \"License\");\n// you may not use this file except in compliance with the License.\n// You may obtain a copy of the License at\n//\n//     http://",
+    "- Defined in File attr_publisher.hpp\n",
+    "**ATTR_WRITE_SUFFIX**\n",
+    "\u21b0 Return to documentation for file (`src/attr_publisher.cpp`)\n\n```cpp\n// Copyright 2025 Analog Devices, Inc.\n//\n// Licensed under the Apache License, Version 2.0 (the \"License\");\n// you may not use this file except in compliance with the License.\n// You may obtain a copy of the License at\n//\n//     ",
+    "\u21b0 Parent directory (`include/adi_iio`)\n\nContents\n\n- Definition (`include/adi_iio/iio_path.hpp`)\n- Includes\n- Included By\n- Classes\n- Enums\n",
+    "- Program Listing for File iio_path.hpp\n",
+    "- `sstream`\n- `string`\n- `utility`\n- `vector`\n",
+    "- File iio_buffer.cpp\n- File iio_node.cpp\n- File iio_path.cpp\n",
+    "- Class IIOPath\n",
+    "- Enum IIOPathType\n",
+    "- Defined in File iio_path.hpp\n",
+    "**enum IIOPathType**\n:   *Values:*\n:   enumerator CONTEXT\n:   enumerator CONTEXT_ATTR\n:   enumerator DEVICE\n:   enumerator DEVICE_ATTR\n:   enumerator CHANNEL\n:   enumerator CHANNEL_ATTR\n",
+    "- Class AttrPubSubClass BoolPubSubClass Float32PubSubClass IIOAttrTopicClass IIOBufferClass IIONodeClass IIOPathClass Int32PubSubClass StringPubSubClass UpdateCallbackEnum IIOPathType\n\n  - Class AttrPubSub\n  - Class BoolPubSub\n  - Class Float32PubSub\n  - Class IIOAttrTopic\n  - Class IIOBuffer\n  - Cl",
+    "- Directory includeDirectory adi_iioFile attr_publisher.hppFile iio_attr_topic.hppFile iio_buffer.hppFile iio_node.hppFile iio_path.hppDirectory srcFile adi_iio.cppFile attr_publisher.cppFile iio_attr_topic.cppFile iio_buffer.cppFile iio_node.cppFile iio_path.cpp\n\n  - Directory includeDirectory adi_",
+    "- Namespace rclcpp\n\n\n- Namespace std::chrono_literals\n",
+    "- Class AttrPubSub\n\n\n- Class BoolPubSub\n\n\n- Class Float32PubSub\n\n\n- Class IIOAttrTopic\n\n\n- Class IIOBuffer\n\n\n- Class IIONode\n\n\n- Class IIOPath\n\n\n- Class Int32PubSub\n\n\n- Class StringPubSub\n\n\n- Class UpdateCallback\n",
+    "- Enum IIOPathType\n",
+    "- Function main\n",
+    "- Define ATTR_QOS_QUEUE_SIZE\n\n\n- Define ATTR_READ_SUFFIX\n\n\n- Define ATTR_WRITE_SUFFIX\n\n\n- Define BUFFER_QOS_QUEUE_SIZE\n\n\n- Define BUFFER_READ_SUFFIX\n\n\n- Define BUFFER_WRITE_SUFFIX\n\n\n- Define MAX_ATTR_SIZE\n",
+    "- Directory include\n\n\n- Directory adi_iio\n\n\n- Directory src\n",
+    "- File adi_iio.cpp\n\n\n- File attr_publisher.cpp\n\n\n- File attr_publisher.hpp\n\n\n- File iio_attr_topic.cpp\n\n\n- File iio_attr_topic.hpp\n\n\n- File iio_buffer.cpp\n\n\n- File iio_buffer.hpp\n\n\n- File iio_node.cpp\n\n\n- File iio_node.hpp\n\n\n- File iio_path.cpp\n\n\n- File iio_path.hpp\n",
+    "\u21b0 Return to documentation for file (`include/adi_iio/iio_buffer.hpp`)\n\n```cpp\n// Copyright 2025 Analog Devices, Inc.\n//\n// Licensed under the Apache License, Version 2.0 (the \"License\");\n// you may not use this file except in compliance with the License.\n// You may obtain a copy of the License at\n//",
+    "- Defined in File adi_iio.cpp\n",
+    "> **Warning**\n>\n> doxygenfunction: Cannot find function \u201cmain\u201d in doxygen xml output for project \u201cadi_iio Doxygen Project\u201d from directory: /home/runner/work/adi_ros2/adi_ros2/_build/docs_build/adi_iio/output_staging/generated/doxygen/xml\n",
+    "- Defined in File iio_path.hpp\n",
+    "**class IIOPath**\n:   Represents and manipulates Industrial I/O (IIO) paths that are used to uniquely identify IIO devices, attributes, and channels from a context. \n:   Examples of valid paths types:\n:   CONTEXT: \u201c\u201d\n:   CONTEXT_ATTR: \u201ccontext-attribute\u201d\n:   DEVICE: \u201cdevice-name\u201d\n:   DEVICE_ATTR: \u201cd",
+    "\u21b0 Parent directory (`src`)\n\nContents\n\n- Definition (`src/iio_path.cpp`)\n- Includes\n",
+    "- Program Listing for File iio_path.cpp\n",
+    "- `adi_iio/iio_path.hpp` (File iio_path.hpp)\n- `rclcpp/rclcpp.hpp`\n- `string`\n",
+    "*Directory path:* `src`\n",
+    "- File adi_iio.cpp\n- File attr_publisher.cpp\n- File iio_attr_topic.cpp\n- File iio_buffer.cpp\n- File iio_node.cpp\n- File iio_path.cpp\n",
+    "\u21b0 Parent directory (`src`)\n\nContents\n\n- Definition (`src/iio_buffer.cpp`)\n- Includes\n",
+    "- Program Listing for File iio_buffer.cpp\n",
+    "- `adi_iio/iio_buffer.hpp` (File iio_buffer.hpp)\n- `adi_iio/iio_path.hpp` (File iio_path.hpp)\n",
+    "\u21b0 Parent directory (`include/adi_iio`)\n\nContents\n\n- Definition (`include/adi_iio/iio_buffer.hpp`)\n- Includes\n- Included By\n- Classes\n- Defines\n",
+    "- Program Listing for File iio_buffer.hpp\n",
+    "- `adi_iio/iio_node.hpp` (File iio_node.hpp)\n- `iio.h`\n- `memory`\n- `rclcpp/rclcpp.hpp`\n- `std_msgs/msg/int32_multi_array.hpp`\n- `string`\n- `vector`\n",
+    "- File iio_buffer.cpp\n- File iio_node.cpp\n",
+    "- Class IIOBuffer\n",
+    "- Define BUFFER_QOS_QUEUE_SIZE\n- Define BUFFER_READ_SUFFIX\n- Define BUFFER_WRITE_SUFFIX\n",
+    "\u21b0 Return to documentation for file (`src/iio_path.cpp`)\n\n```cpp\n// Copyright 2025 Analog Devices, Inc.\n//\n// Licensed under the Apache License, Version 2.0 (the \"License\");\n// you may not use this file except in compliance with the License.\n// You may obtain a copy of the License at\n//\n//     http:/",
+    "- Defined in File iio_node.cpp\n",
+    "> **Warning**\n>\n> doxygendefine: Cannot find define \u201cMAX_ATTR_SIZE\u201d in doxygen xml output for project \u201cadi_iio Doxygen Project\u201d from directory: /home/runner/work/adi_ros2/adi_ros2/_build/docs_build/adi_iio/output_staging/generated/doxygen/xml\n",
+    "- Defined in File attr_publisher.hpp\n",
+    "- `public AttrPubSub` (Class AttrPubSub)\n",
+    "**class BoolPubSub : public AttrPubSub**\n:   Public Functions\n:   BoolPubSub(std::shared_ptr<IIONode> nh, UpdateCallback *up, std::string topic)\n:   virtual ~BoolPubSub()\n:   virtual void publish(std::string msg) override\n:   void update(const std_msgs::msg::Bool &msg)\n",
+    "\u21b0 Parent directory (`src`)\n\nContents\n\n- Definition (`src/iio_node.cpp`)\n- Includes\n- Namespaces\n- Defines\n",
+    "- Program Listing for File iio_node.cpp\n",
+    "- `adi_iio/iio_attr_topic.hpp` (File iio_attr_topic.hpp)\n- `adi_iio/iio_buffer.hpp` (File iio_buffer.hpp)\n- `adi_iio/iio_node.hpp` (File iio_node.hpp)\n- `adi_iio/iio_path.hpp` (File iio_path.hpp)\n- `memory`\n",
+    "- Namespace std::chrono_literals\n",
+    "- Define MAX_ATTR_SIZE\n",
+    "- Defined in File iio_buffer.hpp\n",
+    "**BUFFER_READ_SUFFIX**\n",
+    "- Defined in File iio_attr_topic.hpp\n",
+    "- `public IIOAttrTopic` (Class IIOAttrTopic)\n",
+    "**class UpdateCallback**\n:   Subclassed by IIOAttrTopic\n:   Public Functions\n:   inline virtual ~UpdateCallback()\n:   virtual void update(std::string msg) = 0\n",
+    "\u21b0 Return to documentation for file (`src/iio_attr_topic.cpp`)\n\n```cpp\n// Copyright 2025 Analog Devices, Inc.\n//\n// Licensed under the Apache License, Version 2.0 (the \"License\");\n// you may not use this file except in compliance with the License.\n// You may obtain a copy of the License at\n//\n//     ",
+    "- Defined in File attr_publisher.hpp\n",
+    "- `public AttrPubSub` (Class AttrPubSub)\n",
+    "**class Int32PubSub : public AttrPubSub**\n:   Public Functions\n:   Int32PubSub(std::shared_ptr<IIONode> nh, UpdateCallback *up, std::string topic)\n:   virtual ~Int32PubSub()\n:   virtual void publish(std::string msg) override\n:   void update(const std_msgs::msg::Int32 &msg)\n",
+    "\u21b0 Return to documentation for file (`include/adi_iio/iio_path.hpp`)\n\n```cpp\n// Copyright 2025 Analog Devices, Inc.\n//\n// Licensed under the Apache License, Version 2.0 (the \"License\");\n// you may not use this file except in compliance with the License.\n// You may obtain a copy of the License at\n//\n/",
+    "\u21b0 Parent directory (`src`)\n\nContents\n\n- Definition (`src/attr_publisher.cpp`)\n- Includes\n",
+    "- Program Listing for File attr_publisher.cpp\n",
+    "- `adi_iio/attr_publisher.hpp` (File attr_publisher.hpp)\n- `adi_iio/iio_attr_topic.hpp` (File iio_attr_topic.hpp)\n",
+    "*Directory path:* `include`\n",
+    "- Directory adi_iio\n",
+    "\u21b0 Parent directory (`src`)\n\nContents\n\n- Definition (`src/iio_attr_topic.cpp`)\n- Includes\n",
+    "- Program Listing for File iio_attr_topic.cpp\n",
+    "- `adi_iio/attr_publisher.hpp` (File attr_publisher.hpp)\n- `adi_iio/iio_attr_topic.hpp` (File iio_attr_topic.hpp)\n- `adi_iio/iio_node.hpp` (File iio_node.hpp)\n- `memory`\n",
+    "\u21b0 Return to documentation for file (`include/adi_iio/iio_node.hpp`)\n\n```cpp\n// Copyright 2025 Analog Devices, Inc.\n//\n// Licensed under the Apache License, Version 2.0 (the \"License\");\n// you may not use this file except in compliance with the License.\n// You may obtain a copy of the License at\n//\n/",
+    "- Defined in File attr_publisher.hpp\n",
+    "- `public AttrPubSub` (Class AttrPubSub)\n",
+    "**class StringPubSub : public AttrPubSub**\n:   Public Functions\n:   StringPubSub(std::shared_ptr<IIONode> nh, UpdateCallback *up, std::string topic)\n:   virtual ~StringPubSub()\n:   virtual void publish(std::string msg) override\n:   void update(const std_msgs::msg::String &msg)\n",
+    "\u21b0 Parent directory (`src`)\n\nContents\n\n- Definition (`src/adi_iio.cpp`)\n- Includes\n- Functions\n",
+    "- Program Listing for File adi_iio.cpp\n",
+    "- `adi_iio/iio_node.hpp` (File iio_node.hpp)\n- `adi_iio/srv/attr_read_string.hpp`\n- `adi_iio/srv/attr_write_string.hpp`\n- `rclcpp/rclcpp.hpp`\n",
+    "- Function main\n",
+    "- Defined in File attr_publisher.hpp\n",
+    "**ATTR_READ_SUFFIX**\n",
+    "\u21b0 Return to documentation for file (`include/adi_iio/iio_attr_topic.hpp`)\n\n```cpp\n// Copyright 2025 Analog Devices, Inc.\n//\n// Licensed under the Apache License, Version 2.0 (the \"License\");\n// you may not use this file except in compliance with the License.\n// You may obtain a copy of the License a",
+    "This is a ROS service definition.\n\n**Source**\n\n```default\nstring device_path\nstring[] channels\nint32 samples_count\n---\nbool success\nstring message\nstd_msgs/Int32MultiArray buffer\n```\n",
+    "This is a ROS service definition.\n\n**Source**\n\n```default\nstring device_path\n---\nbool success\nstring message\n```\n",
+    "- Defined in File attr_publisher.hpp\n",
+    "- `public BoolPubSub` (Class BoolPubSub)\n- `public Float32PubSub` (Class Float32PubSub)\n- `public Int32PubSub` (Class Int32PubSub)\n- `public StringPubSub` (Class StringPubSub)\n",
+    "**class AttrPubSub**\n:   Subclassed by BoolPubSub, Float32PubSub, Int32PubSub, StringPubSub\n:   Public Functions\n:   inline virtual ~AttrPubSub()\n:   virtual void publish(std::string msg) = 0\n",
+    "This is a ROS service definition.\n\n**Source**\n\n```default\nstring device_path\nstring[] channels\nint32 samples_count\n---\nbool success\nstring message\nstd_msgs/MultiArrayLayout layout\n```\n",
+    "- Defined in File iio_buffer.hpp\n",
+    "**class IIOBuffer**\n:   Public Functions\n:   IIOBuffer(std::shared_ptr<IIONode> nh, std::string device_path)\n:   ~IIOBuffer()\n:   bool createIIOBuffer(std::string &message, bool output = false, bool cyclic = false)\n:   void destroyIIOBuffer()\n:   bool refill(std::string &message)\n:   bool push(std::",
+    "\u21b0 Parent directory (`include`)\n\n*Directory path:* `include/adi_iio`\n",
+    "- File attr_publisher.hpp\n- File iio_attr_topic.hpp\n- File iio_buffer.hpp\n- File iio_node.hpp\n- File iio_path.hpp\n",
+    "This is a ROS service definition.\n\n**Source**\n\n```default\n---\nbool success\nstring message\nstring[] data\n```\n",
+    "This is a ROS service definition.\n\n**Source**\n\n```default\nstring device_path\nstring topic_name\nfloat64 loop_rate 1.0\n---\nbool success\nstring message\n```\n",
+    "This is a ROS service definition.\n\n**Source**\n\n```default\nstring iio_path # A valid IIO path to a device\n---\nbool success\nstring message\nstring[] data\n```\n",
+    "This is a ROS service definition.\n\n**Source**\n\n```default\nstring attr_path\n---\nbool success\nstring message\n```\n",
+    "This is a ROS service definition.\n\n**Source**\n\n```default\nint8 STRING = 0\nint8 INT = 1\nint8 DOUBLE = 2\nint8 BOOL = 3\n\nstring attr_path\nstring topic_name \"\"\nfloat64 loop_rate 1.0\nint8 type 0 # String: 0, Int: 1, Double: 2, Bool: 3\n---\nbool success\nstring message\n```\n",
+    "- Defined in File iio_node.hpp\n",
+    "- `public rclcpp::Node`\n",
+    "**class IIONode : public rclcpp::Node**\n:   Public Functions\n:   IIONode()\n:   virtual ~IIONode()\n:   void initBuffers()\n:   bool rwAttrPath(std::string path, std::string &result, bool write = false, std::string value = \"\")\n:   void attrReadSrv(const std::shared_ptr<adi_iio::srv::AttrReadString::Req",
+    "This is a ROS service definition.\n\n**Source**\n\n```default\nstring attr_path\nstring value\n---\nbool success\nstring message\n```\n",
+    "This is a ROS service definition.\n\n**Source**\n\n```default\nstring device_path\n---\nbool success\nstring message\nstd_msgs/Int32MultiArray buffer\n```\n",
+    "This is a ROS service definition.\n\n**Source**\n\n```default\nint8 STRING = 0\nint8 INT = 1\nint8 DOUBLE = 2\nint8 BOOL = 3\n\nstring topic_name\nint8 type 0 # String: 0, Int: 1, Double: 2, Bool: 3\n---\nbool success\nstring message\n```\n",
+    "This is a ROS service definition.\n\n**Source**\n\n```default\nstring iio_path # A valid IIO path to a context/device/channel\n---\nbool success\nstring message\nstring[] data\n```\n",
+    "ROS package to interface with IIO devices\n\n- Links\n  Rosindex\n  Repository\n  Website\n  Bugtracker\n\n  - Rosindex\n  - Repository\n  - Website\n  - Bugtracker\n- C++ API\n  Class Hierarchy\n  File Hierarchy\n  Full C++ API\n\n  - Class Hierarchy\n  - File Hierarchy\n  - Full C++ API\n\n\n- Service Definitions\n  Att",
+    "Contents\n\n- adi_iio\n- README\n- `adi_iio` - ROS2 Package for IIO Integration\n- Overview\n  Getting Started\n  Getting Help\n  Contributing\n  License\n  CHANGELOG\n\n  - Getting Started\n  - Getting Help\n  - Contributing\n  - License\n  - CHANGELOG\n- Installation\n  Prerequisites:\n  Build from Source\n\n  - Prere",
+    "The `adi_iio` package bridges the gap between Analog Devices\u2019 IIO hardware and\nthe ROS2 ecosystem. It provides robust, easy-to-integrate interfaces for sensor\ndata acquisition and real-time processing, enabling rapid development of advanced\nrobotics and automation applications.\n\nBy facilitating seam",
+    "To help you quickly get started with the `adi_iio` package, we have organized\ndetailed documentation into several sections:\n\n- For information on **prerequisites, repository setup, and building the package**,\n  refer to the Installation section.\n- The Examples Introduction provides an overview of th",
+    "- **Issue Tracker:** Report bugs, request features, or submit technical queries\n  via our Issue Tracker.\n- **Further Guidance:** For additional communication guidelines, refer to COMMUNICATION.\n",
+    "Contributions are key to our project\u2019s success. Before submitting changes:\n\n- Familiarize yourself with our code and testing conventions.\n- Consult the CONTRIBUTING for detailed instructions.\n- Ensure your code adheres to our design values and guidelines.\n",
+    "This project is licensed under the Apache License, Version 2.0.\n\nThe product makes use of third party and open source software. The licenses and\nnotices for this software are listed at: iio_ros2 - Third Party and Open Source Software.\n",
+    "Refer to our CHANGELOG for version history and release notes.\n",
+    "This section describes how to install the required software to run the `adi_iio`\npackage.\n",
+    "Before installing the `adi_iio` package, ensure you have the following:\n\n- A compatible version of ROS2 installed (e.g., `humble`). See the ROS2 Humble Installation Guide\n  for instructions.\n- The `libiio v0` library installed in the Host (e.g.: x86_64 host running Ubuntu 22.04)\n  as well as the tar",
+    "Source your main ROS2 environment as the underlay (in this example, ROS2 `humble`):\n\n```bash\nsource /opt/ros/humble/setup.sh\n```\n",
+    "If you are not using this node in an existing project, create a new folder `ros2_ws`,\nthen create the `src` folder in `ros2_ws`. Go to src folder (either in\nros2_ws or in your project), and clone the adi_iio repository (make sure to clone the\ncorrect branch for your ROS2 version):\n\n```bash\nexport CO",
+    "Before building the workspace, you need to resolve the package dependencies.\nFrom the root of your workspace, run the following command:\n\n```bash\ncd $COLCON_WS\nrosdep update\nrosdep install -i --from-path src --rosdistro ${ROS_DISTRO} -y --ignore-src\n```\n\n\n> **Tip**\n>\n> If you already have all your d",
+    "You can now build your package using the command:\n\n```bash\ncolcon build --event-handlers console_cohesion+\n```\n\n\nThen source the previously built overlay run:\n\n```bash\nsource install/setup.sh\n```\n\n\nNow you can run the `adi_iio` package.\n",
+    "This section provides a concise overview of the node-specific concepts for the\nROS2 package. It details the conventions for attribute paths, topic naming,\nservice responses, and buffer operations used when interfacing with IIO devices.\n",
+    "Services use the `iio_path` parameter to uniquely identify Industrial I/O\n(IIO) devices, channels, and attributes following the IIO context hierarchy.\nThe `/` character is used to separate different levels of the hierarchy.\n",
+    "- **Description:** an empty string is used to represent an IIO context.\n- **Format:** `\"\"` (empty string.)\n",
+    "- **Description:** this path represents an attribute of a context.\n- **Format:** `<context-attribute>`\n- **Example:** `uri`, `hw_vendor`, `hw_serial`, etc.\n",
+    "- **Description:** this path represents a device of a context.\n- **Format:** `<device-name>`\n- **Example:** `ad9361-phy`, `ad5592r`, etc.\n",
+    "- **Description:** this path represents an attribute of a device.\n- **Format:** `<device-name>/<device-attribute>`\n- **Example:** `xadc/sampling_frequency`, etc.\n",
+    "- **Description:** this path represents a channel of a device.\n- **Format:** `<device-name>/<channel-name>`\n- **Example:** `ad5592r/input_voltage0`, `ad5592r/output_voltage0`,\n  `ad9361-phy/voltage0`, etc.\n- **Note:** the channel name has an extended format which uses a prefix:\n  `input_` or `output",
+    "- **Description:** this path represents an attribute of a channel.\n- **Format:** `<device-name>/<channel-name>/<channel-attribute>`\n- **Example:** `ad5592r/input_voltage0/scale`, `ad5592r/output_voltage0/scale`,\n  `/cf-ad9361-lpc/voltage0/sampling_frequency`, etc.\n",
+    "The `EnableTopic` services can take an optional `topic_name` parameter. When\nenabling the topic, the provided `topic_name` will be used. The default value\nfor this parameter is `\"\"`. When this default is used, the specific device/channel\nattribute name is prefixed with the node name. For topics that",
+    "All service responses contain at least two fields: a boolean indicating success\nand a string message.\n\n```default\nAttrReadString.srv:\n\nstring attr_path\n---\nbool success\nstring message\n```\n\n\nIf the service operation is successful, the success boolean is set to `true`\nand the message will be \u201cSuccess\u201d",
+    "A buffer represents continuous data capture from a device. Operations that can\nbe performed on buffers involve acquiring data from the device (`read`) and\nsending data to the device (`write`).\n\nThe following operations can be performed with IIO buffers:\n\n- **Create buffer**: Initializes a buffer for",
+    "The node accepts the following parameters:\n\n- `uri`: The URI of the LibIIO context where the device is connected to\n  (e.g.: `ip:192.168.2.1`).\n- `timeout`: A positive integer representing the time in milliseconds after\n  which a timeout occurs. A value of 0 means no timeout.\n",
+    "The node provides the following services:\n",
+    "**Description:** Disables the topic associated with a specific attribute.\n\n**Request:**\n\n- `attr_path` (string): The path to the attribute to be disabled.\n\n\n**Response:**\n\n- `success` (bool): Indicates whether the operation was successful.\n- `message` (string): A message providing additional informa",
+    "**Description:** Enables a topic for a specific attribute.\n\n**Request:**\n\n- `attr_path` (string): The path to the attribute for which a topic will be enabled.\n\n\n**Response:**\n\n- `success` (bool): Indicates whether the operation was successful.\n- `message` (string): A message providing additional inf",
+    "**Description:** Reads an IIO attribute as a string.\n\n**Request:**\n\n- `attr_path` (string): The path to the attribute to be read.\n\n\n**Response:**\n\n- `value` (string): The value of the attribute.\n- `success` (bool): Indicates whether the operation was successful.\n- `message` (string): A message provi",
+    "**Description:** Writes an IIO attribute as a string\n\n**Request:**\n\n- `attr_path` (string): The path to the attribute to be written.\n- `value` (string): The value to be written to the attribute.\n\n\n**Response:**\n\n- `success` (bool): Indicates whether the operation was successful.\n- `message` (string)",
+    "**Description:** Creates a buffer.\n\n**Request:**\n\n- `device_path` (string): The path to the device.\n- `channels` (string[]): The channels to be read from the buffer.\n- `samples_count` (int32): The number of samples for the buffer.\n\n\n**Response:**\n\n- `success` (bool): Indicates whether the operation ",
+    "**Description:** Destroys a buffer.\n\n**Request:**\n\n- `device_path` (string): The path to the device.\n\n\n**Response:**\n\n- `success` (bool): Indicates whether the operation was successful.\n- `message` (string): A message providing additional information.\n",
+    "**Description:** Disables a topic for a buffer.\n\n**Request:**\n* `device_path` (string): The path to the device.\n\n**Response:**\n* `success` (bool): Indicates whether the operation was successful.\n* `message` (string): A message providing additional information.\n",
+    "**Description:** Enables a topic for a buffer.\n\n**Request:**\n\n- `device_path` (string): The path to the device.\n- `topic_name` (string): The name of the topic to be enabled.\n\n\n**Response:**\n\n- `success` (bool): Indicates whether the operation was successful.\n- `message` (string): A message providing",
+    "**Description:** Reads data from a buffer.\n\n**Request:**\n\n- `device_path` (string): The path to the device.\n- `channels` (string[]): The channels to be read from the buffer.\n- `samples_count` (int32): The number of samples to read.\n\n\n**Response:**\n\n- `success` (bool): Indicates whether the operation",
+    "**Description:** Refills a buffer.\n\n**Request:**\n\n- `device_path` (string): The path to the device.\n\n\n**Response:**\n\n- `success` (bool): Indicates whether the operation was successful.\n- `message` (string): A message providing additional information.\n- `buffer` (Int32MultiArray): The data read from ",
+    "**Description:** Writes data to a buffer.\n\n**Request:**\n\n- `device_path` (string): The path to the device.\n- `channels` (string[]): The channels where data will be written.\n- `buffer` (Int32MultiArray): The data to be written to the buffer.\n- `cyclic` (bool): Indicates whether the buffer should be c",
+    "**Description:** Scans the  current IIO context and returns lists of devices,\nchannels, and attributes formatted as IIO paths which can be used as request\nparameters for the other services.\n\n**Request:**\n\n- None. The operation uses the `uri` provided during node initialization to\n  scan for devices.",
+    "**Description:** Lists the IIO device paths found in the current context.\n\n**Request:**\n\n- None. The operation uses the `uri` provided during node initialization to\n  scan for devices.\n\n\n**Response:**\n\n- `success` (bool): Indicates whether the operation was successful.\n- `message` (string): A messag",
+    "**Description:** Lists the IIO channel paths found in the targeted device.\n\n**Request:**\n\n- `iio_path` (string): The IIO path to the device to be scanned.\n\n\n**Response:**\n\n- `success` (bool): Indicates whether the operation was successful.\n- `message` (string): A message providing additional informa",
+    "**Description:** Lists the IIO attribute paths found in the target path. This\ncan be either a context, device, or channel path.\n\n**Request:**\n\n- `iio_path` (string): The IIO path to a context,device or channel to be scanned.\n\n\n**Response:**\n\n- `success` (bool): Indicates whether the operation was su",
+    "To launch the node, you can use the provided launch file `adi_iio_bringup.launch.py`.\nYou can start the node using the following command:\n\n```shell\nros2 launch adi_iio adi_iio_bringup.launch.py\n```\n\n\n> **Tip**\n>\n> This launch file uses the the `uri` parameter defined in the\n> `config/adi_iio.yaml` f",
+    "This guide describes how to build the project documentation locally using\n**rosdoc2**. Follow the steps below to set up your environment, build the\ndocumentation, and view the results.\n",
+    "- **Python 3:** Ensure you have Python 3 installed.\n- **Virtual Environment:** It is highly recommended to set up a Python virtual\n  environment to avoid conflicts with other projects.\n- **Dependencies:** All required dependencies are listed in `doc/requirements.txt`.\n",
+    "1. **Create the Virtual Environment**\n  python3 -m venv .venv\n2. **Activate the Virtual Environment**\n  source .venv/bin/activate\n3. **Install the Required Dependencies**\n  pip3 install -r doc/requirements.txt\n4. **Source the Virtual Environment**\n  source .venv/bin/activate\n",
+    "With the environment set up, build the documentation by running the following script\nwhich automatically install the required dependencies and build the documentation:\n\n```bash\ncd ${COLCON_WS}/src/iio_ros2\n./ci/build_doc.sh\n```\n\n\nYou can now view the generated documentation by opening the `_build/do",
+    "This is a ROS service definition.\n\n**Source**\n\n```default\nstring device_path\n---\nbool success\nstring message\n```\n",
+    "Thank you for your interest in contributing to `iio_ros2`. Whether it\u2019s a bug\nreport, new feature, correction, or additional documentation, we greatly value\nfeedback and contributions from our community.\n\nPlease read through this document before submitting any issues or pull requests\nto ensure we ha",
+    "We follow a development process designed to reduce errors, encourage collaboration,\nand make high quality code. Review the following to get acquainted with this development process.\n",
+    "To ensure consistency and maintain high quality across the project, please adhere to the following practices:\n\n- It is recommended to create a Python3 virtual environment (vevnv)\n  to manage and keep your development environment isolated\n- The project follows the ROS2 coding style.\n  This ensures th",
+    "- **Create a fork of this repository.** This will create your own personal copy\n  of the package. All of your development should take place in your fork. If you\n  are not sure how to do this, check out GitHub help\n  Create a create a remote pointing to the upstream remote repository.\n  **Work out of",
+    "- Commit message includes a `Signed-off-by: [name] < email >` to the commit\n  message. This ensures you have the rights to submit your code, by agreeing\n  to the Developer Certificate of Origin.\n  If you can not agree to the DCO, don\u2019t submit a pull request, as we can\n  not accept it.\n  DCO is a dec",
+    "Before creating a new issue, please search the **repository\u2019s open** and **recently closed** issues to see if the same or a similar problem has already been reported. If the issue exists and is still open, add a comment to that issue. Otherwise, feel free to create a new one.\n",
+    "To help us resolve issues effectively, follow these guidelines when creating a bug report:\n\n1. **Use a clear and descriptive title** to summarize the problem.\n2. **Describe the exact steps to reproduce the issue** in detail. Provide enough information for someone to follow your steps exactly.\n3. **I",
+    "This guide will help you submit enhancement suggestions, including new features or improvements to existing functionality. Following these guidelines ensures maintainers and the community can understand your suggestion and identify related ideas.\n",
+    "- Ensure you\u2019re using the latest software version; newer versions may already include your desired feature.\n- Check if an existing library provides the functionality you\u2019re requesting.\n",
+    "Enhancement suggestions are tracked as GitHub issues. After determining the relevant repository, create an issue and include the following details:\n\n1. **Use a clear and descriptive title** to summarize the suggestion.\n2. **Describe the suggested enhancement** in detail, providing a step-by-step exp",
+    "Thank you for your interest in contributing to the project\u2019s documentation! For an in-depth understanding of the documentation system\u2019s design and structure, refer to the Documentation Guidelines\n",
+    "We follow the documentation guidelines outlined in Analog Devices Documentation Guidelines. Please review these guidelines to ensure consistency and quality in your contributions.\n",
+    "Becoming a Trusted Committer is about consistently contributing value to the project and supporting its community. Here are some suggestions to help you grow into this role:\n\n1. **Contribute Regularly**: Submit high-quality contributions, including code, documentation, and reviews, that align with t",
+    "Any contribution that you make to this repository will\nbe under the Apache 2 License, as dictated by that\nlicense:\n\n```default\n5. Submission of Contributions. Unless You explicitly state otherwise,\n   any Contribution intentionally submitted for inclusion in the Work\n   by You to the Licensor shall ",
+    "- How to write a good commit message and another resource.\n- Write better commits, build better projects.\n- Good commit example (but extreme one).\n- How should a PR look like and anatomy of a PR.\n- Submitting patches.\n",
+    "\u21b0 Parent directory (`include/adi_iio`)\n\nContents\n\n- Definition (`include/adi_iio/iio_node.hpp`)\n- Includes\n- Included By\n- Classes\n",
+    "- Program Listing for File iio_node.hpp\n",
+    "- `adi_iio/srv/attr_disable_topic.hpp`\n- `adi_iio/srv/attr_enable_topic.hpp`\n- `adi_iio/srv/attr_read_string.hpp`\n- `adi_iio/srv/attr_write_string.hpp`\n- `adi_iio/srv/buffer_create.hpp`\n- `adi_iio/srv/buffer_destroy.hpp`\n- `adi_iio/srv/buffer_disable_topic.hpp`\n- `adi_iio/srv/buffer_enable_topic.hpp",
+    "- File attr_publisher.hpp\n- File iio_buffer.hpp\n- File adi_iio.cpp\n- File iio_attr_topic.cpp\n- File iio_node.cpp\n",
+    "- Class IIONode\n",
+    "- Defined in File attr_publisher.hpp\n",
+    "- `public AttrPubSub` (Class AttrPubSub)\n",
+    "**class Float32PubSub : public AttrPubSub**\n:   Public Functions\n:   Float32PubSub(std::shared_ptr<IIONode> nh, UpdateCallback *up, std::string topic)\n:   virtual ~Float32PubSub()\n:   virtual void publish(std::string msg) override\n:   void update(const std_msgs::msg::Float32 &msg)\n",
+    "\u21b0 Parent directory (`include/adi_iio`)\n\nContents\n\n- Definition (`include/adi_iio/iio_attr_topic.hpp`)\n- Includes\n- Included By\n- Classes\n",
+    "- Program Listing for File iio_attr_topic.hpp\n",
+    "- `iio.h`\n- `memory`\n- `rclcpp/rclcpp.hpp`\n- `std_msgs/msg/string.hpp`\n- `string`\n- `thread`\n",
+    "- File attr_publisher.cpp\n- File iio_attr_topic.cpp\n- File iio_node.cpp\n",
+    "- Class IIOAttrTopic\n- Class UpdateCallback\n",
+    "This is a ROS service definition.\n\n**Source**\n\n```default\n---\nbool success\nstring message\nstring[] devices\nstring[] channels\nstring[] context_attrs\nstring[] device_attrs\nstring[] channel_attrs\n```\n",
+    "This is a ROS service definition.\n\n**Source**\n\n```default\nstring device_path\nstring[] channels\nstd_msgs/Int32MultiArray buffer\nbool cyclic\n---\nbool success\nstring message\n```\n",
+    "\u21b0 Return to documentation for file (`src/iio_buffer.cpp`)\n\n```cpp\n// Copyright 2025 Analog Devices, Inc.\n//\n// Licensed under the Apache License, Version 2.0 (the \"License\");\n// you may not use this file except in compliance with the License.\n// You may obtain a copy of the License at\n//\n//     http",
+    "\u21b0 Parent directory (`include/adi_iio`)\n\nContents\n\n- Definition (`include/adi_iio/attr_publisher.hpp`)\n- Includes\n- Included By\n- Classes\n- Defines\n",
+    "- Program Listing for File attr_publisher.hpp\n",
+    "- `adi_iio/iio_node.hpp` (File iio_node.hpp)\n- `memory`\n- `rclcpp/rclcpp.hpp`\n- `std_msgs/msg/bool.hpp`\n- `std_msgs/msg/float32.hpp`\n- `std_msgs/msg/int32.hpp`\n- `std_msgs/msg/string.hpp`\n- `string`\n",
+    "- File attr_publisher.cpp\n- File iio_attr_topic.cpp\n",
+    "- Class AttrPubSub\n- Class BoolPubSub\n- Class Float32PubSub\n- Class Int32PubSub\n- Class StringPubSub\n",
+    "- Define ATTR_QOS_QUEUE_SIZE\n- Define ATTR_READ_SUFFIX\n- Define ATTR_WRITE_SUFFIX\n",
+    "\u21b0 Return to documentation for file (`src/iio_node.cpp`)\n\n```cpp\n// Copyright 2025 Analog Devices, Inc.\n//\n// Licensed under the Apache License, Version 2.0 (the \"License\");\n// you may not use this file except in compliance with the License.\n// You may obtain a copy of the License at\n//\n//     http:/",
+    "Documentation in this subdirectory\n\n- Examples Introduction\n- `adi_iio_node`: service call reference\n- AD5592R\n- AD7124-8\n- HWMON\n",
+    "This Github Repository provides a set of demos to showcase the capabilities of the\n`adi_iio` ROS2 package and how you can use it to interface with various\nAnalog Devices IIO devices.\n",
+    "Before your can run the examples, you need to install the `adi_iio` package.\nPlease follow the instructions in the Installation section, under build\nfrom source.\n",
+    "- With the `adi_iio` package installed, you can build the examples from source\n  by running the following commands in your terminal:\n\n\n```shell\nexport COLCON_WS=~/ros2_ws\ncd $COLCON_WS\n\ncolcon build  \\\n    --symlink-install \\\n    --event-handlers console_cohesion+ \\\n    --base-paths ./src/iio_ros2/e",
+    "1. Service call reference:\n  This example demonstrates how to call the services exposed by the\n  `adi_iio` node. It provides a reference for using the services to\n  read/write IIO attributes and manage IIO buffers.\n2. AD5592R:\n  This demo showcases the usage of the AD5592R device, which is an\n  8-ch",
+    "Prerequisites:\n\n- A client running ROS2 with the `adi_iio` package installed.\n\n\n> **Note**\n>\n> This example demonstrates interaction with HWMON (Hardware Monitoring) devices.\n> Please note that it is tailored for specific hardware\n> (Dell Precision 5530 2 in 1) and is intended to serve as a referenc",
+    "To run the example, execute the following command in your terminal:\n\n```shell\nros2 launch hwmon dell_precision_5530.launch.py\n```\n\n\nWhen you execute the command, the ROS2 launch system will start the\n`adi_iio` node and the `dell_precision_5530` node example.\n\n1. **adi_iio_node**:\n  **Package**: `adi",
+    "The `HWMon` node uses two ROS 2 service clients on the `/adi_iio_node`\nprovider:\n\n- **AttrEnableTopic** (`/adi_iio_node/AttrEnableTopic`)\n  This service tells the `adi_iio_node` to begin sampling a given IIO attribute\n  and publishing it on a ROS 2 topic.\n- **AttrDisableTopic** (`/adi_iio_node/AttrD",
+    "The `HWMon` node both subscribes to raw IIO\u2010driven topics and republishes\nprocessed values:\n",
+    "```shell\n/BAT0/curr1/input/read\nstd_msgs/String\n\u2514\u2500 Battery current in milliamps (mA).\n    Transformed by `update_bat0_current`:\n    \u03bcA = float(msg.data) * 1000.0\n```\n\n\n```shell\n/BAT0/in0/input/read\nstd_msgs/String\n\u2514\u2500 Battery voltage in millivolts (mV).\n    Transformed by `update_bat0_voltage`:\n    V",
+    "```shell\n/BAT0/uA\nstd_msgs/Float64\n\u2514\u2500 Battery current in microamps (after conversion).\n```\n\n\n```shell\n/BAT0/V\nstd_msgs/Float64\n\u2514\u2500 Battery voltage in volts (after conversion).\n```\n\n\n```shell\n/coretemp/core0 \u2026 /coretemp/core3\nstd_msgs/Float64\n\u2514\u2500 Core temperatures expressed as voltages (V).\n```\n\n\n```sh",
+    "- Raspberry Pi 4B as the remote host with Kuiper Linux Image installed.\n- AD7124 device tree overlay loaded on the RPi.\n- PMD-RPI-INTZ for HW connections.\n- EVAL-AD7124-8-PMDZ as the IIO device.\n- A client running ROS2 with the `adi_iio` package installed.\n- A network connection between the RPi and ",
+    "You can set a specific attribute of an IIO device channel by calling the\n`/adi_iio_node/AttrWriteString` service. For instance, to set the `scale`\nfor `input_voltage0-voltage1` of the `ad7124-8` device, you would use the following\ncommand:\n\n```shell\nros2 service call /adi_iio_node/AttrWriteString ad",
+    "The `ad7124_8_config.launch.py` demonstrates how to set the `scale` and\n`sampling_frequency` attributes for all 8 differential input voltage channels\nof the AD7124-8 device. This is particularly useful for initializing the device\nwith consistent settings across all its channels.\n\nThe launch file ach",
+    "Similar to other IIO devices, the `adi_iio_node` can publish the values of\nAD7124-8 attributes to ROS 2 topics. This allows other ROS 2 nodes to subscribe\nto these topics and receive real-time updates of attribute values, such as raw\nADC readings from its differential channels.\n",
+    "To enable topic publishing for a specific attribute of the AD7124-8, you can\ncall the `/adi_iio_node/AttrEnableTopic` service. For instance, to start\npublishing the `raw` value of the `input_voltage0-voltage1` differential\nchannel of the `ad7124-8` device, you would use the following command:\n\n```sh",
+    "The `ad7124_8_topics.launch.py` launch file provides a convenient way to\nenable topic publishing for the `raw` attributes of several differential\ninput channels of the AD7124-8 device simultaneously.\n\nThis launch file executes a series of `ros2 service call` commands to the\n`/adi_iio_node/AttrEnable",
+    "Once you have topics publishing raw ADC data from the AD7124-8, you will likely\nwant to convert this raw integer data into meaningful voltage units. The ROS 2\necosystem provides utility nodes like `topic_tools transform` that can\nsubscribe to a topic, apply a mathematical transformation to the messa",
+    "To simplify the process of configuring the AD7124-8, enabling its data topics,\nand setting up data transformations, a top-level bringup launch file is\nprovided: `ad7124_8_bringup.launch.py`. This file orchestrates the execution\nof the previously discussed launch files:\n\n> **Tip**\n>\n> To launch the c",
+    "The following example demonstrates a Python-based ROS 2 node that monitors data\nfrom an AD7124-8 channel using buffered reads which can be accessed via\na topic.\n",
+    "To run the example, execute the following command in your terminal:\n\n```shell\nros2 launch ad7124_8 ad7124_8_buffer_scaled.launch.py\n```\n\n\nWhen you execute the command, the ROS2 launch system will start the\n`adi_iio` node and the `ad7124_8_buffer_scaled` node example.\n\n1. **adi_iio_node**:\n  **Packag",
+    "- **AttrReadString**: used to store `scale` factor for each channel in the\n  buffered reading.\n- **AttrWriteString**: used to bring `sampling_frequency` and `scale`\n  attributes to predefined values.\n- **BufferCreate**: used to create a buffer for the specified device which will\n  monitor the specif",
+    "![AD7124-8 Buffer Scaled Node Graph](../../_images/ad7124_8_buffer_scaled_node_graph.png)\n\n*AD7124-8 Buffer Scaled Node Graph*\n\n\n- `/ad7124_8 [std_msgs/msg/Int32MultiArray]`:  this topic contains the\n  buffered data from the specified channels. The data is published in a\n  multi-array format, where ",
+    "The data from topics `/ad7124_8` and `/ad7124_8/mV` can be visualized using\nthe visualize_iio_waveform.py.\n\nFirst you need to launch the example:\n\n```shell\nros2 launch ad7124_8 ad7124_8_buffer_scaled.launch.py\n```\n\n\nThen within the `iio_ros2` repository, enter the `launch` folder and run\nthe followi",
+    "The command below launches the adi_iio_node executable from the adi_iio package.\nThe `uri` parameter is used to describe the context location of the IIO device.\n\n```shell\nURI=ip:192.168.2.1\nros2 run adi_iio adi_iio_node \\\n    --ros-args \\\n    -p uri:=$URI \\\n    --log-level debug\n```\n\n\nFrom a new ter",
+    "1. Inspect node information:\n  ros2 node info /adi_iio_node\n  You should see a list like this:\n  /adi_iio_node\n      Subscribers:\n          /parameter_events: rcl_interfaces/msg/ParameterEvent\n      Publishers:\n          /parameter_events: rcl_interfaces/msg/ParameterEvent\n          /rosout: rcl_int",
+    "For complete details about the request and response format of this service,\nplease refer to the ScanContext service documentation.\n\n**Usage:**\n\n```shell\nros2 service call /adi_iio_node/ScanContext adi_iio/srv/ScanContext\n```\n\n\nThe output should look like this:\n\n```shell\nrequester: making request: ad",
+    "For complete details about the request and response format of this service,\nplease refer to the ListDevices service documentation.\n\n**Usage:**\n\n```shell\nros2 service call /adi_iio_node/ListDevices adi_iio/srv/ListDevices\n```\n\n\nThe output should look like this:\n\n```shell\nrequester: making request: ad",
+    "For complete details about the request and response format of this service,\nplease refer to the ListChannels service documentation.\n\n**Usage:**\n\nThe request interface for this service requires the user to specify the\n`iio_path` using a valid Device Path (device_path) value.\n\n```shell\nros2 service ca",
+    "For complete details about the request and response format of this service,\nplease refer to the ListAttributes service documentation.\n\n**Usage:**\n\nThe request interface for this service requires the user to specify the\n`iio_path` using a valid Context Path, Device Path (device_path), or\n:ref:`Channe",
+    "For complete details about the request and response format of this service,\nplease refer to the AttrEnableTopic service documentation.\n\n**Usage:**\n\n```shell\nros2 service call /adi_iio_node/AttrEnableTopic adi_iio/srv/AttrEnableTopic \"{\n    attr_path: xadc/input_temp0/raw\n}\"\n```\n\n\nThe output should l",
+    "For complete details about the request and response format of this service,\nplease refer to the AttrDisableTopic service documentation.\n\n**Usage:**\n\n```shell\nros2 service call /adi_iio_node/AttrDisableTopic adi_iio/srv/AttrDisableTopic \"{\n    topic_name: xadc/input_temp0/raw\n}\"\n```\n\n\nThe output shou",
+    "For complete details about the request and response format of this service,\nplease refer to the AttrReadString service documentation.\n\n**Usage:**\n\n```shell\nros2 service call /adi_iio_node/AttrReadString adi_iio/srv/AttrReadString \"{\n    attr_path:  xadc/input_temp0/raw\n}\"\n```\n\n\nThe output should loo",
+    "For complete details about the request and response format of this service,\nplease refer to the AttrWriteString service documentation.\n\n**Usage:**\n\n```shell\nros2 service call /adi_iio_node/AttrWriteString adi_iio/srv/AttrWriteString \"{\n    attr_path: m2k-dac-a/voltage0/raw,\n    value: 123\n}\"\n```\n\n\nT",
+    "For complete details about the request and response format of this service,\nplease refer to the BufferCreate service documentation.\n\n**Usage:**\n\n```shell\n# Device has 2 inpus channels\nros2 service call /adi_iio_node/BufferCreate adi_iio/srv/BufferCreate \"{\n    device_path: 'm2k-adc',\n    channels: [",
+    "For complete details about the request and response format of this service,\nplease refer to the BufferDestroy service documentation.\n\n**Usage:**\n\n```shell\nros2 service call /adi_iio_node/BufferDestroy adi_iio/srv/BufferDestroy \"{\n    device_path: 'm2k-adc'\n}\"\n```\n\n\nThe output should look like this:\n",
+    "For complete details about the request and response format of this service,\nplease refer to the BufferDisableTopic service documentation.\n\n**Usage:**\n\n```shell\nros2 service call /adi_iio_node/BufferDisableTopic adi_iio/srv/BufferDisableTopic \"{\n    device_path: 'm2k-adc',\n}\"\n```\n\n\nThe output should ",
+    "For complete details about the request and response format of this service,\nplease refer to the BufferEnableTopic service documentation.\n\n**Usage:**\n\n```shell\nros2 service call /adi_iio_node/BufferEnableTopic adi_iio/srv/BufferEnableTopic \"{\n    device_path: 'm2k-adc',\n    topic_name: 'm2k-adc'\n}\"\n`",
+    "For complete details about the request and response format of this service,\nplease refer to the BufferRead service documentation.\n\n**Usage:**\n\n```shell\nros2 service call /adi_iio_node/BufferRead adi_iio/srv/BufferRead \"{\n    device_path: 'm2k-adc',\n    channels: ['voltage0', 'voltage1'],\n    samples",
+    "For complete details about the request and response format of this service,\nplease refer to the BufferRefill service documentation.\n\n**Usage:**\n\n```shell\nros2 service call /adi_iio_node/BufferRefill adi_iio/srv/BufferRefill \"{\n    device_path: 'm2k-adc'\n}\"\n```\n\n\nThe output should look like this:\n\n``",
+    "For complete details about the request and response format of this service,\nplease refer to the BufferWrite service documentation.\n\n**Usage:**\n\n```shell\nros2 service call /adi_iio_node/BufferWrite adi_iio/srv/BufferWrite \"{\n    device_path: m2k-dac-a,\n    channels: ['voltage0'],\n    cyclic: 0,\n    b",
+    "Contents\n\n- `adi_iio` - ROS2 Package for IIO Integration\n- Overview\n  Getting Started\n  Getting Help\n  Contributing\n  License\n  CHANGELOG\n\n  - Getting Started\n  - Getting Help\n  - Contributing\n  - License\n  - CHANGELOG\n- Installation\n  Prerequisites:\n  Build from Source\n\n  - Prerequisites:\n  - Build",
+    "The `adi_iio` package bridges the gap between Analog Devices\u2019 IIO hardware and\nthe ROS2 ecosystem. It provides robust, easy-to-integrate interfaces for sensor\ndata acquisition and real-time processing, enabling rapid development of advanced\nrobotics and automation applications.\n\nBy facilitating seam",
+    "To help you quickly get started with the `adi_iio` package, we have organized\ndetailed documentation into several sections:\n\n- For information on **prerequisites, repository setup, and building the package**,\n  refer to the Installation section.\n- The Examples Introduction provides an overview of th",
+    "- **Issue Tracker:** Report bugs, request features, or submit technical queries\n  via our Issue Tracker.\n- **Further Guidance:** For additional communication guidelines, refer to COMMUNICATION.\n",
+    "Contributions are key to our project\u2019s success. Before submitting changes:\n\n- Familiarize yourself with our code and testing conventions.\n- Consult the CONTRIBUTING for detailed instructions.\n- Ensure your code adheres to our design values and guidelines.\n",
+    "This project is licensed under the Apache License, Version 2.0.\n\nThe product makes use of third party and open source software. The licenses and\nnotices for this software are listed at: iio_ros2 - Third Party and Open Source Software.\n",
+    "Refer to our CHANGELOG for version history and release notes.\n",
+    "This section describes how to install the required software to run the `adi_iio`\npackage.\n",
+    "Before installing the `adi_iio` package, ensure you have the following:\n\n- A compatible version of ROS2 installed (e.g., `humble`). See the ROS2 Humble Installation Guide\n  for instructions.\n- The `libiio v0` library installed in the Host (e.g.: x86_64 host running Ubuntu 22.04)\n  as well as the tar",
+    "Source your main ROS2 environment as the underlay (in this example, ROS2 `humble`):\n\n```bash\nsource /opt/ros/humble/setup.sh\n```\n",
+    "If you are not using this node in an existing project, create a new folder `ros2_ws`,\nthen create the `src` folder in `ros2_ws`. Go to src folder (either in\nros2_ws or in your project), and clone the adi_iio repository (make sure to clone the\ncorrect branch for your ROS2 version):\n\n```bash\nexport CO",
+    "Before building the workspace, you need to resolve the package dependencies.\nFrom the root of your workspace, run the following command:\n\n```bash\ncd $COLCON_WS\nrosdep update\nrosdep install -i --from-path src --rosdistro ${ROS_DISTRO} -y --ignore-src\n```\n\n\n> **Tip**\n>\n> If you already have all your d",
+    "You can now build your package using the command:\n\n```bash\ncolcon build --event-handlers console_cohesion+\n```\n\n\nThen source the previously built overlay run:\n\n```bash\nsource install/setup.sh\n```\n\n\nNow you can run the `adi_iio` package.\n",
+    "This section provides a concise overview of the node-specific concepts for the\nROS2 package. It details the conventions for attribute paths, topic naming,\nservice responses, and buffer operations used when interfacing with IIO devices.\n",
+    "Services use the `iio_path` parameter to uniquely identify Industrial I/O\n(IIO) devices, channels, and attributes following the IIO context hierarchy.\nThe `/` character is used to separate different levels of the hierarchy.\n",
+    "- **Description:** an empty string is used to represent an IIO context.\n- **Format:** `\"\"` (empty string.)\n",
+    "- **Description:** this path represents an attribute of a context.\n- **Format:** `<context-attribute>`\n- **Example:** `uri`, `hw_vendor`, `hw_serial`, etc.\n",
+    "- **Description:** this path represents a device of a context.\n- **Format:** `<device-name>`\n- **Example:** `ad9361-phy`, `ad5592r`, etc.\n",
+    "- **Description:** this path represents an attribute of a device.\n- **Format:** `<device-name>/<device-attribute>`\n- **Example:** `xadc/sampling_frequency`, etc.\n",
+    "- **Description:** this path represents a channel of a device.\n- **Format:** `<device-name>/<channel-name>`\n- **Example:** `ad5592r/input_voltage0`, `ad5592r/output_voltage0`,\n  `ad9361-phy/voltage0`, etc.\n- **Note:** the channel name has an extended format which uses a prefix:\n  `input_` or `output",
+    "- **Description:** this path represents an attribute of a channel.\n- **Format:** `<device-name>/<channel-name>/<channel-attribute>`\n- **Example:** `ad5592r/input_voltage0/scale`, `ad5592r/output_voltage0/scale`,\n  `/cf-ad9361-lpc/voltage0/sampling_frequency`, etc.\n",
+    "The `EnableTopic` services can take an optional `topic_name` parameter. When\nenabling the topic, the provided `topic_name` will be used. The default value\nfor this parameter is `\"\"`. When this default is used, the specific device/channel\nattribute name is prefixed with the node name. For topics that",
+    "All service responses contain at least two fields: a boolean indicating success\nand a string message.\n\n```default\nAttrReadString.srv:\n\nstring attr_path\n---\nbool success\nstring message\n```\n\n\nIf the service operation is successful, the success boolean is set to `true`\nand the message will be \u201cSuccess\u201d",
+    "A buffer represents continuous data capture from a device. Operations that can\nbe performed on buffers involve acquiring data from the device (`read`) and\nsending data to the device (`write`).\n\nThe following operations can be performed with IIO buffers:\n\n- **Create buffer**: Initializes a buffer for",
+    "The node accepts the following parameters:\n\n- `uri`: The URI of the LibIIO context where the device is connected to\n  (e.g.: `ip:192.168.2.1`).\n- `timeout`: A positive integer representing the time in milliseconds after\n  which a timeout occurs. A value of 0 means no timeout.\n",
+    "The node provides the following services:\n",
+    "**Description:** Disables the topic associated with a specific attribute.\n\n**Request:**\n\n- `attr_path` (string): The path to the attribute to be disabled.\n\n\n**Response:**\n\n- `success` (bool): Indicates whether the operation was successful.\n- `message` (string): A message providing additional informa",
+    "**Description:** Enables a topic for a specific attribute.\n\n**Request:**\n\n- `attr_path` (string): The path to the attribute for which a topic will be enabled.\n\n\n**Response:**\n\n- `success` (bool): Indicates whether the operation was successful.\n- `message` (string): A message providing additional inf",
+    "**Description:** Reads an IIO attribute as a string.\n\n**Request:**\n\n- `attr_path` (string): The path to the attribute to be read.\n\n\n**Response:**\n\n- `value` (string): The value of the attribute.\n- `success` (bool): Indicates whether the operation was successful.\n- `message` (string): A message provi",
+    "**Description:** Writes an IIO attribute as a string\n\n**Request:**\n\n- `attr_path` (string): The path to the attribute to be written.\n- `value` (string): The value to be written to the attribute.\n\n\n**Response:**\n\n- `success` (bool): Indicates whether the operation was successful.\n- `message` (string)",
+    "**Description:** Creates a buffer.\n\n**Request:**\n\n- `device_path` (string): The path to the device.\n- `channels` (string[]): The channels to be read from the buffer.\n- `samples_count` (int32): The number of samples for the buffer.\n\n\n**Response:**\n\n- `success` (bool): Indicates whether the operation ",
+    "**Description:** Destroys a buffer.\n\n**Request:**\n\n- `device_path` (string): The path to the device.\n\n\n**Response:**\n\n- `success` (bool): Indicates whether the operation was successful.\n- `message` (string): A message providing additional information.\n",
+    "**Description:** Disables a topic for a buffer.\n\n**Request:**\n* `device_path` (string): The path to the device.\n\n**Response:**\n* `success` (bool): Indicates whether the operation was successful.\n* `message` (string): A message providing additional information.\n",
+    "**Description:** Enables a topic for a buffer.\n\n**Request:**\n\n- `device_path` (string): The path to the device.\n- `topic_name` (string): The name of the topic to be enabled.\n\n\n**Response:**\n\n- `success` (bool): Indicates whether the operation was successful.\n- `message` (string): A message providing",
+    "**Description:** Reads data from a buffer.\n\n**Request:**\n\n- `device_path` (string): The path to the device.\n- `channels` (string[]): The channels to be read from the buffer.\n- `samples_count` (int32): The number of samples to read.\n\n\n**Response:**\n\n- `success` (bool): Indicates whether the operation",
+    "**Description:** Refills a buffer.\n\n**Request:**\n\n- `device_path` (string): The path to the device.\n\n\n**Response:**\n\n- `success` (bool): Indicates whether the operation was successful.\n- `message` (string): A message providing additional information.\n- `buffer` (Int32MultiArray): The data read from ",
+    "**Description:** Writes data to a buffer.\n\n**Request:**\n\n- `device_path` (string): The path to the device.\n- `channels` (string[]): The channels where data will be written.\n- `buffer` (Int32MultiArray): The data to be written to the buffer.\n- `cyclic` (bool): Indicates whether the buffer should be c",
+    "**Description:** Scans the  current IIO context and returns lists of devices,\nchannels, and attributes formatted as IIO paths which can be used as request\nparameters for the other services.\n\n**Request:**\n\n- None. The operation uses the `uri` provided during node initialization to\n  scan for devices.",
+    "**Description:** Lists the IIO device paths found in the current context.\n\n**Request:**\n\n- None. The operation uses the `uri` provided during node initialization to\n  scan for devices.\n\n\n**Response:**\n\n- `success` (bool): Indicates whether the operation was successful.\n- `message` (string): A messag",
+    "**Description:** Lists the IIO channel paths found in the targeted device.\n\n**Request:**\n\n- `iio_path` (string): The IIO path to the device to be scanned.\n\n\n**Response:**\n\n- `success` (bool): Indicates whether the operation was successful.\n- `message` (string): A message providing additional informa",
+    "**Description:** Lists the IIO attribute paths found in the target path. This\ncan be either a context, device, or channel path.\n\n**Request:**\n\n- `iio_path` (string): The IIO path to a context,device or channel to be scanned.\n\n\n**Response:**\n\n- `success` (bool): Indicates whether the operation was su",
+    "To launch the node, you can use the provided launch file `adi_iio_bringup.launch.py`.\nYou can start the node using the following command:\n\n```shell\nros2 launch adi_iio adi_iio_bringup.launch.py\n```\n\n\n> **Tip**\n>\n> This launch file uses the the `uri` parameter defined in the\n> `config/adi_iio.yaml` f",
+    "This guide describes how to build the project documentation locally using\n**rosdoc2**. Follow the steps below to set up your environment, build the\ndocumentation, and view the results.\n",
+    "- **Python 3:** Ensure you have Python 3 installed.\n- **Virtual Environment:** It is highly recommended to set up a Python virtual\n  environment to avoid conflicts with other projects.\n- **Dependencies:** All required dependencies are listed in `doc/requirements.txt`.\n",
+    "1. **Create the Virtual Environment**\n  python3 -m venv .venv\n2. **Activate the Virtual Environment**\n  source .venv/bin/activate\n3. **Install the Required Dependencies**\n  pip3 install -r doc/requirements.txt\n4. **Source the Virtual Environment**\n  source .venv/bin/activate\n",
+    "With the environment set up, build the documentation by running the following script\nwhich automatically install the required dependencies and build the documentation:\n\n```bash\ncd ${COLCON_WS}/src/iio_ros2\n./ci/build_doc.sh\n```\n\n\nYou can now view the generated documentation by opening the `_build/do",
+    "- Raspberry Pi 4B as the remote host with Kuiper Linux Image installed.\n- AD5592R device tree overlay loaded on the RPi.\n- PMD-RPI-INTZ for HW connections.\n- EVAL-AD5592R-PMDZ as the IIO device.\n- A client running ROS2 with the `adi_iio` package installed.\n- A network connection between the RPi and ",
+    "You can set a specific attribute of an IIO device channel by calling the\n`/adi_iio_node/AttrWriteString` service. For instance, to set the `scale`\nfor `output_voltage0` of the `ad5592r` device, you would use the following\ncommand:\n\n```shell\nros2 service call /adi_iio_node/AttrWriteString adi_iio/srv",
+    "The `ad5592r_config.launch.py` launch file demonstrates how to set the\n`scale` and `raw` attributes for various input and output voltage channels\nof the AD5592R device. This is useful for initializing the device to a known state.\n\nThe launch file executes a series of `ros2 service call` commands to ",
+    "The `adi_iio_node` can publish the values of IIO device attributes to ROS 2\ntopics. This allows other nodes in the ROS 2 ecosystem to subscribe to and\nreact to changes in these attribute values.\n",
+    "To enable publishing for a specific attribute, you can call the\n`/adi_iio_node/AttrEnableTopic` service. For example, to start publishing\nthe `raw` value of `output_voltage0` for the `ad5592r` device, you would use:\n\n```shell\nros2 service call /adi_iio_node/AttrEnableTopic adi_iio/srv/AttrEnableTopi",
+    "The `ad5592r_topics.launch.py` launch file provides a way to enable topic\npublishing for several raw attributes of the AD5592R device simultaneously.\n\nThis launch file executes a series of `ros2 service call` commands to the\n`/adi_iio_node/AttrEnableTopic` service for various input and output channe",
+    "Once you have topics publishing raw attribute data, you might want to transform\nthis data into more meaningful units, such as Volts. The ROS 2 ecosystem\nprovides utility nodes like `topic_tools transform` that can subscribe to a\ntopic, apply a transformation to the messages, and republish them on a ",
+    "To simplify the process of configuring the AD5592R, enabling its data topics,\nand setting up data transformations, a top-level bringup launch file is\nprovided: `ad5592r_bringup.launch.py`. This file orchestrates the execution\nof the previously discussed launch files:\n\n> **Tip**\n>\n> To launch the com",
+    "Beyond using command-line tools and launch files, you can create dedicated ROS2\nnodes in Python (or C++) to implement more complex logic involving IIO devices.\nThese custom nodes can act as clients to the services provided by\n`adi_iio_node` to read, write, or stream IIO attributes and buffer data.\n\n",
+    "The `temperature_indicator.py` script provides an example of a ROS 2 node that\nreads the AD5592R\u2019s internal temperature sensor attributes, calculates the\ntemperature in Celsius, and publishes it on a ROS 2 topic.\n\n**Purpose:** The `TemperatureIndicator` node demonstrates how to:\n\n- Create service cl",
+    "This example demonstrates a more complex interaction involving two custom ROS 2 nodes:\n\n1. `actuator.py`: A node that subscribes to voltage commands on ROS 2 topics\n  and translates them into raw values to control output channels of the\n  AD5592R (e.g., to drive an LED).\n2. `state_machine.py`: A nod"
+  ],
+  "url": [
+    "CHANGELOG.html#id1",
+    "CHANGELOG.html#id2",
+    "generated/define_iio__buffer_8hpp_1a244dd8a25a17997c1a5bdc386718391e.html",
+    "generated/define_iio__buffer_8hpp_1a244dd8a25a17997c1a5bdc386718391e.html#define-documentation",
+    "user_docs.html",
+    "generated/classIIOAttrTopic.html",
+    "generated/classIIOAttrTopic.html#base-type",
+    "generated/classIIOAttrTopic.html#class-documentation",
+    "doc/FAQ.html#q1-what-is-the-purpose-of-this-ros2-package",
+    "doc/FAQ.html#q2-which-ros2-distributions-are-supported",
+    "doc/FAQ.html#q1-how-do-i-install-this-package",
+    "doc/FAQ.html#q2-how-do-i-build-the-package-with-a-custom-libiio-dependency",
+    "doc/FAQ.html#q1-how-do-i-launch-the-nodes-and-use-the-provided-launch-files",
+    "generated/define_attr__publisher_8hpp_1a7b4954fb15fbeef2a254059b795c1265.html",
+    "generated/define_attr__publisher_8hpp_1a7b4954fb15fbeef2a254059b795c1265.html#define-documentation",
+    "generated/program_listing_file_include_adi_iio_attr_publisher.hpp.html",
+    "generated/define_iio__buffer_8hpp_1abfb646af0833b57e5d4671a09ec6ef9a.html",
+    "generated/define_iio__buffer_8hpp_1abfb646af0833b57e5d4671a09ec6ef9a.html#define-documentation",
+    "generated/program_listing_file_src_adi_iio.cpp.html",
+    "generated/define_attr__publisher_8hpp_1ab2eabaf059fdb706a39b9d556a6f2673.html",
+    "generated/define_attr__publisher_8hpp_1ab2eabaf059fdb706a39b9d556a6f2673.html#define-documentation",
+    "generated/program_listing_file_src_attr_publisher.cpp.html",
+    "generated/file_include_adi_iio_iio_path.hpp.html",
+    "generated/file_include_adi_iio_iio_path.hpp.html#definition-include-adi-iio-iio-path-hpp",
+    "generated/file_include_adi_iio_iio_path.hpp.html#includes",
+    "generated/file_include_adi_iio_iio_path.hpp.html#included-by",
+    "generated/file_include_adi_iio_iio_path.hpp.html#classes",
+    "generated/file_include_adi_iio_iio_path.hpp.html#enums",
+    "generated/enum_iio__path_8hpp_1a36bc4adc60811fcc33489bbb803ddf58.html",
+    "generated/enum_iio__path_8hpp_1a36bc4adc60811fcc33489bbb803ddf58.html#enum-documentation",
+    "generated/index.html#class-hierarchy",
+    "generated/index.html#file-hierarchy",
+    "generated/index.html#namespaces",
+    "generated/index.html#classes-and-structs",
+    "generated/index.html#enums",
+    "generated/index.html#functions",
+    "generated/index.html#defines",
+    "generated/index.html#directories",
+    "generated/index.html#files",
+    "generated/program_listing_file_include_adi_iio_iio_buffer.hpp.html",
+    "generated/function_adi__iio_8cpp_1a3c04138a5bfe5d72780bb7e82a18e627.html",
+    "generated/function_adi__iio_8cpp_1a3c04138a5bfe5d72780bb7e82a18e627.html#function-documentation",
+    "generated/classIIOPath.html",
+    "generated/classIIOPath.html#class-documentation",
+    "generated/file_src_iio_path.cpp.html",
+    "generated/file_src_iio_path.cpp.html#definition-src-iio-path-cpp",
+    "generated/file_src_iio_path.cpp.html#includes",
+    "generated/dir_src.html",
+    "generated/dir_src.html#files",
+    "generated/file_src_iio_buffer.cpp.html",
+    "generated/file_src_iio_buffer.cpp.html#definition-src-iio-buffer-cpp",
+    "generated/file_src_iio_buffer.cpp.html#includes",
+    "generated/file_include_adi_iio_iio_buffer.hpp.html",
+    "generated/file_include_adi_iio_iio_buffer.hpp.html#definition-include-adi-iio-iio-buffer-hpp",
+    "generated/file_include_adi_iio_iio_buffer.hpp.html#includes",
+    "generated/file_include_adi_iio_iio_buffer.hpp.html#included-by",
+    "generated/file_include_adi_iio_iio_buffer.hpp.html#classes",
+    "generated/file_include_adi_iio_iio_buffer.hpp.html#defines",
+    "generated/program_listing_file_src_iio_path.cpp.html",
+    "generated/define_iio__node_8cpp_1add3ee6b15dad00454d47cf548f9e9801.html",
+    "generated/define_iio__node_8cpp_1add3ee6b15dad00454d47cf548f9e9801.html#define-documentation",
+    "generated/classBoolPubSub.html",
+    "generated/classBoolPubSub.html#base-type",
+    "generated/classBoolPubSub.html#class-documentation",
+    "generated/file_src_iio_node.cpp.html",
+    "generated/file_src_iio_node.cpp.html#definition-src-iio-node-cpp",
+    "generated/file_src_iio_node.cpp.html#includes",
+    "generated/file_src_iio_node.cpp.html#namespaces",
+    "generated/file_src_iio_node.cpp.html#defines",
+    "generated/define_iio__buffer_8hpp_1afbcfa431fb935c877dc92d38f8e08512.html",
+    "generated/define_iio__buffer_8hpp_1afbcfa431fb935c877dc92d38f8e08512.html#define-documentation",
+    "generated/classUpdateCallback.html",
+    "generated/classUpdateCallback.html#derived-type",
+    "generated/classUpdateCallback.html#class-documentation",
+    "generated/program_listing_file_src_iio_attr_topic.cpp.html",
+    "generated/classInt32PubSub.html",
+    "generated/classInt32PubSub.html#base-type",
+    "generated/classInt32PubSub.html#class-documentation",
+    "generated/program_listing_file_include_adi_iio_iio_path.hpp.html",
+    "generated/file_src_attr_publisher.cpp.html",
+    "generated/file_src_attr_publisher.cpp.html#definition-src-attr-publisher-cpp",
+    "generated/file_src_attr_publisher.cpp.html#includes",
+    "generated/dir_include.html",
+    "generated/dir_include.html#subdirectories",
+    "generated/file_src_iio_attr_topic.cpp.html",
+    "generated/file_src_iio_attr_topic.cpp.html#definition-src-iio-attr-topic-cpp",
+    "generated/file_src_iio_attr_topic.cpp.html#includes",
+    "generated/program_listing_file_include_adi_iio_iio_node.hpp.html",
+    "generated/classStringPubSub.html",
+    "generated/classStringPubSub.html#base-type",
+    "generated/classStringPubSub.html#class-documentation",
+    "generated/file_src_adi_iio.cpp.html",
+    "generated/file_src_adi_iio.cpp.html#definition-src-adi-iio-cpp",
+    "generated/file_src_adi_iio.cpp.html#includes",
+    "generated/file_src_adi_iio.cpp.html#functions",
+    "generated/define_attr__publisher_8hpp_1ad325bc9cd075a5679a4e1895dc52a5c8.html",
+    "generated/define_attr__publisher_8hpp_1ad325bc9cd075a5679a4e1895dc52a5c8.html#define-documentation",
+    "generated/program_listing_file_include_adi_iio_iio_attr_topic.hpp.html",
+    "srv/BufferRead.html",
+    "srv/BufferDisableTopic.html",
+    "generated/classAttrPubSub.html",
+    "generated/classAttrPubSub.html#derived-types",
+    "generated/classAttrPubSub.html#class-documentation",
+    "srv/BufferCreate.html",
+    "generated/classIIOBuffer.html",
+    "generated/classIIOBuffer.html#class-documentation",
+    "generated/dir_include_adi_iio.html",
+    "generated/dir_include_adi_iio.html#files",
+    "srv/ListDevices.html",
+    "srv/BufferEnableTopic.html",
+    "srv/ListChannels.html",
+    "srv/AttrReadString.html",
+    "srv/AttrEnableTopic.html",
+    "generated/classIIONode.html",
+    "generated/classIIONode.html#base-type",
+    "generated/classIIONode.html#class-documentation",
+    "srv/AttrWriteString.html",
+    "srv/BufferRefill.html",
+    "srv/AttrDisableTopic.html",
+    "srv/ListAttributes.html",
+    "index.html",
+    "index.html",
+    "index.html",
+    "index.html#getting-started",
+    "index.html#getting-help",
+    "index.html#contributing",
+    "index.html#license",
+    "index.html#changelog",
+    "index.html",
+    "index.html#prerequisites",
+    "index.html#build-from-source",
+    "index.html#workspace-setup",
+    "index.html#resolving-dependencies",
+    "index.html#building-the-workspace",
+    "index.html",
+    "index.html#iio-path",
+    "index.html#context-path",
+    "index.html#context-attribute-path-attr-path",
+    "index.html#device-path-device-path",
+    "index.html#device-attribute-path-attr-path",
+    "index.html#channel-path-channel-path",
+    "index.html#channel-attribute-path-attr-path",
+    "index.html#topic-name-resolution",
+    "index.html#service-responses",
+    "index.html#buffers",
+    "index.html#parameters",
+    "index.html#services",
+    "index.html#attrdisabletopic",
+    "index.html#attrenabletopic",
+    "index.html#attrreadstring",
+    "index.html#attrwritestring",
+    "index.html#buffercreate",
+    "index.html#bufferdestroy",
+    "index.html#bufferdisabletopic",
+    "index.html#bufferenabletopic",
+    "index.html#bufferread",
+    "index.html#bufferrefill",
+    "index.html#bufferwrite",
+    "index.html#scancontext",
+    "index.html#listdevices",
+    "index.html#listchannels",
+    "index.html#listattributes",
+    "index.html#launch",
+    "index.html",
+    "index.html#id25",
+    "index.html#setting-up-the-virtual-environment",
+    "index.html#generate-the-documentation",
+    "srv/BufferDestroy.html",
+    "CONTRIBUTING.html",
+    "CONTRIBUTING.html#contributing-source-code",
+    "CONTRIBUTING.html#code-style",
+    "CONTRIBUTING.html#how-to-contribute-source-code",
+    "CONTRIBUTING.html#pull-request-rules",
+    "CONTRIBUTING.html#before-submitting-a-bug-report",
+    "CONTRIBUTING.html#how-to-submit-a-good-bug-report",
+    "CONTRIBUTING.html#feature-requests",
+    "CONTRIBUTING.html#before-submitting-an-enhancement-suggestion",
+    "CONTRIBUTING.html#how-to-submit-a-good-enhancement-suggestion",
+    "CONTRIBUTING.html#contributing-documentation",
+    "CONTRIBUTING.html#documentation-best-practices",
+    "CONTRIBUTING.html#becoming-a-trusted-committers",
+    "CONTRIBUTING.html#licensing",
+    "CONTRIBUTING.html#resources",
+    "generated/file_include_adi_iio_iio_node.hpp.html",
+    "generated/file_include_adi_iio_iio_node.hpp.html#definition-include-adi-iio-iio-node-hpp",
+    "generated/file_include_adi_iio_iio_node.hpp.html#includes",
+    "generated/file_include_adi_iio_iio_node.hpp.html#included-by",
+    "generated/file_include_adi_iio_iio_node.hpp.html#classes",
+    "generated/classFloat32PubSub.html",
+    "generated/classFloat32PubSub.html#base-type",
+    "generated/classFloat32PubSub.html#class-documentation",
+    "generated/file_include_adi_iio_iio_attr_topic.hpp.html",
+    "generated/file_include_adi_iio_iio_attr_topic.hpp.html#definition-include-adi-iio-iio-attr-topic-hpp",
+    "generated/file_include_adi_iio_iio_attr_topic.hpp.html#includes",
+    "generated/file_include_adi_iio_iio_attr_topic.hpp.html#included-by",
+    "generated/file_include_adi_iio_iio_attr_topic.hpp.html#classes",
+    "srv/ScanContext.html",
+    "srv/BufferWrite.html",
+    "generated/program_listing_file_src_iio_buffer.cpp.html",
+    "generated/file_include_adi_iio_attr_publisher.hpp.html",
+    "generated/file_include_adi_iio_attr_publisher.hpp.html#definition-include-adi-iio-attr-publisher-hpp",
+    "generated/file_include_adi_iio_attr_publisher.hpp.html#includes",
+    "generated/file_include_adi_iio_attr_publisher.hpp.html#included-by",
+    "generated/file_include_adi_iio_attr_publisher.hpp.html#classes",
+    "generated/file_include_adi_iio_attr_publisher.hpp.html#defines",
+    "generated/program_listing_file_src_iio_node.cpp.html",
+    "doc/Examples/index.html",
+    "doc/Examples/00_introduction.html",
+    "doc/Examples/00_introduction.html#setup",
+    "doc/Examples/00_introduction.html#build-examples-from-source",
+    "doc/Examples/00_introduction.html#examples-overview",
+    "doc/Examples/04_example_hwmon.html",
+    "doc/Examples/04_example_hwmon.html#usage",
+    "doc/Examples/04_example_hwmon.html#service-clients",
+    "doc/Examples/04_example_hwmon.html#topics",
+    "doc/Examples/04_example_hwmon.html#subscriptions-raw-data-from-adi-iio-node",
+    "doc/Examples/04_example_hwmon.html#publications-processed-data",
+    "doc/Examples/03_example_ad7124-8.html#prerequisites",
+    "doc/Examples/03_example_ad7124-8.html#configuring-a-single-channel-attribute-via-cli",
+    "doc/Examples/03_example_ad7124-8.html#configuring-multiple-channel-attributes-via-launch-file",
+    "doc/Examples/03_example_ad7124-8.html#enabling-ad7124-8-channel-attribute-topics",
+    "doc/Examples/03_example_ad7124-8.html#enabling-a-single-attribute-topic-via-cli",
+    "doc/Examples/03_example_ad7124-8.html#enabling-multiple-ad7124-8-attribute-topics-with-a-launch-file",
+    "doc/Examples/03_example_ad7124-8.html#transforming-raw-ad7124-8-data-to-voltage-readings",
+    "doc/Examples/03_example_ad7124-8.html#bringing-up-the-full-ad7124-8-example-system",
+    "doc/Examples/03_example_ad7124-8.html#creating-custom-ros-2-nodes-for-iio-device-interaction",
+    "doc/Examples/03_example_ad7124-8.html#usage",
+    "doc/Examples/03_example_ad7124-8.html#service-clients",
+    "doc/Examples/03_example_ad7124-8.html#topics",
+    "doc/Examples/03_example_ad7124-8.html#demo-ad7124-8-visualize-waveform",
+    "doc/Examples/01_service_call_reference.html#prerequisites",
+    "doc/Examples/01_service_call_reference.html#overview",
+    "doc/Examples/01_service_call_reference.html#scancontext",
+    "doc/Examples/01_service_call_reference.html#listdevices",
+    "doc/Examples/01_service_call_reference.html#listchannels",
+    "doc/Examples/01_service_call_reference.html#listattributes",
+    "doc/Examples/01_service_call_reference.html#attrenabletopic",
+    "doc/Examples/01_service_call_reference.html#attrdisabletopic",
+    "doc/Examples/01_service_call_reference.html#attrreadstring",
+    "doc/Examples/01_service_call_reference.html#attrwritestring",
+    "doc/Examples/01_service_call_reference.html#buffercreate",
+    "doc/Examples/01_service_call_reference.html#bufferdestroy",
+    "doc/Examples/01_service_call_reference.html#bufferdisabletopic",
+    "doc/Examples/01_service_call_reference.html#bufferenabletopic",
+    "doc/Examples/01_service_call_reference.html#bufferread",
+    "doc/Examples/01_service_call_reference.html#bufferrefill",
+    "doc/Examples/01_service_call_reference.html#bufferwrite",
+    "README.html",
+    "README.html",
+    "README.html#getting-started",
+    "README.html#getting-help",
+    "README.html#contributing",
+    "README.html#license",
+    "README.html#changelog",
+    "README.html",
+    "README.html#prerequisites",
+    "README.html#build-from-source",
+    "README.html#workspace-setup",
+    "README.html#resolving-dependencies",
+    "README.html#building-the-workspace",
+    "README.html",
+    "README.html#iio-path",
+    "README.html#context-path",
+    "README.html#context-attribute-path-attr-path",
+    "README.html#device-path-device-path",
+    "README.html#device-attribute-path-attr-path",
+    "README.html#channel-path-channel-path",
+    "README.html#channel-attribute-path-attr-path",
+    "README.html#topic-name-resolution",
+    "README.html#service-responses",
+    "README.html#buffers",
+    "README.html#parameters",
+    "README.html#services",
+    "README.html#attrdisabletopic",
+    "README.html#attrenabletopic",
+    "README.html#attrreadstring",
+    "README.html#attrwritestring",
+    "README.html#buffercreate",
+    "README.html#bufferdestroy",
+    "README.html#bufferdisabletopic",
+    "README.html#bufferenabletopic",
+    "README.html#bufferread",
+    "README.html#bufferrefill",
+    "README.html#bufferwrite",
+    "README.html#scancontext",
+    "README.html#listdevices",
+    "README.html#listchannels",
+    "README.html#listattributes",
+    "README.html#launch",
+    "README.html",
+    "README.html#id25",
+    "README.html#setting-up-the-virtual-environment",
+    "README.html#generate-the-documentation",
+    "doc/Examples/02_example_ad5592r.html#prerequisites",
+    "doc/Examples/02_example_ad5592r.html#configuring-a-single-channel-attribute-via-cli",
+    "doc/Examples/02_example_ad5592r.html#configuring-multiple-channel-attributes-via-launch-file",
+    "doc/Examples/02_example_ad5592r.html#enabling-ad5592r-channel-attribute-topics",
+    "doc/Examples/02_example_ad5592r.html#enabling-a-single-attribute-topic-via-cli",
+    "doc/Examples/02_example_ad5592r.html#enabling-multiple-ad5592r-attribute-topics-with-a-launch-file",
+    "doc/Examples/02_example_ad5592r.html#transforming-raw-data-to-voltage-readings",
+    "doc/Examples/02_example_ad5592r.html#bringing-up-the-full-ad5592r-example-system",
+    "doc/Examples/02_example_ad5592r.html#creating-custom-ros-2-nodes-for-iio-device-interaction",
+    "doc/Examples/02_example_ad5592r.html#temperature-indicator-node",
+    "doc/Examples/02_example_ad5592r.html#actuator-and-state-machine-example-controlling-output-channels"
+  ],
+  "hierarchy": [
+    [
+      "Changelog for package adi_iio",
+      "1.0.1 (2025-07-17)"
+    ],
+    [
+      "Changelog for package adi_iio",
+      "1.0.0 (2025-06-27)"
+    ],
+    [
+      "C++ API",
+      "Define BUFFER_WRITE_SUFFIX"
+    ],
+    [
+      "C++ API",
+      "Define BUFFER_WRITE_SUFFIX",
+      "Define Documentation"
+    ],
+    [
+      "Documentation"
+    ],
+    [
+      "C++ API",
+      "Class IIOAttrTopic"
+    ],
+    [
+      "C++ API",
+      "Class IIOAttrTopic",
+      "Inheritance Relationships",
+      "Base Type"
+    ],
+    [
+      "C++ API",
+      "Class IIOAttrTopic",
+      "Class Documentation"
+    ],
+    [
+      "Documentation",
+      "Frequently Asked Questions (FAQ)",
+      "General Questions",
+      "Q1: What is the purpose of this ROS2 package?"
+    ],
+    [
+      "Documentation",
+      "Frequently Asked Questions (FAQ)",
+      "General Questions",
+      "Q2: Which ROS2 distributions are supported?"
+    ],
+    [
+      "Documentation",
+      "Frequently Asked Questions (FAQ)",
+      "Installation and Setup",
+      "Q1: How do I install this package?"
+    ],
+    [
+      "Documentation",
+      "Frequently Asked Questions (FAQ)",
+      "Installation and Setup",
+      "Q2: How do I build the package with a custom libiio dependency?"
+    ],
+    [
+      "Documentation",
+      "Frequently Asked Questions (FAQ)",
+      "Usage",
+      "Q1: How do I launch the nodes and use the provided launch files?"
+    ],
+    [
+      "C++ API",
+      "Define ATTR_QOS_QUEUE_SIZE"
+    ],
+    [
+      "C++ API",
+      "Define ATTR_QOS_QUEUE_SIZE",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "File attr_publisher.hpp",
+      "Program Listing for File attr_publisher.hpp"
+    ],
+    [
+      "C++ API",
+      "Define BUFFER_QOS_QUEUE_SIZE"
+    ],
+    [
+      "C++ API",
+      "Define BUFFER_QOS_QUEUE_SIZE",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "File adi_iio.cpp",
+      "Program Listing for File adi_iio.cpp"
+    ],
+    [
+      "C++ API",
+      "Define ATTR_WRITE_SUFFIX"
+    ],
+    [
+      "C++ API",
+      "Define ATTR_WRITE_SUFFIX",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "File attr_publisher.cpp",
+      "Program Listing for File attr_publisher.cpp"
+    ],
+    [
+      "C++ API",
+      "File iio_path.hpp"
+    ],
+    [
+      "C++ API",
+      "File iio_path.hpp",
+      "Definition (include/adi_iio/iio_path.hpp)"
+    ],
+    [
+      "C++ API",
+      "File iio_path.hpp",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File iio_path.hpp",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File iio_path.hpp",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "File iio_path.hpp",
+      "Enums"
+    ],
+    [
+      "C++ API",
+      "Enum IIOPathType"
+    ],
+    [
+      "C++ API",
+      "Enum IIOPathType",
+      "Enum Documentation"
+    ],
+    [
+      "C++ API",
+      "Class Hierarchy"
+    ],
+    [
+      "C++ API",
+      "File Hierarchy"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Namespaces"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Classes and Structs"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Enums"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Functions"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Defines"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Directories"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Files"
+    ],
+    [
+      "C++ API",
+      "File iio_buffer.hpp",
+      "Program Listing for File iio_buffer.hpp"
+    ],
+    [
+      "C++ API",
+      "Function main"
+    ],
+    [
+      "C++ API",
+      "Function main",
+      "Function Documentation"
+    ],
+    [
+      "C++ API",
+      "Class IIOPath"
+    ],
+    [
+      "C++ API",
+      "Class IIOPath",
+      "Class Documentation"
+    ],
+    [
+      "C++ API",
+      "File iio_path.cpp"
+    ],
+    [
+      "C++ API",
+      "File iio_path.cpp",
+      "Definition (src/iio_path.cpp)"
+    ],
+    [
+      "C++ API",
+      "File iio_path.cpp",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "Directory src"
+    ],
+    [
+      "C++ API",
+      "Directory src",
+      "Files"
+    ],
+    [
+      "C++ API",
+      "File iio_buffer.cpp"
+    ],
+    [
+      "C++ API",
+      "File iio_buffer.cpp",
+      "Definition (src/iio_buffer.cpp)"
+    ],
+    [
+      "C++ API",
+      "File iio_buffer.cpp",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File iio_buffer.hpp"
+    ],
+    [
+      "C++ API",
+      "File iio_buffer.hpp",
+      "Definition (include/adi_iio/iio_buffer.hpp)"
+    ],
+    [
+      "C++ API",
+      "File iio_buffer.hpp",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File iio_buffer.hpp",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File iio_buffer.hpp",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "File iio_buffer.hpp",
+      "Defines"
+    ],
+    [
+      "C++ API",
+      "File iio_path.cpp",
+      "Program Listing for File iio_path.cpp"
+    ],
+    [
+      "C++ API",
+      "Define MAX_ATTR_SIZE"
+    ],
+    [
+      "C++ API",
+      "Define MAX_ATTR_SIZE",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "Class BoolPubSub"
+    ],
+    [
+      "C++ API",
+      "Class BoolPubSub",
+      "Inheritance Relationships",
+      "Base Type"
+    ],
+    [
+      "C++ API",
+      "Class BoolPubSub",
+      "Class Documentation"
+    ],
+    [
+      "C++ API",
+      "File iio_node.cpp"
+    ],
+    [
+      "C++ API",
+      "File iio_node.cpp",
+      "Definition (src/iio_node.cpp)"
+    ],
+    [
+      "C++ API",
+      "File iio_node.cpp",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File iio_node.cpp",
+      "Namespaces"
+    ],
+    [
+      "C++ API",
+      "File iio_node.cpp",
+      "Defines"
+    ],
+    [
+      "C++ API",
+      "Define BUFFER_READ_SUFFIX"
+    ],
+    [
+      "C++ API",
+      "Define BUFFER_READ_SUFFIX",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "Class UpdateCallback"
+    ],
+    [
+      "C++ API",
+      "Class UpdateCallback",
+      "Inheritance Relationships",
+      "Derived Type"
+    ],
+    [
+      "C++ API",
+      "Class UpdateCallback",
+      "Class Documentation"
+    ],
+    [
+      "C++ API",
+      "File iio_attr_topic.cpp",
+      "Program Listing for File iio_attr_topic.cpp"
+    ],
+    [
+      "C++ API",
+      "Class Int32PubSub"
+    ],
+    [
+      "C++ API",
+      "Class Int32PubSub",
+      "Inheritance Relationships",
+      "Base Type"
+    ],
+    [
+      "C++ API",
+      "Class Int32PubSub",
+      "Class Documentation"
+    ],
+    [
+      "C++ API",
+      "File iio_path.hpp",
+      "Program Listing for File iio_path.hpp"
+    ],
+    [
+      "C++ API",
+      "File attr_publisher.cpp"
+    ],
+    [
+      "C++ API",
+      "File attr_publisher.cpp",
+      "Definition (src/attr_publisher.cpp)"
+    ],
+    [
+      "C++ API",
+      "File attr_publisher.cpp",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "Directory include"
+    ],
+    [
+      "C++ API",
+      "Directory include",
+      "Subdirectories"
+    ],
+    [
+      "C++ API",
+      "File iio_attr_topic.cpp"
+    ],
+    [
+      "C++ API",
+      "File iio_attr_topic.cpp",
+      "Definition (src/iio_attr_topic.cpp)"
+    ],
+    [
+      "C++ API",
+      "File iio_attr_topic.cpp",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File iio_node.hpp",
+      "Program Listing for File iio_node.hpp"
+    ],
+    [
+      "C++ API",
+      "Class StringPubSub"
+    ],
+    [
+      "C++ API",
+      "Class StringPubSub",
+      "Inheritance Relationships",
+      "Base Type"
+    ],
+    [
+      "C++ API",
+      "Class StringPubSub",
+      "Class Documentation"
+    ],
+    [
+      "C++ API",
+      "File adi_iio.cpp"
+    ],
+    [
+      "C++ API",
+      "File adi_iio.cpp",
+      "Definition (src/adi_iio.cpp)"
+    ],
+    [
+      "C++ API",
+      "File adi_iio.cpp",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File adi_iio.cpp",
+      "Functions"
+    ],
+    [
+      "C++ API",
+      "Define ATTR_READ_SUFFIX"
+    ],
+    [
+      "C++ API",
+      "Define ATTR_READ_SUFFIX",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "File iio_attr_topic.hpp",
+      "Program Listing for File iio_attr_topic.hpp"
+    ],
+    [
+      "Service Definitions",
+      "BufferRead"
+    ],
+    [
+      "Service Definitions",
+      "BufferDisableTopic"
+    ],
+    [
+      "C++ API",
+      "Class AttrPubSub"
+    ],
+    [
+      "C++ API",
+      "Class AttrPubSub",
+      "Inheritance Relationships",
+      "Derived Types"
+    ],
+    [
+      "C++ API",
+      "Class AttrPubSub",
+      "Class Documentation"
+    ],
+    [
+      "Service Definitions",
+      "BufferCreate"
+    ],
+    [
+      "C++ API",
+      "Class IIOBuffer"
+    ],
+    [
+      "C++ API",
+      "Class IIOBuffer",
+      "Class Documentation"
+    ],
+    [
+      "C++ API",
+      "Directory adi_iio"
+    ],
+    [
+      "C++ API",
+      "Directory adi_iio",
+      "Files"
+    ],
+    [
+      "Service Definitions",
+      "ListDevices"
+    ],
+    [
+      "Service Definitions",
+      "BufferEnableTopic"
+    ],
+    [
+      "Service Definitions",
+      "ListChannels"
+    ],
+    [
+      "Service Definitions",
+      "AttrReadString"
+    ],
+    [
+      "Service Definitions",
+      "AttrEnableTopic"
+    ],
+    [
+      "C++ API",
+      "Class IIONode"
+    ],
+    [
+      "C++ API",
+      "Class IIONode",
+      "Inheritance Relationships",
+      "Base Type"
+    ],
+    [
+      "C++ API",
+      "Class IIONode",
+      "Class Documentation"
+    ],
+    [
+      "Service Definitions",
+      "AttrWriteString"
+    ],
+    [
+      "Service Definitions",
+      "BufferRefill"
+    ],
+    [
+      "Service Definitions",
+      "AttrDisableTopic"
+    ],
+    [
+      "Service Definitions",
+      "ListAttributes"
+    ],
+    [
+      "adi_iio"
+    ],
+    [
+      "adi_iio - ROS2 Package for IIO Integration"
+    ],
+    [
+      "Overview"
+    ],
+    [
+      "Overview",
+      "Getting Started"
+    ],
+    [
+      "Overview",
+      "Getting Help"
+    ],
+    [
+      "Overview",
+      "Contributing"
+    ],
+    [
+      "Overview",
+      "License"
+    ],
+    [
+      "Overview",
+      "CHANGELOG"
+    ],
+    [
+      "Installation"
+    ],
+    [
+      "Installation",
+      "Prerequisites:"
+    ],
+    [
+      "Installation",
+      "Build from Source"
+    ],
+    [
+      "Installation",
+      "Build from Source",
+      "Workspace Setup"
+    ],
+    [
+      "Installation",
+      "Build from Source",
+      "Resolving Dependencies"
+    ],
+    [
+      "Installation",
+      "Build from Source",
+      "Building the Workspace"
+    ],
+    [
+      "adi_iio - Node-Specific Concepts"
+    ],
+    [
+      "adi_iio - Node-Specific Concepts",
+      "IIO Path"
+    ],
+    [
+      "adi_iio - Node-Specific Concepts",
+      "IIO Path",
+      "Context Path"
+    ],
+    [
+      "adi_iio - Node-Specific Concepts",
+      "IIO Path",
+      "Context Attribute Path (attr_path)"
+    ],
+    [
+      "adi_iio - Node-Specific Concepts",
+      "IIO Path",
+      "Device Path (device_path)"
+    ],
+    [
+      "adi_iio - Node-Specific Concepts",
+      "IIO Path",
+      "Device Attribute Path (attr_path)"
+    ],
+    [
+      "adi_iio - Node-Specific Concepts",
+      "IIO Path",
+      "Channel Path (channel_path)"
+    ],
+    [
+      "adi_iio - Node-Specific Concepts",
+      "IIO Path",
+      "Channel Attribute Path (attr_path)"
+    ],
+    [
+      "adi_iio - Node-Specific Concepts",
+      "Topic Name Resolution"
+    ],
+    [
+      "adi_iio - Node-Specific Concepts",
+      "Service Responses"
+    ],
+    [
+      "adi_iio - Node-Specific Concepts",
+      "Buffers"
+    ],
+    [
+      "adi_iio - Node Description",
+      "Parameters"
+    ],
+    [
+      "adi_iio - Node Description",
+      "Services"
+    ],
+    [
+      "adi_iio - Node Description",
+      "Services",
+      "AttrDisableTopic"
+    ],
+    [
+      "adi_iio - Node Description",
+      "Services",
+      "AttrEnableTopic"
+    ],
+    [
+      "adi_iio - Node Description",
+      "Services",
+      "AttrReadString"
+    ],
+    [
+      "adi_iio - Node Description",
+      "Services",
+      "AttrWriteString"
+    ],
+    [
+      "adi_iio - Node Description",
+      "Services",
+      "BufferCreate"
+    ],
+    [
+      "adi_iio - Node Description",
+      "Services",
+      "BufferDestroy"
+    ],
+    [
+      "adi_iio - Node Description",
+      "Services",
+      "BufferDisableTopic"
+    ],
+    [
+      "adi_iio - Node Description",
+      "Services",
+      "BufferEnableTopic"
+    ],
+    [
+      "adi_iio - Node Description",
+      "Services",
+      "BufferRead"
+    ],
+    [
+      "adi_iio - Node Description",
+      "Services",
+      "BufferRefill"
+    ],
+    [
+      "adi_iio - Node Description",
+      "Services",
+      "BufferWrite"
+    ],
+    [
+      "adi_iio - Node Description",
+      "Services",
+      "ScanContext"
+    ],
+    [
+      "adi_iio - Node Description",
+      "Services",
+      "ListDevices"
+    ],
+    [
+      "adi_iio - Node Description",
+      "Services",
+      "ListChannels"
+    ],
+    [
+      "adi_iio - Node Description",
+      "Services",
+      "ListAttributes"
+    ],
+    [
+      "adi_iio - Node Description",
+      "Launch"
+    ],
+    [
+      "Building the Project Documentation Locally"
+    ],
+    [
+      "Building the Project Documentation Locally",
+      "Prerequisites"
+    ],
+    [
+      "Building the Project Documentation Locally",
+      "Setting Up the Virtual Environment"
+    ],
+    [
+      "Building the Project Documentation Locally",
+      "Generate the Documentation"
+    ],
+    [
+      "Service Definitions",
+      "BufferDestroy"
+    ],
+    [
+      "Contributing Guidelines"
+    ],
+    [
+      "Contributing Guidelines",
+      "How to Contribute",
+      "Contributing source code"
+    ],
+    [
+      "Contributing Guidelines",
+      "How to Contribute",
+      "Contributing source code",
+      "Code Style"
+    ],
+    [
+      "Contributing Guidelines",
+      "How to Contribute",
+      "Contributing source code",
+      "How to Contribute Source Code"
+    ],
+    [
+      "Contributing Guidelines",
+      "How to Contribute",
+      "Contributing source code",
+      "Pull Request Rules"
+    ],
+    [
+      "Contributing Guidelines",
+      "How to Contribute",
+      "Bug reports",
+      "Before Submitting a Bug Report"
+    ],
+    [
+      "Contributing Guidelines",
+      "How to Contribute",
+      "Bug reports",
+      "How to Submit a Good Bug Report"
+    ],
+    [
+      "Contributing Guidelines",
+      "How to Contribute",
+      "Feature Requests"
+    ],
+    [
+      "Contributing Guidelines",
+      "How to Contribute",
+      "Feature Requests",
+      "Before Submitting an Enhancement Suggestion"
+    ],
+    [
+      "Contributing Guidelines",
+      "How to Contribute",
+      "Feature Requests",
+      "How to Submit a Good Enhancement Suggestion"
+    ],
+    [
+      "Contributing Guidelines",
+      "How to Contribute",
+      "Contributing documentation"
+    ],
+    [
+      "Contributing Guidelines",
+      "How to Contribute",
+      "Contributing documentation",
+      "Documentation Best Practices"
+    ],
+    [
+      "Contributing Guidelines",
+      "Becoming a Trusted Committers"
+    ],
+    [
+      "Contributing Guidelines",
+      "Licensing"
+    ],
+    [
+      "Contributing Guidelines",
+      "Resources:"
+    ],
+    [
+      "C++ API",
+      "File iio_node.hpp"
+    ],
+    [
+      "C++ API",
+      "File iio_node.hpp",
+      "Definition (include/adi_iio/iio_node.hpp)"
+    ],
+    [
+      "C++ API",
+      "File iio_node.hpp",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File iio_node.hpp",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File iio_node.hpp",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "Class Float32PubSub"
+    ],
+    [
+      "C++ API",
+      "Class Float32PubSub",
+      "Inheritance Relationships",
+      "Base Type"
+    ],
+    [
+      "C++ API",
+      "Class Float32PubSub",
+      "Class Documentation"
+    ],
+    [
+      "C++ API",
+      "File iio_attr_topic.hpp"
+    ],
+    [
+      "C++ API",
+      "File iio_attr_topic.hpp",
+      "Definition (include/adi_iio/iio_attr_topic.hpp)"
+    ],
+    [
+      "C++ API",
+      "File iio_attr_topic.hpp",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File iio_attr_topic.hpp",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File iio_attr_topic.hpp",
+      "Classes"
+    ],
+    [
+      "Service Definitions",
+      "ScanContext"
+    ],
+    [
+      "Service Definitions",
+      "BufferWrite"
+    ],
+    [
+      "C++ API",
+      "File iio_buffer.cpp",
+      "Program Listing for File iio_buffer.cpp"
+    ],
+    [
+      "C++ API",
+      "File attr_publisher.hpp"
+    ],
+    [
+      "C++ API",
+      "File attr_publisher.hpp",
+      "Definition (include/adi_iio/attr_publisher.hpp)"
+    ],
+    [
+      "C++ API",
+      "File attr_publisher.hpp",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File attr_publisher.hpp",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File attr_publisher.hpp",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "File attr_publisher.hpp",
+      "Defines"
+    ],
+    [
+      "C++ API",
+      "File iio_node.cpp",
+      "Program Listing for File iio_node.cpp"
+    ],
+    [
+      "Documentation",
+      "Examples/"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "Examples Introduction"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "Examples Introduction",
+      "Setup"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "Examples Introduction",
+      "Setup",
+      "Build examples from Source"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "Examples Introduction",
+      "Examples Overview:"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "HWMON"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "HWMON",
+      "Example: dell_precision_5530.py",
+      "Usage:"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "HWMON",
+      "Example: dell_precision_5530.py",
+      "Service Clients:"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "HWMON",
+      "Example: dell_precision_5530.py",
+      "Topics:"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "HWMON",
+      "Example: dell_precision_5530.py",
+      "Topics:",
+      "Subscriptions (raw data from adi_iio_node):"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "HWMON",
+      "Example: dell_precision_5530.py",
+      "Topics:",
+      "Publications (processed data):"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "AD7124-8",
+      "Prerequisites:"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "AD7124-8",
+      "Examples:",
+      "Configuring AD7124-8 Channel Attributes using AttrWriteString Service",
+      "Configuring a Single Channel Attribute via CLI"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "AD7124-8",
+      "Examples:",
+      "Configuring AD7124-8 Channel Attributes using AttrWriteString Service",
+      "Configuring Multiple Channel Attributes via Launch File"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "AD7124-8",
+      "Examples:",
+      "Enabling AD7124-8 Channel Attribute Topics"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "AD7124-8",
+      "Examples:",
+      "Enabling AD7124-8 Channel Attribute Topics",
+      "Enabling a Single Attribute Topic via CLI"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "AD7124-8",
+      "Examples:",
+      "Enabling AD7124-8 Channel Attribute Topics",
+      "Enabling Multiple AD7124-8 Attribute Topics with a Launch File"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "AD7124-8",
+      "Examples:",
+      "Transforming Raw AD7124-8 Data to Voltage Readings"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "AD7124-8",
+      "Examples:",
+      "Bringing Up the Full AD7124-8 Example System"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "AD7124-8",
+      "Creating Custom ROS 2 Nodes for IIO Device Interaction"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "AD7124-8",
+      "Creating Custom ROS 2 Nodes for IIO Device Interaction",
+      "Example: ad7124_8_buffer_scaled.py",
+      "Usage:"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "AD7124-8",
+      "Creating Custom ROS 2 Nodes for IIO Device Interaction",
+      "Example: ad7124_8_buffer_scaled.py",
+      "Service Clients:"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "AD7124-8",
+      "Creating Custom ROS 2 Nodes for IIO Device Interaction",
+      "Example: ad7124_8_buffer_scaled.py",
+      "Topics:"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "AD7124-8",
+      "Creating Custom ROS 2 Nodes for IIO Device Interaction",
+      "Example: ad7124_8_buffer_scaled.py",
+      "Demo AD7124-8 Visualize Waveform:"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "adi_iio_node: service call reference",
+      "Prerequisites:"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "adi_iio_node: service call reference",
+      "Overview:"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "adi_iio_node: service call reference",
+      "Service Call Reference:",
+      "ScanContext"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "adi_iio_node: service call reference",
+      "Service Call Reference:",
+      "ListDevices"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "adi_iio_node: service call reference",
+      "Service Call Reference:",
+      "ListChannels"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "adi_iio_node: service call reference",
+      "Service Call Reference:",
+      "ListAttributes"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "adi_iio_node: service call reference",
+      "Service Call Reference:",
+      "AttrEnableTopic"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "adi_iio_node: service call reference",
+      "Service Call Reference:",
+      "AttrDisableTopic"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "adi_iio_node: service call reference",
+      "Service Call Reference:",
+      "AttrReadString"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "adi_iio_node: service call reference",
+      "Service Call Reference:",
+      "AttrWriteString"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "adi_iio_node: service call reference",
+      "Service Call Reference:",
+      "BufferCreate"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "adi_iio_node: service call reference",
+      "Service Call Reference:",
+      "BufferDestroy"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "adi_iio_node: service call reference",
+      "Service Call Reference:",
+      "BufferDisableTopic"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "adi_iio_node: service call reference",
+      "Service Call Reference:",
+      "BufferEnableTopic"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "adi_iio_node: service call reference",
+      "Service Call Reference:",
+      "BufferRead"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "adi_iio_node: service call reference",
+      "Service Call Reference:",
+      "BufferRefill"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "adi_iio_node: service call reference",
+      "Service Call Reference:",
+      "BufferWrite"
+    ],
+    [
+      "adi_iio - ROS2 Package for IIO Integration"
+    ],
+    [
+      "Overview"
+    ],
+    [
+      "Overview",
+      "Getting Started"
+    ],
+    [
+      "Overview",
+      "Getting Help"
+    ],
+    [
+      "Overview",
+      "Contributing"
+    ],
+    [
+      "Overview",
+      "License"
+    ],
+    [
+      "Overview",
+      "CHANGELOG"
+    ],
+    [
+      "Installation"
+    ],
+    [
+      "Installation",
+      "Prerequisites:"
+    ],
+    [
+      "Installation",
+      "Build from Source"
+    ],
+    [
+      "Installation",
+      "Build from Source",
+      "Workspace Setup"
+    ],
+    [
+      "Installation",
+      "Build from Source",
+      "Resolving Dependencies"
+    ],
+    [
+      "Installation",
+      "Build from Source",
+      "Building the Workspace"
+    ],
+    [
+      "adi_iio - Node-Specific Concepts"
+    ],
+    [
+      "adi_iio - Node-Specific Concepts",
+      "IIO Path"
+    ],
+    [
+      "adi_iio - Node-Specific Concepts",
+      "IIO Path",
+      "Context Path"
+    ],
+    [
+      "adi_iio - Node-Specific Concepts",
+      "IIO Path",
+      "Context Attribute Path (attr_path)"
+    ],
+    [
+      "adi_iio - Node-Specific Concepts",
+      "IIO Path",
+      "Device Path (device_path)"
+    ],
+    [
+      "adi_iio - Node-Specific Concepts",
+      "IIO Path",
+      "Device Attribute Path (attr_path)"
+    ],
+    [
+      "adi_iio - Node-Specific Concepts",
+      "IIO Path",
+      "Channel Path (channel_path)"
+    ],
+    [
+      "adi_iio - Node-Specific Concepts",
+      "IIO Path",
+      "Channel Attribute Path (attr_path)"
+    ],
+    [
+      "adi_iio - Node-Specific Concepts",
+      "Topic Name Resolution"
+    ],
+    [
+      "adi_iio - Node-Specific Concepts",
+      "Service Responses"
+    ],
+    [
+      "adi_iio - Node-Specific Concepts",
+      "Buffers"
+    ],
+    [
+      "adi_iio - Node Description",
+      "Parameters"
+    ],
+    [
+      "adi_iio - Node Description",
+      "Services"
+    ],
+    [
+      "adi_iio - Node Description",
+      "Services",
+      "AttrDisableTopic"
+    ],
+    [
+      "adi_iio - Node Description",
+      "Services",
+      "AttrEnableTopic"
+    ],
+    [
+      "adi_iio - Node Description",
+      "Services",
+      "AttrReadString"
+    ],
+    [
+      "adi_iio - Node Description",
+      "Services",
+      "AttrWriteString"
+    ],
+    [
+      "adi_iio - Node Description",
+      "Services",
+      "BufferCreate"
+    ],
+    [
+      "adi_iio - Node Description",
+      "Services",
+      "BufferDestroy"
+    ],
+    [
+      "adi_iio - Node Description",
+      "Services",
+      "BufferDisableTopic"
+    ],
+    [
+      "adi_iio - Node Description",
+      "Services",
+      "BufferEnableTopic"
+    ],
+    [
+      "adi_iio - Node Description",
+      "Services",
+      "BufferRead"
+    ],
+    [
+      "adi_iio - Node Description",
+      "Services",
+      "BufferRefill"
+    ],
+    [
+      "adi_iio - Node Description",
+      "Services",
+      "BufferWrite"
+    ],
+    [
+      "adi_iio - Node Description",
+      "Services",
+      "ScanContext"
+    ],
+    [
+      "adi_iio - Node Description",
+      "Services",
+      "ListDevices"
+    ],
+    [
+      "adi_iio - Node Description",
+      "Services",
+      "ListChannels"
+    ],
+    [
+      "adi_iio - Node Description",
+      "Services",
+      "ListAttributes"
+    ],
+    [
+      "adi_iio - Node Description",
+      "Launch"
+    ],
+    [
+      "Building the Project Documentation Locally"
+    ],
+    [
+      "Building the Project Documentation Locally",
+      "Prerequisites"
+    ],
+    [
+      "Building the Project Documentation Locally",
+      "Setting Up the Virtual Environment"
+    ],
+    [
+      "Building the Project Documentation Locally",
+      "Generate the Documentation"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "AD5592R",
+      "Prerequisites:"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "AD5592R",
+      "Examples:",
+      "Configuring AD5592R Channel Attributes using AttrWriteString Service",
+      "Configuring a Single Channel Attribute via CLI"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "AD5592R",
+      "Examples:",
+      "Configuring AD5592R Channel Attributes using AttrWriteString Service",
+      "Configuring Multiple Channel Attributes via Launch File"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "AD5592R",
+      "Examples:",
+      "Enabling AD5592R Channel Attribute Topics"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "AD5592R",
+      "Examples:",
+      "Enabling AD5592R Channel Attribute Topics",
+      "Enabling a Single Attribute Topic via CLI"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "AD5592R",
+      "Examples:",
+      "Enabling AD5592R Channel Attribute Topics",
+      "Enabling Multiple AD5592R Attribute Topics with a Launch File"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "AD5592R",
+      "Examples:",
+      "Enabling AD5592R Channel Attribute Topics",
+      "Transforming Raw Data to Voltage Readings"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "AD5592R",
+      "Examples:",
+      "Bringing Up the Full AD5592R Example System"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "AD5592R",
+      "Creating Custom ROS 2 Nodes for IIO Device Interaction"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "AD5592R",
+      "Creating Custom ROS 2 Nodes for IIO Device Interaction",
+      "Temperature Indicator Node"
+    ],
+    [
+      "Documentation",
+      "Examples/",
+      "AD5592R",
+      "Creating Custom ROS 2 Nodes for IIO Device Interaction",
+      "Actuator and State Machine Example: Controlling Output Channels"
+    ]
+  ]
+}

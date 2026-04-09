@@ -1,0 +1,1371 @@
+{
+  "text": [
+    "- Creating Safety Bubble Detector with 4 devices:\n- adi_3dtof_safety_bubble_detector_stitch_host_node\n",
+    "\u21b0 Parent directory (`include/ros-perception/image_transport_plugins`)\n\n*Directory path:* `include/ros-perception/image_transport_plugins/compressed_depth_image_transport`\n",
+    "- File compression_common.h\n- File rvl_codec.h\n",
+    "- Defined in File module_profile.h\n",
+    "**PROFILE_FUNCTION_END(ID)**\n",
+    "- Defined in File image_proc_utils.h\n",
+    "**struct __tADI2DPoint**\n:   Structure to hold point. \n:   Public Members\n:   short x\n:   short y\n",
+    "- Defined in File image_proc_utils.h\n",
+    "**QFORMAT_FOR_POINTCLOUD_LUT**\n",
+    "\u21b0 Return to documentation for file (`include/input_sensor_factory.h`)\n\n```cpp\n/******************************************************************************\nCopyright (c), 2023 - Analog Devices Inc. All Rights Reserved.\nThis software is PROPRIETARY & CONFIDENTIAL to Analog Devices, Inc.\nand its lic",
+    "\u21b0 Return to documentation for file (`include/input_sensor_adtf31xx.h`)\n\n```cpp\n/******************************************************************************\nCopyright (c), 2023 - Analog Devices Inc. All Rights Reserved.\nThis software is PROPRIETARY & CONFIDENTIAL to Analog Devices, Inc.\nand its li",
+    "- Defined in File image_proc_utils.h\n",
+    "**QFORMAT_FOR_POINTCLOUD_LUT_SHIFTED_VALUE**\n",
+    "- Defined in File compression_common.h\n",
+    "**enum compressed_depth_image_transport::compressionFormat**\n:   *Values:*\n:   enumerator UNDEFINED\n:   enumerator INV_DEPTH\n",
+    "\u21b0 Parent directory (`include`)\n\nContents\n\n- Definition (`include/adtf31xx_sensor_frame_info.h`)\n- Includes\n- Included By\n",
+    "- Program Listing for File adtf31xx_sensor_frame_info.h\n",
+    "- `cstring`\n- `rclcpp/rclcpp.hpp`\n",
+    "- File adi_3dtof_safety_bubble_detector_node.h\n",
+    "- Defined in File image_proc_utils.h\n",
+    "**typedef struct __tADIImage ADIImage**\n:   Structure to hold image info.\n",
+    "\u21b0 Return to documentation for file (`include/input_sensor_ros_topics.h`)\n\n```cpp\n/******************************************************************************\nCopyright (c), 2023 - Analog Devices Inc. All Rights Reserved.\nThis software is PROPRIETARY & CONFIDENTIAL to Analog Devices, Inc.\nand its ",
+    "\u21b0 Parent directory (`include`)\n\nContents\n\n- Definition (`include/input_sensor.h`)\n- Includes\n- Included By\n",
+    "- Program Listing for File input_sensor.h\n",
+    "- `adi_camera.h` (File adi_camera.h)\n- `rclcpp/rclcpp.hpp`\n- `stdint.h`\n",
+    "- File adi_3dtof_safety_bubble_detector_node.h\n- File input_sensor_adtf31xx.h\n- File input_sensor_factory.h\n- File input_sensor_file_rosbagbin.h\n- File input_sensor_ros_topics.h\n",
+    "\u21b0 Parent directory (`include`)\n\nContents\n\n- Definition (`include/image_proc_utils.h`)\n- Includes\n- Included By\n- Classes\n- Defines\n- Typedefs\n",
+    "- Program Listing for File image_proc_utils.h\n",
+    "- `adi_camera.h` (File adi_camera.h)\n- `cmath`\n- `cv_bridge/cv_bridge.h`\n",
+    "- File adi_3dtof_safety_bubble_detector_node.h\n",
+    "- Struct __tADI2DPoint\n- Struct __tADIImage\n- Struct __tADIImageROI\n",
+    "- Define QFORMAT_FOR_POINTCLOUD_LUT\n- Define QFORMAT_FOR_POINTCLOUD_LUT_SHIFTED_VALUE\n",
+    "- Typedef ADI2DPoint\n- Typedef ADIImage\n- Typedef ADIImageROI\n",
+    "\u21b0 Parent directory (`include`)\n\nContents\n\n- Definition (`include/input_sensor_ros_topics.h`)\n- Includes\n- Included By\n",
+    "- Program Listing for File input_sensor_ros_topics.h\n",
+    "- `adi_sensor_frame_info.h` (File adi_sensor_frame_info.h)\n- `cv_bridge/cv_bridge.h`\n- `image_geometry/pinhole_camera_model.h`\n- `input_sensor.h` (File input_sensor.h)\n- `message_filters/subscriber.h`\n- `message_filters/sync_policies/approximate_time.h`\n- `message_filters/synchronizer.h`\n- `queue`\n-",
+    "- File input_sensor_factory.h\n",
+    "- Defined in File module_profile.h\n",
+    "**CLOSE_FUNCTION_PROFILE()**\n",
+    "\u21b0 Parent directory (`include`)\n\nContents\n\n- Definition (`include/adi_sensor_frame_info.h`)\n- Includes\n- Included By\n",
+    "- Program Listing for File adi_sensor_frame_info.h\n",
+    "- `rclcpp/rclcpp.hpp`\n- `stdint.h`\n",
+    "- File input_sensor_ros_topics.h\n",
+    "- Defined in File module_profile.h\n",
+    "**PROFILE_ID_START()**\n",
+    "\u21b0 Return to documentation for file (`include/ros-perception/image_transport_plugins/compressed_depth_image_transport/compression_common.h`)\n\n```cpp\n/*********************************************************************\n* Software License Agreement (BSD License)\n*\n*  Copyright (c) 2012, Willow Garage",
+    "- Namespace compressed_depth_image_transportEnum compressionFormatStruct __tADI2DPointStruct __tADIImageStruct __tADIImageROIClass ADI3DToFSafetyBubbleDetectorStruct ADI3DToFSafetyBubbleDetector::TunableParametersClass ADI3DToFSafetyBubbleDetectorOutputInfoEnum OutputFlag\n\n  - Namespace compressed_d",
+    "- Directory includeDirectory ros-perceptionDirectory image_transport_pluginsDirectory compressed_depth_image_transportFile compression_common.hFile rvl_codec.hFile adi_3dtof_safety_bubble_detector_node.hFile adi_3dtof_safety_bubble_detector_output_info.hFile adi_camera.hFile adi_sensor_frame_info.hF",
+    "- Namespace compressed_depth_image_transport\n\n\n- Namespace rclcpp\n\n\n- Namespace std::chrono_literals\n",
+    "- Struct __tADI2DPoint\n\n\n- Struct __tADIImage\n\n\n- Struct __tADIImageROI\n\n\n- Struct ADI3DToFSafetyBubbleDetector::TunableParameters\n\n\n- Class ADI3DToFSafetyBubbleDetector\n\n\n- Class ADI3DToFSafetyBubbleDetectorOutputInfo\n",
+    "- Enum compressionFormat\n\n\n- Enum OutputFlag\n",
+    "- Define CLOSE_FUNCTION_PROFILE\n\n\n- Define FLUSH_FUNCTION_PROFILE\n\n\n- Define INIT_FUNCTION_PROFILE\n\n\n- Define PROFILE_FUNCTION_END\n\n\n- Define PROFILE_FUNCTION_START\n\n\n- Define PROFILE_ID\n\n\n- Define PROFILE_ID_END\n\n\n- Define PROFILE_ID_START\n\n\n- Define QFORMAT_FOR_POINTCLOUD_LUT\n\n\n- Define QFORMAT_FO",
+    "- Typedef ADI2DPoint\n\n\n- Typedef ADIImage\n\n\n- Typedef ADIImageROI\n",
+    "- Directory include\n\n\n- Directory ros-perception\n\n\n- Directory image_transport_plugins\n\n\n- Directory compressed_depth_image_transport\n",
+    "- File adi_3dtof_safety_bubble_detector_node.h\n\n\n- File adi_3dtof_safety_bubble_detector_output_info.h\n\n\n- File adi_camera.h\n\n\n- File adi_sensor_frame_info.h\n\n\n- File adtf31xx_sensor_frame_info.h\n\n\n- File compression_common.h\n\n\n- File image_proc_utils.h\n\n\n- File input_sensor.h\n\n\n- File input_sensor_",
+    "\u21b0 Return to documentation for file (`include/module_profile.h`)\n\n```cpp\n/******************************************************************************\nCopyright (c), 2023 - Analog Devices Inc. All Rights Reserved.\nThis software is PROPRIETARY & CONFIDENTIAL to Analog Devices, Inc.\nand its licensors",
+    "\u21b0 Parent directory (`include`)\n\nContents\n\n- Definition (`include/adi_3dtof_safety_bubble_detector_node.h`)\n- Includes\n- Namespaces\n- Classes\n",
+    "- Program Listing for File adi_3dtof_safety_bubble_detector_node.h\n",
+    "- `Eigen/Geometry`\n- `adi_3dtof_safety_bubble_detector_output_info.h` (File adi_3dtof_safety_bubble_detector_output_info.h)\n- `adtf31xx_sensor_frame_info.h` (File adtf31xx_sensor_frame_info.h)\n- `chrono`\n- `cv_bridge/cv_bridge.h`\n- `floor_plane_detection.h`\n- `geometry_msgs/msg/transform_stamped.h`\n",
+    "- Namespace std::chrono_literals\n",
+    "- Struct ADI3DToFSafetyBubbleDetector::TunableParameters\n- Class ADI3DToFSafetyBubbleDetector\n",
+    "- Defined in File output_sensor.h\n",
+    "**enum OutputFlag**\n:   enum to represent output flag. \n:   *Values:*\n:   enumerator DisableAllOutputs\n:   0: No outputs are saved into files \n:   enumerator EnableCSVOutputOnly\n:   1: Enable only csv output \n:   enumerator EnableVideoOutputOnly\n:   2: Enable only video(.avi) output \n:   enumerator ",
+    "\u21b0 Return to documentation for file (`include/ros-perception/image_transport_plugins/compressed_depth_image_transport/rvl_codec.h`)\n\n```cpp\n#ifndef COMPRESSED_DEPTH_IMAGE_TRANSPORT_RVL_CODEC_H_\n#define COMPRESSED_DEPTH_IMAGE_TRANSPORT_RVL_CODEC_H_\n\nnamespace compressed_depth_image_transport {\n\nclass ",
+    "\u21b0 Return to documentation for file (`include/output_sensor_factory.h`)\n\n```cpp\n/******************************************************************************\nCopyright (c), 2023 - Analog Devices Inc. All Rights Reserved.\nThis software is PROPRIETARY & CONFIDENTIAL to Analog Devices, Inc.\nand its li",
+    "- Defined in File module_profile.h\n",
+    "**PROFILE_FUNCTION_START(ID)**\n",
+    "\u21b0 Parent directory (`include`)\n\nContents\n\n- Definition (`include/output_sensor_factory.h`)\n- Includes\n- Included By\n",
+    "- Program Listing for File output_sensor_factory.h\n",
+    "- `output_sensor.h` (File output_sensor.h)\n- `output_sensor_file.h` (File output_sensor_file.h)\n",
+    "- File adi_3dtof_safety_bubble_detector_node.h\n",
+    "- Defined in File module_profile.h\n",
+    "**FLUSH_FUNCTION_PROFILE()**\n",
+    "Please go through Setting up Safety Bubble Detector for a Single sensor to setup single device then we can add multiple devices together.\n\nWe can create safety bubble around the robot with multiple cameras. All the sensors are positioned with respect to `map` which is assumed to be the center of the",
+    "The Roll, Pitch, Yaw, and Translation values are given in the launch files below. Please arrange the modules to match this configuration. The corresponding launch files can be found in the `launch/` folder.\n|cam_id|launch_file|\n|cam1|adi_3dtof_safety_bubble_detector_single_cam1_135_deg_yaw_launch.py",
+    "It is possible to connect several devices to a Linux Host. Four devices are connected to the host PC in our arrangement.\n\n[!note]\nIf you are using WSL as the Host machine, then you won\u2019t be able to list and subscribe to the topics published by the device. Please use a Linux system to help visualize ",
+    "On the *EVAL-ADTF3175D-NXZ* device:\n\n1. Update the \u201cAddress\u201d field in `/etc/systemd/network/20-wired-usb0.network` file.\n2. Update the server address in `/etc/ntp.conf`\n  (`server 10.4x.0.100 iburst`)\n  (`pool\u00a0\u00a0 10.4x.0.100 iburst`)\n3. Reboot the device and login with the new ip\n\n\nFollow the instruc",
+    "The **adi_3dtof_safety_bubble_detector_stitch_host_node** subscribes to bird\u2019s-eye view out_image from all cameras and merges them into a single bird\u2019s-eye view output.\n",
+    "1. Clone the repo and checkout the correct release branch or tag into ros2 workspace directory\n  $ cd ~/ros2_ws/src\n  $ git clone https://github.com/analogdevicesinc/adi_3dtof_safety_bubble_detector.git -b v2.1.0\n2. Install dependencies:\n  $ cd ~/ros2_ws/\n  $ rosdep install --from-paths src -y --ign",
+    "|Topic Name|Description|\n|**/combo_safety_bubble_out_image**|8-bit output image|\n|**/combo_safety_bubble_object_detected**|Boolean topic indicates object detection|\n",
+    "|Topic Name|Description|\n|**/object_detected**|Boolean topic indicates object detection|\n|**/out_image/compressed**|Subscribes to compressed output image from `adi_3dtof_safety_bubble_detector` node|\n|**/out_image**|Subscribes to output image from `adi_3dtof_safety_bubble_detector` node|\n",
+    "|parameter|Type|Default|Description|\n|**param_camera_prefixes**|String array|None|In multi camera setup, camera prefix names of those cameras ex: [cam1, cam2, cam3]|\n\n\n[!note]\n\n- Make sure that the ADI 3DToF Safety Bubble Detector node is already running on all the devices before running this node.\n",
+    "- Defined in File adi_3dtof_safety_bubble_detector_node.h\n",
+    "- Struct ADI3DToFSafetyBubbleDetector::TunableParameters\n",
+    "- `public rclcpp::Node`\n",
+    "**class ADI3DToFSafetyBubbleDetector : public rclcpp::Node**\n:   This is main class for this package. \n:   Public Functions\n:   inline ADI3DToFSafetyBubbleDetector()\n:   Construct a new ADI3DToFSafetyBubbleDetector object. \n:   bool runSafetyBubbleDetection()\n:   void processOutput()\n:   void proces",
+    "\u21b0 Parent directory (`include/ros-perception/image_transport_plugins/compressed_depth_image_transport`)\n\nContents\n\n- Definition (`include/ros-perception/image_transport_plugins/compressed_depth_image_transport/compression_common.h`)\n- Included By\n- Namespaces\n- Enums\n",
+    "- Program Listing for File compression_common.h\n",
+    "- File adi_3dtof_safety_bubble_detector_node.h\n",
+    "- Namespace compressed_depth_image_transport\n",
+    "- Enum compressionFormat\n",
+    "\u21b0 Parent directory (`include`)\n\nContents\n\n- Definition (`include/adi_camera.h`)\n- Includes\n- Included By\n",
+    "- Program Listing for File adi_camera.h\n",
+    "- `array`\n",
+    "- File image_proc_utils.h\n- File input_sensor.h\n",
+    "- Defined in File image_proc_utils.h\n",
+    "**struct __tADIImageROI**\n:   Structure to hold image ROI info. \n:   Public Members\n:   int x\n:   int y\n:   int width\n:   int height\n",
+    "\u21b0 Parent directory (`include`)\n\n*Directory path:* `include/ros-perception`\n",
+    "- Directory image_transport_plugins\n",
+    "- Defined in File module_profile.h\n",
+    "**PROFILE_ID(id_name, id_num)**\n",
+    "\u21b0 Return to documentation for file (`include/input_sensor.h`)\n\n```cpp\n/******************************************************************************\nCopyright (c), 2023 - Analog Devices Inc. All Rights Reserved.\nThis software is PROPRIETARY & CONFIDENTIAL to Analog Devices, Inc.\nand its licensors.\n",
+    "- Defined in File image_proc_utils.h\n",
+    "**typedef struct __tADIImageROI ADIImageROI**\n:   Structure to hold image ROI info.\n",
+    "\u21b0 Return to documentation for file (`include/output_sensor_file.h`)\n\n```cpp\n/******************************************************************************\nCopyright (c), 2023 - Analog Devices Inc. All Rights Reserved.\nThis software is PROPRIETARY & CONFIDENTIAL to Analog Devices, Inc.\nand its licen",
+    "\u21b0 Parent directory (`include`)\n\nContents\n\n- Definition (`include/module_profile.h`)\n- Defines\n",
+    "- Program Listing for File module_profile.h\n",
+    "- Define CLOSE_FUNCTION_PROFILE\n- Define FLUSH_FUNCTION_PROFILE\n- Define INIT_FUNCTION_PROFILE\n- Define PROFILE_FUNCTION_END\n- Define PROFILE_FUNCTION_START\n- Define PROFILE_ID\n- Define PROFILE_ID_END\n- Define PROFILE_ID_START\n",
+    "Contents\n\n- Enums\n",
+    "- Enum compressionFormat\n",
+    "- Defined in File module_profile.h\n",
+    "**PROFILE_ID_END()**\n",
+    "- Defined in File image_proc_utils.h\n",
+    "**typedef struct __tADI2DPoint ADI2DPoint**\n:   Structure to hold point.\n",
+    "- Defined in File adi_3dtof_safety_bubble_detector_node.h\n",
+    "This struct is a nested type of Class ADI3DToFSafetyBubbleDetector.\n",
+    "**struct TunableParameters**\n:   Public Members\n:   int ab_threshold\n:   int confidence_threshold\n:   double safety_bubble_radius_in_mtr\n:   int shape_of_safety_bubble\n:   int safety_bubble_detection_sensitivity\n:   bool enable_ransac_floor_detection\n:   bool enable_floor_paint\n:   bool enable_safet",
+    "- Defined in File image_proc_utils.h\n",
+    "**struct __tADIImage**\n:   Structure to hold image info. \n:   Public Members\n:   void *data = NULL\n:   int width = 0\n:   int height = 0\n:   int bpp = 0\n:   ADIImageROI *roi = NULL\n",
+    "\u21b0 Return to documentation for file (`include/output_sensor.h`)\n\n```cpp\n/******************************************************************************\nCopyright (c), 2023 - Analog Devices Inc. All Rights Reserved.\nThis software is PROPRIETARY & CONFIDENTIAL to Analog Devices, Inc.\nand its licensors.",
+    "\u21b0 Parent directory (`include`)\n\nContents\n\n- Definition (`include/input_sensor_adtf31xx.h`)\n- Includes\n",
+    "- Program Listing for File input_sensor_adtf31xx.h\n",
+    "- `aditof/camera.h`\n- `aditof/frame.h`\n- `aditof/system.h`\n- `input_sensor.h` (File input_sensor.h)\n- `stdint.h`\n",
+    "\u21b0 Return to documentation for file (`include/adi_3dtof_safety_bubble_detector_output_info.h`)\n\n```cpp\n/******************************************************************************\nCopyright (c), 2023 - Analog Devices Inc. All Rights Reserved.\nThis software is PROPRIETARY & CONFIDENTIAL to Analog D",
+    "\u21b0 Parent directory (`include`)\n\nContents\n\n- Definition (`include/output_sensor_file.h`)\n- Includes\n- Included By\n",
+    "- Program Listing for File output_sensor_file.h\n",
+    "- `output_sensor.h` (File output_sensor.h)\n",
+    "- File output_sensor_factory.h\n",
+    "\u21b0 Parent directory (`include`)\n\nContents\n\n- Definition (`include/input_sensor_factory.h`)\n- Includes\n- Included By\n",
+    "- Program Listing for File input_sensor_factory.h\n",
+    "- `input_sensor.h` (File input_sensor.h)\n- `input_sensor_file_rosbagbin.h` (File input_sensor_file_rosbagbin.h)\n- `input_sensor_ros_topics.h` (File input_sensor_ros_topics.h)\n",
+    "- File adi_3dtof_safety_bubble_detector_node.h\n",
+    "*Directory path:* `include`\n",
+    "- Directory ros-perception\n",
+    "- File adi_3dtof_safety_bubble_detector_node.h\n- File adi_3dtof_safety_bubble_detector_output_info.h\n- File adi_camera.h\n- File adi_sensor_frame_info.h\n- File adtf31xx_sensor_frame_info.h\n- File image_proc_utils.h\n- File input_sensor.h\n- File input_sensor_adtf31xx.h\n- File input_sensor_factory.h\n- F",
+    "\u21b0 Parent directory (`include`)\n\nContents\n\n- Definition (`include/output_sensor.h`)\n- Includes\n- Included By\n- Enums\n",
+    "- Program Listing for File output_sensor.h\n",
+    "- `fstream`\n- `iostream`\n- `opencv2/core/core.hpp`\n- `opencv2/highgui/highgui.hpp`\n- `opencv2/imgproc.hpp`\n",
+    "- File adi_3dtof_safety_bubble_detector_node.h\n- File output_sensor_factory.h\n- File output_sensor_file.h\n",
+    "- Enum OutputFlag\n",
+    "\u21b0 Return to documentation for file (`include/adtf31xx_sensor_frame_info.h`)\n\n```cpp\n/******************************************************************************\nCopyright (c), 2023 - Analog Devices Inc. All Rights Reserved.\nThis software is PROPRIETARY & CONFIDENTIAL to Analog Devices, Inc.\nand i",
+    "\u21b0 Parent directory (`include`)\n\nContents\n\n- Definition (`include/input_sensor_file_rosbagbin.h`)\n- Includes\n- Included By\n",
+    "- Program Listing for File input_sensor_file_rosbagbin.h\n",
+    "- `fstream`\n- `input_sensor.h` (File input_sensor.h)\n- `stdint.h`\n",
+    "- File input_sensor_factory.h\n",
+    "\u21b0 Parent directory (`include/ros-perception/image_transport_plugins/compressed_depth_image_transport`)\n\nContents\n\n- Definition (`include/ros-perception/image_transport_plugins/compressed_depth_image_transport/rvl_codec.h`)\n- Namespaces\n",
+    "- Program Listing for File rvl_codec.h\n",
+    "- Namespace compressed_depth_image_transport\n",
+    "\u21b0 Parent directory (`include/ros-perception`)\n\n*Directory path:* `include/ros-perception/image_transport_plugins`\n",
+    "- Directory compressed_depth_image_transport\n",
+    "\u21b0 Return to documentation for file (`include/adi_sensor_frame_info.h`)\n\n```cpp\n/******************************************************************************\nCopyright (c), 2023 - Analog Devices Inc. All Rights Reserved.\nThis software is PROPRIETARY & CONFIDENTIAL to Analog Devices, Inc.\nand its li",
+    "- Defined in File module_profile.h\n",
+    "**INIT_FUNCTION_PROFILE()**\n",
+    "\u21b0 Return to documentation for file (`include/adi_camera.h`)\n\n```cpp\n/******************************************************************************\nCopyright (c), 2023 - Analog Devices Inc. All Rights Reserved.\nThis software is PROPRIETARY & CONFIDENTIAL to Analog Devices, Inc.\nand its licensors.\n**",
+    "The **ADI 3DToF Safety Bubble Detector** is a ROS(Robot Operating System) package for the Safety Bubble Detection application. The Safety Bubble Detectors are the basic building block of any AGV/AMR.\nThe safety zone is a virtual area around an AGV/AMR. The Safety Bubble Detectors are used to detect ",
+    "- EVAL-ADTF3175D-NXZ Module\n- USB Type-C to Type-A cable - with 5gbps data speed support\n- Host laptop with intel i5 or higher CPU running Ubuntu-20.04LTS or Ubuntu-22.04LTS\n\n\n[!note]\nRefer the EVAL-ADTF3175D-NXZ User Guide to ensure the Eval module has adequate power supply during operation.\n\n[!imp",
+    "This package has three different operation modes. Refer to the following intra-links to setup the package accordingly.\n\n1. Camera Sensor Mode\n2. File-IO Mode\n3. Network Mode\n",
+    "The package is built on the sensor module and directly interfaces with the image sensor. The adi_3dtof_nxp_ubuntu_20_04_relx.x.x.img provided for the EVAL-ADTF3175D-NXZ sensor already contains this ROS package and is pre-built. In order to use this package, first we need to connect the sensor to the",
+    "[!warning]\nThe time and date may be incorrect on the sensor and this can cause issues when updating the package. To update the time and date, refer to updating date and time.\n\nIn order to update and rebuild package to the latest version, run the following commands:\n\n```bash\ncd ~/ros2_ws/src/adi_3dto",
+    "In this camera mode, the package is built on the Host PC in order to evaluate the properties of the package by running a pre-recorded bin file which contains the outputs from the sensor module.\n",
+    "1. On your PC, create a workspace\n\n\n```bash\nmkdir -p ~/ros2_ws/src\n```\n\n\n1. Clone the repository\n\n\n```bash\ncd ~/ros2_ws/src\ngit clone https://github.com/analogdevicesinc/adi_3dtof_safety_bubble_detector.git -b v2.1.0\ncd ..\n```\n\n\n1. Build the workspace\n\n\n```bash\nrosdep install --from-paths src --igno",
+    "In order to run the package in file-io, it needs input files provided in the release image. Follow the steps below to use existing bin files, or follow the **Creating Bin files for File-IO** section in adi_3dtof_adtf31xx readme to create your own bin files.\n\n1. Go to the installation directory of th",
+    "The sensor can be operated in network mode where depth and AB (Active Brightness) images are fetched over the local area network. And safety bubble alogirthm is run on the host. The simplest way to use this is to connect the sensor directly to the PC so that a network interface via USB is created wi",
+    "The `adi_3dtof_safety_bubble_detector` depends on libaditof in order to communicate with the sensor. So we will need to build this in the same workspace as `adi_3dtof_safety_bubble_detector`.\n\n1. On your PC, create the workspace and clone the required repositories.\n\n\n```bash\nmkdir -p ~/ros2_ws/src\nc",
+    "To run the node in network mode, run\n\n```bash\nros2 launch adi_3dtof_safety_bubble_detector adi_3dtof_safety_bubble_detector_single_camera_launch.py arg_input_sensor_mode:=3 arg_input_sensor_ip:=10.43.0.1\n```\n\n\n[!note]\nThe `arg_input_sensor_mode:=3` sets the node to operate in network mode. This valu",
+    "|Parameter|Type|Default|Description|\n|**var_cam1_base_frame**|String|\u201cadi_camera_link\u201d|Name of camera Link|\n|**var_cam1_base_frame_optical**|String|\u201coptical_camera_link\u201d|Name of optical camera Link|\n|**var_virtual_camera_base_frame**|String|\u201cvirtual_camera_link\u201d|Name of virtual camera Link|\n|**arg_s",
+    "|Imager Type|Mode Name|Mode Value|\n|ADSD3100|sr-native|0|\n||lr-native|1|\n||sr-qnative|2|\n||lr-qnative|3|\n||sr-mixed|5|\n||lr-mixed|6|\n|ADSD3030|sr-native|0|\n||lr-native|1|\n||lr-qnative|3|\n||sr-mixed|5|\n||lr-mixed|6|\n|Other modes|-|-|\n",
+    "|Topic|Description|\n|**/depth_image**|16-bit Depth image|\n|**/ab_image**|16-bit IR image|\n|**/out_image**|8-bit output image|\n|**/object_detected**|Boolean to indicate the object detection|\n|**/camera_info**|Camera info|\n|**/depth_image/compressedDepth**|16-bit Depth image from `adi_3dtof_safety_bub",
+    "Sample output images are shown below:\n\n`/cam1/depth_image`\n\n`/cam1/ab_image`\n\n`/cam1/out_image`\n\n[!note]\nTo setup Safety Bubble Detector with 4 devices refer Setting up 4 device for Safety Bubble Detector\n",
+    "Some parameters of *adi_3dtof_safety_bubble_detector* ROS node can be modifed during runtime. The Perspective file is present in `rqt_config/` folder.\n\nThe GUI can be started by running the following command.\n\n```bash\nros2 launch adi_3dtof_safety_bubble_detector adi_3dtof_safety_bubble_detector_rqt_",
+    "The customized ubuntu image loaded into the sensor will automatically connect to any WiFi hotspot with the SSID as `ADI` and password set as `analog123`. This network connection will automatically sync the system time using the available internet connection.\n",
+    "|Flag Name|Type|Default Value|Description|\n|**SENSOR_CONNECTED**|Boolean|TRUE|Set to `TRUE` if a sensor is connected, otherwise set to `FALSE` for File-IO mode.|\n|**BUILD_SBD_STITCH_HOST_NODE**|Boolean|FALSE|Set to `TRUE` to build the `adi_3dtof_safety_bubble_detector_stitch_host_node`.|\n",
+    "To check the existing firmware version, log into the sensor device via SSH.\n\n```bash\n$ ssh analog@10.43.0.1\n   Username: analog\n   Password: analog\n```\n\n\nRun command:\n\n```bash\ncd ~/Workspace/Tool/ctrl_app\n./ctrl_app\n```\n\n\nYour output would look like this:\n\n```default\nV4L2 custom control interface ap",
+    "\u21b0 Return to documentation for file (`include/image_proc_utils.h`)\n\n```cpp\n/******************************************************************************\nCopyright (c), 2023 - Analog Devices Inc. All Rights Reserved.\nThis software is PROPRIETARY & CONFIDENTIAL to Analog Devices, Inc.\nand its licenso",
+    "\u21b0 Parent directory (`include`)\n\nContents\n\n- Definition (`include/adi_3dtof_safety_bubble_detector_output_info.h`)\n- Includes\n- Included By\n- Classes\n",
+    "- Program Listing for File adi_3dtof_safety_bubble_detector_output_info.h\n",
+    "- `cstring`\n",
+    "- File adi_3dtof_safety_bubble_detector_node.h\n",
+    "- Class ADI3DToFSafetyBubbleDetectorOutputInfo\n",
+    "- Defined in File adi_3dtof_safety_bubble_detector_output_info.h\n",
+    "**class ADI3DToFSafetyBubbleDetectorOutputInfo**\n:   This is the class for Safety bubble detector output info. \n:   Public Functions\n:   inline ADI3DToFSafetyBubbleDetectorOutputInfo(int image_width, int image_height)\n:   Constructor. \n:   Parameters:\n:   **image_width** \u2013 - Image Width \n:   **image",
+    "\u21b0 Return to documentation for file (`include/input_sensor_file_rosbagbin.h`)\n\n```cpp\n/******************************************************************************\nCopyright (c), 2023 - Analog Devices Inc. All Rights Reserved.\nThis software is PROPRIETARY & CONFIDENTIAL to Analog Devices, Inc.\nand ",
+    "The Package to create safety bubble around the camera setup\n\n- Links\n  Rosindex\n\n  - Rosindex\n- C++ API\n  Class Hierarchy\n  File Hierarchy\n  Full C++ API\n\n  - Class Hierarchy\n  - File Hierarchy\n  - Full C++ API\n\n\n- Standard Documents\n  README\n  LICENSE\n  PACKAGE\n\n  - README\n  - LICENSE\n  - PACKAGE\n\n",
+    "The **ADI 3DToF Safety Bubble Detector** is a ROS(Robot Operating System) package for the Safety Bubble Detection application. The Safety Bubble Detectors are the basic building block of any AGV/AMR.\nThe safety zone is a virtual area around an AGV/AMR. The Safety Bubble Detectors are used to detect ",
+    "- EVAL-ADTF3175D-NXZ Module\n- USB Type-C to Type-A cable - with 5gbps data speed support\n- Host laptop with intel i5 or higher CPU running Ubuntu-20.04LTS or Ubuntu-22.04LTS\n\n\n[!note]\nRefer the EVAL-ADTF3175D-NXZ User Guide to ensure the Eval module has adequate power supply during operation.\n\n[!imp",
+    "This package has three different operation modes. Refer to the following intra-links to setup the package accordingly.\n\n1. Camera Sensor Mode\n2. File-IO Mode\n3. Network Mode\n",
+    "The package is built on the sensor module and directly interfaces with the image sensor. The adi_3dtof_nxp_ubuntu_20_04_relx.x.x.img provided for the EVAL-ADTF3175D-NXZ sensor already contains this ROS package and is pre-built. In order to use this package, first we need to connect the sensor to the",
+    "[!warning]\nThe time and date may be incorrect on the sensor and this can cause issues when updating the package. To update the time and date, refer to updating date and time.\n\nIn order to update and rebuild package to the latest version, run the following commands:\n\n```bash\ncd ~/ros2_ws/src/adi_3dto",
+    "In this camera mode, the package is built on the Host PC in order to evaluate the properties of the package by running a pre-recorded bin file which contains the outputs from the sensor module.\n",
+    "1. On your PC, create a workspace\n\n\n```bash\nmkdir -p ~/ros2_ws/src\n```\n\n\n1. Clone the repository\n\n\n```bash\ncd ~/ros2_ws/src\ngit clone https://github.com/analogdevicesinc/adi_3dtof_safety_bubble_detector.git -b v2.1.0\ncd ..\n```\n\n\n1. Build the workspace\n\n\n```bash\nrosdep install --from-paths src --igno",
+    "In order to run the package in file-io, it needs input files provided in the release image. Follow the steps below to use existing bin files, or follow the **Creating Bin files for File-IO** section in adi_3dtof_adtf31xx readme to create your own bin files.\n\n1. Go to the installation directory of th",
+    "The sensor can be operated in network mode where depth and AB (Active Brightness) images are fetched over the local area network. And safety bubble alogirthm is run on the host. The simplest way to use this is to connect the sensor directly to the PC so that a network interface via USB is created wi",
+    "The `adi_3dtof_safety_bubble_detector` depends on libaditof in order to communicate with the sensor. So we will need to build this in the same workspace as `adi_3dtof_safety_bubble_detector`.\n\n1. On your PC, create the workspace and clone the required repositories.\n\n\n```bash\nmkdir -p ~/ros2_ws/src\nc",
+    "To run the node in network mode, run\n\n```bash\nros2 launch adi_3dtof_safety_bubble_detector adi_3dtof_safety_bubble_detector_single_camera_launch.py arg_input_sensor_mode:=3 arg_input_sensor_ip:=10.43.0.1\n```\n\n\n[!note]\nThe `arg_input_sensor_mode:=3` sets the node to operate in network mode. This valu",
+    "|Parameter|Type|Default|Description|\n|**var_cam1_base_frame**|String|\u201cadi_camera_link\u201d|Name of camera Link|\n|**var_cam1_base_frame_optical**|String|\u201coptical_camera_link\u201d|Name of optical camera Link|\n|**var_virtual_camera_base_frame**|String|\u201cvirtual_camera_link\u201d|Name of virtual camera Link|\n|**arg_s",
+    "|Imager Type|Mode Name|Mode Value|\n|ADSD3100|sr-native|0|\n||lr-native|1|\n||sr-qnative|2|\n||lr-qnative|3|\n||sr-mixed|5|\n||lr-mixed|6|\n|ADSD3030|sr-native|0|\n||lr-native|1|\n||lr-qnative|3|\n||sr-mixed|5|\n||lr-mixed|6|\n|Other modes|-|-|\n",
+    "|Topic|Description|\n|**/depth_image**|16-bit Depth image|\n|**/ab_image**|16-bit IR image|\n|**/out_image**|8-bit output image|\n|**/object_detected**|Boolean to indicate the object detection|\n|**/camera_info**|Camera info|\n|**/depth_image/compressedDepth**|16-bit Depth image from `adi_3dtof_safety_bub",
+    "Sample output images are shown below:\n\n`/cam1/depth_image`\n\n`/cam1/ab_image`\n\n`/cam1/out_image`\n\n[!note]\nTo setup Safety Bubble Detector with 4 devices refer Setting up 4 device for Safety Bubble Detector\n",
+    "Some parameters of *adi_3dtof_safety_bubble_detector* ROS node can be modifed during runtime. The Perspective file is present in `rqt_config/` folder.\n\nThe GUI can be started by running the following command.\n\n```bash\nros2 launch adi_3dtof_safety_bubble_detector adi_3dtof_safety_bubble_detector_rqt_",
+    "The customized ubuntu image loaded into the sensor will automatically connect to any WiFi hotspot with the SSID as `ADI` and password set as `analog123`. This network connection will automatically sync the system time using the available internet connection.\n",
+    "|Flag Name|Type|Default Value|Description|\n|**SENSOR_CONNECTED**|Boolean|TRUE|Set to `TRUE` if a sensor is connected, otherwise set to `FALSE` for File-IO mode.|\n|**BUILD_SBD_STITCH_HOST_NODE**|Boolean|FALSE|Set to `TRUE` to build the `adi_3dtof_safety_bubble_detector_stitch_host_node`.|\n",
+    "To check the existing firmware version, log into the sensor device via SSH.\n\n```bash\n$ ssh analog@10.43.0.1\n   Username: analog\n   Password: analog\n```\n\n\nRun command:\n\n```bash\ncd ~/Workspace/Tool/ctrl_app\n./ctrl_app\n```\n\n\nYour output would look like this:\n\n```default\nV4L2 custom control interface ap",
+    "\u21b0 Return to documentation for file (`include/adi_3dtof_safety_bubble_detector_node.h`)\n\n```cpp\n/******************************************************************************\nCopyright (c), 2023 - Analog Devices Inc. All Rights Reserved.\nThis software is PROPRIETARY & CONFIDENTIAL to Analog Devices,"
+  ],
+  "url": [
+    "user_docs.html",
+    "generated/dir_include_ros-perception_image_transport_plugins_compressed_depth_image_transport.html",
+    "generated/dir_include_ros-perception_image_transport_plugins_compressed_depth_image_transport.html#files",
+    "generated/define_module__profile_8h_1a429b699deab1043cbc596058f45199a4.html",
+    "generated/define_module__profile_8h_1a429b699deab1043cbc596058f45199a4.html#define-documentation",
+    "generated/struct____tADI2DPoint.html",
+    "generated/struct____tADI2DPoint.html#struct-documentation",
+    "generated/define_image__proc__utils_8h_1a3099edd83970d62c2832b51423462420.html",
+    "generated/define_image__proc__utils_8h_1a3099edd83970d62c2832b51423462420.html#define-documentation",
+    "generated/program_listing_file_include_input_sensor_factory.h.html",
+    "generated/program_listing_file_include_input_sensor_adtf31xx.h.html",
+    "generated/define_image__proc__utils_8h_1a0e8d4dc4354184afaa680dea7bd67ca3.html",
+    "generated/define_image__proc__utils_8h_1a0e8d4dc4354184afaa680dea7bd67ca3.html#define-documentation",
+    "generated/enum_compression__common_8h_1abf0e52bf009aab3e2dd271e9b817ef3f.html",
+    "generated/enum_compression__common_8h_1abf0e52bf009aab3e2dd271e9b817ef3f.html#enum-documentation",
+    "generated/file_include_adtf31xx_sensor_frame_info.h.html",
+    "generated/file_include_adtf31xx_sensor_frame_info.h.html#definition-include-adtf31xx-sensor-frame-info-h",
+    "generated/file_include_adtf31xx_sensor_frame_info.h.html#includes",
+    "generated/file_include_adtf31xx_sensor_frame_info.h.html#included-by",
+    "generated/typedef_image__proc__utils_8h_1a18e8741da6b0575f9b2e6ae1e26f7468.html",
+    "generated/typedef_image__proc__utils_8h_1a18e8741da6b0575f9b2e6ae1e26f7468.html#typedef-documentation",
+    "generated/program_listing_file_include_input_sensor_ros_topics.h.html",
+    "generated/file_include_input_sensor.h.html",
+    "generated/file_include_input_sensor.h.html#definition-include-input-sensor-h",
+    "generated/file_include_input_sensor.h.html#includes",
+    "generated/file_include_input_sensor.h.html#included-by",
+    "generated/file_include_image_proc_utils.h.html",
+    "generated/file_include_image_proc_utils.h.html#definition-include-image-proc-utils-h",
+    "generated/file_include_image_proc_utils.h.html#includes",
+    "generated/file_include_image_proc_utils.h.html#included-by",
+    "generated/file_include_image_proc_utils.h.html#classes",
+    "generated/file_include_image_proc_utils.h.html#defines",
+    "generated/file_include_image_proc_utils.h.html#typedefs",
+    "generated/file_include_input_sensor_ros_topics.h.html",
+    "generated/file_include_input_sensor_ros_topics.h.html#definition-include-input-sensor-ros-topics-h",
+    "generated/file_include_input_sensor_ros_topics.h.html#includes",
+    "generated/file_include_input_sensor_ros_topics.h.html#included-by",
+    "generated/define_module__profile_8h_1ae9754691ecbda8a1f4e1fa719594ead1.html",
+    "generated/define_module__profile_8h_1ae9754691ecbda8a1f4e1fa719594ead1.html#define-documentation",
+    "generated/file_include_adi_sensor_frame_info.h.html",
+    "generated/file_include_adi_sensor_frame_info.h.html#definition-include-adi-sensor-frame-info-h",
+    "generated/file_include_adi_sensor_frame_info.h.html#includes",
+    "generated/file_include_adi_sensor_frame_info.h.html#included-by",
+    "generated/define_module__profile_8h_1a583d1cc3e71bed3ae9de020423e7df16.html",
+    "generated/define_module__profile_8h_1a583d1cc3e71bed3ae9de020423e7df16.html#define-documentation",
+    "generated/program_listing_file_include_ros-perception_image_transport_plugins_compressed_depth_image_transport_compression_common.h.html",
+    "generated/index.html#class-hierarchy",
+    "generated/index.html#file-hierarchy",
+    "generated/index.html#namespaces",
+    "generated/index.html#classes-and-structs",
+    "generated/index.html#enums",
+    "generated/index.html#defines",
+    "generated/index.html#typedefs",
+    "generated/index.html#directories",
+    "generated/index.html#files",
+    "generated/program_listing_file_include_module_profile.h.html",
+    "generated/file_include_adi_3dtof_safety_bubble_detector_node.h.html",
+    "generated/file_include_adi_3dtof_safety_bubble_detector_node.h.html#definition-include-adi-3dtof-safety-bubble-detector-node-h",
+    "generated/file_include_adi_3dtof_safety_bubble_detector_node.h.html#includes",
+    "generated/file_include_adi_3dtof_safety_bubble_detector_node.h.html#namespaces",
+    "generated/file_include_adi_3dtof_safety_bubble_detector_node.h.html#classes",
+    "generated/enum_output__sensor_8h_1a46f7c277684d20859bec33db540acbc8.html",
+    "generated/enum_output__sensor_8h_1a46f7c277684d20859bec33db540acbc8.html#enum-documentation",
+    "generated/program_listing_file_include_ros-perception_image_transport_plugins_compressed_depth_image_transport_rvl_codec.h.html",
+    "generated/program_listing_file_include_output_sensor_factory.h.html",
+    "generated/define_module__profile_8h_1abbaf9260e2f08a572822692a7dcb60da.html",
+    "generated/define_module__profile_8h_1abbaf9260e2f08a572822692a7dcb60da.html#define-documentation",
+    "generated/file_include_output_sensor_factory.h.html",
+    "generated/file_include_output_sensor_factory.h.html#definition-include-output-sensor-factory-h",
+    "generated/file_include_output_sensor_factory.h.html#includes",
+    "generated/file_include_output_sensor_factory.h.html#included-by",
+    "generated/define_module__profile_8h_1a8c99aba0aafd6b09dfe192ca2f5e5e98.html",
+    "generated/define_module__profile_8h_1a8c99aba0aafd6b09dfe192ca2f5e5e98.html#define-documentation",
+    "doc/4DevicesSetup.html",
+    "doc/4DevicesSetup.html#physical-setup",
+    "doc/4DevicesSetup.html#connecting-4-devices-to-linux-host",
+    "doc/4DevicesSetup.html#steps-to-change-the-ip-address",
+    "doc/4DevicesSetup.html",
+    "doc/4DevicesSetup.html#building-the-package-on-host",
+    "doc/4DevicesSetup.html#published-topics",
+    "doc/4DevicesSetup.html#subscribed-topics",
+    "doc/4DevicesSetup.html#parameters",
+    "generated/classADI3DToFSafetyBubbleDetector.html",
+    "generated/classADI3DToFSafetyBubbleDetector.html#nested-types",
+    "generated/classADI3DToFSafetyBubbleDetector.html#base-type",
+    "generated/classADI3DToFSafetyBubbleDetector.html#class-documentation",
+    "generated/file_include_ros-perception_image_transport_plugins_compressed_depth_image_transport_compression_common.h.html",
+    "generated/file_include_ros-perception_image_transport_plugins_compressed_depth_image_transport_compression_common.h.html#definition-include-ros-perception-image-transport-plugins-compressed-depth-image-transport-compression-common-h",
+    "generated/file_include_ros-perception_image_transport_plugins_compressed_depth_image_transport_compression_common.h.html#included-by",
+    "generated/file_include_ros-perception_image_transport_plugins_compressed_depth_image_transport_compression_common.h.html#namespaces",
+    "generated/file_include_ros-perception_image_transport_plugins_compressed_depth_image_transport_compression_common.h.html#enums",
+    "generated/file_include_adi_camera.h.html",
+    "generated/file_include_adi_camera.h.html#definition-include-adi-camera-h",
+    "generated/file_include_adi_camera.h.html#includes",
+    "generated/file_include_adi_camera.h.html#included-by",
+    "generated/struct____tADIImageROI.html",
+    "generated/struct____tADIImageROI.html#struct-documentation",
+    "generated/dir_include_ros-perception.html",
+    "generated/dir_include_ros-perception.html#subdirectories",
+    "generated/define_module__profile_8h_1a3b57e0ea2df2becbd1a6ba9e52e02da2.html",
+    "generated/define_module__profile_8h_1a3b57e0ea2df2becbd1a6ba9e52e02da2.html#define-documentation",
+    "generated/program_listing_file_include_input_sensor.h.html",
+    "generated/typedef_image__proc__utils_8h_1a3bfd4f6577d0b0706a258eee46648e06.html",
+    "generated/typedef_image__proc__utils_8h_1a3bfd4f6577d0b0706a258eee46648e06.html#typedef-documentation",
+    "generated/program_listing_file_include_output_sensor_file.h.html",
+    "generated/file_include_module_profile.h.html",
+    "generated/file_include_module_profile.h.html#definition-include-module-profile-h",
+    "generated/file_include_module_profile.h.html#defines",
+    "generated/namespace_compressed_depth_image_transport.html",
+    "generated/namespace_compressed_depth_image_transport.html#enums",
+    "generated/define_module__profile_8h_1a8abb00ce4360da17c2f4075aeec3a459.html",
+    "generated/define_module__profile_8h_1a8abb00ce4360da17c2f4075aeec3a459.html#define-documentation",
+    "generated/typedef_image__proc__utils_8h_1a8d8aed10ffda0644464a21296b309bf5.html",
+    "generated/typedef_image__proc__utils_8h_1a8d8aed10ffda0644464a21296b309bf5.html#typedef-documentation",
+    "generated/structADI3DToFSafetyBubbleDetector_1_1TunableParameters.html",
+    "generated/structADI3DToFSafetyBubbleDetector_1_1TunableParameters.html#nested-relationships",
+    "generated/structADI3DToFSafetyBubbleDetector_1_1TunableParameters.html#struct-documentation",
+    "generated/struct____tADIImage.html",
+    "generated/struct____tADIImage.html#struct-documentation",
+    "generated/program_listing_file_include_output_sensor.h.html",
+    "generated/file_include_input_sensor_adtf31xx.h.html",
+    "generated/file_include_input_sensor_adtf31xx.h.html#definition-include-input-sensor-adtf31xx-h",
+    "generated/file_include_input_sensor_adtf31xx.h.html#includes",
+    "generated/program_listing_file_include_adi_3dtof_safety_bubble_detector_output_info.h.html",
+    "generated/file_include_output_sensor_file.h.html",
+    "generated/file_include_output_sensor_file.h.html#definition-include-output-sensor-file-h",
+    "generated/file_include_output_sensor_file.h.html#includes",
+    "generated/file_include_output_sensor_file.h.html#included-by",
+    "generated/file_include_input_sensor_factory.h.html",
+    "generated/file_include_input_sensor_factory.h.html#definition-include-input-sensor-factory-h",
+    "generated/file_include_input_sensor_factory.h.html#includes",
+    "generated/file_include_input_sensor_factory.h.html#included-by",
+    "generated/dir_include.html",
+    "generated/dir_include.html#subdirectories",
+    "generated/dir_include.html#files",
+    "generated/file_include_output_sensor.h.html",
+    "generated/file_include_output_sensor.h.html#definition-include-output-sensor-h",
+    "generated/file_include_output_sensor.h.html#includes",
+    "generated/file_include_output_sensor.h.html#included-by",
+    "generated/file_include_output_sensor.h.html#enums",
+    "generated/program_listing_file_include_adtf31xx_sensor_frame_info.h.html",
+    "generated/file_include_input_sensor_file_rosbagbin.h.html",
+    "generated/file_include_input_sensor_file_rosbagbin.h.html#definition-include-input-sensor-file-rosbagbin-h",
+    "generated/file_include_input_sensor_file_rosbagbin.h.html#includes",
+    "generated/file_include_input_sensor_file_rosbagbin.h.html#included-by",
+    "generated/file_include_ros-perception_image_transport_plugins_compressed_depth_image_transport_rvl_codec.h.html",
+    "generated/file_include_ros-perception_image_transport_plugins_compressed_depth_image_transport_rvl_codec.h.html#definition-include-ros-perception-image-transport-plugins-compressed-depth-image-transport-rvl-codec-h",
+    "generated/file_include_ros-perception_image_transport_plugins_compressed_depth_image_transport_rvl_codec.h.html#namespaces",
+    "generated/dir_include_ros-perception_image_transport_plugins.html",
+    "generated/dir_include_ros-perception_image_transport_plugins.html#subdirectories",
+    "generated/program_listing_file_include_adi_sensor_frame_info.h.html",
+    "generated/define_module__profile_8h_1a6910e662af15cf76d6f7bbfaa5aae416.html",
+    "generated/define_module__profile_8h_1a6910e662af15cf76d6f7bbfaa5aae416.html#define-documentation",
+    "generated/program_listing_file_include_adi_camera.h.html",
+    "README.html#overview",
+    "README.html#hardware",
+    "README.html#operation-modes",
+    "README.html#camera-sensor-mode",
+    "README.html#updating-the-package",
+    "README.html#file-io-mode",
+    "README.html#building-the-package-for-file-io",
+    "README.html#running-the-node-in-file-io",
+    "README.html#network-mode",
+    "README.html#building-the-package",
+    "README.html#running-the-node-in-network-mode",
+    "README.html#parameters",
+    "README.html#camera-modes",
+    "README.html#topics",
+    "README.html#output-images",
+    "README.html#parameter-tuning",
+    "README.html#updating-date-and-time",
+    "README.html#build-flags",
+    "README.html#upgrading-the-firmware",
+    "generated/program_listing_file_include_image_proc_utils.h.html",
+    "generated/file_include_adi_3dtof_safety_bubble_detector_output_info.h.html",
+    "generated/file_include_adi_3dtof_safety_bubble_detector_output_info.h.html#definition-include-adi-3dtof-safety-bubble-detector-output-info-h",
+    "generated/file_include_adi_3dtof_safety_bubble_detector_output_info.h.html#includes",
+    "generated/file_include_adi_3dtof_safety_bubble_detector_output_info.h.html#included-by",
+    "generated/file_include_adi_3dtof_safety_bubble_detector_output_info.h.html#classes",
+    "generated/classADI3DToFSafetyBubbleDetectorOutputInfo.html",
+    "generated/classADI3DToFSafetyBubbleDetectorOutputInfo.html#class-documentation",
+    "generated/program_listing_file_include_input_sensor_file_rosbagbin.h.html",
+    "index.html",
+    "index.html#overview",
+    "index.html#hardware",
+    "index.html#operation-modes",
+    "index.html#camera-sensor-mode",
+    "index.html#updating-the-package",
+    "index.html#file-io-mode",
+    "index.html#building-the-package-for-file-io",
+    "index.html#running-the-node-in-file-io",
+    "index.html#network-mode",
+    "index.html#building-the-package",
+    "index.html#running-the-node-in-network-mode",
+    "index.html#parameters",
+    "index.html#camera-modes",
+    "index.html#topics",
+    "index.html#output-images",
+    "index.html#parameter-tuning",
+    "index.html#updating-date-and-time",
+    "index.html#build-flags",
+    "index.html#upgrading-the-firmware",
+    "generated/program_listing_file_include_adi_3dtof_safety_bubble_detector_node.h.html"
+  ],
+  "hierarchy": [
+    [
+      "Documentation"
+    ],
+    [
+      "C++ API",
+      "Directory compressed_depth_image_transport"
+    ],
+    [
+      "C++ API",
+      "Directory compressed_depth_image_transport",
+      "Files"
+    ],
+    [
+      "C++ API",
+      "Define PROFILE_FUNCTION_END"
+    ],
+    [
+      "C++ API",
+      "Define PROFILE_FUNCTION_END",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "Struct __tADI2DPoint"
+    ],
+    [
+      "C++ API",
+      "Struct __tADI2DPoint",
+      "Struct Documentation"
+    ],
+    [
+      "C++ API",
+      "Define QFORMAT_FOR_POINTCLOUD_LUT"
+    ],
+    [
+      "C++ API",
+      "Define QFORMAT_FOR_POINTCLOUD_LUT",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_factory.h",
+      "Program Listing for File input_sensor_factory.h"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_adtf31xx.h",
+      "Program Listing for File input_sensor_adtf31xx.h"
+    ],
+    [
+      "C++ API",
+      "Define QFORMAT_FOR_POINTCLOUD_LUT_SHIFTED_VALUE"
+    ],
+    [
+      "C++ API",
+      "Define QFORMAT_FOR_POINTCLOUD_LUT_SHIFTED_VALUE",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "Enum compressionFormat"
+    ],
+    [
+      "C++ API",
+      "Enum compressionFormat",
+      "Enum Documentation"
+    ],
+    [
+      "C++ API",
+      "File adtf31xx_sensor_frame_info.h"
+    ],
+    [
+      "C++ API",
+      "File adtf31xx_sensor_frame_info.h",
+      "Definition (include/adtf31xx_sensor_frame_info.h)"
+    ],
+    [
+      "C++ API",
+      "File adtf31xx_sensor_frame_info.h",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File adtf31xx_sensor_frame_info.h",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "Typedef ADIImage"
+    ],
+    [
+      "C++ API",
+      "Typedef ADIImage",
+      "Typedef Documentation"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_ros_topics.h",
+      "Program Listing for File input_sensor_ros_topics.h"
+    ],
+    [
+      "C++ API",
+      "File input_sensor.h"
+    ],
+    [
+      "C++ API",
+      "File input_sensor.h",
+      "Definition (include/input_sensor.h)"
+    ],
+    [
+      "C++ API",
+      "File input_sensor.h",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File input_sensor.h",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File image_proc_utils.h"
+    ],
+    [
+      "C++ API",
+      "File image_proc_utils.h",
+      "Definition (include/image_proc_utils.h)"
+    ],
+    [
+      "C++ API",
+      "File image_proc_utils.h",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File image_proc_utils.h",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File image_proc_utils.h",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "File image_proc_utils.h",
+      "Defines"
+    ],
+    [
+      "C++ API",
+      "File image_proc_utils.h",
+      "Typedefs"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_ros_topics.h"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_ros_topics.h",
+      "Definition (include/input_sensor_ros_topics.h)"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_ros_topics.h",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_ros_topics.h",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "Define CLOSE_FUNCTION_PROFILE"
+    ],
+    [
+      "C++ API",
+      "Define CLOSE_FUNCTION_PROFILE",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "File adi_sensor_frame_info.h"
+    ],
+    [
+      "C++ API",
+      "File adi_sensor_frame_info.h",
+      "Definition (include/adi_sensor_frame_info.h)"
+    ],
+    [
+      "C++ API",
+      "File adi_sensor_frame_info.h",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File adi_sensor_frame_info.h",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "Define PROFILE_ID_START"
+    ],
+    [
+      "C++ API",
+      "Define PROFILE_ID_START",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "File compression_common.h",
+      "Program Listing for File compression_common.h"
+    ],
+    [
+      "C++ API",
+      "Class Hierarchy"
+    ],
+    [
+      "C++ API",
+      "File Hierarchy"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Namespaces"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Classes and Structs"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Enums"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Defines"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Typedefs"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Directories"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Files"
+    ],
+    [
+      "C++ API",
+      "File module_profile.h",
+      "Program Listing for File module_profile.h"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_safety_bubble_detector_node.h"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_safety_bubble_detector_node.h",
+      "Definition (include/adi_3dtof_safety_bubble_detector_node.h)"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_safety_bubble_detector_node.h",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_safety_bubble_detector_node.h",
+      "Namespaces"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_safety_bubble_detector_node.h",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "Enum OutputFlag"
+    ],
+    [
+      "C++ API",
+      "Enum OutputFlag",
+      "Enum Documentation"
+    ],
+    [
+      "C++ API",
+      "File rvl_codec.h",
+      "Program Listing for File rvl_codec.h"
+    ],
+    [
+      "C++ API",
+      "File output_sensor_factory.h",
+      "Program Listing for File output_sensor_factory.h"
+    ],
+    [
+      "C++ API",
+      "Define PROFILE_FUNCTION_START"
+    ],
+    [
+      "C++ API",
+      "Define PROFILE_FUNCTION_START",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "File output_sensor_factory.h"
+    ],
+    [
+      "C++ API",
+      "File output_sensor_factory.h",
+      "Definition (include/output_sensor_factory.h)"
+    ],
+    [
+      "C++ API",
+      "File output_sensor_factory.h",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File output_sensor_factory.h",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "Define FLUSH_FUNCTION_PROFILE"
+    ],
+    [
+      "C++ API",
+      "Define FLUSH_FUNCTION_PROFILE",
+      "Define Documentation"
+    ],
+    [
+      "Documentation",
+      "Creating Safety Bubble Detector with 4 devices:"
+    ],
+    [
+      "Documentation",
+      "Creating Safety Bubble Detector with 4 devices:",
+      "Physical setup"
+    ],
+    [
+      "Documentation",
+      "Creating Safety Bubble Detector with 4 devices:",
+      "Connecting 4 Devices to Linux host"
+    ],
+    [
+      "Documentation",
+      "Creating Safety Bubble Detector with 4 devices:",
+      "Steps to change the ip address:"
+    ],
+    [
+      "Documentation",
+      "adi_3dtof_safety_bubble_detector_stitch_host_node"
+    ],
+    [
+      "Documentation",
+      "adi_3dtof_safety_bubble_detector_stitch_host_node",
+      "Building the package on host"
+    ],
+    [
+      "Documentation",
+      "adi_3dtof_safety_bubble_detector_stitch_host_node",
+      "Published topics"
+    ],
+    [
+      "Documentation",
+      "adi_3dtof_safety_bubble_detector_stitch_host_node",
+      "Subscribed topics"
+    ],
+    [
+      "Documentation",
+      "adi_3dtof_safety_bubble_detector_stitch_host_node",
+      "Parameters"
+    ],
+    [
+      "C++ API",
+      "Class ADI3DToFSafetyBubbleDetector"
+    ],
+    [
+      "C++ API",
+      "Class ADI3DToFSafetyBubbleDetector",
+      "Nested Relationships",
+      "Nested Types"
+    ],
+    [
+      "C++ API",
+      "Class ADI3DToFSafetyBubbleDetector",
+      "Inheritance Relationships",
+      "Base Type"
+    ],
+    [
+      "C++ API",
+      "Class ADI3DToFSafetyBubbleDetector",
+      "Class Documentation"
+    ],
+    [
+      "C++ API",
+      "File compression_common.h"
+    ],
+    [
+      "C++ API",
+      "File compression_common.h",
+      "Definition (include/ros-perception/image_transport_plugins/compressed_depth_image_transport/compression_common.h)"
+    ],
+    [
+      "C++ API",
+      "File compression_common.h",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File compression_common.h",
+      "Namespaces"
+    ],
+    [
+      "C++ API",
+      "File compression_common.h",
+      "Enums"
+    ],
+    [
+      "C++ API",
+      "File adi_camera.h"
+    ],
+    [
+      "C++ API",
+      "File adi_camera.h",
+      "Definition (include/adi_camera.h)"
+    ],
+    [
+      "C++ API",
+      "File adi_camera.h",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File adi_camera.h",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "Struct __tADIImageROI"
+    ],
+    [
+      "C++ API",
+      "Struct __tADIImageROI",
+      "Struct Documentation"
+    ],
+    [
+      "C++ API",
+      "Directory ros-perception"
+    ],
+    [
+      "C++ API",
+      "Directory ros-perception",
+      "Subdirectories"
+    ],
+    [
+      "C++ API",
+      "Define PROFILE_ID"
+    ],
+    [
+      "C++ API",
+      "Define PROFILE_ID",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "File input_sensor.h",
+      "Program Listing for File input_sensor.h"
+    ],
+    [
+      "C++ API",
+      "Typedef ADIImageROI"
+    ],
+    [
+      "C++ API",
+      "Typedef ADIImageROI",
+      "Typedef Documentation"
+    ],
+    [
+      "C++ API",
+      "File output_sensor_file.h",
+      "Program Listing for File output_sensor_file.h"
+    ],
+    [
+      "C++ API",
+      "File module_profile.h"
+    ],
+    [
+      "C++ API",
+      "File module_profile.h",
+      "Definition (include/module_profile.h)"
+    ],
+    [
+      "C++ API",
+      "File module_profile.h",
+      "Defines"
+    ],
+    [
+      "C++ API",
+      "Namespace compressed_depth_image_transport"
+    ],
+    [
+      "C++ API",
+      "Namespace compressed_depth_image_transport",
+      "Enums"
+    ],
+    [
+      "C++ API",
+      "Define PROFILE_ID_END"
+    ],
+    [
+      "C++ API",
+      "Define PROFILE_ID_END",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "Typedef ADI2DPoint"
+    ],
+    [
+      "C++ API",
+      "Typedef ADI2DPoint",
+      "Typedef Documentation"
+    ],
+    [
+      "C++ API",
+      "Struct ADI3DToFSafetyBubbleDetector::TunableParameters"
+    ],
+    [
+      "C++ API",
+      "Struct ADI3DToFSafetyBubbleDetector::TunableParameters",
+      "Nested Relationships"
+    ],
+    [
+      "C++ API",
+      "Struct ADI3DToFSafetyBubbleDetector::TunableParameters",
+      "Struct Documentation"
+    ],
+    [
+      "C++ API",
+      "Struct __tADIImage"
+    ],
+    [
+      "C++ API",
+      "Struct __tADIImage",
+      "Struct Documentation"
+    ],
+    [
+      "C++ API",
+      "File output_sensor.h",
+      "Program Listing for File output_sensor.h"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_adtf31xx.h"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_adtf31xx.h",
+      "Definition (include/input_sensor_adtf31xx.h)"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_adtf31xx.h",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_safety_bubble_detector_output_info.h",
+      "Program Listing for File adi_3dtof_safety_bubble_detector_output_info.h"
+    ],
+    [
+      "C++ API",
+      "File output_sensor_file.h"
+    ],
+    [
+      "C++ API",
+      "File output_sensor_file.h",
+      "Definition (include/output_sensor_file.h)"
+    ],
+    [
+      "C++ API",
+      "File output_sensor_file.h",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File output_sensor_file.h",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_factory.h"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_factory.h",
+      "Definition (include/input_sensor_factory.h)"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_factory.h",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_factory.h",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "Directory include"
+    ],
+    [
+      "C++ API",
+      "Directory include",
+      "Subdirectories"
+    ],
+    [
+      "C++ API",
+      "Directory include",
+      "Files"
+    ],
+    [
+      "C++ API",
+      "File output_sensor.h"
+    ],
+    [
+      "C++ API",
+      "File output_sensor.h",
+      "Definition (include/output_sensor.h)"
+    ],
+    [
+      "C++ API",
+      "File output_sensor.h",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File output_sensor.h",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File output_sensor.h",
+      "Enums"
+    ],
+    [
+      "C++ API",
+      "File adtf31xx_sensor_frame_info.h",
+      "Program Listing for File adtf31xx_sensor_frame_info.h"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_file_rosbagbin.h"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_file_rosbagbin.h",
+      "Definition (include/input_sensor_file_rosbagbin.h)"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_file_rosbagbin.h",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_file_rosbagbin.h",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File rvl_codec.h"
+    ],
+    [
+      "C++ API",
+      "File rvl_codec.h",
+      "Definition (include/ros-perception/image_transport_plugins/compressed_depth_image_transport/rvl_codec.h)"
+    ],
+    [
+      "C++ API",
+      "File rvl_codec.h",
+      "Namespaces"
+    ],
+    [
+      "C++ API",
+      "Directory image_transport_plugins"
+    ],
+    [
+      "C++ API",
+      "Directory image_transport_plugins",
+      "Subdirectories"
+    ],
+    [
+      "C++ API",
+      "File adi_sensor_frame_info.h",
+      "Program Listing for File adi_sensor_frame_info.h"
+    ],
+    [
+      "C++ API",
+      "Define INIT_FUNCTION_PROFILE"
+    ],
+    [
+      "C++ API",
+      "Define INIT_FUNCTION_PROFILE",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "File adi_camera.h",
+      "Program Listing for File adi_camera.h"
+    ],
+    [
+      "Analog Devices 3DToF Safety Bubble Detector",
+      "Overview"
+    ],
+    [
+      "Analog Devices 3DToF Safety Bubble Detector",
+      "Hardware"
+    ],
+    [
+      "adi_3dtof_safety_bubble_detector_node",
+      "Operation Modes"
+    ],
+    [
+      "adi_3dtof_safety_bubble_detector_node",
+      "Camera Sensor Mode"
+    ],
+    [
+      "adi_3dtof_safety_bubble_detector_node",
+      "Camera Sensor Mode",
+      "Updating the package"
+    ],
+    [
+      "adi_3dtof_safety_bubble_detector_node",
+      "File-IO Mode"
+    ],
+    [
+      "adi_3dtof_safety_bubble_detector_node",
+      "File-IO Mode",
+      "Building the package for file-io"
+    ],
+    [
+      "adi_3dtof_safety_bubble_detector_node",
+      "File-IO Mode",
+      "Running the node in file-io"
+    ],
+    [
+      "adi_3dtof_safety_bubble_detector_node",
+      "Network Mode"
+    ],
+    [
+      "adi_3dtof_safety_bubble_detector_node",
+      "Network Mode",
+      "Building the package"
+    ],
+    [
+      "adi_3dtof_safety_bubble_detector_node",
+      "Network Mode",
+      "Running the node in network mode"
+    ],
+    [
+      "adi_3dtof_safety_bubble_detector_node",
+      "Parameters"
+    ],
+    [
+      "adi_3dtof_safety_bubble_detector_node",
+      "Camera Modes"
+    ],
+    [
+      "adi_3dtof_safety_bubble_detector_node",
+      "Topics"
+    ],
+    [
+      "adi_3dtof_safety_bubble_detector_node",
+      "Output Images"
+    ],
+    [
+      "adi_3dtof_safety_bubble_detector_node",
+      "Parameter Tuning"
+    ],
+    [
+      "Appendix:",
+      "Updating Date and Time"
+    ],
+    [
+      "Appendix:",
+      "Build Flags"
+    ],
+    [
+      "Appendix:",
+      "Upgrading the firmware"
+    ],
+    [
+      "C++ API",
+      "File image_proc_utils.h",
+      "Program Listing for File image_proc_utils.h"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_safety_bubble_detector_output_info.h"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_safety_bubble_detector_output_info.h",
+      "Definition (include/adi_3dtof_safety_bubble_detector_output_info.h)"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_safety_bubble_detector_output_info.h",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_safety_bubble_detector_output_info.h",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_safety_bubble_detector_output_info.h",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "Class ADI3DToFSafetyBubbleDetectorOutputInfo"
+    ],
+    [
+      "C++ API",
+      "Class ADI3DToFSafetyBubbleDetectorOutputInfo",
+      "Class Documentation"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_file_rosbagbin.h",
+      "Program Listing for File input_sensor_file_rosbagbin.h"
+    ],
+    [
+      "adi_3dtof_safety_bubble_detector"
+    ],
+    [
+      "README",
+      "Analog Devices 3DToF Safety Bubble Detector",
+      "Overview"
+    ],
+    [
+      "README",
+      "Analog Devices 3DToF Safety Bubble Detector",
+      "Hardware"
+    ],
+    [
+      "README",
+      "adi_3dtof_safety_bubble_detector_node",
+      "Operation Modes"
+    ],
+    [
+      "README",
+      "adi_3dtof_safety_bubble_detector_node",
+      "Camera Sensor Mode"
+    ],
+    [
+      "README",
+      "adi_3dtof_safety_bubble_detector_node",
+      "Camera Sensor Mode",
+      "Updating the package"
+    ],
+    [
+      "README",
+      "adi_3dtof_safety_bubble_detector_node",
+      "File-IO Mode"
+    ],
+    [
+      "README",
+      "adi_3dtof_safety_bubble_detector_node",
+      "File-IO Mode",
+      "Building the package for file-io"
+    ],
+    [
+      "README",
+      "adi_3dtof_safety_bubble_detector_node",
+      "File-IO Mode",
+      "Running the node in file-io"
+    ],
+    [
+      "README",
+      "adi_3dtof_safety_bubble_detector_node",
+      "Network Mode"
+    ],
+    [
+      "README",
+      "adi_3dtof_safety_bubble_detector_node",
+      "Network Mode",
+      "Building the package"
+    ],
+    [
+      "README",
+      "adi_3dtof_safety_bubble_detector_node",
+      "Network Mode",
+      "Running the node in network mode"
+    ],
+    [
+      "README",
+      "adi_3dtof_safety_bubble_detector_node",
+      "Parameters"
+    ],
+    [
+      "README",
+      "adi_3dtof_safety_bubble_detector_node",
+      "Camera Modes"
+    ],
+    [
+      "README",
+      "adi_3dtof_safety_bubble_detector_node",
+      "Topics"
+    ],
+    [
+      "README",
+      "adi_3dtof_safety_bubble_detector_node",
+      "Output Images"
+    ],
+    [
+      "README",
+      "adi_3dtof_safety_bubble_detector_node",
+      "Parameter Tuning"
+    ],
+    [
+      "README",
+      "Appendix:",
+      "Updating Date and Time"
+    ],
+    [
+      "README",
+      "Appendix:",
+      "Build Flags"
+    ],
+    [
+      "README",
+      "Appendix:",
+      "Upgrading the firmware"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_safety_bubble_detector_node.h",
+      "Program Listing for File adi_3dtof_safety_bubble_detector_node.h"
+    ]
+  ]
+}

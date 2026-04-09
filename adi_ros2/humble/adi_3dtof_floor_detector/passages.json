@@ -1,0 +1,1491 @@
+{
+  "text": [
+    "- Defined in File adi_3dtof_floor_detector_node.h\n",
+    "This struct is a nested type of Class ADI3DToFFloorDetector.\n",
+    "**struct DynamicReconfigureParameters**\n:   Public Members\n:   int ab_threshold\n:   int confidence_threshold\n:   bool enable_ransac_floor_detection\n:   int ransac_max_iterations\n:   float ransac_distance_threshold_mtr\n:   bool enable_fallback_floor_detection\n:   float fallback_floor_height_offset_mt",
+    "\u21b0 Parent directory (`include`)\n\n*Directory path:* `include/ros-perception`\n",
+    "- Directory image_transport_plugins\n",
+    "- Defined in File output_sensor_factory.h\n",
+    "**class OutputSensorFactory**\n:   This is output sensor factory class. \n:   Public Static Functions\n:   static inline OOutputSensor *getOutputSensor(int output_sensor_type)\n:   Get the Output Sensor object. \n:   Parameters:\n:   **output_sensor_type** \u2013 \n:   Returns:\n:   OOutputSensor*\n",
+    "- Defined in File module_profile.h\n",
+    "**PROFILE_FUNCTION_END(ID)**\n",
+    "\u21b0 Return to documentation for file (`include/input_sensor.h`)\n\n```cpp\n/******************************************************************************\nCopyright (c), 2023 - Analog Devices Inc. All Rights Reserved.\nThis software is PROPRIETARY & CONFIDENTIAL to Analog Devices, Inc.\nand its licensors.\n",
+    "- Defined in File input_sensor_ros_topics.h\n",
+    "- `public IInputSensor`\n",
+    "**class InputSensorRosTopic : public IInputSensor**\n:   This is input class for sensor as camera. \n:   Public Functions\n:   virtual void openSensor(std::string sensor_name, int input_image_width, int input_image_height, std::string config_file_name, std::string input_sensor_ip)\n:   virtual void conf",
+    "- Namespace compressed_depth_image_transportEnum compressionFormatClass ADI3DToFFloorDetectorStruct ADI3DToFFloorDetector::DynamicReconfigureParametersClass ADI3DToFFloorDetectorExampleClass ADI3DToFFloorDetectorOutputInfoClass ADISensorFrameInfoClass ADTF31xxSensorFrameInfoClass InputSensorRosTopic",
+    "- Directory includeDirectory ros-perceptionDirectory image_transport_pluginsDirectory compressed_depth_image_transportFile compression_common.hFile rvl_codec.hFile adi_3dtof_floor_detector_example.hFile adi_3dtof_floor_detector_node.hFile adi_3dtof_floor_detector_output_info.hFile adi_camera.hFile a",
+    "- Namespace compressed_depth_image_transport\n\n\n- Namespace rclcpp\n\n\n- Namespace std::chrono_literals\n",
+    "- Struct ADI3DToFFloorDetector::DynamicReconfigureParameters\n\n\n- Class ADI3DToFFloorDetector\n\n\n- Class ADI3DToFFloorDetectorExample\n\n\n- Class ADI3DToFFloorDetectorOutputInfo\n\n\n- Class ADISensorFrameInfo\n\n\n- Class ADTF31xxSensorFrameInfo\n\n\n- Class InputSensorRosTopic\n\n\n- Class OOutputSensor\n\n\n- Class",
+    "- Enum compressionFormat\n\n\n- Enum OutputFlag\n",
+    "- Define CLOSE_FUNCTION_PROFILE\n\n\n- Define FLUSH_FUNCTION_PROFILE\n\n\n- Define INIT_FUNCTION_PROFILE\n\n\n- Define MAX_QUEUE_SIZE_FOR_TIME_SYNC\n\n\n- Define PROFILE_FUNCTION_END\n\n\n- Define PROFILE_FUNCTION_START\n\n\n- Define PROFILE_ID\n\n\n- Define PROFILE_ID_END\n\n\n- Define PROFILE_ID_START\n\n\n- Define QFORMAT_",
+    "- Directory include\n\n\n- Directory ros-perception\n\n\n- Directory image_transport_plugins\n\n\n- Directory compressed_depth_image_transport\n",
+    "- File adi_3dtof_floor_detector_example.h\n\n\n- File adi_3dtof_floor_detector_node.h\n\n\n- File adi_3dtof_floor_detector_output_info.h\n\n\n- File adi_camera.h\n\n\n- File adi_sensor_frame_info.h\n\n\n- File adtf31xx_sensor_frame_info.h\n\n\n- File compression_common.h\n\n\n- File image_proc_utils.h\n\n\n- File input_sen",
+    "\u21b0 Return to documentation for file (`include/input_sensor_adtf31xx.h`)\n\n```cpp\n/******************************************************************************\nCopyright (c), 2023 - Analog Devices Inc. All Rights Reserved.\nThis software is PROPRIETARY & CONFIDENTIAL to Analog Devices, Inc.\nand its li",
+    "- Defined in File image_proc_utils.h\n",
+    "**QFORMAT_FOR_POINTCLOUD_LUT_SHIFTED_VALUE**\n",
+    "\u21b0 Parent directory (`include/ros-perception/image_transport_plugins`)\n\n*Directory path:* `include/ros-perception/image_transport_plugins/compressed_depth_image_transport`\n",
+    "- File compression_common.h\n- File rvl_codec.h\n",
+    "- Defined in File output_sensor.h\n",
+    "- `public OutputSensorFile` (Class OutputSensorFile)\n",
+    "**class OOutputSensor**\n:   This is base class for output. \n:   Subclassed by OutputSensorFile\n:   Public Functions\n:   virtual void open(std::string input_file_name, int image_width, int image_height, OutputFlag output_flag) = 0\n:   virtual void write(int frame_number, const cv::Mat &m_out_visualiz",
+    "- Defined in File module_profile.h\n",
+    "**CLOSE_FUNCTION_PROFILE()**\n",
+    "\u21b0 Return to documentation for file (`include/output_sensor_factory.h`)\n\n```cpp\n/******************************************************************************\nCopyright (c), 2023 - Analog Devices Inc. All Rights Reserved.\nThis software is PROPRIETARY & CONFIDENTIAL to Analog Devices, Inc.\nand its li",
+    "\u21b0 Parent directory (`include/ros-perception`)\n\n*Directory path:* `include/ros-perception/image_transport_plugins`\n",
+    "- Directory compressed_depth_image_transport\n",
+    "- Defined in File image_proc_utils.h\n",
+    "**QFORMAT_FOR_POINTCLOUD_LUT**\n",
+    "- Defined in File adtf31xx_sensor_frame_info.h\n",
+    "**class ADTF31xxSensorFrameInfo**\n:   This is the class for adtf31xx sensor frame. \n:   Public Functions\n:   inline ADTF31xxSensorFrameInfo(int image_width, int image_height)\n:   Constructor. \n:   Parameters:\n:   **image_width** \u2013 - Image Width \n:   **image_height** \u2013 - Image Height \n:   inline ~ADT",
+    "\u21b0 Parent directory (`include`)\n\nContents\n\n- Definition (`include/adtf31xx_sensor_frame_info.h`)\n- Includes\n- Included By\n- Classes\n",
+    "- Program Listing for File adtf31xx_sensor_frame_info.h\n",
+    "- `cstring`\n- `pcl/point_cloud.h`\n- `pcl/point_types.h`\n- `rclcpp/rclcpp.hpp`\n",
+    "- File adi_3dtof_floor_detector_node.h\n",
+    "- Class ADTF31xxSensorFrameInfo\n",
+    "\u21b0 Parent directory (`include`)\n\nContents\n\n- Definition (`include/adi_sensor_frame_info.h`)\n- Includes\n- Included By\n- Classes\n",
+    "- Program Listing for File adi_sensor_frame_info.h\n",
+    "- `rclcpp/rclcpp.hpp`\n- `stdint.h`\n",
+    "- File input_sensor_ros_topics.h\n",
+    "- Class ADISensorFrameInfo\n",
+    "- Defined in File module_profile.h\n",
+    "**PROFILE_ID_START()**\n",
+    "\u21b0 Parent directory (`include`)\n\nContents\n\n- Definition (`include/input_sensor.h`)\n- Includes\n- Included By\n",
+    "- Program Listing for File input_sensor.h\n",
+    "- `adi_camera.h` (File adi_camera.h)\n- `rclcpp/rclcpp.hpp`\n- `stdint.h`\n",
+    "- File adi_3dtof_floor_detector_node.h\n- File input_sensor_adtf31xx.h\n- File input_sensor_factory.h\n- File input_sensor_file_rosbagbin.h\n- File input_sensor_ros_topics.h\n",
+    "- Defined in File output_sensor_file.h\n",
+    "- `public OOutputSensor` (Class OOutputSensor)\n",
+    "**class OutputSensorFile : public OOutputSensor**\n:   This class is for output sensor file. \n:   Public Functions\n:   virtual void open(std::string input_file_name, int image_width, int image_height, OutputFlag output_flag)\n:   virtual void write(int frame_number, const cv::Mat &m_out_visualization_",
+    "\u21b0 Parent directory (`include`)\n\nContents\n\n- Definition (`include/input_sensor_ros_topics.h`)\n- Includes\n- Included By\n- Classes\n",
+    "- Program Listing for File input_sensor_ros_topics.h\n",
+    "- `adi_sensor_frame_info.h` (File adi_sensor_frame_info.h)\n- `cv_bridge/cv_bridge.h`\n- `image_geometry/pinhole_camera_model.h`\n- `input_sensor.h` (File input_sensor.h)\n- `message_filters/subscriber.h`\n- `message_filters/sync_policies/approximate_time.h`\n- `message_filters/synchronizer.h`\n- `queue`\n-",
+    "- File input_sensor_factory.h\n",
+    "- Class InputSensorRosTopic\n",
+    "\u21b0 Return to documentation for file (`include/input_sensor_factory.h`)\n\n```cpp\n/******************************************************************************\nCopyright (c), 2023 - Analog Devices Inc. All Rights Reserved.\nThis software is PROPRIETARY & CONFIDENTIAL to Analog Devices, Inc.\nand its lic",
+    "\u21b0 Return to documentation for file (`include/output_sensor.h`)\n\n```cpp\n/******************************************************************************\nCopyright (c), 2023 - Analog Devices Inc. All Rights Reserved.\nThis software is PROPRIETARY & CONFIDENTIAL to Analog Devices, Inc.\nand its licensors.",
+    "\u21b0 Parent directory (`include`)\n\nContents\n\n- Definition (`include/adi_3dtof_floor_detector_output_info.h`)\n- Includes\n- Included By\n- Classes\n",
+    "- Program Listing for File adi_3dtof_floor_detector_output_info.h\n",
+    "- `cstring`\n",
+    "- File adi_3dtof_floor_detector_node.h\n",
+    "- Class ADI3DToFFloorDetectorOutputInfo\n",
+    "\u21b0 Parent directory (`include`)\n\nContents\n\n- Definition (`include/input_sensor_factory.h`)\n- Includes\n- Included By\n",
+    "- Program Listing for File input_sensor_factory.h\n",
+    "- `input_sensor.h` (File input_sensor.h)\n- `input_sensor_file_rosbagbin.h` (File input_sensor_file_rosbagbin.h)\n- `input_sensor_ros_topics.h` (File input_sensor_ros_topics.h)\n",
+    "- File adi_3dtof_floor_detector_node.h\n",
+    "\u21b0 Return to documentation for file (`include/input_sensor_ros_topics.h`)\n\n```cpp\n/******************************************************************************\nCopyright (c), 2023 - Analog Devices Inc. All Rights Reserved.\nThis software is PROPRIETARY & CONFIDENTIAL to Analog Devices, Inc.\nand its ",
+    "- Defined in File module_profile.h\n",
+    "**PROFILE_FUNCTION_START(ID)**\n",
+    "\u21b0 Return to documentation for file (`include/ros-perception/image_transport_plugins/compressed_depth_image_transport/compression_common.h`)\n\n```cpp\n/*********************************************************************\n* Software License Agreement (BSD License)\n*\n*  Copyright (c) 2012, Willow Garage",
+    "\u21b0 Parent directory (`include/ros-perception/image_transport_plugins/compressed_depth_image_transport`)\n\nContents\n\n- Definition (`include/ros-perception/image_transport_plugins/compressed_depth_image_transport/compression_common.h`)\n- Included By\n- Namespaces\n- Enums\n",
+    "- Program Listing for File compression_common.h\n",
+    "- File adi_3dtof_floor_detector_example.h\n",
+    "- Namespace compressed_depth_image_transport\n",
+    "- Enum compressionFormat\n",
+    "- Defined in File output_sensor.h\n",
+    "**enum OutputFlag**\n:   *Values:*\n:   enumerator DisableAllOutputs\n:   enumerator EnableCSVOutputOnly\n:   enumerator EnableVideoOutputOnly\n:   enumerator EnableAllOutputs\n",
+    "\u21b0 Return to documentation for file (`include/ros-perception/image_transport_plugins/compressed_depth_image_transport/rvl_codec.h`)\n\n```cpp\n#ifndef COMPRESSED_DEPTH_IMAGE_TRANSPORT_RVL_CODEC_H_\n#define COMPRESSED_DEPTH_IMAGE_TRANSPORT_RVL_CODEC_H_\n\nnamespace compressed_depth_image_transport {\n\nclass ",
+    "\u21b0 Parent directory (`include`)\n\nContents\n\n- Definition (`include/output_sensor_factory.h`)\n- Includes\n- Included By\n- Classes\n",
+    "- Program Listing for File output_sensor_factory.h\n",
+    "- `output_sensor.h` (File output_sensor.h)\n- `output_sensor_file.h` (File output_sensor_file.h)\n",
+    "- File adi_3dtof_floor_detector_node.h\n",
+    "- Class OutputSensorFactory\n",
+    "\u21b0 Parent directory (`include`)\n\nContents\n\n- Definition (`include/adi_camera.h`)\n- Includes\n- Included By\n",
+    "- Program Listing for File adi_camera.h\n",
+    "- `array`\n",
+    "- File image_proc_utils.h\n- File input_sensor.h\n",
+    "\u21b0 Return to documentation for file (`include/output_sensor_file.h`)\n\n```cpp\n/******************************************************************************\nCopyright (c), 2023 - Analog Devices Inc. All Rights Reserved.\nThis software is PROPRIETARY & CONFIDENTIAL to Analog Devices, Inc.\nand its licen",
+    "- Defined in File module_profile.h\n",
+    "**FLUSH_FUNCTION_PROFILE()**\n",
+    "- Defined in File adi_sensor_frame_info.h\n",
+    "**class ADISensorFrameInfo**\n:   This is input class for sensor as camera. \n:   Public Functions\n:   inline ADISensorFrameInfo(int image_width, int image_height)\n:   Construct a new ADISensorFrameInfo object. \n:   Parameters:\n:   **image_width** \u2013 \n:   **image_height** \u2013 \n:   inline ~ADISensorFrameI",
+    "Contents\n\n- Enums\n",
+    "- Enum compressionFormat\n",
+    "The **ADI 3DToF Floor Detector** is a ROS (Robot Operating System) package for the Floor Detection application. The term \u201cFloor Detection\u201d refers to determining where the floor is in the given image. It is an image segmentation problem in which a given image is divided into floor and non-floor pixel",
+    "- EVAL-ADTF3175D-NXZ Module\n- USB type-C to type-A cable - with 5gbps data speed support\n- Host laptop with intel i5 or higher cpu running Ubuntu-20.04LTS or with Ubuntu-22.04\n\n\n[!note]\nRefer the EVAL-ADTF3175D-NXZ User Guide to ensure the Eval module has the adequate power supply during the operati",
+    "This package has three different operation modes. Refer to the following intra-links to setup the package accordingly.\n\n1. Camera Sensor Mode\n2. File-IO Mode\n3. Network Mode\n",
+    "The package is built on the sensor module and directly interfaces with the image sensor. The adi_3dtof_nxp_ubuntu_20_04_relx.x.x.img provided for the EVAL-ADTF5175D-NXZ sensor already contains this ROS package and is pre-built. In order to use this package, first we need to connect the sensor to the",
+    "[!warning]\nThe time and date may be incorrect on the sensor and this can cause issues in updating the package. To update the time and date, refer to updating date and time.\n\nIn order to update and rebuild package to the latest version, run the following commands:\n\n```bash\ncd ~/ros2_ws/src/adi_3dtof_",
+    "In this camera mode, the package is built on the Host PC in order to evaluate the properties of the package by running a pre-recorded bin file which contains the outputs from the sensor module.\n",
+    "1. On your PC, create a workspace\n\n\n```bash\nmkdir -p ~/ros2_ws/src\n```\n\n\n1. Clone the repository\n\n\n```bash\ncd ~/ros2_ws/src\ngit clone https://github.com/analogdevicesinc/adi_3dtof_floor_detector.git -b v2.1.0\ncd ..\n```\n\n\n1. Build the workspace\n\n\n```bash\n$ rosdep install --from-paths src --ignore-src",
+    "In order to run the package in file-io, it needs input files provided in the release image. Follow the steps below to use existing bin files, or follow **Creating Bin files for File-IO** section in adi_3dtof_adtf31xx readme to create your own bin files.\n\n1. Go to the installation directory of the AD",
+    "The sensor can be operated in network mode where depth and AB (Active Brightness) images are fetched over the local area network. The simplest way to use this is to connect the sensor directly to the PC so that a network interface via USB is created with a default IP address of `10.43.0.1`. In order",
+    "The `adi_3dtof_floor_detector` depends on libaditof in order to communicate with the sensor. So we will need to build this in the same workspace as `adi_3dtof_floor_detector`.\n\n1. On your PC, create the workspace and clone the required repositories.\n\n\n```bash\nmkdir -p ~/ros2_ws/src\ncd ~/ros2_ws/src\n",
+    "To run the node in network mode, run\n\n```bash\nros2 launch adi_3dtof_floor_detector adi_3dtof_floor_detector_launch.py arg_input_mode:=3 arg_input_sensor_ip:=10.43.0.1\n```\n\n\n[!note]\nThe `arg_input_mode:=3` sets the node to operate in network mode. This value can be adjusted in the launch file. `arg_i",
+    "|Parameter|Type|Default|Description|\n|**arg_input_mode**|int|0|Input mode, *0: Real Time Sensor, 2: Rosbag bin, 3: Network Mode*|\n|**arg_output_mode**|int|0|Output mode, *0: No output files written, 1: avi and csv output files are written*|\n|**arg_input_file_name**|String|\u201cno name\u201d|Input filename: A",
+    "|Imager Type|Mode Name|Mode Value|\n|ADSD3100|sr-native|0|\n||lr-native|1|\n||sr-qnative|2|\n||lr-qnative|3|\n||sr-mixed|5|\n||lr-mixed|6|\n|ADSD3030|sr-native|0|\n||lr-native|1|\n||lr-qnative|3|\n||sr-mixed|5|\n||lr-mixed|6|\n|Other modes|-|-|\n",
+    "|Topic|Description|\n|**/cam1/depth_image**|16-bit Depth image|\n|**/cam1/ab_image**|16-bit AB image|\n|**/cam1/camera_info**|Camera info|\n|**/cam1/floor_mask**|8-bit Floor Mask image|\n|**/cam1/depth_image/compressedDepth**|16-bit Depth image compressed with RVL compression technique (if enabled)|\n|**/",
+    "The below image shows subscribed AB, Depth and Floor mask output images in RVIZ.\n",
+    "The package also provides a ROS2 node *adi_3dtof_floor_detector_example_node* which can be used to understand how to use the output from the ADI Floor Detector algorithm. The *adi_3dtof_floor_detector_example_node* subscribes to the output topics of *adi_3dtof_floor_detector_node* from the device an",
+    "|Parameter|Type|Default|Description|\n|**arg_rostopic_cam_prefix**|String|cam1|ROS Topic prefix name to subscribe|\n|**arg_enable_pointcloud_output**|int|0|The enable option for the floor removed point cloud output|\n|**compression_parameter**|String|raw|In this node, image transport subscribers are ut",
+    "|Topic|Description|\n|**/cam1/depth_image**|16-bit Depth image|\n|**/cam1/ab_image**|16-bit AB image|\n|**/cam1/camera_info**|Camera info|\n|**/cam1/floor_mask**|8-bit Floor Mask image|\n|**/cam1/depth_image/compressedDepth**|16-bit Depth image compressed with RVL compression technique|\n|**/cam1/ab_image",
+    "|Topic|Description|\n|**/floor_marked_depth_image**|16-bit Depth image|\n|**/floor_removed_depth_image**|16-bit AB image|\n|**/floor_removed_point_cloud**|The floor removed point cloud (if enabled)|\n",
+    "The customized ubuntu image loaded into the sensor will automatically connect to any WiFi hotspot with the SSID as `ADI` and password set as `analog123`. This network connection will automatically sync the system time using the available internet connection.\n",
+    "|Flag|Type|Default Value|Description|\n|**SENSOR_CONNECTED**|Boolean|TRUE|Set to `TRUE` if a sensor is connected, otherwise set to `FALSE` for File-IO mode.|\n",
+    "To check the existing firmware version, log into the sensore device via SSH.\n\n```bash\n$ ssh analog@10.43.0.1\n   Username: analog\n   Password: analog\n```\n\n\nRun command:\n\n```bash\ncd ~/Workspace/Tool/ctrl_app\n./ctrl_app\n```\n\n\nYour output would look like this:\n\n```default\nV4L2 custom control interface a",
+    "1. Compression on the point cloud is not supported.\n2. The *adi_3dtof_floor_detector_node* can only subscribe to uncompressed ROS image topics.\n",
+    "Please contact the `Maintainers` if you want to evaluate the algorithm for your own setup/configuration.\n\nAny other inquiries are also welcome.\n",
+    "- Defined in File module_profile.h\n",
+    "**PROFILE_ID_END()**\n",
+    "- Defined in File module_profile.h\n",
+    "**PROFILE_ID(id_name, id_num)**\n",
+    "- Defined in File module_profile.h\n",
+    "**INIT_FUNCTION_PROFILE()**\n",
+    "\u21b0 Parent directory (`include`)\n\nContents\n\n- Definition (`include/input_sensor_adtf31xx.h`)\n- Includes\n",
+    "- Program Listing for File input_sensor_adtf31xx.h\n",
+    "- `aditof/camera.h`\n- `aditof/frame.h`\n- `aditof/system.h`\n- `input_sensor.h` (File input_sensor.h)\n- `stdint.h`\n",
+    "\u21b0 Return to documentation for file (`include/adi_3dtof_floor_detector_node.h`)\n\n```cpp\n/******************************************************************************\nCopyright (c), 2023 - Analog Devices Inc. All Rights Reserved.\nThis software is PROPRIETARY & CONFIDENTIAL to Analog Devices, Inc.\nan",
+    "\u21b0 Parent directory (`include`)\n\nContents\n\n- Definition (`include/adi_3dtof_floor_detector_example.h`)\n- Includes\n- Namespaces\n- Classes\n- Defines\n",
+    "- Program Listing for File adi_3dtof_floor_detector_example.h\n",
+    "- `chrono`\n- `cv_bridge/cv_bridge.h`\n- `image_proc_utils.h` (File image_proc_utils.h)\n- `image_transport/image_transport.hpp`\n- `message_filters/subscriber.h`\n- `message_filters/sync_policies/approximate_time.h`\n- `message_filters/synchronizer.h`\n- `opencv2/highgui/highgui.hpp`\n- `opencv2/imgproc/im",
+    "- Namespace std::chrono_literals\n",
+    "- Class ADI3DToFFloorDetectorExample\n",
+    "- Define MAX_QUEUE_SIZE_FOR_TIME_SYNC\n",
+    "- Defined in File adi_3dtof_floor_detector_example.h\n",
+    "- `public rclcpp::Node`\n",
+    "**class ADI3DToFFloorDetectorExample : public rclcpp::Node**\n:   This is main class for the ADI3DToFFloorDetectorExample node. \n:   Public Functions\n:   inline ADI3DToFFloorDetectorExample()\n:   Construct a new ADI3DToFFloorDetectorExample object. \n:   Parameters:\n:   **cam_prefix** \u2013 Camera Prefix ",
+    "\u21b0 Parent directory (`include`)\n\nContents\n\n- Definition (`include/output_sensor.h`)\n- Includes\n- Included By\n- Classes\n- Enums\n",
+    "- Program Listing for File output_sensor.h\n",
+    "- `fstream`\n- `iostream`\n- `opencv2/core/core.hpp`\n- `opencv2/highgui/highgui.hpp`\n- `opencv2/imgproc.hpp`\n",
+    "- File adi_3dtof_floor_detector_node.h\n- File output_sensor_factory.h\n- File output_sensor_file.h\n",
+    "- Class OOutputSensor\n",
+    "- Enum OutputFlag\n",
+    "- Defined in File adi_3dtof_floor_detector_output_info.h\n",
+    "**class ADI3DToFFloorDetectorOutputInfo**\n:   This is the class for adi 3d tof floor detector output info. \n:   Public Functions\n:   inline ADI3DToFFloorDetectorOutputInfo(int image_width, int image_height)\n:   Constructor. \n:   Parameters:\n:   **image_width** \u2013 - Image Width \n:   **image_height** \u2013",
+    "\u21b0 Parent directory (`include`)\n\nContents\n\n- Definition (`include/input_sensor_file_rosbagbin.h`)\n- Includes\n- Included By\n",
+    "- Program Listing for File input_sensor_file_rosbagbin.h\n",
+    "- `fstream`\n- `input_sensor.h` (File input_sensor.h)\n- `stdint.h`\n",
+    "- File input_sensor_factory.h\n",
+    "\u21b0 Parent directory (`include`)\n\nContents\n\n- Definition (`include/module_profile.h`)\n- Defines\n",
+    "- Program Listing for File module_profile.h\n",
+    "- Define CLOSE_FUNCTION_PROFILE\n- Define FLUSH_FUNCTION_PROFILE\n- Define INIT_FUNCTION_PROFILE\n- Define PROFILE_FUNCTION_END\n- Define PROFILE_FUNCTION_START\n- Define PROFILE_ID\n- Define PROFILE_ID_END\n- Define PROFILE_ID_START\n",
+    "\u21b0 Return to documentation for file (`include/module_profile.h`)\n\n```cpp\n/******************************************************************************\nCopyright (c), 2023 - Analog Devices Inc. All Rights Reserved.\nThis software is PROPRIETARY & CONFIDENTIAL to Analog Devices, Inc.\nand its licensors",
+    "\u21b0 Parent directory (`include`)\n\nContents\n\n- Definition (`include/output_sensor_file.h`)\n- Includes\n- Included By\n- Classes\n",
+    "- Program Listing for File output_sensor_file.h\n",
+    "- `output_sensor.h` (File output_sensor.h)\n",
+    "- File output_sensor_factory.h\n",
+    "- Class OutputSensorFile\n",
+    "\u21b0 Parent directory (`include/ros-perception/image_transport_plugins/compressed_depth_image_transport`)\n\nContents\n\n- Definition (`include/ros-perception/image_transport_plugins/compressed_depth_image_transport/rvl_codec.h`)\n- Included By\n- Namespaces\n",
+    "- Program Listing for File rvl_codec.h\n",
+    "- File adi_3dtof_floor_detector_example.h\n",
+    "- Namespace compressed_depth_image_transport\n",
+    "\u21b0 Return to documentation for file (`include/adi_3dtof_floor_detector_example.h`)\n\n```cpp\n/******************************************************************************\nCopyright (c), 2023 - Analog Devices Inc. All Rights Reserved.\nThis software is PROPRIETARY & CONFIDENTIAL to Analog Devices, Inc.",
+    "- Defined in File adi_3dtof_floor_detector_example.h\n",
+    "**MAX_QUEUE_SIZE_FOR_TIME_SYNC**\n",
+    "\u21b0 Return to documentation for file (`include/adi_sensor_frame_info.h`)\n\n```cpp\n/******************************************************************************\nCopyright (c), 2023 - Analog Devices Inc. All Rights Reserved.\nThis software is PROPRIETARY & CONFIDENTIAL to Analog Devices, Inc.\nand its li",
+    "\u21b0 Return to documentation for file (`include/image_proc_utils.h`)\n\n```cpp\n/******************************************************************************\nCopyright (c), 2023 - Analog Devices Inc. All Rights Reserved.\nThis software is PROPRIETARY & CONFIDENTIAL to Analog Devices, Inc.\nand its licenso",
+    "- Defined in File compression_common.h\n",
+    "**enum compressed_depth_image_transport::compressionFormat**\n:   *Values:*\n:   enumerator UNDEFINED\n:   enumerator INV_DEPTH\n",
+    "\u21b0 Parent directory (`include`)\n\nContents\n\n- Definition (`include/image_proc_utils.h`)\n- Includes\n- Included By\n- Defines\n",
+    "- Program Listing for File image_proc_utils.h\n",
+    "- `adi_camera.h` (File adi_camera.h)\n- `cv_bridge/cv_bridge.h`\n- `floor_plane_detection.h`\n",
+    "- File adi_3dtof_floor_detector_example.h\n- File adi_3dtof_floor_detector_node.h\n",
+    "- Define QFORMAT_FOR_POINTCLOUD_LUT\n- Define QFORMAT_FOR_POINTCLOUD_LUT_SHIFTED_VALUE\n",
+    "*Directory path:* `include`\n",
+    "- Directory ros-perception\n",
+    "- File adi_3dtof_floor_detector_example.h\n- File adi_3dtof_floor_detector_node.h\n- File adi_3dtof_floor_detector_output_info.h\n- File adi_camera.h\n- File adi_sensor_frame_info.h\n- File adtf31xx_sensor_frame_info.h\n- File image_proc_utils.h\n- File input_sensor.h\n- File input_sensor_adtf31xx.h\n- File ",
+    "\u21b0 Return to documentation for file (`include/adi_camera.h`)\n\n```cpp\n/******************************************************************************\nCopyright (c), 2023 - Analog Devices Inc. All Rights Reserved.\nThis software is PROPRIETARY & CONFIDENTIAL to Analog Devices, Inc.\nand its licensors.\n**",
+    "\u21b0 Return to documentation for file (`include/input_sensor_file_rosbagbin.h`)\n\n```cpp\n/******************************************************************************\nCopyright (c), 2023 - Analog Devices Inc. All Rights Reserved.\nThis software is PROPRIETARY & CONFIDENTIAL to Analog Devices, Inc.\nand ",
+    "\u21b0 Return to documentation for file (`include/adi_3dtof_floor_detector_output_info.h`)\n\n```cpp\n/******************************************************************************\nCopyright (c), 2023 - Analog Devices Inc. All Rights Reserved.\nThis software is PROPRIETARY & CONFIDENTIAL to Analog Devices, ",
+    "\u21b0 Parent directory (`include`)\n\nContents\n\n- Definition (`include/adi_3dtof_floor_detector_node.h`)\n- Includes\n- Classes\n",
+    "- Program Listing for File adi_3dtof_floor_detector_node.h\n",
+    "- `Eigen/Geometry`\n- `adi_3dtof_floor_detector_output_info.h` (File adi_3dtof_floor_detector_output_info.h)\n- `adtf31xx_sensor_frame_info.h` (File adtf31xx_sensor_frame_info.h)\n- `chrono`\n- `cv_bridge/cv_bridge.h`\n- `floor_plane_detection.h`\n- `functional`\n- `geometry_msgs/msg/transform_stamped.hpp`",
+    "- Struct ADI3DToFFloorDetector::DynamicReconfigureParameters\n- Class ADI3DToFFloorDetector\n",
+    "- Defined in File adi_3dtof_floor_detector_node.h\n",
+    "- Struct ADI3DToFFloorDetector::DynamicReconfigureParameters\n",
+    "- `public rclcpp::Node`\n",
+    "**class ADI3DToFFloorDetector : public rclcpp::Node**\n:   This is main class for this package. \n:   Public Functions\n:   inline ADI3DToFFloorDetector()\n:   Construct a new ADI3DToFFloorDetector object. \n:   inline void timerCallback()\n:   This function runs at a given frequency and runs the algorith",
+    "ADI ROS2 package for the \u2018Floor Detection\u2019 using ADI\u2019s ToF sensor \u2018ADTF3175D\u2019\n\n- Links\n  Rosindex\n\n  - Rosindex\n- C++ API\n  Class Hierarchy\n  File Hierarchy\n  Full C++ API\n\n  - Class Hierarchy\n  - File Hierarchy\n  - Full C++ API\n\n\n- Standard Documents\n  LICENSE\n  README\n  PACKAGE\n\n  - LICENSE\n  - RE",
+    "The **ADI 3DToF Floor Detector** is a ROS (Robot Operating System) package for the Floor Detection application. The term \u201cFloor Detection\u201d refers to determining where the floor is in the given image. It is an image segmentation problem in which a given image is divided into floor and non-floor pixel",
+    "- EVAL-ADTF3175D-NXZ Module\n- USB type-C to type-A cable - with 5gbps data speed support\n- Host laptop with intel i5 or higher cpu running Ubuntu-20.04LTS or with Ubuntu-22.04\n\n\n[!note]\nRefer the EVAL-ADTF3175D-NXZ User Guide to ensure the Eval module has the adequate power supply during the operati",
+    "This package has three different operation modes. Refer to the following intra-links to setup the package accordingly.\n\n1. Camera Sensor Mode\n2. File-IO Mode\n3. Network Mode\n",
+    "The package is built on the sensor module and directly interfaces with the image sensor. The adi_3dtof_nxp_ubuntu_20_04_relx.x.x.img provided for the EVAL-ADTF5175D-NXZ sensor already contains this ROS package and is pre-built. In order to use this package, first we need to connect the sensor to the",
+    "[!warning]\nThe time and date may be incorrect on the sensor and this can cause issues in updating the package. To update the time and date, refer to updating date and time.\n\nIn order to update and rebuild package to the latest version, run the following commands:\n\n```bash\ncd ~/ros2_ws/src/adi_3dtof_",
+    "In this camera mode, the package is built on the Host PC in order to evaluate the properties of the package by running a pre-recorded bin file which contains the outputs from the sensor module.\n",
+    "1. On your PC, create a workspace\n\n\n```bash\nmkdir -p ~/ros2_ws/src\n```\n\n\n1. Clone the repository\n\n\n```bash\ncd ~/ros2_ws/src\ngit clone https://github.com/analogdevicesinc/adi_3dtof_floor_detector.git -b v2.1.0\ncd ..\n```\n\n\n1. Build the workspace\n\n\n```bash\n$ rosdep install --from-paths src --ignore-src",
+    "In order to run the package in file-io, it needs input files provided in the release image. Follow the steps below to use existing bin files, or follow **Creating Bin files for File-IO** section in adi_3dtof_adtf31xx readme to create your own bin files.\n\n1. Go to the installation directory of the AD",
+    "The sensor can be operated in network mode where depth and AB (Active Brightness) images are fetched over the local area network. The simplest way to use this is to connect the sensor directly to the PC so that a network interface via USB is created with a default IP address of `10.43.0.1`. In order",
+    "The `adi_3dtof_floor_detector` depends on libaditof in order to communicate with the sensor. So we will need to build this in the same workspace as `adi_3dtof_floor_detector`.\n\n1. On your PC, create the workspace and clone the required repositories.\n\n\n```bash\nmkdir -p ~/ros2_ws/src\ncd ~/ros2_ws/src\n",
+    "To run the node in network mode, run\n\n```bash\nros2 launch adi_3dtof_floor_detector adi_3dtof_floor_detector_launch.py arg_input_mode:=3 arg_input_sensor_ip:=10.43.0.1\n```\n\n\n[!note]\nThe `arg_input_mode:=3` sets the node to operate in network mode. This value can be adjusted in the launch file. `arg_i",
+    "|Parameter|Type|Default|Description|\n|**arg_input_mode**|int|0|Input mode, *0: Real Time Sensor, 2: Rosbag bin, 3: Network Mode*|\n|**arg_output_mode**|int|0|Output mode, *0: No output files written, 1: avi and csv output files are written*|\n|**arg_input_file_name**|String|\u201cno name\u201d|Input filename: A",
+    "|Imager Type|Mode Name|Mode Value|\n|ADSD3100|sr-native|0|\n||lr-native|1|\n||sr-qnative|2|\n||lr-qnative|3|\n||sr-mixed|5|\n||lr-mixed|6|\n|ADSD3030|sr-native|0|\n||lr-native|1|\n||lr-qnative|3|\n||sr-mixed|5|\n||lr-mixed|6|\n|Other modes|-|-|\n",
+    "|Topic|Description|\n|**/cam1/depth_image**|16-bit Depth image|\n|**/cam1/ab_image**|16-bit AB image|\n|**/cam1/camera_info**|Camera info|\n|**/cam1/floor_mask**|8-bit Floor Mask image|\n|**/cam1/depth_image/compressedDepth**|16-bit Depth image compressed with RVL compression technique (if enabled)|\n|**/",
+    "The below image shows subscribed AB, Depth and Floor mask output images in RVIZ.\n",
+    "The package also provides a ROS2 node *adi_3dtof_floor_detector_example_node* which can be used to understand how to use the output from the ADI Floor Detector algorithm. The *adi_3dtof_floor_detector_example_node* subscribes to the output topics of *adi_3dtof_floor_detector_node* from the device an",
+    "|Parameter|Type|Default|Description|\n|**arg_rostopic_cam_prefix**|String|cam1|ROS Topic prefix name to subscribe|\n|**arg_enable_pointcloud_output**|int|0|The enable option for the floor removed point cloud output|\n|**compression_parameter**|String|raw|In this node, image transport subscribers are ut",
+    "|Topic|Description|\n|**/cam1/depth_image**|16-bit Depth image|\n|**/cam1/ab_image**|16-bit AB image|\n|**/cam1/camera_info**|Camera info|\n|**/cam1/floor_mask**|8-bit Floor Mask image|\n|**/cam1/depth_image/compressedDepth**|16-bit Depth image compressed with RVL compression technique|\n|**/cam1/ab_image",
+    "|Topic|Description|\n|**/floor_marked_depth_image**|16-bit Depth image|\n|**/floor_removed_depth_image**|16-bit AB image|\n|**/floor_removed_point_cloud**|The floor removed point cloud (if enabled)|\n",
+    "The customized ubuntu image loaded into the sensor will automatically connect to any WiFi hotspot with the SSID as `ADI` and password set as `analog123`. This network connection will automatically sync the system time using the available internet connection.\n",
+    "|Flag|Type|Default Value|Description|\n|**SENSOR_CONNECTED**|Boolean|TRUE|Set to `TRUE` if a sensor is connected, otherwise set to `FALSE` for File-IO mode.|\n",
+    "To check the existing firmware version, log into the sensore device via SSH.\n\n```bash\n$ ssh analog@10.43.0.1\n   Username: analog\n   Password: analog\n```\n\n\nRun command:\n\n```bash\ncd ~/Workspace/Tool/ctrl_app\n./ctrl_app\n```\n\n\nYour output would look like this:\n\n```default\nV4L2 custom control interface a",
+    "1. Compression on the point cloud is not supported.\n2. The *adi_3dtof_floor_detector_node* can only subscribe to uncompressed ROS image topics.\n",
+    "Please contact the `Maintainers` if you want to evaluate the algorithm for your own setup/configuration.\n\nAny other inquiries are also welcome.\n",
+    "\u21b0 Return to documentation for file (`include/adtf31xx_sensor_frame_info.h`)\n\n```cpp\n/******************************************************************************\nCopyright (c), 2023 - Analog Devices Inc. All Rights Reserved.\nThis software is PROPRIETARY & CONFIDENTIAL to Analog Devices, Inc.\nand i"
+  ],
+  "url": [
+    "generated/structADI3DToFFloorDetector_1_1DynamicReconfigureParameters.html",
+    "generated/structADI3DToFFloorDetector_1_1DynamicReconfigureParameters.html#nested-relationships",
+    "generated/structADI3DToFFloorDetector_1_1DynamicReconfigureParameters.html#struct-documentation",
+    "generated/dir_include_ros-perception.html",
+    "generated/dir_include_ros-perception.html#subdirectories",
+    "generated/classOutputSensorFactory.html",
+    "generated/classOutputSensorFactory.html#class-documentation",
+    "generated/define_module__profile_8h_1a429b699deab1043cbc596058f45199a4.html",
+    "generated/define_module__profile_8h_1a429b699deab1043cbc596058f45199a4.html#define-documentation",
+    "generated/program_listing_file_include_input_sensor.h.html",
+    "generated/classInputSensorRosTopic.html",
+    "generated/classInputSensorRosTopic.html#base-type",
+    "generated/classInputSensorRosTopic.html#class-documentation",
+    "generated/index.html#class-hierarchy",
+    "generated/index.html#file-hierarchy",
+    "generated/index.html#namespaces",
+    "generated/index.html#classes-and-structs",
+    "generated/index.html#enums",
+    "generated/index.html#defines",
+    "generated/index.html#directories",
+    "generated/index.html#files",
+    "generated/program_listing_file_include_input_sensor_adtf31xx.h.html",
+    "generated/define_image__proc__utils_8h_1a0e8d4dc4354184afaa680dea7bd67ca3.html",
+    "generated/define_image__proc__utils_8h_1a0e8d4dc4354184afaa680dea7bd67ca3.html#define-documentation",
+    "generated/dir_include_ros-perception_image_transport_plugins_compressed_depth_image_transport.html",
+    "generated/dir_include_ros-perception_image_transport_plugins_compressed_depth_image_transport.html#files",
+    "generated/classOOutputSensor.html",
+    "generated/classOOutputSensor.html#derived-type",
+    "generated/classOOutputSensor.html#class-documentation",
+    "generated/define_module__profile_8h_1ae9754691ecbda8a1f4e1fa719594ead1.html",
+    "generated/define_module__profile_8h_1ae9754691ecbda8a1f4e1fa719594ead1.html#define-documentation",
+    "generated/program_listing_file_include_output_sensor_factory.h.html",
+    "generated/dir_include_ros-perception_image_transport_plugins.html",
+    "generated/dir_include_ros-perception_image_transport_plugins.html#subdirectories",
+    "generated/define_image__proc__utils_8h_1a3099edd83970d62c2832b51423462420.html",
+    "generated/define_image__proc__utils_8h_1a3099edd83970d62c2832b51423462420.html#define-documentation",
+    "generated/classADTF31xxSensorFrameInfo.html",
+    "generated/classADTF31xxSensorFrameInfo.html#class-documentation",
+    "generated/file_include_adtf31xx_sensor_frame_info.h.html",
+    "generated/file_include_adtf31xx_sensor_frame_info.h.html#definition-include-adtf31xx-sensor-frame-info-h",
+    "generated/file_include_adtf31xx_sensor_frame_info.h.html#includes",
+    "generated/file_include_adtf31xx_sensor_frame_info.h.html#included-by",
+    "generated/file_include_adtf31xx_sensor_frame_info.h.html#classes",
+    "generated/file_include_adi_sensor_frame_info.h.html",
+    "generated/file_include_adi_sensor_frame_info.h.html#definition-include-adi-sensor-frame-info-h",
+    "generated/file_include_adi_sensor_frame_info.h.html#includes",
+    "generated/file_include_adi_sensor_frame_info.h.html#included-by",
+    "generated/file_include_adi_sensor_frame_info.h.html#classes",
+    "generated/define_module__profile_8h_1a583d1cc3e71bed3ae9de020423e7df16.html",
+    "generated/define_module__profile_8h_1a583d1cc3e71bed3ae9de020423e7df16.html#define-documentation",
+    "generated/file_include_input_sensor.h.html",
+    "generated/file_include_input_sensor.h.html#definition-include-input-sensor-h",
+    "generated/file_include_input_sensor.h.html#includes",
+    "generated/file_include_input_sensor.h.html#included-by",
+    "generated/classOutputSensorFile.html",
+    "generated/classOutputSensorFile.html#base-type",
+    "generated/classOutputSensorFile.html#class-documentation",
+    "generated/file_include_input_sensor_ros_topics.h.html",
+    "generated/file_include_input_sensor_ros_topics.h.html#definition-include-input-sensor-ros-topics-h",
+    "generated/file_include_input_sensor_ros_topics.h.html#includes",
+    "generated/file_include_input_sensor_ros_topics.h.html#included-by",
+    "generated/file_include_input_sensor_ros_topics.h.html#classes",
+    "generated/program_listing_file_include_input_sensor_factory.h.html",
+    "generated/program_listing_file_include_output_sensor.h.html",
+    "generated/file_include_adi_3dtof_floor_detector_output_info.h.html",
+    "generated/file_include_adi_3dtof_floor_detector_output_info.h.html#definition-include-adi-3dtof-floor-detector-output-info-h",
+    "generated/file_include_adi_3dtof_floor_detector_output_info.h.html#includes",
+    "generated/file_include_adi_3dtof_floor_detector_output_info.h.html#included-by",
+    "generated/file_include_adi_3dtof_floor_detector_output_info.h.html#classes",
+    "generated/file_include_input_sensor_factory.h.html",
+    "generated/file_include_input_sensor_factory.h.html#definition-include-input-sensor-factory-h",
+    "generated/file_include_input_sensor_factory.h.html#includes",
+    "generated/file_include_input_sensor_factory.h.html#included-by",
+    "generated/program_listing_file_include_input_sensor_ros_topics.h.html",
+    "generated/define_module__profile_8h_1abbaf9260e2f08a572822692a7dcb60da.html",
+    "generated/define_module__profile_8h_1abbaf9260e2f08a572822692a7dcb60da.html#define-documentation",
+    "generated/program_listing_file_include_ros-perception_image_transport_plugins_compressed_depth_image_transport_compression_common.h.html",
+    "generated/file_include_ros-perception_image_transport_plugins_compressed_depth_image_transport_compression_common.h.html",
+    "generated/file_include_ros-perception_image_transport_plugins_compressed_depth_image_transport_compression_common.h.html#definition-include-ros-perception-image-transport-plugins-compressed-depth-image-transport-compression-common-h",
+    "generated/file_include_ros-perception_image_transport_plugins_compressed_depth_image_transport_compression_common.h.html#included-by",
+    "generated/file_include_ros-perception_image_transport_plugins_compressed_depth_image_transport_compression_common.h.html#namespaces",
+    "generated/file_include_ros-perception_image_transport_plugins_compressed_depth_image_transport_compression_common.h.html#enums",
+    "generated/enum_output__sensor_8h_1a46f7c277684d20859bec33db540acbc8.html",
+    "generated/enum_output__sensor_8h_1a46f7c277684d20859bec33db540acbc8.html#enum-documentation",
+    "generated/program_listing_file_include_ros-perception_image_transport_plugins_compressed_depth_image_transport_rvl_codec.h.html",
+    "generated/file_include_output_sensor_factory.h.html",
+    "generated/file_include_output_sensor_factory.h.html#definition-include-output-sensor-factory-h",
+    "generated/file_include_output_sensor_factory.h.html#includes",
+    "generated/file_include_output_sensor_factory.h.html#included-by",
+    "generated/file_include_output_sensor_factory.h.html#classes",
+    "generated/file_include_adi_camera.h.html",
+    "generated/file_include_adi_camera.h.html#definition-include-adi-camera-h",
+    "generated/file_include_adi_camera.h.html#includes",
+    "generated/file_include_adi_camera.h.html#included-by",
+    "generated/program_listing_file_include_output_sensor_file.h.html",
+    "generated/define_module__profile_8h_1a8c99aba0aafd6b09dfe192ca2f5e5e98.html",
+    "generated/define_module__profile_8h_1a8c99aba0aafd6b09dfe192ca2f5e5e98.html#define-documentation",
+    "generated/classADISensorFrameInfo.html",
+    "generated/classADISensorFrameInfo.html#class-documentation",
+    "generated/namespace_compressed_depth_image_transport.html",
+    "generated/namespace_compressed_depth_image_transport.html#enums",
+    "README.html",
+    "README.html",
+    "README.html#operation-modes",
+    "README.html#camera-sensor-mode",
+    "README.html#updating-the-package",
+    "README.html#file-io-mode",
+    "README.html#building-the-package-for-file-io",
+    "README.html#running-the-node-in-file-io",
+    "README.html#network-mode",
+    "README.html#building-the-package",
+    "README.html#running-the-node-in-network-mode",
+    "README.html#parameters",
+    "README.html#camera-modes",
+    "README.html#published-topics",
+    "README.html#outputs",
+    "README.html",
+    "README.html#id1",
+    "README.html#subscribed-topics",
+    "README.html#id2",
+    "README.html#updating-date-and-time",
+    "README.html#build-flag",
+    "README.html#upgrading-the-firmware",
+    "README.html#limitations",
+    "README.html#support",
+    "generated/define_module__profile_8h_1a8abb00ce4360da17c2f4075aeec3a459.html",
+    "generated/define_module__profile_8h_1a8abb00ce4360da17c2f4075aeec3a459.html#define-documentation",
+    "generated/define_module__profile_8h_1a3b57e0ea2df2becbd1a6ba9e52e02da2.html",
+    "generated/define_module__profile_8h_1a3b57e0ea2df2becbd1a6ba9e52e02da2.html#define-documentation",
+    "generated/define_module__profile_8h_1a6910e662af15cf76d6f7bbfaa5aae416.html",
+    "generated/define_module__profile_8h_1a6910e662af15cf76d6f7bbfaa5aae416.html#define-documentation",
+    "generated/file_include_input_sensor_adtf31xx.h.html",
+    "generated/file_include_input_sensor_adtf31xx.h.html#definition-include-input-sensor-adtf31xx-h",
+    "generated/file_include_input_sensor_adtf31xx.h.html#includes",
+    "generated/program_listing_file_include_adi_3dtof_floor_detector_node.h.html",
+    "generated/file_include_adi_3dtof_floor_detector_example.h.html",
+    "generated/file_include_adi_3dtof_floor_detector_example.h.html#definition-include-adi-3dtof-floor-detector-example-h",
+    "generated/file_include_adi_3dtof_floor_detector_example.h.html#includes",
+    "generated/file_include_adi_3dtof_floor_detector_example.h.html#namespaces",
+    "generated/file_include_adi_3dtof_floor_detector_example.h.html#classes",
+    "generated/file_include_adi_3dtof_floor_detector_example.h.html#defines",
+    "generated/classADI3DToFFloorDetectorExample.html",
+    "generated/classADI3DToFFloorDetectorExample.html#base-type",
+    "generated/classADI3DToFFloorDetectorExample.html#class-documentation",
+    "generated/file_include_output_sensor.h.html",
+    "generated/file_include_output_sensor.h.html#definition-include-output-sensor-h",
+    "generated/file_include_output_sensor.h.html#includes",
+    "generated/file_include_output_sensor.h.html#included-by",
+    "generated/file_include_output_sensor.h.html#classes",
+    "generated/file_include_output_sensor.h.html#enums",
+    "generated/classADI3DToFFloorDetectorOutputInfo.html",
+    "generated/classADI3DToFFloorDetectorOutputInfo.html#class-documentation",
+    "generated/file_include_input_sensor_file_rosbagbin.h.html",
+    "generated/file_include_input_sensor_file_rosbagbin.h.html#definition-include-input-sensor-file-rosbagbin-h",
+    "generated/file_include_input_sensor_file_rosbagbin.h.html#includes",
+    "generated/file_include_input_sensor_file_rosbagbin.h.html#included-by",
+    "generated/file_include_module_profile.h.html",
+    "generated/file_include_module_profile.h.html#definition-include-module-profile-h",
+    "generated/file_include_module_profile.h.html#defines",
+    "generated/program_listing_file_include_module_profile.h.html",
+    "generated/file_include_output_sensor_file.h.html",
+    "generated/file_include_output_sensor_file.h.html#definition-include-output-sensor-file-h",
+    "generated/file_include_output_sensor_file.h.html#includes",
+    "generated/file_include_output_sensor_file.h.html#included-by",
+    "generated/file_include_output_sensor_file.h.html#classes",
+    "generated/file_include_ros-perception_image_transport_plugins_compressed_depth_image_transport_rvl_codec.h.html",
+    "generated/file_include_ros-perception_image_transport_plugins_compressed_depth_image_transport_rvl_codec.h.html#definition-include-ros-perception-image-transport-plugins-compressed-depth-image-transport-rvl-codec-h",
+    "generated/file_include_ros-perception_image_transport_plugins_compressed_depth_image_transport_rvl_codec.h.html#included-by",
+    "generated/file_include_ros-perception_image_transport_plugins_compressed_depth_image_transport_rvl_codec.h.html#namespaces",
+    "generated/program_listing_file_include_adi_3dtof_floor_detector_example.h.html",
+    "generated/define_adi__3dtof__floor__detector__example_8h_1ad1816b3b4b0d9ebdf432a17f8ca5c825.html",
+    "generated/define_adi__3dtof__floor__detector__example_8h_1ad1816b3b4b0d9ebdf432a17f8ca5c825.html#define-documentation",
+    "generated/program_listing_file_include_adi_sensor_frame_info.h.html",
+    "generated/program_listing_file_include_image_proc_utils.h.html",
+    "generated/enum_compression__common_8h_1abf0e52bf009aab3e2dd271e9b817ef3f.html",
+    "generated/enum_compression__common_8h_1abf0e52bf009aab3e2dd271e9b817ef3f.html#enum-documentation",
+    "generated/file_include_image_proc_utils.h.html",
+    "generated/file_include_image_proc_utils.h.html#definition-include-image-proc-utils-h",
+    "generated/file_include_image_proc_utils.h.html#includes",
+    "generated/file_include_image_proc_utils.h.html#included-by",
+    "generated/file_include_image_proc_utils.h.html#defines",
+    "generated/dir_include.html",
+    "generated/dir_include.html#subdirectories",
+    "generated/dir_include.html#files",
+    "generated/program_listing_file_include_adi_camera.h.html",
+    "generated/program_listing_file_include_input_sensor_file_rosbagbin.h.html",
+    "generated/program_listing_file_include_adi_3dtof_floor_detector_output_info.h.html",
+    "generated/file_include_adi_3dtof_floor_detector_node.h.html",
+    "generated/file_include_adi_3dtof_floor_detector_node.h.html#definition-include-adi-3dtof-floor-detector-node-h",
+    "generated/file_include_adi_3dtof_floor_detector_node.h.html#includes",
+    "generated/file_include_adi_3dtof_floor_detector_node.h.html#classes",
+    "generated/classADI3DToFFloorDetector.html",
+    "generated/classADI3DToFFloorDetector.html#nested-types",
+    "generated/classADI3DToFFloorDetector.html#base-type",
+    "generated/classADI3DToFFloorDetector.html#class-documentation",
+    "index.html",
+    "index.html#overview",
+    "index.html#hardware",
+    "index.html#operation-modes",
+    "index.html#camera-sensor-mode",
+    "index.html#updating-the-package",
+    "index.html#file-io-mode",
+    "index.html#building-the-package-for-file-io",
+    "index.html#running-the-node-in-file-io",
+    "index.html#network-mode",
+    "index.html#building-the-package",
+    "index.html#running-the-node-in-network-mode",
+    "index.html#parameters",
+    "index.html#camera-modes",
+    "index.html#published-topics",
+    "index.html#outputs",
+    "index.html#adi-3dtof-floor-detector-example-node",
+    "index.html#id1",
+    "index.html#subscribed-topics",
+    "index.html#id2",
+    "index.html#updating-date-and-time",
+    "index.html#build-flag",
+    "index.html#upgrading-the-firmware",
+    "index.html#limitations",
+    "index.html#support",
+    "generated/program_listing_file_include_adtf31xx_sensor_frame_info.h.html"
+  ],
+  "hierarchy": [
+    [
+      "C++ API",
+      "Struct ADI3DToFFloorDetector::DynamicReconfigureParameters"
+    ],
+    [
+      "C++ API",
+      "Struct ADI3DToFFloorDetector::DynamicReconfigureParameters",
+      "Nested Relationships"
+    ],
+    [
+      "C++ API",
+      "Struct ADI3DToFFloorDetector::DynamicReconfigureParameters",
+      "Struct Documentation"
+    ],
+    [
+      "C++ API",
+      "Directory ros-perception"
+    ],
+    [
+      "C++ API",
+      "Directory ros-perception",
+      "Subdirectories"
+    ],
+    [
+      "C++ API",
+      "Class OutputSensorFactory"
+    ],
+    [
+      "C++ API",
+      "Class OutputSensorFactory",
+      "Class Documentation"
+    ],
+    [
+      "C++ API",
+      "Define PROFILE_FUNCTION_END"
+    ],
+    [
+      "C++ API",
+      "Define PROFILE_FUNCTION_END",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "File input_sensor.h",
+      "Program Listing for File input_sensor.h"
+    ],
+    [
+      "C++ API",
+      "Class InputSensorRosTopic"
+    ],
+    [
+      "C++ API",
+      "Class InputSensorRosTopic",
+      "Inheritance Relationships",
+      "Base Type"
+    ],
+    [
+      "C++ API",
+      "Class InputSensorRosTopic",
+      "Class Documentation"
+    ],
+    [
+      "C++ API",
+      "Class Hierarchy"
+    ],
+    [
+      "C++ API",
+      "File Hierarchy"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Namespaces"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Classes and Structs"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Enums"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Defines"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Directories"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Files"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_adtf31xx.h",
+      "Program Listing for File input_sensor_adtf31xx.h"
+    ],
+    [
+      "C++ API",
+      "Define QFORMAT_FOR_POINTCLOUD_LUT_SHIFTED_VALUE"
+    ],
+    [
+      "C++ API",
+      "Define QFORMAT_FOR_POINTCLOUD_LUT_SHIFTED_VALUE",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "Directory compressed_depth_image_transport"
+    ],
+    [
+      "C++ API",
+      "Directory compressed_depth_image_transport",
+      "Files"
+    ],
+    [
+      "C++ API",
+      "Class OOutputSensor"
+    ],
+    [
+      "C++ API",
+      "Class OOutputSensor",
+      "Inheritance Relationships",
+      "Derived Type"
+    ],
+    [
+      "C++ API",
+      "Class OOutputSensor",
+      "Class Documentation"
+    ],
+    [
+      "C++ API",
+      "Define CLOSE_FUNCTION_PROFILE"
+    ],
+    [
+      "C++ API",
+      "Define CLOSE_FUNCTION_PROFILE",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "File output_sensor_factory.h",
+      "Program Listing for File output_sensor_factory.h"
+    ],
+    [
+      "C++ API",
+      "Directory image_transport_plugins"
+    ],
+    [
+      "C++ API",
+      "Directory image_transport_plugins",
+      "Subdirectories"
+    ],
+    [
+      "C++ API",
+      "Define QFORMAT_FOR_POINTCLOUD_LUT"
+    ],
+    [
+      "C++ API",
+      "Define QFORMAT_FOR_POINTCLOUD_LUT",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "Class ADTF31xxSensorFrameInfo"
+    ],
+    [
+      "C++ API",
+      "Class ADTF31xxSensorFrameInfo",
+      "Class Documentation"
+    ],
+    [
+      "C++ API",
+      "File adtf31xx_sensor_frame_info.h"
+    ],
+    [
+      "C++ API",
+      "File adtf31xx_sensor_frame_info.h",
+      "Definition (include/adtf31xx_sensor_frame_info.h)"
+    ],
+    [
+      "C++ API",
+      "File adtf31xx_sensor_frame_info.h",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File adtf31xx_sensor_frame_info.h",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File adtf31xx_sensor_frame_info.h",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "File adi_sensor_frame_info.h"
+    ],
+    [
+      "C++ API",
+      "File adi_sensor_frame_info.h",
+      "Definition (include/adi_sensor_frame_info.h)"
+    ],
+    [
+      "C++ API",
+      "File adi_sensor_frame_info.h",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File adi_sensor_frame_info.h",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File adi_sensor_frame_info.h",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "Define PROFILE_ID_START"
+    ],
+    [
+      "C++ API",
+      "Define PROFILE_ID_START",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "File input_sensor.h"
+    ],
+    [
+      "C++ API",
+      "File input_sensor.h",
+      "Definition (include/input_sensor.h)"
+    ],
+    [
+      "C++ API",
+      "File input_sensor.h",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File input_sensor.h",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "Class OutputSensorFile"
+    ],
+    [
+      "C++ API",
+      "Class OutputSensorFile",
+      "Inheritance Relationships",
+      "Base Type"
+    ],
+    [
+      "C++ API",
+      "Class OutputSensorFile",
+      "Class Documentation"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_ros_topics.h"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_ros_topics.h",
+      "Definition (include/input_sensor_ros_topics.h)"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_ros_topics.h",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_ros_topics.h",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_ros_topics.h",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_factory.h",
+      "Program Listing for File input_sensor_factory.h"
+    ],
+    [
+      "C++ API",
+      "File output_sensor.h",
+      "Program Listing for File output_sensor.h"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_floor_detector_output_info.h"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_floor_detector_output_info.h",
+      "Definition (include/adi_3dtof_floor_detector_output_info.h)"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_floor_detector_output_info.h",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_floor_detector_output_info.h",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_floor_detector_output_info.h",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_factory.h"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_factory.h",
+      "Definition (include/input_sensor_factory.h)"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_factory.h",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_factory.h",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_ros_topics.h",
+      "Program Listing for File input_sensor_ros_topics.h"
+    ],
+    [
+      "C++ API",
+      "Define PROFILE_FUNCTION_START"
+    ],
+    [
+      "C++ API",
+      "Define PROFILE_FUNCTION_START",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "File compression_common.h",
+      "Program Listing for File compression_common.h"
+    ],
+    [
+      "C++ API",
+      "File compression_common.h"
+    ],
+    [
+      "C++ API",
+      "File compression_common.h",
+      "Definition (include/ros-perception/image_transport_plugins/compressed_depth_image_transport/compression_common.h)"
+    ],
+    [
+      "C++ API",
+      "File compression_common.h",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File compression_common.h",
+      "Namespaces"
+    ],
+    [
+      "C++ API",
+      "File compression_common.h",
+      "Enums"
+    ],
+    [
+      "C++ API",
+      "Enum OutputFlag"
+    ],
+    [
+      "C++ API",
+      "Enum OutputFlag",
+      "Enum Documentation"
+    ],
+    [
+      "C++ API",
+      "File rvl_codec.h",
+      "Program Listing for File rvl_codec.h"
+    ],
+    [
+      "C++ API",
+      "File output_sensor_factory.h"
+    ],
+    [
+      "C++ API",
+      "File output_sensor_factory.h",
+      "Definition (include/output_sensor_factory.h)"
+    ],
+    [
+      "C++ API",
+      "File output_sensor_factory.h",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File output_sensor_factory.h",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File output_sensor_factory.h",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "File adi_camera.h"
+    ],
+    [
+      "C++ API",
+      "File adi_camera.h",
+      "Definition (include/adi_camera.h)"
+    ],
+    [
+      "C++ API",
+      "File adi_camera.h",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File adi_camera.h",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File output_sensor_file.h",
+      "Program Listing for File output_sensor_file.h"
+    ],
+    [
+      "C++ API",
+      "Define FLUSH_FUNCTION_PROFILE"
+    ],
+    [
+      "C++ API",
+      "Define FLUSH_FUNCTION_PROFILE",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "Class ADISensorFrameInfo"
+    ],
+    [
+      "C++ API",
+      "Class ADISensorFrameInfo",
+      "Class Documentation"
+    ],
+    [
+      "C++ API",
+      "Namespace compressed_depth_image_transport"
+    ],
+    [
+      "C++ API",
+      "Namespace compressed_depth_image_transport",
+      "Enums"
+    ],
+    [
+      "Overview"
+    ],
+    [
+      "Hardware"
+    ],
+    [
+      "adi_3dtof_floor_detector_node",
+      "Operation Modes"
+    ],
+    [
+      "adi_3dtof_floor_detector_node",
+      "Camera Sensor Mode"
+    ],
+    [
+      "adi_3dtof_floor_detector_node",
+      "Camera Sensor Mode",
+      "Updating the package"
+    ],
+    [
+      "adi_3dtof_floor_detector_node",
+      "File-IO Mode"
+    ],
+    [
+      "adi_3dtof_floor_detector_node",
+      "File-IO Mode",
+      "Building the package for file-io"
+    ],
+    [
+      "adi_3dtof_floor_detector_node",
+      "File-IO Mode",
+      "Running the node in file-io"
+    ],
+    [
+      "adi_3dtof_floor_detector_node",
+      "Network Mode"
+    ],
+    [
+      "adi_3dtof_floor_detector_node",
+      "Network Mode",
+      "Building the package"
+    ],
+    [
+      "adi_3dtof_floor_detector_node",
+      "Network Mode",
+      "Running the node in network mode"
+    ],
+    [
+      "adi_3dtof_floor_detector_node",
+      "Parameters"
+    ],
+    [
+      "adi_3dtof_floor_detector_node",
+      "Camera Modes"
+    ],
+    [
+      "adi_3dtof_floor_detector_node",
+      "Published topics"
+    ],
+    [
+      "adi_3dtof_floor_detector_node",
+      "Outputs"
+    ],
+    [
+      "adi_3dtof_floor_detector_example_node"
+    ],
+    [
+      "adi_3dtof_floor_detector_example_node",
+      "Parameters"
+    ],
+    [
+      "adi_3dtof_floor_detector_example_node",
+      "Subscribed topics"
+    ],
+    [
+      "adi_3dtof_floor_detector_example_node",
+      "Published topics"
+    ],
+    [
+      "Appendix",
+      "Updating Date and Time"
+    ],
+    [
+      "Appendix",
+      "Build Flag"
+    ],
+    [
+      "Appendix",
+      "Upgrading the firmware"
+    ],
+    [
+      "Appendix",
+      "Limitations"
+    ],
+    [
+      "Appendix",
+      "Support"
+    ],
+    [
+      "C++ API",
+      "Define PROFILE_ID_END"
+    ],
+    [
+      "C++ API",
+      "Define PROFILE_ID_END",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "Define PROFILE_ID"
+    ],
+    [
+      "C++ API",
+      "Define PROFILE_ID",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "Define INIT_FUNCTION_PROFILE"
+    ],
+    [
+      "C++ API",
+      "Define INIT_FUNCTION_PROFILE",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_adtf31xx.h"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_adtf31xx.h",
+      "Definition (include/input_sensor_adtf31xx.h)"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_adtf31xx.h",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_floor_detector_node.h",
+      "Program Listing for File adi_3dtof_floor_detector_node.h"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_floor_detector_example.h"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_floor_detector_example.h",
+      "Definition (include/adi_3dtof_floor_detector_example.h)"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_floor_detector_example.h",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_floor_detector_example.h",
+      "Namespaces"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_floor_detector_example.h",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_floor_detector_example.h",
+      "Defines"
+    ],
+    [
+      "C++ API",
+      "Class ADI3DToFFloorDetectorExample"
+    ],
+    [
+      "C++ API",
+      "Class ADI3DToFFloorDetectorExample",
+      "Inheritance Relationships",
+      "Base Type"
+    ],
+    [
+      "C++ API",
+      "Class ADI3DToFFloorDetectorExample",
+      "Class Documentation"
+    ],
+    [
+      "C++ API",
+      "File output_sensor.h"
+    ],
+    [
+      "C++ API",
+      "File output_sensor.h",
+      "Definition (include/output_sensor.h)"
+    ],
+    [
+      "C++ API",
+      "File output_sensor.h",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File output_sensor.h",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File output_sensor.h",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "File output_sensor.h",
+      "Enums"
+    ],
+    [
+      "C++ API",
+      "Class ADI3DToFFloorDetectorOutputInfo"
+    ],
+    [
+      "C++ API",
+      "Class ADI3DToFFloorDetectorOutputInfo",
+      "Class Documentation"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_file_rosbagbin.h"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_file_rosbagbin.h",
+      "Definition (include/input_sensor_file_rosbagbin.h)"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_file_rosbagbin.h",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_file_rosbagbin.h",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File module_profile.h"
+    ],
+    [
+      "C++ API",
+      "File module_profile.h",
+      "Definition (include/module_profile.h)"
+    ],
+    [
+      "C++ API",
+      "File module_profile.h",
+      "Defines"
+    ],
+    [
+      "C++ API",
+      "File module_profile.h",
+      "Program Listing for File module_profile.h"
+    ],
+    [
+      "C++ API",
+      "File output_sensor_file.h"
+    ],
+    [
+      "C++ API",
+      "File output_sensor_file.h",
+      "Definition (include/output_sensor_file.h)"
+    ],
+    [
+      "C++ API",
+      "File output_sensor_file.h",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File output_sensor_file.h",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File output_sensor_file.h",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "File rvl_codec.h"
+    ],
+    [
+      "C++ API",
+      "File rvl_codec.h",
+      "Definition (include/ros-perception/image_transport_plugins/compressed_depth_image_transport/rvl_codec.h)"
+    ],
+    [
+      "C++ API",
+      "File rvl_codec.h",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File rvl_codec.h",
+      "Namespaces"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_floor_detector_example.h",
+      "Program Listing for File adi_3dtof_floor_detector_example.h"
+    ],
+    [
+      "C++ API",
+      "Define MAX_QUEUE_SIZE_FOR_TIME_SYNC"
+    ],
+    [
+      "C++ API",
+      "Define MAX_QUEUE_SIZE_FOR_TIME_SYNC",
+      "Define Documentation"
+    ],
+    [
+      "C++ API",
+      "File adi_sensor_frame_info.h",
+      "Program Listing for File adi_sensor_frame_info.h"
+    ],
+    [
+      "C++ API",
+      "File image_proc_utils.h",
+      "Program Listing for File image_proc_utils.h"
+    ],
+    [
+      "C++ API",
+      "Enum compressionFormat"
+    ],
+    [
+      "C++ API",
+      "Enum compressionFormat",
+      "Enum Documentation"
+    ],
+    [
+      "C++ API",
+      "File image_proc_utils.h"
+    ],
+    [
+      "C++ API",
+      "File image_proc_utils.h",
+      "Definition (include/image_proc_utils.h)"
+    ],
+    [
+      "C++ API",
+      "File image_proc_utils.h",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File image_proc_utils.h",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File image_proc_utils.h",
+      "Defines"
+    ],
+    [
+      "C++ API",
+      "Directory include"
+    ],
+    [
+      "C++ API",
+      "Directory include",
+      "Subdirectories"
+    ],
+    [
+      "C++ API",
+      "Directory include",
+      "Files"
+    ],
+    [
+      "C++ API",
+      "File adi_camera.h",
+      "Program Listing for File adi_camera.h"
+    ],
+    [
+      "C++ API",
+      "File input_sensor_file_rosbagbin.h",
+      "Program Listing for File input_sensor_file_rosbagbin.h"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_floor_detector_output_info.h",
+      "Program Listing for File adi_3dtof_floor_detector_output_info.h"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_floor_detector_node.h"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_floor_detector_node.h",
+      "Definition (include/adi_3dtof_floor_detector_node.h)"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_floor_detector_node.h",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File adi_3dtof_floor_detector_node.h",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "Class ADI3DToFFloorDetector"
+    ],
+    [
+      "C++ API",
+      "Class ADI3DToFFloorDetector",
+      "Nested Relationships",
+      "Nested Types"
+    ],
+    [
+      "C++ API",
+      "Class ADI3DToFFloorDetector",
+      "Inheritance Relationships",
+      "Base Type"
+    ],
+    [
+      "C++ API",
+      "Class ADI3DToFFloorDetector",
+      "Class Documentation"
+    ],
+    [
+      "adi_3dtof_floor_detector"
+    ],
+    [
+      "README",
+      "Overview"
+    ],
+    [
+      "README",
+      "Hardware"
+    ],
+    [
+      "README",
+      "adi_3dtof_floor_detector_node",
+      "Operation Modes"
+    ],
+    [
+      "README",
+      "adi_3dtof_floor_detector_node",
+      "Camera Sensor Mode"
+    ],
+    [
+      "README",
+      "adi_3dtof_floor_detector_node",
+      "Camera Sensor Mode",
+      "Updating the package"
+    ],
+    [
+      "README",
+      "adi_3dtof_floor_detector_node",
+      "File-IO Mode"
+    ],
+    [
+      "README",
+      "adi_3dtof_floor_detector_node",
+      "File-IO Mode",
+      "Building the package for file-io"
+    ],
+    [
+      "README",
+      "adi_3dtof_floor_detector_node",
+      "File-IO Mode",
+      "Running the node in file-io"
+    ],
+    [
+      "README",
+      "adi_3dtof_floor_detector_node",
+      "Network Mode"
+    ],
+    [
+      "README",
+      "adi_3dtof_floor_detector_node",
+      "Network Mode",
+      "Building the package"
+    ],
+    [
+      "README",
+      "adi_3dtof_floor_detector_node",
+      "Network Mode",
+      "Running the node in network mode"
+    ],
+    [
+      "README",
+      "adi_3dtof_floor_detector_node",
+      "Parameters"
+    ],
+    [
+      "README",
+      "adi_3dtof_floor_detector_node",
+      "Camera Modes"
+    ],
+    [
+      "README",
+      "adi_3dtof_floor_detector_node",
+      "Published topics"
+    ],
+    [
+      "README",
+      "adi_3dtof_floor_detector_node",
+      "Outputs"
+    ],
+    [
+      "README",
+      "adi_3dtof_floor_detector_example_node"
+    ],
+    [
+      "README",
+      "adi_3dtof_floor_detector_example_node",
+      "Parameters"
+    ],
+    [
+      "README",
+      "adi_3dtof_floor_detector_example_node",
+      "Subscribed topics"
+    ],
+    [
+      "README",
+      "adi_3dtof_floor_detector_example_node",
+      "Published topics"
+    ],
+    [
+      "README",
+      "Appendix",
+      "Updating Date and Time"
+    ],
+    [
+      "README",
+      "Appendix",
+      "Build Flag"
+    ],
+    [
+      "README",
+      "Appendix",
+      "Upgrading the firmware"
+    ],
+    [
+      "README",
+      "Appendix",
+      "Limitations"
+    ],
+    [
+      "README",
+      "Appendix",
+      "Support"
+    ],
+    [
+      "C++ API",
+      "File adtf31xx_sensor_frame_info.h",
+      "Program Listing for File adtf31xx_sensor_frame_info.h"
+    ]
+  ]
+}

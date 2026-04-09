@@ -1,0 +1,1474 @@
+{
+  "text": [
+    "- Defined in File tmcl_ros2.hpp\n",
+    "**const uint16_t TIMEOUT_MS_MIN = 0**\n",
+    "\u21b0 Return to documentation for file (`include/adi_tmcl/tmcl_motor.hpp`)\n\n```cpp\n#ifndef TMCL_MOTOR_HPP\n#define TMCL_MOTOR_HPP\n\n#include \"adi_tmcl/tmcl_interpreter.hpp\"\n#include \"adi_tmcl/tmcl_common.hpp\"\n#include \"std_msgs/msg/int32.hpp\"\n#include \"geometry_msgs/msg/twist.hpp\"\n#include \"adi_tmcl/msg/t",
+    "- Defined in File tmcl_stepper_motor.hpp\n",
+    "**enum tmcl_stepper_mode_t**\n:   Copyright (c) 2023-2024 Analog Devices, Inc. All Rights Reserved. This software is proprietary to Analog Devices, Inc. and its licensors. \n:   *Values:*\n:   enumerator STEPPER_MODE_OPENLOOP\n:   enumerator STEPPER_MODE_CLOSEDLOOP\n",
+    "- Defined in File tmcl_interpreter.hpp\n",
+    "**const uint8_t TMCL_MSG_VALUE_SZ = 4**\n",
+    "- Defined in File tmcl_motor.hpp\n",
+    "**enum tmcl_additional_ratio_params_lut_t**\n:   *Values:*\n:   enumerator IDX_ADDITIONAL_RATIO_VEL\n:   enumerator IDX_ADDITIONAL_RATIO_POS\n:   enumerator IDX_ADDITIONAL_RATIO_TRQ\n:   enumerator TMCL_ADDITIONAL_RATIO_PARAMS_LUT_MAX\n",
+    "- Defined in File tmcl_interpreter.hpp\n",
+    "**enum tmcl_interface_t**\n:   *Values:*\n:   enumerator TMCL_INTERFACE_CAN\n:   enumerator TMCL_INTERFACE_MAX\n",
+    "- Defined in File tmcl_ros2.hpp\n",
+    "**enum tmcl_general_params_lut_t**\n:   *Values:*\n:   enumerator IDX_ADHOC_MODE\n:   enumerator IDX_EN_MOTORS\n:   enumerator IDX_AUTO_START_ADDITIONAL_DELAY\n:   enumerator IDX_AXIS_PARAMETERS_TYPE\n:   enumerator IDX_AXIS_PARAMETERS_NAME\n:   enumerator IDX_GLOBAL_PARAMETERS_TYPE\n:   enumerator IDX_GLOB",
+    "- Defined in File tmcl_ros2.hpp\n",
+    "**const uint8_t TMCM_BLDC = 6**\n",
+    "- Merge pull request #9 from villyjayt/humble\n  Variable ap_index_bit_width updates + minor updates\n- Variable ap_index_bit_width updates + minor updates\n  NOTE: This commit is still compatible with the current list of supported TMCM boards.\n  1. Adding variable ap_index_bit_width functionality\n  2.",
+    "- Fix handling of incorrect parameter type and update header files to .hpp\n- Contributors: Jamila Macagba\n",
+    "- Added support for TMCM-1316\n- Contributors: Jamila Macagba\n",
+    "- Added support for TMCM-2611\n  Added support for TMCM-2611\n  Co-Authored-By: Christian Joseph Acar <124771470+CAcarADI@users.noreply.github.com>\n  Co-Authored-By: Jamila Macagba <124771486+jmacagba@users.noreply.github.com>\n- Update README.md\n  Update README.md with mention of adi_tmcl and tmcl_ros",
+    "- Updated package name and TF values\n- Updated to:\n  Change package name from \u201ctmcl_ros2\u201d to \u201cadi_tmcl\u201d in preparation for ROS release\n  Change TF values (default)\n\n  - Change package name from \u201ctmcl_ros2\u201d to \u201cadi_tmcl\u201d in preparation for ROS release\n  - Change TF values (default)\n- Contributors: mm",
+    "- Update LICENSE file\n- Contributors: Jamila Macagba\n",
+    "- Removed obsolete modules and updated analog.com references in README\n- Updated to:\n\n\n- Remove obsolete modules\n- Update analog.com pages in README.md\n- Update CMakeLists.txt to make sure other drivers that has same names as socket_can_wrapper will not cause conflicts\n\n\n- Contributors: mmaralit-adi",
+    "- Adding v1.0.0 of tmcl_ros2, ROS2, Humble\n  Contains official ROS2 Driver for Trinamic Motor Controllers (TMC) that uses Trinamic Motion Control Language (TMCL) protocol\n  Supported TMC boards: TMCM-1636, TMCM-1617, TMCM-1241, TMCM-1260, TMCM-6214\n  Supported communication interface and interface d",
+    "- Defined in File tmcl_ros2.hpp\n",
+    "**const uint8_t AUTO_START_ADDITIONAL_DELAY_MAX = 60**\n",
+    "- Defined in File tmcl_ros2.hpp\n",
+    "**static const std::vector<std::string> tmcl_custom_cmd_ = {\"SAP\", \"GAP\", \"SGP\", \"GGP\"}**\n",
+    "- Defined in File tmcl_interpreter.hpp\n",
+    "**enum tmcl_sts_t**\n:   *Values:*\n:   enumerator TMCL_STS_ERR_CHKSUM\n:   enumerator TMCL_STS_ERR_CMD\n:   enumerator TMCL_STS_ERR_TYPE\n:   enumerator TMCL_STS_ERR_VAL\n:   enumerator TMCL_STS_ERR_EEPROM_LCK\n:   enumerator TMCL_STS_ERR_CMD_NA\n:   enumerator TMCL_STS_ERR_NONE\n:   enumerator TMCL_STS_CMD",
+    "\u21b0 Parent directory (`include/adi_tmcl`)\n\nContents\n\n- Definition (`include/adi_tmcl/tmcl_motor.hpp`)\n- Includes\n- Included By\n- Classes\n- Enums\n- Variables\n",
+    "- Program Listing for File tmcl_motor.hpp\n",
+    "- `adi_tmcl/msg/tmc_info.hpp`\n- `adi_tmcl/tmcl_common.hpp` (File tmcl_common.hpp)\n- `adi_tmcl/tmcl_interpreter.hpp` (File tmcl_interpreter.hpp)\n- `geometry_msgs/msg/twist.hpp`\n- `std_msgs/msg/int32.hpp`\n",
+    "- File tmcl_bldc_motor.hpp\n- File tmcl_stepper_motor.hpp\n",
+    "- Class Motor\n",
+    "- Enum tmcl_additional_ratio_params_lut_t\n- Enum tmcl_hardware_params_lut_t\n- Enum tmcl_ros_topic_params_lut_t\n",
+    "- Variable additional_ratio_params_\n- Variable ANGULAR_FULL_ROTATION\n- Variable hardware_params_\n- Variable PI\n- Variable PUB_RATE_DEFAULT\n- Variable PUB_RATE_MAX\n- Variable PUB_RATE_MIN\n- Variable ros_topic_params_\n- Variable SEC_TO_MIN\n",
+    "\u21b0 Return to documentation for file (`include/adi_tmcl/socket_can_wrapper.hpp`)\n\n```cpp\n#ifndef SOCKET_CAN_WRAPPER_HPP\n#define SOCKET_CAN_WRAPPER_HPP\n\nclass SocketCAN\n{\npublic:\n  /* Constructor */\n  SocketCAN(const char *logger_prefix);\n\n  /* Destructor */\n  ~SocketCAN();\n\n  /* Initialize CAN with sp",
+    "\u21b0 Parent directory (`include/adi_tmcl`)\n\nContents\n\n- Definition (`include/adi_tmcl/tmcl_ros2.hpp`)\n- Includes\n- Classes\n- Enums\n- Variables\n",
+    "- Program Listing for File tmcl_ros2.hpp\n",
+    "- `adi_tmcl/srv/tmc_custom_cmd.hpp`\n- `adi_tmcl/srv/tmc_gap_all.hpp`\n- `adi_tmcl/srv/tmc_ggp_all.hpp`\n- `adi_tmcl/tmcl_bldc_motor.hpp` (File tmcl_bldc_motor.hpp)\n- `adi_tmcl/tmcl_stepper_motor.hpp` (File tmcl_stepper_motor.hpp)\n",
+    "- Class TmclRos2\n",
+    "- Enum tmcl_custom_cmd_lut_t\n- Enum tmcl_general_params_lut_t\n",
+    "- Variable AUTO_START_ADDITIONAL_DELAY_DEFAULT\n- Variable AUTO_START_ADDITIONAL_DELAY_MAX\n- Variable DEFAULT_BIT_WIDTH\n- Variable EXEC_CMD_RETRIES_DEFAULT\n- Variable EXEC_CMD_RETRIES_MAX\n- Variable general_params_\n- Variable MAX_BIT_WIDTH\n- Variable RX_ID_DEFAULT\n- Variable TIMEOUT_MS_DEFAULT\n- Vari",
+    "- Defined in File tmcl_motor.hpp\n",
+    "**enum tmcl_hardware_params_lut_t**\n:   *Values:*\n:   enumerator IDX_WHEEL_DIAMETER\n:   enumerator TMCL_HARDWARE_PARAMS_LUT_MAX\n",
+    "- Defined in File tmcl_ros2.hpp\n",
+    "**const uint8_t TX_ID_DEFAULT = 1**\n",
+    "- Defined in File tmcl_motor.hpp\n",
+    "**static const std::vector<std::string> hardware_params_ = {\"wheel_diameter\", \"MAX\"}**\n",
+    "- Defined in File tmcl_common.hpp\n",
+    "**static const std::vector<std::string> comm_interface_params_ = {\"comm_interface\", \"comm_interface_name\", \"comm_tx_id\", \"comm_rx_id\", \"comm_timeout_ms\", \"comm_exec_cmd_retries\", \"MAX\"}**\n",
+    "- Defined in File tmcl_ros2.hpp\n",
+    "**const uint8_t EXEC_CMD_RETRIES_MAX = 3**\n",
+    "- Defined in File tmcl_interpreter.hpp\n",
+    "**struct tmcl_msg_t**\n:   Public Members\n:   uint16_t tx_id\n:   uint16_t rx_id\n:   tmcl_cmd_t cmd\n:   uint8_t type\n:   uint8_t motor\n:   uint8_t value[TMCL_MSG_VALUE_SZ]\n:   tmcl_sts_t sts\n",
+    "- Defined in File tmcl_motor.hpp\n",
+    "**static const std::vector<std::string> additional_ratio_params_ = {\"additional_ratio_vel\", \"additional_ratio_pos\", \"additional_ratio_trq\", \"MAX\"}**\n",
+    "- Defined in File tmcl_motor.hpp\n",
+    "**const uint8_t PUB_RATE_MIN = 1**\n",
+    "- Defined in File tmcl_interpreter.hpp\n",
+    "**struct tmcl_cfg_t**\n:   Public Members\n:   SocketCAN *p_socket_can\n:   std::string interface_name\n:   uint16_t tx_id\n:   uint16_t rx_id\n",
+    "- Defined in File tmcl_interpreter.hpp\n",
+    "**enum tmcl_cmd_t**\n:   *Values:*\n:   enumerator TMCL_CMD_ROR\n:   enumerator TMCL_CMD_ROL\n:   enumerator TMCL_CMD_MST\n:   enumerator TMCL_CMD_MVP\n:   enumerator TMCL_CMD_SAP\n:   enumerator TMCL_CMD_GAP\n:   enumerator TMCL_CMD_SGP\n:   enumerator TMCL_CMD_GGP\n:   enumerator TMCL_CMD_APPGFWV\n:   enumer",
+    "- Defined in File tmcl_ros2.hpp\n",
+    "**class TmclRos2**\n:   Copyright (c) 2023-2024 Analog Devices, Inc. All Rights Reserved. This software is proprietary to Analog Devices, Inc. and its licensors. \n:   Public Functions\n:   TmclRos2(rclcpp::Node::SharedPtr node)\n:   ~TmclRos2()\n:   bool init()\n:   bool deInit()\n:   bool getRetriesExcee",
+    "\u21b0 Parent directory (`include/adi_tmcl`)\n\nContents\n\n- Definition (`include/adi_tmcl/socket_can_wrapper.hpp`)\n- Included By\n- Classes\n",
+    "- Program Listing for File socket_can_wrapper.hpp\n",
+    "- File tmcl_interpreter.hpp\n",
+    "- Class SocketCAN\n",
+    "\u21b0 Return to documentation for file (`include/adi_tmcl/tmcl_stepper_motor.hpp`)\n\n```cpp\n#ifndef TMCL_STEPPER_MOTOR_HPP\n#define TMCL_STEPPER_MOTOR_HPP\n\n#include \"adi_tmcl/tmcl_motor.hpp\"\n\n/*******************************************************************************/\n/*                      Constant",
+    "- Defined in File tmcl_motor.hpp\n",
+    "**const uint8_t SEC_TO_MIN = 60**\n",
+    "- Defined in File tmcl_ros2.hpp\n",
+    "**const uint16_t TIMEOUT_MS_MAX = 5000**\n",
+    "- Defined in File tmcl_stepper_motor.hpp\n",
+    "- `public Motor` (Class Motor)\n",
+    "**class StepperMotor : public Motor**\n:   Public Functions\n:   StepperMotor(rclcpp::Node::SharedPtr p_node, TmclInterpreter *p_tmcl_interpreter, uint8_t motor_number, uint32_t module_number)\n:   virtual ~StepperMotor()\n",
+    "- Defined in File tmcl_ros2.hpp\n",
+    "**enum tmcl_custom_cmd_lut_t**\n:   *Values:*\n:   enumerator IDX_SAP\n:   enumerator IDX_GAP\n:   enumerator IDX_SGP\n:   enumerator IDX_GGP\n",
+    "\u21b0 Return to documentation for file (`include/adi_tmcl/tmcl_common.hpp`)\n\n```cpp\n#ifndef TMCL_COMMON_HPP\n#define TMCL_COMMON_HPP\n\n/*******************************************************************************/\n/*                      Constants and Enumerations                             */\n/******",
+    "- Defined in File tmcl_ros2.hpp\n",
+    "**const uint8_t EXEC_CMD_RETRIES_DEFAULT = 1**\n",
+    "- Defined in File tmcl_ros2.hpp\n",
+    "**const uint8_t DEFAULT_BIT_WIDTH = 8**\n",
+    "- Defined in File tmcl_interpreter.hpp\n",
+    "**class TmclInterpreter**\n:   Public Functions\n:   TmclInterpreter(tmcl_interface_t tmcl_interface, tmcl_cfg_t tmcl_cfg, uint16_t timeout_ms, uint8_t comm_exec_cmd_retries, const char *logger_prefix_)\n:   ~TmclInterpreter()\n:   bool resetInterface()\n:   bool executeCmd(tmcl_cmd_t cmd, uint8_t type, ",
+    "\u21b0 Parent directory (`include/adi_tmcl`)\n\nContents\n\n- Definition (`include/adi_tmcl/tmcl_common.hpp`)\n- Included By\n- Enums\n- Variables\n",
+    "- Program Listing for File tmcl_common.hpp\n",
+    "- File tmcl_motor.hpp\n",
+    "- Enum tmcl_interface_params_lut_t\n",
+    "- Variable comm_interface_params_\n",
+    "- Defined in File tmcl_motor.hpp\n",
+    "**const uint16_t ANGULAR_FULL_ROTATION = 360**\n",
+    "- Defined in File tmcl_ros2.hpp\n",
+    "**const uint8_t TXRX_ID_MIN = 0**\n",
+    "\u21b0 Parent directory (`include/adi_tmcl`)\n\nContents\n\n- Definition (`include/adi_tmcl/tmcl_stepper_motor.hpp`)\n- Includes\n- Included By\n- Classes\n- Enums\n",
+    "- Program Listing for File tmcl_stepper_motor.hpp\n",
+    "- `adi_tmcl/tmcl_motor.hpp` (File tmcl_motor.hpp)\n",
+    "- File tmcl_ros2.hpp\n",
+    "- Class StepperMotor\n",
+    "- Enum tmcl_stepper_mode_t\n",
+    "- Defined in File tmcl_motor.hpp\n",
+    "**const uint8_t PUB_RATE_DEFAULT = 10**\n",
+    "\u21b0 Parent directory (`include/adi_tmcl`)\n\nContents\n\n- Definition (`include/adi_tmcl/tmcl_bldc_motor.hpp`)\n- Includes\n- Included By\n- Classes\n- Enums\n",
+    "- Program Listing for File tmcl_bldc_motor.hpp\n",
+    "- `adi_tmcl/tmcl_motor.hpp` (File tmcl_motor.hpp)\n",
+    "- File tmcl_ros2.hpp\n",
+    "- Class BldcMotor\n",
+    "- Enum tmcl_bldc_comm_mode_t\n",
+    "- Defined in File tmcl_ros2.hpp\n",
+    "**const uint8_t TXRX_ID_MAX = 255**\n",
+    "- Defined in File tmcl_motor.hpp\n",
+    "**static const std::vector<std::string> ros_topic_params_ = {\"en_pub_tmc_info\", \"tmc_info_topic\", \"pub_rate_tmc_info\", \"pub_actual_vel\", \"pub_actual_trq\", \"pub_actual_pos\", \"tmc_cmd_vel_topic\", \"tmc_cmd_abspos_topic\", \"tmc_cmd_relpos_topic\", \"tmc_cmd_trq_topic\", \"MAX\"}**\n",
+    "- Defined in File tmcl_interpreter.hpp\n",
+    "**const uint8_t TMCL_MSG_SZ = 7**\n:   Copyright (c) 2023-2024 Analog Devices, Inc. All Rights Reserved. This software is proprietary to Analog Devices, Inc. and its licensors. A TMCL Tx/Rx format will always be lke the following:\n:   Tx: | [[Module Address]] | <Command> | <Type> | <Motor> | \n:   | \n",
+    "- Defined in File tmcl_ros2.hpp\n",
+    "**const uint16_t TIMEOUT_MS_DEFAULT = 10**\n",
+    "- Defined in File tmcl_motor.hpp\n",
+    "**const float PI = 3.1415926535**\n",
+    "- Defined in File tmcl_motor.hpp\n",
+    "**const uint8_t PUB_RATE_MAX = 100**\n",
+    "- Defined in File tmcl_motor.hpp\n",
+    "**enum tmcl_ros_topic_params_lut_t**\n:   *Values:*\n:   enumerator IDX_EN_PUB_TMC_INFO\n:   enumerator IDX_TMC_INFO_TOPIC\n:   enumerator IDX_PUB_RATE_TMC_INFO\n:   enumerator IDX_PUB_ACTUAL_VEL\n:   enumerator IDX_PUB_ACTUAL_TRQ\n:   enumerator IDX_PUB_ACTUAL_POS\n:   enumerator IDX_TMC_CMD_VEL_TOPIC\n:   ",
+    "- Defined in File tmcl_bldc_motor.hpp\n",
+    "**enum tmcl_bldc_comm_mode_t**\n:   Copyright (c) 2023-2024 Analog Devices, Inc. All Rights Reserved. This software is proprietary to Analog Devices, Inc. and its licensors. \n:   *Values:*\n:   enumerator BLDC_MODE_DISABLED\n:   enumerator BLDC_MODE_OPENLOOP\n:   enumerator BLDC_MODE_CLOSEDLOOP\n",
+    "\u21b0 Return to documentation for file (`include/adi_tmcl/tmcl_interpreter.hpp`)\n\n```cpp\n#ifndef TMCL_INTERPRETER_HPP\n#define TMCL_INTERPRETER_HPP\n\n#include <future>\n#include <chrono>\n#include <vector>\n\n#include \"adi_tmcl/socket_can_wrapper.hpp\"\n\nconst uint8_t TMCL_MSG_SZ = 7;\nconst uint8_t TMCL_MSG_VAL",
+    "\u21b0 Parent directory (`include`)\n\n*Directory path:* `include/adi_tmcl`\n",
+    "- File socket_can_wrapper.hpp\n- File tmcl_bldc_motor.hpp\n- File tmcl_common.hpp\n- File tmcl_interpreter.hpp\n- File tmcl_motor.hpp\n- File tmcl_ros2.hpp\n- File tmcl_stepper_motor.hpp\n",
+    "- Defined in File tmcl_ros2.hpp\n",
+    "**const uint8_t MAX_BIT_WIDTH = 16**\n",
+    "- Struct tmcl_cfg_tStruct tmcl_msg_tClass BldcMotorClass MotorClass SocketCANClass StepperMotorClass TmclInterpreterClass TmclRos2Enum tmcl_additional_ratio_params_lut_tEnum tmcl_bldc_comm_mode_tEnum tmcl_cmd_tEnum tmcl_custom_cmd_lut_tEnum tmcl_general_params_lut_tEnum tmcl_hardware_params_lut_tEnu",
+    "- Directory includeDirectory adi_tmclFile socket_can_wrapper.hppFile tmcl_bldc_motor.hppFile tmcl_common.hppFile tmcl_interpreter.hppFile tmcl_motor.hppFile tmcl_ros2.hppFile tmcl_stepper_motor.hpp\n\n  - Directory includeDirectory adi_tmclFile socket_can_wrapper.hppFile tmcl_bldc_motor.hppFile tmcl_c",
+    "- Struct tmcl_cfg_t\n\n\n- Struct tmcl_msg_t\n\n\n- Class BldcMotor\n\n\n- Class Motor\n\n\n- Class SocketCAN\n\n\n- Class StepperMotor\n\n\n- Class TmclInterpreter\n\n\n- Class TmclRos2\n",
+    "- Enum tmcl_additional_ratio_params_lut_t\n\n\n- Enum tmcl_bldc_comm_mode_t\n\n\n- Enum tmcl_cmd_t\n\n\n- Enum tmcl_custom_cmd_lut_t\n\n\n- Enum tmcl_general_params_lut_t\n\n\n- Enum tmcl_hardware_params_lut_t\n\n\n- Enum tmcl_interface_params_lut_t\n\n\n- Enum tmcl_interface_t\n\n\n- Enum tmcl_ros_topic_params_lut_t\n\n\n- E",
+    "- Variable additional_ratio_params_\n\n\n- Variable ANGULAR_FULL_ROTATION\n\n\n- Variable AUTO_START_ADDITIONAL_DELAY_DEFAULT\n\n\n- Variable AUTO_START_ADDITIONAL_DELAY_MAX\n\n\n- Variable comm_interface_params_\n\n\n- Variable DEFAULT_BIT_WIDTH\n\n\n- Variable EXEC_CMD_RETRIES_DEFAULT\n\n\n- Variable EXEC_CMD_RETRIES_",
+    "- Directory include\n\n\n- Directory adi_tmcl\n",
+    "- File socket_can_wrapper.hpp\n\n\n- File tmcl_bldc_motor.hpp\n\n\n- File tmcl_common.hpp\n\n\n- File tmcl_interpreter.hpp\n\n\n- File tmcl_motor.hpp\n\n\n- File tmcl_ros2.hpp\n\n\n- File tmcl_stepper_motor.hpp\n",
+    "*Directory path:* `include`\n",
+    "- Directory adi_tmcl\n",
+    "\u21b0 Return to documentation for file (`include/adi_tmcl/tmcl_bldc_motor.hpp`)\n\n```cpp\n#ifndef TMCL_BLDC_MOTOR_HPP\n#define TMCL_BLDC_MOTOR_HPP\n\n#include \"adi_tmcl/tmcl_motor.hpp\"\n\n/*******************************************************************************/\n/*                      Constants and Enu",
+    "- Defined in File socket_can_wrapper.hpp\n",
+    "**class SocketCAN**\n:   Copyright (c) 2023-2024 Analog Devices, Inc. All Rights Reserved. This software is proprietary to Analog Devices, Inc. and its licensors. \n:   Public Functions\n:   SocketCAN(const char *logger_prefix)\n:   ~SocketCAN()\n:   bool initialize(const char *interface_name)\n:   void d",
+    "- Defined in File tmcl_ros2.hpp\n",
+    "**const uint8_t AUTO_START_ADDITIONAL_DELAY_DEFAULT = 0**\n",
+    "- Defined in File tmcl_bldc_motor.hpp\n",
+    "- `public Motor` (Class Motor)\n",
+    "**class BldcMotor : public Motor**\n:   Public Functions\n:   BldcMotor(rclcpp::Node::SharedPtr p_node, TmclInterpreter *p_tmcl_interpreter, uint8_t motor_number, uint32_t module_number)\n:   virtual ~BldcMotor()\n:   virtual void init() override\n",
+    "- Defined in File tmcl_ros2.hpp\n",
+    "**const uint8_t RX_ID_DEFAULT = 2**\n",
+    "- Defined in File tmcl_common.hpp\n",
+    "**enum tmcl_interface_params_lut_t**\n:   Copyright (c) 2023-2024 Analog Devices, Inc. All Rights Reserved. This software is proprietary to Analog Devices, Inc. and its licensors. \n:   *Values:*\n:   enumerator IDX_COMM_INTERFACE\n:   enumerator IDX_COMM_INTERFACE_NAME\n:   enumerator IDX_COMM_TX_ID\n:  ",
+    "\u21b0 Return to documentation for file (`include/adi_tmcl/tmcl_ros2.hpp`)\n\n```cpp\n#ifndef TMCL_ROS2_HPP\n#define TMCL_ROS2_HPP\n\n#include \"adi_tmcl/tmcl_bldc_motor.hpp\"\n#include \"adi_tmcl/tmcl_stepper_motor.hpp\"\n#include \"adi_tmcl/srv/tmc_custom_cmd.hpp\"\n#include \"adi_tmcl/srv/tmc_gap_all.hpp\"\n#include \"a",
+    "\u21b0 Parent directory (`include/adi_tmcl`)\n\nContents\n\n- Definition (`include/adi_tmcl/tmcl_interpreter.hpp`)\n- Includes\n- Included By\n- Classes\n- Enums\n- Variables\n",
+    "- Program Listing for File tmcl_interpreter.hpp\n",
+    "- `adi_tmcl/socket_can_wrapper.hpp` (File socket_can_wrapper.hpp)\n- `chrono`\n- `future`\n- `vector`\n",
+    "- File tmcl_motor.hpp\n",
+    "- Struct tmcl_cfg_t\n- Struct tmcl_msg_t\n- Class TmclInterpreter\n",
+    "- Enum tmcl_cmd_t\n- Enum tmcl_interface_t\n- Enum tmcl_sts_t\n",
+    "- Variable TMCL_MSG_SZ\n- Variable TMCL_MSG_VALUE_SZ\n",
+    "**adi_tmcl** (previously *tmcl_ros2*) is the official ROS2 Driver for ADI Trinamic Motor Controllers (TMC) that uses Trinamic Motion Control Language (TMCL) protocol.\n",
+    "- Supported TMC boards:\n  TMCM-343,\n  TMCM-351,\n  TMCM-0930,\n  TMCM-1140, PD-1140,\n  TMCM-1160, PD-1160,\n  TMCM-1180, PD-1180,\n  TMCM-1230,\n  TMCM-1231,\n  TMCM-1240,\n  TMCM-1241 *, PD-1241 *,\n  TMCM-1260 *, PD-1260 *,\n  TMCM-1270, PD-1270,\n  TMCM-1276, PD-1276,\n  TMCM-1278, PD-1278,\n  TMCM-1311,\n  T",
+    "For the tested TMCM-1636 setup, the following are used:\n\n- 1 x TMCM-1636\n- 1 x QBL4208-61-04-013 BLDC motor\n- 1 x External 24V power supply\n- 1 x CAN USB Cable (w/SocketCAN support) - with 120 ohm termination resistors\n\n\nAlso the following:\n\n- PWR/GND from board to external 24V power supply\n- 5-pin ",
+    "Assumptions before building this package:\n\n- Installed ROS2 Humble. If not, follow these steps.\n- Setup workspace (with workspace folder named as \u201cros2_ws\u201d). If not, follow these steps.\n",
+    "In the website:\n\n1. Make sure that the branch dropdown is set to \u201chumble\u201d.\n2. Click the \u201cClone\u201d or \u201cCode\u201d button, then copy the SSH or HTTPS link (eg, \u201c*.git\u201d).\n\n\nIn a terminal, do the following:\n\n```bash\n$ cd ~/ros2_ws/src\n$ git clone <copied SSH o HTTPS link here> adi_tmcl  #clones repo to \"adi_tm",
+    "```bash\n########## [TERMINAL 1] ##########\n# Do proper exports first:\n## $ source /opt/ros/<ROS2 Version>/setup.bash\n$ source /opt/ros/humble/setup.bash\n\n# Resolve any dependencies\n$ cd ~/ros2_ws\n$ rosdep install -i --from-path src --rosdistro humble -y\n\n# Build\n$ colcon build\n## To clean first befo",
+    "If it\u2019s the first time to use the set of motors for the TMC that you are using, it is required to calibrate and tune the PID settings of the motors first.\n\nDo the calibrations/tuning by downloading and using TMCL-IDE.\n",
+    "For a run-through/tutorial of how the calibration is done in the TMCL-IDE via its `Wizard Pool` feature, check this link.\n",
+    "For a run-through/tutorial of how the PI tuning is done in the TMCL-IDE via its `PI Tuning` feature, check this link.\n\n:memo: *Note: For all the calibration and tuning done, store all the parameters set from TMCL_IDE on the board\u2019s EEPROM. Do this by doing any of the following:*\n\n- *Clicking the \u201cSt",
+    "For a run-through/tutorial of how the calibration is done in the TMCL-IDE via its `Wizard Pool` feature, check this link.\n\nFor more information about Trinamic features on stepper motors, visit this link.\n\n:memo: *Note: For all the calibration and tuning done, store all the parameters set from TMCL_I",
+    ":memo: *Note: This script automatically brings-up CAN upon boot. Do this step only once.*\n\nTo proceed, first make the script executable (do this only once as this change persists even after power-off):\n\n```bash\n$ cd ~/ros2_ws/src/adi_tmcl/scripts # or ~/ros2_ws/src/<repo directory>/scripts\n$ chmod +",
+    ":memo: *Note: This script disables the automatic bring-up of CAN upon boot.*\n\nTo proceed, first make the script executable (do this only once as this change persists even after power-off):\n\n```bash\n$ $ cd ~/ros2_ws/src/adi_tmcl/scripts # or ~/ros2_ws/src/<repo directory>/scripts\n$ chmod +x CAN_deini",
+    "```bash\n########## [TERMINAL 2] ##########\n# Do proper exports first:\n$ cd ~/ros2_ws\n$ source install/setup.bash\n\n# Launch\n$ ros2 launch adi_tmcl tmcm_1636.launch.py\n\n# Launch with DEBUG logs\n$ ros2 launch adi_tmcl tmcm_1636.launch.py log_level:=DEBUG\n```\n\n\n:memo: *Note: This should be a different t",
+    ":memo: *Note: For those with <motor_num> in the topic names, these are ideally the motor number. For example, if there are 2 motors used, there should be two published topics for tmc_info, specifically /tmc_info_0 for motor 0 and then /tmc_info_1 for motor 1.*\n",
+    "These are the default topic names, topic names can be modified as a ROS parameter.\n\n- **/tmc_info_<motor_num>** (adi_tmcl/msg/TmcInfo)\n  Data containing:\n  (1) board voltage (V)\n  (2) statusflag value (only for boards with StatusFlags AP, else, value is set to 0)\n  (3) statusflag notifications (only",
+    "- **/cmd_vel_<motor_num>** (geometry_msgs/msg/Twist)\n  Velocity command (rpm or m/s)\n\n  - Velocity command (rpm or m/s)\n- **/cmd_abspos_<motor_num>** (std_msgs/msg/Int32)\n  Absolute position command (degree angle)\n\n  - Absolute position command (degree angle)\n- **/cmd_relpos_<motor_num>** (std_msgs/",
+    "- **/tmcl_custom_cmd** (adi_tmcl/srv/TmcCustomCmd)\n  Executes a custom SAP, GAP, SGP and GGP commands\n  The output contains raw data (velocity = rpm, position = units) from the board. *Do not expect same unit from the publisher.*\n\n  - Executes a custom SAP, GAP, SGP and GGP commands\n  - The output c",
+    ":memo: *Notes:*\n\n- *If any of these parameters are not set/declared, default values will be used.*\n- *To know more details about each parameter, you can execute `$ ros2 param describe <node> <parameter>`*\n",
+    "- **comm_interface** (int, default: 0)\n  Interface used between the PC and the TMC (where 0 = CAN)\n\n  - Interface used between the PC and the TMC (where 0 = CAN)\n- **comm_interface_name** (string, default: can0)\n  Name of the interface or device as detected by the PC\n\n  - Name of the interface or de",
+    "- **comm_timeout_ms** (int, default: 10)\n  Indicates how long should the node will wait for the rx data\n\n  - Indicates how long should the node will wait for the rx data\n- **comm_exec_cmd_retries** (int, default: 1)\n  Indicates how many the node will retry sending data before shutting down if no dat",
+    ":memo: *Notes:*\n\n- *The following parameters can be provided for each motor, otherwise default will be used.*\n- *Resulting parameter will be prefixed by `motor<motor_num>.` (e.g. `motor0.en_pub_tmc_info`)*\n\n\n- **en_pub_tmc_info** (bool, default: true)\n  Enables/disables publishing of TMC information",
+    "To do a quick test of Velocity Mode, there is a fake velocity script that the user can run.\nIdea is, this script will send Velocity commands (as a ROS topic), then the first motor should be expected to:\n\n1. Increase velocity every 3secs, clockwise (in m/s: 3, 6, 9)\n2. Stop for 5secs\n3. Increase velo",
+    "To do a quick test of Position Mode, there is a fake position script that the user can run.\nIdea is, this script will send Position commands (as a ROS topic), then the first motor should be expected to:\n\n1. Rotate 360 degrees (clockwise) every 5 secs, 3 times\n2. Stop for 5secs\n3. Rotate 360 degrees ",
+    "To do a quick test of Torque Mode, there is a fake torque script that the user can run.\nIdea is, this script will send Torque commands (as a ROS topic), then the first motor should be expected to:\n\n1. Rotate for 5 secs, with torque = 300\n2. Stop for 5secs\n3. Rotate for 5 secs again, with torque = 30",
+    "1. No support for interfaces other than CAN yet.\n",
+    "Please contact the `Maintainers` if you want to use this ROS Driver on Trinamic Motor Controllers without YAML files in this repository.\n\nAny other inquiries and support are also welcome.\n",
+    "- Defined in File tmcl_ros2.hpp\n",
+    "**static const std::vector<std::string> general_params_ = {\"adhoc_mode\", \"en_motors\", \"auto_start_additional_delay\", \"AP_type\", \"AP_name\", \"GP_type\", \"GP_name\", \"ap_index_bit_width\", \"MAX\"}**\n",
+    "The adi_tmcl ROS2 package\n\n- Links\n  Rosindex\n\n  - Rosindex\n- C++ API\n  Class Hierarchy\n  File Hierarchy\n  Full C++ API\n\n  - Class Hierarchy\n  - File Hierarchy\n  - Full C++ API\n\n\n- Message Definitions\n  TmcInfo\n  TmcParam\n\n  - TmcInfo\n  - TmcParam\n- Service Definitions\n  TmcCustomCmd\n  TmcGapAll\n  T",
+    "**adi_tmcl** (previously *tmcl_ros2*) is the official ROS2 Driver for ADI Trinamic Motor Controllers (TMC) that uses Trinamic Motion Control Language (TMCL) protocol.\n",
+    "- Supported TMC boards:\n  TMCM-343,\n  TMCM-351,\n  TMCM-0930,\n  TMCM-1140, PD-1140,\n  TMCM-1160, PD-1160,\n  TMCM-1180, PD-1180,\n  TMCM-1230,\n  TMCM-1231,\n  TMCM-1240,\n  TMCM-1241 *, PD-1241 *,\n  TMCM-1260 *, PD-1260 *,\n  TMCM-1270, PD-1270,\n  TMCM-1276, PD-1276,\n  TMCM-1278, PD-1278,\n  TMCM-1311,\n  T",
+    "For the tested TMCM-1636 setup, the following are used:\n\n- 1 x TMCM-1636\n- 1 x QBL4208-61-04-013 BLDC motor\n- 1 x External 24V power supply\n- 1 x CAN USB Cable (w/SocketCAN support) - with 120 ohm termination resistors\n\n\nAlso the following:\n\n- PWR/GND from board to external 24V power supply\n- 5-pin ",
+    "Assumptions before building this package:\n\n- Installed ROS2 Humble. If not, follow these steps.\n- Setup workspace (with workspace folder named as \u201cros2_ws\u201d). If not, follow these steps.\n",
+    "In the website:\n\n1. Make sure that the branch dropdown is set to \u201chumble\u201d.\n2. Click the \u201cClone\u201d or \u201cCode\u201d button, then copy the SSH or HTTPS link (eg, \u201c*.git\u201d).\n\n\nIn a terminal, do the following:\n\n```bash\n$ cd ~/ros2_ws/src\n$ git clone <copied SSH o HTTPS link here> adi_tmcl  #clones repo to \"adi_tm",
+    "```bash\n########## [TERMINAL 1] ##########\n# Do proper exports first:\n## $ source /opt/ros/<ROS2 Version>/setup.bash\n$ source /opt/ros/humble/setup.bash\n\n# Resolve any dependencies\n$ cd ~/ros2_ws\n$ rosdep install -i --from-path src --rosdistro humble -y\n\n# Build\n$ colcon build\n## To clean first befo",
+    "If it\u2019s the first time to use the set of motors for the TMC that you are using, it is required to calibrate and tune the PID settings of the motors first.\n\nDo the calibrations/tuning by downloading and using TMCL-IDE.\n",
+    "For a run-through/tutorial of how the calibration is done in the TMCL-IDE via its `Wizard Pool` feature, check this link.\n",
+    "For a run-through/tutorial of how the PI tuning is done in the TMCL-IDE via its `PI Tuning` feature, check this link.\n\n:memo: *Note: For all the calibration and tuning done, store all the parameters set from TMCL_IDE on the board\u2019s EEPROM. Do this by doing any of the following:*\n\n- *Clicking the \u201cSt",
+    "For a run-through/tutorial of how the calibration is done in the TMCL-IDE via its `Wizard Pool` feature, check this link.\n\nFor more information about Trinamic features on stepper motors, visit this link.\n\n:memo: *Note: For all the calibration and tuning done, store all the parameters set from TMCL_I",
+    ":memo: *Note: This script automatically brings-up CAN upon boot. Do this step only once.*\n\nTo proceed, first make the script executable (do this only once as this change persists even after power-off):\n\n```bash\n$ cd ~/ros2_ws/src/adi_tmcl/scripts # or ~/ros2_ws/src/<repo directory>/scripts\n$ chmod +",
+    ":memo: *Note: This script disables the automatic bring-up of CAN upon boot.*\n\nTo proceed, first make the script executable (do this only once as this change persists even after power-off):\n\n```bash\n$ $ cd ~/ros2_ws/src/adi_tmcl/scripts # or ~/ros2_ws/src/<repo directory>/scripts\n$ chmod +x CAN_deini",
+    "```bash\n########## [TERMINAL 2] ##########\n# Do proper exports first:\n$ cd ~/ros2_ws\n$ source install/setup.bash\n\n# Launch\n$ ros2 launch adi_tmcl tmcm_1636.launch.py\n\n# Launch with DEBUG logs\n$ ros2 launch adi_tmcl tmcm_1636.launch.py log_level:=DEBUG\n```\n\n\n:memo: *Note: This should be a different t",
+    ":memo: *Note: For those with <motor_num> in the topic names, these are ideally the motor number. For example, if there are 2 motors used, there should be two published topics for tmc_info, specifically /tmc_info_0 for motor 0 and then /tmc_info_1 for motor 1.*\n",
+    "These are the default topic names, topic names can be modified as a ROS parameter.\n\n- **/tmc_info_<motor_num>** (adi_tmcl/msg/TmcInfo)\n  Data containing:\n  (1) board voltage (V)\n  (2) statusflag value (only for boards with StatusFlags AP, else, value is set to 0)\n  (3) statusflag notifications (only",
+    "- **/cmd_vel_<motor_num>** (geometry_msgs/msg/Twist)\n  Velocity command (rpm or m/s)\n\n  - Velocity command (rpm or m/s)\n- **/cmd_abspos_<motor_num>** (std_msgs/msg/Int32)\n  Absolute position command (degree angle)\n\n  - Absolute position command (degree angle)\n- **/cmd_relpos_<motor_num>** (std_msgs/",
+    "- **/tmcl_custom_cmd** (adi_tmcl/srv/TmcCustomCmd)\n  Executes a custom SAP, GAP, SGP and GGP commands\n  The output contains raw data (velocity = rpm, position = units) from the board. *Do not expect same unit from the publisher.*\n\n  - Executes a custom SAP, GAP, SGP and GGP commands\n  - The output c",
+    ":memo: *Notes:*\n\n- *If any of these parameters are not set/declared, default values will be used.*\n- *To know more details about each parameter, you can execute `$ ros2 param describe <node> <parameter>`*\n",
+    "- **comm_interface** (int, default: 0)\n  Interface used between the PC and the TMC (where 0 = CAN)\n\n  - Interface used between the PC and the TMC (where 0 = CAN)\n- **comm_interface_name** (string, default: can0)\n  Name of the interface or device as detected by the PC\n\n  - Name of the interface or de",
+    "- **comm_timeout_ms** (int, default: 10)\n  Indicates how long should the node will wait for the rx data\n\n  - Indicates how long should the node will wait for the rx data\n- **comm_exec_cmd_retries** (int, default: 1)\n  Indicates how many the node will retry sending data before shutting down if no dat",
+    ":memo: *Notes:*\n\n- *The following parameters can be provided for each motor, otherwise default will be used.*\n- *Resulting parameter will be prefixed by `motor<motor_num>.` (e.g. `motor0.en_pub_tmc_info`)*\n\n\n- **en_pub_tmc_info** (bool, default: true)\n  Enables/disables publishing of TMC information",
+    "To do a quick test of Velocity Mode, there is a fake velocity script that the user can run.\nIdea is, this script will send Velocity commands (as a ROS topic), then the first motor should be expected to:\n\n1. Increase velocity every 3secs, clockwise (in m/s: 3, 6, 9)\n2. Stop for 5secs\n3. Increase velo",
+    "To do a quick test of Position Mode, there is a fake position script that the user can run.\nIdea is, this script will send Position commands (as a ROS topic), then the first motor should be expected to:\n\n1. Rotate 360 degrees (clockwise) every 5 secs, 3 times\n2. Stop for 5secs\n3. Rotate 360 degrees ",
+    "To do a quick test of Torque Mode, there is a fake torque script that the user can run.\nIdea is, this script will send Torque commands (as a ROS topic), then the first motor should be expected to:\n\n1. Rotate for 5 secs, with torque = 300\n2. Stop for 5secs\n3. Rotate for 5 secs again, with torque = 30",
+    "1. No support for interfaces other than CAN yet.\n",
+    "Please contact the `Maintainers` if you want to use this ROS Driver on Trinamic Motor Controllers without YAML files in this repository.\n\nAny other inquiries and support are also welcome.\n",
+    "- Defined in File tmcl_motor.hpp\n",
+    "- `public BldcMotor` (Class BldcMotor)\n- `public StepperMotor` (Class StepperMotor)\n",
+    "**class Motor**\n:   Copyright (c) 2023-2024 Analog Devices, Inc. All Rights Reserved. This software is proprietary to Analog Devices, Inc. and its licensors. \n:   Subclassed by BldcMotor, StepperMotor\n:   Public Functions\n:   Motor(rclcpp::Node::SharedPtr p_node, TmclInterpreter *p_tmcl_interpreter,",
+    "This is a ROS service definition.\n\n**Source**\n\n```default\n---\nbool            success\nTmcParam[]      param\n```\n",
+    "This is a ROS message definition.\n\n**Source**\n\n```default\nstring    name\nint64    value\n```\n",
+    "This is a ROS service definition.\n\n**Source**\n\n```default\nstring instruction\nuint16 instruction_type\nuint8 motor_num\nint32 value\n---\nint32 output\nbool result\n```\n",
+    "This is a ROS service definition.\n\n**Source**\n\n```default\nuint8           motor_num\n---\nbool            success\nTmcParam[]      param\n```\n",
+    "This is a ROS message definition.\n\n**Source**\n\n```default\nstd_msgs/Header header\nstring          interface_name\nfloat32         board_voltage\nint32           status_flag\nstring          status\nuint8           motor_num\nfloat32         velocity\nint32           position\nint32           torque\n```\n"
+  ],
+  "url": [
+    "generated/variable_tmcl__ros2_8hpp_1a79e8db813f2bd82d7014267e0c968459.html",
+    "generated/variable_tmcl__ros2_8hpp_1a79e8db813f2bd82d7014267e0c968459.html#variable-documentation",
+    "generated/program_listing_file_include_adi_tmcl_tmcl_motor.hpp.html",
+    "generated/enum_tmcl__stepper__motor_8hpp_1aa0f126c89402b24ec6ed22dff8154fbb.html",
+    "generated/enum_tmcl__stepper__motor_8hpp_1aa0f126c89402b24ec6ed22dff8154fbb.html#enum-documentation",
+    "generated/variable_tmcl__interpreter_8hpp_1a990878d0f6979654a8c5908aa26ed231.html",
+    "generated/variable_tmcl__interpreter_8hpp_1a990878d0f6979654a8c5908aa26ed231.html#variable-documentation",
+    "generated/enum_tmcl__motor_8hpp_1aa612edeaf02eccda7a6bea7677b0a8ae.html",
+    "generated/enum_tmcl__motor_8hpp_1aa612edeaf02eccda7a6bea7677b0a8ae.html#enum-documentation",
+    "generated/enum_tmcl__interpreter_8hpp_1a0fb8597208914ecd3398bc38c486aa0e.html",
+    "generated/enum_tmcl__interpreter_8hpp_1a0fb8597208914ecd3398bc38c486aa0e.html#enum-documentation",
+    "generated/enum_tmcl__ros2_8hpp_1add94f22709449570a53172c6e0c7d9a9.html",
+    "generated/enum_tmcl__ros2_8hpp_1add94f22709449570a53172c6e0c7d9a9.html#enum-documentation",
+    "generated/variable_tmcl__ros2_8hpp_1ae7e2e97f8efb58bfb903f2991cd1989d.html",
+    "generated/variable_tmcl__ros2_8hpp_1ae7e2e97f8efb58bfb903f2991cd1989d.html#variable-documentation",
+    "CHANGELOG.html#id1",
+    "CHANGELOG.html#id4",
+    "CHANGELOG.html#id5",
+    "CHANGELOG.html#id6",
+    "CHANGELOG.html#id7",
+    "CHANGELOG.html#id8",
+    "CHANGELOG.html#id9",
+    "CHANGELOG.html#id10",
+    "generated/variable_tmcl__ros2_8hpp_1a0bde5610997e40c2d5975a64cc167cd3.html",
+    "generated/variable_tmcl__ros2_8hpp_1a0bde5610997e40c2d5975a64cc167cd3.html#variable-documentation",
+    "generated/variable_tmcl__ros2_8hpp_1a159d28565ef00c044e6caa6fdc60bad3.html",
+    "generated/variable_tmcl__ros2_8hpp_1a159d28565ef00c044e6caa6fdc60bad3.html#variable-documentation",
+    "generated/enum_tmcl__interpreter_8hpp_1a1d34441d6858780b48d30e6a471ddf40.html",
+    "generated/enum_tmcl__interpreter_8hpp_1a1d34441d6858780b48d30e6a471ddf40.html#enum-documentation",
+    "generated/file_include_adi_tmcl_tmcl_motor.hpp.html",
+    "generated/file_include_adi_tmcl_tmcl_motor.hpp.html#definition-include-adi-tmcl-tmcl-motor-hpp",
+    "generated/file_include_adi_tmcl_tmcl_motor.hpp.html#includes",
+    "generated/file_include_adi_tmcl_tmcl_motor.hpp.html#included-by",
+    "generated/file_include_adi_tmcl_tmcl_motor.hpp.html#classes",
+    "generated/file_include_adi_tmcl_tmcl_motor.hpp.html#enums",
+    "generated/file_include_adi_tmcl_tmcl_motor.hpp.html#variables",
+    "generated/program_listing_file_include_adi_tmcl_socket_can_wrapper.hpp.html",
+    "generated/file_include_adi_tmcl_tmcl_ros2.hpp.html",
+    "generated/file_include_adi_tmcl_tmcl_ros2.hpp.html#definition-include-adi-tmcl-tmcl-ros2-hpp",
+    "generated/file_include_adi_tmcl_tmcl_ros2.hpp.html#includes",
+    "generated/file_include_adi_tmcl_tmcl_ros2.hpp.html#classes",
+    "generated/file_include_adi_tmcl_tmcl_ros2.hpp.html#enums",
+    "generated/file_include_adi_tmcl_tmcl_ros2.hpp.html#variables",
+    "generated/enum_tmcl__motor_8hpp_1ae44377f79aeece7b10379f98e81218c2.html",
+    "generated/enum_tmcl__motor_8hpp_1ae44377f79aeece7b10379f98e81218c2.html#enum-documentation",
+    "generated/variable_tmcl__ros2_8hpp_1aa7dd907dc14732380976b5fdbea42235.html",
+    "generated/variable_tmcl__ros2_8hpp_1aa7dd907dc14732380976b5fdbea42235.html#variable-documentation",
+    "generated/variable_tmcl__motor_8hpp_1a807cdb00d333425fb21bdeba07c7be54.html",
+    "generated/variable_tmcl__motor_8hpp_1a807cdb00d333425fb21bdeba07c7be54.html#variable-documentation",
+    "generated/variable_tmcl__common_8hpp_1a0e1dbefd027b0eb6a9cbda594c264d73.html",
+    "generated/variable_tmcl__common_8hpp_1a0e1dbefd027b0eb6a9cbda594c264d73.html#variable-documentation",
+    "generated/variable_tmcl__ros2_8hpp_1ab104707addc56840883c694ee32ac0bd.html",
+    "generated/variable_tmcl__ros2_8hpp_1ab104707addc56840883c694ee32ac0bd.html#variable-documentation",
+    "generated/structtmcl__msg__t.html",
+    "generated/structtmcl__msg__t.html#struct-documentation",
+    "generated/variable_tmcl__motor_8hpp_1a72ad581b03018132ee9a42722bd59bc2.html",
+    "generated/variable_tmcl__motor_8hpp_1a72ad581b03018132ee9a42722bd59bc2.html#variable-documentation",
+    "generated/variable_tmcl__motor_8hpp_1a32acc7c1c5958277785c01a5978632f6.html",
+    "generated/variable_tmcl__motor_8hpp_1a32acc7c1c5958277785c01a5978632f6.html#variable-documentation",
+    "generated/structtmcl__cfg__t.html",
+    "generated/structtmcl__cfg__t.html#struct-documentation",
+    "generated/enum_tmcl__interpreter_8hpp_1affdc98518d0da04cea6cf4e9e8cfc48e.html",
+    "generated/enum_tmcl__interpreter_8hpp_1affdc98518d0da04cea6cf4e9e8cfc48e.html#enum-documentation",
+    "generated/classTmclRos2.html",
+    "generated/classTmclRos2.html#class-documentation",
+    "generated/file_include_adi_tmcl_socket_can_wrapper.hpp.html",
+    "generated/file_include_adi_tmcl_socket_can_wrapper.hpp.html#definition-include-adi-tmcl-socket-can-wrapper-hpp",
+    "generated/file_include_adi_tmcl_socket_can_wrapper.hpp.html#included-by",
+    "generated/file_include_adi_tmcl_socket_can_wrapper.hpp.html#classes",
+    "generated/program_listing_file_include_adi_tmcl_tmcl_stepper_motor.hpp.html",
+    "generated/variable_tmcl__motor_8hpp_1a594c69c3fc1b4dd8b585f7a3da714624.html",
+    "generated/variable_tmcl__motor_8hpp_1a594c69c3fc1b4dd8b585f7a3da714624.html#variable-documentation",
+    "generated/variable_tmcl__ros2_8hpp_1a602a94db6b6f71ba68ffb8d4527edad4.html",
+    "generated/variable_tmcl__ros2_8hpp_1a602a94db6b6f71ba68ffb8d4527edad4.html#variable-documentation",
+    "generated/classStepperMotor.html",
+    "generated/classStepperMotor.html#base-type",
+    "generated/classStepperMotor.html#class-documentation",
+    "generated/enum_tmcl__ros2_8hpp_1af8646f378d9e9d4173c88d1d9b23b76a.html",
+    "generated/enum_tmcl__ros2_8hpp_1af8646f378d9e9d4173c88d1d9b23b76a.html#enum-documentation",
+    "generated/program_listing_file_include_adi_tmcl_tmcl_common.hpp.html",
+    "generated/variable_tmcl__ros2_8hpp_1ab2db2a92f0aa23fe6854df1feb8b7218.html",
+    "generated/variable_tmcl__ros2_8hpp_1ab2db2a92f0aa23fe6854df1feb8b7218.html#variable-documentation",
+    "generated/variable_tmcl__ros2_8hpp_1a842cf777e97091c4ce5055cadbb1e4c0.html",
+    "generated/variable_tmcl__ros2_8hpp_1a842cf777e97091c4ce5055cadbb1e4c0.html#variable-documentation",
+    "generated/classTmclInterpreter.html",
+    "generated/classTmclInterpreter.html#class-documentation",
+    "generated/file_include_adi_tmcl_tmcl_common.hpp.html",
+    "generated/file_include_adi_tmcl_tmcl_common.hpp.html#definition-include-adi-tmcl-tmcl-common-hpp",
+    "generated/file_include_adi_tmcl_tmcl_common.hpp.html#included-by",
+    "generated/file_include_adi_tmcl_tmcl_common.hpp.html#enums",
+    "generated/file_include_adi_tmcl_tmcl_common.hpp.html#variables",
+    "generated/variable_tmcl__motor_8hpp_1a8e38822bfb002baacfb0232828d25153.html",
+    "generated/variable_tmcl__motor_8hpp_1a8e38822bfb002baacfb0232828d25153.html#variable-documentation",
+    "generated/variable_tmcl__ros2_8hpp_1a979095c4148f3b1dae9119b7a9b09bad.html",
+    "generated/variable_tmcl__ros2_8hpp_1a979095c4148f3b1dae9119b7a9b09bad.html#variable-documentation",
+    "generated/file_include_adi_tmcl_tmcl_stepper_motor.hpp.html",
+    "generated/file_include_adi_tmcl_tmcl_stepper_motor.hpp.html#definition-include-adi-tmcl-tmcl-stepper-motor-hpp",
+    "generated/file_include_adi_tmcl_tmcl_stepper_motor.hpp.html#includes",
+    "generated/file_include_adi_tmcl_tmcl_stepper_motor.hpp.html#included-by",
+    "generated/file_include_adi_tmcl_tmcl_stepper_motor.hpp.html#classes",
+    "generated/file_include_adi_tmcl_tmcl_stepper_motor.hpp.html#enums",
+    "generated/variable_tmcl__motor_8hpp_1a33af3246dde749fd66c157cc6e6a3be3.html",
+    "generated/variable_tmcl__motor_8hpp_1a33af3246dde749fd66c157cc6e6a3be3.html#variable-documentation",
+    "generated/file_include_adi_tmcl_tmcl_bldc_motor.hpp.html",
+    "generated/file_include_adi_tmcl_tmcl_bldc_motor.hpp.html#definition-include-adi-tmcl-tmcl-bldc-motor-hpp",
+    "generated/file_include_adi_tmcl_tmcl_bldc_motor.hpp.html#includes",
+    "generated/file_include_adi_tmcl_tmcl_bldc_motor.hpp.html#included-by",
+    "generated/file_include_adi_tmcl_tmcl_bldc_motor.hpp.html#classes",
+    "generated/file_include_adi_tmcl_tmcl_bldc_motor.hpp.html#enums",
+    "generated/variable_tmcl__ros2_8hpp_1af8aed7ed0aa86c3fbb0d3b4f30a2bc36.html",
+    "generated/variable_tmcl__ros2_8hpp_1af8aed7ed0aa86c3fbb0d3b4f30a2bc36.html#variable-documentation",
+    "generated/variable_tmcl__motor_8hpp_1a3f221b731c9831a00c2bede678fe27be.html",
+    "generated/variable_tmcl__motor_8hpp_1a3f221b731c9831a00c2bede678fe27be.html#variable-documentation",
+    "generated/variable_tmcl__interpreter_8hpp_1a34af2ab557c7c6b474a095252f1f4b76.html",
+    "generated/variable_tmcl__interpreter_8hpp_1a34af2ab557c7c6b474a095252f1f4b76.html#variable-documentation",
+    "generated/variable_tmcl__ros2_8hpp_1a08d5e6b4e9578bf088a32f179a8cc886.html",
+    "generated/variable_tmcl__ros2_8hpp_1a08d5e6b4e9578bf088a32f179a8cc886.html#variable-documentation",
+    "generated/variable_tmcl__motor_8hpp_1aa08a577393243b86dfd2a97e61443673.html",
+    "generated/variable_tmcl__motor_8hpp_1aa08a577393243b86dfd2a97e61443673.html#variable-documentation",
+    "generated/variable_tmcl__motor_8hpp_1af222a82259522267f3c9d2eef59eb981.html",
+    "generated/variable_tmcl__motor_8hpp_1af222a82259522267f3c9d2eef59eb981.html#variable-documentation",
+    "generated/enum_tmcl__motor_8hpp_1aa943247d5ffb123900e85b02d883d65c.html",
+    "generated/enum_tmcl__motor_8hpp_1aa943247d5ffb123900e85b02d883d65c.html#enum-documentation",
+    "generated/enum_tmcl__bldc__motor_8hpp_1abc8c4782e7ed42111e8ca389e138b2dc.html",
+    "generated/enum_tmcl__bldc__motor_8hpp_1abc8c4782e7ed42111e8ca389e138b2dc.html#enum-documentation",
+    "generated/program_listing_file_include_adi_tmcl_tmcl_interpreter.hpp.html",
+    "generated/dir_include_adi_tmcl.html",
+    "generated/dir_include_adi_tmcl.html#files",
+    "generated/variable_tmcl__ros2_8hpp_1abb05ed9acd64ebfe299c38f3e01c7822.html",
+    "generated/variable_tmcl__ros2_8hpp_1abb05ed9acd64ebfe299c38f3e01c7822.html#variable-documentation",
+    "generated/index.html#class-hierarchy",
+    "generated/index.html#file-hierarchy",
+    "generated/index.html#classes-and-structs",
+    "generated/index.html#enums",
+    "generated/index.html#variables",
+    "generated/index.html#directories",
+    "generated/index.html#files",
+    "generated/dir_include.html",
+    "generated/dir_include.html#subdirectories",
+    "generated/program_listing_file_include_adi_tmcl_tmcl_bldc_motor.hpp.html",
+    "generated/classSocketCAN.html",
+    "generated/classSocketCAN.html#class-documentation",
+    "generated/variable_tmcl__ros2_8hpp_1a3d194dc0efac5e2e67974eea26ac4e4f.html",
+    "generated/variable_tmcl__ros2_8hpp_1a3d194dc0efac5e2e67974eea26ac4e4f.html#variable-documentation",
+    "generated/classBldcMotor.html",
+    "generated/classBldcMotor.html#base-type",
+    "generated/classBldcMotor.html#class-documentation",
+    "generated/variable_tmcl__ros2_8hpp_1a757b9189f6bb4d41d49e6a16dfb8e2c1.html",
+    "generated/variable_tmcl__ros2_8hpp_1a757b9189f6bb4d41d49e6a16dfb8e2c1.html#variable-documentation",
+    "generated/enum_tmcl__common_8hpp_1a2a3de5f2b349711c441315c1ea93c05c.html",
+    "generated/enum_tmcl__common_8hpp_1a2a3de5f2b349711c441315c1ea93c05c.html#enum-documentation",
+    "generated/program_listing_file_include_adi_tmcl_tmcl_ros2.hpp.html",
+    "generated/file_include_adi_tmcl_tmcl_interpreter.hpp.html",
+    "generated/file_include_adi_tmcl_tmcl_interpreter.hpp.html#definition-include-adi-tmcl-tmcl-interpreter-hpp",
+    "generated/file_include_adi_tmcl_tmcl_interpreter.hpp.html#includes",
+    "generated/file_include_adi_tmcl_tmcl_interpreter.hpp.html#included-by",
+    "generated/file_include_adi_tmcl_tmcl_interpreter.hpp.html#classes",
+    "generated/file_include_adi_tmcl_tmcl_interpreter.hpp.html#enums",
+    "generated/file_include_adi_tmcl_tmcl_interpreter.hpp.html#variables",
+    "README.html",
+    "README.html",
+    "README.html",
+    "README.html#software-dependencies",
+    "README.html",
+    "README.html",
+    "README.html",
+    "README.html#calibrate-the-motors",
+    "README.html#tune-the-pi-settings-of-the-motors",
+    "README.html#id1",
+    "README.html#initialize-can",
+    "README.html#de-initialize-can",
+    "README.html",
+    "README.html#tmcl-ros2-node",
+    "README.html#published-topics",
+    "README.html#subscribed-topics",
+    "README.html#advertised-services",
+    "README.html#parameters",
+    "README.html#communication-interface-parameters",
+    "README.html#tmc-ros-node-parameters",
+    "README.html#motor-configuration-settings",
+    "README.html#test-velocity-mode",
+    "README.html#test-position-mode",
+    "README.html#test-torque-mode",
+    "README.html",
+    "README.html",
+    "generated/variable_tmcl__ros2_8hpp_1af2f692e95694cfedbf186a0b2ab82f15.html",
+    "generated/variable_tmcl__ros2_8hpp_1af2f692e95694cfedbf186a0b2ab82f15.html#variable-documentation",
+    "index.html",
+    "index.html#adi-tmcl",
+    "index.html#background",
+    "index.html#hardware",
+    "index.html#software-dependencies",
+    "index.html#clone",
+    "index.html#build",
+    "index.html#pre-launch-one-time-per-setup",
+    "index.html#calibrate-the-motors",
+    "index.html#tune-the-pi-settings-of-the-motors",
+    "index.html#id1",
+    "index.html#initialize-can",
+    "index.html#de-initialize-can",
+    "index.html#launch",
+    "index.html#tmcl-ros2-node",
+    "index.html#published-topics",
+    "index.html#subscribed-topics",
+    "index.html#advertised-services",
+    "index.html#parameters",
+    "index.html#communication-interface-parameters",
+    "index.html#tmc-ros-node-parameters",
+    "index.html#motor-configuration-settings",
+    "index.html#test-velocity-mode",
+    "index.html#test-position-mode",
+    "index.html#test-torque-mode",
+    "index.html#limitations",
+    "index.html#support",
+    "generated/classMotor.html",
+    "generated/classMotor.html#derived-types",
+    "generated/classMotor.html#class-documentation",
+    "srv/TmcGgpAll.html",
+    "msg/TmcParam.html",
+    "srv/TmcCustomCmd.html",
+    "srv/TmcGapAll.html",
+    "msg/TmcInfo.html"
+  ],
+  "hierarchy": [
+    [
+      "C++ API",
+      "Variable TIMEOUT_MS_MIN"
+    ],
+    [
+      "C++ API",
+      "Variable TIMEOUT_MS_MIN",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "File tmcl_motor.hpp",
+      "Program Listing for File tmcl_motor.hpp"
+    ],
+    [
+      "C++ API",
+      "Enum tmcl_stepper_mode_t"
+    ],
+    [
+      "C++ API",
+      "Enum tmcl_stepper_mode_t",
+      "Enum Documentation"
+    ],
+    [
+      "C++ API",
+      "Variable TMCL_MSG_VALUE_SZ"
+    ],
+    [
+      "C++ API",
+      "Variable TMCL_MSG_VALUE_SZ",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Enum tmcl_additional_ratio_params_lut_t"
+    ],
+    [
+      "C++ API",
+      "Enum tmcl_additional_ratio_params_lut_t",
+      "Enum Documentation"
+    ],
+    [
+      "C++ API",
+      "Enum tmcl_interface_t"
+    ],
+    [
+      "C++ API",
+      "Enum tmcl_interface_t",
+      "Enum Documentation"
+    ],
+    [
+      "C++ API",
+      "Enum tmcl_general_params_lut_t"
+    ],
+    [
+      "C++ API",
+      "Enum tmcl_general_params_lut_t",
+      "Enum Documentation"
+    ],
+    [
+      "C++ API",
+      "Variable TMCM_BLDC"
+    ],
+    [
+      "C++ API",
+      "Variable TMCM_BLDC",
+      "Variable Documentation"
+    ],
+    [
+      "Changelog for package tmcl_ros2",
+      "2.1.0 (2025-07-31)"
+    ],
+    [
+      "Changelog for package tmcl_ros2",
+      "2.0.3 (2024-11-13)"
+    ],
+    [
+      "Changelog for package tmcl_ros2",
+      "2.0.2 (2024-11-05)"
+    ],
+    [
+      "Changelog for package tmcl_ros2",
+      "2.0.1 (2024-07-15)"
+    ],
+    [
+      "Changelog for package tmcl_ros2",
+      "2.0.0 (2023-11-21)"
+    ],
+    [
+      "Changelog for package tmcl_ros2",
+      "1.0.2 (2023-10-27)"
+    ],
+    [
+      "Changelog for package tmcl_ros2",
+      "1.0.1 (2023-10-10)"
+    ],
+    [
+      "Changelog for package tmcl_ros2",
+      "1.0.0 (2023-09-27)"
+    ],
+    [
+      "C++ API",
+      "Variable AUTO_START_ADDITIONAL_DELAY_MAX"
+    ],
+    [
+      "C++ API",
+      "Variable AUTO_START_ADDITIONAL_DELAY_MAX",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Variable tmcl_custom_cmd_"
+    ],
+    [
+      "C++ API",
+      "Variable tmcl_custom_cmd_",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Enum tmcl_sts_t"
+    ],
+    [
+      "C++ API",
+      "Enum tmcl_sts_t",
+      "Enum Documentation"
+    ],
+    [
+      "C++ API",
+      "File tmcl_motor.hpp"
+    ],
+    [
+      "C++ API",
+      "File tmcl_motor.hpp",
+      "Definition (include/adi_tmcl/tmcl_motor.hpp)"
+    ],
+    [
+      "C++ API",
+      "File tmcl_motor.hpp",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File tmcl_motor.hpp",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File tmcl_motor.hpp",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "File tmcl_motor.hpp",
+      "Enums"
+    ],
+    [
+      "C++ API",
+      "File tmcl_motor.hpp",
+      "Variables"
+    ],
+    [
+      "C++ API",
+      "File socket_can_wrapper.hpp",
+      "Program Listing for File socket_can_wrapper.hpp"
+    ],
+    [
+      "C++ API",
+      "File tmcl_ros2.hpp"
+    ],
+    [
+      "C++ API",
+      "File tmcl_ros2.hpp",
+      "Definition (include/adi_tmcl/tmcl_ros2.hpp)"
+    ],
+    [
+      "C++ API",
+      "File tmcl_ros2.hpp",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File tmcl_ros2.hpp",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "File tmcl_ros2.hpp",
+      "Enums"
+    ],
+    [
+      "C++ API",
+      "File tmcl_ros2.hpp",
+      "Variables"
+    ],
+    [
+      "C++ API",
+      "Enum tmcl_hardware_params_lut_t"
+    ],
+    [
+      "C++ API",
+      "Enum tmcl_hardware_params_lut_t",
+      "Enum Documentation"
+    ],
+    [
+      "C++ API",
+      "Variable TX_ID_DEFAULT"
+    ],
+    [
+      "C++ API",
+      "Variable TX_ID_DEFAULT",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Variable hardware_params_"
+    ],
+    [
+      "C++ API",
+      "Variable hardware_params_",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Variable comm_interface_params_"
+    ],
+    [
+      "C++ API",
+      "Variable comm_interface_params_",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Variable EXEC_CMD_RETRIES_MAX"
+    ],
+    [
+      "C++ API",
+      "Variable EXEC_CMD_RETRIES_MAX",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Struct tmcl_msg_t"
+    ],
+    [
+      "C++ API",
+      "Struct tmcl_msg_t",
+      "Struct Documentation"
+    ],
+    [
+      "C++ API",
+      "Variable additional_ratio_params_"
+    ],
+    [
+      "C++ API",
+      "Variable additional_ratio_params_",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Variable PUB_RATE_MIN"
+    ],
+    [
+      "C++ API",
+      "Variable PUB_RATE_MIN",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Struct tmcl_cfg_t"
+    ],
+    [
+      "C++ API",
+      "Struct tmcl_cfg_t",
+      "Struct Documentation"
+    ],
+    [
+      "C++ API",
+      "Enum tmcl_cmd_t"
+    ],
+    [
+      "C++ API",
+      "Enum tmcl_cmd_t",
+      "Enum Documentation"
+    ],
+    [
+      "C++ API",
+      "Class TmclRos2"
+    ],
+    [
+      "C++ API",
+      "Class TmclRos2",
+      "Class Documentation"
+    ],
+    [
+      "C++ API",
+      "File socket_can_wrapper.hpp"
+    ],
+    [
+      "C++ API",
+      "File socket_can_wrapper.hpp",
+      "Definition (include/adi_tmcl/socket_can_wrapper.hpp)"
+    ],
+    [
+      "C++ API",
+      "File socket_can_wrapper.hpp",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File socket_can_wrapper.hpp",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "File tmcl_stepper_motor.hpp",
+      "Program Listing for File tmcl_stepper_motor.hpp"
+    ],
+    [
+      "C++ API",
+      "Variable SEC_TO_MIN"
+    ],
+    [
+      "C++ API",
+      "Variable SEC_TO_MIN",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Variable TIMEOUT_MS_MAX"
+    ],
+    [
+      "C++ API",
+      "Variable TIMEOUT_MS_MAX",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Class StepperMotor"
+    ],
+    [
+      "C++ API",
+      "Class StepperMotor",
+      "Inheritance Relationships",
+      "Base Type"
+    ],
+    [
+      "C++ API",
+      "Class StepperMotor",
+      "Class Documentation"
+    ],
+    [
+      "C++ API",
+      "Enum tmcl_custom_cmd_lut_t"
+    ],
+    [
+      "C++ API",
+      "Enum tmcl_custom_cmd_lut_t",
+      "Enum Documentation"
+    ],
+    [
+      "C++ API",
+      "File tmcl_common.hpp",
+      "Program Listing for File tmcl_common.hpp"
+    ],
+    [
+      "C++ API",
+      "Variable EXEC_CMD_RETRIES_DEFAULT"
+    ],
+    [
+      "C++ API",
+      "Variable EXEC_CMD_RETRIES_DEFAULT",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Variable DEFAULT_BIT_WIDTH"
+    ],
+    [
+      "C++ API",
+      "Variable DEFAULT_BIT_WIDTH",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Class TmclInterpreter"
+    ],
+    [
+      "C++ API",
+      "Class TmclInterpreter",
+      "Class Documentation"
+    ],
+    [
+      "C++ API",
+      "File tmcl_common.hpp"
+    ],
+    [
+      "C++ API",
+      "File tmcl_common.hpp",
+      "Definition (include/adi_tmcl/tmcl_common.hpp)"
+    ],
+    [
+      "C++ API",
+      "File tmcl_common.hpp",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File tmcl_common.hpp",
+      "Enums"
+    ],
+    [
+      "C++ API",
+      "File tmcl_common.hpp",
+      "Variables"
+    ],
+    [
+      "C++ API",
+      "Variable ANGULAR_FULL_ROTATION"
+    ],
+    [
+      "C++ API",
+      "Variable ANGULAR_FULL_ROTATION",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Variable TXRX_ID_MIN"
+    ],
+    [
+      "C++ API",
+      "Variable TXRX_ID_MIN",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "File tmcl_stepper_motor.hpp"
+    ],
+    [
+      "C++ API",
+      "File tmcl_stepper_motor.hpp",
+      "Definition (include/adi_tmcl/tmcl_stepper_motor.hpp)"
+    ],
+    [
+      "C++ API",
+      "File tmcl_stepper_motor.hpp",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File tmcl_stepper_motor.hpp",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File tmcl_stepper_motor.hpp",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "File tmcl_stepper_motor.hpp",
+      "Enums"
+    ],
+    [
+      "C++ API",
+      "Variable PUB_RATE_DEFAULT"
+    ],
+    [
+      "C++ API",
+      "Variable PUB_RATE_DEFAULT",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "File tmcl_bldc_motor.hpp"
+    ],
+    [
+      "C++ API",
+      "File tmcl_bldc_motor.hpp",
+      "Definition (include/adi_tmcl/tmcl_bldc_motor.hpp)"
+    ],
+    [
+      "C++ API",
+      "File tmcl_bldc_motor.hpp",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File tmcl_bldc_motor.hpp",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File tmcl_bldc_motor.hpp",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "File tmcl_bldc_motor.hpp",
+      "Enums"
+    ],
+    [
+      "C++ API",
+      "Variable TXRX_ID_MAX"
+    ],
+    [
+      "C++ API",
+      "Variable TXRX_ID_MAX",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Variable ros_topic_params_"
+    ],
+    [
+      "C++ API",
+      "Variable ros_topic_params_",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Variable TMCL_MSG_SZ"
+    ],
+    [
+      "C++ API",
+      "Variable TMCL_MSG_SZ",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Variable TIMEOUT_MS_DEFAULT"
+    ],
+    [
+      "C++ API",
+      "Variable TIMEOUT_MS_DEFAULT",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Variable PI"
+    ],
+    [
+      "C++ API",
+      "Variable PI",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Variable PUB_RATE_MAX"
+    ],
+    [
+      "C++ API",
+      "Variable PUB_RATE_MAX",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Enum tmcl_ros_topic_params_lut_t"
+    ],
+    [
+      "C++ API",
+      "Enum tmcl_ros_topic_params_lut_t",
+      "Enum Documentation"
+    ],
+    [
+      "C++ API",
+      "Enum tmcl_bldc_comm_mode_t"
+    ],
+    [
+      "C++ API",
+      "Enum tmcl_bldc_comm_mode_t",
+      "Enum Documentation"
+    ],
+    [
+      "C++ API",
+      "File tmcl_interpreter.hpp",
+      "Program Listing for File tmcl_interpreter.hpp"
+    ],
+    [
+      "C++ API",
+      "Directory adi_tmcl"
+    ],
+    [
+      "C++ API",
+      "Directory adi_tmcl",
+      "Files"
+    ],
+    [
+      "C++ API",
+      "Variable MAX_BIT_WIDTH"
+    ],
+    [
+      "C++ API",
+      "Variable MAX_BIT_WIDTH",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Class Hierarchy"
+    ],
+    [
+      "C++ API",
+      "File Hierarchy"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Classes and Structs"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Enums"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Variables"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Directories"
+    ],
+    [
+      "C++ API",
+      "Full C++ API",
+      "Files"
+    ],
+    [
+      "C++ API",
+      "Directory include"
+    ],
+    [
+      "C++ API",
+      "Directory include",
+      "Subdirectories"
+    ],
+    [
+      "C++ API",
+      "File tmcl_bldc_motor.hpp",
+      "Program Listing for File tmcl_bldc_motor.hpp"
+    ],
+    [
+      "C++ API",
+      "Class SocketCAN"
+    ],
+    [
+      "C++ API",
+      "Class SocketCAN",
+      "Class Documentation"
+    ],
+    [
+      "C++ API",
+      "Variable AUTO_START_ADDITIONAL_DELAY_DEFAULT"
+    ],
+    [
+      "C++ API",
+      "Variable AUTO_START_ADDITIONAL_DELAY_DEFAULT",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Class BldcMotor"
+    ],
+    [
+      "C++ API",
+      "Class BldcMotor",
+      "Inheritance Relationships",
+      "Base Type"
+    ],
+    [
+      "C++ API",
+      "Class BldcMotor",
+      "Class Documentation"
+    ],
+    [
+      "C++ API",
+      "Variable RX_ID_DEFAULT"
+    ],
+    [
+      "C++ API",
+      "Variable RX_ID_DEFAULT",
+      "Variable Documentation"
+    ],
+    [
+      "C++ API",
+      "Enum tmcl_interface_params_lut_t"
+    ],
+    [
+      "C++ API",
+      "Enum tmcl_interface_params_lut_t",
+      "Enum Documentation"
+    ],
+    [
+      "C++ API",
+      "File tmcl_ros2.hpp",
+      "Program Listing for File tmcl_ros2.hpp"
+    ],
+    [
+      "C++ API",
+      "File tmcl_interpreter.hpp"
+    ],
+    [
+      "C++ API",
+      "File tmcl_interpreter.hpp",
+      "Definition (include/adi_tmcl/tmcl_interpreter.hpp)"
+    ],
+    [
+      "C++ API",
+      "File tmcl_interpreter.hpp",
+      "Includes"
+    ],
+    [
+      "C++ API",
+      "File tmcl_interpreter.hpp",
+      "Included By"
+    ],
+    [
+      "C++ API",
+      "File tmcl_interpreter.hpp",
+      "Classes"
+    ],
+    [
+      "C++ API",
+      "File tmcl_interpreter.hpp",
+      "Enums"
+    ],
+    [
+      "C++ API",
+      "File tmcl_interpreter.hpp",
+      "Variables"
+    ],
+    [
+      "adi_tmcl"
+    ],
+    [
+      "Background"
+    ],
+    [
+      "Hardware"
+    ],
+    [
+      "Software",
+      "Software Dependencies"
+    ],
+    [
+      "Clone"
+    ],
+    [
+      "Build"
+    ],
+    [
+      "Pre-Launch (One-time per setup)"
+    ],
+    [
+      "Pre-Launch (One-time per setup)",
+      "BLDC Motors",
+      "Calibrate the motors"
+    ],
+    [
+      "Pre-Launch (One-time per setup)",
+      "BLDC Motors",
+      "Tune the PI settings of the motors"
+    ],
+    [
+      "Pre-Launch (One-time per setup)",
+      "Stepper Motors",
+      "Calibrate the motors"
+    ],
+    [
+      "Pre-Launch (One-time)",
+      "Initialize CAN"
+    ],
+    [
+      "Pre-Launch (One-time)",
+      "De-initialize CAN"
+    ],
+    [
+      "Launch"
+    ],
+    [
+      "Nodes",
+      "tmcl_ros2_node"
+    ],
+    [
+      "Nodes",
+      "tmcl_ros2_node",
+      "Published topics"
+    ],
+    [
+      "Nodes",
+      "tmcl_ros2_node",
+      "Subscribed topics"
+    ],
+    [
+      "Nodes",
+      "tmcl_ros2_node",
+      "Advertised services"
+    ],
+    [
+      "Nodes",
+      "tmcl_ros2_node",
+      "Parameters"
+    ],
+    [
+      "Nodes",
+      "tmcl_ros2_node",
+      "Parameters",
+      "Communication Interface Parameters"
+    ],
+    [
+      "Nodes",
+      "tmcl_ros2_node",
+      "Parameters",
+      "TMC ROS Node Parameters"
+    ],
+    [
+      "Nodes",
+      "tmcl_ros2_node",
+      "Parameters",
+      "Motor Configuration Settings"
+    ],
+    [
+      "Quick Tests",
+      "Test Velocity Mode"
+    ],
+    [
+      "Quick Tests",
+      "Test Position Mode"
+    ],
+    [
+      "Quick Tests",
+      "Test Torque Mode"
+    ],
+    [
+      "Limitations"
+    ],
+    [
+      "Support"
+    ],
+    [
+      "C++ API",
+      "Variable general_params_"
+    ],
+    [
+      "C++ API",
+      "Variable general_params_",
+      "Variable Documentation"
+    ],
+    [
+      "adi_tmcl"
+    ],
+    [
+      "README",
+      "adi_tmcl"
+    ],
+    [
+      "README",
+      "Background"
+    ],
+    [
+      "README",
+      "Hardware"
+    ],
+    [
+      "README",
+      "Software",
+      "Software Dependencies"
+    ],
+    [
+      "README",
+      "Clone"
+    ],
+    [
+      "README",
+      "Build"
+    ],
+    [
+      "README",
+      "Pre-Launch (One-time per setup)"
+    ],
+    [
+      "README",
+      "Pre-Launch (One-time per setup)",
+      "BLDC Motors",
+      "Calibrate the motors"
+    ],
+    [
+      "README",
+      "Pre-Launch (One-time per setup)",
+      "BLDC Motors",
+      "Tune the PI settings of the motors"
+    ],
+    [
+      "README",
+      "Pre-Launch (One-time per setup)",
+      "Stepper Motors",
+      "Calibrate the motors"
+    ],
+    [
+      "README",
+      "Pre-Launch (One-time)",
+      "Initialize CAN"
+    ],
+    [
+      "README",
+      "Pre-Launch (One-time)",
+      "De-initialize CAN"
+    ],
+    [
+      "README",
+      "Launch"
+    ],
+    [
+      "README",
+      "Nodes",
+      "tmcl_ros2_node"
+    ],
+    [
+      "README",
+      "Nodes",
+      "tmcl_ros2_node",
+      "Published topics"
+    ],
+    [
+      "README",
+      "Nodes",
+      "tmcl_ros2_node",
+      "Subscribed topics"
+    ],
+    [
+      "README",
+      "Nodes",
+      "tmcl_ros2_node",
+      "Advertised services"
+    ],
+    [
+      "README",
+      "Nodes",
+      "tmcl_ros2_node",
+      "Parameters"
+    ],
+    [
+      "README",
+      "Nodes",
+      "tmcl_ros2_node",
+      "Parameters",
+      "Communication Interface Parameters"
+    ],
+    [
+      "README",
+      "Nodes",
+      "tmcl_ros2_node",
+      "Parameters",
+      "TMC ROS Node Parameters"
+    ],
+    [
+      "README",
+      "Nodes",
+      "tmcl_ros2_node",
+      "Parameters",
+      "Motor Configuration Settings"
+    ],
+    [
+      "README",
+      "Quick Tests",
+      "Test Velocity Mode"
+    ],
+    [
+      "README",
+      "Quick Tests",
+      "Test Position Mode"
+    ],
+    [
+      "README",
+      "Quick Tests",
+      "Test Torque Mode"
+    ],
+    [
+      "README",
+      "Limitations"
+    ],
+    [
+      "README",
+      "Support"
+    ],
+    [
+      "C++ API",
+      "Class Motor"
+    ],
+    [
+      "C++ API",
+      "Class Motor",
+      "Inheritance Relationships",
+      "Derived Types"
+    ],
+    [
+      "C++ API",
+      "Class Motor",
+      "Class Documentation"
+    ],
+    [
+      "Service Definitions",
+      "TmcGgpAll"
+    ],
+    [
+      "Message Definitions",
+      "TmcParam"
+    ],
+    [
+      "Service Definitions",
+      "TmcCustomCmd"
+    ],
+    [
+      "Service Definitions",
+      "TmcGapAll"
+    ],
+    [
+      "Message Definitions",
+      "TmcInfo"
+    ]
+  ]
+}
