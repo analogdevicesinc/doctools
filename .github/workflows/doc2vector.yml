@@ -40,10 +40,22 @@ jobs:
         repository: ${{ github.repository }}
         path: vector
 
-    - uses: analogdevicesinc/doctools/blank@action
-      with:
-        repository: ${{ inputs.organization }}/${{ inputs.repository }}
-        path: pages
+    - name: Clone target doc (cone)
+      run: |
+        # Filter out pulls|prs
+        [[ -d "pages" ]] && rm -r "pages" || :
+        url="https://x-access-token:${{ inputs.gh-token }}@github.com/${{ inputs.organization }}/${{ inputs.repository }}.git"
+        git clone "$url" \
+          --depth 1 \
+          --filter=blob:none \
+          --no-checkout \
+          --branch ${{ inputs.ref }} -- pages
+
+        cd pages
+        git sparse-checkout init --cone
+        sparse=$(git ls-tree --name-only -d "origin/${{ inputs.ref }}" | grep -Ev '^(pull|prs)')
+        git sparse-checkout set $sparse
+        git checkout "${{ inputs.ref }}"
 
     - name: Setup vector branch
       run: |
@@ -184,3 +196,5 @@ jobs:
       if: always()
       run: |
         rm -rf "$py_venv"
+        rm -rf "pages"
+        rm -rf "vector"
