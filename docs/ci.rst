@@ -266,8 +266,8 @@ One liner to install:
 
    $ grep "/container-run.sh" ~/.bashrc || \
        { curl "https://raw.githubusercontent.com/analogdevicesinc/doctools/refs/heads/main/ci/scripts/container-run.sh" \
-         -o .local/bin/container-run.sh && \
-       echo "source ~/.local/bin/container-run.sh" >> .bashrc ; }
+         -o ~/.local/bin/container-run.sh && \
+       echo "source ~/.local/bin/container-run.sh" >> ~/.bashrc ; }
 
 .. _podman-run:
 
