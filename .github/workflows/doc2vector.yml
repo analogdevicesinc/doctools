@@ -30,8 +30,7 @@ permissions:
 jobs:
   build:
     concurrency:
-      group: vector
-      cancel-in-progress: false
+      group: vector@${{ inputs.organization }}/${{ inputs.repository }}
     runs-on: [self-hosted, repo-only, v2]
 
     steps:
@@ -190,6 +189,8 @@ jobs:
         cd vector
         git add .
         git commit -m "deploy: ${{ inputs.repository }}@${{ env.pages_head_sha }}"
+        # Due to concurrency between repositories, ensure it is up to date
+        git pull origin vector --rebase
         git push origin HEAD:vector
 
     - name: Clean-up
