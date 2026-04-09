@@ -1,0 +1,478 @@
+{
+  "text": [
+    "ADI maintains a set of tools to interface with ADI precision converters within MATLAB and Simulink. These are combined into a single toolbox. Currently, the toolbox supports only converter configuration and data streaming.\n\nIndex:\n\n- Installation\n- Data Streaming\n- Examples\n- Limitations\n- Support\n-",
+    "**AD7768 Precision ADC Class**\n\nadi.AD7768.Rx Receives data from the AD7768 ADC\nThe adi.AD7768.Rx System object is a signal source that can receive\ndata from the AD7768.\n\nrx = adi.AD7768.Rx;\nrx = adi.AD7768.Rx(\u2018uri\u2019,\u2019192.168.2.1\u2019);\n\nAD7768 Datasheet\n",
+    "****EnabledChannels Enabled Channels****\n:   Indexs of channels to be enabled. Input should be a [1xN] vector with the indexes of channels to be enabled. Order is irrelevant\n\n****SampleRate Sample Rate****\n:   Baseband sampling rate in Hz, specified as a scalar in samples per second. Options are: \u20182",
+    "**AD5780 Voltage output DAC Class**\n\nadi.AD5780.Tx Transmits data to the AD5780 DAC\nThe adi.AD5780.Tx System object is a signal sink that can transmit\ndata to the AD5780.\n\ntx = adi.AD5780.Tx;\ntx = adi.AD5780.Tx(\u2018uri\u2019,\u2019ip:192.168.2.1\u2019);\n\nAD5780 Datasheet\n",
+    "****CodeSelect - Code Select****\n:   Set to 2s_complement/offset_binary\n\n****DDSFrequencies DDS Frequencies****\n:   Frequencies values in Hz of the DDS tone generators. For complex data devices the input is a [2xN] matrix where N is the available channels on the board. For complex data devices this ",
+    "**AD4000 Precision ADC Class**\n\nadi.AD4000.Rx Receives data from the AD4000 ADC\nThe adi.AD4000.Rx System object is a signal source that can receive\ndata from the AD4000.\n\nrx = adi.AD4000.Rx;\nrx = adi.AD4000.Rx(\u2018uri\u2019,\u2019192.168.2.1\u2019);\n\nAD4000 Datasheet\n",
+    "****EnabledChannels Enabled Channels****\n:   Indexs of channels to be enabled. Input should be a [1xN] vector with the indexes of channels to be enabled. Order is irrelevant\n\n****SampleRate - Sample Rate****\n:   Baseband sampling rate in Hz, specified as a scalar in samples per second.\n\n****Frame si",
+    "**AD2S1210 Resolver-to-Digital Converter Class**\n\nadi.AD2S1210.Rx Receives data from the AD2S1210 Resolver\nThe adi.AD2S1210.Rx System object is a signal source that can receive\ndata from the AD2S1210.\n\nrx = adi.AD2S1210.Rx;\nrx = adi.AD2S1210.Rx(\u2018uri\u2019,\u2019192.168.2.1\u2019);\n\nAD2S1210 Datasheet\n",
+    "****Angle****\n:   Resolver angle in Degrees.\n\n****AngleScale Angular Scale****\n:   Resolver angle scale.\n\n****EnabledChannels Enabled Channels****\n:   Indexs of channels to be enabled. Input should be a [1xN] vector with the indexes of channels to be enabled. Order is irrelevant\n\n****SamplesPerFrame",
+    "**AD4010 Precision ADC Class**\n\nadi.AD4010.Rx Receives data from the AD4010 ADC\nThe adi.AD4010.Rx System object is a signal source that can receive\ndata from the AD4010.\n\nrx = adi.AD4010.Rx;\nrx = adi.AD4010.Rx(\u2018uri\u2019,\u2019192.168.2.1\u2019);\n\nAD4010 Datasheet\n",
+    "****EnabledChannels Enabled Channels****\n:   Indexs of channels to be enabled. Input should be a [1xN] vector with the indexes of channels to be enabled. Order is irrelevant\n\n****SampleRate - Sample Rate****\n:   Baseband sampling rate in Hz, specified as a scalar in samples per second.\n\n****Frame si",
+    "**AD4630-16 Precision ADC Class**\n\nadi.AD4630_16.Rx Receive data from the AD4630-16 ADC\nThe adi.AD4630_16.Rx System object is a signal source that can receive\ndata from the AD4630-16.\n\nrx = adi.AD4630_16.Rx;\nrx = adi.AD4630_16.Rx(\u2018uri\u2019,\u2019192.168.2.1\u2019);\n\nAD4630-16 Datasheet\n",
+    "****EnabledChannels Enabled Channels****\n:   Indexs of channels to be enabled. Input should be a [1xN] vector with the indexes of channels to be enabled. Order is irrelevant\n\n****SampleAveragingLength****\n:   Block length of samples to be averaged. Applied in the Averaging Mode register only when OU",
+    "Driver Classes:\n\n- adi.AD7380.Rx\n- adi.AD7768.Rx\n- adi.AD7768_1.Rx\n- adi.AD4030.Rx\n- adi.AD4630_16.Rx\n- adi.AD4630_24.Rx\n- adi.AD4858.Rx\n- adi.AD2S1210.Rx\n- adi.AD4000.Rx\n- adi.AD4001.Rx\n- adi.AD4002.Rx\n- adi.AD4003.Rx\n- adi.AD4004.Rx\n- adi.AD4005.Rx\n- adi.AD4006.Rx\n- adi.AD4007.Rx\n- adi.AD4008.Rx\n-",
+    "**AD4008 Precision ADC Class**\n\nadi.AD4008.Rx Receives data from the AD4008 ADC\nThe adi.AD4008.Rx System object is a signal source that can receive\ndata from the AD4008.\n\nrx = adi.AD4008.Rx;\nrx = adi.AD4008.Rx(\u2018uri\u2019,\u2019192.168.2.1\u2019);\n\nAD4008 Datasheet\n",
+    "****EnabledChannels Enabled Channels****\n:   Indexs of channels to be enabled. Input should be a [1xN] vector with the indexes of channels to be enabled. Order is irrelevant\n\n****SampleRate - Sample Rate****\n:   Baseband sampling rate in Hz, specified as a scalar in samples per second.\n\n****Frame si",
+    "**AD7124-8 Precision ADC Class**\n\nadi.AD7124-8.Rx Receives data from the AD7124 ADC\nThe adi.AD7124-8.Rx System object is a signal source that can receive\ndata from the AD7124-8.\n\nrx = adi.AD7124_8.Rx;\nrx = adi.AD7124_8.Rx(\u2018uri\u2019,\u2019ip:192.168.2.1\u2019);\n\nAD7124-8 Datasheet\n",
+    "****EnabledChannels Enabled Channels****\n:   Indexs of channels to be enabled. Input should be a [1xN] vector with the indexes of channels to be enabled. Order is irrelevant\n\n****SampleRate Sample Rate****\n:   Baseband sampling rate in Hz, specified as a scalar in samples per second.Help for adi.AD7",
+    "**AD4021 Precision ADC Class**\n\nadi.AD4021.Rx Receives data from the AD4021 ADC\nThe adi.AD4021.Rx System object is a signal source that can receive\ndata from the AD4021.\n\nrx = adi.AD4021.Rx;\nrx = adi.AD4021.Rx(\u2018uri\u2019,\u2019192.168.2.1\u2019);\n\nAD4021 Datasheet\n",
+    "****EnabledChannels Enabled Channels****\n:   Indexs of channels to be enabled. Input should be a [1xN] vector with the indexes of channels to be enabled. Order is irrelevant\n\n****SampleRate - Sample Rate****\n:   Baseband sampling rate in Hz, specified as a scalar in samples per second.\n\n****Frame si",
+    "**AD4007 Precision ADC Class**\n\nadi.AD4007.Rx Receives data from the AD4007 ADC\nThe adi.AD4007.Rx System object is a signal source that can receive\ndata from the AD4007.\n\nrx = adi.AD4007.Rx;\nrx = adi.AD4007.Rx(\u2018uri\u2019,\u2019192.168.2.1\u2019);\n\nAD4007 Datasheet\n",
+    "****EnabledChannels Enabled Channels****\n:   Indexs of channels to be enabled. Input should be a [1xN] vector with the indexes of channels to be enabled. Order is irrelevant\n\n****SampleRate - Sample Rate****\n:   Baseband sampling rate in Hz, specified as a scalar in samples per second.\n\n****Frame si",
+    "**AD4005 Precision ADC Class**\n\nadi.AD4005.Rx Receives data from the AD4005 ADC\nThe adi.AD4005.Rx System object is a signal source that can receive\ndata from the AD4005.\n\nrx = adi.AD4005.Rx;\nrx = adi.AD4005.Rx(\u2018uri\u2019,\u2019192.168.2.1\u2019);\n\nAD4005 Datasheet\n",
+    "****EnabledChannels Enabled Channels****\n:   Indexs of channels to be enabled. Input should be a [1xN] vector with the indexes of channels to be enabled. Order is irrelevant\n\n****SampleRate - Sample Rate****\n:   Baseband sampling rate in Hz, specified as a scalar in samples per second.\n\n****Frame si",
+    "Some limitations and bugs are known to be present in the support for the ADCs relevant to the Precision Toolbox. They have been summarized below.\n\n**Libiio backend**\n\nCurrently only ethernet/IP backends are supported for all the parts in the toolbox. For AD4030-24, AD4630-16 and AD4630-24 the usb ba",
+    "**AD5791 Voltage output DAC Class**\n\nadi.AD5791.Tx Transmits data to the AD5791 DAC\nThe adi.AD5791.Tx System object is a signal sink that can transmit\ndata to the AD5791.\n\ntx = adi.AD5791.Tx;\ntx = adi.AD5791.Tx(\u2018uri\u2019,\u2019ip:192.168.2.1\u2019);\n\nAD5791 Datasheet\n",
+    "****CodeSelect - Code Select****\n:   Set to 2s_complement/offset_binary\n\n****DDSFrequencies DDS Frequencies****\n:   Frequencies values in Hz of the DDS tone generators. For complex data devices the input is a [2xN] matrix where N is the available channels on the board. For complex data devices this ",
+    "**AD4022 Precision ADC Class**\n\nadi.AD4022.Rx Receives data from the AD4022 ADC\nThe adi.AD4022.Rx System object is a signal source that can receive\ndata from the AD4022.\n\nrx = adi.AD4022.Rx;\nrx = adi.AD4022.Rx(\u2018uri\u2019,\u2019192.168.2.1\u2019);\n\nAD4022 Datasheet\n",
+    "****EnabledChannels Enabled Channels****\n:   Indexs of channels to be enabled. Input should be a [1xN] vector with the indexes of channels to be enabled. Order is irrelevant\n\n****SampleRate - Sample Rate****\n:   Baseband sampling rate in Hz, specified as a scalar in samples per second.\n\n****Frame si",
+    "**AD4858 Precision ADC Class**\n\nadi.AD4858.Rx Receives data from the AD4858 ADC\nThe adi.AD4858.Rx System object is a signal source that can receive\ndata from the AD4858.\n\nrx = adi.AD4858.Rx;\nrx = adi.AD4858.Rx(\u2018uri\u2019,\u2019192.168.2.1\u2019);\n\nAD4858 Datasheet\n",
+    "****EnabledChannels Enabled Channels****\n:   Indexs of channels to be enabled. Input should be a [1xN] vector with the indexes of channels to be enabled. Order is irrelevant\n\n****SampleRate Sample Rate****\n:   Baseband sampling rate in Hz, specified as a scalar in samples per second.\n\n****SamplesPer",
+    "Support is provided online through the EngineerZone forums. If you have questions related to the hardware itself outside of this BSP, contact your local FAE or ask on the forums.\n\nQuestion regarding specific aspect of the BSP should be asked in the following places:\n\n- Software Interface Tools for q",
+    "**AD4001 Precision ADC Class**\n\nadi.AD4001.Rx Receives data from the AD4001 ADC\nThe adi.AD4001.Rx System object is a signal source that can receive\ndata from the AD4001.\n\nrx = adi.AD4001.Rx;\nrx = adi.AD4001.Rx(\u2018uri\u2019,\u2019192.168.2.1\u2019);\n\nAD4001 Datasheet\n",
+    "****EnabledChannels Enabled Channels****\n:   Indexs of channels to be enabled. Input should be a [1xN] vector with the indexes of channels to be enabled. Order is irrelevant\n\n****SampleRate - Sample Rate****\n:   Baseband sampling rate in Hz, specified as a scalar in samples per second.\n\n****Frame si",
+    "**AD7124-4 Precision ADC Class**\n\nadi.AD7124-4.Rx Receives data from the AD7124 ADC\nThe adi.AD7124-4.Rx System object is a signal source that can receive\ndata from the AD7124-4.\n\nrx = adi.AD7124_4.Rx;\nrx = adi.AD7124_4.Rx(\u2018uri\u2019,\u2019ip:192.168.2.1\u2019);\n\nAD7124-4 Datasheet\n",
+    "****EnabledChannels Enabled Channels****\n:   Indexs of channels to be enabled. Input should be a [1xN] vector with the indexes of channels to be enabled. Order is irrelevant\n\n****SampleRate Sample Rate****\n:   Baseband sampling rate in Hz, specified as a scalar in samples per second.Help for adi.AD7",
+    "**AD4052 Precision ADC Class**\n\nadi.AD4052.Rx Receive data from the AD4052 ADC\nThe adi.AD4052.Rx System object is a signal source that can receive\ndata from the AD4052.\n\nrx = adi.AD4052.Rx;\nrx = adi.AD4052.Rx(\u2018uri\u2019,\u2019serial:COM5,230400\u2019);\n\nAD4052 Datasheet\n",
+    "****AvgFilterLength - BurstAveragingLength Burst Averaging Length****\n:   Length of the averaging filter in \u2018burst averaging mode\u2019\n\n****BurstSampleRate - Burst Sample Rate****\n:   Rate of internal averaging in \u2018burst averaging mode\u2019\n\n****EnabledChannels Enabled Channels****\n:   Indexs of channels to",
+    "**AD4170 Precision ADC Class**\n\nadi.AD4170.Rx Receives data from the AD4170 ADC\nThe adi.AD4170.Rx System object is a signal source that can receive\ndata from the AD4170.\n\nrx = adi.AD4170.Rx;\nrx = adi.AD4170.Rx(\u2018uri\u2019,\u2019ip:192.168.2.1\u2019);\n\nAD4170 Datasheet\n",
+    "****AdcMode ADC Mode****\n:   ADC Mode for data capture, represented as a string. It supports the following: \u2018Continuous_Conversion\u2019, \u2018Continuous_Conversion_FIR\u2019, \u2018Continuous_Conversion_IIR\u2019, \u2018Standby\u2019, \u2018Power_Down\u2019, \u2018Idle\u2019Help for adi.AD4170.Rx/AdcMode is inherited from superclass adi.AD4170.Base\n\n*",
+    "The toolbox has different dependencies based on the features required. The base dependencies for streaming data are listed below.\n\nThe base dependencies for the toolbox requires libiio and the libiio MATLAB bindings. There are three options for this install with different required MathWorks Toolboxe",
+    "The Precision Toolbox itself can be installed either from:\n\n- MATLAB\u2019s Add-On Explorer\n- GitHub Releases page\n\n\n> **Warning**\n>\n> Before installing Precision Toolbox check the Release Page to check for the latest supported version of MATLAB. The latest version is the one which is available in Add-on",
+    "To install the toolbox from within MATLAB using the Add-On Explorer:\n\n- Launch the Add-Ons Explorer from MATLAB\u2019s Home tab\n- Search for \u2018Precision Toolbox\u2019\n- Select Precision Toolbox from Analog Devices, Inc. from the results:\n- Install the toolbox\n",
+    "**AD4003 Precision ADC Class**\n\nadi.AD4003.Rx Receives data from the AD4003 ADC\nThe adi.AD4003.Rx System object is a signal source that can receive\ndata from the AD4003.\n\nrx = adi.AD4003.Rx;\nrx = adi.AD4003.Rx(\u2018uri\u2019,\u2019192.168.2.1\u2019);\n\nAD4003 Datasheet\n",
+    "****EnabledChannels Enabled Channels****\n:   Indexs of channels to be enabled. Input should be a [1xN] vector with the indexes of channels to be enabled. Order is irrelevant\n\n****SampleRate - Sample Rate****\n:   Baseband sampling rate in Hz, specified as a scalar in samples per second.\n\n****Frame si",
+    "**AD4002 Precision ADC Class**\n\nadi.AD4002.Rx Receives data from the AD4002 ADC\nThe adi.AD4002.Rx System object is a signal source that can receive\ndata from the AD4002.\n\nrx = adi.AD4002.Rx;\nrx = adi.AD4002.Rx(\u2018uri\u2019,\u2019192.168.2.1\u2019);\n\nAD4002 Datasheet\n",
+    "****EnabledChannels Enabled Channels****\n:   Indexs of channels to be enabled. Input should be a [1xN] vector with the indexes of channels to be enabled. Order is irrelevant\n\n****SampleRate - Sample Rate****\n:   Baseband sampling rate in Hz, specified as a scalar in samples per second.\n\n****Frame si",
+    "**AD4630-24 Precision ADC Class**\n\nadi.AD4630_24.Rx Receive data from the AD4630-24 ADC\nThe adi.AD4630_24.Rx System object is a signal source that can receive\ndata from the AD4630-24.\n\nrx = adi.AD4630_24.Rx;\nrx = adi.AD4630_24.Rx(\u2018uri\u2019,\u2019192.168.2.1\u2019);\n\nAD4630-24 Datasheet\n",
+    "****EnabledChannels Enabled Channels****\n:   Indexs of channels to be enabled. Input should be a [1xN] vector with the indexes of channels to be enabled. Order is irrelevant\n\n****SampleAveragingLength****\n:   Block length of samples to be averaged. Applied in the Averaging Mode register only when OU",
+    "**AD4020 Precision ADC Class**\n\nadi.AD4020.Rx Receives data from the AD4020 ADC\nThe adi.AD4020.Rx System object is a signal source that can receive\ndata from the AD4020.\n\nrx = adi.AD4020.Rx;\nrx = adi.AD4020.Rx(\u2018uri\u2019,\u2019192.168.2.1\u2019);\n\nAD4020 Datasheet\n",
+    "****EnabledChannels Enabled Channels****\n:   Indexs of channels to be enabled. Input should be a [1xN] vector with the indexes of channels to be enabled. Order is irrelevant\n\n****SampleRate - Sample Rate****\n:   Baseband sampling rate in Hz, specified as a scalar in samples per second.\n\n****Frame si",
+    "Remote data streaming to and from hardware is made available through system object interfaces , which are unique for each component or platform. The hardware interfacing system objects provide a since class to both configure a given platform and move data back and forth from the device.\n\nCommand and",
+    "Connecting to hardware is done by setting the **uri** property of the system object interface. The **uri** for libiio always has the convention \u201c*< backend >:< address >*\u201d, where *backend* can be ethernet, ip or usb. *address* will be specific to the backend. This is documented in the libiio API .\n\n",
+    "To receive or capture data from a given device first you must instantiate that device\u2019s interface class. For a generic ADC, this would be as follows:\n\n```MATLAB\nrx = adi.ADxxxx.Rx;\n```\n\n\nOnce instantiated you can configure the number of samples to be captured by setting the property **SamplesPerFram",
+    "If you are capturing multiple frames or buffers of data, then there might arise situations where discontinuities appear in the samples, when plotted.\n\nSome detail and tips are discussed in this wiki page on IIO System Considerations, Tips and Tricks\n\nThe IIO buffer size is governed by the SamplesPer",
+    "**AD7768-1 Precision ADC Class**\n\nadi.AD7768_1.Rx Receives data from the AD7768-1 ADC\nThe adi.AD7768_1.Rx System object is a signal source that can receive\ndata from the AD7768-1.\n\nrx = adi.AD7768_1.Rx;\nrx = adi.AD7768_1.Rx(\u2018uri\u2019,\u2019192.168.2.1\u2019);\n\nAD7768-1 Datasheet\n",
+    "****SCommonModeVolts Common Mode Voltage****\n:   Common mode voltage in volts, specified as a string Options are: \u2018(AVDD1-AVSS)/2\u2019,\u20192V5\u2019,\u20192V05\u2019,\u20191V9\u2019,\u20191V65\u2019,\u20191V1\u2019,\u20190V9\u2019,\u2019OFF\u2019\n\n****EnabledChannels Enabled Channels****\n:   Indexs of channels to be enabled. Input should be a [1xN] vector with the index",
+    "**AD4011 Precision ADC Class**\n\nadi.AD4011.Rx Receives data from the AD4011 ADC\nThe adi.AD4011.Rx System object is a signal source that can receive\ndata from the AD4011.\n\nrx = adi.AD4011.Rx;\nrx = adi.AD4011.Rx(\u2018uri\u2019,\u2019192.168.2.1\u2019);\n\nAD4011 Datasheet\n",
+    "****EnabledChannels Enabled Channels****\n:   Indexs of channels to be enabled. Input should be a [1xN] vector with the indexes of channels to be enabled. Order is irrelevant\n\n****SampleRate - Sample Rate****\n:   Baseband sampling rate in Hz, specified as a scalar in samples per second.\n\n****Frame si",
+    "**AD5760 Voltage output DAC Class**\n\nadi.AD5760.Tx Transmits data to the AD5760 DAC\nThe adi.AD5760.Tx System object is a signal sink that can transmit\ndata to the AD5760.\n\ntx = adi.AD5760.Tx;\ntx = adi.AD5760.Tx(\u2018uri\u2019,\u2019ip:192.168.2.1\u2019);\n\nAD5760 Datasheet\n",
+    "****CodeSelect - Code Select****\n:   Set to 2s_complement/offset_binary\n\n****DDSFrequencies DDS Frequencies****\n:   Frequencies values in Hz of the DDS tone generators. For complex data devices the input is a [2xN] matrix where N is the available channels on the board. For complex data devices this ",
+    "**AD5790 Voltage output DAC Class**\n\nadi.AD5790.Tx Transmits data to the AD5790 DAC\nThe adi.AD5790.Tx System object is a signal sink that can transmit\ndata to the AD5790.\n\ntx = adi.AD5790.Tx;\ntx = adi.AD5790.Tx(\u2018uri\u2019,\u2019ip:192.168.2.1\u2019);\n\nAD5790 Datasheet\n",
+    "****CodeSelect - Code Select****\n:   Set to 2s_complement/offset_binary\n\n****DDSFrequencies DDS Frequencies****\n:   Frequencies values in Hz of the DDS tone generators. For complex data devices the input is a [2xN] matrix where N is the available channels on the board. For complex data devices this ",
+    "**AD4004 Precision ADC Class**\n\nadi.AD4004.Rx Receives data from the AD4004 ADC\nThe adi.AD4004.Rx System object is a signal source that can receive\ndata from the AD4004.\n\nrx = adi.AD4004.Rx;\nrx = adi.AD4004.Rx(\u2018uri\u2019,\u2019192.168.2.1\u2019);\n\nAD4004 Datasheet\n",
+    "****EnabledChannels Enabled Channels****\n:   Indexs of channels to be enabled. Input should be a [1xN] vector with the indexes of channels to be enabled. Order is irrelevant\n\n****SampleRate - Sample Rate****\n:   Baseband sampling rate in Hz, specified as a scalar in samples per second.\n\n****Frame si",
+    "Examples for streaming data are listed within the Toolbox documentation itself. To view run the following with MATLAB:\n\n```MATLAB\ndoc adi\n```\n\n\nThey can also be viewed on GitHub:\n\n- Streaming examples\n",
+    "**AD4006 Precision ADC Class**\n\nadi.AD4006.Rx Receives data from the AD4006 ADC\nThe adi.AD4006.Rx System object is a signal source that can receive\ndata from the AD4006.\n\nrx = adi.AD4006.Rx;\nrx = adi.AD4006.Rx(\u2018uri\u2019,\u2019192.168.2.1\u2019);\n\nAD4006 Datasheet\n",
+    "****EnabledChannels Enabled Channels****\n:   Indexs of channels to be enabled. Input should be a [1xN] vector with the indexes of channels to be enabled. Order is irrelevant\n\n****SampleRate - Sample Rate****\n:   Baseband sampling rate in Hz, specified as a scalar in samples per second.\n\n****Frame si",
+    "**AD4030-24 Precision ADC Class**\n\nadi.AD4030.Rx Receives data from the AD4030-24 ADC\nThe adi.AD4030.Rx System object is a signal source that can receive\ndata from the AD4030-24.\n\nrx = adi.AD4030.Rx;\nrx = adi.AD4030.Rx(\u2018uri\u2019,\u2019192.168.2.1\u2019);\n\nAD4030-24 Datasheet\n",
+    "****EnabledChannels Enabled Channels****\n:   Indexs of channels to be enabled. Input should be a [1xN] vector with the indexes of channels to be enabled. Order is irrelevant\n\n****SampleAveragingLength****\n:   Block length of samples to be averaged. Applied in the Averaging Mode register only when OU",
+    "**AD7380 Precision ADC Class**\n\nadi.AD7380.Rx Receives data from the AD7380 ADC\nThe adi.AD7380.Rx System object is a signal source that can receive\ndata from the AD7380.\n\nrx = adi.AD7380.Rx;\nrx = adi.AD7380.Rx(\u2018uri\u2019,\u2019192.168.2.1\u2019);\n\nAD7380 Datasheet\n",
+    "****EnabledChannels Enabled Channels****\n:   Indexs of channels to be enabled. Input should be a [1xN] vector with the indexes of channels to be enabled. Order is irrelevant\n\n****SampleRate - Sample Rate****\n:   Baseband sampling rate in Hz, specified as a scalar in samples per second. Options are: ",
+    "**AD5781 Voltage output DAC Class**\n\nadi.AD5781.Tx Transmits data to the AD5781 DAC\nThe adi.AD5781.Tx System object is a signal sink that can transmit\ndata to the AD5781.\n\ntx = adi.AD5781.Tx;\ntx = adi.AD5781.Tx(\u2018uri\u2019,\u2019ip:192.168.2.1\u2019);\n\nAD5781 Datasheet\n",
+    "****CodeSelect - Code Select****\n:   Set to 2s_complement/offset_binary\n\n****DDSFrequencies DDS Frequencies****\n:   Frequencies values in Hz of the DDS tone generators. For complex data devices the input is a [2xN] matrix where N is the available channels on the board. For complex data devices this "
+  ],
+  "url": [
+    "index.html",
+    "reference_api/AD7768_Rx.html",
+    "reference_api/AD7768_Rx.html#class-properties",
+    "reference_api/AD5780_Tx.html",
+    "reference_api/AD5780_Tx.html#class-properties",
+    "reference_api/AD4000_Rx.html",
+    "reference_api/AD4000_Rx.html#class-properties",
+    "reference_api/AD2S1210_Rx.html",
+    "reference_api/AD2S1210_Rx.html#class-properties",
+    "reference_api/AD4010_Rx.html",
+    "reference_api/AD4010_Rx.html#class-properties",
+    "reference_api/AD4630_16_Rx.html",
+    "reference_api/AD4630_16_Rx.html#class-properties",
+    "reference_api/index.html",
+    "reference_api/AD4008_Rx.html",
+    "reference_api/AD4008_Rx.html#class-properties",
+    "reference_api/AD7124_8_Rx.html",
+    "reference_api/AD7124_8_Rx.html#class-properties",
+    "reference_api/AD4021_Rx.html",
+    "reference_api/AD4021_Rx.html#class-properties",
+    "reference_api/AD4007_Rx.html",
+    "reference_api/AD4007_Rx.html#class-properties",
+    "reference_api/AD4005_Rx.html",
+    "reference_api/AD4005_Rx.html#class-properties",
+    "common/limitations.html#known-limitations-bugs-and-quirks",
+    "reference_api/AD5791_Tx.html",
+    "reference_api/AD5791_Tx.html#class-properties",
+    "reference_api/AD4022_Rx.html",
+    "reference_api/AD4022_Rx.html#class-properties",
+    "reference_api/AD4858_Rx.html",
+    "reference_api/AD4858_Rx.html#class-properties",
+    "common/support.html",
+    "reference_api/AD4001_Rx.html",
+    "reference_api/AD4001_Rx.html#class-properties",
+    "reference_api/AD7124_4_Rx.html",
+    "reference_api/AD7124_4_Rx.html#class-properties",
+    "reference_api/AD4052_Rx.html",
+    "reference_api/AD4052_Rx.html#class-properties",
+    "reference_api/AD4170_Rx.html",
+    "reference_api/AD4170_Rx.html#class-properties",
+    "common/installation.html#dependencies",
+    "common/installation.html#precision-toolbox-install",
+    "common/installation.html#add-on-explorer-walkthrough",
+    "reference_api/AD4003_Rx.html",
+    "reference_api/AD4003_Rx.html#class-properties",
+    "reference_api/AD4002_Rx.html",
+    "reference_api/AD4002_Rx.html#class-properties",
+    "reference_api/AD4630_24_Rx.html",
+    "reference_api/AD4630_24_Rx.html#class-properties",
+    "reference_api/AD4020_Rx.html",
+    "reference_api/AD4020_Rx.html#class-properties",
+    "common/data_streaming.html",
+    "common/data_streaming.html#connecting-and-configuration",
+    "common/data_streaming.html#receiving-data",
+    "common/data_streaming.html#continuous-data-acquisition",
+    "reference_api/AD7768_1_Rx.html",
+    "reference_api/AD7768_1_Rx.html#class-properties",
+    "reference_api/AD4011_Rx.html",
+    "reference_api/AD4011_Rx.html#class-properties",
+    "reference_api/AD5760_Tx.html",
+    "reference_api/AD5760_Tx.html#class-properties",
+    "reference_api/AD5790_Tx.html",
+    "reference_api/AD5790_Tx.html#class-properties",
+    "reference_api/AD4004_Rx.html",
+    "reference_api/AD4004_Rx.html#class-properties",
+    "common/examples.html",
+    "reference_api/AD4006_Rx.html",
+    "reference_api/AD4006_Rx.html#class-properties",
+    "reference_api/AD4030_Rx.html",
+    "reference_api/AD4030_Rx.html#class-properties",
+    "reference_api/AD7380_Rx.html",
+    "reference_api/AD7380_Rx.html#class-properties",
+    "reference_api/AD5781_Tx.html",
+    "reference_api/AD5781_Tx.html#class-properties"
+  ],
+  "hierarchy": [
+    [
+      "Precision Toolbox for MATLAB"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD7768.Rx"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD7768.Rx",
+      "Class Properties"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD5780.Tx"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD5780.Tx",
+      "Class Properties"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD4000.Rx"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD4000.Rx",
+      "Class Properties"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD2S1210.Rx"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD2S1210.Rx",
+      "Class Properties"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD4010.Rx"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD4010.Rx",
+      "Class Properties"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD4630_16.Rx"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD4630_16.Rx",
+      "Class Properties"
+    ],
+    [
+      "Reference APIs"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD4008.Rx"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD4008.Rx",
+      "Class Properties"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD7124_8.Rx"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD7124_8.Rx",
+      "Class Properties"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD4021.Rx"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD4021.Rx",
+      "Class Properties"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD4007.Rx"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD4007.Rx",
+      "Class Properties"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD4005.Rx"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD4005.Rx",
+      "Class Properties"
+    ],
+    [
+      "Limitations",
+      "Known Limitations, Bugs and Quirks"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD5791.Tx"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD5791.Tx",
+      "Class Properties"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD4022.Rx"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD4022.Rx",
+      "Class Properties"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD4858.Rx"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD4858.Rx",
+      "Class Properties"
+    ],
+    [
+      "Support"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD4001.Rx"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD4001.Rx",
+      "Class Properties"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD7124_4.Rx"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD7124_4.Rx",
+      "Class Properties"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD4052.Rx"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD4052.Rx",
+      "Class Properties"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD4170.Rx"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD4170.Rx",
+      "Class Properties"
+    ],
+    [
+      "Installation",
+      "Dependencies"
+    ],
+    [
+      "Installation",
+      "Precision Toolbox Install"
+    ],
+    [
+      "Installation",
+      "Add-On Explorer Walkthrough"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD4003.Rx"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD4003.Rx",
+      "Class Properties"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD4002.Rx"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD4002.Rx",
+      "Class Properties"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD4630_24.Rx"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD4630_24.Rx",
+      "Class Properties"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD4020.Rx"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD4020.Rx",
+      "Class Properties"
+    ],
+    [
+      "Data Streaming"
+    ],
+    [
+      "Data Streaming",
+      "Connecting and Configuration"
+    ],
+    [
+      "Data Streaming",
+      "Receiving Data"
+    ],
+    [
+      "Data Streaming",
+      "Continuous Data Acquisition"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD7768_1.Rx"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD7768_1.Rx",
+      "Class Properties"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD4011.Rx"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD4011.Rx",
+      "Class Properties"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD5760.Tx"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD5760.Tx",
+      "Class Properties"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD5790.Tx"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD5790.Tx",
+      "Class Properties"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD4004.Rx"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD4004.Rx",
+      "Class Properties"
+    ],
+    [
+      "Examples"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD4006.Rx"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD4006.Rx",
+      "Class Properties"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD4030.Rx"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD4030.Rx",
+      "Class Properties"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD7380.Rx"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD7380.Rx",
+      "Class Properties"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD5781.Tx"
+    ],
+    [
+      "Reference APIs",
+      "adi.AD5781.Tx",
+      "Class Properties"
+    ]
+  ]
+}
