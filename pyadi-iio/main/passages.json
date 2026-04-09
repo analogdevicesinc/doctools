@@ -1,0 +1,1508 @@
+{
+  "text": [
+    "**pyadi-iio** is a python abstraction module for ADI hardware with IIO drivers to make them easier to use. The libIIO interface although extremely flexible can be cumbersome to use due to the amount of boilerplate code required for even simple examples, especially when interfacing with buffers. This",
+    "- libiio\n- numpy\n- (Optional) paramiko for JESD204 debugging\n- (Optional) libad9361 for AD9361 specific devices\n- (Optional) libad9166 for the CN0511 raspberry pi based DDS\n- (Optional) libadrv9002 for ADRV9002 specific devices\n",
+    "- Quick Start\n- Attributes\n- Examples\n- Connectivity\n- Buffers\n- FPGA Features\n- MCP Server\n- libiio Direct Access\n- Support\n- Developers\n- Supported Devices\n",
+    "- Index\n- Module Index\n- Search Page\n",
+    "Functions used by test fixtures for evaluating JESD204 link states.\n\nTests for JESD204 interfaces\n\n**test.jesd_tests.verify_links(*iio_uri: str*, *classname: str*)**\n:   Verify that the links are up in DATA mode\n:   Args:iio_uri (str): URI of the device\n:   classname (str): Class name of the device\n",
+    "**pyadi-iio** is built on-top of **libiio**, specifically its python bindings pylibiio. However, **pyadi-iio** tries to limit or shape the top-level access of certain properties of drivers exposed by *libiio* and its structure so users do not have to understand how **libiio** works. This is great un",
+    "The main object interface to **libiio** is through the **ctx** property, which is available in every device-specific class. The context is used internally by **ctx** to do all **libiio** specific operations. Here is an example of using the **ctx** property with **pyadi-iio** and **libiio**:\n\n```pyth",
+    "Here is an example of setting the enable state machine on Pluto through the **libiio** API through **pyadi-iio**:\n\n```python\nimport adi\n\nsdr = adi.Pluto()\n\nphy = sdr.ctx.find_device(\"ad9361-phy\")\n# View current mode\nprint(phy.attrs[\"ensm_mode\"].value)\n# View options\nprint(phy.attrs[\"ensm_mode_availa",
+    "**pyadi-iio** supports **libiio** v1.X and v0.X. However, the **libiio** python bindings are not available on PyPI for v1.X and they are currently unstable. If you require stable operation, please use **libiio** v0.X. Its also possible that not all ecosystem features are available yet for v1.X. Plea",
+    "***class*adi.cn0511.cn0511(*uri=''*)**\n:   Bases: `ad9166`\n:   CN0511 Raspberry Pi Hat Signal Generator\n:   *property*amp_enable\n:   amp_enable: Enable or Disable the CN0511 ad9166 amplifier\n:   *property*amplitude_cal\n:   amplitude_cal: CN0511 amplitude calibration\n:   Options:True: If you set this",
+    "> **Warning**\n>\n> This section is only for developers and advanced users.\n\n\nWhen submitting code or running tests, there are a few ways things are done in pyadi-iio.\n",
+    "To make repetitve tasks easier, pyadi-iio utilizes pyinvoke. To see the available options (once pyinvoke is installed) run:\n\n```console\ninvoke --list\nAvailable tasks:\n\n  build           Build python package\n  builddoc        Build sphinx doc\n  changelog       Print changelog from last release\n  chec",
+    "**pre-commit** is heavily relied on for keeping code in order and for eliminating certain bugs. Be sure to run these checks before submitting code. This can be run through pyinvoke or directly from the repo root as:\n\n```console\ninvoke precommit\n```\n\n\n```console\npre-commit run --all-files\n```\n",
+    "Testing pyadi-iio requires hardware, but fortunately by default it assumes no hardware is connected unless found. It will only load specific tests for hardware it can find and skip all other tests. **pytest**, which is the framework pyadi-iio uses, can be call as following:\n\n```console\ninvoke test\n`",
+    "There are several advanced features of pytest that are utilized by pyadi-iio. Specifically custom markers and custom plugins.\n\nMarkers are a way of labeling tests, which can be then used to filter specific tests. Markers are provided through the test_map.py file in the test directory. These markers ",
+    "In order to maintain pyadi-iio, for all new drivers the development team will require emulation contexts to be submitted alongside the new class interfaces. This is to ensure that the new drivers are tested and maintained. Emulation contexts can be created using xml_gen. CI will automatically valida",
+    "pyadi-iio has a large set of parameterizable fixtures for testing different device specific class interfaces. See the links belows to the different test categories:\n\n- Attribute Tests\n  `attribute_check_range_readonly_with_depends()`\n  `attribute_check_range_singleval_with_depends()`\n  `attribute_mu",
+    "This section will discuss a method to do isolated development with the correct package versions. The main purpose here is to eliminate any discrepancies that can arise (especially with the linting tools) when running precommit and other checks. This is also useful to not pollute your local global pa",
+    "**pyenv** is a handy tool for installing different and isolated versions of python on your system. Since distributions can ship with rather random versions of python, pyenv can help us install exactly the versions we want. The quick way to install pyenv is with their bash script:\n\n```bash\ncurl https",
+    "Get the repo, set python version, and setup env\n\n```bash\npip3 install -U pipenv\npyenv local 3.6.9\ngit clone git@github.com:analogdevicesinc/pyadi-iio.git\npipenv install\npipenv shell\npipenv install -r requirements.txt\npipenv install -r requirements_dev.txt\n```\n\n\nNow at this point we have all the nece",
+    "By leveraging iio-emu, hardware or contexts can be emulated for testing without physical devices. However, currently this emulation does not validate attribute rates, states of drivers, or equivalent data sources. This feature should be used to test a library itself rather than hardware drivers.\n\n**",
+    "To simplify hardware configuration through different IIO drivers, basic class properties are exposed at the top-level of each device specific class. These properties abstract away the need to know a specific channel name, attribute type, source device name, and other details required in the libIIO A",
+    "***class*adi.ad9136.ad9136(*uri=''*, *username='root'*, *password='analog'*)**\n:   Bases: `tx`, `context_manager`, `sync_start`\n:   AD9136 High-Speed DAC\n:   *property*jesd204_statuses\n:   jesd204_statuses: JESD204 low-level driver data.\n:   *property*sample_rate\n:   sample_rate: Sample rate RX and ",
+    "Question and general support related to pyadi-iio should be ask in the Software Interface Tools forum at ADI\u2019s EngineerZone. Code bugs or enhancement requests should be submitted through GitHub issues for the repository itself.\n",
+    "Functions used by test fixtures for evaluating receive and transmit DMA/buffers\n\n**test.dma_tests.cw_loopback(*uri*, *classname*, *channel*, *param_set*, *use_tx2=False*, *use_rx2=False*)**\n:   cw_loopback: Test CW loopback with connected loopback cables.\n:   This test requires a devices with TX and",
+    "Functions used by test fixtures for evaluating drivers without pyadi-iio classes or not by using pyadi-iio classes.\n\n**test.generics.iio_attribute_single_value(*uri*, *attrtype*, *dev_name*, *chan_name*, *inout*, *attr*, *start*, *stop*, *step*, *tol*, *repeats=1*)**\n:   iio_attribute_single_value: ",
+    "***class*adi.adpd188.adpd188(*uri=''*, *device_index=0*)**\n:   Bases: `rx`, `context_manager`\n:   ADPD188 photo-electronic device.\n:   channel*= []*\n:   *property*mode\n:   Read mode of operation to device.\n:   *property*sample_rate\n:   Sets sampling frequency of the ADPD188.\n",
+    "***class*adi.ad9467.ad9467(**args: str | Context*, ***kwargs: str | Context*)**\n:   Bases: `rx_def`\n:   AD9467 High-Speed ADC\n:   compatible_parts*= ['cf-ad9467-core-lpc']*\n:   *property*test_mode\n:   test_mode: Select Test Mode. Options are:\n:   off midscale_short pos_fullscale neg_fullscale checke",
+    "***class*adi.max14001.max14001(*uri=''*, *device_name=''*)**\n:   Bases: `rx`, `context_manager`\n:   MAX14001 ADC\n:   channel*= []*\n:   to_volts(*index*, *val*)\n:   Converts raw value to SI.\n",
+    "***class*adi.adis16507.adis16507(*uri=''*, *imu_dev_name='adis16507-3'*, *trigger_name='adis16507-3-dev0'*)**\n:   Bases: `rx`, `context_manager`\n:   ADIS16507 Precision, Miniature MEMS IMU\n:   *property*current_timestamp_clock\n:   current_timestamp_clock: Source clock for timestamps\n:   *property*fi",
+    "***class*adi.ad9250.ad9250(*uri=''*, *username='root'*, *password='analog'*)**\n:   Bases: `rx`, `context_manager`, `sync_start`\n:   AD9250 High-Speed ADC\n:   *property*jesd204_statuses\n:   *property*test_mode\n:   test_mode: Select Test Mode. Options are:\n:   off midscale_short pos_fullscale neg_full",
+    "For FPGA based systems ADI reference designs include direct digital synthesizers (DDS) which can generate tones with arbitrary phase, frequency, and amplitude. For each individual DAC channel there are two DDSs which can have a unique phase, frequency, and phase. To configure the DDSs there are a nu",
+    "***class*adi.dds.dds**\n:   DDS Signal generators: Each reference design contains two DDSs per channel.\n:   this allows for two complex tones to be generated per complex channel.\n:   dds_dual_tone(*frequency1*, *scale1*, *frequency2*, *scale2*, *channel=0*)\n:   Generate two tones simultaneously using",
+    "In certain HDL reference designs it is possible to synchronize transfers between the transmit and receive data paths. This is useful for applications such as radar processing, communications, instrumentation, and general testing.\n\nThis works by leveraging special control signals inside the HDL desig",
+    "***class*adi.sync_start.sync_start**\n:   Synchronization Control: This class allows for synchronous transfers\n:   between transmit and receive data movement or captures.\n:   *property*rx_sync_start\n:   rx_sync_start: Issue a synchronisation request\n:   Possible values are:\n:   **arm**: Writing this ",
+    "***class*adi.ad9213.ad9213(**args: str | Context*, ***kwargs: str | Context*)**\n:   Bases: `rx_def`, `context_manager`\n:   AD9213 High-Speed ADC\n",
+    "***class*adi.ad7768.ad7768(**args: str | Context*, ***kwargs: str | Context*)**\n:   Bases: `rx_def`\n:   AD7768 8-channel, Simultaneous Sampling Sigma-Delta ADC\n:   compatible_parts*= ['ad7768', 'cf_axi_adc']*\n:   *property*filter_type\n:   Get filter type.\n:   *property*filter_type_avail\n:   Get avai",
+    "***class*adi.adf5611.adf5611(*uri=''*)**\n:   Bases: `attribute`, `context_manager`\n:   ADF5611 Microwave Wideband Synthesizer with Integrated VCO\n:   parameters:\n:   uri: type=stringURI of IIO context with ADF5611\n:   *property*altvolt0_rfout_power\n:   *property*charge_pump_current\n:   *property*en_",
+    "***class*adi.cn0575.cn0575(*uri=''*)**\n:   Bases: `object`\n:   CN0575 class, exposing onboard temperature sensor, pushbutton,\n:   and LED. Also reads the platform CPU\u2019s temperature, which under\n:   most operating conditions should be higher than the onboard sensor.\n:   *property*button\n:   Read butt",
+    "***class*adi.adxl345.adxl345(*uri=''*, ***kwargs*)**\n:   Bases: `rx_chan_comp`\n:   ADXL345 3-axis accelerometer\n:   compatible_parts*= ['adxl345']*\n:   *property*sampling_frequency\n:   ADXL345 sampling frequency\n:   *property*sampling_frequency_available\n:   Provides all available sampling frequency",
+    "***class*adi.ad2s1210.ad2s1210(**args: str | Context*, ***kwargs: str | Context*)**\n:   Bases: `rx_def`\n:   AD2S1210 resolver to digital converter.\n:   compatible_parts*= ['ad2s1210']*\n:   *property*excitation_frequency*: int*\n:   Gets and sets the excitation frequency in Hz.\n:   Setting the value a",
+    "***class*adi.max31865.max31865(*uri=''*)**\n:   Bases: `rx`, `context_manager`, `attribute`\n:   MAX31865 RTD to Digital device\n:   *property*fault\n:   MAX31865 Over/Under Voltage Flag\n:   *property*samp_available\n:   MAX31865 Sampling frequency\n",
+    "***class*adi.ad469x.ad469x(*uri=''*, *device_name=''*, *device_index=0*)**\n:   Bases: `rx_chan_comp`\n:   AD469x ADC\n:   channel*= []*\n:   compatible_parts*= ['ad4696', 'ad4697', 'ad4698']*\n:   to_volts(*index*, *val*)\n:   Converts raw value to SI.\n\n\n\n***class*adi.ad469x.ad469x_channel(*ctrl*, *chann",
+    "***class*adi.ad7405.ad7405(*uri=''*, *device_name=''*, *device_index=0*)**\n:   Bases: `rx_chan_comp`\n:   AD7405 ADC\n:   compatible_parts*= ['adum7701', 'adum7702', 'adum7703', 'ad7405']*\n:   *property*oversampling_ratio\n:   Get oversampling ratio\n:   *property*oversampling_ratio_available\n:   Return",
+    "***class*adi.ad9152.ad9152(*uri=''*)**\n:   Bases: `tx`, `context_manager`, `sync_start`\n:   AD9152 High-Speed DAC\n:   *property*sample_rate\n:   sample_rate: Sample rate RX and TX paths in samples per second\n",
+    "The class **adi.ad719x** supports the following IIO drivers:\n\n**ad719x.compatible_parts*= ['ad7190', 'ad7191', 'ad7192', 'ad7193', 'ad7194', 'ad7195']***\n",
+    "***class*adi.ad719x(*uri=''*, *device_name=''*, *device_index=0*)**\n:   Bases: `rx_chan_comp`\n:   AD719x ADC\n:   channel*= []*\n:   to_volts(*index*, *val*)\n:   Converts raw value to SI.\n",
+    "The ad719x class supports a variable number of channels depending on the hardware configuration. Therefore, the channel property interfaces are dynamically generated. They are available on an initiated object as attributes with names voltage0, voltage1, etc. They will be instances of the ad719x_chan",
+    "***class*adi.adf5610.adf5610(*uri=''*, *device_name=''*)**\n:   Bases: `attribute`, `context_manager`\n:   ADF5610 Microwave Wideband Synthesizer with Integrated VCO\n:   parameters:\n:   uri: type=stringURI of IIO context with ADF5610\n:   *property*frequency\n:   Get/Set the Frequency in Hz\n:   reg_read",
+    "The class **adi.ad4110** supports the following IIO drivers:\n\n**ad4110.compatible_parts*= ['ad4110']***\n",
+    "***class*adi.ad4110(*uri=''*, *device_name=''*, *device_index=0*)**\n:   Bases: `rx_chan_comp`\n:   AD4110 ADC\n:   channel*= []*\n:   to_volts(*index*, *val*)\n:   Converts raw value to SI.\n",
+    "The ad4110 class supports a variable number of channels depending on the hardware configuration. Therefore, the channel property interfaces are dynamically generated. They are available on an initiated object as attributes with names voltage0, voltage1, etc. They will be instances of the ad4110_chan",
+    "Functions used by test fixtures for evaluating attributes and driver state.\n\n**test.attr_tests.attribute_check_range_readonly_with_depends(*uri*, *classname*, *attr*, *depends*, *start*, *stop*)**\n:   attribute_check_range_readonly_with_depends: Read only integer class\n:   property with dependent wr",
+    "***class*adi.adrv9009.adrv9008_1(*uri=''*, *jesd_monitor=False*, *jesd=None*)**\n:   Bases: `rx`, `context_manager`, `sync_start`\n:   ADRV9008-1 Receiver\n:   *property*calibrate\n:   calibrate: Trigger Calibration\n:   *property*calibrate_rx_phase_correction_en\n:   calibrate_rx_phase_correction_en: Ena",
+    "***class*adi.adpd410x.adpd410x(*uri=''*)**\n:   Bases: `rx`, `context_manager`\n:   adpd410x Multimodal Sensor Front End\n:   channel*= []*\n:   *property*last_timeslot\n:   Get last timeslot of the adpd410x\n:   *property*operation_mode\n:   Get operation mode of the adpd410x\n:   *property*sampling_freque",
+    "***class*adi.ad3552r_hs.ad3552r_hs(*uri=''*, *device_name=''*)**\n:   Bases: `tx`, `context_manager`\n:   AD3552R_HS DAC\n:   *property*input_source\n:   Input source of the DAC\n:   *property*output_range\n:   Stream status of the DAC\n:   *property*stream_status\n:   Stream status of the DAC\n",
+    "***class*adi.adis16497(*uri=''*, *device_name=None*, *trigger_name=None*)**\n:   Bases: `adis16XXX`\n:   ADIS16497-X Ten Degrees of Freedom Inertial Sensor with Dynamic Orientation Outputs\n:   This class is compatible with the following parts:\n:   - adis16497-1\n:   - adis16497-2\n:   - adis16497-3\n:   ",
+    "***class*adi.ad7606.ad7606(*uri=''*, *device_name=''*, *device_index=0*)**\n:   Bases: `rx_chan_comp`\n:   AD7606 ADC\n:   channel*= []*\n:   compatible_parts*= ['ad7605-4', 'ad7606-4', 'ad7606-6', 'ad7606-8', 'ad7606b', 'ad7606c-16', 'ad7606c-18', 'ad7616']*\n:   *property*oversampling_ratio\n:   AD7606 ",
+    "***class*adi.tddn.tddn(*uri=''*)**\n:   Bases: `context_manager`, `attribute`\n:   TDDN Controller\n:   *property*burst_count*: int*\n:   burst_count: Amount of frames to produce, where 0 means repeat indefinitely\n:   channel*= []*\n:   *property*enable*: bool*\n:   enable: Enable or disable the TDD engin",
+    "The class **adi.ad738x** supports the following IIO drivers:\n\n**ad738x.compatible_parts*= ['ad7381', 'ad7380', 'ad7380-4', 'ad7389-4', 'ad7381-4', 'ad7383', 'ad7384', 'ad7386', 'ad7387', 'ad7388', 'ad4680', 'ad4681', 'ad4682', 'ad4683']***\n",
+    "***class*adi.ad738x(*uri=''*, *device_name=''*, *device_index=0*)**\n:   Bases: `rx_chan_comp`\n:   AD738x ADC\n:   to_volts(*index*, *val*)\n:   Converts raw value to SI.\n",
+    "The ad738x class supports a variable number of channels depending on the hardware configuration. Therefore, the channel property interfaces are dynamically generated. They are available on an initiated object as attributes with names voltage0, voltage1, etc. They will be instances of the ad738x_chan",
+    "***class*adi.daq2.DAQ2(*uri=''*)**\n:   Bases: `ad9144`, `ad9680`\n:   DAQ2 High-Speed Data Aquistion Device\n",
+    "***class*adi.ada4355.ada4355(*uri=''*, *device_name='ada4355'*)**\n:   Bases: `rx`, `context_manager`\n:   ADA4355 ADC\n:   ada4355_register_read(*reg*)\n:   Direct Register Access via debugfs\n:   ada4355_register_write(*reg*, *value*)\n:   Direct Register Access via debugfs\n:   channel*= []*\n:   *proper",
+    "The class **adi.ad5754r** supports the following IIO drivers:\n\n**ad5754r.compatible_parts*= ['ad5754r']***\n",
+    "***class*adi.ad5754r(*uri=''*, *device_name=''*, *device_index=0*)**\n:   Bases: `tx_chan_comp_no_buff`\n:   AD5754R DAC\n:   *property*all_chns_clear\n:   Get current all_chns_clear setting\n:   *property*all_chns_clear_available\n:   Get list of all all_chns_clear settings\n:   channel*= []*\n:   *propert",
+    "The ad5754r class supports a variable number of channels depending on the hardware configuration. Therefore, the channel property interfaces are dynamically generated. They are available on an initiated object as attributes with names voltage0, voltage1, voltage2, voltage3. They will be instances of",
+    "***class*adi.fmcjesdadc1.fmcjesdadc1(*uri=''*, *username='root'*, *password='analog'*)**\n:   Bases: `ad9250`\n:   FMCJESDADC1 Four-Channel High Speed Data Acquisition FMC Board\n:   *property*jesd204_statuses\n:   *property*test_mode_chan0\n:   test_mode_chan0: Select Test Mode. Options are:\n:   off mid",
+    "***class*adi.ltc2672.ltc2672(*uri=''*, *device_name=''*)**\n:   Bases: `context_manager`, `attribute`\n:   LTC2672 DAC\n:   *property*all_chns_current\n:   Get current value in mA\n:   *property*all_chns_powerdown\n:   Get powerdown value\n:   *property*all_chns_powerdown_avail\n:   Get powerdown options\n: ",
+    "***class*adi.adis16495(*uri=''*, *device_name=None*, *trigger_name=None*)**\n:   Bases: `adis16XXX`\n:   ADIS16495-X Tactical Grade, Six Degrees of Freedom Inertial Sensor\n:   This class is compatible with the following parts:\n:   - adis16495-1\n:   - adis16495-2\n:   - adis16495-3\n:   Args:uri: URI of ",
+    "***class*adi.daq3.DAQ3(*uri=''*)**\n:   Bases: `ad9152`, `ad9680`\n:   DAQ3 High-Speed Data Aquistion Device\n",
+    "***class*adi.adis16488(*uri=''*, *device_name=None*, *trigger_name=None*)**\n:   Bases: `adis16XXX_with_mag`\n:   ADIS16488  Tactical Grade Ten Degrees of Freedom Inertial Sensor\n:   Args:uri: URI of IIO context with ADIS16488 device\n:   device_name: Name of the device in the IIO context. Default is a",
+    "***class*adi.ad5686.ad5686(*uri=''*, *device_name=''*, *device_index=0*)**\n:   Bases: `tx_chan_comp_no_buff`\n:   AD5686 DAC\n:   compatible_parts*= ['ad5686', 'ad5310r', 'ad5311r', 'ad5671r', 'ad5672r', 'ad5673r', 'ad5674r', 'ad5675r', 'ad5676', 'ad5676r', 'ad5677r', 'ad5679r', 'ad5681r', 'ad5682r', ",
+    "Using buffers or transmitting and receiving data is done through interacting with two methods.\n\nFor receivers this is the **rx** method. How data is captured and therefore produced by this method is dependent on two main properties:\n\n- **rx_enabled_channels**: This is an array of integers (or channe",
+    "In many cases, it can be useful to continuously transmit a signal over and over, even for just debugging and testing. This can be especially handy when the hardware you are using has very high transmit or receive rates, and therefore impossible to keep providing data to in real-time. To complement t",
+    "By default buffers appear as an array or a list of arrays. This can be confusing if all your channels do not produce similar data. For example, for IMUs like ADI16495 certain channels are for acceleration data and others are for angular velocity. To label this data the *rx_annotated* property can be",
+    "For certain devices it is possible to convert types to scientific units, such as volts, degrees, or meters per second among others. This is controlled by setting the property **rx_output_type** to either *raw* or *SI*. If set to *SI*, returned data from the **rx** method will be in scientific units ",
+    "**adi.rx_tx.are_channels_complex(*channels: List[str] | List[Channel]*) \u2192 bool**\n:   Check if channels are complex or not\n:   Args:channels: List of channel names or iio.Channel objects\n\n\n\n***class*adi.rx_tx.rx(*rx_buffer_size=1024*)**\n\n\n\n***class*adi.rx_tx.rx_core(*rx_buffer_size=1024*)**\n:   Buffe",
+    "Collect data from one channel\n\n```python\nimport adi\n\nsdr = adi.ad9361()\n# Get complex data back\nsdr.rx_enabled_channels = [0]\nchan1 = sdr.rx()\n```\n\n\nCollect data from two channels\n\n```python\nimport adi\n\nsdr = adi.ad9361()\n# Get both complex channel back\nsdr.rx_enabled_channels = [0, 1]\ndata = sdr.rx",
+    "The multi-chip python interface for AD9081 is scalable to any number of AD9081s within a single libIIO context. It will automatically determine the correct main driver, manage the CDDC/FDDC/CDUC/FDUC arrangement uniquely for each chip, and DMA/DDS IP. However, the interface a bit unique with **pyadi",
+    "The multi-chip python interface for ad9084 is scalable to any number of ad9084s within a single libIIO context. It will automatically determine the correct main driver, manage the CDDC/FDDC/CDUC/FDUC arrangement uniquely for each chip, and DMA/DDS IP. However, the interface a bit unique with **pyadi",
+    "The class **adi.ad4170** supports the following IIO drivers:\n\n**ad4170.compatible_parts*= ['ad4170', 'ad4190']***\n",
+    "***class*adi.ad4170(*uri=''*, *device_name=''*, *device_index=0*)**\n:   Bases: `rx_chan_comp`\n:   AD4170 ADC\n:   channel*= []*\n:   to_volts(*index*, *val*)\n:   Converts raw value to SI\n",
+    "The ad4170 class supports a variable number of channels depending on the hardware configuration. Therefore, the channel property interfaces are dynamically generated. They are available on an initiated object as attributes with names voltage0, voltage1, etc. They will be instances of the ad4170_chan",
+    "***class*adi.adf4382.adf4382(*uri=''*)**\n:   Bases: `attribute`, `context_manager`\n:   ADF4382 Microwave Wideband Synthesizer with Integrated VCO\n:   parameters:\n:   uri: type=stringURI of IIO context with ADF4382\n:   *property*altvolt0_en\n:   Get/Set the enable/disable state of channel 0\n:   *prope",
+    "***class*adi.ad4858.ad4858(*uri=''*, *device_name=''*, *device_index=0*)**\n:   Bases: `rx_chan_comp`\n:   AD4858 ADC\n:   channel*= []*\n:   compatible_parts*= ['ad4858']*\n:   *property*oversampling_ratio\n:   Get oversampling ratio.\n:   *property*oversampling_ratio_avail\n:   Get list of all available o",
+    "***class*adi.ad9162.ad9162(*uri=''*, *username='root'*, *password='analog'*)**\n:   Bases: `tx`, `context_manager`, `sync_start`\n:   AD9162 16-Bit, 12 GSPS, RF DAC\n:   *property*fir85_enable\n:   *property*frequency_nco\n:   *property*jesd204_statuses\n:   *property*sample_rate\n:   sample_rate: Sample f",
+    "***class*adi.adpd1080.adpd1080(*uri=''*, *device_index=0*)**\n:   Bases: `rx`, `context_manager`\n:   ADPD1080 photo-electronic device.\n:   channel*= []*\n:   rx()\n:   Receive data from hardware buffers for each channel index in\n:   rx_enabled_channels.\n:   returns: type=numpy.array or list of numpy.ar",
+    "JESD Shim import to handle JESD as optional dependency\n",
+    "***class*adi.cn0532.cn0532(*uri=''*)**\n:   Bases: `cn0540`\n:   CN0532: Custom board with ADXL1002 Low Noise, High Frequency +/-50g MEMS Accelerometer\n:   calibrate(***kwargs*)\n",
+    "***class*adi.ltc2387.ltc2387(**args: str | Context*, ***kwargs: str | Context*)**\n:   Bases: `rx_def`\n:   LTC2387 family devices\n:   compatible_parts*= ['ltc2387', 'ltc2387-16', 'ltc2387-18', 'adaq23876', 'adaq23878']*\n:   *property*sampling_frequency\n:   sample_rate: Sample rate in samples per seco",
+    "***class*adi.gen_mux.genmux(*uri=''*, *device_name=''*)**\n:   Bases: `attribute`, `context_manager`\n:   GEN-MUX Generic IIO Mux device\n:   Control MUX devices via IIO device attributes\n:   parameters:\n:   uri: type=stringURI of IIO context with GEN-MUX\n:   *property*select\n:   Get/Set the MUX select",
+    "***class*adi.adis16460(*uri=''*)**\n:   Bases: `rx`, `context_manager`\n:   ADIS16460 Compact, Precision, Six Degrees of Freedom Inertial Sensor\n:   close()\n:   Close the IIO context\n:   *property*ctx*: Context*\n:   IIO Context\n:   *property*current_timestamp_clock\n:   current_timestamp_clock: Source ",
+    "***class*adi.ad9094.ad9094(*uri=''*)**\n:   Bases: `sync_start`, `rx`, `context_manager`\n:   AD9094 Quad ADC\n",
+    "***class*adi.ltc2314_14.ltc2314_14(*uri=''*, *device_name=''*, *device_index=0*)**\n:   Bases: `rx_chan_comp_no_buff`\n:   LTC2314-14 14-Bit, 4.5Msps Serial Sampling ADC\n:   parameters:\n:   uri: type=stringURI of IIO context with LTC2314-14\n:   compatible_parts*= ['ltc2314-14']*\n\n\n\n***class*adi.ltc231",
+    "***class*adi.max11205.max11205(*uri=''*, *device_name=''*)**\n:   Bases: `rx`, `context_manager`\n:   MAX11205 ADC\n:   channel*= []*\n:   to_volts(*index*, *val*)\n:   Converts raw value to SI.\n",
+    "The class **adi.ad7134** supports the following IIO drivers:\n\n**ad7134.compatible_parts*= ['ad4134', 'ad7134']***\n",
+    "***class*adi.ad7134(*uri=''*, *device_name=''*, *device_index=0*)**\n:   Bases: `rx_chan_comp`\n:   AD7134 ADC\n:   channel*= []*\n:   to_volts(*index*, *val*)\n:   Converts raw value to SI\n",
+    "The ad7134 class supports a variable number of channels depending on the hardware configuration. Therefore, the channel property interfaces are dynamically generated. They are available on an initiated object as attributes with names voltage0, voltage1, etc. They will be instances of the ad7134_chan",
+    "***class*adi.ltc2499.ltc2499(*uri=''*)**\n:   Bases: `rx`, `context_manager`\n:   channel*: OrderedDict**= None*\n",
+    "***class*adi.ad9172.ad9172(*uri=''*)**\n:   Bases: `tx`, `context_manager`, `sync_start`\n:   AD9172 High-Speed DAC\n:   *property*sample_rate\n:   sample_rate: Sample rate TX path in samples per second\n",
+    "***class*adi.ad9625.ad9625(*uri=''*, *username='root'*, *password='analog'*)**\n:   Bases: `rx`, `context_manager`, `sync_start`\n:   AD9625 High-Speed ADC\n:   *property*jesd204_statuses\n:   *property*rx_sample_rate\n:   rx_sample_rate: Sample rate RX path in samples per second\n:   *property*scale\n:   ",
+    "***class*adi.ad7746.ad7746(*uri=''*, *device_name=''*)**\n:   Bases: `rx`, `context_manager`\n:   AD7746 CDC\n:   channel*= []*\n",
+    "***class*adi.ad9739a.ad9739a(**args: str | Context*, ***kwargs: str | Context*)**\n:   Bases: `tx_def`\n:   AD9739A 14-Bit, 2.5 GSPS, RF Digital-to-Analog Converter\n:   compatible_parts*= ['ad9739a']*\n:   *property*sample_rate\n:   sample_rate: Sample rate RX and TX paths in samples per second\n",
+    "***class*adi.adxl355.adxl355(*uri=''*, ***kwargs*)**\n:   Bases: `rx_chan_comp`\n:   ADXL355 3-axis accelerometer\n:   compatible_parts*= ['adxl355']*\n:   *property*current_timestamp_clock\n:   Current timestamp clock\n:   to_degrees(*raw*)\n:   Convert raw to degrees Celsius\n\n\n\n***class*adi.adxl355.adxl3",
+    "***class*adi.ltc2983.ltc2983(*uri=''*)**\n:   Bases: `rx`, `context_manager`\n:   LTC2983 Multi-Sensor Temperature Measurement System\n:   channel*: OrderedDict**= None*\n:   convert(*channel_name*, *val*)\n:   Convert raw value(s) to real units\n",
+    "***class*adi.axi_aion_trig.axi_aion_trig(*uri=''*)**\n:   Bases: `context_manager`, `attribute`\n:   axi_aion_trig IIO Device Interface\n:   This class provides an interface to the \u2018axi_aion_trig\u2019 IIO device, allowing\n:   control and monitoring of its voltage channels and associated attributes.\n:   Par",
+    "**uristr, optional**\n:   URI of the IIO context to connect to. Defaults to an empty string.\n",
+    "For each voltage channel (e.g., voltage0, voltage1, \u2026), the following\nproperties are dynamically created:\n\n- trig{N}_enboolEnable or disable the trigger for channel N.\n- trig{N}_phaseintPhase setting for channel N.\n- trig{N}_statusintStatus of the trigger for channel N.\n- trig{N}_frequencyintFrequen",
+    "**Exception**\n:   If the \u2018axi_aion_trig\u2019 device is not found in the IIO context.\n",
+    "```default\n>>> trig = axi_aion_trig(\"ip:192.168.1.100\")\n>>> trig.trig0_en = True\n>>> print(trig.trig0_status)\n```\n",
+    "***class*adi.ada4961.ada4961(*uri=''*)**\n:   Bases: `context_manager`, `attribute`\n:   Low Distortion, 3.2 GHz, RF DGA\n:   *property*hardwaregain\n:   hardwaregain: Set hardware gain. Options are:\n:   up to 15 dB\n",
+    "***class*adi.adxl380.adxl380(*uri=''*, *device_name=None*)**\n:   Bases: `rx`, `context_manager`, `attribute`\n:   adxl380 3-axis accelerometer\n:   *property*sampling_frequency\n:   Device sampling frequency\n:   *property*sampling_frequency_available\n:   Device available sampling frequency\n:   to_degre",
+    "***class*adi.ad9144.ad9144(*uri=''*)**\n:   Bases: `tx`, `context_manager`, `sync_start`\n:   AD9144 High-Speed DAC\n:   *property*sample_rate\n:   sample_rate: Sample rate RX and TX paths in samples per second\n",
+    "***class*adi.adl8113.adl8113(*uri=''*, *device_name='adl8113'*)**\n:   Bases: `attribute`, `context_manager`\n:   ADL8113 GPIO-controlled RF Amplifier\n:   *property*hardwaregain\n:   Get hardware gain in dB\n",
+    "***class*adi.ad5706r.ad5706r(*uri=''*, *device_name=''*)**\n:   Bases: `tx`, `context_manager`\n:   ad5706r DAC\n:   *property*addr_ascension\n:   AD5706R Address Ascension\n:   *property*addr_ascension_available\n:   addr_ascension_available: Options are:\n:   descending, ascending\n:   *property*dev_addr\n",
+    "The class **adi.ad717x** supports the following IIO drivers:\n\n**ad717x.compatible_parts*= ['ad4111', 'ad4112', 'ad4113', 'ad4114', 'ad4115', 'ad4116', 'ad7172-2', 'ad7172-4', 'ad7173-8', 'ad7175-2', 'ad7175-8', 'ad7176-2', 'ad7177-2']***\n",
+    "***class*adi.ad717x(*uri=''*, *device_name=''*, *device_index=0*)**\n:   Bases: `rx_chan_comp`\n:   AD717x ADC\n:   channel*= []*\n:   to_volts(*index*, *val*)\n:   Converts raw value to SI.\n",
+    "The ad717x class supports a variable number of channels depending on the hardware configuration. Therefore, the channel property interfaces are dynamically generated. They are available on an initiated object as attributes with names voltage0, voltage1, etc. They will be instances of the ad717x_chan",
+    "***class*adi.cn0556.cn0556(*uri='ip:analog.local'*)**\n:   Bases: `cn0554`\n:   The CN0556 class inherits features from the CN0554 (providing full\n:   control and monitoring of the input and output voltages and currents)\n:   and the one_bit_adc_dac (sets the mode of the regulator to either Buck\n:   or",
+    "***class*adi.cn0566.CN0566(*uri=None*, *sdr=None*, *_chip_ids=['BEAM0', 'BEAM1']*, *_device_map=[[1], [2]]*, *_element_map=[[1, 2, 3, 4, 5, 6, 7, 8]]*, *_device_element_map={1: [7, 8, 5, 6], 2: [3, 4, 1, 2]}*, *verbose=False*)**\n:   Bases: `adf4159`, `adar1000_array`\n:   CN0566 class inherits from a",
+    "**SampleRate: type=int**\n:   ADC/DAC sample rate.\n\n**TX_freq: type=float**\n:   Transmit frequency. lo-sdr.TX_freq is what shows up at the TX connector.\n\n**RX_freq: type=float**\n:   Receive frequency. lo-sdr.RX_freq is what shows up at RX outputs.\n\n**Rx_gain: type=float**\n:   Receive gain. Set indire",
+    "**device_mode: type=string**\n:   (\u201crx\u201d, \u201ctx\u201d, \u201cdisabled\u201d, default = \u201crx\u201d)\n",
+    "**filename: string**\n:   Path/name of channel calibration file\n",
+    "**filename: type=string**\n:   Provide path of gain calibration file\n",
+    "**filename: type=string**\n:   Provide path of phase calibration file\n",
+    "**verbose: type=bool**\n:   Print each channel\u2019s information if true.\n\n**returns:**\n:   An array of all readings in SI units (deg. C, Volts)\n",
+    "**value: type=int**\n:   gain for all channels. Default value is 127 (maximum).\n\n**apply_cal: type=bool**\n:   Optionally apply gain calibration to all channels.\n",
+    "**Ph-Diff: type=float**\n:   Ph_diff is the phase difference b/w the adjacent channels of devices\n",
+    "A public method to sweep the phase value from -180 to 180 deg, calculate phase values of all the channel\nand set them. If we want beam angle at fixed angle you can pass angle value at which you want center lobe\n\nCreate an empty list. Based on the device number and channel of that device append phase",
+    "**chan_no: type=int**\n:   It is the index of channel whose gain you want to set\n\n**gain_val: type=int or hex**\n:   gain_val is the value of gain that you want to set\n\n**apply_cal: type=bool**\n:   Optionally apply gain calibration for the selected channel\n",
+    "**chan_no: type=int**\n:   It is the index of channel whose gain you want to set\n\n**phase_val: float**\n:   phase_val is the value of phase that you want to set\n\n**apply_cal: type=bool**\n:   Optionally apply phase calibration\n",
+    "Each device has 4 channels but for top level channel numbers are 1 to 8 so took device number as Quotient of\nchannel num div by 4 and channel of that dev is overall chan num minus 4 x that dev number. For e.g:\nif you want to set gain of channel at index 5 it is 6th channel or 2nd channel of 2nd devi",
+    "**gain: type=float**\n:   Gain to set both channels to\n\n**apply_cal: type=bool**\n:   Optionally apply channel gain correction\n",
+    "***class*adi.adl5240.adl5240(*uri=''*)**\n:   Bases: `attribute`, `context_manager`\n:   ADL5240 100 MHz TO 4000 MHz RF/IF Digitally Controlled VGA\n:   *property*hardwaregain\n:   hardwaregain: Attenuation applied to TX path\n",
+    "***class*adi.adf4355.adf4355(*uri=''*)**\n:   Bases: `attribute`, `context_manager`\n:   ADF4355 Microwave Wideband Synthesizer with Integrated VCO\n:   parameters:\n:   uri: type=stringURI of IIO context with ADF4355\n:   *property*frequency_altvolt0\n:   *property*frequency_altvolt1\n:   *property*powerd",
+    "***class*adi.max31855.max31855(*uri=''*)**\n:   Bases: `rx`, `context_manager`, `attribute`\n:   MAX31855 thermocouple device\n",
+    "***class*adi.adis16545(*uri=''*, *device_name=None*, *trigger_name=None*)**\n:   Bases: `adis16XXX_with_delta_angl`\n:   ADIS16545-X Tactical Grade, Six Degrees of Freedom Inertial Sensor\n:   This class is compatible with the following parts:\n:   - adis16545-1\n:   - adis16545-2\n:   - adis16545-3\n:   A",
+    "***class*adi.adis16475(*uri=''*, *device_name='adis16505-2'*)**\n:   Bases: `rx`, `context_manager`\n:   ADIS16475 Compact, Precision, Six Degrees of Freedom Inertial Sensor\n:   *property*accel_x_calibbias\n:   User calibration offset for accelerometer for the x-axis.\n:   *property*accel_x_conv\n:   Val",
+    "***class*adi.ltc2688.ltc2688(*uri='ip:analog.local'*, *device_index=0*)**\n:   Bases: `context_manager`, `attribute`\n:   LTC2688 DAC\n:   channel_names*= []*\n:   vref*= 4.096*\n",
+    "***class*adi.max9611.max9611(*uri=''*, *device_name=''*)**\n:   Bases: `rx`, `context_manager`\n:   AD611 Current-sense Amplifier with ADC\n:   channel*= []*\n",
+    "***class*adi.ad5627.ad5627(*uri=''*)**\n:   Bases: `tx`, `context_manager`\n:   AD5627 Low Power Dual nanoDAC\n:   *property*apdbias\n:   Get the APD Bias.\n:   *property*tiltvoltage\n:   Get the Tilt Voltage.\n",
+    "***class*adi.hmc7044.hmc7044(*uri=''*)**\n:   Bases: `context_manager`, `attribute`\n:   hmc7044 IIO Device Interface\n:   This class provides a Python interface for interacting with the HMC7044\n:   device via the Industrial I/O (IIO) framework.\n:   It allows users to access and modify device and chann",
+    "***class*adi.ad936x.Pluto(**args: str | Context*, ***kwargs: str | Context*)**\n:   Bases: `ad9364`, `_dec_int_fpga_filter`\n:   PlutoSDR Evaluation Platform\n\n\n\n***class*adi.ad936x.ad9361(**args: str | Context*, ***kwargs: str | Context*)**\n:   Bases: `ad9364`\n:   AD9361 Transceiver\n:   *property*gain",
+    "***class*adi.QuadMxFE_multi.QuadMxFE_multi(*primary_uri=''*, *secondary_uris=[]*, *primary_jesd=None*, *secondary_jesds=[None]*)**\n:   Bases: `object`\n:   ADQUADMXFExEBZ Multi-SOM Manager\n:   parameters:\n:   primary_uri: type=stringURI of primary ADQUADMXFExEBZ. Parent HMC7044 is connected\n:   to th",
+    "***class*adi.adf4377.adf4377(*uri=''*)**\n:   Bases: `attribute`, `context_manager`\n:   ADF4377 Microwave Wideband Synthesizer with Integrated VCO\n:   parameters:\n:   uri: type=stringURI of IIO context with ADF4377\n:   *property*bleed_current\n:   Get/Set the bleed word value\n:   *property*charge_pump",
+    "***class*adi.fmcadc3.fmcadc3(*uri=''*)**\n:   Bases: `ad9625`, `ada4961`\n:   FMCADC3 High-Speed Data Aquistion Device\n",
+    "***class*adi.ad7799.ad7799(*uri=''*, *device_name=''*, *device_index=0*)**\n:   Bases: `rx_chan_comp`\n:   AD7799 ADC\n:   compatible_parts*= ['AD7799']*\n:   *property*gain\n:   Get gain of the AD7799\n\n\n\n***class*adi.ad7799.ad7799_channel(*ctrl*, *channel_name*)**\n:   Bases: `attribute`\n:   AD7799 chann",
+    "ADA4356 LiDAR System\n\n***class*adi.ada4356_lidar.ada4356_lidar(*uri=''*)**\n:   Bases: `ada4355`\n:   ADA4356 LiDAR System with TDD Controller\n",
+    "***class*adi.tdd.tdd(*uri=''*)**\n:   Bases: `context_manager`, `attribute`\n:   TDD Controller\n:   *property*burst_count*: int*\n:   burst_count: Amount of frames to produce.\n:   Should be 0 <= burst_count <= 255, where 0 means don\u2019t stop\n:   *property*counter_int*: int*\n:   counter_init: Internal cou",
+    "***class*adi.ad9680.ad9680(*uri=''*)**\n:   Bases: `rx`, `context_manager`, `sync_start`\n:   AD9680 High-Speed ADC\n:   *property*test_mode\n:   test_mode: Select Test Mode. Options are:\n:   off midscale_short pos_fullscale neg_fullscale checkerboard pn_long pn_short one_zero_toggle user ramp\n",
+    "***class*adi.ad9434.ad9434(**args: str | Context*, ***kwargs: str | Context*)**\n:   Bases: `rx_def`\n:   AD9434 High-Speed ADC\n:   compatible_parts*= ['axi-ad9434-core-lpc']*\n:   *property*test_mode\n:   test_mode: Select Test Mode. Options are:\n:   off midscale_short pos_fullscale neg_fullscale check",
+    "***class*adi.lm75.lm75(*uri=''*, *device_index=0*)**\n:   Bases: `context_manager`, `attribute`\n:   LM75 Temperature Sensor\n:   Parameters\n:   uri: type=stringContext URI. Default: Empty (auto-scan)\n:   device_index: type=integerDevice index in contexts with multiple LM75 compatible devices. Default:",
+    "**uri: type=string**\n:   Context URI. Default: Empty (auto-scan)\n\n**device_index: type=integer**\n:   Device index in contexts with multiple LM75 compatible devices. Default: 0\n\n**returns:**\n:   LM75 compatible device\n\n\n\n***property*input**\n:   LM75 temperature input value\n\n\n\n***property*max**\n:   LM",
+    "***class*adi.ad777x.ad777x(*uri=''*, *device_name=''*, *device_index=0*)**\n:   Bases: `rx_chan_comp`\n:   AD777x ADC\n:   compatible_parts*= ['ad7770', 'ad7771', 'ad7779']*\n\n\n\n***class*adi.ad777x.ad777x_channel(*ctrl*, *channel_name*)**\n:   Bases: `attribute`\n:   AD777x channel\n:   *property*offset\n: ",
+    "***class*adi.ad514x.ad514x(*uri=''*, *device_name=''*)**\n:   Bases: `context_manager`, `attribute`\n:   AD514x DigiPOTs\n:   channel*= []*\n:   compatible_parts*= ['AD5141', 'AD5142', 'AD5142A', 'AD5143', 'AD5144']*\n:   *property*nvm_programming\n:   Get nvm_programming value\n:   *property*nvm_programmi",
+    "The device class in this module supports multiple parts, as follows:\n\n**ad3552r:** ad3542r, ad3552r\n\nBy default, the device_name parameter in the class constructor is the\nsame as the class name (e.g. \u201cad3552r\u201d for the ad3552r). To use the class\nwith another supported model, the name must be given wh",
+    "***class*adi.cn0565.cn0565(*uri=''*)**\n:   Bases: `ad5940`, `adg2128`, `context_manager`\n:   The CN0565 class inherits features from both the AD5940 (providing high\n:   precision in impedance and electrochemical frontend) and the ADG2128\n:   (enabling arbitrary assignment of force and sense electrod",
+    "***class*adi.ad7689.ad7689(*uri=''*, *device_name=''*, *device_index=0*)**\n:   Bases: `rx_chan_comp`\n:   AD7689 ADC\n:   channel*= []*\n:   compatible_parts*= ['ad7689', 'ad7682', 'ad7949', 'ad7699', 'ad7690']*\n:   to_volts(*index*, *val*)\n:   Converts raw value to SI\n\n\n\n***class*adi.ad7689.ad7689_cha",
+    "***class*adi.adxrs290.adxrs290(*uri=''*)**\n:   Bases: `rx`, `context_manager`, `attribute`\n:   ADI ADXRS290 Gyroscope\n:   *property*hpf_3db_frequency\n:   ADXRS290 high pass filter 3dB frequency\n:   *property*hpf_3db_frequency_available\n:   Provides all available high pass filter 3dB frequency settin",
+    "***class*adi.adrv9009_zu11eg.adrv9009_zu11eg(*uri=''*, *jesd_monitor=False*, *jesd=None*)**\n:   Bases: `adrv9009`\n:   ADRV9009-ZU11EG System-On-Module\n:   parameters:\n:   uri: type=stringURI of context with ADRV9009-ZU11EG\n:   jesd_monitor: type=booleanBoolean flag to enable JESD monitoring. jesd in",
+    "***class*adi.adis16547(*uri=''*, *device_name=None*, *trigger_name=None*)**\n:   Bases: `adis16XXX_with_delta_angl`\n:   ADIS16547-X Tactical Grade, Six Degrees of Freedom Inertial Sensors\n:   This class is compatible with the following parts:\n:   - adis16547-1\n:   - adis16547-2\n:   - adis16547-3\n:   ",
+    "***class*adi.adrv9009_zu11eg_multi.adrv9009_zu11eg_multi(*primary_uri=''*, *secondary_uris=[]*, *primary_jesd=None*, *secondary_jesds=[None]*, *fmcomms8=False*)**\n:   Bases: `object`\n:   ADRV9009-ZU11EG Multi-SOM Manager\n:   parameters:\n:   primary_uri: type=stringURI of primary ADRV9009-ZU11EG. Par",
+    "***class*adi.adaq8092.adaq8092(**args: str | Context*, ***kwargs: str | Context*)**\n:   Bases: `rx_def`\n:   ADAQ8092 14-Bit, 105MSPS, Dual-Channel uModule Data Acquisition Solution\n:   compatible_parts*= ['adaq8092', 'cf_axi_adc']*\n:   *property*sampling_frequency\n:   Get Sampling Frequency.\n",
+    "The class **adi.ad4080** supports the following IIO drivers:\n\n**ad4080.compatible_parts*= ['ad4080', 'ad4081', 'ad4083', 'ad4084', 'ad4086', 'ad4087']***\n",
+    "***class*adi.ad4080(*uri=''*, *device_name=''*, *device_index=0*)**\n:   Bases: `rx_chan_comp`\n:   AD4080 ADC\n:   channel*= []*\n:   *property*filter_type\n:   Get the filter type value\n:   *property*filter_type_available\n:   Get the filter type available values\n:   *property*oversampling_ratio\n:   Get",
+    "The ad4080 class supports a variable number of channels depending on the hardware configuration. Therefore, the channel property interfaces are dynamically generated. They are available on an initiated object as attributes with names voltage0, voltage1, etc. They will be instances of the ad4080_chan",
+    "***class*adi.ltc2664.ltc2664(*uri='ip:analog.local'*, *device_index=0*)**\n:   Bases: `context_manager`, `attribute`\n:   LTC2664 DAC\n:   channel_names*= []*\n",
+    "The class **adi.ad7124** supports the following IIO drivers:\n\n**ad7124.compatible_parts*= ['ad7124-8', 'ad7124-4']***\n",
+    "***class*adi.ad7124(*uri=''*, *device_name=''*, *device_index=0*)**\n:   Bases: `rx_chan_comp`\n:   AD7124 ADC\n:   *property*sample_rate\n:   Sets sampling frequency of the AD7124\n:   *property*scale_available\n:   Provides all available scale(gain) settings for the AD7124 channels\n:   to_volts(*index*,",
+    "The ad7124 class supports a variable number of channels depending on the hardware configuration. Therefore, the channel property interfaces are dynamically generated. They are available on an initiated object as attributes with names voltage0-voltage0, voltage1-voltage1, etc. They will be instances ",
+    "The class **adi.ad353xr** supports the following IIO drivers:\n\n**ad353xr.compatible_parts*= ['ad3530r', 'ad3531r']***\n",
+    "***class*adi.ad353xr(*uri=''*, *device_name=''*, *device_index=0*)**\n:   Bases: `tx_chan_comp`\n:   AD353xr DAC\n:   *property*all_ch_input_registers\n:   AD353xr all input registers config\n:   *property*all_ch_operating_mode\n:   AD353xr all channels operating mode config\n:   *property*all_ch_operating",
+    "The ad353xr class supports a variable number of channels depending on the hardware configuration. Therefore, the channel property interfaces are dynamically generated. They are available on an initiated object as attributes with names voltage0, voltage1, etc. They will be instances of the ad353xr_ch",
+    "***class*adi.ad405x.ad405x(*uri=''*, *device_name=''*, *device_index=0*)**\n:   Bases: `rx_chan_comp`\n:   AD405x ADC\n:   *property*avg_filter_length\n:   Get average filter length. Only available in Burst Averaging Mode.\n:   *property*avg_filter_length_avail\n:   Get available average filter length. On",
+    "***class*adi.adf4030.adf4030(*uri=''*)**\n:   Bases: `context_manager`, `attribute`\n:   This class provides an interface to the ADF4030 device via the IIO framework.\n:   Args:uri (str, optional): URI of the IIO context. Defaults to \u201c\u201d.\n:   Attributes:_device_name (str): Name of the IIO device (\u201cadf40",
+    "***class*adi.adg2128.adg2128(*uri=''*)**\n:   Bases: `attribute`, `context_manager`\n:   ADG2128 cross point switch.\n:   add(*addr*)\n:   Add device by its i2c address.\n:   Multiple devices may be added provided they all have their Y terminals\n:   connected (common Y configuration).\n:   1x adg2128 is r",
+    "AD9084 is a tiled chip with 2 halves or sides. The control interfaces are unified but the DMA and DDS controls are split into multiple methods. This is similar to ADRV9002 and its split DMA modes. There are multiple **rx** and **tx** methods to control the DMA and DDS for each side of the chip. The ",
+    "***class*adi.ad5592r.ad5592r(*uri=''*, *device_name=''*)**\n:   Bases: `rx`, `context_manager`\n:   AD5592R and AD5593R SPI / I2C interface, 8-channel, 12-bit Confiburable ADC/DAC, digital GPIO\n:   Analog I/O pins are configured in the device tree and can be ADC, DAC, or both. Channel attributes are a",
+    "The class **adi.ad4130** supports the following IIO drivers:\n\n**ad4130.compatible_parts*= ['ad4130-8']***\n",
+    "***class*adi.ad4130(*uri=''*, *device_name=''*, *device_index=0*)**\n:   Bases: `rx_chan_comp`\n:   AD4130 ADC\n:   channel*= []*\n:   to_volts(*index*, *val*)\n:   Converts raw value to SI.\n",
+    "The ad4130 class supports a variable number of channels depending on the hardware configuration. Therefore, the channel property interfaces are dynamically generated. They are available on an initiated object as attributes with names voltage0, voltage1, etc. They will be instances of the ad4130_chan",
+    "***class*adi.adt7420.adt7420(*uri=''*)**\n:   Bases: `attribute`, `context_manager`\n:   *class*channel_temp(*ctrl*, *channel_name*, *is_linux*)\n:   Bases: `attribute`\n:   ADT7420 Channel for no-OS\n:   *property*temp_crit\n:   ADT7420 Channel Critical Temperature\n:   *property*temp_hyst\n:   ADT7420 Cha",
+    "Each device class in this module supports multiple parts, as follows:\n\n**ad4020:** ad4020, ad4021, ad4022\n\n**ad4000:** ad4000, ad4004, ad4008\n\n**ad4001:** ad4001, ad4005\n\n**ad4002:** ad4002, ad4006, ad4010\n\n**ad4003:** ad4003, ad4007, ad4011\n\nBy default, the device_name parameter in the class constr",
+    "The class **adi.ad4020** supports the following IIO drivers:\n\n**ad4020.compatible_parts*= ['ad4020', 'ad4021', 'ad4022']***\n",
+    "***class*adi.ad4020(*uri=''*, *device_name=''*, *device_index=0*)**\n:   Bases: `rx_chan_comp`\n:   AD4020 device\n:   channel*= []*\n",
+    "The ad4020 class supports a variable number of channels depending on the hardware configuration. Therefore, the channel property interfaces are dynamically generated. They are available on an initiated object as attributes with names voltage0, voltage1, etc. They will be instances of the ad4020_chan",
+    "***class*adi.fmclidar1.fmclidar1(*uri*, *pulse_capture_address='7c700000'*)**\n:   Bases: `ad5627`, `ad9094`, `phy`\n:   LiDAR\n:   *property*channel_sequencer_enable_disable\n:   Get the status of the channel sequencer (enable/disable).\n:   *property*channel_sequencer_opmode\n:   Get the channel sequenc",
+    "***class*adi.adis16375(*uri=''*, *device_name=None*, *trigger_name=None*)**\n:   Bases: `adis16XXX`\n:   ADIS16375 Low Profile, Low Noise Six Degrees of Freedom Inertial Sensor\n:   Args:uri: URI of IIO context with ADIS16375 device\n:   device_name: Name of the device in the IIO context. Default is adi",
+    "***class*adi.adis16490(*uri=''*, *device_name=None*, *trigger_name=None*)**\n:   Bases: `adis16XXX`\n:   ADIS16490 Tactical Grade, Six Degrees of Freedom Inertial Sensor\n:   Args:uri: URI of IIO context with ADIS16490 device\n:   device_name: Name of the device in the IIO context. Default is adis16490\n",
+    "***class*adi.ad7490.ad7490(*uri=''*, *device_name=''*, *device_index=0*)**\n:   Bases: `rx_chan_comp`\n:   AD7490 ADC\n:   compatible_parts*= ['ad7490']*\n:   *property*polarity\n:   AD7490 polarity\n:   *property*polarity_available\n:   Provides all available polarity settings for the AD7490 channels\n:   ",
+    "***class*adi.adis16480(*uri=''*, *device_name=None*, *trigger_name=None*)**\n:   Bases: `adis16XXX_with_mag`\n:   ADIS16480 Ten Degrees of Freedom Inertial Sensor with Dynamic Orientation Outputs\n:   Args:uri: URI of IIO context with ADIS16480 device\n:   device_name: Name of the device in the IIO cont",
+    "***class*adi.ad6676.ad6676(*uri=''*)**\n:   Bases: `rx`, `context_manager`\n:   AD6676 Wideband IF Receiver Subsystem\n:   *property*adc_frequency\n:   adc_frequency: The clock frequency of the ADC. Maximizing the clock frequency is helpful\n:   when the IF or bandwidth are high. A lower clock frequency ",
+    "***class*adi.ad7091rx.ad7091rx(*uri=''*, *device_name=''*, *device_index=0*)**\n:   Bases: `rx_chan_comp_no_buff`\n:   AD7091R-2/AD7091R-4/AD7091R-8 SPI interface,\n:   2-/4-/8-channel, 12-bit SAR ADC\n:   compatible_parts*= ['ad7091r-8', 'ad7091r-4', 'ad7091r-2']*\n:   to_mvolts(*index*, *val*)\n:   Conv",
+    "***class*adi.ad5940.ad5940(*uri=''*)**\n:   Bases: `rx`, `context_manager`\n:   ad5940 CDC\n:   channel*= []*\n:   *property*excitation_amplitude\n:   Excitation amplitude.\n:   *property*excitation_frequency\n:   Excitation frequency.\n:   *property*gpio1_toggle\n:   GPIO1 control.\n:   *property*impedance_m",
+    "***class*adi.adar1000.adar1000(*uri=''*, *context=None*, *chip_id='csb1_chip1'*, *device_number=1*, *array_element_map=None*, *channel_element_map=None*)**\n:   Bases: `attribute`, `context_manager`\n:   ADAR1000 Beamformer\n:   parameters:\n:   uri: type=stringOptional parameter for the URI of IIO cont",
+    "The class **adi.ad579x** supports the following IIO drivers:\n\n**ad579x.compatible_parts*= ['ad5780', 'ad5781', 'ad5790', 'ad5791', 'ad5760']***\n",
+    "***class*adi.ad579x(*uri=''*, *device_name=''*, *device_index=0*)**\n:   Bases: `tx_chan_comp`\n:   AD579x DAC\n:   channel*= []*\n:   *property*powerdown_mode\n:   Ad579x powerdown_mode config\n:   *property*powerdown_mode_available\n:   AD579x powedown mode available\n:   *property*sampling_frequency\n:   ",
+    "The ad579x class supports a variable number of channels depending on the hardware configuration. Therefore, the channel property interfaces are dynamically generated. They are available on an initiated object as attributes with names voltage0, voltage1, etc. They will be instances of the ad579x_chan",
+    "***class*adi.adis16485(*uri=''*, *device_name=None*, *trigger_name=None*)**\n:   Bases: `adis16XXX`\n:   ADIS16485 Tactical Grade Six Degrees of Freedom MEMS Inertial Sensor\n:   Args:uri: URI of IIO context with ADIS16485 device\n:   device_name: Name of the device in the IIO context. Default is adis16",
+    "***class*adi.ad9265.ad9265(**args: str | Context*, ***kwargs: str | Context*)**\n:   Bases: `rx_def`\n:   AD9265 High-Speed ADC\n:   compatible_parts*= ['axi-ad9265-core-lpc']*\n:   *property*test_mode\n:   test_mode: Select Test Mode. Options are:\n:   off midscale_short pos_fullscale neg_fullscale check",
+    "***class*adi.adis16550(*uri=''*, *device_name=None*, *trigger_name=None*)**\n:   Bases: `rx`, `context_manager`\n:   *property*accel_x_calibbias\n:   User calibration offset for accelerometer for the x-axis.\n:   *property*accel_x_calibscale\n:   Calibscale value for accelerometer for the x-axis.\n:   *pr",
+    "***class*adi.ad9081.ad9081(*uri=''*)**\n:   Bases: `rx_tx`, `context_manager`, `sync_start`\n:   AD9081 Mixed-Signal Front End (MxFE)\n:   *property*adc_frequency\n:   adc_frequency: ADC frequency in Hz\n:   *property*api_version\n:   api_version: API version\n:   *property*chip_version\n:   chip_version: C",
+    "***class*adi.adrv9002.adrv9002(*uri=''*)**\n:   Bases: `rx_tx`, `context_manager`\n:   ADRV9002 Transceiver\n:   *property*agc_tracking_en_chan0\n:   Enable AGC on the fly tracking calibration for RX1\n:   *property*agc_tracking_en_chan1\n:   Enable AGC on the fly tracking calibration for RX2\n:   *propert",
+    "***class*adi.cn0554.cn0554(*uri='ip:analog.local'*)**\n:   Bases: `object`\n:   CN0554 Mixed Signal Raspberry Pi Hat\n:   adc_in_channels\n:   dac_out_channels: DAC channel names derived from onboard LTC2688.\n:   convert_to_volts(*in_voltage*, *channel*)\n:   Convert ADC data using scale factors based on",
+    "***class*adi.fmcomms5.FMComms5(*uri=''*)**\n:   Bases: `ad9361`\n:   FMComms5 Dual Transceiver Evaluation Board\n:   *property*filter\n:   Load FIR filter file. Provide path to filter file to attribute\n:   *property*gain_control_mode_chip_b_chan0\n:   gain_control_mode_chip_b_chan0: Mode of receive path ",
+    "***class*adi.cn0579.cn0579(*uri='ip:analog.local'*)**\n:   Bases: `ad7768_4`\n:   CN0579 - Multichannel IEPE DAQ for CbM\n:   *property*CC_CH0\n:   Get Channel 0 Current Source Control\n:   *property*CC_CH1\n:   Get Channel 1 Current Source Control\n:   *property*CC_CH2\n:   Get Channel 2 Current Source Con",
+    "***class*adi.ad9166.ad9166(*uri=''*)**\n:   Bases: `attribute`, `context_manager`\n:   AD9166 Vector Signal Generator\n:   *property*FIR85_enable\n:   FIR85_enable: AD9166 FIR85 Filter Enable:\n:   Options:True: FIR85 Filter is enabled\n:   False: FIR85 Filter is disabled\n:   channel*= []*\n:   *property*f",
+    "***class*adi.ad4630.ad4630(*uri=''*, *device_name='ad4630-24'*)**\n:   Bases: `rx`, `context_manager`, `attribute`\n:   AD4630 is low power precision SAR ADC family supporting 16-bit, 20-bit, and 24-bit variants\n:   *property*output_data_mode\n:   Determine the output data mode in which device is confi",
+    "***class*adi.ad5710r.ad5710r(*uri=''*, *device_name=''*)**\n:   Bases: `tx`, `context_manager`\n:   AD5710r DAC\n:   *property*all_ch_input_registers\n:   AD5710r all input registers config\n:   *property*all_ch_operating_mode\n:   AD5710r all channels operating mode config\n:   *property*all_ch_operating_",
+    "***class*adi.ad7291.ad7291(*uri=''*, *device_name=''*, *device_index=0*)**\n:   Bases: `rx_chan_comp_no_buff`\n:   AD7291 ADC\n:   compatible_parts*= ['ad7291']*\n\n\n\n***class*adi.ad7291.ad7291_channel(*ctrl*, *channel_name*)**\n:   Bases: `attribute`\n:   AD7291 channel\n:   *property*raw\n:   AD7291 channe",
+    "***class*adi.adl5960.adl5960(*uri=''*, *device_name=''*)**\n:   Bases: `attribute`, `context_manager`\n:   ADL5960 10 MHz to 20 GHz, Integrated Vector Network Analyzer Front-End\n:   parameters:\n:   uri: type=stringURI of IIO context with ADL5960\n:   *property*forward_gain\n:   Get/Set Forward Gain\n:   ",
+    "***class*adi.adrv9009_zu11eg_fmcomms8.adrv9009_zu11eg_fmcomms8(*uri=''*, *jesd_monitor=False*, *jesd=None*)**\n:   Bases: `adrv9009_zu11eg`\n:   ADRV9009-ZU11EG System-On-Module + FMCOMMS8\n:   parameters:\n:   uri: type=stringURI of context with ADRV9009-ZU11EG\n:   jesd_monitor: type=booleanBoolean fla",
+    "***class*adi.one_bit_adc_dac.one_bit_adc_dac(*uri=''*, *name='one-bit-adc-dac'*)**\n:   Bases: `attribute`, `context_manager`\n:   One bit ADC/DAC (GPIO). This driver will create a handle for theGPIO device as well as properties for each GPIO pin it accesses.\n:   Each GPIO pin name will be lowercase a",
+    "***class*adi.ad9083.ad9083(*uri=''*)**\n:   Bases: `sync_start`, `rx`, `context_manager`\n:   AD9083 High-Speed Multi-channel ADC\n:   *property*nco0_frequency\n:   nco0_frequency: Get/Set NCO0 frequency\n:   *property*nco1_frequency\n:   nco0_frequency: Get/Set NCO1 frequency\n:   *property*nco2_frequency",
+    "***class*adi.adxl313.adxl313(*uri=''*)**\n:   Bases: `rx`, `context_manager`, `attribute`\n:   ADXL313 3-axis accelerometer\n",
+    "***class*adi.admv8818.admv8818(*uri=''*, *device_name=''*)**\n:   Bases: `attribute`, `context_manager`\n:   ADMV8818 2 GHz to 18 GHz, Digitally Tunable, High-Pass and Low-Pass Filter\n:   parameters:\n:   uri: type=stringURI of IIO context with ADMV8818\n:   *property*band_pass_bandwidth_3db_frequency\n:",
+    "***class*adi.adf4371.adf4371(*uri=''*)**\n:   Bases: `attribute`, `context_manager`\n:   ADF4371 Microwave Wideband Synthesizer\n:   with Integrated VCO\n:   parameters:\n:   uri: type=stringURI of IIO context with ADF4371\n:   *property*muxout_mode\n:   Get/Set the MUX output mode\n:   *property*rf16_enabl",
+    "***class*adi.fmcomms11.FMComms11(*uri=''*)**\n:   Bases: `ad9162`, `ad9625`\n:   FMCOMMS11 Transceiver\n",
+    "***class*adi.ltc2378.ltc2378(*uri=''*, *device_name='ltc2378-20'*)**\n:   Bases: `rx`, `context_manager`\n:   LTC2378 ADC\n:   channel*= []*\n:   *property*sampling_frequency\n:   Get sampling frequency\n",
+    "***class*adi.fmc_vna.fmcvna(*uri*)**\n:   Bases: `adrf5720`, `ad9083`, `admv8818`, `genmux`, `adf5610`, `adl5960`\n:   FMCVNA Scalable 8-port Vector Network Analyzer Board\n:   frontend*= [0, 0, 0, 0, 0, 0, 0, 0]*\n",
+    "Since pyadi-iio is built on top of libiio, it can use the different backends which allow device control and data transfer to and from devices remotely. These backends include serial, Ethernet, PCIe, USB, and of course locally connected devices can be controlled through the local backend. Connecting ",
+    "***class*adi.adrf5720.adrf5720(*uri=''*, *device_name=''*)**\n:   Bases: `attribute`, `context_manager`\n:   ADRF5720 Digital Attenuator\n:   *property*attenuation\n:   Sets attenuation of the ADRF5720\n:   channel*= 'voltage0'*\n",
+    "Before installing pyadi-iio make sure you have libiio and its python bindings installed. Since libiio v0.21, the libiio python bindings have been available on pypi and conda. The conda package includes the built library but the pypi install will require that it is installed beforehand. If you instal",
+    "It is recommended to use virtual environments when installing pyadi-iio. This will prevent any conflicts with other python packages that may be installed on your system. Newer versions of such Linux distributions, like Debian, do not allow the installation of global packages either. Therefore, if a ",
+    "For those who use the Anaconda or Conda environments, it is possible to install libiio from within those environments with the provided package managers. To install libiio, pylibiio, and pyadi-iio run:\n\n```bash\nconda install -c conda-forge pyadi-iio\n```\n",
+    "Check for libiio with the following from a command prompt or terminal:\n\n```bash\ndave@hal:~$ python3\nPython 3.6.8 (default, Jan 14 2019, 11:02:34)\n[GCC 8.0.1 20180414 (experimental) [trunk revision 259383]] on linux\nType \"help\", \"copyright\", \"credits\" or \"license\" for more information.\n>>> import iio",
+    "Here is a collection of small examples which demonstrate how to interface with different devices in different ways.\n\nConfiguring hardware properties and reading back settings\n\n```python\n# Import the library\nimport adi\n\n# Create a device interface\nsdr = adi.ad9361()\n# Configure properties\nsdr.rx_rf_b",
+    "***class*adi.adf4159.adf4159(*uri=''*)**\n:   Bases: `context_manager`, `attribute`\n:   ADF4159 is a 13 GHz Fractional-N Frequency Synthesizer\n:   *property*clk1_div_value\n:   Get/Set the PLL frequency deviation time.\n:   *property*clk1_mode\n:   Get/Set the mode of 1st clk.\n:   *property*clk2_div_val",
+    "***class*adi.cn0540.cn0540(*uri=''*)**\n:   Bases: `rx`, `context_manager`\n:   CN0540 CBM DAQ Board\n:   *property*fda_disable_status\n:   fda_disable_status: Amplifier disable status\n:   *property*fda_mode\n:   fda_mode: Amplifier mode. Options are low-power or full-power\n:   *property*input_voltage\n: ",
+    "***class*adi.ad937x.ad9371(*uri=''*, *username='root'*, *password='analog'*, *disable_jesd_control=False*)**\n:   Bases: `rx_tx`, `context_manager`, `sync_start`\n:   AD9371 Transceiver\n:   *property*ensm_mode\n:   ensm_mode: Enable State Machine State Allows real time control over\n:   the current stat",
+    "- QuadMxFE_multi\n  `QuadMxFE_multi`\n\n  - `QuadMxFE_multi`\n- ad2s1210\n  `ad2s1210`\n  `ad2s1210_position_channel`\n  `ad2s1210_velocity_channel`\n\n  - `ad2s1210`\n  - `ad2s1210_position_channel`\n  - `ad2s1210_velocity_channel`\n- ad353xr\n  Supported Drivers\n  Class API\n  Dynamic Attributes\n\n  - Supported ",
+    "pyadi-iio includes a Model Context Protocol (MCP) server that enables AI assistants and other MCP clients to interact with ADI hardware at runtime. The server exposes tools for device discovery, connection management, property configuration, data capture, and signal generation across all supported d",
+    "Install pyadi-iio with the MCP optional dependencies:\n\n```bash\npip install pyadi-iio[mcp]\n```\n\n\nThis installs fastmcp and numpy as additional dependencies.\n",
+    "Start the MCP server using the installed entry point:\n\n```bash\npyadi-iio-mcp\n```\n\n\nOr run it directly as a module:\n\n```bash\npython -m adi.mcp_server\n```\n\n\nThe server communicates over stdio using the MCP protocol. To use it with an MCP client, configure the client to launch the server as a subproces",
+    "The server provides the following tools:\n",
+    "**list_device_classes** \u2013 List all available pyadi-iio device classes with an optional name filter. This is useful for finding the correct class name for a specific part.\n\n```python\n# Example tool call\nlist_device_classes(filter_text=\"936\")\n# Returns: [\"ad9361\", \"ad9363\", \"ad9364\"]\n```\n",
+    "**connect_device** \u2013 Create a connection to any pyadi-iio device by class name and URI. Returns a `connection_id` UUID used by all subsequent tools, along with a summary of device capabilities.\n\n```python\n# Connect to an AD9361-based device\nconnect_device(device_class=\"ad9361\", uri=\"ip:192.168.2.1\")",
+    "**discover_device_capabilities** \u2013 Inspect a connected device to learn what it supports. Returns whether the device has RX, TX, and DDS capabilities, along with a list of all available properties including read/write metadata and documentation. An optional filter narrows the property list.\n\n```pytho",
+    "**get_property** \u2013 Read any device property by name. Works with any property exposed by the device class, from sample rates to NCO frequencies to gain settings.\n\n```python\nget_property(connection_id=\"...\", property_name=\"rx_sample_rate\")\n```\n\n\n**set_property** \u2013 Write any writable device property. T",
+    "**capture_rx_data** \u2013 Capture receive data and save it to a `.npy` file for analysis. Supports configurable buffer sizes and channel selection.\n\n```python\ncapture_rx_data(\n    connection_id=\"...\",\n    output_path=\"/tmp/capture.npy\",\n    buffer_size=65536,\n    enabled_channels=\"[0, 1]\",\n)\n```\n",
+    "**configure_dds** \u2013 Configure the FPGA-side DDS to generate a single tone on a specified TX channel. Useful for loopback testing and spectral analysis.\n\n```python\nconfigure_dds(\n    connection_id=\"...\", frequency=10000000, scale=0.9, channel=0,\n)\n```\n",
+    "A typical interaction with the MCP server follows this pattern:\n\n1. **Discover** available device classes with `list_device_classes`\n2. **Connect** to hardware with `connect_device`\n3. **Explore** the device with `discover_device_capabilities`\n4. **Configure** the device with `set_property`\n5. **Cap",
+    "MCP server for pyadi-iio \u2014 runtime device configuration and data capture.\n\nProvides generic tools that work with any pyadi-iio device class through\nruntime introspection of device properties and capabilities.\n\n***async*adi.mcp_server.capture_rx_data(*connection_id: str*, *output_path: str*, *buffer_"
+  ],
+  "url": [
+    "index.html",
+    "index.html",
+    "index.html",
+    "index.html",
+    "dev/test_jesd.html",
+    "libiio.html",
+    "libiio.html#libiio-entry-points",
+    "libiio.html#examples",
+    "libiio.html#libiio-v1-x-support",
+    "devices/adi.cn0511.html",
+    "dev/index.html",
+    "dev/index.html#invoke",
+    "dev/index.html#precommit",
+    "dev/index.html#testing",
+    "dev/index.html#test-configuration",
+    "dev/index.html#new-hardware-requirements",
+    "dev/index.html#test-functions-and-fixtures",
+    "dev/index.html#set-up-isolated-environment",
+    "dev/index.html#install-pyenv",
+    "dev/index.html#create-isolated-install-with-pipenv",
+    "dev/index.html#emulation",
+    "attr/index.html",
+    "devices/adi.ad9136.html",
+    "support.html",
+    "dev/test_dma.html",
+    "dev/test_generics.html",
+    "devices/adi.adpd188.html",
+    "devices/adi.ad9467.html",
+    "devices/adi.max14001.html",
+    "devices/adi.adis16507.html",
+    "devices/adi.ad9250.html",
+    "fpga/index.html#direct-digital-synthesizers",
+    "fpga/index.html#module-adi.dds",
+    "fpga/index.html#dma-synchronization",
+    "fpga/index.html#module-adi.sync_start",
+    "devices/adi.ad9213.html",
+    "devices/adi.ad7768.html",
+    "devices/adi.adf5611.html",
+    "devices/adi.cn0575.html",
+    "devices/adi.adxl345.html",
+    "devices/adi.ad2s1210.html",
+    "devices/adi.max31865.html",
+    "devices/adi.ad469x.html",
+    "devices/adi.ad7405.html",
+    "devices/adi.ad9152.html",
+    "devices/adi.ad719x.html#supported-drivers",
+    "devices/adi.ad719x.html#class-api",
+    "devices/adi.ad719x.html#dynamic-attributes",
+    "devices/adi.adf5610.html",
+    "devices/adi.ad4110.html#supported-drivers",
+    "devices/adi.ad4110.html#class-api",
+    "devices/adi.ad4110.html#dynamic-attributes",
+    "dev/test_attr.html",
+    "devices/adi.adrv9009.html",
+    "devices/adi.adpd410x.html",
+    "devices/adi.ad3552r_hs.html",
+    "devices/adi.adis16497.html",
+    "devices/adi.ad7606.html",
+    "devices/adi.tddn.html",
+    "devices/adi.ad738x.html#supported-drivers",
+    "devices/adi.ad738x.html#class-api",
+    "devices/adi.ad738x.html#dynamic-attributes",
+    "devices/adi.daq2.html",
+    "devices/adi.ada4355.html",
+    "devices/adi.ad5754r.html#supported-drivers",
+    "devices/adi.ad5754r.html#class-api",
+    "devices/adi.ad5754r.html#dynamic-attributes",
+    "devices/adi.fmcjesdadc1.html",
+    "devices/adi.ltc2672.html",
+    "devices/adi.adis16495.html",
+    "devices/adi.daq3.html",
+    "devices/adi.adis16488.html",
+    "devices/adi.ad5686.html",
+    "buffers/index.html",
+    "buffers/index.html#cyclic-mode",
+    "buffers/index.html#annotated-buffers",
+    "buffers/index.html#buffer-units",
+    "buffers/index.html#module-adi.rx_tx",
+    "buffers/index.html#buffer-examples",
+    "devices/adi.ad9081_mc.html",
+    "devices/adi.ad9084_mc.html",
+    "devices/adi.ad4170.html#supported-drivers",
+    "devices/adi.ad4170.html#class-api",
+    "devices/adi.ad4170.html#dynamic-attributes",
+    "devices/adi.adf4382.html",
+    "devices/adi.ad4858.html",
+    "devices/adi.ad9162.html",
+    "devices/adi.adpd1080.html",
+    "devices/adi.jesd.html",
+    "devices/adi.cn0532.html",
+    "devices/adi.ltc2387.html",
+    "devices/adi.gen_mux.html",
+    "devices/adi.adis16460.html",
+    "devices/adi.ad9094.html",
+    "devices/adi.ltc2314_14.html",
+    "devices/adi.max11205.html",
+    "devices/adi.ad7134.html#supported-drivers",
+    "devices/adi.ad7134.html#class-api",
+    "devices/adi.ad7134.html#dynamic-attributes",
+    "devices/adi.ltc2499.html",
+    "devices/adi.ad9172.html",
+    "devices/adi.ad9625.html",
+    "devices/adi.ad7746.html",
+    "devices/adi.ad9739a.html",
+    "devices/adi.adxl355.html",
+    "devices/adi.ltc2983.html",
+    "devices/adi.axi_aion_trig.html",
+    "devices/adi.axi_aion_trig.html#parameters",
+    "devices/adi.axi_aion_trig.html#attributes-per-voltage-channel",
+    "devices/adi.axi_aion_trig.html#raises",
+    "devices/adi.axi_aion_trig.html#examples",
+    "devices/adi.ada4961.html",
+    "devices/adi.adxl380.html",
+    "devices/adi.ad9144.html",
+    "devices/adi.adl8113.html",
+    "devices/adi.ad5706r.html",
+    "devices/adi.ad717x.html#supported-drivers",
+    "devices/adi.ad717x.html#class-api",
+    "devices/adi.ad717x.html#dynamic-attributes",
+    "devices/adi.cn0556.html",
+    "devices/adi.cn0566.html",
+    "devices/adi.cn0566.html#parameters",
+    "devices/adi.cn0566.html#id1",
+    "devices/adi.cn0566.html#id2",
+    "devices/adi.cn0566.html#id3",
+    "devices/adi.cn0566.html#id4",
+    "devices/adi.cn0566.html#id5",
+    "devices/adi.cn0566.html#id6",
+    "devices/adi.cn0566.html#id7",
+    "devices/adi.cn0566.html#notes",
+    "devices/adi.cn0566.html#id8",
+    "devices/adi.cn0566.html#id9",
+    "devices/adi.cn0566.html#id10",
+    "devices/adi.cn0566.html#id11",
+    "devices/adi.adl5240.html",
+    "devices/adi.adf4355.html",
+    "devices/adi.max31855.html",
+    "devices/adi.adis16545.html",
+    "devices/adi.adis16475.html",
+    "devices/adi.ltc2688.html",
+    "devices/adi.max9611.html",
+    "devices/adi.ad5627.html",
+    "devices/adi.hmc7044.html",
+    "devices/adi.ad936x.html",
+    "devices/adi.QuadMxFE_multi.html",
+    "devices/adi.adf4377.html",
+    "devices/adi.fmcadc3.html",
+    "devices/adi.ad7799.html",
+    "devices/adi.ada4356_lidar.html",
+    "devices/adi.tdd.html",
+    "devices/adi.ad9680.html",
+    "devices/adi.ad9434.html",
+    "devices/adi.lm75.html",
+    "devices/adi.lm75.html#parameters",
+    "devices/adi.ad777x.html",
+    "devices/adi.ad514x.html",
+    "devices/adi.ad3552r.html",
+    "devices/adi.cn0565.html",
+    "devices/adi.ad7689.html",
+    "devices/adi.adxrs290.html",
+    "devices/adi.adrv9009_zu11eg.html",
+    "devices/adi.adis16547.html",
+    "devices/adi.adrv9009_zu11eg_multi.html",
+    "devices/adi.adaq8092.html",
+    "devices/adi.ad4080.html#supported-drivers",
+    "devices/adi.ad4080.html#class-api",
+    "devices/adi.ad4080.html#dynamic-attributes",
+    "devices/adi.ltc2664.html",
+    "devices/adi.ad7124.html#supported-drivers",
+    "devices/adi.ad7124.html#class-api",
+    "devices/adi.ad7124.html#dynamic-attributes",
+    "devices/adi.ad353xr.html#supported-drivers",
+    "devices/adi.ad353xr.html#class-api",
+    "devices/adi.ad353xr.html#dynamic-attributes",
+    "devices/adi.ad405x.html",
+    "devices/adi.adf4030.html",
+    "devices/adi.adg2128.html",
+    "devices/adi.ad9084.html",
+    "devices/adi.ad5592r.html",
+    "devices/adi.ad4130.html#supported-drivers",
+    "devices/adi.ad4130.html#class-api",
+    "devices/adi.ad4130.html#dynamic-attributes",
+    "devices/adi.adt7420.html",
+    "devices/adi.ad4020.html",
+    "devices/adi.ad4020.html#supported-drivers",
+    "devices/adi.ad4020.html#class-api",
+    "devices/adi.ad4020.html#dynamic-attributes",
+    "devices/adi.fmclidar1.html",
+    "devices/adi.adis16375.html",
+    "devices/adi.adis16490.html",
+    "devices/adi.ad7490.html",
+    "devices/adi.adis16480.html",
+    "devices/adi.ad6676.html",
+    "devices/adi.ad7091rx.html",
+    "devices/adi.ad5940.html",
+    "devices/adi.adar1000.html",
+    "devices/adi.ad579x.html#supported-drivers",
+    "devices/adi.ad579x.html#class-api",
+    "devices/adi.ad579x.html#dynamic-attributes",
+    "devices/adi.adis16485.html",
+    "devices/adi.ad9265.html",
+    "devices/adi.adis16550.html",
+    "devices/adi.ad9081.html",
+    "devices/adi.adrv9002.html",
+    "devices/adi.cn0554.html",
+    "devices/adi.fmcomms5.html",
+    "devices/adi.cn0579.html",
+    "devices/adi.ad9166.html",
+    "devices/adi.ad4630.html",
+    "devices/adi.ad5710r.html",
+    "devices/adi.ad7291.html",
+    "devices/adi.adl5960.html",
+    "devices/adi.adrv9009_zu11eg_fmcomms8.html",
+    "devices/adi.one_bit_adc_dac.html",
+    "devices/adi.ad9083.html",
+    "devices/adi.adxl313.html",
+    "devices/adi.admv8818.html",
+    "devices/adi.adf4371.html",
+    "devices/adi.fmcomms11.html",
+    "devices/adi.ltc2378.html",
+    "devices/adi.fmc_vna.html",
+    "guides/connectivity.html",
+    "devices/adi.adrf5720.html",
+    "guides/quick.html",
+    "guides/quick.html#using-virtual-environments",
+    "guides/quick.html#conda-install",
+    "guides/quick.html#install-checks",
+    "guides/examples.html",
+    "devices/adi.adf4159.html",
+    "devices/adi.cn0540.html",
+    "devices/adi.ad937x.html",
+    "devices/index.html",
+    "mcp/index.html",
+    "mcp/index.html#installation",
+    "mcp/index.html#running-the-server",
+    "mcp/index.html#available-tools",
+    "mcp/index.html#device-discovery",
+    "mcp/index.html#connection-management",
+    "mcp/index.html#device-introspection",
+    "mcp/index.html#property-access",
+    "mcp/index.html#data-capture",
+    "mcp/index.html#signal-generation",
+    "mcp/index.html#example-workflow",
+    "mcp/index.html#module-adi.mcp_server"
+  ],
+  "hierarchy": [
+    [
+      "Analog Devices Hardware Python Interfaces"
+    ],
+    [
+      "Requirements"
+    ],
+    [
+      "Sections"
+    ],
+    [
+      "Indices and tables"
+    ],
+    [
+      "Developers",
+      "JESD204 Tests"
+    ],
+    [
+      "libiio Direct Access"
+    ],
+    [
+      "libiio Direct Access",
+      "libiio Entry Points"
+    ],
+    [
+      "libiio Direct Access",
+      "Examples"
+    ],
+    [
+      "libiio Direct Access",
+      "libiio v1.X support"
+    ],
+    [
+      "Supported Devices",
+      "adi.cn0511 module"
+    ],
+    [
+      "Developers"
+    ],
+    [
+      "Developers",
+      "Invoke"
+    ],
+    [
+      "Developers",
+      "Precommit"
+    ],
+    [
+      "Developers",
+      "Testing"
+    ],
+    [
+      "Developers",
+      "Testing",
+      "Test Configuration"
+    ],
+    [
+      "Developers",
+      "Testing",
+      "New Hardware Requirements"
+    ],
+    [
+      "Developers",
+      "Testing",
+      "Test Functions and Fixtures"
+    ],
+    [
+      "Developers",
+      "Set Up Isolated Environment"
+    ],
+    [
+      "Developers",
+      "Set Up Isolated Environment",
+      "Install pyenv"
+    ],
+    [
+      "Developers",
+      "Set Up Isolated Environment",
+      "Create isolated install with pipenv"
+    ],
+    [
+      "Developers",
+      "Emulation"
+    ],
+    [
+      "Attributes"
+    ],
+    [
+      "Supported Devices",
+      "ad9136"
+    ],
+    [
+      "Support"
+    ],
+    [
+      "Developers",
+      "DMA Tests"
+    ],
+    [
+      "Developers",
+      "Generic Tests"
+    ],
+    [
+      "Supported Devices",
+      "adpd188"
+    ],
+    [
+      "Supported Devices",
+      "adi.ad9467 module"
+    ],
+    [
+      "Supported Devices",
+      "adi.max14001 module"
+    ],
+    [
+      "Supported Devices",
+      "adis16507"
+    ],
+    [
+      "Supported Devices",
+      "adi.ad9250 module"
+    ],
+    [
+      "FPGA Features",
+      "Direct Digital Synthesizers"
+    ],
+    [
+      "FPGA Features",
+      "DDS Methods"
+    ],
+    [
+      "FPGA Features",
+      "DMA Synchronization"
+    ],
+    [
+      "FPGA Features",
+      "Sync_Start Methods"
+    ],
+    [
+      "Supported Devices",
+      "ad9213"
+    ],
+    [
+      "Supported Devices",
+      "ad7768"
+    ],
+    [
+      "Supported Devices",
+      "adf5611"
+    ],
+    [
+      "Supported Devices",
+      "cn0575"
+    ],
+    [
+      "Supported Devices",
+      "adxl345"
+    ],
+    [
+      "Supported Devices",
+      "ad2s1210"
+    ],
+    [
+      "Supported Devices",
+      "adi.max31865 module"
+    ],
+    [
+      "Supported Devices",
+      "ad469x"
+    ],
+    [
+      "Supported Devices",
+      "ad7405"
+    ],
+    [
+      "Supported Devices",
+      "ad9152"
+    ],
+    [
+      "Supported Devices",
+      "ad719x",
+      "Supported Drivers"
+    ],
+    [
+      "Supported Devices",
+      "ad719x",
+      "Class API"
+    ],
+    [
+      "Supported Devices",
+      "ad719x",
+      "Dynamic Attributes"
+    ],
+    [
+      "Supported Devices",
+      "adf5610"
+    ],
+    [
+      "Supported Devices",
+      "ad4110",
+      "Supported Drivers"
+    ],
+    [
+      "Supported Devices",
+      "ad4110",
+      "Class API"
+    ],
+    [
+      "Supported Devices",
+      "ad4110",
+      "Dynamic Attributes"
+    ],
+    [
+      "Developers",
+      "Attribute Tests"
+    ],
+    [
+      "Supported Devices",
+      "adrv9009"
+    ],
+    [
+      "Supported Devices",
+      "adpd410x"
+    ],
+    [
+      "Supported Devices",
+      "adi.ad3552r_hs module"
+    ],
+    [
+      "Supported Devices",
+      "adis16497"
+    ],
+    [
+      "Supported Devices",
+      "ad7606"
+    ],
+    [
+      "Supported Devices",
+      "tddn"
+    ],
+    [
+      "Supported Devices",
+      "ad738x",
+      "Supported Drivers"
+    ],
+    [
+      "Supported Devices",
+      "ad738x",
+      "Class API"
+    ],
+    [
+      "Supported Devices",
+      "ad738x",
+      "Dynamic Attributes"
+    ],
+    [
+      "Supported Devices",
+      "daq2"
+    ],
+    [
+      "Supported Devices",
+      "ada4355"
+    ],
+    [
+      "Supported Devices",
+      "ad5754r",
+      "Supported Drivers"
+    ],
+    [
+      "Supported Devices",
+      "ad5754r",
+      "Class API"
+    ],
+    [
+      "Supported Devices",
+      "ad5754r",
+      "Dynamic Attributes"
+    ],
+    [
+      "Supported Devices",
+      "adi.fmcjesdadc1 module"
+    ],
+    [
+      "Supported Devices",
+      "ltc2672"
+    ],
+    [
+      "Supported Devices",
+      "adis16495"
+    ],
+    [
+      "Supported Devices",
+      "daq3"
+    ],
+    [
+      "Supported Devices",
+      "adis16488"
+    ],
+    [
+      "Supported Devices",
+      "ad5686"
+    ],
+    [
+      "Buffers"
+    ],
+    [
+      "Buffers",
+      "Cyclic Mode"
+    ],
+    [
+      "Buffers",
+      "Annotated Buffers"
+    ],
+    [
+      "Buffers",
+      "Buffer Units"
+    ],
+    [
+      "Buffers",
+      "Members"
+    ],
+    [
+      "Buffers",
+      "Buffer Examples"
+    ],
+    [
+      "Supported Devices",
+      "ad9081_mc"
+    ],
+    [
+      "Supported Devices",
+      "ad9084_mc"
+    ],
+    [
+      "Supported Devices",
+      "ad4170",
+      "Supported Drivers"
+    ],
+    [
+      "Supported Devices",
+      "ad4170",
+      "Class API"
+    ],
+    [
+      "Supported Devices",
+      "ad4170",
+      "Dynamic Attributes"
+    ],
+    [
+      "Supported Devices",
+      "adf4382"
+    ],
+    [
+      "Supported Devices",
+      "ad4858"
+    ],
+    [
+      "Supported Devices",
+      "adi.ad9162 module"
+    ],
+    [
+      "Supported Devices",
+      "adpd1080"
+    ],
+    [
+      "Supported Devices",
+      "jesd"
+    ],
+    [
+      "Supported Devices",
+      "cn0532"
+    ],
+    [
+      "Supported Devices",
+      "ltc2387"
+    ],
+    [
+      "Supported Devices",
+      "gen_mux"
+    ],
+    [
+      "Supported Devices",
+      "adis16460"
+    ],
+    [
+      "Supported Devices",
+      "ad9094"
+    ],
+    [
+      "Supported Devices",
+      "ltc2314_14"
+    ],
+    [
+      "Supported Devices",
+      "adi.max11205 module"
+    ],
+    [
+      "Supported Devices",
+      "ad7134",
+      "Supported Drivers"
+    ],
+    [
+      "Supported Devices",
+      "ad7134",
+      "Class API"
+    ],
+    [
+      "Supported Devices",
+      "ad7134",
+      "Dynamic Attributes"
+    ],
+    [
+      "Supported Devices",
+      "adi.ltc2499 module"
+    ],
+    [
+      "Supported Devices",
+      "adi.ad9172 module"
+    ],
+    [
+      "Supported Devices",
+      "adi.ad9625 module"
+    ],
+    [
+      "Supported Devices",
+      "ad7746"
+    ],
+    [
+      "Supported Devices",
+      "adi.ad9739a module"
+    ],
+    [
+      "Supported Devices",
+      "adxl355"
+    ],
+    [
+      "Supported Devices",
+      "ltc2983"
+    ],
+    [
+      "Supported Devices",
+      "adi.axi_aion_trig module"
+    ],
+    [
+      "Supported Devices",
+      "Parameters"
+    ],
+    [
+      "Supported Devices",
+      "Attributes (per voltage channel)"
+    ],
+    [
+      "Supported Devices",
+      "Raises"
+    ],
+    [
+      "Supported Devices",
+      "Examples"
+    ],
+    [
+      "Supported Devices",
+      "adi.ada4961 module"
+    ],
+    [
+      "Supported Devices",
+      "adxl380"
+    ],
+    [
+      "Supported Devices",
+      "ad9144"
+    ],
+    [
+      "Supported Devices",
+      "adl8113"
+    ],
+    [
+      "Supported Devices",
+      "ad5706r"
+    ],
+    [
+      "Supported Devices",
+      "ad717x",
+      "Supported Drivers"
+    ],
+    [
+      "Supported Devices",
+      "ad717x",
+      "Class API"
+    ],
+    [
+      "Supported Devices",
+      "ad717x",
+      "Dynamic Attributes"
+    ],
+    [
+      "Supported Devices",
+      "cn0556"
+    ],
+    [
+      "Supported Devices",
+      "adi.cn0566 module"
+    ],
+    [
+      "Supported Devices",
+      "parameters"
+    ],
+    [
+      "Supported Devices",
+      "Parameters"
+    ],
+    [
+      "Supported Devices",
+      "Parameters"
+    ],
+    [
+      "Supported Devices",
+      "Parameters"
+    ],
+    [
+      "Supported Devices",
+      "Parameters"
+    ],
+    [
+      "Supported Devices",
+      "Parameters"
+    ],
+    [
+      "Supported Devices",
+      "Parameters"
+    ],
+    [
+      "Supported Devices",
+      "Parameters"
+    ],
+    [
+      "Supported Devices",
+      "Notes"
+    ],
+    [
+      "Supported Devices",
+      "Parameters"
+    ],
+    [
+      "Supported Devices",
+      "Parameters"
+    ],
+    [
+      "Supported Devices",
+      "Notes"
+    ],
+    [
+      "Supported Devices",
+      "Parameters"
+    ],
+    [
+      "Supported Devices",
+      "adi.adl5240 module"
+    ],
+    [
+      "Supported Devices",
+      "adi.adf4355 module"
+    ],
+    [
+      "Supported Devices",
+      "adi.max31855 module"
+    ],
+    [
+      "Supported Devices",
+      "adis16545"
+    ],
+    [
+      "Supported Devices",
+      "adis16475"
+    ],
+    [
+      "Supported Devices",
+      "ltc2688"
+    ],
+    [
+      "Supported Devices",
+      "adi.max9611 module"
+    ],
+    [
+      "Supported Devices",
+      "ad5627"
+    ],
+    [
+      "Supported Devices",
+      "adi.hmc7044 module"
+    ],
+    [
+      "Supported Devices",
+      "ad936x"
+    ],
+    [
+      "Supported Devices",
+      "QuadMxFE_multi"
+    ],
+    [
+      "Supported Devices",
+      "adf4377"
+    ],
+    [
+      "Supported Devices",
+      "adi.fmcadc3 module"
+    ],
+    [
+      "Supported Devices",
+      "ad7799"
+    ],
+    [
+      "Supported Devices",
+      "ada4356_lidar"
+    ],
+    [
+      "Supported Devices",
+      "tdd"
+    ],
+    [
+      "Supported Devices",
+      "ad9680"
+    ],
+    [
+      "Supported Devices",
+      "adi.ad9434 module"
+    ],
+    [
+      "Supported Devices",
+      "lm75"
+    ],
+    [
+      "Supported Devices",
+      "Parameters"
+    ],
+    [
+      "Supported Devices",
+      "ad777x"
+    ],
+    [
+      "Supported Devices",
+      "ad514x"
+    ],
+    [
+      "Supported Devices",
+      "ad3552r"
+    ],
+    [
+      "Supported Devices",
+      "cn0565"
+    ],
+    [
+      "Supported Devices",
+      "ad7689"
+    ],
+    [
+      "Supported Devices",
+      "adxrs290"
+    ],
+    [
+      "Supported Devices",
+      "adrv9009_zu11eg"
+    ],
+    [
+      "Supported Devices",
+      "adis16547"
+    ],
+    [
+      "Supported Devices",
+      "adrv9009_zu11eg_multi"
+    ],
+    [
+      "Supported Devices",
+      "adaq8092"
+    ],
+    [
+      "Supported Devices",
+      "ad4080",
+      "Supported Drivers"
+    ],
+    [
+      "Supported Devices",
+      "ad4080",
+      "Class API"
+    ],
+    [
+      "Supported Devices",
+      "ad4080",
+      "Dynamic Attributes"
+    ],
+    [
+      "Supported Devices",
+      "ltc2664"
+    ],
+    [
+      "Supported Devices",
+      "ad7124",
+      "Supported Drivers"
+    ],
+    [
+      "Supported Devices",
+      "ad7124",
+      "Class API"
+    ],
+    [
+      "Supported Devices",
+      "ad7124",
+      "Dynamic Attributes"
+    ],
+    [
+      "Supported Devices",
+      "ad353xr",
+      "Supported Drivers"
+    ],
+    [
+      "Supported Devices",
+      "ad353xr",
+      "Class API"
+    ],
+    [
+      "Supported Devices",
+      "ad353xr",
+      "Dynamic Attributes"
+    ],
+    [
+      "Supported Devices",
+      "ad405x"
+    ],
+    [
+      "Supported Devices",
+      "adi.adf4030 module"
+    ],
+    [
+      "Supported Devices",
+      "adi.adg2128 module"
+    ],
+    [
+      "Supported Devices",
+      "ad9084"
+    ],
+    [
+      "Supported Devices",
+      "ad5592r"
+    ],
+    [
+      "Supported Devices",
+      "ad4130",
+      "Supported Drivers"
+    ],
+    [
+      "Supported Devices",
+      "ad4130",
+      "Class API"
+    ],
+    [
+      "Supported Devices",
+      "ad4130",
+      "Dynamic Attributes"
+    ],
+    [
+      "Supported Devices",
+      "adi.adt7420 module"
+    ],
+    [
+      "Supported Devices",
+      "ad4020"
+    ],
+    [
+      "Supported Devices",
+      "ad4020",
+      "Supported Drivers"
+    ],
+    [
+      "Supported Devices",
+      "ad4020",
+      "Class API"
+    ],
+    [
+      "Supported Devices",
+      "ad4020",
+      "Dynamic Attributes"
+    ],
+    [
+      "Supported Devices",
+      "fmclidar1"
+    ],
+    [
+      "Supported Devices",
+      "adis16375"
+    ],
+    [
+      "Supported Devices",
+      "adis16490"
+    ],
+    [
+      "Supported Devices",
+      "ad7490"
+    ],
+    [
+      "Supported Devices",
+      "adis16480"
+    ],
+    [
+      "Supported Devices",
+      "adi.ad6676 module"
+    ],
+    [
+      "Supported Devices",
+      "ad7091rx"
+    ],
+    [
+      "Supported Devices",
+      "adi.ad5940 module"
+    ],
+    [
+      "Supported Devices",
+      "adar1000"
+    ],
+    [
+      "Supported Devices",
+      "ad579x",
+      "Supported Drivers"
+    ],
+    [
+      "Supported Devices",
+      "ad579x",
+      "Class API"
+    ],
+    [
+      "Supported Devices",
+      "ad579x",
+      "Dynamic Attributes"
+    ],
+    [
+      "Supported Devices",
+      "adis16485"
+    ],
+    [
+      "Supported Devices",
+      "adi.ad9265 module"
+    ],
+    [
+      "Supported Devices",
+      "adis16550"
+    ],
+    [
+      "Supported Devices",
+      "ad9081"
+    ],
+    [
+      "Supported Devices",
+      "adrv9002"
+    ],
+    [
+      "Supported Devices",
+      "cn0554"
+    ],
+    [
+      "Supported Devices",
+      "fmcomms5"
+    ],
+    [
+      "Supported Devices",
+      "cn0579"
+    ],
+    [
+      "Supported Devices",
+      "adi.ad9166 module"
+    ],
+    [
+      "Supported Devices",
+      "ad4630"
+    ],
+    [
+      "Supported Devices",
+      "ad5710r"
+    ],
+    [
+      "Supported Devices",
+      "ad7291"
+    ],
+    [
+      "Supported Devices",
+      "adl5960"
+    ],
+    [
+      "Supported Devices",
+      "adrv9009_zu11eg_fmcomms8"
+    ],
+    [
+      "Supported Devices",
+      "one_bit_adc_dac"
+    ],
+    [
+      "Supported Devices",
+      "ad9083"
+    ],
+    [
+      "Supported Devices",
+      "adxl313"
+    ],
+    [
+      "Supported Devices",
+      "admv8818"
+    ],
+    [
+      "Supported Devices",
+      "adf4371"
+    ],
+    [
+      "Supported Devices",
+      "adi.fmcomms11 module"
+    ],
+    [
+      "Supported Devices",
+      "ltc2378"
+    ],
+    [
+      "Supported Devices",
+      "fmc_vna"
+    ],
+    [
+      "Connectivity"
+    ],
+    [
+      "Supported Devices",
+      "adrf5720"
+    ],
+    [
+      "Quick Start"
+    ],
+    [
+      "Quick Start",
+      "Using Virtual Environments"
+    ],
+    [
+      "Quick Start",
+      "Conda Install"
+    ],
+    [
+      "Quick Start",
+      "Install Checks"
+    ],
+    [
+      "Examples"
+    ],
+    [
+      "Supported Devices",
+      "adf4159"
+    ],
+    [
+      "Supported Devices",
+      "cn0540"
+    ],
+    [
+      "Supported Devices",
+      "ad937x"
+    ],
+    [
+      "Supported Devices"
+    ],
+    [
+      "MCP Server"
+    ],
+    [
+      "MCP Server",
+      "Installation"
+    ],
+    [
+      "MCP Server",
+      "Running the Server"
+    ],
+    [
+      "MCP Server",
+      "Available Tools"
+    ],
+    [
+      "MCP Server",
+      "Available Tools",
+      "Device Discovery"
+    ],
+    [
+      "MCP Server",
+      "Available Tools",
+      "Connection Management"
+    ],
+    [
+      "MCP Server",
+      "Available Tools",
+      "Device Introspection"
+    ],
+    [
+      "MCP Server",
+      "Available Tools",
+      "Property Access"
+    ],
+    [
+      "MCP Server",
+      "Available Tools",
+      "Data Capture"
+    ],
+    [
+      "MCP Server",
+      "Available Tools",
+      "Signal Generation"
+    ],
+    [
+      "MCP Server",
+      "Example Workflow"
+    ],
+    [
+      "MCP Server",
+      "API Reference"
+    ]
+  ]
+}
