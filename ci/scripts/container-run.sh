@@ -169,6 +169,7 @@ container-run ()
 		fi
 		if $mount_ai; then
 			ai_env_vars=(
+				PORTKEY_API_KEY
 				ANTHROPIC_BASE_URL
 				ANTHROPIC_AUTH_TOKEN
 				ANTHROPIC_CUSTOM_HEADERS
@@ -178,10 +179,21 @@ container-run ()
 				ANTHROPIC_DEFAULT_HAIKU_MODEL
 			)
 			echo -n "Detected AI tools:"
-			if [[ -f "$HOME/.local/bin/claude" ]]; then
+			if which claude &>/dev/null ; then
 				echo -n " claude"
-				run_params+=(--volume $HOME/.local/bin/claude:$home/.local/bin/claude)
+				run_params+=(--volume $(which claude):$home/.local/bin/claude)
+				run_params+=(--volume $HOME/.claude:$home/.claude)
 			fi
+			if which pi &>/dev/null ; then
+				echo -n " pi"
+				run_params+=(--volume $(which pi)/../..:$home/.local/pi/node_modules)
+				run_params+=(--volume $HOME/.pi:$home/.pi)
+
+				profile_pi=$(mktemp -t pi_path.XXX.sh)
+				echo "export PATH=\"\$PATH:$home/externals/node24/bin:$home/.local/pi/node_modules/.bin\"" > "$profile_pi"
+				run_params+=(--volume "$profile_pi":/etc/profile.d/pi.sh:ro)
+			fi
+
 			echo ""
 			vars_=()
 			for var in "${ai_env_vars[@]}"; do
@@ -230,6 +242,7 @@ container-run ()
 		fi
 	fi
 
+	[[ -z "$profile_pi" ]] || rm "$profile_pi"
 }
 alias container=$container_engine
 alias docker-run=container-run
