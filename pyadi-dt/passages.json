@@ -1,0 +1,2126 @@
+{
+  "text": [
+    "Install from the Git repository:\n\n```bash\npip install git+https://github.com/analogdevicesinc/pyadi-dt.git\n```\n\n\nFor XSA pipeline support (requires Vivado `sdtgen` / lopper on PATH):\n\n```bash\npip install \"git+https://github.com/analogdevicesinc/pyadi-dt.git#egg=adidt[xsa]\"\n```\n\n\nFor development with",
+    "The fastest way to produce a device tree from a Vivado design:\n\n```bash\nadidtc xsa2dt -x design.xsa --profile ad9081_zcu102 -o out/\n```\n\n\nThis runs the full pipeline \u2014 `sdtgen`, topology parsing, node building\nvia `BoardModel`, and DTS merging \u2014 and writes a `.dts` file ready for\n`dtc` compilation.\n",
+    "The simplest case \u2014 an ADI SPI device on a Raspberry Pi or similar\nplatform.  No Vivado, no XSA, no FPGA:\n\n```python\nfrom adidt.model import BoardModel, components\nfrom adidt.model.renderer import BoardModelRenderer\n\nmodel = BoardModel(\n    name=\"rpi5_imu\",\n    platform=\"rpi5\",\n    components=[\n    ",
+    "For FPGA boards with clock chips and JESD204 links, use `pyadi-jif`\nto solve the clock tree and a board class to generate the DTS:\n\n```python\nimport adijif\nfrom adidt.boards.daq2 import daq2\n\n# Solve clock tree\nsys = adijif.system([\"ad9680\", \"ad9144\"], \"ad9523_1\", \"xilinx\", 125e6)\nsys.fpga.setup_by_",
+    "The `gen-dts` command runs the same board class workflow without writing\na Python script:\n\n```bash\nadidtc gen-dts -b daq2 -p zcu102 -c solver_config.json\n\n# Generate and compile to DTB\nadidtc gen-dts -b ad9081_fmc -p vpk180 -c config.json --compile\n```\n\n\nSee Device Tree Generation for the full walkt",
+    "The `BoardModel` is editable after construction.  Modify any component\nconfig, JESD parameter, or metadata before rendering:\n\n```python\nfrom adidt.boards.daq2 import daq2\nfrom adidt.model.renderer import BoardModelRenderer\n\nboard = daq2(platform=\"zcu102\")\nmodel = board.to_board_model(solver_config)\n",
+    "Read device tree properties from a running board over SSH:\n\n```bash\nadidtc -c remote_sysfs -i 192.168.2.1 prop -cp adi,ad9361 clock-output-names\n```\n\n\nprops command demo\n\n\nSee Live Update Access Models for local sysfs, remote SSH, SD card, and file-based\naccess modes.\n",
+    "Visualize include dependencies and missing headers in a device tree file:\n\n```bash\nadidtc deps overlay.dts --format tree\nadidtc deps overlay.dts --format dot -o deps.dot   # Graphviz output\n```\n",
+    "Apply `pyadi-jif`-solved clock and JESD204 parameters from a JSON file:\n\n```bash\nadidtc jif --config solved_clocks.json\n```\n\n\nSee Part Layers for the part-layer abstractions (HMC7044, AD9523-1,\nAD9528, ADRV9009).\n",
+    "- XSA Flow Tutorials \u2014 Step-by-step XSA-to-DTS walkthrough\n- Device Tree Generation \u2014 Generate device trees without Vivado\n  (Raspberry Pi, Intel FPGA, custom boards)\n- XSA + adijif Tutorial \u2014 Derive JESD parameters with\n  `pyadi-jif` before running the XSA pipeline\n- MCP Server \u2014 Use pyadi-dt tools",
+    "**adidt** supports a number of different access models depending on where your device tree is located and how you want to apply changes. For example, the device tree can be directly read from the sysfs with *local_sysfs* and *remote_sysfs*. Remote calls will always utilize an SSH connect to access a",
+    "- `local_sysfs` - DT extracted from sysfs on the local machine.\n- `local_file` - DT read from a local `.dts` or `.dtb` file (read-only).\n- `local_sd` - DT extracted from a locally attached ADI SD card.\n- `remote_sysfs` - DT extracted from a remote board\u2019s sysfs over SSH.\n- `remote_sd` - DT extracted",
+    "|Mode|Reads from|Can write|Requires|\n|`local_sysfs`|`/proc/device-tree`|No|Running on target board|\n|`local_file`|`.dts` / `.dtb` file|No|File path (`-f` flag)|\n|`local_sd`|SD card boot partition|Yes|SD card mounted locally|\n|`remote_sysfs`|`/proc/device-tree` over SSH|No|Network access to board|\n|`",
+    "Set the default TX LO of a AD9361 based system to 1 GHz remotely:\n\n```bash\nadidtc -i ad9361.local -c remote_sd props -cp adi,ad9361 adi,tx-synthesizer-frequency-hz 1000000000\n```\n\n\nSet the default TX LO of a AD9361 based system to 1 GHz from the board itself:\n\n```bash\nadidtc -c local_sd props -cp ad",
+    "The `sd-remote-copy` command copies local boot files (BOOT.BIN, image.ub,\ndevicetree, etc.) to a remote board\u2019s SD card over SSH:\n\n```bash\nadidtc -i 192.168.2.1 -c remote_sd sd-remote-copy BOOT.BIN,image.ub -r\n```\n\n\nOptions:\n\n- `-r` / `--reboot` \u2014 Reboot the board after copying\n- `-s` / `--show` \u2014 P",
+    "The `dt` class provides programmatic access to the same functionality:\n\n```python\nfrom adidt import dt\n\n# Read from live hardware over SSH\nd = dt(dt_source=\"remote_sysfs\", ip=\"192.168.2.1\")\nnodes = d.get_node_by_compatible(\"adi,ad9361\")\nprint(nodes)\n\n# Read from a local file\nd = dt(dt_source=\"local_",
+    "This section provides examples of how to use the `pyadi-dt` library for various tasks related to device tree generation and management for ADI devices.\n\nExamples\n\n- AD9081 Device Tree Generation\n- XSA Flow Tutorials\n- XSA + adijif Tutorial\n- XSA \u2192 Device Tree: AD9081 on ZCU102\n- BoardModel: Unified ",
+    "This guide covers practical end-to-end paths to generate device trees from\nXilinx `.xsa` archives.\n\nUse this page if you want a hands-on workflow before diving into board-specific\nexamples.\n",
+    "```bash\npip install \"adidt[xsa]\"\n\n# Optional: needed for auto-deriving JESD/clock settings in example scripts\npip install pyadi-jif[cplex]   # or pyadi-jif[gekko]\n```\n",
+    "`xsa2dt` needs a JSON config file with at least JESD and clock fields.\n\n```json\n{\n  \"jesd\": {\n    \"rx\": {\"F\": 4, \"K\": 32, \"M\": 8, \"L\": 4, \"Np\": 16, \"S\": 1},\n    \"tx\": {\"F\": 4, \"K\": 32, \"M\": 8, \"L\": 4, \"Np\": 16, \"S\": 1}\n  },\n  \"clock\": {\n    \"rx_device_clk_label\": \"clkgen\",\n    \"tx_device_clk_label\":",
+    "```bash\nadidtc xsa2dt -x /path/to/design.xsa -c cfg.json -o out/\n```\n\n\nUseful optional flags:\n\n- `--profile ad9081_zcu102` (force profile; omit to auto-detect)\n- `--reference-dts /path/to/ref.dts` (enable parity report generation)\n- `--strict-parity` (exit non-zero if required roles/links/properties",
+    "`xsa2dt` returns these artifact paths:\n\n- `overlay`: generated `.dtso`\n- `merged`: full merged `.dts`\n- `report`: HTML report (`*_report.html`) with topology + clock/jesd views\n- optional: `base_dir`, `clock_dot`, `clock_d2`, `map`, `coverage`\n",
+    "The `examples/xsa/` directory contains full end-to-end scripts that combine\nXSA parsing, `adijif` parameter derivation, and `XsaPipeline.run()`.\n\nExample:\n\n```bash\npython examples/xsa/adrv9009_zcu102.py --xsa /path/to/system_top.xsa\n```\n\n\nIf you have network access and the `adi-labgrid-plugins` depe",
+    "For custom integrations (CI, scripts, internal tools), call `XsaPipeline.run()`:\n\n```python\nfrom adidt.xsa.pipeline import XsaPipeline\nfrom pathlib import Path\nimport json\n\ncfg = json.loads(Path(\"cfg.json\").read_text())\n\nresult = XsaPipeline().run(\n    xsa_path=Path(\"/path/to/design.xsa\"),\n    cfg=c",
+    "You can compile for a basic syntax check before boot-time deployment:\n\n```bash\ndtc -I dts -O dtb -o out/design.dtb out/design.dts\n```\n\n\nFor `--reference-dts` enabled parity mode, compare the coverage report to ensure\nrequired JESD/device roles are present before flashing a SD card.\n",
+    "- `xsa.rst`\n- `xsa_adijif_tutorial.md`\n- `examples/xsa_ad9081_zcu102.md`\n- `examples/xsa/adrv9009_zcu102.py`\n- `adidtc xsa-profiles`\n- `adidtc xsa-profile-show PROFILE`\n",
+    "There are two paths available for device tree generation.  The first path is to use the `BoardModel` API to generate device tree overlays directly from Python. The second path is to use the `BoardModel` API to generate device tree overlays from a Vivado `.xsa` file. If you are connecting an ADI devi",
+    "The ADIS16495 is a 6-DOF inertial\nmeasurement unit connected via SPI.  Its device tree node is simple:\na compatible string, SPI mode flags, and an interrupt GPIO.\n",
+    "```python\nfrom adidt.model import BoardModel, components\n\nmodel = BoardModel(\n    name=\"rpi5_adis16495\",\n    platform=\"rpi5\",\n    components=[\n        components.adis16495(\n            spi_bus=\"spi0\",\n            cs=0,\n            gpio_label=\"gpio\",\n            interrupt_gpio=25,\n        ),\n    ],\n)",
+    "```python\nfrom adidt.model.renderer import BoardModelRenderer\n\nnodes = BoardModelRenderer().render(model)\noverlay_content = nodes[\"converters\"][0]\nprint(overlay_content)\n```\n\n\nOutput:\n\n```dts\n&spi0 {\n    status = \"okay\";\n    #address-cells = <1>;\n    #size-cells = <0>;\n    imu0: adis16495@0 {\n      ",
+    "Wrap the overlay in DTS headers and write it out:\n\n```python\nwith open(\"adis16495-rpi5.dts\", \"w\") as f:\n    f.write(\"/dts-v1/;\\n/plugin/;\\n\\n\")\n    for node_list in nodes.values():\n        for node in node_list:\n            f.write(node + \"\\n\")\n```\n",
+    "```bash\n# Compile the overlay\ndtc -@ -I dts -O dtb -o adis16495-rpi5.dtbo adis16495-rpi5.dts\n\n# Copy to the RPi boot partition\nsudo cp adis16495-rpi5.dtbo /boot/overlays/\n\n# Enable in config.txt\necho \"dtoverlay=adis16495-rpi5\" | sudo tee -a /boot/config.txt\n\n# Reboot\nsudo reboot\n```\n\n\nAfter reboot, ",
+    "The `BoardModel` is a plain Python dataclass.  Change any field before\nrendering:\n\n```python\n# Change interrupt GPIO pin\nimu = model.components[0]\nimu.config[\"interrupt_gpio\"] = 17\n\n# Change SPI chip select\nimu.config[\"cs\"] = 1\nimu.spi_cs = 1\n\n# Use a different ADIS variant\nimu.config[\"compatible\"] ",
+    "Add more components to the same model.  Devices on the same SPI bus are\nautomatically grouped:\n\n```python\nmodel = BoardModel(\n    name=\"rpi5_multi\",\n    platform=\"rpi5\",\n    components=[\n        components.adis16495(spi_bus=\"spi0\", cs=0, interrupt_gpio=25),\n        components.adis16495(\n            ",
+    "For boards with clock chips, high-speed converters, and JESD204 links,\nthe same `BoardModel` structure scales by adding more components and\n`JesdLinkModel` entries.  The existing board classes handle this\ncomplexity:\n\n```python\nfrom adidt.boards.daq2 import daq2\n\nboard = daq2(platform=\"zcu102\")\nmode",
+    "The `adidt.model.components` module provides factory functions for each\nsupported device.  Import and use directly \u2014 no template filenames needed:\n\n```python\nfrom adidt.model import components\n```\n\n\n**Simple SPI devices:**\n\n- `components.adis16495(spi_bus, cs, ...)` \u2014 ADIS16495/16497 IMU\n- `componen",
+    "The `gen-dts` command provides a CLI equivalent to the Python workflow\nabove \u2014 no script needed:\n\n```bash\nadidtc gen-dts -b daq2 -p zcu102 -c solver_config.json\n\n# Generate and compile to DTB in one step\nadidtc gen-dts -b ad9081_fmc -p vpk180 -c config.json --compile\n```\n\n\nThis runs the board class\u2019",
+    "The part layer provides live-update abstractions for ADI clock chips and\nconverters. Given a JIF solver configuration (from **pyadi-jif**), the part\nlayer locates the matching device tree node by its `compatible` string, maps\nsolver fields (VCO frequency, output dividers, channel assignments) to the",
+    "- **HMC7044**: Low-jitter clock generator with integrated VCO and 14 outputs\n- **AD9523-1**: Low-jitter clock generator with distribution for high-speed converters\n- **AD9528**: Dual-loop clock generator with JESD204B support and integrated VCO (part-layer implementation exists in code; supported vi",
+    "- **AD9081**: Quad 16-bit ADC + Dual 16-bit DAC with wideband MxFE transceiver\n- **AD9084**: Multi-channel 16-bit ADC RF transceiver with JESD204C\n- **ADRV9009**: Highly integrated dual-channel RF transceiver with JESD204B\n- **AD9680**: Dual 14-bit, 1 GSPS ADC (used on DAQ2)\n- **AD9144**: Quad 16-bi",
+    "- **DAQ2**: Reference design with AD9680, AD9144, and AD9523-1\n- **AD9081-FMCA-EBZ**: AD9081 FMC board with HMC7044 clock (supports ZCU102, VPK180, ZC706)\n- **AD9084-FMCA-EBZ**: AD9084 FMC board with HMC7044, ADF4382, and ADF4030 (supports VPK180, VCK190)\n- **ADRV9009-FMCA-EBZ**: ADRV9009 FMC board ",
+    "This example updates the device tree of a DAQ2 board to set the sample rate of the RX (ADC) path to 1 GSPS.\n\n```bash\n$ cat ad9523_1_jif.json\n{\n    \"clock\": {\n        \"m1\": 3,\n        \"n2\": 24,\n        \"r2\": 1,\n        \"out_dividers\": [\n            2,\n            128,\n            8\n        ],\n       ",
+    "The `clock` class extends `dt` with clock-chip configuration support.\nSupported parts for live update: **HMC7044**, **AD9523-1**, **AD9545**.\n\n```python\nimport json\nfrom adidt import clock\n\n# Connect to a remote board\nclk = clock(dt_source=\"remote_sd\", ip=\"192.168.2.1\")\n\n# Load JIF solver output\nwit",
+    "The XSA pipeline can generate interactive reports, clock-tree diagrams,\nand structural lint diagnostics alongside the device tree output.\n\nContents\n\n- HTML topology report\n  Example report layout\n  Generating from Python\n  Generating from CLI\n\n  - Example report layout\n  - Generating from Python\n  -",
+    "The HTML report is a self-contained interactive page (no CDN or\nexternal dependencies) built with D3.js.  It contains five panels:\n\n1. **DTS Node Tree** \u2014 searchable list of all device tree nodes from the\n  merged DTS, with highlighting for ADI-specific nodes (JESD, AD9081,\n  HMC7044, etc.)\n2. **XSA",
+    "Example HTML topology report layout\n",
+    "```python\nfrom adidt.xsa.pipeline import XsaPipeline\n\nresult = XsaPipeline().run(\n    xsa_path=Path(\"design.xsa\"),\n    cfg=cfg,\n    output_dir=Path(\"out/\"),\n    emit_report=True,\n)\nprint(f\"Report: {result['report']}\")\n# out/<name>_report.html\n```\n",
+    "The `adidtc xsa2dt` command generates the report by default:\n\n```bash\nadidtc xsa2dt -x design.xsa --profile ad9081_zcu102 -o out/\n# Opens out/ad9081_zcu102_report.html\n```\n",
+    "The clock graph generator parses `clocks`, `clock-names`, and\n`clock-output-names` properties from the merged DTS and produces\ndirected graphs showing the full clock distribution tree.\n\nTwo output formats are always written:\n\n- **Graphviz DOT** (`.dot`) \u2014 rendered to SVG automatically if\n  `dot` is ",
+    "The following diagram shows the clock distribution for an FMCDAQ2 design\n(AD9523-1 clock + AD9680 ADC + AD9144 DAC):\n```mermaid\n\n        flowchart LR\n  subgraph PS[\"Processing System\"]\n    zynqmp_clk[\"zynqmp_clk\\n(PS clock)\"]\n  end\n\n  subgraph CLK[\"Clock Chip\"]\n    clk0_ad9523[\"clk0_ad9523\\n(AD9523-",
+    "|Category|Color|Examples|\n|PS clock|Brown|`zynqmp_clk`, `clkc`|\n|Clock chip|Blue|`hmc7044`, `ad9523`, `ad9528`|\n|Transceiver (XCVR)|Purple|`axi_ad9081_adxcvr_rx`|\n|JESD204|Green|`axi_ad9081_jesd204_rx`|\n|Converter core|Red|`axi_ad9081_core_rx`|\n|DMA|Gray|`axi_ad9081_rx_dma`|\n",
+    "|Clock Name|Style|Meaning|\n|`device_clk`|Blue solid|Device clock from XCVR to JESD controller|\n|`lane_clk`|Green solid|Lane clock from XCVR to JESD controller|\n|`conv`|Orange solid|Reference clock from clock chip to XCVR|\n|`sampl_clk`|Purple solid|Sampling clock from PHY to TPL core|\n|`s_axi_aclk`|G",
+    "```dot\ndigraph clock_topology {\n    label=\"fmcdaq2 \u2014 clock topology\";\n    rankdir=LR;\n    node [style=\"filled,rounded\" fontname=\"monospace\"];\n\n    zynqmp_clk [label=\"zynqmp_clk\" fillcolor=\"#7a3800\"];\n    clk0_ad9523 [label=\"clk0_ad9523\\n(ad9523-1)\" fillcolor=\"#1a3d5c\"];\n    axi_ad9680_adxcvr [label=",
+    "```python\nresult = XsaPipeline().run(\n    xsa_path=Path(\"design.xsa\"),\n    cfg=cfg,\n    output_dir=Path(\"out/\"),\n    emit_clock_graphs=True,\n)\nprint(f\"DOT: {result['clock_dot']}\")\nprint(f\"D2:  {result['clock_d2']}\")\n# SVG files present if rendering tools are on PATH:\nif \"clock_dot_svg\" in result:\n  ",
+    "DOT and D2 are optional \u2014 the `.dot` and `.d2` text files are\nalways written.  Install the tools to get SVG output:\n\n```bash\n# Graphviz (DOT \u2192 SVG)\nsudo apt install graphviz\n\n# D2 (D2 \u2192 SVG)\ncurl -fsSL https://d2lang.com/install.sh | sh -s --\n```\n",
+    "The built-in linter checks the generated DTS for structural issues\nbefore flashing to hardware.\n\nChecks include:\n\n- Unresolved phandle references (`<&missing_label>`)\n- SPI chip-select conflicts (two devices at the same CS on one bus)\n- Clock cell count mismatches (`#clock-cells` vs clock phandle ar",
+    "```json\n{\n  \"diagnostics\": [\n    {\n      \"severity\": \"error\",\n      \"rule\": \"unresolved-phandle\",\n      \"node\": \"&axi_adrv9009_core_rx_obs\",\n      \"message\": \"Label 'axi_adrv9009_core_rx_obs' not found in base DTS\"\n    },\n    {\n      \"severity\": \"warning\",\n      \"rule\": \"spi-cs-conflict\",\n      \"nod",
+    "```python\nresult = XsaPipeline().run(\n    xsa_path=Path(\"design.xsa\"),\n    cfg=cfg,\n    output_dir=Path(\"out/\"),\n    lint=True,\n    strict_lint=True,  # Raises DtsLintError on errors\n)\nprint(f\"Diagnostics: {result['diagnostics']}\")\n# out/<name>_diagnostics.json\n```\n",
+    "```bash\n# Run with lint warnings\nadidtc xsa2dt -x design.xsa --profile adrv9009_zcu102 --lint -o out/\n\n# Fail on lint errors\nadidtc xsa2dt -x design.xsa --profile adrv9009_zcu102 --strict-lint -o out/\n```\n",
+    "Enable everything at once:\n\n```python\nresult = XsaPipeline().run(\n    xsa_path=Path(\"design.xsa\"),\n    cfg=cfg,\n    output_dir=Path(\"out/\"),\n    emit_report=True,\n    emit_clock_graphs=True,\n    lint=True,\n)\n```\n\n\nThis produces:\n\nXsaPipeline output artifacts\n",
+    "This example walks through the full XSA-to-overlay pipeline for the\n**AD9081-FMCA-EBZ** evaluation board on the **ZCU102** (Zynq UltraScale+).\n\nThe script lives at `examples/xsa/ad9081_zcu102_xsa_parse.py` and uses\n`examples/xsa/system_top.xsa` \u2014 the Vivado 2023.2 reference design bitfile\nfor this b",
+    "|Item|Value|\n|FPGA|xczu9eg-ffvb1156-2 (ZCU102)|\n|Converter|AD9081 (MxFE), SPI-controlled|\n|JESD204 RX|`axi_mxfe_rx_jesd_rx_axi` \u2013 4 lanes, `0x84A90000`, IRQ 54|\n|JESD204 TX|`axi_mxfe_tx_jesd_tx_axi` \u2013 4 lanes, `0x84B90000`, IRQ 55|\n|JESD mode|204B, M=8 L=4 S=1 Np=16 \u2192 **F=4, K=32**|\n|Clock gen|HMC70",
+    "```bash\npip install \"adidt[xsa]\"\npip install pyadi-jif[cplex]   # or [gekko] \u2013 solver only needed for clock opt\n```\n",
+    "```bash\npython examples/xsa/ad9081_zcu102_xsa_parse.py\n```\n\n\nExpected output:\n\n```default\n============================================================\nAD9081 + ZCU102: XSA \u2192 Device Tree overlay\n============================================================\n\nStep 1 \u2013 Parsing XSA \u2026\n  FPGA part  : xczu9e",
+    "`examples/xsa/output/ad9081_zcu102.dtso`:\n\n```dts\n/dts-v1/;\n/plugin/;\n\n&amba {\n\n\taxi_mxfe_rx_jesd_rx_axi: axi-jesd204-rx@84a90000 {\n\t\tcompatible = \"adi,axi-jesd204-rx-1.0\";\n\t\treg = <0x0 0x84a90000 0x0 0x1000>;\n\t\tinterrupts = <0 54 IRQ_TYPE_LEVEL_HIGH>;\n\t\tclocks = <&hmc7044_car 0>, <&hmc7044 12>, <&h",
+    "`XsaParser.parse()` extracts `axi_jesd204_rx` and `axi_jesd204_tx` modules\nfrom the hardware handoff XML embedded in the XSA ZIP archive.\n\nThe Vivado 2023.2 HWH uses a slightly older schema than the parser\u2019s primary\nfixture. The script patches the topology with the correct values:\n|Field|Parser read",
+    "```python\nimport adijif as jif\n\nsys = jif.system(\"ad9081\", \"hmc7044\", \"xilinx\", 122.88e6, solver=\"CPLEX\")\nsys.fpga.setup_by_dev_kit_name(\"zcu102\")\nsys.converter.adc.sample_clock = 4e9 / (4 * 4)   # 250 MSPS\nsys.converter.dac.sample_clock = 12e9 / (8 * 6)  # 250 MSPS\n# \u2026 configure datapath \u2026\n\nmodes_r",
+    "```python\nfrom adidt.xsa.node_builder import NodeBuilder\nfrom adidt.xsa.merger import DtsMerger\n\ncfg = {\n    \"jesd\": {\"rx\": {\"F\": 4, \"K\": 32}, \"tx\": {\"F\": 4, \"K\": 32}},\n    \"clock\": {\"hmc7044_rx_channel\": 12, \"hmc7044_tx_channel\": 13},\n}\nnodes = NodeBuilder().build(topology, cfg)\nDtsMerger().merge(b",
+    "For AD9081 MXFE pipelines, JESD link modes are no longer hardcoded. The\nbuilder resolves mode values in this order:\n\n1. `cfg[\"ad9081\"][\"rx_link_mode\"]` / `cfg[\"ad9081\"][\"tx_link_mode\"]`\n2. `cfg[\"jesd\"][\"rx\"][\"mode\"]` / `cfg[\"jesd\"][\"tx\"][\"mode\"]`\n3. Inference from JESD `(M, L)`:\n  `(8, 4)` -> RX `17",
+    "When lopper is installed the `adidtc xsa2dt` command runs all five stages,\nincluding SDT base-DTS generation and HTML visualisation:\n\n```bash\nadidtc xsa2dt examples/xsa/system_top.xsa config.json \\\n        --output-dir out/ad9081_zcu102\n```\n\n\nWhere `config.json` contains:\n\n```json\n{\n  \"jesd\": {\n    ",
+    "```bash\ndtc -@ -I dts -O dtb \\\n    -o examples/xsa/output/ad9081_zcu102.dtbo \\\n    examples/xsa/output/ad9081_zcu102.dtso\n```\n\n\nThe `-@` flag preserves external symbol references (the `&amba` phandle)\nrequired for overlay application at runtime via `configfs`.\n",
+    "This tutorial covers deriving XSA pipeline JESD/clock inputs from `pyadi-jif`\nbefore passing them into the XSA conversion flow.\n",
+    "```bash\npip install \"adidt[xsa]\"\npip install pyadi-jif[cplex]   # or pyadi-jif[gekko]\n```\n\n\n`pyadi-jif` is optional for pure CLI use, but required for the adijif flow\ndescribed in this page.\n",
+    "The core idea is:\n\n1. Create a pyadi-jif `system`.\n2. Configure FPGA/VCXO/ADC/DAC objectives.\n3. Extract JESD timing with `get_jesd_mode_from_params(...)`.\n4. Map values to `cfg[\"jesd\"]`.\n5. Map clock labels/channels to `cfg[\"clock\"]`.\n6. Call `XsaPipeline.run()`.\n",
+    "```python\nimport adijif as jif\n\n# 1) Set up converter/FPGA context\nsys = jif.system(\"adrv9009\", \"ad9528\", \"xilinx\", vcxo=122.88e6)\nsys.fpga.setup_by_dev_kit_name(\"zcu102\")\n\n# 2) Constrain operating mode and sample clocks\nmode_rx = jif.utils.get_jesd_mode_from_params(\n    sys.converter.adc, M=4, L=2,",
+    "Some designs use `sys.solve()` to derive exact post-dividers and clock output\nfrequencies. This can produce richer values for downstream board-specific config:\n\n```python\nconf = sys.solve()\nrx = conf.get(\"jesd_ADRV9009_RX\", {})\ntx = conf.get(\"jesd_ADRV9009_TX\", {})\nfor key in (\"F\", \"K\", \"M\", \"L\", \"N",
+    "```python\nfrom adidt.xsa.pipeline import XsaPipeline\nfrom pathlib import Path\n\nresults = XsaPipeline().run(\n    xsa_path=Path(\"/path/to/design.xsa\"),\n    cfg=cfg,\n    output_dir=Path(\"out\"),\n    profile=\"adrv9009_zcu102\",\n)\n\nprint(results[\"merged\"])\nprint(results[\"report\"])\n```\n\n\nYou can also pass `",
+    "- `ImportError: No module named adijif`\n  Install `pyadi-jif` and use a supported solver extra for your platform.\n- `No matching JESD mode found`\n  Re-check `M/L/S/Np/F` constraints and converter role (`converter.adc` vs\n  `converter.dac`).\n- `adijif failed` / `solve()` errors\n  Use quick mode first",
+    "- `examples/xsa/adrv9009_zcu102.py`\n- `examples/xsa/fmcdaq2_zc706.py`\n- `examples/xsa/fmcdaq2_zcu102.py`\n- `examples/xsa/ad9083_zcu102.py`\n\n\nFor profile-based guidance, read the board profile docs in xsa.rst and\nthe \u201cUsing adijif (pyadi-jif) With the XSA Flow\u201d section.\n",
+    "The `adidt/templates/xsa/` directory contains Jinja2 templates that render\nindividual DTS nodes for ADI components.  Each template produces one SPI\ndevice child node, one AXI overlay node, or a pair of related nodes.\n\nTemplates are rendered by `NodeBuilder._render(name, context)` where\n*context* is ",
+    "These templates render SPI device nodes for ADI data converters that use\nJESD204B or JESD204C serial data interfaces.  They include `jesd204-device`\nproperties and link to the JESD204 FSM framework.\n|Template|Compatible|Description|\n|`ad9081_mxfe.tmpl`|`adi,ad9081`|AD9081 MxFE with full TX DAC / RX ",
+    "|Template|Compatible|Description|\n|`ad9739a.tmpl`|`adi,ad9739a`|AD9739a RF DAC with configurable full-scale current output.  **UNTESTED.**|\n",
+    "These templates render SPI device nodes for PLL frequency synthesizers.\nMost are clock providers (`#clock-cells`) whose outputs feed converter\ndevice clocks or FPGA reference clocks.\n|Template|Compatible|Description|\n|`adf4382.tmpl`|`adi,adf4382` / `adi,adf4382a`|Microwave wideband PLL with charge p",
+    "|Template|Compatible|Description|\n|`hmc7044.tmpl`|`adi,hmc7044`|HMC7044 clock distribution IC with PLL1/PLL2 configuration, up to 14 output channels, JESD204 sysref provider, and GPI/GPO controls.  Tested.|\n|`ad9523_1.tmpl`|`adi,ad9523-1`|AD9523-1 clock generator (FMCDAQ2) with 8 channels and option",
+    "|Template|Compatible|Description|\n|`admv1013.tmpl`|`adi,admv1013`|Microwave upconverter with IQ/IF input mode, quad SE mode, and detector enable.  Clock provider.  **UNTESTED.**|\n|`admv1014.tmpl`|`adi,admv1014`|Microwave downconverter with IQ/IF input mode, P1dB compensation, and detector enable.  *",
+    "|Template|Compatible|Description|\n|`ad7768.tmpl`|`adi,ad7768` / `adi,ad7768-4`|8-/4-channel 24-bit sigma-delta ADC with DMA and configurable data lines.  **UNTESTED.**|\n|`adaq8092.tmpl`|`adi,adaq8092`|Dual-channel 14-bit 105 MSPS DAQ module.  **UNTESTED.**|\n",
+    "These templates render overlay nodes for FPGA IP cores in the Vivado\nblock design.  They add ADI-specific properties to nodes that `sdtgen`\nalready defined with Xilinx generic compatible strings.\n|Template|Compatible|Description|\n|`clkgen.tmpl`|`adi,axi-clkgen-2.00.a`|AXI clock generator overlay wit",
+    "|Template|Description|\n|`_jesd_macros.tmpl`|Jinja2 macros for JESD204 device properties (`jesd204-device`, `#jesd204-cells`, `jesd204-inputs`).  Imported by other templates.|\n",
+    "The `BoardModel` is the core abstraction in pyadi-dt that both the XSA\npipeline and manual board-class workflows produce. It describes the complete\nhardware composition of a board and can be edited before rendering to DTS.\n",
+    "The XSA pipeline constructs a `BoardModel` internally for every supported\nboard. You can access it directly through the builder:\n\n```python\nfrom adidt.xsa.topology import XsaParser\nfrom adidt.xsa.builders.fmcdaq2 import FMCDAQ2Builder\nfrom adidt.model.renderer import BoardModelRenderer\n\ntopology = X",
+    "Board classes like `daq2` accept pyadi-jif solver output and produce\na `BoardModel`:\n\n```python\nimport adijif\nfrom adidt.boards.daq2 import daq2\nfrom adidt.model.renderer import BoardModelRenderer\n\n# Solve clock tree with pyadi-jif\nsys = adijif.system([\"ad9680\", \"ad9144\"], \"ad9523_1\", \"xilinx\", 125e",
+    "Build a `BoardModel` from scratch using the `components` module \u2014 no\ntemplate filenames needed:\n\n```python\nfrom adidt.model import BoardModel, components\nfrom adidt.model.renderer import BoardModelRenderer\n\n# Simple example: IMU on a Raspberry Pi\nmodel = BoardModel(\n    name=\"rpi5_imu\",\n    platform",
+    "The model is fully editable after construction. Modify any component\nconfig, JESD parameter, or metadata before rendering:\n\n```python\n# Change clock VCXO frequency\nclock = model.get_component(\"clock\")\nclock.config[\"vcxo_hz\"] = 100_000_000\n\n# Change JESD link parameters\nrx_link = model.get_jesd_link(",
+    "|Builder|Clock|Converters|Board class|\n|`FMCDAQ2Builder`|AD9523-1|AD9680 + AD9144|`daq2`|\n|`FMCDAQ3Builder`|AD9528|AD9680 + AD9152|\u2013|\n|`AD9172Builder`|HMC7044|AD9172|\u2013|\n|`AD9081Builder`|HMC7044|AD9081 MxFE|`ad9081_fmc`|\n|`ADRV9009Builder`|AD9528|ADRV9009|`adrv9009_fmc`|\n|`AD9084Builder`|HMC7044 + AD",
+    "The easiest way to add devices.  Import from `adidt.model.components`:\n\n```python\nfrom adidt.model import components\n```\n\n\n**Simple SPI:** `components.adis16495` \u2013 ADIS16495/16497 IMU\n\n**Clock chips:** `components.hmc7044`, `components.ad9523_1`, `components.ad9528`\n\n**ADCs / DACs:** `components.ad9",
+    "For full control, use context builders directly from `adidt.model.contexts`.\nThese return raw dicts for manual `ComponentModel` construction:\n\n- **Clock chips:** `build_ad9523_1_ctx`, `build_ad9528_ctx`, `build_hmc7044_ctx`\n- **Converters:** `build_ad9680_ctx`, `build_ad9144_ctx`, `build_ad9081_mxfe",
+    "> **Caution**\n>\n> pyadi-dt is still under development and may not be stable. Feedback is welcome.\n\n\n**pyadi-dt** is a Python library and CLI for generating, inspecting, and\nmanaging Linux device trees for **Analog Devices** hardware \u2014 data converters,\nclock distribution ICs, RF transceivers, and FPG",
+    "- **XSA-to-DTS pipeline** \u2014 Generate complete device trees from Vivado\n  `.xsa` archives using built-in board profiles.  No manual DTS editing.\n- **BoardModel API** \u2014 Construct, inspect, and modify board models\n  programmatically before rendering to DTS.  Both the XSA pipeline and\n  manual board cla",
+    "The Kuiper 2023-R2 release contains **88 board projects** across Xilinx/AMD\nand Intel FPGA platforms.  Use `adidtc kuiper-boards` to list all boards\nand their support status.\n|Converter Family|Platforms|HW Validated|\n|AD9081 / AD9082 / AD9083 (MxFE)|ZCU102, ZC706, VPK180|ZCU102 \u2713|\n|AD9084|VCU118, VP",
+    "- **New to pyadi-dt?** See the Quick Start for installation,\n  first commands, and code examples.\n- **XSA workflow?** See XSA Flow Tutorials for a step-by-step\n  walkthrough of Vivado XSA-based generation.\n- **Non-XSA workflow?** See Device Tree Generation for generating\n  device trees without Vivad",
+    "- Source\n- Issue tracker\n- EngineerZone forum\n- DeviceTree specification\n",
+    "User Guide\n\n- Quick Start\n  Installation\n  Generate a device tree from an XSA file\n  Generate a device tree overlay from Python\n  Inspect a device tree on live hardware\n  Analyze device tree dependencies\n  Configure clocks from JSON\n  Next steps\n\n  - Installation\n  - Generate a device tree from an X",
+    "This module contains utilities for ADI prototyping platforms, used by development teams and automation systems for repetitive tasks like SD card management.\n",
+    "Switch a running board to a different reference design by moving the\nappropriate boot files into the SD card root:\n\n```bash\nadidtc -i analog.local -c remote_sd sd-move zynq-zc706-adv7511-fmcdaq2 -r\n```\n\n\nOptions:\n\n- `-r` / `--reboot` \u2014 Reboot the board after moving files\n- `-s` / `--show` \u2014 Print co",
+    "Copy local boot files (BOOT.BIN, image.ub, custom DTBs, etc.) to a\nremote board\u2019s SD card over SSH:\n\n```bash\nadidtc -i 192.168.2.1 -c remote_sd sd-remote-copy BOOT.BIN,image.ub -r\n```\n\n\nPass a comma-separated list of local file paths. The same `-r`, `-s`, and\n`-d` flags are available.\n",
+    "```python\nfrom adidt import dt\n\n# Switch reference design on a remote board\nd = dt(dt_source=\"remote_sd\", ip=\"192.168.2.1\")\nd.update_existing_boot_files(\"zynq-zc706-adv7511-fmcdaq2\")\n\n# Copy custom boot files to a remote board\nd = dt(dt_source=\"remote_sd\", ip=\"192.168.2.1\")\nd.copy_local_files_to_rem",
+    "- Core Module\n- Board Model Module\n  Overview\n  API Reference\n\n  - Overview\n  - API Reference\n- Parts Module\n  Clock Device Tree Interface\n  Clock Generators and Distributors\n  RF Transceivers\n\n  - Clock Device Tree Interface\n  - Clock Generators and Distributors\n  - RF Transceivers\n- XSA Pipeline M",
+    "This guide covers device tree source (DTS) file generation for AD9081 FMC evaluation boards across multiple FPGA platforms.\n",
+    "The `adidtc gen-dts` command generates platform-specific device tree source files for AD9081-based systems from JSON configuration files. These DTS files can be compiled to DTB format and deployed to target hardware.\n",
+    "|Platform|SoC/FPGA|Architecture|JESD PHY|Max Lane Rate|\n|ZCU102|Zynq UltraScale+|ARM64|GTH|16.3 Gbps|\n|VPK180|Versal|ARM64|GTY|28.21 Gbps|\n|ZC706|Zynq-7000|ARM|GTX|12.5 Gbps|\n",
+    "```bash\npip install -e .\n```\n",
+    "The tool requires Linux kernel source containing base device tree files. Choose one method:\n\n**Option A: Clone to default location**\n\n```bash\ngit clone https://github.com/analogdevicesinc/linux.git\n```\n\n\n**Option B: Set environment variable**\n\n```bash\nexport LINUX_KERNEL_PATH=/path/to/your/linux\n```",
+    "Create a JSON file with your system configuration (see Configuration File Format).\n",
+    "```bash\nadidtc gen-dts --platform zcu102 --config my_config.json\n```\n\n\nOutput: `generated_dts/ad9081_fmc_zcu102.dts`\n",
+    "```bash\nadidtc gen-dts --platform zcu102 --config my_config.json --compile\n```\n\n\nOutput: `generated_dts/ad9081_fmc_zcu102.dtb`\n",
+    "```bash\nadidtc gen-dts [OPTIONS]\n```\n\n\n**Required Options:**\n\n- `-p, --platform` : Target platform (`zcu102`, `vpk180`, or `zc706`)\n- `-c, --config` : Path to JSON configuration file\n\n\n**Optional:**\n\n- `-k, --kernel-path` : Path to Linux kernel source (overrides env var)\n- `-o, --output` : Custom ou",
+    "**Basic generation:**\n\n```bash\nadidtc gen-dts -p zcu102 -c configs/default.json\n```\n\n\n**With custom kernel path:**\n\n```bash\nadidtc gen-dts -p vpk180 -c configs/vpk180.json -k ~/linux-adi\n```\n\n\n**Generate and compile:**\n\n```bash\nadidtc gen-dts -p zc706 -c configs/zc706.json --compile\n```\n\n\n**Custom o",
+    "Configuration files are JSON documents containing clock, JESD, and datapath settings. These are typically generated from pyadi-jif.\n",
+    "```json\n{\n  \"converter\": {\n    \"type\": \"ad9081\"\n  },\n  \"clock\": {\n    \"vcxo\": 100000000,\n    \"vco\": 3000000000,\n    \"output_clocks\": {\n      \"AD9081_ref_clk\": {\"divider\": 6},\n      \"adc_sysref\": {\"divider\": 256},\n      \"dac_sysref\": {\"divider\": 256},\n      \"adc_fpga_ref_clk\": {\"divider\": 8},\n      \"",
+    "**HMC7044 Clock Chip Settings:**\n\n- `vcxo`: Reference oscillator frequency (100 MHz or 122.88 MHz typical)\n- `vco`: PLL2 VCO frequency (up to 3 GHz)\n- `output_clocks`: Clock output dividers for each channel\n",
+    "**Transceiver Settings (Optional):**\n\nIf omitted, platform defaults are used:\n|Platform|Default ADC PLL|Default DAC PLL|\n|ZCU102|XCVR_QPLL|XCVR_QPLL|\n|VPK180|XCVR_QPLL0|XCVR_QPLL0|\n|ZC706|XCVR_QPLL|XCVR_QPLL|\n\n\n**Available PLL Options:**\n\n- ZCU102/ZC706: `XCVR_QPLL`, `XCVR_CPLL`\n- VPK180: `XCVR_QPLL",
+    "**ADC/DAC Link Parameters:**\n\n- `M`: Converters per link\n- `L`: Lanes per link\n- `S`: Samples per converter per frame\n- `F`: Octets per frame\n- `K`: Frames per multiframe\n- `Np`: Converter resolution (bits)\n- `CS`: Control bits per sample\n- `HD`: High density mode (0 or 1)\n- `jesd_mode`: Quick confi",
+    "**ADC Datapath:**\n\n- `cddc`: Coarse DDC settings (4 channels)\n  `enabled`: Enable/disable each CDDC\n  `decimations`: Decimation factor per CDDC\n  `nco_frequencies`: NCO frequency shift (Hz)\n\n  - `enabled`: Enable/disable each CDDC\n  - `decimations`: Decimation factor per CDDC\n  - `nco_frequencies`: ",
+    "```python\nfrom adidt.boards.ad9081_fmc import ad9081_fmc\nimport json\n\n# Load configuration\nwith open('config.json', 'r') as f:\n    cfg = json.load(f)\n\n# Initialize board for target platform\nboard = ad9081_fmc(platform='zcu102', kernel_path='/path/to/linux')\n\n# Validate and apply defaults\ncfg = board",
+    "```python\n# Custom output location\nboard.output_filename = '/custom/path/output.dts'\n\n# Get DTC include paths for manual compilation\ninclude_paths = board.get_dtc_include_paths()\n\n# Access platform configuration\nprint(f\"Platform: {board.platform}\")\nprint(f\"Architecture: {board.platform_config['arch'",
+    "The tool needs Linux kernel source to include base platform DTS files. Three-tier priority system:\n\n1. **CLI argument** (highest): `--kernel-path /path/to/linux`\n2. **Environment variable**: `export LINUX_KERNEL_PATH=/path/to/linux`\n3. **Default location** (lowest): `./linux` in project root\n",
+    "**ADI Linux Fork (Recommended):**\n\n```bash\ngit clone https://github.com/analogdevicesinc/linux.git\ncd linux\ngit checkout adi-{version}\n```\n\n\n**Xilinx Linux Fork:**\n\n```bash\ngit clone https://github.com/Xilinx/linux-xlnx.git\ncd linux-xlnx\ngit checkout xlnx_rebase_v{version}\n```\n",
+    "The tool validates these files exist:\n|Platform|Required DTS File|\n|ZCU102|`arch/arm64/boot/dts/xilinx/zynqmp-zcu102-rev1.0.dts`|\n|VPK180|`arch/arm64/boot/dts/xilinx/versal-vpk180-revA.dts`|\n|ZC706|`arch/arm/boot/dts/xilinx/zynq-zc706.dts`|\n",
+    "```bash\n# Set kernel path\nKERNEL=/path/to/linux\n\n# ZCU102 (ARM64)\ndtc -I dts -O dtb \\\n  -i $KERNEL/arch/arm64/boot/dts \\\n  -i $KERNEL/arch/arm64/boot/dts/xilinx \\\n  -i $KERNEL/include \\\n  -o output.dtb input.dts\n\n# ZC706 (ARM)\ndtc -I dts -O dtb \\\n  -i $KERNEL/arch/arm/boot/dts \\\n  -i $KERNEL/arch/ar",
+    "```bash\nadidtc gen-dts -p zcu102 -c config.json --compile\n```\n\n\nThe tool automatically:\n\n1. Generates DTS file\n2. Determines correct include paths\n3. Invokes `dtc` compiler\n4. Produces DTB file alongside DTS\n",
+    "- **Version**: >= 1.4.6 recommended\n- **Installation**:\n  # Ubuntu/Debian\n  sudo apt-get install device-tree-compiler\n  # Fedora/RHEL\n  sudo dnf install dtc\n  # Build from source\n  git clone https://git.kernel.org/pub/scm/utils/dtc/dtc.git\n  cd dtc\n  make && sudo make install\n",
+    "**Error:**\n\n```default\nFileNotFoundError: Kernel source path not found: ./linux\n```\n\n\n**Solutions:**\n\n1. Clone kernel to `./linux`: `git clone https://github.com/analogdevicesinc/linux.git`\n2. Set environment: `export LINUX_KERNEL_PATH=/your/kernel/path`\n3. Use CLI argument: `--kernel-path /your/ker",
+    "**Error:**\n\n```default\nFileNotFoundError: Base DTS file not found: arch/arm64/boot/dts/xilinx/zynqmp-zcu102-rev10.dts\n```\n\n\n**Solutions:**\n\n1. Ensure you\u2019re using a compatible kernel branch (ADI or Xilinx fork)\n2. Check kernel version supports your platform\n3. Verify file path in kernel source tree\n",
+    "**Error:**\n\n```default\nError: <input>:10.1-5 syntax error\n```\n\n\n**Solutions:**\n\n1. Check DTS syntax in generated file\n2. Verify all #include files are accessible\n3. Update dtc to latest version\n4. Review kernel source compatibility\n",
+    "**Error:**\n\n```default\nValueError: Platform 'vcu118' not supported\n```\n\n\n**Solution:**\nCurrently supported platforms are `zcu102`, `vpk180`, and `zc706`. Other platforms can be added by:\n\n1. Adding platform config to `ad9081_fmc.PLATFORM_CONFIGS`\n2. Creating platform-specific template\n3. Verifying b",
+    "To add support for a new FPGA platform:\n",
+    "Edit `adidt/boards/ad9081_fmc.py`:\n\n```python\nPLATFORM_CONFIGS = {\n    'new_platform': {\n        'template_filename': 'ad9081_fmc_new_platform.tmpl',\n        'base_dts_file': 'arch/arm64/boot/dts/vendor/board.dts',\n        'base_dts_include': 'board.dts',\n        'arch': 'arm64',\n        'jesd_phy':",
+    "Create `adidt/templates/ad9081_fmc_new_platform.tmpl` based on existing templates.\n\nKey sections to customize:\n\n- Clock references (`&clk_name`)\n- SPI bus reference (`&spi0` or `&spi1`)\n- JESD core clock names\n- GPIO references\n",
+    "Add test configuration in `test/ad9081/configs/new_platform_config.json`.\n\nUpdate `test/ad9081/test_ad9081_gen.py` to include new platform in parametrized tests.\n",
+    "Add platform to supported platforms table and any platform-specific notes.\n",
+    "Example configurations are provided in `test/ad9081/configs/`:\n\n- `zcu102_config.json`: ZCU102 reference design\n- `vpk180_config.json`: VPK180 reference design\n- `zc706_config.json`: ZC706 reference design\n",
+    "- AD9081 Product Page\n- AD9081 Linux Driver\n- AD9081 FMC-EBZ User Guide\n- JESD204B/C Overview\n- Linux Device Tree Documentation\n",
+    "For issues or questions:\n\n- GitHub Issues: https://github.com/analogdevicesinc/pyadi-dt/issues\n- EngineerZone: https://ez.analog.com/\n\n\n**Last Updated:** 2026-01-14\n\n**Version:** 1.0\n",
+    "The parts module provides Python abstractions for configuring individual\nADI components via their device tree properties.\n\n## Clock Device Tree Interface\n\n\n**class adidt.parts.clock_dt.clock_dt**\n:   Bases: `object`\n:   Mixin with shared helpers for building clock-chip device tree nodes.\n:   handle_",
+    "**class adidt.parts.hmc7044.hmc7044_dt(*arch='auto'*, *dt_source='local_sysfs'*, *ip='192.168.2.1'*, *username='root'*, *password='analog'*, *local_dt_filepath=''*)**\n:   Bases: `dt`, `clock_dt`\n:   HMC7044 Device tree map class.\n:   pulse_gen_modes = {'GEN_16_PULSE': 5, 'GEN_1_PULSE': 1, 'GEN_2_PUL",
+    "**class adidt.parts.ad9523_1.ad9523_1_dt**\n:   Bases: `clock_dt`\n:   AD9523-1 Device tree map class.\n:   compatible_id = 'adi,ad9523-1'\n:   set_dt_node_from_config(*node: Node*, *config: Dict*, *append=False*)\n:   Set AD9523-1 node from JIF configuration\n:   Parameters:\n:   **node** (*fdt.Node*) \u2013 D",
+    "**adidt.parts.ad9528.parse_profile(*filename*)**\n:   Parse an AD9528 Profile Configuration Wizard file into a structured dict.\n:   Parameters:\n:   **filename** \u2013 Path to the AD9528 profile (.txt) file.\n:   Returns:\n:   Parsed profile with keys \u2018pll1\u2019, \u2018pll2\u2019, \u2018out\u2019, and \u2018sysref\u2019.\n:   Return type:\n: ",
+    "**class adidt.parts.ad9545.ad9545_dt(*arch='auto'*, *dt_source='local_sysfs'*, *ip='192.168.2.1'*, *username='root'*, *password='analog'*, *local_dt_filepath=''*)**\n:   Bases: `dt`\n:   AD9545 Device tree map class.\n:   pll_clock_id = 1\n:   out_clock_id = 0\n:   set_clock_node(*parent*, *clk*, *name*,",
+    "**adidt.parts.adrv9009.parse_talInit(*file*)**\n:   Parse a talise_config.c file and return the talInit configuration dict.\n\n\n\n**adidt.parts.adrv9009.handle_ints(*val*)**\n:   Convert a value to an unsigned 32-bit integer, correctly wrapping negatives.\n\n\n\n**adidt.parts.adrv9009.handle_channel_enable(*",
+    "pyadi-dt includes an MCP server\n(`adidt-mcp`) that exposes device tree generation, linting, and\ninspection tools to AI assistants like Claude and Cursor.\n",
+    "Install with the `mcp` extra:\n\n```bash\npip install \"adidt[mcp]\"\n```\n\n\nThis pulls in FastMCP as the\nserver framework.\n",
+    "Start the server directly:\n\n```bash\nadidt-mcp\n```\n\n\nOr configure it in your Claude Desktop / Cursor MCP settings:\n\n```json\n{\n  \"mcpServers\": {\n    \"pyadi-dt\": {\n      \"command\": \"adidt-mcp\"\n    }\n  }\n}\n```\n\n\nFor Claude Code, add to `.claude/settings.json`:\n\n```json\n{\n  \"mcpServers\": {\n    \"pyadi-dt\"",
+    "Generate a complete device tree from a Vivado XSA archive.  Runs the\nfull XSA pipeline: sdtgen, topology parse, node build, merge, and\noptional visualization.\n\n**Parameters:**\n|Parameter|Type|Description|\n|`xsa_path`|str (required)|Path to the Vivado `.xsa` archive.|\n|`output_dir`|str (required)|Dir",
+    "List all available built-in XSA board profiles.\n\n**Parameters:** None.\n\n**Returns:** Sorted list of profile name strings.\n\n**Example response:**\n\n```json\n[\"ad9081_zcu102\", \"ad9084_vcu118\", \"adrv9009_zc706\", \"fmcdaq2_zc706\"]\n```\n",
+    "Show the full configuration for a named profile.\n\n**Parameters:**\n\n- `name` (str, required) \u2014 Profile name from `list_xsa_profiles`.\n\n\n**Returns:** Profile dict with `defaults` key containing board\nconfiguration, clock settings, and JESD parameters.\n",
+    "Read a device tree property from a DTS/DTB file or the running system.\n\n**Parameters:**\n|Parameter|Type|Description|\n|`node_name`|str (required)|Node name or compatible string to look up.|\n|`property_name`|str|Specific property to read.  All properties returned when omitted.|\n|`filepath`|str|Path to",
+    "Run the structural DTS linter on a generated DTS file.  Checks for\nunresolved phandle references, clock-cell mismatches, duplicate SPI\nchip selects, and missing compatible strings.\n\n**Parameters:**\n\n- `dts_path` (str, required) \u2014 Path to the `.dts` file to lint.\n\n\n**Returns:** Dict with `diagnostics",
+    "When the MCP server is configured, you can ask Claude:\n\n*\u201cGenerate a device tree for my AD9081 + ZCU102 design.  The XSA\nis at /home/user/vivado/design.xsa and the pyadi-jif config is\nin /home/user/cfg.json.\u201d*\n\nClaude will call `generate_devicetree` with the appropriate\nparameters and return the pat",
+    "*\u201cGenerate a system-user.dtsi for my FMCDAQ3 ZC706 design for\nPetaLinux.\u201d*\n\nClaude will call `generate_devicetree` with\n`output_format=\"petalinux\"` and return the path to the generated\n`system-user.dtsi` ready for the PetaLinux project.\n",
+    "*\u201cLint the device tree I just generated at /tmp/dt_output/merged.dts.\u201d*\n\nClaude will call `lint_devicetree` and report any structural issues.\n",
+    "This guide walks through creating a new device template starting from\na Linux kernel device tree binding.  The tooling in `scripts/` can\nparse bindings, extract compatible strings and properties, and generate\nstarter template stubs \u2014 reducing the manual work to filling in\ndevice-specific details.\n\nC",
+    "The workflow has seven steps:\n\nTemplate creation workflow\n",
+    "Clone the ADI Linux kernel (or point to an existing checkout):\n\n```bash\ngit clone https://github.com/analogdevicesinc/linux.git /path/to/linux\n```\n\n\nRun the binding collector to discover all ADI bindings:\n\n```bash\npython3 scripts/collect_adi_bindings.py \\\n    --linux /path/to/linux \\\n    --output bi",
+    "Run the audit to find which bindings are already supported and which\nneed templates:\n\n```bash\npython3 scripts/audit_adi_bindings.py \\\n    --linux /path/to/linux \\\n    --project .\n```\n\n\nThe audit classifies each binding as:\n\n- **Known** \u2014 compatible string already in a template or profile\n- **Partial",
+    "Add `--generate-templates` to create stub files for undocumented\ndevices:\n\n```bash\npython3 scripts/audit_adi_bindings.py \\\n    --linux /path/to/linux \\\n    --project . \\\n    --generate-templates\n```\n\n\nThis creates starter `.tmpl` files in `adidt/templates/xsa/` with\nboilerplate structure:\n\n```dts\n//",
+    "The generated stub is a starting point.  Open the binding YAML to see\nwhat properties the driver expects:\n\n```bash\ncat /path/to/linux/Documentation/devicetree/bindings/iio/imu/adi,adis16495.yaml\n```\n\n\nA typical YAML binding looks like:\n\n```yaml\nproperties:\n  compatible:\n    enum:\n      - adi,adis164",
+    "Add a function to `adidt/model/contexts.py` that maps device\nparameters to template variables:\n\n```python\ndef build_adis16495_ctx(\n    *,\n    label: str = \"imu0\",\n    device: str = \"adis16495\",\n    compatible: str = \"adi,adis16495-1\",\n    cs: int = 0,\n    spi_max_hz: int = 2_000_000,\n    spi_cpol: b",
+    "Add a factory function to `adidt/model/components.py` so users don\u2019t\nneed to know template filenames:\n\n```python\ndef adis16495(spi_bus: str = \"spi0\", cs: int = 0, **kwargs) -> ComponentModel:\n    \"\"\"ADIS16495 6-DOF IMU.\"\"\"\n    config = contexts.build_adis16495_ctx(cs=cs, **kwargs)\n    return Compone",
+    "Add tests to verify the template renders correctly:\n\n```python\nfrom adidt.model import BoardModel, components\nfrom adidt.model.renderer import BoardModelRenderer\n\ndef test_adis16495_renders():\n    model = BoardModel(\n        name=\"test\", platform=\"test\",\n        components=[\n            components.a",
+    "The binding parser (`scripts/adi_binding_lib.py`) extracts:\n|Field|Extracted?|Notes|\n|Compatible strings|Yes|From YAML `compatible` key or TXT \u201cCompatible:\u201d section|\n|Property names|Yes|`adi,*` prefixed properties from YAML `properties` section|\n|Property types|No|YAML has type info (uint32, string,",
+    "- **Start simple.** A template with just `compatible`, `reg`,\n  `spi-max-frequency`, and an interrupt covers most simple SPI\n  devices.  Add properties incrementally.\n- **Check the driver source.** The Linux driver\u2019s `of_match_table`\n  and `probe` function show exactly which DT properties are read.\n",
+    "This document explains the internal architecture of the XSA pipeline, how\nJinja2 templates are used for DTS generation, and how to add support for new\ncomponents and boards.\n\nContents\n\n- Architecture\n  Component interaction\n  Key data models\n\n  - Component interaction\n  - Key data models\n- NodeBuild",
+    "The XSA pipeline is composed of six loosely coupled stages.  Each stage\noperates on well-defined inputs and produces file or data-structure outputs\nthat feed the next stage.\n\nXSA Pipeline architecture stages\n\n\n`XsaPipeline.run()` in `pipeline.py` wires all stages together and returns\na `dict[str, Pa",
+    "The following diagram shows how `NodeBuilder` orchestrates rendering.\nIt receives the topology and config, dispatches to per-board builders via\na registry, and produces categorised DTS node strings that the merger\nassembles into the final tree.\n\nNodeBuilder component interaction\n\n\nThe **context buil",
+    "**`XsaTopology` (`topology.py`)**\n:   Populated by `XsaParser.parse()`.  Carries lists of\n:   `Jesd204Instance`, `ClkgenInstance`, `ConverterInstance`, and\n:   `SignalConnection` objects plus `fpga_part`.\n:   The helper methods `is_fmcdaq2_design()`, `is_fmcdaq3_design()`,\n:   `inferred_converter_fa",
+    "`NodeBuilder` (`node_builder.py`) orchestrates the pipeline.  It owns\nplatform detection, clock resolution, and the generic rendering path.\nBoard builders now construct a `BoardModel` internally and render it via\n`BoardModelRenderer`, using shared context builders from\n`adidt/model/contexts.py`.  Bu",
+    "```python\nresult = NodeBuilder().build(topology, cfg)\n# Returns:\n# {\n#   \"clkgens\":    [str, ...],   # axi-clkgen overlay nodes\n#   \"jesd204_rx\": [str, ...],   # generic JESD RX overlay nodes\n#   \"jesd204_tx\": [str, ...],   # generic JESD TX overlay nodes\n#   \"converters\": [str, ...],   # all board-",
+    "MicroBlaze platforms (VCU118) use 32-bit addressing (`#address-cells = <1>`),\nwhile ZynqMP platforms use 64-bit (`#address-cells = <2>`).  Templates must\nemit `reg` properties in the correct cell format.\n\n`NodeBuilder` exposes two Jinja2 globals \u2014 `reg_addr()` and `reg_size()`\n\u2014 that format addresse",
+    "The `SdtgenRunner` applies several fixups to the sdtgen-generated DTS for\nMicroBlaze/VCU118 targets that are required for Linux boot:\n\n- **CPU cluster rename**: `cpus_microblaze@0` \u2192 `cpus` (Linux\n  `of_find_node_by_path(\"/cpus\")` requires exact name match).\n- **DDR4 memory node**: Adds `device_type",
+    "The Jinja2 `Environment` is a `@cached_property` on `NodeBuilder`:\n\n```python\n@cached_property\ndef _env(self) -> Environment:\n    return Environment(\n        loader=FileSystemLoader(str(Path(__file__).parent.parent / \"templates\" / \"xsa\")),\n        keep_trailing_newline=True,\n    )\n```\n\n\nTemplates ar",
+    "All template rendering goes through a single helper:\n\n```python\ndef _render(self, template_name: str, ctx: dict) -> str:\n    return self._env.get_template(template_name).render(ctx)\n```\n\n\n`ctx` is passed as a **positional dict**, not as keyword arguments.  This is\nintentional: the context dict schem",
+    "Multiple templates produce device nodes that must appear inside an\n`&spi_bus { ... }` overlay block.  The helper `_wrap_spi_bus` is used\ninstead of repeating the framing in each caller:\n\n```python\ndef _wrap_spi_bus(self, label: str, children: str) -> str:\n    return (\n        f\"\\t&{label} {{\\n\"\n    ",
+    "Template files live in `adidt/templates/xsa/` and use the `.tmpl`\nextension.  Each template renders a single DTS node or a pair of related nodes\n(e.g. a device node that must appear inside an SPI bus block).\n",
+    "A complete merged DTS is assembled in layers.  The base DTS (from sdtgen)\nprovides the FPGA bus structure and CPU nodes.  `NodeBuilder` renders\nindividual templates, then the board builder and merger nest them into\nthe final tree.\n\nThe following diagram shows this layering for an FMCDAQ2 design (AD9",
+    "Templates use **tabs** for DTS indentation.  DTS nodes rendered at the top\nlevel of an overlay (`&label { ... };`) start at the first column; content\ninside them is indented one level per nesting depth.\n\nJinja2 delimiters are placed at the start of control lines with no leading\nwhitespace; rendered ",
+    "The Jinja2 environment does not load the `tojson` filter.  Wherever a\nproperty value is a list of quoted strings (e.g. `clock-output-names` or\n`clock-names`), the context builder pre-formats it as a single string:\n\n```python\n# In the context builder:\nclock_output_names_str = \", \".join(f'\"{n}\"' for n",
+    "Properties that are only present on some variants of a node use\n`{%- if x is not none %}` guards:\n\n```jinja\n{%- if converter_resolution is not none %}\n     adi,converter-resolution = <{{ converter_resolution }}>;\n{%- endif %}\n```\n\n\nUse `is not none` (not a truthiness check) so that the property is e",
+    "`hmc7044.tmpl` supports two channel-rendering modes:\n\n1. **Structured**: pass `channels` as a list of dicts with keys\n  `id`, `name`, `divider`, `freq_str`, `driver_mode`, etc.\n  The template loops over the list and renders each channel sub-node.\n2. **Raw string**: pass `channels=None` and `raw_chan",
+    "|Template|Renders|\n|`hmc7044.tmpl`|HMC7044 clock chip node (inside SPI bus).  Supports structured channels or raw `raw_channels` string.  All optional properties are guarded with `is not none`.|\n|`ad9523_1.tmpl`|AD9523-1 clock chip (FMCDAQ2); 8 channels hardcoded, optional GPIO lines (sync, status0/",
+    "Every template has a matching **context builder** function in\n`adidt/model/contexts.py`.  Context builders are responsible for:\n\n1. Accepting named parameters for the component configuration.\n2. Computing derived values (e.g. `fmt_hz()` for frequency annotations,\n  `fmt_gpi_gpo()` for hex GPIO contr",
+    "Each builder\u2019s `build_model()` method extracts configuration from the\n`cfg` dict using `coerce_board_int()` for type-safe integer conversion.\nThe extracted values populate `ComponentModel.config` dicts (via context\nbuilder functions) and `JesdLinkModel` fields.\n\nLegacy private dataclasses (`_FMCDAQ2",
+    "This section walks through the full process of adding DTS support for a new\nSPI-attached chip \u2014 for example a new ADC called `AD_NEW`.\n",
+    "Create `adidt/templates/xsa/ad_new.tmpl`.  Follow the indentation\nconvention (tabs, single-level inside the SPI bus node):\n\n```jinja\n             {{ label }}: ad_new@{{ cs }} {\n                     compatible = \"adi,ad-new\";\n                     reg = <{{ cs }}>;\n                     spi-max-frequen",
+    "Add a `build_ad_new_ctx()` function to `adidt/model/contexts.py`.\nUse keyword-only arguments so callers are explicit:\n\n```python\ndef build_ad_new_ctx(\n    *,\n    label: str = \"adc0_ad_new\",\n    cs: int,\n    spi_max_hz: int = 10_000_000,\n    gpio_controller: str = \"gpio0\",\n    reset_gpio: int | None ",
+    "Add tests to `test/xsa/test_node_builder_templates.py`.  Follow TDD: write\nthe test first, confirm it fails, then implement.\n\n```python\ndef test_ad_new_template_renders():\n    ctx = {\n        \"label\": \"adc0_ad_new\",\n        \"cs\": 0,\n        \"spi_max_hz\": 10_000_000,\n        \"gpio_controller\": \"gpio\"",
+    "If the new chip is the primary converter in a design, add a detection method\nto `XsaTopology` in `topology.py`:\n\n```python\ndef is_ad_new_design(self) -> bool:\n    \"\"\"Return True if the topology contains an AD_NEW design.\"\"\"\n    return self.has_converter_types(\"axi_ad_new\")\n```\n\n\nOr use JESD instance",
+    "All builders now construct a `BoardModel` internally.  Add the new\ncomponent as a `ComponentModel` in the builder\u2019s `build_model()` method:\n\n```python\nfrom adidt.model.board_model import ComponentModel\nfrom adidt.model.contexts import build_ad_new_ctx\n\n# Inside the builder's build_model():\ncomponent",
+    "A **board** in this context means a specific combination of FPGA platform and\ndaughter card (e.g. `ad_new_zcu102`).  Adding board support involves:\n\n1. Creating a board JSON profile\n2. Registering the profile\n3. Adding topology detection (if the FPGA part is new)\n4. Writing or extending a board buil",
+    "Create `adidt/xsa/profiles/ad_new_zcu102.json`.  A profile supplies default\nvalues for all board-wiring keys so that users only need to override what\ndiffers:\n\n```json\n{\n  \"name\": \"ad_new_zcu102\",\n  \"defaults\": {\n    \"jesd\": {\n      \"rx\": { \"F\": 4, \"K\": 32 },\n      \"tx\": { \"F\": 4, \"K\": 32 }\n    },\n ",
+    "In `profiles.py`, add an entry to the profile registry so that\n`XsaPipeline` can auto-select or explicitly load it:\n\n```python\n_BUILTIN_PROFILES = [\n    ...\n    \"ad_new_zcu102\",\n]\n```\n\n\nAuto-selection logic lives in `XsaParser` / `XsaPipeline`.  If the new\ndesign is unambiguously identifiable from t",
+    "If the FPGA part is not yet known, add it to `_PART_TO_PLATFORM` in\n`topology.py`:\n\n```python\n_PART_TO_PLATFORM = {\n    ...\n    \"xczu9eg\": \"zcu102\",\n    \"xc7z045\": \"zc706\",\n    \"xcvu9p\":  \"vcu118\",   # \u2190 new entry\n}\n```\n\n\n`inferred_platform()` uses this table to select PS clock labels and GPIO\ncontr",
+    "Create `_build_ad_new_nodes()` on `NodeBuilder` following the pattern\nbelow:\n\n```python\ndef _build_ad_new_nodes(\n    self,\n    topology: XsaTopology,\n    cfg: dict[str, Any],\n    ps_clk_label: str,\n    ps_clk_index: int,\n) -> list[str]:\n    \"\"\"Build DTS node strings for an AD_NEW design.\n\n    Return",
+    "For hardware-verified designs, add a **parity test** that runs the full\npipeline against a reference DTS and checks that required roles are present:\n\n```python\n# test/xsa/test_parity.py  (or equivalent)\ndef test_ad_new_zcu102_parity(xsa_path, ref_dts_path):\n    cfg = load_profile(\"ad_new_zcu102\")\n  ",
+    "Several static helpers on `NodeBuilder` are useful when writing new board\nbuilders.\n\n**`_fmt_hz(hz)`**\n:   Formats an integer frequency into a human-readable string:\n:   `245760000 \u2192 \"245.76 MHz\"`.  Used for DTS comment annotations.\n\n**`_fmt_gpi_gpo(controls)`**\n:   Formats a list of integer values ",
+    "All DTS-generation logic should be covered at three levels:\n\n1. **Template smoke tests** (`test_node_builder_templates.py`): call\n  `NodeBuilder()._render(template, ctx)` with a minimal hand-crafted\n  context dict and assert that key properties and labels appear in the\n  output.\n2. **Context builder",
+    "pyadi-dt generates PetaLinux-ready `system-user.dtsi` files from\nVivado XSA archives, eliminating the need to hand-write ADI device tree\nnodes for clock chips, JESD204 links, and high-speed converters.\n\nContents\n\n- Overview\n  What the formatter does\n\n  - What the formatter does\n- Quick start\n  Gener",
+    "PetaLinux uses Xilinx Device Tree Generator (DTG) to produce a base\ndevice tree from the XSA hardware description.  Board-specific\ncustomizations go in `system-user.dtsi`, which is `#include`d by\nthe auto-generated `system-top.dts`.\n\npyadi-dt bridges the gap between the XSA hardware description and ",
+    "The `PetalinuxFormatter` transforms the XSA pipeline\u2019s overlay output\ninto PetaLinux-compatible format:\n\n1. **Strips overlay directives** \u2014 removes `/dts-v1/;` and `/plugin/;`\n  (PetaLinux\u2019s build system handles DTS compilation)\n2. **Adds system-conf include** \u2014 prepends `#include \"system-conf.dtsi\"",
+    "```bash\nadidtc xsa2dt \\\n    -x /path/to/design.xsa \\\n    -c config.json \\\n    --format petalinux \\\n    --petalinux-project /path/to/myproject\n```\n\n\nThis runs the full XSA pipeline, generates `system-user.dtsi`, and\ncopies it (along with `device-tree.bbappend`) into the PetaLinux\nproject.  Any existi",
+    "```bash\nadidtc xsa2dt \\\n    -x design.xsa \\\n    -c config.json \\\n    --format petalinux \\\n    -o /tmp/dt_output\n\nls /tmp/dt_output/system-user.dtsi /tmp/dt_output/device-tree.bbappend\n```\n\n\nThen copy the files manually into your PetaLinux project.\n",
+    "The diagram below shows the complete workflow from Vivado design to\na booted board:\n\nPetaLinux step-by-step workflow\n",
+    "```bash\npetalinux-create --type project --template zynqMP --name myproject\ncd myproject\n```\n\n\nUse `--template zynq` for Zynq-7000 boards (ZC706, etc.).\n",
+    "```bash\npetalinux-config --get-hw-description=/path/to/xsa_directory --silentconfig\n```\n\n\nThis imports the XSA and generates the base device tree via DTG.\n",
+    "Prepare a configuration file with JESD parameters.  These typically\ncome from the `pyadi-jif` clock solver:\n\n```json\n{\n  \"jesd\": {\n    \"rx\": {\"F\": 1, \"K\": 32, \"M\": 2, \"L\": 4, \"Np\": 16, \"S\": 1},\n    \"tx\": {\"F\": 1, \"K\": 32, \"M\": 2, \"L\": 4, \"Np\": 16, \"S\": 1}\n  }\n}\n```\n\n\nRun pyadi-dt:\n\n```bash\nadidtc xs",
+    "```bash\ncp /tmp/dt_output/system-user.dtsi \\\n    project-spec/meta-user/recipes-bsp/device-tree/files/\n\ncp /tmp/dt_output/device-tree.bbappend \\\n    project-spec/meta-user/recipes-bsp/device-tree/\n```\n\n\nOr let pyadi-dt do it automatically with `--petalinux-project`:\n\n```bash\nadidtc xsa2dt -x design.",
+    "```bash\npetalinux-build -c device-tree\n```\n\n\nThis compiles the base DTS with your `system-user.dtsi` overlay into\na DTB.  It is much faster than a full build.\n",
+    "```bash\npetalinux-build\npetalinux-package --boot --fsbl images/linux/zynqmp_fsbl.elf \\\n    --fpga images/linux/system.bit --u-boot --force\n```\n",
+    "Deploy `BOOT.BIN` and `image.ub` to the SD card, boot the board,\nand verify IIO devices:\n\n```bash\n# On the target\ncat /sys/bus/iio/devices/iio:device*/name\n```\n",
+    "Use the pipeline directly from Python:\n\n```python\nfrom pathlib import Path\nfrom adidt.xsa.pipeline import XsaPipeline\n\nresults = XsaPipeline().run(\n    xsa_path=Path(\"design.xsa\"),\n    cfg={\"jesd\": {\"rx\": {\"L\": 4, \"M\": 2}, \"tx\": {\"L\": 4, \"M\": 2}}},\n    output_dir=Path(\"out/\"),\n    output_format=\"pet",
+    "- PetaLinux DTG generates the PL bus node as `amba_pl`.  The formatter\n  automatically rewrites `&amba` references to `&amba_pl`.\n- GPIO controller label is `gpio`.\n- PS clock reference: `zynqmp_clk 71`.\n",
+    "- PetaLinux DTG uses `amba` as the PL bus label (no rewrite needed).\n- GPIO controller label is `gpio0`.\n- PS clock reference: `clkc 15`.\n- pyadi-dt normalizes the root `compatible` from `xlnx,zc7xx` to\n  `xlnx,zynq-7000` to match the kernel machine descriptor.\n",
+    "- **2020.1+** \u2014 `system-user.dtsi` must `#include \"system-conf.dtsi\"`.\n  This is the default behavior.\n- **Pre-2020.1** \u2014 No system-conf include.  Pass\n  `petalinux_version=\"2019.2\"` to the formatter or omit the include\n  manually.\n",
+    "The generated `system-user.dtsi` references labels defined in the\nbase DTS.  If labels don\u2019t match, ensure:\n\n1. The XSA file matches the PetaLinux project (same Vivado design).\n2. You ran `petalinux-config --get-hw-description` with the correct\n  XSA before building.\n",
+    "- Check `dmesg` for driver probe failures.\n- Verify the JESD parameters in `config.json` match the HDL design.\n- Run `adidtc xsa2dt --lint` to check for structural DTS issues\n  before installing.\n- Compare with the reference DTS from the ADI Kuiper release using\n  `--reference-dts`.\n",
+    "If you see `Reference to non-existent node or label \"gpio\"` during\nDTB compilation, the profile may have the wrong GPIO controller label\nfor your platform.  Zynq-7000 uses `gpio0`, ZynqMP uses `gpio`.\nOverride in the config JSON:\n\n```json\n{\n  \"fmcdaq3_board\": {\n    \"gpio_controller\": \"gpio0\"\n  }\n}\n`",
+    "The `adidt.xsa` subpackage converts Vivado `.xsa` archives into Linux\nDevice Tree sources for ADI JESD204 FSM-framework designs.\n",
+    "The pipeline performs five stages:\n\n1. **SDT generation** \u2013 invokes `lopper` (`sdtgen`) as a subprocess to\n  produce a base System Device Tree from the `.xsa`.\n2. **XSA parsing** \u2013 extracts the Vivado hardware handoff (`.hwh` XML) from\n  the `.xsa` ZIP and detects ADI AXI IPs (JESD204 controllers, c",
+    "XSA to device tree pipeline\n",
+    "The pipeline produces two output files: a **merged DTS** (`.dts`) and a\nstandalone **overlay** (`.dtso`).  Understanding what each contains \u2014 and\nwhat the base DTS from `sdtgen` provides \u2014 is important when debugging boot\nfailures or integrating with custom HDL designs.\n\n**Base DTS** (from `sdtgen` ",
+    "The hardware tests can optionally build and inject a kernel image with\n`pyadi-build` while still using the DTB generated from the XSA pipeline.\n\nHardware testing workflow\n\n\nExample hardware invocation:\n\n```bash\nsource /tools/Xilinx/2025.1/Vivado/settings64.sh\nLG_ENV=/jenkins/lg_ad9081_zcu102.yaml AD",
+    "The XSA pipeline requires `lopper` (the Xilinx System Device Tree\ngenerator). Install the optional dependency group:\n\n```bash\npip install \"adidt[xsa]\"\n```\n",
+    "Start with the step-by-step tutorial before tuning profiles:\n\n```bash\npython examples/xsa/adrv9009_zcu102.py --xsa /path/to/design.xsa\n```\n\n\nor use the full-page tutorial at\nXSA Flow Tutorials and the adijif-focused guide\nXSA + adijif Tutorial.\n\nRun the pipeline from the CLI:\n\n```bash\nadidtc xsa2dt ",
+    "|Profile|Converter Family|Platform|JESD in Profile|Board Config Key|\n|`ad9081_zcu102`|AD9081 MxFE|ZCU102|No (supply via cfg)|`ad9081_board`|\n|`ad9081_zc706`|AD9081 MxFE|ZC706|No (supply via cfg)|`ad9081_board`|\n|`ad9081_vpk180`|AD9081 MxFE|VPK180|Yes (JESD204C M8/L8)|`ad9081_board`|\n|`ad9082_zcu102`",
+    "Use the CLI to browse profiles without reading JSON files directly:\n\n```bash\nadidtc xsa-profiles                   # list all available profiles\nadidtc xsa-profile-show ad9081_zcu102  # show defaults as JSON\n```\n\n\nThe MCP server exposes the same data via `list_xsa_profiles()` and\n`show_xsa_profile()",
+    "When migrating from a hand-written DTS or validating against a known-good\nreference (e.g. the Kuiper release DTS), the pipeline can compare the\ngenerated output against a reference and report missing roles, links, and\nproperties.\n\n```bash\nadidtc xsa2dt -x design.xsa -c config.json -o out/ \\\n  --refe",
+    "The XSA pipeline can generate PetaLinux-ready `system-user.dtsi` files.\nSee PetaLinux Integration for the full workflow, diagrams, and\ntroubleshooting guide.\n\nQuick example:\n\n```bash\nadidtc xsa2dt -x design.xsa -c cfg.json --format petalinux \\\n    --petalinux-project /path/to/myproject\n```\n",
+    "Core classes and methods used in the XSA flow:\n|API|Purpose|\n|`XsaParser.parse(xsa_path: Path) -> XsaTopology`|Extracts `.hwh` from the XSA and returns discovered JESD, clockgen, converter, connectivity, and part metadata.|\n|`NodeBuilder.build(topology: XsaTopology, cfg: dict) -> dict[str, list[str]",
+    "|Argument|Type|Description|\n|`xsa_path`|`Path`|Vivado hardware handoff archive (must contain one `.hwh`).|\n|`cfg`|`dict`|Runtime configuration (JESD, clock labels/channels, board overrides).|\n|`output_dir`|`Path`|Output folder for base SDT, overlay/merged DTS, and report artifacts.|\n|`sdtgen_timeout",
+    "The intended integration is:\n\n1. Use `adijif` to select/solve JESD and clock settings.\n2. Translate solved values into `cfg` keys expected by `XsaPipeline`.\n3. Run `XsaPipeline` with either explicit profile or auto-profile.\n4. Compile the generated merged DTS to DTB and deploy/test on hardware.\n",
+    "adijif integration workflow\n",
+    "|adijif output|`cfg` key in XSA flow|\n|RX JESD `F, K, M, L, Np, S`|`cfg[\"jesd\"][\"rx\"]`|\n|TX JESD `F, K, M, L, Np, S`|`cfg[\"jesd\"][\"tx\"]`|\n|RX device clock source choice|`cfg[\"clock\"][\"rx_device_clk_label\"]` (for example `clkgen`/`hmc7044`)|\n|TX device clock source choice|`cfg[\"clock\"][\"tx_device_clk",
+    "Use the ADRV9009 example for a complete adijif-driven flow:\n\n- `examples/xsa/adrv9009_zcu102.py`\n\n\nFor ADRV9025 ZCU102 XSA flows (Kuiper/local XSA), use:\n\n- `examples/xsa/adrv9025_zcu102.py`\n\n\nThe script demonstrates both quick-mode JESD extraction and optional\n`solve()` usage, then feeds those valu",
+    "The pipeline supports AD9084 \u201capollo\u201d dual-link designs on VCU118 (MicroBlaze).\nThese designs feature four JESD204C links (RX A/B + TX A/B) with separate\nXCVR, DMA, and TPL cores per link.  The board builder generates nodes for:\n\n- **ADF4382** PLL (reference clock for AD9084 dev_clk)\n- **HMC7044** c",
+    "The JSON config file supplies JESD204 link parameters and HMC7044 channel\nassignments. Example for an AD9081 RX+TX design:\n\n```json\n{\n  \"jesd\": {\n    \"rx\": { \"F\": 4, \"K\": 32 },\n    \"tx\": { \"F\": 4, \"K\": 32 }\n  },\n  \"clkgen\": {\n    \"label\": \"axi_clkgen_0\"\n  },\n  \"hmc\": {\n    \"rx_channel\": 12,\n    \"tx_",
+    "For AD9081 + MXFE XSA designs, `NodeBuilder` resolves\n`adi,link-mode` using this precedence:\n\n1. `cfg[\"ad9081\"][\"rx_link_mode\"]` / `cfg[\"ad9081\"][\"tx_link_mode\"]`\n2. `cfg[\"jesd\"][\"rx\"][\"mode\"]` / `cfg[\"jesd\"][\"tx\"][\"mode\"]`\n3. Inference from JESD `(M, L)` tuples:\n  `(8, 4)` -> RX `17`, TX `18`\n  `(4",
+    "The profile/default config can carry board-specific keys to avoid hardcoding in\nthe parser implementation.\n\n`ad9081_board` keys:\n\n- `clock_spi` / `clock_cs` \u2013 SPI bus and chip-select for HMC7044\n- `adc_spi` / `adc_cs` \u2013 SPI bus and chip-select for AD9081\n- `reset_gpio` / `sysref_req_gpio` / `rx1_ena",
+    "Some XSA-derived FMCDAQ2 designs expose tpl-core IIO names instead of legacy\ncore names. Hardware tests therefore accept either set:\n\n- legacy: `axi-ad9680-hpc`, `axi-ad9144-hpc`\n- tpl-core: `ad_ip_jesd204_tpl_adc`, `ad_ip_jesd204_tpl_dac`\n",
+    "Built-in and custom JSON profiles are validated when loaded:\n\n- Unknown keys under `ad9081_board` / `adrv9009_board` raise\n  `ProfileError` (prevents silent typos).\n- Structured snippet fields such as `hmc7044_channel_blocks`,\n  `ad9528_channel_blocks`, and `trx_profile_props` must be JSON lists.\n\n\n",
+    "The XSA parser recognises the following ADI IP cores:\n|IP type (`MODTYPE`)|Role|\n|`axi_jesd204_rx`, `axi_jesd204_tx`|JESD204 FSM controllers|\n|`axi_clkgen`|PL clock generator|\n|`axi_ad9081`, `axi_ad9084`, `axi_ad9375`|RF data converters|\n",
+    "`XsaTopology` carries:\n\n- `fpga_part` \u2013 full Xilinx part string (e.g. `xczu9eg-ffvb1156-2-e`)\n- `jesd204_rx` / `jesd204_tx` \u2013 list of `Jesd204Instance`\n- `clkgens` \u2013 list of `ClkgenInstance`\n- `converters` \u2013 list of `ConverterInstance`\n",
+    "`XsaPipeline.run()` returns a dict with the following keys:\n|Key|Description|\n|`base_dir`|Directory containing the sdtgen output|\n|`overlay`|`.dtso` overlay (ADI nodes only)|\n|`merged`|`.dts` with base SDT + ADI nodes merged|\n|`report`|Self-contained HTML visualisation report|\n|`clock_dot`|Graphviz ",
+    "`XsaPipeline.run()` automatically produces clock-tree diagrams derived\nfrom the merged DTS.  Both output formats are written unconditionally; SVG\nrenderings are produced alongside each when the corresponding tool is on\nPATH.\n|File|Tool for SVG|Notes|\n|`<name>_clocks.dot`|`dot` (Graphviz)|Graphviz di",
+    "|Exception|Raised when|\n|`XsaParseError`|The `.xsa` ZIP contains no `.hwh` file, or the XML is malformed|\n|`ConfigError`|A required JESD204 parameter (`F` or `K`) is missing from the config|\n|`ParityError`|Strict parity mode is enabled and one or more required roles are missing|\n|`SdtgenNotFoundErro",
+    "`adidtc` is the CLI for pyadi-dt.  It provides commands for inspecting device\ntrees on live hardware, generating device tree source files from Vivado XSA\ndesigns or board class configurations, and managing boot files on remote boards.\n\n```bash\npip install adidt          # core commands\npip install \"",
+    "Commands are grouped into three workflows:\n",
+    "Read, search, and modify device tree properties on live hardware (local or\nremote over SSH) or from a `.dtb` file.\n\n**`prop`**\n:   Get or set properties on a single node.  Supports lookup by node name or\n:   compatible string.\n:   adidtc -c remote_sysfs -i 192.168.2.1 prop -cp adi,ad9361\n:   adidtc ",
+    "Produce `.dts` files from Vivado XSA designs, board class + solver configs,\nor profile wizard exports.\n\n**`xsa2dt`**\n:   Run the full 5-stage XSA pipeline (sdtgen, parse, build, merge, report).\n:   Requires `sdtgen` (lopper) on PATH.\n:   adidtc xsa2dt -x design.xsa -c config.json -o out/\n:   adidtc ",
+    "List supported boards, browse XSA profiles, and deploy boot files.\n\n**`kuiper-boards`**\n:   List all boards from the ADI Kuiper Linux manifest with their device tree\n:   generation support status (full, profile_only, unsupported).\n:   adidtc kuiper-boards\n:   adidtc kuiper-boards --status full\n:   a",
+    "Every command inherits global options that control how `adidtc` connects to\nthe target:\n|Option|Default|Description|\n|`--context` / `-c`|`local_sysfs`|Access method: `local_sysfs` (read `/proc/device-tree`), `remote_sysfs` (SSH), `local_sd` / `remote_sd` (SD card mount), `local_file` (read a `.dtb` ",
+    "Full auto-generated reference for all commands and options:\n",
+    "ADI device tree utility for inspecting, generating, and modifying\nLinux device trees for Analog Devices hardware.\n\nUsage\n\n```shell\nadidtc [OPTIONS] COMMAND [ARGS]...\n```\n\n\nOptions\n\n**-nc, --no-color**\n:   Disable formatting\n\n\n\n**-b, --board <board>**\n:   Set board configuration\n:   Default:\n:   `'ad",
+    "Analyze and visualize device tree include dependencies.\n\nUsage\n\n```shell\nadidtc deps [OPTIONS] DT_FILE\n```\n\n\nOptions\n\n**-f, --format <format>**\n:   Output format (tree, json, or dot)\n:   Options:\n:   tree | json | dot\n\n\n\n**-d, --max-depth <max_depth>**\n:   Maximum depth to display in tree format\n\n\n\n",
+    "Generate device tree source from a board class and JSON configuration.\n\nUsage\n\n```shell\nadidtc gen-dts [OPTIONS]\n```\n\n\nOptions\n\n**-b, --board <board>**\n:   **Required** Board class to use for generation\n:   Options:\n:   ad9081_fmc | ad9082_fmc | ad9083_fmc | ad9084_fmc | adrv9002_fmc | adrv9008_fmc ",
+    "Apply pyadi-jif solver output to update device tree clock and JESD parameters.\n\nUsage\n\n```shell\nadidtc jif [OPTIONS] {clock|converter|system|fpga}\n```\n\n\nOptions\n\n**-r, --reboot**\n:   Reboot boards after successful write\n\n\n\n**-f, --filename <filename>**\n:   Name of json file to import with JIF config",
+    "List ADI Kuiper Linux supported boards and their device tree generation status.\n\nUsage\n\n```shell\nadidtc kuiper-boards [OPTIONS]\n```\n\n\nOptions\n\n**-s, --status <status>**\n:   Filter by support status\n:   Options:\n:   all | full | profile_only | unsupported\n\n\n\n**--json-output**\n:   Output raw JSON\n",
+    "Generate a device tree from Transceiver Evaluation Software profile exports.\n\nUsage\n\n```shell\nadidtc profile2dt [OPTIONS]\n```\n\n\nOptions\n\n**-p, --profile <profile>**\n\n\n\n**-c, --config <config>**\n:   path to talise_config.c\n",
+    "Get and set device tree properties on a single node.\n\nUsage\n\n```shell\nadidtc prop [OPTIONS] [NODE_NAME] [PROP] [VALUE]\n```\n\n\nOptions\n\n**-r, --reboot**\n:   Reboot boards after successful write\n\n\n\n**-cp, --compat**\n:   Use node name to check against compatible id of node during search\n\n\n\n**-ch, --chil",
+    "Get and set device tree properties with hierarchical node navigation.\n\nUsage\n\n```shell\nadidtc props [OPTIONS] [NODE_NAME]...\n```\n\n\nOptions\n\n**-cp, --compat**\n:   Use node name to check against compatible id of node during search. This is only used for the first node\n\n\n\n**-r, --reboot**\n:   Reboot bo",
+    "Move boot files on a remote SD card to switch reference designs.\n\nUsage\n\n```shell\nadidtc sd-move [OPTIONS] [RD]\n```\n\n\nOptions\n\n**-r, --reboot**\n:   Reboot boards after successful write\n\n\n\n**-s, --show**\n:   Print commands as run\n\n\n\n**-d, --dry-run**\n:   Dryrun, do not run commands\n\n\n\nArguments\n\n**RD",
+    "Copy local boot files to a remote SD card over the network.\n\nUsage\n\n```shell\nadidtc sd-remote-copy [OPTIONS] [FILES]\n```\n\n\nOptions\n\n**-r, --reboot**\n:   Reboot boards after successful write\n\n\n\n**-s, --show**\n:   Print commands as run\n\n\n\n**-d, --dry-run**\n:   Dryrun, do not run commands\n\n\n\nArguments\n",
+    "Show the full contents of a built-in XSA board profile as JSON.\n\nUsage\n\n```shell\nadidtc xsa-profile-show [OPTIONS] NAME\n```\n\n\nArguments\n\n**NAME**\n:   Required argument\n",
+    "List available built-in XSA board profiles.\n\nUsage\n\n```shell\nadidtc xsa-profiles [OPTIONS]\n```\n",
+    "Generate ADI device tree from a Vivado XSA file.\n\nUsage\n\n```shell\nadidtc xsa2dt [OPTIONS]\n```\n\n\nOptions\n\n**-x, --xsa <xsa>**\n:   **Required** Path to Vivado .xsa file\n\n\n\n**-c, --config <config>**\n:   **Required** Path to pyadi-jif JSON configuration file\n\n\n\n**-o, --output <output>**\n:   Output direc",
+    "Board layout classes define the physical wiring between FPGA platforms and\nADI evaluation boards \u2014 SPI bus assignments, GPIO mappings, and DTC include\npaths.\n\nBoard classes that support the unified model provide a `to_board_model(cfg)`\nmethod that produces a `BoardModel` from a\npyadi-jif solver conf",
+    "**class adidt.boards.daq2.daq2(*platform='zcu102'*, *kernel_path=None*)**\n:   Bases: `layout`\n:   clock = 'ad9523_1'\n:   adc = 'ad9680'\n:   dac = 'ad9144'\n:   use_plugin_mode: bool = False\n:   DEFAULT_KERNEL_PATH = './linux'\n:   PLATFORM_CONFIGS = {'zc706': {'arch': 'arm', 'base_dts_file': 'arch/arm",
+    "**class adidt.boards.ad9081_fmc.ad9081_fmc(*platform='zcu102'*, *kernel_path=None*)**\n:   Bases: `layout`\n:   AD9081 FMC board layout map for clocks and DSP\n:   clock = 'HMC7044'\n:   adc = 'ad9081_rx'\n:   dac = 'ad9081_tx'\n:   DEFAULT_KERNEL_PATH = './linux'\n:   PLATFORM_CONFIGS = {'vpk180': {'arch'",
+    "AD9084 FMC board device tree generation support.\n\nThis module provides device tree generation for the AD9084-FMCA-EBZ evaluation\nboard on Versal platforms (VPK180, VCK190).\n\nThe AD9084 is a high-performance multi-channel RF transceiver that uses:\n- HMC7044 as the primary clock generator\n- ADF4382 as",
+    "ADRV9009 FMC board device tree generation support (JSON-based).\n\nThis module provides JSON-based device tree generation for the ADRV9009\nevaluation board on ZCU102 and ZC706 platforms.\n\nThe ADRV9009 is a highly integrated RF transceiver that uses:\n- AD9528 as the clock generator\n- JESD204B for high-",
+    "**class adidt.boards.adrv9009_pcbz.adrv9009_pcbz**\n:   Bases: `layout`\n:   ADRV9009-PCBZ FMC board layout map for clocks and DSP\n:   template_filename: str | None = 'adi-adrv9009.dtsi'\n:   output_filename: str | None = 'adi-adrv9009.dtsi'\n:   profile = None\n:   parse_profile(*filename: Path*)\n:   Pa",
+    "**class adidt.boards.adrv9009_zu11eg.adrv9009_zu11eg**\n:   Bases: `layout`\n:   ADRV9009-ZU11EG SOM board layout map for clocks and DSP\n:   clock = 'HMC7044'\n:   adc = 'adrv9009_rx'\n:   dac = 'adrv9009_tx'\n:   template_filename: str | None = 'adrv9009_zu11eg.dts'\n:   output_filename: str | None = 'ad",
+    "ADRV9361-Z7035 SOM board class for AD9361 SDR transceiver.\n\nThe ADRV9361-Z7035 is a System-on-Module pairing an AD9361 wideband\nSDR transceiver with a Zynq Z-7035 SoC.  Like the FMComms boards it\nuses SPI + LVDS (no JESD204), so the device tree node is simple.\n\nTwo carrier variants are supported:\n- ",
+    "ADRV9364-Z7020 SOM board class for AD9364 SDR transceiver.\n\nThe ADRV9364-Z7020 is a System-on-Module pairing an AD9364 (1x1 TRX)\nSDR transceiver with a Zynq Z-7020 SoC.  It uses SPI + LVDS (no\nJESD204), identical to the ADRV9361-Z7035 but with a single TX/RX path.\n\nSupported carrier:\n- **bob** \u2014 bre",
+    "The XSA module converts Vivado `.xsa` archives into Linux device tree\nsources.  See XSA to Device Tree for the user guide and XSA Pipeline \u2014 Developer Guide\nfor the architecture documentation.\n\nXSA-to-DeviceTree pipeline: parse Vivado archives and generate Linux DTS overlays.\n",
+    "Data model and parser for extracting IP topology from a Vivado XSA archive.\n\n**class adidt.xsa.topology.Jesd204Instance(*name: str*, *base_addr: int*, *num_lanes: int*, *irq: int | None*, *link_clk: str*, *direction: str*)**\n:   Bases: `object`\n:   One JESD204 TX or RX IP core instance found in the ",
+    "Orchestrate the full XSA-to-DeviceTree pipeline from archive to merged DTS.\n\n**class adidt.xsa.pipeline.XsaPipeline**\n:   Bases: `object`\n:   Orchestrates the five-stage XSA-to-DeviceTree pipeline.\n:   run(*xsa_path: Path*, *cfg: PipelineConfig | dict[str, Any]*, *output_dir: Path*, *sdtgen_timeout:",
+    "Build ADI device-driver DTS overlay nodes from an XSA topology and config.\n\n**class adidt.xsa.node_builder.NodeBuilder**\n:   Bases: `object`\n:   Builds ADI DTS node strings from XsaTopology + pyadi-jif JSON config.\n:   build(*topology: XsaTopology*, *cfg: PipelineConfig | dict[str, Any]*) \u2192 dict[str",
+    "Merge a generated base DTS with ADI overlay nodes into a single DTS file.\n\n**class adidt.xsa.merger.DtsMerger**\n:   Bases: `object`\n:   Merges ADI DTS node strings into a base DTS, producing overlay and merged outputs.\n:   merge(*base_dts: str*, *nodes: dict[str, list[str]]*, *output_dir: Path*, *na",
+    "Generate an interactive HTML report visualising XSA topology and DTS output.\n\n**class adidt.xsa.visualizer.HtmlVisualizer**\n:   Bases: `object`\n:   Generates a self-contained interactive HTML report.\n:   generate(*topology: XsaTopology*, *cfg: dict[str, Any]*, *merged_dts: str*, *output_dir: Path*, ",
+    "Wrapper for invoking the sdtgen tool to generate a base SDT/DTS from an XSA.\n\n**class adidt.xsa.sdtgen.SdtgenRunner(*binary: str = 'sdtgen'*)**\n:   Bases: `object`\n:   Invokes sdtgen as a subprocess to generate a base SDT/DTS from an XSA file.\n:   __init__(*binary: str = 'sdtgen'*)\n:   Initialize th",
+    "Custom exception types for the XSA-to-DeviceTree pipeline.\n\n**exception adidt.xsa.exceptions.SdtgenNotFoundError(*message: str = 'sdtgen not found on PATH'*)**\n:   Bases: `Exception`\n:   Raised when sdtgen/lopper binary is not found on PATH.\n:   INSTALL_URL = 'https://github.com/devicetree-org/loppe",
+    "Public board configuration dataclasses for the XSA-to-DeviceTree pipeline.\n\nThese types formalize the raw `dict[str, Any]` configuration that the pipeline\nhas historically accepted.  Each board family has a dedicated dataclass with\ntyped fields and defaults matching the existing `.get(key, default)`",
+    "Every config type provides a `from_dict` class method so that JSON profiles,\nMCP server requests, and existing test dicts continue to work unchanged:\n\n```default\ncfg = FMCDAQ2BoardConfig.from_dict(raw_dict)\n```\n",
+    "`__post_init__` on each type runs the same checks that `profiles.py`\n`_validate_typed_keys` previously performed (non-negative ints, non-empty\nstrings).  Construct the object to validate; catch `ValueError` on failure.\n",
+    "Top-level pipeline configuration wrapping JESD, clock, and board configs.\n\n`PipelineConfig` is the typed entry point for all pipeline configuration.\nIt can be constructed from a raw dict (backward compatible) or directly\nwith typed sub-configs:\n\n```default\n# From a raw dict (JSON profile, MCP server",
+    "Per-board builder modules for the XSA-to-DeviceTree pipeline.\n\nEach builder implements the `BoardBuilder` protocol and is responsible\nfor a single board family (e.g., FMCDAQ2, AD9084).  The `NodeBuilder`\niterates registered builders, calling `matches()` to determine which\nbuilder handles the current",
+    "Typed context dataclasses for Jinja2 DTS node templates.\n\nEach dataclass corresponds to a `.tmpl` template in `adidt/templates/xsa/`\nand defines the exact fields that the template expects.  Using typed contexts\ninstead of raw dicts ensures that all call sites for a shared template produce\nthe same s",
+    "Structural DTS linter for generated device tree source files.\n\nOperates on merged DTS text using regex-based parsing \u2014 no external tools\n(`dtc`, `dt-schema`) required.  Produces a list of `LintDiagnostic`\nitems with severity, rule ID, node location, and actionable message.\n\nUsage:\n\n```default\nfrom a",
+    "The `adidt.model` package provides the unified `BoardModel` abstraction\nthat both the manual board-class workflow and the XSA pipeline produce.\nA single `BoardModelRenderer` renders any `BoardModel` to DTS using\nper-component Jinja2 templates.\n",
+    "A `BoardModel` describes the complete hardware composition of a board:\nwhat components exist, how they connect via JESD204 links, and what FPGA\nconfiguration applies.  Three workflows converge on this model:\n\n```text\nXSA Pipeline                Manual Board Class         Direct Construction\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500",
+    "All six XSA builders produce `BoardModel` instances:\n|Builder|Clock Chip|Converters|\n|`FMCDAQ2Builder`|AD9523-1|AD9680 (ADC) + AD9144 (DAC)|\n|`FMCDAQ3Builder`|AD9528|AD9680 (ADC) + AD9152 (DAC)|\n|`AD9172Builder`|HMC7044|AD9172 (DAC)|\n|`AD9081Builder`|HMC7044|AD9081 MxFE (ADC + DAC)|\n|`ADRV9009Builde",
+    "The easiest way to create components.  Each factory returns a\npre-configured `ComponentModel` \u2014 no template filenames needed:\n\n```python\nfrom adidt.model import BoardModel, components\n\nmodel = BoardModel(\n    name=\"my_board\",\n    platform=\"rpi5\",\n    components=[\n        components.adis16495(spi_bus",
+    "Lower-level functions that produce template context dicts.  Use these\nwhen you need full control over every field, or when no factory exists\nfor your device:\n\n```python\nfrom adidt.model.contexts import build_ad9523_1_ctx\n\nctx = build_ad9523_1_ctx(\n    label=\"clk0_ad9523\",\n    cs=0,\n    spi_max_hz=10",
+    "Dataclass definitions for the unified board model.\n\n**class adidt.model.board_model.ComponentModel(*role: str*, *part: str*, *template: str*, *spi_bus: str*, *spi_cs: int*, *config: dict[str*, *~typing.Any]=<factory>*)**\n:   Bases: `object`\n:   One physical device on the board (clock chip, converter",
+    "Render a `BoardModel` to DTS node strings using per-component templates.\n\n**class adidt.model.renderer.BoardModelRenderer**\n:   Bases: `object`\n:   Renders a `BoardModel` into DTS node strings.\n:   The output dict has the same shape that\n:   `build()` returns:\n:   {\"clkgens\": [...], \"jesd204_rx\": [.",
+    "Shared template-context builders for board components.\n\nEach function returns a plain dict ready to pass to a Jinja2 template.\nThese are used by both the XSA pipeline (via board builders) and the\nmanual board-class workflow (via `to_board_model()`).\n\n**adidt.model.contexts.fmt_hz(*hz: int*) \u2192 str**\n",
+    "Pre-configured component factories for common ADI devices.\n\nEach factory returns a `ComponentModel`\nwith the correct role, part name, and template already set.  Pass\ndevice-specific parameters as keyword arguments \u2014 they are forwarded to\nthe matching context builder.\n\nUsage:\n\n```default\nfrom adidt.m"
+  ],
+  "url": [
+    "quickstart.html#installation",
+    "quickstart.html#generate-a-device-tree-from-an-xsa-file",
+    "quickstart.html#generate-a-device-tree-overlay-from-python",
+    "quickstart.html#generate-a-device-tree-for-an-fpga-board",
+    "quickstart.html#generate-a-device-tree-from-the-cli",
+    "quickstart.html#edit-a-boardmodel-before-rendering",
+    "quickstart.html#inspect-a-device-tree-on-live-hardware",
+    "quickstart.html#analyze-device-tree-dependencies",
+    "quickstart.html#configure-clocks-from-json",
+    "quickstart.html#next-steps",
+    "access.html",
+    "access.html#supported-modes",
+    "access.html#choosing-an-access-mode",
+    "access.html#cli-examples",
+    "access.html#copying-boot-files-to-a-remote-board",
+    "access.html#python-api",
+    "examples.html",
+    "examples/xsa_tutorial.html",
+    "examples/xsa_tutorial.html#install-the-required-tooling",
+    "examples/xsa_tutorial.html#prepare-a-config-file",
+    "examples/xsa_tutorial.html#run-the-converter",
+    "examples/xsa_tutorial.html#collect-outputs",
+    "examples/xsa_tutorial.html#tutorial-2-use-project-example-scripts",
+    "examples/xsa_tutorial.html#tutorial-3-use-the-python-api-directly",
+    "examples/xsa_tutorial.html#tutorial-4-validate-the-generated-dts",
+    "examples/xsa_tutorial.html#related-references",
+    "board_class_workflow.html",
+    "board_class_workflow.html#example-adis16495-imu-on-raspberry-pi",
+    "board_class_workflow.html#step-1-build-a-boardmodel",
+    "board_class_workflow.html#step-2-render-to-dts",
+    "board_class_workflow.html#step-3-write-to-a-file",
+    "board_class_workflow.html#step-4-compile-and-deploy",
+    "board_class_workflow.html#editing-the-model-before-rendering",
+    "board_class_workflow.html#multiple-devices-on-one-board",
+    "board_class_workflow.html#scaling-up-fpga-boards-with-jesd204",
+    "board_class_workflow.html#available-components",
+    "board_class_workflow.html#cli-shortcut",
+    "parts.html",
+    "parts.html#clock-generators-and-distributors",
+    "parts.html#rf-transceivers-and-data-converters",
+    "parts.html#evaluation-boards",
+    "parts.html#cli-example-with-json-from-pyadi-jif",
+    "parts.html#python-api-clock-set",
+    "visualization.html",
+    "visualization.html#html-topology-report",
+    "visualization.html#example-report-layout",
+    "visualization.html#generating-from-python",
+    "visualization.html#generating-from-cli",
+    "visualization.html#clock-tree-diagrams",
+    "visualization.html#example-fmcdaq2-clock-tree",
+    "visualization.html#node-color-coding",
+    "visualization.html#edge-color-coding",
+    "visualization.html#example-dot-output",
+    "visualization.html#id1",
+    "visualization.html#installing-rendering-tools",
+    "visualization.html#dts-structural-linter",
+    "visualization.html#example-lint-output",
+    "visualization.html#id2",
+    "visualization.html#id3",
+    "visualization.html#combining-all-outputs",
+    "examples/xsa_ad9081_zcu102.html",
+    "examples/xsa_ad9081_zcu102.html#design-overview",
+    "examples/xsa_ad9081_zcu102.html#prerequisites",
+    "examples/xsa_ad9081_zcu102.html#running-the-example",
+    "examples/xsa_ad9081_zcu102.html#generated-overlay",
+    "examples/xsa_ad9081_zcu102.html#step-1-parse-and-patch-the-xsa",
+    "examples/xsa_ad9081_zcu102.html#step-2-resolve-jesd204-parameters-with-adijif",
+    "examples/xsa_ad9081_zcu102.html#step-3-render-and-write-the-overlay",
+    "examples/xsa_ad9081_zcu102.html#ad9081-link-mode-selection-behavior",
+    "examples/xsa_ad9081_zcu102.html#full-pipeline-with-sdtgen",
+    "examples/xsa_ad9081_zcu102.html#compiling-the-overlay",
+    "examples/xsa_adijif_tutorial.html",
+    "examples/xsa_adijif_tutorial.html#install-dependencies",
+    "examples/xsa_adijif_tutorial.html#build-a-cfg-from-adijif-quick-mode",
+    "examples/xsa_adijif_tutorial.html#minimal-example",
+    "examples/xsa_adijif_tutorial.html#optional-full-solve-path",
+    "examples/xsa_adijif_tutorial.html#run-xsa-pipeline-with-the-derived-config",
+    "examples/xsa_adijif_tutorial.html#common-adijif-troubleshooting",
+    "examples/xsa_adijif_tutorial.html#example-script-references",
+    "api/templates.html",
+    "api/templates.html#high-speed-data-converters-jesd204",
+    "api/templates.html#high-speed-dacs-non-jesd",
+    "api/templates.html#frequency-synthesizers-plls",
+    "api/templates.html#clock-generators-and-distributors",
+    "api/templates.html#rf-front-end-components",
+    "api/templates.html#data-acquisition",
+    "api/templates.html#fpga-axi-peripherals",
+    "api/templates.html#utility-templates",
+    "examples/board_model_usage.html",
+    "examples/board_model_usage.html#from-the-xsa-pipeline-automatic",
+    "examples/board_model_usage.html#from-a-board-class-with-pyadi-jif-manual",
+    "examples/board_model_usage.html#direct-construction-with-component-factories",
+    "examples/board_model_usage.html#editing-a-boardmodel-before-rendering",
+    "examples/board_model_usage.html#supported-builders",
+    "examples/board_model_usage.html#available-component-factories",
+    "examples/board_model_usage.html#context-builders-advanced",
+    "index.html",
+    "index.html#key-capabilities",
+    "index.html#supported-hardware",
+    "index.html#where-to-start",
+    "index.html#links",
+    "index.html#table-of-contents",
+    "utils.html",
+    "utils.html#sd-move",
+    "utils.html#sd-remote-copy",
+    "utils.html#python-api",
+    "api/index.html",
+    "examples/ad9081_device_tree_generation.html",
+    "examples/ad9081_device_tree_generation.html#overview",
+    "examples/ad9081_device_tree_generation.html#supported-platforms",
+    "examples/ad9081_device_tree_generation.html#install-pyadi-dt",
+    "examples/ad9081_device_tree_generation.html#prepare-linux-kernel-source",
+    "examples/ad9081_device_tree_generation.html#create-configuration-file",
+    "examples/ad9081_device_tree_generation.html#generate-device-tree",
+    "examples/ad9081_device_tree_generation.html#compile-to-dtb-optional",
+    "examples/ad9081_device_tree_generation.html#gen-dts-command",
+    "examples/ad9081_device_tree_generation.html#examples",
+    "examples/ad9081_device_tree_generation.html#configuration-file-format",
+    "examples/ad9081_device_tree_generation.html#complete-example",
+    "examples/ad9081_device_tree_generation.html#clock-configuration",
+    "examples/ad9081_device_tree_generation.html#fpga-configuration",
+    "examples/ad9081_device_tree_generation.html#jesd-configuration",
+    "examples/ad9081_device_tree_generation.html#datapath-configuration",
+    "examples/ad9081_device_tree_generation.html#basic-usage",
+    "examples/ad9081_device_tree_generation.html#advanced-usage",
+    "examples/ad9081_device_tree_generation.html#kernel-source-configuration",
+    "examples/ad9081_device_tree_generation.html#recommended-kernel-sources",
+    "examples/ad9081_device_tree_generation.html#required-files",
+    "examples/ad9081_device_tree_generation.html#manual-compilation",
+    "examples/ad9081_device_tree_generation.html#automated-compilation",
+    "examples/ad9081_device_tree_generation.html#dtc-requirements",
+    "examples/ad9081_device_tree_generation.html#kernel-path-not-found",
+    "examples/ad9081_device_tree_generation.html#base-dts-file-missing",
+    "examples/ad9081_device_tree_generation.html#dtc-compilation-failed",
+    "examples/ad9081_device_tree_generation.html#platform-not-supported",
+    "examples/ad9081_device_tree_generation.html#adding-new-platforms",
+    "examples/ad9081_device_tree_generation.html#add-platform-configuration",
+    "examples/ad9081_device_tree_generation.html#create-template",
+    "examples/ad9081_device_tree_generation.html#add-tests",
+    "examples/ad9081_device_tree_generation.html#update-documentation",
+    "examples/ad9081_device_tree_generation.html#configuration-templates",
+    "examples/ad9081_device_tree_generation.html#related-resources",
+    "examples/ad9081_device_tree_generation.html#support",
+    "api/parts.html",
+    "api/parts.html#module-adidt.parts.hmc7044",
+    "api/parts.html#module-adidt.parts.ad9523_1",
+    "api/parts.html#module-adidt.parts.ad9528",
+    "api/parts.html#module-adidt.parts.ad9545",
+    "api/parts.html#module-adidt.parts.adrv9009",
+    "mcp_server.html",
+    "mcp_server.html#installation",
+    "mcp_server.html#running-the-server",
+    "mcp_server.html#generate-devicetree",
+    "mcp_server.html#list-xsa-profiles",
+    "mcp_server.html#show-xsa-profile",
+    "mcp_server.html#read-dt-property",
+    "mcp_server.html#lint-devicetree",
+    "mcp_server.html#generate-a-device-tree-with-claude",
+    "mcp_server.html#petalinux-workflow",
+    "mcp_server.html#inspect-and-lint",
+    "creating_templates.html",
+    "creating_templates.html#overview",
+    "creating_templates.html#step-1-parse-kernel-bindings",
+    "creating_templates.html#step-2-audit-against-existing-templates",
+    "creating_templates.html#step-3-generate-starter-templates",
+    "creating_templates.html#step-4-refine-the-template",
+    "creating_templates.html#step-5-write-the-context-builder",
+    "creating_templates.html#step-6-add-a-component-factory",
+    "creating_templates.html#step-7-write-tests",
+    "creating_templates.html#reference-what-the-tools-extract",
+    "creating_templates.html#tips",
+    "xsa_developer.html",
+    "xsa_developer.html#architecture",
+    "xsa_developer.html#component-interaction",
+    "xsa_developer.html#key-data-models",
+    "xsa_developer.html#nodebuilder-internals",
+    "xsa_developer.html#entry-point",
+    "xsa_developer.html#platform-aware-register-format",
+    "xsa_developer.html#sdtgen-postprocessing-microblaze",
+    "xsa_developer.html#jinja2-environment",
+    "xsa_developer.html#template-rendering",
+    "xsa_developer.html#spi-bus-wrapping",
+    "xsa_developer.html#templates",
+    "xsa_developer.html#how-templates-compose-into-a-full-device-tree",
+    "xsa_developer.html#indentation-convention",
+    "xsa_developer.html#pre-formatted-string-variables",
+    "xsa_developer.html#conditional-properties",
+    "xsa_developer.html#raw-channels-escape-hatch",
+    "xsa_developer.html#template-catalogue",
+    "xsa_developer.html#context-builders",
+    "xsa_developer.html#board-specific-config-extraction",
+    "xsa_developer.html#adding-a-new-component",
+    "xsa_developer.html#step-1-write-the-template",
+    "xsa_developer.html#step-2-write-the-context-builder",
+    "xsa_developer.html#step-3-write-tests",
+    "xsa_developer.html#step-4-add-board-detection-if-needed",
+    "xsa_developer.html#step-5-wire-into-a-board-builder",
+    "xsa_developer.html#adding-a-new-board",
+    "xsa_developer.html#step-1-create-the-board-json-profile",
+    "xsa_developer.html#step-2-register-the-profile",
+    "xsa_developer.html#step-3-platform-support",
+    "xsa_developer.html#step-4-board-builder",
+    "xsa_developer.html#regression-and-parity-testing",
+    "xsa_developer.html#utility-helpers",
+    "xsa_developer.html#testing-conventions",
+    "petalinux.html",
+    "petalinux.html#overview",
+    "petalinux.html#what-the-formatter-does",
+    "petalinux.html#generate-and-install-in-one-command",
+    "petalinux.html#generate-without-installing",
+    "petalinux.html#step-by-step-workflow",
+    "petalinux.html#step-1-create-a-petalinux-project",
+    "petalinux.html#step-2-import-the-hardware-description",
+    "petalinux.html#step-3-generate-system-user-dtsi",
+    "petalinux.html#step-4-install-into-the-project",
+    "petalinux.html#step-5-build-the-device-tree",
+    "petalinux.html#step-6-full-build-and-package",
+    "petalinux.html#step-7-boot-and-verify",
+    "petalinux.html#python-api",
+    "petalinux.html#zynqmp-zcu102-zcu104-zu11eg",
+    "petalinux.html#zynq-7000-zc706",
+    "petalinux.html#petalinux-version-compatibility",
+    "petalinux.html#petalinux-build-c-device-tree-fails-with-phandle-errors",
+    "petalinux.html#board-doesn-t-boot-after-applying-system-user-dtsi",
+    "petalinux.html#gpio-label-mismatch",
+    "xsa.html",
+    "xsa.html#overview",
+    "xsa.html#pipeline-diagram",
+    "xsa.html#base-dts-and-overlay-structure",
+    "xsa.html#hardware-test-flow",
+    "xsa.html#installation",
+    "xsa.html#usage",
+    "xsa.html#built-in-profiles",
+    "xsa.html#profile-discovery",
+    "xsa.html#reference-dts-parity-checking",
+    "xsa.html#petalinux-integration",
+    "xsa.html#python-api",
+    "xsa.html#xsapipeline-run-argument-reference",
+    "xsa.html#using-adijif-pyadi-jif-with-the-xsa-flow",
+    "xsa.html#adijif-integration-workflow",
+    "xsa.html#adijif-to-config-mapping",
+    "xsa.html#reference-implementation",
+    "xsa.html#ad9084-apollo-vcu118-microblaze-support",
+    "xsa.html#configuration",
+    "xsa.html#ad9081-link-mode-resolution",
+    "xsa.html#board-override-keys",
+    "xsa.html#hardware-test-note",
+    "xsa.html#profile-validation",
+    "xsa.html#supported-ip-cores",
+    "xsa.html#parsed-topology-fields",
+    "xsa.html#outputs",
+    "xsa.html#clock-topology-graphs",
+    "xsa.html#exceptions",
+    "cli.html",
+    "cli.html#command-overview",
+    "cli.html#inspect-device-trees",
+    "cli.html#generate-device-trees",
+    "cli.html#manage-boards-and-profiles",
+    "cli.html#global-options",
+    "cli.html#cli-reference",
+    "cli.html#adidtc",
+    "cli.html#adidtc-deps",
+    "cli.html#adidtc-gen-dts",
+    "cli.html#adidtc-jif",
+    "cli.html#adidtc-kuiper-boards",
+    "cli.html#adidtc-profile2dt",
+    "cli.html#adidtc-prop",
+    "cli.html#adidtc-props",
+    "cli.html#adidtc-sd-move",
+    "cli.html#adidtc-sd-remote-copy",
+    "cli.html#adidtc-xsa-profile-show",
+    "cli.html#adidtc-xsa-profiles",
+    "cli.html#adidtc-xsa2dt",
+    "api/boards.html",
+    "api/boards.html#module-adidt.boards.daq2",
+    "api/boards.html#module-adidt.boards.ad9081_fmc",
+    "api/boards.html#module-adidt.boards.ad9084_fmc",
+    "api/boards.html#module-adidt.boards.adrv9009_fmc",
+    "api/boards.html#module-adidt.boards.adrv9009_pcbz",
+    "api/boards.html#module-adidt.boards.adrv9009_zu11eg",
+    "api/boards.html#module-adidt.boards.adrv9361_z7035",
+    "api/boards.html#module-adidt.boards.adrv9364_z7020",
+    "api/xsa.html",
+    "api/xsa.html#module-adidt.xsa.topology",
+    "api/xsa.html#module-adidt.xsa.pipeline",
+    "api/xsa.html#module-adidt.xsa.node_builder",
+    "api/xsa.html#module-adidt.xsa.merger",
+    "api/xsa.html#module-adidt.xsa.visualizer",
+    "api/xsa.html#module-adidt.xsa.sdtgen",
+    "api/xsa.html#module-adidt.xsa.exceptions",
+    "api/xsa.html#module-adidt.xsa.board_configs",
+    "api/xsa.html#backward-compatibility",
+    "api/xsa.html#validation",
+    "api/xsa.html#module-adidt.xsa.pipeline_config",
+    "api/xsa.html#module-adidt.xsa.builders",
+    "api/xsa.html#module-adidt.xsa.template_contexts",
+    "api/xsa.html#module-adidt.xsa.dts_lint",
+    "api/model.html",
+    "api/model.html#overview",
+    "api/model.html#supported-boards",
+    "api/model.html#component-factories",
+    "api/model.html#context-builders",
+    "api/model.html#board-model",
+    "api/model.html#module-adidt.model.renderer",
+    "api/model.html#module-adidt.model.contexts",
+    "api/model.html#id1"
+  ],
+  "hierarchy": [
+    [
+      "Quick Start",
+      "Installation"
+    ],
+    [
+      "Quick Start",
+      "Generate a device tree from an XSA file"
+    ],
+    [
+      "Quick Start",
+      "Generate a device tree overlay from Python"
+    ],
+    [
+      "Quick Start",
+      "Generate a device tree overlay from Python",
+      "Generate a device tree for an FPGA board"
+    ],
+    [
+      "Quick Start",
+      "Generate a device tree overlay from Python",
+      "Generate a device tree from the CLI"
+    ],
+    [
+      "Quick Start",
+      "Generate a device tree overlay from Python",
+      "Edit a BoardModel before rendering"
+    ],
+    [
+      "Quick Start",
+      "Inspect a device tree on live hardware"
+    ],
+    [
+      "Quick Start",
+      "Analyze device tree dependencies"
+    ],
+    [
+      "Quick Start",
+      "Configure clocks from JSON"
+    ],
+    [
+      "Quick Start",
+      "Next steps"
+    ],
+    [
+      "Live Update Access Models"
+    ],
+    [
+      "Live Update Access Models",
+      "Supported modes"
+    ],
+    [
+      "Live Update Access Models",
+      "Choosing an access mode"
+    ],
+    [
+      "Live Update Access Models",
+      "CLI examples"
+    ],
+    [
+      "Live Update Access Models",
+      "Copying boot files to a remote board"
+    ],
+    [
+      "Live Update Access Models",
+      "Python API"
+    ],
+    [
+      "Examples"
+    ],
+    [
+      "Examples",
+      "XSA Flow Tutorials"
+    ],
+    [
+      "Examples",
+      "XSA Flow Tutorials",
+      "Tutorial 1: Run the XSA pipeline from the CLI",
+      "1) Install the required tooling"
+    ],
+    [
+      "Examples",
+      "XSA Flow Tutorials",
+      "Tutorial 1: Run the XSA pipeline from the CLI",
+      "2) Prepare a config file"
+    ],
+    [
+      "Examples",
+      "XSA Flow Tutorials",
+      "Tutorial 1: Run the XSA pipeline from the CLI",
+      "3) Run the converter"
+    ],
+    [
+      "Examples",
+      "XSA Flow Tutorials",
+      "Tutorial 1: Run the XSA pipeline from the CLI",
+      "4) Collect outputs"
+    ],
+    [
+      "Examples",
+      "XSA Flow Tutorials",
+      "Tutorial 2: Use project example scripts"
+    ],
+    [
+      "Examples",
+      "XSA Flow Tutorials",
+      "Tutorial 3: Use the Python API directly"
+    ],
+    [
+      "Examples",
+      "XSA Flow Tutorials",
+      "Tutorial 4: Validate the generated DTS"
+    ],
+    [
+      "Examples",
+      "XSA Flow Tutorials",
+      "Related references"
+    ],
+    [
+      "Device Tree Generation"
+    ],
+    [
+      "Device Tree Generation",
+      "Example: ADIS16495 IMU on Raspberry Pi"
+    ],
+    [
+      "Device Tree Generation",
+      "Example: ADIS16495 IMU on Raspberry Pi",
+      "Step 1: Build a BoardModel"
+    ],
+    [
+      "Device Tree Generation",
+      "Example: ADIS16495 IMU on Raspberry Pi",
+      "Step 2: Render to DTS"
+    ],
+    [
+      "Device Tree Generation",
+      "Example: ADIS16495 IMU on Raspberry Pi",
+      "Step 3: Write to a file"
+    ],
+    [
+      "Device Tree Generation",
+      "Example: ADIS16495 IMU on Raspberry Pi",
+      "Step 4: Compile and deploy"
+    ],
+    [
+      "Device Tree Generation",
+      "Editing the model before rendering"
+    ],
+    [
+      "Device Tree Generation",
+      "Multiple devices on one board"
+    ],
+    [
+      "Device Tree Generation",
+      "Scaling up: FPGA boards with JESD204"
+    ],
+    [
+      "Device Tree Generation",
+      "Available components"
+    ],
+    [
+      "Device Tree Generation",
+      "Available components",
+      "CLI shortcut"
+    ],
+    [
+      "Part Layers"
+    ],
+    [
+      "Part Layers",
+      "Supported components",
+      "Clock Generators and Distributors"
+    ],
+    [
+      "Part Layers",
+      "Supported components",
+      "RF Transceivers and Data Converters"
+    ],
+    [
+      "Part Layers",
+      "Supported components",
+      "Evaluation Boards"
+    ],
+    [
+      "Part Layers",
+      "CLI example with JSON from pyadi-jif"
+    ],
+    [
+      "Part Layers",
+      "Python API: clock.set()"
+    ],
+    [
+      "Visualization and Diagnostics"
+    ],
+    [
+      "Visualization and Diagnostics",
+      "HTML topology report"
+    ],
+    [
+      "Visualization and Diagnostics",
+      "HTML topology report",
+      "Example report layout"
+    ],
+    [
+      "Visualization and Diagnostics",
+      "HTML topology report",
+      "Generating from Python"
+    ],
+    [
+      "Visualization and Diagnostics",
+      "HTML topology report",
+      "Generating from CLI"
+    ],
+    [
+      "Visualization and Diagnostics",
+      "Clock-tree diagrams"
+    ],
+    [
+      "Visualization and Diagnostics",
+      "Clock-tree diagrams",
+      "Example: FMCDAQ2 clock tree"
+    ],
+    [
+      "Visualization and Diagnostics",
+      "Clock-tree diagrams",
+      "Node color coding"
+    ],
+    [
+      "Visualization and Diagnostics",
+      "Clock-tree diagrams",
+      "Edge color coding"
+    ],
+    [
+      "Visualization and Diagnostics",
+      "Clock-tree diagrams",
+      "Example DOT output"
+    ],
+    [
+      "Visualization and Diagnostics",
+      "Clock-tree diagrams",
+      "Generating from Python"
+    ],
+    [
+      "Visualization and Diagnostics",
+      "Clock-tree diagrams",
+      "Installing rendering tools"
+    ],
+    [
+      "Visualization and Diagnostics",
+      "DTS structural linter"
+    ],
+    [
+      "Visualization and Diagnostics",
+      "DTS structural linter",
+      "Example lint output"
+    ],
+    [
+      "Visualization and Diagnostics",
+      "DTS structural linter",
+      "Generating from Python"
+    ],
+    [
+      "Visualization and Diagnostics",
+      "DTS structural linter",
+      "Generating from CLI"
+    ],
+    [
+      "Visualization and Diagnostics",
+      "Combining all outputs"
+    ],
+    [
+      "Examples",
+      "XSA \u2192 Device Tree: AD9081 on ZCU102"
+    ],
+    [
+      "Examples",
+      "XSA \u2192 Device Tree: AD9081 on ZCU102",
+      "Design Overview"
+    ],
+    [
+      "Examples",
+      "XSA \u2192 Device Tree: AD9081 on ZCU102",
+      "Prerequisites"
+    ],
+    [
+      "Examples",
+      "XSA \u2192 Device Tree: AD9081 on ZCU102",
+      "Running the Example"
+    ],
+    [
+      "Examples",
+      "XSA \u2192 Device Tree: AD9081 on ZCU102",
+      "Generated Overlay"
+    ],
+    [
+      "Examples",
+      "XSA \u2192 Device Tree: AD9081 on ZCU102",
+      "Pipeline Walkthrough",
+      "Step 1 \u2013 Parse and patch the XSA"
+    ],
+    [
+      "Examples",
+      "XSA \u2192 Device Tree: AD9081 on ZCU102",
+      "Pipeline Walkthrough",
+      "Step 2 \u2013 Resolve JESD204 parameters with adijif"
+    ],
+    [
+      "Examples",
+      "XSA \u2192 Device Tree: AD9081 on ZCU102",
+      "Pipeline Walkthrough",
+      "Step 3 \u2013 Render and write the overlay"
+    ],
+    [
+      "Examples",
+      "XSA \u2192 Device Tree: AD9081 on ZCU102",
+      "Pipeline Walkthrough",
+      "AD9081 link-mode selection behavior"
+    ],
+    [
+      "Examples",
+      "XSA \u2192 Device Tree: AD9081 on ZCU102",
+      "Full Pipeline (with sdtgen)"
+    ],
+    [
+      "Examples",
+      "XSA \u2192 Device Tree: AD9081 on ZCU102",
+      "Compiling the Overlay"
+    ],
+    [
+      "Examples",
+      "XSA + adijif Tutorial"
+    ],
+    [
+      "Examples",
+      "XSA + adijif Tutorial",
+      "1) Install dependencies"
+    ],
+    [
+      "Examples",
+      "XSA + adijif Tutorial",
+      "2) Build a cfg from adijif (quick mode)"
+    ],
+    [
+      "Examples",
+      "XSA + adijif Tutorial",
+      "2) Build a cfg from adijif (quick mode)",
+      "Minimal example"
+    ],
+    [
+      "Examples",
+      "XSA + adijif Tutorial",
+      "2) Build a cfg from adijif (quick mode)",
+      "Optional full solve path"
+    ],
+    [
+      "Examples",
+      "XSA + adijif Tutorial",
+      "3) Run XSA pipeline with the derived config"
+    ],
+    [
+      "Examples",
+      "XSA + adijif Tutorial",
+      "4) Common adijif troubleshooting"
+    ],
+    [
+      "Examples",
+      "XSA + adijif Tutorial",
+      "5) Example script references"
+    ],
+    [
+      "API Reference",
+      "XSA Template Reference"
+    ],
+    [
+      "API Reference",
+      "XSA Template Reference",
+      "High-Speed Data Converters (JESD204)"
+    ],
+    [
+      "API Reference",
+      "XSA Template Reference",
+      "High-Speed DACs (Non-JESD)"
+    ],
+    [
+      "API Reference",
+      "XSA Template Reference",
+      "Frequency Synthesizers (PLLs)"
+    ],
+    [
+      "API Reference",
+      "XSA Template Reference",
+      "Clock Generators and Distributors"
+    ],
+    [
+      "API Reference",
+      "XSA Template Reference",
+      "RF Front-End Components"
+    ],
+    [
+      "API Reference",
+      "XSA Template Reference",
+      "Data Acquisition"
+    ],
+    [
+      "API Reference",
+      "XSA Template Reference",
+      "FPGA AXI Peripherals"
+    ],
+    [
+      "API Reference",
+      "XSA Template Reference",
+      "Utility Templates"
+    ],
+    [
+      "Examples",
+      "BoardModel: Unified Device Tree Generation"
+    ],
+    [
+      "Examples",
+      "BoardModel: Unified Device Tree Generation",
+      "Three ways to create a BoardModel",
+      "1. From the XSA pipeline (automatic)"
+    ],
+    [
+      "Examples",
+      "BoardModel: Unified Device Tree Generation",
+      "Three ways to create a BoardModel",
+      "2. From a board class with pyadi-jif (manual)"
+    ],
+    [
+      "Examples",
+      "BoardModel: Unified Device Tree Generation",
+      "Three ways to create a BoardModel",
+      "3. Direct construction with component factories"
+    ],
+    [
+      "Examples",
+      "BoardModel: Unified Device Tree Generation",
+      "Editing a BoardModel before rendering"
+    ],
+    [
+      "Examples",
+      "BoardModel: Unified Device Tree Generation",
+      "Supported builders"
+    ],
+    [
+      "Examples",
+      "BoardModel: Unified Device Tree Generation",
+      "Available component factories"
+    ],
+    [
+      "Examples",
+      "BoardModel: Unified Device Tree Generation",
+      "Context builders (advanced)"
+    ],
+    [
+      "ADI Device Tree Utilities"
+    ],
+    [
+      "ADI Device Tree Utilities",
+      "Key capabilities"
+    ],
+    [
+      "ADI Device Tree Utilities",
+      "Supported hardware"
+    ],
+    [
+      "ADI Device Tree Utilities",
+      "Where to start"
+    ],
+    [
+      "ADI Device Tree Utilities",
+      "Links"
+    ],
+    [
+      "ADI Device Tree Utilities",
+      "Table of contents"
+    ],
+    [
+      "Utilities"
+    ],
+    [
+      "Utilities",
+      "SD Card BOOT Files",
+      "sd-move"
+    ],
+    [
+      "Utilities",
+      "SD Card BOOT Files",
+      "sd-remote-copy"
+    ],
+    [
+      "Utilities",
+      "SD Card BOOT Files",
+      "Python API"
+    ],
+    [
+      "API Reference"
+    ],
+    [
+      "Examples",
+      "AD9081 Device Tree Generation"
+    ],
+    [
+      "Examples",
+      "AD9081 Device Tree Generation",
+      "Overview"
+    ],
+    [
+      "Examples",
+      "AD9081 Device Tree Generation",
+      "Overview",
+      "Supported Platforms"
+    ],
+    [
+      "Examples",
+      "AD9081 Device Tree Generation",
+      "Quick Start",
+      "1. Install pyadi-dt"
+    ],
+    [
+      "Examples",
+      "AD9081 Device Tree Generation",
+      "Quick Start",
+      "2. Prepare Linux Kernel Source"
+    ],
+    [
+      "Examples",
+      "AD9081 Device Tree Generation",
+      "Quick Start",
+      "3. Create Configuration File"
+    ],
+    [
+      "Examples",
+      "AD9081 Device Tree Generation",
+      "Quick Start",
+      "4. Generate Device Tree"
+    ],
+    [
+      "Examples",
+      "AD9081 Device Tree Generation",
+      "Quick Start",
+      "5. Compile to DTB (Optional)"
+    ],
+    [
+      "Examples",
+      "AD9081 Device Tree Generation",
+      "Command Line Interface",
+      "gen-dts Command"
+    ],
+    [
+      "Examples",
+      "AD9081 Device Tree Generation",
+      "Command Line Interface",
+      "Examples"
+    ],
+    [
+      "Examples",
+      "AD9081 Device Tree Generation",
+      "Configuration File Format"
+    ],
+    [
+      "Examples",
+      "AD9081 Device Tree Generation",
+      "Configuration File Format",
+      "Complete Example"
+    ],
+    [
+      "Examples",
+      "AD9081 Device Tree Generation",
+      "Configuration File Format",
+      "Configuration Sections",
+      "Clock Configuration"
+    ],
+    [
+      "Examples",
+      "AD9081 Device Tree Generation",
+      "Configuration File Format",
+      "Configuration Sections",
+      "FPGA Configuration"
+    ],
+    [
+      "Examples",
+      "AD9081 Device Tree Generation",
+      "Configuration File Format",
+      "Configuration Sections",
+      "JESD Configuration"
+    ],
+    [
+      "Examples",
+      "AD9081 Device Tree Generation",
+      "Configuration File Format",
+      "Configuration Sections",
+      "Datapath Configuration"
+    ],
+    [
+      "Examples",
+      "AD9081 Device Tree Generation",
+      "Python API Usage",
+      "Basic Usage"
+    ],
+    [
+      "Examples",
+      "AD9081 Device Tree Generation",
+      "Python API Usage",
+      "Advanced Usage"
+    ],
+    [
+      "Examples",
+      "AD9081 Device Tree Generation",
+      "Kernel Source Configuration"
+    ],
+    [
+      "Examples",
+      "AD9081 Device Tree Generation",
+      "Kernel Source Configuration",
+      "Recommended Kernel Sources"
+    ],
+    [
+      "Examples",
+      "AD9081 Device Tree Generation",
+      "Kernel Source Configuration",
+      "Required Files"
+    ],
+    [
+      "Examples",
+      "AD9081 Device Tree Generation",
+      "Compilation",
+      "Manual Compilation"
+    ],
+    [
+      "Examples",
+      "AD9081 Device Tree Generation",
+      "Compilation",
+      "Automated Compilation"
+    ],
+    [
+      "Examples",
+      "AD9081 Device Tree Generation",
+      "Compilation",
+      "DTC Requirements"
+    ],
+    [
+      "Examples",
+      "AD9081 Device Tree Generation",
+      "Troubleshooting",
+      "Kernel Path Not Found"
+    ],
+    [
+      "Examples",
+      "AD9081 Device Tree Generation",
+      "Troubleshooting",
+      "Base DTS File Missing"
+    ],
+    [
+      "Examples",
+      "AD9081 Device Tree Generation",
+      "Troubleshooting",
+      "DTC Compilation Failed"
+    ],
+    [
+      "Examples",
+      "AD9081 Device Tree Generation",
+      "Troubleshooting",
+      "Platform Not Supported"
+    ],
+    [
+      "Examples",
+      "AD9081 Device Tree Generation",
+      "Adding New Platforms"
+    ],
+    [
+      "Examples",
+      "AD9081 Device Tree Generation",
+      "Adding New Platforms",
+      "1. Add Platform Configuration"
+    ],
+    [
+      "Examples",
+      "AD9081 Device Tree Generation",
+      "Adding New Platforms",
+      "2. Create Template"
+    ],
+    [
+      "Examples",
+      "AD9081 Device Tree Generation",
+      "Adding New Platforms",
+      "3. Add Tests"
+    ],
+    [
+      "Examples",
+      "AD9081 Device Tree Generation",
+      "Adding New Platforms",
+      "4. Update Documentation"
+    ],
+    [
+      "Examples",
+      "AD9081 Device Tree Generation",
+      "Reference",
+      "Configuration Templates"
+    ],
+    [
+      "Examples",
+      "AD9081 Device Tree Generation",
+      "Reference",
+      "Related Resources"
+    ],
+    [
+      "Examples",
+      "AD9081 Device Tree Generation",
+      "Reference",
+      "Support"
+    ],
+    [
+      "API Reference",
+      "Parts Module"
+    ],
+    [
+      "API Reference",
+      "Parts Module",
+      "Clock Generators and Distributors",
+      "HMC7044"
+    ],
+    [
+      "API Reference",
+      "Parts Module",
+      "Clock Generators and Distributors",
+      "AD9523-1"
+    ],
+    [
+      "API Reference",
+      "Parts Module",
+      "Clock Generators and Distributors",
+      "AD9528"
+    ],
+    [
+      "API Reference",
+      "Parts Module",
+      "Clock Generators and Distributors",
+      "AD9545"
+    ],
+    [
+      "API Reference",
+      "Parts Module",
+      "RF Transceivers",
+      "ADRV9009"
+    ],
+    [
+      "MCP Server"
+    ],
+    [
+      "MCP Server",
+      "Installation"
+    ],
+    [
+      "MCP Server",
+      "Running the server"
+    ],
+    [
+      "MCP Server",
+      "Available tools",
+      "generate_devicetree"
+    ],
+    [
+      "MCP Server",
+      "Available tools",
+      "list_xsa_profiles"
+    ],
+    [
+      "MCP Server",
+      "Available tools",
+      "show_xsa_profile"
+    ],
+    [
+      "MCP Server",
+      "Available tools",
+      "read_dt_property"
+    ],
+    [
+      "MCP Server",
+      "Available tools",
+      "lint_devicetree"
+    ],
+    [
+      "MCP Server",
+      "Workflow examples",
+      "Generate a device tree with Claude"
+    ],
+    [
+      "MCP Server",
+      "Workflow examples",
+      "PetaLinux workflow"
+    ],
+    [
+      "MCP Server",
+      "Workflow examples",
+      "Inspect and lint"
+    ],
+    [
+      "Creating Templates from Kernel Bindings"
+    ],
+    [
+      "Creating Templates from Kernel Bindings",
+      "Overview"
+    ],
+    [
+      "Creating Templates from Kernel Bindings",
+      "Step 1: Parse kernel bindings"
+    ],
+    [
+      "Creating Templates from Kernel Bindings",
+      "Step 2: Audit against existing templates"
+    ],
+    [
+      "Creating Templates from Kernel Bindings",
+      "Step 3: Generate starter templates"
+    ],
+    [
+      "Creating Templates from Kernel Bindings",
+      "Step 4: Refine the template"
+    ],
+    [
+      "Creating Templates from Kernel Bindings",
+      "Step 5: Write the context builder"
+    ],
+    [
+      "Creating Templates from Kernel Bindings",
+      "Step 6: Add a component factory"
+    ],
+    [
+      "Creating Templates from Kernel Bindings",
+      "Step 7: Write tests"
+    ],
+    [
+      "Creating Templates from Kernel Bindings",
+      "Reference: what the tools extract"
+    ],
+    [
+      "Creating Templates from Kernel Bindings",
+      "Tips"
+    ],
+    [
+      "XSA Pipeline \u2014 Developer Guide"
+    ],
+    [
+      "XSA Pipeline \u2014 Developer Guide",
+      "Architecture"
+    ],
+    [
+      "XSA Pipeline \u2014 Developer Guide",
+      "Architecture",
+      "Component interaction"
+    ],
+    [
+      "XSA Pipeline \u2014 Developer Guide",
+      "Architecture",
+      "Key data models"
+    ],
+    [
+      "XSA Pipeline \u2014 Developer Guide",
+      "NodeBuilder internals"
+    ],
+    [
+      "XSA Pipeline \u2014 Developer Guide",
+      "NodeBuilder internals",
+      "Entry point"
+    ],
+    [
+      "XSA Pipeline \u2014 Developer Guide",
+      "NodeBuilder internals",
+      "Platform-aware register format"
+    ],
+    [
+      "XSA Pipeline \u2014 Developer Guide",
+      "NodeBuilder internals",
+      "sdtgen postprocessing (MicroBlaze)"
+    ],
+    [
+      "XSA Pipeline \u2014 Developer Guide",
+      "NodeBuilder internals",
+      "Jinja2 environment"
+    ],
+    [
+      "XSA Pipeline \u2014 Developer Guide",
+      "NodeBuilder internals",
+      "Template rendering"
+    ],
+    [
+      "XSA Pipeline \u2014 Developer Guide",
+      "NodeBuilder internals",
+      "SPI bus wrapping"
+    ],
+    [
+      "XSA Pipeline \u2014 Developer Guide",
+      "Templates"
+    ],
+    [
+      "XSA Pipeline \u2014 Developer Guide",
+      "Templates",
+      "How templates compose into a full device tree"
+    ],
+    [
+      "XSA Pipeline \u2014 Developer Guide",
+      "Templates",
+      "Indentation convention"
+    ],
+    [
+      "XSA Pipeline \u2014 Developer Guide",
+      "Templates",
+      "Pre-formatted string variables"
+    ],
+    [
+      "XSA Pipeline \u2014 Developer Guide",
+      "Templates",
+      "Conditional properties"
+    ],
+    [
+      "XSA Pipeline \u2014 Developer Guide",
+      "Templates",
+      "raw_channels escape hatch"
+    ],
+    [
+      "XSA Pipeline \u2014 Developer Guide",
+      "Templates",
+      "Template catalogue"
+    ],
+    [
+      "XSA Pipeline \u2014 Developer Guide",
+      "Context builders"
+    ],
+    [
+      "XSA Pipeline \u2014 Developer Guide",
+      "Board-specific config extraction"
+    ],
+    [
+      "XSA Pipeline \u2014 Developer Guide",
+      "Adding a new component"
+    ],
+    [
+      "XSA Pipeline \u2014 Developer Guide",
+      "Adding a new component",
+      "Step 1 \u2014 Write the template"
+    ],
+    [
+      "XSA Pipeline \u2014 Developer Guide",
+      "Adding a new component",
+      "Step 2 \u2014 Write the context builder"
+    ],
+    [
+      "XSA Pipeline \u2014 Developer Guide",
+      "Adding a new component",
+      "Step 3 \u2014 Write tests"
+    ],
+    [
+      "XSA Pipeline \u2014 Developer Guide",
+      "Adding a new component",
+      "Step 4 \u2014 Add board detection (if needed)"
+    ],
+    [
+      "XSA Pipeline \u2014 Developer Guide",
+      "Adding a new component",
+      "Step 5 \u2014 Wire into a board builder"
+    ],
+    [
+      "XSA Pipeline \u2014 Developer Guide",
+      "Adding a new board"
+    ],
+    [
+      "XSA Pipeline \u2014 Developer Guide",
+      "Adding a new board",
+      "Step 1 \u2014 Create the board JSON profile"
+    ],
+    [
+      "XSA Pipeline \u2014 Developer Guide",
+      "Adding a new board",
+      "Step 2 \u2014 Register the profile"
+    ],
+    [
+      "XSA Pipeline \u2014 Developer Guide",
+      "Adding a new board",
+      "Step 3 \u2014 Platform support"
+    ],
+    [
+      "XSA Pipeline \u2014 Developer Guide",
+      "Adding a new board",
+      "Step 4 \u2014 Board builder"
+    ],
+    [
+      "XSA Pipeline \u2014 Developer Guide",
+      "Adding a new board",
+      "Regression and parity testing"
+    ],
+    [
+      "XSA Pipeline \u2014 Developer Guide",
+      "Utility helpers"
+    ],
+    [
+      "XSA Pipeline \u2014 Developer Guide",
+      "Testing conventions"
+    ],
+    [
+      "PetaLinux Integration"
+    ],
+    [
+      "PetaLinux Integration",
+      "Overview"
+    ],
+    [
+      "PetaLinux Integration",
+      "Overview",
+      "What the formatter does"
+    ],
+    [
+      "PetaLinux Integration",
+      "Quick start",
+      "Generate and install in one command"
+    ],
+    [
+      "PetaLinux Integration",
+      "Quick start",
+      "Generate without installing"
+    ],
+    [
+      "PetaLinux Integration",
+      "Step-by-step workflow"
+    ],
+    [
+      "PetaLinux Integration",
+      "Step-by-step workflow",
+      "Step 1: Create a PetaLinux project"
+    ],
+    [
+      "PetaLinux Integration",
+      "Step-by-step workflow",
+      "Step 2: Import the hardware description"
+    ],
+    [
+      "PetaLinux Integration",
+      "Step-by-step workflow",
+      "Step 3: Generate system-user.dtsi"
+    ],
+    [
+      "PetaLinux Integration",
+      "Step-by-step workflow",
+      "Step 4: Install into the project"
+    ],
+    [
+      "PetaLinux Integration",
+      "Step-by-step workflow",
+      "Step 5: Build the device tree"
+    ],
+    [
+      "PetaLinux Integration",
+      "Step-by-step workflow",
+      "Step 6: Full build and package"
+    ],
+    [
+      "PetaLinux Integration",
+      "Step-by-step workflow",
+      "Step 7: Boot and verify"
+    ],
+    [
+      "PetaLinux Integration",
+      "Python API"
+    ],
+    [
+      "PetaLinux Integration",
+      "Platform notes",
+      "ZynqMP (ZCU102, ZCU104, ZU11EG)"
+    ],
+    [
+      "PetaLinux Integration",
+      "Platform notes",
+      "Zynq-7000 (ZC706)"
+    ],
+    [
+      "PetaLinux Integration",
+      "Platform notes",
+      "PetaLinux version compatibility"
+    ],
+    [
+      "PetaLinux Integration",
+      "Troubleshooting",
+      "petalinux-build -c device-tree fails with phandle errors"
+    ],
+    [
+      "PetaLinux Integration",
+      "Troubleshooting",
+      "Board doesn\u2019t boot after applying system-user.dtsi"
+    ],
+    [
+      "PetaLinux Integration",
+      "Troubleshooting",
+      "GPIO label mismatch"
+    ],
+    [
+      "XSA to Device Tree"
+    ],
+    [
+      "XSA to Device Tree",
+      "Overview"
+    ],
+    [
+      "XSA to Device Tree",
+      "Overview",
+      "Pipeline diagram"
+    ],
+    [
+      "XSA to Device Tree",
+      "Base DTS and Overlay Structure"
+    ],
+    [
+      "XSA to Device Tree",
+      "Hardware Test Flow"
+    ],
+    [
+      "XSA to Device Tree",
+      "Installation"
+    ],
+    [
+      "XSA to Device Tree",
+      "Usage"
+    ],
+    [
+      "XSA to Device Tree",
+      "Usage",
+      "Built-in profiles"
+    ],
+    [
+      "XSA to Device Tree",
+      "Usage",
+      "Profile discovery"
+    ],
+    [
+      "XSA to Device Tree",
+      "Usage",
+      "Reference DTS parity checking"
+    ],
+    [
+      "XSA to Device Tree",
+      "PetaLinux integration"
+    ],
+    [
+      "XSA to Device Tree",
+      "Python API"
+    ],
+    [
+      "XSA to Device Tree",
+      "Python API",
+      "XsaPipeline.run argument reference"
+    ],
+    [
+      "XSA to Device Tree",
+      "Using adijif (pyadi-jif) With the XSA Flow"
+    ],
+    [
+      "XSA to Device Tree",
+      "Using adijif (pyadi-jif) With the XSA Flow",
+      "adijif integration workflow"
+    ],
+    [
+      "XSA to Device Tree",
+      "Using adijif (pyadi-jif) With the XSA Flow",
+      "adijif-to-config mapping"
+    ],
+    [
+      "XSA to Device Tree",
+      "Using adijif (pyadi-jif) With the XSA Flow",
+      "Reference implementation"
+    ],
+    [
+      "XSA to Device Tree",
+      "Using adijif (pyadi-jif) With the XSA Flow",
+      "AD9084 (Apollo) VCU118 MicroBlaze support"
+    ],
+    [
+      "XSA to Device Tree",
+      "Configuration"
+    ],
+    [
+      "XSA to Device Tree",
+      "Configuration",
+      "AD9081 link-mode resolution"
+    ],
+    [
+      "XSA to Device Tree",
+      "Configuration",
+      "Board override keys"
+    ],
+    [
+      "XSA to Device Tree",
+      "Configuration",
+      "Hardware test note"
+    ],
+    [
+      "XSA to Device Tree",
+      "Configuration",
+      "Profile validation"
+    ],
+    [
+      "XSA to Device Tree",
+      "Supported IP Cores"
+    ],
+    [
+      "XSA to Device Tree",
+      "Supported IP Cores",
+      "Parsed topology fields"
+    ],
+    [
+      "XSA to Device Tree",
+      "Outputs"
+    ],
+    [
+      "XSA to Device Tree",
+      "Clock Topology Graphs"
+    ],
+    [
+      "XSA to Device Tree",
+      "Exceptions"
+    ],
+    [
+      "Command Line Interface"
+    ],
+    [
+      "Command Line Interface",
+      "Command Overview"
+    ],
+    [
+      "Command Line Interface",
+      "Command Overview",
+      "Inspect device trees"
+    ],
+    [
+      "Command Line Interface",
+      "Command Overview",
+      "Generate device trees"
+    ],
+    [
+      "Command Line Interface",
+      "Command Overview",
+      "Manage boards and profiles"
+    ],
+    [
+      "Command Line Interface",
+      "Global Options"
+    ],
+    [
+      "Command Line Interface",
+      "CLI Reference"
+    ],
+    [
+      "Command Line Interface",
+      "CLI Reference",
+      "adidtc"
+    ],
+    [
+      "Command Line Interface",
+      "CLI Reference",
+      "adidtc",
+      "deps"
+    ],
+    [
+      "Command Line Interface",
+      "CLI Reference",
+      "adidtc",
+      "gen-dts"
+    ],
+    [
+      "Command Line Interface",
+      "CLI Reference",
+      "adidtc",
+      "jif"
+    ],
+    [
+      "Command Line Interface",
+      "CLI Reference",
+      "adidtc",
+      "kuiper-boards"
+    ],
+    [
+      "Command Line Interface",
+      "CLI Reference",
+      "adidtc",
+      "profile2dt"
+    ],
+    [
+      "Command Line Interface",
+      "CLI Reference",
+      "adidtc",
+      "prop"
+    ],
+    [
+      "Command Line Interface",
+      "CLI Reference",
+      "adidtc",
+      "props"
+    ],
+    [
+      "Command Line Interface",
+      "CLI Reference",
+      "adidtc",
+      "sd-move"
+    ],
+    [
+      "Command Line Interface",
+      "CLI Reference",
+      "adidtc",
+      "sd-remote-copy"
+    ],
+    [
+      "Command Line Interface",
+      "CLI Reference",
+      "adidtc",
+      "xsa-profile-show"
+    ],
+    [
+      "Command Line Interface",
+      "CLI Reference",
+      "adidtc",
+      "xsa-profiles"
+    ],
+    [
+      "Command Line Interface",
+      "CLI Reference",
+      "adidtc",
+      "xsa2dt"
+    ],
+    [
+      "API Reference",
+      "Boards Module"
+    ],
+    [
+      "API Reference",
+      "Boards Module",
+      "Evaluation Boards",
+      "DAQ2"
+    ],
+    [
+      "API Reference",
+      "Boards Module",
+      "Evaluation Boards",
+      "AD9081 FMC"
+    ],
+    [
+      "API Reference",
+      "Boards Module",
+      "Evaluation Boards",
+      "AD9084 FMC"
+    ],
+    [
+      "API Reference",
+      "Boards Module",
+      "Evaluation Boards",
+      "ADRV9009 FMC"
+    ],
+    [
+      "API Reference",
+      "Boards Module",
+      "Evaluation Boards",
+      "ADRV9009 PCB-Z"
+    ],
+    [
+      "API Reference",
+      "Boards Module",
+      "Evaluation Boards",
+      "ADRV9009 ZU11EG"
+    ],
+    [
+      "API Reference",
+      "Boards Module",
+      "Evaluation Boards",
+      "ADRV9361 Z7035"
+    ],
+    [
+      "API Reference",
+      "Boards Module",
+      "Evaluation Boards",
+      "ADRV9364 Z7020"
+    ],
+    [
+      "API Reference",
+      "XSA Pipeline Module"
+    ],
+    [
+      "API Reference",
+      "XSA Pipeline Module",
+      "Topology"
+    ],
+    [
+      "API Reference",
+      "XSA Pipeline Module",
+      "Pipeline"
+    ],
+    [
+      "API Reference",
+      "XSA Pipeline Module",
+      "Node Builder"
+    ],
+    [
+      "API Reference",
+      "XSA Pipeline Module",
+      "DTS Merger"
+    ],
+    [
+      "API Reference",
+      "XSA Pipeline Module",
+      "HTML Visualizer"
+    ],
+    [
+      "API Reference",
+      "XSA Pipeline Module",
+      "SDT Generator Runner"
+    ],
+    [
+      "API Reference",
+      "XSA Pipeline Module",
+      "Exceptions"
+    ],
+    [
+      "API Reference",
+      "XSA Pipeline Module",
+      "Board Configurations"
+    ],
+    [
+      "API Reference",
+      "XSA Pipeline Module",
+      "Board Configurations",
+      "Backward compatibility"
+    ],
+    [
+      "API Reference",
+      "XSA Pipeline Module",
+      "Board Configurations",
+      "Validation"
+    ],
+    [
+      "API Reference",
+      "XSA Pipeline Module",
+      "Pipeline Configuration"
+    ],
+    [
+      "API Reference",
+      "XSA Pipeline Module",
+      "Builders"
+    ],
+    [
+      "API Reference",
+      "XSA Pipeline Module",
+      "Template Contexts"
+    ],
+    [
+      "API Reference",
+      "XSA Pipeline Module",
+      "DTS Linter"
+    ],
+    [
+      "API Reference",
+      "Board Model Module"
+    ],
+    [
+      "API Reference",
+      "Board Model Module",
+      "Overview"
+    ],
+    [
+      "API Reference",
+      "Board Model Module",
+      "Overview",
+      "Supported boards"
+    ],
+    [
+      "API Reference",
+      "Board Model Module",
+      "Overview",
+      "Component factories"
+    ],
+    [
+      "API Reference",
+      "Board Model Module",
+      "Overview",
+      "Context builders"
+    ],
+    [
+      "API Reference",
+      "Board Model Module",
+      "API Reference",
+      "Board Model"
+    ],
+    [
+      "API Reference",
+      "Board Model Module",
+      "API Reference",
+      "Renderer"
+    ],
+    [
+      "API Reference",
+      "Board Model Module",
+      "API Reference",
+      "Context Builder Functions"
+    ],
+    [
+      "API Reference",
+      "Board Model Module",
+      "API Reference",
+      "Component Factories"
+    ]
+  ]
+}
