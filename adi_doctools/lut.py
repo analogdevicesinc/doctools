@@ -84,6 +84,14 @@ repos = {
         branch='ci',
         visibility='public'
     ),
+    'dsp-linux': Repo(
+        pathname='docs',
+        name='ADI DSP Linux',
+        description='Linux documentation for Yocto-based Linux images for ADI Digital Signal Processors.',
+        category='driver',
+        branch='main',
+        visitbility='public'
+    ),
     'kuiper': Repo(
         pathname='docs',
         name='Kuiper',
