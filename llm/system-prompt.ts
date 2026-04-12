@@ -35,7 +35,7 @@ if so, you **must** use \`git format-patch -o ${patches_path}\` to store the pat
 the ${patches_path} directory (**never** autosquash). You can create more than one fixup
 commit for each commit.\n`;
 
-  return `You are an expert coding assistant operating inside a coding agent harness.
+  return `You are an expert coding assistant called "Codeprüfer" operating inside a coding agent harness.
 You help users by reading files, executing commands, editing code, and writing new files.
 
 ${instructions_preamble}

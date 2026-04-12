@@ -31,13 +31,13 @@ if ! [[ "$ref" =~ ^([0-9]+|pull/[0-9]+)(/head)?$ ]]; then
   branch="${ref#refs/heads/}"
   [[ "$branch" == *":"* ]] || {
     owner="${repository%/*}"
-    branch="$owner:$branch"
+    branch_="$owner:$branch_"
   }
   # some-user:my-fix
   resp=$(curl -s \
     -H "Authorization: Bearer $github_token" \
     -H "Accept: application/vnd.github+json" \
-    "https://api.github.com/repos/$repository/pulls?head=$branch&state=open")
+    "https://api.github.com/repos/$repository/pulls?head=$branch_&state=open")
 
   pr_json=$(echo "$resp" | jq '.[0]')
   if [[ "$pr_json" == "null" ]]; then
@@ -50,7 +50,7 @@ if ! [[ "$ref" =~ ^([0-9]+|pull/[0-9]+)(/head)?$ ]]; then
     pr_json=$(echo "$resp" | jq '.[0]')
   fi
 
-  pr=$(echo "$pr_json" | jq -r '.number')
+  pr=$(echo "$pr_json" | jq -r '.number // empty')
 else
   # pr number
   pr="${ref#pull/}"
@@ -68,11 +68,14 @@ if [[ -n "$pr" ]]; then
     pr=""
   else
     merge_commit_sha=$(echo "$resp" | jq -r '.merge_commit_sha')
+    branch="$(echo "$pr_json" | jq '.head.ref')"
     if [[ "$merge_commit_sha" == "null" ]]; then
       # has conflicts
       pr=""
     fi
   fi
+else
+  branch="trunk"
 fi
 
 git init --initial-branch=trunk .
@@ -95,14 +98,21 @@ else
   keep_empty="--keep-empty"
 fi
 
-fetch_depth=7
+fetch_depth=5
+
+git_fetch_depth () {
+  echo "fetch $fetch_depth commits"
+  [[ $fetch_depth -gt 0 ]] && git fetch origin --depth=$fetch_depth "$1" || git fetch origin "$1"
+  [[ $fetch_depth -gt 500 ]] && fetch_depth=0 || fetch_depth=$((fetch_depth * 2))
+}
 if [[ -n "$pr" ]]; then
   mode="pr"
-  git fetch origin --depth=1 "refs/pull/$pr/merge"
+  # use merge commit sha because refs/pull/*/merge exist only if pr is open
+  git fetch origin --depth=1 "$merge_commit_sha"
   fetch_head=$(git rev-parse FETCH_HEAD)
 
-  while ! git merge-base $fetch_head^1 $fetch_head^2 ; do
-    git fetch origin --deepen=$fetch_depth $fetch_head
+  while ! git merge-base $fetch_head^1 $fetch_head^2 2>/dev/null ; do
+    git_fetch_depth "$merge_commit_sha"
   done
 
   head_sha=$(git rev-parse $fetch_head^2)

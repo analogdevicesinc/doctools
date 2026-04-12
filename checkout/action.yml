@@ -108,10 +108,7 @@ runs:
             pr_json=$(echo "$resp" | jq '.[0]')
           fi
 
-          pr=$(echo "$pr_json" | jq -r '.number')
-          if [[ "$pr" == "null" ]]; then
-            pr=""
-          fi
+          pr=$(echo "$pr_json" | jq -r '.number // empty')
         else
           # pr number
           pr="${ref#pull/}"
@@ -243,11 +240,11 @@ runs:
 
         fetch_depth=5
 
-        git_fetch_deepen () {
+        git_fetch_depth () {
           echo "fetch $fetch_depth commits"
           git fetch origin --deepen=$fetch_depth "$1"
-          fetch_depth=$((fetch_depth * 2))
-          [[ $fetch_depth -gt 500 ]] && fetch_depth=500 || true
+          [[ $fetch_depth -gt 0 ]] && git fetch origin --depth=$fetch_depth "$1" || git fetch origin "$1"
+          [[ $fetch_depth -gt 500 ]] && fetch_depth=0 || fetch_depth=$((fetch_depth * 2))
         }
         if [[ -n "$pr" ]]; then
           mode="pr"
@@ -256,7 +253,7 @@ runs:
           fetch_head=$(git rev-parse FETCH_HEAD)
 
           while ! git merge-base $fetch_head^1 $fetch_head^2 2>/dev/null ; do
-            git_fetch_deepen "$fetch_head"
+            git_fetch_depth "$fetch_head"
           done
 
           head_sha=$(git rev-parse $fetch_head^2)
@@ -272,7 +269,7 @@ runs:
             head_sha="${{ github.sha }}"
             base_sha="${{ github.event.before }}"
             while ! git rev-list --count $base_sha~..$head_sha 2>/dev/null ; do
-              git_fetch_deepen "$ref"
+              git_fetch_depth "$ref"
             done
           else
             git fetch origin --depth=2 "$ref"
