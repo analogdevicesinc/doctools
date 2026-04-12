@@ -66,7 +66,7 @@ runs:
         head-sha: ${{ env.head_sha }}
         run-id: ${{ inputs.run-id }}
 
-    - name: Prepare files
+    - name: Prepare files and context
       shell: bash
       if: ${{ env.LLM_AGENT_RUN == 'true' }}
       run: |
@@ -75,6 +75,9 @@ runs:
         echo "summary_file=$(mktemp --suffix=.md)" >> "$GITHUB_ENV"
         echo "comment_file=$(mktemp --suffix=.md)" >> "$GITHUB_ENV"
         echo "patches_path=$(mktemp -d)" >> "$GITHUB_ENV"
+
+        run_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        echo "run_url=$run_url" >> "$GITHUB_ENV"
 
     - name: Ensure node
       shell: bash
