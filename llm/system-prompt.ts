@@ -25,7 +25,7 @@ function buildSystemPrompt(cwd: string): string {
   if (summary_file)
     instructions_output += `You must write your final review in markdown at ${summary_file} as a GitHub Summary.\n`;
   if (comment_file) {
-    instructions_output += `You must write a PR comment at ${comment_file}.\n`;
+    instructions_output += `You must write a PR comment at ${comment_file}, do not tag the author.\n`;
     if (run_url)
       instructions_output += `The current run url is: ${run_url}, use it in the comment provide a direct link.\n`;
   }
