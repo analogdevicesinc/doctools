@@ -50,20 +50,7 @@ jobs:
 
           grep -q '[^[:space:]]' "$prompt_file" || \
           cat <<'EOF' > "$prompt_file"
-          You are an Python and JavaScript expert.
-          Run a review on the commit range $base_sha..$head_sha.
-
-          You **must** read $annotations_file for the CI/CD notes, warnings, and errors.
-          You **must** write your final review in markdown at $summary_file as a GitHub Summary.
-          You **must** write a friendly comment summary in markdown at $comment_file as a
-          Pull Request Comment, add the link to the run: ${{ github.run_url }}.
-
-          You shall suggest fixup commits (**must** use `--fixup`) to resolve issues,
-          if so, you **must** use `git format-patch -o $patches_path` to store the patches to
-          the $patches_path directory (**never** autosquash). You can create more than one fixup
-          commit for each commit.
-
-          You are allowed to use tools and write.
+          You are an Python and JavaScript expert and will review my code.
           EOF
           cat <<'EOF' >> "$prompt_file"
           ${{ inputs.prompt-extra }}
