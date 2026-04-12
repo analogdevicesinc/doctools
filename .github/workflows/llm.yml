@@ -1,0 +1,108 @@
+name: LLM Agent
+run-name: LLM run ${{ inputs.ref }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "The branch, tag, PR number, or SHA to checkout"
+        required: false
+        type: string
+      prompt:
+        description: "Prompt to use, overwrites the default"
+        required: false
+        type: string
+        default: ""
+      prompt-extra:
+        description: "Extra prompt to concatenate"
+        required: false
+        type: string
+        default: ""
+      model:
+        description: "Model size"
+        type: choice
+        options:
+        - small
+        - medium
+        - large
+
+jobs:
+  llm:
+    runs-on: [self-hosted, repo-only, v2]
+    permissions:
+      contents: read
+      checks: read
+      pull-requests: read
+
+    outputs:
+      pr: ${{ steps.llm.outputs.pr }}
+      comment: ${{ steps.llm.outputs.comment }}
+
+    steps:
+      - name: Prepare prompt
+        run: |
+          prompt_file=$(mktemp --suffix=.md)
+          echo "prompt_file=$prompt_file" >> "$GITHUB_ENV"
+
+          cat <<'EOF' > "$prompt_file"
+          ${{ inputs.prompt }}
+          EOF
+
+          grep -q '[^[:space:]]' "$prompt_file" || \
+          cat <<'EOF' > "$prompt_file"
+          You are an Python and JavaScript expert.
+          Run a review on the commit range $base_sha..$head_sha.
+
+          You **must** read $annotations_file for the CI/CD notes, warnings, and errors.
+          You **must** write your final review in markdown at $summary_file as a GitHub Summary.
+          You **must** write a friendly comment summary in markdown at $comment_file as a
+          Pull Request Comment, add the link to the run: ${{ github.run_url }}.
+
+          You shall suggest fixup commits (**must** use `--fixup`) to resolve issues,
+          if so, you **must** use `git format-patch -o $patches_path` to store the patches to
+          the $patches_path directory (**never** autosquash). You can create more than one fixup
+          commit for each commit.
+
+          You are allowed to use tools and write.
+          EOF
+          cat <<'EOF' >> "$prompt_file"
+          ${{ inputs.prompt-extra }}
+          EOF
+
+      - name: Prepare tools
+        shell: bash
+        run: |
+          py_venv="$(mktemp -d)"
+          echo "py_venv=$py_venv" >> "$GITHUB_ENV"
+
+          python3 -m venv $py_venv
+          source $py_venv/bin/activate
+          python3 -m ensurepip --upgrade
+          pip install adi-doctools camelot-py
+
+      - uses: analogdevicesinc/doctools/llm@action
+        id: llm
+        with:
+          ref: ${{ inputs.ref }}
+          model: ${{ inputs.model }}
+          prompt-file: ${{ env.prompt_file }}
+          api-key: ${{ secrets.PORTKEY_API_KEY }}
+          py-venv: ${{ env.py_venv }}
+
+      - name: Clean-up
+        if: always()
+        run: |
+          rm -f "$prompt_file"
+          rm -rf "$py_venv"
+
+  pr-comment:
+    runs-on: [self-hosted, repo-only]
+    needs: llm
+    permissions:
+      pull-requests: write
+
+    steps:
+      - uses: analogdevicesinc/doctools/gh-pr-comment@action
+        with:
+          pr: ${{ needs.llm.outputs.pr }}
+          body: ${{ needs.llm.outputs.comment }}
