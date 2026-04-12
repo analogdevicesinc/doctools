@@ -29,6 +29,14 @@ inputs:
     description: 'LLM API Key'
     required: false
 
+outputs:
+  pr:
+    description: "Pull request number"
+    value: ${{ steps.checkout.outputs.pr }}
+  comment:
+    description: "Pull request comment"
+    value: ${{ steps.collect.outputs.comment }}
+
 runs:
   using: composite
   steps:
@@ -47,6 +55,7 @@ runs:
         echo "::warning ::llm: Input 'api-key' empty, won't run"
 
     - uses: analogdevicesinc/doctools/checkout@action
+      id: checkout
       if: ${{ env.LLM_AGENT_RUN == 'true' }}
       with:
         ref: ${{ inputs.ref }}
@@ -64,6 +73,7 @@ runs:
         # Prepare files
         echo "session_file=$(mktemp --suffix=.jsonl)" >> "$GITHUB_ENV"
         echo "summary_file=$(mktemp --suffix=.md)" >> "$GITHUB_ENV"
+        echo "comment_file=$(mktemp --suffix=.md)" >> "$GITHUB_ENV"
         echo "patches_path=$(mktemp -d)" >> "$GITHUB_ENV"
 
     - name: Ensure node
@@ -139,11 +149,17 @@ runs:
         kill $observer_pid
 
     - name: Collect results
+      id: collect
       shell: bash
       if: ${{ env.LLM_AGENT_RUN == 'true' }}
       run: |
         # Collect results
         [[ -s "$summary_file" ]] && cat "$summary_file" >> $GITHUB_STEP_SUMMARY || true
+        [[ -s "$comment_file" ]] && {
+          echo 'comment<<EOF' >> $GITHUB_OUTPUT
+          cat "$comment_file" >> $GITHUB_OUTPUT
+          echo 'EOF' >> $GITHUB_OUTPUT
+        } || true
 
     - name: Store suggested patches
       if: ${{ env.LLM_AGENT_RUN == 'true' }}
@@ -194,5 +210,5 @@ runs:
       run: |
         # Clean-up
         rm -rf "$HOME/.pi"
-        rm -f "$annotations_file" "$summary_file" "$session_file"
+        rm -f "$annotations_file" "$summary_file" "$comment_file" "$session_file"
         rm -rf "$patches_path"

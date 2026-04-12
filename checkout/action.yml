@@ -19,6 +19,9 @@ inputs:
     default: 'false'
 
 outputs:
+  pr:
+    description: "Pull request number"
+    value: ${{ steps.get_pr.outputs.pr }}
   head_sha:
     description: "Head commit sha"
     value: ${{ steps.checkout.outputs.head_sha }}
@@ -59,7 +62,7 @@ runs:
         echo "branch=${{ github.head_ref }}" >> "$GITHUB_ENV"
 
     - name: Resolve ref to pr number and merge commit sha
-      id: resolve
+      id: get_pr
       if: ${{ github.event_name == 'workflow_dispatch' && inputs.repository == github.repository }}
       shell: bash
       run: |
@@ -137,8 +140,9 @@ runs:
           branch="trunk"
         fi
 
-        echo "merge_commit_sha=$merge_commit_sha" >> "$GITHUB_ENV"
+        echo "pr=$pr" >> "$GITHUB_OUTPUT"
         echo "pr=$pr" >> "$GITHUB_ENV"
+        echo "merge_commit_sha=$merge_commit_sha" >> "$GITHUB_ENV"
         echo "branch=$branch" >> "$GITHUB_ENV"
 
     - name: Prepare git
