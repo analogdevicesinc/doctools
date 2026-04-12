@@ -5,7 +5,40 @@ import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
 function buildSystemPrompt(cwd: string): string {
   const date = new Date().toISOString().slice(0, 10);
 
-  return `You are an expert coding assistant operating inside pi, a coding agent harness. You help users by reading files, executing commands, editing code, and writing new files.
+  const base_sha = process.env.base_sha;
+  const head_sha = process.env.head_sha;
+  const run_url = process.env.run_url;
+
+  const annotations_file = process.env.annotations_file;
+  const summary_file = process.env.summary_file;
+  const comment_file = process.env.comment_file;
+  const patches_path = process.env.patches_path;
+
+  let instructions_preamble = "";
+  let instructions_output = "";
+
+  if (base_sha && head_sha)
+    instructions_preamble += `You are reviewing the commit range ${base_sha}..${head_sha}.\n`;
+
+  if (annotations_file)
+    instructions_output += `You must read ${annotations_file} for the CI/CD notes, warnings, and errors.\n`;
+  if (summary_file)
+    instructions_output += `You must write your final review in markdown at ${summary_file} as a GitHub Summary.\n`;
+  if (comment_file) {
+    instructions_output += `You must write a PR comment at ${comment_file}.\n`;
+    if (run_url)
+      instructions_output += `The current run url is: ${run_url}, use it in the comment provide a direct link.\n`;
+  }
+  if (patches_path)
+    instructions_output += `You shall suggest fixup commits (**must** use \`--fixup\`) to resolve issues,
+if so, you **must** use \`git format-patch -o ${patches_path}\` to store the patches to
+the ${patches_path} directory (**never** autosquash). You can create more than one fixup
+commit for each commit.\n`;
+
+  return `You are an expert coding assistant operating inside a coding agent harness.
+You help users by reading files, executing commands, editing code, and writing new files.
+
+${instructions_preamble}
 
 Available tools:
 - read: Read file contents
@@ -68,12 +101,15 @@ wget -O output.file --connect-timeout=10 --timeout=120 "https://example.com/reso
 
 Never use curl without --max-time. Prefer wget.
 
+# Context
+
+Current date: ${date}
+Current working directory: ${cwd}
+
 # Output style
 
 Lead with the answer. Skip preamble, filler, and restatements. One sentence beats three. Does not apply to code.
-
-Current date: ${date}
-Current working directory: ${cwd}`;
+${instructions_output}`;
 }
 
 export default function (pi: ExtensionAPI) {
