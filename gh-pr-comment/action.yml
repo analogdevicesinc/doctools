@@ -1,0 +1,125 @@
+name: GH Pull Request Comment
+description: Create a pull request comment, or update if already exists
+
+inputs:
+  github-token:
+    description: "GitHub Token"
+    default: ${{ github.token }}
+  repository:
+    description: "Repository in org/repo format"
+    default: ${{ github.repository }}
+  pr:
+    description: "Pull request number"
+    required: true
+  body:
+    description: "Pull request comment"
+    required: true
+  user_login:
+    description: "GitHub App only, explicit login name"
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Create pull request comment
+      id: collect
+      shell: bash
+      run: |
+        # Create pull request comment
+        [[ "${{ runner.debug }}" == "1" ]] && set -x
+
+        body_file=$(mktemp --suffix=.md)
+        echo "body_file=$body_file" >> "$GITHUB_ENV"
+
+        cat <<'EOF' > "$body_file"
+        ${{ inputs.body }}
+        EOF
+
+        grep -q '[^[:space:]]' "$body_file" || exit 0
+
+        gh-get-user-login()
+        {
+          curl -sL -H "Authorization: Bearer $1" \
+                   -H "Accept: application/vnd.github+json" \
+                   "https://api.github.com/user" | jq -r '.login // empty'
+        }
+
+        gh-pr-get-comments()
+        {
+          curl -sL \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $1" \
+            -H "X-GitHub-Api-Version: 2026-03-10" \
+            "https://api.github.com/repos/$2/issues/$3/comments"
+        }
+
+        gh-pr-comment-create()
+        {
+          local json_body=$(jq -n --rawfile body "$4" '{body: $body}')
+
+          curl -sL -X POST \
+                -H "Accept: application/vnd.github+json" \
+                -H "Authorization: Bearer $1" \
+                -H "X-GitHub-Api-Version: 2026-03-10" \
+                "https://api.github.com/repos/$2/issues/$3/comments" \
+                -d "$json_body"
+        }
+
+        gh-pr-comment-patch()
+        {
+          local json_body=$(jq -n --rawfile body "$4" '{body: $body}')
+
+          curl -sL -X PATCH \
+                -H "Accept: application/vnd.github+json" \
+                -H "Authorization: Bearer $1" \
+                -H "X-GitHub-Api-Version: 2026-03-10" \
+                "https://api.github.com/repos/$2/issues/comments/$3" \
+                -d "$json_body"
+        }
+
+        gh-pr-comment() {
+          local github_token="$1"
+          local org_repository="$2"
+          local pr="$3"
+          local body_file="$4"
+          local user_login="$5"
+
+          local id
+          local response
+
+          [[ -n "$pr" ]] || return 0
+          [[ -n "$body_file" ]] || return 0
+
+          [[ -n "$user_login" ]] || user_login=$(gh-get-user-login "$github_token")
+          [[ -n "$user_login" ]] || user_login="github-actions[bot]"
+
+          response=$(gh-pr-get-comments "$github_token" \
+                                        "$org_repository" \
+                                        "$pr")
+
+          id=$(echo "$response" | jq ".[] | select(.user.login == \"${user_login}\") | .id")
+
+          if [ -n "$id" ]; then
+            response=$(gh-pr-comment-patch "$github_token" \
+                                           "$org_repository" \
+                                           "$id" \
+                                           "$body_file")
+            status=$(echo "$response" | jq -r '.status')
+          else
+            response=$(gh-pr-comment-create "$github_token" \
+                                            "$org_repository" \
+                                            "$pr" \
+                                            "$body_file")
+            id=$(echo "$response" | jq -r '.id')
+          fi
+
+          echo "id=${id}" >> "$GITHUB_OUTPUT"
+        }
+
+        gh-pr-comment "${{ inputs.github-token }}" \
+                      "${{ inputs.repository }}" \
+                      "${{ inputs.pr }}" \
+                      "$body_file" \
+                      "${{ inputs.user_login}}"
+
+        rm -f $body_file
