@@ -79,9 +79,17 @@ repos = {
     'linux': Repo(
         pathname='docs',
         name='Linux',
-        description='Reduced Linux kernel documentation for staging or non-upstream drivers.',
+        description='Reduced Linux kernel for staging or non-upstream drivers.',
         category='driver',
         branch='ci',
+        visibility='public'
+    ),
+    'lnxdsp-adi-meta': Repo(
+        pathname='docs',
+        name='ADI DSP Linux',
+        description='Yocto-based Linux images for ADI Digital Signal Processors.',
+        category='driver',
+        branch='main',
         visibility='public'
     ),
     'kuiper': Repo(
