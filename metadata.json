@@ -33,13 +33,23 @@
         },
         "linux": {
             "name": "Linux",
-            "description": "Reduced Linux kernel documentation for staging or non-upstream drivers.",
+            "description": "Reduced Linux kernel for staging or non-upstream drivers.",
             "category": "driver",
             "visibility": "public",
             "pathname": "docs",
             "branch": "ci",
             "url_doc": "https://analogdevicesinc.github.io/linux",
             "url_source": "https://github.com/analogdevicesinc/linux.git"
+        },
+        "lnxdsp-adi-meta": {
+            "name": "ADI DSP Linux",
+            "description": "Yocto-based Linux images for ADI Digital Signal Processors.",
+            "category": "driver",
+            "visibility": "public",
+            "pathname": "docs",
+            "branch": "main",
+            "url_doc": "https://analogdevicesinc.github.io/lnxdsp-adi-meta",
+            "url_source": "https://github.com/analogdevicesinc/lnxdsp-adi-meta.git"
         },
         "kuiper": {
             "name": "Kuiper",
