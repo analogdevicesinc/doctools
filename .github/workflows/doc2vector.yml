@@ -42,19 +42,22 @@ jobs:
     - name: Clone target doc (cone)
       run: |
         # Filter out pulls|prs
+        [[ "${{ runner.debug }}" == "1" ]] && set -x
+        ref="${{ inputs.ref }}"
+        branch="${ref#refs/heads/}"
         [[ -d "pages" ]] && rm -r "pages" || :
         url="https://x-access-token:${{ inputs.gh-token }}@github.com/${{ inputs.organization }}/${{ inputs.repository }}.git"
         git clone "$url" \
           --depth 1 \
           --filter=blob:none \
           --no-checkout \
-          --branch ${{ inputs.ref }} -- pages
+          --branch $branch -- pages
 
         cd pages
         git sparse-checkout init --cone
-        sparse=$(git ls-tree --name-only -d "origin/${{ inputs.ref }}" | grep -Ev '^(pull|prs)')
+        sparse=$(git ls-tree --name-only -d "origin/$branch" | grep -Ev '^(pull|prs)')
         git sparse-checkout set $sparse
-        git checkout "${{ inputs.ref }}"
+        git checkout "$branch"
 
     - name: Setup vector branch
       run: |
