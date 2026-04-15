@@ -352,7 +352,56 @@ export class Search {
     return h.slice(slice).join(' / ')
   }
 
-  _render_group (key, group, items) {
+  html_to_text (text, anchor) {
+    const htmlElement = new DOMParser().parseFromString(text, 'text/html');
+    for (const removalQuery of [".headerlink", "script", "style"])
+      htmlElement.querySelectorAll(removalQuery).forEach((el) => { el.remove() });
+    if (anchor) {
+      const anchorContent = htmlElement.querySelector(`[role="main"] ${anchor}`);
+      if (anchorContent)
+        return anchorContent.textContent;
+      console.warn(`Anchored content block '[role=main] ${anchor}' not found.`);
+    }
+
+    // if anchor not specified or not found, fall back to main content
+    const docContent = htmlElement.querySelector('[role="main"]');
+    if (docContent)
+      return docContent.textContent;
+
+    console.warn(`Anchored content block '[role=main] ${anchor}' not found.`);
+    return "";
+  }
+
+  get_summary (data, keywords, anchor, p_) {
+    const text = this.html_to_text(data, anchor);
+    if (text === "")
+      return
+
+    const textLower = text.toLowerCase();
+    const actualStartPosition = [...keywords]
+      .map((k) => textLower.indexOf(k.toLowerCase()))
+      .filter((i) => i > -1)
+      .slice(-1)[0]
+    const startWithContext = Math.max(actualStartPosition - 120, 0)
+    const top = startWithContext === 0 ? "" : "..."
+    const tail = startWithContext + 240 < text.length ? "..." : ""
+
+    p_.textContent = top + text.substr(startWithContext, 240).trim() + tail
+    p_.classList.remove('loading')
+  }
+
+  _fetch_snippet (url, searchTerms, spanEl) {
+    const hashIdx = url.indexOf('#')
+    const urlPage = hashIdx === -1 ? url : url.slice(0, hashIdx)
+    const anchor = hashIdx === -1 ? '' : url.slice(hashIdx)
+    const loading_ = setTimeout(() => { spanEl.classList.add('loading') }, 50)
+    fetch(urlPage)
+      .then((response) => response.text())
+      .then((data) => { if (data) this.get_summary(data, searchTerms, anchor, spanEl) })
+      .finally(() => { clearTimeout(loading_) })
+  }
+
+  _render_group (key, group, items, searchTerms = null) {
     const get_passage = Array.isArray(items)
       ? (idx) => items[idx]
       : (idx) => ({ text: items.text[idx], url: items.url[idx], hierarchy: items.hierarchy[idx] })
@@ -366,9 +415,10 @@ export class Search {
         innerText: this._entry_label(p, 1),
         href: `${this.key_prefix[key]}${p.url}`
       })
-      link.append(new DOM('span', {
-        innerText: p.text || ''
-      }))
+      const span = new DOM('span', { innerText: p.text || '' })
+      link.append(span)
+      if (!p.text && searchTerms)
+        this._fetch_snippet(`${this.key_prefix[key]}${p.url}`, searchTerms, span.$)
       li.append(link)
       return li
     }
@@ -386,15 +436,16 @@ export class Search {
         innerText: this._entry_label(p, 2),
         href: `${this.key_prefix[key]}${p.url}`
       })
-      link_.append(new DOM('span', {
-        innerText: p.text || ''
-      }))
+      const span = new DOM('span', { innerText: p.text || '' })
+      link_.append(span)
+      if (!p.text && searchTerms)
+        this._fetch_snippet(`${this.key_prefix[key]}${p.url}`, searchTerms, span.$)
       li.append(link_)
     }
     return li
   }
 
-  _render_results (key, groups, items) {
+  _render_results (key, groups, items, searchTerms = null) {
     const ul = this.$.searchUL[key]
     while (ul.$.firstElementChild)
       ul.$.removeChild(ul.$.lastChild)
@@ -406,7 +457,7 @@ export class Search {
     this.$.searchLI[key].classList.remove('empty')
 
     const rendered = groups.map(group => {
-      return this._render_group(key, group, items)
+      return this._render_group(key, group, items, searchTerms)
     })
     ul.append(rendered)
   }
@@ -441,8 +492,9 @@ export class Search {
             const results = Sphinx.perform_search(
               searchQuery, searchTerms, excludedTerms, highlightTerms, objectTerms, sphinxIndex
             )
-            const { groups, items } = Sphinx.sphinx_results_to_groups(results, this.indexData[key].passages)
-            this._render_results(key, groups, items)
+            const passages = this.indexData[key].passages
+            const { groups, items } = Sphinx.sphinx_results_to_groups(results, passages)
+            this._render_results(key, groups, items, passages ? null : searchTerms)
           } else {
             const ul = this.$.searchUL[key]
             while (ul.$.firstElementChild) ul.$.removeChild(ul.$.lastChild)
@@ -473,7 +525,7 @@ export class Search {
           searchQuery, searchTerms, excludedTerms, highlightTerms, objectTerms, data.index
         )
         const { groups, items } = Sphinx.sphinx_results_to_groups(results, data.passages)
-        this._render_results(key, groups, items)
+        this._render_results(key, groups, items, data.passages ? null : searchTerms)
       }
     }
   }
