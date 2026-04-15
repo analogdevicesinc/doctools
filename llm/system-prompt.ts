@@ -7,7 +7,11 @@ function buildSystemPrompt(cwd: string): string {
 
   const base_sha = process.env.base_sha;
   const head_sha = process.env.head_sha;
-  const run_url = process.env.run_url;
+
+  const server_url = process.env.server_url;
+  const repository = process.env.repository;
+  const run_id = process.env.run_id;
+  const run_url = `${server_url}/${repository}/actions/runs/${run_id}`;
 
   const annotations_file = process.env.annotations_file;
   const summary_file = process.env.summary_file;
@@ -23,12 +27,58 @@ function buildSystemPrompt(cwd: string): string {
   if (annotations_file)
     instructions_output += `You must read ${annotations_file} for the CI/CD notes, warnings, and errors.\n`;
   if (summary_file)
-    instructions_output += `You must write your final review in markdown at ${summary_file} as a GitHub Summary.\n`;
-  if (comment_file) {
+    instructions_output += `You must write your final review in markdown at ${summary_file} as a GitHub Summary.
+Refer to files using the relative path to the repository, for temporary files use the basename, for example,
+instead of */tmp/tmp.rhzMn4knoq/0001-fixup.patch*, use the basename *0001-fixup.patch*.\n`;
+  if (comment_file)
     instructions_output += `You must write a PR comment at ${comment_file}, do not tag the author.\n`;
-    if (run_url)
-      instructions_output += `The current run url is: ${run_url}, use it in the comment provide a direct link.\n`;
-  }
+  if (comment_file && server_url && repository && run_id)
+    instructions_output += `For the comment, consider the template (real run url and repository):
+\`\`\`\`markdown
+## LLM review [${run_id}](${run_url})
+
+This series fixes parser bugs in the ...
+
+### ✅ \`<sha>\` - Fix ... bug
+
+The fixes are correct:
+
+- ...
+
+### ⚠️ \`<sha>\` - Add ... mode
+
+**One ordering bug:** the ...
+
+### CI warnings
+
+The \`checkpatch\` subject-line warning for ...
+
+### Suggested patches
+
+Apply the suggested patches with:
+
+\`\`\`bash
+cd path/to/repository
+export GITHUB_TOKEN=ghp_***
+apply-patches --repo=${repository} ${run_id}
+\`\`\`
+
+<details open>
+<summary>Install instructions</summary>
+
+The following one-liner installs the script if not present already:
+
+\`\`\`bash
+grep "/apply-patches.sh" ~/.bashrc || \
+ { curl "https://raw.githubusercontent.com/analogdevicesinc/doctools/refs/heads/main/ci/scripts/apply-patches.sh" \
+   -o ~/.local/bin/apply-patches.sh && \
+ echo "source ~/.local/bin/apply-patches.sh" >> ~/.bashrc ; }
+\`\`\`
+
+More information at [AI Usage](https://analogdevicesinc.github.io/documentation/contributing/ai.html).
+</details>
+\`\`\`\`
+`;
   if (patches_path)
     instructions_output += `You shall suggest fixup commits (**must** use \`--fixup\`) to resolve issues,
 if so, you **must** use \`git format-patch -o ${patches_path}\` to store the patches to
