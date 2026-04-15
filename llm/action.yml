@@ -129,6 +129,23 @@ runs:
         }
         EOF
 
+        cat <<'EOF' > ~/.pi/agent/settings.json
+        {
+            "shellCommandPrefix": ""
+        }
+        EOF
+
+        py_venv="${{ inputs.py-venv }}/bin/activate"
+        sh_source="${{ inputs.sh-source }}"
+        tmp=$(mktemp --suffix=.json)
+        [[ -f "$py_venv" ]] && \
+          jq --arg cmd "source $py_venv; " '.shellCommandPrefix += $cmd' ~/.pi/agent/settings.json > $tmp && mv $tmp ~/.pi/agent/settings.json
+
+        [[ -f "$sh_source" ]] && \
+          jq --arg cmd "source $sh_source; " '.shellCommandPrefix += $cmd' ~/.pi/agent/settings.json > $tmp && mv $tmp ~/.pi/agent/settings.json
+
+        rm -f $tmp
+
     - name: Run pi
       shell: bash
       if: ${{ env.LLM_AGENT_RUN == 'true' }}
@@ -136,11 +153,6 @@ runs:
         PORTKEY_API_KEY: ${{ inputs.api-key }}
       run: |
         # Run pi
-        [[ -f "${{ inputs.py-venv }}/bin/activate" ]] && \
-          source "${{ inputs.py-venv }}/bin/activate"
-        [[ -f "${{ inputs.sh-source }}" ]] && \
-          source "${{ inputs.sh-source}}"
-
         python3 /tmp/observer.py "$session_file" &
         observer_pid=$!
 
