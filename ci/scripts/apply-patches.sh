@@ -6,18 +6,17 @@ apply-patches ()
 
 	Examples:
 	    $ apply-patches 123456789 --repo=my-repo
+	    $ apply-patches 123456789 --repo=personal-account/my-repo
 	    $ apply-patches 123456789 --repo=my-repo --artifact=my-patches
 	    $ apply-patches 123456789 --repo=my-repo --token=ghp_xxx
 
 	Options:
 
-	--repo=<name>       GitHub repository name.
+	--repo=<name>       GitHub repository name, may contain owner.
 	--artifact=<name>   Artifact name (default: llm-patches).
 	--token=<token>     GitHub token (default: \$GITHUB_TOKEN).
-	--org=<org>         GitHub organization (default: analogdevicesinc).
 	"
 
-	local org="analogdevicesinc"
 	local repository=
 	local run_id=
 	local artifact="llm-patches"
@@ -43,11 +42,6 @@ apply-patches ()
 			elif [[ "$arg" == "--token" ]]; then
 				echo "missing --token= value (e.g. --token=ghp_xxx)"
 				return
-			elif [[ "$arg" =~ ^--org= ]]; then
-				org="${arg#--org=}"
-			elif [[ "$arg" == "--org" ]]; then
-				echo "missing --org= value (e.g. --org=analogdevicesinc)"
-				return
 			else
 				echo "unknown option $arg"
 				return
@@ -67,6 +61,12 @@ apply-patches ()
 		echo "missing repository, usage:"
 		printf "$help_usage" | sed -e 's/^\t//'
 		return
+	fi
+
+	local org="analogdevicesinc"
+	if [[ "$repository" == */* ]]; then
+		org="${repository%%/*}"
+		repository="${repository#*/}"
 	fi
 
 	if [[ -z "$run_id" ]]; then
