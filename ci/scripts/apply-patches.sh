@@ -76,7 +76,7 @@ apply-patches ()
 	fi
 
 	if [[ -n $(git status --porcelain) ]]; then
-		echo "Warning: git worktree contain changed files, enter o continue anyway"
+		echo "Warning: git worktree contain changed files, enter to continue anyway"
 		read -p "" cont
 	fi
 
