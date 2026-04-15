@@ -120,7 +120,7 @@ runs:
                         "x-portkey-virtual-key": "vertexai-global"
                     },
                     "models": [
-                        {"name": "small", "id": "anthropic.claude-haiku-4-6"},
+                        {"name": "small", "id": "anthropic.claude-haiku-4-5@20251001"},
                         {"name": "medium", "id": "anthropic.claude-sonnet-4-6"},
                         {"name": "large", "id": "anthropic.claude-opus-4-6"}
                     ]
