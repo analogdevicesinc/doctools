@@ -244,7 +244,7 @@ Custom Doc
 Generates custom documents with filtered content from all documentations of the
 watched repositories (see :git-doctools:`adi_doctools/lut.py`).
 
-For PDF output, `WeasyPrint <https://weasyprint.org/>`__ is used (ensure to install it).
+For PDF output, Chromium headless is used (ensure ``chromium``, ``chromium-browser`` or ``google-chrome`` is installed).
 
 To quick start, run the tool twice in an empty directory.
 

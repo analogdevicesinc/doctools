@@ -504,16 +504,13 @@ required for the PDF build.
    the HTML pages of documentation. If not set, some components of the pages
    may not render properly.
 
-For WeasyPrint, install ``weasyprint``, and ``matplotlib`` (LaTeX formulas)
-from pip and use with :ref:`serve`:
+For PDF output, ensure ``chromium``/``chrome`` is installed, and ``matplotlib``
+(LaTeX formulas) from pip, then use with :ref:`serve`:
 
 .. shell::
 
    ~/some_repository/docs
    $adoc serve --directory . --builder pdf
-
-The advantage of WeasyPrint is that the design styles (CSS stylesheet) are
-respected.
 
 Inner working
 ~~~~~~~~~~~~~

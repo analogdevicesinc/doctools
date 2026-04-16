@@ -41,8 +41,16 @@ em.sig-param, em.property {
     border: none
 }
 
-.highlight {
-    background-color: var(--bg-color2) !important;
+@media screen {
+    .highlight {
+        background-color: var(--bg-color2) !important;
+    }
+}
+
+@media print {
+    .highlight {
+        background: none !important;
+    }
 }
 
 // TODO Port to third-party themes

@@ -1,12 +1,14 @@
 from packaging.version import Version
 
 from sphinx.__init__ import __version__ as __sphinx_version__
-from os import path
+from os import path, pardir
 from lxml import html, etree
 import importlib.util
 import logging
 
 from .aux_cover import generate_wave_cover
+
+_src_dir = path.abspath(path.join(path.dirname(__file__), pardir))
 
 logger = logging.getLogger(__name__)
 
@@ -20,10 +22,14 @@ def sanitize_singlehtml(file) -> str:
 
     root = html.parse(file).getroot()
 
-    # Remove full CSS entry to use slimer version
-    link_elements = root.xpath("//head//link[contains(@href, '_static/app.min.css')]")
-    for link in link_elements:
-        link.getparent().remove(link)
+    head = root.find(".//head")
+
+    # Inject chromium.css inline so it works regardless of filesystem layout
+    chromium_css = path.join(_src_dir, 'theme', 'harmonic', 'style', 'chromium.css')
+    with open(chromium_css, 'r', encoding='utf-8') as f:
+        css_content = f.read()
+    style_el = etree.SubElement(head, "style")
+    style_el.text = css_content
 
     # Obtain toctree caption to use as volume titles
     toc_tree = root.xpath("//body//div[@class='toc-tree']")

@@ -39,7 +39,6 @@ log = {
     'with_node_modules': "node_modules tools are installed, run with the --dev --once flags to generate them.",
     'fetch': "Do you want to fetch from the release?",
     'builder': "Unknown builder '{}', valid options are: html, pdf.",
-    'no_weasyprint': "Package 'weasyprint' required for PDF generation is not installed.",
     'sparse_not_found': "Sparse path '{}' does not exist.",
     'doc_not_built': "Docname '{}' is not built.",
 }
@@ -224,8 +223,11 @@ cwd = {cwd_display}""")
 
         if self.builder == 'pdf':
             environ["ADOC_MEDIA_PRINT"] = ""
-            if not importlib.util.find_spec("weasyprint"):
-                logger.error(log['no_weasyprint'])
+            from .aux_pdf_chromium import find_chromium
+
+            exe, extra_args, err = find_chromium()
+            if err is not None:
+                logger.error(err)
                 return True
             self.builder = 'singlehtml'
 
@@ -293,8 +295,8 @@ cwd = {cwd_display}""")
 
         builder = self.builder
         if builder == 'singlehtml':
-            from weasyprint import HTML, CSS
-            from weasyprint.text.fonts import FontConfiguration
+            from .aux_pdf_chromium import generate_pdf_from_html
+
 
         source_common_files = {
             'app.umd.js', 'app.umd.js.map',
@@ -431,22 +433,18 @@ cwd = {cwd_display}""")
             from .aux_print import sanitize_singlehtml
 
             def update_pdf():
-                html_ = sanitize_singlehtml(singlehtml_file)
-                logger.info("preparing pdf styles...")
-                font_config = FontConfiguration()
-                css = CSS(path.join(src_dir, 'theme', 'harmonic', 'static_common', 'app.min.css'),
-                          font_config=font_config)
-                css_extra = CSS(path.join(src_dir, 'theme', 'harmonic', 'style', 'weasyprint.css'),
-                                font_config=font_config)
+                sanitize_singlehtml(singlehtml_file)
                 logger.info("rendering pdf content...")
-                html = HTML(string=html_, base_url=path.dirname(singlehtml_file))
-                document = html.render(stylesheets=[css, css_extra])
-                logger.info("writing pdf...")
-                document.write_pdf(path.join(builddir, '..', 'output.pdf'))
-                if not self.once:
-                    logger.info("wrote pdf! waiting new user changes...")
-                else:
-                    logger.info("wrote pdf!")
+                sanitized_file = path.join(builddir, '.index.html')
+                output_pdf = path.join(builddir, '..', 'output.pdf')
+                try:
+                    generate_pdf_from_html(sanitized_file, output_pdf)
+                    if not self.once:
+                        logger.info("wrote pdf! waiting new user changes...")
+                    else:
+                        logger.info("wrote pdf!")
+                except RuntimeError as e:
+                    logger.error(e)
 
         if self.jsonrpc:
             from ..lsp.logging import notify

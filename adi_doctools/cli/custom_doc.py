@@ -475,7 +475,7 @@ def prepare_doc(doc, repos_dir, doc_dir, drop_ext):
         pr.run(f"rm -r {doc_dir}")
     mkdir(doc_dir)
 
-    # Some repos prefer rst2pdf, but this cli uses weasyprint
+    # Some repos prefer rst2pdf, but this cli uses chromium headless
     exclude_extensions = ["rst2pdf.pdfbuilder", "ext_pyadi_jif"]
 
     index_file = path.join(doc_dir, 'index.rst')
@@ -935,34 +935,14 @@ def patch_doc(doc, repos_dir, doc_dir, git_lfs, sphinx_builder):
 
 
 def gen_pdf(index_file):
-    # TODO consider replacing with
-    # flatpak run org.chromium.Chromium --print-to-pdf=/home/me/output.pdf "file:///home/me/pdf/build/html/index.html" --headless -no-pdf-header-footer
-    # + paged.js
-    # Drawbacks: needs to detect user chromium and, if flatpak, not all paths are in the container (e.g. /tmp).
-    from weasyprint import HTML, CSS
-    from weasyprint.text.fonts import FontConfiguration
     from .aux_print import sanitize_singlehtml
+    from .aux_pdf_chromium import generate_pdf_from_html
 
-    html_ = sanitize_singlehtml(index_file)
+    sanitize_singlehtml(index_file)
 
-    logger.info("preparing pdf styles...")
-
-    font_config = FontConfiguration()
-    src_dir = path.abspath(path.join(path.dirname(__file__), pardir, pardir))
-    harmonic = path.join('adi_doctools', 'theme', 'harmonic')
-    base_url = path.dirname(index_file)
-    css = CSS(path.join(src_dir, harmonic, 'static_common', 'app.min.css'),
-              font_config=font_config, base_url=(path.join(base_url, '_static')))
-    css_extra = CSS(path.join(src_dir, harmonic, 'style', 'weasyprint.css'),
-                    font_config=font_config)
-
-    logger.info("rendering pdf content...")
-    html = HTML(string=html_, base_url=base_url)
-
-    document = html.render(stylesheets=[css, css_extra])
-
-    logger.info("writing pdf...")
-    document.write_pdf(path.abspath(path.join(path.dirname(index_file), '..', 'output.pdf')))
+    sanitized_file = path.join(path.dirname(index_file), '.index.html')
+    output_pdf = path.abspath(path.join(path.dirname(index_file), '..', 'output.pdf'))
+    generate_pdf_from_html(sanitized_file, output_pdf)
 
 
 def organize_include(doc):
@@ -1010,9 +990,11 @@ def custom_doc():
         logger.error(f"Unknown builder '{args.builder}', valid options are: html, pdf.")
 
     if args.builder == 'pdf':
-        if not importlib.util.find_spec("weasyprint"):
-            logger.error("Package 'weasyprint' required for PDF generation is not "
-                       "installed.")
+        from .aux_pdf_chromium import find_chromium
+
+        exe, extra_args, err = find_chromium()
+        if err is not None:
+            logger.error(err)
             return
         sphinx_builder = 'singlehtml'
     else:
