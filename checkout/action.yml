@@ -76,6 +76,7 @@ runs:
 
         echo "fetch_depth=$fetch_depth" >> "$GITHUB_ENV"
 
+    # requires pull_requests: read
     - name: Resolve ref to pr number and merge commit sha
       id: get_pr
       if: ${{ github.event_name == 'workflow_dispatch' && inputs.repository == github.repository }}
@@ -112,15 +113,20 @@ runs:
             -H "Accept: application/vnd.github+json" \
             "https://api.github.com/repos/$repository/pulls?head=$branch_&state=open")
 
-          pr_json=$(echo "$resp" | jq '.[0]')
-          if [[ "$pr_json" == "null" ]]; then
+          status=$(echo "$resp" | jq -r '.status // empty')
+          [[ "$status" == "403" ]] && echo "::notice ::checkout: List pull requests requires pull_requests read permission." || :
+          [[ -n "$status" ]] || pr_json=$(echo "$resp" | jq '.[0] // empty')
+
+          if [[ -z "$pr_json" ]]; then
             # try sha
             sha="$ref"
             resp=$(curl -s \
               -H "Authorization: Bearer ${{ inputs.gh-token }}" \
               -H "Accept: application/vnd.github+json" \
               "https://api.github.com/repos/$repository/commits/$sha/pulls")
-            pr_json=$(echo "$resp" | jq '.[0]')
+
+            status=$(echo "$resp" | jq -r '.status // empty')
+            [[ -n "$status" ]] || pr_json=$(echo "$resp" | jq '.[0] // empty')
           fi
 
           pr=$(echo "$pr_json" | jq -r '.number // empty')
