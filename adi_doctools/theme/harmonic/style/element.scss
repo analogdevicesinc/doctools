@@ -156,11 +156,11 @@ img {
 
 @media print {
     .break-after {
-        break-after: always;
+        break-after: page;
         display: block;
     }
     .break-before {
-        break-before: always;
+        break-before: page;
         display: block;
     }
 }

@@ -11,22 +11,29 @@
 
 @page {
     size: A4;
-    margin: 20mm;
-}
-
-/* Full-bleed pages: covers and volumes */
-@page cover {
-    margin: 0;
+    margin: 0mm;
+    bleed: 20mm;
 }
 
 footer {
     display: none;
 }
 
+/* TOC: page numbers via target-counter(), polyfilled by paged.js */
+.tocwrapper ul li a::after {
+    content: target-counter(attr(href url), page);
+    float: right;
+    font-size: 0.9em;
+    color: #666;
+}
+
 header {
-    height: 100vh;
-    page: cover;
+    margin-top: -20mm;
+    margin-left: -20mm;
+    width: calc(100vw + 40mm);
     padding-left: 4rem;
+    height: 100vh;
+    break-after: page;
 }
 
 .volume, header {
@@ -35,12 +42,10 @@ header {
     font-family: Barlow;
     justify-content: start;
     align-items: center;
-    break-before: page;
-    break-after: page;
 }
 
-.localtoc {
-    break-after: page;
+.volume {
+    height: calc(100vh - 40mm);
 }
 
 .volume .cover, header .cover {
@@ -53,6 +58,11 @@ header {
 }
 
 .volume {
+    break-before: page;
+    break-after: page;
+}
+
+.volume .cover {
     height: calc(100vh - 40mm);
     font-size: 2em;
 }
@@ -108,9 +118,10 @@ header .description {
     line-height: 1.1em;
 }
 
+section:has(> h1),
 section:has(> h2) {
     display: block;
-    break-before: always;
+    break-before: page;
 }
 
 header .vertical-divider {

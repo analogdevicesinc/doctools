@@ -5,6 +5,7 @@ from os import path, pardir
 from lxml import html, etree
 import importlib.util
 import logging
+import urllib.request
 
 from .aux_cover import generate_wave_cover
 
@@ -24,12 +25,45 @@ def sanitize_singlehtml(file) -> str:
 
     head = root.find(".//head")
 
-    # Inject chromium.css inline so it works regardless of filesystem layout
+    # Inline CSS for paged.js
+    html_dir = path.dirname(path.abspath(file))
+    for link in head.xpath("link[@rel='stylesheet']"):
+        href = link.get('href', '')
+        css_path = href.split('?')[0]
+        css_file = path.join(html_dir, css_path)
+        if path.isfile(css_file):
+            with open(css_file, 'r', encoding='utf-8') as f:
+                css_text = f.read()
+            style_el = etree.Element("style")
+            style_el.text = css_text
+            link.getparent().replace(link, style_el)
+        else:
+            logger.warning(f"CSS file not found, skipping inline: {css_file}")
+
+    # Inject chromium.css inline
     chromium_css = path.join(_src_dir, 'theme', 'harmonic', 'style', 'chromium.css')
     with open(chromium_css, 'r', encoding='utf-8') as f:
         css_content = f.read()
     style_el = etree.SubElement(head, "style")
     style_el.text = css_content
+
+    # paged.js
+    pagedjs_url = "https://unpkg.com/pagedjs/dist/paged.polyfill.js"
+    static_dir = path.join(html_dir, "_static")
+    pagedjs_cached = path.join(static_dir, "paged.polyfill.js")
+    if not path.isfile(pagedjs_cached):
+        logger.info(f"Fetching paged.js from {pagedjs_url}")
+        urllib.request.urlretrieve(pagedjs_url, pagedjs_cached)
+
+    pagedjs_config = etree.SubElement(head, "script")
+    pagedjs_config.text = (
+        'window.PagedConfig = { auto: true, '
+        'after: function() { console.log("PAGEDJS_DONE"); } };'
+    )
+    with open(pagedjs_cached, 'r', encoding='utf-8') as f:
+        pagedjs_content = f.read()
+    pagedjs_script = etree.SubElement(head, "script")
+    pagedjs_script.text = pagedjs_content
 
     # Obtain toctree caption to use as volume titles
     toc_tree = root.xpath("//body//div[@class='toc-tree']")
@@ -153,6 +187,18 @@ def sanitize_singlehtml(file) -> str:
             bodylink = bwrap.xpath(f".//a[@href='{anchor0}']")
             for bl in bodylink:
                 bl.set('href', anchor1)
+
+    # Sanitize IDs that contain '#' (e.g., id="/install/#installing").
+    # paged.js cannot match target-counter hrefs when the id contains '#'.
+    for el in root.xpath('//*[contains(@id, "#")]'):
+        old_id = el.get('id')
+        new_id = old_id.replace('#', '')
+        el.set('id', new_id)
+        old_href = '#' + old_id
+        new_href = '#' + new_id
+        for a in root.xpath(f"//a[@href]"):
+            if a.get('href') == old_href:
+                a.set('href', new_href)
 
     # Render LaTeX math with matplotlib.mathtext
     if not importlib.util.find_spec("matplotlib"):

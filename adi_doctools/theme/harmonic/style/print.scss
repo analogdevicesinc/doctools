@@ -52,7 +52,7 @@
     .banner, .search-area, .reverse,
     [id^="cancel-area"],
     #scroll-up {
-        display: none;
+        display: none !important;
     }
 
     #right > span {
@@ -60,7 +60,7 @@
     }
 
     section:has(> h1) {
-        break-before: always;
+        break-before: page;
     }
 
     .tocwrapper ul li a {
