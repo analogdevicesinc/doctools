@@ -29,29 +29,33 @@ function buildSystemPrompt(cwd: string): string {
   if (summary_file)
     instructions_output += `You must write your final review in markdown at ${summary_file} as a GitHub Summary.
 Refer to files using the relative path to the repository, for temporary files use the basename, for example,
-instead of */tmp/tmp.rhzMn4knoq/0001-fixup.patch*, use the basename *0001-fixup.patch*.\n`;
+instead of */tmp/tmp.rhzMn4knoq/0001-fixup.patch*, use the basename *0001-fixup.patch*.
+Include in the summary the steps taken to validate the claims
+("Converted ad1234.pdf to markdown to verify the register fields",
+"Re-built with ... to validate, assess and fix the CI annotations.").
+You may even create Mermaid diagrams to explain issues.\n`;
   if (comment_file)
     instructions_output += `You must write a PR comment at ${comment_file}, do not tag the author.\n`;
   if (comment_file && server_url && repository && run_id)
-    instructions_output += `For the comment, consider the template (real run url and repository):
+    instructions_output += `For the comment, consider the template, don't use emojis, be concise, and focus on the issues (real run url and repository):
 \`\`\`\`markdown
-## LLM review [${run_id}](${run_url})
+## LLM review
 
 This series fixes parser bugs in the ...
 
-### ✅ \`<sha>\` - Fix ... bug
+run: [${run_id}](${run_url})
 
-The fixes are correct:
+### \`<sha>\` - Add ... mode
 
-- ...
-
-### ⚠️ \`<sha>\` - Add ... mode
-
-**One ordering bug:** the ...
+**Ordering bug:** the ...
 
 ### CI warnings
 
 The \`checkpatch\` subject-line warning for ...
+
+### Verification data
+
+Datasheet ad1234.pdf was obtained and converted to markdown and used to check ...
 
 ### Suggested patches
 
