@@ -309,7 +309,7 @@ runs:
             done
           else
             git fetch origin --depth=2 "$ref"
-            head_sha=$(git rev-parse "$ref")
+            head_sha=$(git rev-parse FETCH_HEAD)
             base_sha=$(git rev-parse $head_sha~) || true
           fi
         fi
