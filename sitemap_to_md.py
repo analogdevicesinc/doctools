@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 sitemap_url = 'https://www.analog.com/media/en/en-pdf-sitemap.xml'
 sitemap_file = 'en-pdf-sitemap.xml'
 max_workers = 8
+max_docling_workers = 4
 cutoff_date = "2025-12-00"
 include_paths = ["/data-sheets/"]
 
@@ -138,18 +139,27 @@ class Sitemap2MD:
 
         converter = DocumentConverter()
 
-        for pdf_path, lastmod in self.pdfs_to_process:
+        def _convert_one(pdf_path: Path, lastmod: str):
             md_path = pdf_path.with_suffix('.md')
             lastmod_path = pdf_path.with_suffix('.lastmod')
             logger.info(f'Converting {pdf_path} -> {md_path}')
-            try:
-                result = converter.convert(str(pdf_path))
-                md_path.write_text(result.document.export_to_markdown())
-                lastmod_path.write_text(lastmod)
-                pdf_path.unlink()
-                logger.info(f'Created {md_path}')
-            except Exception as exc:
-                logger.warning(f'Failed to convert {pdf_path}: {exc}')
+            result = converter.convert(str(pdf_path))
+            md_path.write_text(result.document.export_to_markdown())
+            lastmod_path.write_text(lastmod)
+            pdf_path.unlink()
+            logger.info(f'Created {md_path}')
+
+        with ThreadPoolExecutor(max_workers=max_docling_workers) as executor:
+            futures = {
+                executor.submit(_convert_one, pdf_path, lastmod): pdf_path
+                for pdf_path, lastmod in self.pdfs_to_process
+            }
+            for future in as_completed(futures):
+                pdf_path = futures[future]
+                try:
+                    future.result()
+                except Exception as exc:
+                    logger.warning(f'Failed to convert {pdf_path}: {exc}')
 
 def main():
     set_logging()
