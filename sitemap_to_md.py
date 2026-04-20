@@ -98,11 +98,11 @@ class Sitemap2MD:
         for url, lastmod in self.urls_sitemap.items():
             parsed = urlparse(url)
             local_path = Path(parsed.path.lstrip('/'))
-            lastmod_path = local_path.with_suffix('.lastmod')
             md_path = local_path.with_suffix('.md')
 
-            if lastmod_path.exists() and md_path.exists():
-                stored_lastmod = lastmod_path.read_text().strip()
+            if md_path.exists():
+                first_line = md_path.read_text().split('\n', 1)[0]
+                stored_lastmod = self._parse_lastmod_comment(first_line)
                 if stored_lastmod == lastmod:
                     logger.debug(f'  {md_path} (up-to-date)')
                     up_to_date += 1
@@ -117,6 +117,14 @@ class Sitemap2MD:
             self.urls_pending[url] = lastmod
 
         logger.info(f'{up_to_date} up-to-date, {already_fetched} already fetched, {len(self.urls_pending)} to fetch')
+
+    @staticmethod
+    def _parse_lastmod_comment(line: str):
+        """Extract lastmod value from <!-- lastmod ... --> comment."""
+        line = line.strip()
+        if line.startswith('<!-- lastmod ') and line.endswith(' -->'):
+            return line[len('<!-- lastmod '):-len(' -->')]
+        return None
 
     def _fetch_pdfs(self):
         """Download PDFs."""
@@ -159,11 +167,10 @@ class Sitemap2MD:
 
         def _convert_one(pdf_path: Path, lastmod: str):
             md_path = pdf_path.with_suffix('.md')
-            lastmod_path = pdf_path.with_suffix('.lastmod')
             logger.info(f'Converting {pdf_path} -> {md_path}')
             result = converter.convert(str(pdf_path))
-            md_path.write_text(result.document.export_to_markdown())
-            lastmod_path.write_text(lastmod)
+            md_content = f'<!-- lastmod {lastmod} -->\n{result.document.export_to_markdown()}'
+            md_path.write_text(md_content)
             pdf_path.unlink()
             logger.info(f'Created {md_path}')
 
