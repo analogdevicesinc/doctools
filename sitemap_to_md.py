@@ -22,12 +22,14 @@ include_paths = ["/data-sheets/"]
 
 class Sitemap2MD:
     def __init__(self) -> None:
-        self.normalized_urls = {}
-        self.pdfs_to_process = []
+        self.urls_sitemap = {}
+        self.urls_pending = {}
+        self.pdfs_pendings = []
 
     def do(self):
         self._get_sitemap()
         self._process_sitemap()
+        self._filter_up_to_date()
         self._fetch_pdfs()
         self._docling_pdfs()
 
@@ -81,26 +83,46 @@ class Sitemap2MD:
             if (loc_elem is not None and loc_elem.text and
                 lastmod is not None and lastmod.text):
                 # ISO 8601 is lexicographically ordered
-                if lastmod.text < cutoff_date:
+                if lastmod.text.strip() < cutoff_date:
                     continue
                 if not any(path_ in loc_elem.text for path_ in include_paths):
                     continue
-                self.normalized_urls[self._normalize_url(loc_elem.text.strip())] = lastmod.text.strip()
+                self.urls_sitemap[self._normalize_url(loc_elem.text.strip())] = lastmod.text.strip()
 
-        logger.info(f"Got {len(self.normalized_urls.keys())} items newer than {cutoff_date}")
+        logger.info(f"Got {len(self.urls_sitemap.keys())} items newer than {cutoff_date}")
+
+    def _filter_up_to_date(self):
+        up_to_date = 0
+        already_fetched = 0
+
+        for url, lastmod in self.urls_sitemap.items():
+            parsed = urlparse(url)
+            local_path = Path(parsed.path.lstrip('/'))
+            lastmod_path = local_path.with_suffix('.lastmod')
+            md_path = local_path.with_suffix('.md')
+
+            if lastmod_path.exists() and md_path.exists():
+                stored_lastmod = lastmod_path.read_text().strip()
+                if stored_lastmod == lastmod:
+                    logger.debug(f'  {md_path} (up-to-date)')
+                    up_to_date += 1
+                    continue
+
+            if local_path.exists():
+                logger.debug(f'  {local_path} (cached)')
+                self.pdfs_pendings.append((local_path, lastmod))
+                already_fetched += 1
+                continue
+
+            self.urls_pending[url] = lastmod
+
+        logger.info(f'{up_to_date} up-to-date, {already_fetched} already fetched, {len(self.urls_pending)} to fetch')
 
     def _fetch_pdfs(self):
         """Download PDFs."""
         def _fetch_one(url: str, lastmod: str):
             parsed = urlparse(url)
             local_path = Path(parsed.path.lstrip('/'))
-            lastmod_path = local_path.with_suffix('.lastmod')
-
-            if lastmod_path.exists() and local_path.exists():
-                stored_lastmod = lastmod_path.read_text().strip()
-                if stored_lastmod == lastmod:
-                    logger.debug(f'Skipping (unchanged): {local_path}')
-                    return None
 
             local_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -118,25 +140,21 @@ class Sitemap2MD:
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = {
                 executor.submit(_fetch_one, url, lastmod): (url, lastmod)
-                for url, lastmod in self.normalized_urls.items()
+                for url, lastmod in self.urls_pending.items()
             }
             for future in as_completed(futures):
                 url, lastmod = futures[future]
                 try:
                     pdf_path = future.result()
                     if pdf_path is not None:
-                        self.pdfs_to_process.append((pdf_path, lastmod))
+                        self.pdfs_pendings.append((pdf_path, lastmod))
                 except Exception as exc:
                     logger.warning(f'Error fetching {url}: {exc}')
 
-        logger.info(f'{len(self.pdfs_to_process)} PDFs to convert')
+        logger.info(f'{len(self.pdfs_pendings)} PDFs to convert')
 
     def _docling_pdfs(self):
         """Convert all pending PDFs to Markdown using docling."""
-        if not self.pdfs_to_process:
-            logger.info('No PDFs to convert')
-            return
-
         converter = DocumentConverter()
 
         def _convert_one(pdf_path: Path, lastmod: str):
@@ -152,7 +170,7 @@ class Sitemap2MD:
         with ThreadPoolExecutor(max_workers=max_docling_workers) as executor:
             futures = {
                 executor.submit(_convert_one, pdf_path, lastmod): pdf_path
-                for pdf_path, lastmod in self.pdfs_to_process
+                for pdf_path, lastmod in self.pdfs_pendings
             }
             for future in as_completed(futures):
                 pdf_path = futures[future]
