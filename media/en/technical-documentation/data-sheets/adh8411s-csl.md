@@ -1,0 +1,432 @@
+<!-- lastmod 2022-12-22 -->
+<!-- image -->
+
+## Commercial Space Product
+
+## FEATURES
+
+- Low noise figure: 1.7 dB typical
+- Single positive supply (self biased)
+- High gain: 15.5 dB typical
+- High OIP3: 34 dBm typical
+- 6-lead, 2 mm × 2 mm LFCSP
+
+## COMMERCIAL SPACE FEATURES
+
+- Support aerospace applications
+- Wafer diffusion lot traceability
+- Radiation lot acceptance test: TID
+- Radiation benchmark
+- No SEL occurs at effective linear energy transfer (LET): ≤ 62.4 MeV-cm 2 /mg
+
+## APPLICATIONS
+
+- Low earth orbit (LEO) satellites
+- Military communications
+
+## ADH8411S-CSL
+
+## 0.01 GHz to 10 GHz Low Noise Amplifier
+
+## FUNCTIONAL BLOCK DIAGRAM
+
+<!-- image -->
+
+## GENERAL DESCRIPTION
+
+The ADH8411S-CSL is a gallium arsenide (GaAs), monolithic microwave integrated circuit (MMIC), pseudomorphic high electron mobility transistor (pHEMT), low noise wideband amplifier that operates from 0.01 GHz to 10 GHz.
+
+The ADH8411S-CSL provides a typical gain of 15.5 dB, a 1.7 dB typical noise figure, and a typical output third-order intercept (OIP3) of 34 dBm, requiring only 55 mA from a 5 V supply voltage. The saturated output power (P SAT ) of 19.5 dBm typical enables the low noise amplifier (LNA) to function as a local oscillator (LO) driver for many of Analog Devices, Inc., balanced, in-phase/quadrature (I/Q), or image rejection mixers.
+
+The ADH8411S-CSL also features inputs and outputs that are internally matched to 50 Ω, making the device ideal for surfacemounted technology (SMT)-based, high capacity microwave radio applications.
+
+The ADH8411S-CSL is housed in a RoHS compliant, 2 mm × 2 mm, 6-lead LFCSP.
+
+Throughout this data sheet, multifunction pins, such as RF OUT /V DD , are referred to either by the entire pin name or by a single function of the pin, for example, RF OUT , when only that function is relevant.
+
+Additional application and technical information can be found in the Commercial Space Products Program brochure and the HMC8411 data sheet.
+
+## TABLE OF CONTENTS
+
+Features................................................................ 1
+
+Commercial Space Features................................. 1
+
+Applications........................................................... 1
+
+Functional Block Diagram......................................1
+
+General Description...............................................1
+
+Specifications........................................................ 3
+
+0.01 GHz to 1 GHz Frequency Range............... 3
+
+1 GHz to 6 GHz Frequency Range.................... 3
+
+6 GHz to 10 GHz Frequency Range.................. 4
+
+Radiation Test and Limit Specifications..............4
+
+Absolute Maximum Ratings...................................6
+
+## REVISION HISTORY
+
+12/2022-Revision 0: Initial Version
+
+| Thermal Resistance...........................................       | 6   |
+|---------------------------------------------------------------------|-----|
+| Power Derating Curves......................................6        |     |
+| Outgas Testing...................................................   | 6   |
+| Radiation Features.............................................6    |     |
+| Electrostatic Discharge (ESD) Ratings...............6               |     |
+| ESD Caution.......................................................6 |     |
+| Pin Configuration and Function Descriptions........                 | 7   |
+| Interface Schematics..........................................7     |     |
+| Typical Performance Characteristics.....................8           |     |
+| Outline Dimensions.............................................     | 12  |
+| Ordering Guide.................................................12   |     |
+
+## SPECIFICATIONS
+
+## 0.01 GHZ TO 1 GHZ FREQUENCY RANGE
+
+VDD  = 5 V, supply current (I DQ ) = 55 mA, and T A = 25°C, unless otherwise noted.
+
+Table 1.
+
+| Parameter                            | Symbol   | Min   | Typ   | Max   | Unit   | Test Conditions/Comments                                    |
+|--------------------------------------|----------|-------|-------|-------|--------|-------------------------------------------------------------|
+| FREQUENCY RANGE                      |          | 0.01  |       | 1     | GHz    |                                                             |
+| GAIN Gain Variation over Temperature |          | 12.5  | 15.5  |       | dB     |                                                             |
+|                                      |          |       | 0.005 |       | dB/°C  |                                                             |
+| NOISE FIGURE                         |          |       | 1.8   |       | dB     |                                                             |
+| RETURN LOSS                          |          |       |       |       |        |                                                             |
+| Input                                |          |       | 22    |       | dB     |                                                             |
+| Output                               |          |       | 17    |       | dB     |                                                             |
+| OUTPUT                               |          |       |       |       |        |                                                             |
+| Output Power for 1 dB Compression    | P1dB     | 17    | 20    |       | dBm    |                                                             |
+| Saturated Output Power               | P SAT    |       | 20.5  |       | dBm    |                                                             |
+| Output Third-Order Intercept         | OIP3     |       | 33.5  |       | dBm    | Measurement taken at output power (P OUT ) per tone = 6 dBm |
+| Output Second-Order Intercept        | OIP2     |       | 43    |       | dBm    | Measurement taken at P OUT per tone = 6 dBm                 |
+| POWER ADDED EFFICIENCY               | PAE      |       | 30    |       | %      | Measured at P SAT                                           |
+| SUPPLY CURRENT                       | I DQ     |       | 55    |       | mA     | Measurement taken at resistor bias (R BIAS ) = 1.1 kΩ       |
+| Amplifier Drain Current              | I DD     |       | 52.47 |       | mA     |                                                             |
+| Resistor Bias Current                | I RBIAS  |       | 2.53  |       | mA     |                                                             |
+| SUPPLY VOLTAGE                       | V DD     | 2     | 5     | 6     | V      |                                                             |
+
+## 1 GHZ TO 6 GHZ FREQUENCY RANGE
+
+VDD  = 5 V, I DQ = 55 mA, and T A = 25°C, unless otherwise noted.
+
+Table 2.
+
+| Parameter                         | Symbol   | Min   | Typ   | Unit   | Test Conditions/Comments                    |
+|-----------------------------------|----------|-------|-------|--------|---------------------------------------------|
+| FREQUENCY RANGE                   |          | 1     |       | GHz    |                                             |
+| GAIN                              |          | 12    | 15    | dB     |                                             |
+| Gain Variation over Temperature   |          |       | 0.010 | dB/°C  |                                             |
+| NOISE FIGURE                      |          |       | 1.7   | dB     |                                             |
+| RETURN LOSS Input                 |          |       | 25    | dB dB  |                                             |
+| Output                            |          |       | 18    |        |                                             |
+| OUTPUT                            |          |       |       |        |                                             |
+| Output Power for 1 dB Compression | P1dB     | 17    | 20    | dBm    |                                             |
+| Saturated Output Power            | P SAT    |       | 21    | dBm    |                                             |
+| Output Third-Order Intercept      | OIP3     |       | 34    | dBm    | Measurement taken at P OUT per tone = 6 dBm |
+| Output Second-Order Intercept     | OIP2     |       | 39    | dBm    | Measurement taken at P OUT per tone = 6 dBm |
+| POWER ADDED EFFICIENCY            | PAE      |       | 34    | %      | Measured at P SAT                           |
+| SUPPLY CURRENT                    | I DQ     |       | 55    | mA     | Measurement taken at R BIAS = 1.1 kΩ        |
+| Amplifier Drain Current           | I DD     |       | 52.47 | mA     |                                             |
+| Resistor Bias Current             | I RBIAS  |       | 2.53  | mA     |                                             |
+| SUPPLY VOLTAGE                    | V DD     | 2     | 5     | V      |                                             |
+
+## SPECIFICATIONS
+
+## 6 GHZ TO 10 GHZ FREQUENCY RANGE
+
+VDD  = 5 V, I DQ = 55 mA, and T A = 25°C, unless otherwise noted.
+
+Table 3.
+
+| Parameter                         | Symbol   | Min   | Typ   | Max   | Unit   | Test Conditions/Comments                    |
+|-----------------------------------|----------|-------|-------|-------|--------|---------------------------------------------|
+| FREQUENCY RANGE                   |          | 6     |       | 10    | GHz    |                                             |
+| GAIN                              |          | 11    | 14    |       | dB     |                                             |
+| Gain Variation over Temperature   |          |       | 0.013 |       | dB/°C  |                                             |
+| NOISE FIGURE                      |          |       | 2     |       | dB     |                                             |
+| RETURN LOSS                       |          |       |       |       |        |                                             |
+| Input                             |          |       | 15    |       | dB     |                                             |
+| Output                            |          |       | 17    |       | dB     |                                             |
+| OUTPUT                            |          |       |       |       |        |                                             |
+| Output Power for 1 dB Compression | P1dB     | 13    | 16    |       | dBm    |                                             |
+| Saturated Output Power            | P SAT    |       | 19.5  |       | dBm    |                                             |
+| Output Third-Order Intercept      | OIP3     |       | 33    |       | dBm    | Measurement taken at P OUT per tone = 6 dBm |
+| Output Second-Order Intercept     | OIP2     |       | 40    |       | dBm    | Measurement taken at P OUT per tone = 6 dBm |
+| POWER ADDED EFFICIENCY            | PAE      |       | 23    |       | %      | Measured at P SAT                           |
+| SUPPLY CURRENT                    | I DQ     |       | 55    |       | mA     | Measurement taken at R BIAS = 1.1 kΩ        |
+| Amplifier Drain Current           | I DD     |       | 52.47 |       | mA     |                                             |
+| Resistor Bias Current             | I RBIAS  |       | 2.53  |       | mA     |                                             |
+| SUPPLY VOLTAGE                    | V DD     | 2     | 5     | 6     | V      |                                             |
+
+## RADIATION TEST AND LIMIT SPECIFICATIONS
+
+VDD  = 5 V, I DQ = 55 mA, and T A = 25°C, unless otherwise noted. Total ionizing dose (TID) testing characterized to 45 krads (30 krads + 50% overstress) with biased annealing at 100°C for 168 hours. After TID testing is characterized, TID testing is performed to 30 krads only.
+
+Table 4.
+
+| Parameter                         | Symbol   | Min   | Typ   | Max   | Unit   |
+|-----------------------------------|----------|-------|-------|-------|--------|
+| GAIN                              |          |       |       |       |        |
+| f IN = 1 GHz                      |          | 12.5  | 15.5  |       | dB     |
+| f IN = 5 GHz                      |          | 12    | 15    |       | dB     |
+| f IN = 10 GHz                     |          | 11    | 14    |       | dB     |
+| RETURN LOSS                       |          |       |       |       |        |
+| f IN = 1 GHz                      |          |       |       |       |        |
+| Input                             |          |       | 22    |       | dB     |
+| Output                            |          |       | 17    |       | dB     |
+| f IN = 5 GHz                      |          |       |       |       |        |
+| Input                             |          |       | 25    |       | dB     |
+| Output                            |          |       | 18    |       | dB     |
+| f IN = 10 GHz                     |          |       |       |       |        |
+| Input                             |          |       | 15    |       | dB     |
+| Output                            |          |       | 17    |       | dB     |
+| OUTPUT                            |          |       |       |       |        |
+| Output Power for 1 dB Compression | P1dB     |       |       |       |        |
+| f IN = 1 GHz                      |          | 17    | 20    |       | dBm    |
+| f IN = 5 GHz                      |          | 17    | 20    |       | dBm    |
+| f IN = 10 GHz                     |          | 13    | 16    |       | dBm    |
+| Output Third-Order Intercept      | OIP3     |       |       |       |        |
+
+## SPECIFICATIONS
+
+Table 4. (Continued)
+
+| Parameter               | Symbol   | Min   |   Typ | Max   | Unit   |
+|-------------------------|----------|-------|-------|-------|--------|
+| f IN = 1 GHz            |          |       | 33.5  |       | dBm    |
+| f IN = 5 GHz            |          |       | 34    |       | dBm    |
+| f IN = 10 GHz           |          |       | 33    |       | dBm    |
+| SUPPLY CURRENT          | I DQ     |       | 55    |       | mA     |
+| Amplifier Drain Current | I DD     |       | 52.47 |       | mA     |
+
+## ABSOLUTE MAXIMUM RATINGS
+
+## Table 5.
+
+| Parameter 1                                                 | Rating          |
+|-------------------------------------------------------------|-----------------|
+| Supply Voltage (V DD )                                      | 7 V             |
+| Radio Frequency Input (RF IN ) Power                        | 20 dBm          |
+| Channel Temperature                                         | 175°C           |
+| Continuous Power Dissipation, P DIS 2                       |                 |
+| T CASE = 85°C                                               | 0.78W           |
+| T CASE = 125°C                                              | 0.43W           |
+| Storage Temperature Range                                   | -65°C to +150°C |
+| Operating Temperature Range                                 | -55°C to +125°  |
+| Peak Reflow Temperature Moisture Sensitivity Level 1 (MSL1) | 260°C           |
+
+- 1 When referring to a single function of a multifunction pin in the parameters, only the portion of the pin name that is relevant to the specification is listed. For full pin names of multifunction pins, refer to the Pin Configuration and Function Descriptions section.
+
+2 For maximum power dissipation vs. case temperature, see Figure 2.
+
+Stresses at or above those listed under Absolute Maximum Ratings may cause permanent damage to the product. This is a stress rating only; functional operation of the product at these or any other conditions above those indicated in the operational section of this specification is not implied. Operation beyond the maximum operating conditions for extended periods may affect product reliability.
+
+## THERMAL RESISTANCE
+
+Thermal performance is directly linked to printed circuit board (PCB) design and operating environment. Close attention to PCB thermal design is required.
+
+θ JC is the junction to case thermal resistance.
+
+Table 6. Thermal Resistance
+
+| Package Type   |   θ JC | Unit   |
+|----------------|--------|--------|
+| CP-6-12        | 115.35 | °C/W   |
+
+## POWER DERATING CURVES
+
+Figure 2. Maximum Power Dissipation vs. Case Temperature
+
+<!-- image -->
+
+Figure 2 shows the maximum power dissipation vs. case temperature.
+
+## OUTGAS TESTING
+
+The criteria used for the acceptance and rejection of materials must be determined by the user and based on specific component and system requirements. Historically, a total mass loss (TML) of 1.00% and collected volatile condensable material (CVCM) of 0.10% have been used as screening levels for rejection of spacecraft materials.
+
+## Table 7. Outgas Testing
+
+| Specification (Tested per ASTM E595 -15)   |   Value | Unit   |
+|--------------------------------------------|---------|--------|
+| Total Mass Lost                            |    0.06 | %      |
+| Collected Volatile Condensable Material    |    0.01 | %      |
+| Water Vapor Recovered                      |    0.04 | %      |
+
+## RADIATION FEATURES
+
+## Table 8. Radiation Features
+
+| Specifications                                                                    | Value   | Unit         |
+|-----------------------------------------------------------------------------------|---------|--------------|
+| Maximum Total Dose Available (dose rate = 50 to 300 rads (Si)/sec) 1              | 30      | krads (Si)   |
+| No Single Event Latch-Up (SEL) Occurs at Effective Linear Energy Transfer (LET) 2 | ≤62.4   | MeV-cm 2 /mg |
+
+- 1 Guaranteed by device and process characterization. Contact Analog Devices for data available up to 30 krads.
+- 2 Limits are characterized at initial qualification and after any design or process changes that may affect the SEL characteristics, but are not production lot tested unless specified by the customer through the purchase order or contract. For more information on single event effect (SEE) test results, contact Analog Devices for further data beyond published report on the Analog Devices website.
+
+## ELECTROSTATIC DISCHARGE (ESD) RATINGS
+
+The following ESD information is provided for handling of ESD-sensitive devices in an ESD protected area only.
+
+Human body model (HBM) per ANSI/ESDA/JEDDEC JS-001.
+
+## ESD Ratings for ADH8411S-CSL
+
+Table 9. ADH8411S-CSL, 6-Lead LFCSP
+
+| ESD Model   |   Withstand Threshold (V) | Class   |
+|-------------|---------------------------|---------|
+| HBM         |                       500 | 1B      |
+
+## ESD CAUTION
+
+<!-- image -->
+
+ESD (electrostatic discharge) sensitive device . Charged devices and circuit boards can discharge without detection. Although this product features patented or proprietary protection circuitry, damage may occur on devices subjected to high energy ESD. Therefore, proper ESD precautions should be taken to avoid performance degradation or loss of functionality.
+
+## PIN CONFIGURATION AND FUNCTION DESCRIPTIONS
+
+Figure 3. Pin Configuration
+
+<!-- image -->
+
+Table 10. Pin Function Descriptions
+
+| Pin No.   | Mnemonic     | Description                                                                                                                                                                                                                                         |
+|-----------|--------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1         | R BIAS       | Current Mirror Bias Resistor Pin. Use this pin to set the current to the internal resistor by the external resistor. See Figure 4 for the interface schematic.                                                                                      |
+| 2         | RF IN        | RF Input. This pin is AC-coupled and matched to 50 Ω. See Figure 5 for the interface schematic.                                                                                                                                                     |
+| 3, 4      | NIC          | Not Internally Connected. This pin is not connected internally. This pin must be connected to the RF and DC ground.                                                                                                                                 |
+| 5         | RF OUT /V DD | Radio Frequency Output (RF OUT ). This pin is AC-coupled and matched to 50 Ω. See Figure 6 for the interface schematic. Drain Bias for the Amplifier (V DD ). This pin is AC-coupled and matched to 50 Ω. See Figure 6 for the interface schematic. |
+| 6         | GND          | Ground. This pin must be connected to the RF and DC ground. See Figure 7 for the interface schematic.                                                                                                                                               |
+
+## INTERFACE SCHEMATICS
+
+<!-- image -->
+
+Figure 4. R BIAS Interface Schematic
+
+<!-- image -->
+
+Figure 5. RF IN Interface Schematic
+
+Figure 6. RF OUT /V DD Interface Schematic
+
+<!-- image -->
+
+Figure 7. GND Interface Schematic
+
+<!-- image -->
+
+## TYPICAL PERFORMANCE CHARACTERISTICS
+
+<!-- image -->
+
+Figure 8. Gain vs. Frequency, 10 MHz to 200 MHz, for Various Temperatures, VDD  = 5 V, I DQ = 55 mA
+
+<!-- image -->
+
+Figure 9. Input Return Loss vs. Frequency, 10 MHz to 200 MHz, for Various Temperatures, V DD = 5 V, I DQ = 55 mA
+
+<!-- image -->
+
+Figure 10. Output Return Loss vs. Frequency, 10 MHz to 200 MHz, for Various Temperatures, V DD = 5 V, I DQ = 55 mA
+
+<!-- image -->
+
+Figure 11. Gain vs. Frequency, 200 MHz to 12 GHz, for Various Temperatures, VDD  = 5 V, I DQ = 55 mA
+
+Figure 12. Input Return Loss vs. Frequency, 200 MHz to 12 GHz, for Various Temperatures, V DD = 5 V, I DQ = 55 mA
+
+<!-- image -->
+
+Figure 13. Output Return Loss vs. Frequency, 200 MHz to 12 GHz, for Various Temperatures, V DD = 5 V, I DQ = 55 mA
+
+<!-- image -->
+
+## TYPICAL PERFORMANCE CHARACTERISTICS
+
+<!-- image -->
+
+Figure 14. Reverse Isolation vs. Frequency, 10 MHz to 200 MHz, for Various Temperatures, V DD = 5 V, I DQ = 55 mA
+
+<!-- image -->
+
+Figure 15. Noise Figure vs. Frequency, 10 MHz to 200 MHz, for Various Temperatures, V DD = 5 V, I DQ = 55 mA
+
+<!-- image -->
+
+Figure 16. P1dB vs. Frequency, 0.01 GHz to 1.0 GHz, for Various Temperatures, V DD = 5 V, I DQ = 55 mA
+
+<!-- image -->
+
+Figure 17. Reverse Isolation vs. Frequency, 200 MHz to 12 GHz, for Various Temperatures, V DD = 5 V, I DQ = 55 mA
+
+Figure 18. Noise Figure vs. Frequency, 200 MHz to 12 GHz, for Various Temperatures, V DD = 5 V, I DQ = 55 mA
+
+<!-- image -->
+
+Figure 19. P1dB vs. Frequency, 1 GHz to 12 GHz, for Various Temperatures, VDD  = 5 V, I DQ = 55 mA
+
+<!-- image -->
+
+## TYPICAL PERFORMANCE CHARACTERISTICS
+
+<!-- image -->
+
+Figure 20. P SAT vs. Frequency, 0.01 GHz to 1.0 GHz, for Various Temperatures, V DD = 5 V, I DQ = 55 mA
+
+<!-- image -->
+
+Figure 21. PAE vs. Frequency, 0.01 GHz to 1.0 GHz, for Various Temperatures, V DD = 5 V, I DQ = 55 mA
+
+<!-- image -->
+
+Figure 22. OIP3 vs. Frequency, 0.01 GHz to 1.0 GHz, for Various Temperatures, V DD = 5 V, I DQ = 55 mA
+
+<!-- image -->
+
+Figure 23. P SAT vs. Frequency, 1 GHz to 12 GHz, for Various Temperatures, VDD  = 5 V, I DQ = 55 mA
+
+Figure 24. PAE vs. Frequency, 1 GHz to 12 GHz, for Various Temperatures, VDD  = 5 V, I DQ = 55 mA
+
+<!-- image -->
+
+Figure 25. OIP3 vs. Frequency, 1 GHz to 12 GHz, for Various Temperatures, VDD  = 5 V, I DQ = 55 mA
+
+<!-- image -->
+
+## TYPICAL PERFORMANCE CHARACTERISTICS
+
+Figure 26. OIP2 vs. Frequency, 0.01 GHz to 1.0 GHz, for Various Temperatures, V DD = 5 V, I DQ = 55 mA
+
+<!-- image -->
+
+Figure 27. OIP2 vs. Frequency, 1 GHz to 12 GHz, for Various Temperatures, VDD  = 5 V, I DQ = 55 mA
+
+<!-- image -->
+
+## OUTLINE DIMENSIONS
+
+## ORDERING GUIDE
+
+| Model 1            | Temperature Range   | Package Description      | Package Option   |
+|--------------------|---------------------|--------------------------|------------------|
+| ADH8411TCPZ-CSL-PT | -55°C to +125°C     | 6-Lead LFCSP (2mm x 2mm) | CP-6-12          |
+
+<!-- image -->
+
+Figure 28. 6-Lead Lead Frame Chip Scale Package [LFCSP] 2 mm × 2 mm Body and 0.85 mm Package Height (CP-6-12) Dimensions shown in millimeters
+
+<!-- image -->
