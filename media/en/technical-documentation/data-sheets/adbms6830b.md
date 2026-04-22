@@ -1,0 +1,2871 @@
+<!-- lastmod 2024-02-27 -->
+<!-- image -->
+
+## FEATURES
+
+- Measures up to 16 battery cells in series
+- Maximum lifetime TME: ±1.8 mV at 3.3 V per cell (-40°C to +125°C)
+- Simultaneous and continuous measurement of cell voltages
+- Configurable integrated low-pass filtering
+- Stackable architecture for high voltage battery packs
+- Built-in isoSPI interface
+- 2 Mbps isolated serial communications
+- Uses a single twisted pair, up to 20 meters per segment
+- Low EMI susceptibility and emissions
+- Bidirectional for broken wire protection
+- Capacitor or transformer-coupled
+- Hot plug tolerant without external protection
+- Passive cell balancing up to 300 mA per channel with programmable PWM
+- Up to 10 general-purpose analog inputs or digital I/O
+- Temperature or other sensor inputs
+- Configurable as an I 2 C or SPI master
+- LPCM for cell and temperature monitoring in key-off state
+- 4 μA sleep mode supply current
+- Provisions for bus bars
+
+## APPLICATIONS
+
+- Backup battery systems
+- Grid energy storage
+- Battery cell and pack management
+
+## TYPICAL APPLICATION CIRCUIT
+
+Figure 1. Typical Application Circuit
+
+<!-- image -->
+
+Rev. 0
+
+DOCUMENT FEEDBACK
+
+## ADBMS6830B
+
+## 16-Channel Multicell Battery Monitor
+
+## GENERAL DESCRIPTION
+
+The ADBMS6830B is a multicell battery stack monitor that measures up to 16 series-connected battery cells with a lifetime total measurement error (TME) of less than 2 mV over the full temperature range. The measurement input range of -2 V to +5.5 V makes the ADBMS6830B suitable for most battery chemistries and allows the measurement of voltages across bus bars. Provisions are made for bypassing bus bars without dedicating any measurement channels.
+
+All cells can be measured simultaneously and redundantly with two individual analog-to-digital converters (ADCs). The continuously operating ADCs with a high sampling rate of 4.096 MHz allow reduced external analog filtering and aliasing-free measurement results. Higher noise reduction can be achieved by subsequent programmable infinite impulse response (IIR) filters.
+
+Multiple ADBMS6830Bs can be connected in series, permitting simultaneous cell monitoring of long, high voltage battery strings. Each ADBMS6830B has an isolated serial port interface (isoSPI ™ ) for high speed, RF immune, long distance communications. Multiple devices are connected in a daisy chain with one host processor connection. This daisy chain can be operated bidirectionally, ensuring communication integrity even in the event of a fault along the communication path.
+
+The ADBMS6830B can be powered from the battery stack or an isolated supply. The ADBMS6830B includes passive balancing with individual pulse-width modulation (PWM) duty cycle control and up to 300 mA discharge current for each cell. Other features include an on-board 5 V regulator, up to 10 GPIOs, and a sleep mode, where current consumption is reduced to 4 µA.
+
+## TABLE OF CONTENTS
+
+| Features................................................................                               | 1                                                                |
+|--------------------------------------------------------------------------------------------------------|------------------------------------------------------------------|
+| Applications...........................................................                                | 1                                                                |
+| Typical Application Circuit......................................1                                     |                                                                  |
+| General Description...............................................1                                    |                                                                  |
+| Functional Block Diagram......................................4                                        |                                                                  |
+| Specifications........................................................                                 | 5                                                                |
+| isoSPI Pulse Timing Specifications....................8                                                |                                                                  |
+| SPI Timing Requirements..................................                                              | 9                                                                |
+| isoSPI Timing Specifications..............................9                                            |                                                                  |
+| Absolute Maximum Ratings.................................10                                            |                                                                  |
+| Thermal Resistance.........................................                                            | 10                                                               |
+| Electrostatic Discharge (ESD) Ratings                                                                  | ............10                                                   |
+| ESD Caution.....................................................10                                     |                                                                  |
+| Pin Configurations and Function Descriptions.....11                                                    |                                                                  |
+| Typical Performance Characteristics...................13                                               |                                                                  |
+| Theory of Operation.............................................15                                     |                                                                  |
+| Core State Descriptions...................................                                             | 15                                                               |
+| isoSPI State Description...................................17                                          |                                                                  |
+| Power Supply......................................................                                     | 18                                                               |
+| Cell Voltage Measurements.................................19                                           |                                                                  |
+| C-ADC and S-ADC Operations and Commands.....................................................19         |                                                                  |
+| Continuous or Single Shot Measurements.......20                                                        |                                                                  |
+| Redundant Measurements...............................20                                                |                                                                  |
+| Discharge During Measurements.....................20                                                   |                                                                  |
+| Open Wire Switches.........................................21                                          |                                                                  |
+| Internal Digital Filtering.....................................21                                      |                                                                  |
+| GPIO and Device Parameter Measurements......23                                                         |                                                                  |
+| AUX ADC Operation and Commands..............23                                                         |                                                                  |
+| System Diagnostic...............................................24                                     |                                                                  |
+| Cell Measurement Diagnostic and Reporting...24                                                         |                                                                  |
+| Cell Open Wire Detection.................................24                                            |                                                                  |
+| Algorithm for Cell Measurement with Diagnostics ....................................................25 |                                                                  |
+| GPIO Measurement Diagnostic........................26                                                  |                                                                  |
+| GPIO Open Wire Detection..............................26                                               |                                                                  |
+| Communication Diagnostic and Reporting.......26                                                        |                                                                  |
+| Thermal Shutdown...........................................26                                          |                                                                  |
+| Test Mode Detection.........................................26                                         |                                                                  |
+| Sleep State Detection.......................................26                                         |                                                                  |
+| Soft Reset Command.......................................26                                            |                                                                  |
+| Revision Code..................................................26                                      |                                                                  |
+| Serial                                                                                                 | ID............................................................26 |
+| Clear ADC Memory Commands.......................26                                                     |                                                                  |
+| Clear Flag Command.......................................27                                            |                                                                  |
+
+I
+
+Clear Overvoltage and Undervoltage
+
+Command.......................................................28
+
+Cell Discharge and PWM for Discharge..............29
+
+Sx Pin Muting................................................... 29
+
+Cell Discharge with Cell Measurements and
+
+Diagnostics ....................................................30
+
+Watchdog and Discharge Timer.......................... 31
+
+Discharge Timer Monitor.................................. 31
+
+Low Power Cell Monitoring .................................32
+
+LPCM Operation...............................................32
+
+LPCM Bridgeless Timeout Monitor...................36
+
+LPCM with Reversible isoSPI...........................38
+
+Using the LPCM and the Discharge Timer.......39
+
+LPCM Expanded State Diagram...................... 39
+
+LPCM Power Consumption..............................40
+
+LPCM System Diagnostics...............................40
+
+2 C/SPI Master Using GPIOs ..............................42
+
+COMM Register................................................42
+
+COMM Commands...........................................43
+
+Timing Specifications of I 2 C and SPI Master....45
+
+Serial Interface Overview.................................... 46
+
+4-Wire SPI Physical Layer................................46
+
+Reversible 2-Wire isoSPI Physical Layer.........47
+
+Network Layer..................................................... 53
+
+Command PEC................................................ 53
+
+Data PEC......................................................... 53
+
+Command Counter...........................................53
+
+Polling Methods................................................54
+
+Bus Protocols................................................... 56
+
+Commands.......................................................... 57
+
+Read All and Snapshot Commands................. 60
+
+Read All Commands........................................ 60
+
+Snapshot Commands.......................................60
+
+Retention Register Commands........................ 60
+
+Memory Map........................................................61
+
+Applications Information...................................... 77
+
+Providing Power by Linear Regulator...............77
+
+Input Filtering....................................................77
+
+Cell Balancing ................................................. 78
+
+Cell Depopulation............................................. 78
+
+Bus Bar Monitoring and Bypassing.................. 80
+
+Internal Protection............................................ 81
+
+Outline Dimensions............................................. 82
+
+Ordering Guide.................................................83
+
+Evaluation Boards............................................ 83
+
+## REVISION HISTORY
+
+## 1/2024-Revision 0: Initial Version
+
+## FUNCTIONAL BLOCK DIAGRAM
+
+Figure 2. ADBMS6830B in 80-Lead LQFP\_EP Package
+
+<!-- image -->
+
+## SPECIFICATIONS
+
+Specifications apply over the full V+ operating voltage range and full operating junction temperature range (T J = -40°C to +125°C), unless otherwise noted.
+
+Table 1. C-ADC DC Specifications
+
+| Parameter                                                | Symbol   | Test Conditions/Comments   | Min   | Typ   | Max   | Unit   |
+|----------------------------------------------------------|----------|----------------------------|-------|-------|-------|--------|
+| MEASUREMENT RESOLUTION                                   |          |                            |       | 0.15  |       | mV/bit |
+| DIFFERENTIAL INPUT RANGE                                 | V DIF    | -0.1 V < (Cx to V-) < 80 V | -2    |       | +5.5  | V      |
+| ADC OFFSET VOLTAGE 1                                     |          |                            |       | ±0.1  |       | mV     |
+| ADC GAIN ERROR 1                                         |          |                            |       | ±0.01 |       | %      |
+| ADC UPDATE RATE                                          |          |                            | 0.9   | 1     | 1.1   | kHz    |
+| ADC TRANSITION NOISE                                     |          |                            |       | 40    |       | μV rms |
+| LIFETIME CELL TOTAL MEASUREMENT ERROR                    | C-TME    |                            |       |       |       |        |
+|                                                          |          | V DIF ≤ ±2.0 V             |       |       | ±1.5  | mV     |
+|                                                          |          | V DIF ≤ 3.3 V              |       |       | ±1.8  | mV     |
+|                                                          |          | V DIF ≤ 4.5 V              |       |       | ±2    | mV     |
+|                                                          |          | V DIF ≤ 5.5 V              |       |       | ±3    | mV     |
+| INPUT LEAKAGE CURRENT                                    |          | ADC off                    |       | 0     | ±250  | nA     |
+| DIFFERENTIAL INPUT RESISTANCE                            | R IN_ADC | ADC on                     | 1.6   | 2.2   | 3     | MΩ     |
+| DIFFERENTIAL INPUT RESISTANCE DURING OPEN WIRE DETECTION |          |                            |       | 1.75  |       | kΩ     |
+| ADC SAMPLING FREQUENCY                                   | f S      |                            | 3.7   | 4.1   | 4.5   | MHz    |
+
+Table 2. S-ADC DC Specifications
+
+| Parameter                                                | Symbol   | Test Conditions/Comments   | Min   | Typ   | Max   | Unit   |
+|----------------------------------------------------------|----------|----------------------------|-------|-------|-------|--------|
+| MEASUREMENT RESOLUTION                                   |          |                            |       | 1.5 1 |       | mV/bit |
+| INPUT RANGE                                              | V DIF_S  | -0.1 V < (Sx to V-) < 80 V | -0.3  |       | +5.5  | V      |
+| ADC OFFSET VOLTAGE 2                                     |          |                            |       | ±0.2  |       | mV     |
+| ADC GAIN ERROR 2                                         |          |                            |       | ±0.03 |       | %      |
+| ADC UPDATE RATE                                          |          |                            | 110   | 125   | 140   | Hz     |
+| ADC TRANSITION NOISE                                     |          |                            |       | 20    |       | μV rms |
+| S-ADC TOTAL MEASUREMENT ERROR                            | S-TME    |                            |       |       |       |        |
+|                                                          |          | 0 V ≤ V DIF_S ≤ 4.5 V      |       |       | ±7    | mV     |
+|                                                          |          | V DIF_S ≤ 5.5 V            |       |       | ±8    | mV     |
+| INPUT LEAKAGE CURRENT                                    |          | ADC off, V DIF_S = 5.5 V   |       | 10    | ±300  | nA     |
+| DIFFERENTIAL INPUT RESISTANCE                            |          | ADC on                     | 1     | 1.8   | 2.6   | MΩ     |
+| DIFFERENTIAL INPUT RESISTANCE DURING OPEN WIRE DETECTION |          |                            |       | 20    |       | kΩ     |
+| GAIN DURING OPEN WIRE DETECTION                          |          | No open wire fault         | 85    | 90    | 95    | %      |
+| ADC SAMPLING FREQUENCY                                   | f S      |                            | 3.7   | 4.1   | 4.5   | MHz    |
+
+## SPECIFICATIONS
+
+Table 3. Auxiliary (AUX) ADC DC Specifications
+
+| Parameter                                | Test Conditions/Comments                                | Min   | Typ   | Max   | Unit   |
+|------------------------------------------|---------------------------------------------------------|-------|-------|-------|--------|
+| MEASUREMENT RESOLUTION                   |                                                         |       | 0.15  |       | mV/bit |
+| INPUT RANGE                              | GPIOx to V-                                             | -0.3  |       | V REG | V      |
+| ADC OFFSET VOLTAGE 1                     |                                                         |       | -0.2  |       | mV     |
+| ADC GAIN ERROR 1                         |                                                         |       | ±0.01 |       | %      |
+| ADC UPDATE RATE                          |                                                         | 0.9   | 1     | 1.1   | kHz    |
+| ADC TRANSITION NOISE                     |                                                         |       | 50    |       | μV rms |
+| GPIOx TOTAL MEASUREMENT ERROR            |                                                         |       |       |       |        |
+|                                          | 0 V < GPIOx to V- ≤ 3.3 V                               |       |       | ±2.8  | mV     |
+|                                          | 3.3 V < GPIOx to V- ≤ 5 V                               |       |       | ±4.2  | mV     |
+| DIAGNOSTIC MEASUREMENTS                  | Internal temperature, T = maximum specified temperature |       | ±5    |       | °C     |
+|                                          | V REG pin                                               |       | ±0.1  | ±0.25 | %      |
+|                                          | V REF2 , VRES                                           |       | ±0.02 | ±0.2  | %      |
+|                                          | Digital supply voltage, V REGD                          |       | ±0.1  | ±1.6  | %      |
+|                                          | V+ to V-, V+ > 20 V                                     | -1    | ±0.05 | +0.5  | %      |
+|                                          | -0.1 V ≤ S1N to V- ≤ 0.1 V                              |       | ±0.02 | 0.2   | %      |
+| INPUT LEAKAGE CURRENT                    | AUX ADC off, GPIOx = 5 V                                |       | 10    | ±250  | nA     |
+| INPUT RESISTANCE                         | AUX ADC on                                              | 1.5   | 2.7   | 3.5   | MΩ     |
+| INPUT CURRENT DURING OPEN WIRE DETECTION | Pull-down current: GPIOx > 1.5 V                        | -140  | -200  | -260  | μA     |
+|                                          | Pull-up current: GPIOx < V REG - 1.5 V                  | 140   | 200   | 260   | μA     |
+| ADC SAMPLING FREQUENCY                   |                                                         | 3.7   | 4.1   | 4.5   | MHz    |
+
+## Table 4. AUX2 ADC DC Specifications
+
+| Parameter                     | Test Conditions/Comments   | Min   | Typ   | Max   | Unit   |
+|-------------------------------|----------------------------|-------|-------|-------|--------|
+| MEASUREMENT RESOLUTION        |                            |       | 1.5 1 |       | mV/bit |
+| INPUT RANGE                   | GPIOx to V-                | -0.3  |       | V REG | V      |
+| ADC OFFSET VOLTAGE 2          |                            |       | ±0.2  |       | mV     |
+| ADC GAIN ERROR 2              |                            |       | ±0.05 |       | %      |
+| ADC UPDATE RATE               |                            | 110   | 125   | 140   | Hz     |
+| ADC TRANSITION NOISE          |                            |       | 25    |       | μV rms |
+| GPIOx TOTAL MEASUREMENT ERROR |                            |       |       |       |        |
+|                               | 0 V ≤ GPIOx to V- ≤ 3.3 V  |       |       | ±6    | mV     |
+|                               | 3.3 V < GPIOx to V- ≤ 5 V  |       |       | ±8    | mV     |
+| INPUT LEAKAGE CURRENT         | AUX2 ADC off, GPIOx = 5 V  |       | 10    | ±250  | nA     |
+| INPUT RESISTANCE              | AUX2 ADC on                | 1.5   | 2.7   | 3.5   | MΩ     |
+| ADC SAMPLING FREQUENCY        |                            | 3.7   | 4.1   | 4.5   | MHz    |
+
+## SPECIFICATIONS
+
+## Table 5. Voltage Reference Specifications
+
+| Parameter                                            | Test Conditions/Comments    | Min   | Typ   | Max   | Unit     |
+|------------------------------------------------------|-----------------------------|-------|-------|-------|----------|
+| FIRST REFERENCE VOLTAGE                              | V REF1 pin, no load         | 3     | 3.2   | 3.3   | V        |
+| FIRST REFERENCE VOLTAGE TEMPERATURE COEFFICIENT (TC) | V REF1 pin, no load         |       | 3     |       | ppm/°C   |
+| FIRST REFERENCE VOLTAGE HYSTERESIS                   | V REF1 pin, no load         |       | 20    |       | ppm      |
+| FIRST REFERENCE VOLTAGE LONG-TERM DRIFT              | V REF1 pin, no load         |       | 20    |       | ppm/√kHr |
+| SECOND REFERENCE VOLTAGE                             | V REF2 pin, no load         | 2.994 | 3     | 3.006 | V        |
+|                                                      | V REF2 pin, 1 kΩ load to V- | 2.994 | 3     | 3.006 | V        |
+| OUTPUT CURRENT                                       | ∆V REF2 < ± 2 mV            | -0.2  |       | +5    | mA       |
+| SECOND REFERENCE VOLTAGE TC                          | V REF2 pin, no load         |       | 10    |       | ppm/°C   |
+| SECOND REFERENCE VOLTAGE HYSTERESIS                  | V REF2 pin, no load         |       | 100   |       | ppm      |
+| SECOND REFERENCE VOLTAGE LONG-TERM DRIFT             | V REF2 pin, no load         |       | 60    |       | ppm/√kHr |
+
+## Table 6. General DC Specifications
+
+| Parameter                                                                               | Test Conditions/Comments                                                            | Min   | Typ   | Max   | Unit   |
+|-----------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------|-------|-------|-------|--------|
+| V+ SUPPLY CURRENT (See Figure 14)                                                       | Core in sleep, isoSPI in idle Core in sleep, isoSPI in idle, V REG = 0 V, V+ = 60 V |       | 4     | 10    | µA     |
+| V+ SUPPLY CURRENT (See Figure 14)                                                       | Core in sleep, isoSPI in idle,V REG = 5 V, V+ = 60 V                                |       | 2     | 5     | µA     |
+| V+ SUPPLY CURRENT (See Figure 14)                                                       | Core in standby or extended balancing, V+ = 60 V                                    | 4     | 10    | 24    | µA     |
+| V+ SUPPLY CURRENT (See Figure 14)                                                       | Core in REFUP or measure or discharge timer monitor (DTM) measure, V+ = 60 V        | 0.3   | 0.5   | 0.65  | mA     |
+| V REG SUPPLY CURRENT (See Figure 14)                                                    |                                                                                     |       |       |       |        |
+| I REG (CORE, MEASURE) = I REG (CORE, REFUP) + I REG (CORE, ADCs ON)                     | Core in sleep, isoSPI in idle, V REG = 5 V                                          |       | 2.2   | 8     | µA     |
+| I REG (CORE, MEASURE) = I REG (CORE, REFUP) + I REG (CORE, ADCs ON)                     | Core in standby                                                                     | 3     | 10    | 25    | µA     |
+| I REG (CORE, MEASURE) = I REG (CORE, REFUP) + I REG (CORE, ADCs ON)                     | Core in REFUP                                                                       | 2     | 2.3   | 3     | mA     |
+| I REG (CORE, MEASURE) = I REG (CORE, REFUP) + I REG (CORE, ADCs ON)                     | Core in measure or DTM, additional current C-ADCs on                                | 4     | 4.5   | 5     | mA     |
+| I REG (CORE, MEASURE) = I REG (CORE, REFUP) + I REG (CORE, ADCs ON)                     | Core in measure, additional current S-ADCs on                                       | 3     | 3.9   | 4.5   | mA     |
+| I REG (CORE, MEASURE) = I REG (CORE, REFUP) + I REG (CORE, ADCs ON)                     | Core in measure, additional current AUX ADCs on                                     | 0.4   | 0.55  | 0.75  | mA     |
+| ADDITIONAL V REG SUPPLY CURRENT IF isoSPI IN READY OR ACTIVE STATE AND t CLK = 0.5 μs 1 | isoSPI in idle state                                                                |       | 0     |       | mA     |
+|                                                                                         | ISOMD = 0, ready                                                                    | 2.6   | 3.2   | 3.9   | mA     |
+|                                                                                         | ISOMD = 0, active                                                                   | 7     | 8.5   | 11.5  | mA     |
+|                                                                                         | ISOMD = 1, ready                                                                    | 3.1   | 3.7   | 4.4   | mA     |
+|                                                                                         | ISOMD = 1, active write                                                             | 7.5   | 9     | 12    | mA     |
+|                                                                                         | ISOMD = 1, active read                                                              | 12.5  | 14    | 18    | mA     |
+| ADDITIONAL V REG SUPPLY CURRENT FROM DISCHARGING                                        | DCT = 0 and no cell discharge enabled                                               |       | 0     |       | µA     |
+|                                                                                         | DCT ≠ 0 and/or some cell discharges asserted                                        | 10    | 40    | 130   | µA     |
+| V+ SUPPLY VOLTAGE                                                                       | TME specifications met                                                              | 11    | 40    | 80    | V      |
+| V REG SUPPLY VOLTAGE                                                                    |                                                                                     | 4.5   | 5     | 5.5   | V      |
+| THERMAL SHUTDOWN PROCEDURE                                                              |                                                                                     |       | 150   |       | °C     |
+| DISCHARGE SWITCH ON RESISTANCE                                                          | SxN = 0 V (x = 1, 2, or 3), SxP = 6 V (x > 3)                                       | 0.5   | 1     | 4     | Ω      |
+| DRIVE PIN OUTPUT                                                                        |                                                                                     |       |       |       |        |
+| Output Voltage (V DRIVE )                                                               | T A = 25°C                                                                          | 5.6   | 5.7   | 5.8   | V      |
+| Output Current                                                                          | ΔV DRIVE < ±100 mV                                                                  | -0.2  |       | +1    | mA     |
+| Temperature Coefficient                                                                 |                                                                                     |       | -1.6  |       | mV/°C  |
+
+## SPECIFICATIONS
+
+- 1 The active state current is calculated from DC measurements. The active state current is the additional average supply current into V REG when there are continuous 2 MHz communications on the isoSPI ports. Slower clock rates reduce the supply current.
+
+## Table 7. Operation Timing Specifications
+
+| Parameter                   | Symbol   | Test Conditions/Comments                                                                                                                                                                    | Min   |   Typ | Max   | Unit   |
+|-----------------------------|----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------|-------|-------|--------|
+| REGULATOR START-UP TIME     | t WAKE   | V REG generated from DRIVE pin                                                                                                                                                              |       | 200   | 500   | µs     |
+| WATCHDOG OR DISCHARGE TIMER | t SLEEP  | DCTO[3:0] = 0000                                                                                                                                                                            | 1.8   |   2   | 2.2   | sec    |
+| REFERENCE WAKE-UP TIME      | t REFUP  | Added to the conversion time when starting from the standby state. t REFUP = 0 when starting from other states. t REFUP is independent of the number of channels measured and the ADC mode. | 2.7   |   3.5 | 4.4   | ms     |
+| PWM DISCHARGE PERIOD        |          |                                                                                                                                                                                             |       | 937   |       | ms     |
+
+## Table 8. Digital Pin DC Specifications
+
+| Parameter                      | Symbol          | Test Conditions/Comments      | Min   | Typ   | Max   | Unit   |
+|--------------------------------|-----------------|-------------------------------|-------|-------|-------|--------|
+| DIGITAL INPUT VOLTAGE HIGH     | V IH            | CSB, SCK, SDI, ISOMD, GPIOx   | 2.3   |       |       | V      |
+| DIGITAL INPUT VOLTAGE LOW      | V IL            | CSB, SCK, SDI, ISOMD, GPIOx   |       |       | 0.8   | V      |
+| DIGITAL INPUT LEAKCAGE CURRENT | I LEAK(DIG)     | SDI, ISOMD, GPIOx, SDO at 5 V |       |       | ±1    | µA     |
+|                                |                 | CSB, SCK at 5 V               |       |       | 10    | µA     |
+|                                |                 | CSB, SCK at 3.5 V             |       |       | 1     | µA     |
+| DIGITAL OUTPUT, LOW SDO, GPIOx | V OL(SDO, GPIO) | Sinking 4 mA                  |       |       | 0.3   | V      |
+
+## Table 9. isoSPI Specifications
+
+| Parameter                           | Symbol        | Test Conditions/Comments                                        | Min    | Typ   | Max   | Unit   |
+|-------------------------------------|---------------|-----------------------------------------------------------------|--------|-------|-------|--------|
+| TRANSMITTER PULSE AMPLITUDE         | V A           | V A = &#124;V IP - V IM &#124;, termination resistance = 50 Ω   | 1      | 1.25  | 1.6   | V      |
+| RECEIVER THRESHOLD SETTING          | V RX          |                                                                 | 240    | 300   | 360   | mV     |
+| LEAKAGE CURRENT ON IPx AND IMx PINS | I LEAK(IP/IM) | Idle state, V IP or V IM , 0 V to V REG                         |        |       | 10    | µA     |
+| TRANSMITTER DRIVE CURRENT           |               | V CM set by the driver                                          |        | 25    |       | mA     |
+| COMMON-MODE VOLTAGE                 | V CM          | T A = 25°C, IPx and IMx pins not driving                        |        | 3.2   |       | V      |
+| RECEIVER INPUT RESISTANCE           | R IN          | ISOMD = 1, ready state IPA, IMA ISOMD = 1, ready state IPB, IMB | 35 100 |       |       | kΩ kΩ  |
+| DIFFERENTIAL WAKE-UP VOLTAGE        | V WAKE        | t DWELL ≥ 240 ns                                                | 400    |       |       | mV     |
+| START-UP TIME AFTER WAKE DETECTION  | t READY       |                                                                 |        |       | 10    | µs     |
+| IDLE TIMEOUT DURATION               | t IDLE        |                                                                 | 4.3    | 5.5   | 6.7   | ms     |
+
+## ISOSPI PULSE TIMING SPECIFICATIONS
+
+## Table 10. isoSPI Pulse Timing Specifications
+
+| Parameter             | Symbol     | Test Conditions/Comments   | Min   | Typ   | Max   | Unit   |
+|-----------------------|------------|----------------------------|-------|-------|-------|--------|
+| CHIP SELECT           |            |                            |       |       |       |        |
+| Half Pulse Width      | t ½PW(CS)  | Transmitter                | 120   | 150   | 180   | ns     |
+| Signal Filter         | t FILT(CS) | Receiver                   | 70    | 90    | 110   | ns     |
+| Pulse Inversion Delay | t INV(CS)  | Transmitter                | 120   | 155   | 190   | ns     |
+| Valid Pulse Window    | t WNDW(CS) | Receiver                   | 220   | 270   | 330   | ns     |
+| DATA                  |            |                            |       |       |       |        |
+| Half Pulse Width      | t ½PW(D)   | Transmitter                | 40    | 50    | 60    | ns     |
+| Signal Filter         | t FILT(D)  | Receiver                   | 10    | 25    | 35    | ns     |
+| Pulse Inversion Delay | t INV(D)   | Transmitter                | 40    | 55    | 65    | ns     |
+| Valid Pulse Window    | t WNDW(D)  | Receiver                   | 70    | 90    | 110   | ns     |
+
+## SPECIFICATIONS
+
+## SPI TIMING REQUIREMENTS
+
+Table 11. SPI Timing Requirements
+
+| Symbol     | Parameter                             | Test Conditions/Comments   |   Min | Max   | Unit   |
+|------------|---------------------------------------|----------------------------|-------|-------|--------|
+| t CLK 1, 2 | SCK period                            |                            |   0.5 |       | µs     |
+| t 1 2      | SDI setup time before SCK rising edge |                            |  25   |       | ns     |
+| t 2 2      | SDI hold time after SCK rising edge   |                            | 100   |       | ns     |
+| t 3 2      | SCK low                               | t CLK = t 3 + t 4 ≥ 0.5 µs | 100   |       | ns     |
+| t 4 2      | SCK high                              | t CLK = t 3 + t 4 ≥ 0.5 µs | 100   |       | ns     |
+| t 5 2      | CSB rising edge to CSB falling edge   |                            |   2   |       | µs     |
+| t 6 1, 2   | SCK rising edge to CSB rising edge    |                            |   0.5 |       | µs     |
+| t 7 1, 2   | CSB falling edge to SCK rising edge   |                            |   0.5 |       | µs     |
+
+1 These timing specifications are dependent on the delay through the cable and include allowances for 50 ns of delay each direction. 50 ns corresponds to 10 m of Cat-5 cable (which has a velocity of propagation of 66% the speed of light). The use of longer cables requires derating these specifications by the amount of additional delay.
+
+2 This specification applies over the full operating temperature range.
+
+## ISOSPI TIMING SPECIFICATIONS
+
+## Table 12. isoSPI Timing Specifications
+
+| Symbol      | Parameter                              | Test Conditions/Comments                          | Min   | Typ   |    Max | Unit   |
+|-------------|----------------------------------------|---------------------------------------------------|-------|-------|--------|--------|
+| t 8 1, 2    | SCK falling edge to SDO valid          |                                                   |       |       |  60    | ns     |
+| t 9 2       | SCK rising edge to short ±1 transmit   |                                                   | 230   | 265   | 300    | ns     |
+| t 10 2      | CSB transition to long ±1 transmit     |                                                   |       |       | 100    | ns     |
+| t 11 1, 2   | CSB rising edge to SDO rising          |                                                   |       |       | 200    | ns     |
+| t RTN 2     | Data return delay                      |                                                   | 150   | 185   | 220    | ns     |
+| t DSY(CS) 2 | Chip select daisy-chain delay          |                                                   | 100   | 160   | 200    | ns     |
+| t DSY(D) 2  | Data daisy-chain delay                 |                                                   | 280   | 330   | 380    | ns     |
+| t LAG 2     | Data daisy-chain lag (vs. chip select) | (t DSY(D) + t ½PW(D) ) - (t DSY(CS) + t ½PW(CS) ) | 0     | 70    | 100    | ns     |
+| t 5(GOV) 2  | Chip select high to low pulse governor |                                                   | 0.54  | 0.67  |   0.85 | µs     |
+| t 6(GOV) 2  | Data to chip select pulse governor     |                                                   | 0.69  | 0.86  |   1.1  | µs     |
+| t BLOCK 2   | isoSPI port reversal blocking window   |                                                   | 2     |       |  10    | µs     |
+
+1 These specifications do not include rise or fall time of SDO. Although fall time (typically 5 ns due to the internal pull-down transistor) is not a concern, the rising edge transition time (t RISE ) is dependent on the pull-up resistance and load capacitance on the SDO pin. The time constant must be chosen such that SDO meets the setup time requirements of the MCU.
+
+2 This specification applies over the full operating temperature range.
+
+## ABSOLUTE MAXIMUM RATINGS
+
+## Table 13. Absolute Maximum Ratings
+
+| Parameter                              | Rating          |
+|----------------------------------------|-----------------|
+| Total Supply Voltage, V+ to V-         | -0.3 V to +85 V |
+| Input Pins (Relative to V-)            |                 |
+| Cx (x ≤ 16)                            | -0.3 V to +85 V |
+| S1N, S1P, S2N                          | -0.3 V to +12 V |
+| S2P, S3N, S3P                          | -0.3 V to +22 V |
+| Sx (4 ≤ x ≤ 16)                        | -0.3 V to +85 V |
+| IPA 1 , IMA 1 , IPB, IMB               | -15 V to +15 V  |
+| DRIVE                                  | -0.3 V to +7 V  |
+| All Other Pins                         | -0.3 V to +6 V  |
+| Voltage Between Input Pins             |                 |
+| SxP to SxN                             | -0.3 V to +12 V |
+| S2N to S1N                             | -0.3V to +12 V  |
+| C16 to C16:15                          | -6 V to +12 V   |
+| C16:15 to C15                          | -6 V to +12 V   |
+| … C2:1 to C1 (ADBMS6830B in LQFP_EP    | -6 V to +12 V   |
+| Current In and Out of Pins             |                 |
+| SxP to SxN (Discharge Switched Closed) | 350 mA          |
+| SxN to SxP (Discharge Switch Open)     | 10 mA           |
+| Sx When Pulled Below V-                | 10 mA           |
+| IPA 1 , IMA 1 , IPB, IMB               | 40 mA           |
+| V REG                                  | 30 mA           |
+| All Other Pins                         | 10 mA           |
+| Temperature                            |                 |
+| Operating Range                        | -40°C to +125°C |
+| Junction                               | 150°C           |
+| Storage Range                          | -65°C to +150°C |
+| Lead (Soldering, 10 sec)               | 300°C           |
+
+1 IPA and SCK are the same pin. IMA and CSB are the same pin. The absolute maximum rating for these pins depends on whether Port A is configured for SPI mode (CSB and SCK) or isoSPI mode (IPA and IMA).
+
+Stresses at or above those listed under Absolute Maximum Ratings may cause permanent damage to the product. This is a stress rating only; functional operation of the product at these or any other conditions above those indicated in the operational section of this specification is not implied. Operation beyond the maximum operating conditions for extended periods may affect product reliability.
+
+## THERMAL RESISTANCE
+
+Thermal performance is directly linked to printed circuit board (PCB) design and operating environment. Careful attention to PCB thermal design is required.
+
+## Table 14. Thermal Resistance
+
+| Package Type 1   |   θ JA 2 |   θ JCBOT |   θ JCTOP | Unit   |
+|------------------|----------|-----------|-----------|--------|
+| 05-08-1783       |     18.5 |       1.4 |      19.2 | °K/W   |
+
+1 The exposed pad must be connected to the V- plane for proper thermal management.
+
+2 Board layout impacts thermal characteristics, such as θ JA .
+
+θ JA is the natural convection, junction-to-ambient thermal resistance measured in a one cubic foot sealed enclosure.
+
+θ JCBOT is the bottom junction-to-case thermal resistance.
+
+θ JCTOP is the top junction-to-case thermal resistance.
+
+## ELECTROSTATIC DISCHARGE (ESD) RATINGS
+
+The following ESD information is provided for handling of ESD-sensitive devices in an ESD protected area only.
+
+Human body model (HBM) per ANSI/ESDA/JEDEC JS-001.
+
+Charged device model (CDM) per ANSI/ESDA/JEDEC JS-002.
+
+## ESD Ratings for ADBMS6830B
+
+## Table 15. ADBMS6830B, 80-Lead LQFP\_EP
+
+| ESD Model   | Withstand Threshold (V)   | Class   |
+|-------------|---------------------------|---------|
+| HBM         | ±3500                     | 2       |
+| CDM         | ±500                      | C2B     |
+|             | Corners pins: ±750        |         |
+
+## ESD CAUTION
+
+<!-- image -->
+
+ESD (electrostatic discharge) sensitive device . Charged devices and circuit boards can discharge without detection. Although this product features patented or proprietary protection circuitry, damage may occur on devices subjected to high energy ESD. Therefore, proper ESD precautions should be taken to avoid performance degradation or loss of functionality.
+
+## PIN CONFIGURATIONS AND FUNCTION DESCRIPTIONS
+
+Figure 3. Pin Configuration, 80-Lead LQFP\_EP
+
+<!-- image -->
+
+Table 16. Pin Function Descriptions
+
+| Pin No. (LQFP_EP)                                                                                                          | Mnemonic                 | Description                                                                                                                                                                                                                                        |
+|----------------------------------------------------------------------------------------------------------------------------|--------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1                                                                                                                          | V+                       | Positive Supply Pin.                                                                                                                                                                                                                               |
+| 2, 5, 8, 9, 12, 15, 16, 19, 22, 23, 26, 29, 30, 33, 36, 37, 40, 43, 44, 47, 50, 51, 54, 57                                 | C16 to C1                | Differential Inputs for Cell Measurement ADCs.                                                                                                                                                                                                     |
+|                                                                                                                            | C9N                      | Negative Terminal of the Ninth C-Measurement Channel. See the Bus Bar Monitoring and Bypassing section for usage details.                                                                                                                          |
+| 3, 4, 6, 7, 10, 11, 13, 14, 17, 18, 20, 21, 24, 25, 27, 28, 31, 32, 34, 35, 38, 39, 41, 42, 45, 46, 48, 49, 52, 53, 55, 56 | S16P to S1P, S16N to S1N | Balance Inputs and Outputs. 16 P-channel metal-oxide semiconductor field effect transistors (P- MOSFETs) are connected between SxP and SxN. Inputs to the S-ADCs.                                                                                  |
+| 58, 59                                                                                                                     | IMA, IPA                 | Isolated 2-Wire Serial Interface Port A. IPA (plus) and IMA (minus) are a differential input/output pair.                                                                                                                                          |
+| 58, 59, 61, 64                                                                                                             | CSB, SCK, SDI, SDO       | 4-Wire SPI. Active low chip select (CSB), serial clock (SCK), and serial data input (SDI) are digital inputs. Serial data out (SDO) is an open-drain, N-channel metal-oxide semiconductor (NMOS) output pin. SDO requires a 1 kΩ pull-up resistor. |
+
+## PIN CONFIGURATIONS AND FUNCTION DESCRIPTIONS
+
+Table 16. Pin Function Descriptions (Continued)
+
+| Pin No. (LQFP_EP)   | Mnemonic                    | Description                                                                                                                                                                                                                                    |
+|---------------------|-----------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 60                  | ISOMD                       | Serial Interface Mode. Connecting ISOMD to V REG configures the ADBMS6830B for 2-wire isolated interface (isoSPI) mode. Connecting ISOMD to V- configures the ADBMS6830B for 4-wire SPI mode.                                                  |
+| 62, 63              | IMB, IPB                    | Isolated 2-Wire Serial Interface Port B. IPB (plus) and IMB (minus) are a differential input/output pair. Connect the base of an external negative positive negative (NPN) transistor to this pin. Connect the                                 |
+| 65                  | DRIVE                       | collector to V+ and the emitter to V REG .                                                                                                                                                                                                     |
+| 66                  | NC                          | Leave unconnected (preferred) or connect to V-.                                                                                                                                                                                                |
+| 67                  | V-                          | Negative Supply Pins. The V- pins must be shorted together, external to the IC.                                                                                                                                                                |
+| 68                  | V REF2                      | Buffered Second Reference Voltage for Driving Multiple 10 kΩ Thermistors. Bypass with an external 1 μF capacitor.                                                                                                                              |
+| 69                  | V REG                       | 5 V Regulator Input. Bypass with an external 1 μF capacitor.                                                                                                                                                                                   |
+| 70                  | V REF1                      | ADC Reference Voltage. Bypass with an external 1 μF capacitor. No DC loads allowed.                                                                                                                                                            |
+| 71 to 80            | GPIO10 to GPIO1 Exposed Pad | General-Purpose Inputs/Outputs. Can be used as digital inputs or digital outputs, or as analog inputs with a measurement range from V- to 5 V. GPIO3 to GPIO5 can be used as an I 2 C or SPI port. Exposed Pad. Connect the exposed pad to V-. |
+
+## TYPICAL PERFORMANCE CHARACTERISTICS
+
+TA = 25°C, unless otherwise noted.
+
+<!-- image -->
+
+Figure 4. C-ADC Change in Measurement Error vs. Time of Operation at 125°C
+
+<!-- image -->
+
+Figure 5. C-ADC Measurement Error at 4.2 V vs. Temperature for 15 Devices
+
+<!-- image -->
+
+Figure 6. C-ADC Measurement Error vs. Input Voltage (V IN )
+
+<!-- image -->
+
+Figure 7. C-ADC Gain Error Due to IR Reflow
+
+Figure 8. S-ADC Measurement Error at 4.2 V vs. Temperature for 15 Devices
+
+<!-- image -->
+
+Figure 9. S-ADC Measurement Error vs. V IN
+
+<!-- image -->
+
+## TYPICAL PERFORMANCE CHARACTERISTICS
+
+<!-- image -->
+
+Figure 10. Change in V REF2 Voltage vs. Load Current
+
+Figure 11. Change in V DRIVE Voltage vs. Load Current
+
+<!-- image -->
+
+Figure 12. Discharge Switch On Resistance vs. Cell Voltage
+
+<!-- image -->
+
+## THEORY OF OPERATION
+
+## CORE STATE DESCRIPTIONS
+
+Figure 13. Core State Diagram
+
+<!-- image -->
+
+## THEORY OF OPERATION
+
+## Standby State
+
+At first power-up or after a power-on reset (POR), the device resets and enters the standby state. The standby state allows communicating with the ADBMS6830B, and cell discharge and balancing can be enabled by writing to the PWM register group. The reference and the ADCs are off. The watchdog timer and/or the discharge timer is running. The DRIVE pin powers the V REG pin to 5.2 V through an external transistor controlled by the DRIVE pin. V REG can also be powered through an external source. In this case, the internal regulator must be disabled to avoid contention by floating the DRIVE pin. The IC can perform PWM discharge in the standby state.
+
+When a valid ADC command is received, or if the REFON bit is set to 1 in the Configuration Register Group A, the IC pauses for t REFUP to allow the reference to power up. Then, the IC enters either the REFUP or measure state. Otherwise, if no valid commands are received for t SLEEP , the IC returns to the sleep state if DCTO = 0, or enters the extended balancing state if DCTO ≠ 0.
+
+## Sleep State
+
+When the watchdog timer times out, the ADBMS6830B enters the sleep state with minimum power consumption. The references and ADCs are powered down. The isoSPI ports are in the idle state. The DRIVE pin is 0 V. An internal 3 V regulator supplies power to detect a wake-up signal and to retain 6 bytes of user programmable data in the retention registers. All other registers are reset to their default value. If a wake-up signal is received, the ADBMS6830B enters the standby state.
+
+## REFUP State
+
+To reach the REFUP state, the REFON bit in Configuration Register Group A must be set to 1 using the WRCFGA command. In the REFUP state, the ADCs are off. The reference is powered up so that the ADBMS6830B can initiate ADC conversions faster than from the standby state.
+
+When a valid ADC command is received, the IC moves to the measure state to begin the conversion. Otherwise, the ADBMS6830B returns to the standby state when the REFON bit is set to 0. If no valid commands are received for t SLEEP , the IC either returns to the sleep state if DCTO = 0, or enters the extended balancing state if DCTO ≠ 0.
+
+## Measure State
+
+When receiving a valid ADC command (ADCV, ADSV, ADAX, or ADAX2), the ADBMS6830B enters the measure state to perform ADC conversions. When entering this state, the reference and ADCs are powered.
+
+If the CONT bit in the ADC command is set to 0, the ADBMS6830B executes a single conversion cycle according to the ADC com- mand, updates the corresponding result registers, and returns to the standby state or REFUP state.
+
+If the CONT bit in the ADC command is set to 1, the ADBMS6830B continuously executes conversion cycles according to the ADC command, updates the corresponding result registers with a 1 kHz update rate, and feeds the ADC results to the corresponding IIR filter preconfigured according to the filter configuration register (see the Internal Digital Filtering section for more details). If a new ADCV, ADSV, ADAX, or ADAX2 command is received during the conversions, the ongoing conversions of the concerned ADCs stop, and new measurements start, allowing re-synchronization of multiple ADBMS6830Bs in a stack.
+
+## Extended Balancing and DTM Measure States
+
+In the DTM measure state, the ADBMS6830B periodically monitors cell voltages while PWM balancing and the discharge timer are active without interacting with the host controller. The host must configure the PWM balancing, clear all DCC bits, and set the DTMEN bit to enable this feature.
+
+If the watchdog timer expires and the discharge timer monitor is enabled and not timed out, the ADBMS6830B enters the extended balancing state in which the configured PWM discharge continues. From this state, the ADBMS6830B transitions every 30 sec to the DTM measure state to measure the cell voltages, compare the result to the overvoltage (OV) and undervoltage (UV) thresholds, and update the OV and UV flags in the status register accordingly. When the UV threshold is reached for any cell, the ADBMS6830B discontinues the discharge of the concerned cell. If the cell voltage recovers above the UV threshold, the discharge of that cell resumes.
+
+The discharge is not muted when cell measurements are performed in the low power cell monitoring (LPCM) heartbeat mode or DTM measure state. As a result, measurements are affected by the voltage drop of the discharge current over the cell cable resistance. The PWM discharge happens asynchronously to the ADC measurements. Therefore, it is not predictable if a measurement is altered by the voltage drop. Depending on the cable resistance and the discharge current, the intended voltage thresholds (VOV, VUV, CMT\_CUV, and CMT\_COV) may not be checked accurately.
+
+The ADBMS6830B transitions to the standby state upon reception of any valid command, or to the sleep state when the discharge timeout (DCTO) value expires. PWM balancing continues even when the DCTO value has not expired.
+
+## THEORY OF OPERATION
+
+## ISOSPI STATE DESCRIPTION
+
+The ADBMS6830B has two isoSPI ports for daisy-chain communication: Port A and Port B.
+
+Figure 14. isoSPI State Diagram
+
+<!-- image -->
+
+## Idle State
+
+In the idle state, the isoSPI ports are powered down.
+
+When isoSPI Port A or Port B receives a wake-up signal, the isoSPI enters the ready state. This transition happens quickly (within t READY ) if the core is in the standby state. If the core is in the sleep state when the isoSPI receives a wake-up signal, the IC transitions to the ready state within t WAKE .
+
+## Ready State
+
+In the ready state, the isoSPI ports are ready for communication. The serial interface current in this state depends on the status of the ISOMD pin.
+
+If there is no activity (that is, no wake-up signal) on Port A or Port B for greater than t IDLE , the ADBMS6830B moves to the idle state. When the serial interface is transmitting or receiving data, the ADBMS6830B moves to the active state.
+
+## Active State
+
+The ADBMS6830B is transmitting/receiving data using one or both of the isoSPI ports in the active state. The serial interface consumes maximum power in this state. The supply current increases with the clock frequency as the density of isoSPI pulses increases.
+
+## POWER SUPPLY
+
+The ADBMS6830B is powered by two pins: V+ and V REG . The V+ input requires a voltage greater than or equal to 11 V, independent of the voltage of the cell measurement inputs pins. V+ provides power mainly to the highly accurate Zener reference voltage. The VREG  input requires 5 V and provides power to the remaining core circuits and the isoSPI circuitry, and to drive the discharge switches. The V REG input can be powered through an external transistor that is driven by the regulated DRIVE output pin. Alternatively, V REG can be powered by an external supply.
+
+The power consumption varies according to the operational states. In the sleep state, the ADBMS6830B consumes 4 µA provided either entirely by the V+ pin or partly by the V REG pin if the latter is powered by an external supply. The V+ pin current depends only on the core state, whereas the V REG pin current depends on both the core state and isoSPI state and can be divided into two components.
+
+I
+
+<!-- formula-not-decoded -->
+
+When measuring, the current drawn depends on the number of ADCs that are turned on to measure.
+
+I REG(Core) is thus the sum of the power consumed in the REFUP state and the additional current consumed by the ADCs.
+
+I REG (Core, Measure) = I REG (Core, REFUP) + I REG (Core, ADCs on)
+
+The Specifications section provides an overview of the power consumption in measure state, dependent on the number of ADCs used.
+
+In a typical example, I REG(Core) can be estimated as I REG Core = I regREFUP +I regCADC +n SADC ×t SADC /t FDTI ×I regSADC + n AUX ×t AUX +n AUX 2 ×t AUX 2 /t FDTI ×I regAUX ≈ 8mA based on the following assumptions:
+
+- t AUX = 1 ms, AUX conversion time
+- n AUX = 18, number of AUX conversions per fault detection time interval (FDTI) (all channels for diagnostics and all GPIOs)
+- t AUX2 = 8 ms, AUX2 conversion time
+- n AUX2 = 10,  number of AUX2 conversions per FDTI (all 10 GPIOs)
+- t FDTI = 100 ms, fault detection time interval
+- t SADC = 8 ms,  S-ADC conversion time
+- n SADC = 3, number of S-ADC conversions per FDTI
+- I regAUX = 0.55 mA,  AUX ADC current consumption (AUX ADC and AUX2 ADC active)
+- I regREFUP = 2.3 mA,  current consumption in REFUP state, which is also the base current consumption
+- I regCADC = 4.5 mA, C-ADC current consumption (for all 16)
+- I regSADC = 3.9 mA,  S-ADC current consumption (for all 16)
+
+The isoSPI draws current only from the V REG pin. Table 17 provides equations to approximate the isoSPI current in function of the isoSPI state.
+
+Table 17. Power Consumption for isoSPI Communication
+
+| isoSPI State   | ISOMD Logic    | I REG(isoSPI)                                                                                                                                                                                                                 |
+|----------------|----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Idle           | Not applicable | 0 mA                                                                                                                                                                                                                          |
+| Ready          | 1 0            | 3.7 mA 3.2 mA                                                                                                                                                                                                                 |
+| Active         | 1              | Active write: I REG(isoSPI) (ready state) + 2 × t ½PW(D) / t CLK × I DRV Active read: I REG(isoSPI) (ready state) + 4 × t ½PW(D) / t CLK × I DRV Active write/read: I REG(isoSPI) (ready state) + 2 × t ½PW(D) /t CLK × I DRV |
+|                | 0              |                                                                                                                                                                                                                               |
+
+As an example, with the following assumptions:
+
+- I regRd = 14 mA, active read current consumption (2 Mbps, 100% SPI duty cycle).
+- I regWr = 9 mA, active write current consumption (2 Mbps, 100% SPI duty cycle).
+- I regRdy = 3.7 mA, isoSPI ready state current consumption (when not communicating and t IDLE not elapsed).
+- duty = 0.8, SPI communication duty cycle, assuming worst case 80%.
+- wrRatio = 0.3, assuming 30% of commands are write commands (for example, WRCFGA, WRCFGB, WRPWM....).
+- regRd regRdy ≈ 11mA ► Total I REG current: 8 mA + 11 mA = 19 mA.
+- I REG(isoSPI) can be estimated as I REG isoSPI = duty × wrRatio × I regWr + 1 -wrRatio ×I + 1 - duty ×I
+- For the typical application using an external NPN transistor to generate V REG , this current is taken from MODULE+, to which V+ is also connected. The typical V+ current consumption in the measure state is 0.5 mA. As a result, the typical MODULE+ current consumption is &lt; 20 mA for the assumed isoSPI communication duty cycle.
+
+## CELL VOLTAGE MEASUREMENTS
+
+## C-ADC AND S-ADC OPERATIONS AND COMMANDS
+
+16 ADCs are dedicated to measure the 16 differential cell inputs synchronously and are therefore called C-ADCs. C-ADCs feature an input range of -2 V to +5.5 V and a sampling frequency of ~4 MHz, giving out 16-bit results every 1 ms with an LSB of 150 μV. Furthermore, every 8 ms an average of the last eight conversions of the ADC is provided.
+
+16 additional ADCs are dedicated to measure the 16 differential inputs (SxP and SxN) synchronously with an input range of 0 V to 5. 5 V and a sampling frequency of ~4 MHz, giving out results every 8 ms. These S-ADCs allow redundant measurement of the cell voltages using an independent measurement path from the C-ADCs.
+
+## Table 18. C-ADC and S-ADC Commands
+
+| Command                                    |      |       |   CC[10:0] - Command Code |   CC[10:0] - Command Code | CC[10:0] - Command Code   | CC[10:0] - Command Code   |   CC[10:0] - Command Code |   CC[10:0] - Command Code | CC[10:0] - Command Code   |   CC[10:0] - Command Code | CC[10:0] - Command Code   | CC[10:0] - Command Code   | CC[10:0] - Command Code   |
+|--------------------------------------------|------|-------|---------------------------|---------------------------|---------------------------|---------------------------|---------------------------|---------------------------|---------------------------|---------------------------|---------------------------|---------------------------|---------------------------|
+| Description                                | Name | INC 1 |                        10 |                         9 | 8                         | 7                         |                         6 |                         5 | 4                         |                         3 | 2                         | 1                         | 0                         |
+| Start Cell Voltage ADC Conversion and Poll | ADCV | Yes   |                         0 |                         1 | RD                        | CONT                      |                         1 |                         1 | DCP                       |                         0 | RSTF                      | OW[1]                     | OW[0]                     |
+| Start S-ADC Conversion and Poll Status     | ADSV | Yes   |                         0 |                         0 | 1                         | CONT                      |                         1 |                         1 | DCP                       |                         1 | 0                         | OW[1]                     | OW[0]                     |
+
+1 INC indicates whether the command counter increments for the command.
+
+Refer to the memory map description for the representation of the measurement results in the respective 16-bit registers (see the Memory Map section).
+
+Two commands can trigger C-ADC and S-ADC measurements: ADCV triggers cell voltage conversions with or without redundancy, and ADSV triggers S-ADC conversions.
+
+If a new ADCV or ADSV is received during the conversions, the ongoing conversions of the concerned ADCs stop, and new measurements start, allowing re-synchronization of multiple ADBMS6830Bs in a stack. The corresponding result registers are reset upon reception of a new ADCV or ADSV.
+
+## CELL VOLTAGE MEASUREMENTS
+
+## CONTINUOUS OR SINGLE SHOT MEASUREMENTS
+
+Both C-ADCs and S-ADCs can be configured to perform a single measurement (CONT = 0) or continuous measurements (CONT = 1). In continuous mode, the result registers of the corresponding ADCs are updated at their conversion rate of 1 ms (C-ADC) and 8 ms (S-ADC). To end continuous measurement mode of the respective ADC, send an ADCV or ADSV with CONT = 0. The addressed ADC then performs a last single shot measurement before turning off.
+
+## REDUNDANT MEASUREMENTS
+
+There are two methods to obtain redundant measurements: a direct method and an indirect method.
+
+The direct method involves setting the redundancy bit (RD) in an ADCV command. In this case, the C-ADCs and S-ADCs are both triggered to provide redundancy. After 8 ms, the average results of the C-ADCs are compared to the results of the S-ADCs. If the results do not match within the threshold set by the CTH[2:0] in Configuration Register A, the CSxFLT flag is set in the Status Register Group C. A single shot measurement triggered with RD = 1 and CONT = 0 takes 8 ms. If an ADSV is issued with CONT = 0, no further comparison is performed, and the S-ADC performs a single shot conversion and then stops.
+
+Table 19. ADC Command Control Bits
+
+Note that if an ADCV with RD = 1 is issued, the open wire switches are reset (open) to ensure a proper comparison. The Algorithm for Cell Measurement with Diagnostics section describes a sequence of redundant measurements and open wire detection measurements by means of the S-ADC for high functional safety coverage.
+
+The indirect method allows synchronizing the S-ADCs to the already running C-ADCs.
+
+If an ADSV is issued with CONT = 1 while the C-ADCs are in continuous mode, the S-ADCs wait for the current C-ADC average of 8 conversions to finish, start conversions synchronous to the CAVG8, and compare the CAVG8 and S-ADC results. When redundant measurements with subsequent result comparison are started or ongoing, the COMP bit in the status register group is set to one for latent fault coverage.
+
+## DISCHARGE DURING MEASUREMENTS
+
+The ADBMS6830B allows interrupting PWM discharge during measurements to acquire cell voltage without voltage drop in cabling due to discharge current. The behavior is controlled via the RD, DCP, and CONT bits and described in Table 19.
+
+|         | Inputs   | Inputs   | Inputs   | PWM Discharge Status 1, 2                                                                                                                                                                                                                                                  |
+|---------|----------|----------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Command | RD 3     | DCP      | CONT     | PWM Discharge Status 1, 2                                                                                                                                                                                                                                                  |
+| ADCV    | 0        | 0        | 1        | Stop ongoing C-ADC conversion and restart for continuous conversion of C-ADC. PWM controlled discharge remains unaffected.                                                                                                                                                 |
+|         | 1        | 0        | 1        | PWM controlled discharge is interrupted. Stop ongoing C-ADC conversion and restart for continuous conversion of C-ADC and S-ADC to make redundant comparison. PWM discharge remains off if no further command is sent.                                                     |
+|         | 1        | 0        | 0        | PWM controlled discharge is interrupted. Stop ongoing C-ADC conversion and make single-shot conversion of C-ADC and S-ADC for redundant comparison. PWM discharge remains off for the duration of the redundant C-ADC and S-ADC conversion (8 ms typical).                 |
+|         | 0        | 0        | 0        | Immediately trigger single-shot conversion of C-ADC. Operation of S-ADC and PWM controlled discharge remains unaffected.                                                                                                                                                   |
+|         | X        | 1        | 0        | Stop ongoing C-ADC conversion and make single-shot conversion of C-ADC (RD = 0) or C-ADC and S-ADC (RD = 1). No effect on PWM controlled discharge.                                                                                                                        |
+|         | X        | 1        | 1        | Invalid command is ignored. Current operation remains unaffected, CC not incremented.                                                                                                                                                                                      |
+| ADSV    | X        | 0        | 1        | If C-ADC is converting continuously, the S-ADC is synchronized to the C-ADC to make continuous conversion of C-ADCs and S-ADCs for redundant comparison. If C-ADC is not converting, only the S-ADC makes continuous conversions. The PWM controlled discharge is stopped. |
+|         | X        | 0        | 0        | PWM controlled discharge is interrupted for single-shot conversion of S-ADC. Operation of C-ADC remains unaffected.                                                                                                                                                        |
+|         | X        | 1        | 0        | PWM controlled discharge continues during measurement. Single-shot conversion of S-ADC. Operation of C-ADC remains unaffected.                                                                                                                                             |
+|         | X        | 1        | 1        | Current operation remains unaffected, CC not incremented.                                                                                                                                                                                                                  |
+
+1 Discharge always continues if statically enabled via the DCC bits and not interrupted by other higher priority events such as WRCFGA, WRCFGB, mute, and thermal shutdown.
+
+2 Any ADCV interrupts the ongoing C-ADC conversions and restarts the C-ADCs. For this reason, it is recommended to trigger redundant measurements with the ADSV command every fault tolerant time interval (FTTI)(ADSV with DCP = 0, CONT = 1).
+
+3 X means 0 or 1.
+
+## CELL VOLTAGE MEASUREMENTS
+
+## OPEN WIRE SWITCHES
+
+As shown in Figure 2, the ADBMS6830B features current-limited switches at the cell measurement inputs. Activating these switches detects if the connection to the cell is broken. The open wire switches in the corresponding measurement path are controlled by the open wire bits (OW[1:0]), as shown in Table 20.
+
+Table 20. Open Wire Switch Control Bits
+
+|   OW[1] |   OW[0] | Open Wire Switches                                                                    |
+|---------|---------|---------------------------------------------------------------------------------------|
+|       0 |       0 | All channels: off                                                                     |
+|       0 |       1 | Even channels on (S2 and C2, S4 and C4, …) odd channels off (S1 and C1, S3 and C3, …) |
+|       1 |       0 | Even channels off (S2 and C2, S4 and C4, …) odd channels on (S1 and C1, S3 and C3, …) |
+|       1 |       1 | All channels on                                                                       |
+
+See the Cell Open Wire Detection section for more details.
+
+## INTERNAL DIGITAL FILTERING
+
+The figure below depicts the overall signal processing within the ADBMS6830B. The input voltages are samples by the S-ADCs and the C-ADCs with a sampling frequency of roughly 4.1 MHz. Both S-ADCs and C-ADCs are oversampling ADCs. Whereas the C-ADCs provide a new measurement result every 1 ms, the result of the S-ADCs is updated every 8 ms. The C-ADC measurement results are then averaged over 8 ms and, in case redundancy is required, compared to the synchronous results of the S-ADCs.
+
+The 16-bit results of the C-ADCs are also fed to configurable IIR filters for further noise filtering.
+
+Figure 15. Integrated Digital Filters
+
+<!-- image -->
+
+The transfer function of the IIR filter is represented by
+
+<!-- formula-not-decoded -->
+
+where:
+
+X [ n ] represents the nth input. Y [ n ] represents the nth output of the filter. a is the filter parameter given in Table 21.
+
+The -3 dB corner frequency can be chosen between 110 Hz and 0.625 Hz by programming the FC[2:0] bits in the Configuration Register Group A (see Table 21).
+
+Table 21. IIR Frequency Settings
+
+| -3 dB Corner Frequency   |   FC[2] |   FC[1] |   FC[0] | Filter Parameter   |
+|--------------------------|---------|---------|---------|--------------------|
+| Filter Disabled          |       0 |       0 |       0 | N/A 1              |
+| 110                      |       0 |       0 |       1 | 2                  |
+| 45                       |       0 |       1 |       0 | 4                  |
+| 21                       |       0 |       1 |       1 | 8                  |
+| 10                       |       1 |       0 |       0 | 16                 |
+| 5                        |       1 |       0 |       1 | 32                 |
+| 1.25                     |       1 |       1 |       0 | 128                |
+| 0.625                    |       1 |       1 |       1 | 256                |
+
+If all three bits are set to zero, no IIR filtering is applied.
+
+The filtered results are stored in the Filtered Cell Voltage Register Groups A through E. The IIR filters can be reset by either issuing a clear filtered cell voltage register group (CLRFC) command or by setting the reset filter (RSTF) bit in an ADCV command. Furthermore, the filters are reset if the filter corner frequency is changed. To speed up the settling time, the filters are preloaded with the first sample arriving after a reset. Note that any C-ADC result, whether obtained in continuous mode or in single shot mode, is added to IIR filter. Table 22 summarizes the option of digital filtering with the ADBMS6830B.
+
+Figure 16 shows the transfer function of the C-ADC results with an update rate of 1 kHz and the transfer function of their average over 8 ms, which is equivalent to the transfer function of the S-ADC and the transfer function after the additional IIR filter with the -3 dB corner frequency set to 0.625 Hz.
+
+## CELL VOLTAGE MEASUREMENTS
+
+Figure 16. Filter Transfer Functions
+
+<!-- image -->
+
+Table 22. Digital Filtering Options
+
+| ADC       | ADC Frequency (f ADC )   | Filter Output Rate   | Filter Type                   | Filter Function              |   -3 dB Corner Frequency (Hz) | Settle, Step to 0.1% of Final (sec)   | Specialty                                        |
+|-----------|--------------------------|----------------------|-------------------------------|------------------------------|-------------------------------|---------------------------------------|--------------------------------------------------|
+| C-channel | 4.1 MHz                  | 1 kHz                | IIR                           | 1-pole low-pass filter (LPF) |                       110     | 0.010                                 | Low frequency LPF                                |
+|           |                          |                      |                               |                              |                        45     | 0.025                                 | Low frequency LPF                                |
+|           |                          |                      |                               |                              |                        21     | 0.052                                 | Low frequency LPF                                |
+|           |                          |                      |                               |                              |                        10     | 0.108                                 | Low frequency LPF                                |
+|           |                          |                      |                               |                              |                         5     | 0.218                                 | Low frequency LPF                                |
+|           |                          |                      |                               |                              |                         1.25  | 0.881                                 | Low frequency LPF                                |
+|           |                          |                      |                               |                              |                         0.625 | 1.765                                 | Low frequency LPF                                |
+|           |                          | 125 Hz               | Finite impulse response (FIR) | Average of 8 samples         |                        56     |                                       | Noise filter and 50 Hz/60 Hz                     |
+|           |                          | 1 kHz                | Sinc (ADC)                    | First order sinc             |                       443     |                                       | Fast response with good high frequency filtering |
+| S-channel | 4.1 MHz                  | 125 Hz               | Sinc (ADC)                    | First order sinc             |                        56     |                                       | Matches C-channel FIR                            |
+
+## GPIO AND DEVICE PARAMETER MEASUREMENTS
+
+## AUX ADC OPERATION AND COMMANDS
+
+The 10 GPIO inputs can be measured redundantly by two separate unipolar ADCs, both preceded by a multiplexer with an input range of 0 V to 5.5 V. The main AUX ADC measures the internal supply voltages (VD and VA), a second reference (V REF2 ), and the die temperature (ITEMP) beside the GPIO channels.
+
+The ADAX command triggers AUX ADC measurements, and the ADAX2 command triggers AUX2 measurements.
+
+In case of an ADAX or ADAX2 command, the CHx bits select which auxiliary input is measured, according to Table 24.
+
+If all AUX inputs must be measured (CH[4:0] = 0000), the AUX ADCs perform measurements cycling through all inputs (18 channels total) and the corresponding auxiliary registers update. Note that only GPIOs can be measured by AUX2. Therefore, CH[4] is not available in the ADAX2 command.
+
+If the OW bit is set, the corresponding measurements are executed with open wire detection, which is performed by current sources in case of the AUX ADC. The pull-up bit decides whether pull-up (PUP
+
+## Table 23. AUX Commands
+
+|                                            |       |     |   CC[10:0] - COMMAND CODE |   CC[10:0] - COMMAND CODE | CC[10:0] - COMMAND CODE   | CC[10:0] - COMMAND CODE   | CC[10:0] - COMMAND CODE   |   CC[10:0] - COMMAND CODE |   CC[10:0] - COMMAND CODE | CC[10:0] - COMMAND CODE   | CC[10:0] - COMMAND CODE   | CC[10:0] - COMMAND CODE   | CC[10:0] - COMMAND CODE   |
+|--------------------------------------------|-------|-----|---------------------------|---------------------------|---------------------------|---------------------------|---------------------------|---------------------------|---------------------------|---------------------------|---------------------------|---------------------------|---------------------------|
+| Command Description                        | Name  | INC |                        10 |                         9 | 8                         | 7                         | 6                         |                         5 |                         4 | 3                         | 2                         | 1                         | 0                         |
+| Start AUX ADC Conversions and Poll Status  | ADAX  | Yes |                         1 |                         0 | OW                        | PUP                       | CH[4]                     |                         0 |                         1 | CH[3]                     | CH[2]                     | CH[1]                     | CH[0]                     |
+| Start AUX2 ADC Conversions and Poll Status | ADAX2 | Yes |                         1 |                         0 | 0                         | 0                         | 0                         |                         0 |                         0 | CH[3]                     | CH[2]                     | CH[1]                     | CH[0]                     |
+
+1 INC indicates whether the command counter increments for the command.
+
+Table 24. Channel Selection
+
+| Name    | Function                                                | Value   | Value   | Value   | Value   | Value   | AUX Input   |
+|---------|---------------------------------------------------------|---------|---------|---------|---------|---------|-------------|
+| CH[4:0] | Selection for AUX Inputs, ADAX: CH[4:0], ADAX2: CH[3:0] | CH[4]   | CH[3]   | CH[2]   | CH[1]   | CH[0]   |             |
+|         |                                                         | 0       | 0       | 0       | 0       | 0       | All         |
+|         |                                                         | 0       | 0       | 0       | 0       | 1       | GPIO1       |
+|         |                                                         | 0       | 0       | 0       | 1       | 0       | GPIO2       |
+|         |                                                         | 0       | 0       | …       | …       | …       | …           |
+|         |                                                         | 0       | 1       | 0       | 1       | 0       | GPIO10      |
+|         |                                                         | 1       | 0       | 0       | 0       | 0       | VREF2       |
+|         |                                                         | 1       | 0       | 0       | 0       | 1       | VD          |
+|         |                                                         | 1       | 0       | 0       | 1       | 0       | VA          |
+|         |                                                         | 1       | 0       | 0       | 1       | 1       | ITEMP       |
+|         |                                                         | 1       | 0       | 1       | 0       | 0       | VPV         |
+|         |                                                         | 1       | 0       | 1       | 0       | 1       | VMV         |
+|         |                                                         | 1       | 0       | 1       | 1       | 0       | VRES        |
+|         |                                                         | 1       | 0       | 1       | 1       | 1       | Reserved    |
+
+= 1) or pull-down (PUP = 0) current sources are applied during an AUX conversion (see the GPIO Open Wire Detection section for more details).
+
+To prevent settling errors, a soak time can be programmed that delays the start of conversion after the multiplexer has been set. The soak time is enabled by the SOAKON bit and configured by OWRNG and OWA in the Configuration Register Group A. If open wire detection is required by setting the OW bit, the current sources are switched on when setting the multiplexer setting.
+
+Note that the execution of an ADAX or ADAX2 command with a long soak time can take longer than the watchdog timer to expire. In these cases, valid commands need to be sent to prevent the ADBMS6830B from interrupting the measurement and going to sleep.
+
+When the ADBMS6830B receives a new ADAX or ADAX2 command during a conversion, the correspondent ADC is stopped and restarted. The corresponding result registers are not reset upon reception of a new ADAX or ADAX2 command.
+
+## SYSTEM DIAGNOSTIC
+
+## CELL MEASUREMENT DIAGNOSTIC AND REPORTING
+
+If cell measurements with redundancy are requested by sending an ADCV command with RD = 1, the S-ADC results vs. the C-ADC results are compared. In case of mismatch larger than the threshold programmed in the Control Register Group C, the ADBMS6830B sets the corresponding fault bit (CSxFLT) to 1. To avoid latent faults, the comparators are implemented redundantly, and if one of the comparators flags a mismatch, it is signaled by setting CSxFLT.
+
+To ensure detection of faults in the IIR filters following the C-ADCs, the IIR filters are implemented redundantly and their results are
+
+Figure 17. Open Wire Detection
+
+<!-- image -->
+
+read out by two separate SPI slaves whose outputs are compared (see the Communication Diagnostic and Reporting section).
+
+## CELL OPEN WIRE DETECTION
+
+Because the ADBMS6830B measures cell voltages via two separate redundant pin pairs, a broken input connection on the PCB can be detected by comparing the measurements of the corresponding S-channel and C-channel. However, in the application, the PCB is often wired to the battery by a single cable per battery pole, as shown in Figure 17.
+
+## SYSTEM DIAGNOSTIC
+
+In this configuration, the break of a cable from the PCB to the battery cells cannot be detected by comparing C-ADC and S-ADC results because the inputs of both ADCs are still connected on the PCB. Therefore, the ADBMS6830B features a safety mechanism to detect open input wires by means of differential switches with current limiting resistors between the differential inputs of each ADC, as shown in Figure 17.
+
+Care must be taken not to activate the differential switches of the two neighborhood channels simultaneously. Otherwise, the resulting voltage divider between 2 cells can mask a break of the common cable between these two cells. Therefore, the ADBMS6830B activates open wire switches of odd and even channels independently.
+
+Activating the differential switch in a C-measurement path causes the input voltage with intact wiring to reduce. This is due to the resistive divider of the external filter resistor and the internal 1.75 kΩ resistance in series with the open wire switch (to about 10/12 of the cell voltage in Figure 17). This measurement coarsely diagnoses the resistance of the external filter resistor. Furthermore, the settling of the input voltage to the new value detects the presence and coarse value of the filter capacitor. In case of a broken wire, the input capacitor is fully discharged by the open wire current.
+
+Activating the differential switch in an S-measurement path causes the input voltage with intact wiring to reduce. This is due to the internal resistive divider of the internal 1.75 kΩ resistance and the 18 kΩ in series with the open wire switch to about 9/10 of the cell voltage. In case of a broken wire, the input capacitor is again discharged by the open wire current.
+
+For the purpose of detecting open wires, an open wire switch in either the C-channel or the S-channel inputs is enough. Inserting this open wire switch in the S-ADC inputs runs open wire detection without interrupting the cell voltage measurement by the C-ADC, therefore preserving the integrity of the IIR filter result.
+
+## ALGORITHM FOR CELL MEASUREMENT WITH DIAGNOSTICS
+
+Figure 18 shows the timing of an algorithm that performs continuous uninterrupted cell measurements by means of the C-ADC, and alternates the S-ADC between redundancy and open wire detection.
+
+Whereas the C-ADC measures cell voltages continuously, the S-ADC is used sequentially to provide redundant measurement results and to perform open wire detection on odd and even cells.
+
+Figure 18. Cell Measurement and Diagnose Sequence
+
+<!-- image -->
+
+## SYSTEM DIAGNOSTIC
+
+## GPIO MEASUREMENT DIAGNOSTIC
+
+The ADBMS6830B targets high diagnostic coverage on temperature measurements if two negative temperature coefficient (NTC) thermistors are connected to two separate general-purpose inputs/outputs (GPIOs). To achieve high diagnostic coverage, the GPIOs can be measured by two redundant measurement paths formed by the AUX multiplexer and the AUX ADC, and the AUX2 multiplexer and AUX2 ADC. Because the temperature is a slow varying quantity, a command to start both measurement paths synchronously is not provided, but each ADC must be started separately by the respective command. The results of the conversion must be compared in the host controller.
+
+## GPIO OPEN WIRE DETECTION
+
+Setting the OW bit in the ADAX command connects current sources with typically 200 μA to the measurement channels to detect an open wire or diagnose the proper resistance of the connected NTC. The PUP bit controls whether the current sources pull the pins up or down. Results are stored in the auxiliary register groups.
+
+The correct value of the current sources can further be verified for latent fault coverage by measuring the voltage drop over a 2.5 kΩ resistor.
+
+When measuring all channels in round-robin (CH[4:0] set to 0 enables all channels), the activated current sources (OW set to 1) are also applied to the GPIOs, including those that may be used for the I 2 C/SPI controller communication (GPIO3 to GPIO5), which can disturb the serial communication.
+
+## COMMUNICATION DIAGNOSTIC AND REPORTING
+
+Any command or data sent to or read from the ADBMS6830B is protected by a cyclic redundancy check (CRC). See the Command PEC section and Data PEC section for more details. Furthermore, registers necessary to perform redundant measurements or read their results (for example, C-ADC and S-ADC result registers) are addressed by redundant SPI slaves inside the ADBMS6830B to avoid a single point of failure, and their output is bitwise compared. When a mismatch occurs, the SPIFLT bit in Status Register Group C is set.
+
+The ADBMS6830B can diagnose that the SPIFLT diagnostic bit is not stuck by issuing an RDSTATC command with the ERR bit set to 1.
+
+## THERMAL SHUTDOWN
+
+To protect the ADBMS6830B from overheating, a thermal shutdown circuit is included inside the IC. If the temperature detected on the die rises above approximately 150°C, the thermal shutdown circuit trips and causes a POR with the THSD bit in the STCR1 register to 1. This turns off all discharge switches. The THSD bit is cleared when the CLRFLAG command is sent, and the corresponding bit is set to 1 (see the Clear Flag Command section).
+
+The ADBMS6830B can diagnose that the THSD diagnostic bit is not stuck. The FLAG\_D[4] bit (Bit 4 in the CFGRA1 register) can be set to force the THSD bit to be set to 1. When FLAG\_D[4] is written, the THSD bit flips to a 1 and must be cleared using the CLRFLAG command.
+
+## TEST MODE DETECTION
+
+To improve diagnostic capability, the ADBMS6830B includes a TMODCHK flag in the STRC1 register that indicates that the part has entered a factory test mode. If this bit is set, do not trust the behavior of the device. The TMODCHK bit must be cleared, and if it returns to 0, the device has recovered and operation can resume.
+
+The ADBMS6830B can diagnose that the TMODCHK diagnostic bit is not stuck. The FLAG\_D[7] bit (Bit 7 in the CFGRA1 register) can be set to force the TMODCHK bit to be set to 1. When FLAG\_D[7] is written, the TMODCHK bit flips to a 1 and must be cleared using the CLRFLAG command.
+
+## SLEEP STATE DETECTION
+
+The ADBMS6830B includes a flag that indicates if the device has previously power cycled or entered the sleep state, and that the registers have reset. The SLEEP bit (RDSTATC) is useful for the system to check that all ICs in the daisy chain are entering the low power sleep state. This bit can also be used to verify that the IC has not erroneously entered the sleep state during regular operation.
+
+## SOFT RESET COMMAND
+
+The soft reset command (SRST) quickly puts all the devices in the daisy chain into the sleep state. The soft reset command only needs sufficient time to propagate the command up the stack to the next device, after which the device enters sleep. This command achieves two functions: a quick transition to the low power state, and the ability to reset all of the switched power digital logic.
+
+## REVISION CODE
+
+The ADBMS6830B contains a 4-bit revision code. If software detection of the device revision is necessary, contact the factory for details. Otherwise, the code can be ignored. However, in all cases, the values of all bits must be used when calculating the packet error code (PEC) on data reads.
+
+## SERIAL ID
+
+Each ADBMS6830B is programmed at the factory with a unique 48-bit serial ID (SID) code stored in the SID register. The host can read the unique SID code for each device using the RDSID command.
+
+## CLEAR ADC MEMORY COMMANDS
+
+The ADBMS6830B has four clear ADC commands: CLRCELL, CLRFC, CLRAUX, and CLRSPIN. These commands clear the registers that store all ADC conversion results.
+
+## SYSTEM DIAGNOSTIC
+
+The CLRCELL command clears Cell Voltage Register A through Cell Voltage Register F and the averaged cell voltage registers. The CLRFC command clears Filtered Cell Voltage Register A through Filtered Cell Voltage Register F. The CLRSPIN command clears S-Voltage Register A through S-Voltage Register F. All bytes in these registers are set to 0x8000 by the respective clear command.
+
+The CLRAUX command clears Auxiliary Register Group A through Auxiliary Register Group D, the Redundant Auxiliary Register Group A through Redundant Auxiliary Register Group D, and Status Register Group A and Status Register Group B. All bytes in these registers are set to 0x8000 by the CLRAUX command. Note that this register value of 0x8000 resulting from a CLRAUX command is, for some registers, different than their default value after power-up.
+
+Table 25. CLRFLAG Data Format
+
+| Register   | RD/WR   | Bit 7      | Bit 6      | Bit 5      | Bit 4      | Bit 3      | Bit 2      | Bit 1      | Bit 0     |
+|------------|---------|------------|------------|------------|------------|------------|------------|------------|-----------|
+| CFD0       | WR      | CL_CS8FLT  | CL_CS7FLT  | CL_CS6FLT  | CL_CS5FLT  | CL_CS4FLT  | CL_CS3FLT  | CL_CS2FLT  | CL_CS1FLT |
+| CFD1       | WR      | CL_CS16FLT | CL_CS15FLT | CL_CS14FLT | CL_CS13FLT | CL_CS12FLT | CL_CS11FLT | CL_CS10FLT | CL_CS9FLT |
+| CFD2       | WR      |            |            |            |            |            |            |            |           |
+| CFD3       | WR      |            |            |            |            |            |            |            |           |
+| CFD4       | WR      | CL_VAOV    | CL_VAUV    | CL_VDOV    | CL_VDUV    | CL_CED     | CL_CMED    | CL_SED     | CL_SMED   |
+| CFD5       | WR      | CL_VDEL    | CL_VDE     |            | CL_SPIFLT  | CL_SLEEP   | CL_THSD    | CL_TMODE   | CL OSCCHK |
+
+Refer to the register description in the Memory Map section for their default values. Clear commands are effective in the REFUP and measure states.
+
+## CLEAR FLAG COMMAND
+
+The CLRFLAG command resets the diagnostic flags in Status Register Group C. The CLRFLAG command requires the system to send six additional bytes to specify which fault flag is reset. Table 25 describes the CLRFLAG format. The defined bits correspond to the same bit positions in Status Register Group C.
+
+The diagnostic flags in the status register remain set until they are cleared by the user, or until the ADBMS6830B enters the sleep state.
+
+## SYSTEM DIAGNOSTIC
+
+## CLEAR OVERVOLTAGE AND UNDERVOLTAGE COMMAND
+
+The CLOVUV command resets the overvoltage and undervoltage flags in Status Register Group D (STATD register). The CLOVUV command requires the system to send six additional bytes to specify which fault flag is reset. Table 26 describes the CLOVUV
+
+Table 26. CLOVUV Command Format
+
+| Register   | RD/WR   | Bit 7    | Bit 6    | Bit 5    | Bit 4    | Bit 3    | Bit 2    | Bit 1    | Bit 0    |
+|------------|---------|----------|----------|----------|----------|----------|----------|----------|----------|
+| STDR0      | WR      | CL_C4OV  | CL_C4UV  | CL_C3OV  | CL_C3UV  | CL_C2OV  | CL_C2UV  | CL_C1OV  | CL_C1UV  |
+| STDR1      | WR      | CL_C8OV  | CL_C8UV  | CL_C7OV  | CL_C7UV  | CL_C6OV  | CL_C6UV  | CL_C5OV  | CL_C5UV  |
+| STDR2      | WR      | CL_C12OV | CL_C12UV | CL_C11OV | CL_C11UV | CL_C10OV | CL_C10UV | CL_C9OV  | CL_C9UV  |
+| STDR3      | WR      | CL_C16OV | CL_C16UV | CL_C15OV | CL_C15UV | CL_C14OV | CL_C14UV | CL_C13OV | CL_C13UV |
+| STDR4      | WR      |          |          |          |          |          |          |          |          |
+| STDR5      | WR      |          |          |          |          |          |          |          |          |
+
+format. The defined bits correspond to the same bit positions in Status Register Group D.
+
+The overvoltage and undervoltage flags in the status register remain set until they are cleared by the user, or until the ADBMS6830B enters the sleep state.
+
+## CELL DISCHARGE AND PWM FOR DISCHARGE
+
+The ADBMS6830B includes internal balancing switches for each of the cell monitoring channels. The balancing switch is a low RDS On FET that allows a peak discharge current of 300 mA. To simplify discharge operation, a PWM function is available to allow for a variable discharge current on every Sx pin. The PWM runs at a period of 937 ms and the PWM duty cycle is controlled with four bits. Due to the two dedicated SxN and SxP pins per channel, the ADBMS6830B allows balancing also of neighboring channels, and therefore, a duty cycle of up to 100%.
+
+The PWM discharge functionality is possible in the standby, REFUP, extended balancing, and in the measure states while the discharge timeout has not expired (DCTO ≠ 0). The ADBMS6830B interrupts the PWM discharge when an S-measurement is initiated by the ADCV or ADSV commands with DCP = 0. The cell discharge is not muted when cell measurements are performed in extended balancing state or in low power cell monitoring(LPCM) mode. As a result, in these cases, measurements can be affected by the voltage drop of the discharge current over the cell cable resistance.
+
+Table 27. Discharge Priorities
+
+|   Priority (7 = Highest) | Event or Feature        | Behavior                                                                                                                                                                                                                                                                                                                                                                                                                     |
+|--------------------------|-------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|                        7 | Thermal shutdown        | The final discharge control selections are gated off when thermal shutdown occurs. Also, the PWM and DCC control bits are reset.                                                                                                                                                                                                                                                                                             |
+|                        6 | Mute                    | All discharge is disabled while the mute feature has been activated by the mute command. Note that mute is cleared upon watchdog timeout.                                                                                                                                                                                                                                                                                    |
+|                        5 | WRCFGB                  | DCC and PWM and ADC discharge requests are muted during a write to the Configuration Register Group B register.                                                                                                                                                                                                                                                                                                              |
+|                        4 | DCC bits                | If any DCC bit is asserted, the DCC configuration takes precedence over ADC or PWM discharge controls. The DCC discharge request asserts the Sx pins if not prevented by one of the higher priority features. DCC discharge is allowed during any ADC conversion command. DCC bits are cleared by the watchdog timeout. At that time, the device transitions to PWM discharge if the DCTO is not 0 and has not expired to 0. |
+|                        3 | ADC measurement command | During the measurement time of an ADC conversion that measures the Cx or Sx pins, PWM discharge can be muted. Some ADC commands allow the DCP bit to stop cell discharge during measurements (see the Discharge During Measurements section for details). This occurs if not prevented by one of the higher priority features (above).                                                                                       |
+|                        2 | WRPWM                   | PWM discharge requests are muted during a write to the PWM register group. PWM discharge is the lowest priority. When PWM is enabled, by setting any of the PWM register bits to 1, it                                                                                                                                                                                                                                       |
+|                        1 | PWM                     | controls cell discharge only if not prevented by one of the higher priority features (above).                                                                                                                                                                                                                                                                                                                                |
+
+The PWM discharge happens asynchronously to the ADC measurements. Therefore, it is not predictable if a measurement is altered by the voltage drop. Depending on the cable resistance and the discharge current, the intended voltage thresholds (VOV, VUV, CMT\_CUV, and CMT\_COV) may not be checked accurately.
+
+Table 27 details the discharge priority.
+
+## SX PIN MUTING
+
+All Sx pins may be simultaneously disabled by sending the mute command and reenabled by sending the unmute command. The mute and unmute commands do not require any subsequent data and thus the commands propagate quickly through a stack of ADBMS6830B devices. After the mute command is received, it takes 65 μs maximum for the internal discharge switches to stop the discharge. The mute functionality allows the host to quickly disable and reenable discharging without disturbing Configuration Register Group B contents. The mute status is reported in the read-only mute bit in Configuration Register Group A.
+
+## CELL DISCHARGE AND PWM FOR DISCHARGE
+
+## CELL DISCHARGE WITH CELL MEASUREMENTS AND DIAGNOSTICS
+
+When the internal balancing switch between two Sx pins switches on, the S-ADC results differ from the C-ADC measurement result and their results cannot be compared for diagnostic purposes. To get continuous measurement with diagnostic coverage while discharging, the following procedure can be used.
+
+C-ADC conversions are usually started once during initialization:
+
+- ADCV with RD = 0, DCP = 0, CONT = 1.
+- C-ADCs run in continuous mode, deliver measurement results, and feed the IIR filter. No comparison between C-ADC and S-ADC results is performed. PWM discharge is ongoing and is not affected.
+
+While in continuous measurement mode, conversion results are read, and balancing is controlled, as follows:
+
+- Program desired PWM values.
+- Program desired CTHx thresholds.
+- Every FTTI, ADSV with DCP = 0, CONT = 1.
+- S-ADCs are switched on additionally, discharge is interrupted, and C-ADC and S-ADC results are compared.
+- Synchronous C-ADC and S-ADC conversion results are available 8 ms to 16 ms after the ADSV as it takes maximum 8 ms for the SADC to synchronize to the CADC, and an additional fixed 8 ms for the synchronous conversions.
+- After getting results: ADSV with DCP = 1, CONT = 0.
+- Discharge is immediately restarted, S-ADC does one more conversion, and then sleeps. C-ADC continues measuring all the time.
+- An open wire check can be done right after the redundant measurement. In this case, only three ADSVs are required to make redundant measurement and open wire check, as follows:
+- ADSV with DCP = 0, CONT = 1, OW = 0 (redundant check)
+- ADSV with DCP = 0, CONT = 0, OW = 1 (even open wire check)
+- ADSV with DCP = 0, CONT = 0, OW = 2 (odd open wire check)
+- Note: discharge is enabled again automatically after the last single shot S-ADC conversion.
+
+The timing of the redundant and open-wire measurement is as follows:
+
+- Redundant measurement of S-ADC and C-ADC: 8 ms to 16 ms
+- Odd channels open wire check: 8 ms
+- Even channels open wire check: 8 ms
+
+Thus, the whole redundant and open wire diagnostic takes 24 ms to 32 ms and limits the maximum discharge duty cycle. In average, the discharge is inhibited for 0.5 × (32 ms + 24 ms) = 28 ms. Assuming an FTTI of 100 ms, the maximum discharge duty cycle of the ADBMS6830B is limited to 72% (even if the PWM was configured to 100%, it is limited to 72% by the diagnostic measurements).
+
+## WATCHDOG AND DISCHARGE TIMER
+
+When there is no valid command for more than 2 seconds, the watchdog timer expires. If the DCTO is zero when this occurs, the ADBMS6830B transitions to the sleep state and resets all register locations to their default values. If the DCTO is nonzero when this occurs, the ADBMS6830B transitions to the extended balancing state and resets the mute function. Only the PWM discharge can continue in the extended balancing state and the DCC bits must be cleared by the host controller before entering this state. If the DCC bits are not cleared, the static discharge is disabled during extended balancing, but enabled again upon returning to the standby state. The watchdog timer is always enabled, and it resets after every valid command with matching command PEC.
+
+When the discharge timer is enabled, the discharge controls that are enabled in the PWM register group continue to run for the duration programmed by the DCTO bits. To enable the discharge timer, write the DCTO value in the Configuration Register Group B to a nonzero value. The discharge timer can operate in two time ranges: 0 minutes to 63 minutes and 0 hours to 16.8 hours. The range is controlled using the DTRNG bit in the CFGBR3 register. The bit controls whether the DCTO value uses a bit weight of 1 minute per bit or 16 minutes per bit.
+
+The status of the discharge timer can be determined by reading Configuration Register Group B using the RDCFGB command. The DCTO value indicates the time left before the discharge timer expires.
+
+Unlike the watchdog timer, the discharge timer does not reset when there is a valid command. The discharge timer can only be reset after writing a valid WRCFGB command to Configuration Register Group B. The discharge timer may expire in the middle of some commands.
+
+If the discharge timer expires in the middle of the WRCFGB command, the DCC bits and mute function in Configuration Register Group B are reset. However, at the end of the valid WRCFGB command, the new data is copied to the configuration register. The new data is not lost when the discharge timer fires.
+
+If the discharge timer expires in the middle of the RDCFGB command, the DCC bits and mute function in Configuration Register Group B reset to their default values. As a result, the readback data from bytes CFGBR4 and CFGBR5 may be corrupted.
+
+## DISCHARGE TIMER MONITOR
+
+When the discharge timer monitor (DTMEN) bit is set in Configuration Register Group B and the ADBMS6830B has entered the extended balancing state, the ADBMS6830B continues to monitor the cell voltages every 30 seconds by a single C-ADC conversion and updates the UV flags (CxUV). The ADBMS6830B disables the discharge of a cell if its voltage fall below the UV threshold (VUV) configured in Configuration Register Group B. Once the input voltage recovers and is above the UV threshold in subsequent measurements, discharge of the concerned cell resumes. The ADBMS6830B disables all discharges if the DCTO time runs out.
+
+## LOW POWER CELL MONITORING
+
+The ADBMS6830B has additional monitoring states, commands, and registers that enable monitoring of cell voltages and sensors (temperature, pressure, gas, and so on) while the battery management system (BMS) controller is asleep or inactive. In this LPCM mode, a stack of ADBMS6830B devices can be configured to power up periodically, perform measurements, compare measurements to programmed thresholds, send an isoSPI packet to the next device in the chain, and then power down. The device at the far end of the chain controls the sampling period. If any device in the chain detects an alert condition, that information is relayed to the next device.
+
+## LPCM OPERATION
+
+An LPCM chain consists of a monitor manager (MM), one or more monitors, and a timeout monitor (TM), as shown in Figure 19. The ADBMS6830B can be configured to perform any of those functions, although in many systems an ADBMS6821 (single) or ADBMS6822 (dual) isoSPI transceiver is used as the timeout monitor.
+
+The basic operation steps are as follows:
+
+1. Ensure that no conversions are ongoing.
+2. The BMS controller configures the LPCM options in the monitors and then sends the CMEN command to initiate the LPCM operation. The monitors stop accepting ADC and write commands and begin LPCM operation.
+3. At the programmed heartbeat measurement interval, the MM device wakes up.
+4. Cell voltages are measured by C-ADC within 1 ms (typical) and compared to thresholds.
+5. GPIOs are measured by AUX-ADC with 1 ms conversion time and compared to thresholds.
+6. The MM initiates a heartbeat message to the next device in the chain indicating the monitoring status (see the LPCM Heartbeat Messages section).
+7. When a cell monitor receives a heartbeat message from up the daisy chain, the following occurs:
+- Cell voltages are measured and compared to thresholds.
+- GPIOs are measured and compared to thresholds.
+- The monitor sends a heartbeat message to the next device in the chain indicating the monitoring status (see the LPCM Heartbeat Messages section).
+8. If the TM at the bottom of the chain receives a pass heartbeat message before timeout, the timeout counter is reset.
+9. If the TM receives a fail heartbeat message or times out, it initiates a wake-up signal to the BMS controller or power-up signal to a regulator.
+10. The BMS controller can use a sequence of sending the CMDIS command to end LPCM operation and resume communication with the monitors.
+
+Note that the interrupt of the TM asserts as an initial condition when the LPCM feature is enabled. The LPCM feature assumes that, until the first heartbeat message has fully propagated through the daisy chain, there can be a fault in the system in the initial state. Regardless of the CMC\_MPER configuration, the battery monitor configured as MM starts the first heartbeat sequence 31 ms after the LPCM is enabled by the CMEN command. This function allows the LPCM to quickly evaluate the daisy chain when it is enabled. The host processor can observe this behavior and use it to qualify its transition to an idle or low power state. The MCU expects the LPCM interrupt to be asserted immediately after enabling the feature and then deasserted when the first heartbeat sequence confirms a passing condition for all battery monitor devices.
+
+## LOW POWER CELL MONITORING
+
+<!-- image -->
+
+## LOW POWER CELL MONITORING
+
+## LPCM Thresholds
+
+After taking cell and GPIO voltage measurements, the ADBMS6830B compares the results against programmed thresholds to determine whether a fault condition has occurred. The thresholds consist of the following:
+
+- Cell undervoltage (CMT-CUV)
+- Cell overvoltage (CMT-COV)
+- Cell delta voltage (CMT-CDV)
+- GPIO undervoltage (CMT-GUV)
+- GPIO overvoltage (CMT-GOV)
+- GPIO delta voltage (CMT-GDV)
+
+Figure 20 shows the UV, OV, and DV comparisons.
+
+Figure 20. UV, OV, and DV Threshold Comparisons
+
+<!-- image -->
+
+If a fault is detected, the relevant flags are set and the ADBMS6830B transmits a heartbeat message that indicates the failure, as described in the LPCM Heartbeat Messages section.
+
+The DV threshold comparison checks the current measurement with the previous measurement of the same input. The DV threshold is tripped for either positive or negative transitions so that a wide variety of analog and digital sensors of different output polarities can be used. Combinations of different types of sensors can be used if their thresholds are compatible. For example, thermistors can be used with an analog voltage threshold, which also trips by the transition of the digital output of a gas sensor. If a threshold type is not required in the system, the value can be set so that it cannot trip (for example, UV = 0 V, OV = 6 V, or DV = 6 V). Additionally, cell and GPIO inputs can be masked so that only the desired inputs are tested against the thresholds.
+
+## LPCM Heartbeat Messages
+
+The LPCM feature uses smart messaging between battery monitor devices to communicate the monitoring status. The heartbeat message contains device count information about the number of devices reporting passing conditions, as well as a field of flags that indicate the types of failing conditions that may be detected.
+
+The heartbeat message is sent as a command with PEC and data with data PEC. The usage of PEC values protects communication against faults. As the ADBMS6830B receives the heartbeat message, the command PEC and payload PEC must match, or else the ADBMS6830B ignores the command, allowing this communication fault to be detected by the timeout monitor at the end of the stack. Table 28 shows the format of the CMHB, which forms the heartbeat message. Table 29 and Table 30 describe the contents of the heartbeat message data. Note that the CMHB command is sent from the ADBMS6830B devices, not from the microcontroller.
+
+Unlike other communication, during LPCM operation, this heartbeat message, consisting of the CMHB command, is initiated by the ADBMS6830B at the end of the daisy chain (configured as the MM) instead of being initiated by the host microprocessor. The heartbeat message is also unique in that it is not immediately propagated through the daisy chain. Upon receipt of the CMHB command, each ADBMS6830B in the chain performs the cell and auxiliary pin measurements and comparisons before regenerating the CMHB command to the next device in the chain. These actions by the ADBMS6830B create a propagation delay of approximately 5 ms to 15 ms, depending on the number of masked GPIO channels per ADBMS6830B in the daisy chain. If any of the cell or auxiliary pin measurements cause a threshold violation, a sticky flag bit is set in the CMF0 register.
+
+In addition to being set by exceeding the corresponding OV/UV/DC thresholds, CMF0 is set to 0xFF in the event that any of the following internal diagnostics (reflected in Status Register Group C) fails during the cell or auxiliary conversions: VA\_OV, VA\_UV, VD\_OV, VD\_UV, VDE, VDEL, SPIFLT, TMODCHK, or OSCCHK.
+
+Issue CLRFLAG of VA\_OV, VA\_UV, VD\_OV, VD\_UV, VDE, VDEL, SPIFLT, TMODCHK, and OSCCHK before entering LPCM to avoid CMF0 from being set to 0xFF in case any faults are pending.
+
+As part of the configuration, the MM is programmed with a number equal to the number of cell monitors in the chain. The number of cell monitors is the initial value used by the MM for the heartbeat message count. If no threshold flag is asserted on the MM, it sends a number equal to the number of cell monitors minus 1. If a threshold flag is asserted, it sends a number equal to the number of cell monitors and it asserts bits in the flag field of the heartbeat message to indicate the types of error that were detected. (The code used for the number of monitors is offset by 0x42 to prevent a pass count from consisting of all 0s.)
+
+After the MM, each cell monitor receives a count and a flag field from the previous device. After checking the thresholds, each monitor either decrements this number if no threshold was violated, or makes no change to this number if a threshold was violated, and then sends this number on to the next device. Any fault flags received from the previous device are also included in the new heartbeat message generated for the next device.
+
+## LOW POWER CELL MONITORING
+
+## Table 28. CMHB Command
+
+| 8    | 8    | 8    | 8    | 8    | 8    | 8     | 8     |
+|------|------|------|------|------|------|-------|-------|
+| CMD0 | CMD1 | PEC0 | PEC1 | HBD0 | HBD1 | DPEC0 | DPEC1 |
+
+## Table 29. Heartbeat Message Data Format
+
+| Byte   | Bit 7      | Bit 6      | Bit 5      | Bit 4      | Bit 3      | Bit 2      | Bit 1      | Bit 0      |
+|--------|------------|------------|------------|------------|------------|------------|------------|------------|
+| HBD0   | HB_DCNT[7] | HB_DCNT[6] | HB_DCNT[5] | HB_DCNT[4] | HB_DCNT[3] | HB_DCNT[2] | HB_DCNT[1] | HB_DCNT[0] |
+| HBD1   | HB_GDVP    | HB_GDVN    | HB_GOV     | HB_GUV     | HB_CDVP    | HB_CDVN    | HB_COV     | HB_CUV     |
+
+## Table 30. Cell Voltage Register Group A Bit Descriptions
+
+| Byte   | Bits   | Bit Name                 | Description                                                                                                                                                                                                                                                     |
+|--------|--------|--------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| HBD0   | [7:0]  | HB_DCNT[7] to HB_DCNT[0] | Heartbeat message device count. The MM sets the initial value for this count based on the configured CMC_NDEV value and the monitoring status of the MM device. Each monitor device in the chain decrements this value only if all monitoring comparisons pass. |
+| HBD1   | 7      | HB_GDVP                  | This sticky flag bit is asserted if a GPIO delta voltage comparison was violated in the positive direction (voltage increasing) for any device. Cleared by the CLRCMFLAG command.                                                                               |
+| HBD1   | 6      | HB_GDVN                  | This sticky flag bit is asserted if a GPIO delta voltage comparison was violated in the negative direction (voltage decreasing) for any device. Cleared by the CLRCMFLAG command.                                                                               |
+| HBD1   | 5      | HB_GOV                   | This sticky flag bit is asserted if a GPIO overvoltage comparison was violated for any device. Cleared by the CLRCMFLAG command.                                                                                                                                |
+| HBD1   | 4      | HB_GUV                   | This sticky flag bit is asserted if a GPIO undervoltage comparison was violated for any device. Cleared by the CLRCMFLAG command.                                                                                                                               |
+| HBD1   | 3      | HB_CDVP                  | This sticky flag bit is asserted if a cell delta voltage comparison was violated in the positive direction (voltage increasing) for any device. Cleared by the CLRCMFLAG command.                                                                               |
+| HBD1   | 2      | HB_CDVN                  | This sticky flag bit is asserted if a cell delta voltage comparison was violated in the negative direction (voltage decreasing) for any device. Cleared by the CLRCMFLAG command.                                                                               |
+| HBD1   | 1      | HB_COV                   | This sticky flag bit is asserted if a cell overvoltage comparison was violated for any device. Cleared by the CLRCMFLAG command.                                                                                                                                |
+| HBD1   | 0      | HB_CUV                   | This sticky flag bit is asserted if a cell undervoltage comparison was violated for any device. Cleared by the CLRCMFLAG command.                                                                                                                               |
+
+## Table 31. Final Pass Value for the Heartbeat Message Data
+
+| Byte   | Pass Value   |
+|--------|--------------|
+| HBD0   | 0x42         |
+| HBD1   | 0x00         |
+
+## LOW POWER CELL MONITORING
+
+At the bottom of the chain, the TM must receive the proper heartbeat message count that indicates no failing devices and no flags asserted. The final pass value of the heartbeat message data is shown in Table 31. Otherwise, a fault output is asserted.
+
+See the following examples:
+
+- If there are six monitors in the chain, the microcontroller writes CMC\_NDEV = 0x48 (6 devices plus offset of 0x42) before the microcontroller goes to sleep.
+- If no threshold is violated at the MM, the MM sends HB\_DCNT = 0x47 (CMC\_NDEV - 1) to the next device.
+- If the second device in the chain passes its fault checks, it sends HB\_DCNT = 0x46 (decrement by 1) to the next device.
+- If the third device in the chain fails its fault checks, it sends HB\_DCNT = 0x46 (does not decrement) and asserts the appropriate flags in HBD1.
+- If the third device in the chain is the only monitor that fails, the TM receives 1 as the cell monitor number, and asserts its fault output.
+
+## LPCM Interrupt Indications
+
+The LPCM feature indicates an interrupt in the following three conditions:
+
+- The interrupt asserts as an initial condition when the LPCM feature is enabled. The LPCM feature assumes that until the first heartbeat message has fully propagated through the daisy chain, there can be a fault in the system in the initial state. Regardless of the CMC\_MPER configuration, the battery monitor configured as MM starts the first heartbeat sequence 31 ms after LPCM is enabled by the CMEN command. This allows the LPCM to quickly evaluate the daisy chain when it is enabled. The host processor can observe this behavior and use it to qualify its transition to an idle or low power state. The host expects the LPCM interrupt to be asserted immediately after enabling the feature and then deasserted when the first heartbeat sequence confirms a passing condition for all battery monitor devices. Each ADBMS6830B in the daisy chain, including the MM, first performs cell and auxiliary measurements and comparisons before generating the heartbeat message to the next device in the daisy chain. The propagation delay is approximately 6 ms per ADBMS6830B in the daisy chain. So, for example, a daisy chain of three ADBMS6830B devices waits 31 ms after CMEN to
+
+begin the heartbeat sequence and requires an additional 18 ms to propagate the heartbeat message through the three devices to the TM at the bottom of the chain. The host can expect the initial interrupt condition to end approximately 49 ms after the CMEN command for a daisy chain of three devices, provided no thresholds are violated.
+
+- The interrupt asserts if there is no heartbeat message for a configurable period of time. This value can be configured by CMC\_TPER in the ADBMS6830B if the bridgeless timeout monitor feature is implemented. Otherwise, it is configured for the TM device that is acting as the watchdog for LPCM heartbeat messaging.
+- The interrupt asserts when the heartbeat message contains an incorrect data payload. In this case, there is no need to wait for the configured timeout period. When the heartbeat message payload indicates wrong number of devices or a fault flag, the interrupt immediately asserts.
+
+## Clear CM Flag Command
+
+The CLRCMFLAG command resets the flags in the CMF0 register of the CMFx register group. The CLRCMFLAG command requires the system to send two additional bytes. These two bytes must both be set to 0xFF to reset all flags.
+
+Because the bits in CMF0 are also set to FF if any of the following internal diagnostics (reflected in Status Register Group C) fails during the cell or auxiliary conversions (VA\_OV, VA\_UV, VD\_OV, VD\_UV, VDE, VDEL, SPIFLT, TMODCHK, or OSCCHK), a CLRFLAG command must be issued before entering LPCM to clear CMF0.
+
+## LPCM BRIDGELESS TIMEOUT MONITOR
+
+The ADBMS6830B can be set up as an LPCM TM when an isoSPI bridge transceiver is not used. In that configuration, system faults are indicated on GPIO3 and/or GPIO4. See Figure 21. The bridgeless timeout monitor settings include a timeout period for receiving a pass heartbeat message from the stack. In this configuration, the TM also checks its cell and GPIO inputs against the thresholds and uses that information along with the received heartbeat message to determine the fault status.
+
+Note that GPIO3 and GPIO4 are pull-downs only. Therefore, external pull-up resistors are required for monitor outputs.
+
+## LOW POWER CELL MONITORING
+
+Figure 21. Bridgeless Timeout Monitor System Configuration
+
+<!-- image -->
+
+## LOW POWER CELL MONITORING
+
+## LPCM WITH REVERSIBLE ISOSPI
+
+In a system that implements a reversible isoSPI, the LPCM can be used in the forward direction, the reverse direction, or both directions simultaneously. Operating in both directions requires that two adjacent ADBMS6830B devices be programmed to function as MMs, and the proper port must be specified using the CMC\_DIR configuration bit. Two TMs must be used, one on each end. See Figure 22.
+
+Figure 22. LPCM with Reversible isoSPI
+
+<!-- image -->
+
+## LOW POWER CELL MONITORING
+
+## USING THE LPCM AND THE DISCHARGE TIMER
+
+Once the BMS controller sends the CMEN command, the monitors stop accepting some commands, such as ADC and write commands. However, it is possible to enable the discharge timer feature and the LPCM feature to operate simultaneously. To do so, the BMS controller must configure the discharge timer configuration and the LPCM configuration before sending the CMEN command. The DCC bits must be cleared before sending the CMEN command, as described in the Extended Balancing and DTM Measure States section and in the Watchdog and Discharge Timer section. After the CMEN command, the monitors quickly transition to the extended balancing state to begin discharge and LPCM operation. If the discharge timer monitor feature is enabled (DTMON = 1), the heartbeat conversions are used to monitor the cell voltages for discharging, rather than using the 30 second monitor period. The VUV undervoltage threshold stored in the configuration register is used to halt discharge if DTMON = 1. The CMT\_CUV undervoltage threshold is used to determine whether an LPCM violation occurs. These two undervoltage thresholds can be programmed to different values to allow the discharge to terminate without waking the BMS controller. The cell discharge is not muted when cell measurements are performed in the LPCM and extended balancing modes. The measurements are affected by the voltage drop over the cell cable resistance due to the discharge current. The PWM discharge happens asynchronously to the ADC measurements. Therefore, it is not predictable if a measurement is altered by the cable drop. Depending on the cable resistance and the discharge current, the intended voltage thresholds may not be checked accurately.
+
+## LPCM EXPANDED STATE DIAGRAM
+
+Figure 23 shows the standard ADBMS6830B state diagram to the left (in black), with the added ADBMS6830B states and paths to the right (in red).
+
+Figure 23. State Diagram with Low Power Cell Monitoring
+
+<!-- image -->
+
+## LOW POWER CELL MONITORING
+
+## LPCM POWER CONSUMPTION
+
+During LPCM operation, the ADBMS6830B consumes a quiescent current of about 10 μA during most of the measurement period. The device takes about 6.7 ms to power up, take measurements, check thresholds, send the heartbeat message over isoSPI, and power down. During this burst of activity, the ADBMS6830B uses approximately 70 µC of charge additionally. The measurement period (MPER) can be configured to be 1 sec, 2 sec, 4 sec, 8 sec, 12 sec, 16 sec, or 32 sec. Therefore, the average LPCM current is:
+
+```
+I LPCM(AVG) ≈ 70 µC/MPER + 10 µA
+```
+
+For the available measurement periods, the approximate average currents are:
+
+1 sec ≈ 80 µA 2 sec ≈ 45 µA 4 sec ≈ 28 µA 8 sec ≈ 19 µA 12 sec ≈ 16 µA 16 sec ≈ 14 µA 32 sec ≈ 12 µA
+
+## LPCM SYSTEM DIAGNOSTICS
+
+The heartbeat message allows the system microcontroller to perform diagnostics before the controller goes to sleep. The controller can configure the monitors in such a way that one or more monitors are expected to detect a fault condition. The controller can then monitor the fault outputs and the heartbeat message to confirm that the expected faults are detected. In this way, the system can confirm proper cell voltage fault detection, GPIO fault detection, monitoring period, timeout detection, and fault output assertion.
+
+## LPCM Configuration Example
+
+The following is example pseudo code for configuring a stack of ADBMS6830B devices for low power cell monitoring:
+
+```
+//Wake up repeat(NUMDEV) begin CSB low; CSB high; wait(500us); // 500us <= wait time < tIDLE end //Configure cell thresholds CSB low; WRCMCELLT; //command plus command PEC repeat(NUMDEV) begin write_byte (CM_CELLT_byte[0]); write_byte (CM_CELLT_byte[1]); write_byte (CM_CELLT_byte[2]); write_byte (CM_CELLT_byte[3]); write_byte (CM_CELLT_byte[4]); write_byte (CM_CELLT_byte[5]); write_byte (DPEC_byte[0]); write_byte (DPEC_byte[1]); end CSB high;
+```
+
+```
+<Optional readback> //Configure GPIO thresholds CSB low; WRCMGPIOT; //command plus Command PEC repeat(NUMDEV) begin write_byte (CM_GPIOT_byte[0]); write_byte (CM_GPIOT_byte[1]); write_byte (CM_GPIOT_byte[2]); write_byte (CM_GPIOT_byte[3]); write_byte (CM_GPIOT_byte[4]); write_byte (CM_GPIOT_byte[5]); write_byte (DPEC_byte[0]); write_byte (DPEC_byte[1]); end CSB high; <Optional readback> //General LPCM Configurations CSB low; WRCMCFG; //command plus command PEC //TOP DEVICE IN GROUP MUST BE //PROGRAMMED AS MANAGER repeat(NUMDEV) begin write_byte (CM_CFG_byte[0]); write_byte (CM_CFG_byte[1]); write_byte (CM_CFG_byte[2]); write_byte (CM_CFG_byte[3]); write_byte (CM_CFG_byte[4]); write_byte (CM_CFG_byte[5]); write_byte (DPEC_byte[0]); write_byte (DPEC_byte[1]); end CSB high; <Optional readback> //Clear LPCM Flags CSB low; CLRCMFLAG; //command plus command PEC repeat(NUMDEV) begin write_byte (8'hFF); write_byte (8'hFF); write_byte (DPEC_byte[0]); write_byte (DPEC_byte[1]); end CSB high; <Optional readback> //Enable Cell Monitoring CSB low;
+```
+
+## LOW POWER CELL MONITORING
+
+```
+CMEN; //command plus command PEC CSB high; Below is pseudo-code for exiting LPCM mode for a stack of ADBMS6830M devices: // Repeat the disable command // until all devices have // exited LPCM. // The heartbeat sequence within // one device can take ~6.6ms // typical to execute. // The disable command must be // repeated for each device // in the stack and additionally // for long enough to last the // duration of a heartbeat // sequence in progress. // 20 repetitions of 500us wait // allows 8ms, providing for // possible oscillator variation // for devices in the stack. repeat(NUMDEV + 20) begin // Wake up pulse CSB low; CSB high; wait(500us) // 500us <= wait time < tIDLE // Send disable command CSB low; CMDIS; //command plus command PEC CSB high; end //Clear the command count CSB low; RSTCC; //command plus command PEC CSB high;
+```
+
+## I 2 C/SPI MASTER USING GPIOS
+
+The I/O ports GPIO3, GPIO4, and GPIO5 on the ADBMS6830B can be used as an I 2 C or SPI master port to communicate to an I 2 C or SPI slave. In the case of an I 2 C master, GPIO4 and GPIO5 form the SDA and SCL ports of the I 2 C interface, respectively. In the case of an SPI master, GPIO3, GPIO4, and GPIO5 are the CSBM, SDIOM, and SCKM ports of the SPI, respectively. The SPI master on the ADBMS6830B supports SPI Mode 3 (CPHA = 1, CPOL = 1).
+
+The GPIOs are open-drain outputs. Therefore, an external pull-up resistor is required on these ports to operate as an I 2 C or SPI master. It is also important to write the GPO bits to 1 in Configuration Register Group A so that these ports are not pulled low internally by the device.
+
+## COMM REGISTER
+
+The ADBMS6830B has a 6-byte COMM register, as shown in Table 32. This register stores all data and control bits required for I 2 C or SPI communication to a slave. The COMM register contains three bytes of data Dx[7:0] to be transmitted to or received
+
+Table 32. COMM Register Memory Map
+
+| Register   | RD/WR   | Bit 7    | Bit 6    | Bit 5    | Bit 4    | Bit 3    | Bit 2    | Bit 1    | Bit 0    |
+|------------|---------|----------|----------|----------|----------|----------|----------|----------|----------|
+| COMM0      | RD/WR   | ICOM0[3] | ICOM0[2] | ICOM0[1] | ICOM0[0] | FCOM0[3] | FCOM0[2] | FCOM0[1] | FCOM0[0] |
+| COMM1      | RD/WR   | D0[7]    | D0[6]    | D0[5]    | D0[4]    | D0[3]    | D0[2]    | D0[1]    | D0[0]    |
+| COMM2      | RD/WR   | ICOM1[3] | ICOM1[2] | ICOM1[1] | ICOM1[0] | FCOM1[3] | FCOM1[2] | FCOM1[1] | FCOM1[0] |
+| COMM3      | RD/WR   | D1[7]    | D1[6]    | D1[5]    | D1[4]    | D1[3]    | D1[2]    | D1[1]    | D1[0]    |
+| COMM4      | RD/WR   | ICOM2[3] | ICOM2[2] | ICOM2[1] | ICOM2[0] | FCOM2[3] | FCOM2[2] | FCOM2[1] | FCOM2[0] |
+| COMM5      | RD/WR   | D2[7]    | D2[6]    | D2[5]    | D2[4]    | D2[3]    | D2[2]    | D2[1]    | D2[0]    |
+
+Table 33. Write Codes for ICOMx[3:0] and FCOMx[3:0] on I 2 C Master
+
+| Control Bits          | Code                               | Action                                                                                          | Description                                                                                                                                                                                                                                                                                                                                                                                                                        |
+|-----------------------|------------------------------------|-------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ICOMx[3:0] FCOMx[3:0] | 0110 0001 0000 0111 0000 1000 1001 | Start Stop Blank No transmit Master acknowledge Master no acknowledge Master no acknowledge and | Generates a start signal on the I 2 C port followed by data transmission Generates a stop signal on the I 2 C port Proceeds directly to data transmission on I 2 C port Releases SDA and SCL and ignores the rest of the data Master generates an acknowledge signal on the ninth clock cycle Master generates a no acknowledge signal on the ninth clock cycle Master generates a no acknowledge signal followed by a stop signal |
+
+Table 34. Write Codes for ICOMx[3:0] and FCOMx[3:0] on SPI Master
+
+| Control Bits   | Code   | Action            | Description                                               |
+|----------------|--------|-------------------|-----------------------------------------------------------|
+| ICOMx[3:0]     | 1000   | CSBM low          | Generates a CSBM low signal on SPI port (GPIO3)           |
+|                | 1010   | CSBM falling edge | Drives CSBM (GPIO3) high, then low                        |
+|                | 1001   | CSBM high         | Generates a CSBM high signal on SPI port (GPIO3)          |
+|                | 1111   | No transmit       | Releases the SPI port and ignores the rest of the data    |
+| FCOMx[3:0]     | X000   | CSBM low          | Holds CSBM low at the end of the byte transmission        |
+|                | 1001   | CSBM high         | Transitions CSBM high at the end of the byte transmission |
+
+from the slave device. ICOMx[3:0] specify control actions before transmitting/receiving each data byte. FCOMx[3:0] specify control actions after transmitting/receiving each data byte.
+
+If the ICOMx[3] bit in the COMM register is set to 1, the device is an SPI master, and if the bit is set to 0, the device is an I 2 C master.
+
+Table 33 describes the valid write codes for ICOMx[3:0] and FCOMx[3:0] and their behavior when using the device as an I 2 C master.
+
+Table 34 describes the valid write codes for ICOMx[3:0] and FCOMx[3:0] and their behavior when using the device as a SPI master.
+
+Note that only the codes listed in Table 33 and Table 34 are valid for ICOMx[3:0] and FCOMx[3:0]. Writing any other code that is not listed in Table 33 and Table 34 to ICOMx[3:0] and FCOMx[3:0] may result in unexpected behavior on the I 2 C or SPI port.
+
+## I 2 C/SPI MASTER USING GPIOS
+
+## COMM COMMANDS
+
+Three commands help accomplish I 2 C or SPI communication to the slave device: WRCOMM, STCOMM, and RDCOMM.
+
+The WRCOMM command writes data to the COMM register. This command writes six bytes of data to the COMM register. The PEC must be written at the end of the data. If the PEC does not match, all data in the COMM register is cleared to 0 when CSB goes high. See the Bus Protocols section for more details on the write command format.
+
+The STCOMM command initiates I 2 C and SPI communication on the GPIO ports. The COMM register contains three bytes of data to be transmitted to the slave. During this command, the data bytes stored in the COMM register are transmitted to the slave I 2 C or SPI device, and the data received from the I 2 C or SPI device is stored in the COMM register. This command uses GPIO4 (SDA) and GPIO5 (SCL) for I 2 C communication or GPIO3 (CSBM), GPIO4 (SDIOM), and GPIO5 (SCKM) for SPI communication.
+
+Follow the STCOMM with 24 clock cycles for each byte of data to be transmitted to the slave device while holding CSB low. For example, to transmit three bytes of data to the slave, send the STCOMM command and its PEC, followed by 72 clock cycles. Pull CSB high at the end of the 72 clock cycles of the STCOMM command.
+
+During I 2 C or SPI communication, the data received from the slave device is updated in the COMM register.
+
+The data received from the slave device can be read back from the COMM register using the RDCOMM command. The command reads back six bytes of data, followed by the PEC. See the Bus Protocols section for more details on the read command format.
+
+Table 35 describes the possible read back codes for ICOMx[3:0] and FCOMx[3:0] when using the part as an I 2 C master. Dx[7:0] contains the data byte transmitted by the I 2 C slave.
+
+Table 35. Read Codes for ICOMx[3:0] and FCOMx[3:0] on I 2 C Master
+
+| Control Bits   |   Code | Description                                                             |
+|----------------|--------|-------------------------------------------------------------------------|
+| ICOMx[3:0]     |   0110 | Master generated a start signal                                         |
+|                |   0001 | Master generated a stop signal                                          |
+|                |   0000 | Blank, SDA held low between bytes                                       |
+|                |   0111 | Blank, SDA held high between bytes                                      |
+| FCOMx[3:0]     |   0000 | Master generated an acknowledge signal                                  |
+|                |   0111 | Slave generated an acknowledge signal                                   |
+|                |   1111 | Slave generated a no acknowledge signal                                 |
+|                |   0001 | Slave generated an acknowledge signal, master generated a stop signal   |
+|                |   1001 | Slave generated a no acknowledge signal, master generated a stop signal |
+
+In case of the SPI master, the read back codes for ICOMx[3:0] and FCOMx[3:0] are always 0111 and 1111, respectively. Dx[7:0] contains the data byte transmitted by the SPI slave.
+
+Figure 24 shows the operation of the ADBMS6830B as an I 2 C or SPI master using the GPIOs.
+
+Figure 24. I 2 C/SPI Master Using GPIOs
+
+<!-- image -->
+
+Any number of bytes can be transmitted to the slave in groups of three bytes using these commands. The GPIO ports do not reset between different STCOMM commands. However, if the wait time between the commands is greater than 2 sec, the watchdog times out and resets the ports to their default values.
+
+To transmit several bytes of data using an I 2 C master, a start signal is only required at the beginning of the entire data stream. A stop signal is only required at the end of the data stream. All intermediate data groups can use a blank code before the data byte and an acknowledge or no acknowledge signal as appropriate after the data byte. SDA and SCL do not reset between different STCOMM commands.
+
+To transmit several bytes of data using an SPI master, a CSBM low signal is sent at the beginning of the first data byte. CSBM can be held low or taken high for intermediate data groups using the appropriate code on FCOMx[3:0]. A CSBM high signal is sent at the end of the last byte of data. CSBM, SDIOM, and SCKM do not reset between different STCOMM commands.
+
+Figure 25 shows the 24 clock cycles following the STCOMM command for an I 2 C master in different cases. Note that if ICOMx[3:0] specified a stop condition after the stop signal is sent, the SDA and SCL lines are held high, and all data in the rest of the word is ignored. If ICOMx[3:0] is set for a no transmit condition, both SDA and SCL lines are released, and the rest of the data in the word is ignored. This is used when a device in the stack does not have to communicate to a slave.
+
+Figure 26 shows the 24 clock cycles following the STCOMM command for an SPI master. Like the I 2 C master, if ICOMx[3:0] is set for a CSBM high or a no transmit condition, the CSBM, SCKM, and SDIOM lines of the SPI master are released and the rest of the data in the word is ignored.
+
+## I 2 C/SPI MASTER USING GPIOS
+
+Figure 25. STCOMM Timing Diagram for an I 2 C Master
+
+Figure 26. STCOMM Timing Diagram for an SPI Master
+
+## I 2 C/SPI MASTER USING GPIOS
+
+## TIMING SPECIFICATIONS OF I 2 C AND SPI MASTER
+
+The timing of the I 2 C or SPI master is controlled by the timing of the communication at the primary SPI of the ADBMS6830B.
+
+## Table 36. I 2 C Master Timing
+
+| I 2 C Master Parameter   | Timing Relationship to Primary SPI   | Timing Specifications at t CLK = 0.5 ms   |
+|--------------------------|--------------------------------------|-------------------------------------------|
+| SCL Clock Frequency      | 1/(2 × t CLK )                       | Maximum 1 MHz                             |
+| t HD;STA                 | t 3                                  | Minimum 100 ns                            |
+| t LOW                    | t CLK                                | Minimum 0.5 μs                            |
+| t HIGH                   | t CLK                                | Minimum 0.5 μs                            |
+| t SU;STA                 | t CLK + t 4 1                        | Minimum 0.53 μs                           |
+| t HD;DAT                 | t 4 1                                | Minimum 30 ns                             |
+| t SU;DAT                 | t 3                                  | Minimum 100 ns                            |
+| t SU;STO                 | t CLK + t 4 1                        | Minimum 0.53 μs                           |
+| t BUF                    | 3 × t CLK                            | Minimum 1.5 μs                            |
+
+Table 37. SPI Master Timing
+
+| SPI Master Parameter               | Timing Relationship to Primary SPI   | Timing Specifications at tCLK = 0.5 ms   |
+|------------------------------------|--------------------------------------|------------------------------------------|
+| SDIOM Valid to SCKM Rising Setup   | t 3                                  | Minimum 100 ns                           |
+| SDIO Valid from SCKM Rising Hold   | t CLK + t 4 1                        | Minimum 0.53 μs                          |
+| SCKM Low                           | t CLK                                | Minimum 0.5 μs                           |
+| SCKM High                          | t CLK                                | Minimum 0.5 μs                           |
+| SCKM Period (SCKM Low + SCKM High) | 2 × t CLK                            | Minimum 1 μs                             |
+| CSBM Pulse Width                   | 3 × t CLK                            | Minimum 1.5 μs                           |
+| SCKM Rising to CSBM Rising         | 5 × t CLK + t 4 1                    | Minimum 2.53 μs                          |
+| CSBM Falling to SCKM Falling       | t 3                                  | Minimum 100 ns                           |
+| CSBM Falling to SCKM Rising        | t CLK + t 3                          | Minimum 0.6 μs                           |
+| SCKM Falling to SDIOM Valid        | Master requires < t CLK              | Master requires < t CLK                  |
+
+Table 36 shows the I 2 C master timing relationship to the primary SPI clock. Table 37 shows the SPI master timing specifications.
+
+## SERIAL INTERFACE OVERVIEW
+
+There are two types of serial ports on the ADBMS6830B: a standard, 4-wire SPI using CSB, SCK, SDI, and SDO and a 2-wire isoSPI using IMA and IPA. The state of the ISOMD pin determines if the dual-function pins function as a 2-wire or 4-wire serial port. Both the 2-wire and 4-wire serial ports can communicate at 2 Mbps.
+
+The ADBMS6830B can be used in a daisy-chain configuration either in isoSPI mode using IMA and IPA, or in SPI mode using CSB, SCK, SDI, and SDO. In a daisy-chain configuration, the second isoSPI port uses IMB and IPB.
+
+## 4-WIRE SPI PHYSICAL LAYER
+
+Connecting ISOMD to V- configures Serial Port A for 4-wire SPI. The SDO pin is an open-drain output that requires a pull-up resistor tied to the appropriate supply voltage.
+
+Figure 27. Timing Diagram of 4-Wire SPI
+
+<!-- image -->
+
+The 4-wire serial port is configured to operate in a SPI system using CPHA = 0 and CPOL = 0, or in an SPI system using CPHA = 1 and CPOL = 1. Consequently, data on SDI must be stable during the rising edge of SCK. Figure 27 shows the timing. The maximum data rate is 2 Mbps. However, the device is tested at a higher data rate in production to guarantee operation at the maximum specified data rate.
+
+## SERIAL INTERFACE OVERVIEW
+
+## REVERSIBLE 2-WIRE ISOSPI PHYSICAL LAYER
+
+The 2-wire interface provides a means to interconnect ADBMS6830B devices using simple twisted pair cabling. The interface is designed for low packet error rates when the cabling is subjected to high RF fields. Isolation is achieved through an external transformer or external capacitors.
+
+Standard SPI signals are encoded into differential pulses. The strength of the transmission pulses is set to 20 mA and the threshold level of the receiver is 300 mV.
+
+## External Connections
+
+The ADBMS6830B has 2 serial ports: Port A and Port B. Port B is always configured as a 2-wire interface. Port A is either a 2-wire or 4-wire interface, depending on the connection of the ISOMD pin.
+
+When Port A is configured as a 4-wire interface, Port A is always the slave port and Port B is the master port. Communication is always initiated on Port A of the first device in the daisy-chain configuration. The final device in the daisy chain does not use Port B, and it must be terminated. Alternatively, the Port B of the last device can be connected back to a second isoSPI port at the MCU master side to implement a communication ring architecture. This allows a redundant communication path to all devices in the daisy chain besides the first that is configured to 4-wire interface.
+
+Figure 28 shows the simplest port connections possible where capacitors are used to couple signals between ADBMS6830Bs.
+
+Figure 28. Capacitor Isolated isoSPI
+
+<!-- image -->
+
+When Port A is configured as a 2-wire interface, communication can be initiated on either Port A or Port B. If communication is initiated on Port A, the ADBMS6830B configures Port A as slave and Port B as master. Likewise, if communication is initiated on Port B, the ADBMS6830B configures Port B as slave and Port A as master. See the Reversible isoSPI section for a detailed description of reversible isoSPI.
+
+Figure 27 is an example of a robust interconnection of multiple identical PCBs, each containing one ADBMS6830B. The microprocessor is located on a separate PCB. To achieve 2-wire isolation between the microprocessor PCB and the first ADBMS6830B PCB, use the ADBMS6821 or ADBMS6822 support ICs.
+
+## Reversible isoSPI
+
+Figure 29 shows a daisy-chained configuration of the ADBMS6830B using reversible isoSPI. Two ADBMS6821s or a single ADBMS6822 is connected on either side of the daisy chain. Both ADBMS6821s are configured as masters and share the same SPI to connect to the microprocessor unit (MPU). The MPU uses two different CS signals to talk to one of the two ADBMS6821s.
+
+For example, in Figure 29, if the bottom ADBMS6821 is addressed, then ADBMS6830B Device A is the first device in the stack followed by Device B and Device C. Port A of each ADBMS6830B is configured as the slave, and Port B is configured as the master. If the top ADBMS6821 is addressed, then ADBMS6830B Device C becomes the first device in the stack followed by Device B and Device A. Port B of each ADBMS6830B is configured as a slave, and Port A is configured as a master.
+
+The reversible isoSPI provides a redundant communication path in the event of a single point failure in the 2-wire interface.
+
+## SERIAL INTERFACE OVERVIEW
+
+Figure 29. Multiple Devices Configured for Reversible isoSPI
+
+<!-- image -->
+
+## SERIAL INTERFACE OVERVIEW
+
+## Configurable isoSPI Break
+
+Individual ADBMS6830B devices in a daisy chain can be configured to halt any transmission of data on its master isoSPI port. Perform this action by writing the COMM\_BK bit to a 1 in Configuration Register Group A. Asserting the COMM\_BK bit does not prevent the ADBMS6830B from receiving and responding to commands from either the SPI/isoSPI Port A or the isoSPI Port B. Therefore, this setup is useful in a reversible isoSPI daisy chain for increasing the effective communication bandwidth by splitting the chain in half. The host can assert the COMM\_BK bits in the two center ADBMS6830B devices in the daisy chain. Then, the host can simultaneously issue commands to both ends of the daisy chain as if it were communicating to two separate daisy chains, each with half of the total chain length.
+
+If a communication fault occurs while some ADBMS6830B devices are configured for communication break, the host can successively attempt to write COMM\_BK = 0 to all devices in the chain, and in both the forwards and reverse directions. This write allows the host access to all possible devices for identifying the location of the communication break.
+
+The COMM\_BK bit resets to 0 on a watchdog reset.
+
+## isoSPI Pulse Detail
+
+Two ADBMS6830B devices can communicate by transmitting and receiving differential pulses back and forth through an isolation barrier. The transmitter can output three voltage levels: +VA, 0 V, and -VA. A positive output results from IP sourcing current and IM sinking current across the load resistor. A negative voltage is developed by IP sinking and IM sourcing. When both outputs are off, the load resistance forces the differential output to 0 V.
+
+To eliminate the dc signal component and enhance reliability, isoSPI pulses are defined as symmetric pulse pairs. A +1 pulse is transmitted as a positive pulse followed by a negative pulse. A -1 pulse is transmitted as a negative pulse followed by a positive pulse. The duration of each pulse is defined as t ½PW because each is half of the required symmetric pair (the total isoSPI pulse duration is 2 × t ½PW).
+
+| Table 38. isoSPI Pulse Types   | Table 38. isoSPI Pulse Types   | Table 38. isoSPI Pulse Types   | Table 38. isoSPI Pulse Types   |
+|--------------------------------|--------------------------------|--------------------------------|--------------------------------|
+| Pulse Type                     | First Level (t ½PW )           | Second Level (t ½PW )          | Ending Level                   |
+| Long +1                        | +VA (150 ns)                   | -VA (150 ns)                   | 0 V                            |
+| Long -1                        | -VA (150 ns)                   | +VA (150 ns)                   | 0 V                            |
+| Short +1                       | +VA (50 ns)                    | -VA (50 ns)                    | 0 V                            |
+| Short -1                       | -VA (50 ns)                    | +VA (50 ns)                    | 0 V                            |
+
+A host microcontroller does not have to generate isoSPI pulses to use this 2-wire interface. The first ADBMS6830B in the system can communicate to the microcontroller using the 4-wire SPI on its Port A, then daisy-chain to other ADBMS6830Bs using the 2-wire isoSPI on its Port B. Alternatively, the ADBMS6821 or ADBMS6822 can be used to translate the SPI signals into isoSPI pulses.
+
+When the ADBMS6830B is operating with Port A as an SPI (ISOMD = V-), the SPI detects one of four communication events: CSB falling, CSB rising, SCK rising with SDI = 0, and SCK rising with SDI = 1. Each event is converted into one of four pulse types for transmission to another daisy-chained ADBMS6830B. Long pulses are used to transmit CSB changes and short pulses transmit data, as explained in Table 39.
+
+## Table 39. Port B (Master) isoSPI Port Function
+
+| Communication Event (Port A SPI)   | Transmitted Pulse (Port B isoSPI)   |
+|------------------------------------|-------------------------------------|
+| CS Rising                          | Long +1                             |
+| CS Falling                         | Long -1                             |
+| SCK Rising Edge, SDI = 1           | Short +1                            |
+| SCK Rising Edge, SDI = 0           | Short -1                            |
+
+On the other side of the isolation barrier (that is, at the other end of the cable), the second ADBMS6830B has ISOMD = V REG . Its Port A operates as a slave isoSPI. It receives each transmitted pulse and reconstructs the SPI signals internally, as shown in Table 40. In addition, during a read command, this port can transmit return data pulses.
+
+The slave isoSPI port (slave) never transmits long (CSB) pulses. A slave isoSPI port transmits short -1 pulses, a short +1 pulse when reading back a data bit. If master port receives a null response rather than a short +1 pulse or a short -1 pulse, the master port recognizes the null response as a Logic 1 bit.
+
+Table 40.  Port A (Slave) isoSPI Port Function
+
+| Received Pulse (Slave isoSPI Port)   | Internal SPI Port Action   | Return Pulse                                                            |
+|--------------------------------------|----------------------------|-------------------------------------------------------------------------|
+| Long +1                              | Drive CSB high             | None                                                                    |
+| Long -1                              | Drive CSB low              | None                                                                    |
+| Short +1                             | Set SDI = 1                | Short -1 pulse if reading 0 bits                                        |
+|                                      | Pulse SCK                  | Short +1 pulse if reading 1 bit (no return pulse if not in read mode)   |
+| Short -1                             | Set SDI = 0                | Short -1 pulse if reading 0 bits                                        |
+|                                      | Pulse SCK                  | Short +1 pulse if reading a 1 bit (no return pulse if not in read mode) |
+
+## SERIAL INTERFACE OVERVIEW
+
+## Timing Diagrams
+
+Figure 31 shows the isoSPI timing diagram for a read command to daisy-chained ADBMS6830B devices. The ISOMD pin is tied to Von the bottom device and the corresponding Port A is configured as an SPI port (CSB, SCK, SDI, and SDO). The isoSPI signals of three stacked devices are shown labeled with the port (Port A or Port B) and the device number. Note that ISO B1 and ISO A2 are the same signal but are shown on each end of the transmission cable that connects Device 1 and Device 2. Likewise, ISO B2 and ISO A3 are the same signal, but with the cable delay shown between Device 2 and Device 3.
+
+Bit WN to Bit W0 refer to the 16-bit command code and the 16-bit PEC of a read command. At the end of Bit W0, the three devices decode the read command and begin shifting out valid data on the next rising edge of clock SCK. Bit XN to Bit X0 refer to the data shifted out by Device 1. Bit YN to Bit Y0 refer to the data shifted out by Device 2, and Bit ZN to Bit Z0 refer to the data shifted out by Device 3. All data is read back from the SDO port on Device 1 in a daisy-chained fashion.
+
+Figure 30. isoSPI Pulse Detail
+
+<!-- image -->
+
+## SERIAL INTERFACE OVERVIEW
+
+<!-- image -->
+
+## Waking Up the Serial Interface
+
+The serial ports (SPI or isoSPI) enter the low power idle state if there is no activity on Port A or Port B for a time of t IDLE . The wake-up circuit monitors activity on CSB (IMA) and SCK (IPA) and activity on IMB and IPB for the ADBMS6830B.
+
+If ISOMD = V-, Port A is in SPI mode. Activity on the CSB pin or the SCK pin wakes up the SPI. If ISOMD = V REG , Port A is in isoSPI mode. Differential activity on IPA to IMB wakes up the isoSPI. The ADBMS6830B is ready to communicate when the isoSPI state changes to ready within t WAKE or t READY , depending on the core state (see Figure 14 and the state descriptions for details).
+
+Figure 32 shows the timing and the functionally equivalent circuit. The wake-up circuit responds to the difference between SCK (IPA) and CS (IMA). Common-mode signals do not wake up the serial interface. The interface is designed to wake up after receiving a large signal single-ended pulse or a low amplitude symmetric pulse. The differential signal |SCK(IPA) - CS(IMA)| must be at least V WAKE = 400 mV for a minimum duration of t DWELL = 240 ns to qualify as a wake-up signal that powers up the serial interface.
+
+A robust wake-up method manually sends isoSPI traffic for enough time to wake the entire daisy chain. At a minimum, a pair of long isoSPI pulses (-1 and +1) is needed for each device, separated by more than t READY or t WAKE (if the core state is standby or sleep, respectively), but less than t IDLE . This method allows each device to wake up and propagate the next pulse to the following device. This method works even if some devices in the chain are not in the idle state. In practice, implementing this method requires toggling the CSB pin (of the  ADBMS6821 or ADBMS6822, or the bottom ADBMS6830B with ISOMD = 0) to generate the long isoSPI pulses. Alternatively, dummy commands (such as RDCFG) can be executed to generate the long isoSPI pulses.
+
+## SERIAL INTERFACE OVERVIEW
+
+<!-- image -->
+
+## NETWORK LAYER
+
+## COMMAND PEC
+
+The command PEC is a 15-bit cyclic redundancy check (CRC) value calculated for all 16 bits of a command, using the initial PEC value of 000000000010000 and the following characteristic polynomial: x 15 + x 14 + x 10 + x 8 + x 7 + x 4 + x 3 + 1.
+
+The ADBMS6830B calculates the command PEC for any command received and compares it with the PEC following the command. The command is regarded as valid only if the PEC matches. Table 41 shows the format of the command PEC.
+
+## Table 41. Command PEC Format
+
+| Name   | RD/WR   | Bit 7   | Bit 6   | Bit 5   | Bit 4   | Bit 3   | Bit 2   | Bit 1   | Bit 0   |
+|--------|---------|---------|---------|---------|---------|---------|---------|---------|---------|
+| PEC0   | RD/WR   | PEC[14] | PEC[13] | PEC[12] | PEC[11] | PEC[10] | PEC[9]  | PEC[8]  | PEC[7]  |
+| PEC1   | RD/WR   | PEC[6]  | PEC[5]  | PEC[4]  | PEC[3]  | PEC[2]  | PEC[1]  | PEC[0]  | 0       |
+
+## DATA PEC
+
+The data PEC is a 10-bit CRC value calculated for all bits read from a register and the command counter bits. The initial PEC value is 0000010000 and the following characteristic polynomial: x 10 + x 7 + x 3 + x 2 + x + 1. Data is regarded as valid only if the data PEC matches.
+
+For write commands and the CLRFLAG command, data is sent to the ADBMS6830B followed by the data PEC. For example, when writing to the Configuration Register Group A, the data is sent in the following order: CFGAR0, …, CFGAR5, PEC0, PEC1.
+
+Table 42 shows the format for the data PEC when writing data.
+
+## Table 42. Write Data PEC Format
+
+| Name   | RD/WR   | Bit 7   | Bit 6   | Bit 5   | Bit 4   | Bit 3   | Bit 2   | Bit 1   | Bit 0   |
+|--------|---------|---------|---------|---------|---------|---------|---------|---------|---------|
+| PEC0   | RD/WR   | 0       | 0       | 0       | 0       | 0       | 0       | PEC[9]  | PEC[8]  |
+| PEC1   | RD/WR   | PEC[7]  | PEC[6]  | PEC[5]  | PEC[4]  | PEC[3]  | PEC[2]  | PEC[1]  | PEC[0]  |
+
+## COMMAND COUNTER
+
+A command counter enhances system level software diagnostics and communication integrity. The command counter is initialized to 0 on power cycling, transition to sleep, or by the RSTCC or SRST commands. The command counter increments if the ADBMS6830B receives a command indicated by the INC column of Table 50. When the command counter increments past the maximum value of 63, it rolls over to a value of 1, not 0. The 0 value is reserved for the specific reset cases listed previously. All read commands return the register data followed by the command counter and data PEC.
+
+Table 43 shows the format for the command counter and data PEC when reading data. The host can initialize the command counter in the ADBMS6830B and then verify the command counter value from the ADBMS6830B against an expected value after sending a sequence of commands.
+
+## Table 43. Read Data PEC Format
+
+| Name   | RD/WR   | Bit 7   | Bit 6   | Bit 5   | Bit 4   | Bit 3   | Bit 2   | Bit 1   | Bit 0   |
+|--------|---------|---------|---------|---------|---------|---------|---------|---------|---------|
+| PEC0   | RD/WR   | CCNT[5] | CCNT[4] | CCNT[3] | CCNT[2] | CCNT[1] | CCNT[0] | PEC[9]  | PEC[8]  |
+| PEC1   | RD/WR   | PEC[7]  | PEC[6]  | PEC[5]  | PEC[4]  | PEC[3]  | PEC[2]  | PEC[1]  | PEC[0]  |
+
+## NETWORK LAYER
+
+## POLLING METHODS
+
+The simplest method to determine ADC completion is for the controller to start an ADC conversion and wait for the specified conversion time to pass before reading the results. The ADBMS6830B also allows the use of polling to determine ADC completion.
+
+In configurations that communicate in SPI mode (ISOMD pin tied low), there are two methods of polling. The first method is to hold CSB low after an ADC conversion command is sent. After entering a conversion command, the SDO line is driven low when the device is busy performing conversions. SDO is pulled high when the device completes conversions. However, SDO also returns high when CSB goes high even if the device has not completed the conversion (see Figure 33). A problem with this method is that the controller is not free to do other serial communication while waiting for ADC conversions to complete.
+
+The next method overcomes this limitation. The controller can send an ADC start command, perform other tasks, and then send a polling command to determine the status of ADC conversions. The ADBMS6830B allows polling the end of conversion individually per type of ADC by four different commands, where PLCADC, PLSADC, PLAUX, and PLAUX2 poll the status of the C-ADCs, S-ADCs, AUX ADC, and AUX2 ADC, respectively. PLADC polls the status of all ADCs together, which is only meaningful, if only single shot measures have been triggered, because any ADC in continuous mode prevents successful polling of the end of conversion of other ADCs. After entering a polling command, SDO goes low if the device is busy performing a related operation. SDO is pulled high at the end of the operations. However, SDO also goes high when CSBI goes high, even if the device has not completed the operation.
+
+Figure 34. SDO Polling Using PLADC Command
+
+<!-- image -->
+
+## NETWORK LAYER
+
+In a daisy-chained configuration of x stacked devices, the same two polling methods can be used. If the bottom device communicates in SPI mode, the SDO of the bottom device indicates the operation status of the entire stack. That is, SDO remains low until all the devices in the stack complete the operations. In the first method of polling, after an ADC conversion command is sent, clock pulses are sent on SCK while keeping CSB low. The SDO status is valid only at the end of 2 × N clock pulses on SCK and updates for every clock pulse that follows (see Figure 35).
+
+In the second method, the PLADC command is sent followed by clock pulses on SCK while keeping CSB low. Similar to the first method, the SDO status is valid only after 2 × N clock cycles on
+
+SCKI and updates after every clock cycle that follows (see Figure 35).
+
+If the bottom device communicates in isoSPI mode, isoSPI data pulses are sent to the device to update the operation status. Using the ADBMS6821 or ADBMS6822, this action can be achieved by clocking the SCK pin on the device. The operation status is valid only after the bottom ADBMS6830B device receives 2 × N isoSPI data pulses and the status updates for every isoSPI data pulse that follows. The device returns a low data pulse if any of the devices in the stack are busy performing operations and returns a high data pulse if all the devices are free.
+
+Figure 36. SDO Polling Using PLADC Command (Daisy-Chain Configuration)
+
+<!-- image -->
+
+## NETWORK LAYER
+
+## BUS PROTOCOLS
+
+Table 45 through Table 47 show the protocol formats for commands. Table 44 is the key for reading the protocol diagrams.
+
+Table 46 shows the write command sending data first to Device N, which is farthest from the host and sending data last to Device 1, which is closest to the host.
+
+## Table 44. Protocol Key
+
+| Byte   | Description                                     |
+|--------|-------------------------------------------------|
+| CMD0   | Command Byte 0 (see Table 48)                   |
+| CMD1   | Command Byte 1 (see Table 48)                   |
+| PEC0   | Command Packet Error Code Byte 0 (see Table 41) |
+| PEC1   | Command Packet Error Code Byte 1 (see Table 41) |
+| DPEC0  | Data Packet Error Code Byte 0                   |
+| DPEC1  | Data Packet Error Code Byte 1                   |
+| …      | Continuation of protocol                        |
+
+## Table 45. Poll Command
+
+| 8    | 8    | 8    | 8    |           |
+|------|------|------|------|-----------|
+| CMD0 | CMD1 | PEC0 | PEC1 | Poll data |
+
+## Table 46. Write Command
+
+|      | Data to Device N   | Data to Device N   | Data to Device N   | Data to Device N   | Data to Device N   | Data to Device N   | Data to Device 1   | Data to Device 1   | Data to Device 1   | Data to Device 1   | Data to Device 1   | Data to Device 1   | Data to Device 1   | Data to Device 1   |
+|------|--------------------|--------------------|--------------------|--------------------|--------------------|--------------------|--------------------|--------------------|--------------------|--------------------|--------------------|--------------------|--------------------|--------------------|
+| 8    | 8                  | 8                  | 8                  | 8                  |                    | 8                  | 8                  | 8                  |                    | 8                  |                    | 8                  | 8                  | 8                  |
+| CMD0 | CMD1               | PEC0               | PEC1               | Data byte low      | …                  | Data byte high     | DPEC0              | DPEC1              | …                  | Data byte low      | …                  | Data byte high     | DPEC0              | DPEC1              |
+
+## Table 47. Read Command
+
+|      | Data from Device 1   | Data from Device 1   | Data from Device 1   | Data from Device 1   | Data from Device 1   | Data from Device 1   | Data from Device N   | Data from Device N   | Data from Device N   | Data from Device N   | Data from Device N   | Data from Device N   | Data from Device N   | Data from Device N   |
+|------|----------------------|----------------------|----------------------|----------------------|----------------------|----------------------|----------------------|----------------------|----------------------|----------------------|----------------------|----------------------|----------------------|----------------------|
+| 8    | 8                    | 8                    | 8                    | 8                    |                      | 8                    | 8                    | 8                    |                      | 8                    |                      | 8                    | 8                    | 8                    |
+| CMD0 | CMD1                 | PEC0                 | PEC1                 | Data byte low        | …                    | Data byte high       | DPEC0                | DPEC1                | …                    | Data byte low        | …                    | Data byte high       | DPEC0                | DPEC1                |
+
+## Table 48. Command Format
+
+| Name   | RD/WR   | Bit 7   | Bit 6   | Bit 5   | Bit 4   | Bit 3   | Bit 2   | Bit 1   | Bit 0   |
+|--------|---------|---------|---------|---------|---------|---------|---------|---------|---------|
+| CMD0   | WR      | 0       | 0       | 0       | 0       | 0       | CC[10]  | CC[9]   | CC[8]   |
+| CMD1   | WR      | CC[7]   | CC[6]   | CC[5]   | CC[4]   | CC[3]   | CC[2]   | CC[1]   | CC[0]   |
+
+## Command Format
+
+Table 49 shows the format for commands. Table 50 shows a list of all the command codes. The PEC for commands must be computed on the entire 16-bit command (CMD0 and CMD1).
+
+## Table 49. Command Format
+
+| Name   | RD/WR   | Bit 7   | Bit 6   | Bit 5   | Bit 4   | Bit 3   | Bit 2   | Bit 1   | Bit 0   |
+|--------|---------|---------|---------|---------|---------|---------|---------|---------|---------|
+| CMD0   | WR      | 0       | 0       | 0       | 0       | 0       | CC[10   | CC[9]   | CC[8]   |
+| CMD1   | WR      | CC[7]   | CC[6]   | CC[5    | CC[4]   | CC[3]   | CC[2]   | CC[1]   | CC[0]   |
+
+Table 47 shows the read command receiving data first from Device 1, which is closest to the host and receiving data last from Device N, which is farthest from the host.
+
+## COMMANDS
+
+Table 50 lists all the commands and their options. INC designates whether the command counter increments for the command.
+
+## Table 50. Command Codes
+
+|                                                                                     |               |       | CC[10:0] - Command Code   | CC[10:0] - Command Code   | CC[10:0] - Command Code   | CC[10:0] - Command Code   | CC[10:0] - Command Code   | CC[10:0] - Command Code   | CC[10:0] - Command Code   | CC[10:0] - Command Code   | CC[10:0] - Command Code   | CC[10:0] - Command Code   | CC[10:0] - Command Code   |
+|-------------------------------------------------------------------------------------|---------------|-------|---------------------------|---------------------------|---------------------------|---------------------------|---------------------------|---------------------------|---------------------------|---------------------------|---------------------------|---------------------------|---------------------------|
+| Command Description                                                                 | Name          | INC   | 10                        | 9                         | 8                         | 7                         | 6                         | 5                         | 4                         | 3                         | 2                         | 1                         | 0                         |
+| Write Configuration Register Group A                                                | WRCFGA        | Yes 1 | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 1                         |
+| Write Configuration Register Group B                                                | WRCFGB        | Yes 1 | 0                         | 0                         | 0                         | 0                         | 0                         | 1                         | 0                         | 0                         | 1                         | 0                         | 0                         |
+| Read Configuration Register Group A                                                 | RDCFGA        |       | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 1                         | 0                         |
+| Read Configuration Register Group B                                                 | RDCFGB        |       | 0                         | 0                         | 0                         | 0                         | 0                         | 1                         | 0                         | 0                         | 1                         | 1                         | 0                         |
+| Read Cell Voltage Register Group A                                                  | RDCVA         |       | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 1                         | 0                         | 0                         |
+| Read Cell Voltage Register Group B                                                  | RDCVB         |       | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 1                         | 1                         | 0                         |
+| Read Cell Voltage Register Group C                                                  | RDCVC         |       | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 1                         | 0                         | 0                         | 0                         |
+| Read Cell Voltage Register Group D                                                  | RDCVD         |       | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 1                         | 0                         | 1                         | 0                         |
+| Read Cell Voltage Register Group E                                                  | RDCVE         |       | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 1                         | 0                         | 0                         | 1                         |
+| Read Cell Voltage Register Group F                                                  | RDCVF         |       | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 1                         | 0                         | 1                         | 1                         |
+| Read All Cell Results                                                               | RDCVALL       |       | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 1                         | 1                         | 0                         | 0                         |
+| Read Averaged Cell Voltage Register Group A                                         | RDACA         |       | 0                         | 0                         | 0                         | 0                         | 1                         | 0                         | 0                         | 0                         | 1                         | 0                         | 0                         |
+| Read Averaged Cell Voltage Register Group B                                         | RDACB         |       | 0                         | 0                         | 0                         | 0                         | 1                         | 0                         | 0                         | 0                         | 1                         | 1                         | 0                         |
+| Read Averaged Cell Voltage Register Group C                                         | RDACC         |       | 0                         | 0                         | 0                         | 0                         | 1                         | 0                         | 0                         | 1                         | 0                         | 0                         | 0                         |
+| Read Averaged Cell Voltage Register Group D                                         | RDACD         |       | 0                         | 0                         | 0                         | 0                         | 1                         | 0                         | 0                         | 1                         | 0                         | 1                         | 0                         |
+| Read Averaged Cell Voltage Register Group E                                         | RDACE         |       | 0                         | 0                         | 0                         | 0                         | 1                         | 0                         | 0                         | 1                         | 0                         | 0                         | 1                         |
+| Read Averaged Cell Voltage Register Group F                                         | RDACF         |       | 0                         | 0                         | 0                         | 0                         | 1                         | 0                         | 0                         | 1                         | 0                         | 1                         | 1                         |
+| Read All Avg Cell Results                                                           | RDACALL       |       | 0                         | 0                         | 0                         | 0                         | 1                         | 0                         | 0                         | 1                         | 1                         | 0                         | 0                         |
+| Read S Voltage Register Group A                                                     | RDSVA RDSVB   |       | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 1                         | 1                         |
+| Read S Voltage Register Group B                                                     |               |       | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 1                         | 0                         | 1                         |
+| Read S Voltage Register Group C Read S Voltage Register Group D                     | RDSVC         |       | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 1                         | 1                         | 1                         |
+| E                                                                                   | RDSVD         |       | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 1                         | 1                         | 0                         | 1                         |
+| Read S Voltage Register Group                                                       | RDSVE         |       | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 1                         | 1                         | 1                         | 0                         |
+| Read S Voltage Register Group F                                                     | RDSVF         |       | 0                         | 0                         | 0                         | 0 0                       | 0                         | 0                         | 0                         | 1                         | 1                         | 1                         | 1                         |
+| Read All S Results                                                                  | RDSALL        |       | 0                         | 0                         | 0                         |                           | 0                         | 0                         | 1                         | 0                         | 0                         | 0                         | 0                         |
+| Read all C and S Results                                                            | RDCSALL       |       | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 1                         | 0                         | 0                         | 0                         | 1                         |
+| Read all Average C and S Results                                                    | RDACSALL      |       | 0                         | 0                         | 0 0                       | 0 0                       | 1                         | 0                         | 1                         | 0                         | 0                         | 0                         | 1                         |
+| Read Filter Cell Voltage Register Group A                                           | RDFCA         |       | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 1                         | 0                         | 0                         | 1                         | 0                         |
+| Read Filter Cell Voltage Register Group B Read Filter Cell Voltage Register Group C | RDFCB         |       | 0 0                       | 0                         |                           | 0                         | 0 0                       | 0 0                       | 1                         | 0                         | 0 1                       | 1                         | 1                         |
+| Read Filter Cell Voltage Register Group D                                           | RDFCC RDFCD   |       | 0                         | 0 0                       | 0 0                       | 0                         | 0                         | 0                         | 1                         | 0 0                       |                           | 0 0                       | 0 1                       |
+| Read Filter Cell Voltage Register Group E                                           | RDFCE         |       | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 1 1                       | 0                         | 1 1                       | 1                         | 0                         |
+| Read Filter Cell Voltage Register Group F                                           | RDFCF         |       | 0                         | 0                         |                           | 0                         |                           |                           |                           |                           |                           | 1                         | 1                         |
+|                                                                                     |               |       |                           |                           | 0 0                       |                           | 0                         | 0                         | 1                         | 0                         | 1                         |                           |                           |
+| Read All Filter Cell Results                                                        | RDFCALL       |       | 0 0                       | 0                         |                           | 0                         | 0                         | 0                         | 1                         | 1                         | 0                         | 0                         | 0                         |
+| Read Auxiliary Register Group A Read Auxiliary Register Group B                     | RDAUXA RDAUXB |       | 0                         | 0 0                       | 0 0                       | 0 0                       | 0 0                       | 0 0                       | 1 1                       | 1 1                       | 0 0                       | 0 1                       | 1 0                       |
+| Read Auxiliary Register Group C                                                     | RDAUXC        |       | 0                         |                           | 0                         | 0                         |                           |                           | 1                         | 1                         | 0                         | 1                         | 1                         |
+| Read Auxiliary Register Group D                                                     |               |       |                           | 0                         |                           |                           | 0                         | 0                         |                           |                           | 1                         |                           |                           |
+|                                                                                     | RDAUXD        |       | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 1                         | 1                         |                           | 1                         | 1                         |
+| Read Redundant Auxiliary Register Group A Read Redundant Auxiliary Register Group B | RDRAXA RDRAXB |       | 0 0 0                     | 0 0                       | 0 0                       | 0 0                       | 0 0                       | 0 0                       | 1 1                       | 1 1                       | 1 1                       | 0 0                       | 0 1                       |
+| Read Auxiliary Redundant Register Group C Read Auxiliary Redundant Register Group D | RDRAXC RDRAXD |       | 0                         | 0 0                       | 0 0                       | 0 0                       | 0 0                       | 0 1                       | 1 0                       | 1 0                       | 1 1                       | 1 0                       | 0 1                       |
+| Read Status Register Group A                                                        | RDSTATA       |       | 0                         | 0                         | 0                         | 0                         |                           |                           |                           | 0                         | 0                         | 0                         | 0                         |
+|                                                                                     |               |       |                           |                           |                           |                           | 0                         | 1                         | 1                         |                           |                           |                           | 1                         |
+| Read Status Register Group B                                                        | RDSTATB       |       | 0                         | 0                         | 0                         | 0                         | 0                         | 1                         | 1                         | 0                         | 0                         | 0                         |                           |
+| Read Status Register Group C                                                        | RDSTATC       |       | 0                         | 0                         | 0                         | 0                         | ERR                       | 1                         | 1                         | 0                         | 0                         | 1                         | 0                         |
+
+## COMMANDS
+
+Table 50. Command Codes (Continued)
+
+|                                             |               |           | CC[10:0] - Command Code   | CC[10:0] - Command Code   | CC[10:0] - Command Code   | CC[10:0] - Command Code   | CC[10:0] - Command Code   | CC[10:0] - Command Code   | CC[10:0] - Command Code   | CC[10:0] - Command Code   | CC[10:0] - Command Code   | CC[10:0] - Command Code   | CC[10:0] - Command Code   |
+|---------------------------------------------|---------------|-----------|---------------------------|---------------------------|---------------------------|---------------------------|---------------------------|---------------------------|---------------------------|---------------------------|---------------------------|---------------------------|---------------------------|
+| Command Description                         | Name          | INC       | 10                        | 9                         | 8                         | 7                         | 6                         | 5                         | 4                         | 3                         | 2                         | 1                         | 0                         |
+| Read Status Register Group D                | RDSTATD       |           | 0                         | 0                         | 0                         | 0                         | 0                         | 1                         | 1                         | 0                         | 0                         | 1                         | 1                         |
+| Read Status Register Group E                | RDSTATE       |           | 0                         | 0                         | 0                         | 0                         | 0                         | 1                         | 1                         | 0                         | 1                         | 0                         | 0                         |
+| Read all AUX/Status Registers               | RDASALL       |           | 0                         | 0                         | 0                         | 0                         | 0                         | 1                         | 1                         | 0                         | 1                         | 0                         | 1                         |
+| Write PWM Register Group A                  | WRPWMA        | Yes 1     | 0                         | 0                         | 0                         | 0                         | 0                         | 1                         | 0                         | 0                         | 0                         | 0                         | 0                         |
+| Read PWM Register Group A                   | RDPWMA        |           | 0                         | 0                         | 0                         | 0                         | 0                         | 1                         | 0                         | 0                         | 0                         | 1                         | 0                         |
+| Write PWM Register Group B                  | WRPWMB        | Yes 1     | 0                         | 0                         | 0                         | 0                         | 0                         | 1                         | 0                         | 0                         | 0                         | 0                         | 1                         |
+| Read PWM Register Group B                   | RDPWMB        |           | 0                         | 0                         | 0                         | 0                         | 0                         | 1                         | 0                         | 0                         | 0                         | 1                         | 1                         |
+| LPCM Disable                                | CMDIS         | Yes       | 0                         | 0                         | 0                         | 0                         | 1                         | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         |
+| LPCM Enable                                 | CMEN          | Yes       | 0                         | 0                         | 0                         | 0                         | 1                         | 0                         | 0                         | 0                         | 0                         | 0                         | 1                         |
+| LPCM Heartbeat                              | CMHB 2        |           | 0                         | 0                         | 0                         | 0                         | 1                         | 0                         | 0                         | 0                         | 0                         | 1                         | 1                         |
+| Write LPCM Configuration Register           | WRCMCFG       | Yes 1     | 0                         | 0                         | 0                         | 0                         | 1                         | 0                         | 1                         | 1                         | 0                         | 0                         | 0                         |
+| Read LPCM Configuration Register            | RDCMCFG       |           | 0                         | 0                         | 0                         | 0                         | 1                         | 0                         | 1                         | 1                         | 0                         | 0                         | 1                         |
+| Write LPCM Cell Threshold                   | WRCMCELLT     | Yes 1     | 0                         | 0                         | 0                         | 0                         | 1                         | 0                         | 1                         | 1                         | 0                         | 1                         | 0                         |
+| Read LPCM Cell Threshold                    | RDCMCELLT     |           | 0                         | 0                         | 0                         | 0                         | 1                         | 0                         | 1                         | 1                         | 0                         | 1                         | 1                         |
+| Write LPCM GPIO Threshold                   | WRCMGPIOT     | Yes 1     | 0                         | 0                         | 0                         | 0                         | 1                         | 0                         | 1                         | 1                         | 1                         | 0                         | 0                         |
+| Read LPCM GPIO Threshold                    | RDCMGPIOT     |           | 0                         | 0                         | 0                         | 0                         | 1                         | 0                         | 1                         | 1                         | 1                         | 0                         | 1                         |
+| Clear LPCM Flags                            | CLRCMFLAG     | Yes 1     | 0                         | 0                         | 0                         | 0                         | 1                         | 0                         | 1                         | 1                         | 1                         | 1                         | 0                         |
+| Read LPCM Flags                             | RDCMFLAG      |           | 0                         | 0                         | 0                         | 0                         | 1                         | 0                         | 1                         | 1                         | 1                         | 1                         | 1                         |
+| Start Cell Voltage ADC Conversion and Poll  | ADCV          | Yes       | 0                         | 1                         | RD                        | CONT                      | 1                         | 1                         | DCP                       | 0                         | RSTF                      | OW[1]                     | OW[0]                     |
+| Status                                      |               |           |                           |                           |                           |                           |                           |                           |                           |                           |                           |                           |                           |
+| Start S-ADC Conversion and Poll Status      | ADSV          | Yes       | 0                         | 0                         | 1                         | CONT                      | 1                         | 1                         | DCP                       | 1                         | 0                         | OW[1]                     | OW[0]                     |
+| Start AUX ADC Conversions and Poll Status   | ADAX          | Yes       | 1                         | 0                         | OW                        | PUP                       | CH[4]                     | 0                         | 1                         | CH[3]                     | CH[2]                     | CH[1]                     | CH[0]                     |
+| Start AUX2 ADC Conversions and Poll Status  | ADAX2 CLRCELL | Yes Yes   | 1 1                       | 0 1                       | 0 1                       | 0 0                       | 0 0                       | 0 0                       | 0 1                       | CH[3] 0                   | CH[2] 0                   | CH[1] 0                   | CH[0] 1                   |
+| Clear Cell Voltage Register Groups          |               |           | 1                         | 1                         | 1                         | 0                         | 0                         | 0                         | 1                         | 0                         | 1                         | 0                         |                           |
+| Clear Filtered Cell Voltage Register Groups | CLRFC         | Yes       |                           |                           | 1                         | 0                         | 0                         | 0                         | 1                         |                           |                           |                           | 0                         |
+| Clear Auxiliary Register Groups             | CLRAUX        | Yes       | 1                         | 1                         |                           | 0                         | 0                         | 0                         |                           | 0                         | 0                         | 1                         | 0 0                       |
+| Clear S-Voltage Register Groups             | CLRSPIN       | Yes       | 1                         | 1                         | 1                         |                           |                           |                           | 1                         | 0                         | 1                         | 1                         |                           |
+| Clear Flags                                 | CLRFLAG       | Yes 1     | 1                         | 1                         | 1                         | 0                         | 0                         | 0                         | 1                         | 0                         | 1                         | 1                         | 1                         |
+| Clear OVUV                                  | CLOVUV        | Yes 1     | 1                         | 1                         | 1                         | 0                         | 0                         | 0                         | 1                         | 0 1                       | 1                         | 0                         | 1                         |
+| Poll Any ADC Status                         | PLADC         | Yes       | 1                         | 1                         | 1                         | 0                         | 0                         | 0                         | 1                         |                           | 0                         | 0                         | 0                         |
+| Poll C-ADC                                  | PLCADC        | Yes       | 1                         | 1                         | 1                         | 0                         | 0                         | 0                         | 1                         | 1                         | 1                         | 0                         | 0                         |
+| Poll S-ADC                                  | PLSADC        | Yes       | 1                         | 1                         | 1                         | 0                         | 0                         | 0                         | 1                         | 1                         | 1                         | 0                         | 1                         |
+| Poll AUX ADC                                | PLAUX         | Yes       | 1                         | 1                         | 1                         | 0                         | 0                         | 0                         | 1                         | 1                         | 1                         | 1                         | 0                         |
+| Poll AUX2 ADC                               | PLAUX2        | Yes       | 1                         | 1                         | 1                         | 0                         | 0                         | 0                         | 1                         | 1                         | 1                         | 1                         | 1                         |
+| Write COMM Register Group                   | WRCOMM        | Yes 1     | 1                         | 1                         | 1                         | 0                         | 0                         | 1                         | 0                         | 0                         | 0                         | 0                         | 1                         |
+| Read COMM Register Group                    | RDCOMM        |           | 1                         | 1                         | 1                         | 0                         | 0                         | 1                         | 0                         | 0                         | 0                         | 1                         | 0                         |
+| Start I2C/SPI Communication                 | STCOMM        | Yes       | 1                         | 1                         | 1                         | 0                         | 0                         | 1                         | 0                         | 0                         | 0                         | 1                         | 1                         |
+| Mute Discharge                              | MUTE          | Yes       | 0                         | 0                         | 0                         | 0                         | 0                         | 1                         | 0                         | 1                         | 0                         | 0                         | 0                         |
+| Unmute Discharge                            | UNMUTE        | Yes       | 0                         | 0                         | 0                         | 0                         | 0                         | 1                         | 0                         | 1                         | 0                         | 0                         | 1                         |
+| Read Serial ID Register Group               | RDSID         |           | 0                         | 0                         | 0                         | 0                         | 0                         | 1                         | 0                         | 1                         | 1                         | 0                         | 0                         |
+| Reset Command Counter                       | RSTCC         |           | 0                         | 0                         | 0                         | 0                         | 0                         | 1                         | 0                         | 1                         | 1                         | 1                         | 0                         |
+| Snapshot                                    | SNAP          | Yes       | 0                         | 0                         | 0                         | 0                         | 0                         | 1                         | 0                         | 1                         | 1                         | 0                         | 1                         |
+| Release Snapshot                            | UNSNAP        | Yes       | 0                         | 0                         | 0                         | 0                         | 0                         | 1                         | 0                         | 1                         | 1                         | 1                         | 1                         |
+| Soft Reset                                  | SRST          |           | 0                         | 0                         | 0                         | 0                         | 0                         | 1                         | 0                         | 0                         | 1                         | 1                         | 1                         |
+| Unlock Retention Register                   | ULRR WRRR     | Yes Yes 1 | 0 0                       | 0 0                       | 0 0                       | 0 0                       | 0 0                       | 1 1                       | 1 1                       | 1 1                       | 0 0                       | 0 0                       | 0 1                       |
+| Write Retention Registers                   |               |           | 0                         | 0                         | 0                         | 0                         | 0                         | 1                         | 1                         | 1                         | 0                         | 1                         | 0                         |
+| Read Retention Registers                    | RDRR          |           |                           |                           |                           |                           |                           |                           |                           |                           |                           |                           |                           |
+
+## COMMANDS
+
+- 1 A valid data packet, including valid data PEC, must be received on the positive edge of CSB for the command counter to increment.
+- 2 CMHB is usually initiated by the LPCM MM device. The microprocessor can initiate CMHB for diagnostics or some limited application configurations but requires LPCM mode active for the command to be processed.
+
+Table 51. Command Bit Descriptions
+
+| Name    | Function                                               | Value   | Value   | Value   | Value   | Value   | AUX Input   |
+|---------|--------------------------------------------------------|---------|---------|---------|---------|---------|-------------|
+| CH[4:0] | Selection for AUX Inputs ADAX: CH[4:0]. ADAX2: CH[3:0] | CH[4]   | CH[3]   | CH[2]   | CH[1]   | CH[0]   |             |
+|         |                                                        | 0       | 0       | 0       | 0       | 0       | ALL         |
+|         |                                                        | 0       | 0       | 0       | 0       | 1       | GPIO1       |
+|         |                                                        | 0       | 0       | 0       | 1       | 0       | GPIO2       |
+|         |                                                        | 0       | 0       | …       | …       | …       | …           |
+|         |                                                        | 0       | 1       | 0       | 1       | 0       | GPIO10      |
+|         |                                                        | 1       | 0       | 0       | 0       | 0       | VREF2       |
+|         |                                                        | 1       | 0       | 0       | 0       | 1       | VD          |
+|         |                                                        | 1       | 0       | 0       | 1       | 0       | VA          |
+|         |                                                        | 1       | 0       | 0       | 1       | 1       | ITEMP       |
+|         |                                                        | 1       | 0       | 1       | 0       | 0       | VPV         |
+|         |                                                        | 1       | 0       | 1       | 0       | 1       | VMV         |
+|         |                                                        | 1       | 0       | 1       | 1       | 0       | RES         |
+|         |                                                        | 1       | 0       | 1       | 1       | 1       | Reserved    |
+
+Table 52. Command Bit Description Continued
+
+| Name    | Function                                                | Values      | Description                                                                                                                                                                                                             |
+|---------|---------------------------------------------------------|-------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| CONT    | Continuous                                              | 0 1         | Single measurement, then standby Continuous measurement                                                                                                                                                                 |
+| OW[1:0] | Open wire on C-ADCS and S-ADCs                          | 00 01 10 11 | Open wire detection off on all channels Open wire detection on for even channels, off for odd channels Open wire detection on for odd channels, off for even channels Open wire detection on for all channels           |
+| OW      | Open wire on AUX ADCs                                   | 0 1         | Off On                                                                                                                                                                                                                  |
+| PUP     | Pull-up and pull-down current for open wire conversions | 0 1         | Pull-down current during AUX conversions (if OW=1) Pull-up current during AUX conversions (if OW=1)                                                                                                                     |
+| DCP     | Discharge permitted                                     | 0 1         | Discharge not permitted during S-ADC measurements (see the Discharge During Measurements section for details) Discharge permitted during S-ADC measurements (see the Discharge During Measurements section for details) |
+| RSTF    | Reset filter                                            | 0 1         | Do not reset IIR filter Reset IIR filter                                                                                                                                                                                |
+| ERR     | Inject error in SPI read- out                           | 0 1         | Reading Status Register C without error injection Reading Status Register C with error injection for latent fault detection, Bit SPIFLT must be set                                                                     |
+
+## COMMANDS
+
+## READ ALL AND SNAPSHOT COMMANDS
+
+Most of the read commands of the ADBMS6830B allow the device to read a single register group composed by 6 bytes followed by the PEC. Therefore, successive readings of two register groups may not provide coherent data. Coherent data reading is possible by either using the read all commands (for single IC applications only) or by using the snap (and unsnap) command (supported in all applications) as described in the Read All Commands section.
+
+## READ ALL COMMANDS
+
+The ADBMS6830B supports the ability to read an entire group of measurement registers for single IC applications. Note that unused bytes in a register group are not transmitted.
+
+The RDCVALL command allows a master to read Cell Voltage Register Group A through Cell Voltage Register Group F (32 data bytes for the ADBMS6830B) by issuing a single command, followed by a single 2-byte PEC for the entire readback packet.
+
+The RDACALL command allows a master to read Averaged Cell Voltage Register Group A through Averaged Cell Voltage Register Group F (32 data bytes for the ADBMS6830B) by issuing a single command, followed by a single 2-byte PEC for the entire readback packet.
+
+The RDFCALL command allows a master to read Filtered Cell Voltage Register Group A through Filtered Cell Voltage Register Group F (32 data bytes for the ADBMS6830B) by issuing a single command, followed by a single 2-byte PEC for the entire readback packet.
+
+The RDSALL command allows a master to read S Voltage Register Group A through S Voltage Register Group F (32 data bytes for the ADBMS6830B) by issuing a single command, followed by a single 2-byte PEC for the entire readback packet.
+
+The RDCSALL command allows a master to read Cell Voltage Register Group A through Cell Voltage Register Group F followed by S Voltage Register Group A through S Voltage Register Group F (64 data bytes for the ADBMS6830B), by issuing a single command, followed by a single 2-byte PEC for the entire readback packet.
+
+The RDACSALL command allows a master to read Average Cell Voltage Register Group A through Average Cell Voltage Register Group F followed by S Voltage Register Group A through S Voltage Register Group F (64 data bytes for the ADBMS6830B), by issuing a single command, followed by a single 2-byte PEC for the entire readback packet.
+
+The RDASALL command reads Auxiliary Register Group A through Auxiliary Register Group D in the ADBMS6830B, followed by Redundant Auxiliary Register Group A through Redundant Auxiliary Register Group D, followed by Status Register Group A through Status Register Group E by issuing a single command, followed by a single 2-byte PEC for the entire readback packet. The RDASALL
+
+command returns 68 bytes of data because STCR2 and STCR3 of Status Register C are not included.
+
+## SNAPSHOT COMMANDS
+
+To enable reading of coherent data in the daisy-chain operation, the snap command allows the device to freeze all result and status registers at a given time, and read them at convenience before releasing the freeze by an unsnap command. During the freeze of the results registers, the ADC results add to the IIR filter in continuous mode. If redundancy is enabled, the comparison between S-ADC and C-ADC measurement is still performed. Furthermore, the ADBMS6830B keeps track of any (alert) flag during the freeze and updates the status registers accordingly after an unsnap command. Note that sending additional snap commands while the result registers are already frozen does not have any effect. Upon reception of a snap or unsnap command, the command counter increments. The following registers are subject to the snap protocol:
+
+- Cell Voltage Register Group A through Cell Voltage Register Group F
+- S Voltage Register Group A through S Voltage Register Group F
+- Average Cell Voltage Register Group A through Average Cell Voltage Register Group F
+- Filtered Cell Voltage Register Group A through Filtered Cell Voltage Register Group F
+- STCR0 to STCR3 from Status Register Group C and STDR0 to STDR4 of Status Register Group D
+
+Polling end of ADC conversions is not supported while in freeze state.
+
+## RETENTION REGISTER COMMANDS
+
+The ADBMS6830B retains 6 bytes of data in the retention registers even during sleep mode. To write to the retention register group, send an unlock retention register (ULRR) command followed by a write retention register (WRRR) command with 6 bytes of RR data followed by the data PEC bytes. Even if the two bytes of data PEC do not match the 6 bytes of data payload, the WRRR command is executed anyway. Any other command sent after a ULRR command locks the writing to the retention register group. The data in the retention registers can be read via a read retention register (RDRR) command.
+
+## MEMORY MAP
+
+Note: Reserved bits can be either 0 or 1 and are part of the PEC calculation.
+
+Table 53. Serial ID Register Group (RDSID)
+
+| Register   | RD/WR   | Bit 7   | Bit 6   | Bit 5   | Bit 4   | Bit 3   | Bit 2   | Bit 1   | Bit 0   | Default   |
+|------------|---------|---------|---------|---------|---------|---------|---------|---------|---------|-----------|
+| SIDR0      | Read    | SID[7]  | SID[6]  | SID[5]  | SID[4]  | SID[3]  | SID[2]  | SID[1]  | SID[0]  | 0xXX      |
+| SIDR1      | Read    | SID[15] | SID[14] | SID[13] | SID[12] | SID[11] | SID[10] | SID[9]  | SID[8]  | 0xXX      |
+| SIDR2      | Read    | SID[23] | SID[22] | SID[21] | SID[20] | SID[19] | SID[18] | SID[17] | SID[16] | 0xXX      |
+| SIDR3      | Read    | SID[31] | SID[30] | SID[29] | SID[28] | SID[27] | SID[26] | SID[25] | SID[24] | 0xXX      |
+| SIDR4      | Read    | SID[39] | SID[38] | SID[37] | SID[36] | SID[35] | SID[34] | SID[33] | SID[32] | 0xXX      |
+| SIDR5      | Read    | SID[47] | SID[46] | SID[45] | SID[44] | SID[43] | SID[42] | SID[41] | SID[40] | 0xXX      |
+
+Table 54. Serial ID Register Group Bit Descriptions
+
+| Register       | Bits   | Bit Name   | Description                                                    |
+|----------------|--------|------------|----------------------------------------------------------------|
+| SIDR0 to SIDR5 | [7:0]  | SID[x]     | Serial ID Bits. Read only access is provided to the unique ID. |
+| SIDR1          | [6:1]  | SID[x]     | Device ID = 00 0011 for the ADBMS6830B.                        |
+
+Table 55. Configuration Register Group A (RDCFGA, WRCFGA)
+
+| Register   | RD/WR   | Bit 7     | Bit 6     | Bit 5     | Bit 4     | Bit 3     | Bit 2     | Bit 1     | Bit 0     |
+|------------|---------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|
+| CFGAR0     | RD/WR   | REFON     | 0         | 0         | 0         | 0         | CTH[2]    | CTH[1]    | CTH[0]    |
+| CFGAR1     | RD/WR   | FLAG_D[7] | FLAG_D[6] | FLAG_D[5] | FLAG_D[4] | FLAG_D[3] | FLAG_D[2] | FLAG_D[1] | FLAG_D[0] |
+| CFGAR2     | RD/WR   | SOAKON    | OWRNG     | OWA[2]    | OWA[1]    | OWA[0]    | 0         | 0         | 0         |
+| CFGAR3     | RD/WR   | GPO[8]    | GPO[7]    | GPO[6]    | GPO[5]    | GPO[4]    | GPO[3]    | GPO[2]    | GPO[1]    |
+| CFGAR4     | RD/WR   | 0         | 0         | 0         | 0         | 0         | 0         | GPO[10]   | GPO[9]    |
+| CFGAR5     | RD/WR   | 0         | 0         | SNAP_ST   | MUTE_ST   | COMM_BK   | FC[2]     | FC[1]     | FC[0]     |
+
+Table 56. Configuration Register Group B (RDCFGB, WRCFGB)
+
+| Register   | RD/WR   | Bit 7   | Bit 6   | Bit 5   | Bit 4   | Bit 3   | Bit 2   | Bit 1   | Bit 0   |
+|------------|---------|---------|---------|---------|---------|---------|---------|---------|---------|
+| CFGBR0     | RD/WR   | VUV[7]  | VUV[6]  | VUV[5]  | VUV[4]  | VUV[3]  | VUV[2]  | VUV[1]  | VUV[0]  |
+| CFGBR1     | RD/WR   | VOV[3]  | VOV[2]  | VOV[1]  | VOV[0]  | VUV[11] | VUV[10] | VUV[9]  | VUV[8]  |
+| CFGBR2     | RD/WR   | VOV[11] | VOV[10] | VOV[9]  | VOV[8]  | VOV[7]  | VOV[6]  | VOV[5]  | VOV[4]  |
+| CFGBR3     | RD/WR   | DTMEN   | DTRNG   | DCTO[5] | DCTO[4] | DCTO[3] | DCTO[2] | DCTO[1] | DCTO[0] |
+| CFGBR4     | RD/WR   | DCC[8]  | DCC[7]  | DCC[6]  | DCC[5]  | DCC[4]  | DCC[3]  | DCC[2]  | DCC[1]  |
+| CFGBR5     | RD/WR   | DCC[16] | DCC[15] | DCC[14] | DCC[13] | DCC[12] | DCC[11] | DCC[10] | DCC[9]  |
+
+Table 57. Cell Voltage Register Group A (RDCVA)
+
+| Register   | RD/WR   | Bit 7   | Bit 6   | Bit 5   | Bit 4   | Bit 3   | Bit 2   | Bit 1   | Bit 0   |
+|------------|---------|---------|---------|---------|---------|---------|---------|---------|---------|
+| CVAR0      | RD      | C1V[7]  | C1V[6]  | C1V[5]  | C1V[4]  | C1V[3]  | C1V[2]  | C1V[1]  | C1V[0]  |
+| CVAR1      | RD      | C1V[15] | C1V[14] | C1V[13] | C1V[12] | C1V[11] | C1V[10] | C1V[9]  | C1V[8]  |
+| CVAR2      | RD      | C2V[7]  | C2V[6]  | C2V[5]  | C2V[4]  | C2V[3]  | C2V[2]  | C2V[1]  | C2V[0]  |
+| CVAR3      | RD      | C2V[15] | C2V[14] | C2V[13] | C2V[12] | C2V[11] | C2V[10] | C2V[9]  | C2V[8]  |
+| CVAR4      | RD      | C3V[7]  | C3V[6]  | C3V[5]  | C3V[4]  | C3V[3]  | C3V[2]  | C3V[1]  | C3V[0]  |
+| CVAR5      | RD      | C3V[15] | C3V[14] | C3V[13] | C3V[12] | C3V[11] | C3V[10] | C3V[9]  | C3V[8]  |
+
+Table 58. Cell Voltage Register Group B (RDCVB)
+
+| Register   | RD/WR   | Bit 7   | Bit 6   | Bit 5   | Bit 4   | Bit 3   | Bit 2   | Bit 1   | Bit 0   |
+|------------|---------|---------|---------|---------|---------|---------|---------|---------|---------|
+| CVBR0      | RD      | C4V[7]  | C4V[6]  | C4V[5]  | C4V[4]  | C4V[3]  | C4V[2]  | C4V[1]  | C4V[0]  |
+| CVBR1      | RD      | C4V[15] | C4V[14] | C4V[13] | C4V[12] | C4V[11] | C4V[10] | C4V[9]  | C4V[8]  |
+| CVBR2      | RD      | C5V[7]  | C5V[6]  | C5V[5]  | C5V[4]  | C5V[3]  | C5V[2]  | C5V[1]  | C5V[0]  |
+| CVBR3      | RD      | C5V[15] | C5V[14] | C5V[13] | C5V[12] | C5V[11] | C5V[10] | C5V[9]  | C5V[8]  |
+| CVBR4      | RD      | C6V[7]  | C6V[6]  | C6V[5]  | C6V[4]  | C6V[3]  | C6V[2]  | C6V[1]  | C6V[0]  |
+
+## MEMORY MAP
+
+Table 58. Cell Voltage Register Group B (RDCVB) (Continued)
+
+| Register   | RD/WR   | Bit 7   | Bit 6   | Bit 5   | Bit 4   | Bit 3   | Bit 2   | Bit 1   | Bit 0   |
+|------------|---------|---------|---------|---------|---------|---------|---------|---------|---------|
+| CVBR5      | RD      | C6V[15] | C6V[14] | C6V[13] | C6V[12] | C6V[11] | C6V[10] | C6V[9]  | C6V[8]  |
+
+## Table 59. Cell Voltage Register Group C (RDCVC)
+
+| Register   | RD/WR   | Bit 7   | Bit 6   | Bit 5   | Bit 4   | Bit 3   | Bit 2   | Bit 1   | Bit 0   |
+|------------|---------|---------|---------|---------|---------|---------|---------|---------|---------|
+| CVCR0      | RD      | C7V[7]  | C7V[6]  | C7V[5]  | C7V[4]  | C7V[3]  | C7V[2]  | C7V[1]  | C7V[0]  |
+| CVCR1      | RD      | C7V[15] | C7V[14] | C7V[13] | C7V[12] | C7V[11] | C7V[10] | C7V[9]  | C7V[8]  |
+| CVCR2      | RD      | C8V[7]  | C8V[6]  | C8V[5]  | C8V[4]  | C8V[3]  | C8V[2]  | C8V[1]  | C8V[0]  |
+| CVCR3      | RD      | C8V[15] | C8V[14] | C8V[13] | C8V[12] | C8V[11] | C8V[10] | C8V[9]  | C8V[8]  |
+| CVCR4      | RD      | C9V[7]  | C9V[6]  | C9V[5]  | C9V[4]  | C9V[3]  | C9V[2]  | C9V[1]  | C9V[0]  |
+| CVCR5      | RD      | C9V[15] | C9V[14] | C9V[13] | C9V[12] | C9V[11] | C9V[10] | C9V[9]  | C9V[8]  |
+
+## Table 60. Cell Voltage Register Group D (RDCVD)
+
+| Register   | RD/WR   | Bit 7    | Bit 6    | Bit 5    | Bit 4    | Bit 3    | Bit 2    | Bit 1   | Bit 0   |
+|------------|---------|----------|----------|----------|----------|----------|----------|---------|---------|
+| CVDR0      | RD      | C10V[7]  | C10V[6]  | C10V[5]  | C10V[4]  | C10V[3]  | C10V[2]  | C10V[1] | C10V[0] |
+| CVDR1      | RD      | C10V[15] | C10V[14] | C10V[13] | C10V[12] | C10V[11] | C10V[10] | C10V[9] | C10V[8] |
+| CVDR2      | RD      | C11V[7]  | C11V[6]  | C11V[5]  | C11V[4]  | C11V[3]  | C11V[2]  | C11V[1] | C11V[0] |
+| CVDR3      | RD      | C11V[15] | C11V[14] | C11V[13] | C11V[12] | C11V[11] | C11V[10] | C11V[9] | C11V[8] |
+| CVDR4      | RD      | C12V[7]  | C12V[6]  | C12V[5]  | C12V[4]  | C12V[3]  | C12V[2]  | C12V[1] | C12V[0] |
+| CVDR5      | RD      | C12V[15] | C12V[14] | C12V[13] | C12V[12] | C12V[11] | C12V[10] | C12V[9] | C12V[8] |
+
+## Table 61. Cell Voltage Register Group E (RDCVE)
+
+| Register   | RD/WR   | Bit 7    | Bit 6    | Bit 5    | Bit 4    | Bit 3    | Bit 2    | Bit 1   | Bit 0   |
+|------------|---------|----------|----------|----------|----------|----------|----------|---------|---------|
+| CVER0      | RD      | C13V[7]  | C13V[6]  | C13V[5]  | C13V[4]  | C13V[3]  | C13V[2]  | C13V[1] | C13V[0] |
+| CVER1      | RD      | C13V[15] | C13V[14] | C13V[13] | C13V[12] | C13V[11] | C13V[10] | C13V[9] | C13V[8] |
+| CVER2      | RD      | C14V[7]  | C14V[6]  | C14V[5]  | C14V[4]  | C14V[3]  | C14V[2]  | C14V[1] | C14V[0] |
+| CVER3      | RD      | C14V[15] | C14V[14] | C14V[13] | C14V[12] | C14V[11] | C14V[10] | C14V[9] | C14V[8] |
+| CVER4      | RD      | C15V[7]  | C15V[6]  | C15V[5]  | C15V[4]  | C15V[3]  | C15V[2]  | C15V[1] | C15V[0] |
+| CVER5      | RD      | C15V[15] | C15V[14] | C15V[13] | C15V[12] | C15V[11] | C15V[10] | C15V[9] | C15V[8] |
+
+## Table 62. Cell Voltage Register Group F (RDCVF)
+
+| Register   | RD/WR   | Bit 7    | Bit 6    | Bit 5    | Bit 4    | Bit 3    | Bit 2    | Bit 1   | Bit 0   |
+|------------|---------|----------|----------|----------|----------|----------|----------|---------|---------|
+| CVFR0      | RD      | C16V[7]  | C16V[6]  | C16V[5]  | C16V[4]  | C16V[3]  | C16V[2]  | C16V[1] | C16V[0] |
+| CVFR1      | RD      | C16V[15] | C16V[14] | C16V[13] | C16V[12] | C16V[11] | C16V[10] | C16V[9] | C16V[8] |
+| CVFR2      | RD      | 1        | 1        | 1        | 1        | 1        | 1        | 1       | 1       |
+| CVFR3      | RD      | 1        | 1        | 1        | 1        | 1        | 1        | 1       | 1       |
+| CVFR4      | RD      | 1        | 1        | 1        | 1        | 1        | 1        | 1       | 1       |
+| CVFR5      | RD      | 1        | 1        | 1        | 1        | 1        | 1        | 1       | 1       |
+
+## Table 63. Averaged Cell Voltage Register Group A (RDACA)
+
+| Register   | RD/WR   | Bit 7    | Bit 6    | Bit 5    | Bit 4    | Bit 3    | Bit 2    | Bit 1   | Bit 0   |
+|------------|---------|----------|----------|----------|----------|----------|----------|---------|---------|
+| ACVAR0     | RD      | AC1V[7]  | AC1V[6]  | AC1V[5]  | AC1V[4]  | AC1V[3]  | AC1V[2]  | AC1V[1] | AC1V[0] |
+| ACVAR1     | RD      | AC1V[15] | AC1V[14] | AC1V[13] | AC1V[12] | AC1V[11] | AC1V[10] | AC1V[9] | AC1V[8] |
+| ACVAR2     | RD      | AC2V[7]  | AC2V[6]  | AC2V[5]  | AC2V[4]  | AC2V[3]  | AC2V[2]  | AC2V[1] | AC2V[0] |
+| ACVAR3     | RD      | AC2V[15] | AC2V[14] | AC2V[13] | AC2V[12] | AC2V[11] | AC2V[10] | AC2V[9] | AC2V[8] |
+| ACVAR4     | RD      | AC3V[7]  | AC3V[6]  | AC3V[5]  | AC3V[4]  | AC3V[3]  | AC3V[2]  | AC3V[1] | AC3V[0] |
+| ACVAR5     | RD      | AC3V[15] | AC3V[14] | AC3V[13] | AC3V[12] | AC3V[11] | AC3V[10] | AC3V[9] | AC3V[8] |
+
+## MEMORY MAP
+
+## Table 64. Averaged Cell Voltage Register Group B (RDACB)
+
+| Register   | RD/WR   | Bit 7    | Bit 6    | Bit 5    | Bit 4    | Bit 3    | Bit 2    | Bit 1   | Bit 0   |
+|------------|---------|----------|----------|----------|----------|----------|----------|---------|---------|
+| ACVBR0     | RD      | AC4V[7]  | AC4V[6]  | AC4V[5]  | AC4V[4]  | AC4V[3]  | AC4V[2]  | AC4V[1] | AC4V[0] |
+| ACVBR1     | RD      | AC4V[15] | AC4V[14] | AC4V[13] | AC4V[12] | AC4V[11] | AC4V[10] | AC4V[9] | AC4V[8] |
+| ACVBR2     | RD      | AC5V[7]  | AC5V[6]  | AC5V[5]  | AC5V[4]  | AC5V[3]  | AC5V[2]  | AC5V[1] | AC5V[0] |
+| ACVBR3     | RD      | AC5V[15] | AC5V[14] | AC5V[13] | AC5V[12] | AC5V[11] | AC5V[10] | AC5V[9] | AC5V[8] |
+| ACVBR4     | RD      | AC6V[7]  | AC6V[6]  | AC6V[5]  | AC6V[4]  | AC6V[3]  | AC6V[2]  | AC6V[1] | AC6V[0] |
+| ACVBR5     | RD      | AC6V[15] | AC6V[14] | AC6V[13] | AC6V[12] | AC6V[11] | AC6V[10] | AC6V[9] | AC6V[8] |
+
+## Table 65. Averaged Cell Voltage Register Group C (RDACC)
+
+| Register   | RD/WR   | Bit 7    | Bit 6    | Bit 5    | Bit 4    | Bit 3    | Bit 2    | Bit 1   | Bit 0   |
+|------------|---------|----------|----------|----------|----------|----------|----------|---------|---------|
+| ACVACR0    | RD      | AC7V[7]  | AC7V[6]  | AC7V[5]  | AC7V[4]  | AC7V[3]  | AC7V[2]  | AC7V[1] | AC7V[0] |
+| ACVACR1    | RD      | AC7V[15] | AC7V[14] | AC7V[13] | AC7V[12] | AC7V[11] | AC7V[10] | AC7V[9] | AC7V[8] |
+| ACVACR2    | RD      | AC8V[7]  | AC8V[6]  | AC8V[5]  | AC8V[4]  | AC8V[3]  | AC8V[2]  | AC8V[1] | AC8V[0] |
+| ACVACR3    | RD      | AC8V[15] | AC8V[14] | AC8V[13] | AC8V[12] | AC8V[11] | AC8V[10] | AC8V[9] | AC8V[8] |
+| ACVACR4    | RD      | AC9V[7]  | AC9V[6]  | AC9V[5]  | AC9V[4]  | AC9V[3]  | AC9V[2]  | AC9V[1] | AC9V[0] |
+| ACVACR5    | RD      | AC9V[15] | AC9V[14] | AC9V[13] | AC9V[12] | AC9V[11] | AC9V[10] | AC9V[9] | AC9V[8] |
+
+## Table 66. Averaged Cell Voltage Register Group D (RDACD)
+
+| Register   | RD/WR   | Bit 7     | Bit 6     | Bit 5     | Bit 4     | Bit 3     | Bit 2     | Bit 1    | Bit 0    |
+|------------|---------|-----------|-----------|-----------|-----------|-----------|-----------|----------|----------|
+| ACVDR0     | RD      | AC10V[7]  | AC10V[6]  | AC10V[5]  | AC10V[4]  | AC10V[3]  | AC10V[2]  | AC10V[1] | AC10V[0] |
+| ACVDR1     | RD      | AC10V[15] | AC10V[14] | AC10V[13] | AC10V[12] | AC10V[11] | AC10V[10] | AC10V[9] | AC10V[8] |
+| ACVDR2     | RD      | AC11V[7]  | AC11V[6]  | AC11V[5]  | AC11V[4]  | AC11V[3]  | AC11V[2]  | AC11V[1] | AC11V[0] |
+| ACVDR3     | RD      | AC11V[15] | AC11V[14] | AC11V[13] | AC11V[12] | AC11V[11] | AC11V[10] | AC11V[9] | AC11V[8] |
+| ACVDR4     | RD      | AC12V[7]  | AC12V[6]  | AC12V[5]  | AC12V[4]  | AC12V[3]  | AC12V[2]  | AC12V[1] | AC12V[0] |
+| ACVDR5     | RD      | AC12V[15] | AC12V[14] | AC12V[13] | AC12V[12] | AC12V[11] | AC12V[10] | AC12V[9] | AC12V[8] |
+
+## Table 67. Averaged Cell Voltage Register Group E (RDACE)
+
+| Register   | RD/WR   | Bit 7     | Bit 6     | Bit 5     | Bit 4     | Bit 3     | Bit 2     | Bit 1    | Bit 0    |
+|------------|---------|-----------|-----------|-----------|-----------|-----------|-----------|----------|----------|
+| ACVER0     | RD      | AC13V[7]  | AC13V[6]  | AC13V[5]  | AC13V[4]  | AC13V[3]  | AC13V[2]  | AC13V[1] | AC13V[0] |
+| ACVER1     | RD      | AC13V[15] | AC13V[14] | AC13V[13] | AC13V[12] | AC13V[11] | AC13V[10] | AC13V[9] | AC13V[8] |
+| ACVER2     | RD      | AC14V[7]  | AC14V[6]  | AC14V[5]  | AC14V[4]  | AC14V[3]  | AC14V[2]  | AC14V[1] | AC14V[0] |
+| ACVER3     | RD      | AC14V[15] | AC14V[14] | AC14V[13] | AC14V[12] | AC14V[11] | AC14V[10] | AC14V[9] | AC14V[8] |
+| ACVER4     | RD      | AC15V[7]  | AC15V[6]  | AC15V[5]  | AC15V[4]  | AC15V[3]  | AC15V[2]  | AC15V[1] | AC15V[0] |
+| ACVER5     | RD      | AC15V[15] | AC15V[14] | AC15V[13] | AC15V[12] | AC15V[11] | AC15V[10] | AC15V[9] | AC15V[8] |
+
+## Table 68. Averaged Cell Voltage Register Group F (RDACF)
+
+| Register   | RD/WR   | Bit 7     | Bit 6     | Bit 5     | Bit 4     | Bit 3     | Bit 2     | Bit 1    | Bit 0    |
+|------------|---------|-----------|-----------|-----------|-----------|-----------|-----------|----------|----------|
+| ACVFR0     | RD      | AC16V[7]  | AC16V[6]  | AC16V[5]  | AC16V[4]  | AC16V[3]  | AC16V[2]  | AC16V[1] | AC16V[0] |
+| ACVFR1     | RD      | AC16V[15] | AC16V[14] | AC16V[13] | AC16V[12] | AC16V[11] | AC16V[10] | AC16V[9] | AC16V[8] |
+| ACVFR2     | RD      | 1         | 1         | 1         | 1         | 1         | 1         | 1        | 1        |
+| ACVFR3     | RD      | 1         | 1         | 1         | 1         | 1         | 1         | 1        | 1        |
+| ACVFR4     | RD      | 1         | 1         | 1         | 1         | 1         | 1         | 1        | 1        |
+| ACVFR5     | RD      | 1         | 1         | 1         | 1         | 1         | 1         | 1        | 1        |
+
+## Table 69. Filtered Cell Voltage Register Group A (RDFCA)
+
+| Register   | RD/WR   | Bit 7    | Bit 6    | Bit 5    | Bit 4    | Bit 3    | Bit 2    | Bit 1   | Bit 0   |
+|------------|---------|----------|----------|----------|----------|----------|----------|---------|---------|
+| FCVAR0     | RD      | FC1V[7]  | FC1V[6]  | FC1V[5]  | FC1V[4]  | FC1V[3]  | FC1V[2]  | FC1V[1] | FC1V[0] |
+| FCVAR1     | RD      | FC1V[15] | FC1V[14] | FC1V[13] | FC1V[12] | FC1V[11] | FC1V[10] | FC1V[9] | FC1V[8] |
+
+## MEMORY MAP
+
+## Table 69. Filtered Cell Voltage Register Group A (RDFCA) (Continued)
+
+| Register   | RD/WR   | Bit 7    | Bit 6    | Bit 5    | Bit 4    | Bit 3    | Bit 2    | Bit 1   | Bit 0   |
+|------------|---------|----------|----------|----------|----------|----------|----------|---------|---------|
+| FCVAR2     | RD      | FC2V[7]  | FC2V[6]  | FC2V[5]  | FC2V[4]  | FC2V[3]  | FC2V[2]  | FC2V[1] | FC2V[0] |
+| FCVAR3     | RD      | FC2V[15] | FC2V[14] | FC2V[13] | FC2V[12] | FC2V[11] | FC2V[10] | FC2V[9] | FC2V[8] |
+| FCVAR4     | RD      | FC3V[7]  | FC3V[6]  | FC3V[5]  | FC3V[4]  | FC3V[3]  | FC3V[2]  | FC3V[1] | FC3V[0] |
+| FCVAR5     | RD      | FC3V[15] | FC3V[14] | FC3V[13] | FC3V[12] | FC3V[11] | FC3V[10] | FC3V[9] | FC3V[8] |
+
+## Table 70. Filtered Cell Voltage Register Group B (RDFCB)
+
+| Register   | RD/WR   | Bit 7    | Bit 6    | Bit 5    | Bit 4    | Bit 3    | Bit 2    | Bit 1   | Bit 0   |
+|------------|---------|----------|----------|----------|----------|----------|----------|---------|---------|
+| FCVBR0     | RD      | FC4V[7]  | FC4V[6]  | FC4V[5]  | FC4V[4]  | FC4V[3]  | FC4V[2]  | FC4V[1] | FC4V[0] |
+| FCVBR1     | RD      | FC4V[15] | FC4V[14] | FC4V[13] | FC4V[12] | FC4V[11] | FC4V[10] | FC4V[9] | FC4V[8] |
+| FCVBR2     | RD      | FC5V[7]  | FC5V[6]  | FC5V[5]  | FC5V[4]  | FC5V[3]  | FC5V[2]  | FC5V[1] | FC5V[0] |
+| FCVBR3     | RD      | FC5V[15] | FC5V[14] | FC5V[13] | FC5V[12] | FC5V[11] | FC5V[10] | FC5V[9] | FC5V[8] |
+| FCVBR4     | RD      | FC6V[7]  | FC6V[6]  | FC6V[5]  | FC6V[4]  | FC6V[3]  | FC6V[2]  | FC6V[1] | FC6V[0] |
+| FCVBR5     | RD      | FC6V[15] | FC6V[14] | FC6V[13] | FC6V[12] | FC6V[11] | FC6V[10] | FC6V[9] | FC6V[8] |
+
+## Table 71. Filtered Cell Voltage Register Group C (RDFCC)
+
+| Register   | RD/WR   | Bit 7    | Bit 6    | Bit 5    | Bit 4    | Bit 3    | Bit 2    | Bit 1   | Bit 0   |
+|------------|---------|----------|----------|----------|----------|----------|----------|---------|---------|
+| FCVCR0     | RD      | FC7V[7]  | FC7V[6]  | FC7V[5]  | FC7V[4]  | FC7V[3]  | FC7V[2]  | FC7V[1] | FC7V[0] |
+| FCVCR1     | RD      | FC7V[15] | FC7V[14] | FC7V[13] | FC7V[12] | FC7V[11] | FC7V[10] | FC7V[9] | FC7V[8] |
+| FCVCR2     | RD      | FC8V[7]  | FC8V[6]  | FC8V[5]  | FC8V[4]  | FC8V[3]  | FC8V[2]  | FC8V[1] | FC8V[0] |
+| FCVCR3     | RD      | FC8V[15] | FC8V[14] | FC8V[13] | FC8V[12] | FC8V[11] | FC8V[10] | FC8V[9] | FC8V[8] |
+| FCVCR4     | RD      | FC9V[7]  | FC9V[6]  | FC9V[5]  | FC9V[4]  | FC9V[3]  | FC9V[2]  | FC9V[1] | FC9V[0] |
+| FCVCR5     | RD      | FC9V[15] | FC9V[14] | FC9V[13] | FC9V[12] | FC9V[11] | FC9V[10] | FC9V[9] | FC9V[8] |
+
+## Table 72. Filtered Cell Voltage Register Group D (RDFCD)
+
+| Register   | RD/WR   | Bit 7     | Bit 6     | Bit 5     | Bit 4     | Bit 3     | Bit 2     | Bit 1    | Bit 0    |
+|------------|---------|-----------|-----------|-----------|-----------|-----------|-----------|----------|----------|
+| FCVDR0     | RD      | FC10V[7]  | FC10V[6]  | FC10V[5]  | FC10V[4]  | FC10V[3]  | FC10V[2]  | FC10V[1] | FC10V[0] |
+| FCVDR1     | RD      | FC10V[15] | FC10V[14] | FC10V[13] | FC10V[12] | FC10V[11] | FC10V[10] | FC10V[9] | FC10V[8] |
+| FCVDR2     | RD      | FC11V[7]  | FC11V[6]  | FC11V[5]  | FC11V[4]  | FC11V[3]  | FC11V[2]  | FC11V[1] | FC11V[0] |
+| FCVDR3     | RD      | FC11V[15] | FC11V[14] | FC11V[13] | FC11V[12] | FC11V[11] | FC11V[10] | FC11V[9] | FC11V[8] |
+| FCVDR4     | RD      | FC12V[7]  | FC12V[6]  | FC12V[5]  | FC12V[4]  | FC12V[3]  | FC12V[2]  | FC12V[1] | FC12V[0] |
+| FCVDR5     | RD      | FC12V[15] | FC12V[14] | FC12V[13] | FC12V[12] | FC12V[11] | FC12V[10] | FC12V[9] | FC12V[8] |
+
+## Table 73. Filtered Cell Voltage Register Group E (RDFCE)
+
+| Register   | RD/WR   | Bit 7     | Bit 6     | Bit 5     | Bit 4     | Bit 3     | Bit 2     | Bit 1    | Bit 0    |
+|------------|---------|-----------|-----------|-----------|-----------|-----------|-----------|----------|----------|
+| FCVER0     | RD      | FC13V[7]  | FC13V[6]  | FC13V[5]  | FC13V[4]  | FC13V[3]  | FC13V[2]  | FC13V[1] | FC13V[0] |
+| FCVER1     | RD      | FC13V[15] | FC13V[14] | FC13V[13] | FC13V[12] | FC13V[11] | FC13V[10] | FC13V[9] | FC13V[8] |
+| FCVER2     | RD      | FC14V[7]  | FC14V[6]  | FC14V[5]  | FC14V[4]  | FC14V[3]  | FC14V[2]  | FC14V[1] | FC14V[0] |
+| FCVER3     | RD      | FC14V[15] | FC14V[14] | FC14V[13] | FC14V[12] | FC14V[11] | FC14V[10] | FC14V[9] | FC14V[8] |
+| FCVER4     | RD      | FC15V[7]  | FC15V[6]  | FC15V[5]  | FC15V[4]  | FC15V[3]  | FC15V[2]  | FC15V[1] | FC15V[0] |
+| FCVER5     | RD      | FC15V[15] | FC15V[14] | FC15V[13] | FC15V[12] | FC15V[11] | FC15V[10] | FC15V[9] | FC15V[8] |
+
+## Table 74. Filtered Cell Voltage Register Group F (RDFCF)
+
+| Register   | RD/WR   | Bit 7     | Bit 6     | Bit 5     | Bit 4     | Bit 3     | Bit 2     | Bit 1    | Bit 0    |
+|------------|---------|-----------|-----------|-----------|-----------|-----------|-----------|----------|----------|
+| FCVFR0     | RD      | FC16V[7]  | FC16V[6]  | FC16V[5]  | FC16V[4]  | FC16V[3]  | FC16V[2]  | FC16V[1] | FC16V[0] |
+| FCVFR1     | RD      | FC16V[15] | FC16V[14] | FC16V[13] | FC16V[12] | FC16V[11] | FC16V[10] | FC16V[9] | FC16V[8] |
+| FCVFR2     | RD      | 1         | 1         | 1         | 1         | 1         | 1         | 1        | 1        |
+| FCVFR3     | RD      | 1         | 1         | 1         | 1         | 1         | 1         | 1        | 1        |
+| FCVFR4     | RD      | 1         | 1         | 1         | 1         | 1         | 1         | 1        | 1        |
+
+## MEMORY MAP
+
+## Table 74. Filtered Cell Voltage Register Group F (RDFCF) (Continued)
+
+| Register   | RD/WR   |   Bit 7 |   Bit 6 |   Bit 5 |   Bit 4 |   Bit 3 |   Bit 2 |   Bit 1 |   Bit 0 |
+|------------|---------|---------|---------|---------|---------|---------|---------|---------|---------|
+| FCVFR5     | RD      |       1 |       1 |       1 |       1 |       1 |       1 |       1 |       1 |
+
+## Table 75. S-Voltage Register Group A (RDSVA)
+
+| Register   | RD/WR   | Bit 7   | Bit 6   | Bit 5   | Bit 4   | Bit 3   | Bit 2   | Bit 1   | Bit 0   |
+|------------|---------|---------|---------|---------|---------|---------|---------|---------|---------|
+| SVAR0      | RD      | S1V[7]  | S1V[6]  | S1V[5]  | S1V[4]  | S1V[3]  | S1V[2]  | S1V[1]  | S1V[0]  |
+| SVAR1      | RD      | S1V[15] | S1V[14] | S1V[13] | S1V[12] | S1V[11] | S1V[10] | S1V[9]  | S1V[8]  |
+| SVAR2      | RD      | S2V[7]  | S2V[6]  | S2V[5]  | S2V[4]  | S2V[3]  | S2V[2]  | S2V[1]  | S2V[0]  |
+| SVAR3      | RD      | S2V[15] | S2V[14] | S2V[13] | S2V[12] | S2V[11] | S2V[10] | S2V[9]  | S2V[8]  |
+| SVAR4      | RD      | S3V[7]  | S3V[6]  | S3V[5]  | S3V[4]  | S3V[3]  | S3V[2]  | S3V[1]  | S3V[0]  |
+| SVAR5      | RD      | S3V[15] | S3V[14] | S3V[13] | S3V[12] | S3V[11] | S3V[10] | S3V[9]  | S3V[8]  |
+
+## Table 76. S-Voltage Register Group B (RDSVB)
+
+| Register   | RD/WR   | Bit 7   | Bit 6   | Bit 5   | Bit 4   | Bit 3   | Bit 2   | Bit 1   | Bit 0   |
+|------------|---------|---------|---------|---------|---------|---------|---------|---------|---------|
+| SVBR0      | RD      | S4V[7]  | S4V[6]  | S4V[5]  | S4V[4]  | S4V[3]  | S4V[2]  | S4V[1]  | S4V[0]  |
+| SVBR1      | RD      | S4V[15] | S4V[14] | S4V[13] | S4V[12] | S4V[11] | S4V[10] | S4V[9]  | S4V[8]  |
+| SVBR2      | RD      | S5V[7]  | S5V[6]  | S5V[5]  | S5V[4]  | S5V[3]  | S5V[2]  | S5V[1]  | S5V[0]  |
+| SVBR3      | RD      | S5V[15] | S5V[14] | S5V[13] | S5V[12] | S5V[11] | S5V[10] | S5V[9]  | S5V[8]  |
+| SVBR4      | RD      | S6V[7]  | S6V[6]  | S6V[5]  | S6V[4]  | S6V[3]  | S6V[2]  | S6V[1]  | S6V[0]  |
+| SVBR5      | RD      | S6V[15] | S6V[14] | S6V[13] | S6V[12] | S6V[11] | S6V[10] | S6V[9]  | S6V[8]  |
+
+## Table 77. S-Voltage Register Group C (RDSVC)
+
+| Register   | RD/WR   | Bit 7   | Bit 6   | Bit 5   | Bit 4   | Bit 3   | Bit 2   | Bit 1   | Bit 0   |
+|------------|---------|---------|---------|---------|---------|---------|---------|---------|---------|
+| SVCR0      | RD      | S7V[7]  | S7V[6]  | S7V[5]  | S7V[4]  | S7V[3]  | S7V[2]  | S7V[1]  | S7V[0]  |
+| SVCR1      | RD      | S7V[15] | S7V[14] | S7V[13] | S7V[12] | S7V[11] | S7V[10] | S7V[9]  | S7V[8]  |
+| SVCR2      | RD      | S8V[7]  | S8V[6]  | S8V[5]  | S8V[4]  | S8V[3]  | S8V[2]  | S8V[1]  | S8V[0]  |
+| SVCR3      | RD      | S8V[15] | S8V[14] | S8V[13] | S8V[12] | S8V[11] | S8V[10] | S8V[9]  | S8V[8]  |
+| SVCR4      | RD      | S9V[7]  | S9V[6]  | S9V[5]  | S9V[4]  | S9V[3]  | S9V[2]  | S9V[1]  | S9V[0]  |
+| SVCR5      | RD      | S9V[15] | S9V[14] | S9V[13] | S9V[12] | S9V[11] | S9V[10] | S9V[9]  | S9V[8]  |
+
+## Table 78. S-Voltage Register Group D (RDSVD)
+
+| Register   | RD/WR   | Bit 7    | Bit 6    | Bit 5    | Bit 4    | Bit 3    | Bit 2    | Bit 1   | Bit 0   |
+|------------|---------|----------|----------|----------|----------|----------|----------|---------|---------|
+| SVDR0      | RD      | S10V[7]  | S10V[6]  | S10V[5]  | S10V[4]  | S10V[3]  | S10V[2]  | S10V[1] | S10V[0] |
+| SVDR1      | RD      | S10V[15] | S10V[14] | S10V[13] | S10V[12] | S10V[11] | S10V[10] | S10V[9] | S10V[8] |
+| SVDR2      | RD      | S11V[7]  | S11V[6]  | S11V[5]  | S11V[4]  | S11V[3]  | S11V[2]  | S11V[1] | S11V[0] |
+| SVDR3      | RD      | S11V[15] | S11V[14] | S11V[13] | S11V[12] | S11V[11] | S11V[10] | S11V[9] | S11V[8] |
+| SVDR4      | RD      | S12V[7]  | S12V[6]  | S12V[5]  | S12V[4]  | S12V[3]  | S12V[2]  | S12V[1] | S12V[0] |
+| SVDR5      | RD      | S12V[15] | S12V[14] | S12V[13] | S12V[12] | S12V[11] | S12V[10] | S12V[9] | S12V[8] |
+
+## Table 79. S-Voltage Register Group E (RDSVE)
+
+| Register   | RD/WR   | Bit 7    | Bit 6    | Bit 5    | Bit 4    | Bit 3    | Bit 2    | Bit 1   | Bit 0   |
+|------------|---------|----------|----------|----------|----------|----------|----------|---------|---------|
+| SVER0      | RD      | S13V[7]  | S13V[6]  | S13V[5]  | S13V[4]  | S13V[3]  | S13V[2]  | S13V[1] | S13V[0] |
+| SVER1      | RD      | S13V[15] | S13V[14] | S13V[13] | S13V[12] | S13V[11] | S13V[10] | S13V[9] | S13V[8] |
+| SVER2      | RD      | S14V[7]  | S14V[6]  | S14V[5]  | S14V[4]  | S14V[3]  | S14V[2]  | S14V[1] | S14V[0] |
+| SVER3      | RD      | S14V[15] | S14V[14] | S14V[13] | S14V[12] | S14V[11] | S14V[10] | S14V[9] | S14V[8] |
+| SVER4      | RD      | S15V[7]  | S15V[6]  | S15V[5]  | S15V[4]  | S15V[3]  | S15V[2]  | S15V[1] | S15V[0] |
+| SVER5      | RD      | S15V[15] | S15V[14] | S15V[13] | S15V[12] | S15V[11] | S15V[10] | S15V[9] | S15V[8] |
+
+## MEMORY MAP
+
+## Table 80. S-Voltage Register Group F (RDSVF)
+
+| Register   | RD/WR   | Bit 7    | Bit 6    | Bit 5    | Bit 4    | Bit 3    | Bit 2    | Bit 1   | Bit 0   |
+|------------|---------|----------|----------|----------|----------|----------|----------|---------|---------|
+| SVFR0      | RD      | S16V[7]  | S16V[6]  | S16V[5]  | S16V[4]  | S16V[3]  | S16V[2]  | S16V[1] | S16V[0] |
+| SVFR1      | RD      | S16V[15] | S16V[14] | S16V[13] | S16V[12] | S16V[11] | S16V[10] | S16V[9] | S16V[8] |
+| SVFR2      | RD      | 1        | 1        | 1        | 1        | 1        | 1        | 1       | 1       |
+| SVFR3      | RD      | 1        | 1        | 1        | 1        | 1        | 1        | 1       | 1       |
+| SVFR4      | RD      | 1        | 1        | 1        | 1        | 1        | 1        | 1       | 1       |
+| SVFR5      | RD      | 1        | 1        | 1        | 1        | 1        | 1        | 1       | 1       |
+
+## Table 81. Auxiliary Register Group A (RDAUXA)
+
+| Register   | RD/WR   | Bit 7   | Bit 6   | Bit 5   | Bit 4   | Bit 3   | Bit 2   | Bit 1   | Bit 0   |
+|------------|---------|---------|---------|---------|---------|---------|---------|---------|---------|
+| GPAR0      | RD      | G1V[7]  | G1V[6]  | G1V[5]  | G1V[4]  | G1V[3]  | G1V[2]  | G1V[1]  | G1V[0]  |
+| GPAR1      | RD      | G1V[15] | G1V[14] | G1V[13] | G1V[12] | G1V[11] | G1V[10] | G1V[9]  | G1V[8]  |
+| GPAR2      | RD      | G2V[7]  | G2V[6]  | G2V[5]  | G2V[4]  | G2V[3]  | G2V[2]  | G2V[1]  | G2V[0]  |
+| GPAR3      | RD      | G2V[15] | G2V[14] | G2V[13] | G2V[12] | G2V[11] | G2V[10] | G2V[9]  | G2V[8]  |
+| GPAR4      | RD      | G3V[7]  | G3V[6]  | G3V[5]  | G3V[4]  | G3V[3]  | G3V[2]] | G3V[1]  | G3V[0]  |
+| GPAR5      | RD      | G3V[15] | G3V[14] | G3V[13] | G3V[12] | G3V[11] | G3V[10] | G3V[9]  | G3V[8]  |
+
+## Table 82. Auxiliary Register Group B (RDAUXB)
+
+| Register   | RD/WR   | Bit 7   | Bit 6   | Bit 5   | Bit 4   | Bit 3   | Bit 2   | Bit 1   | Bit 0   |
+|------------|---------|---------|---------|---------|---------|---------|---------|---------|---------|
+| GPBR0      | RD      | G4V[7]  | G4V[6]  | G4V[5]  | G4V[4]  | G4V[3]  | G4V[2]  | G4V[1]  | G4V[0]  |
+| GPBR1      | RD      | G4V[15] | G4V[14] | G4V[13] | G4V[12] | G4V[11] | G4V[10] | G4V[9]  | G4V[8]  |
+| GPBR2      | RD      | G5V[7]  | G5V[6]  | G5V[5]  | G5V[4]  | G5V[3]  | G5V[2]  | G5V[1]  | G5V[0]  |
+| GPBR3      | RD      | G5V[15] | G5V[14] | G5V[13] | G5V[12] | G5V[11] | G5V[10] | G5V[9]  | G5V[8]  |
+| GPBR4      | RD      | G6V[7]  | G6V[6]  | G6V[5]  | G6V[4]  | G6V[3]  | G6V[2]  | G6V[1]  | G6V[0]  |
+| GPBR5      | RD      | G6V[15] | G6V[14] | G6V[13] | G6V[12] | G6V[11] | G6V[10] | G6V[9]  | G6V[8]  |
+
+## Table 83. Auxiliary Register Group C (RDAUXC)
+
+| Register   | RD/WR   | Bit 7   | Bit 6   | Bit 5   | Bit 4   | Bit 3   | Bit 2   | Bit 1   | Bit 0   |
+|------------|---------|---------|---------|---------|---------|---------|---------|---------|---------|
+| GPCR0      | RD      | G7V[7]  | G7V[6]  | G7V[5]  | G7V[4]  | G7V[3]  | G7V[2]  | G7V[1]  | G7V[0]  |
+| GPCR2      | RD      | G7V[15] | G7V[14] | G7V[13] | G7V[12] | G7V[11] | G7V[10] | G7V[9]  | G7V[8]  |
+| GPCR3      | RD      | G8V[7]  | G8V[6]  | G8V[5]  | G8V[4]  | G8V[3]  | G8V[2]  | G8V[1]  | G8V[0]  |
+| GPCR4      | RD      | G8V[15] | G8V[14] | G8V[13] | G8V[12] | G8V[11] | G8V[10] | G8V[9]  | G8V[8]  |
+| GPCR5      | RD      | G9V[7]  | G9V[6]  | G9V[5]  | G9V[4]  | G9V[3]  | G9V[2]  | G9V[1]  | G9V[0]  |
+| GPCR6      | RD      | G9V[15] | G9V[14] | G9V[13] | G9V[12] | G9V[11] | G9V[10] | G9V[9]  | G9V[8]  |
+
+## Table 84. Auxiliary Register Group D (RDAUXD)
+
+| Register   | RD/WR   | Bit 7    | Bit 6    | Bit 5    | Bit 4    | Bit 3    | Bit 2    | Bit 1   | Bit 0   |
+|------------|---------|----------|----------|----------|----------|----------|----------|---------|---------|
+| GPDR0      | RD      | G10V[7]  | G10V[6]  | G10V[5]  | G10V[4]  | G10V[3]  | G10V[2]  | G10V[1] | G10V[0] |
+| GPDR1      | RD      | G10V[15] | G10V[14] | G10V[13] | G10V[12] | G10V[11] | G10V[10] | G10V[9] | G10V[8] |
+| GPDR2      | RD      | VMV[7]   | VMV[6]   | VMV[5]   | VMV[4]   | VMV[3]   | VMV[2]   | VMV[1]  | VMV[0]  |
+| GPDR3      | RD      | VMV[15]  | VMV[14]  | VMV[13]  | VMV[12]  | VMV[11]  | VMV[10]  | VMV[9]  | VMV[8]  |
+| GPDR4      | RD      | VPV[7]   | VPV[6]   | VPV[5]   | VPV[4]   | VPV[3]   | VPV[2]   | VPV[1]  | VPV[0]  |
+| GPDR5      | RD      | VPV[15]  | VPV[14]  | VPV[13]  | VPV[12]  | VPV[11]  | VPV[10]  | VPV[9]  | VPV[8]  |
+
+## Table 85. Redundant Auxiliary Register Group A (RDRAXA)
+
+| Register   | RD/WR   | Bit 7     | Bit 6     | Bit 5     | Bit 4     | Bit 3     | Bit 2     | Bit 1    | Bit 0    |
+|------------|---------|-----------|-----------|-----------|-----------|-----------|-----------|----------|----------|
+| RGPAR0     | RD      | R_G1V[7]  | R_G1V[6]  | R_G1V[5]  | R_G1V[4]  | R_G1V[3]  | R_G1V[2]  | R_G1V[1] | R_G1V[0] |
+| RGPAR1     | RD      | R_G1V[15] | R_G1V[14] | R_G1V[13] | R_G1V[12] | R_G1V[11] | R_G1V[10] | R_G1V[9] | R_G1V[8] |
+
+## MEMORY MAP
+
+## Table 85. Redundant Auxiliary Register Group A (RDRAXA) (Continued)
+
+| Register   | RD/WR   | Bit 7     | Bit 6     | Bit 5     | Bit 4     | Bit 3     | Bit 2     | Bit 1    | Bit 0    |
+|------------|---------|-----------|-----------|-----------|-----------|-----------|-----------|----------|----------|
+| RGPAR2     | RD      | R_G2V[7]  | R_G2V[6]  | R_G2V[5]  | R_G2V[4]  | R_G2V[3]  | R_G2V[2]  | R_G2V[1] | R_G2V[0] |
+| RGPAR3     | RD      | R_G2V[15] | R_G2V[14] | R_G2V[13] | R_G2V[12] | R_G2V[11] | R_G2V[10] | R_G2V[9] | R_G2V[8] |
+| RGPAR4     | RD      | R_G3V[7]  | R_G3V[6]  | R_G3V[5]  | R_G3V[4]  | R_G3V[3]  | R_G3V[2]  | R_G3V[1] | R_G3V[0] |
+| RGPAR5     | RD      | R_G3V[15] | R_G3V[14] | R_G3V[13] | R_G3V[12] | R_G3V[11] | R_G3V[10] | R_G3V[9] | R_G3V[8] |
+
+## Table 86. Redundant Auxiliary Register Group B (RDRAXB)
+
+| Register   | RD/WR   | Bit 7     | Bit 6     | Bit 5     | Bit 4     | Bit 3     | Bit 2     | Bit 1    | Bit 0    |
+|------------|---------|-----------|-----------|-----------|-----------|-----------|-----------|----------|----------|
+| RGPBR0     | RD      | R_G4V[7]  | R_G4V[6]  | R_G4V[5]  | R_G4V[4]  | R_G4V[3]  | R_G4V[2]  | R_G4V[1] | R_G4V[0] |
+| RGPBR1     | RD      | R_G4V[15] | R_G4V[14] | R_G4V[13] | R_G4V[12] | R_G4V[11] | R_G4V[10] | R_G4V[9] | R_G4V[8] |
+| RGPBR2     | RD      | R_G5V[7]  | R_G5V[6]  | R_G5V[5]  | R_G5V[4]  | R_G5V[3]  | R_G5V[2]  | R_G5V[1] | R_G5V[0] |
+| RGPBR3     | RD      | R_G5V[15] | R_G5V[14] | R_G5V[13] | R_G5V[12] | R_G5V[11] | R_G5V[10] | R_G5V[9] | R_G5V[8] |
+| RGPBR4     | RD      | R_G6V[7]  | R_G6V[6]  | R_G6V[5]  | R_G6V[4]  | R_G6V[3]  | R_G6V[2]  | R_G6V[1] | R_G6V[0] |
+| RGPBR5     | RD      | R_G6V[15] | R_G6V[14] | R_G6V[13] | R_G6V[12] | R_G6V[11] | R_G6V[10] | R_G6V[9] | R_G6V[8] |
+
+## Table 87. Redundant Auxiliary Register Group C (RDRAXC)
+
+| Register   | RD/WR   | Bit 7     | Bit 6     | Bit 5     | Bit 4     | Bit 3     | Bit 2     | Bit 1    | Bit 0    |
+|------------|---------|-----------|-----------|-----------|-----------|-----------|-----------|----------|----------|
+| RGPCR0     | RD      | R_G7V[7]  | R_G7V[6]  | R_G7V[5]  | R_G7V[4]  | R_G7V[3]  | R_G7V[2]  | R_G7V[1] | R_G7V[0] |
+| RGPCR1     | RD      | R_G7V[15] | R_G7V[14] | R_G7V[13] | R_G7V[12] | R_G7V[11] | R_G7V[10] | R_G7V[9] | R_G7V[8] |
+| RGPCR2     | RD      | R_G8V[7]  | R_G8V[6]  | R_G8V[5]  | R_G8V[4]  | R_G8V[3]  | R_G8V[2]  | R_G8V[1] | R_G8V[0] |
+| RGPCR3     | RD      | R_G8V[15] | R_G8V[14] | R_G8V[13] | R_G8V[12] | R_G8V[11] | R_G8V[10] | R_G8V[9] | R_G8V[8] |
+| RGPCR4     | RD      | R_G9V[7]  | R_G9V[6]  | R_G9V[5]  | R_G9V[4]  | R_G9V[3]  | R_G9V[2]  | R_G9V[1] | R_G9V[0] |
+| RGPCR5     | RD      | R_G9V[15] | R_G9V[14] | R_G9V[13] | R_G9V[12] | R_G9V[11] | R_G9V[10] | R_G9V[9] | R_G9V[8] |
+
+## Table 88. Redundant Auxiliary Register Group D (RDRAXD)
+
+| Register   | RD/WR   | Bit 7      | Bit 6      | Bit 5      | Bit 4      | Bit 3      | Bit 2      | Bit 1     | Bit 0     |
+|------------|---------|------------|------------|------------|------------|------------|------------|-----------|-----------|
+| RGPDR0     | RD      | R_G10V[7]  | R_G10V[6]  | R_G10V[5]  | R_G10V[4]  | R_G10V[3]  | R_G10V[2]  | R_G10V[1] | R_G10V[0] |
+| RGPDR1     | RD      | R_G10V[15] | R_G10V[14] | R_G10V[13] | R_G10V[12] | R_G10V[11] | R_G10V[10] | R_G10V[9] | R_G10V[8] |
+| RGPDR2     | RD      | 1          | 1          | 1          | 1          | 1          | 1          | 1         | 1         |
+| RGPDR3     | RD      | 1          | 1          | 1          | 1          | 1          | 1          | 1         | 1         |
+| RGPDR4     | RD      | 1          | 1          | 1          | 1          | 1          | 1          | 1         | 1         |
+| RGPDR5     | RD      | 1          | 1          | 1          | 1          | 1          | 1          | 1         | 1         |
+
+## Table 89. Status Register Group A (RDSTATA)
+
+| Register   | RD/WR   | Bit 7     | Bit 6     | Bit 5     | Bit 4     | Bit 3     | Bit 2     | Bit 1    | Bit 0    |
+|------------|---------|-----------|-----------|-----------|-----------|-----------|-----------|----------|----------|
+| STAR0      | RD      | VREF2[7]  | VREF2[6]  | VREF2[5]  | VREF2[4]  | VREF2[3]  | VREF2[2]  | VREF2[1] | VREF2[0] |
+| STAR1      | RD      | VREF2[15] | VREF2[14] | VREF2[13] | VREF2[12] | VREF2[11] | VREF2[10] | VREF2[9] | VREF2[8] |
+| STAR2      | RD      | ITMP[7]   | ITMP[6]   | ITMP[5]   | ITMP[4]   | ITMP[3]   | ITMP[2]   | ITMP[1]  | ITMP[0]  |
+| STAR3      | RD      | ITMP[15]  | ITMP[14]  | ITMP[13]  | ITMP[12]  | ITMP[11]  | ITMP[10]  | ITMP[9]  | ITMP[8]  |
+| STAR4      | RD      | Reserved  | Reserved  | Reserved  | Reserved  | Reserved  | Reserved  | Reserved | Reserved |
+| STAR5      | RD      | Reserved  | Reserved  | Reserved  | Reserved  | Reserved  | Reserved  | Reserved | Reserved |
+
+## Table 90. Status Register Group B (RDSTATB)
+
+| Register   | RD/WR   | Bit 7   | Bit 6   | Bit 5   | Bit 4   | Bit 3   | Bit 2   | Bit 1   | Bit 0   |
+|------------|---------|---------|---------|---------|---------|---------|---------|---------|---------|
+| STBR0      | RD      | VD[7]   | VD[6]   | VD[5]   | VD[4]   | VD[3]   | VD[2]   | VD[1]   | VD[0]   |
+| STBR1      | RD      | VD[15]  | VD[14]  | VD[13]  | VD[12]  | VD[11]  | VD[10]  | VD[9]   | VD[8]   |
+| STBR2      | RD      | VA[7]   | VA[6]   | VA[5]   | VA[4]   | VA[3]   | VA[2]   | VA[1]   | VA[0]   |
+| STBR3      | RD      | VA[15]  | VA[14]  | VA[13]  | VA[12]  | VA[11]  | VA[10]  | VA[9]   | VA[8]   |
+| STBR4      | RD      | VRES[7] | VRES[6] | VRES[5] | VRES[4] | VRES[3] | VRES[2] | VRES[1] | VRES[0] |
+
+## MEMORY MAP
+
+## Table 90. Status Register Group B (RDSTATB) (Continued)
+
+| Register   | RD/WR   | Bit 7    | Bit 6    | Bit 5    | Bit 4    | Bit 3    | Bit 2    | Bit 1   | Bit 0   |
+|------------|---------|----------|----------|----------|----------|----------|----------|---------|---------|
+| STBR5      | RD      | VRES[15] | VRES[14] | VRES[13] | VRES[12] | VRES[11] | VRES[10] | VRES[9] | VRES[8] |
+
+## Table 91. Status Register Group C (RDSTATC)
+
+| Register   | RD/WR   | Bit 7   | Bit 6   | Bit 5   | Bit 4   | Bit 3   | Bit 2   | Bit 1   | Bit 0   |
+|------------|---------|---------|---------|---------|---------|---------|---------|---------|---------|
+| STCR0      | RD      | CS8FLT  | CS7FLT  | CS6FLT  | CS5FLT  | CS4FLT  | CS3FLT  | CS2FLT  | CS1FLT  |
+| STCR1      | RD      | CS16FLT | CS15FLT | CS14FLT | CS13FLT | CS12FLT | CS11FLT | CS10FLT | CS9FLT  |
+| STCR2      | RD      | 0       | 0       | 0       | CT[10]  | CT[9]   | CT[8]   | CT[7]   | CT[6]   |
+| STCR3      | RD      | CT[5]   | CT[4]   | CT[3]   | CT[2]   | CT[1]   | CT[0]   | CTS[1]  | CTS[0]  |
+| STCR4      | RD      | VA_OV   | VA_UV   | VD_OV   | VD_UV   | CED     | CMED    | SED     | SMED    |
+| STCR5      | RD      | VDEL    | VDE     | COMP    | SPIFLT  | SLEEP   | THSD    | TMODCHK | OSCCHK  |
+
+## Table 92. Status Register Group D (RDSTATD)
+
+| Register   | RD/WR   | Bit 7      | Bit 6      | Bit 5      | Bit 4      | Bit 3      | Bit 2      | Bit 1      | Bit 0      |
+|------------|---------|------------|------------|------------|------------|------------|------------|------------|------------|
+| STDR0      | RD      | C4OV       | C4UV       | C3OV       | C3UV       | C2OV       | C2UV       | C1OV       | C1UV       |
+| STDR1      | RD      | C8OV       | C8UV       | C7OV       | C7UV       | C6OV       | C6UV       | C5OV       | C5UV       |
+| STDR2      | RD      | C12OV      | C12UV      | C11OV      | C11UV      | C10OV      | C10UV      | C9OV       | C9UV       |
+| STDR3      | RD      | C16OV      | C16UV      | C15OV      | C15UV      | C14OV      | C14UV      | C13OV      | C13UV      |
+| STDR4      | RD      | 1          | 1          | 1          | 1          | 1          | 1          | 1          | 1          |
+| STDR5      | RD      | OC_CNTR[7] | OC_CNTR[6] | OC_CNTR[5] | OC_CNTR[4] | OC_CNTR[3] | OC_CNTR[2] | OC_CNTR[1] | OC_CNTR[0] |
+
+## Table 93. Status Register Group E (RDSTATE)
+
+| Register   | RD/WR   | Bit 7   | Bit 6   | Bit 5   | Bit 4   | Bit 3   | Bit 2   | Bit 1   | Bit 0   |
+|------------|---------|---------|---------|---------|---------|---------|---------|---------|---------|
+| STER0      | RD      | 1       | 1       | 1       | 1       | 1       | 1       | 1       | 1       |
+| STER1      | RD      | 1       | 1       | 1       | 1       | 1       | 1       | 1       | 1       |
+| STER2      | RD      | 1       | 1       | 1       | 1       | 1       | 1       | 1       | 1       |
+| STER3      | RD      | 1       | 1       | 1       | 1       | 1       | 1       | 1       | 01      |
+| STER4      | RD      | GPI[8]  | GPI[7]  | GPI[6]  | GPI[5]  | GPI[4]  | GPI[3]  | GPI[2]  | GPI[1]  |
+| STER5      | RD      | REV[3]  | REV[2]  | REV[1]  | REV[0]  | 0       | 0       | GPI[10] | GPI[9]  |
+
+## Table 94. COMM Register Group (WRCOMM, RDCOMM)
+
+| Register   | RD/WR   | Bit 7    | Bit 6    | Bit 5    | Bit 4    | Bit 3    | Bit 2    | Bit 1    | Bit 0    |
+|------------|---------|----------|----------|----------|----------|----------|----------|----------|----------|
+| COMM0      | RD/WR   | ICOM0[3] | ICOM0[2] | ICOM0[1] | ICOM0[0] | FCOM0[3] | FCOM0[2] | FCOM0[1] | FCOM0[0] |
+| COMM1      | RD/WR   | D0[7]    | D0[6]    | D0[5]    | D0[4]    | D0[3]    | D0[2]    | D0[1]    | D0[0]    |
+| COMM2      | RD/WR   | ICOM1[3] | ICOM1[2] | ICOM1[1] | ICOM1[0] | FCOM1[3] | FCOM1[2] | FCOM1[1] | FCOM1[0] |
+| COMM3      | RD/WR   | D1[7]    | D1[6]    | D1[5]    | D1[4]    | D1[3]    | D1[2]    | D1[1]    | D1[0]    |
+| COMM4      | RD/WR   | ICOM2[3] | ICOM2[2] | ICOM2[1] | ICOM2[0] | FCOM2[3] | FCOM2[2] | FCOM2[1] | FCOM2[0] |
+| COMM5      | RD/WR   | D2[7]    | D2[6]    | D2[5]    | D2[4]    | D2[3]    | D2[2]    | D2[1]    | D2[0]    |
+
+## Table 95. PWM Register Group A (WRPWMA, RDPWMA)
+
+| Register   | RD/WR   | Bit 7    | Bit 6    | Bit 5    | Bit 4    | Bit 3    | Bit 2    | Bit 1    | Bit 0    |
+|------------|---------|----------|----------|----------|----------|----------|----------|----------|----------|
+| PWMR0      | RD/WR   | PWM2[3]  | PWM2[2]  | PWM2 [1] | PWM2[0]  | PWM1[3]  | PWM1[2]  | PWM1[1]  | PWM1[0]  |
+| PWMR1      | RD/WR   | PWM4[3]  | PWM4[2]  | PWM4[1]  | PWM4[0]  | PWM3[3]  | PWM3[2]  | PWM3[1]  | PWM3[0]  |
+| PWMR2      | RD/WR   | PWM6[3]  | PWM6[2]  | PWM6[1]  | PWM6[0]  | PWM5[3]  | PWM5[2]  | PWM5[1]  | PWM5[0]  |
+| PWMR3      | RD/WR   | PWM8[3]  | PWM8[2]  | PWM8[1]  | PWM8[0]  | PWM7[3]  | PWM7[2]  | PWM7[1]  | PWM7[0]  |
+| PWMR4      | RD/WR   | PWM10[3] | PWM10[2] | PWM10[1] | PWM10[0] | PWM9[3]  | PWM9[2]  | PWM9[1]  | PWM9[0]  |
+| PWMR5      | RD/WR   | PWM12[3] | PWM12[2] | PWM12[1] | PWM12[0] | PWM11[3] | PWM11[2] | PWM11[1] | PWM11[0] |
+
+## MEMORY MAP
+
+## Table 96. PWM Register Group B (WRPWMB, RDPWMB)
+
+| Register   | RD/WR   | Bit 7    | Bit 6    | Bit 5    | Bit 4    | Bit 3    | Bit 2    | Bit 1    | Bit 0    |
+|------------|---------|----------|----------|----------|----------|----------|----------|----------|----------|
+| PSR0       | RD/WR   | PWM14[3] | PWM14[2] | PWM14[1] | PWM14[0] | PWM13[3] | PWM13[2] | PWM13[1] | PWM13[0] |
+| PSR1       | RD/WR   | PWM16[3] | PWM16[2] | PWM16[1] | PWM16[0] | PWM15[3] | PWM15[2] | PWM15[1] | PWM15[0] |
+| PSR2       | RD/WR   | 1        | 1        | 1        | 1        | 1        | 1        | 1        | 1        |
+| PSR3       | RD/WR   | 1        | 1        | 1        | 1        | 1        | 1        | 1        | 1        |
+| PSR4       | RD/WR   | 1        | 1        | 1        | 1        | 1        | 1        | 1        | 1        |
+| PSR5       | RD/WR   | 1        | 1        | 1        | 1        | 1        | 1        | 1        | 1        |
+
+## Table 97. LPCM Configuration Register Group (WRCMCFG, RDCMCFG)
+
+| Register   | RD/WR   | Bit 7       | Bit 6       | Bit 5       | Bit 4       | Bit 3       | Bit 2       | Bit 1       | Bit 0       |
+|------------|---------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|
+| CMCF0      | RD/WR   | CMC_MAN     | CMC_MPER[2] | CMC_MPER[1] | CMC_MPER[0] | CMC_BTM     | CMC_TPER[2] | CMC_TPER[1] | CMC_TPER[0] |
+| CMCF1      | RD/WR   | CMC_NDEV[7] | CMC_NDEV[6] | CMC_NDEV[5] | CMC_NDEV[4] | CMC_NDEV[3] | CMC_NDEV[2] | CMC_NDEV[1] | CMC_NDEV[0] |
+| CMCF2      | RD/WR   | CMM_C[8]    | CMM_C[7]    | CMM_C[6]    | CMM_C[5]    | CMM_C[4]    | CMM_C[3]    | CMM_C[2]    | CMM_C[1]    |
+| CMCF3      | RD/WR   | CMM_C[16]   | CMM_C[15]   | CMM_C[14]   | CMM_C[13]   | CMM_C[12]   | CMM_C[11]   | CMM_C[10]   | CMM_C[9]    |
+| CMCF4      | RD/WR   | CMM_G[2]    | CMM_G[1]    | CMC_DIR     | CMC_GOE[2]  | CMC_GOE[1]  | CMC_GOE[0]  | CMM_C[18]   | CMM_C[17]   |
+| CMCF5      | RD/WR   | CMM_G[10]   | CMM_G[9]    | CMM_G[8]    | CMM_G[7]    | CMM_G[6]    | CMM_G[5]    | CMM_G[4]    | CMM_G[3]    |
+
+## Table 98. LPCM Cell Thresholds Register Group (WRCMCELLT, RDCMCELLT)
+
+| Register   | RD/WR   | Bit 7       | Bit 6       | Bit 5      | Bit 4      | Bit 3       | Bit 2       | Bit 1      | Bit 0      |
+|------------|---------|-------------|-------------|------------|------------|-------------|-------------|------------|------------|
+| CMTC0      | RD/WR   | CMT_CUV[7]  | CMT_CUV[6]  | CMT_CUV[5] | CMT_CUV[4] | CMT_CUV[3]  | CMT_CUV[2]  | CMT_CUV[1] | CMT_CUV[0] |
+| CMTC1      | RD/WR   | CMT_COV[3]  | CMT_COV[2]  | CMT_COV[1] | CMT_COV[0] | CMT_CUV[11] | CMT_CUV[10] | CMT_CUV[9] | CMT_CUV[8] |
+| CMTC2      | RD/WR   | CMT_COV[11] | CMT_COV[10] | CMT_COV[9] | CMT_COV[8] | CMT_COV[7]  | CMT_COV[6]  | CMT_COV[5] | CMT_COV[4] |
+| CMTC3      | RD/WR   | CMT_CDV[7]  | CMT_CDV[6]  | CMT_CDV[5] | CMT_CDV[4] | CMT_CDV[3]  | CMT_CDV[2]  | CMT_CDV[1] | CMT_CDV[0] |
+| CMTC4      | RD/WR   | 0           | 0           | 0          | 0          | CMT_CDV[11] | CMT_CDV[10] | CMT_CDV[9] | CMT_CDV[8] |
+| CMTC5      | RD/WR   | 0           | 0           | 0          | 0          | 0           | 0           | 0          | 0          |
+
+## Table 99. LPCM GPIO Threshold Register Group (WRCMGPIOT, RDCMGPIOT)
+
+| Register   | RD/WR   | Bit 7       | Bit 6       | Bit 5      | Bit 4      | Bit 3       | Bit 2       | Bit 1      | Bit 0      |
+|------------|---------|-------------|-------------|------------|------------|-------------|-------------|------------|------------|
+| CMTG0      | RD/WR   | CMT_GUV[7]  | CMT_GUV[6]  | CMT_GUV[5] | CMT_GUV[4] | CMT_GUV[3]  | CMT_GUV[2]  | CMT_GUV[1] | CMT_GUV[0] |
+| CMTG1      | RD/WR   | CMT_GOV[3]  | CMT_GOV[2]  | CMT_GOV[1] | CMT_GOV[0] | CMT_GUV[11] | CMT_GUV[10] | CMT_GUV[9] | CMT_GUV[8] |
+| CMTG2      | RD/WR   | CMT_GOV[11] | CMT_GOV[10] | CMT_GOV[9] | CMT_GOV[8] | CMT_GOV[7]  | CMT_GOV[6]  | CMT_GOV[5] | CMT_GOV[4] |
+| CMTG3      | RD/WR   | CMT_GDV[7]  | CMT_GDV[6]  | CMT_GDV[5] | CMT_GDV[4] | CMT_GDV[3]  | CMT_GDV[2]  | CMT_GDV[1] | CMT_GDV[0] |
+| CMTG4      | RD/WR   | 0           | 0           | 0          | 0          | CMT_GDV[11] | CMT_GDV[10] | CMT_GDV[9] | CMT_GDV[8] |
+| CMTG5      | RD/WR   | 0           | 0           | 0          | 0          | 0           | 0           |            |            |
+
+## Table 100. LPCM Flags Register Group (RDCMFLAG)
+
+| Register   | RD/WR   | Bit 7    | Bit 6    | Bit 5   | Bit 4   | Bit 3    | Bit 2    | Bit 1     | Bit 0      |
+|------------|---------|----------|----------|---------|---------|----------|----------|-----------|------------|
+| CMF0       | RD/WR   | CMF_GDVP | CMF_GDVN | CMF_GOV | CMF_GUV | CMF_CDVP | CMF_CDVN | CMF_COV   | CMF_CUV    |
+| CMF1       | RD/WR   | CMC_EN   | 0        | 0       | 0       | 0        | 0        | CMF_BTMWD | CMF_BTMCMP |
+| CMF2       | RD/WR   | 0        | 0        | 0       | 0       | 0        | 0        | 0         | 0          |
+| CMF3       | RD/WR   | 0        | 0        | 0       | 0       | 0        | 0        | 0         | 0          |
+| CMF4       | RD/WR   | 0        | 0        | 0       | 0       | 0        | 0        | 0         | 0          |
+| CMF5       | RD/WR   | 0        | 0        | 0       | 0       | 0        | 0        | 0         | 0          |
+
+## Table 101. Retention Register Group (ULRR, WRRR, RDRR)
+
+| Register   | RD/WR   | Bit 7   | Bit 6   | Bit 5   | Bit 4   | Bit 3   | Bit 2   | Bit 1   | Bit 0   |
+|------------|---------|---------|---------|---------|---------|---------|---------|---------|---------|
+| RRR0       | RD/WR   | RR[47]  | RR[46]  | RR[45]  | RR[44]  | RR[43]  | RR[42]  | RR[41]  | RR[40]  |
+| RRR1       | RD/WR   | RR[39]  | RR[38]  | RR[37]  | RR[36]  | RR[35]  | RR[34]  | RR[33]  | RR[32]  |
+
+## MEMORY MAP
+
+Table 101. Retention Register Group (ULRR, WRRR, RDRR) (Continued)
+
+| Register   | RD/WR   | Bit 7   | Bit 6   | Bit 5   | Bit 4   | Bit 3   | Bit 2   | Bit 1   | Bit 0   |
+|------------|---------|---------|---------|---------|---------|---------|---------|---------|---------|
+| RRR2       | RD/WR   | RR[31]  | RR[30]  | RR[29]  | RR[28]  | RR[27]  | RR[26]  | RR[25]  | RR[24]  |
+| RRR3       | RD/WR   | RR[23]  | RR[22]  | RR[21]  | RR[20]  | RR[19]  | RR[18]  | RR[17]  | RR[16]  |
+| RRR4       | RD/WR   | RR[15]  | RR[14]  | RR[13]  | RR[12]  | RR[11]  | RR[10]  | RR[9]   | RR[8]   |
+| RRR5       | RD/WR   | RR[7]   | RR[6]   | RR[5]   | RR[4]   | RR[3]   | RR[2]   | RR[1]   | RR[0]   |
+
+Table 102. Configuration Register A Bit Descriptions
+
+| Name     | Description                                                           | Values                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |   Default |
+|----------|-----------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
+| REFON    | Reference powered up                                                  | 1 = reference remains powered up until watchdog timeout. 0 = reference shuts down after conversions (default).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |         0 |
+| CTH[2:0] | C-ADC vs. S-ADC comparison voltage threshold                          | 000: 5.1 mV. 001: 8.1 mV (default). 010: 9 mV. 011: 10.05 mV. 100: 15 mV. 101: 19.95 mV. 110: 25.05 mV. 111: 40.05 mV.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |       001 |
+| FLAG_Dx  | Asserts various flags in Status Register C for latent fault detection | Asserting flags in status register for latent fault diagnostic does not cause the ADBMS6830B to behave as if the flag was set by the actual diagnostic mechanism. For example, setting THSD (thermal shutdown) via FLAG_D[4] does not cause a power-on reset. FLAG_D[0]: 1 = forces oscillator counter fast. FLAG_D[1]: 1 = forces oscillator counter slow. FLAG_D[2]: 1 = forces supply error detection (ED). FLAG_D[3]: 1 = selects supply OV and delta detection. 0 = selects UV. FLAG_D[4]: 1 = sets THSD. FLAG_D[5]: 1 = forces nonvolatile memory (NVM) error detection (ED). Sets CED and SED. FLAG_D[6]: 1 = forces NVM multiple error detection (MED). Sets CMED and SMED. FLAG_D[7]: 1 = forces TMODCHK. |         0 |
+| SOAKON   | Enables soak on AUX ADCs                                              | 1 = enables soak time for all commands. 0 = disables soak time.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |         0 |
+| OWRNG    | Soak time range                                                       | 1 = long soak time range. 0 = short soak time range.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |         0 |
+| OWA      | Open wire soak times                                                  | For AUX commands. If OWRNG = 0, soak time = 2^(6 + OWA[2:0]) clocks (32 us to 4.1 ms). If OWRNG = 1, soak time = 2^(13 + OWA[2:0]) clocks (4.1 ms to 524 ms).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |         0 |
+| GPOx     | GPIOx pin control                                                     | 0 = GPIOx pin pull-down on. 1 = GPIOx pin pull-down off (default).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |         1 |
+| FC[2:0]  | IIR filter parameter                                                  | See Table 21.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |       000 |
+| COMM_BK  | Communication break                                                   | 1 = asserts the communication break feature that prevents the device from propagation communication further through the daisy chain.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |         0 |
+
+## MEMORY MAP
+
+## Table 102. Configuration Register A Bit Descriptions (Continued)
+
+| Name    | Description     | Values                                                  | Default   |
+|---------|-----------------|---------------------------------------------------------|-----------|
+| MUTE_ST | Mute status     |                                                         | 0         |
+|         |                 | 1 = mute is activated and discharging is disabled.      |           |
+|         |                 | 0 = mute is deactivated.                                |           |
+| SNAP_ST | Snapshot status |                                                         | 0         |
+|         |                 | 1 = snapshot is activated, result registers are frozen. |           |
+|         |                 | 0 = snapshot is deactivated.                            |           |
+
+## Table 103. Configuration Register B Bit Descriptions
+
+| Name   | Description                    | Values                                                                                                                                                                                                                                                   | Default   |
+|--------|--------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
+| VUV    | UV comparison voltage          | Cell undervoltage threshold = VUV × 16 × 150 μV + 1.5 V.                                                                                                                                                                                                 | 0x800     |
+| VOV    | OV comparison voltage          | Cell overvoltage threshold = VOV × 16 × 150 μV + 1.5 V.                                                                                                                                                                                                  | 0x7FF     |
+| DTMEN  | Enable discharge timer monitor | 1 = enables the discharge timer monitor function if the device transitions to the extended balancing state. 0 = disables the discharge timer monitor function.                                                                                           | 0         |
+| DTRNG  | Discharge timer range setting  | 1 = 0 to 16.8 hours in 16 minute increments. 0 = 0 to 63 minutes in 1 minute increments.                                                                                                                                                                 | 0         |
+| DCTO   | Discharge timeout value        | Write = Set new value, 16-minute or 1-minute increments according to DTRNG read. Read = remaining value, 16-minute or 1-minute increments according to DTRNG. 1 = less than or equal to 1 increment remaining. 0 = timeout has occurred or DCTO not set. | 0         |
+| DCCx   | Discharge Cell x               | 1 = continuously turns on shorting switch for Cell x. 0 = Continuously turns off shorting switch for Cell x (default).                                                                                                                                   | 0         |
+
+## Table 104. Result Registers Bit Descriptions
+
+| Name       | Description             | Values                                                                                                                                                                                                     | Default   |
+|------------|-------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
+| CxV        | Cell x voltage          | x = 1 to 16: 16-bit ADC measurement value for Cell x. Cell voltage for Cell x = CxV × 150 μV + 1.5 V.CxV is reset to 0x8000 on power-up and after clear command (CLRCELL).                                 | 0x8000    |
+| ACxV       | Averaged Cell x voltage | x = 1 to 16: 16-bit average of 8 conversions results for value for Cell x. Averaged cell voltage for Cell x = CxV × 150 μV + 1.5 V. ACxV is reset to 0x8000 on power-up and after clear command (CLRCELL). | 0x8000    |
+| FCxV       | Filtered Cell x voltage | x = 1 to 16: 16-bit IIR filtered measurement value for Cell x. Filtered cell voltage for Cell x = CxV × 150 μV + 1.5V. FCxV is reset to 0x8000 on power-up and after clear command (CLRFC).                | 0x8000    |
+| SxV        | Sx Pin x voltage        | 16-bit ADC measurement value for Sx pin from ADSV or ADCV commands. Spin voltage for Channel x = SxV × 150 μV + 1.5 V. SxV is reset to 0x8000 on power-up and after clear command (CLRSPIN).               | 0x8000    |
+| GxV, R_GxV | Redundant GPIOx voltage | x = 1 to 10: 16-bit ADC measurement value for (redundant) GPIOx voltage for GPIOx = GxV × 150 μV + 1.5 V.                                                                                                  | 0x8000    |
+| VPV        | V+ to V- measurement    | 16-bit ADC measurement value of V+ to V- = 25 × (VPV × 150 μV + 1.5 V). Reset to 0x8000 after power-up, sleep, or clear command (CLRAUX).                                                                  | 0x8000    |
+| VMV        | S1N to V- measurement   | 16-bit ADC measurement value of S1N to V- = VMV × 150 μV + 1.5 V. Reset to 0x8000 after power-up, sleep, or clear command (CLRAUX).                                                                        | 0x8000    |
+
+## Table 105. Status Register A Bit Descriptions
+
+| Name   | Description              | Values                                                                                                                                                                                                                                                                                       | Default   |
+|--------|--------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
+| VREF2  | Second reference voltage | 16-bit ADC measurement value for second reference voltage for second reference = V REF2 × 150 μV +1.5 V. Normal range is within 2.988 V to 3.012 V considering data sheet limits, thermal hysteresis, and long-term drift. Reset to 0x8000 after power-up, sleep, or clear command (CLRAUX). | 0x8000    |
+
+## MEMORY MAP
+
+## Table 105. Status Register A Bit Descriptions (Continued)
+
+| Name   | Description              | Values                                                                                                                                                                                                                    | Default   |
+|--------|--------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
+| ITMP   | Internal die temperature | 16-bit ADC measurement value of Internal Die temperature. Temperature measurement voltage = (ITMP × 150 μV + 1.5 V)/7.5 mV/°C - 273°C. Reset to 0x7FFF after power-up, sleep, and to 0x8000 after clear command (CLRAUX). | 0x7FFF    |
+
+## Table 106. Status Register B Bit Descriptions
+
+| Name   | Description                                                                | Values                                                                                                                                                                                                                                                                                                            | Default   |
+|--------|----------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
+| VD     | Digital power supply voltage. VD is off in sleep                           | 16-bit ADC measurement value of digital power supply voltage. Digital power supply voltage = VD × 150 μV + 1.5 V. Normal range is within 2.7 V to 3.6 V. Reset to 0x7FFF after power-up, sleep, and to 0x8000 after clear command (CLRAUX).                                                                       | 0x7FFF    |
+| VA     | Analog power supply voltage = voltage at the V REG pin. VD is off in sleep | 16-bit ADC measurement value of analog power supply voltage. Analog power supply voltage = VA × 150 μV + 1.5 V. The value of VA is set by external components and must be in the range of 4.5 V to 5.5 V for normal operation. Reset to 0x7FFF after power-up, sleep, and to 0x8000 after clear command (CLRAUX). | 0x7FFF    |
+| VRES   | VREF2 across resistor                                                      | 16-bit ADC value of VREF2 with series resistor for open wire check. Voltage = VRES × 150 μV + 1.5 V. Reset to 0x7FFF after power-up, sleep, and to 0x8000 after clear command (CLRAUX).                                                                                                                           | 0x7FFF    |
+
+## Table 107. Register Format Overview
+
+| Register Names                                             |   Width |     LSB |   Offset | Unit   | Min                         | Zero                      | Max                           |
+|------------------------------------------------------------|---------|---------|----------|--------|-----------------------------|---------------------------|-------------------------------|
+| CxV, SxV, ACxV, FCxV, GxV, R_GxV, VREF2, VD, VA, VRES, VMV |      16 | 0.00015 |      1.5 | V      | Analog: -3.4152 Hex: 0x8000 | Analog: 1.5 Hex: 0x0000   | Analog: 6.41505 Hex: 0x7FFF   |
+| VUV, VOV, CMT_CUV, CMT_COV, CMT_GUV, CMT_GOV               |      12 | 0.0024  |      1.5 | V      | Analog: -3.4152 Hex: 0x0800 | Analog: 1.5 Hex: 0x0000   | Analog: 6.4128 Hex: 0x07FF    |
+| CMT_CDV, CMT_GDV                                           |      12 | 0.0012  |      0   | V      | Analog: 0 Hex: 0x000        | Analog: 0 Hex: 0x000      | Analog: 4.914 Hex: 0xFFF      |
+| VPV                                                        |      16 | 0.00375 |     37.5 | V      | Analog: -85.38 Hex: 0x8000  | Analog: 37.5 Hex: 0x0000  | Analog: 160.37625 Hex: 0x7FFF |
+| ITMP                                                       |      16 | 0.02    |    -73   | °C     | Analog: -728.36 Hex: 0x8000 | Analog: -73.0 Hex: 0x0000 | Analog: 582.34 Hex: 0x7FFF    |
+
+## Table 108. Status Register C Bit Descriptions
+
+| Name   | Description                        | Values                                                                                                                                                                                                                                                                                                                            | Default   |
+|--------|------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
+| CSxFLT | C-ADC vs. S-ADC fault of Channel X | Read: 1 = a mismatch between C-ADC and S-ADC measurement on Channel X occurred. Read: 0 = no mismatch between C-ADC and S-ADC measurement on Channel X occurred.                                                                                                                                                                  | 0xFFFF    |
+| VA_OV  | 5 V analog rail OV                 | This bit can be cleared to 0 by using the CLRFLAG command with CL_VAOV = 1. Read: 1 = overvoltage event detected on the main 5 V analog power rail during an ADC operation. Read: 0 = no overvoltage event detected on the analog power rail.                                                                                     | 1         |
+| VA_UV  | 5 V analog rail UV                 | This bit can be cleared to 0 by using the CLRFLAG command with CL_VAUV = 1. Because VA is derived from V REG , VA_UV is set when entering standby from sleep. Read: 1 = undervoltage event detected on the main 5 V analog power rail during an ADC operation. Read: 0 = no undervoltage event detected on the analog power rail. | 1         |
+| VD_OV  | 3 V digital rail OV                | This bit can be cleared to 0 by using the CLRFLAG command with CL_VDOV = 1. Read: 1 = overvoltage event detected on the digital power rail during an ADC operation. Read: 0 = no overvoltage event detected on the digital power rail.                                                                                            | 1         |
+| VD_UV  | 3 V digital rail UV                | This bit can be cleared to 0 by using the CLRFLAG command with CL_VDUV = 1. Because VD is derived from V REG , VD_UV is set when entering standby from sleep. Read: 1 = undervoltage event detected on the digital power rail during an ADC operation. Read: 0 = no undervoltage event detected on the digital power rail.        | 1         |
+| CED    | C-trim error detection             | The ADBMS6830B can correct single trim errors.                                                                                                                                                                                                                                                                                    | 1         |
+
+## MEMORY MAP
+
+Table 108. Status Register C Bit Descriptions (Continued)
+
+| Name     | Description                     | Values                                                                                                                                                                                                                                                                                                                                                                                                                              |   Default |
+|----------|---------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
+| CMED     | C-trim multiple error detection | Read: 0 = no trim error detected in C-NVM. Multiple trim errors can lead to parameters out of specification. Read: 1 = multiple trim errors detected in C-NVM. Read: 0 = no multiple trim errors detected in C-NVM                                                                                                                                                                                                                  |         1 |
+| SED      | S-trim error detection          | The ADBMS6830B can correct single trim errors. Read: 1 = trim error detected in S-NVM. Read: 0 = no trim error detected in S-NVM.                                                                                                                                                                                                                                                                                                   |         1 |
+| SMED     | S-trim multiple error detection | Multiple trim errors can lead to parameters out of specification. Read: 1 = multiple trim errors detected in S-NVM. Read: 0 = no multiple trim errors detected in S-NVM.                                                                                                                                                                                                                                                            |         1 |
+| VDE      | Supply rail delta               | This bit can be cleared to 0 by using the CLRFLAG command with CL_VDE = 1. Read: 1 = any of the 5 V supplies differ from V REG by more than 0.5 V. Read: 0 = no delta of 5 V supplies detected.                                                                                                                                                                                                                                     |         1 |
+| VDEL     | Supply rail delta latent        | This bit can be cleared to 0 by using the CLRFLAG command with CL_VDEL = 1. VDEL allows to check supply rail monitors for latent faults. Read: 1 = all the 5 V supplies differed from V REG by more than 0.5 V. Read: 0 = not all the 5 V supplies differed from V REG by more than 0.5 V.                                                                                                                                          |         1 |
+| COMP     | Comparison                      | Indicates that the comparison between C-ADC and S-ADC results is active. 1 = C-ADC vs. S-ADC comparison active. 0 = C-ADC vs. S-ADC comparison off.                                                                                                                                                                                                                                                                                 |         0 |
+| SPIFLT   | SPI fault                       | Read: 1 = a mismatch between redundant SPI slave outputs occurred. Read: 0 = no mismatch between redundant SPI slave outputs occurred.                                                                                                                                                                                                                                                                                              |         1 |
+| SLEEP    | Sleep mode detection            | This bit can be cleared to 0 by using the CLRFLAG command with CL_SLEEP = 1. Read: 1 = the device has previously power cycled or entered sleep mode. Read: 0 = the device has not power cycled or entered sleep mode.                                                                                                                                                                                                               |         1 |
+| THSD     | Thermal shutdown status         | THSD bit cleared to 0 by using the CLRFLAG command with CL_THSD = 1. Read: 0 = thermal shutdown did not occur. Read: 1 = thermal shutdown occurred.                                                                                                                                                                                                                                                                                 |         0 |
+| TMODCHK  | Test mode detection             | This bit can be cleared to 0 by using the CLRFLAG command with CL_TMODE = 1. Read: 1 = the device has previously activated a test mode. Read: 0 = the device has not activated a test mode.                                                                                                                                                                                                                                         |         1 |
+| OSCCHK   | Oscillator check                | This bit can be cleared to 0 by using the CLRFLAG command with CL_OSCCHK = 1. 1 = an out of range oscillator count is detected during an ADC operation. 0 = no out of range oscillator counts are detected.                                                                                                                                                                                                                         |         1 |
+| CT[10:0] | Conversions counter             | Free running C-ADC conversion counter. Resets with every ADCV command. Rolls over after the maximum value.                                                                                                                                                                                                                                                                                                                          |         0 |
+| CTS[1:0] | Conversions subcounter          | Free running C-ADC subsample conversion counter. Four increments per sample. Resets with every ADCV command. Rolls over after maximum value. CT[10:0], CTS[1:0] can be treated as a 13-bit counter CCTS[12:0] that increments four times per sample. Can be read coherently to CADC results using the SNAP command to identify new or old samples. Coherency to SADC results is guaranteed only when CCTS is not 31, 32, 63, 64, …. |         0 |
+
+## Table 109. Status Register D Bit Descriptions
+
+| Name   | Description    | Values                                                                                                                                                            |   Default |
+|--------|----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
+| CxOV   | Cell x OV flag | x = 1 to 16: C-ADC 1 ms cell voltage measurement result compared to VOV comparison voltage. 0 = Cell x not flagged for overvoltage condition. 1 = Cell x flagged. |         1 |
+
+## MEMORY MAP
+
+## Table 109. Status Register D Bit Descriptions (Continued)
+
+| Name         | Description              | Values                                                                                                                                                                                                                                         |   Default |
+|--------------|--------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
+| CxUV         | Cell x UV flag           | x = 1 to 16: C-ADC 1 ms cell voltage measurement result compared to VUV comparison voltage. 0 = Cell x not flagged for undervoltage condition. 1 = Cell x flagged.                                                                             |         1 |
+| OC_CNTR[7:0] | Oscillator check counter | Stores the results of the oscillator counter check. If no OSCCHK failure occurs, this stores the most recently acquired oscillator count. If an OSCCHK failure occurs, this stores the first failing counter value. Passing range is 52 to 71. |         0 |
+
+## Table 110. Status Register E Bit Descriptions
+
+| Name   | Description     | Values                                                          | Default   |
+|--------|-----------------|-----------------------------------------------------------------|-----------|
+| GPIx   | GPIOx pin state | (Read only) 0 = GPIOx pin at Logic 0. 1 = GPIOx pin at Logic 1. | 0         |
+| REV    | Revision code   | Device Revision Code.                                           |           |
+| RSVD   | Reserved bits   | Read: read back value can be 1 or 0.                            |           |
+| RSVD0  | Reserved bits   | Read: read back value is always 0.                              | 0         |
+| RSVD1  | Reserved bits   | Read: read back value is always 1.                              | 1         |
+
+## Table 111. PWM Register Bit Descriptions
+
+| Name   | Description       | Values                     | Default   |
+|--------|-------------------|----------------------------|-----------|
+| PWMCx  | PWM configuration | 4'b1111 = 100% duty cycle. | 4'b000    |
+
+## Table 112. LPCM Configuration Register Bit Descriptions
+
+| Name     | Description                                      | Values                                                                                                                                          | Default   |
+|----------|--------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
+| CMC_NDEV | Number of devices                                | Set to number of devices + 0x42.                                                                                                                | 8'h00     |
+| CMC_MAN  | Fault monitoring manager                         | 1 = enables manager function for this device. 0 = disables manager function for this device.                                                    | 0         |
+| CMC_MPER | Fault monitoring measure (heartbeat) period      | 000 = 1 second. 001 = 2 seconds. 010 = 4 seconds. 011 = 8 seconds. 100 = 12 seconds. 101 = 16 seconds. 110 = 32 seconds. 111 = 1 second.        | 000       |
+| CMC_BTM  | Fault monitoring bridgeless LPCM timeout monitor | 1 = enables bridgeless LPCM timeout monitor for this device. 0 = disables bridgeless LPCM timeout monitor for this device.                      | 0         |
+| CMC_TPER | Fault monitoring bridgeless timeout period       | 000 = 1.5 seconds. 001 = 3 seconds. 010 = 6 seconds. 011 = 12 seconds. 100 = 18 seconds. 101 = 24 seconds. 110 = 48 seconds. 111 = 1.5 seconds. | 000       |
+
+## MEMORY MAP
+
+## Table 112. LPCM Configuration Register Bit Descriptions (Continued)
+
+| Name    | Description            | Values                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Default     |
+|---------|------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------|
+| CMC_DIR | Manager Tx direction   | Determines whether the manager device sends data from Port A or Port B. Don't care for other devices. 1 = manager sends CMHB out on Port A. 0 = manager sends CMHB out on Port B.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | 0           |
+| CMC_GOE | LPCM interrupt to GPIO | Allows the configuration of GPIO(s) as interrupt outputs. If bridgeless LPCM is enabled, an interrupt is asserted based on timer or bad heartbeat final count. If not, bridgeless LPCM is based on this device's status. When used as interrupts, the host must configure CMM_G[4:3] accordingly to mask the selected GPIO against use as an analog input. GPIOs are open-drain and require an external pull-up resistor. 000 = no GPIO outputs enabled. 001 = GPIO3 active low (interrupt asserts low). 010 = GPIO3 active high (interrupt asserts high). 011 = GPIO4 active low. 100 = GPIO4 active high. 101 = GPIO4 active low, GPIO3 active low. 110 = GPIO4 active low, GPIO3 active high. 111 = GPIO4 active high, GPIO3 active low. | 000         |
+| CMM_C   | Cell mask              | Mask/ignore individual cell results for the purposes of setting the interrupt.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | 18'h0_000 0 |
+| CMM_G   | GPIO mask              | Mask/ignore individual GPIO results for the purposes of setting the interrupt. Note that masked GPIO channels are skipped during conversion sequencing.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | 10'h000     |
+
+## Table 113. LPCM Cell Threshold Register Bit Descriptions
+
+| Name    | Description       | Values                                                                                                                  | Default   |
+|---------|-------------------|-------------------------------------------------------------------------------------------------------------------------|-----------|
+| CMT_CUV | Cell UV threshold | 12-bit, signed, LSB = 2.4 mV, offset = 1.5 V. For example, threshold = 2.5 V →CMT_CUV = (2.5 V - 1.5 V)/2.4 mV = 0x1A1. | 12'h000   |
+| CMT_COV | Cell OV threshold | 12-bit, signed, LSB = 2.4 mV, offset = 1.5 V.                                                                           | 12'h000   |
+| CMT_CDV | Cell DV threshold | 12-bit, unsigned, LSB = 1.2 mV, offset = 0 V. For example, threshold = 0.2 V →CMT_CDV = 0.2 V/1.2 mV = 0x0A7.           | 12'h000   |
+
+## Table 114. LPCM GPIO Threshold Register Bit Descriptions
+
+| Name    | Description       | Values                                        | Default   |
+|---------|-------------------|-----------------------------------------------|-----------|
+| CMT_GUV | GPIO UV threshold | 12-bit, signed, LSB = 2.4 mV, offset = 1.5 V. | 12'h000   |
+| CMT_GOV | GPIO OV threshold | 12-bit, signed, LSB = 2.4 mV, offset = 1.5 V. | 12'h000   |
+| CMT_GDV | GPIO DV threshold | 12-bit, unsigned, LSB = 1.2 mV, offset = 0 V. | 12'h000   |
+
+## Table 115. LPCM Flags Register Bit Descriptions
+
+| Name       | Description 1            | Values                                                                                                                                             |   Default |
+|------------|--------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
+| CMC_EN     | LPCM enabled status      | Reflect status of LPCM. Set via CMEN command, cleared via CMDIS command or POR. 0 = LPCM inactive. 1 = LPCM active.                                |         0 |
+| CMF_BTMWD  | Bridgeless watchdog flag | Bridgeless LPCM timeout monitor interrupt due to watchdog timeout.                                                                                 |         1 |
+| CMF_BTMCMP | Bridgeless message flag  | Bridgeless LPCM timeout monitor interrupt due to threshold comparison failure, indicated by either the heartbeat message or the local comparisons. |         1 |
+| CMF_CUV    | LPCM cell UV flag        | Any nonmasked Cellx < CMT_CUV.                                                                                                                     |         0 |
+| CMF_COV    | LPCM cell OV flag        | Any nonmasked Cellx > CMT_COV.                                                                                                                     |         0 |
+| CMF_CDVP   | LPCM cell DVP flag       | Any nonmasked Cellx[n] to Cellx[n-1] > CMT_CDV.                                                                                                    |         0 |
+| CMF_CDVN   | LPCM cell DVN flag       | Any nonmasked Cellx[n-1] to Cellx[n] > CMT_CDV.                                                                                                    |         0 |
+| CMF_GUV    | LPCM GPIO UV flag        | Any nonmasked GPIOx < CMT_GUV.                                                                                                                     |         0 |
+| CMF_GOV    | LPCM GPIO OV flag        | Any nonmasked GPIOx > CMT_GOV.                                                                                                                     |         0 |
+
+## MEMORY MAP
+
+## Table 115. LPCM Flags Register Bit Descriptions (Continued)
+
+| Name     | Description 1      | Values                                          |   Default |
+|----------|--------------------|-------------------------------------------------|-----------|
+| CMF_GDVP | LPCM GPIO DVP flag | Any nonmasked GPIOx[n] to GPIOx[n-1] > CMT_GDV. |         0 |
+| CMF_GDVN | LPCM GPIO DVN flag | Any nonmasked GPIOx[n-1] to GPIOx[n] > CMT_GDV. |         0 |
+
+Table 116. Communication Register Bit Descriptions
+
+| Name   | Description                                                                                           | Values                                                                                                                                                                                                                                                                                                                                                  |
+|--------|-------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ICOMx  | Initial communication control bits                                                                    | Write for I 2 C communication: 0110 = start. 0001 = stop. 0000 = blank. 0111 = no transmit. Read for SPI communication: 1000 = CSB low. 1010 = CSB falling edge. 1001 = CSB high. 1111 = no transmit.                                                                                                                                                   |
+| Dx     | I 2 C/SPI communication data byte. Read data transmitted/ received) to or from I 2 C/SPI slave device | Read for I 2 C communication: 0110 = start from master. 0001 = stop from master. 0000 = SDA low between bytes. 0111 = SDA high between bytes. Read for SPI communication: 0111 = all cases.                                                                                                                                                             |
+| FCOMx  | Final communication control bits                                                                      | Write for I 2 C communication: 0000 = master ACK. 1000 = master NACK. 1001 = master NACK + stop. Read for SPI communication: x000 = CSB low. 1001 = CSB high. Read for I 2 C communication: 0000 = ACK from master. 0111 = ACK from slave. 1111 = NACK from slave. 0001 = ACK from slave + stop from master. 1001 = NACK from slave + stop from master. |
+
+## APPLICATIONS INFORMATION
+
+## PROVIDING POWER BY LINEAR REGULATOR
+
+The primary supply pin for the ADBMS6830B is the 5 V ± 0.5 V VREG  input pin. The DRIVE pin can be used to form a discrete regulator with the addition of a few external components, as shown in Figure 37. The DRIVE pin provides a 5.7 V output, capable of sourcing 1 mA. When buffered with an NPN transistor, this configuration provides a stable 5 V over temperature. Choose the NPN transistor to have a sufficient beta value over temperature (&gt;40) to supply the necessary supply current. The peak V REG current requirement of the ADBMS6830B approaches 30 mA when simultaneously communicating over the isoSPI and while making ADC conversions. If the V REG pin is required to support any additional load, a transistor with a higher beta value may be required.
+
+The NPN collector can be powered from any voltage source that is a minimum 6 V above V-, including the cells being monitored, or an unregulated power supply. A 330 Ω, 10 nF RC decoupling network is recommended for the collector power connection to protect the NPN from transients. Filter the DRIVE pin by adding a 10 Ω, 10 nF RC to the base of the NPN. The emitter must have a ferrite bead in series with a 1 µF reservoir capacitor that is required to bypass the V REG pin. Avoid a larger capacitance because it increases the wake-up time of the ADBMS6830B. Choose a transistor with adequate thermal dissipation. In most systems, it is good practice to choose a device with greater than 1 W because there can be significant power dissipation with a high collector voltage.
+
+Figure 37. V REG Power Source Using NPN Pass Transistor
+
+<!-- image -->
+
+## INPUT FILTERING
+
+The ADBMS6830B uses dedicated ADCs per cell without a multiplexer to measure cell voltages. Due to oversampling, Δ-Σ ADCs relax the input filtering requirements. Only fast transient noise around and above the sampling frequency of about 4 MHz must be filtered out by adding RC low-pass decoupling to each ADC.
+
+When converting cell voltages, the ADBMS6830B C-ADCs present a differential input impedance of 2.2 MΩ, leading to a differential input current of around 1.6 µA for a cell voltage around 4 V. As shown in Figure 38, the input current of neighboring channels cancels out if the filter resistor is shared between two channels. For those channels, where the filter resistor is not shared with a neighboring channel, the introduced voltage drop over the filter resistor leads to a gain error in the C-ADC measurement. This gain error is calibrated out at a final test for a total of 200 Ω of filter resistance. Therefore, 200 Ω resistors must be placed in the cell inputs that are not shared between channels, as shown in Figure 38. Using 10 nF of differential capacitance leads to a cutoff frequency of around 80 kHz and provides &gt;30 dB of damping at f S ~4 MHz.
+
+Figure 38. Input Filtering and Balancing Network
+
+<!-- image -->
+
+If a value different than 200 Ω is used for a filter resistor (R FILT ) that is not shared between two neighboring channels, the introduced measurement error of this channel due to the nominal input resistance and sampling offset current of the ADC can be calculated as follows:
+
+For example, using a filter resistor of 470 Ω causes a measurement error of roughly V ERROR = -0.5 mV.
+
+<!-- formula-not-decoded -->
+
+The error due to a filter resistor different from 200 Ω can be compensated by applying the following formula:
+
+VCELL is the ADC reading of the corresponding cell voltage. RFILT is the used filter resistor.
+
+<!-- formula-not-decoded -->
+
+Because the input resistance and sampling offset current may deviate from their typical values according to the C-ADC specifications (see Table 1), a residual error after correction may occur. Figure 39 shows the maximum and minimum residual error after compensation for filter resistances of R FILT = 470 Ω and R FILT = 1 kΩ in the function of cell voltage.
+
+## APPLICATIONS INFORMATION
+
+Figure 39. Cell Voltage Residual Error After Compensation
+
+<!-- image -->
+
+Only resistors not shared between two cell measurement channels and different from 200 Ω can cause an error to be compensated.
+
+## CELL BALANCING
+
+The ADBMS6830B includes signals (the Sx pins) that can be used to balance cells with internal or external discharge. Cells can be discharged using the internal MOSFETs at the Sx pins, or the Sx pins can act as digital outputs to drive external transistors.
+
+## Cell Balancing with Internal MOSFETs
+
+With passive balancing, if one cell in a series stack is overcharged, an Sx output can slowly discharge this cell by connecting it to a resistor. Each Sx output is connected to an internal MOSFET with a maximum on resistance of 4 Ω. Connect an external resistor in series with these MOSFETs to limit the discharge current and allow most of the heat to be dissipated outside of the ADBMS6830B package, as shown in Figure 38.
+
+The internal discharge switches can be used to passively balance cells with a balancing current of 300 mA or less. Balancing currents larger than 300 mA is not recommended for the internal switches. When discharging cells with the internal discharge switches, monitor the die temperature.
+
+To ensure valid comparison of C-ADC vs. S-ADC results, the time constant of the filter network on the Sx pins (RDIS and CDIS) must be chosen close to the time constant of the filter network on the Cx pins (200 Ω and 10 nF).
+
+## Cell Balancing with External Transistors
+
+For applications that require balancing currents above 300 mA, the Sx outputs can be used to control external transistors in LQFP package. The Sx pins can act as digital outputs suitable for driving the gate of an external MOSFET. See Figure 40.
+
+Figure 40. Cell Balancing with External Transistors
+
+<!-- image -->
+
+## CELL DEPOPULATION
+
+The ADBMS6830B can be used in applications using fewer than the maximum of 16 cells to be monitored. The minimum of cells that can be monitored is given by the minimum supply voltage at V+ of 11 V.
+
+## Cell Depopulation with the ADBMS6830B in LQFP\_EP Package
+
+The ADBMS6830B uses charge pumps to drive the gates of the PMOS balancing FET of Channels S1, S2, and S3 to ensure enough gate drive even at low input voltage of these channels. Therefore S1, S2, and S3 must not be depopulated if cell balancing on the next higher channel is required. For an even number of cells to be monitored, it is recommended to depopulate one or several pin pairs and to connect the respective input pins to the positive connector pin of the highest cell, as shown in Figure 41 for a 12-cell stack.
+
+If an odd number of cells have to be monitored, only one channel of a certain pin pair is used, as shown in Figure 41 for a 13-cell stack. In this case, the input currents throughout the shared pin C14:13 do not cancel out (see the Input Filtering section). Therefore, the value of the filter resistors in front of the used channel must be reduced to 100 Ω to maintain cell voltage measurement accuracy. For the odd number of cells depopulation, do not connect a capacitor from the unused pins to V- because this can cause an absolute maximum violation of the differential Cx to Cx:x - 1 input voltage. Instead, connect a differential capacitor (10 nF) between the unused pins and the last Cx:x - 1 pin to protect against such over stress events.
+
+The cell depopulation figures show the recommendation when designing electronics for specific cell counts with minimum external components. For fully populated circuits, it is possible to short unused cells at the cell connector. For the ADBMS6830B, short unused cells start from the upper input.
+
+## APPLICATIONS INFORMATION
+
+Figure 41. Cell Depopulation for the ADBMS6830B in LQFP\_EP Package
+
+<!-- image -->
+
+## APPLICATIONS INFORMATION
+
+## BUS BAR MONITORING AND BYPASSING
+
+All ADBMS6830B cell measurement channels can measure negative voltages down to -2 V and can thus be used to measure the voltage drop over bus bars. The Sx pins must be disconnected or shorted to either side of the bus bar to avoid current through the body diode of the PMOS.
+
+If the voltage over a bus bar does not need to be measured, the bus bar can be connected between pin pairs of the ADBMS6830B in the LQFP\_EP package, as shown in Figure 42.
+
+If a channel is used to measure a bus bar, the currents through the filter resistor shared with a neighborhood channel do not cancel out because the bus bar voltage is typically much lower than a cell voltage.
+
+This causes an error in the measurement of the neighborhood channels, with which the bus bar channel shares the filter resistors. The introduced error is typically in the range of:
+
+<!-- formula-not-decoded -->
+
+and can be compensated by applying the following correction to the cell voltage reading of the concerned channels:
+
+In the case of the ADBMS6830B in the LQFP\_EP package, the measurement error in the paired channel can also be omitted by reducing its filter resistor to 100 Ω instead of 200 Ω, as shown in Figure 42.
+
+When connecting a bus bar to a measurement channel, the Sx pins need to be disconnected from the inputs to avoid current through the body diode of the PMOS in case of negative voltages. It is also possible to connect the shorted Sx pins to one side of the bus bar connector. Do not connect the shorted Sx pins directly to one of the Cx pins, as this could cause measurement errors due to additional leakage on the Cx pin measurement path.
+
+<!-- formula-not-decoded -->
+
+Figure 42. Measuring or Bypassing Bus Bars
+
+<!-- image -->
+
+## APPLICATIONS INFORMATION
+
+## INTERNAL PROTECTION
+
+The ADBMS6830B incorporates various ESD safeguards to ensure robust performance. Figure 43 shows an equivalent circuit with the specific protection structure. Zener-like suppressors are shown with their nominal clamp voltage.
+
+Figure 43. Internal ESD Protection Structures of the ADBMS6830B in LQFP\_EP Package (PN Diodes from V- to All Other Pins Not Shown)
+
+<!-- image -->
+
+## OUTLINE DIMENSIONS
+
+Figure 44. 80-Lead Low Profile Quad Flat Package, Exposed Pad [LQFP\_EP] (05-08-1783) Dimensions shown in millimeters
+
+<!-- image -->
+
+## OUTLINE DIMENSIONS
+
+## ORDERING GUIDE
+
+| Model 1, 2, 3     | Temperature Range   | Package Description                                          | Package Quantity   | Package Option   |
+|-------------------|---------------------|--------------------------------------------------------------|--------------------|------------------|
+| ADBMS6830BCSWZ    | -40°C to +125°C     | 80-Lead Low Profile Quad Flat Package, Exposed Pad [LQFP_EP] |                    | 05-08-1783       |
+| ADBMS6830BCSWZ-RL | -40°C to +125°C     | 80-Lead Low Profile Quad Flat Package, Exposed Pad [LQFP_EP] | Reel, 1000         | 05-08-1783       |
+
+## EVALUATION BOARDS
+
+| Model              | Description      |
+|--------------------|------------------|
+| EVAL-ADBMS6830BMSW | Evaluation Board |
+
+<!-- image -->
