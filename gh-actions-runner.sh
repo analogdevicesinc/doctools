@@ -2,8 +2,8 @@
 
 set -e
 
-runner_version=2.333.1
-runner_version_sha=18f8f68ed1892854ff2ab1bab4fcaa2f5abeedc98093b6cb13638991725cab74
+runner_version=2.334.0
+runner_version_sha=048024cd2c848eb6f14d5646d56c13a4def2ae7ee3ad12122bee960c56f3d271
 node20_version=20.20.2
 node20_version_sha=19e56f0825510207dd904f087fe52faa0a4eb6b2aab5f0ea7a33830d04888b8b
 node24_version=24.15.0
