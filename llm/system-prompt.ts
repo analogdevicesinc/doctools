@@ -22,7 +22,7 @@ function buildSystemPrompt(cwd: string): string {
   let instructions_output = "";
 
   if (base_sha && head_sha)
-    instructions_preamble += `You are reviewing the commit range ${base_sha}..${head_sha}.\n`;
+    instructions_preamble += `You are reviewing the commits after ${base_sha} up to and including ${head_sha}.\n`;
 
   if (annotations_file)
     instructions_output += `You must read ${annotations_file} for the CI/CD notes, warnings, and errors.\n`;
