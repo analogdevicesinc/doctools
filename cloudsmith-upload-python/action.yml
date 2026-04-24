@@ -82,7 +82,7 @@ runs:
         )
 
         cs-package-store-python ${{ env.CLOUDSMITH_API_KEY }} \
-                                ${{ vars.CLOUDSMITH_NAMESPACE }} \
-                                ${{ vars.CLOUDSMITH_REPOSITORY }} \
+                                "${{ inputs.namespace }}" \
+                                "${{ inputs.repository }}" \
                                 "$package_file" \
                                 "${{ steps.get_tags.outputs.tags }}"
