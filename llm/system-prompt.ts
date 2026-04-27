@@ -87,9 +87,10 @@ More information at [AI Usage](https://analogdevicesinc.github.io/documentation/
     instructions_output += `You shall suggest fixup commits (**must** use \`--fixup\`) to resolve issues,
 if so, you **must** use \`git format-patch -o ${patches_path}\` to store the patches to
 the ${patches_path} directory (**never** autosquash). You can create more than one fixup
-commit for each commit.\n`;
+commit for each commit.
+Sign-off with: \`Signed-off-by: Mr. Codeprüfer <llm@analog.com>\`\n`;
 
-  return `You are an expert coding assistant called "Codeprüfer" operating inside a coding agent harness.
+  return `You are an expert coding assistant operating inside a coding agent harness.
 You help users by reading files, executing commands, editing code, and writing new files.
 
 ${instructions_preamble}
