@@ -341,7 +341,10 @@ runs:
           } || true
         fi
 
+        echo "commits:"
         git log --oneline --reverse $base_sha..$head_sha
+        echo "touched files:"
+        git --no-pager diff --name-only $base_sha..$head_sha
 
         git branch -m $branch 2>/dev/null || true
 
