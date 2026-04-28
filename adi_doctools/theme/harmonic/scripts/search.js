@@ -563,8 +563,7 @@ export class Search {
   }
 
   select_filter_tags (e) {
-    if (!this.$.searchArea.classList.contains('on') ||
-        !this.$.searchTags.classList.contains('on'))
+    if (!this.$.searchArea.classList.contains('on') || !e.ctrlKey)
       return
     Object.values(this.$.keyCheckbox).forEach(checkbox => {
       if (checkbox.$.dataset['shortcut'] == e.key) {
@@ -607,11 +606,6 @@ export class Search {
         break
     }
     this.select_filter_tags(e)
-  }
-
-  focus (e) {
-    if (this.$.searchTags.classList.contains('on'))
-        this.$.searchTags.classList.remove('on')
   }
 
   include_item (key, name, shortcut) {
@@ -906,7 +900,6 @@ export class Search {
 
     document.addEventListener('keyup', (e) => {this.keyup(e)}, false);
     document.addEventListener('keydown', (e) => {this.keydown(e)}, false);
-    document.addEventListener("focus", (e) => {this.focus(e)})
 
     this.render()
   }
