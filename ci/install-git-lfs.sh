@@ -9,6 +9,7 @@ GIT_LFS_VERSION=$1
 GIT_LFS_SHA=$2
 
 curl -o git-lfs.tar.gz -L https://github.com/git-lfs/git-lfs/archive/${GIT_LFS_VERSION}.tar.gz
+sha256sum git-lfs.tar.gz
 echo "$GIT_LFS_SHA git-lfs.tar.gz" | sha256sum -c
 
 tar xzf git-lfs.tar.gz
