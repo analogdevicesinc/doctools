@@ -270,8 +270,7 @@ runs:
         [[ -n "$fetch_depth" ]] || fetch_depth=5
 
         # --empty was added on git 2.26.0
-        has_keep=$(git rebase -help 2>&1 | grep "\--empty" | wc -l) || true
-        if [[ "$has_keep" -gt "0" ]]; then
+        if git rebase -help 2>&1 | grep -q "\--empty"; then
           keep_empty="--empty=keep"
         else
           keep_empty="--keep-empty"
@@ -294,7 +293,7 @@ runs:
 
           head_sha=$(git rev-parse $fetch_head^2)
           into_head_sha=$(git rev-parse $fetch_head^1)
-          base_sha=$(git rev-list --reverse $into_head_sha..$head_sha | head -n 1)
+          base_sha=$(git rev-list $into_head_sha..$head_sha | tail -n 1)
           base_sha=$(git rev-parse $base_sha~)
         else
           mode="branch"
@@ -329,7 +328,7 @@ runs:
           }
 
           # apply fixups
-          git log --oneline --pretty=format:'%s' $base_sha..$head_sha | grep ^fixup! && {
+          git log --oneline --pretty=format:'%s' $base_sha..$head_sha | grep -q ^fixup! && {
             git rebase $keep_empty --rebase-merges --autosquash $base_sha \
               || git rebase --abort && {
               head_sha=$(git rev-parse HEAD)
