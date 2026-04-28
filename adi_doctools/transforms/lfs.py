@@ -5,6 +5,8 @@ from sphinx.transforms.post_transforms import SphinxPostTransform
 from sphinx.util import logging
 from sphinx import addnodes
 from docutils import nodes
+from packaging.version import Version
+from sphinx import __version__ as __sphinx_version__
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +61,11 @@ class lfs_to_links(SphinxPostTransform):
                     ouri = node['original_uri']
                 else:
                     ouri = node['uri']
-                ouri = path.abspath(path.join(f"/{docname}", '..', ouri))
+                # Pull request #9846
+                if Version(__sphinx_version__) >= Version('7.2.0'):
+                    ouri = path.abspath(path.join(f"/{docname}", '..', ouri))
+                else:
+                    ouri = f"/{ouri}"
 
                 node['candidates']['?'] = f"{url}{ouri}"
                 if 'original_uri' in node:
@@ -95,7 +101,8 @@ def lfs_setup(app):
     if "GIT_LFS_TO_LINKS" in environ:
         if "GIT_ORG_REPOSITORY" in environ and "GIT_BRANCH" in environ:
             app.add_post_transform(lfs_to_links)
-            app.connect('write-started', lfs_to_links_write_started)
+            if Version(__sphinx_version__) >= Version('7.4.0'):
+                app.connect('write-started', lfs_to_links_write_started)
         else:
             logger.error("lfs_to_links: 'GIT_LFS_TO_LINKS' in env, but 'GIT_ORG_REPOSITORY' or/and 'GIT_BRANCH' is not, skipped!")
 
