@@ -1,6 +1,5 @@
 {
   "text": [
-    "Doctools is the central piece for aggregating multiple documentations together,\nexpanding the standard hierarchical, mono-repo documentation configuration.\n\nThe content is organized in three levels:\n\n- repotoc: Listing of repositories in the same organization that contain\n  documentations.\n  In gene",
     "Analog Devices Inc.\ndocumentation extensions, themes, and tools for multiple repositories in the\norganization.\n\nRead the Documentation guidelines for more documentation rules and information\non the directives and roles packaged on this repository.\n\nAnd read the Command line interface for information",
     "Doctools is developed to work offline, in a local server as a rolling release\n(e.g., on GitHub Pages) and versioned in a dedicated server with orchestration.\n",
     "For offline and local server, a `make html` suffices to generate the\ndocumentation.\n\nTo serve the build in a local server, Python built-in server can be used:\n\n```bash\n~$ python -m http.server -d /path/to/docs/_build/html\n```\n\n\nOr with hot reload using Serve:\n\n```bash\n~$ adoc serve -d /path/to/docs\n",
@@ -12,6 +11,7 @@
     "GitHub Pages does not support git lfs pointers. The tool is able to convert git\nlfs pointers into GitHub raw links\n(`https://media.githubusercontent.com/media/org/repo/branch/path/to/image`), with:\n\n```bash\nexport GIT_LFS_TO_LINKS=\"true\"\nexport GIT_ORG_REPOSITORY=\"${{ github.repository }}\"\n[ \"${{ gi",
     "If the root does not contain any built doc, add a redirect HTML file pointing\nto the main/stable version:\n\n```default\n<!DOCTYPE html>\n<html>\n  <head>\n    <meta http-equiv=\"refresh\" content=\"0; url=main/index.html\" />\n  </head>\n</html>\n```\n\n\nWith the shared action, this is not supported.\n",
     "For In organization reference, the doc shall target a specific version by suffixing\nthe target the version on the `interref_repos` variable, e.g.\n`interref_repos = ['pyadi-iio/dev', 'other-repo/v1.1']`.\n",
+    "Doctools is the central piece for aggregating multiple documentations together,\nexpanding the standard hierarchical, mono-repo documentation configuration.\n\nThe content is organized in three levels:\n\n- repotoc: Listing of repositories in the same organization that contain\n  documentations.\n  In gene",
     "A Sphinx theme called *harmonic* (formerly *cosmic*) is available and\nis based on ADI\u2019s *harmonic* design language.\n",
     "> **Tip**\n>\n> Depending on your browser and operating system shortcuts, some shortcuts may\n> collide with existing ones, due to this, the script provides many alternatives.\n\n\n`Alt+Shift+ArrowLeft` goes to the previous page and `Alt+Shift+ArrowRight`\nto the next page. Or `Alt+Shift+A` and `Alt+Shift+",
     "As other Sphinx themes, you set doctools theme customization through the *conf.py*.\nYou add to the `html_theme_options` dictionary:\n\n```python\nhtml_theme_options = {\n    \"light_logo\": path.join(\"path\", \"to\", \"logo_light.svg\"),\n    \"dark_logo\": path.join(\"path\", \"to\", \"logo_dark.svg\"),\n    \"no_index\"",
@@ -40,14 +40,6 @@
     "Finally, do a symbolic installation of this repo:\n\n```bash\n~$ pip install -e . --upgrade\n```\n\n\n> **Caution**\n>\n> If using a python virtual environment for the *requirements.txt* packages,\n> do this command with the virtual environment already activated.\n> Mixing pip packages inside and outside the v",
     "Add to you lazyvim config the path to the branch `nvim`:\n\n```lua\n{\n  dir = '/path/to/doctools/nvim',\n  -- ...\n}\n```\n",
     "To remove, either release or development, do:\n\n```bash\n~$ pip uninstall adi-doctools\n```\n",
-    "Doctools has a continuous deployment integration pipeline that works as follows:\n\n```default\n                   \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n                \u250c\u2500\u25ba\u2502Build Doc Latest  \u251c\u2500\u2510\n                \u2502  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518 \u2502\n                \u2502                       \u2502\n\u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510 \u2502  \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510   \u2502",
-    "Below are suggested instructions for setting up `podman` on a Linux environment,\nif you wish to use it as your container engine. If you already use something else\nlike `docker`, **keep it** and skip this section.\n\nAdjust to your preferences as needed, and skip the steps marked in green\nif not using ",
-    "Podman default configuration expects a local user to be able to create a user\nnamespace where multiple IDs are mapped and a compatible partition to use as\nthe storage location `graphRoot`.\n\n> **Note**\n>\n> The ideal solution is to create a local **non-root** user and storage\n> location. Podman proces",
-    "To build the container image, use your favorite container engine:\n\n```bash\n~$ cd ~/doctools# or docker, ...\n~/doctools$ podman build --tag adi/doctools:latest ci\n```\n\n\nYou may want to build the container in a host, where you have all your tools installed,\nand then deploy to a server.\nIn this case, e",
-    "At its core, the workflows are straight forward, roughly they do:\n\nThe `Tests` step:\n\n```bash\n~$ cd tests ; pytest\n```\n\n\n`Build Doc *`:\n\n```bash\n~$ cd docs ; make html\n```\n\n\nBut at a specific minimum and maximum supported environment version.\n\n`Custom Doc`:\n\n```bash\n~$ mkdir /tmp/test-pdf ; cd $_\n/t",
-    "To host your GitHub Actions Runner,\nset up your secrets:\n\n```bash\n# e.g. analogdevicesinc/doctools\n~$ printf ORG_REPOSITORY | podman secret create public_doctools_org_repository -# e.g. MyVerYSecRunnerToken\n~$ printf RUNNER_TOKEN | podman secret create public_doctools_runner_token -\n```\n\n\nThe runner",
-    "To host a cluster of self-hosted runners, the recommended approach is to use\nsystemd services, instead of for example, container compose solutions.\n\nBelow is a suggested systemd service at *~/.config/systemd/user/container-public-doctools@.service*.\n\n```systemd\n[Unit]\nDescription=container public do",
-    "To restrict the container to access only some resources in the network,\nto the `podman run` in the systemd service, append\n`--network podman --hooks-dir %h/.config/containers/oci/hooks.d`\nto use `netavark` as the network backend and use OCI hooks from the\npath listed.\n\nThen create two files, `contai",
     "The Doctools bundles a command line interface called `adoc` meant to ease both\ncontinuous integration and local builds of the documentation.\n\nBelow, each command is briefly described, and it is worth noting that every\ncommand supports the `--help` option for quick lookup.\n",
     "Watches the docs and source code to rebuild it on edit.\nSimilar to `mkdocs serve`, `webpack serve`, `npm run start`, `hugo server`,\nand so on.\n\nThe webpage pools timestamp changes and commands on the `.dev-pool` file.\n\nTo launch a watched instance, do:\n\n```bash\n~$ cd /path/to/docs\n/path/to/docs$ ado",
     "Inspired on git sparse clones, it is possible to build only some parts of the\ndocumentation, for example:\n\n```bash\n# Include only learning/**/* and solutions/**/*\n~$ adoc serve --sparse learning solutions\n```\n\n\nThis is a critical feature to build large docs, ensuring snappy live reloads.\n",
@@ -64,6 +56,14 @@
     "Suppose you edited and tested multiple docs together, it could be helpful\nto try a local inventory file first, to check references before publication.\n\nHaving this in mind, if you build the edited documentation first, and then execute\n`custom-doc`, it will consider the local inventory *objects.inv* ",
     "> **Tip**\n>\n> This feature is useful to batch build/test all tracked documentations.\n\n\nGenerates all documentations of the watched repositories\n(see adi_doctools/lut.py).\n\nTwo generation strategies are available:\n\n- monolithic: patches all docs together into a single monolithic output (default).\n- s",
     "Exposes the HDL component diagram generator as a CLI.\nIt converts IP-XACT files into SVGs.\n\nTo generate and open the diagram, provide the path containing the IP-XACT and use\nthe `--open` option:\n\n```bash\n~$ adoc hdl-render --input PATH --open\n```\n\n\nFor example:\n\n```bash\n~$ adoc hdl-render --input hd",
+    "Doctools has a continuous deployment integration pipeline that works as follows:\n\n```default\n                   \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n                \u250c\u2500\u25ba\u2502Build Doc Latest  \u251c\u2500\u2510\n                \u2502  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518 \u2502\n                \u2502                       \u2502\n\u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510 \u2502  \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510   \u2502",
+    "Below are suggested instructions for setting up `podman` on a Linux environment,\nif you wish to use it as your container engine. If you already use something else\nlike `docker`, **keep it** and skip this section.\n\nAdjust to your preferences as needed, and skip the steps marked in green\nif not using ",
+    "Podman default configuration expects a local user to be able to create a user\nnamespace where multiple IDs are mapped and a compatible partition to use as\nthe storage location `graphRoot`.\n\n> **Note**\n>\n> The ideal solution is to create a local **non-root** user and storage\n> location. Podman proces",
+    "To build the container image, use your favorite container engine:\n\n```bash\n~$ cd ~/doctools# or docker, ...\n~/doctools$ podman build --tag adi/doctools:latest ci\n```\n\n\nYou may want to build the container in a host, where you have all your tools installed,\nand then deploy to a server.\nIn this case, e",
+    "At its core, the workflows are straight forward, roughly they do:\n\nThe `Tests` step:\n\n```bash\n~$ cd tests ; pytest\n```\n\n\n`Build Doc *`:\n\n```bash\n~$ cd docs ; make html\n```\n\n\nBut at a specific minimum and maximum supported environment version.\n\n`Custom Doc`:\n\n```bash\n~$ mkdir /tmp/test-pdf ; cd $_\n/t",
+    "To host your GitHub Actions Runner,\nset up your secrets:\n\n```bash\n# e.g. analogdevicesinc/doctools\n~$ printf ORG_REPOSITORY | podman secret create public_doctools_org_repository -# e.g. MyVerYSecRunnerToken\n~$ printf RUNNER_TOKEN | podman secret create public_doctools_runner_token -\n```\n\n\nThe runner",
+    "To host a cluster of self-hosted runners, the recommended approach is to use\nsystemd services, instead of for example, container compose solutions.\n\nBelow is a suggested systemd service at *~/.config/systemd/user/container-public-doctools@.service*.\n\n```systemd\n[Unit]\nDescription=container public do",
+    "To restrict the container to access only some resources in the network,\nto the `podman run` in the systemd service, append\n`--network podman --hooks-dir %h/.config/containers/oci/hooks.d`\nto use `netavark` as the network backend and use OCI hooks from the\npath listed.\n\nThen create two files, `contai",
     "Doctools custom Sphinx directives allow better formatting, and add extra\nfeatures, such as videos and shell code snippets.\n\nBelow, every added directive is explained with examples.\n",
     "To allow arranging content in a tabular manner while still respecting multiple\nscreen sizes for both HTML and PDF output, two container directives are available:\n`flex` and `grid`.\n",
     "The flex directive implements a subset of\nCSS Flex.\nIt is used to arrange elements without worrying about number of columns and sizes,\nwhile still obtaining a fairly good result.\n\n```rst\n.. flex::\n   :class: [badges, ...]\n```\n\n\nThe `badges` class applies styles to center elements, adds padding, and ",
@@ -118,7 +118,6 @@
     "- On Firefox on Windows, fetch requests can only happen to the same port (8000 -> 8000),\n  so Serve daemon must be on port 8000\n"
   ],
   "url": [
-    "fundamentals.html#documentation-hierarchical-structure",
     "index.html",
     "deploy.html",
     "deploy.html#local",
@@ -130,6 +129,7 @@
     "deploy.html#git-lfs",
     "deploy.html#i-don-t-want-a-doc-at-the-root",
     "deploy.html#how-do-i-cross-reference-a-specific-version",
+    "fundamentals.html#documentation-hierarchical-structure",
     "theme.html",
     "theme.html#shortcuts",
     "theme.html#theme-options",
@@ -158,14 +158,6 @@
     "install.html#install-the-repository",
     "install.html#neovim-support",
     "install.html#removing",
-    "ci.html",
-    "ci.html#configure-podman",
-    "ci.html#network-users-partitions",
-    "ci.html#build-the-container-image",
-    "ci.html#interactive-run",
-    "ci.html#self-hosted-runner",
-    "ci.html#self-hosted-cluster",
-    "ci.html#restrict-network-access",
     "cli.html",
     "cli.html#serve",
     "cli.html#sparse-builds",
@@ -182,6 +174,14 @@
     "cli.html#working-with-multiple-docs",
     "cli.html#aggregate",
     "cli.html#hdl-render",
+    "ci.html",
+    "ci.html#configure-podman",
+    "ci.html#network-users-partitions",
+    "ci.html#build-the-container-image",
+    "ci.html#interactive-run",
+    "ci.html#self-hosted-runner",
+    "ci.html#self-hosted-cluster",
+    "ci.html#restrict-network-access",
     "docs_guidelines/directives.html",
     "docs_guidelines/directives.html#container",
     "docs_guidelines/directives.html#flex",
@@ -237,10 +237,6 @@
   ],
   "hierarchy": [
     [
-      "Fundamentals",
-      "Documentation hierarchical structure"
-    ],
-    [
       "Analog Devices Doctools"
     ],
     [
@@ -288,6 +284,10 @@
       "Documentation deployment",
       "Further notes",
       "How do I cross-reference a specific version?"
+    ],
+    [
+      "Fundamentals",
+      "Documentation hierarchical structure"
     ],
     [
       "Sphinx theme"
@@ -428,39 +428,6 @@
       "Removing"
     ],
     [
-      "Continuous integration"
-    ],
-    [
-      "Continuous integration",
-      "Configure podman"
-    ],
-    [
-      "Continuous integration",
-      "Configure podman",
-      "Network users & partitions"
-    ],
-    [
-      "Continuous integration",
-      "Build the container image"
-    ],
-    [
-      "Continuous integration",
-      "Interactive run"
-    ],
-    [
-      "Continuous integration",
-      "Self-hosted runner"
-    ],
-    [
-      "Continuous integration",
-      "Self-hosted cluster"
-    ],
-    [
-      "Continuous integration",
-      "Self-hosted cluster",
-      "Restrict network access"
-    ],
-    [
       "Command line interface"
     ],
     [
@@ -533,6 +500,39 @@
     [
       "Command line interface",
       "HDL Render"
+    ],
+    [
+      "Continuous integration"
+    ],
+    [
+      "Continuous integration",
+      "Configure podman"
+    ],
+    [
+      "Continuous integration",
+      "Configure podman",
+      "Network users & partitions"
+    ],
+    [
+      "Continuous integration",
+      "Build the container image"
+    ],
+    [
+      "Continuous integration",
+      "Interactive run"
+    ],
+    [
+      "Continuous integration",
+      "Self-hosted runner"
+    ],
+    [
+      "Continuous integration",
+      "Self-hosted cluster"
+    ],
+    [
+      "Continuous integration",
+      "Self-hosted cluster",
+      "Restrict network access"
     ],
     [
       "Documentation guidelines",
