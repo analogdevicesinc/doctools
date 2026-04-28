@@ -14,6 +14,9 @@ inputs:
   body:
     description: "Pull request comment"
     required: true
+  replace:
+    description: "Replace comment if already exists"
+    default: "false"
   user_login:
     description: "GitHub App only, explicit login name"
     default: ""
@@ -82,7 +85,8 @@ runs:
           local org_repository="$2"
           local pr="$3"
           local body_file="$4"
-          local user_login="$5"
+          local replace="$5"
+          local user_login="$6"
 
           local id
           local response
@@ -93,11 +97,13 @@ runs:
           [[ -n "$user_login" ]] || user_login=$(gh-get-user-login "$github_token")
           [[ -n "$user_login" ]] || user_login="github-actions[bot]"
 
-          response=$(gh-pr-get-comments "$github_token" \
-                                        "$org_repository" \
-                                        "$pr")
+          if [ "$replace" == "true" ]; then
+                response=$(gh-pr-get-comments "$github_token" \
+                                              "$org_repository" \
+                                              "$pr")
 
-          id=$(echo "$response" | jq ".[] | select(.user.login == \"${user_login}\") | .id")
+                id=$(echo "$response" | jq ".[] | select(.user.login == \"${user_login}\") | .id")
+          fi
 
           if [ -n "$id" ]; then
             response=$(gh-pr-comment-patch "$github_token" \
@@ -120,6 +126,7 @@ runs:
                       "${{ inputs.repository }}" \
                       "${{ inputs.pr }}" \
                       "$body_file" \
-                      "${{ inputs.user_login}}"
+                      "${{ inputs.replace }}" \
+                      "${{ inputs.user_login }}"
 
         rm -f $body_file
