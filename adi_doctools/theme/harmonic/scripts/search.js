@@ -594,7 +594,8 @@ export class Search {
     switch (e.code) {
       case 'IntlRo':
       case 'Slash':
-        e.preventDefault()
+        if (!this.$.searchArea.classList.contains('on'))
+          e.preventDefault()
         break
       case 'KeyK':
         if (e.ctrlKey && e.altKey)
