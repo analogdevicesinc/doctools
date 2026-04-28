@@ -298,7 +298,9 @@ export class Search {
     }
 
     // Main: LLM search (.bin)
-    const data = await LLM.loadVectorIndex(invUrl, new URL('_static/', this.parent.fetch.base_url))
+    const base_url = this.parent.fetch.base_url
+    //const base_url = `${this.parent.state.metadata.remote_doc}doctools/`
+    const data = await LLM.loadVectorIndex(invUrl, new URL('_static/', base_url))
     if (data) {
       this.indexData[key] = data
       this.indexBackend[key] = 'llm'
@@ -408,28 +410,19 @@ export class Search {
 
     let li = new DOM('li', { className: 'group' })
 
-    if (group.entries.length == 1) {
-      const p = get_passage(group.entries[0].idx)
-      let link = new DOM('a', {
-        className: 'group-title',
-        innerText: this._entry_label(p, 1),
-        href: `${this.key_prefix[key]}${p.url}`
-      })
-      const span = new DOM('span', { innerText: p.text || '' })
-      link.append(span)
-      if (!p.text && searchTerms)
-        this._fetch_snippet(`${this.key_prefix[key]}${p.url}`, searchTerms, span.$)
-      li.append(link)
-      return li
-    }
-
-    let link = new DOM('div', {
+    const p = get_passage(group.entries[0].idx)
+    let link = new DOM('a', {
       className: 'group-title',
-      innerText: group.name
+      innerText: this._entry_label(p, 1),
+      href: `${this.key_prefix[key]}${p.url}`
     })
+    const span = new DOM('span', { innerText: p.text || '' })
+    link.append(span)
+    if (!p.text && searchTerms)
+      this._fetch_snippet(`${this.key_prefix[key]}${p.url}`, searchTerms, span.$)
     li.append(link)
 
-    for (const e of group.entries.slice(0, 5)) {
+    for (const e of group.entries.slice(1, 6)) {
       const p = get_passage(e.idx)
       let link_ = new DOM('a', {
         className: 'entry',
@@ -509,7 +502,7 @@ export class Search {
           const data = this.indexData[key]
           const queryVec = await LLM.embedQuery(query)
           const { pool, scores } = LLM.vector_search(queryVec, query, data)
-          const groups = LLM.group_results(pool, scores, data.passages)
+          const groups = LLM.group_results(pool, scores, data.passages, data.url_to_idx)
           this._render_results(key, groups, data.passages)
         } catch (err) {
           console.error('Vector search query error:', err)

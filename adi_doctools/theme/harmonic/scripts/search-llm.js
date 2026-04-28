@@ -106,7 +106,9 @@ export async function loadVectorIndex (url, base_url) {
   const compressedConcat = new Uint8Array(tqvBuf, 17, hdr.numVectors * hdr.bytesPerVector)
   const tq = await TurboQuant.init({ dim: hdr.dim, seed: hdr.seed })
 
-  return { tq, passages, compressedConcat, bytesPerVector: hdr.bytesPerVector, dim: hdr.dim }
+  const url_to_idx = new Map(passages.url.map((u, i) => [u, i]))
+
+  return { tq, passages, url_to_idx, compressedConcat, bytesPerVector: hdr.bytesPerVector, dim: hdr.dim }
 }
 
 function _heading_match_score (queryTerms, hierarchy) {
@@ -148,7 +150,7 @@ export function vector_search (queryVec, queryText, data) {
  * Group vector results into the common format.
  * Returns array of { name, entries: [{idx, score}], rank }.
  */
-export function group_results (pool, scores, passages) {
+export function group_results (pool, scores, passages, url_to_idx) {
   const groups = pool.reduce((acc, idx) => {
     const hierarchy = passages.hierarchy[idx]
     const key = `${hierarchy[0]} / ${hierarchy[1]}` || hierarchy[0] || 'General'
@@ -161,13 +163,37 @@ export function group_results (pool, scores, passages) {
     return acc
   }, {})
 
-  const sorted_groups = Object.entries(groups)
-    .map(([name, entries]) => {
+  const enriched_groups = {}
+  for (const [key, entries] of Object.entries(groups)) {
+    // Always include non-anchored as index 0
+    const first_url = passages.url[entries[0].idx]
+    const page_url = first_url.includes('#') ? first_url.slice(0, first_url.indexOf('#')) : first_url
+    const page_pos = entries.findIndex(e => passages.url[e.idx] === page_url)
+
+    let entries_
+    if (page_pos === -1) {
+      const page_idx = url_to_idx.get(page_url)
+      if (page_idx !== undefined)
+        entries_ = [{ idx: page_idx, score: 0 }, ...entries]
+      else
+        entries_ = entries
+    } else if (page_pos === 0) {
+      entries_ = entries
+    } else {
+      const page_entry = entries[page_pos]
+      entries_ = [page_entry, ...entries.slice(0, page_pos), ...entries.slice(page_pos + 1)]
+    }
+
+    enriched_groups[key] = entries_
+  }
+
+  const sorted_groups = Object.values(enriched_groups)
+    .map((entries) => {
       const rank = entries
         .filter(m => m.score > 0.4)
         .reduce((sum, m) => sum + m.score, 0);
 
-      return { name, entries, rank }
+      return { entries, rank }
     })
     .sort((a, b) => b.rank - a.rank)
 

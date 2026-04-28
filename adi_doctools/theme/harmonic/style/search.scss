@@ -431,9 +431,14 @@
     }
 
     .group-title {
+        font-weight: bold;
         display: block;
         padding: .2em .25em;
         border-radius: variable.$border-radius;
+
+        & > span {
+          font-weight: normal;
+        }
     }
 
     .entry {
