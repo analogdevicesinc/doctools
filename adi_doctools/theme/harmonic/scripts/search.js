@@ -31,6 +31,8 @@ export class Search {
     this.index_state = {}
     this.key_prefix = {}
     this.versions_available = {}
+    this.query_id = 0
+    this._debounceTimer = null
     this.search_page = new URL(`${this.parent.state.content_root}search.html`, location).pathname
 
     let $ = this.$ = {}
@@ -455,7 +457,18 @@ export class Search {
     ul.append(rendered)
   }
 
+  /**
+   * Wait short pause before triggering search.
+   */
+  query_debounced (query, delay = 20) {
+    clearTimeout(this._debounceTimer)
+    this._debounceTimer = setTimeout(() => this.query(query), delay)
+  }
+
   async query (query) {
+    // Search id to cancel previous, not-yet-completed searches.
+    const id = ++this.query_id
+
     this.get_tags_and_update_url(query)
     this.renew_search()
 
@@ -469,6 +482,8 @@ export class Search {
     if (enabledKeys.length === 0) return
 
     for (const key of enabledKeys) {
+      if (id !== this.query_id) return
+
       const backend = this.indexBackend[key]
 
       if (backend === 'llm') {
@@ -501,6 +516,7 @@ export class Search {
         try {
           const data = this.indexData[key]
           const queryVec = await LLM.embedQuery(query)
+          if (id !== this.query_id) return
           const { pool, scores } = LLM.vector_search(queryVec, query, data)
           const groups = LLM.group_results(pool, scores, data.passages, data.url_to_idx)
           this._render_results(key, groups, data.passages)
@@ -862,7 +878,7 @@ export class Search {
       this.include_item("local", `${name}${label}`, alphanumeric.shift())
     }
 
-    this.$.searchInput.$.oninput = (e) => {this.query(e.target.value)}
+    this.$.searchInput.$.oninput = (e) => {this.query_debounced(e.target.value)}
 
     let url = new URL(location)
     let q = url.searchParams.get('q')
