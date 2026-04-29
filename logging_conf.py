@@ -26,6 +26,15 @@ class ColorFormatter(logging.Formatter):
         return super().format(record)
 
 
+APP_LOGGER_NAME = '__main__'
+
+
+class AppOnlyFilter(logging.Filter):
+    """Only pass log records originating from our own module."""
+    def filter(self, record):
+        return record.name == APP_LOGGER_NAME
+
+
 LOGGING_CONFIG = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -40,7 +49,13 @@ LOGGING_CONFIG = {
             "level": "DEBUG",
             "formatter": "colored",
             "class": "logging.StreamHandler",
+            "filters": ["app_only"],
         },
+    },
+    "filters": {
+        "app_only": {
+            "()": AppOnlyFilter,
+        }
     },
     "root": {
         "handlers": ["default"],
@@ -49,6 +64,22 @@ LOGGING_CONFIG = {
     "loggers": {
         "my_package": {
             "level": "DEBUG",
+            "propagate": True
+        },
+        "docling": {
+            "level": "ERROR",
+            "propagate": True
+        },
+        "docling_core": {
+            "level": "ERROR",
+            "propagate": True
+        },
+        "docling_parse": {
+            "level": "ERROR",
+            "propagate": True
+        },
+        "deepsearch_glm": {
+            "level": "ERROR",
             "propagate": True
         }
     }

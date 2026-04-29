@@ -1,12 +1,17 @@
 import logging
+import os
 import subprocess
+import sys
+import importlib
 from os import path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from urllib.parse import urlparse, urlunparse
 
 import xml.etree.ElementTree as ET
-from docling.document_converter import DocumentConverter
+
+from docling.document_converter import DocumentConverter, PdfFormatOption
+from docling.datamodel.base_models import InputFormat, ConversionStatus
 
 from logging_conf import set_logging
 
@@ -17,8 +22,31 @@ sitemap_url = 'https://www.analog.com/media/en/en-pdf-sitemap.xml'
 sitemap_file = 'en-pdf-sitemap.xml'
 max_workers = 8
 max_docling_workers = 4
-cutoff_date = "2025-12-00"
+cutoff_date = "2023-12-00"
 include_paths = ["/data-sheets/"]
+blacklist = [
+    "max25086-89.pdf",
+    "adsp-cm402f_cm403f_cm407f_cm408f_cm409f.pdf",
+    "ad976_976a",
+]
+
+_BACKENDS = {
+    'dlparse_v4': None,
+    'dlparse_v1': 'docling.backend.docling_parse_backend.DoclingParseDocumentBackend',
+    'pypdfium2':  'docling.backend.pypdfium2_backend.PyPdfiumDocumentBackend',
+}
+
+
+def _make_converter(backend: str) -> DocumentConverter:
+    cls_path = _BACKENDS[backend]
+    if cls_path is None:
+        return DocumentConverter()
+    module_name, class_name = cls_path.rsplit('.', 1)
+    backend_cls = getattr(importlib.import_module(module_name), class_name)
+    return DocumentConverter(
+        format_options={InputFormat.PDF: PdfFormatOption(backend=backend_cls)}
+    )
+
 
 class Sitemap2MD:
     def __init__(self) -> None:
@@ -31,18 +59,19 @@ class Sitemap2MD:
         self._process_sitemap()
         self._filter_up_to_date()
         self._fetch_pdfs()
+        self._filter_blacklist()
         self._docling_pdfs()
 
     def _get_sitemap(self):
         """Download the sitemap XML."""
         if not path.exists(sitemap_file):
-            logger.info(f'Downloading sitemap from {sitemap_url}')
+            logger.info(f'sitemap: downloading {sitemap_url}')
             subprocess.run(
                 ['wget', '-q', sitemap_url, '-O', sitemap_file],
                 check=True,
             )
         else:
-            logger.info(f'Sitemap {sitemap_file} already exists, skipping download')
+            logger.info(f'sitemap: {sitemap_file} already exists, skipped download')
 
     def _process_sitemap(self) -> None:
         """Fetch a single sitemap and extract URLs."""
@@ -60,7 +89,6 @@ class Sitemap2MD:
 
     def _get_namespace(self, root: ET.Element) -> str:
         """Extract the namespace from the XML root element."""
-
         if root.tag.startswith('{'):
             end = root.tag.find('}')
             if end > 0:
@@ -71,7 +99,6 @@ class Sitemap2MD:
         return urlunparse(
             urlparse(url)._replace(params='', query='', fragment='')
         )
-
 
     def _process_urlset(self, root: ET.Element) -> None:
         """Process a urlset and extract URLs."""
@@ -89,7 +116,7 @@ class Sitemap2MD:
                     continue
                 self.urls_sitemap[self._normalize_url(loc_elem.text.strip())] = lastmod.text.strip()
 
-        logger.info(f"Got {len(self.urls_sitemap.keys())} items newer than {cutoff_date}")
+        logger.info(f"urlset: {len(self.urls_sitemap.keys())} items newer than {cutoff_date}")
 
     def _filter_up_to_date(self):
         up_to_date = 0
@@ -116,7 +143,7 @@ class Sitemap2MD:
 
             self.urls_pending[url] = lastmod
 
-        logger.info(f'{up_to_date} up-to-date, {already_fetched} already fetched, {len(self.urls_pending)} to fetch')
+        logger.info(f'date filter: {up_to_date} up-to-date, {already_fetched} cached, {len(self.urls_pending)} to fetch')
 
     @staticmethod
     def _parse_lastmod_comment(line: str):
@@ -159,37 +186,91 @@ class Sitemap2MD:
                 except Exception as exc:
                     logger.warning(f'Error fetching {url}: {exc}')
 
-        logger.info(f'{len(self.pdfs_pendings)} PDFs to convert')
+    def _filter_blacklist(self):
+        pdfs_pending = []
+        blacklisted = 0
+
+        for pdf_path in self.pdfs_pendings:
+            if path.basename(pdf_path[0]) in blacklist:
+                blacklisted += 1
+                continue
+            pdfs_pending.append(pdf_path)
+
+        self.pdfs_pendings = pdfs_pending
+        logger.info(f'blacklist filter: {blacklisted} ignored')
+
+    @staticmethod
+    def _silence_third_party():
+        """Kill noisy third-party loggers that install their own handlers."""
+        for name in logging.Logger.manager.loggerDict:
+            lg = logging.getLogger(name)
+            if name == __name__:
+                continue
+            lg.setLevel(logging.CRITICAL)
+            # Also silence handlers they added directly (e.g. RapidOCR)
+            for h in lg.handlers:
+                h.setLevel(logging.CRITICAL)
 
     def _docling_pdfs(self):
         """Convert all pending PDFs to Markdown using docling."""
-        converter = DocumentConverter()
+        self._silence_third_party()
+        logger.info(f'docling: {len(self.pdfs_pendings)} pdfs in queue')
+
+        # Suppress raw fd-level stderr (pypdfium2 finalizer traces, etc.)
+        real_stderr = os.fdopen(os.dup(2), 'w', closefd=True)
+        for h in logging.getLogger().handlers:
+            if isinstance(h, logging.StreamHandler) and h.stream is sys.stderr:
+                h.stream = real_stderr
+
+        devnull_fd = os.open(os.devnull, os.O_WRONLY)
+        saved_stderr_fd = os.dup(2)
+        os.dup2(devnull_fd, 2)
+        os.close(devnull_fd)
+        saved_stderr = sys.stderr
+        sys.stderr = open(os.devnull, 'w')
 
         def _convert_one(pdf_path: Path, lastmod: str):
             md_path = pdf_path.with_suffix('.md')
-            logger.info(f'Converting {pdf_path} -> {md_path}')
-            result = converter.convert(str(pdf_path))
-            md_content = f'<!-- lastmod {lastmod} -->\n{result.document.export_to_markdown()}'
-            md_path.write_text(md_content)
-            pdf_path.unlink()
-            logger.info(f'Created {md_path}')
+            logger.info(f'convert: {pdf_path}')
 
-        with ThreadPoolExecutor(max_workers=max_docling_workers) as executor:
-            futures = {
-                executor.submit(_convert_one, pdf_path, lastmod): pdf_path
-                for pdf_path, lastmod in self.pdfs_pendings
-            }
-            for future in as_completed(futures):
-                pdf_path = futures[future]
-                try:
-                    future.result()
-                except Exception as exc:
-                    logger.warning(f'Failed to convert {pdf_path}: {exc}')
+            for backend in _BACKENDS:
+                logger.debug(f'  with backend {backend} for {pdf_path}')
+                result = _make_converter(backend).convert(str(pdf_path))
+                if result.status in (ConversionStatus.SUCCESS, ConversionStatus.PARTIAL_SUCCESS):
+                    md_path.write_text(f'<!-- lastmod {lastmod} -->\n{result.document.export_to_markdown()}')
+                    pdf_path.unlink()
+                    return
+                logger.debug(f'convert: {pdf_path} failed with backend {backend} (status={result.status})')
+
+            logger.warning(f'convert: {pdf_path} failed with all backends')
+
+        try:
+            with ThreadPoolExecutor(max_workers=max_docling_workers) as executor:
+                futures = {
+                    executor.submit(_convert_one, pdf_path, lastmod): pdf_path
+                    for pdf_path, lastmod in self.pdfs_pendings
+                }
+                for future in as_completed(futures):
+                    pdf_path = futures[future]
+                    try:
+                        future.result()
+                    except Exception as exc:
+                        msg = str(exc).split('\n')[0][:200]
+                        logger.warning(f'Failed to convert {pdf_path}: {msg}')
+        finally:
+            sys.stderr.close()
+            sys.stderr = saved_stderr
+            os.dup2(saved_stderr_fd, 2)
+            os.close(saved_stderr_fd)
+            for h in logging.getLogger().handlers:
+                if isinstance(h, logging.StreamHandler) and h.stream is real_stderr:
+                    h.stream = sys.stderr
+            real_stderr.close()
+
 
 def main():
     set_logging()
-    md = Sitemap2MD()
-    md.do()
+    Sitemap2MD().do()
 
 
 main()
