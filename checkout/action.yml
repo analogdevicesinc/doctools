@@ -221,12 +221,12 @@ runs:
           git config core.pager cat
           git remote set-url origin "$url"
 
-          git am --abort 2>/dev/null || true
-          git merge --abort 2>/dev/null || true
-          git rebase --abort 2>/dev/null || true
-          git revert --abort 2>/dev/null || true
-          git cherry-pick --abort 2>/dev/null || true
-          git bisect reset 2>/dev/null || true
+          git am --abort || true
+          git merge --abort || true
+          git rebase --abort || true
+          git revert --abort || true
+          git cherry-pick --abort || true
+          git bisect reset || true
           git stash clear || true
 
           git reset --hard --quiet
@@ -351,6 +351,12 @@ runs:
         echo "base_sha=$base_sha" >> "$GITHUB_OUTPUT"
         echo "head_sha=$head_sha" >> "$GITHUB_ENV"
         echo "base_sha=$base_sha" >> "$GITHUB_ENV"
+
+    - name: Report state
+      shell: bash
+      run: |
+        df -h .
+        git status
 
     - name: Finish
       shell: bash
