@@ -99,11 +99,11 @@
 <li><a class="reference internal" href="#mcp-integration">MCP integration</a></li>
 <li><a class="reference internal" href="#using-a-python-virtual-environment">Using a Python virtual environment</a></li>
 <li><a class="reference internal" href="#release-links-and-optional-dependencies">Release links and optional dependencies</a></li>
-<li><a class="reference internal" href="#ide-support">IDE support</a><ul>
-<li><a class="reference internal" href="#vscode">VSCode</a></li>
-<li><a class="reference internal" href="#neovim">Neovim</a></li>
+<li><a class="reference internal" href="#vscode-vscodium-support">VScode/VScodium support</a><ul>
+<li><a class="reference internal" href="#esbonio-tips">Esbonio tips</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#neovim-support">Neovim support</a></li>
 <li><a class="reference internal" href="#latex-support">LaTeX support</a></li>
 </ul>
 </li>
@@ -111,7 +111,7 @@
 <li><a class="reference internal" href="#install-the-web-compiler">Install the web compiler</a></li>
 <li><a class="reference internal" href="#fetch-third-party-resources">Fetch third-party resources</a></li>
 <li><a class="reference internal" href="#install-the-repository">Install the repository</a></li>
-<li><a class="reference internal" href="#neovim-support">Neovim support</a></li>
+<li><a class="reference internal" href="#id3">Neovim support</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#removing">Removing</a></li>
@@ -348,17 +348,27 @@ pip<span class="w"> </span>install<span class="w"> </span><span class="s1">&#39;
 </pre></div>
 </div>
 </section>
-<section id="ide-support">
-<span id="id2"></span><h3>IDE support<a class="headerlink" href="#ide-support" title="Link to this heading"></a></h3>
-<p><a class="icon link reference external" href="https://docs.esbon.io/en/latest/index.html" target="_blank" title="(in Esbonio)"><span>Esbonio</span></a> is an extensively developed
-Language Server Protocol and Visual Studio Code extension for sphinx.</p>
-<div class="admonition tip">
-<p class="admonition-title">Tip</p>
+<section id="vscode-vscodium-support">
+<span id="vscode-support"></span><h3>VScode/VScodium support<a class="headerlink" href="#vscode-vscodium-support" title="Link to this heading"></a></h3>
+<p>There are two options for  Visual Studio Code support:</p>
+<ul class="simple">
+<li><p>Doctools (
+<a class="icon link reference external" href="https://marketplace.visualstudio.com/items?itemName=gastmaier.adi-doctools" target="_blank">VSCode</a>/
+<a class="icon link reference external" href="https://open-vsx.org/extension/gastmaier/adi-doctools" target="_blank">VSCodium</a>):
+A high level extension for most users.</p></li>
+<li><p><a class="icon link reference external" href="https://docs.esbon.io/en/latest/index.html" target="_blank" title="(in Esbonio)"><span>Esbonio</span></a> (
+<a class="icon link reference external" href="https://marketplace.visualstudio.com/items?itemName=swyddfa.esbonio" target="_blank">VSCode</a>/
+<a class="icon link reference external" href="https://open-vsx.org/extension/swyddfa/esbonio" target="_blank">VSCodium</a>):
+A extensively developed for sphinx.</p></li>
+</ul>
+<p>Doctools provides support to <a class="icon link reference external" href="https://languagetool.org/de" target="_blank">LanguageTool</a> for
+grammar correction and GUI support for <a class="reference internal" href="cli.html#serve-sparse"><span class="std std-ref">Sparse builds</span></a>.</p>
+<section id="esbonio-tips">
+<h4>Esbonio tips<a class="headerlink" href="#esbonio-tips" title="Link to this heading"></a></h4>
 <p>Setup the virtual environment first before opening the text editor, to
 avoid triggering fallback behaviours.</p>
-</div>
-<p><a class="reference internal" href="cli.html#serve"><span class="std std-ref">Serve</span></a> is able to generate Estobio pyproject.toml entry with
-(including <a class="reference internal" href="cli.html#serve-sparse"><span class="std std-ref">Sparse builds</span></a>):</p>
+<p><a class="reference internal" href="cli.html#serve"><span class="std std-ref">Serve</span></a> is able to generate Estobio pyproject.toml entry with (including
+<a class="reference internal" href="cli.html#serve-sparse"><span class="std std-ref">Sparse builds</span></a>):</p>
 <div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~/git-repo$
 </pre></div>
 </div>
@@ -366,13 +376,12 @@ avoid triggering fallback behaviours.</p>
 <span class="w">    </span>--sparse<span class="w"> </span>docs/docs_guidelines<span class="w"> </span>docs/cli.rst<span class="w"> </span><span class="p">|</span><span class="w"> </span>tee<span class="w"> </span>-a<span class="w"> </span>pyproject.toml
 </pre></div>
 </div>
-<div class="clear-left"></div></div></div><section id="vscode">
-<h4>VSCode<a class="headerlink" href="#vscode" title="Link to this heading"></a></h4>
-<p>See Esbonio <a class="icon link reference external" href="https://docs.esbon.io/en/latest/usage/getting-started.html#lsp-getting-started" target="_blank" title="(in Esbonio)"><span>Getting Started</span></a>.</p>
+<div class="clear-left"></div></div></div></section>
 </section>
-<section id="neovim">
-<h4>Neovim<a class="headerlink" href="#neovim" title="Link to this heading"></a></h4>
-<p>See <a class="icon link reference external" href="https://docs.esbon.io/en/latest/integrating/howto/nvim.html#integrate-nvim" target="_blank" title="(in Esbonio)"><span>How To Integrate Esbonio with Neovim</span></a>.</p>
+<section id="neovim-support">
+<span id="nvim-support"></span><h3>Neovim support<a class="headerlink" href="#neovim-support" title="Link to this heading"></a></h3>
+<p><a class="icon link reference external" href="https://docs.esbon.io/en/latest/index.html" target="_blank" title="(in Esbonio)"><span>Esbonio</span></a> is an extensively developed Language Server
+Protocol for sphinx. See <a class="icon link reference external" href="https://docs.esbon.io/en/latest/integrating/howto/nvim.html#integrate-nvim" target="_blank" title="(in Esbonio)"><span>How To Integrate Esbonio with Neovim</span></a>.</p>
 <p>It is also recomemded to use the modern <a class="icon link reference external" href="https://tree-sitter.github.io/" target="_blank">tree-sitter</a>.
 Make sure you have common parsers installed, at least:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">:</span><span class="n">TSInstall</span> <span class="n">rst</span>
@@ -382,7 +391,6 @@ Make sure you have common parsers installed, at least:</p>
 </pre></div>
 </div>
 <p>You can inspect the tree with <code class="docutils literal notranslate"><span class="pre">:InspectTree</span></code>.</p>
-</section>
 </section>
 <section id="latex-support">
 <span id="latex"></span><h3>LaTeX support<a class="headerlink" href="#latex-support" title="Link to this heading"></a></h3>
@@ -408,7 +416,7 @@ not provided, a default is also set with unicode characters.</p>
 </section>
 </section>
 <section id="development-install">
-<span id="id3"></span><h2>Development install<a class="headerlink" href="#development-install" title="Link to this heading"></a></h2>
+<span id="id2"></span><h2>Development install<a class="headerlink" href="#development-install" title="Link to this heading"></a></h2>
 <p>Development install allows editing the source code and applying changes without
 reinstalling.
 Also extends <a class="reference internal" href="cli.html#serve"><span class="std std-ref">Serve</span></a> to watch changes on the webpage source code
@@ -472,8 +480,8 @@ packages outside the environment to not have access to the packages inside
 of it, breaking most CLIs.</p>
 </div>
 </section>
-<section id="neovim-support">
-<h3>Neovim support<a class="headerlink" href="#neovim-support" title="Link to this heading"></a></h3>
+<section id="id3">
+<h3>Neovim support<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
 <p>Add to you lazyvim config the path to the branch <code class="docutils literal notranslate"><span class="pre">nvim</span></code>:</p>
 <div class="highlight-lua notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
 <span class="w">  </span><span class="nv">dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;/path/to/doctools/nvim&#39;</span><span class="p">,</span>
