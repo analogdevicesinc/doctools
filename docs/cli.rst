@@ -15,6 +15,8 @@ continuous integration and local builds of the documentation.
 Below, each command is briefly described, and it is worth noting that every
 command supports the ``--help`` option for quick lookup.
 
+See :ref:`mcp` to learn how to integrate with your favorite AI coding harness.
+
 .. _serve:
 
 Serve
@@ -444,3 +446,4 @@ For all options, do:
 .. shell::
 
    $adoc hdl-render --help
+

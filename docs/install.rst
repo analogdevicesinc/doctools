@@ -11,17 +11,29 @@ Guaranteed to work with Python 3.8 or newer and distributions released on or aft
 Release install
 ---------------
 
-Ensure pip is newer than 23.0 [#f1]_:
+.. tab-set::
 
-.. shell::
+   .. tab-item:: pip
 
-   $ pip install pip --upgrade
+      .. shell::
 
-Install the documentation tools, which will fetch this repository release:
+         $ python3 -m venv venv
+         $ source venv/bin/activate
+         # Ensure pip is newer than 23.0 (https://github.com/pypa/setuptools/issues/3269)
+         $ pip install pip --upgrade
+         $ pip install adi-doctools
 
-.. shell::
+   .. tab-item:: pipx
 
-   $ pip install adi-doctools
+      .. shell::
+
+         $ pipx install adi-doctools
+
+   .. tab-item:: uvx
+
+      .. shell::
+
+         $ uvx --from adi-doctools adoc
 
 Test it building this documentation:
 
@@ -29,8 +41,59 @@ Test it building this documentation:
 
    $(cd docs ; make html)
 
-.. [#f1] There is a `known bug <https://github.com/pypa/setuptools/issues/3269>`_
-   with pip shipped with Ubuntu 22.04.
+.. _mcp:
+
+MCP integration
+~~~~~~~~~~~~~~~
+
+The tool includes a slim MCP to expose the CLIs. It simply teaches the LLM of
+the tools available, analogous as a skill file. This methodology ensures the
+context window is not penalized.
+
+To configure the MCP to your AI coding harness, first install with the MCP
+add-in:
+
+.. tab-set::
+
+   .. tab-item:: pip
+
+      .. shell::
+
+         $ python3 -m venv venv
+         $ source venv/bin/activate
+         $ pip install 'adi-doctools[mcp]'
+
+   .. tab-item:: pipx
+
+      .. shell::
+
+         $ pipx install 'adi-doctools[mcp]'
+
+   .. tab-item:: uvx
+
+      .. shell::
+
+         $ uvx --from 'adi-doctools[mcp]' adoc-mcp
+
+With the tool installed, add to your favorite AI code harness:
+
+.. shell::
+
+   $ opencode mcp add adoc -- $(which adoc-mcp)
+   $ claude mcp add adoc -- $(which adoc-mcp)
+   $ codex mcp add adoc -- $(which adoc-mcp)
+   $ gemini mcp add adoc -- $(which adoc-mcp)
+
+
+.. tip::
+
+   The ``which adoc-mcp`` is to invoke the tool by the absolute path, without
+   having to explicitly activate the python virtual environment (most useful
+   for the ``pip`` install method).
+
+For coding harness without MCP support, such as `pi coding harness
+<https://pi.dev>`__, you can create a skill based on the tools descriptions at
+:git+doctools:`adi_doctools/mcp/server.py`.
 
 Using a Python virtual environment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
