@@ -101,6 +101,7 @@ jobs:
 
     - name: GitHub update pre-release target commitish
       run: |
+        [[ "${{ runner.debug }}" == "1" ]] && set -x
         source ./github-api.sh
         gh-update-commitish ${{ secrets.GITHUB_TOKEN }} \
                             ${{ github.repository }} \
@@ -125,6 +126,7 @@ jobs:
     - name: GitHub update latest target commitish
       if: ${{ inputs.new_tag == 'true' }}
       run: |
+        [[ "${{ runner.debug }}" == "1" ]] && set -x
         source ./github-api.sh
         gh-update-commitish ${{ secrets.GITHUB_TOKEN }} \
                             ${{ github.repository }} \
