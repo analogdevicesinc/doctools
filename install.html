@@ -96,6 +96,7 @@
           <ul>
 <li><a class="reference internal" href="#">Installing</a><ul>
 <li><a class="reference internal" href="#release-install">Release install</a><ul>
+<li><a class="reference internal" href="#mcp-integration">MCP integration</a></li>
 <li><a class="reference internal" href="#using-a-python-virtual-environment">Using a Python virtual environment</a></li>
 <li><a class="reference internal" href="#release-links-and-optional-dependencies">Release links and optional dependencies</a></li>
 <li><a class="reference internal" href="#ide-support">IDE support</a><ul>
@@ -175,34 +176,123 @@ Content on this topic
 20H1 (e.g., Ubuntu 20.04 LTS).</p>
 <section id="release-install">
 <span id="id1"></span><h2>Release install<a class="headerlink" href="#release-install" title="Link to this heading"></a></h2>
-<p>Ensure pip is newer than 23.0 <a class="footnote-reference brackets" href="#f1" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>:</p>
-<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
+<div class="tab-set docutils"><input checked="checked" id="tab-item-99e8dc251011e3f84826f63e7972da9104df8603-0" name="tab-set-99e8dc251011e3f84826f63e7972da9104df8603" type="radio"></input><label class="tab-label" for="tab-item-99e8dc251011e3f84826f63e7972da9104df8603-0">pip</label><div class="tab-content docutils"><div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv
+</pre></div>
+</div>
+<div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">source</span><span class="w"> </span>venv/bin/activate
+</pre></div>
+</div>
+<div class="clear-left"></div></div><div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Ensure pip is newer than 23.0 (https://github.com/pypa/setuptools/issues/3269)</span>
+</pre></div>
+</div>
+<div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
 </pre></div>
 </div>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>pip<span class="w"> </span>--upgrade
 </pre></div>
 </div>
-<div class="clear-left"></div></div></div><p>Install the documentation tools, which will fetch this repository release:</p>
-<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
+<div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
 </pre></div>
 </div>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>adi-doctools
 </pre></div>
 </div>
-<div class="clear-left"></div></div></div><p>Test it building this documentation:</p>
+<div class="clear-left"></div></div></div></div><input id="tab-item-99e8dc251011e3f84826f63e7972da9104df8603-1" name="tab-set-99e8dc251011e3f84826f63e7972da9104df8603" type="radio"></input><label class="tab-label" for="tab-item-99e8dc251011e3f84826f63e7972da9104df8603-1">pipx</label><div class="tab-content docutils"><div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pipx<span class="w"> </span>install<span class="w"> </span>adi-doctools
+</pre></div>
+</div>
+<div class="clear-left"></div></div></div></div><input id="tab-item-99e8dc251011e3f84826f63e7972da9104df8603-2" name="tab-set-99e8dc251011e3f84826f63e7972da9104df8603" type="radio"></input><label class="tab-label" for="tab-item-99e8dc251011e3f84826f63e7972da9104df8603-2">uvx</label><div class="tab-content docutils"><div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uvx<span class="w"> </span>--from<span class="w"> </span>adi-doctools<span class="w"> </span>adoc
+</pre></div>
+</div>
+<div class="clear-left"></div></div></div></div></div><p>Test it building this documentation:</p>
 <div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
 </pre></div>
 </div>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">(</span><span class="nb">cd</span><span class="w"> </span>docs<span class="w"> </span><span class="p">;</span><span class="w"> </span>make<span class="w"> </span>html<span class="o">)</span>
 </pre></div>
 </div>
-<div class="clear-left"></div></div></div><aside class="footnote-list brackets">
-<aside class="footnote brackets" id="f1" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">1</a><span class="fn-bracket">]</span></span>
-<p>There is a <a class="icon link reference external" href="https://github.com/pypa/setuptools/issues/3269" target="_blank">known bug</a>
-with pip shipped with Ubuntu 22.04.</p>
-</aside>
-</aside>
+<div class="clear-left"></div></div></div><section id="mcp-integration">
+<span id="mcp"></span><h3>MCP integration<a class="headerlink" href="#mcp-integration" title="Link to this heading"></a></h3>
+<p>The tool includes a slim MCP to expose the CLIs. It simply teaches the LLM of
+the tools available, analogous as a skill file. This methodology ensures the
+context window is not penalized.</p>
+<p>To configure the MCP to your AI coding harness, first install with the MCP
+add-in:</p>
+<div class="tab-set docutils"><input checked="checked" id="tab-item-dec71360979032de2e67d804895cea90c82df9e3-0" name="tab-set-dec71360979032de2e67d804895cea90c82df9e3" type="radio"></input><label class="tab-label" for="tab-item-dec71360979032de2e67d804895cea90c82df9e3-0">pip</label><div class="tab-content docutils"><div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv
+</pre></div>
+</div>
+<div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">source</span><span class="w"> </span>venv/bin/activate
+</pre></div>
+</div>
+<div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span><span class="s1">&#39;adi-doctools[mcp]&#39;</span>
+</pre></div>
+</div>
+<div class="clear-left"></div></div></div></div><input id="tab-item-dec71360979032de2e67d804895cea90c82df9e3-1" name="tab-set-dec71360979032de2e67d804895cea90c82df9e3" type="radio"></input><label class="tab-label" for="tab-item-dec71360979032de2e67d804895cea90c82df9e3-1">pipx</label><div class="tab-content docutils"><div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pipx<span class="w"> </span>install<span class="w"> </span><span class="s1">&#39;adi-doctools[mcp]&#39;</span>
+</pre></div>
+</div>
+<div class="clear-left"></div></div></div></div><input id="tab-item-dec71360979032de2e67d804895cea90c82df9e3-2" name="tab-set-dec71360979032de2e67d804895cea90c82df9e3" type="radio"></input><label class="tab-label" for="tab-item-dec71360979032de2e67d804895cea90c82df9e3-2">uvx</label><div class="tab-content docutils"><div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uvx<span class="w"> </span>--from<span class="w"> </span><span class="s1">&#39;adi-doctools[mcp]&#39;</span><span class="w"> </span>adoc-mcp
+</pre></div>
+</div>
+<div class="clear-left"></div></div></div></div></div><p>With the tool installed, add to your favorite AI code harness:</p>
+<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>opencode<span class="w"> </span>mcp<span class="w"> </span>add<span class="w"> </span>adoc<span class="w"> </span>--<span class="w"> </span><span class="k">$(</span>which<span class="w"> </span>adoc-mcp<span class="k">)</span>
+</pre></div>
+</div>
+<div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>claude<span class="w"> </span>mcp<span class="w"> </span>add<span class="w"> </span>adoc<span class="w"> </span>--<span class="w"> </span><span class="k">$(</span>which<span class="w"> </span>adoc-mcp<span class="k">)</span>
+</pre></div>
+</div>
+<div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>codex<span class="w"> </span>mcp<span class="w"> </span>add<span class="w"> </span>adoc<span class="w"> </span>--<span class="w"> </span><span class="k">$(</span>which<span class="w"> </span>adoc-mcp<span class="k">)</span>
+</pre></div>
+</div>
+<div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>gemini<span class="w"> </span>mcp<span class="w"> </span>add<span class="w"> </span>adoc<span class="w"> </span>--<span class="w"> </span><span class="k">$(</span>which<span class="w"> </span>adoc-mcp<span class="k">)</span>
+</pre></div>
+</div>
+<div class="clear-left"></div></div></div><div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">which</span> <span class="pre">adoc-mcp</span></code> is to invoke the tool by the absolute path, without
+having to explicitly activate the python virtual environment (most useful
+for the <code class="docutils literal notranslate"><span class="pre">pip</span></code> install method).</p>
+</div>
+<p>For coding harness without MCP support, such as <a class="icon link reference external" href="https://pi.dev" target="_blank">pi coding harness</a>, you can create a skill based on the tools descriptions at
+<a class="icon git reference external" href="https://github.com/analogdevicesinc/doctools/tree/main/adi_doctools/mcp/server.py" target="_blank">adi_doctools/mcp/server.py</a>.</p>
+</section>
 <section id="using-a-python-virtual-environment">
 <h3>Using a Python virtual environment<a class="headerlink" href="#using-a-python-virtual-environment" title="Link to this heading"></a></h3>
 <p>Installing packages at user level through pip is not always recommended,
@@ -259,7 +349,7 @@ pip<span class="w"> </span>install<span class="w"> </span><span class="s1">&#39;
 </div>
 </section>
 <section id="ide-support">
-<span id="id3"></span><h3>IDE support<a class="headerlink" href="#ide-support" title="Link to this heading"></a></h3>
+<span id="id2"></span><h3>IDE support<a class="headerlink" href="#ide-support" title="Link to this heading"></a></h3>
 <p><a class="icon link reference external" href="https://docs.esbon.io/en/latest/index.html" target="_blank" title="(in Esbonio)"><span>Esbonio</span></a> is an extensively developed
 Language Server Protocol and Visual Studio Code extension for sphinx.</p>
 <div class="admonition tip">
@@ -318,7 +408,7 @@ not provided, a default is also set with unicode characters.</p>
 </section>
 </section>
 <section id="development-install">
-<span id="id4"></span><h2>Development install<a class="headerlink" href="#development-install" title="Link to this heading"></a></h2>
+<span id="id3"></span><h2>Development install<a class="headerlink" href="#development-install" title="Link to this heading"></a></h2>
 <p>Development install allows editing the source code and applying changes without
 reinstalling.
 Also extends <a class="reference internal" href="cli.html#serve"><span class="std std-ref">Serve</span></a> to watch changes on the webpage source code
@@ -394,7 +484,7 @@ of it, breaking most CLIs.</p>
 </section>
 </section>
 <section id="removing">
-<span id="id5"></span><h2>Removing<a class="headerlink" href="#removing" title="Link to this heading"></a></h2>
+<span id="id4"></span><h2>Removing<a class="headerlink" href="#removing" title="Link to this heading"></a></h2>
 <p>To remove, either release or development, do:</p>
 <div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
 </pre></div>
