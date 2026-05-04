@@ -1,31 +1,11 @@
 {
   "text": [
     "Analog Devices Inc.\ndocumentation extensions, themes, and tools for multiple repositories in the\norganization.\n\nRead the Documentation guidelines for more documentation rules and information\non the directives and roles packaged on this repository.\n\nAnd read the Command line interface for information",
-    "Doctools is developed to work offline, in a local server as a rolling release\n(e.g., on GitHub Pages) and versioned in a dedicated server with orchestration.\n",
-    "For offline and local server, a `make html` suffices to generate the\ndocumentation.\n\nTo serve the build in a local server, Python built-in server can be used:\n\n```bash\n~$ python -m http.server -d /path/to/docs/_build/html\n```\n\n\nOr with hot reload using Serve:\n\n```bash\n~$ adoc serve -d /path/to/docs\n",
-    "For either rolling release or versioned, you can use the shared actions.\n\nFor push to default branch and pull requests:\n\n```yaml\non:\n  push:\n    branches:\n      - main\n      - dev\n      - dev/*\n  pull_request:\n\njobs:\n  build-doc:\n    runs-on: ubuntu-latest\n\n    steps:\n    - uses: actions/checkout@v4",
-    "For a rolling release, a workflow file is used.\nWith GitHub Actions, the following workflow file is recommended:\n\n```yaml\non:\n  push:\n    branches:\n      - main\n  pull_request:\n\njobs:\n  build-doc:\n    runs-on: ubuntu-latest\n\n    steps:\n    - uses: actions/checkout@v4\n    - uses: actions/setup-python",
-    "The live versioned version requires additional orchestration than the\nRolling release.\n\nThe versions are described in `tags.json` file on the root path\nthat can take two formats, one simpler with a plain string array and other\nfine-grained to allow full control.\n\nBut first, store each version in sep",
-    "The simple `tags.json` is a plain array with each version/path,\ne.g., `[\"v1.1\", \"v2.2\", \"main\", \"dev\", \"\"]`\n(an empty string means there is a built doc on the root and will be named\n`main (unstable)`).\nThe first tag will be labeled with `latest`.\n\n> **Tip**\n>\n> See this repo\u2019s .github/workflows/depl",
-    "The more elaborated option takes the following format:\n\n```json\n{\n  \"path\": [\"name\", \"label\"],\n  // ...\n}\n```\n\n\nFor example:\n\n```json\n{\n  \"main\": [\"main\", \"unstable\"],\n  \"v2.0.0\": [\"v2.0.0\", \"pre-release\"],\n  \"v1.2.1\": [\"v1.2.1\", \"latest\"],\n  \"v1.2.0\": [\"v1.2.0\", \"\"],\n  \"v1.1.7\": [\"v1.1.7\", \"\"],\n  \"",
-    "GitHub Pages does not support git lfs pointers. The tool is able to convert git\nlfs pointers into GitHub raw links\n(`https://media.githubusercontent.com/media/org/repo/branch/path/to/image`), with:\n\n```bash\nexport GIT_LFS_TO_LINKS=\"true\"\nexport GIT_ORG_REPOSITORY=\"${{ github.repository }}\"\n[ \"${{ gi",
-    "If the root does not contain any built doc, add a redirect HTML file pointing\nto the main/stable version:\n\n```default\n<!DOCTYPE html>\n<html>\n  <head>\n    <meta http-equiv=\"refresh\" content=\"0; url=main/index.html\" />\n  </head>\n</html>\n```\n\n\nWith the shared action, this is not supported.\n",
-    "For In organization reference, the doc shall target a specific version by suffixing\nthe target the version on the `interref_repos` variable, e.g.\n`interref_repos = ['pyadi-iio/dev', 'other-repo/v1.1']`.\n",
-    "Doctools is the central piece for aggregating multiple documentations together,\nexpanding the standard hierarchical, mono-repo documentation configuration.\n\nThe content is organized in three levels:\n\n- repotoc: Listing of repositories in the same organization that contain\n  documentations.\n  In gene",
     "A Sphinx theme called *harmonic* (formerly *cosmic*) is available and\nis based on ADI\u2019s *harmonic* design language.\n",
     "> **Tip**\n>\n> Depending on your browser and operating system shortcuts, some shortcuts may\n> collide with existing ones, due to this, the script provides many alternatives.\n\n\n`Alt+Shift+ArrowLeft` goes to the previous page and `Alt+Shift+ArrowRight`\nto the next page. Or `Alt+Shift+A` and `Alt+Shift+",
     "As other Sphinx themes, you set doctools theme customization through the *conf.py*.\nYou add to the `html_theme_options` dictionary:\n\n```python\nhtml_theme_options = {\n    \"light_logo\": path.join(\"path\", \"to\", \"logo_light.svg\"),\n    \"dark_logo\": path.join(\"path\", \"to\", \"logo_dark.svg\"),\n    \"no_index\"",
     "File-wide metadata are field lists at the top of the file, that\nSphinx parses into document metadata.\n\nBeyond Sphinx special metadata fields, doctools converts some metadata into HTML\nmeta tags.\nThe values and their effects are:\n\n- `no-index`: Appends an\n  \u201cnoindex\u201d meta tag\n  to the page, alternati",
-    "Doctools custom Sphinx roles allow better linking, such as git links, and\nformatting, like font coloring.\n\nBelow, every added role is explained with examples.\n\n> **Note**\n>\n> Link-like roles use the `:role:`text <link>`` syntax, like external\n> links, but without the underscore at the end.\n",
-    "To print text in red or green, use `:red:`text`` and `:green:`text``.\n",
-    "The link roles are a group of roles defined by `adi_links.py`.\n\nThe `validate_links` global option is used to validate each link during build.\nThese links are not managed; that means only links from changed files are checked.\nYou can run a build with it set to False, then touch the desired files to ",
-    "The Git role allows creating links to the Git repository with a shorter syntax.\nThe role syntax is `:git+repo:`text <type+branch:path>``, for example:\n\n- `:git+hdl:`main:docs/user_guide/docs_guidelines.rst``\n  renders as docs/user_guide/docs_guidelines.rst.\n- `:git+hdl:`Guidelines <docs/user_guide/d",
-    "Same as the Git but wrapping the address with the ADI DownGit repository\nfork.\n",
-    "The adi role creates links for a webpage to the Analog Devices Inc. website.\n\nThe role syntax is `:adi:`text <webpage>``, for example,\n`:adi:`AD7175-2 <en/products/ad7175-2.html>``.\n\nIt is now preferred to use the pathname (`:adi:`text <path/to/ad0000.html>``)\ninstead of the virtual link (`:adi:`tex",
-    "The dokuwiki role creates links to the Analog Devices Inc. wiki website.\nThe role syntax is `:dokuwiki:`text <path>``, for example,\n`:dokuwiki:`pulsar-adc-pmods <resources/eval/user-guides/circuits-from-the-lab/pulsar-adc-pmods>``\ngets rendered as\npulsar-adc-pmods.\n\nFor intentional deprecated links,",
-    "The ez role creates links to the Analog Devices Inc. EngineerZone support website.\nThe role syntax is `:ez:`community``, for example, `:ez:`fpga``\ngets rendered as EngineerZone.\n\nFor Linux Software Drivers, it is `:ez:`linux-software-drivers``.\n\nFor Microcontroller no-OS Drivers it is `:ez:`microcon",
-    "The vendor role creates links to the vendor\u2019s website.\nThe role syntax is `:vendor:`text <path>``, for example,\n`:xilinx:`Zynq-7000 SoC Overview <support/documentation/data_sheets/ds190-Zynq-7000-Overview.pdf>``\ngets rendered\nZynq-7000 SoC Overview.\n\nThe text parameter is optional, if absent, the fi",
-    "The supplier role creates links to a vendor\u2019s website search.\nThe role syntax is `:vendor:`text <path>``, for example,\n`:digikey:`AD9081-FMCA-EBZ``\ngets rendered\nAD9081-FMCA-EBZ.\n\nThe text parameter is optional.\n\nSupported vendors are: `digikey` (Digikey), `mouser` (Mouser) and\n`arrow` (Arrow).\n",
+    "Doctools is the central piece for aggregating multiple documentations together,\nexpanding the standard hierarchical, mono-repo documentation configuration.\n\nThe content is organized in three levels:\n\n- repotoc: Listing of repositories in the same organization that contain\n  documentations.\n  In gene",
     "How to do a release install, and a development install of Doctools.\n\nGuaranteed to work with Python 3.8 or newer and distributions released on or after\n20H1 (e.g., Ubuntu 20.04 LTS).\n",
     "Ensure pip is newer than 23.0 [1]:\n\n```bash\n~$ pip install pip --upgrade\n```\n\n\nInstall the documentation tools, which will fetch this repository release:\n\n```bash\n~$ pip install adi-doctools\n```\n\n\nTest it building this documentation:\n\n```bash\n~$ (cd docs ; make html)\n```\n\n\nThere is a known bug\nwith ",
     "Installing packages at user level through pip is not always recommended,\ninstead, consider using a Python virtual environment (`python3-venv` on\nubuntu 22.04).\n\nTo create and activate the environment, do before the previous instructions:\n\n```bash\n~$ python3 -m venv .venv\n~$ source .venv/bin/activate",
@@ -40,6 +20,16 @@
     "Finally, do a symbolic installation of this repo:\n\n```bash\n~$ pip install -e . --upgrade\n```\n\n\n> **Caution**\n>\n> If using a python virtual environment for the *requirements.txt* packages,\n> do this command with the virtual environment already activated.\n> Mixing pip packages inside and outside the v",
     "Add to you lazyvim config the path to the branch `nvim`:\n\n```lua\n{\n  dir = '/path/to/doctools/nvim',\n  -- ...\n}\n```\n",
     "To remove, either release or development, do:\n\n```bash\n~$ pip uninstall adi-doctools\n```\n",
+    "Doctools custom Sphinx roles allow better linking, such as git links, and\nformatting, like font coloring.\n\nBelow, every added role is explained with examples.\n\n> **Note**\n>\n> Link-like roles use the `:role:`text <link>`` syntax, like external\n> links, but without the underscore at the end.\n",
+    "To print text in red or green, use `:red:`text`` and `:green:`text``.\n",
+    "The link roles are a group of roles defined by `adi_links.py`.\n\nThe `validate_links` global option is used to validate each link during build.\nThese links are not managed; that means only links from changed files are checked.\nYou can run a build with it set to False, then touch the desired files to ",
+    "The Git role allows creating links to the Git repository with a shorter syntax.\nThe role syntax is `:git+repo:`text <type+branch:path>``, for example:\n\n- `:git+hdl:`main:docs/user_guide/docs_guidelines.rst``\n  renders as docs/user_guide/docs_guidelines.rst.\n- `:git+hdl:`Guidelines <docs/user_guide/d",
+    "Same as the Git but wrapping the address with the ADI DownGit repository\nfork.\n",
+    "The adi role creates links for a webpage to the Analog Devices Inc. website.\n\nThe role syntax is `:adi:`text <webpage>``, for example,\n`:adi:`AD7175-2 <en/products/ad7175-2.html>``.\n\nIt is now preferred to use the pathname (`:adi:`text <path/to/ad0000.html>``)\ninstead of the virtual link (`:adi:`tex",
+    "The dokuwiki role creates links to the Analog Devices Inc. wiki website.\nThe role syntax is `:dokuwiki:`text <path>``, for example,\n`:dokuwiki:`pulsar-adc-pmods <resources/eval/user-guides/circuits-from-the-lab/pulsar-adc-pmods>``\ngets rendered as\npulsar-adc-pmods.\n\nFor intentional deprecated links,",
+    "The ez role creates links to the Analog Devices Inc. EngineerZone support website.\nThe role syntax is `:ez:`community``, for example, `:ez:`fpga``\ngets rendered as EngineerZone.\n\nFor Linux Software Drivers, it is `:ez:`linux-software-drivers``.\n\nFor Microcontroller no-OS Drivers it is `:ez:`microcon",
+    "The vendor role creates links to the vendor\u2019s website.\nThe role syntax is `:vendor:`text <path>``, for example,\n`:xilinx:`Zynq-7000 SoC Overview <support/documentation/data_sheets/ds190-Zynq-7000-Overview.pdf>``\ngets rendered\nZynq-7000 SoC Overview.\n\nThe text parameter is optional, if absent, the fi",
+    "The supplier role creates links to a vendor\u2019s website search.\nThe role syntax is `:vendor:`text <path>``, for example,\n`:digikey:`AD9081-FMCA-EBZ``\ngets rendered\nAD9081-FMCA-EBZ.\n\nThe text parameter is optional.\n\nSupported vendors are: `digikey` (Digikey), `mouser` (Mouser) and\n`arrow` (Arrow).\n",
     "The Doctools bundles a command line interface called `adoc` meant to ease both\ncontinuous integration and local builds of the documentation.\n\nBelow, each command is briefly described, and it is worth noting that every\ncommand supports the `--help` option for quick lookup.\n",
     "Watches the docs and source code to rebuild it on edit.\nSimilar to `mkdocs serve`, `webpack serve`, `npm run start`, `hugo server`,\nand so on.\n\nThe webpage pools timestamp changes and commands on the `.dev-pool` file.\n\nTo launch a watched instance, do:\n\n```bash\n~$ cd /path/to/docs\n/path/to/docs$ ado",
     "Inspired on git sparse clones, it is possible to build only some parts of the\ndocumentation, for example:\n\n```bash\n# Include only learning/**/* and solutions/**/*\n~$ adoc serve --sparse learning solutions\n```\n\n\nThis is a critical feature to build large docs, ensuring snappy live reloads.\n",
@@ -56,6 +46,16 @@
     "Suppose you edited and tested multiple docs together, it could be helpful\nto try a local inventory file first, to check references before publication.\n\nHaving this in mind, if you build the edited documentation first, and then execute\n`custom-doc`, it will consider the local inventory *objects.inv* ",
     "> **Tip**\n>\n> This feature is useful to batch build/test all tracked documentations.\n\n\nGenerates all documentations of the watched repositories\n(see adi_doctools/lut.py).\n\nTwo generation strategies are available:\n\n- monolithic: patches all docs together into a single monolithic output (default).\n- s",
     "Exposes the HDL component diagram generator as a CLI.\nIt converts IP-XACT files into SVGs.\n\nTo generate and open the diagram, provide the path containing the IP-XACT and use\nthe `--open` option:\n\n```bash\n~$ adoc hdl-render --input PATH --open\n```\n\n\nFor example:\n\n```bash\n~$ adoc hdl-render --input hd",
+    "Doctools is developed to work offline, in a local server as a rolling release\n(e.g., on GitHub Pages) and versioned in a dedicated server with orchestration.\n",
+    "For offline and local server, a `make html` suffices to generate the\ndocumentation.\n\nTo serve the build in a local server, Python built-in server can be used:\n\n```bash\n~$ python -m http.server -d /path/to/docs/_build/html\n```\n\n\nOr with hot reload using Serve:\n\n```bash\n~$ adoc serve -d /path/to/docs\n",
+    "For either rolling release or versioned, you can use the shared actions.\n\nFor push to default branch and pull requests:\n\n```yaml\non:\n  push:\n    branches:\n      - main\n      - dev\n      - dev/*\n  pull_request:\n\njobs:\n  build-doc:\n    runs-on: ubuntu-latest\n\n    steps:\n    - uses: actions/checkout@v4",
+    "For a rolling release, a workflow file is used.\nWith GitHub Actions, the following workflow file is recommended:\n\n```yaml\non:\n  push:\n    branches:\n      - main\n  pull_request:\n\njobs:\n  build-doc:\n    runs-on: ubuntu-latest\n\n    steps:\n    - uses: actions/checkout@v4\n    - uses: actions/setup-python",
+    "The live versioned version requires additional orchestration than the\nRolling release.\n\nThe versions are described in `tags.json` file on the root path\nthat can take two formats, one simpler with a plain string array and other\nfine-grained to allow full control.\n\nBut first, store each version in sep",
+    "The simple `tags.json` is a plain array with each version/path,\ne.g., `[\"v1.1\", \"v2.2\", \"main\", \"dev\", \"\"]`\n(an empty string means there is a built doc on the root and will be named\n`main (unstable)`).\nThe first tag will be labeled with `latest`.\n\n> **Tip**\n>\n> See this repo\u2019s .github/workflows/depl",
+    "The more elaborated option takes the following format:\n\n```json\n{\n  \"path\": [\"name\", \"label\"],\n  // ...\n}\n```\n\n\nFor example:\n\n```json\n{\n  \"main\": [\"main\", \"unstable\"],\n  \"v2.0.0\": [\"v2.0.0\", \"pre-release\"],\n  \"v1.2.1\": [\"v1.2.1\", \"latest\"],\n  \"v1.2.0\": [\"v1.2.0\", \"\"],\n  \"v1.1.7\": [\"v1.1.7\", \"\"],\n  \"",
+    "GitHub Pages does not support git lfs pointers. The tool is able to convert git\nlfs pointers into GitHub raw links\n(`https://media.githubusercontent.com/media/org/repo/branch/path/to/image`), with:\n\n```bash\nexport GIT_LFS_TO_LINKS=\"true\"\nexport GIT_ORG_REPOSITORY=\"${{ github.repository }}\"\n[ \"${{ gi",
+    "If the root does not contain any built doc, add a redirect HTML file pointing\nto the main/stable version:\n\n```default\n<!DOCTYPE html>\n<html>\n  <head>\n    <meta http-equiv=\"refresh\" content=\"0; url=main/index.html\" />\n  </head>\n</html>\n```\n\n\nWith the shared action, this is not supported.\n",
+    "For In organization reference, the doc shall target a specific version by suffixing\nthe target the version on the `interref_repos` variable, e.g.\n`interref_repos = ['pyadi-iio/dev', 'other-repo/v1.1']`.\n",
     "Doctools has a continuous deployment integration pipeline that works as follows:\n\n```default\n                   \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n                \u250c\u2500\u25ba\u2502Build Doc Latest  \u251c\u2500\u2510\n                \u2502  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518 \u2502\n                \u2502                       \u2502\n\u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510 \u2502  \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510   \u2502",
     "Below are suggested instructions for setting up `podman` on a Linux environment,\nif you wish to use it as your container engine. If you already use something else\nlike `docker`, **keep it** and skip this section.\n\nAdjust to your preferences as needed, and skip the steps marked in green\nif not using ",
     "Podman default configuration expects a local user to be able to create a user\nnamespace where multiple IDs are mapped and a compatible partition to use as\nthe storage location `graphRoot`.\n\n> **Note**\n>\n> The ideal solution is to create a local **non-root** user and storage\n> location. Podman proces",
@@ -119,31 +119,11 @@
   ],
   "url": [
     "index.html",
-    "deploy.html",
-    "deploy.html#local",
-    "deploy.html#github-pages-deployment",
-    "deploy.html#rolling-release",
-    "deploy.html#versioned",
-    "deploy.html#string-array-form",
-    "deploy.html#fine-grained-form",
-    "deploy.html#git-lfs",
-    "deploy.html#i-don-t-want-a-doc-at-the-root",
-    "deploy.html#how-do-i-cross-reference-a-specific-version",
-    "fundamentals.html#documentation-hierarchical-structure",
     "theme.html",
     "theme.html#shortcuts",
     "theme.html#theme-options",
     "theme.html#metadata",
-    "docs_guidelines/roles.html",
-    "docs_guidelines/roles.html#color",
-    "docs_guidelines/roles.html#link",
-    "docs_guidelines/roles.html#git",
-    "docs_guidelines/roles.html#downgit",
-    "docs_guidelines/roles.html#adi",
-    "docs_guidelines/roles.html#dokuwiki",
-    "docs_guidelines/roles.html#engineerzone",
-    "docs_guidelines/roles.html#vendor",
-    "docs_guidelines/roles.html#supplier",
+    "fundamentals.html#documentation-hierarchical-structure",
     "install.html",
     "install.html#release-install",
     "install.html#using-a-python-virtual-environment",
@@ -158,6 +138,16 @@
     "install.html#install-the-repository",
     "install.html#neovim-support",
     "install.html#removing",
+    "docs_guidelines/roles.html",
+    "docs_guidelines/roles.html#color",
+    "docs_guidelines/roles.html#link",
+    "docs_guidelines/roles.html#git",
+    "docs_guidelines/roles.html#downgit",
+    "docs_guidelines/roles.html#adi",
+    "docs_guidelines/roles.html#dokuwiki",
+    "docs_guidelines/roles.html#engineerzone",
+    "docs_guidelines/roles.html#vendor",
+    "docs_guidelines/roles.html#supplier",
     "cli.html",
     "cli.html#serve",
     "cli.html#sparse-builds",
@@ -174,6 +164,16 @@
     "cli.html#working-with-multiple-docs",
     "cli.html#aggregate",
     "cli.html#hdl-render",
+    "deploy.html",
+    "deploy.html#local",
+    "deploy.html#github-pages-deployment",
+    "deploy.html#rolling-release",
+    "deploy.html#versioned",
+    "deploy.html#string-array-form",
+    "deploy.html#fine-grained-form",
+    "deploy.html#git-lfs",
+    "deploy.html#i-don-t-want-a-doc-at-the-root",
+    "deploy.html#how-do-i-cross-reference-a-specific-version",
     "ci.html",
     "ci.html#configure-podman",
     "ci.html#network-users-partitions",
@@ -240,56 +240,6 @@
       "Analog Devices Doctools"
     ],
     [
-      "Documentation deployment"
-    ],
-    [
-      "Documentation deployment",
-      "Local"
-    ],
-    [
-      "Documentation deployment",
-      "GitHub Pages deployment"
-    ],
-    [
-      "Documentation deployment",
-      "GitHub Pages deployment",
-      "Rolling release"
-    ],
-    [
-      "Documentation deployment",
-      "GitHub Pages deployment",
-      "Versioned"
-    ],
-    [
-      "Documentation deployment",
-      "GitHub Pages deployment",
-      "String array form"
-    ],
-    [
-      "Documentation deployment",
-      "GitHub Pages deployment",
-      "Fine-grained form"
-    ],
-    [
-      "Documentation deployment",
-      "GitHub Pages deployment",
-      "Git LFS"
-    ],
-    [
-      "Documentation deployment",
-      "Further notes",
-      "I don\u2019t want a doc at the root"
-    ],
-    [
-      "Documentation deployment",
-      "Further notes",
-      "How do I cross-reference a specific version?"
-    ],
-    [
-      "Fundamentals",
-      "Documentation hierarchical structure"
-    ],
-    [
       "Sphinx theme"
     ],
     [
@@ -305,60 +255,8 @@
       "Metadata"
     ],
     [
-      "Documentation guidelines",
-      "Custom roles"
-    ],
-    [
-      "Documentation guidelines",
-      "Custom roles",
-      "Color"
-    ],
-    [
-      "Documentation guidelines",
-      "Custom roles",
-      "Link"
-    ],
-    [
-      "Documentation guidelines",
-      "Custom roles",
-      "Link",
-      "Git"
-    ],
-    [
-      "Documentation guidelines",
-      "Custom roles",
-      "Link",
-      "DownGit"
-    ],
-    [
-      "Documentation guidelines",
-      "Custom roles",
-      "Link",
-      "ADI"
-    ],
-    [
-      "Documentation guidelines",
-      "Custom roles",
-      "Link",
-      "Dokuwiki"
-    ],
-    [
-      "Documentation guidelines",
-      "Custom roles",
-      "Link",
-      "EngineerZone"
-    ],
-    [
-      "Documentation guidelines",
-      "Custom roles",
-      "Link",
-      "Vendor"
-    ],
-    [
-      "Documentation guidelines",
-      "Custom roles",
-      "Link",
-      "Supplier"
+      "Fundamentals",
+      "Documentation hierarchical structure"
     ],
     [
       "Installing"
@@ -426,6 +324,62 @@
     [
       "Installing",
       "Removing"
+    ],
+    [
+      "Documentation guidelines",
+      "Custom roles"
+    ],
+    [
+      "Documentation guidelines",
+      "Custom roles",
+      "Color"
+    ],
+    [
+      "Documentation guidelines",
+      "Custom roles",
+      "Link"
+    ],
+    [
+      "Documentation guidelines",
+      "Custom roles",
+      "Link",
+      "Git"
+    ],
+    [
+      "Documentation guidelines",
+      "Custom roles",
+      "Link",
+      "DownGit"
+    ],
+    [
+      "Documentation guidelines",
+      "Custom roles",
+      "Link",
+      "ADI"
+    ],
+    [
+      "Documentation guidelines",
+      "Custom roles",
+      "Link",
+      "Dokuwiki"
+    ],
+    [
+      "Documentation guidelines",
+      "Custom roles",
+      "Link",
+      "EngineerZone"
+    ],
+    [
+      "Documentation guidelines",
+      "Custom roles",
+      "Link",
+      "Vendor"
+    ],
+    [
+      "Documentation guidelines",
+      "Custom roles",
+      "Link",
+      "Supplier"
     ],
     [
       "Command line interface"
@@ -500,6 +454,52 @@
     [
       "Command line interface",
       "HDL Render"
+    ],
+    [
+      "Documentation deployment"
+    ],
+    [
+      "Documentation deployment",
+      "Local"
+    ],
+    [
+      "Documentation deployment",
+      "GitHub Pages deployment"
+    ],
+    [
+      "Documentation deployment",
+      "GitHub Pages deployment",
+      "Rolling release"
+    ],
+    [
+      "Documentation deployment",
+      "GitHub Pages deployment",
+      "Versioned"
+    ],
+    [
+      "Documentation deployment",
+      "GitHub Pages deployment",
+      "String array form"
+    ],
+    [
+      "Documentation deployment",
+      "GitHub Pages deployment",
+      "Fine-grained form"
+    ],
+    [
+      "Documentation deployment",
+      "GitHub Pages deployment",
+      "Git LFS"
+    ],
+    [
+      "Documentation deployment",
+      "Further notes",
+      "I don\u2019t want a doc at the root"
+    ],
+    [
+      "Documentation deployment",
+      "Further notes",
+      "How do I cross-reference a specific version?"
     ],
     [
       "Continuous integration"
