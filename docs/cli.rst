@@ -61,7 +61,8 @@ All options can be listed with:
 
    $ adoc serve --help
 
-To how to integrate with your, please see :ref:`ide-support`.
+To how to integrate with your IDE, please see :ref:`vscode-support` and
+:ref:`nvim-support`.
 
 .. _serve sparse:
 

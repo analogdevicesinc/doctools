@@ -139,22 +139,33 @@ Optional dependencies can be installed with:
    # test, cli, ...
    pip install 'adi_doctools[test] @ https://github.com/analogdevicesinc/doctools/releases/download/latest/adi-doctools.tar.gz'
 
-.. _ide-support:
+.. _vscode-support:
 
-IDE support
-~~~~~~~~~~~
+VScode/VScodium support
+~~~~~~~~~~~~~~~~~~~~~~~
 
-:external+esbonio:doc:`index` is an extensively developed
-Language Server Protocol and Visual Studio Code extension for sphinx.
+There are two options for  Visual Studio Code support:
 
-.. tip::
+- Doctools (
+  `VSCode <https://marketplace.visualstudio.com/items?itemName=gastmaier.adi-doctools>`__/
+  `VSCodium <https://open-vsx.org/extension/gastmaier/adi-doctools>`__):
+  A high level extension for most users.
+- :external+esbonio:doc:`index` (
+  `VSCode <https://marketplace.visualstudio.com/items?itemName=swyddfa.esbonio>`__/
+  `VSCodium <https://open-vsx.org/extension/swyddfa/esbonio>`__):
+  A extensively developed for sphinx.
 
-   Setup the virtual environment first before opening the text editor, to
-   avoid triggering fallback behaviours.
+Doctools provides support to `LanguageTool <https://languagetool.org/de>`__ for
+grammar correction and GUI support for :ref:`serve sparse`.
 
+Esbonio tips
+++++++++++++
 
-:ref:`serve` is able to generate Estobio pyproject.toml entry with
-(including :ref:`serve sparse`):
+Setup the virtual environment first before opening the text editor, to
+avoid triggering fallback behaviours.
+
+:ref:`serve` is able to generate Estobio pyproject.toml entry with (including
+:ref:`serve sparse`):
 
 .. shell::
 
@@ -162,15 +173,13 @@ Language Server Protocol and Visual Studio Code extension for sphinx.
    $ adoc serve --esbonio \
         --sparse docs/docs_guidelines docs/cli.rst | tee -a pyproject.toml
 
-VSCode
-++++++
+.. _nvim-support:
 
-See Esbonio :external+esbonio:ref:`lsp-getting-started`.
+Neovim support
+~~~~~~~~~~~~~~
 
-Neovim
-++++++
-
-See :external+esbonio:std:ref:`integrate-nvim`.
+:external+esbonio:doc:`index` is an extensively developed Language Server
+Protocol for sphinx. See :external+esbonio:std:ref:`integrate-nvim`.
 
 It is also recomemded to use the modern `tree-sitter <https://tree-sitter.github.io/>`__.
 Make sure you have common parsers installed, at least:
