@@ -37,11 +37,11 @@ You may even create Mermaid diagrams to explain issues.\n`;
   if (comment_file)
     instructions_output += `You must write a PR comment at ${comment_file}, do not tag the author.\n`;
   if (comment_file && server_url && repository && run_id)
-    instructions_output += `For the comment, consider the template, don't use emojis, be concise, and focus on the issues (real run url and repository):
+    instructions_output += `For the comment, consider the template (run id, url, repository are already filled, the current run id **is** ${run_id}), don't use emojis, be concise, and focus on the issues:
 \`\`\`\`markdown
 ## LLM review
 
-This series fixes parser bugs in the ...
+This series fixes|adds|removes ...
 
 run: [${run_id}](${run_url})
 
@@ -51,11 +51,11 @@ run: [${run_id}](${run_url})
 
 ### CI warnings
 
-The \`checkpatch\` subject-line warning for ...
+The \`checkpatch\` warning for ...
 
 ### Verification data
 
-Datasheet ad1234.pdf was obtained and converted to markdown and used to check ...
+Datasheet <.pdf> was obtained from ..., converted to markdown with ..., and used to ...
 
 ### Suggested patches
 
