@@ -313,7 +313,7 @@ runs:
           fi
         fi
 
-        git reset --hard FETCH_HEAD
+        git reset --hard $head_sha
 
         if [[ "$mode" == "pr" ]]; then
           # rebase into
