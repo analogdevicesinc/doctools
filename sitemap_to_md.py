@@ -22,7 +22,7 @@ sitemap_url = 'https://www.analog.com/media/en/en-pdf-sitemap.xml'
 sitemap_file = 'en-pdf-sitemap.xml'
 max_workers = 8
 max_docling_workers = 4
-cutoff_date = "2023-12-00"
+cutoff_date = "2022-12-00"
 include_paths = ["/data-sheets/"]
 blacklist = [
     "max25086-89.pdf",
