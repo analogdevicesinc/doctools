@@ -2,7 +2,8 @@
 
 cancel-patches ()
 {
-	[[ -z "$GIT_APPLY_PATCHES_HEAD" ]] && git reset --hard $GIT_APPLY_PATCHES_HEAD || :
+	trap - SIGINT
+	[[ -n "$GIT_APPLY_PATCHES_HEAD" ]] || git reset --hard $GIT_APPLY_PATCHES_HEAD
 	echo ""
 	echo "apply-patches cancelled, reset hard to previous HEAD ($GIT_APPLY_PATCHES_HEAD)"
 }
