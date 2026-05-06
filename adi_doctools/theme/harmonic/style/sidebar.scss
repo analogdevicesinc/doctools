@@ -361,7 +361,6 @@
 
     #scroll-up {
       cursor: pointer;
-      filter: invert(var(--is-dark-theme));
       margin-left: .25rem;
       opacity: 0.75;
       border-radius: variable.$border-radius;
@@ -373,7 +372,7 @@
         width: 1.5rem;
         height: 1.5rem;
         margin: .25rem;
-        background-color: var(--text-color1);
+        background-color: var(--text-color2);
         mask-image: var(--icon-arrow-up);
         mask-repeat: no-repeat;
     }
