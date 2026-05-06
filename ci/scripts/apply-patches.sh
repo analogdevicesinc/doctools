@@ -1,5 +1,12 @@
 #!/bin/bash
 
+cancel-patches ()
+{
+	[[ -z "$GIT_APPLY_PATCHES_HEAD" ]] && git reset --hard $GIT_APPLY_PATCHES_HEAD || :
+	echo ""
+	echo "apply-patches cancelled, reset hard to previous HEAD ($GIT_APPLY_PATCHES_HEAD)"
+}
+
 apply-patches ()
 {
 	local help_usage="apply-patches <run_id> [options]
@@ -102,7 +109,7 @@ apply-patches ()
 
 	echo "Patches at '$patches_dir'":
 	ls "$patches_dir"
-	read -p "Review? [y/N]: " choice
+	read -p "Review patches? [y/N]: " choice
 	case "$choice" in
 		[yY])
 			;;
@@ -111,38 +118,42 @@ apply-patches ()
 			;;
 	esac
 
+	export GIT_APPLY_PATCHES_HEAD=$(git rev-parse @)
+	trap cancel-patches SIGINT
+
 	for patch_file in "$patches_dir"/*.{patch,diff}; do
 		[ -e "$patch_file" ] || continue
 
 		git apply --check "$patch_file" 2>/dev/null &&
-			echo "patch $(basename $patch_file) applies, enter to view diff)" ||
-			{ echo "patch: $(basename $patch_file) does not apply" ; continue ; }
+			echo "  patch $(basename $patch_file) applies, enter to view diff)" ||
+			{ echo "  patch: $(basename $patch_file) does not apply" ; continue ; }
 
 		read -p "" cont
 
-		git apply "$patch_file"
-		git diff
+		if ! git am "$patch_file"; then
+			git am --abort
+			echo "$(basename $patch_file) failed"
+			continue
+		fi
+		git show @
 
 		echo -e "\nKeep patch?"
-		echo "k) Keep on the working tree"
-		echo "a) Apply as a commit"
-		echo "s) Skip"
+		echo "  k) Keep on working tree"
+		echo "  a) Apply commit"
+		echo "  s) Skip"
 		read -p "Select an option: " choice
 		case "$choice" in
 			k)
+				git reset --hard @~ 1>/dev/null
+				git apply "$patch_file"
 				;;
 			a)
-				git restore .
-				if git am "$patch_file"; then
-					echo "$(basename $patch_file) applied"
-				else
-					git am --abort
-					echo "$(basename $patch_file) failed"
-				fi
 				;;
 			*)
-				git restore .
+				git reset --hard @~ 1>/dev/null
 				;;
 		esac
 	done
+
+	echo "All patches viewed, done"
 }
