@@ -73,10 +73,9 @@ apply-patches --repo=${repository} ${run_id}
 The following one-liner installs the script if not present already:
 
 \`\`\`bash
-grep "/apply-patches.sh" ~/.bashrc || \
- { curl "https://raw.githubusercontent.com/analogdevicesinc/doctools/refs/heads/main/ci/scripts/apply-patches.sh" \
-   -o ~/.local/bin/apply-patches.sh && \
- echo "source ~/.local/bin/apply-patches.sh" >> ~/.bashrc ; source ~/.bashrc ; }
+curl -fSsL "https://raw.githubusercontent.com/analogdevicesinc/doctools/refs/heads/main/ci/scripts/apply-patches.sh" \
+     -o ~/.local/bin/apply-patches.sh && \
+  grep -q "/apply-patches.sh" ~/.bashrc || echo "source ~/.local/bin/apply-patches.sh" >> $_ ; . $_
 \`\`\`
 
 More information at [AI Usage](https://analogdevicesinc.github.io/documentation/contributing/ai.html).
