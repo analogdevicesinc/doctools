@@ -78,7 +78,7 @@ runs:
           git fetch origin ${{ inputs.branch }}:${{ inputs.branch }} --depth 1 -f ;
           git switch ${{ inputs.branch }} ;
           if [[ "${{ github.event_name }}" == "push" ]]; then
-            built_docs=$(find "${{ env.doc_path }}" -mindepth 2 -name objects.inv -exec sh -c 'dirname {}' ';') ;
+            built_docs=$(find "${{ env.doc_path }}" -mindepth 2 -name objects.inv -exec sh -c 'dirname {}' ';' 2>/dev/null) ;
             git rm -r "${{ env.doc_path }}" --quiet || true ;
             if ! [ -z "$built_docs" ]; then
               git checkout @ -- $built_docs ;
