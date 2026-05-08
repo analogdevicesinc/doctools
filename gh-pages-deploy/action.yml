@@ -8,6 +8,9 @@ inputs:
   new_tag:
     description: "If is a new tag"
     default: false
+  path:
+    description: "Path to host docs"
+    default: "."
   tag:
     description: "Tag value"
     default: ""
@@ -54,11 +57,17 @@ runs:
       if: ${{ env.gh_pages_deploy_run == 'true' }}
       shell: bash
       run: |
+        base_path='${{ inputs.path }}'
+        base_path="${base_path%/}"
+        base_path="${base_path#./}"
+        [[ -n "$base_path" ]] || base_path='.'
+
         if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-          echo "doc_path=pull/${{ github.event.number }}" >> "$GITHUB_ENV"
+          echo "doc_tag_path=${base_path}/pull/${{ github.event.number }}" >> "$GITHUB_ENV"
         elif [[ "${{ inputs.new_tag }}" == "true" ]] && [[ -n "${{ inputs.tag }}" ]]; then
-          echo "doc_path=${{ inputs.tag }}" >> "$GITHUB_ENV"
+          echo "doc_tag_path=${base_path}/${{ inputs.tag }}" >> "$GITHUB_ENV"
         fi
+        echo "doc_path=${base_path}" >> "$GITHUB_ENV"
 
     - name: Prepare gh-pages branch
       if: ${{ env.gh_pages_deploy_run == 'true' }}
@@ -69,14 +78,14 @@ runs:
           git fetch origin ${{ inputs.branch }}:${{ inputs.branch }} --depth 1 -f ;
           git switch ${{ inputs.branch }} ;
           if [[ "${{ github.event_name }}" == "push" ]]; then
-            built_docs=$(find . -mindepth 2 -name objects.inv -exec sh -c 'dirname {}' ';') ;
-            git rm -r . --quiet || true ;
+            built_docs=$(find "${{ env.doc_path }}" -mindepth 2 -name objects.inv -exec sh -c 'dirname {}' ';' 2>/dev/null) ;
+            git rm -r "${{ env.doc_path }}" --quiet || true ;
             if ! [ -z "$built_docs" ]; then
               git checkout @ -- $built_docs ;
             fi ;
           fi ;
-          if ! [ -z "${{ env.doc_path }}" ]; then
-            git rm -r ${{ env.doc_path }} --quiet || true ;
+          if ! [ -z "${{ env.doc_tag_path }}" ]; then
+            git rm -r "${{ env.doc_tag_path }}" --quiet || true ;
           fi ;
         ) || (
           git checkout --orphan ${{ inputs.branch }} ;
@@ -88,12 +97,13 @@ runs:
       if: ${{ env.gh_pages_deploy_run == 'true' && github.event_name == 'push' }}
       with:
         name: ${{ inputs.name }}
+        path: ${{ env.doc_path }}
 
     - uses: actions/download-artifact@v4
-      if: ${{ env.gh_pages_deploy_run == 'true' && env.doc_path != '' }}
+      if: ${{ env.gh_pages_deploy_run == 'true' && env.doc_tag_path != '' }}
       with:
         name: ${{ inputs.name }}
-        path: ${{ env.doc_path }}
+        path: ${{ env.doc_tag_path }}
 
     - name: Generate aux files
       if: ${{ env.gh_pages_deploy_run == 'true' }}
