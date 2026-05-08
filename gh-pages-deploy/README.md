@@ -37,6 +37,13 @@ jobs:
         new_tag: ${{ inputs.new_tag }}
         tag: ${{ inputs.tag }}
         name: html
+        path: .
 
 ```
 
+The `inputs.path` allow to deploy to a different path (`mkdir -p` behaviour).
+Please, be cautious when combining with `inputs.tag`, e.g., `path: dev`,
+`new_tag: true`,  `tag: v1.0`, will store the doc to `dev/` ("unstable dev")
+and `dev/v1.0` ("stable dev"). The path input can be helpful when your
+repository has multiple 'packages', or you just want to publish a development
+version from a branch, without a pull request.
