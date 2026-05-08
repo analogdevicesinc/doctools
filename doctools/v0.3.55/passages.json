@@ -1,9 +1,14 @@
 {
   "text": [
+    "Analog Devices Inc.\ndocumentation extensions, themes, and tools for multiple repositories in the\norganization.\n\nRead the Documentation guidelines for more documentation rules and information\non the directives and roles packaged on this repository.\n\nAnd read the Command line interface for information",
     "Doctools is the central piece to aggregate multiple documentations together,\nexpanding the documentation standard hierarchical, mono-repo configuration.\nThe content is organized in three levels:\n\n- repotoc: Listing of repositories in the same organization that contain\n  documentations.\n  In general,",
     "A Sphinx themed called *harmonic* (old *cosmic*) is available.\nIt is deeply based on ADI\u2019s *harmonic* design language.\n",
     "`Alt+Shift+ArrowLeft` goes to the previous page and `Alt+Shift+ArrowRight`\nto the next page.\n`Ctrl+Alt+Shift+ArrowLeft/Right` preserves the current page anchor, for example,\nif the current section is *project_0.html#details*, `Ctrl+Alt+Shift+ArrowRight`\ngoes to *project_1.html#details*, even if *det",
-    "Analog Devices Inc.\ndocumentation extensions, themes, and tools for multiple repositories in the\norganization.\n\nRead the Documentation guidelines for more documentation rules and information\non the directives and roles packaged on this repository.\n\nAnd read the Command line interface for information",
+    "Doctools has a continuous deployment integration pipeline that works as follows:\n\n```default\n                   \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n                \u250c\u2500\u25ba\u2502Build Doc & Deploy\u251c\u2500\u2510\n                \u2502  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518 \u2502\n                \u2502                       \u2502\n\u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510 \u2502  \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510   \u2502",
+    "Doctools is developed to work offline, in a local server, as a rolling release\n(e.g. on GitHub Page)s and versioned in a dedicated server (with orchestration).\n",
+    "For offline and local server, a `make html` suffice to generate the\ndocumentation.\n\nTo serve the build in a local server, Python built-in server can be used:\n\n```bash\n~$ python -m http.server -d /path/to/docs/_build/html\n```\n\n\nOr with hot reload using Serve:\n\n```bash\n~$ adoc serve -d /path/to/docs\n`",
+    "For a rolling release, a workflow file is used.\n\nWith GitHub Actions, the following workflow file is recommended:\n\n```yaml\non:\n  push:\n    branches:\n      - main\n  pull_request:\n\njobs:\n  build-doc:\n    runs-on: ubuntu-latest\n\n    steps:\n    - uses: actions/checkout@v4\n    - uses: actions/setup-pytho",
+    "The live versioned version requires additional orchestration than the\nRolling release.\nStore each version in separated folders in the root path, e.g.\n`v1.1`, `v2.2`, `main`, `dev` and generate a `tags.json`\ncontaining a plain array with each version on the root path,\ne.g. `[\"v1.1\", \"v2.2\", \"main\", \"",
     "Below is described how to do a release install and a development install of Doctools.\n\nGuarantee to work with Python newer than 3.8 and distros released on or after 20H1\n(e.g. Ubuntu 20.04 LTS).\n",
     "Ensure pip is newer than 23.0 [1]:\n\n```bash\n~$ pip install pip --upgrade\n```\n\n\nInstall the documentation tools, which will fetch this repository release:\n\n```bash\n~$ (cd docs ; pip install -r requirements.txt)\n```\n\n\nTest it building this documentation:\n\n```bash\n~$ (cd docs ; make html)\n```\n\n\nThere i",
     "Installing packages at user level through pip is not always recommended, instead,\nconsider using a Python virtual environment (`python3-venv` on ubuntu 22.04).\n\nTo create and activate the environment, do before the previous instructions:\n\n```bash\n~$ python3 -m venv venv\n~$ source venv/bin/activate\n`",
@@ -12,11 +17,6 @@
     "Fetch third-party fonts:\n\n```bash\n~$ ./ci/fetch-fonts.sh\n```\n",
     "Finally, do a symbolic install of this repo:\n\n```bash\n~$ pip install -e . --upgrade\n```\n\n\n> **Caution**\n>\n> If using a python virtual enviroment for the *requirements.txt* packages.\n> do this command with the virtual enviroment already activated.\n> Mixing pip packages inside and outside the virtual ",
     "To remove, either release or development, do:\n\n```bash\n~$ pip uninstall adi-doctools\n```\n",
-    "Doctools has a continuous deployment integration pipeline that works as follows:\n\n```default\n                   \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n                \u250c\u2500\u25ba\u2502Build Doc & Deploy\u251c\u2500\u2510\n                \u2502  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518 \u2502\n                \u2502                       \u2502\n\u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510 \u2502  \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510   \u2502",
-    "Doctools is developed to work offline, in a local server, as a rolling release\n(e.g. on GitHub Page)s and versioned in a dedicated server (with orchestration).\n",
-    "For offline and local server, a `make html` suffice to generate the\ndocumentation.\n\nTo serve the build in a local server, Python built-in server can be used:\n\n```bash\n~$ python -m http.server -d /path/to/docs/_build/html\n```\n\n\nOr with hot reload using Serve:\n\n```bash\n~$ adoc serve -d /path/to/docs\n`",
-    "For a rolling release, a workflow file is used.\n\nWith GitHub Actions, the following workflow file is recommended:\n\n```yaml\non:\n  push:\n    branches:\n      - main\n  pull_request:\n\njobs:\n  build-doc:\n    runs-on: ubuntu-latest\n\n    steps:\n    - uses: actions/checkout@v4\n    - uses: actions/setup-pytho",
-    "The live versioned version requires additional orchestration than the\nRolling release.\nStore each version in separated folders in the root path, e.g.\n`v1.1`, `v2.2`, `main`, `dev` and generate a `tags.json`\ncontaining a plain array with each version on the root path,\ne.g. `[\"v1.1\", \"v2.2\", \"main\", \"",
     "The Doctools bundles a command line interface called `adoc` meant to ease both\ncontinuous integration and local builds of the documentation.\n\nBelow, it is briefly described each command, and it is worth noting that every\ncommand supports the `--help` option for quick look up.\n",
     "Watches the docs and source code to rebuild it on edit.\nSimilar to `mkdocs serve`, `webpack serve`, `npm run start`, `hugo server`,\nand so on.\n\nTwo HTML live update strategies are available:\n\n- pooling: The webpage pools timestamp changes on the `.dev-pool` file (default).\n- selenium: Page reloads t",
     "Run `make clean` in another tab, it will trigger a full rebuild.\n\nDo **not** do `make clean html` since it will generate a build without the\nproper Serve environment and live reload won\u2019t work properly.\n",
@@ -75,10 +75,15 @@
     "Dynamic elements refer to sections of the generated webpage that updates when\nloaded online from a source of truth, in general, `doctools/*.json` files;\nit uses a concept similar to \u201creact components\u201d.\n\nThese `*.json` files are generated when `export_metadata` is true in the\n`conf.py`.\nFrom the Java"
   ],
   "url": [
+    "index.html",
     "fundamentals.html#documentation-hierarchical-structure",
     "theme.html",
     "theme.html#shortcuts",
-    "index.html",
+    "ci.html#doctools-package-pipeline",
+    "ci.html#documentation-build-and-deployment",
+    "ci.html#local",
+    "ci.html#rolling-release",
+    "ci.html#versioned",
     "install.html",
     "install.html#release-install",
     "install.html#using-a-python-virtual-environment",
@@ -87,11 +92,6 @@
     "install.html#fetch-third-party-resources",
     "install.html#install-the-repository",
     "install.html#removing",
-    "ci.html#doctools-package-pipeline",
-    "ci.html#documentation-build-and-deployment",
-    "ci.html#local",
-    "ci.html#rolling-release",
-    "ci.html#versioned",
     "cli.html",
     "cli.html#serve",
     "cli.html#how-can-i-rebuild-the-whole-documentation-within-serve",
@@ -151,6 +151,9 @@
   ],
   "hierarchy": [
     [
+      "Analog Devices Doctools"
+    ],
+    [
       "Fundamentals",
       "Documentation hierarchical structure"
     ],
@@ -162,7 +165,27 @@
       "Shortcuts"
     ],
     [
-      "Analog Devices Doctools"
+      "Continuous integration",
+      "Doctools package pipeline"
+    ],
+    [
+      "Continuous integration",
+      "Documentation build and deployment"
+    ],
+    [
+      "Continuous integration",
+      "Documentation build and deployment",
+      "Local"
+    ],
+    [
+      "Continuous integration",
+      "Documentation build and deployment",
+      "Rolling release"
+    ],
+    [
+      "Continuous integration",
+      "Documentation build and deployment",
+      "Versioned"
     ],
     [
       "Installing"
@@ -198,29 +221,6 @@
     [
       "Installing",
       "Removing"
-    ],
-    [
-      "Continuous integration",
-      "Doctools package pipeline"
-    ],
-    [
-      "Continuous integration",
-      "Documentation build and deployment"
-    ],
-    [
-      "Continuous integration",
-      "Documentation build and deployment",
-      "Local"
-    ],
-    [
-      "Continuous integration",
-      "Documentation build and deployment",
-      "Rolling release"
-    ],
-    [
-      "Continuous integration",
-      "Documentation build and deployment",
-      "Versioned"
     ],
     [
       "Command line interface"

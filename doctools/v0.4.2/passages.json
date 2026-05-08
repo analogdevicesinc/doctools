@@ -1,9 +1,19 @@
 {
   "text": [
-    "A Sphinx themed called *harmonic* (old *cosmic*) is available.\nIt is deeply based on ADI\u2019s *harmonic* design language.\n",
-    "`Alt+Shift+ArrowLeft` goes to the previous page and `Alt+Shift+ArrowRight`\nto the next page.\nAlternatively `Alt+Shift+A` and `Alt+Shift+D`.\n`Ctrl+Alt+Shift+ArrowLeft/Right` preserves the current page anchor, for example,\nif the current section is *project_0.html#details*, `Ctrl+Alt+Shift+ArrowRight`",
     "Analog Devices Inc.\ndocumentation extensions, themes, and tools for multiple repositories in the\norganization.\n\nRead the Documentation guidelines for more documentation rules and information\non the directives and roles packaged on this repository.\n\nAnd read the Command line interface for information",
     "Doctools is the central piece to aggregate multiple documentations together,\nexpanding the documentation standard hierarchical, mono-repo configuration.\nThe content is organized in three levels:\n\n- repotoc: Listing of repositories in the same organization that contain\n  documentations.\n  In general,",
+    "A Sphinx themed called *harmonic* (old *cosmic*) is available.\nIt is deeply based on ADI\u2019s *harmonic* design language.\n",
+    "`Alt+Shift+ArrowLeft` goes to the previous page and `Alt+Shift+ArrowRight`\nto the next page.\nAlternatively `Alt+Shift+A` and `Alt+Shift+D`.\n`Ctrl+Alt+Shift+ArrowLeft/Right` preserves the current page anchor, for example,\nif the current section is *project_0.html#details*, `Ctrl+Alt+Shift+ArrowRight`",
+    "The Doctools bundles a command line interface called `adoc` meant to ease both\ncontinuous integration and local builds of the documentation.\n\nBelow, it is briefly described each command, and it is worth noting that every\ncommand supports the `--help` option for quick look up.\n",
+    "Watches the docs and source code to rebuild it on edit.\nSimilar to `mkdocs serve`, `webpack serve`, `npm run start`, `hugo server`,\nand so on.\n\nTwo HTML live update strategies are available:\n\n- pooling: The webpage pools timestamp changes on the `.dev-pool` file (default).\n- selenium: Page reloads t",
+    "Run `make clean` in another tab, it will trigger a full rebuild.\n\nDo **not** do `make clean html` since it will generate a build without the\nproper Serve environment and live reload won\u2019t work properly.\n",
+    "You probably did a Development install without Install the web compiler\nand you are building directly (`make html`) instead of using Serve.\n\nIf you don\u2019t want to install `npm`, use Serve and accept the prompt to\nfetch the pre-built web-scripts from the latest release.\n",
+    "Since a Python scripts change would affect rebuilding the whole documentation,\nthose files are not watched by design even with the `--dev` option.\nExtensions at the doc itself are, however.\n\nAlternatively, touch the source doc of the open page to rebuild only it\nwith the edited Python code.\n",
+    "Solely to match other tools like `mkdocs serve`, `webpack serve`,\n`npm run start`, `hugo server`.\n",
+    "Generates custom documents with filtered content from all documentations of the\nwatched repositories (see adi_doctools/lut.py).\n\nFor PDF output, WeasyPrint is used (ensure to install it).\n\nTo quick start, run the tool twice in an empty directly.\n\n```bash\n~$ cd /tmp/my_doc\n/tmp/my_doc$ adoc custom-do",
+    "Suppose you edited and tested multiple docs together, it could be useful\nhelpful to try a local inventory file first, to check references before publication.\n\nHaving this in mind, if you build the edited documentation first, and then execute\n`custom-doc`, it will consider the local inventory *object",
+    "> **Tip**\n>\n> This feature is useful to batch build/test all tracked documentations.\n\n\nGenerates all documentations of the watched repositories\n(see adi_doctools/lut.py).\n\nTwo generation strategies are available:\n\n- monolithic: patches all docs together into a single monolithic output (default).\n- s",
+    "Exposes the HDL component diagram generator as a CLI.\nIt converts IP-XACT files into SVGs.\n\nTo generate and open the diagram, provide the path containing the IP-XACT and use\nthe `--open` option:\n\n```bash\n~$ adoc hdl-render --input PATH --open\n```\n\n\nFor example:\n\n```bash\n~$ adoc hdl-render --input hd",
     "Below is described how to do a release install and a development install of Doctools.\n\nGuarantee to work with Python newer than 3.8 and distros released on or after 20H1\n(e.g. Ubuntu 20.04 LTS).\n",
     "Ensure pip is newer than 23.0 [1]:\n\n```bash\n~$ pip install pip --upgrade\n```\n\n\nInstall the documentation tools, which will fetch this repository release:\n\n```bash\n~$ (cd docs ; pip install -r requirements.txt)\n```\n\n\nTest it building this documentation:\n\n```bash\n~$ (cd docs ; make html)\n```\n\n\nThere i",
     "Installing packages at user level through pip is not always recommended, instead,\nconsider using a Python virtual environment (`python3-venv` on ubuntu 22.04).\n\nTo create and activate the environment, do before the previous instructions:\n\n```bash\n~$ python3 -m venv venv\n~$ source venv/bin/activate\n`",
@@ -22,6 +32,32 @@
     "The ez role creates links to the Analog Devices Inc. EngineerZone support website.\nThe role syntax is `:ez:`community``, for example, `:ez:`fpga``\ngets rendered as EngineerZone.\n\nFor Linux Software Drivers, it is `:ez:`linux-software-drivers``.\n\nFor Microcontroller no-OS Drivers it is `:ez:`microcon",
     "The vendor role creates links to the vendor\u2019s website.\nThe role syntax is `:vendor:`text <path>``, for example,\n`:xilinx:`Zynq-7000 SoC Overview <support/documentation/data_sheets/ds190-Zynq-7000-Overview.pdf>``\ngets rendered\nZynq-7000 SoC Overview.\n\nThe text parameter is optional, if absent, the fi",
     "The supplier role creates links to a vendor\u2019s website search.\nThe role syntax is `:vendor:`text <path>``, for example,\n`:digikey:`AD9081-FMCA-EBZ``\ngets rendered\nAD9081-FMCA-EBZ.\n\nThe text parameter is optional.\n\nSupported vendors are: `digikey` (Digikey), `mouser` (Mouser) and\n`arrow` (Arrow).\n",
+    "Doctools has a continuous deployment integration pipeline that works as follows:\n\n```default\n                   \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n                \u250c\u2500\u25ba\u2502Build Doc Latest  \u251c\u2500\u2510\n                \u2502  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518 \u2502\n                \u2502                       \u2502\n\u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510 \u2502  \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510   \u2502",
+    "Doctools is developed to work offline, in a local server, as a rolling release\n(e.g. on GitHub Page)s and versioned in a dedicated server (with orchestration).\n",
+    "For offline and local server, a `make html` suffice to generate the\ndocumentation.\n\nTo serve the build in a local server, Python built-in server can be used:\n\n```bash\n~$ python -m http.server -d /path/to/docs/_build/html\n```\n\n\nOr with hot reload using Serve:\n\n```bash\n~$ adoc serve -d /path/to/docs\n`",
+    "For a rolling release, a workflow file is used.\n\nWith GitHub Actions, the following workflow file is recommended:\n\n```yaml\non:\n  push:\n    branches:\n      - main\n  pull_request:\n\njobs:\n  build-doc:\n    runs-on: ubuntu-latest\n\n    steps:\n    - uses: actions/checkout@v4\n    - uses: actions/setup-pytho",
+    "The live versioned version requires additional orchestration than the\nRolling release.\n\nThe versions are described in `tags.json` file on the root path\nthat can take two formats, one simpler with a plain string array and other\nfine-grained to allow full control.\n\nBut first, store each version in sep",
+    "The simple `tags.json` is a plain array with each version/path on the\nand generate a `tags.json`, e.g. `[\"v1.1\", \"v2.2\", \"main\", \"dev\", \"\"]`\n(a empty string means there is a built doc on the root and will be named\n`main (unstable)`).\nThe first tag will be labeled with `latest`.\n\n> **Tip**\n>\n> See th",
+    "The more elaborated option takes the following format:\n\n```json\n{\n  \"path\": [\"name\", \"label\"],\n  // ...\n}\n```\n\n\nFor example:\n\n```json\n{\n  \"main\": [\"main\", \"unstable\"],\n  \"v2.0.0\": [\"v2.0.0\", \"pre-release\"],\n  \"v1.2.1\": [\"v1.2.1\", \"latest\"],\n  \"v1.2.0\": [\"v1.2.0\", \"\"],\n  \"v1.1.7\": [\"v1.1.7\", \"\"],\n  \"",
+    "If the root does not contain any built doc, add a redirect HTML file pointing\nto the main/stable version:\n\n```default\n<!DOCTYPE html>\n<html>\n  <head>\n    <meta http-equiv=\"refresh\" content=\"0; url=main/index.html\" />\n  </head>\n</html>\n```\n",
+    "For In organization reference, the doc shall target a specific version by suffixing\nthe target the version on the `interref_repos` variable, e.g.\n`interref_repos = ['pyadi-iio/dev', 'other-repo/v1.1']`.\n",
+    "Previously there was also a `ADOC_TARGET_DEPTH` enviroment variables\nto create full relative links between versions, but this was deprecated\nby instead just using the root `/` for those links, e.g.\n`/doctools/v1.0.0` instead of `../../../doctools/v1.0.0` from\n`doctools/v2.0.0/some/page.html`.\n\nThis ",
+    "To allow disposing content in a tabular manner but still respecting the multiple\nscreen sizes and both HTML and PDF output, two container directives are available,\n`flex` and `grid`.\n",
+    "The grid directive implements a subset of\nCSS Flex.\nAnd is used to dipose elements without worrying about number of columns and sizes,\nwhile still obtaining a fairly good result.\n\n```rst\n.. flex::\n```\n",
+    "The grid directive implements a subset of\nCSS Grids.\nAnd is used to dipose elements with exact number of columns and width control.\n\n```rst\n.. grid::\n   :widths: 25 25% 150px\n```\n\n\nThe `widths` options allow units (`px`, `%`, etc) and without an explicit\nunit it is inferred percentile.\nThis option i",
+    "A simple directive to\nclear\nthe content, forcing any following content to be moved below any preceding\ncontent.\nIt is useful when working with images\naligned/float\nleft/right and wants to ensure the next section does not also gets \u201csquashed\u201d.\n\n```rst\n.. clear-content::\n   :side: [both,left,right]\n  ",
+    "The shell directive allows to embed shell code in a standard way.\n\n```rst\n.. shell:: [bash,sh,zsh,ps1]\n   :user: <user>\n   :group: <group>\n   :caption: <caption>\n   :show-user:\n   :no-path:\n\n   /path_absolute\n   ~path_relative_to_home\n   $command\n    output\n```\n\n\nThat means, each line is prefixed by",
+    "The SVG directive embeds a SVG image directly onto the page, having it share\nthe same DOM sandbox as the page.\n\nThis allows the SVG image to contain links and interactive content, such as\nhover effects.\n\nThe syntax is:\n\n```rst\n.. svg:: <file>\n   :align: [left,center,right]\n\n   <caption>\n```\n\n\nAt it\u2019",
+    "The collapsible directive creates a collapsible/dropdown/\u201dHTML details\u201d.\n\nThe directive syntax is:\n\n```rst\n.. collapsible:: <label>\n\n   <content>\n```\n\n\nFor example:\n\n```rst\n.. collapsible:: Python code example.\n\n   .. code:: python\n\n      print(\"Hello World!\")\n```\n\n\nRenders as:\n\nPython code example.",
+    "The video directive creates a embedded video.\nCurrently, direct MP4 and youtube embed links  are supported, but could be easily\nexpanded to support third-party services.\n\nThe directive syntax is:\n\n```rst\n.. video:: <url>\n   :align: [left,center,right]\n\n   <caption>\n```\n\n\nAlways add a caption to the ",
+    "The ESD warning directive creates a ESD warning, for example:\n\n```rst\n.. esd-warning::\n```\n\n\nRenders as:\n\n> **Warning**\n>\n> All the products described on this page include ESD (electrostatic discharge) sensitive devices. Electrostatic charges as high as 4000V readily accumulate on the human body or ",
+    "The directives in this section target the ADI HDL repository documentation.\n",
+    "The HDL build status directive gets information from a markdown formatted status\ntable (*output.md*) and generates a table with the build statuses.\n\nThe directive syntax is:\n\n```rst\n.. hdl-build-status::\n   :file: <build_status_file>\n```\n\n\nThe `:path:` option is optional, in the sense that if it\u2019s n",
+    "The HDL parameters directive gets information parsed from IP-XACT (*component.xml*)\nlibrary and generates a table with the IP parameters.\n\n> **Note**\n>\n> The IP-XACT files are generated by Vivado during the library build and not by\n> the documentation tooling.\n\n\nThe directive syntax is:\n\n```rst\n.. h",
+    "The HDL interfaces directive gets information parsed from *component.xml* library\nand generates tables with the IP interfaces, both buses and ports.\n\n> **Note**\n>\n> The *component.xml* files are generated by Vivado during the library build\n> and not by the documentation tooling.\n\n\nThe directive synt",
+    "The HDL component diagram directive gets information parsed from *component.xml*\nlibrary and generates a component diagram for the IP with buses and ports\ninformation.\n\n> **Note**\n>\n> The *component.xml* files are generated by Vivado during the library build\n> and not by the documentation tooling.\n\n",
+    "The HDL regmap directive gets information from *docs/regmap/adi_regmap_*.txt* files\nand generates tables with the register maps.\n\nThe directive syntax is:\n\n```rst\n.. hdl-regmap::\n   :name: <regmap_name>\n   :no-type-info:\n```\n\n\nFor example:\n\n```rst\n.. hdl-regmap::\n   :name: DMAC\n```\n\n\n> **Note**\n>\n> ",
+    "Set `hide_collapsible_content` to `True` to hide the *collapsibles* by default.\n\nSet `monolithic` to `True` prefix paths with *<repo>*.\nThis is meant for the Custom Doc custom documents only.\n",
     "A brief set-of-rules for the documentation.\n\n> **Note**\n>\n> The old wiki uses dokuwiki. When\n> importing text from there, consider the automated options that are provided\n> in this page to convert it to reST.\n",
     "Use the following command to import a DokuWiki page (old *wiki.analog.com*):\n\n```bash\npandoc imported.txt -f dokuwiki -t rst --columns=80 -s -o imported.rst --list-tables\n```\n\n\nThe `list-tables` parameter requires *pandoc-types* >= 1.23, included in any\nrecent pandoc release;\nif it is not an option,",
     "Directives are indented with 3 space, which is Sphinx\u2019s default.\nAt code directives, the code keeps its original indentation (e.g. 2 spaces for\nVerilog code), but is offset by 3 spaces at the beginning of every line, to\ninstruct Sphinx the beginning and end of the code directive.\n",
@@ -43,49 +79,23 @@
     "Third-party tools are used to expand Sphinx functionality, if you haven\u2019t already,\ndo:\n\n```bash\npip install -r requirements.txt\n```\n",
     "To expand Sphinx functionality beyond existing tools, custom directives and roles\nhave been written, which are located in the *docs/extensions* folder.\nExtensions are straight forward to create, if some functionality is missing,\nconsider requesting or creating one.\n\n- Custom directives\n- Custom role",
     "The **More information** and **Support** sections that are present in\nthe HDL project documentation, are actually separate pages inserted as links.\nThey\u2019re located at *hdl/projects/common/more_information.rst* and */support.rst*,\nand cannot be referenced here because they don\u2019t have an ID at the beg",
-    "Dynamic elements refer to sections of the documentation that are updated using\ndynamically loaded metadata, scripts, and styles (modules).\n\nThe dynamic elements implemented:\n\n- `doctools/metadata.json`:\n  The navigation bar at the top (`repotoc` entry).\n  A banner at the top (`banner` entry).\n\n\nThe ",
-    "Doctools has a continuous deployment integration pipeline that works as follows:\n\n```default\n                   \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n                \u250c\u2500\u25ba\u2502Build Doc Latest  \u251c\u2500\u2510\n                \u2502  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518 \u2502\n                \u2502                       \u2502\n\u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510 \u2502  \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510   \u2502",
-    "Doctools is developed to work offline, in a local server, as a rolling release\n(e.g. on GitHub Page)s and versioned in a dedicated server (with orchestration).\n",
-    "For offline and local server, a `make html` suffice to generate the\ndocumentation.\n\nTo serve the build in a local server, Python built-in server can be used:\n\n```bash\n~$ python -m http.server -d /path/to/docs/_build/html\n```\n\n\nOr with hot reload using Serve:\n\n```bash\n~$ adoc serve -d /path/to/docs\n`",
-    "For a rolling release, a workflow file is used.\n\nWith GitHub Actions, the following workflow file is recommended:\n\n```yaml\non:\n  push:\n    branches:\n      - main\n  pull_request:\n\njobs:\n  build-doc:\n    runs-on: ubuntu-latest\n\n    steps:\n    - uses: actions/checkout@v4\n    - uses: actions/setup-pytho",
-    "The live versioned version requires additional orchestration than the\nRolling release.\n\nThe versions are described in `tags.json` file on the root path\nthat can take two formats, one simpler with a plain string array and other\nfine-grained to allow full control.\n\nBut first, store each version in sep",
-    "The simple `tags.json` is a plain array with each version/path on the\nand generate a `tags.json`, e.g. `[\"v1.1\", \"v2.2\", \"main\", \"dev\", \"\"]`\n(a empty string means there is a built doc on the root and will be named\n`main (unstable)`).\nThe first tag will be labeled with `latest`.\n\n> **Tip**\n>\n> See th",
-    "The more elaborated option takes the following format:\n\n```json\n{\n  \"path\": [\"name\", \"label\"],\n  // ...\n}\n```\n\n\nFor example:\n\n```json\n{\n  \"main\": [\"main\", \"unstable\"],\n  \"v2.0.0\": [\"v2.0.0\", \"pre-release\"],\n  \"v1.2.1\": [\"v1.2.1\", \"latest\"],\n  \"v1.2.0\": [\"v1.2.0\", \"\"],\n  \"v1.1.7\": [\"v1.1.7\", \"\"],\n  \"",
-    "If the root does not contain any built doc, add a redirect HTML file pointing\nto the main/stable version:\n\n```default\n<!DOCTYPE html>\n<html>\n  <head>\n    <meta http-equiv=\"refresh\" content=\"0; url=main/index.html\" />\n  </head>\n</html>\n```\n",
-    "For In organization reference, the doc shall target a specific version by suffixing\nthe target the version on the `interref_repos` variable, e.g.\n`interref_repos = ['pyadi-iio/dev', 'other-repo/v1.1']`.\n",
-    "Previously there was also a `ADOC_TARGET_DEPTH` enviroment variables\nto create full relative links between versions, but this was deprecated\nby instead just using the root `/` for those links, e.g.\n`/doctools/v1.0.0` instead of `../../../doctools/v1.0.0` from\n`doctools/v2.0.0/some/page.html`.\n\nThis ",
-    "The Doctools bundles a command line interface called `adoc` meant to ease both\ncontinuous integration and local builds of the documentation.\n\nBelow, it is briefly described each command, and it is worth noting that every\ncommand supports the `--help` option for quick look up.\n",
-    "Watches the docs and source code to rebuild it on edit.\nSimilar to `mkdocs serve`, `webpack serve`, `npm run start`, `hugo server`,\nand so on.\n\nTwo HTML live update strategies are available:\n\n- pooling: The webpage pools timestamp changes on the `.dev-pool` file (default).\n- selenium: Page reloads t",
-    "Run `make clean` in another tab, it will trigger a full rebuild.\n\nDo **not** do `make clean html` since it will generate a build without the\nproper Serve environment and live reload won\u2019t work properly.\n",
-    "You probably did a Development install without Install the web compiler\nand you are building directly (`make html`) instead of using Serve.\n\nIf you don\u2019t want to install `npm`, use Serve and accept the prompt to\nfetch the pre-built web-scripts from the latest release.\n",
-    "Since a Python scripts change would affect rebuilding the whole documentation,\nthose files are not watched by design even with the `--dev` option.\nExtensions at the doc itself are, however.\n\nAlternatively, touch the source doc of the open page to rebuild only it\nwith the edited Python code.\n",
-    "Solely to match other tools like `mkdocs serve`, `webpack serve`,\n`npm run start`, `hugo server`.\n",
-    "Generates custom documents with filtered content from all documentations of the\nwatched repositories (see adi_doctools/lut.py).\n\nFor PDF output, WeasyPrint is used (ensure to install it).\n\nTo quick start, run the tool twice in an empty directly.\n\n```bash\n~$ cd /tmp/my_doc\n/tmp/my_doc$ adoc custom-do",
-    "Suppose you edited and tested multiple docs together, it could be useful\nhelpful to try a local inventory file first, to check references before publication.\n\nHaving this in mind, if you build the edited documentation first, and then execute\n`custom-doc`, it will consider the local inventory *object",
-    "> **Tip**\n>\n> This feature is useful to batch build/test all tracked documentations.\n\n\nGenerates all documentations of the watched repositories\n(see adi_doctools/lut.py).\n\nTwo generation strategies are available:\n\n- monolithic: patches all docs together into a single monolithic output (default).\n- s",
-    "Exposes the HDL component diagram generator as a CLI.\nIt converts IP-XACT files into SVGs.\n\nTo generate and open the diagram, provide the path containing the IP-XACT and use\nthe `--open` option:\n\n```bash\n~$ adoc hdl-render --input PATH --open\n```\n\n\nFor example:\n\n```bash\n~$ adoc hdl-render --input hd",
-    "To allow disposing content in a tabular manner but still respecting the multiple\nscreen sizes and both HTML and PDF output, two container directives are available,\n`flex` and `grid`.\n",
-    "The grid directive implements a subset of\nCSS Flex.\nAnd is used to dipose elements without worrying about number of columns and sizes,\nwhile still obtaining a fairly good result.\n\n```rst\n.. flex::\n```\n",
-    "The grid directive implements a subset of\nCSS Grids.\nAnd is used to dipose elements with exact number of columns and width control.\n\n```rst\n.. grid::\n   :widths: 25 25% 150px\n```\n\n\nThe `widths` options allow units (`px`, `%`, etc) and without an explicit\nunit it is inferred percentile.\nThis option i",
-    "A simple directive to\nclear\nthe content, forcing any following content to be moved below any preceding\ncontent.\nIt is useful when working with images\naligned/float\nleft/right and wants to ensure the next section does not also gets \u201csquashed\u201d.\n\n```rst\n.. clear-content::\n   :side: [both,left,right]\n  ",
-    "The shell directive allows to embed shell code in a standard way.\n\n```rst\n.. shell:: [bash,sh,zsh,ps1]\n   :user: <user>\n   :group: <group>\n   :caption: <caption>\n   :show-user:\n   :no-path:\n\n   /path_absolute\n   ~path_relative_to_home\n   $command\n    output\n```\n\n\nThat means, each line is prefixed by",
-    "The SVG directive embeds a SVG image directly onto the page, having it share\nthe same DOM sandbox as the page.\n\nThis allows the SVG image to contain links and interactive content, such as\nhover effects.\n\nThe syntax is:\n\n```rst\n.. svg:: <file>\n   :align: [left,center,right]\n\n   <caption>\n```\n\n\nAt it\u2019",
-    "The collapsible directive creates a collapsible/dropdown/\u201dHTML details\u201d.\n\nThe directive syntax is:\n\n```rst\n.. collapsible:: <label>\n\n   <content>\n```\n\n\nFor example:\n\n```rst\n.. collapsible:: Python code example.\n\n   .. code:: python\n\n      print(\"Hello World!\")\n```\n\n\nRenders as:\n\nPython code example.",
-    "The video directive creates a embedded video.\nCurrently, direct MP4 and youtube embed links  are supported, but could be easily\nexpanded to support third-party services.\n\nThe directive syntax is:\n\n```rst\n.. video:: <url>\n   :align: [left,center,right]\n\n   <caption>\n```\n\n\nAlways add a caption to the ",
-    "The ESD warning directive creates a ESD warning, for example:\n\n```rst\n.. esd-warning::\n```\n\n\nRenders as:\n\n> **Warning**\n>\n> All the products described on this page include ESD (electrostatic discharge) sensitive devices. Electrostatic charges as high as 4000V readily accumulate on the human body or ",
-    "The directives in this section target the ADI HDL repository documentation.\n",
-    "The HDL build status directive gets information from a markdown formatted status\ntable (*output.md*) and generates a table with the build statuses.\n\nThe directive syntax is:\n\n```rst\n.. hdl-build-status::\n   :file: <build_status_file>\n```\n\n\nThe `:path:` option is optional, in the sense that if it\u2019s n",
-    "The HDL parameters directive gets information parsed from IP-XACT (*component.xml*)\nlibrary and generates a table with the IP parameters.\n\n> **Note**\n>\n> The IP-XACT files are generated by Vivado during the library build and not by\n> the documentation tooling.\n\n\nThe directive syntax is:\n\n```rst\n.. h",
-    "The HDL interfaces directive gets information parsed from *component.xml* library\nand generates tables with the IP interfaces, both buses and ports.\n\n> **Note**\n>\n> The *component.xml* files are generated by Vivado during the library build\n> and not by the documentation tooling.\n\n\nThe directive synt",
-    "The HDL component diagram directive gets information parsed from *component.xml*\nlibrary and generates a component diagram for the IP with buses and ports\ninformation.\n\n> **Note**\n>\n> The *component.xml* files are generated by Vivado during the library build\n> and not by the documentation tooling.\n\n",
-    "The HDL regmap directive gets information from *docs/regmap/adi_regmap_*.txt* files\nand generates tables with the register maps.\n\nThe directive syntax is:\n\n```rst\n.. hdl-regmap::\n   :name: <regmap_name>\n   :no-type-info:\n```\n\n\nFor example:\n\n```rst\n.. hdl-regmap::\n   :name: DMAC\n```\n\n\n> **Note**\n>\n> ",
-    "Set `hide_collapsible_content` to `True` to hide the *collapsibles* by default.\n\nSet `monolithic` to `True` prefix paths with *<repo>*.\nThis is meant for the Custom Doc custom documents only.\n"
+    "Dynamic elements refer to sections of the documentation that are updated using\ndynamically loaded metadata, scripts, and styles (modules).\n\nThe dynamic elements implemented:\n\n- `doctools/metadata.json`:\n  The navigation bar at the top (`repotoc` entry).\n  A banner at the top (`banner` entry).\n\n\nThe "
   ],
   "url": [
-    "theme.html",
-    "theme.html#shortcuts",
     "index.html",
     "fundamentals.html#documentation-hierarchical-structure",
+    "theme.html",
+    "theme.html#shortcuts",
+    "cli.html",
+    "cli.html#serve",
+    "cli.html#how-can-i-rebuild-the-whole-documentation-within-serve",
+    "cli.html#why-is-the-output-missing-styling-css-stylesheet",
+    "cli.html#why-is-the-python-source-code-of-this-repo-not-watched",
+    "cli.html#why-was-author-mode-renamed-to-serve",
+    "cli.html#custom-doc",
+    "cli.html#working-with-multiple-docs",
+    "cli.html#aggregate",
+    "cli.html#hdl-render",
     "install.html",
     "install.html#release-install",
     "install.html#using-a-python-virtual-environment",
@@ -104,6 +114,32 @@
     "docs_guidelines/roles.html#engineerzone",
     "docs_guidelines/roles.html#vendor",
     "docs_guidelines/roles.html#supplier",
+    "ci.html#doctools-package-pipeline",
+    "ci.html#documentation-build-and-deployment",
+    "ci.html#local",
+    "ci.html#rolling-release",
+    "ci.html#versioned",
+    "ci.html#string-array-form",
+    "ci.html#fine-grained-form",
+    "ci.html#i-don-t-want-a-doc-at-the-root",
+    "ci.html#how-do-i-cross-reference-a-specific-version",
+    "ci.html#what-happened-to-adoc-target-depth",
+    "docs_guidelines/directives.html#container",
+    "docs_guidelines/directives.html#flex",
+    "docs_guidelines/directives.html#grid",
+    "docs_guidelines/directives.html#clear-content",
+    "docs_guidelines/directives.html#shell",
+    "docs_guidelines/directives.html#svg",
+    "docs_guidelines/directives.html#collapsible",
+    "docs_guidelines/directives.html#video",
+    "docs_guidelines/directives.html#esd-warning",
+    "docs_guidelines/directives.html#hdl-directives",
+    "docs_guidelines/directives.html#hdl-build-status",
+    "docs_guidelines/directives.html#hdl-parameters",
+    "docs_guidelines/directives.html#hdl-interface",
+    "docs_guidelines/directives.html#hdl-component-diagram",
+    "docs_guidelines/directives.html#hdl-regmap",
+    "docs_guidelines/directives.html#global-options-for-directives",
     "docs_guidelines/index.html",
     "docs_guidelines/index.html#importing-from-dokuwiki-to-sphinx",
     "docs_guidelines/index.html#indentation",
@@ -125,45 +161,16 @@
     "docs_guidelines/index.html#third-party-directives-and-roles",
     "docs_guidelines/index.html#custom-directives-and-roles",
     "docs_guidelines/index.html#hdl-common-sections",
-    "docs_guidelines/index.html#dynamic-elements",
-    "ci.html#doctools-package-pipeline",
-    "ci.html#documentation-build-and-deployment",
-    "ci.html#local",
-    "ci.html#rolling-release",
-    "ci.html#versioned",
-    "ci.html#string-array-form",
-    "ci.html#fine-grained-form",
-    "ci.html#i-don-t-want-a-doc-at-the-root",
-    "ci.html#how-do-i-cross-reference-a-specific-version",
-    "ci.html#what-happened-to-adoc-target-depth",
-    "cli.html",
-    "cli.html#serve",
-    "cli.html#how-can-i-rebuild-the-whole-documentation-within-serve",
-    "cli.html#why-is-the-output-missing-styling-css-stylesheet",
-    "cli.html#why-is-the-python-source-code-of-this-repo-not-watched",
-    "cli.html#why-was-author-mode-renamed-to-serve",
-    "cli.html#custom-doc",
-    "cli.html#working-with-multiple-docs",
-    "cli.html#aggregate",
-    "cli.html#hdl-render",
-    "docs_guidelines/directives.html#container",
-    "docs_guidelines/directives.html#flex",
-    "docs_guidelines/directives.html#grid",
-    "docs_guidelines/directives.html#clear-content",
-    "docs_guidelines/directives.html#shell",
-    "docs_guidelines/directives.html#svg",
-    "docs_guidelines/directives.html#collapsible",
-    "docs_guidelines/directives.html#video",
-    "docs_guidelines/directives.html#esd-warning",
-    "docs_guidelines/directives.html#hdl-directives",
-    "docs_guidelines/directives.html#hdl-build-status",
-    "docs_guidelines/directives.html#hdl-parameters",
-    "docs_guidelines/directives.html#hdl-interface",
-    "docs_guidelines/directives.html#hdl-component-diagram",
-    "docs_guidelines/directives.html#hdl-regmap",
-    "docs_guidelines/directives.html#global-options-for-directives"
+    "docs_guidelines/index.html#dynamic-elements"
   ],
   "hierarchy": [
+    [
+      "Analog Devices Doctools"
+    ],
+    [
+      "Fundamentals",
+      "Documentation hierarchical structure"
+    ],
     [
       "Sphinx theme"
     ],
@@ -172,11 +179,48 @@
       "Shortcuts"
     ],
     [
-      "Analog Devices Doctools"
+      "Command line interface"
     ],
     [
-      "Fundamentals",
-      "Documentation hierarchical structure"
+      "Command line interface",
+      "Serve"
+    ],
+    [
+      "Command line interface",
+      "Serve",
+      "How can I rebuild the whole documentation within Serve?"
+    ],
+    [
+      "Command line interface",
+      "Serve",
+      "Why is the output missing styling (CSS stylesheet)?"
+    ],
+    [
+      "Command line interface",
+      "Serve",
+      "Why is the Python source code of this repo not watched?"
+    ],
+    [
+      "Command line interface",
+      "Serve",
+      "Why was Author Mode renamed to Serve?"
+    ],
+    [
+      "Command line interface",
+      "Custom Doc"
+    ],
+    [
+      "Command line interface",
+      "Custom Doc",
+      "Working with multiple docs"
+    ],
+    [
+      "Command line interface",
+      "Aggregate"
+    ],
+    [
+      "Command line interface",
+      "HDL Render"
     ],
     [
       "Installing"
@@ -258,6 +302,133 @@
       "Custom roles",
       "Link",
       "Supplier"
+    ],
+    [
+      "Continuous integration",
+      "Doctools package pipeline"
+    ],
+    [
+      "Continuous integration",
+      "Documentation build and deployment"
+    ],
+    [
+      "Continuous integration",
+      "Documentation build and deployment",
+      "Local"
+    ],
+    [
+      "Continuous integration",
+      "Documentation build and deployment",
+      "Rolling release"
+    ],
+    [
+      "Continuous integration",
+      "Documentation build and deployment",
+      "Versioned"
+    ],
+    [
+      "Continuous integration",
+      "Documentation build and deployment",
+      "Versioned",
+      "String array form"
+    ],
+    [
+      "Continuous integration",
+      "Documentation build and deployment",
+      "Versioned",
+      "Fine-grained form"
+    ],
+    [
+      "Continuous integration",
+      "Documentation build and deployment",
+      "Versioned",
+      "Further notes",
+      "I don\u2019t want a doc at the root"
+    ],
+    [
+      "Continuous integration",
+      "Documentation build and deployment",
+      "Versioned",
+      "Further notes",
+      "How do I cross-reference a specific version?"
+    ],
+    [
+      "Continuous integration",
+      "Documentation build and deployment",
+      "Versioned",
+      "Further notes",
+      "What happened to ADOC_TARGET_DEPTH?"
+    ],
+    [
+      "Custom directives",
+      "Container"
+    ],
+    [
+      "Custom directives",
+      "Container",
+      "Flex"
+    ],
+    [
+      "Custom directives",
+      "Container",
+      "Grid"
+    ],
+    [
+      "Custom directives",
+      "Clear content"
+    ],
+    [
+      "Custom directives",
+      "Shell"
+    ],
+    [
+      "Custom directives",
+      "SVG"
+    ],
+    [
+      "Custom directives",
+      "Collapsible"
+    ],
+    [
+      "Custom directives",
+      "Video"
+    ],
+    [
+      "Custom directives",
+      "ESD warning"
+    ],
+    [
+      "Custom directives",
+      "HDL directives"
+    ],
+    [
+      "Custom directives",
+      "HDL directives",
+      "HDL build status"
+    ],
+    [
+      "Custom directives",
+      "HDL directives",
+      "HDL parameters"
+    ],
+    [
+      "Custom directives",
+      "HDL directives",
+      "HDL interface"
+    ],
+    [
+      "Custom directives",
+      "HDL directives",
+      "HDL component diagram"
+    ],
+    [
+      "Custom directives",
+      "HDL directives",
+      "HDL regmap"
+    ],
+    [
+      "Custom directives",
+      "Global options for directives"
     ],
     [
       "Documentation guidelines"
@@ -350,177 +521,6 @@
     [
       "Documentation guidelines",
       "Dynamic elements"
-    ],
-    [
-      "Continuous integration",
-      "Doctools package pipeline"
-    ],
-    [
-      "Continuous integration",
-      "Documentation build and deployment"
-    ],
-    [
-      "Continuous integration",
-      "Documentation build and deployment",
-      "Local"
-    ],
-    [
-      "Continuous integration",
-      "Documentation build and deployment",
-      "Rolling release"
-    ],
-    [
-      "Continuous integration",
-      "Documentation build and deployment",
-      "Versioned"
-    ],
-    [
-      "Continuous integration",
-      "Documentation build and deployment",
-      "Versioned",
-      "String array form"
-    ],
-    [
-      "Continuous integration",
-      "Documentation build and deployment",
-      "Versioned",
-      "Fine-grained form"
-    ],
-    [
-      "Continuous integration",
-      "Documentation build and deployment",
-      "Versioned",
-      "Further notes",
-      "I don\u2019t want a doc at the root"
-    ],
-    [
-      "Continuous integration",
-      "Documentation build and deployment",
-      "Versioned",
-      "Further notes",
-      "How do I cross-reference a specific version?"
-    ],
-    [
-      "Continuous integration",
-      "Documentation build and deployment",
-      "Versioned",
-      "Further notes",
-      "What happened to ADOC_TARGET_DEPTH?"
-    ],
-    [
-      "Command line interface"
-    ],
-    [
-      "Command line interface",
-      "Serve"
-    ],
-    [
-      "Command line interface",
-      "Serve",
-      "How can I rebuild the whole documentation within Serve?"
-    ],
-    [
-      "Command line interface",
-      "Serve",
-      "Why is the output missing styling (CSS stylesheet)?"
-    ],
-    [
-      "Command line interface",
-      "Serve",
-      "Why is the Python source code of this repo not watched?"
-    ],
-    [
-      "Command line interface",
-      "Serve",
-      "Why was Author Mode renamed to Serve?"
-    ],
-    [
-      "Command line interface",
-      "Custom Doc"
-    ],
-    [
-      "Command line interface",
-      "Custom Doc",
-      "Working with multiple docs"
-    ],
-    [
-      "Command line interface",
-      "Aggregate"
-    ],
-    [
-      "Command line interface",
-      "HDL Render"
-    ],
-    [
-      "Custom directives",
-      "Container"
-    ],
-    [
-      "Custom directives",
-      "Container",
-      "Flex"
-    ],
-    [
-      "Custom directives",
-      "Container",
-      "Grid"
-    ],
-    [
-      "Custom directives",
-      "Clear content"
-    ],
-    [
-      "Custom directives",
-      "Shell"
-    ],
-    [
-      "Custom directives",
-      "SVG"
-    ],
-    [
-      "Custom directives",
-      "Collapsible"
-    ],
-    [
-      "Custom directives",
-      "Video"
-    ],
-    [
-      "Custom directives",
-      "ESD warning"
-    ],
-    [
-      "Custom directives",
-      "HDL directives"
-    ],
-    [
-      "Custom directives",
-      "HDL directives",
-      "HDL build status"
-    ],
-    [
-      "Custom directives",
-      "HDL directives",
-      "HDL parameters"
-    ],
-    [
-      "Custom directives",
-      "HDL directives",
-      "HDL interface"
-    ],
-    [
-      "Custom directives",
-      "HDL directives",
-      "HDL component diagram"
-    ],
-    [
-      "Custom directives",
-      "HDL directives",
-      "HDL regmap"
-    ],
-    [
-      "Custom directives",
-      "Global options for directives"
     ]
   ]
 }

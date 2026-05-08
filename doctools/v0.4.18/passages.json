@@ -1,10 +1,56 @@
 {
   "text": [
+    "Doctools is the central piece to aggregate multiple documentations together,\nexpanding the documentation standard hierarchical, mono-repo configuration.\n\nThe content is organized in three levels:\n\n- repotoc: Listing of repositories in the same organization that contain\n  documentations.\n  In general",
+    "Analog Devices Inc.\ndocumentation extensions, themes, and tools for multiple repositories in the\norganization.\n\nRead the Documentation guidelines for more documentation rules and information\non the directives and roles packaged on this repository.\n\nAnd read the Command line interface for information",
+    "Doctools is developed to work offline, in a local server as a rolling release\n(e.g., on GitHub Pages) and versioned in a dedicated server with orchestration.\n",
+    "For offline and local server, a `make html` suffices to generate the\ndocumentation.\n\nTo serve the build in a local server, Python built-in server can be used:\n\n```bash\n~$ python -m http.server -d /path/to/docs/_build/html\n```\n\n\nOr with hot reload using Serve:\n\n```bash\n~$ adoc serve -d /path/to/docs\n",
+    "For a rolling release, a workflow file is used.\nWith GitHub Actions, the following workflow file is recommended:\n\n```yaml\non:\n  push:\n    branches:\n      - main\n  pull_request:\n\njobs:\n  build-doc:\n    runs-on: ubuntu-latest\n\n    steps:\n    - uses: actions/checkout@v4\n    - uses: actions/setup-python",
+    "The live versioned version requires additional orchestration than the\nRolling release.\n\nThe versions are described in `tags.json` file on the root path\nthat can take two formats, one simpler with a plain string array and other\nfine-grained to allow full control.\n\nBut first, store each version in sep",
+    "The simple `tags.json` is a plain array with each version/path on the\nand generate a `tags.json`, e.g. `[\"v1.1\", \"v2.2\", \"main\", \"dev\", \"\"]`\n(an empty string means there is a built doc on the root and will be named\n`main (unstable)`).\nThe first tag will be labeled with `latest`.\n\n> **Tip**\n>\n> See t",
+    "The more elaborated option takes the following format:\n\n```json\n{\n  \"path\": [\"name\", \"label\"],\n  // ...\n}\n```\n\n\nFor example:\n\n```json\n{\n  \"main\": [\"main\", \"unstable\"],\n  \"v2.0.0\": [\"v2.0.0\", \"pre-release\"],\n  \"v1.2.1\": [\"v1.2.1\", \"latest\"],\n  \"v1.2.0\": [\"v1.2.0\", \"\"],\n  \"v1.1.7\": [\"v1.1.7\", \"\"],\n  \"",
+    "If the root does not contain any built doc, add a redirect HTML file pointing\nto the main/stable version:\n\n```default\n<!DOCTYPE html>\n<html>\n  <head>\n    <meta http-equiv=\"refresh\" content=\"0; url=main/index.html\" />\n  </head>\n</html>\n```\n",
+    "For In organization reference, the doc shall target a specific version by suffixing\nthe target the version on the `interref_repos` variable, e.g.\n`interref_repos = ['pyadi-iio/dev', 'other-repo/v1.1']`.\n",
+    "Previously there was also a `ADOC_TARGET_DEPTH` environment variables\nto create full relative links between versions, but this was deprecated\nby instead just using the root `/` for those links, e.g.\n`/doctools/v1.0.0` instead of `../../../doctools/v1.0.0` from\n`doctools/v2.0.0/some/page.html`.\n\nThis",
     "A Sphinx themed called *harmonic* (old *cosmic*) is available.\nIt is deeply based on ADI\u2019s *harmonic* design language.\n",
     "> **Tip**\n>\n> Depending on your browser and operating system shortcuts, some shortcuts may\n> collide with existing ones, therefore, multiple alternatives are provided.\n\n\n`Alt+Shift+ArrowLeft` goes to the previous page and `Alt+Shift+ArrowRight`\nto the next page.\nAlternatively `Alt+Shift+A` and `Alt+",
     "As other Sphinx themes, customization is provided through the *conf.py*.\nThe options are added to the `html_theme_options` dictionary:\n\n```python\nhtml_theme_options = {\n    \"light_logo\": path.join(\"path\", \"to\", \"logo_light.svg\"),\n    \"dark_logo\": path.join(\"path\", \"to\", \"logo_dark.svg\"),\n    \"no_ind",
-    "Analog Devices Inc.\ndocumentation extensions, themes, and tools for multiple repositories in the\norganization.\n\nRead the Documentation guidelines for more documentation rules and information\non the directives and roles packaged on this repository.\n\nAnd read the Command line interface for information",
-    "Doctools is the central piece to aggregate multiple documentations together,\nexpanding the documentation standard hierarchical, mono-repo configuration.\n\nThe content is organized in three levels:\n\n- repotoc: Listing of repositories in the same organization that contain\n  documentations.\n  In general",
+    "How to do a release install, and a development install of Doctools.\n\nGuarantee to work with Python newer than 3.8 and distros released on or after\n20H1 (e.g. Ubuntu 20.04 LTS).\n",
+    "Ensure pip is newer than 23.0 [1]:\n\n```bash\n~$ pip install pip --upgrade\n```\n\n\nInstall the documentation tools, which will fetch this repository release:\n\n```bash\n~$ (cd docs ; pip install -r requirements.txt)\n```\n\n\nTest it building this documentation:\n\n```bash\n~$ (cd docs ; make html)\n```\n\n\nThere i",
+    "Installing packages at user level through pip is not always recommended,\ninstead, consider using a Python virtual environment (`python3-venv` on\nubuntu 22.04).\n\nTo create and activate the environment, do before the previous instructions:\n\n```bash\n~$ python3 -m venv venv\n~$ source venv/bin/activate\n`",
+    "Development install allows editing the source code and apply the changes without\nreinstalling.\nAlso extends Serve to watch changes on the webpage source code\n(use \u2013dev/-r option to enable this).\n",
+    "If you care about the web scripts (js modules) and style sheets (sass),\ninstall `node.js`, `npm` and the `npm` packages below, if not, read this\nsection\u2019s last paragraph.\n\n> **Note**\n>\n> If the `npm` provided by your package manager is too old and updating with\n> `npm install npm -g` fails, consider",
+    "Fetch third-party fonts:\n\n```bash\n~$ ./ci/fetch-fonts.sh\n```\n",
+    "Finally, do a symbolic installation of this repo:\n\n```bash\n~$ pip install -e . --upgrade\n```\n\n\n> **Caution**\n>\n> If using a python virtual environment for the *requirements.txt* packages,\n> do this command with the virtual environment already activated.\n> Mixing pip packages inside and outside the v",
+    "To remove, either release or development, do:\n\n```bash\n~$ pip uninstall adi-doctools\n```\n",
+    "Doctools custom Sphinx roles allow better linking, such as git links, and\nformatting, like font coloring.\n\nBelow, every added role is explained with examples.\n\n> **Note**\n>\n> Link-like roles use the `:role:`text <link>`` synthax, like external\n> links, but without the undescore in the end.\n",
+    "To print text in red or green, use `:red:`text`` and `:green:`text``.\n",
+    "The link roles are a group of roles defined by `adi_links.py`.\n\nThe `validate_links` global option is used to validate each link during build.\nThese links are not managed, that means, only links from changed files are checked.\nYou can run a build with it set to False, then touch the desired files to",
+    "The Git role allows to create links to the Git repository with a shorter syntax.\nThe role syntax is `:git-repo:`text <type+branch:path>``, for example:\n\n- `:git-hdl:`main:docs/user_guide/docs_guidelines.rst``\n  renders as docs/user_guide/docs_guidelines.rst.\n- `:git-hdl:`Guidelines <docs/user_guide/",
+    "Same as the Git but wrapping the address with the ADI DownGit repository\nfork.\n",
+    "The adi role creates links for a webpage to the Analog Devices Inc. website.\n\nThe role syntax is `:adi:`text <webpage>``, for example,\n`:adi:`AD7175-2 <ad7175-2>``.\nSince links are case insensitive, you can also reduce it to\n`:adi:`AD7175-2``, when *webpage* is the same as *text* and will render\nas ",
+    "The dokuwiki role creates links to the Analog Devices Inc. wiki website.\nThe role syntax is `:dokuwiki:`text <path>``, for example,\n`:dokuwiki:`pulsar-adc-pmods <resources/eval/user-guides/circuits-from-the-lab/pulsar-adc-pmods>``\ngets rendered as\npulsar-adc-pmods.\n\nFor intentional deprecated links,",
+    "The ez role creates links to the Analog Devices Inc. EngineerZone support website.\nThe role syntax is `:ez:`community``, for example, `:ez:`fpga``\ngets rendered as EngineerZone.\n\nFor Linux Software Drivers, it is `:ez:`linux-software-drivers``.\n\nFor Microcontroller no-OS Drivers it is `:ez:`microcon",
+    "The vendor role creates links to the vendor\u2019s website.\nThe role syntax is `:vendor:`text <path>``, for example,\n`:xilinx:`Zynq-7000 SoC Overview <support/documentation/data_sheets/ds190-Zynq-7000-Overview.pdf>``\ngets rendered\nZynq-7000 SoC Overview.\n\nThe text parameter is optional, if absent, the fi",
+    "The supplier role creates links to a vendor\u2019s website search.\nThe role syntax is `:vendor:`text <path>``, for example,\n`:digikey:`AD9081-FMCA-EBZ``\ngets rendered\nAD9081-FMCA-EBZ.\n\nThe text parameter is optional.\n\nSupported vendors are: `digikey` (Digikey), `mouser` (Mouser) and\n`arrow` (Arrow).\n",
+    "Doctools has a continuous deployment integration pipeline that works as follows:\n\n```default\n                   \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n                \u250c\u2500\u25ba\u2502Build Doc Latest  \u251c\u2500\u2510\n                \u2502  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518 \u2502\n                \u2502                       \u2502\n\u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510 \u2502  \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510   \u2502",
+    "Below are suggested instructions for setting up `podman` on a Linux environment.\n\nAdjust to your preference as needed, and skip the steps marked in green\nif not using WSL2.\n\nInstall `podman` from your package manager.\n\nEnsure cgroup v2 on wsl2\u2019s .wslconfig:\n\n```default\n[wsl2]\nkernelCommandLine = cgr",
+    "Podman default configuration expects a local user to be able to create a user\nnamespace where multiple IDs are mapped and a compatible partition to use as\nthe storage location `graphRoot`.\n\n> **Note**\n>\n> The ideal solution is to create a local **non-root** user and storage\n> location. Podman proces",
+    "To build the container image, use your favorite container engine:\n\n```bash\n~$ cd ~/doctools\n~/doctools$ podman build --tag adi/doctools:latest ci\n```\n\n\nYou may want to build the container in a host, where you have all your tools installed,\nand then deploy to a server.\nIn this case, export the image ",
+    "At its core, the workflows are straight forward, roughly they do:\n\nThe `Tests` step:\n\n```bash\n~$ cd tests ; pytest\n```\n\n\n`Build Doc *`:\n\n```bash\n~$ cd docs ; make html\n```\n\n\nBut at a specific minimum and maximum supported environment version.\n\n`Custom Doc`:\n\n```bash\n~$ mkdir /tmp/test-pdf ; cd $_\n/t",
+    "To have a full continuous integration mock-run act\ncan be used.\n`act` is a CLI written in go that allows to run GitHub actions.\n\nThe intent is to test the YAML files locally, for testing non-CI code prefer\nInteractive run during development and, after pushing to remote, the\nCI results.\n\nAssuming you",
+    "To host your GitHub Actions Runner,\nset up your secrets:\n\n```bash\n~$ # e.g. analogdevicesinc/doctools\n~$ printf ORG_REPOSITORY | podman secret create public_doctools_org_repository -\n~$ # e.g. MyVerYSecRunnerToken\n~$ printf RUNNER_TOKEN | podman secret create public_doctools_runner_token -\n```\n\n\nThe",
+    "To host a cluster of self-hosted runners, the recommended approach is to use\nsystemd services, instead of for example, container compose solutions.\n\nBelow is a suggested systemd service at *~/.config/systemd/user/container-public-doctools@.service*.\n\n```systemd\n[Unit]\nDescription=container public do",
+    "The Doctools bundles a command line interface called `adoc` meant to ease both\ncontinuous integration and local builds of the documentation.\n\nBelow, it is briefly described each command, and it is worth noting that every\ncommand supports the `--help` option for quick look up.\n",
+    "Watches the docs and source code to rebuild it on edit.\nSimilar to `mkdocs serve`, `webpack serve`, `npm run start`, `hugo server`,\nand so on.\n\nTwo HTML live update strategies are available:\n\n- pooling: The webpage pools timestamp changes on the `.dev-pool` file (default).\n- selenium: Page reloads t",
+    "Serve detects if a repository uses Git Large File Storage\nto fetch (smudge) the watched binaries on demand.\n\nThis enables users to clone a repo with `git lfs install --skip-smudge`\nand only fetch, on demand, the binary resources they are working on,\nsignificantly reducing clone time and bandwidth us",
+    "Run `make clean` in another tab, it will trigger a full rebuild.\n\nDo **not** do `make clean html` since it will generate a build without the\nproper Serve environment and live reload won\u2019t work properly.\n",
+    "You probably did a Development install without Install the web compiler\nand you are building directly (`make html`) instead of using Serve.\n\nIf you don\u2019t want to install `npm`, use Serve and accept the prompt to\nfetch the pre-built web-scripts from the latest release.\n",
+    "Since a Python scripts change would affect rebuilding the whole documentation,\nthose files are not watched by design even with the `--dev` option.\nExtensions at the doc itself are, however.\n\nAlternatively, touch the source doc of the open page to rebuild only it\nwith the edited Python code.\n",
+    "Solely to match other tools like `mkdocs serve`, `webpack serve`,\n`npm run start`, `hugo server`.\n",
+    "Generates custom documents with filtered content from all documentations of the\nwatched repositories (see adi_doctools/lut.py).\n\nFor PDF output, WeasyPrint is used (ensure to install it).\n\nTo quick start, run the tool twice in an empty directly.\n\n```bash\n~$ cd /tmp/my_doc\n/tmp/my_doc$ adoc custom-do",
+    "Suppose you edited and tested multiple docs together, it could be useful\nhelpful to try a local inventory file first, to check references before publication.\n\nHaving this in mind, if you build the edited documentation first, and then execute\n`custom-doc`, it will consider the local inventory *object",
+    "> **Tip**\n>\n> This feature is useful to batch build/test all tracked documentations.\n\n\nGenerates all documentations of the watched repositories\n(see adi_doctools/lut.py).\n\nTwo generation strategies are available:\n\n- monolithic: patches all docs together into a single monolithic output (default).\n- s",
+    "Exposes the HDL component diagram generator as a CLI.\nIt converts IP-XACT files into SVGs.\n\nTo generate and open the diagram, provide the path containing the IP-XACT and use\nthe `--open` option:\n\n```bash\n~$ adoc hdl-render --input PATH --open\n```\n\n\nFor example:\n\n```bash\n~$ adoc hdl-render --input hd",
     "Doctools custom Sphinx directives allow better formatting, and add extra\nfeatures, such as videos and shell code snippets.\n\nBelow, every added directive is explained with examples.\n",
     "To allow disposing content in a tabular manner but still respecting the multiple\nscreen sizes and both HTML and PDF output, two container directives are available,\n`flex` and `grid`.\n",
     "The grid directive implements a subset of\nCSS Flex.\nAnd is used to dispose elements without worrying about number of columns and sizes,\nwhile still obtaining a fairly good result.\n\n```rst\n.. flex::\n```\n",
@@ -23,52 +69,6 @@
     "The HDL component diagram directive gets information parsed from *component.xml*\nlibrary and generates a component diagram for the IP with buses and ports\ninformation.\n\n> **Note**\n>\n> The *component.xml* files are generated by Vivado during the library build\n> and not by the documentation tooling.\n\n",
     "The HDL regmap directive gets information from *docs/regmap/adi_regmap_*.txt* files\nand generates tables with the register maps.\n\nThe directive syntax is:\n\n```rst\n.. hdl-regmap::\n   :name: <regmap_name>\n   :no-type-info:\n```\n\n\nFor example:\n\n```rst\n.. hdl-regmap::\n   :name: DMAC\n```\n\n\n> **Note**\n>\n> ",
     "Set `hide_collapsible_content` to `True` to hide the *collapsibles* by default.\n\nSet `monolithic` to `True` prefix paths with *<repo>*.\nThis is meant for the Custom Doc custom documents only.\n",
-    "Doctools custom Sphinx roles allow better linking, such as git links, and\nformatting, like font coloring.\n\nBelow, every added role is explained with examples.\n\n> **Note**\n>\n> Link-like roles use the `:role:`text <link>`` synthax, like external\n> links, but without the undescore in the end.\n",
-    "To print text in red or green, use `:red:`text`` and `:green:`text``.\n",
-    "The link roles are a group of roles defined by `adi_links.py`.\n\nThe `validate_links` global option is used to validate each link during build.\nThese links are not managed, that means, only links from changed files are checked.\nYou can run a build with it set to False, then touch the desired files to",
-    "The Git role allows to create links to the Git repository with a shorter syntax.\nThe role syntax is `:git-repo:`text <type+branch:path>``, for example:\n\n- `:git-hdl:`main:docs/user_guide/docs_guidelines.rst``\n  renders as docs/user_guide/docs_guidelines.rst.\n- `:git-hdl:`Guidelines <docs/user_guide/",
-    "Same as the Git but wrapping the address with the ADI DownGit repository\nfork.\n",
-    "The adi role creates links for a webpage to the Analog Devices Inc. website.\n\nThe role syntax is `:adi:`text <webpage>``, for example,\n`:adi:`AD7175-2 <ad7175-2>``.\nSince links are case insensitive, you can also reduce it to\n`:adi:`AD7175-2``, when *webpage* is the same as *text* and will render\nas ",
-    "The dokuwiki role creates links to the Analog Devices Inc. wiki website.\nThe role syntax is `:dokuwiki:`text <path>``, for example,\n`:dokuwiki:`pulsar-adc-pmods <resources/eval/user-guides/circuits-from-the-lab/pulsar-adc-pmods>``\ngets rendered as\npulsar-adc-pmods.\n\nFor intentional deprecated links,",
-    "The ez role creates links to the Analog Devices Inc. EngineerZone support website.\nThe role syntax is `:ez:`community``, for example, `:ez:`fpga``\ngets rendered as EngineerZone.\n\nFor Linux Software Drivers, it is `:ez:`linux-software-drivers``.\n\nFor Microcontroller no-OS Drivers it is `:ez:`microcon",
-    "The vendor role creates links to the vendor\u2019s website.\nThe role syntax is `:vendor:`text <path>``, for example,\n`:xilinx:`Zynq-7000 SoC Overview <support/documentation/data_sheets/ds190-Zynq-7000-Overview.pdf>``\ngets rendered\nZynq-7000 SoC Overview.\n\nThe text parameter is optional, if absent, the fi",
-    "The supplier role creates links to a vendor\u2019s website search.\nThe role syntax is `:vendor:`text <path>``, for example,\n`:digikey:`AD9081-FMCA-EBZ``\ngets rendered\nAD9081-FMCA-EBZ.\n\nThe text parameter is optional.\n\nSupported vendors are: `digikey` (Digikey), `mouser` (Mouser) and\n`arrow` (Arrow).\n",
-    "Doctools is developed to work offline, in a local server as a rolling release\n(e.g., on GitHub Pages) and versioned in a dedicated server with orchestration.\n",
-    "For offline and local server, a `make html` suffices to generate the\ndocumentation.\n\nTo serve the build in a local server, Python built-in server can be used:\n\n```bash\n~$ python -m http.server -d /path/to/docs/_build/html\n```\n\n\nOr with hot reload using Serve:\n\n```bash\n~$ adoc serve -d /path/to/docs\n",
-    "For a rolling release, a workflow file is used.\nWith GitHub Actions, the following workflow file is recommended:\n\n```yaml\non:\n  push:\n    branches:\n      - main\n  pull_request:\n\njobs:\n  build-doc:\n    runs-on: ubuntu-latest\n\n    steps:\n    - uses: actions/checkout@v4\n    - uses: actions/setup-python",
-    "The live versioned version requires additional orchestration than the\nRolling release.\n\nThe versions are described in `tags.json` file on the root path\nthat can take two formats, one simpler with a plain string array and other\nfine-grained to allow full control.\n\nBut first, store each version in sep",
-    "The simple `tags.json` is a plain array with each version/path on the\nand generate a `tags.json`, e.g. `[\"v1.1\", \"v2.2\", \"main\", \"dev\", \"\"]`\n(an empty string means there is a built doc on the root and will be named\n`main (unstable)`).\nThe first tag will be labeled with `latest`.\n\n> **Tip**\n>\n> See t",
-    "The more elaborated option takes the following format:\n\n```json\n{\n  \"path\": [\"name\", \"label\"],\n  // ...\n}\n```\n\n\nFor example:\n\n```json\n{\n  \"main\": [\"main\", \"unstable\"],\n  \"v2.0.0\": [\"v2.0.0\", \"pre-release\"],\n  \"v1.2.1\": [\"v1.2.1\", \"latest\"],\n  \"v1.2.0\": [\"v1.2.0\", \"\"],\n  \"v1.1.7\": [\"v1.1.7\", \"\"],\n  \"",
-    "If the root does not contain any built doc, add a redirect HTML file pointing\nto the main/stable version:\n\n```default\n<!DOCTYPE html>\n<html>\n  <head>\n    <meta http-equiv=\"refresh\" content=\"0; url=main/index.html\" />\n  </head>\n</html>\n```\n",
-    "For In organization reference, the doc shall target a specific version by suffixing\nthe target the version on the `interref_repos` variable, e.g.\n`interref_repos = ['pyadi-iio/dev', 'other-repo/v1.1']`.\n",
-    "Previously there was also a `ADOC_TARGET_DEPTH` environment variables\nto create full relative links between versions, but this was deprecated\nby instead just using the root `/` for those links, e.g.\n`/doctools/v1.0.0` instead of `../../../doctools/v1.0.0` from\n`doctools/v2.0.0/some/page.html`.\n\nThis",
-    "Doctools has a continuous deployment integration pipeline that works as follows:\n\n```default\n                   \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n                \u250c\u2500\u25ba\u2502Build Doc Latest  \u251c\u2500\u2510\n                \u2502  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518 \u2502\n                \u2502                       \u2502\n\u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510 \u2502  \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510   \u2502",
-    "Below are suggested instructions for setting up `podman` on a Linux environment.\n\nAdjust to your preference as needed, and skip the steps marked in green\nif not using WSL2.\n\nInstall `podman` from your package manager.\n\nEnsure cgroup v2 on wsl2\u2019s .wslconfig:\n\n```default\n[wsl2]\nkernelCommandLine = cgr",
-    "Podman default configuration expects a local user to be able to create a user\nnamespace where multiple IDs are mapped and a compatible partition to use as\nthe storage location `graphRoot`.\n\n> **Note**\n>\n> The ideal solution is to create a local **non-root** user and storage\n> location. Podman proces",
-    "To build the container image, use your favorite container engine:\n\n```bash\n~$ cd ~/doctools\n~/doctools$ podman build --tag adi/doctools:latest ci\n```\n\n\nYou may want to build the container in a host, where you have all your tools installed,\nand then deploy to a server.\nIn this case, export the image ",
-    "At its core, the workflows are straight forward, roughly they do:\n\nThe `Tests` step:\n\n```bash\n~$ cd tests ; pytest\n```\n\n\n`Build Doc *`:\n\n```bash\n~$ cd docs ; make html\n```\n\n\nBut at a specific minimum and maximum supported environment version.\n\n`Custom Doc`:\n\n```bash\n~$ mkdir /tmp/test-pdf ; cd $_\n/t",
-    "To have a full continuous integration mock-run act\ncan be used.\n`act` is a CLI written in go that allows to run GitHub actions.\n\nThe intent is to test the YAML files locally, for testing non-CI code prefer\nInteractive run during development and, after pushing to remote, the\nCI results.\n\nAssuming you",
-    "To host your GitHub Actions Runner,\nset up your secrets:\n\n```bash\n~$ # e.g. analogdevicesinc/doctools\n~$ printf ORG_REPOSITORY | podman secret create public_doctools_org_repository -\n~$ # e.g. MyVerYSecRunnerToken\n~$ printf RUNNER_TOKEN | podman secret create public_doctools_runner_token -\n```\n\n\nThe",
-    "To host a cluster of self-hosted runners, the recommended approach is to use\nsystemd services, instead of for example, container compose solutions.\n\nBelow is a suggested systemd service at *~/.config/systemd/user/container-public-doctools@.service*.\n\n```systemd\n[Unit]\nDescription=container public do",
-    "How to do a release install, and a development install of Doctools.\n\nGuarantee to work with Python newer than 3.8 and distros released on or after\n20H1 (e.g. Ubuntu 20.04 LTS).\n",
-    "Ensure pip is newer than 23.0 [1]:\n\n```bash\n~$ pip install pip --upgrade\n```\n\n\nInstall the documentation tools, which will fetch this repository release:\n\n```bash\n~$ (cd docs ; pip install -r requirements.txt)\n```\n\n\nTest it building this documentation:\n\n```bash\n~$ (cd docs ; make html)\n```\n\n\nThere i",
-    "Installing packages at user level through pip is not always recommended,\ninstead, consider using a Python virtual environment (`python3-venv` on\nubuntu 22.04).\n\nTo create and activate the environment, do before the previous instructions:\n\n```bash\n~$ python3 -m venv venv\n~$ source venv/bin/activate\n`",
-    "Development install allows editing the source code and apply the changes without\nreinstalling.\nAlso extends Serve to watch changes on the webpage source code\n(use \u2013dev/-r option to enable this).\n",
-    "If you care about the web scripts (js modules) and style sheets (sass),\ninstall `node.js`, `npm` and the `npm` packages below, if not, read this\nsection\u2019s last paragraph.\n\n> **Note**\n>\n> If the `npm` provided by your package manager is too old and updating with\n> `npm install npm -g` fails, consider",
-    "Fetch third-party fonts:\n\n```bash\n~$ ./ci/fetch-fonts.sh\n```\n",
-    "Finally, do a symbolic installation of this repo:\n\n```bash\n~$ pip install -e . --upgrade\n```\n\n\n> **Caution**\n>\n> If using a python virtual environment for the *requirements.txt* packages,\n> do this command with the virtual environment already activated.\n> Mixing pip packages inside and outside the v",
-    "To remove, either release or development, do:\n\n```bash\n~$ pip uninstall adi-doctools\n```\n",
-    "The Doctools bundles a command line interface called `adoc` meant to ease both\ncontinuous integration and local builds of the documentation.\n\nBelow, it is briefly described each command, and it is worth noting that every\ncommand supports the `--help` option for quick look up.\n",
-    "Watches the docs and source code to rebuild it on edit.\nSimilar to `mkdocs serve`, `webpack serve`, `npm run start`, `hugo server`,\nand so on.\n\nTwo HTML live update strategies are available:\n\n- pooling: The webpage pools timestamp changes on the `.dev-pool` file (default).\n- selenium: Page reloads t",
-    "Serve detects if a repository uses Git Large File Storage\nto fetch (smudge) the watched binaries on demand.\n\nThis enables users to clone a repo with `git lfs install --skip-smudge`\nand only fetch, on demand, the binary resources they are working on,\nsignificantly reducing clone time and bandwidth us",
-    "Run `make clean` in another tab, it will trigger a full rebuild.\n\nDo **not** do `make clean html` since it will generate a build without the\nproper Serve environment and live reload won\u2019t work properly.\n",
-    "You probably did a Development install without Install the web compiler\nand you are building directly (`make html`) instead of using Serve.\n\nIf you don\u2019t want to install `npm`, use Serve and accept the prompt to\nfetch the pre-built web-scripts from the latest release.\n",
-    "Since a Python scripts change would affect rebuilding the whole documentation,\nthose files are not watched by design even with the `--dev` option.\nExtensions at the doc itself are, however.\n\nAlternatively, touch the source doc of the open page to rebuild only it\nwith the edited Python code.\n",
-    "Solely to match other tools like `mkdocs serve`, `webpack serve`,\n`npm run start`, `hugo server`.\n",
-    "Generates custom documents with filtered content from all documentations of the\nwatched repositories (see adi_doctools/lut.py).\n\nFor PDF output, WeasyPrint is used (ensure to install it).\n\nTo quick start, run the tool twice in an empty directly.\n\n```bash\n~$ cd /tmp/my_doc\n/tmp/my_doc$ adoc custom-do",
-    "Suppose you edited and tested multiple docs together, it could be useful\nhelpful to try a local inventory file first, to check references before publication.\n\nHaving this in mind, if you build the edited documentation first, and then execute\n`custom-doc`, it will consider the local inventory *object",
-    "> **Tip**\n>\n> This feature is useful to batch build/test all tracked documentations.\n\n\nGenerates all documentations of the watched repositories\n(see adi_doctools/lut.py).\n\nTwo generation strategies are available:\n\n- monolithic: patches all docs together into a single monolithic output (default).\n- s",
-    "Exposes the HDL component diagram generator as a CLI.\nIt converts IP-XACT files into SVGs.\n\nTo generate and open the diagram, provide the path containing the IP-XACT and use\nthe `--open` option:\n\n```bash\n~$ adoc hdl-render --input PATH --open\n```\n\n\nFor example:\n\n```bash\n~$ adoc hdl-render --input hd",
     "A brief set-of-rules for the documentation.\n\n> **Note**\n>\n> The old wiki uses dokuwiki. When\n> importing text from there, consider the automated options that are provided\n> in this page to convert it to reST.\n",
     "Use the following command to import a DokuWiki page (old *wiki.analog.com*):\n\n```bash\npandoc imported.txt -f dokuwiki -t rst --columns=80 -s -o imported.rst --list-tables\n```\n\n\nThe `list-tables` parameter requires *pandoc-types* >= 1.23, included in any\nrecent pandoc release;\nif it is not an option,",
     "Directives are indented with 3 space, which is Sphinx\u2019s default.\nAt code directives, the code keeps its original indentation (e.g. 2 spaces for\nVerilog code), but is offset by 3 spaces at the beginning of every line, to\ninstruct Sphinx the beginning and end of the code directive.\n",
@@ -95,11 +95,57 @@
     "- On Firefox on Windows, fetch requests can only happen to the same port (8000 -> 8000),\n  so Serve daemon must be on port 8000\n"
   ],
   "url": [
+    "fundamentals.html#documentation-hierarchical-structure",
+    "index.html",
+    "deploy.html",
+    "deploy.html#local",
+    "deploy.html#rolling-release",
+    "deploy.html#versioned",
+    "deploy.html#string-array-form",
+    "deploy.html#fine-grained-form",
+    "deploy.html#i-don-t-want-a-doc-at-the-root",
+    "deploy.html#how-do-i-cross-reference-a-specific-version",
+    "deploy.html#what-happened-to-adoc-target-depth",
     "theme.html",
     "theme.html#shortcuts",
     "theme.html#theme-options",
-    "index.html",
-    "fundamentals.html#documentation-hierarchical-structure",
+    "install.html",
+    "install.html#release-install",
+    "install.html#using-a-python-virtual-environment",
+    "install.html#development-install",
+    "install.html#install-the-web-compiler",
+    "install.html#fetch-third-party-resources",
+    "install.html#install-the-repository",
+    "install.html#removing",
+    "docs_guidelines/roles.html",
+    "docs_guidelines/roles.html#color",
+    "docs_guidelines/roles.html#link",
+    "docs_guidelines/roles.html#git",
+    "docs_guidelines/roles.html#downgit",
+    "docs_guidelines/roles.html#adi",
+    "docs_guidelines/roles.html#dokuwiki",
+    "docs_guidelines/roles.html#engineerzone",
+    "docs_guidelines/roles.html#vendor",
+    "docs_guidelines/roles.html#supplier",
+    "ci.html",
+    "ci.html#configure-podman",
+    "ci.html#network-users-partitions",
+    "ci.html#build-the-container-image",
+    "ci.html#interactive-run",
+    "ci.html#testing-github-action-workflows",
+    "ci.html#self-hosted-runner",
+    "ci.html#self-hosted-cluster",
+    "cli.html",
+    "cli.html#serve",
+    "cli.html#git-lfs-integration",
+    "cli.html#how-can-i-rebuild-the-whole-documentation-within-serve",
+    "cli.html#why-is-the-output-missing-styling-css-stylesheet",
+    "cli.html#why-is-the-python-source-code-of-this-repo-not-watched",
+    "cli.html#why-was-author-mode-renamed-to-serve",
+    "cli.html#custom-doc",
+    "cli.html#working-with-multiple-docs",
+    "cli.html#aggregate",
+    "cli.html#hdl-render",
     "docs_guidelines/directives.html",
     "docs_guidelines/directives.html#container",
     "docs_guidelines/directives.html#flex",
@@ -118,52 +164,6 @@
     "docs_guidelines/directives.html#hdl-component-diagram",
     "docs_guidelines/directives.html#hdl-regmap",
     "docs_guidelines/directives.html#global-options-for-directives",
-    "docs_guidelines/roles.html",
-    "docs_guidelines/roles.html#color",
-    "docs_guidelines/roles.html#link",
-    "docs_guidelines/roles.html#git",
-    "docs_guidelines/roles.html#downgit",
-    "docs_guidelines/roles.html#adi",
-    "docs_guidelines/roles.html#dokuwiki",
-    "docs_guidelines/roles.html#engineerzone",
-    "docs_guidelines/roles.html#vendor",
-    "docs_guidelines/roles.html#supplier",
-    "deploy.html",
-    "deploy.html#local",
-    "deploy.html#rolling-release",
-    "deploy.html#versioned",
-    "deploy.html#string-array-form",
-    "deploy.html#fine-grained-form",
-    "deploy.html#i-don-t-want-a-doc-at-the-root",
-    "deploy.html#how-do-i-cross-reference-a-specific-version",
-    "deploy.html#what-happened-to-adoc-target-depth",
-    "ci.html",
-    "ci.html#configure-podman",
-    "ci.html#network-users-partitions",
-    "ci.html#build-the-container-image",
-    "ci.html#interactive-run",
-    "ci.html#testing-github-action-workflows",
-    "ci.html#self-hosted-runner",
-    "ci.html#self-hosted-cluster",
-    "install.html",
-    "install.html#release-install",
-    "install.html#using-a-python-virtual-environment",
-    "install.html#development-install",
-    "install.html#install-the-web-compiler",
-    "install.html#fetch-third-party-resources",
-    "install.html#install-the-repository",
-    "install.html#removing",
-    "cli.html",
-    "cli.html#serve",
-    "cli.html#git-lfs-integration",
-    "cli.html#how-can-i-rebuild-the-whole-documentation-within-serve",
-    "cli.html#why-is-the-output-missing-styling-css-stylesheet",
-    "cli.html#why-is-the-python-source-code-of-this-repo-not-watched",
-    "cli.html#why-was-author-mode-renamed-to-serve",
-    "cli.html#custom-doc",
-    "cli.html#working-with-multiple-docs",
-    "cli.html#aggregate",
-    "cli.html#hdl-render",
     "docs_guidelines/index.html",
     "docs_guidelines/index.html#importing-from-dokuwiki-to-sphinx",
     "docs_guidelines/index.html#indentation",
@@ -191,6 +191,53 @@
   ],
   "hierarchy": [
     [
+      "Fundamentals",
+      "Documentation hierarchical structure"
+    ],
+    [
+      "Analog Devices Doctools"
+    ],
+    [
+      "Documentation deployment"
+    ],
+    [
+      "Documentation deployment",
+      "Local"
+    ],
+    [
+      "Documentation deployment",
+      "Rolling release"
+    ],
+    [
+      "Documentation deployment",
+      "Versioned"
+    ],
+    [
+      "Documentation deployment",
+      "Versioned",
+      "String array form"
+    ],
+    [
+      "Documentation deployment",
+      "Versioned",
+      "Fine-grained form"
+    ],
+    [
+      "Documentation deployment",
+      "Further notes",
+      "I don\u2019t want a doc at the root"
+    ],
+    [
+      "Documentation deployment",
+      "Further notes",
+      "How do I cross-reference a specific version?"
+    ],
+    [
+      "Documentation deployment",
+      "Further notes",
+      "What happened to ADOC_TARGET_DEPTH?"
+    ],
+    [
       "Sphinx theme"
     ],
     [
@@ -202,11 +249,176 @@
       "Theme options"
     ],
     [
-      "Analog Devices Doctools"
+      "Installing"
     ],
     [
-      "Fundamentals",
-      "Documentation hierarchical structure"
+      "Installing",
+      "Release install"
+    ],
+    [
+      "Installing",
+      "Release install",
+      "Using a Python virtual environment"
+    ],
+    [
+      "Installing",
+      "Development install"
+    ],
+    [
+      "Installing",
+      "Development install",
+      "Install the web compiler"
+    ],
+    [
+      "Installing",
+      "Development install",
+      "Fetch third-party resources"
+    ],
+    [
+      "Installing",
+      "Development install",
+      "Install the repository"
+    ],
+    [
+      "Installing",
+      "Removing"
+    ],
+    [
+      "Documentation guidelines",
+      "Custom roles"
+    ],
+    [
+      "Documentation guidelines",
+      "Custom roles",
+      "Color"
+    ],
+    [
+      "Documentation guidelines",
+      "Custom roles",
+      "Link"
+    ],
+    [
+      "Documentation guidelines",
+      "Custom roles",
+      "Link",
+      "Git"
+    ],
+    [
+      "Documentation guidelines",
+      "Custom roles",
+      "Link",
+      "DownGit"
+    ],
+    [
+      "Documentation guidelines",
+      "Custom roles",
+      "Link",
+      "ADI"
+    ],
+    [
+      "Documentation guidelines",
+      "Custom roles",
+      "Link",
+      "Dokuwiki"
+    ],
+    [
+      "Documentation guidelines",
+      "Custom roles",
+      "Link",
+      "EngineerZone"
+    ],
+    [
+      "Documentation guidelines",
+      "Custom roles",
+      "Link",
+      "Vendor"
+    ],
+    [
+      "Documentation guidelines",
+      "Custom roles",
+      "Link",
+      "Supplier"
+    ],
+    [
+      "Continuous integration"
+    ],
+    [
+      "Continuous integration",
+      "Configure podman"
+    ],
+    [
+      "Continuous integration",
+      "Configure podman",
+      "Network users & partitions"
+    ],
+    [
+      "Continuous integration",
+      "Build the container image"
+    ],
+    [
+      "Continuous integration",
+      "Interactive run"
+    ],
+    [
+      "Continuous integration",
+      "Testing GitHub Action workflows"
+    ],
+    [
+      "Continuous integration",
+      "Self-hosted runner"
+    ],
+    [
+      "Continuous integration",
+      "Self-hosted cluster"
+    ],
+    [
+      "Command line interface"
+    ],
+    [
+      "Command line interface",
+      "Serve"
+    ],
+    [
+      "Command line interface",
+      "Serve",
+      "Git LFS integration"
+    ],
+    [
+      "Command line interface",
+      "Serve",
+      "How can I rebuild the whole documentation within Serve?"
+    ],
+    [
+      "Command line interface",
+      "Serve",
+      "Why is the output missing styling (CSS stylesheet)?"
+    ],
+    [
+      "Command line interface",
+      "Serve",
+      "Why is the Python source code of this repo not watched?"
+    ],
+    [
+      "Command line interface",
+      "Serve",
+      "Why was Author Mode renamed to Serve?"
+    ],
+    [
+      "Command line interface",
+      "Custom Doc"
+    ],
+    [
+      "Command line interface",
+      "Custom Doc",
+      "Working with multiple docs"
+    ],
+    [
+      "Command line interface",
+      "Aggregate"
+    ],
+    [
+      "Command line interface",
+      "HDL Render"
     ],
     [
       "Documentation guidelines",
@@ -303,218 +515,6 @@
       "Documentation guidelines",
       "Custom directives",
       "Global options for directives"
-    ],
-    [
-      "Documentation guidelines",
-      "Custom roles"
-    ],
-    [
-      "Documentation guidelines",
-      "Custom roles",
-      "Color"
-    ],
-    [
-      "Documentation guidelines",
-      "Custom roles",
-      "Link"
-    ],
-    [
-      "Documentation guidelines",
-      "Custom roles",
-      "Link",
-      "Git"
-    ],
-    [
-      "Documentation guidelines",
-      "Custom roles",
-      "Link",
-      "DownGit"
-    ],
-    [
-      "Documentation guidelines",
-      "Custom roles",
-      "Link",
-      "ADI"
-    ],
-    [
-      "Documentation guidelines",
-      "Custom roles",
-      "Link",
-      "Dokuwiki"
-    ],
-    [
-      "Documentation guidelines",
-      "Custom roles",
-      "Link",
-      "EngineerZone"
-    ],
-    [
-      "Documentation guidelines",
-      "Custom roles",
-      "Link",
-      "Vendor"
-    ],
-    [
-      "Documentation guidelines",
-      "Custom roles",
-      "Link",
-      "Supplier"
-    ],
-    [
-      "Documentation deployment"
-    ],
-    [
-      "Documentation deployment",
-      "Local"
-    ],
-    [
-      "Documentation deployment",
-      "Rolling release"
-    ],
-    [
-      "Documentation deployment",
-      "Versioned"
-    ],
-    [
-      "Documentation deployment",
-      "Versioned",
-      "String array form"
-    ],
-    [
-      "Documentation deployment",
-      "Versioned",
-      "Fine-grained form"
-    ],
-    [
-      "Documentation deployment",
-      "Further notes",
-      "I don\u2019t want a doc at the root"
-    ],
-    [
-      "Documentation deployment",
-      "Further notes",
-      "How do I cross-reference a specific version?"
-    ],
-    [
-      "Documentation deployment",
-      "Further notes",
-      "What happened to ADOC_TARGET_DEPTH?"
-    ],
-    [
-      "Continuous integration"
-    ],
-    [
-      "Continuous integration",
-      "Configure podman"
-    ],
-    [
-      "Continuous integration",
-      "Configure podman",
-      "Network users & partitions"
-    ],
-    [
-      "Continuous integration",
-      "Build the container image"
-    ],
-    [
-      "Continuous integration",
-      "Interactive run"
-    ],
-    [
-      "Continuous integration",
-      "Testing GitHub Action workflows"
-    ],
-    [
-      "Continuous integration",
-      "Self-hosted runner"
-    ],
-    [
-      "Continuous integration",
-      "Self-hosted cluster"
-    ],
-    [
-      "Installing"
-    ],
-    [
-      "Installing",
-      "Release install"
-    ],
-    [
-      "Installing",
-      "Release install",
-      "Using a Python virtual environment"
-    ],
-    [
-      "Installing",
-      "Development install"
-    ],
-    [
-      "Installing",
-      "Development install",
-      "Install the web compiler"
-    ],
-    [
-      "Installing",
-      "Development install",
-      "Fetch third-party resources"
-    ],
-    [
-      "Installing",
-      "Development install",
-      "Install the repository"
-    ],
-    [
-      "Installing",
-      "Removing"
-    ],
-    [
-      "Command line interface"
-    ],
-    [
-      "Command line interface",
-      "Serve"
-    ],
-    [
-      "Command line interface",
-      "Serve",
-      "Git LFS integration"
-    ],
-    [
-      "Command line interface",
-      "Serve",
-      "How can I rebuild the whole documentation within Serve?"
-    ],
-    [
-      "Command line interface",
-      "Serve",
-      "Why is the output missing styling (CSS stylesheet)?"
-    ],
-    [
-      "Command line interface",
-      "Serve",
-      "Why is the Python source code of this repo not watched?"
-    ],
-    [
-      "Command line interface",
-      "Serve",
-      "Why was Author Mode renamed to Serve?"
-    ],
-    [
-      "Command line interface",
-      "Custom Doc"
-    ],
-    [
-      "Command line interface",
-      "Custom Doc",
-      "Working with multiple docs"
-    ],
-    [
-      "Command line interface",
-      "Aggregate"
-    ],
-    [
-      "Command line interface",
-      "HDL Render"
     ],
     [
       "Documentation guidelines"

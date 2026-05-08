@@ -1,8 +1,8 @@
 {
   "text": [
+    "Doctools is the central piece to aggregate multiple documentations together,\nexpanding the documentation standard hierarchical, mono-repo configuration.\nThe content is organized in three levels:\n\n- repotoc: Listing of repositories in the same organization that contain\n  documentations.\n  In general,",
     "Analog Devices Inc.\ndocumentation extensions, themes, and tools for multiple repositories in the\norganization.\n\nRead the Documentation guidelines for more documentation rules and information\non the directives and roles packaged on this repository.\n\nAnd read the Command line interface for information",
     "- Installing\n- Fundamentals\n- Documentation guidelines\n- Command line interface\n- Continuous integration\n- Sphinx theme\n",
-    "Doctools is the central piece to aggregate multiple documentations together,\nexpanding the documentation standard hierarchical, mono-repo configuration.\nThe content is organized in three levels:\n\n- repotoc: Listing of repositories in the same organization that contain\n  documentations.\n  In general,",
     "A Sphinx themed called *cosmic* is available.\nIt is deeply based on ADI\u2019s *harmonic* design language.\n",
     "`Alt+Shift+ArrowLeft` goes to the previous page and `Alt+Shift+ArrowRight`\nto the next page.\n`Ctrl+Alt+Shift+ArrowLeft/Right` preserves the current page anchor, for example,\nif the current section is *project_0.html#details*, `Ctrl+Alt+Shift+ArrowRight`\ngoes to *project_1.html#details*, even if *det",
     "Below is described how to do a release install and a development install of Doctools.\n\nGuarantee to work with Python newer than 3.8 and distros released on or after 20H1\n(e.g. Ubuntu 20.04 LTS).\n",
@@ -61,9 +61,9 @@
     "Dynamic elements refer to sections of the generated webpage that updates when\nloaded online from a source of truth, in general, `doctools/*.json` files;\nit uses a concept similar to \u201creact components\u201d.\n\nThese `*.json` files are generated when `export_metadata` is true in the\n`conf.py`.\nFrom the Java"
   ],
   "url": [
-    "index.html",
-    "index.html",
     "fundamentals.html#documentation-hierarchical-structure",
+    "index.html",
+    "index.html",
     "theme.html",
     "theme.html#shortcuts",
     "install.html",
@@ -123,14 +123,14 @@
   ],
   "hierarchy": [
     [
+      "Fundamentals",
+      "Documentation hierarchical structure"
+    ],
+    [
       "Analog Devices Doctools"
     ],
     [
       "Contents"
-    ],
-    [
-      "Fundamentals",
-      "Documentation hierarchical structure"
     ],
     [
       "Sphinx theme"

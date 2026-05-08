@@ -1,9 +1,26 @@
 {
   "text": [
     "Analog Devices Inc.\ndocumentation extensions, themes, and tools for multiple repositories in the\norganization.\n\nRead the Documentation guidelines for more documentation rules and information\non the directives and roles packaged on this repository.\n\nAnd read the Command line interface for information",
+    "Doctools is the central piece to aggregate multiple documentations together,\nexpanding the documentation standard hierarchical, mono-repo configuration.\n\nThe content is organized in three levels:\n\n- repotoc: Listing of repositories in the same organization that contain\n  documentations.\n  In general",
     "A Sphinx themed called *harmonic* (old *cosmic*) is available.\nIt is deeply based on ADI\u2019s *harmonic* design language.\n",
     "> **Tip**\n>\n> Depending on your browser and operating system shortcuts, some shortcuts may\n> collide with existing ones, therefore, multiple alternatives are provided.\n\n\n`Alt+Shift+ArrowLeft` goes to the previous page and `Alt+Shift+ArrowRight`\nto the next page.\nAlternatively `Alt+Shift+A` and `Alt+",
-    "Doctools is the central piece to aggregate multiple documentations together,\nexpanding the documentation standard hierarchical, mono-repo configuration.\n\nThe content is organized in three levels:\n\n- repotoc: Listing of repositories in the same organization that contain\n  documentations.\n  In general",
+    "How to do a release install, and a development install of Doctools.\n\nGuarantee to work with Python newer than 3.8 and distros released on or after\n20H1 (e.g. Ubuntu 20.04 LTS).\n",
+    "Ensure pip is newer than 23.0 [1]:\n\n```bash\n~$ pip install pip --upgrade\n```\n\n\nInstall the documentation tools, which will fetch this repository release:\n\n```bash\n~$ (cd docs ; pip install -r requirements.txt)\n```\n\n\nTest it building this documentation:\n\n```bash\n~$ (cd docs ; make html)\n```\n\n\nThere i",
+    "Installing packages at user level through pip is not always recommended,\ninstead, consider using a Python virtual environment (`python3-venv` on\nubuntu 22.04).\n\nTo create and activate the environment, do before the previous instructions:\n\n```bash\n~$ python3 -m venv venv\n~$ source venv/bin/activate\n`",
+    "Development install allows editing the source code and apply the changes without\nreinstalling.\nAlso extends Serve to watch changes on the webpage source code\n(use \u2013dev/-r option to enable this).\n",
+    "If you care about the web scripts (js modules) and style sheets (sass),\ninstall `node.js`, `npm` and the `npm` packages below, if not, read this\nsection\u2019s last paragraph.\n\n> **Note**\n>\n> If the `npm` provided by your package manager is too old and updating with\n> `npm install npm -g` fails, consider",
+    "Fetch third-party fonts:\n\n```bash\n~$ ./ci/fetch-fonts.sh\n```\n",
+    "Finally, do a symbolic installation of this repo:\n\n```bash\n~$ pip install -e . --upgrade\n```\n\n\n> **Caution**\n>\n> If using a python virtual environment for the *requirements.txt* packages,\n> do this command with the virtual environment already activated.\n> Mixing pip packages inside and outside the v",
+    "To remove, either release or development, do:\n\n```bash\n~$ pip uninstall adi-doctools\n```\n",
+    "Doctools is developed to work offline, in a local server as a rolling release\n(e.g., on GitHub Pages) and versioned in a dedicated server with orchestration.\n",
+    "For offline and local server, a `make html` suffices to generate the\ndocumentation.\n\nTo serve the build in a local server, Python built-in server can be used:\n\n```bash\n~$ python -m http.server -d /path/to/docs/_build/html\n```\n\n\nOr with hot reload using Serve:\n\n```bash\n~$ adoc serve -d /path/to/docs\n",
+    "For a rolling release, a workflow file is used.\nWith GitHub Actions, the following workflow file is recommended:\n\n```yaml\non:\n  push:\n    branches:\n      - main\n  pull_request:\n\njobs:\n  build-doc:\n    runs-on: ubuntu-latest\n\n    steps:\n    - uses: actions/checkout@v4\n    - uses: actions/setup-python",
+    "The live versioned version requires additional orchestration than the\nRolling release.\n\nThe versions are described in `tags.json` file on the root path\nthat can take two formats, one simpler with a plain string array and other\nfine-grained to allow full control.\n\nBut first, store each version in sep",
+    "The simple `tags.json` is a plain array with each version/path on the\nand generate a `tags.json`, e.g. `[\"v1.1\", \"v2.2\", \"main\", \"dev\", \"\"]`\n(an empty string means there is a built doc on the root and will be named\n`main (unstable)`).\nThe first tag will be labeled with `latest`.\n\n> **Tip**\n>\n> See t",
+    "The more elaborated option takes the following format:\n\n```json\n{\n  \"path\": [\"name\", \"label\"],\n  // ...\n}\n```\n\n\nFor example:\n\n```json\n{\n  \"main\": [\"main\", \"unstable\"],\n  \"v2.0.0\": [\"v2.0.0\", \"pre-release\"],\n  \"v1.2.1\": [\"v1.2.1\", \"latest\"],\n  \"v1.2.0\": [\"v1.2.0\", \"\"],\n  \"v1.1.7\": [\"v1.1.7\", \"\"],\n  \"",
+    "If the root does not contain any built doc, add a redirect HTML file pointing\nto the main/stable version:\n\n```default\n<!DOCTYPE html>\n<html>\n  <head>\n    <meta http-equiv=\"refresh\" content=\"0; url=main/index.html\" />\n  </head>\n</html>\n```\n",
+    "For In organization reference, the doc shall target a specific version by suffixing\nthe target the version on the `interref_repos` variable, e.g.\n`interref_repos = ['pyadi-iio/dev', 'other-repo/v1.1']`.\n",
+    "Previously there was also a `ADOC_TARGET_DEPTH` environment variables\nto create full relative links between versions, but this was deprecated\nby instead just using the root `/` for those links, e.g.\n`/doctools/v1.0.0` instead of `../../../doctools/v1.0.0` from\n`doctools/v2.0.0/some/page.html`.\n\nThis",
     "Custom Sphinx roles to allow better linking, such as git links, and formatting,\nlike font coloring.\n\n> **Note**\n>\n> Link-like roles use the `:role:`text <link>`` synthax, like external\n> links, but without the undescore in the end.\n",
     "To print text in red or green, use `:red:`text`` and `:green:`text``.\n",
     "The link roles are a group of roles defined by `adi_links.py`.\n\nThe `validate_links` global option is used to validate each link during build.\nThese links are not managed, that means, only links from changed files are checked.\nYou can run a build with it set to False, then touch the desired files to",
@@ -14,14 +31,6 @@
     "The ez role creates links to the Analog Devices Inc. EngineerZone support website.\nThe role syntax is `:ez:`community``, for example, `:ez:`fpga``\ngets rendered as EngineerZone.\n\nFor Linux Software Drivers, it is `:ez:`linux-software-drivers``.\n\nFor Microcontroller no-OS Drivers it is `:ez:`microcon",
     "The vendor role creates links to the vendor\u2019s website.\nThe role syntax is `:vendor:`text <path>``, for example,\n`:xilinx:`Zynq-7000 SoC Overview <support/documentation/data_sheets/ds190-Zynq-7000-Overview.pdf>``\ngets rendered\nZynq-7000 SoC Overview.\n\nThe text parameter is optional, if absent, the fi",
     "The supplier role creates links to a vendor\u2019s website search.\nThe role syntax is `:vendor:`text <path>``, for example,\n`:digikey:`AD9081-FMCA-EBZ``\ngets rendered\nAD9081-FMCA-EBZ.\n\nThe text parameter is optional.\n\nSupported vendors are: `digikey` (Digikey), `mouser` (Mouser) and\n`arrow` (Arrow).\n",
-    "How to do a release install, and a development install of Doctools.\n\nGuarantee to work with Python newer than 3.8 and distros released on or after\n20H1 (e.g. Ubuntu 20.04 LTS).\n",
-    "Ensure pip is newer than 23.0 [1]:\n\n```bash\n~$ pip install pip --upgrade\n```\n\n\nInstall the documentation tools, which will fetch this repository release:\n\n```bash\n~$ (cd docs ; pip install -r requirements.txt)\n```\n\n\nTest it building this documentation:\n\n```bash\n~$ (cd docs ; make html)\n```\n\n\nThere i",
-    "Installing packages at user level through pip is not always recommended,\ninstead, consider using a Python virtual environment (`python3-venv` on\nubuntu 22.04).\n\nTo create and activate the environment, do before the previous instructions:\n\n```bash\n~$ python3 -m venv venv\n~$ source venv/bin/activate\n`",
-    "Development install allows editing the source code and apply the changes without\nreinstalling.\nAlso extends Serve to watch changes on the webpage source code\n(use \u2013dev/-r option to enable this).\n",
-    "If you care about the web scripts (js modules) and style sheets (sass),\ninstall `node.js`, `npm` and the `npm` packages below, if not, read this\nsection\u2019s last paragraph.\n\n> **Note**\n>\n> If the `npm` provided by your package manager is too old and updating with\n> `npm install npm -g` fails, consider",
-    "Fetch third-party fonts:\n\n```bash\n~$ ./ci/fetch-fonts.sh\n```\n",
-    "Finally, do a symbolic installation of this repo:\n\n```bash\n~$ pip install -e . --upgrade\n```\n\n\n> **Caution**\n>\n> If using a python virtual environment for the *requirements.txt* packages,\n> do this command with the virtual environment already activated.\n> Mixing pip packages inside and outside the v",
-    "To remove, either release or development, do:\n\n```bash\n~$ pip uninstall adi-doctools\n```\n",
     "The Doctools bundles a command line interface called `adoc` meant to ease both\ncontinuous integration and local builds of the documentation.\n\nBelow, it is briefly described each command, and it is worth noting that every\ncommand supports the `--help` option for quick look up.\n",
     "Watches the docs and source code to rebuild it on edit.\nSimilar to `mkdocs serve`, `webpack serve`, `npm run start`, `hugo server`,\nand so on.\n\nTwo HTML live update strategies are available:\n\n- pooling: The webpage pools timestamp changes on the `.dev-pool` file (default).\n- selenium: Page reloads t",
     "Serve detects if a repository uses Git Large File Storage\nto fetch (smudge) the watched binaries on demand.\n\nThis enables users to clone a repo with `git lfs install --skip-smudge`\nand only fetch, on demand, the binary resources they are working on,\nsignificantly reducing clone time and bandwidth us",
@@ -41,15 +50,24 @@
     "To have a full continuous integration mock-run act\ncan be used.\n`act` is a CLI written in go that allows to run GitHub actions.\n\nThe intent is to test the YAML files locally, for testing non-CI code prefer\nInteractive run during development and, after pushing to remote, the\nCI results.\n\nAssuming you",
     "To host your GitHub Actions Runner,\nset up your secrets:\n\n```bash\n~$ # e.g. analogdevicesinc/doctools\n~$ printf ORG_REPOSITORY | podman secret create public_doctools_org_repository -\n~$ # e.g. MyVerYSecRunnerToken\n~$ printf RUNNER_TOKEN | podman secret create public_doctools_runner_token -\n```\n\n\nThe",
     "To host a cluster of self-hosted runners, the recommended approach is to use\nsystemd services, instead of for example, container compose solutions.\n\nBelow is a suggested systemd service at *~/.config/systemd/user/container-public-doctools@.service*.\n\n```systemd\n[Unit]\nDescription=container public do",
-    "Doctools is developed to work offline, in a local server as a rolling release\n(e.g., on GitHub Pages) and versioned in a dedicated server with orchestration.\n",
-    "For offline and local server, a `make html` suffices to generate the\ndocumentation.\n\nTo serve the build in a local server, Python built-in server can be used:\n\n```bash\n~$ python -m http.server -d /path/to/docs/_build/html\n```\n\n\nOr with hot reload using Serve:\n\n```bash\n~$ adoc serve -d /path/to/docs\n",
-    "For a rolling release, a workflow file is used.\nWith GitHub Actions, the following workflow file is recommended:\n\n```yaml\non:\n  push:\n    branches:\n      - main\n  pull_request:\n\njobs:\n  build-doc:\n    runs-on: ubuntu-latest\n\n    steps:\n    - uses: actions/checkout@v4\n    - uses: actions/setup-python",
-    "The live versioned version requires additional orchestration than the\nRolling release.\n\nThe versions are described in `tags.json` file on the root path\nthat can take two formats, one simpler with a plain string array and other\nfine-grained to allow full control.\n\nBut first, store each version in sep",
-    "The simple `tags.json` is a plain array with each version/path on the\nand generate a `tags.json`, e.g. `[\"v1.1\", \"v2.2\", \"main\", \"dev\", \"\"]`\n(an empty string means there is a built doc on the root and will be named\n`main (unstable)`).\nThe first tag will be labeled with `latest`.\n\n> **Tip**\n>\n> See t",
-    "The more elaborated option takes the following format:\n\n```json\n{\n  \"path\": [\"name\", \"label\"],\n  // ...\n}\n```\n\n\nFor example:\n\n```json\n{\n  \"main\": [\"main\", \"unstable\"],\n  \"v2.0.0\": [\"v2.0.0\", \"pre-release\"],\n  \"v1.2.1\": [\"v1.2.1\", \"latest\"],\n  \"v1.2.0\": [\"v1.2.0\", \"\"],\n  \"v1.1.7\": [\"v1.1.7\", \"\"],\n  \"",
-    "If the root does not contain any built doc, add a redirect HTML file pointing\nto the main/stable version:\n\n```default\n<!DOCTYPE html>\n<html>\n  <head>\n    <meta http-equiv=\"refresh\" content=\"0; url=main/index.html\" />\n  </head>\n</html>\n```\n",
-    "For In organization reference, the doc shall target a specific version by suffixing\nthe target the version on the `interref_repos` variable, e.g.\n`interref_repos = ['pyadi-iio/dev', 'other-repo/v1.1']`.\n",
-    "Previously there was also a `ADOC_TARGET_DEPTH` environment variables\nto create full relative links between versions, but this was deprecated\nby instead just using the root `/` for those links, e.g.\n`/doctools/v1.0.0` instead of `../../../doctools/v1.0.0` from\n`doctools/v2.0.0/some/page.html`.\n\nThis",
+    "Custom Sphinx directives to allow better formatting, and extra features, such\nas videos and shell code snippets.\n",
+    "To allow disposing content in a tabular manner but still respecting the multiple\nscreen sizes and both HTML and PDF output, two container directives are available,\n`flex` and `grid`.\n",
+    "The grid directive implements a subset of\nCSS Flex.\nAnd is used to dispose elements without worrying about number of columns and sizes,\nwhile still obtaining a fairly good result.\n\n```rst\n.. flex::\n```\n",
+    "The grid directive implements a subset of\nCSS Grids.\nAnd is used to dispose elements with exact number of columns and width control.\n\n```rst\n.. grid::\n   :widths: 25 25% 150px\n```\n\n\nThe `widths` options allow units (`px`, `%`, etc.) and without an explicit\nunit it is inferred percentile.\nThis option",
+    "A simple directive to\nclear\nthe content, forcing any following content to be moved below any preceding\ncontent.\nIt is useful when working with images\naligned/float\nleft/right and wants to ensure the next section does not also get \u201csquashed\u201d.\n\n```rst\n.. clear-content::\n   :side: [both,left,right]\n   ",
+    "The description directive sets the HTML meta description tag\nrequired by search engines for good SEO.\n\nThe content should be up to 160 characters, if it exceeds this length, a\nwarning is raised. If not present, try to use the page\u2019s first paragraph as the\ncontent for HTML meta description.\n\n```rst\n.",
+    "The shell directive allows to embed shell code in a standard way.\n\n```rst\n.. shell:: [bash,sh,zsh,ps1]\n   :user: <user>\n   :group: <group>\n   :caption: <caption>\n   :show-user:\n   :no-path:\n\n   /path_absolute\n   ~path_relative_to_home\n   $command\n    output\n```\n\n\nThat means, each line is prefixed by",
+    "The SVG directive embeds a SVG image directly onto the page, having it share\nthe same DOM sandbox as the page.\n\nThis allows the SVG image to contain links and interactive content, such as\nhover effects.\n\nThe syntax is:\n\n```rst\n.. svg:: <file>\n   :align: [left,center,right]\n\n   <caption>\n```\n\n\nAt it\u2019",
+    "The collapsible directive creates a collapsible/dropdown/\u201dHTML details\u201d.\n\nThe directive syntax is:\n\n```rst\n.. collapsible:: <label>\n\n   <content>\n```\n\n\nFor example:\n\n```rst\n.. collapsible:: Python code example.\n\n   .. code:: python\n\n      print(\"Hello World!\")\n```\n\n\nRenders as:\n\nPython code example.",
+    "The video directive creates an embedded video.\nCurrently, direct MP4 and youtube embed links are supported, but could be easily\nexpanded to support third-party services.\n\nThe directive syntax is:\n\n```rst\n.. video:: <url>\n   :align: [left,center,right]\n\n   <caption>\n```\n\n\nAlways add a caption to the ",
+    "The ESD warning directive creates an ESD warning, for example:\n\n```rst\n.. esd-warning::\n```\n\n\nRenders as:\n\n> **Warning**\n>\n> All the products described on this page include ESD (electrostatic discharge) sensitive devices. Electrostatic charges as high as 4000V readily accumulate on the human body or",
+    "The directives in this section target the ADI HDL repository documentation.\n",
+    "The HDL build status directive gets information from a markdown formatted status\ntable (*output.md*) and generates a table with the build statuses.\n\nThe directive syntax is:\n\n```rst\n.. hdl-build-status::\n   :file: <build_status_file>\n```\n\n\nThe `:path:` option is optional, in the sense that if it\u2019s n",
+    "The HDL parameters directive gets information parsed from IP-XACT (*component.xml*)\nlibrary and generates a table with the IP parameters.\n\n> **Note**\n>\n> The IP-XACT files are generated by Vivado during the library build and not by\n> the documentation tooling.\n\n\nThe directive syntax is:\n\n```rst\n.. h",
+    "The HDL interfaces directive gets information parsed from *component.xml* library\nand generates tables with the IP interfaces, both buses and ports.\n\n> **Note**\n>\n> The *component.xml* files are generated by Vivado during the library build\n> and not by the documentation tooling.\n\n\nThe directive synt",
+    "The HDL component diagram directive gets information parsed from *component.xml*\nlibrary and generates a component diagram for the IP with buses and ports\ninformation.\n\n> **Note**\n>\n> The *component.xml* files are generated by Vivado during the library build\n> and not by the documentation tooling.\n\n",
+    "The HDL regmap directive gets information from *docs/regmap/adi_regmap_*.txt* files\nand generates tables with the register maps.\n\nThe directive syntax is:\n\n```rst\n.. hdl-regmap::\n   :name: <regmap_name>\n   :no-type-info:\n```\n\n\nFor example:\n\n```rst\n.. hdl-regmap::\n   :name: DMAC\n```\n\n\n> **Note**\n>\n> ",
+    "Set `hide_collapsible_content` to `True` to hide the *collapsibles* by default.\n\nSet `monolithic` to `True` prefix paths with *<repo>*.\nThis is meant for the Custom Doc custom documents only.\n",
     "A brief set-of-rules for the documentation.\n\n> **Note**\n>\n> The old wiki uses dokuwiki. When\n> importing text from there, consider the automated options that are provided\n> in this page to convert it to reST.\n",
     "Use the following command to import a DokuWiki page (old *wiki.analog.com*):\n\n```bash\npandoc imported.txt -f dokuwiki -t rst --columns=80 -s -o imported.rst --list-tables\n```\n\n\nThe `list-tables` parameter requires *pandoc-types* >= 1.23, included in any\nrecent pandoc release;\nif it is not an option,",
     "Directives are indented with 3 space, which is Sphinx\u2019s default.\nAt code directives, the code keeps its original indentation (e.g. 2 spaces for\nVerilog code), but is offset by 3 spaces at the beginning of every line, to\ninstruct Sphinx the beginning and end of the code directive.\n",
@@ -73,31 +91,30 @@
     "Extensions with repository-specific functionalities can be added to the repository\nsource code.\n\nAt *conf.py*, add:\n\n```python\nimport os\nimport sys\nsys.path.insert(0, os.path.abspath(os.path.join('.', 'ext'))\n\nextensions = [\n     ...\n     \"ext_repo_name\"\n]\n```\n\n\nCreate the *ext/ext_repo_name.py* and",
     "The **More information** and **Support** sections that are present in\nthe HDL project documentation, are actually separate pages inserted as links.\nThey\u2019re located at *hdl/projects/common/more_information.rst* and */support.rst*,\nand cannot be referenced here because they don\u2019t have an ID at the beg",
     "Dynamic elements refer to sections of the documentation that are updated using\ndynamically loaded metadata, scripts, and styles (modules).\n\nThe dynamic elements implemented:\n\n- `doctools/metadata.json`:\n  The navigation bar at the top (`repotoc` entry).\n  A banner at the top (`banner` entry).\n\n\nThe ",
-    "- On Firefox on Windows, fetch requests can only happen to the same port (8000 -> 8000),\n  so Serve daemon must be on port 8000\n",
-    "Custom Sphinx directives to allow better formatting, and extra features, such\nas videos and shell code snippets.\n",
-    "To allow disposing content in a tabular manner but still respecting the multiple\nscreen sizes and both HTML and PDF output, two container directives are available,\n`flex` and `grid`.\n",
-    "The grid directive implements a subset of\nCSS Flex.\nAnd is used to dispose elements without worrying about number of columns and sizes,\nwhile still obtaining a fairly good result.\n\n```rst\n.. flex::\n```\n",
-    "The grid directive implements a subset of\nCSS Grids.\nAnd is used to dispose elements with exact number of columns and width control.\n\n```rst\n.. grid::\n   :widths: 25 25% 150px\n```\n\n\nThe `widths` options allow units (`px`, `%`, etc.) and without an explicit\nunit it is inferred percentile.\nThis option",
-    "A simple directive to\nclear\nthe content, forcing any following content to be moved below any preceding\ncontent.\nIt is useful when working with images\naligned/float\nleft/right and wants to ensure the next section does not also get \u201csquashed\u201d.\n\n```rst\n.. clear-content::\n   :side: [both,left,right]\n   ",
-    "The description directive sets the HTML meta description tag\nrequired by search engines for good SEO.\n\nThe content should be up to 160 characters, if it exceeds this length, a\nwarning is raised. If not present, try to use the page\u2019s first paragraph as the\ncontent for HTML meta description.\n\n```rst\n.",
-    "The shell directive allows to embed shell code in a standard way.\n\n```rst\n.. shell:: [bash,sh,zsh,ps1]\n   :user: <user>\n   :group: <group>\n   :caption: <caption>\n   :show-user:\n   :no-path:\n\n   /path_absolute\n   ~path_relative_to_home\n   $command\n    output\n```\n\n\nThat means, each line is prefixed by",
-    "The SVG directive embeds a SVG image directly onto the page, having it share\nthe same DOM sandbox as the page.\n\nThis allows the SVG image to contain links and interactive content, such as\nhover effects.\n\nThe syntax is:\n\n```rst\n.. svg:: <file>\n   :align: [left,center,right]\n\n   <caption>\n```\n\n\nAt it\u2019",
-    "The collapsible directive creates a collapsible/dropdown/\u201dHTML details\u201d.\n\nThe directive syntax is:\n\n```rst\n.. collapsible:: <label>\n\n   <content>\n```\n\n\nFor example:\n\n```rst\n.. collapsible:: Python code example.\n\n   .. code:: python\n\n      print(\"Hello World!\")\n```\n\n\nRenders as:\n\nPython code example.",
-    "The video directive creates an embedded video.\nCurrently, direct MP4 and youtube embed links are supported, but could be easily\nexpanded to support third-party services.\n\nThe directive syntax is:\n\n```rst\n.. video:: <url>\n   :align: [left,center,right]\n\n   <caption>\n```\n\n\nAlways add a caption to the ",
-    "The ESD warning directive creates an ESD warning, for example:\n\n```rst\n.. esd-warning::\n```\n\n\nRenders as:\n\n> **Warning**\n>\n> All the products described on this page include ESD (electrostatic discharge) sensitive devices. Electrostatic charges as high as 4000V readily accumulate on the human body or",
-    "The directives in this section target the ADI HDL repository documentation.\n",
-    "The HDL build status directive gets information from a markdown formatted status\ntable (*output.md*) and generates a table with the build statuses.\n\nThe directive syntax is:\n\n```rst\n.. hdl-build-status::\n   :file: <build_status_file>\n```\n\n\nThe `:path:` option is optional, in the sense that if it\u2019s n",
-    "The HDL parameters directive gets information parsed from IP-XACT (*component.xml*)\nlibrary and generates a table with the IP parameters.\n\n> **Note**\n>\n> The IP-XACT files are generated by Vivado during the library build and not by\n> the documentation tooling.\n\n\nThe directive syntax is:\n\n```rst\n.. h",
-    "The HDL interfaces directive gets information parsed from *component.xml* library\nand generates tables with the IP interfaces, both buses and ports.\n\n> **Note**\n>\n> The *component.xml* files are generated by Vivado during the library build\n> and not by the documentation tooling.\n\n\nThe directive synt",
-    "The HDL component diagram directive gets information parsed from *component.xml*\nlibrary and generates a component diagram for the IP with buses and ports\ninformation.\n\n> **Note**\n>\n> The *component.xml* files are generated by Vivado during the library build\n> and not by the documentation tooling.\n\n",
-    "The HDL regmap directive gets information from *docs/regmap/adi_regmap_*.txt* files\nand generates tables with the register maps.\n\nThe directive syntax is:\n\n```rst\n.. hdl-regmap::\n   :name: <regmap_name>\n   :no-type-info:\n```\n\n\nFor example:\n\n```rst\n.. hdl-regmap::\n   :name: DMAC\n```\n\n\n> **Note**\n>\n> ",
-    "Set `hide_collapsible_content` to `True` to hide the *collapsibles* by default.\n\nSet `monolithic` to `True` prefix paths with *<repo>*.\nThis is meant for the Custom Doc custom documents only.\n"
+    "- On Firefox on Windows, fetch requests can only happen to the same port (8000 -> 8000),\n  so Serve daemon must be on port 8000\n"
   ],
   "url": [
     "index.html",
+    "fundamentals.html#documentation-hierarchical-structure",
     "theme.html",
     "theme.html#shortcuts",
-    "fundamentals.html#documentation-hierarchical-structure",
+    "install.html",
+    "install.html#release-install",
+    "install.html#using-a-python-virtual-environment",
+    "install.html#development-install",
+    "install.html#install-the-web-compiler",
+    "install.html#fetch-third-party-resources",
+    "install.html#install-the-repository",
+    "install.html#removing",
+    "deploy.html",
+    "deploy.html#local",
+    "deploy.html#rolling-release",
+    "deploy.html#versioned",
+    "deploy.html#string-array-form",
+    "deploy.html#fine-grained-form",
+    "deploy.html#i-don-t-want-a-doc-at-the-root",
+    "deploy.html#how-do-i-cross-reference-a-specific-version",
+    "deploy.html#what-happened-to-adoc-target-depth",
     "docs_guidelines/roles.html",
     "docs_guidelines/roles.html#color",
     "docs_guidelines/roles.html#link",
@@ -108,14 +125,6 @@
     "docs_guidelines/roles.html#engineerzone",
     "docs_guidelines/roles.html#vendor",
     "docs_guidelines/roles.html#supplier",
-    "install.html",
-    "install.html#release-install",
-    "install.html#using-a-python-virtual-environment",
-    "install.html#development-install",
-    "install.html#install-the-web-compiler",
-    "install.html#fetch-third-party-resources",
-    "install.html#install-the-repository",
-    "install.html#removing",
     "cli.html",
     "cli.html#serve",
     "cli.html#git-lfs-integration",
@@ -135,15 +144,24 @@
     "ci.html#testing-github-action-workflows",
     "ci.html#self-hosted-runner",
     "ci.html#self-hosted-cluster",
-    "deploy.html",
-    "deploy.html#local",
-    "deploy.html#rolling-release",
-    "deploy.html#versioned",
-    "deploy.html#string-array-form",
-    "deploy.html#fine-grained-form",
-    "deploy.html#i-don-t-want-a-doc-at-the-root",
-    "deploy.html#how-do-i-cross-reference-a-specific-version",
-    "deploy.html#what-happened-to-adoc-target-depth",
+    "docs_guidelines/directives.html",
+    "docs_guidelines/directives.html#container",
+    "docs_guidelines/directives.html#flex",
+    "docs_guidelines/directives.html#grid",
+    "docs_guidelines/directives.html#clear-content",
+    "docs_guidelines/directives.html#description",
+    "docs_guidelines/directives.html#shell",
+    "docs_guidelines/directives.html#svg",
+    "docs_guidelines/directives.html#collapsible",
+    "docs_guidelines/directives.html#video",
+    "docs_guidelines/directives.html#esd-warning",
+    "docs_guidelines/directives.html#hdl-directives",
+    "docs_guidelines/directives.html#hdl-build-status",
+    "docs_guidelines/directives.html#hdl-parameters",
+    "docs_guidelines/directives.html#hdl-interface",
+    "docs_guidelines/directives.html#hdl-component-diagram",
+    "docs_guidelines/directives.html#hdl-regmap",
+    "docs_guidelines/directives.html#global-options-for-directives",
     "docs_guidelines/index.html",
     "docs_guidelines/index.html#importing-from-dokuwiki-to-sphinx",
     "docs_guidelines/index.html#indentation",
@@ -167,29 +185,15 @@
     "docs_guidelines/index.html#repository-specific-extensions",
     "docs_guidelines/index.html#hdl-common-sections",
     "docs_guidelines/index.html#dynamic-elements",
-    "docs_guidelines/index.html#known-issues",
-    "docs_guidelines/directives.html",
-    "docs_guidelines/directives.html#container",
-    "docs_guidelines/directives.html#flex",
-    "docs_guidelines/directives.html#grid",
-    "docs_guidelines/directives.html#clear-content",
-    "docs_guidelines/directives.html#description",
-    "docs_guidelines/directives.html#shell",
-    "docs_guidelines/directives.html#svg",
-    "docs_guidelines/directives.html#collapsible",
-    "docs_guidelines/directives.html#video",
-    "docs_guidelines/directives.html#esd-warning",
-    "docs_guidelines/directives.html#hdl-directives",
-    "docs_guidelines/directives.html#hdl-build-status",
-    "docs_guidelines/directives.html#hdl-parameters",
-    "docs_guidelines/directives.html#hdl-interface",
-    "docs_guidelines/directives.html#hdl-component-diagram",
-    "docs_guidelines/directives.html#hdl-regmap",
-    "docs_guidelines/directives.html#global-options-for-directives"
+    "docs_guidelines/index.html#known-issues"
   ],
   "hierarchy": [
     [
       "Analog Devices Doctools"
+    ],
+    [
+      "Fundamentals",
+      "Documentation hierarchical structure"
     ],
     [
       "Sphinx theme"
@@ -199,8 +203,79 @@
       "Shortcuts"
     ],
     [
-      "Fundamentals",
-      "Documentation hierarchical structure"
+      "Installing"
+    ],
+    [
+      "Installing",
+      "Release install"
+    ],
+    [
+      "Installing",
+      "Release install",
+      "Using a Python virtual environment"
+    ],
+    [
+      "Installing",
+      "Development install"
+    ],
+    [
+      "Installing",
+      "Development install",
+      "Install the web compiler"
+    ],
+    [
+      "Installing",
+      "Development install",
+      "Fetch third-party resources"
+    ],
+    [
+      "Installing",
+      "Development install",
+      "Install the repository"
+    ],
+    [
+      "Installing",
+      "Removing"
+    ],
+    [
+      "Documentation deployment"
+    ],
+    [
+      "Documentation deployment",
+      "Local"
+    ],
+    [
+      "Documentation deployment",
+      "Rolling release"
+    ],
+    [
+      "Documentation deployment",
+      "Versioned"
+    ],
+    [
+      "Documentation deployment",
+      "Versioned",
+      "String array form"
+    ],
+    [
+      "Documentation deployment",
+      "Versioned",
+      "Fine-grained form"
+    ],
+    [
+      "Documentation deployment",
+      "Further notes",
+      "I don\u2019t want a doc at the root"
+    ],
+    [
+      "Documentation deployment",
+      "Further notes",
+      "How do I cross-reference a specific version?"
+    ],
+    [
+      "Documentation deployment",
+      "Further notes",
+      "What happened to ADOC_TARGET_DEPTH?"
     ],
     [
       "Documentation guidelines",
@@ -257,41 +332,6 @@
       "Custom roles",
       "Link",
       "Supplier"
-    ],
-    [
-      "Installing"
-    ],
-    [
-      "Installing",
-      "Release install"
-    ],
-    [
-      "Installing",
-      "Release install",
-      "Using a Python virtual environment"
-    ],
-    [
-      "Installing",
-      "Development install"
-    ],
-    [
-      "Installing",
-      "Development install",
-      "Install the web compiler"
-    ],
-    [
-      "Installing",
-      "Development install",
-      "Fetch third-party resources"
-    ],
-    [
-      "Installing",
-      "Development install",
-      "Install the repository"
-    ],
-    [
-      "Installing",
-      "Removing"
     ],
     [
       "Command line interface"
@@ -375,44 +415,100 @@
       "Self-hosted cluster"
     ],
     [
-      "Documentation deployment"
+      "Documentation guidelines",
+      "Custom directives"
     ],
     [
-      "Documentation deployment",
-      "Local"
+      "Documentation guidelines",
+      "Custom directives",
+      "Container"
     ],
     [
-      "Documentation deployment",
-      "Rolling release"
+      "Documentation guidelines",
+      "Custom directives",
+      "Container",
+      "Flex"
     ],
     [
-      "Documentation deployment",
-      "Versioned"
+      "Documentation guidelines",
+      "Custom directives",
+      "Container",
+      "Grid"
     ],
     [
-      "Documentation deployment",
-      "Versioned",
-      "String array form"
+      "Documentation guidelines",
+      "Custom directives",
+      "Clear content"
     ],
     [
-      "Documentation deployment",
-      "Versioned",
-      "Fine-grained form"
+      "Documentation guidelines",
+      "Custom directives",
+      "Description"
     ],
     [
-      "Documentation deployment",
-      "Further notes",
-      "I don\u2019t want a doc at the root"
+      "Documentation guidelines",
+      "Custom directives",
+      "Shell"
     ],
     [
-      "Documentation deployment",
-      "Further notes",
-      "How do I cross-reference a specific version?"
+      "Documentation guidelines",
+      "Custom directives",
+      "SVG"
     ],
     [
-      "Documentation deployment",
-      "Further notes",
-      "What happened to ADOC_TARGET_DEPTH?"
+      "Documentation guidelines",
+      "Custom directives",
+      "Collapsible"
+    ],
+    [
+      "Documentation guidelines",
+      "Custom directives",
+      "Video"
+    ],
+    [
+      "Documentation guidelines",
+      "Custom directives",
+      "ESD warning"
+    ],
+    [
+      "Documentation guidelines",
+      "Custom directives",
+      "HDL directives"
+    ],
+    [
+      "Documentation guidelines",
+      "Custom directives",
+      "HDL directives",
+      "HDL build status"
+    ],
+    [
+      "Documentation guidelines",
+      "Custom directives",
+      "HDL directives",
+      "HDL parameters"
+    ],
+    [
+      "Documentation guidelines",
+      "Custom directives",
+      "HDL directives",
+      "HDL interface"
+    ],
+    [
+      "Documentation guidelines",
+      "Custom directives",
+      "HDL directives",
+      "HDL component diagram"
+    ],
+    [
+      "Documentation guidelines",
+      "Custom directives",
+      "HDL directives",
+      "HDL regmap"
+    ],
+    [
+      "Documentation guidelines",
+      "Custom directives",
+      "Global options for directives"
     ],
     [
       "Documentation guidelines"
@@ -516,102 +612,6 @@
       "Documentation guidelines",
       "Dynamic elements",
       "Known issues"
-    ],
-    [
-      "Documentation guidelines",
-      "Custom directives"
-    ],
-    [
-      "Documentation guidelines",
-      "Custom directives",
-      "Container"
-    ],
-    [
-      "Documentation guidelines",
-      "Custom directives",
-      "Container",
-      "Flex"
-    ],
-    [
-      "Documentation guidelines",
-      "Custom directives",
-      "Container",
-      "Grid"
-    ],
-    [
-      "Documentation guidelines",
-      "Custom directives",
-      "Clear content"
-    ],
-    [
-      "Documentation guidelines",
-      "Custom directives",
-      "Description"
-    ],
-    [
-      "Documentation guidelines",
-      "Custom directives",
-      "Shell"
-    ],
-    [
-      "Documentation guidelines",
-      "Custom directives",
-      "SVG"
-    ],
-    [
-      "Documentation guidelines",
-      "Custom directives",
-      "Collapsible"
-    ],
-    [
-      "Documentation guidelines",
-      "Custom directives",
-      "Video"
-    ],
-    [
-      "Documentation guidelines",
-      "Custom directives",
-      "ESD warning"
-    ],
-    [
-      "Documentation guidelines",
-      "Custom directives",
-      "HDL directives"
-    ],
-    [
-      "Documentation guidelines",
-      "Custom directives",
-      "HDL directives",
-      "HDL build status"
-    ],
-    [
-      "Documentation guidelines",
-      "Custom directives",
-      "HDL directives",
-      "HDL parameters"
-    ],
-    [
-      "Documentation guidelines",
-      "Custom directives",
-      "HDL directives",
-      "HDL interface"
-    ],
-    [
-      "Documentation guidelines",
-      "Custom directives",
-      "HDL directives",
-      "HDL component diagram"
-    ],
-    [
-      "Documentation guidelines",
-      "Custom directives",
-      "HDL directives",
-      "HDL regmap"
-    ],
-    [
-      "Documentation guidelines",
-      "Custom directives",
-      "Global options for directives"
     ]
   ]
 }

@@ -1,6 +1,17 @@
 {
   "text": [
+    "A Sphinx themed called *harmonic* (old *cosmic*) is available.\nIt is deeply based on ADI\u2019s *harmonic* design language.\n",
+    "> **Note**\n>\n> Depending on your browser and operation system shortcuts, not all shortcuts\n> may work or they may collide with existing ones, therefore, multiple are\n> provided.\n\n\n`Alt+Shift+ArrowLeft` goes to the previous page and `Alt+Shift+ArrowRight`\nto the next page.\nAlternatively `Alt+Shift+A`",
+    "Doctools is the central piece to aggregate multiple documentations together,\nexpanding the documentation standard hierarchical, mono-repo configuration.\nThe content is organized in three levels:\n\n- repotoc: Listing of repositories in the same organization that contain\n  documentations.\n  In general,",
     "Analog Devices Inc.\ndocumentation extensions, themes, and tools for multiple repositories in the\norganization.\n\nRead the Documentation guidelines for more documentation rules and information\non the directives and roles packaged on this repository.\n\nAnd read the Command line interface for information",
+    "Below is described how to do a release install, and a development install of\nDoctools.\n\nGuarantee to work with Python newer than 3.8 and distros released on or after\n20H1 (e.g. Ubuntu 20.04 LTS).\n",
+    "Ensure pip is newer than 23.0 [1]:\n\n```bash\n~$ pip install pip --upgrade\n```\n\n\nInstall the documentation tools, which will fetch this repository release:\n\n```bash\n~$ (cd docs ; pip install -r requirements.txt)\n```\n\n\nTest it building this documentation:\n\n```bash\n~$ (cd docs ; make html)\n```\n\n\nThere i",
+    "Installing packages at user level through pip is not always recommended,\ninstead, consider using a Python virtual environment (`python3-venv` on\nubuntu 22.04).\n\nTo create and activate the environment, do before the previous instructions:\n\n```bash\n~$ python3 -m venv venv\n~$ source venv/bin/activate\n`",
+    "Development install allows editing the source code and apply the changes without\nreinstalling.\nAlso extends Serve to watch changes on the webpage source code\n(use \u2013dev/-r option to enable this).\n",
+    "If you care about the web scripts (js modules) and style sheets (sass),\ninstall `node.js`, `npm` and the `npm` packages below, if not, read this\nsection\u2019s last paragraph.\n\n> **Note**\n>\n> If the `npm` provided by your package manager is too old and updating with\n> `npm install npm -g` fails, consider",
+    "Fetch third-party fonts:\n\n```bash\n~$ ./ci/fetch-fonts.sh\n```\n",
+    "Finally, do a symbolic installation of this repo:\n\n```bash\n~$ pip install -e . --upgrade\n```\n\n\n> **Caution**\n>\n> If using a python virtual environment for the *requirements.txt* packages,\n> do this command with the virtual environment already activated.\n> Mixing pip packages inside and outside the v",
+    "To remove, either release or development, do:\n\n```bash\n~$ pip uninstall adi-doctools\n```\n",
     "Doctools is developed to work offline, in a local server as a rolling release\n(e.g., on GitHub Pages) and versioned in a dedicated server with orchestration.\n",
     "For offline and local server, a `make html` suffices to generate the\ndocumentation.\n\nTo serve the build in a local server, Python built-in server can be used:\n\n```bash\n~$ python -m http.server -d /path/to/docs/_build/html\n```\n\n\nOr with hot reload using Serve:\n\n```bash\n~$ adoc serve -d /path/to/docs\n",
     "For a rolling release, a workflow file is used.\nWith GitHub Actions, the following workflow file is recommended:\n\n```yaml\non:\n  push:\n    branches:\n      - main\n  pull_request:\n\njobs:\n  build-doc:\n    runs-on: ubuntu-latest\n\n    steps:\n    - uses: actions/checkout@v4\n    - uses: actions/setup-python",
@@ -10,17 +21,6 @@
     "If the root does not contain any built doc, add a redirect HTML file pointing\nto the main/stable version:\n\n```default\n<!DOCTYPE html>\n<html>\n  <head>\n    <meta http-equiv=\"refresh\" content=\"0; url=main/index.html\" />\n  </head>\n</html>\n```\n",
     "For In organization reference, the doc shall target a specific version by suffixing\nthe target the version on the `interref_repos` variable, e.g.\n`interref_repos = ['pyadi-iio/dev', 'other-repo/v1.1']`.\n",
     "Previously there was also a `ADOC_TARGET_DEPTH` enviroment variables\nto create full relative links between versions, but this was deprecated\nby instead just using the root `/` for those links, e.g.\n`/doctools/v1.0.0` instead of `../../../doctools/v1.0.0` from\n`doctools/v2.0.0/some/page.html`.\n\nThis ",
-    "Below is described how to do a release install, and a development install of\nDoctools.\n\nGuarantee to work with Python newer than 3.8 and distros released on or after\n20H1 (e.g. Ubuntu 20.04 LTS).\n",
-    "Ensure pip is newer than 23.0 [1]:\n\n```bash\n~$ pip install pip --upgrade\n```\n\n\nInstall the documentation tools, which will fetch this repository release:\n\n```bash\n~$ (cd docs ; pip install -r requirements.txt)\n```\n\n\nTest it building this documentation:\n\n```bash\n~$ (cd docs ; make html)\n```\n\n\nThere i",
-    "Installing packages at user level through pip is not always recommended,\ninstead, consider using a Python virtual environment (`python3-venv` on\nubuntu 22.04).\n\nTo create and activate the environment, do before the previous instructions:\n\n```bash\n~$ python3 -m venv venv\n~$ source venv/bin/activate\n`",
-    "Development install allows editing the source code and apply the changes without\nreinstalling.\nAlso extends Serve to watch changes on the webpage source code\n(use \u2013dev/-r option to enable this).\n",
-    "If you care about the web scripts (js modules) and style sheets (sass),\ninstall `node.js`, `npm` and the `npm` packages below, if not, read this\nsection\u2019s last paragraph.\n\n> **Note**\n>\n> If the `npm` provided by your package manager is too old and updating with\n> `npm install npm -g` fails, consider",
-    "Fetch third-party fonts:\n\n```bash\n~$ ./ci/fetch-fonts.sh\n```\n",
-    "Finally, do a symbolic installation of this repo:\n\n```bash\n~$ pip install -e . --upgrade\n```\n\n\n> **Caution**\n>\n> If using a python virtual environment for the *requirements.txt* packages,\n> do this command with the virtual environment already activated.\n> Mixing pip packages inside and outside the v",
-    "To remove, either release or development, do:\n\n```bash\n~$ pip uninstall adi-doctools\n```\n",
-    "A Sphinx themed called *harmonic* (old *cosmic*) is available.\nIt is deeply based on ADI\u2019s *harmonic* design language.\n",
-    "> **Note**\n>\n> Depending on your browser and operation system shortcuts, not all shortcuts\n> may work or they may collide with existing ones, therefore, multiple are\n> provided.\n\n\n`Alt+Shift+ArrowLeft` goes to the previous page and `Alt+Shift+ArrowRight`\nto the next page.\nAlternatively `Alt+Shift+A`",
-    "Doctools is the central piece to aggregate multiple documentations together,\nexpanding the documentation standard hierarchical, mono-repo configuration.\nThe content is organized in three levels:\n\n- repotoc: Listing of repositories in the same organization that contain\n  documentations.\n  In general,",
     "> **Note**\n>\n> Link-like roles use the `:role:`text <link>`` synthax, like external\n> links, but without the undescore in the end.\n",
     "To print text in red or green, use `:red:`text`` and `:green:`text``.\n",
     "The link roles are a group of roles defined by `adi_links.py`.\n\nThe `validate_links` global option is used to validate each link during build.\nThese links are not managed, that means, only links from changed files are checked.\nYou can run a build with it set to False, then touch the desired files to",
@@ -92,7 +92,18 @@
     "- On Firefox on Windows, fetch requests can only happen to the same port (8000 -> 8000),\n  so Serve daemon must be on port 8000\n"
   ],
   "url": [
+    "theme.html",
+    "theme.html#shortcuts",
+    "fundamentals.html#documentation-hierarchical-structure",
     "index.html",
+    "install.html",
+    "install.html#release-install",
+    "install.html#using-a-python-virtual-environment",
+    "install.html#development-install",
+    "install.html#install-the-web-compiler",
+    "install.html#fetch-third-party-resources",
+    "install.html#install-the-repository",
+    "install.html#removing",
     "deploy.html",
     "deploy.html#local",
     "deploy.html#rolling-release",
@@ -102,17 +113,6 @@
     "deploy.html#i-don-t-want-a-doc-at-the-root",
     "deploy.html#how-do-i-cross-reference-a-specific-version",
     "deploy.html#what-happened-to-adoc-target-depth",
-    "install.html",
-    "install.html#release-install",
-    "install.html#using-a-python-virtual-environment",
-    "install.html#development-install",
-    "install.html#install-the-web-compiler",
-    "install.html#fetch-third-party-resources",
-    "install.html#install-the-repository",
-    "install.html#removing",
-    "theme.html",
-    "theme.html#shortcuts",
-    "fundamentals.html#documentation-hierarchical-structure",
     "docs_guidelines/roles.html",
     "docs_guidelines/roles.html#color",
     "docs_guidelines/roles.html#link",
@@ -185,7 +185,53 @@
   ],
   "hierarchy": [
     [
+      "Sphinx theme"
+    ],
+    [
+      "Sphinx theme",
+      "Shortcuts"
+    ],
+    [
+      "Fundamentals",
+      "Documentation hierarchical structure"
+    ],
+    [
       "Analog Devices Doctools"
+    ],
+    [
+      "Installing"
+    ],
+    [
+      "Installing",
+      "Release install"
+    ],
+    [
+      "Installing",
+      "Release install",
+      "Using a Python virtual environment"
+    ],
+    [
+      "Installing",
+      "Development install"
+    ],
+    [
+      "Installing",
+      "Development install",
+      "Install the web compiler"
+    ],
+    [
+      "Installing",
+      "Development install",
+      "Fetch third-party resources"
+    ],
+    [
+      "Installing",
+      "Development install",
+      "Install the repository"
+    ],
+    [
+      "Installing",
+      "Removing"
     ],
     [
       "Documentation deployment"
@@ -226,52 +272,6 @@
       "Documentation deployment",
       "Further notes",
       "What happened to ADOC_TARGET_DEPTH?"
-    ],
-    [
-      "Installing"
-    ],
-    [
-      "Installing",
-      "Release install"
-    ],
-    [
-      "Installing",
-      "Release install",
-      "Using a Python virtual environment"
-    ],
-    [
-      "Installing",
-      "Development install"
-    ],
-    [
-      "Installing",
-      "Development install",
-      "Install the web compiler"
-    ],
-    [
-      "Installing",
-      "Development install",
-      "Fetch third-party resources"
-    ],
-    [
-      "Installing",
-      "Development install",
-      "Install the repository"
-    ],
-    [
-      "Installing",
-      "Removing"
-    ],
-    [
-      "Sphinx theme"
-    ],
-    [
-      "Sphinx theme",
-      "Shortcuts"
-    ],
-    [
-      "Fundamentals",
-      "Documentation hierarchical structure"
     ],
     [
       "Documentation guidelines",

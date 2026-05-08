@@ -3,12 +3,20 @@
     "Analog Devices Inc.\ndocumentation extensions, themes, and tools for multiple repositories in the\norganization.\n\nRead the Documentation guidelines for more documentation rules and information\non the directives and roles packaged on this repository.\n\nAnd read the Command line interface for information",
     "A Sphinx themed called *harmonic* (old *cosmic*) is available.\nIt is deeply based on ADI\u2019s *harmonic* design language.\n",
     "`Alt+Shift+ArrowLeft` goes to the previous page and `Alt+Shift+ArrowRight`\nto the next page.\n`Ctrl+Alt+Shift+ArrowLeft/Right` preserves the current page anchor, for example,\nif the current section is *project_0.html#details*, `Ctrl+Alt+Shift+ArrowRight`\ngoes to *project_1.html#details*, even if *det",
+    "Doctools is the central piece to aggregate multiple documentations together,\nexpanding the documentation standard hierarchical, mono-repo configuration.\nThe content is organized in three levels:\n\n- repotoc: Listing of repositories in the same organization that contain\n  documentations.\n  In general,",
+    "Below is described how to do a release install and a development install of Doctools.\n\nGuarantee to work with Python newer than 3.8 and distros released on or after 20H1\n(e.g. Ubuntu 20.04 LTS).\n",
+    "Ensure pip is newer than 23.0 [1]:\n\n```bash\n~$ pip install pip --upgrade\n```\n\n\nInstall the documentation tools, which will fetch this repository release:\n\n```bash\n~$ (cd docs ; pip install -r requirements.txt)\n```\n\n\nTest it building this documentation:\n\n```bash\n~$ (cd docs ; make html)\n```\n\n\nThere i",
+    "Installing packages at user level through pip is not always recommended, instead,\nconsider using a Python virtual environment (`python3-venv` on ubuntu 22.04).\n\nTo create and activate the environment, do before the previous instructions:\n\n```bash\n~$ python3 -m venv ./venv\n~$ source ./venv/bin/activa",
+    "Development install allows to edit the source code and apply the changes without\nreinstalling.\nAlso extends Author Mode to watch changes on the webpage source code\n(use \u2013dev/-r option to enable this).\n",
+    "If you care about the web scripts (js modules) and style sheets (sass),\ninstall `npm` and the `npm` packages below, if not, read this section\u2019s\nlast paragraph.\n\n> **Note**\n>\n> If the `npm` provided by your package manager is too old and updating with\n> `npm install npm -g` fails, consider installing",
+    "Fetch third-party fonts:\n\n```bash\n~$ ./ci/fetch-fonts.sh\n```\n",
+    "Finally, do a symbolic install of this repo:\n\n```bash\n~$ pip install -e . --upgrade\n```\n",
+    "To remove, either release or development, do:\n\n```bash\n~$ pip uninstall adi-doctools\n```\n",
     "Doctools has a continuous deployment integration pipeline that works as follows:\n\n```default\n                   \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n                \u250c\u2500\u25ba\u2502Build Doc & Deploy\u251c\u2500\u2510\n                \u2502  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518 \u2502\n                \u2502                       \u2502\n\u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510 \u2502  \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510   \u2502",
     "Doctools is developed to work offline, in a local server, as a rolling release\n(e.g. on GitHub Page)s and versioned in a dedicated server (with orchestration).\n",
     "For offline and local server, a `make html` suffice to generate the\ndocumentation.\n\nTo serve the build in a local server, Python built-in server can be used:\n\n```bash\n~$ python -m http.server -d /path/to/docs/_build/html\n```\n\n\nOr with hot reload using Why was Author Mode renamed to Serve?:\n\n```bash\n",
     "For a rolling release, a workflow file is used.\n\nWith GitHub Actions, the following workflow file is recommended:\n\n```yaml\non:\n  push:\n    branches:\n      - main\n  pull_request:\n\njobs:\n  build-doc:\n    runs-on: ubuntu-latest\n\n    steps:\n    - uses: actions/checkout@v4\n    - uses: actions/setup-pytho",
     "The live versioned version requires additional orchestration than the\nRolling release.\nStore each version in separated folders in the root path, e.g.\n`v1.1`, `v2.2`, `main`, `dev` and generate a `tags.json`\ncontaining a plain array with each version on the root path,\ne.g. `[\"v1.1\", \"v2.2\", \"main\", \"",
-    "Doctools is the central piece to aggregate multiple documentations together,\nexpanding the documentation standard hierarchical, mono-repo configuration.\nThe content is organized in three levels:\n\n- repotoc: Listing of repositories in the same organization that contain\n  documentations.\n  In general,",
     "The Doctools bundles a command line interface called `adoc` meant to ease both\ncontinuous integration and local builds of the documentation.\n\nBelow, it is briefly described each command, and it is worth noting that every\ncommand supports the `--help` option for quick look up.\n",
     "Watches the docs and source code to rebuild it on edit.\nSimilar to `mkdocs serve`, `webpack serve`, `npm run start`, `hugo server`,\nand so on.\n\nTwo HTML live update strategies are available:\n\n- pooling: The webpage pools timestamp changes on the `.dev-pool` file (default).\n- selenium: Page reloads t",
     "Run `make clean` in another tab, it will trigger a full rebuild.\n\nDo **not** do `make clean html` since it will generate a build without the\nproper Serve environment and live reload won\u2019t work properly.\n",
@@ -18,14 +26,6 @@
     "Generates custom documents with filtered content from all documentations of the\nwatched repositories (see adi_doctools/lut.py).\n\nFor PDF output, WeasyPrint is used (ensure to install it).\n\nTo quick start, run the tool twice in an empty directly.\n\n```bash\n~$ cd /tmp/my_doc\n/tmp/my_doc$ adoc custom-do",
     "> **Tip**\n>\n> This feature is useful to batch build/test all tracked documentations.\n\n\nGenerates all documentations of the watched repositories\n(see adi_doctools/lut.py).\n\nTwo generation strategies are available:\n\n- monolithic: patches all docs together into a single monolithic output (default).\n- s",
     "Exposes the HDL component diagram generator as a CLI.\nIt converts IP-XACT files into SVGs.\n\nTo generate and open the diagram, provide the path containing the IP-XACT and use\nthe `--open` option:\n\n```bash\n~$ adoc hdl-render --input PATH --open\n```\n\n\nFor example:\n\n```bash\n~$ adoc hdl-render --input hd",
-    "Below is described how to do a release install and a development install of Doctools.\n\nGuarantee to work with Python newer than 3.8 and distros released on or after 20H1\n(e.g. Ubuntu 20.04 LTS).\n",
-    "Ensure pip is newer than 23.0 [1]:\n\n```bash\n~$ pip install pip --upgrade\n```\n\n\nInstall the documentation tools, which will fetch this repository release:\n\n```bash\n~$ (cd docs ; pip install -r requirements.txt)\n```\n\n\nTest it building this documentation:\n\n```bash\n~$ (cd docs ; make html)\n```\n\n\nThere i",
-    "Installing packages at user level through pip is not always recommended, instead,\nconsider using a Python virtual environment (`python3-venv` on ubuntu 22.04).\n\nTo create and activate the environment, do before the previous instructions:\n\n```bash\n~$ python3 -m venv ./venv\n~$ source ./venv/bin/activa",
-    "Development install allows to edit the source code and apply the changes without\nreinstalling.\nAlso extends Author Mode to watch changes on the webpage source code\n(use \u2013dev/-r option to enable this).\n",
-    "If you care about the web scripts (js modules) and style sheets (sass),\ninstall `npm` and the `npm` packages below, if not, read this section\u2019s\nlast paragraph.\n\n> **Note**\n>\n> If the `npm` provided by your package manager is too old and updating with\n> `npm install npm -g` fails, consider installing",
-    "Fetch third-party fonts:\n\n```bash\n~$ ./ci/fetch-fonts.sh\n```\n",
-    "Finally, do a symbolic install of this repo:\n\n```bash\n~$ pip install -e . --upgrade\n```\n",
-    "To remove, either release or development, do:\n\n```bash\n~$ pip uninstall adi-doctools\n```\n",
     "A brief set-of-rules for the documentation.\n\n> **Note**\n>\n> The old wiki uses dokuwiki. When\n> importing text from there, consider the automated options that are provided\n> in this page to convert it to reST.\n",
     "Use the following command to import a DokuWiki page (old *wiki.analog.com*):\n\n```bash\npandoc imported.txt -f dokuwiki -t rst --columns=80 -s -o imported.rst --list-tables\n```\n\n\nThe `list-tables` parameter requires *pandoc-types* >= 1.23, included in any\nrecent pandoc release;\nif it is not an option,",
     "Directives are indented with 3 space, which is Sphinx\u2019s default.\nAt code directives, the code keeps its original indentation (e.g. 2 spaces for\nVerilog code), but is offset by 3 spaces at the beginning of every line, to\ninstruct Sphinx the beginning and end of the code directive.\n",
@@ -76,12 +76,20 @@
     "index.html",
     "theme.html",
     "theme.html#shortcuts",
+    "fundamentals.html#documentation-hierarchical-structure",
+    "install.html",
+    "install.html#release-install",
+    "install.html#using-a-python-virtual-environment",
+    "install.html#development-install",
+    "install.html#install-the-web-compiler",
+    "install.html#fetch-third-party-resources",
+    "install.html#install-the-repository",
+    "install.html#removing",
     "ci.html#doctools-package-pipeline",
     "ci.html#documentation-build-and-deployment",
     "ci.html#local",
     "ci.html#rolling-release",
     "ci.html#versioned",
-    "fundamentals.html#documentation-hierarchical-structure",
     "cli.html",
     "cli.html#serve",
     "cli.html#how-can-i-rebuild-the-whole-documentation-within-serve",
@@ -91,14 +99,6 @@
     "cli.html#custom-doc",
     "cli.html#aggregate",
     "cli.html#hdl-render",
-    "install.html",
-    "install.html#release-install",
-    "install.html#using-a-python-virtual-environment",
-    "install.html#development-install",
-    "install.html#install-the-web-compiler",
-    "install.html#fetch-third-party-resources",
-    "install.html#install-the-repository",
-    "install.html#removing",
     "docs_guidelines.html",
     "docs_guidelines.html#importing-from-dokuwiki-to-sphinx",
     "docs_guidelines.html#indentation",
@@ -157,6 +157,45 @@
       "Shortcuts"
     ],
     [
+      "Fundamentals",
+      "Documentation hierarchical structure"
+    ],
+    [
+      "Installing"
+    ],
+    [
+      "Installing",
+      "Release install"
+    ],
+    [
+      "Installing",
+      "Release install",
+      "Using a Python virtual environment"
+    ],
+    [
+      "Installing",
+      "Development install"
+    ],
+    [
+      "Installing",
+      "Development install",
+      "Install the web compiler"
+    ],
+    [
+      "Installing",
+      "Development install",
+      "Fetch third-party resources"
+    ],
+    [
+      "Installing",
+      "Development install",
+      "Install the repository"
+    ],
+    [
+      "Installing",
+      "Removing"
+    ],
+    [
       "Continuous integration",
       "Doctools package pipeline"
     ],
@@ -178,10 +217,6 @@
       "Continuous integration",
       "Documentation build and deployment",
       "Versioned"
-    ],
-    [
-      "Fundamentals",
-      "Documentation hierarchical structure"
     ],
     [
       "Command line interface"
@@ -221,41 +256,6 @@
     [
       "Command line interface",
       "HDL Render"
-    ],
-    [
-      "Installing"
-    ],
-    [
-      "Installing",
-      "Release install"
-    ],
-    [
-      "Installing",
-      "Release install",
-      "Using a Python virtual environment"
-    ],
-    [
-      "Installing",
-      "Development install"
-    ],
-    [
-      "Installing",
-      "Development install",
-      "Install the web compiler"
-    ],
-    [
-      "Installing",
-      "Development install",
-      "Fetch third-party resources"
-    ],
-    [
-      "Installing",
-      "Development install",
-      "Install the repository"
-    ],
-    [
-      "Installing",
-      "Removing"
     ],
     [
       "Documentation guidelines"
