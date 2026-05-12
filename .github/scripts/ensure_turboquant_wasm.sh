@@ -15,7 +15,7 @@ ensure_turboquant_wasm () {
     rm -rf "$zip"
     zig_tar="$(mktemp -t zig.XXX.tar.xz)"
     mkdir -p "$zig"
-    curl -L https://ziglang.org/builds/zig-x86_64-linux-0.16.0-dev.3132+fd2718f82.tar.xz -o "$zig_tar"
+    curl -L https://ziglang.org/download/0.16.0/zig-x86_64-linux-0.16.0.tar.xz -o "$zig_tar"
     tar -xf "$zig_tar" -C "$zig" --strip-components=1
     rm "$zig_tar"
   fi
