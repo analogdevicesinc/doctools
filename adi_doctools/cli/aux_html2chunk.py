@@ -6,6 +6,7 @@ from lxml import html as lxml_html
 
 from .aux_html2md import find_main_content
 from .aux_html2md import HTMLToMarkdown
+from ..lut import repos
 
 
 HEADING_TAGS = frozenset(('h1', 'h2', 'h3', 'h4', 'h5', 'h6'))
@@ -86,6 +87,15 @@ class HTMLToChunks(HTMLToMarkdown):
 
         tree = lxml_html.fromstring(html_content)
 
+        repository = tree.find('.//meta[@name="repository"]')
+        if repository is not None:
+            repository = repository.attrib['content']
+            repository = repos[repository]['name'] if repository in repos else None
+        else:
+            repository = tree.find('.//header//a[@id="logo"]/div')
+            if repository is not None:
+                repository = repository.text
+
         main = find_main_content(tree)
         if main is None:
             return []
@@ -111,6 +121,9 @@ class HTMLToChunks(HTMLToMarkdown):
             self.process_chunk_body(sec)
 
             hierarchy = [*breadcrumb, *headings]
+            if repository:
+                hierarchy.insert(0, repository)
+
             context = ' > '.join(hierarchy) + ':\n' if hierarchy else ''
 
             if sec.find('h1') is None:
