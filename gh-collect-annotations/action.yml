@@ -145,5 +145,8 @@ runs:
                        "${{ inputs.head-sha }}" \
                        "${{ inputs.run-id }}" \
                        "$annotations_file"
+
+        echo "Got $(cat $annotations_file | wc -l ) annotations lines"
+
         echo "annotations_file=$annotations_file" >> "$GITHUB_OUTPUT"
         echo "annotations_file=$annotations_file" >> "$GITHUB_ENV"
