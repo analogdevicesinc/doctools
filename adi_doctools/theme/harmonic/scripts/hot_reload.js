@@ -1,8 +1,9 @@
 "use strict";
 
-import {Toolbox} from './toolbox.js'
-import {State} from './state.js'
-import {DOM} from './dom.js'
+import { DispatchEvent } from './event.js'
+import { Toolbox } from './toolbox.js'
+import { State } from './state.js'
+import { DOM } from './dom.js'
 
 export class HotReload {
   constructor (app) {
@@ -300,6 +301,7 @@ export class HotReload {
 
 
     this.js_script_memory.forEach(this.ensure_script)
+    DispatchEvent("app:hot_reload:page_loaded")
 
     this.hot_links()
 
