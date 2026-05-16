@@ -41,6 +41,16 @@
             "url_doc": "https://analogdevicesinc.github.io/linux",
             "url_source": "https://github.com/analogdevicesinc/linux.git"
         },
+        "linux-security-vulns": {
+            "name": "Linux Security Vulns",
+            "description": "Vulnerabilities monitoring workflow for the Linux kernel.",
+            "category": "system",
+            "visibility": "hidden",
+            "pathname": "docs",
+            "branch": "ci",
+            "url_doc": "https://analogdevicesinc.github.io/linux-security-vulns",
+            "url_source": "https://github.com/analogdevicesinc/linux-security-vulns.git"
+        },
         "lnxdsp-adi-meta": {
             "name": "ADI DSP Linux",
             "description": "Yocto-based Linux images for ADI Digital Signal Processors.",
