@@ -84,6 +84,14 @@ repos = {
         branch='ci',
         visibility='public'
     ),
+    'linux-security-vulns': Repo(
+        pathname='docs',
+        name='Linux Security Vulns',
+        description='Vulnerabilities monitoring workflow for the Linux kernel.',
+        category='system',
+        branch='ci',
+        visibility='hidden'
+    ),
     'lnxdsp-adi-meta': Repo(
         pathname='docs',
         name='ADI DSP Linux',
