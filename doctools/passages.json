@@ -1,11 +1,11 @@
 {
   "text": [
-    "Doctools is the central piece for aggregating multiple documentations together,\nexpanding the standard hierarchical, mono-repo documentation configuration.\n\nThe content is organized in three levels:\n\n- repotoc: Listing of repositories in the same organization that contain\n  documentations.\n  In gene",
-    "Analog Devices Inc.\ndocumentation extensions, themes, and tools for multiple repositories in the\norganization.\n\nRead the Documentation guidelines for more documentation rules and information\non the directives and roles packaged on this repository.\n\nAnd read the Command line interface for information",
     "A Sphinx theme called *harmonic* (formerly *cosmic*) is available and\nis based on ADI\u2019s *harmonic* design language.\n",
     "> **Tip**\n>\n> Depending on your browser and operating system shortcuts, some shortcuts may\n> collide with existing ones, due to this, the script provides many alternatives.\n\n\n`Alt+Shift+ArrowLeft` goes to the previous page and `Alt+Shift+ArrowRight`\nto the next page. Or `Alt+Shift+A` and `Alt+Shift+",
     "As other Sphinx themes, you set doctools theme customization through the *conf.py*.\nYou add to the `html_theme_options` dictionary:\n\n```python\nhtml_theme_options = {\n    \"light_logo\": path.join(\"path\", \"to\", \"logo_light.svg\"),\n    \"dark_logo\": path.join(\"path\", \"to\", \"logo_dark.svg\"),\n    \"no_index\"",
     "File-wide metadata are field lists at the top of the file, that\nSphinx parses into document metadata.\n\nBeyond Sphinx special metadata fields, doctools converts some metadata into HTML\nmeta tags.\nThe values and their effects are:\n\n- `no-index`: Appends an\n  \u201cnoindex\u201d meta tag\n  to the page, alternati",
+    "Doctools is the central piece for aggregating multiple documentations together,\nexpanding the standard hierarchical, mono-repo documentation configuration.\n\nThe content is organized in three levels:\n\n- repotoc: Listing of repositories in the same organization that contain\n  documentations.\n  In gene",
+    "Analog Devices Inc.\ndocumentation extensions, themes, and tools for multiple repositories in the\norganization.\n\nRead the Documentation guidelines for more documentation rules and information\non the directives and roles packaged on this repository.\n\nAnd read the Command line interface for information",
     "Doctools custom Sphinx roles allow better linking, such as git links, and\nformatting, like font coloring.\n\nBelow, every added role is explained with examples.\n\n> **Note**\n>\n> Link-like roles use the `:role:`text <link>`` syntax, like external\n> links, but without the underscore at the end.\n",
     "To print text in red or green, use `:red:`text`` and `:green:`text``.\n",
     "The link roles are a group of roles defined by `adi_links.py`.\n\nThe `validate_links` global option is used to validate each link during build.\nThese links are not managed; that means only links from changed files are checked.\nYou can run a build with it set to False, then touch the desired files to ",
@@ -16,65 +16,6 @@
     "The ez role creates links to the Analog Devices Inc. EngineerZone support website.\nThe role syntax is `:ez:`community``, for example, `:ez:`fpga``\ngets rendered as EngineerZone.\n\nFor Linux Software Drivers, it is `:ez:`linux-software-drivers``.\n\nFor Microcontroller no-OS Drivers it is `:ez:`microcon",
     "The vendor role creates links to the vendor\u2019s website.\nThe role syntax is `:vendor:`text <path>``, for example,\n`:xilinx:`Zynq-7000 SoC Overview <support/documentation/data_sheets/ds190-Zynq-7000-Overview.pdf>``\ngets rendered\nZynq-7000 SoC Overview.\n\nThe text parameter is optional, if absent, the fi",
     "The supplier role creates links to a vendor\u2019s website search.\nThe role syntax is `:vendor:`text <path>``, for example,\n`:digikey:`AD9081-FMCA-EBZ``\ngets rendered\nAD9081-FMCA-EBZ.\n\nThe text parameter is optional.\n\nSupported vendors are: `digikey` (Digikey), `mouser` (Mouser) and\n`arrow` (Arrow).\n",
-    "A brief set-of-rules for the documentation.\n\n> **Note**\n>\n> The old wiki uses dokuwiki. When\n> importing text from there, consider the automated options that are provided\n> in this page to convert it to reST.\n",
-    "Use the following command to import a DokuWiki page (old *wiki.analog.com*):\n\n```bash\npandoc imported.txt -f dokuwiki -t rst --columns=80 -s -o imported.rst --list-tables\n```\n\n\nThe `list-tables` parameter requires *pandoc-types* >= 1.23, included in any\nrecent pandoc release;\nif it is not an option,",
-    "Sphinx allows expanding functionality beyond the defaults directives and roles\nby loading extensions. Doctools implements custom directives and roles for common\nfeatures, but third-party extensions can also be used.\n\nDoctools extended directives and roles are provided at:\n\n- Custom directives\n- Cust",
-    "Repositories have the freedom to choose the third-party extensions they want to\ninclude in their documentation.\nThey are listed in the *requirements.txt* file, and are installed with:\n\n```bash\npip install -r requirements.txt\n```\n\n\nThe recommendation is to avoid using extensions that render content o",
-    "Hot reload is a feature that reloads only parts of a webpage, allowing super\nfast content-loading, cool animations, and a better user experience.\n\nHowever, for third-party client-side JavaScript, it is necessary to map the\nadded globals to the hot reload module.\n\nOn adi_doctools/theme/harmonic/scrip",
-    "Extensions with repository-specific functionalities can be added to the repository\nsource code.\n\nAt *conf.py*, add:\n\n```python\nimport os\nimport sys\nsys.path.insert(0, os.path.abspath(os.path.join('.', 'ext'))\n\nextensions = [\n     ...\n     \"ext_repo_name\"\n]\n```\n\n\nCreate the *ext/ext_repo_name.py* and",
-    "Directives are indented with 3 spaces. At code directives, the code\nkeeps its original indentation (e.g. 2 spaces for Verilog code, tabs for C\ncode), but is offset by 3 spaces at the beginning of every line, to instruct\nSphinx the beginning and end of the code directive.\n\nThis offset tells Sphinx wh",
-    "The Table of Contents (ToC) is created with the `toctree` directive, and content\nadded to it is included in the navigation bars and table of contents.\n\nThe basic structure of a `toctree` is:\n\n```rst\n.. toctree::\n   :maxdepth: <depth>\n\n   Custom title <path/to/page>\n```\n\n\nFor pages where the title is",
-    "The placement of a `toctree` within a page determines where content is\ninjected when generating a PDF.\n\nA recommended usage looks like:\n\n```rst\nMy evaluation board\n===================\n\nUser guides\n-----------\n\nTo simplify and speed up bring-up, a ... .\nThey describe how ... .\n\n.. toctree::\n   :capti",
-    "Captions on top-level `toctree` entries also appear in the sidebar. Use them\nto group related documentation areas logically\u2014such as `Software`,\n`Tutorials`, `API Usage`, or `Contributing`, rather than as explanatory\nphrases like `Tutorials are provided at:`.\n\nYou can think of top-level `toctree` cap",
-    "Doctools extends `toctree` with a `toctree-preview`, that adds a\ndescription of the page right below the link. Only the first level is shown,\neven if `maxdepth` is set. Internally it uses the result of the\nDescription directive.\n\nIt is useful when you have a list of projects and wants to provide a q",
-    "To avoid having the version set in multiple places or having to tweak `conf.py`\nto obtain it from somewhere else, continuous integration can set the environment\nvariable `ADOC_DOC_VERSION` to set the version value.\n\nThe `version` value on `conf.py` has lower precedence, and\nwill be overwritten if `A",
-    "The whole documentation can be exported to a PDF document for a more compact\nformat using either rs2pdf or WeasyPrint.\nThis is done by setting the environment variable called\n`ADOC_MEDIA_PRINT` (the value does not matter) and building the documentation.\n\nFor rst2pdf, add `rst2pdf` to *conf.py* `exte",
-    "Internally, `ADOC_MEDIA_PRINT` variable is set to `app.config.media_print`\nand should be used in scenarios where it is explicitly needed to compile the\ncontent in a different manner than for the **hosted** html.\nFor example, to render content during build that would instead be rendered with\nthird-pa",
-    "References to labels have the format `:ref:`context topic``, e.g.\n`:ref:`role git`` renders as Git.\n\nLabels are created for any content with the syntax\n(dot-dot underscore<label>two-dots):\n\n```rst\n.. _context topic:\n```\n\n\n> **Hint**\n>\n> Add labels to any content that may be linked, locally or\n> exte",
-    "References can be numbered by using `numref`, for\nexample, \u201c*see Figure 1*\u201d.\n\nTo use this feature, enable on the *conf.py*:\n\n```python\nnumfig = True\n```\n\n\nTo customize the format, set `numfig_format`:\n\n```python\nnumfig_format = {'figure': 'Figure %s',\n                 'table': 'Table %s',\n          ",
-    "External references to other Sphinx documentation are created using the built-in\n`sphinx.ext.intersphinx` extension.\n\nTo set up **in-organization** references read the section below,\nand for **third-party** docs, the section that follows.\n\nAs the other roles, it is possible to customize the text, e.",
-    "To create references to Sphinx docs inside the organization add the repositories\nof interest to the conf.py file with the following format:\n\n```python\ninterref_repos = [external...]\n```\n\n\nFor example:\n\n```python\ninterref_repos = ['hdl', 'no-OS', 'pyadi-iio/main']\n```\n\n\nNotice that in the example `ma",
-    "To create references to third-party Sphinx documentations, add the mappings to\nthe conf.py file with the following format:\n\n```python\nintersphinx_mapping = {\n    '<name>': ('<path/to/external>', None)\n}\n```\n\n\nFor example:\n\n```python\nintersphinx_mapping = {\n    'sphinx': ('https://www.sphinx-doc.org/",
-    "Each line must be less than **80** columns wide. This visually ensures while\nwriting that the paragraphs are concise and well structured.\n\nFor **neovim**, you can visual select the block `Ctrl+V` then wrap with\n`gq`.\n\nFor **vscode**, you can install\nRewrap,\nselect the block and wrap with `Alt+Q`.\n\nA",
-    "Prefer\nlist-tables\nand imported\ncsv-tables\n(using the file option), because they are faster to create, easier to maintain\nand the 80 column-width rule can be respected with list-tables.\n\nOnly use Grid Tables if strictly necessary,\nsince they are hard to update.\n\nTo tune styling, the following classe",
-    "Unordered lists use `*` or `-` and ordered lists `#.`.\n\nChild items must be aligned with the first letter of the parent item; that means,\n2 spaces for unordered lists and 3 spaces for ordered lists, for example:\n\n```rst\n#. Parent ordered item.\n\n   * Child unordered item.\n\n     #. Child ordered item.",
-    "Prefer `code-block` to `code` directives, because\ncode-blocks have more options, such as showing line numbers and emphasizing\nlines.\n\nFor example,\n\n```rst\n.. code-block:: python\n   :linenos:\n   :emphasize-lines: 2\n\n   def hello_world():\n       string = \"Hello world\"\n       print(string)\n```\n\n\nRender",
-    "Prefer the SVG format for images, and save it as *Optimized SVG* in\ninkscape to use less space.\n\nStore them in a hierarchy, do not use `images` subdirectories. The idea is to\nhave simpler relative paths, for example, e.g.:\n\n```rst\n.. image:: ad2234_sdz_schematic.svg\n```\n\n\nOr even simpler `schematic.",
-    "Where applicable, Git Large File Storage (LFS) is used to replace large files\nwith text pointers inside Git, reducing cloning time.\n\nTo setup, install from your package manager and init:\n\n```bash\napt install git-lfs\ngit lfs install --skip-smudge\n```\n\n\nThe files that will use Git LFS are tracked at `",
-    "The **More information** and **Support** sections that are present in\nthe HDL project documentation, are actually separate pages inserted as links.\nThey\u2019re located at *hdl/projects/common/more_information.rst* and */support.rst*,\nand cannot be referenced here because they don\u2019t have an ID at the beg",
-    "Dynamic elements refer to sections of the documentation that are updated using\ndynamically loaded metadata, scripts, and styles (modules).\n\nThe dynamic elements implemented:\n\n- `doctools/metadata.json`:\n  The navigation bar at the top (`repotoc` entry).\n  A banner at the top (`banner` entry).\n\n\nThe ",
-    "- On Firefox on Windows, fetch requests can only happen to the same port (8000 -> 8000),\n  so Serve daemon must be on port 8000\n",
-    "The Doctools bundles a command line interface called `adoc` meant to ease both\ncontinuous integration and local builds of the documentation.\n\nBelow, each command is briefly described, and it is worth noting that every\ncommand supports the `--help` option for quick lookup.\n\nSee MCP integration to lea",
-    "Watches the docs and source code to rebuild it on edit.\nSimilar to `mkdocs serve`, `webpack serve`, `npm run start`, `hugo server`,\nand so on.\n\nThe webpage pools timestamp changes and commands on the `.dev-pool` file.\n\nTo launch a watched instance, do:\n\n```bash\n~$ cd /path/to/docs\n/path/to/docs$ ado",
-    "Inspired on git sparse clones, it is possible to build only some parts of the\ndocumentation, for example:\n\n```bash\n# Include only learning/**/* and solutions/**/*\n~$ adoc serve --sparse learning solutions\n```\n\n\nThis is a critical feature to build large docs, ensuring snappy live reloads.\n",
-    "It sets up multiple Sphinx configurations:\n\n- `interref_repos: [..., <repo>]`: Add current repository to `intersphinx`\n  cross-references.\n- `intersphinx_disabled_reftypes: ['']`: Resolve any local reference as\n  cross-reference, if not found locally.\n- `exclude_patterns: [...]`: Exclude all files m",
-    "Serve detects if a repository uses Git Large File Storage\nto fetch (smudge) the watched binaries on demand.\n\nThis enables users to clone a repo with `git lfs install --skip-smudge`\nand only fetch, on demand, the binary resources they are working on,\nsignificantly reducing clone time and bandwidth us",
-    "Run `make clean` in another tab, it will trigger a full rebuild.\n\nDo **not** do `make clean html` since it will generate a build without the\nproper Serve environment and live reload won\u2019t work properly.\n",
-    "You probably did a Development install without Install the web compiler\nand you are building directly (`make html`) instead of using Serve.\n\nIf you don\u2019t want to install `npm`, use Serve and accept the prompt to\nfetch the pre-built web-scripts from the latest release.\n",
-    "Since a Python scripts change would affect rebuilding the whole documentation,\nthose files are not watched by design even with the `--dev` option.\nExtensions at the doc itself are, however.\n\nAlternatively, touch the source doc of the open page to rebuild only it\nwith the edited Python code.\n",
-    "Solely to match other tools like `mkdocs serve`, `webpack serve`,\n`npm run start`, `hugo server`.\n",
-    "Search Sphinx documentations. Works by fetching the `searchindex.json` and\n`objects.inv` Uses the same search algorithm as Sphinx\u2019s JavaScript search.\n\nFor example:\n\n```bash\n~$ adoc search ad9084 profile\n[1] [documentation] AD9084\nhttps://analogdevicesinc.github.io/.../ad9084/index.html\n:external+do",
-    "For a search, you can chain the `adoc search --fetch` command, for example:\n\n```bash\n~$ adoc search --fetch 1\n Fetching source for: [2] EVAL-AD4060/AD4062-ARDZ\n Repository: documentation\n Document: solutions/reference-designs/ad4062-ardz/index\n\n Source URL: https://.../reference-designs/ad4062-ardz/",
-    "As a transition tool, it is also possible to search the DokuWiki\n(https://wiki.analog.com):\n\n```bash\n~$ adoc search-wiki ad9084 profile\n```\n\n\nUsage is identical, but the fetch output is either DokuWiki markup or html.\n",
-    "Generates custom documents with filtered content from all documentations of the\nwatched repositories (see adi_doctools/lut.py).\n\nFor PDF output, WeasyPrint is used (ensure to install it).\n\nTo quick start, run the tool twice in an empty directory.\n\n```bash\n~$ cd /tmp/my_doc\n/tmp/my_doc$ adoc custom-d",
-    "Suppose you edited and tested multiple docs together, it could be helpful\nto try a local inventory file first, to check references before publication.\n\nHaving this in mind, if you build the edited documentation first, and then execute\n`custom-doc`, it will consider the local inventory *objects.inv* ",
-    "> **Tip**\n>\n> This feature is useful to batch build/test all tracked documentations.\n\n\nGenerates all documentations of the watched repositories\n(see adi_doctools/lut.py).\n\nTwo generation strategies are available:\n\n- monolithic: patches all docs together into a single monolithic output (default).\n- s",
-    "Exposes the HDL component diagram generator as a CLI.\nIt converts IP-XACT files into SVGs.\n\nTo generate and open the diagram, provide the path containing the IP-XACT and use\nthe `--open` option:\n\n```bash\n~$ adoc hdl-render --input PATH --open\n```\n\n\nFor example:\n\n```bash\n~$ adoc hdl-render --input hd",
-    "How to do a release install, and a development install of Doctools.\n\nGuaranteed to work with Python 3.8 or newer and distributions released on or after\n20H1 (e.g., Ubuntu 20.04 LTS).\n",
-    "```bash\n~$ python3 -m venv venv\n~$ source venv/bin/activate# Ensure pip is newer than 23.0 (https://github.com/pypa/setuptools/issues/3269)\n~$ pip install pip --upgrade\n~$ pip install adi-doctools\n```\n\n\n```bash\n~$ pipx install adi-doctools\n```\n\n\n```bash\n~$ uvx --from adi-doctools adoc\n```\n\n\nTest it ",
-    "The tool includes a slim MCP to expose the CLIs. It simply teaches the LLM of\nthe tools available, analogous as a skill file. This methodology ensures the\ncontext window is not penalized.\n\nTo configure the MCP to your AI coding harness, first install with the MCP\nadd-in:\n\n```bash\n~$ python3 -m venv ",
-    "Installing packages at user level through pip is not always recommended,\ninstead, consider using a Python virtual environment (`python3-venv` on\nubuntu 22.04).\n\nTo create and activate the environment, do before the previous instructions:\n\n```bash\n~$ python3 -m venv .venv\n~$ source .venv/bin/activate",
-    "The release links are always:\n\n- https://github.com/analogdevicesinc/doctools/releases/download/latest/adi-doctools.tar.gz\n  latest (commit at tag bump).\n- https://github.com/analogdevicesinc/doctools/releases/download/pre-release/adi-doctools.tar.gz\n  pre-release (main head commit).\n- https://githu",
-    "There are two options for  Visual Studio Code support:\n\n- Doctools (\n  VSCode/\n  VSCodium):\n  A high level extension for most users.\n- Esbonio (\n  VSCode/\n  VSCodium):\n  A extensively developed for sphinx.\n\n\nDoctools provides support to LanguageTool for\ngrammar correction and GUI support for Sparse ",
-    "Setup the virtual environment first before opening the text editor, to\navoid triggering fallback behaviours.\n\nServe is able to generate Estobio pyproject.toml entry with (including\nSparse builds):\n\n```bash\n~/git-repo$ adoc serve --esbonio \\\n    --sparse docs/docs_guidelines docs/cli.rst | tee -a pyp",
-    "Esbonio is an extensively developed Language Server\nProtocol for sphinx. See How To Integrate Esbonio with Neovim.\n\nIt is also recomemded to use the modern tree-sitter.\nMake sure you have common parsers installed, at least:\n\n```default\n:TSInstall rst\n:TSInstall markdown\n:TSInstall yaml\n:TSInstall js",
-    "Beyond the HTML harmonic theme, limited LaTeX support is available.\nTo build you will need, at least:\n\n```bash\n~$ zypper install \\\n   texlive-latexmk \\\n   texlive-collection-basic \\\n   texlive-collection-latex \\\n   texlive-collection-latexrecommended \\\n   texlive-collection-latexextra \\\n   texlive-c",
-    "Development install allows editing the source code and applying changes without\nreinstalling.\nAlso extends Serve to watch changes on the webpage source code\n(use \u2013dev/-r option to enable this).\n",
-    "If you care about the web scripts (js modules) and style sheets (sass),\ninstall `node.js`, `npm` and the `npm` packages below, if not, read this\nsection\u2019s last paragraph.\n\n> **Note**\n>\n> If the `npm` provided by your package manager is too old and updating with\n> `npm install npm -g` fails, consider",
-    "Fetch third-party fonts:\n\n```bash\n~$ ./ci/fetch-fonts.sh\n```\n",
-    "Finally, do a symbolic installation of this repo:\n\n```bash\n~$ pip install -e . --upgrade\n```\n\n\n> **Caution**\n>\n> If using a python virtual environment for the *requirements.txt* packages,\n> do this command with the virtual environment already activated.\n> Mixing pip packages inside and outside the v",
-    "Add to you lazyvim config the path to the branch `nvim`:\n\n```lua\n{\n  dir = '/path/to/doctools/nvim',\n  -- ...\n}\n```\n",
-    "To remove, either release or development, do:\n\n```bash\n~$ pip uninstall adi-doctools\n```\n",
     "Doctools is developed to work offline, in a local server as a rolling release\n(e.g., on GitHub Pages) and versioned in a dedicated server with orchestration.\n",
     "For offline and local server, a `make html` suffices to generate the\ndocumentation.\n\nTo serve the build in a local server, Python built-in server can be used:\n\n```bash\n~$ python -m http.server -d /path/to/docs/_build/html\n```\n\n\nOr with hot reload using Serve:\n\n```bash\n~$ adoc serve -d /path/to/docs\n",
     "For either rolling release or versioned, you can use the shared actions.\n\nFor push to default branch and pull requests:\n\n```yaml\non:\n  push:\n    branches:\n      - main\n      - dev\n      - dev/*\n  pull_request:\n\njobs:\n  build-doc:\n    runs-on: ubuntu-latest\n\n    steps:\n    - uses: actions/checkout@v4",
@@ -116,15 +57,74 @@
     "At its core, the workflows are straight forward, roughly they do:\n\nThe `Tests` step:\n\n```bash\n~$ cd tests ; pytest\n```\n\n\n`Build Doc *`:\n\n```bash\n~$ cd docs ; make html\n```\n\n\nBut at a specific minimum and maximum supported environment version.\n\n`Custom Doc`:\n\n```bash\n~$ mkdir /tmp/test-pdf ; cd $_\n/t",
     "To host your GitHub Actions Runner,\nset up your secrets:\n\n```bash\n# e.g. analogdevicesinc/doctools\n~$ printf ORG_REPOSITORY | podman secret create public_doctools_org_repository -# e.g. MyVerYSecRunnerToken\n~$ printf RUNNER_TOKEN | podman secret create public_doctools_runner_token -\n```\n\n\nThe runner",
     "To host a cluster of self-hosted runners, the recommended approach is to use\nsystemd services, instead of for example, container compose solutions.\n\nBelow is a suggested systemd service at *~/.config/systemd/user/container-public-doctools@.service*.\n\n```systemd\n[Unit]\nDescription=container public do",
-    "To restrict the container to access only some resources in the network,\nto the `podman run` in the systemd service, append\n`--network podman --hooks-dir %h/.config/containers/oci/hooks.d`\nto use `netavark` as the network backend and use OCI hooks from the\npath listed.\n\nThen create two files, `contai"
+    "To restrict the container to access only some resources in the network,\nto the `podman run` in the systemd service, append\n`--network podman --hooks-dir %h/.config/containers/oci/hooks.d`\nto use `netavark` as the network backend and use OCI hooks from the\npath listed.\n\nThen create two files, `contai",
+    "The Doctools bundles a command line interface called `adoc` meant to ease both\ncontinuous integration and local builds of the documentation.\n\nBelow, each command is briefly described, and it is worth noting that every\ncommand supports the `--help` option for quick lookup.\n\nSee MCP integration to lea",
+    "Watches the docs and source code to rebuild it on edit.\nSimilar to `mkdocs serve`, `webpack serve`, `npm run start`, `hugo server`,\nand so on.\n\nThe webpage pools timestamp changes and commands on the `.dev-pool` file.\n\nTo launch a watched instance, do:\n\n```bash\n~$ cd /path/to/docs\n/path/to/docs$ ado",
+    "Inspired on git sparse clones, it is possible to build only some parts of the\ndocumentation, for example:\n\n```bash\n# Include only learning/**/* and solutions/**/*\n~$ adoc serve --sparse learning solutions\n```\n\n\nThis is a critical feature to build large docs, ensuring snappy live reloads.\n",
+    "It sets up multiple Sphinx configurations:\n\n- `interref_repos: [..., <repo>]`: Add current repository to `intersphinx`\n  cross-references.\n- `intersphinx_disabled_reftypes: ['']`: Resolve any local reference as\n  cross-reference, if not found locally.\n- `exclude_patterns: [...]`: Exclude all files m",
+    "Serve detects if a repository uses Git Large File Storage\nto fetch (smudge) the watched binaries on demand.\n\nThis enables users to clone a repo with `git lfs install --skip-smudge`\nand only fetch, on demand, the binary resources they are working on,\nsignificantly reducing clone time and bandwidth us",
+    "Run `make clean` in another tab, it will trigger a full rebuild.\n\nDo **not** do `make clean html` since it will generate a build without the\nproper Serve environment and live reload won\u2019t work properly.\n",
+    "You probably did a Development install without Install the web compiler\nand you are building directly (`make html`) instead of using Serve.\n\nIf you don\u2019t want to install `npm`, use Serve and accept the prompt to\nfetch the pre-built web-scripts from the latest release.\n",
+    "Since a Python scripts change would affect rebuilding the whole documentation,\nthose files are not watched by design even with the `--dev` option.\nExtensions at the doc itself are, however.\n\nAlternatively, touch the source doc of the open page to rebuild only it\nwith the edited Python code.\n",
+    "Solely to match other tools like `mkdocs serve`, `webpack serve`,\n`npm run start`, `hugo server`.\n",
+    "Search Sphinx documentations. Works by fetching the `searchindex.json` and\n`objects.inv` Uses the same search algorithm as Sphinx\u2019s JavaScript search.\n\nFor example:\n\n```bash\n~$ adoc search ad9084 profile\n[1] [documentation] AD9084\nhttps://analogdevicesinc.github.io/.../ad9084/index.html\n:external+do",
+    "For a search, you can chain the `adoc search --fetch` command, for example:\n\n```bash\n~$ adoc search --fetch 1\n Fetching source for: [2] EVAL-AD4060/AD4062-ARDZ\n Repository: documentation\n Document: solutions/reference-designs/ad4062-ardz/index\n\n Source URL: https://.../reference-designs/ad4062-ardz/",
+    "As a transition tool, it is also possible to search the DokuWiki\n(https://wiki.analog.com):\n\n```bash\n~$ adoc search-wiki ad9084 profile\n```\n\n\nUsage is identical, but the fetch output is either DokuWiki markup or html.\n",
+    "Generates custom documents with filtered content from all documentations of the\nwatched repositories (see adi_doctools/lut.py).\n\nFor PDF output, WeasyPrint is used (ensure to install it).\n\nTo quick start, run the tool twice in an empty directory.\n\n```bash\n~$ cd /tmp/my_doc\n/tmp/my_doc$ adoc custom-d",
+    "Suppose you edited and tested multiple docs together, it could be helpful\nto try a local inventory file first, to check references before publication.\n\nHaving this in mind, if you build the edited documentation first, and then execute\n`custom-doc`, it will consider the local inventory *objects.inv* ",
+    "> **Tip**\n>\n> This feature is useful to batch build/test all tracked documentations.\n\n\nGenerates all documentations of the watched repositories\n(see adi_doctools/lut.py).\n\nTwo generation strategies are available:\n\n- monolithic: patches all docs together into a single monolithic output (default).\n- s",
+    "Exposes the HDL component diagram generator as a CLI.\nIt converts IP-XACT files into SVGs.\n\nTo generate and open the diagram, provide the path containing the IP-XACT and use\nthe `--open` option:\n\n```bash\n~$ adoc hdl-render --input PATH --open\n```\n\n\nFor example:\n\n```bash\n~$ adoc hdl-render --input hd",
+    "How to do a release install, and a development install of Doctools.\n\nGuaranteed to work with Python 3.8 or newer and distributions released on or after\n20H1 (e.g., Ubuntu 20.04 LTS).\n",
+    "```bash\n~$ python3 -m venv venv\n~$ source venv/bin/activate# Ensure pip is newer than 23.0 (https://github.com/pypa/setuptools/issues/3269)\n~$ pip install pip --upgrade\n~$ pip install adi-doctools\n```\n\n\n```bash\n~$ pipx install adi-doctools\n```\n\n\n```bash\n~$ uvx --from adi-doctools adoc\n```\n\n\nTest it ",
+    "The tool includes a slim MCP to expose the CLIs. It simply teaches the LLM of\nthe tools available, analogous as a skill file. This methodology ensures the\ncontext window is not penalized.\n\nTo configure the MCP to your AI coding harness, first install with the MCP\nadd-in:\n\n```bash\n~$ python3 -m venv ",
+    "Installing packages at user level through pip is not always recommended,\ninstead, consider using a Python virtual environment (`python3-venv` on\nubuntu 22.04).\n\nTo create and activate the environment, do before the previous instructions:\n\n```bash\n~$ python3 -m venv .venv\n~$ source .venv/bin/activate",
+    "The release links are always:\n\n- https://github.com/analogdevicesinc/doctools/releases/download/latest/adi-doctools.tar.gz\n  latest (commit at tag bump).\n- https://github.com/analogdevicesinc/doctools/releases/download/pre-release/adi-doctools.tar.gz\n  pre-release (main head commit).\n- https://githu",
+    "There are two options for  Visual Studio Code support:\n\n- Doctools (\n  VSCode/\n  VSCodium):\n  A high level extension for most users.\n- Esbonio (\n  VSCode/\n  VSCodium):\n  A extensively developed for sphinx.\n\n\nDoctools provides support to LanguageTool for\ngrammar correction and GUI support for Sparse ",
+    "Setup the virtual environment first before opening the text editor, to\navoid triggering fallback behaviours.\n\nServe is able to generate Estobio pyproject.toml entry with (including\nSparse builds):\n\n```bash\n~/git-repo$ adoc serve --esbonio \\\n    --sparse docs/docs_guidelines docs/cli.rst | tee -a pyp",
+    "Esbonio is an extensively developed Language Server\nProtocol for sphinx. See How To Integrate Esbonio with Neovim.\n\nIt is also recomemded to use the modern tree-sitter.\nMake sure you have common parsers installed, at least:\n\n```default\n:TSInstall rst\n:TSInstall markdown\n:TSInstall yaml\n:TSInstall js",
+    "Beyond the HTML harmonic theme, limited LaTeX support is available.\nTo build you will need, at least:\n\n```bash\n~$ zypper install \\\n   texlive-latexmk \\\n   texlive-collection-basic \\\n   texlive-collection-latex \\\n   texlive-collection-latexrecommended \\\n   texlive-collection-latexextra \\\n   texlive-c",
+    "Development install allows editing the source code and applying changes without\nreinstalling.\nAlso extends Serve to watch changes on the webpage source code\n(use \u2013dev/-r option to enable this).\n",
+    "If you care about the web scripts (js modules) and style sheets (sass),\ninstall `node.js`, `npm` and the `npm` packages below, if not, read this\nsection\u2019s last paragraph.\n\n> **Note**\n>\n> If the `npm` provided by your package manager is too old and updating with\n> `npm install npm -g` fails, consider",
+    "Fetch third-party fonts:\n\n```bash\n~$ ./ci/fetch-fonts.sh\n```\n",
+    "Finally, do a symbolic installation of this repo:\n\n```bash\n~$ pip install -e . --upgrade\n```\n\n\n> **Caution**\n>\n> If using a python virtual environment for the *requirements.txt* packages,\n> do this command with the virtual environment already activated.\n> Mixing pip packages inside and outside the v",
+    "Add to you lazyvim config the path to the branch `nvim`:\n\n```lua\n{\n  dir = '/path/to/doctools/nvim',\n  -- ...\n}\n```\n",
+    "To remove, either release or development, do:\n\n```bash\n~$ pip uninstall adi-doctools\n```\n",
+    "A brief set-of-rules for the documentation.\n\n> **Note**\n>\n> The old wiki uses dokuwiki. When\n> importing text from there, consider the automated options that are provided\n> in this page to convert it to reST.\n",
+    "Use the following command to import a DokuWiki page (old *wiki.analog.com*):\n\n```bash\npandoc imported.txt -f dokuwiki -t rst --columns=80 -s -o imported.rst --list-tables\n```\n\n\nThe `list-tables` parameter requires *pandoc-types* >= 1.23, included in any\nrecent pandoc release;\nif it is not an option,",
+    "Sphinx allows expanding functionality beyond the defaults directives and roles\nby loading extensions. Doctools implements custom directives and roles for common\nfeatures, but third-party extensions can also be used.\n\nDoctools extended directives and roles are provided at:\n\n- Custom directives\n- Cust",
+    "Repositories have the freedom to choose the third-party extensions they want to\ninclude in their documentation.\nThey are listed in the *requirements.txt* file, and are installed with:\n\n```bash\npip install -r requirements.txt\n```\n\n\nThe recommendation is to avoid using extensions that render content o",
+    "Hot reload is a feature that reloads only parts of a webpage, allowing super\nfast content-loading, cool animations, and a better user experience.\n\nHowever, for third-party client-side JavaScript, it is necessary to map the\nadded globals to the hot reload module.\n\nOn adi_doctools/theme/harmonic/scrip",
+    "Extensions with repository-specific functionalities can be added to the repository\nsource code.\n\nAt *conf.py*, add:\n\n```python\nimport os\nimport sys\nsys.path.insert(0, os.path.abspath(os.path.join('.', 'ext'))\n\nextensions = [\n     ...\n     \"ext_repo_name\"\n]\n```\n\n\nCreate the *ext/ext_repo_name.py* and",
+    "Directives are indented with 3 spaces. At code directives, the code\nkeeps its original indentation (e.g. 2 spaces for Verilog code, tabs for C\ncode), but is offset by 3 spaces at the beginning of every line, to instruct\nSphinx the beginning and end of the code directive.\n\nThis offset tells Sphinx wh",
+    "The Table of Contents (ToC) is created with the `toctree` directive, and content\nadded to it is included in the navigation bars and table of contents.\n\nThe basic structure of a `toctree` is:\n\n```rst\n.. toctree::\n   :maxdepth: <depth>\n\n   Custom title <path/to/page>\n```\n\n\nFor pages where the title is",
+    "The placement of a `toctree` within a page determines where content is\ninjected when generating a PDF.\n\nA recommended usage looks like:\n\n```rst\nMy evaluation board\n===================\n\nUser guides\n-----------\n\nTo simplify and speed up bring-up, a ... .\nThey describe how ... .\n\n.. toctree::\n   :capti",
+    "Captions on top-level `toctree` entries also appear in the sidebar. Use them\nto group related documentation areas logically\u2014such as `Software`,\n`Tutorials`, `API Usage`, or `Contributing`, rather than as explanatory\nphrases like `Tutorials are provided at:`.\n\nYou can think of top-level `toctree` cap",
+    "Doctools extends `toctree` with a `toctree-preview`, that adds a\ndescription of the page right below the link. Only the first level is shown,\neven if `maxdepth` is set. Internally it uses the result of the\nDescription directive.\n\nIt is useful when you have a list of projects and wants to provide a q",
+    "To avoid having the version set in multiple places or having to tweak `conf.py`\nto obtain it from somewhere else, continuous integration can set the environment\nvariable `ADOC_DOC_VERSION` to set the version value.\n\nThe `version` value on `conf.py` has lower precedence, and\nwill be overwritten if `A",
+    "The whole documentation can be exported to a PDF document for a more compact\nformat using either rs2pdf or WeasyPrint.\nThis is done by setting the environment variable called\n`ADOC_MEDIA_PRINT` (the value does not matter) and building the documentation.\n\nFor rst2pdf, add `rst2pdf` to *conf.py* `exte",
+    "Internally, `ADOC_MEDIA_PRINT` variable is set to `app.config.media_print`\nand should be used in scenarios where it is explicitly needed to compile the\ncontent in a different manner than for the **hosted** html.\nFor example, to render content during build that would instead be rendered with\nthird-pa",
+    "References to labels have the format `:ref:`context topic``, e.g.\n`:ref:`role git`` renders as Git.\n\nLabels are created for any content with the syntax\n(dot-dot underscore<label>two-dots):\n\n```rst\n.. _context topic:\n```\n\n\n> **Hint**\n>\n> Add labels to any content that may be linked, locally or\n> exte",
+    "References can be numbered by using `numref`, for\nexample, \u201c*see Figure 1*\u201d.\n\nTo use this feature, enable on the *conf.py*:\n\n```python\nnumfig = True\n```\n\n\nTo customize the format, set `numfig_format`:\n\n```python\nnumfig_format = {'figure': 'Figure %s',\n                 'table': 'Table %s',\n          ",
+    "External references to other Sphinx documentation are created using the built-in\n`sphinx.ext.intersphinx` extension.\n\nTo set up **in-organization** references read the section below,\nand for **third-party** docs, the section that follows.\n\nAs the other roles, it is possible to customize the text, e.",
+    "To create references to Sphinx docs inside the organization add the repositories\nof interest to the conf.py file with the following format:\n\n```python\ninterref_repos = [external...]\n```\n\n\nFor example:\n\n```python\ninterref_repos = ['hdl', 'no-OS', 'pyadi-iio/main']\n```\n\n\nNotice that in the example `ma",
+    "To create references to third-party Sphinx documentations, add the mappings to\nthe conf.py file with the following format:\n\n```python\nintersphinx_mapping = {\n    '<name>': ('<path/to/external>', None)\n}\n```\n\n\nFor example:\n\n```python\nintersphinx_mapping = {\n    'sphinx': ('https://www.sphinx-doc.org/",
+    "Each line must be less than **80** columns wide. This visually ensures while\nwriting that the paragraphs are concise and well structured.\n\nFor **neovim**, you can visual select the block `Ctrl+V` then wrap with\n`gq`.\n\nFor **vscode**, you can install\nRewrap,\nselect the block and wrap with `Alt+Q`.\n\nA",
+    "Prefer\nlist-tables\nand imported\ncsv-tables\n(using the file option), because they are faster to create, easier to maintain\nand the 80 column-width rule can be respected with list-tables.\n\nOnly use Grid Tables if strictly necessary,\nsince they are hard to update.\n\nTo tune styling, the following classe",
+    "Unordered lists use `*` or `-` and ordered lists `#.`.\n\nChild items must be aligned with the first letter of the parent item; that means,\n2 spaces for unordered lists and 3 spaces for ordered lists, for example:\n\n```rst\n#. Parent ordered item.\n\n   * Child unordered item.\n\n     #. Child ordered item.",
+    "Prefer `code-block` to `code` directives, because\ncode-blocks have more options, such as showing line numbers and emphasizing\nlines.\n\nFor example,\n\n```rst\n.. code-block:: python\n   :linenos:\n   :emphasize-lines: 2\n\n   def hello_world():\n       string = \"Hello world\"\n       print(string)\n```\n\n\nRender",
+    "Prefer the SVG format for images, and save it as *Optimized SVG* in\ninkscape to use less space.\n\nStore them in a hierarchy, do not use `images` subdirectories. The idea is to\nhave simpler relative paths, for example, e.g.:\n\n```rst\n.. image:: ad2234_sdz_schematic.svg\n```\n\n\nOr even simpler `schematic.",
+    "Where applicable, Git Large File Storage (LFS) is used to replace large files\nwith text pointers inside Git, reducing cloning time.\n\nTo setup, install from your package manager and init:\n\n```bash\napt install git-lfs\ngit lfs install --skip-smudge\n```\n\n\nThe files that will use Git LFS are tracked at `",
+    "The **More information** and **Support** sections that are present in\nthe HDL project documentation, are actually separate pages inserted as links.\nThey\u2019re located at *hdl/projects/common/more_information.rst* and */support.rst*,\nand cannot be referenced here because they don\u2019t have an ID at the beg",
+    "Dynamic elements refer to sections of the documentation that are updated using\ndynamically loaded metadata, scripts, and styles (modules).\n\nThe dynamic elements implemented:\n\n- `doctools/metadata.json`:\n  The navigation bar at the top (`repotoc` entry).\n  A banner at the top (`banner` entry).\n\n\nThe ",
+    "- On Firefox on Windows, fetch requests can only happen to the same port (8000 -> 8000),\n  so Serve daemon must be on port 8000\n"
   ],
   "url": [
-    "fundamentals.html#documentation-hierarchical-structure",
-    "index.html",
     "theme.html",
     "theme.html#shortcuts",
     "theme.html#theme-options",
     "theme.html#metadata",
+    "fundamentals.html#documentation-hierarchical-structure",
+    "index.html",
     "docs_guidelines/roles.html",
     "docs_guidelines/roles.html#color",
     "docs_guidelines/roles.html#link",
@@ -135,65 +135,6 @@
     "docs_guidelines/roles.html#engineerzone",
     "docs_guidelines/roles.html#vendor",
     "docs_guidelines/roles.html#supplier",
-    "docs_guidelines/index.html",
-    "docs_guidelines/index.html#importing-from-dokuwiki-to-sphinx",
-    "docs_guidelines/index.html#directives-and-roles",
-    "docs_guidelines/index.html#third-party-directives-and-roles",
-    "docs_guidelines/index.html#support-custom-javascript-in-hot-reload",
-    "docs_guidelines/index.html#repository-specific-extensions",
-    "docs_guidelines/index.html#indentation-matters",
-    "docs_guidelines/index.html#table-of-contents",
-    "docs_guidelines/index.html#position-matters",
-    "docs_guidelines/index.html#top-level-caption",
-    "docs_guidelines/index.html#with-preview",
-    "docs_guidelines/index.html#versioning",
-    "docs_guidelines/index.html#exporting-to-pdf",
-    "docs_guidelines/index.html#inner-working",
-    "docs_guidelines/index.html#local-references",
-    "docs_guidelines/index.html#numbered-references",
-    "docs_guidelines/index.html#external-references",
-    "docs_guidelines/index.html#in-organization-reference",
-    "docs_guidelines/index.html#outside-organization-sphinx-reference",
-    "docs_guidelines/index.html#text-width",
-    "docs_guidelines/index.html#tables",
-    "docs_guidelines/index.html#lists",
-    "docs_guidelines/index.html#code",
-    "docs_guidelines/index.html#images",
-    "docs_guidelines/index.html#git-large-file-storage",
-    "docs_guidelines/index.html#hdl-common-sections",
-    "docs_guidelines/index.html#dynamic-elements",
-    "docs_guidelines/index.html#known-issues",
-    "cli.html",
-    "cli.html#serve",
-    "cli.html#sparse-builds",
-    "cli.html#how-does-it-even-work",
-    "cli.html#git-lfs-integration",
-    "cli.html#how-can-i-rebuild-the-whole-documentation-within-serve",
-    "cli.html#why-is-the-output-missing-styling-css-stylesheet",
-    "cli.html#why-is-the-python-source-code-of-this-repo-not-watched",
-    "cli.html#why-was-author-mode-renamed-to-serve",
-    "cli.html#search-docs",
-    "cli.html#fetch-source",
-    "cli.html#search-dokuwiki",
-    "cli.html#custom-doc",
-    "cli.html#working-with-multiple-docs",
-    "cli.html#aggregate",
-    "cli.html#hdl-render",
-    "install.html",
-    "install.html#release-install",
-    "install.html#mcp-integration",
-    "install.html#using-a-python-virtual-environment",
-    "install.html#release-links-and-optional-dependencies",
-    "install.html#vscode-vscodium-support",
-    "install.html#esbonio-tips",
-    "install.html#neovim-support",
-    "install.html#latex-support",
-    "install.html#development-install",
-    "install.html#install-the-web-compiler",
-    "install.html#fetch-third-party-resources",
-    "install.html#install-the-repository",
-    "install.html#id3",
-    "install.html#removing",
     "deploy.html",
     "deploy.html#local",
     "deploy.html#github-pages-deployment",
@@ -235,16 +176,68 @@
     "ci.html#interactive-run",
     "ci.html#self-hosted-runner",
     "ci.html#self-hosted-cluster",
-    "ci.html#restrict-network-access"
+    "ci.html#restrict-network-access",
+    "cli.html",
+    "cli.html#serve",
+    "cli.html#sparse-builds",
+    "cli.html#how-does-it-even-work",
+    "cli.html#git-lfs-integration",
+    "cli.html#how-can-i-rebuild-the-whole-documentation-within-serve",
+    "cli.html#why-is-the-output-missing-styling-css-stylesheet",
+    "cli.html#why-is-the-python-source-code-of-this-repo-not-watched",
+    "cli.html#why-was-author-mode-renamed-to-serve",
+    "cli.html#search-docs",
+    "cli.html#fetch-source",
+    "cli.html#search-dokuwiki",
+    "cli.html#custom-doc",
+    "cli.html#working-with-multiple-docs",
+    "cli.html#aggregate",
+    "cli.html#hdl-render",
+    "install.html",
+    "install.html#release-install",
+    "install.html#mcp-integration",
+    "install.html#using-a-python-virtual-environment",
+    "install.html#release-links-and-optional-dependencies",
+    "install.html#vscode-vscodium-support",
+    "install.html#esbonio-tips",
+    "install.html#neovim-support",
+    "install.html#latex-support",
+    "install.html#development-install",
+    "install.html#install-the-web-compiler",
+    "install.html#fetch-third-party-resources",
+    "install.html#install-the-repository",
+    "install.html#id3",
+    "install.html#removing",
+    "docs_guidelines/index.html",
+    "docs_guidelines/index.html#importing-from-dokuwiki-to-sphinx",
+    "docs_guidelines/index.html#directives-and-roles",
+    "docs_guidelines/index.html#third-party-directives-and-roles",
+    "docs_guidelines/index.html#support-custom-javascript-in-hot-reload",
+    "docs_guidelines/index.html#repository-specific-extensions",
+    "docs_guidelines/index.html#indentation-matters",
+    "docs_guidelines/index.html#table-of-contents",
+    "docs_guidelines/index.html#position-matters",
+    "docs_guidelines/index.html#top-level-caption",
+    "docs_guidelines/index.html#with-preview",
+    "docs_guidelines/index.html#versioning",
+    "docs_guidelines/index.html#exporting-to-pdf",
+    "docs_guidelines/index.html#inner-working",
+    "docs_guidelines/index.html#local-references",
+    "docs_guidelines/index.html#numbered-references",
+    "docs_guidelines/index.html#external-references",
+    "docs_guidelines/index.html#in-organization-reference",
+    "docs_guidelines/index.html#outside-organization-sphinx-reference",
+    "docs_guidelines/index.html#text-width",
+    "docs_guidelines/index.html#tables",
+    "docs_guidelines/index.html#lists",
+    "docs_guidelines/index.html#code",
+    "docs_guidelines/index.html#images",
+    "docs_guidelines/index.html#git-large-file-storage",
+    "docs_guidelines/index.html#hdl-common-sections",
+    "docs_guidelines/index.html#dynamic-elements",
+    "docs_guidelines/index.html#known-issues"
   ],
   "hierarchy": [
-    [
-      "Fundamentals",
-      "Documentation hierarchical structure"
-    ],
-    [
-      "Analog Devices Doctools"
-    ],
     [
       "Sphinx theme"
     ],
@@ -259,6 +252,13 @@
     [
       "Sphinx theme",
       "Metadata"
+    ],
+    [
+      "Fundamentals",
+      "Documentation hierarchical structure"
+    ],
+    [
+      "Analog Devices Doctools"
     ],
     [
       "Documentation guidelines",
@@ -315,275 +315,6 @@
       "Custom roles",
       "Link",
       "Supplier"
-    ],
-    [
-      "Documentation guidelines"
-    ],
-    [
-      "Documentation guidelines",
-      "Importing from DokuWiki to Sphinx"
-    ],
-    [
-      "Documentation guidelines",
-      "Directives and roles"
-    ],
-    [
-      "Documentation guidelines",
-      "Directives and roles",
-      "Third-party directives and roles"
-    ],
-    [
-      "Documentation guidelines",
-      "Directives and roles",
-      "Third-party directives and roles",
-      "Support custom JavaScript in hot reload"
-    ],
-    [
-      "Documentation guidelines",
-      "Directives and roles",
-      "Repository-specific extensions"
-    ],
-    [
-      "Documentation guidelines",
-      "Indentation matters"
-    ],
-    [
-      "Documentation guidelines",
-      "Table of contents"
-    ],
-    [
-      "Documentation guidelines",
-      "Table of contents",
-      "Position matters"
-    ],
-    [
-      "Documentation guidelines",
-      "Table of contents",
-      "Top-level caption"
-    ],
-    [
-      "Documentation guidelines",
-      "Table of contents",
-      "With preview"
-    ],
-    [
-      "Documentation guidelines",
-      "Versioning"
-    ],
-    [
-      "Documentation guidelines",
-      "Exporting to PDF"
-    ],
-    [
-      "Documentation guidelines",
-      "Exporting to PDF",
-      "Inner working"
-    ],
-    [
-      "Documentation guidelines",
-      "Local references"
-    ],
-    [
-      "Documentation guidelines",
-      "Local references",
-      "Numbered references"
-    ],
-    [
-      "Documentation guidelines",
-      "External references"
-    ],
-    [
-      "Documentation guidelines",
-      "External references",
-      "In organization reference"
-    ],
-    [
-      "Documentation guidelines",
-      "External references",
-      "Outside organization Sphinx reference"
-    ],
-    [
-      "Documentation guidelines",
-      "Text width"
-    ],
-    [
-      "Documentation guidelines",
-      "Tables"
-    ],
-    [
-      "Documentation guidelines",
-      "Lists"
-    ],
-    [
-      "Documentation guidelines",
-      "Code"
-    ],
-    [
-      "Documentation guidelines",
-      "Images"
-    ],
-    [
-      "Documentation guidelines",
-      "Git Large File Storage"
-    ],
-    [
-      "Documentation guidelines",
-      "Common sections",
-      "HDL common sections"
-    ],
-    [
-      "Documentation guidelines",
-      "Dynamic elements"
-    ],
-    [
-      "Documentation guidelines",
-      "Dynamic elements",
-      "Known issues"
-    ],
-    [
-      "Command line interface"
-    ],
-    [
-      "Command line interface",
-      "Serve"
-    ],
-    [
-      "Command line interface",
-      "Serve",
-      "Sparse builds"
-    ],
-    [
-      "Command line interface",
-      "Serve",
-      "Sparse builds",
-      "How does it even work?"
-    ],
-    [
-      "Command line interface",
-      "Serve",
-      "Git LFS integration"
-    ],
-    [
-      "Command line interface",
-      "Serve",
-      "How can I rebuild the whole documentation within Serve?"
-    ],
-    [
-      "Command line interface",
-      "Serve",
-      "Why is the output missing styling (CSS stylesheet)?"
-    ],
-    [
-      "Command line interface",
-      "Serve",
-      "Why is the Python source code of this repo not watched?"
-    ],
-    [
-      "Command line interface",
-      "Serve",
-      "Why was Author Mode renamed to Serve?"
-    ],
-    [
-      "Command line interface",
-      "Search docs"
-    ],
-    [
-      "Command line interface",
-      "Search docs",
-      "Fetch source"
-    ],
-    [
-      "Command line interface",
-      "Search docs",
-      "Search dokuwiki"
-    ],
-    [
-      "Command line interface",
-      "Custom Doc"
-    ],
-    [
-      "Command line interface",
-      "Custom Doc",
-      "Working with multiple docs"
-    ],
-    [
-      "Command line interface",
-      "Aggregate"
-    ],
-    [
-      "Command line interface",
-      "HDL Render"
-    ],
-    [
-      "Installing"
-    ],
-    [
-      "Installing",
-      "Release install"
-    ],
-    [
-      "Installing",
-      "Release install",
-      "MCP integration"
-    ],
-    [
-      "Installing",
-      "Release install",
-      "Using a Python virtual environment"
-    ],
-    [
-      "Installing",
-      "Release install",
-      "Release links and optional dependencies"
-    ],
-    [
-      "Installing",
-      "Release install",
-      "VScode/VScodium support"
-    ],
-    [
-      "Installing",
-      "Release install",
-      "VScode/VScodium support",
-      "Esbonio tips"
-    ],
-    [
-      "Installing",
-      "Release install",
-      "Neovim support"
-    ],
-    [
-      "Installing",
-      "Release install",
-      "LaTeX support"
-    ],
-    [
-      "Installing",
-      "Development install"
-    ],
-    [
-      "Installing",
-      "Development install",
-      "Install the web compiler"
-    ],
-    [
-      "Installing",
-      "Development install",
-      "Fetch third-party resources"
-    ],
-    [
-      "Installing",
-      "Development install",
-      "Install the repository"
-    ],
-    [
-      "Installing",
-      "Development install",
-      "Neovim support"
-    ],
-    [
-      "Installing",
-      "Removing"
     ],
     [
       "Documentation deployment"
@@ -792,6 +523,275 @@
       "Continuous integration",
       "Self-hosted cluster",
       "Restrict network access"
+    ],
+    [
+      "Command line interface"
+    ],
+    [
+      "Command line interface",
+      "Serve"
+    ],
+    [
+      "Command line interface",
+      "Serve",
+      "Sparse builds"
+    ],
+    [
+      "Command line interface",
+      "Serve",
+      "Sparse builds",
+      "How does it even work?"
+    ],
+    [
+      "Command line interface",
+      "Serve",
+      "Git LFS integration"
+    ],
+    [
+      "Command line interface",
+      "Serve",
+      "How can I rebuild the whole documentation within Serve?"
+    ],
+    [
+      "Command line interface",
+      "Serve",
+      "Why is the output missing styling (CSS stylesheet)?"
+    ],
+    [
+      "Command line interface",
+      "Serve",
+      "Why is the Python source code of this repo not watched?"
+    ],
+    [
+      "Command line interface",
+      "Serve",
+      "Why was Author Mode renamed to Serve?"
+    ],
+    [
+      "Command line interface",
+      "Search docs"
+    ],
+    [
+      "Command line interface",
+      "Search docs",
+      "Fetch source"
+    ],
+    [
+      "Command line interface",
+      "Search docs",
+      "Search dokuwiki"
+    ],
+    [
+      "Command line interface",
+      "Custom Doc"
+    ],
+    [
+      "Command line interface",
+      "Custom Doc",
+      "Working with multiple docs"
+    ],
+    [
+      "Command line interface",
+      "Aggregate"
+    ],
+    [
+      "Command line interface",
+      "HDL Render"
+    ],
+    [
+      "Installing"
+    ],
+    [
+      "Installing",
+      "Release install"
+    ],
+    [
+      "Installing",
+      "Release install",
+      "MCP integration"
+    ],
+    [
+      "Installing",
+      "Release install",
+      "Using a Python virtual environment"
+    ],
+    [
+      "Installing",
+      "Release install",
+      "Release links and optional dependencies"
+    ],
+    [
+      "Installing",
+      "Release install",
+      "VScode/VScodium support"
+    ],
+    [
+      "Installing",
+      "Release install",
+      "VScode/VScodium support",
+      "Esbonio tips"
+    ],
+    [
+      "Installing",
+      "Release install",
+      "Neovim support"
+    ],
+    [
+      "Installing",
+      "Release install",
+      "LaTeX support"
+    ],
+    [
+      "Installing",
+      "Development install"
+    ],
+    [
+      "Installing",
+      "Development install",
+      "Install the web compiler"
+    ],
+    [
+      "Installing",
+      "Development install",
+      "Fetch third-party resources"
+    ],
+    [
+      "Installing",
+      "Development install",
+      "Install the repository"
+    ],
+    [
+      "Installing",
+      "Development install",
+      "Neovim support"
+    ],
+    [
+      "Installing",
+      "Removing"
+    ],
+    [
+      "Documentation guidelines"
+    ],
+    [
+      "Documentation guidelines",
+      "Importing from DokuWiki to Sphinx"
+    ],
+    [
+      "Documentation guidelines",
+      "Directives and roles"
+    ],
+    [
+      "Documentation guidelines",
+      "Directives and roles",
+      "Third-party directives and roles"
+    ],
+    [
+      "Documentation guidelines",
+      "Directives and roles",
+      "Third-party directives and roles",
+      "Support custom JavaScript in hot reload"
+    ],
+    [
+      "Documentation guidelines",
+      "Directives and roles",
+      "Repository-specific extensions"
+    ],
+    [
+      "Documentation guidelines",
+      "Indentation matters"
+    ],
+    [
+      "Documentation guidelines",
+      "Table of contents"
+    ],
+    [
+      "Documentation guidelines",
+      "Table of contents",
+      "Position matters"
+    ],
+    [
+      "Documentation guidelines",
+      "Table of contents",
+      "Top-level caption"
+    ],
+    [
+      "Documentation guidelines",
+      "Table of contents",
+      "With preview"
+    ],
+    [
+      "Documentation guidelines",
+      "Versioning"
+    ],
+    [
+      "Documentation guidelines",
+      "Exporting to PDF"
+    ],
+    [
+      "Documentation guidelines",
+      "Exporting to PDF",
+      "Inner working"
+    ],
+    [
+      "Documentation guidelines",
+      "Local references"
+    ],
+    [
+      "Documentation guidelines",
+      "Local references",
+      "Numbered references"
+    ],
+    [
+      "Documentation guidelines",
+      "External references"
+    ],
+    [
+      "Documentation guidelines",
+      "External references",
+      "In organization reference"
+    ],
+    [
+      "Documentation guidelines",
+      "External references",
+      "Outside organization Sphinx reference"
+    ],
+    [
+      "Documentation guidelines",
+      "Text width"
+    ],
+    [
+      "Documentation guidelines",
+      "Tables"
+    ],
+    [
+      "Documentation guidelines",
+      "Lists"
+    ],
+    [
+      "Documentation guidelines",
+      "Code"
+    ],
+    [
+      "Documentation guidelines",
+      "Images"
+    ],
+    [
+      "Documentation guidelines",
+      "Git Large File Storage"
+    ],
+    [
+      "Documentation guidelines",
+      "Common sections",
+      "HDL common sections"
+    ],
+    [
+      "Documentation guidelines",
+      "Dynamic elements"
+    ],
+    [
+      "Documentation guidelines",
+      "Dynamic elements",
+      "Known issues"
     ]
   ]
 }
