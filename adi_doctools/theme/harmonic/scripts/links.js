@@ -51,6 +51,7 @@ export class Links {
     let prefix = this.parent.state.subhost === '' || this.parent.state.subhost === undefined ?
                  this.parent.state.metadata.remote_doc :
                  this.parent.state.subhost.startsWith('/docs') ? '/docs/' : '/'
+    const is_mirror = this.parent.state.subhost.startsWith('/docs/')
     let home = "index.html"
     this.$.linksOverlay = []
     this.$.linksSidebar = []
@@ -62,7 +63,10 @@ export class Links {
         continue
 
       let base = key == this.parent.state.repository ?
-                 self_link : `${prefix}${key}/`
+                 self_link : (
+                   is_mirror && this.parent.state.metadata.repotoc[key].hasOwnProperty('alt') ?
+                     `${prefix}${this.parent.state.metadata.repotoc[key].alt}/` : `${prefix}${key}/`
+                 )
       let entry = DOM.new('a', {
         'href': `${base}${home}`,
         'className': this.parent.state.repository === key ? 'current' : '',
