@@ -612,6 +612,9 @@ class directive_collection(SphinxDirective):
         if inventory == self.config.repository:
             doc = doc_ if doc == '.' else doc
             if doc not in self.env.found_docs:
+                if any(doc.startswith(ex.rstrip('*')) for ex in self.env.config.exclude_patterns):
+                    # Consider intentional, e.g., excluded due to sparse mode
+                    return
                 self.state_machine.reporter.warning(
                     f"unknown document: '{doc}'",
                     line=self.lineno
