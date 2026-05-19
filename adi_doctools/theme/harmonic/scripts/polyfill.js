@@ -13,5 +13,8 @@ export class Polyfill {
     /* polyfill < v0.4.17 */
     if (!Object.hasOwn(app.state, 'standalone'))
         app.state.standalone =  document.querySelector('meta[name="standalone"]') ? true : false
+    /* polyfill < v0.4.42 */
+    if (!Object.hasOwn(app.state, 'landing_page'))
+        app.state.landing_page = app.state.repository === location.hostname
   }
 }

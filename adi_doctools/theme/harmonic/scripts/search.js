@@ -262,6 +262,8 @@ export class Search {
       if (value.$.checked)
         return
     }
+    if (this.parent.state.landing_page)
+      return
     let key = this.parent.state.subhost === '' || this.parent.state.subhost === undefined || this.parent.state.standalone ?
               'local' : this.parent.state.repository
     if (this.parent.state.version !== undefined)
@@ -875,8 +877,7 @@ export class Search {
       for (const [key, value] of Object.entries(this.parent.state.metadata.repotoc)) {
         this.include_item(key, value['name'], alphanumeric.shift())
       }
-    let is_hosted_landing_page = this.parent.state.repository === location.hostname
-    let not_subhosted = (this.parent.state.subhost === '' || this.parent.state.subhost === undefined) && !is_hosted_landing_page
+    let not_subhosted = (this.parent.state.subhost === '' || this.parent.state.subhost === undefined) && !this.parent.state.landing_page
 
     if (not_subhosted || this.parent.state.standalone) {
       let name = this.parent.state.repository in this.parent.state.metadata.repotoc ?

@@ -40,8 +40,7 @@ export class Versioned {
       return
     }
 
-    if (this.parent.state.repository === location.hostname)
-      // landing page is not versioned
+    if (this.parent.state.landing_page)
       return
 
     this.prefix = this.parent.state.subhost

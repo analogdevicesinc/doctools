@@ -43,6 +43,7 @@ You add to the ``html_theme_options`` dictionary:
        "dark_logo": path.join("path", "to", "logo_dark.svg"),
        "no_index": False,
        "standalone": False,
+       "landing_page": False,
    }
 
 For logos in the sidebar, provide a dark and light variant:
@@ -55,6 +56,9 @@ If you desire to disable cross-repository integration, set ``standalone`` as
 ``True``. This option is not recommended in most cases, since the internal
 logic already manages the features on a context/deployment basis, while this
 flag will permanently disable the features for a build.
+
+With ``landing_page``, mark the doc as a landing page, this disables search
+for the current doc content.
 
 .. _theme metadata:
 

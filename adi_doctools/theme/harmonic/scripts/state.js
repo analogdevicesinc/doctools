@@ -13,6 +13,7 @@
  * collection: collection.json, fetched later by content_actions.js, if state allows
  * tags: tags.json, fetched later by extra version_dropdown.js
  * standalone: isolated doc, disable multi-repo integrations
+ * landing_page: is the landing page
  */
 const state = {
   repository: undefined,
@@ -26,7 +27,8 @@ const state = {
   metadata: undefined,
   collection: undefined,
   tags: undefined,
-  standalone: undefined
+  standalone: undefined,
+  landing_page: undefined
 }
 
 /**
@@ -166,6 +168,12 @@ export class State {
     return document.querySelector('meta[name="standalone"]') ? true : false
   }
   /**
+   * Detect if is a landing page.
+   */
+  landing_page () {
+    return document.querySelector('meta[name="landing_page"]') ? true : false
+  }
+  /**
    * Init app state object.
    */
   init_state (state) {
@@ -183,5 +191,6 @@ export class State {
     }
     state.reloaded = this.reloaded()
     state.standalone = this.standalone()
+    state.landing_page = this.landing_page()
   }
 }
