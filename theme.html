@@ -9,12 +9,13 @@
     <title>Sphinx theme &#8212; Doctools  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8e8a900e" />
     <link rel="stylesheet" type="text/css" href="_static/app.min.css?v=3f958154" />
-    <script async="async" src="_static/app.umd.js?v=f4151420"></script>
+    <script async="async" src="_static/app.umd.js?v=26d0298f"></script>
     <link rel="icon" href="_static/icon.svg"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="prev" title="Continuous integration" href="ci.html" />
    
+  
   
   
   <meta name="repository" content="doctools">
@@ -184,6 +185,7 @@ You add to the <code class="docutils literal notranslate"><span class="pre">html
     <span class="s2">&quot;dark_logo&quot;</span><span class="p">:</span> <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;path&quot;</span><span class="p">,</span> <span class="s2">&quot;to&quot;</span><span class="p">,</span> <span class="s2">&quot;logo_dark.svg&quot;</span><span class="p">),</span>
     <span class="s2">&quot;no_index&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
     <span class="s2">&quot;standalone&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="s2">&quot;landing_page&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -195,6 +197,8 @@ option is available using <a class="reference internal" href="#theme-metadata"><
 <code class="docutils literal notranslate"><span class="pre">True</span></code>. This option is not recommended in most cases, since the internal
 logic already manages the features on a context/deployment basis, while this
 flag will permanently disable the features for a build.</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">landing_page</span></code>, mark the doc as a landing page, this disables search
+for the current doc content.</p>
 </section>
 <section id="metadata">
 <span id="theme-metadata"></span><h2>Metadata<a class="headerlink" href="#metadata" title="Link to this heading"></a></h2>
