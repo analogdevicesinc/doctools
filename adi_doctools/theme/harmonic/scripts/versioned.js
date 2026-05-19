@@ -40,6 +40,10 @@ export class Versioned {
       return
     }
 
+    if (this.parent.state.repository === location.hostname)
+      // landing page is not versioned
+      return
+
     this.prefix = this.parent.state.subhost
     this.prefix = new URL(this.prefix, location.origin).href
     if (!this.prefix.endsWith('/'))
