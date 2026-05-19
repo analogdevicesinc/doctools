@@ -314,7 +314,7 @@ export class Search {
     //const base_url = `${this.parent.state.metadata.remote_doc}doctools/`
     if (!this._tqClassPromise)
       this._tqClassPromise = LLM.getTurboQuantClass(new URL('_static/', base_url))
-    const data = await LLM.loadVectorIndex(invUrl, this._tqClassPromise)
+    const data = key !== 'local' ? await LLM.loadVectorIndex(invUrl, this._tqClassPromise) : undefined
     if (data) {
       this.indexData[key] = data
       this.indexBackend[key] = 'llm'
@@ -338,7 +338,8 @@ export class Search {
       return
     }
 
-    console.warn(`'${key}' does not contain llm .bin`)
+    if (key !== 'local')
+      console.warn(`'${key}' does not contain llm .bin`)
 
     // Fallback: Sphinx (searchindex.js)
     let passages = null
