@@ -312,8 +312,9 @@ export class Search {
     // Main: LLM search (.bin)
     const base_url = this.parent.fetch.base_url
     //const base_url = `${this.parent.state.metadata.remote_doc}doctools/`
-    // base_url is to get turboquant-wasm only
-    const data = await LLM.loadVectorIndex(invUrl, new URL('_static/', base_url))
+    if (!this._tqClassPromise)
+      this._tqClassPromise = LLM.getTurboQuantClass(new URL('_static/', base_url))
+    const data = await LLM.loadVectorIndex(invUrl, this._tqClassPromise)
     if (data) {
       this.indexData[key] = data
       this.indexBackend[key] = 'llm'

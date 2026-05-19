@@ -82,14 +82,14 @@ export function parseTqvHeader (buffer) {
  * Load compressed.tqv + passages.json, init TurboQuant instance.
  * Returns { tq, passages, compressedConcat, bytesPerVector, dim } on success.
  */
-export async function loadVectorIndex (url, base_url) {
+export async function loadVectorIndex (url, tqClassPromise) {
   const url_passages = `${url}passages.json`
   const url_vec      = `${url}embeddings-minilml6-dim384.bin`
 
   let TurboQuant, response_passages, response_vec
   try {
     ;[TurboQuant, response_passages, response_vec] = await Promise.all([
-      getTurboQuantClass(base_url),
+      tqClassPromise,
       fetch(new Request(url_passages)),
       fetch(new Request(url_vec)),
     ])
