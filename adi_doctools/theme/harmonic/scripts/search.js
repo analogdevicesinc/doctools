@@ -138,8 +138,18 @@ export class Search {
    *   sphinxUrl  - URL to the Sphinx searchindex.js
    */
   async get_searchindex (key, not_sub_hosted, version=null) {
-    const prefix = not_sub_hosted && key === "local" ?
-                   location.origin : `${this.parent.state.metadata.remote_doc}${key}`
+    const is_mirror = this.parent.state.subhost.startsWith('/docs/')
+    //const is_mirror = true
+    let prefix = not_sub_hosted && key === "local" ?
+                 location.origin : ( is_mirror ?
+                   this.parent.state.metadata.remote_alt : this.parent.state.metadata.remote_doc
+                 )
+    if (key !== "local")
+      if (is_mirror && this.parent.state.metadata.repotoc[key].hasOwnProperty('alt'))
+        prefix = `${prefix}${this.parent.state.metadata.repotoc[key].alt}`
+      else
+        prefix = `${prefix}${key}`
+
     let guess_default = (arr) => {
       let path
       if (arr.includes(""))
@@ -302,6 +312,7 @@ export class Search {
     // Main: LLM search (.bin)
     const base_url = this.parent.fetch.base_url
     //const base_url = `${this.parent.state.metadata.remote_doc}doctools/`
+    // base_url is to get turboquant-wasm only
     const data = await LLM.loadVectorIndex(invUrl, new URL('_static/', base_url))
     if (data) {
       this.indexData[key] = data
