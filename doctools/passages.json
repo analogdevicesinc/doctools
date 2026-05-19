@@ -6,34 +6,6 @@
     "> **Tip**\n>\n> Depending on your browser and operating system shortcuts, some shortcuts may\n> collide with existing ones, due to this, the script provides many alternatives.\n\n\n`Alt+Shift+ArrowLeft` goes to the previous page and `Alt+Shift+ArrowRight`\nto the next page. Or `Alt+Shift+A` and `Alt+Shift+",
     "As other Sphinx themes, you set doctools theme customization through the *conf.py*.\nYou add to the `html_theme_options` dictionary:\n\n```python\nhtml_theme_options = {\n    \"light_logo\": path.join(\"path\", \"to\", \"logo_light.svg\"),\n    \"dark_logo\": path.join(\"path\", \"to\", \"logo_dark.svg\"),\n    \"no_index\"",
     "File-wide metadata are field lists at the top of the file, that\nSphinx parses into document metadata.\n\nBeyond Sphinx special metadata fields, doctools converts some metadata into HTML\nmeta tags.\nThe values and their effects are:\n\n- `no-index`: Appends an\n  \u201cnoindex\u201d meta tag\n  to the page, alternati",
-    "A brief set-of-rules for the documentation.\n\n> **Note**\n>\n> The old wiki uses dokuwiki. When\n> importing text from there, consider the automated options that are provided\n> in this page to convert it to reST.\n",
-    "Use the following command to import a DokuWiki page (old *wiki.analog.com*):\n\n```bash\npandoc imported.txt -f dokuwiki -t rst --columns=80 -s -o imported.rst --list-tables\n```\n\n\nThe `list-tables` parameter requires *pandoc-types* >= 1.23, included in any\nrecent pandoc release;\nif it is not an option,",
-    "Sphinx allows expanding functionality beyond the defaults directives and roles\nby loading extensions. Doctools implements custom directives and roles for common\nfeatures, but third-party extensions can also be used.\n\nDoctools extended directives and roles are provided at:\n\n- Custom directives\n- Cust",
-    "Repositories have the freedom to choose the third-party extensions they want to\ninclude in their documentation.\nThey are listed in the *requirements.txt* file, and are installed with:\n\n```bash\npip install -r requirements.txt\n```\n\n\nThe recommendation is to avoid using extensions that render content o",
-    "Hot reload is a feature that reloads only parts of a webpage, allowing super\nfast content-loading, cool animations, and a better user experience.\n\nHowever, for third-party client-side JavaScript, it is necessary to map the\nadded globals to the hot reload module.\n\nOn adi_doctools/theme/harmonic/scrip",
-    "Extensions with repository-specific functionalities can be added to the repository\nsource code.\n\nAt *conf.py*, add:\n\n```python\nimport os\nimport sys\nsys.path.insert(0, os.path.abspath(os.path.join('.', 'ext'))\n\nextensions = [\n     ...\n     \"ext_repo_name\"\n]\n```\n\n\nCreate the *ext/ext_repo_name.py* and",
-    "Directives are indented with 3 spaces. At code directives, the code\nkeeps its original indentation (e.g. 2 spaces for Verilog code, tabs for C\ncode), but is offset by 3 spaces at the beginning of every line, to instruct\nSphinx the beginning and end of the code directive.\n\nThis offset tells Sphinx wh",
-    "The Table of Contents (ToC) is created with the `toctree` directive, and content\nadded to it is included in the navigation bars and table of contents.\n\nThe basic structure of a `toctree` is:\n\n```rst\n.. toctree::\n   :maxdepth: <depth>\n\n   Custom title <path/to/page>\n```\n\n\nFor pages where the title is",
-    "The placement of a `toctree` within a page determines where content is\ninjected when generating a PDF.\n\nA recommended usage looks like:\n\n```rst\nMy evaluation board\n===================\n\nUser guides\n-----------\n\nTo simplify and speed up bring-up, a ... .\nThey describe how ... .\n\n.. toctree::\n   :capti",
-    "Captions on top-level `toctree` entries also appear in the sidebar. Use them\nto group related documentation areas logically\u2014such as `Software`,\n`Tutorials`, `API Usage`, or `Contributing`, rather than as explanatory\nphrases like `Tutorials are provided at:`.\n\nYou can think of top-level `toctree` cap",
-    "Doctools extends `toctree` with a `toctree-preview`, that adds a\ndescription of the page right below the link. Only the first level is shown,\neven if `maxdepth` is set. Internally it uses the result of the\nDescription directive.\n\nIt is useful when you have a list of projects and wants to provide a q",
-    "To avoid having the version set in multiple places or having to tweak `conf.py`\nto obtain it from somewhere else, continuous integration can set the environment\nvariable `ADOC_DOC_VERSION` to set the version value.\n\nThe `version` value on `conf.py` has lower precedence, and\nwill be overwritten if `A",
-    "The whole documentation can be exported to a PDF document for a more compact\nformat using either rs2pdf or WeasyPrint.\nThis is done by setting the environment variable called\n`ADOC_MEDIA_PRINT` (the value does not matter) and building the documentation.\n\nFor rst2pdf, add `rst2pdf` to *conf.py* `exte",
-    "Internally, `ADOC_MEDIA_PRINT` variable is set to `app.config.media_print`\nand should be used in scenarios where it is explicitly needed to compile the\ncontent in a different manner than for the **hosted** html.\nFor example, to render content during build that would instead be rendered with\nthird-pa",
-    "References to labels have the format `:ref:`context topic``, e.g.\n`:ref:`role git`` renders as Git.\n\nLabels are created for any content with the syntax\n(dot-dot underscore<label>two-dots):\n\n```rst\n.. _context topic:\n```\n\n\n> **Hint**\n>\n> Add labels to any content that may be linked, locally or\n> exte",
-    "References can be numbered by using `numref`, for\nexample, \u201c*see Figure 1*\u201d.\n\nTo use this feature, enable on the *conf.py*:\n\n```python\nnumfig = True\n```\n\n\nTo customize the format, set `numfig_format`:\n\n```python\nnumfig_format = {'figure': 'Figure %s',\n                 'table': 'Table %s',\n          ",
-    "External references to other Sphinx documentation are created using the built-in\n`sphinx.ext.intersphinx` extension.\n\nTo set up **in-organization** references read the section below,\nand for **third-party** docs, the section that follows.\n\nAs the other roles, it is possible to customize the text, e.",
-    "To create references to Sphinx docs inside the organization add the repositories\nof interest to the conf.py file with the following format:\n\n```python\ninterref_repos = [external...]\n```\n\n\nFor example:\n\n```python\ninterref_repos = ['hdl', 'no-OS', 'pyadi-iio/main']\n```\n\n\nNotice that in the example `ma",
-    "To create references to third-party Sphinx documentations, add the mappings to\nthe conf.py file with the following format:\n\n```python\nintersphinx_mapping = {\n    '<name>': ('<path/to/external>', None)\n}\n```\n\n\nFor example:\n\n```python\nintersphinx_mapping = {\n    'sphinx': ('https://www.sphinx-doc.org/",
-    "Each line must be less than **80** columns wide. This visually ensures while\nwriting that the paragraphs are concise and well structured.\n\nFor **neovim**, you can visual select the block `Ctrl+V` then wrap with\n`gq`.\n\nFor **vscode**, you can install\nRewrap,\nselect the block and wrap with `Alt+Q`.\n\nA",
-    "Prefer\nlist-tables\nand imported\ncsv-tables\n(using the file option), because they are faster to create, easier to maintain\nand the 80 column-width rule can be respected with list-tables.\n\nOnly use Grid Tables if strictly necessary,\nsince they are hard to update.\n\nTo tune styling, the following classe",
-    "Unordered lists use `*` or `-` and ordered lists `#.`.\n\nChild items must be aligned with the first letter of the parent item; that means,\n2 spaces for unordered lists and 3 spaces for ordered lists, for example:\n\n```rst\n#. Parent ordered item.\n\n   * Child unordered item.\n\n     #. Child ordered item.",
-    "Prefer `code-block` to `code` directives, because\ncode-blocks have more options, such as showing line numbers and emphasizing\nlines.\n\nFor example,\n\n```rst\n.. code-block:: python\n   :linenos:\n   :emphasize-lines: 2\n\n   def hello_world():\n       string = \"Hello world\"\n       print(string)\n```\n\n\nRender",
-    "Prefer the SVG format for images, and save it as *Optimized SVG* in\ninkscape to use less space.\n\nStore them in a hierarchy, do not use `images` subdirectories. The idea is to\nhave simpler relative paths, for example, e.g.:\n\n```rst\n.. image:: ad2234_sdz_schematic.svg\n```\n\n\nOr even simpler `schematic.",
-    "Where applicable, Git Large File Storage (LFS) is used to replace large files\nwith text pointers inside Git, reducing cloning time.\n\nTo setup, install from your package manager and init:\n\n```bash\napt install git-lfs\ngit lfs install --skip-smudge\n```\n\n\nThe files that will use Git LFS are tracked at `",
-    "The **More information** and **Support** sections that are present in\nthe HDL project documentation, are actually separate pages inserted as links.\nThey\u2019re located at *hdl/projects/common/more_information.rst* and */support.rst*,\nand cannot be referenced here because they don\u2019t have an ID at the beg",
-    "Dynamic elements refer to sections of the documentation that are updated using\ndynamically loaded metadata, scripts, and styles (modules).\n\nThe dynamic elements implemented:\n\n- `doctools/metadata.json`:\n  The navigation bar at the top (`repotoc` entry).\n  A banner at the top (`banner` entry).\n\n\nThe ",
-    "- On Firefox on Windows, fetch requests can only happen to the same port (8000 -> 8000),\n  so Serve daemon must be on port 8000\n",
     "Doctools custom Sphinx roles allow better linking, such as git links, and\nformatting, like font coloring.\n\nBelow, every added role is explained with examples.\n\n> **Note**\n>\n> Link-like roles use the `:role:`text <link>`` syntax, like external\n> links, but without the underscore at the end.\n",
     "To print text in red or green, use `:red:`text`` and `:green:`text``.\n",
     "The link roles are a group of roles defined by `adi_links.py`.\n\nThe `validate_links` global option is used to validate each link during build.\nThese links are not managed; that means only links from changed files are checked.\nYou can run a build with it set to False, then touch the desired files to ",
@@ -44,6 +16,16 @@
     "The ez role creates links to the Analog Devices Inc. EngineerZone support website.\nThe role syntax is `:ez:`community``, for example, `:ez:`fpga``\ngets rendered as EngineerZone.\n\nFor Linux Software Drivers, it is `:ez:`linux-software-drivers``.\n\nFor Microcontroller no-OS Drivers it is `:ez:`microcon",
     "The vendor role creates links to the vendor\u2019s website.\nThe role syntax is `:vendor:`text <path>``, for example,\n`:xilinx:`Zynq-7000 SoC Overview <support/documentation/data_sheets/ds190-Zynq-7000-Overview.pdf>``\ngets rendered\nZynq-7000 SoC Overview.\n\nThe text parameter is optional, if absent, the fi",
     "The supplier role creates links to a vendor\u2019s website search.\nThe role syntax is `:vendor:`text <path>``, for example,\n`:digikey:`AD9081-FMCA-EBZ``\ngets rendered\nAD9081-FMCA-EBZ.\n\nThe text parameter is optional.\n\nSupported vendors are: `digikey` (Digikey), `mouser` (Mouser) and\n`arrow` (Arrow).\n",
+    "Doctools is developed to work offline, in a local server as a rolling release\n(e.g., on GitHub Pages) and versioned in a dedicated server with orchestration.\n",
+    "For offline and local server, a `make html` suffices to generate the\ndocumentation.\n\nTo serve the build in a local server, Python built-in server can be used:\n\n```bash\n~$ python -m http.server -d /path/to/docs/_build/html\n```\n\n\nOr with hot reload using Serve:\n\n```bash\n~$ adoc serve -d /path/to/docs\n",
+    "For either rolling release or versioned, you can use the shared actions.\n\nFor push to default branch and pull requests:\n\n```yaml\non:\n  push:\n    branches:\n      - main\n      - dev\n      - dev/*\n  pull_request:\n\njobs:\n  build-doc:\n    runs-on: ubuntu-latest\n\n    steps:\n    - uses: actions/checkout@v4",
+    "For a rolling release, a workflow file is used.\nWith GitHub Actions, the following workflow file is recommended:\n\n```yaml\non:\n  push:\n    branches:\n      - main\n  pull_request:\n\njobs:\n  build-doc:\n    runs-on: ubuntu-latest\n\n    steps:\n    - uses: actions/checkout@v4\n    - uses: actions/setup-python",
+    "The live versioned version requires additional orchestration than the\nRolling release.\n\nThe versions are described in `tags.json` file on the root path\nthat can take two formats, one simpler with a plain string array and other\nfine-grained to allow full control.\n\nBut first, store each version in sep",
+    "The simple `tags.json` is a plain array with each version/path,\ne.g., `[\"v1.1\", \"v2.2\", \"main\", \"dev\", \"\"]`\n(an empty string means there is a built doc on the root and will be named\n`main (unstable)`).\nThe first tag will be labeled with `latest`.\n\n> **Tip**\n>\n> See this repo\u2019s .github/workflows/depl",
+    "The more elaborated option takes the following format:\n\n```json\n{\n  \"path\": [\"name\", \"label\"],\n  // ...\n}\n```\n\n\nFor example:\n\n```json\n{\n  \"main\": [\"main\", \"unstable\"],\n  \"v2.0.0\": [\"v2.0.0\", \"pre-release\"],\n  \"v1.2.1\": [\"v1.2.1\", \"latest\"],\n  \"v1.2.0\": [\"v1.2.0\", \"\"],\n  \"v1.1.7\": [\"v1.1.7\", \"\"],\n  \"",
+    "GitHub Pages does not support git lfs pointers. The tool is able to convert git\nlfs pointers into GitHub raw links\n(`https://media.githubusercontent.com/media/org/repo/branch/path/to/image`), with:\n\n```bash\nexport GIT_LFS_TO_LINKS=\"true\"\nexport GIT_ORG_REPOSITORY=\"${{ github.repository }}\"\n[ \"${{ gi",
+    "If the root does not contain any built doc, add a redirect HTML file pointing\nto the main/stable version:\n\n```default\n<!DOCTYPE html>\n<html>\n  <head>\n    <meta http-equiv=\"refresh\" content=\"0; url=main/index.html\" />\n  </head>\n</html>\n```\n\n\nWith the shared action, this is not supported.\n",
+    "For In organization reference, the doc shall target a specific version by suffixing\nthe target the version on the `interref_repos` variable, e.g.\n`interref_repos = ['pyadi-iio/dev', 'other-repo/v1.1']`.\n",
     "How to do a release install, and a development install of Doctools.\n\nGuaranteed to work with Python 3.8 or newer and distributions released on or after\n20H1 (e.g., Ubuntu 20.04 LTS).\n",
     "```bash\n~$ python3 -m venv venv\n~$ source venv/bin/activate# Ensure pip is newer than 23.0 (https://github.com/pypa/setuptools/issues/3269)\n~$ pip install pip --upgrade\n~$ pip install adi-doctools\n```\n\n\n```bash\n~$ pipx install adi-doctools\n```\n\n\n```bash\n~$ uvx --from adi-doctools adoc\n```\n\n\nTest it ",
     "The tool includes a slim MCP to expose the CLIs. It simply teaches the LLM of\nthe tools available, analogous as a skill file. This methodology ensures the\ncontext window is not penalized.\n\nTo configure the MCP to your AI coding harness, first install with the MCP\nadd-in:\n\n```bash\n~$ python3 -m venv ",
@@ -59,16 +41,6 @@
     "Finally, do a symbolic installation of this repo:\n\n```bash\n~$ pip install -e . --upgrade\n```\n\n\n> **Caution**\n>\n> If using a python virtual environment for the *requirements.txt* packages,\n> do this command with the virtual environment already activated.\n> Mixing pip packages inside and outside the v",
     "Add to you lazyvim config the path to the branch `nvim`:\n\n```lua\n{\n  dir = '/path/to/doctools/nvim',\n  -- ...\n}\n```\n",
     "To remove, either release or development, do:\n\n```bash\n~$ pip uninstall adi-doctools\n```\n",
-    "Doctools is developed to work offline, in a local server as a rolling release\n(e.g., on GitHub Pages) and versioned in a dedicated server with orchestration.\n",
-    "For offline and local server, a `make html` suffices to generate the\ndocumentation.\n\nTo serve the build in a local server, Python built-in server can be used:\n\n```bash\n~$ python -m http.server -d /path/to/docs/_build/html\n```\n\n\nOr with hot reload using Serve:\n\n```bash\n~$ adoc serve -d /path/to/docs\n",
-    "For either rolling release or versioned, you can use the shared actions.\n\nFor push to default branch and pull requests:\n\n```yaml\non:\n  push:\n    branches:\n      - main\n      - dev\n      - dev/*\n  pull_request:\n\njobs:\n  build-doc:\n    runs-on: ubuntu-latest\n\n    steps:\n    - uses: actions/checkout@v4",
-    "For a rolling release, a workflow file is used.\nWith GitHub Actions, the following workflow file is recommended:\n\n```yaml\non:\n  push:\n    branches:\n      - main\n  pull_request:\n\njobs:\n  build-doc:\n    runs-on: ubuntu-latest\n\n    steps:\n    - uses: actions/checkout@v4\n    - uses: actions/setup-python",
-    "The live versioned version requires additional orchestration than the\nRolling release.\n\nThe versions are described in `tags.json` file on the root path\nthat can take two formats, one simpler with a plain string array and other\nfine-grained to allow full control.\n\nBut first, store each version in sep",
-    "The simple `tags.json` is a plain array with each version/path,\ne.g., `[\"v1.1\", \"v2.2\", \"main\", \"dev\", \"\"]`\n(an empty string means there is a built doc on the root and will be named\n`main (unstable)`).\nThe first tag will be labeled with `latest`.\n\n> **Tip**\n>\n> See this repo\u2019s .github/workflows/depl",
-    "The more elaborated option takes the following format:\n\n```json\n{\n  \"path\": [\"name\", \"label\"],\n  // ...\n}\n```\n\n\nFor example:\n\n```json\n{\n  \"main\": [\"main\", \"unstable\"],\n  \"v2.0.0\": [\"v2.0.0\", \"pre-release\"],\n  \"v1.2.1\": [\"v1.2.1\", \"latest\"],\n  \"v1.2.0\": [\"v1.2.0\", \"\"],\n  \"v1.1.7\": [\"v1.1.7\", \"\"],\n  \"",
-    "GitHub Pages does not support git lfs pointers. The tool is able to convert git\nlfs pointers into GitHub raw links\n(`https://media.githubusercontent.com/media/org/repo/branch/path/to/image`), with:\n\n```bash\nexport GIT_LFS_TO_LINKS=\"true\"\nexport GIT_ORG_REPOSITORY=\"${{ github.repository }}\"\n[ \"${{ gi",
-    "If the root does not contain any built doc, add a redirect HTML file pointing\nto the main/stable version:\n\n```default\n<!DOCTYPE html>\n<html>\n  <head>\n    <meta http-equiv=\"refresh\" content=\"0; url=main/index.html\" />\n  </head>\n</html>\n```\n\n\nWith the shared action, this is not supported.\n",
-    "For In organization reference, the doc shall target a specific version by suffixing\nthe target the version on the `interref_repos` variable, e.g.\n`interref_repos = ['pyadi-iio/dev', 'other-repo/v1.1']`.\n",
     "The Doctools bundles a command line interface called `adoc` meant to ease both\ncontinuous integration and local builds of the documentation.\n\nBelow, each command is briefly described, and it is worth noting that every\ncommand supports the `--help` option for quick lookup.\n\nSee MCP integration to lea",
     "Watches the docs and source code to rebuild it on edit.\nSimilar to `mkdocs serve`, `webpack serve`, `npm run start`, `hugo server`,\nand so on.\n\nThe webpage pools timestamp changes and commands on the `.dev-pool` file.\n\nTo launch a watched instance, do:\n\n```bash\n~$ cd /path/to/docs\n/path/to/docs$ ado",
     "Inspired on git sparse clones, it is possible to build only some parts of the\ndocumentation, for example:\n\n```bash\n# Include only learning/**/* and solutions/**/*\n~$ adoc serve --sparse learning solutions\n```\n\n\nThis is a critical feature to build large docs, ensuring snappy live reloads.\n",
@@ -116,7 +88,35 @@
     "The HDL interfaces directive gets information parsed from *component.xml* library\nand generates tables with the IP interfaces, both buses and ports.\n\n> **Note**\n>\n> The *component.xml* files are generated by Vivado during the library build\n> and not by the documentation tooling.\n\n\nThe directive synt",
     "The HDL component diagram directive gets information parsed from *component.xml*\nlibrary and generates a component diagram for the IP with buses and ports\ninformation.\n\n> **Note**\n>\n> The *component.xml* files are generated by Vivado during the library build\n> and not by the documentation tooling.\n\n",
     "The HDL regmap directive gets information from *docs/regmap/adi_regmap_*.txt* files\nand generates tables with the register maps.\n\nThe directive syntax is:\n\n```rst\n.. hdl-regmap::\n   :name: <regmap_name>\n   :no-type-info:\n```\n\n\nFor example:\n\n```rst\n.. hdl-regmap::\n   :name: DMAC\n```\n\n\n> **Note**\n>\n> ",
-    "Set `hide_collapsible_content` to `True` to hide the *collapsibles* by default.\n\nSet `monolithic` to `True` prefix paths with *<repo>*.\nThis is meant for the Custom Doc custom documents only.\n"
+    "Set `hide_collapsible_content` to `True` to hide the *collapsibles* by default.\n\nSet `monolithic` to `True` prefix paths with *<repo>*.\nThis is meant for the Custom Doc custom documents only.\n",
+    "A brief set-of-rules for the documentation.\n\n> **Note**\n>\n> The old wiki uses dokuwiki. When\n> importing text from there, consider the automated options that are provided\n> in this page to convert it to reST.\n",
+    "Use the following command to import a DokuWiki page (old *wiki.analog.com*):\n\n```bash\npandoc imported.txt -f dokuwiki -t rst --columns=80 -s -o imported.rst --list-tables\n```\n\n\nThe `list-tables` parameter requires *pandoc-types* >= 1.23, included in any\nrecent pandoc release;\nif it is not an option,",
+    "Sphinx allows expanding functionality beyond the defaults directives and roles\nby loading extensions. Doctools implements custom directives and roles for common\nfeatures, but third-party extensions can also be used.\n\nDoctools extended directives and roles are provided at:\n\n- Custom directives\n- Cust",
+    "Repositories have the freedom to choose the third-party extensions they want to\ninclude in their documentation.\nThey are listed in the *requirements.txt* file, and are installed with:\n\n```bash\npip install -r requirements.txt\n```\n\n\nThe recommendation is to avoid using extensions that render content o",
+    "Hot reload is a feature that reloads only parts of a webpage, allowing super\nfast content-loading, cool animations, and a better user experience.\n\nHowever, for third-party client-side JavaScript, it is necessary to map the\nadded globals to the hot reload module.\n\nOn adi_doctools/theme/harmonic/scrip",
+    "Extensions with repository-specific functionalities can be added to the repository\nsource code.\n\nAt *conf.py*, add:\n\n```python\nimport os\nimport sys\nsys.path.insert(0, os.path.abspath(os.path.join('.', 'ext'))\n\nextensions = [\n     ...\n     \"ext_repo_name\"\n]\n```\n\n\nCreate the *ext/ext_repo_name.py* and",
+    "Directives are indented with 3 spaces. At code directives, the code\nkeeps its original indentation (e.g. 2 spaces for Verilog code, tabs for C\ncode), but is offset by 3 spaces at the beginning of every line, to instruct\nSphinx the beginning and end of the code directive.\n\nThis offset tells Sphinx wh",
+    "The Table of Contents (ToC) is created with the `toctree` directive, and content\nadded to it is included in the navigation bars and table of contents.\n\nThe basic structure of a `toctree` is:\n\n```rst\n.. toctree::\n   :maxdepth: <depth>\n\n   Custom title <path/to/page>\n```\n\n\nFor pages where the title is",
+    "The placement of a `toctree` within a page determines where content is\ninjected when generating a PDF.\n\nA recommended usage looks like:\n\n```rst\nMy evaluation board\n===================\n\nUser guides\n-----------\n\nTo simplify and speed up bring-up, a ... .\nThey describe how ... .\n\n.. toctree::\n   :capti",
+    "Captions on top-level `toctree` entries also appear in the sidebar. Use them\nto group related documentation areas logically\u2014such as `Software`,\n`Tutorials`, `API Usage`, or `Contributing`, rather than as explanatory\nphrases like `Tutorials are provided at:`.\n\nYou can think of top-level `toctree` cap",
+    "Doctools extends `toctree` with a `toctree-preview`, that adds a\ndescription of the page right below the link. Only the first level is shown,\neven if `maxdepth` is set. Internally it uses the result of the\nDescription directive.\n\nIt is useful when you have a list of projects and wants to provide a q",
+    "To avoid having the version set in multiple places or having to tweak `conf.py`\nto obtain it from somewhere else, continuous integration can set the environment\nvariable `ADOC_DOC_VERSION` to set the version value.\n\nThe `version` value on `conf.py` has lower precedence, and\nwill be overwritten if `A",
+    "The whole documentation can be exported to a PDF document for a more compact\nformat using either rs2pdf or WeasyPrint.\nThis is done by setting the environment variable called\n`ADOC_MEDIA_PRINT` (the value does not matter) and building the documentation.\n\nFor rst2pdf, add `rst2pdf` to *conf.py* `exte",
+    "Internally, `ADOC_MEDIA_PRINT` variable is set to `app.config.media_print`\nand should be used in scenarios where it is explicitly needed to compile the\ncontent in a different manner than for the **hosted** html.\nFor example, to render content during build that would instead be rendered with\nthird-pa",
+    "References to labels have the format `:ref:`context topic``, e.g.\n`:ref:`role git`` renders as Git.\n\nLabels are created for any content with the syntax\n(dot-dot underscore<label>two-dots):\n\n```rst\n.. _context topic:\n```\n\n\n> **Hint**\n>\n> Add labels to any content that may be linked, locally or\n> exte",
+    "References can be numbered by using `numref`, for\nexample, \u201c*see Figure 1*\u201d.\n\nTo use this feature, enable on the *conf.py*:\n\n```python\nnumfig = True\n```\n\n\nTo customize the format, set `numfig_format`:\n\n```python\nnumfig_format = {'figure': 'Figure %s',\n                 'table': 'Table %s',\n          ",
+    "External references to other Sphinx documentation are created using the built-in\n`sphinx.ext.intersphinx` extension.\n\nTo set up **in-organization** references read the section below,\nand for **third-party** docs, the section that follows.\n\nAs the other roles, it is possible to customize the text, e.",
+    "To create references to Sphinx docs inside the organization add the repositories\nof interest to the conf.py file with the following format:\n\n```python\ninterref_repos = [external...]\n```\n\n\nFor example:\n\n```python\ninterref_repos = ['hdl', 'no-OS', 'pyadi-iio/main']\n```\n\n\nNotice that in the example `ma",
+    "To create references to third-party Sphinx documentations, add the mappings to\nthe conf.py file with the following format:\n\n```python\nintersphinx_mapping = {\n    '<name>': ('<path/to/external>', None)\n}\n```\n\n\nFor example:\n\n```python\nintersphinx_mapping = {\n    'sphinx': ('https://www.sphinx-doc.org/",
+    "Each line must be less than **80** columns wide. This visually ensures while\nwriting that the paragraphs are concise and well structured.\n\nFor **neovim**, you can visual select the block `Ctrl+V` then wrap with\n`gq`.\n\nFor **vscode**, you can install\nRewrap,\nselect the block and wrap with `Alt+Q`.\n\nA",
+    "Prefer\nlist-tables\nand imported\ncsv-tables\n(using the file option), because they are faster to create, easier to maintain\nand the 80 column-width rule can be respected with list-tables.\n\nOnly use Grid Tables if strictly necessary,\nsince they are hard to update.\n\nTo tune styling, the following classe",
+    "Unordered lists use `*` or `-` and ordered lists `#.`.\n\nChild items must be aligned with the first letter of the parent item; that means,\n2 spaces for unordered lists and 3 spaces for ordered lists, for example:\n\n```rst\n#. Parent ordered item.\n\n   * Child unordered item.\n\n     #. Child ordered item.",
+    "Prefer `code-block` to `code` directives, because\ncode-blocks have more options, such as showing line numbers and emphasizing\nlines.\n\nFor example,\n\n```rst\n.. code-block:: python\n   :linenos:\n   :emphasize-lines: 2\n\n   def hello_world():\n       string = \"Hello world\"\n       print(string)\n```\n\n\nRender",
+    "Prefer the SVG format for images, and save it as *Optimized SVG* in\ninkscape to use less space.\n\nStore them in a hierarchy, do not use `images` subdirectories. The idea is to\nhave simpler relative paths, for example, e.g.:\n\n```rst\n.. image:: ad2234_sdz_schematic.svg\n```\n\n\nOr even simpler `schematic.",
+    "Where applicable, Git Large File Storage (LFS) is used to replace large files\nwith text pointers inside Git, reducing cloning time.\n\nTo setup, install from your package manager and init:\n\n```bash\napt install git-lfs\ngit lfs install --skip-smudge\n```\n\n\nThe files that will use Git LFS are tracked at `",
+    "The **More information** and **Support** sections that are present in\nthe HDL project documentation, are actually separate pages inserted as links.\nThey\u2019re located at *hdl/projects/common/more_information.rst* and */support.rst*,\nand cannot be referenced here because they don\u2019t have an ID at the beg",
+    "Dynamic elements refer to sections of the documentation that are updated using\ndynamically loaded metadata, scripts, and styles (modules).\n\nThe dynamic elements implemented:\n\n- `doctools/metadata.json`:\n  The navigation bar at the top (`repotoc` entry).\n  A banner at the top (`banner` entry).\n\n\nThe ",
+    "- On Firefox on Windows, fetch requests can only happen to the same port (8000 -> 8000),\n  so Serve daemon must be on port 8000\n"
   ],
   "url": [
     "index.html",
@@ -125,34 +125,6 @@
     "theme.html#shortcuts",
     "theme.html#theme-options",
     "theme.html#metadata",
-    "docs_guidelines/index.html",
-    "docs_guidelines/index.html#importing-from-dokuwiki-to-sphinx",
-    "docs_guidelines/index.html#directives-and-roles",
-    "docs_guidelines/index.html#third-party-directives-and-roles",
-    "docs_guidelines/index.html#support-custom-javascript-in-hot-reload",
-    "docs_guidelines/index.html#repository-specific-extensions",
-    "docs_guidelines/index.html#indentation-matters",
-    "docs_guidelines/index.html#table-of-contents",
-    "docs_guidelines/index.html#position-matters",
-    "docs_guidelines/index.html#top-level-caption",
-    "docs_guidelines/index.html#with-preview",
-    "docs_guidelines/index.html#versioning",
-    "docs_guidelines/index.html#exporting-to-pdf",
-    "docs_guidelines/index.html#inner-working",
-    "docs_guidelines/index.html#local-references",
-    "docs_guidelines/index.html#numbered-references",
-    "docs_guidelines/index.html#external-references",
-    "docs_guidelines/index.html#in-organization-reference",
-    "docs_guidelines/index.html#outside-organization-sphinx-reference",
-    "docs_guidelines/index.html#text-width",
-    "docs_guidelines/index.html#tables",
-    "docs_guidelines/index.html#lists",
-    "docs_guidelines/index.html#code",
-    "docs_guidelines/index.html#images",
-    "docs_guidelines/index.html#git-large-file-storage",
-    "docs_guidelines/index.html#hdl-common-sections",
-    "docs_guidelines/index.html#dynamic-elements",
-    "docs_guidelines/index.html#known-issues",
     "docs_guidelines/roles.html",
     "docs_guidelines/roles.html#color",
     "docs_guidelines/roles.html#link",
@@ -163,6 +135,16 @@
     "docs_guidelines/roles.html#engineerzone",
     "docs_guidelines/roles.html#vendor",
     "docs_guidelines/roles.html#supplier",
+    "deploy.html",
+    "deploy.html#local",
+    "deploy.html#github-pages-deployment",
+    "deploy.html#rolling-release",
+    "deploy.html#versioned",
+    "deploy.html#string-array-form",
+    "deploy.html#fine-grained-form",
+    "deploy.html#git-lfs",
+    "deploy.html#i-don-t-want-a-doc-at-the-root",
+    "deploy.html#how-do-i-cross-reference-a-specific-version",
     "install.html",
     "install.html#release-install",
     "install.html#mcp-integration",
@@ -178,16 +160,6 @@
     "install.html#install-the-repository",
     "install.html#id3",
     "install.html#removing",
-    "deploy.html",
-    "deploy.html#local",
-    "deploy.html#github-pages-deployment",
-    "deploy.html#rolling-release",
-    "deploy.html#versioned",
-    "deploy.html#string-array-form",
-    "deploy.html#fine-grained-form",
-    "deploy.html#git-lfs",
-    "deploy.html#i-don-t-want-a-doc-at-the-root",
-    "deploy.html#how-do-i-cross-reference-a-specific-version",
     "cli.html",
     "cli.html#serve",
     "cli.html#sparse-builds",
@@ -235,7 +207,35 @@
     "docs_guidelines/directives.html#hdl-interface",
     "docs_guidelines/directives.html#hdl-component-diagram",
     "docs_guidelines/directives.html#hdl-regmap",
-    "docs_guidelines/directives.html#global-options-for-directives"
+    "docs_guidelines/directives.html#global-options-for-directives",
+    "docs_guidelines/index.html",
+    "docs_guidelines/index.html#importing-from-dokuwiki-to-sphinx",
+    "docs_guidelines/index.html#directives-and-roles",
+    "docs_guidelines/index.html#third-party-directives-and-roles",
+    "docs_guidelines/index.html#support-custom-javascript-in-hot-reload",
+    "docs_guidelines/index.html#repository-specific-extensions",
+    "docs_guidelines/index.html#indentation-matters",
+    "docs_guidelines/index.html#table-of-contents",
+    "docs_guidelines/index.html#position-matters",
+    "docs_guidelines/index.html#top-level-caption",
+    "docs_guidelines/index.html#with-preview",
+    "docs_guidelines/index.html#versioning",
+    "docs_guidelines/index.html#exporting-to-pdf",
+    "docs_guidelines/index.html#inner-working",
+    "docs_guidelines/index.html#local-references",
+    "docs_guidelines/index.html#numbered-references",
+    "docs_guidelines/index.html#external-references",
+    "docs_guidelines/index.html#in-organization-reference",
+    "docs_guidelines/index.html#outside-organization-sphinx-reference",
+    "docs_guidelines/index.html#text-width",
+    "docs_guidelines/index.html#tables",
+    "docs_guidelines/index.html#lists",
+    "docs_guidelines/index.html#code",
+    "docs_guidelines/index.html#images",
+    "docs_guidelines/index.html#git-large-file-storage",
+    "docs_guidelines/index.html#hdl-common-sections",
+    "docs_guidelines/index.html#dynamic-elements",
+    "docs_guidelines/index.html#known-issues"
   ],
   "hierarchy": [
     [
@@ -259,130 +259,6 @@
     [
       "Sphinx theme",
       "Metadata"
-    ],
-    [
-      "Documentation guidelines"
-    ],
-    [
-      "Documentation guidelines",
-      "Importing from DokuWiki to Sphinx"
-    ],
-    [
-      "Documentation guidelines",
-      "Directives and roles"
-    ],
-    [
-      "Documentation guidelines",
-      "Directives and roles",
-      "Third-party directives and roles"
-    ],
-    [
-      "Documentation guidelines",
-      "Directives and roles",
-      "Third-party directives and roles",
-      "Support custom JavaScript in hot reload"
-    ],
-    [
-      "Documentation guidelines",
-      "Directives and roles",
-      "Repository-specific extensions"
-    ],
-    [
-      "Documentation guidelines",
-      "Indentation matters"
-    ],
-    [
-      "Documentation guidelines",
-      "Table of contents"
-    ],
-    [
-      "Documentation guidelines",
-      "Table of contents",
-      "Position matters"
-    ],
-    [
-      "Documentation guidelines",
-      "Table of contents",
-      "Top-level caption"
-    ],
-    [
-      "Documentation guidelines",
-      "Table of contents",
-      "With preview"
-    ],
-    [
-      "Documentation guidelines",
-      "Versioning"
-    ],
-    [
-      "Documentation guidelines",
-      "Exporting to PDF"
-    ],
-    [
-      "Documentation guidelines",
-      "Exporting to PDF",
-      "Inner working"
-    ],
-    [
-      "Documentation guidelines",
-      "Local references"
-    ],
-    [
-      "Documentation guidelines",
-      "Local references",
-      "Numbered references"
-    ],
-    [
-      "Documentation guidelines",
-      "External references"
-    ],
-    [
-      "Documentation guidelines",
-      "External references",
-      "In organization reference"
-    ],
-    [
-      "Documentation guidelines",
-      "External references",
-      "Outside organization Sphinx reference"
-    ],
-    [
-      "Documentation guidelines",
-      "Text width"
-    ],
-    [
-      "Documentation guidelines",
-      "Tables"
-    ],
-    [
-      "Documentation guidelines",
-      "Lists"
-    ],
-    [
-      "Documentation guidelines",
-      "Code"
-    ],
-    [
-      "Documentation guidelines",
-      "Images"
-    ],
-    [
-      "Documentation guidelines",
-      "Git Large File Storage"
-    ],
-    [
-      "Documentation guidelines",
-      "Common sections",
-      "HDL common sections"
-    ],
-    [
-      "Documentation guidelines",
-      "Dynamic elements"
-    ],
-    [
-      "Documentation guidelines",
-      "Dynamic elements",
-      "Known issues"
     ],
     [
       "Documentation guidelines",
@@ -439,6 +315,52 @@
       "Custom roles",
       "Link",
       "Supplier"
+    ],
+    [
+      "Documentation deployment"
+    ],
+    [
+      "Documentation deployment",
+      "Local"
+    ],
+    [
+      "Documentation deployment",
+      "GitHub Pages deployment"
+    ],
+    [
+      "Documentation deployment",
+      "GitHub Pages deployment",
+      "Rolling release"
+    ],
+    [
+      "Documentation deployment",
+      "GitHub Pages deployment",
+      "Versioned"
+    ],
+    [
+      "Documentation deployment",
+      "GitHub Pages deployment",
+      "String array form"
+    ],
+    [
+      "Documentation deployment",
+      "GitHub Pages deployment",
+      "Fine-grained form"
+    ],
+    [
+      "Documentation deployment",
+      "GitHub Pages deployment",
+      "Git LFS"
+    ],
+    [
+      "Documentation deployment",
+      "Further notes",
+      "I don\u2019t want a doc at the root"
+    ],
+    [
+      "Documentation deployment",
+      "Further notes",
+      "How do I cross-reference a specific version?"
     ],
     [
       "Installing"
@@ -510,52 +432,6 @@
     [
       "Installing",
       "Removing"
-    ],
-    [
-      "Documentation deployment"
-    ],
-    [
-      "Documentation deployment",
-      "Local"
-    ],
-    [
-      "Documentation deployment",
-      "GitHub Pages deployment"
-    ],
-    [
-      "Documentation deployment",
-      "GitHub Pages deployment",
-      "Rolling release"
-    ],
-    [
-      "Documentation deployment",
-      "GitHub Pages deployment",
-      "Versioned"
-    ],
-    [
-      "Documentation deployment",
-      "GitHub Pages deployment",
-      "String array form"
-    ],
-    [
-      "Documentation deployment",
-      "GitHub Pages deployment",
-      "Fine-grained form"
-    ],
-    [
-      "Documentation deployment",
-      "GitHub Pages deployment",
-      "Git LFS"
-    ],
-    [
-      "Documentation deployment",
-      "Further notes",
-      "I don\u2019t want a doc at the root"
-    ],
-    [
-      "Documentation deployment",
-      "Further notes",
-      "How do I cross-reference a specific version?"
     ],
     [
       "Command line interface"
@@ -792,6 +668,130 @@
       "Documentation guidelines",
       "Custom directives",
       "Global options for directives"
+    ],
+    [
+      "Documentation guidelines"
+    ],
+    [
+      "Documentation guidelines",
+      "Importing from DokuWiki to Sphinx"
+    ],
+    [
+      "Documentation guidelines",
+      "Directives and roles"
+    ],
+    [
+      "Documentation guidelines",
+      "Directives and roles",
+      "Third-party directives and roles"
+    ],
+    [
+      "Documentation guidelines",
+      "Directives and roles",
+      "Third-party directives and roles",
+      "Support custom JavaScript in hot reload"
+    ],
+    [
+      "Documentation guidelines",
+      "Directives and roles",
+      "Repository-specific extensions"
+    ],
+    [
+      "Documentation guidelines",
+      "Indentation matters"
+    ],
+    [
+      "Documentation guidelines",
+      "Table of contents"
+    ],
+    [
+      "Documentation guidelines",
+      "Table of contents",
+      "Position matters"
+    ],
+    [
+      "Documentation guidelines",
+      "Table of contents",
+      "Top-level caption"
+    ],
+    [
+      "Documentation guidelines",
+      "Table of contents",
+      "With preview"
+    ],
+    [
+      "Documentation guidelines",
+      "Versioning"
+    ],
+    [
+      "Documentation guidelines",
+      "Exporting to PDF"
+    ],
+    [
+      "Documentation guidelines",
+      "Exporting to PDF",
+      "Inner working"
+    ],
+    [
+      "Documentation guidelines",
+      "Local references"
+    ],
+    [
+      "Documentation guidelines",
+      "Local references",
+      "Numbered references"
+    ],
+    [
+      "Documentation guidelines",
+      "External references"
+    ],
+    [
+      "Documentation guidelines",
+      "External references",
+      "In organization reference"
+    ],
+    [
+      "Documentation guidelines",
+      "External references",
+      "Outside organization Sphinx reference"
+    ],
+    [
+      "Documentation guidelines",
+      "Text width"
+    ],
+    [
+      "Documentation guidelines",
+      "Tables"
+    ],
+    [
+      "Documentation guidelines",
+      "Lists"
+    ],
+    [
+      "Documentation guidelines",
+      "Code"
+    ],
+    [
+      "Documentation guidelines",
+      "Images"
+    ],
+    [
+      "Documentation guidelines",
+      "Git Large File Storage"
+    ],
+    [
+      "Documentation guidelines",
+      "Common sections",
+      "HDL common sections"
+    ],
+    [
+      "Documentation guidelines",
+      "Dynamic elements"
+    ],
+    [
+      "Documentation guidelines",
+      "Dynamic elements",
+      "Known issues"
     ]
   ]
 }
