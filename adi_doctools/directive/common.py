@@ -29,8 +29,16 @@ from .node import node_iframe, node_video
 
 logger = logging.getLogger(__name__)
 
-manager = Manager()
+manager = None
 dft_hide_collapsible_content = True
+
+
+def _get_manager():
+    global manager
+
+    if manager is None:
+        manager = Manager()
+    return manager
 
 
 def length_or_percentage_or_unitless_list(argument):
@@ -389,7 +397,7 @@ class directive_include_template(Include):
 
 def directive_collection_before_read_docs(app, env, docnames):
     if not hasattr(app.builder, "collection_image"):
-        app.builder.collection_image = manager.dict()
+        app.builder.collection_image = _get_manager().dict()
 
 
 def directive_collection_build_finished(app, exc):
