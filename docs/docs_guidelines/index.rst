@@ -840,6 +840,18 @@ Instead of overcomplicated paths like:
 
 In general, this avoids dangling artifacts and keeps the documentation simple.
 
+In dark theme, the images have a white background by default, to remove it, use
+class ``no-background``:
+
+.. code:: rst
+
+   .. image:: ad2234_sdz_schematic.svg
+      :class: no-background
+
+To show only on the light theme, use ``only-light``, and ``only-dark`` to show
+only on the dark theme. Analogous, ``only-print`` to show only on printable
+format (PDFs), and ``only-screen`` only on screens (HTML).
+
 .. _git-lfs:
 
 Git Large File Storage
