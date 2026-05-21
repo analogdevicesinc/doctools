@@ -136,8 +136,8 @@ gets rendered
 :intel:`content/www/us/en/docs/programmable/683780/22-4/general-purpose-i-o-overview.html`
 (not very readable).
 
-Supported vendors are: ``xilinx`` (AMD Xilinx), ``intel`` (Intel Altera) and
-``mw`` (MathWorks).
+Supported vendors are: ``xilinx`` (AMD Xilinx), ``intel`` (Intel Altera),
+``mw`` (MathWorks), and ``digilent`` (Digilent).
 
 Supplier
 ++++++++
