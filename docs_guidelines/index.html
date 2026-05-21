@@ -907,6 +907,15 @@ have simpler relative paths, for example, e.g.:</p>
 </pre></div>
 </div>
 <p>In general, this avoids dangling artifacts and keeps the documentation simple.</p>
+<p>In dark theme, the images have a white background by default, to remove it, use
+class <code class="docutils literal notranslate"><span class="pre">no-background</span></code>:</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">image</span><span class="p">::</span> ad2234_sdz_schematic.svg
+   <span class="nc">:class:</span> no-background
+</pre></div>
+</div>
+<p>To show only on the light theme, use <code class="docutils literal notranslate"><span class="pre">only-light</span></code>, and <code class="docutils literal notranslate"><span class="pre">only-dark</span></code> to show
+only on the dark theme. Analogous, <code class="docutils literal notranslate"><span class="pre">only-print</span></code> to show only on printable
+format (PDFs), and <code class="docutils literal notranslate"><span class="pre">only-screen</span></code> only on screens (HTML).</p>
 </section>
 <section id="git-large-file-storage">
 <span id="git-lfs"></span><h2>Git Large File Storage<a class="headerlink" href="#git-large-file-storage" title="Link to this heading"></a></h2>
