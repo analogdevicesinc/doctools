@@ -26,6 +26,7 @@ dft_url = {
     'adi': 'https://www.analog.com',
     'xilinx': 'https://www.xilinx.com',
     'intel': 'https://www.intel.com',
+    'digilent': 'https://digilent.com',
 }
 
 git_repos = {
@@ -46,7 +47,7 @@ git_repos = {
     'highspeedconvertertoolbox': ['HighSpeedConverterToolbox', "High Speed Converter Toolbox"],
     'transceivertoolbox':        ['TransceiverToolbox',        "Transceiver Toolbox"]
 }
-vendors = ['xilinx', 'intel', 'mw']
+vendors = ['xilinx', 'intel', 'mw', 'digilent']
 suppliers = ['digikey', 'mouser', 'arrow']
 
 
