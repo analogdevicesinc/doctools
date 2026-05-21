@@ -154,6 +154,16 @@
             "url_doc": "https://analogdevicesinc.github.io/adi_ros2",
             "url_source": "https://github.com/analogdevicesinc/adi_ros2.git"
         },
+        "ad-r1m-ros2": {
+            "name": "AD-R1M ROS2",
+            "description": "Open Mobile Robot Platform using ROS 2.",
+            "category": "sdk",
+            "visibility": "public",
+            "pathname": "ad_r1m/doc",
+            "branch": "main",
+            "url_doc": "https://analogdevicesinc.github.io/ad-r1m-ros2",
+            "url_source": "https://github.com/analogdevicesinc/ad-r1m-ros2.git"
+        },
         "scopy": {
             "name": "Scopy",
             "description": "Multi-functional software toolset with strong capabilities for signal analysis.",
