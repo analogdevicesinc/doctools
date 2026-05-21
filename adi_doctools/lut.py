@@ -178,6 +178,14 @@ repos = {
         branch='humble',
         visibility='public'
     ),
+    'ad-r1m-ros2': Repo(
+        pathname='ad_r1m/doc',
+        name='AD-R1M ROS2',
+        description='Open Mobile Robot Platform using ROS 2.',
+        category='sdk',
+        branch='main',
+        visibility='public'
+    ),
     'scopy': Repo(
         pathname='docs',
         name='Scopy',
