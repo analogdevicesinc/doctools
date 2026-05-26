@@ -1016,7 +1016,7 @@ def _exclude_siblings(basedir, sparse, path_parts, exclude_patterns, lpath=''):
                 if s.startswith(relative):
                     mask = False
             if mask:
-                exclude_patterns.append(relative)
+                exclude_patterns.add(relative)
 
 
 def _normalize_sparse_path(sparse):
@@ -1051,7 +1051,7 @@ def compute_sparse_config(directory, sparse, verbose):
     conf = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(conf)
 
-    exclude_patterns = list(conf.exclude_patterns) if hasattr(conf, 'exclude_patterns') else []
+    exclude_patterns = set(conf.exclude_patterns) if hasattr(conf, 'exclude_patterns') else set()
 
     sparse_paths = [_normalize_sparse_path(s) for s in sparse]
     sparse_parts_list = [s.split('/') for s in sparse_paths]
@@ -1072,13 +1072,13 @@ def compute_sparse_config(directory, sparse, verbose):
             else:
                 index_rst = path.join(item_path, 'index.rst')
                 if path.isfile(index_rst):
-                    exclude_patterns.extend([f'{item}/index', f'{item}/*'])
+                    exclude_patterns.update([f'{item}/index', f'{item}/*'])
                 else:
-                    exclude_patterns.append(item)
+                    exclude_patterns.add(item)
         elif item.endswith('.rst') or item.endswith('.md'):
             name = item[:-4] if item.endswith('.rst') else item[:-3]
             if name not in top_level_includes and name != 'index':
-                exclude_patterns.append(item)
+                exclude_patterns.add(item)
 
     suppress_warnings = conf.suppress_warnings if hasattr(conf, 'suppress_warnings') else []
     for w in ['toc.excluded', 'toc.empty_glob', 'toc.not_readable']:
@@ -1094,7 +1094,7 @@ def compute_sparse_config(directory, sparse, verbose):
     # between subprocess and app.build() calls,
     confoverrides = {
         'intersphinx_disabled_reftypes': [''], # Match any
-        'exclude_patterns': exclude_patterns,
+        'exclude_patterns': list(exclude_patterns),
         'suppress_warnings': suppress_warnings,
         'interref_repos': interref_repos,
     }
