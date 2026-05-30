@@ -8,6 +8,13 @@ runner_labels_=$runner_labels
 config_flags_=$config_flags
 name_label_=$name_label
 
+if [ -n "$CREDENTIALS_DIRECTORY" ]; then
+   [ -f "$CREDENTIALS_DIRECTORY/github_token" ] && github_token_=$(cat "$CREDENTIALS_DIRECTORY/github_token")
+   [ -f "$CREDENTIALS_DIRECTORY/runner_token" ] && runner_token_=$(cat "$CREDENTIALS_DIRECTORY/runner_token")
+   [ -f "$CREDENTIALS_DIRECTORY/org_repository" ] && org_repository_=$(cat "$CREDENTIALS_DIRECTORY/org_repository")
+fi
+
+unset CREDENTIALS_DIRECTORY
 unset version
 unset github_token
 unset runner_token
