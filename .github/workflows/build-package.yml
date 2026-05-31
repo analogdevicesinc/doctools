@@ -94,7 +94,7 @@ jobs:
         echo "asset_path=$asset_path" >> "$GITHUB_OUTPUT"
 
     - name: Store the distribution packages
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: dist
         path: dist/
