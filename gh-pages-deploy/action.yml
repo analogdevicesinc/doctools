@@ -93,13 +93,13 @@ runs:
           git commit -m "initial commit" --allow-empty
         )
 
-    - uses: actions/download-artifact@v4
+    - uses: actions/download-artifact@v8
       if: ${{ env.gh_pages_deploy_run == 'true' && github.event_name == 'push' }}
       with:
         name: ${{ inputs.name }}
         path: ${{ env.doc_path }}
 
-    - uses: actions/download-artifact@v4
+    - uses: actions/download-artifact@v8
       if: ${{ env.gh_pages_deploy_run == 'true' && env.doc_tag_path != '' }}
       with:
         name: ${{ inputs.name }}

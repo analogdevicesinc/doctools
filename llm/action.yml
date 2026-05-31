@@ -180,7 +180,7 @@ runs:
     - name: Store suggested patches
       if: ${{ env.LLM_AGENT_RUN == 'true' }}
       id: upload_patches
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: llm-patches
         path: ${{ env.patches_path }}
@@ -189,7 +189,7 @@ runs:
     - name: Store session log
       if: ${{ env.LLM_AGENT_RUN == 'true' }}
       id: upload_session
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: llm-session
         path: ${{ env.session_file }}
@@ -202,7 +202,7 @@ runs:
         # Add patches to summary
         [[ -z "$(ls -A "$patches_path")" ]] && exit 0
 
-        # Requires upload-artifact@v6
+        # Requires upload-artifact@v7
         url="${{ steps.upload_patches.outputs.artifact-url }}"
         echo "## Suggested patches" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
