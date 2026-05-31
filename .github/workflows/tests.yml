@@ -5,7 +5,7 @@ permissions:
 
 jobs:
   tests:
-    runs-on: [self-hosted, repo-only, v2]
+    runs-on: [self-hosted, repo-only]
 
     steps:
     - uses: analogdevicesinc/doctools/checkout@action

@@ -31,7 +31,7 @@ jobs:
   build:
     concurrency:
       group: vector@${{ inputs.organization }}/${{ inputs.repository }}
-    runs-on: [self-hosted, repo-only, v2]
+    runs-on: [self-hosted, repo-only]
 
     steps:
     - uses: analogdevicesinc/doctools/blank@action

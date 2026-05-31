@@ -28,7 +28,7 @@ on:
 
 jobs:
   llm:
-    runs-on: [self-hosted, repo-only, v2]
+    runs-on: [self-hosted, repo-only]
     permissions:
       contents: read
       checks: read
