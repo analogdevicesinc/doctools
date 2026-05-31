@@ -89,7 +89,7 @@ Below are suggested instructions for setting up ``podman`` on a Linux environmen
 if you wish to use it as your container engine. If you already use something else
 like ``docker``, **keep it** and skip this section.
 
-Adjust to your preferences as needed, and skip the steps marked in :green:`green`
+Adjust to your preference as needed, and skip the steps marked in :green:`green`
 if not using WSL2.
 
 Install ``podman`` from your package manager.
@@ -103,12 +103,12 @@ Install ``podman`` from your package manager.
 
 :green:`Restart wsl2.`
 
-Enable podman service for your user.
+Enable ``podman`` service for your user.
 
 .. shell::
 
-   $systemctl enable --now --user podman.socket
-   $systemctl start --user podman.socket
+   $ systemctl enable --now --user podman.socket
+   $ systemctl start --user podman.socket
 
 Set the ``DOCKER_HOST`` variable on your *~/.bashrc*:
 
@@ -158,7 +158,7 @@ environments:
 Ensure apply with ``podman system migrate`` and see the changed settings with
 ``podman info``.
 
-An alternative mitigation for nfs is to create an xfs disk image and mount it, but
+An alternative mitigation for nfs is to create an xfs disk image and mount, but
 since mount requires root permission it is unlikely to be helpful for most
 users:
 
@@ -223,13 +223,13 @@ The ``Tests`` step:
 
 .. shell::
 
-   $cd tests ; pytest
+   $ cd tests ; pytest
 
 ``Build Doc *``:
 
 .. shell::
 
-   $cd docs ; make html
+   $ cd docs ; make html
 
 But at a specific minimum and maximum supported environment version.
 
@@ -279,41 +279,37 @@ set up your secrets:
 
 .. shell::
 
-   # e.g. analogdevicesinc/doctools
-   $printf ORG_REPOSITORY | podman secret create public_doctools_org_repository -
    # e.g. MyVerYSecRunnerToken
    $printf RUNNER_TOKEN | podman secret create public_doctools_runner_token -
 
 The runner token is obtained from the GUI at ``github.com/<org>/<repository>/settings/actions/runners/new``.
 
-If ``github_token`` from :ref:`cluster-podman` is set, the runner_token
+If ``github_token`` from :ref:`cluster-systemd` is set, the runner_token
 is ignored and a new one is requested.
 
 .. shell::
 
    ~/doctools
    $podman run \
-   $    --secret public_doctools_org_repository,type=env,target=org_repository \
-   $    --secret public_doctools_runner_token,type=env,target=runner_token \
-   $    --env runner_labels=repo-only,big_cpu \
-   $    adi/doctools
+       --secret public_doctools_runner_token,type=env,target=runner_token \
+       --env org_repository=analogdevicesinc/doctools \
+       --env runner_labels=repo-only,big_cpu \
+       adi/doctools
 
 .. collapsible:: Docker alternative
 
    ``docker`` does **not** have a built-in keyring, instead you pass directly
    to ``run`` command. :red:`Consider hardening strategies to mitigate risks`,
-   like using other keyring software as below.
+   like using another keyring as below.
 
    .. shell::
 
       ~/doctools
       $docker run \
-      $    --env public_doctools_org_repository=$(gpg --quiet --batch --decrypt /run/secrets/public_doctools_org_repository.gpg) \
-      $    --env public_doctools_runner_token=$(gpg --quiet --batch --decrypt /run/secrets/public_doctools_runner_token.gpg) \
-      $    --env runner_labels=repo-only,big_cpu \
-      $    localhost/adi/doctools
-
-   Or ``systemd-creds``. If your system supports, consider protecting with TPM2.
+          --env public_doctools_runner_token=$(gpg --quiet --batch --decrypt /run/secrets/public_doctools_runner_token.gpg) \
+          --env org_repository=analogdevicesinc/doctools \
+          --env runner_labels=repo-only,big_cpu \
+          localhost/adi/doctools
 
 The environment variable runner_labels (comma-separated), set the runner labels.
 If not provided on the Containerfile as ``ENV runner_labels=<labels,>`` or as argument
@@ -335,90 +331,173 @@ to every ``podman run`` command:
 * ``--env RUNNER_ALLOW_RUNASROOT=1``: suppresses the GitHub Action runner "Must
   not run with sudo". Again, is the container's root.
 
-.. _cluster-podman:
+.. _cluster-systemd:
 
 Self-hosted cluster
 -------------------
 
-To host a cluster of self-hosted runners, the recommended approach is to use
-systemd services, instead of for example, container compose solutions.
+Systemd can run the runner process directly in an isolated environment using
+Linux kernel namespaces. This eliminates the ``conmon`` intermediate process,
+gives systemd direct ownership of the runner PID, and integrates resource
+limits into the unit, instead of using Podman/Docker equivalents.
 
-Below is a suggested systemd service at *~/.config/systemd/user/container-public-doctools@.service*.
+Export from Podman the OCI image tarball and extract it:
+
+.. shell::
+
+   $ out=~/.local/share/container/images/adi-doctools-latest
+   $ mkdir -p $out
+   $ podman export $(podman create adi/doctools:latest) | tar -xC $out
+
+.. note::
+
+   To clean-up use unshare:
+
+   .. shell::
+
+      $ podman unshare rm -rf ~/.local/share/container/images/adi-doctools-latest
+
+Below is a suggested systemd service at
+*~/.config/systemd/user/container-public-doctools@.service*:
 
 .. code:: systemd
 
    [Unit]
    Description=container public doctools ci %i
    Wants=network-online.target
+   Requires=container-init@adi-doctools-latest.%i.service
+   After=container-init@adi-doctools-latest.%i.service
 
    [Service]
    Restart=on-success
-   ExecStart=/bin/podman run \
-             --env name_label=%H-%i \
-             --secret public_doctools_org_repository,type=env,target=org_repository \
-             --secret public_doctools_runner_token,type=env,target=runner_token \
-             --conmon-pidfile %t/%n-pid --cidfile %t/%n-cid \
-             --label "io.containers.autoupdate=local" \
-             --name=public_doctools_%i \
-             --memory-swap=20g \
-             --memory=16g \
-             --cpus=4 \
-             -d adi/doctools:latest top
-   ExecStop=/bin/sh -c "/bin/podman stop -t 300 $(cat %t/%n-cid) && /bin/podman rm $(cat %t/%n-cid)"
-   ExecStopPost=/bin/rm %t/%n-pid %t/%n-cid
+   ExecStart=/usr/local/bin/entrypoint.sh
+   Environment="version=latest"
+   Environment="name_label=%i"
+   Environment="org_repository=analogdevicesinc/doctools"
+   Environment="HOME=/home/runner"
+   Environment="USER=runner"
+   Environment="LOGNAME=runner"
+   UnsetEnvironment=XDG_CACHE_HOME XDG_CONFIG_HOME XDG_DATA_HOME XDG_STATE_HOME XDG_RUNTIME_DIR XDG_DATA_DIRS XDG_CONFIG_DIRS DBUS_SESSION_BUS_ADDRESS machine_name SHELL
+   LoadCredential=github_token:%h/.local/share/container/secrets/public_github_token
+   RootDirectory=%h/.local/share/container/images/adi-doctools-latest
+   BindPaths=%h/.local/share/container/runner/adi-doctools-latest/%i:/home/runner
+   BindReadOnlyPaths=/etc/resolv.conf
+   PrivateUsers=yes
+   PrivateTmp=yes
+   PrivateIPC=yes
+   PrivateMounts=yes
+   ProtectHostname=yes
+   MemoryMax=16G
+   MemorySwapMax=20G
+   CPUQuota=400%
+   TasksMax=512
    TimeoutStopSec=600
-   Type=forking
-   PIDFile=%t/%n-pid
+   Type=exec
 
    [Install]
-   WantedBy=default.target
+   WantedBy=multi-user.target
 
-.. collapsible:: Docker alternative
+.. note::
 
-   .. code:: systemd
+   ``HOME=/home/runner`` must be set if host user is not ``runner``.
+   Also the image ``runner`` UID is 1000.
 
-      [Unit]
-      Description=container public doctools ci %i
-      Requires=gpg-passphrase.service
-      Wants=network-online.target
-      After=docker.service
+To identify the runner host machine, an alias-hostname is used via
+*~/.config/systemd/user/container-public-doctools@.service.d/machine.conf*
+(indentical for the same host, but duplicated per container scope):
 
-      [Service]
-      Restart=on-success
-      ExecStart=/bin/sh -c "/bin/docker run \
-                --env name_label=%H-%i \
-                --env org_repository=$(gpg --quiet --batch --decrypt /run/secrets/public_doctools_org_repository.gpg) \
-                --env runner_token=$(gpg --quiet --batch --decrypt /run/secrets/public_doctools_runner_token.gpg) \
-                --cidfile %t/%n-cid \
-                --label "io.containers.autoupdate=local" \
-                --name=public_doctools_%i \
-                --memory-swap=20g \
-                --memory=16g \
-                --cpus=4 \
-                --log-driver=journald \
-                -d localhost/adi/doctools:latest top"
-      RemainAfterExit=yes
-      ExecStop=/bin/sh -c "/bin/docker stop -t 300 $(cat %t/%n-cid) && /bin/docker rm $(cat %t/%n-cid)"
-      ExecStopPost=/bin/rm %t/%n-cid
-      TimeoutStopSec=600
-      Type=forking
+.. code:: systemd
 
-      [Install]
-      WantedBy=default.target
+   [Service]
+   Environment="name_label=big-server-%i"
+
+The script *~/.local/bin/container-init.sh* provisions an ephemeral copy:
+
+.. code:: bash
+
+   #!/bin/sh
+   name="${1%%.*}"
+   idx="${1##*.}"
+   mkdir -p "$HOME/.local/share/container/runner/$name"
+   rm -rf "$HOME/.local/share/container/runner/$name/$idx"
+   cp -a "$HOME/.local/share/container/images/$name/home/runner" \
+         "$HOME/.local/share/container/runner/$name/$idx"
+
+And the init service at *~/.config/systemd/user/container-init@.service*:
+
+.. code:: systemd
+
+   [Unit]
+   Description=container init home %i
+
+   [Service]
+   Type=oneshot
+   ExecStart=%h/.local/bin/container-init.sh %i
 
 Remember to ``systemctl --user daemon-reload`` after modifying.
-With `autoupdate <https://docs.podman.io/en/latest/markdown/podman-auto-update.1.html>`__,
-if the image-digest of the container and local storage differ,
-the local image is considered to be newer and the systemd unit gets restarted.
 
-Tune the limit flags for your needs.
-The ``--cpus`` flag requires a kernel with ``CONFIG_CFS_BANDWIDTH`` enabled.
-You can check with ``zgrep CONFIG_CFS_BANDWIDTH= /proc/config.gz``.
+The secrets are plain text files readable only by the runner user:
+
+.. shell::
+
+   $ cd ~/.local/share/container/secrets
+   $ install -m 600 -D /dev/stdin public_github_token <<< "github_pat_MyToken"
+
+If a compatible TPM2 is available, use ``LoadCredentialEncrypted=`` instead of
+``LoadCredential=`` and store AES256-GCM ciphertext to it:
+
+.. shell::
+
+   $ cd ~/.local/share/container/secrets
+   $ systemd-creds encrypt --name=github_token - public_github_token.cred
+
+Then in the unit replace ``LoadCredential=`` with:
+
+.. code:: systemd
+
+   LoadCredentialEncrypted=github_token:%h/.local/share/container/secrets/public_github_token.cred
+
+Enable and start the service:
+
+.. code:: shell
+
+   systemctl --user enable container-public-doctools@0.service
+   systemctl --user start container-public-doctools@0.service
+
+.. attention::
+
+   User services are terminated on logout, unless you define
+   ``loginctl enable-linger <your-user>`` first.
+
+See `systemd's container interface <https://systemd.io/CONTAINER_INTERFACE/>`__ and
+`systemd's credentials <https://systemd.io/CREDENTIALS/>`__ for more information.
+
+Resource quotas
+---------------
+
+``MemoryMax=`` and ``CPUQuota=`` require cgroup v2 controllers to be delegated
+to the user slice:
+
+.. code:: shell
+
+   $ sudo mkdir -p /etc/systemd/system/user@.service.d
+   $ cat <<EOF | sudo tee /etc/systemd/system/user@.service.d/delegate.conf
+   $ [Service]
+   $ Delegate=cpu cpuset io memory pids
+   $ EOF
+   $ sudo systemctl daemon-reload
+
+Tune the limit flags for your needs. The ``cpu`` config requires a kernel with
+``CONFIG_CFS_BANDWIDTH`` enabled. You can check with ``zgrep
+CONFIG_CFS_BANDWIDTH= /proc/config.gz``.
+
+Runner token and GitHub token
+-----------------------------
 
 Instead of passing ``runner_token``, you can also pass a ``github_token`` to
 generate the ``runner_token`` on demand. Using the ``github_token`` is the
-recommended approach because during clean-up the original runner_token may have
-expired already.
+recommended approach because during clean-up the original ``runner_token`` may
+have expired already.
 
 Alternatively, you can mount a FIFO to ``/var/run/secrets/runner_token`` to
 generate a token just in time, without ever passing the github_token to the
@@ -449,60 +528,3 @@ For `org runner <https://docs.github.com/en/rest/actions/self-hosted-runners?api
 
 * ``organization_self_hosted_runners:write``: "Self-hosted runners" organization permissions (write).
 * The user needs to be an org-level admin.
-
-Then update the systemd service.
-
-Enable and start the service
-
-.. code:: shell
-
-   systemctl --user enable container-public-doctools@0.service
-   systemctl --user start container-public-doctools@0.service
-
-.. attention::
-
-   User services are terminated on logout, unless you define
-   ``loginctl enable-linger <your-user>`` first.
-
-Restrict network access
-~~~~~~~~~~~~~~~~~~~~~~~
-
-To restrict the container to access only some resources in the network,
-to the ``podman run`` in the systemd service, append
-``--network podman --hooks-dir %h/.config/containers/oci/hooks.d``
-to use ``netavark`` as the network backend and use OCI hooks from the
-path listed.
-
-Then create two files, ``container-iptables.sh`` with the commands to run
-in the `rootless network namespace <https://docs.podman.io/en/stable/markdown/podman-unshare.1.html#rootless-netns>`__,
-for example:
-
-.. code:: bash
-
-   #!/bin/bash
-
-   /usr/sbin/iptables -I FORWARD -d 10.0.1.0/24 -j DROP
-   /usr/sbin/iptables -I FORWARD -d 10.0.2.0/24 -j DROP
-
-And ``container-iptables.sh`` with the hook rule (only absolute path is
-supported):
-
-
-.. code:: json
-
-   {
-       "version": "1.0.0",
-       "hook": {
-           "path": "/home/<USER>/.config/containers/oci/hooks.d/container-iptables.sh",
-           "args": [],
-           "env": []
-       },
-       "when": {
-           "always": true,
-           "commands": [".*"]
-       },
-       "stages": ["createContainer"]
-   }
-
-For more complex cases, use annotations to filer which hooks run with a
-container.
