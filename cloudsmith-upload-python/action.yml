@@ -44,7 +44,7 @@ runs:
           echo "tags=$tags" >> "$GITHUB_OUTPUT"
         fi
 
-    - uses: cloudsmith-io/cloudsmith-cli-action@v1.0.4
+    - uses: cloudsmith-io/cloudsmith-cli-action@v2.0.3
       if: ${{ (inputs.api-key == '' || inputs.api-key == ' ') && (inputs.service-slug != '' && inputs.service-slug != ' ') }}
       with:
         oidc-namespace: ${{ inputs.namespace }}
