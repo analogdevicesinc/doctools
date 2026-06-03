@@ -1,0 +1,178 @@
+name: Workflow run to context
+description: Get commit context for a workflow run
+
+inputs:
+  url:
+    description: "Workflow run url"
+    required: true
+  gh-token:
+    description: "GitHub Token"
+    default: ${{ github.token }}
+
+outputs:
+  owner:
+    description: "Owner"
+    value: ${{ steps.common.outputs.owner }}
+  repository:
+    description: "Repository"
+    value: ${{ steps.common.outputs.repository }}
+  branch:
+    description: "Onto branch"
+    value: ${{ steps.pull_request.outputs.branch || steps.push.outputs.branch }}
+  head_sha:
+    description: "Head sha"
+    value: ${{ steps.common.outputs.head_sha }}
+  base_sha:
+    description: "Base sha"
+    value: ${{ steps.pull_request.outputs.base_sha || steps.push.outputs.base_sha }}
+  changed_files:
+    description: "Changed files"
+    value: ${{ steps.pull_request.outputs.changed_files || steps.push.outputs.changed_files }}
+  pr:
+    description: "Pull request number"
+    value: ${{ steps.pull_request.outputs.pr }}
+  state:
+    description: "Pull request state (draft, open, closed)"
+    value: ${{ steps.pull_request.outputs.checkout_fail_pr_fixup }}
+  is_fork:
+    description: "If pull request is from a fork"
+    value: ${{ steps.checkout.outputs.base_sha }}
+  merge_commit_sha:
+    description: "Merge commit sha"
+    value: ${{ steps.pull_request.outputs.merge_commit_sha }}
+  base_branch_head_sha:
+    description: "Head sha of the base branch"
+    value: ${{ steps.pull_request.outputs.base_branch_head_sha }}
+
+# Behaviour:
+# For workflow_run.event:
+# - push:
+#   - Look at the recent events for find 'before' sha. GitHub limits to 300 events of any type.
+# - pull request:
+#   - If is from a fork, use issue api to find pull request
+
+runs:
+  using: composite
+  steps:
+    - name: Get workflow run context
+      id: common
+      shell: bash
+      run: |
+        # Get workflow run context
+        [[ "${{ runner.debug }}" == "1" ]] && set -x
+
+        url="${{ inputs.url }}"
+        [[ "$url" =~ ^https://api.github.com/repos/.+/actions/runs/[0-9]+$ ]] || { echo "::error ::'$url' is not a github workflow_run api url" ; exit 1 ; }
+
+        json=$(curl -s \
+          -H "Authorization: Bearer ${{ inputs.gh-token }}" \
+          -H "Accept: application/vnd.github+json" \
+          "$url")
+
+        owner=$(echo "$json" | jq -r '.repository.owner.login')
+        repository=$(echo "$json" | jq -r '.repository.name')
+        event=$(echo "$json" | jq -r '.event')
+        head_sha=$(echo "$json" | jq -r '.head_sha')
+
+        if [[ "$event" == "pull_request" ]]; then
+          is_fork=$(echo "$json" | jq -r '.head_repository.fork')
+          [[ "$is_fork" == "false" ]] && pr=$(echo "$json" | jq -r '.pull_requests[0].number') || :
+        elif [[ "$event" == "push" ]]; then
+          head_branch=$(echo "$json" | jq -r '.head_branch')
+        else
+          echo "::error ::'$event' is not supported" ; exit 1
+        fi
+
+        echo "owner=$owner" >> $GITHUB_OUTPUT
+        echo "repository=$repository" >> $GITHUB_OUTPUT
+        echo "event=$event" >> $GITHUB_OUTPUT
+        echo "head_sha=$head_sha" >> $GITHUB_OUTPUT
+        echo "is_fork=$is_fork" >> $GITHUB_OUTPUT
+        echo "pr=$pr" >> $GITHUB_OUTPUT
+        echo "head_branch=$head_branch" >> $GITHUB_OUTPUT
+
+    - name: Resolve push
+      id: push
+      if: steps.common.outputs.event == 'push'
+      shell: bash
+      run: |
+        # Resolve push
+        [[ "${{ runner.debug }}" == "1" ]] && set -x
+
+        owner="${{ steps.common.outputs.owner }}"
+        repository="${{ steps.common.outputs.repository }}"
+        head_sha="${{ steps.common.outputs.head_sha }}"
+        branch="${{ steps.common.outputs.head_branch }}"
+
+        base_sha=
+        for page in {1..3}; do
+          json=$(wget -q -O- \
+            --header="Authorization: Bearer ${{ inputs.gh-token }}" \
+            --header="Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$owner/$repository/events?per_page=100&page=$page")
+          base_sha=$(echo "$json" | jq -r --arg HEAD "$head_sha" '.[] | select(.type=="PushEvent" and .payload.head==$HEAD) | .payload.before // empty' | head -1)
+          [[ -n "$base_sha" ]] && break || :
+        done
+        [[ -n "$base_sha" ]] || { echo "::error ::Could not find PushEvent before sha for head_sha=$head_sha" ; exit 1 ; }
+        changed_files=$(curl -s \
+          -H "Authorization: Bearer ${{ inputs.gh-token }}" \
+          "https://api.github.com/repos/$owner/$repository/compare/${base_sha}...${head_sha}" | jq -r '.files[].filename')
+
+        echo "branch=$branch" >> $GITHUB_OUTPUT
+        echo "base_sha=$base_sha" >> $GITHUB_OUTPUT
+        echo 'changed_files<<EOF' >> $GITHUB_OUTPUT
+        echo "$changed_files" >> $GITHUB_OUTPUT
+        echo 'EOF' >> $GITHUB_OUTPUT
+
+    - name: Resolve pull_request
+      id: pull_request
+      if: steps.common.outputs.event == 'pull_request'
+      shell: bash
+      run: |
+        # Resolve pull_request
+        [[ "${{ runner.debug }}" == "1" ]] && set -x
+
+        owner="${{ steps.common.outputs.owner }}"
+        repository="${{ steps.common.outputs.repository }}"
+        head_sha="${{ steps.common.outputs.head_sha }}"
+        is_fork="${{ steps.common.outputs.is_fork }}"
+
+        if [[ "$is_fork" == "true" ]]; then
+          pr=$(curl -s \
+            -H "Authorization: Bearer ${{ inputs.gh-token }}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/search/issues?q=repo:$owner/$repository+is:pr+sha:$head_sha" | jq -r '.items[0].number // empty')
+          [[ -n "$pr" ]] || { echo "::error ::Pull request for sha ${head_sha} not found" ; exit 1 ; }
+        else
+          pr="${{ steps.common.outputs.pr }}"
+        fi
+
+        json=$(curl -s \
+          -H "Authorization: Bearer ${{ inputs.gh-token }}" \
+          -H "Accept: application/vnd.github+json" \
+          "https://api.github.com/repos/$owner/$repository/pulls/$pr")
+
+        state=$(echo "$json" | jq -r '.state')
+        merge_commit_sha=$(echo "$json" | jq -r '.merge_commit_sha // empty')
+        branch=$(echo "$json" | jq -r '.base.ref')
+        base_branch_head_sha=$(echo "$json" | jq -r '.base.sha')
+
+        base_sha=$(curl -s \
+          -H "Authorization: Bearer ${{ inputs.gh-token }}" \
+          -H "Accept: application/vnd.github+json" \
+          "https://api.github.com/repos/$owner/$repository/compare/${base_branch_head_sha}...${head_sha}" | jq -r '.merge_base_commit.sha')
+        changed_files=$(curl -s \
+          -H "Authorization: Bearer ${{ inputs.gh-token }}" \
+          -H "Accept: application/vnd.github+json" \
+          "https://api.github.com/repos/$owner/$repository/pulls/$pr/files" \
+          | jq -r '.[].filename')
+
+        echo "pr=$pr" >> $GITHUB_OUTPUT
+        echo "state=$state" >> $GITHUB_OUTPUT
+        echo "merge_base_commit=$merge_base_commit" >> $GITHUB_OUTPUT
+        echo "branch=$branch" >> $GITHUB_OUTPUT
+        echo "base_branch_head_sha=$base_branch_head_sha" >> $GITHUB_OUTPUT
+        echo "base_sha=$base_sha" >> $GITHUB_OUTPUT
+        echo 'changed_files<<EOF' >> $GITHUB_OUTPUT
+        echo "$changed_files" >> $GITHUB_OUTPUT
+        echo 'EOF' >> $GITHUB_OUTPUT
