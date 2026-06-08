@@ -10,8 +10,8 @@ inputs:
     default: true
     type: boolean
   fail-on:
-    description: 'Fail on vulnerability severity, options: negligible low medium high critical'
-    default: 'high'
+    description: 'Fail on vulnerability severity, options: never negligible low medium high critical'
+    default: 'none'
   containerfile:
     description: 'Path to the Containerfile'
     required: true
@@ -134,8 +134,9 @@ runs:
           # Continuous monitoring the SBOM is required.
           # We store just for illustrative and sanity purposes.
           grype db update
+          [ '${{ inputs.fail-on }}' == 'never' ] && _fail_on= || _fail_on="--fail-on "${{ inputs.fail-on }}""
           grype -o json -o table \
-                --fail-on "${{ inputs.fail-on }}" \
+                $_fail_on \
                 --sort-by severity \
                 sbom:sbom.json > .cves || cves_ret=$?
           head -n 1 .cves > cves.json
