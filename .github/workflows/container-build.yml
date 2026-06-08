@@ -29,11 +29,12 @@ on:
         description: 'Fail on vulnerability severity'
         type: choice
         options:
-        - negligible
-        - low
-        - medium
-        - high
+        - never
         - critical
+        - high
+        - medium
+        - low
+        - negligible
   workflow_call:
     inputs:
       organization:
