@@ -279,7 +279,7 @@ runs:
         git_fetch_depth () {
           echo "fetch $fetch_depth commits"
           [[ $fetch_depth -gt 0 ]] && git fetch origin --depth=$fetch_depth "$1" || git fetch origin "$1"
-          [[ $fetch_depth -gt 500 ]] && fetch_depth=0 || fetch_depth=$((fetch_depth * 2))
+          [[ $fetch_depth -gt 500 ]] && fetch_depth=500 || fetch_depth=$((fetch_depth * 2))
         }
         if [[ -n "$pr" ]]; then
           mode="pr"
