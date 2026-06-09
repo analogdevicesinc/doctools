@@ -3,7 +3,7 @@
 version_=$version
 github_token_=$github_token
 runner_token_=$runner_token
-org_repository_=$org_repository
+owner_repository_=${owner_repository:-$org_repository}
 runner_labels_=$runner_labels
 config_flags_=$config_flags
 name_label_=$name_label
@@ -19,6 +19,7 @@ unset version
 unset github_token
 unset runner_token
 unset org_repository
+unset owner_repository
 unset runner_labels
 unset config_flags
 unset name_label
@@ -34,8 +35,8 @@ if [[ -z "$config_flags_" ]]; then
     config_flags_="--replace"
 fi
 
-if [[ -z "$org_repository_" ]]; then
-    echo "No org_repository provided"
+if [[ -z "$owner_repository_" ]]; then
+    echo "No owner_repository provided"
     exit 1
 fi
 
@@ -46,11 +47,11 @@ function get_runner_token () {
           -H "Accept: application/vnd.github+json" \
           -H "Authorization: Bearer $github_token_" \
           -H "X-GitHub-Api-Version: 2022-11-28" \
-          "https://api.github.com/repos/$org_repository_/actions/runners/registration-token" \
+          "https://api.github.com/repos/$owner_repository_/actions/runners/registration-token" \
           | jq -r .token)
 
         if [[ "$runner_token_" == "null" ]]; then
-            echo "Failed to get '$org_repository_' runner_token, check github_token permission"
+            echo "Failed to get '$owner_repository_' runner_token, check github_token permission"
             exit 1
         fi
     else
@@ -70,14 +71,14 @@ if [[ -z "$name_label_" ]]; then
     name_label_=$(echo $runner_token_ | sha256sum | head -c4)
 fi
 
-name=$(echo $org_repository_ | sed 's|/|-|g')-$version_-$name_label_
+name=$(echo $owner_repository_ | sed 's|/|-|g')-$version_-$name_label_
 
 set -e
 
 [[ -x /home/runner/config.sh ]] && runner_dir="/home/runner" || runner_dir="/home/runner/actions-runner"
 readonly runner_dir
 (cd "$runner_dir" ; ./config.sh \
-    --url https://github.com/$org_repository_ \
+    --url https://github.com/$owner_repository_ \
     --token $runner_token_ \
     --labels "$runner_labels_" \
     --unattended \
