@@ -287,14 +287,20 @@ runs:
           git fetch origin --depth=$fetch_depth "$merge_commit_sha"
           fetch_head=$(git rev-parse FETCH_HEAD)
 
-          while ! git merge-base $fetch_head^1 $fetch_head^2 2>/dev/null ; do
-            git_fetch_depth "$fetch_head"
-          done
+          if [[ $(git cat-file -p "$fetch_head" | grep -c "^parent ") -ge 2 ]]; then
+            while ! git merge-base $fetch_head^1 $fetch_head^2 2>/dev/null ; do
+              git_fetch_depth "$fetch_head"
+            done
+            head_sha=$(git rev-parse $fetch_head^2)
+            into_head_sha=$(git rev-parse $fetch_head^1)
+            base_sha=$(git rev-list $into_head_sha..$head_sha | tail -n 1)
+            base_sha=$(git rev-parse $base_sha~)
+          else
+            # single commit pr
+            head_sha=$(git rev-parse $fetch_head)
+            base_sha=$(git rev-parse $head_sha~)
+          fi
 
-          head_sha=$(git rev-parse $fetch_head^2)
-          into_head_sha=$(git rev-parse $fetch_head^1)
-          base_sha=$(git rev-list $into_head_sha..$head_sha | tail -n 1)
-          base_sha=$(git rev-parse $base_sha~)
         else
           mode="branch"
           if [[ ! "${{ github.event.before }}" =~ "0000000000000000" ]] && \
@@ -315,7 +321,7 @@ runs:
 
         git reset --hard $head_sha
 
-        if [[ "$mode" == "pr" ]]; then
+        if [[ "$mode" == "pr" && -n "$into_head_sha" ]]; then
           # rebase into
           git rebase --rebase-merges "$keep_empty" \
             "$into_head_sha" "$head_sha" && {
