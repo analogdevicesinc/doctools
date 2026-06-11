@@ -1,0 +1,70 @@
+name: Cloudsmith Auth
+description: Cloudmisth authentication with OIDC
+
+inputs:
+  namespace:
+    description: "Cloudsmith namespace"
+    required: true
+  service-slug:
+    description: "Cloudsmith service slug"
+    required: false
+  api-key:
+    description: "Cloudsmith key (skip OIDC if set)"
+    required: false
+
+outputs:
+  token:
+    description: "Acquired token"
+    value: ${{ steps.get.outputs.token }}
+
+runs:
+  using: composite
+  steps:
+    - name: Cloudsmith Auth
+      id: get
+      shell: bash
+      run: |
+        # Cloudsmith Auth
+        api_key="${{ inputs.api-key }}"
+        service_slug="${{ inputs.service-slug }}"
+        namespace="${{ inputs.namespace }}"
+
+        [[ -z "$api_key" && -z "$service_slug" ]] && { echo "::error ::No CLOUDSMITH_API_KEY and no CLOUDSMITH_SERVICE_SLUG set" ; exit 1; }
+
+        validate() {
+          local token="$1"
+          local resp name
+
+          echo "::add-mask::${token}"
+          resp=$(curl -sf \
+            -H "Authorization: Bearer ${token}" \
+            -H "Accept: application/json" \
+            "https://api.cloudsmith.io/v1/user/self/")
+          [[ $(echo "$resp" | jq -r '.authenticated') != "true" ]] && { echo "::error ::Cloudsmith token validation failed" ; return 1 ; } || :
+        }
+
+        [[ -n "$api_key" ]] && {
+          validate "$api_key"
+          echo "token=${api_key}" >> "$GITHUB_OUTPUT"
+          exit 0
+        }
+
+        audience="https://github.com/${GITHUB_REPOSITORY_OWNER}"
+        id_token=$(curl -sf \
+          -H "Authorization: Bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+          "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${audience}" \
+          | jq -r '.value? // empty')
+        [[ -n "$id_token" ]] || { echo "::error ::Failed to obtain GitHub OIDC token"; exit 1; }
+        echo "::add-mask::${id_token}"
+
+        api_key=$(curl -sf \
+          -X POST \
+          -H "Content-Type: application/json" \
+          -d "{\"oidc_token\":\"${id_token}\",\"service_slug\":\"${service_slug}\"}" \
+          "https://api.cloudsmith.io/openid/${namespace}/" \
+          | jq -r '.token? // empty')
+        [[ -n "$api_key" ]] || { echo "::error ::Cloudsmith didn't return a token"; exit 1; }
+
+        validate "$api_key"
+        echo "CLOUDSMITH_API_KEY=${api_key}" >> "$GITHUB_ENV"
+        echo "token=${api_key}" >> "$GITHUB_OUTPUT"
