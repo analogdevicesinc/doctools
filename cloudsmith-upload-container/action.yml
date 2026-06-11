@@ -44,20 +44,11 @@ runs:
           echo "tags=$tags" >> "$GITHUB_OUTPUT"
         fi
 
-    - uses: cloudsmith-io/cloudsmith-cli-action@v2.0.3
-      if: ${{ (inputs.api-key == '' || inputs.api-key == ' ') && (inputs.service-slug != '' && inputs.service-slug != ' ') }}
+    - uses: analogdevicesinc/doctools/cloudsmith-auth@action
       with:
-        oidc-namespace: ${{ inputs.namespace }}
-        oidc-service-slug: ${{ inputs.service-slug }}
-        oidc-auth-only: 'true'
-
-    - name: Cloudsmith API Key
-      shell: bash
-      if: ${{ (inputs.api-key != '' && inputs.api-key != ' ') && (inputs.service-slug == '' || inputs.service-slug == ' ') }}
-      run: |
-        # Cloudsmith API Key
-        CLOUDSMITH_API_KEY=$(echo "${{ inputs.api-key }}" | xargs)
-        echo "CLOUDSMITH_API_KEY=$CLOUDSMITH_API_KEY" >> "$GITHUB_ENV"
+        namespace: ${{ inputs.namespace }}
+        service-slug: ${{ inputs.service-slug }}
+        api-key: ${{ inputs.api-key }}
 
     - name: Cloudsmith get assets
       if: ${{ env.CLOUDSMITH_API_KEY != '' }}
