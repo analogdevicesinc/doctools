@@ -333,8 +333,8 @@ class directive_parameters(directive_base):
         if parameter is None:
             return self.generic_table(description)
 
-        tgroup = nodes.tgroup(cols=5)
-        for _ in range(5):
+        tgroup = nodes.tgroup(cols=4)
+        for _ in range(4):
             colspec = nodes.colspec(colwidth=1)
             tgroup.append(colspec)
         table = nodes.table()
