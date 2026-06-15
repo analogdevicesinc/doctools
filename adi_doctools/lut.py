@@ -136,7 +136,7 @@ repos = {
         visibility='public'
     ),
     'libiio': Repo(
-        pathname='doc',
+        pathname='doc/source',
         name='libiio',
         description='Cross-platform library to access IIO devices.',
         category='library',
