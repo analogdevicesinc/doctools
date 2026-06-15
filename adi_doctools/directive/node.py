@@ -20,6 +20,10 @@ class node_base(nodes.Element, nodes.General):
             # python 3.14
             attributes.pop("backrefs")
 
+        align = attributes.pop("align", None)
+        if align:
+            node['classes'].append('align-%s' % align)
+
         text = self.starttag(node, node.tagname, **attributes)
         self.body.append(text.strip())
 

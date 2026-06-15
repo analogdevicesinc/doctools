@@ -721,8 +721,7 @@ class directive_video(Directive):
 
         align = self.options.pop('align', None)
         if align is not None:
-            # TODO figure out visit_table to use correct node['align']
-            node['classes'].append('align-' + align)
+            node['align'] = align
 
         parsed = nodes.Element()
         self.state.nested_parse(self.content, self.content_offset, parsed)
@@ -1201,8 +1200,7 @@ class directive_svg(SphinxDirective):
 
         align = self.options.pop('align', None)
         if align is not None:
-            # TODO figure out visit_table to use correct node['align']
-            figure_node['classes'].append('align-' + align)
+            figure_node['align'] = align
 
         # From: https://sourceforge.net/p/docutils/code/HEAD/tree/trunk/docutils/docutils/parsers/rst/directives/images.py#l110
         if self.content:

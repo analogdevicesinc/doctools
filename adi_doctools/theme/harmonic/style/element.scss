@@ -263,7 +263,7 @@ iframe {
 }
 
 @media (min-width: variable.$screen-2) {
-    .iframe-video {
+    .iframe-video, .embed-video {
         &.align-left {
             float: left;
             clear: left;
@@ -276,7 +276,8 @@ iframe {
             margin-left: 1em;
         }
 
-        &.align-left iframe, &.align-right iframe {
+        &.align-left iframe, &.align-right iframe,
+        &.align-left video, &.align-right video {
             width: 24rem;
             height: 13.49rem;
         }
