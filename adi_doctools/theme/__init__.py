@@ -12,6 +12,7 @@ from sphinx import __version__ as __sphinx_version__
 
 from .harmonic import setup as harmonic_setup
 from .latex import latex_elements
+from ..cli.aux_cover import generate_latex_cover
 
 logger = logging.getLogger(__name__)
 
@@ -334,3 +335,17 @@ def latex_config(app):
         app.config['latex_elements'] = latex_elements
         for key, value in latex_elements.items():
             app.builder.context[key] = value
+
+    maketitle = generate_latex_cover(
+        str(app.builder.outdir),
+        app.config.project,
+        app.config.author,
+        app.config.version
+    )
+    app.config['latex_elements']['maketitle'] = maketitle
+    app.builder.context['maketitle'] = maketitle
+    preamble = app.config['latex_elements'].get('preamble', '')
+    if '\\usepackage{eso-pic}' not in preamble:
+        preamble = '\\usepackage{eso-pic}\n' + preamble
+        app.config['latex_elements']['preamble'] = preamble
+        app.builder.context['preamble'] = preamble
