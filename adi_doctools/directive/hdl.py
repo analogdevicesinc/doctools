@@ -197,10 +197,11 @@ class directive_regmap(directive_base):
 
         content, _ = self.collapsible(section, f"{obj['title']} register map")
         tgroup = nodes.tgroup(cols=7)
-        for _ in range(7):
-            colspec = nodes.colspec(colwidth=1)
+        col_widths = [8, 8, 6, 14, 6, 10, 48]
+        for w in col_widths:
+            colspec = nodes.colspec(colwidth=w)
             tgroup.append(colspec)
-        table = nodes.table(classes=['regmap'])
+        table = nodes.table(classes=['regmap', 'colwidths-given', 'longtable'])
         table += tgroup
 
         self.table_header(tgroup, [["Address", 1], ["Reg Name", 3], ""])  # noqa: E501
