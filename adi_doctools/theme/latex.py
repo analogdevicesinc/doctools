@@ -5,9 +5,9 @@ latex_elements = {
     'fontpkg': r'''
 \usepackage{fontspec}
 \defaultfontfeatures{Scale=MatchLowercase}
-\setmainfont{FreeSerif}
-\setsansfont{FreeSans}
-\setmonofont{FreeMono}[Scale=0.9]
+\setmainfont{Inter}
+\setsansfont{Barlow}
+\setmonofont{FreeMono}[Scale=0.85]
 ''',
 
     'preamble': r'''
@@ -28,7 +28,6 @@ latex_elements = {
 \definecolor{linkcolor}{RGB}{0, 102, 204}
 \definecolor{citecolor}{RGB}{0, 128, 0}
 \definecolor{urlcolor}{RGB}{153, 51, 153}
-\definecolor{codebg}{RGB}{248, 248, 248}
 \definecolor{codeborder}{RGB}{220, 220, 220}
 
 % Hyperref customization
@@ -86,7 +85,7 @@ latex_elements = {
         verbatimwithframe=true,
         verbatimwrapslines=true,
         verbatimhintsturnover=true,
-        VerbatimColor={RGB}{248,248,248},
+        VerbatimColor={RGB}{255,255,255},
         VerbatimBorderColor={RGB}{220,220,220},
         InnerLinkColor={RGB}{0,102,204},
         OuterLinkColor={RGB}{153,51,153},
@@ -94,6 +93,28 @@ latex_elements = {
         hintBorderColor={RGB}{192,255,192},
         importantBorderColor={RGB}{255,192,192},
         tipBorderColor={RGB}{192,255,255},
+        div.note_border-radius=3pt,
+        div.hint_border-radius=3pt,
+        div.important_border-radius=3pt,
+        div.tip_border-radius=3pt,
+        div.caution_border-radius=3pt,
+        div.warning_border-radius=3pt,
+        div.danger_border-radius=3pt,
+        div.attention_border-radius=3pt,
+        div.error_border-radius=3pt,
+        div.seealso_border-radius=3pt,
+        div.todo_border-radius=3pt,
+        div.note_background-TeXcolor=white,
+        div.hint_background-TeXcolor=white,
+        div.important_background-TeXcolor=white,
+        div.tip_background-TeXcolor=white,
+        div.caution_background-TeXcolor=white,
+        div.warning_background-TeXcolor=white,
+        div.danger_background-TeXcolor=white,
+        div.attention_background-TeXcolor=white,
+        div.error_background-TeXcolor=white,
+        div.seealso_background-TeXcolor=white,
+        div.todo_background-TeXcolor=white,
     ''',
 
     'maketitle': r'''
