@@ -1,9 +1,13 @@
+import importlib.util
+import sys
 from os import path, getenv
 from packaging.version import Version
 
 from sphinx.util.osutil import SEP
 from sphinx import __version__ as __sphinx_version__
 from sphinx.util import logging
+
+from sphinx.transforms.post_transforms.images import ImageConverter
 
 from .theme import (navigation_tree, get_pygments_theme,
                     write_pygments_css, wrap_elements)
@@ -15,9 +19,33 @@ from .role.interref import interref_repos_apply, interref_repos_assert
 from .monkeypatch import monkeypatch_figure_numbers, monkeypatch_singlehtml_builder
 from .transforms import setup as transforms_setup
 
+if importlib.util.find_spec('cairosvg'):
+    import cairosvg
+
 __version__ = "0.4.41"
 
 logger = logging.getLogger(__name__)
+
+
+class CairoSvgConverter(ImageConverter):
+    conversion_rules = [
+        ('image/svg+xml', 'application/pdf'),
+    ]
+
+    def is_available(self):
+        if 'cairosvg' not in sys.modules:
+            logger.warning('cairosvg is not installed, SVG to PDF conversion disabled.')
+            return False
+        return True
+
+    def convert(self, _from, _to):
+        try:
+            cairosvg.svg2pdf(url=str(_from), write_to=str(_to))
+            return True
+        except Exception as exc:
+            logger.warning('convert exited with error: \n[stderr]\n%r\n[stdout]\n%r', _from, exc)
+            return False
+
 
 def get_navigation_tree(app, context, pagename):
     # The navigation tree, generated from the sphinx-provided ToC tree.
@@ -175,6 +203,7 @@ def setup(app):
         setup(app)
 
     app.add_post_transform(wrap_elements)
+    app.add_post_transform(CairoSvgConverter)
 
     app.connect("config-inited", config_inited)
     app.connect("builder-inited", builder_inited)
