@@ -65,6 +65,30 @@ class node_a(node_base):
     tagname = 'a'
     endtag = 'true'
 
+class node_video_screen(node_base):
+    """Wraps screen-only video content; suppressed entirely in LaTeX."""
+    tagname = 'div'
+    endtag = 'true'
+
+    @staticmethod
+    def visit_latex(self, node):
+        raise nodes.SkipNode
+
+class node_video_print(node_base):
+    """Wraps print-only video content; renders as an admonition in LaTeX."""
+    tagname = 'div'
+    endtag = 'true'
+
+    @staticmethod
+    def visit_latex(self, node):
+        self.body.append('\n\\begin{sphinxadmonition}{note}{Video:}')
+        self.no_latex_floats += 1
+
+    @staticmethod
+    def depart_latex(self, node):
+        self.body.append('\\end{sphinxadmonition}\n')
+        self.no_latex_floats -= 1
+
 class node_pre(node_base):
     tagname = 'pre'
     endtag = 'true'
@@ -117,6 +141,16 @@ def node_setup(app):
             html =(node.visit, node.depart),
             latex=(node.default, node.default),
             text =(node.default, node.default))
+
+    app.add_node(node_video_screen,
+        html =(node_video_screen.visit, node_video_screen.depart),
+        latex=(node_video_screen.visit_latex, node_video_screen.default),
+        text =(node_video_screen.default, node_video_screen.default))
+
+    app.add_node(node_video_print,
+        html =(node_video_print.visit, node_video_print.depart),
+        latex=(node_video_print.visit_latex, node_video_print.depart_latex),
+        text =(node_video_print.default, node_video_print.default))
 
     app.add_node(node_collection,
         html =(node.visit, node_collection.depart),

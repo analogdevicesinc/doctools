@@ -24,8 +24,8 @@ from typing import Tuple
 from typing import Sequence
 from docutils.nodes import Node
 
-from .node import node_div, node_input, node_label, node_icon, node_source, node_a, node_collection
-from .node import node_iframe, node_video
+from .node import node_div, node_input, node_label, node_icon, node_source, node_collection
+from .node import node_iframe, node_video, node_video_screen, node_video_print
 
 logger = logging.getLogger(__name__)
 
@@ -724,28 +724,38 @@ class directive_video(Directive):
             # TODO figure out visit_table to use correct node['align']
             node['classes'].append('align-' + align)
 
-        node_ = nodes.inline(
+        parsed = nodes.Element()
+        self.state.nested_parse(self.content, self.content_offset, parsed)
+
+        def _make_caption_link(parsed_nodes, url):
+            """Wrap parsed caption inlines in paragraph > reference."""
+            para = nodes.paragraph()
+            ref = nodes.reference('', '', refuri=url)
+            for child in parsed_nodes:
+                if isinstance(child, nodes.paragraph):
+                    for inline in child.children:
+                        ref += inline.deepcopy()
+                else:
+                    ref += child.deepcopy()
+            para += ref
+            return para
+
+        screen = node_video_screen(
             classes=['only-screen']
         )
-        self.state.nested_parse(self.content, self.content_offset, node_)
-        node += node_
+        screen += _make_caption_link(parsed.children, url)
+        node += screen
 
-        # Generate a video admonition for print
-        adm = node_div(
+        adm = node_video_print(
             classes=['admonition', 'video', 'only-print']
         )
-        adm += nodes.paragraph(
+        title_wrapper = node_video_screen(classes=[])
+        title_wrapper += nodes.paragraph(
             text="Video",
             classes=["admonition-title"]
         )
-
-        video_link = node_a(href=url)
-        video_link += nodes.inline(text=url)
-
-        self.state.nested_parse(self.content, self.content_offset, adm)
-        node_ = nodes.paragraph()
-        node_ += video_link
-        adm += node_
+        adm += title_wrapper
+        adm += _make_caption_link(parsed.children, url)
         node += adm
 
         return [node]
