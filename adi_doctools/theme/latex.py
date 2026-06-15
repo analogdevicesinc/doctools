@@ -11,6 +11,20 @@ latex_elements = {
 ''',
 
     'preamble': r'''
+
+\usepackage{enumitem}
+\setlistdepth{9}
+\renewlist{itemize}{itemize}{9}
+\setlist[itemize,1]{label=\textbullet}
+\setlist[itemize,2]{label=--}
+\setlist[itemize,3]{label=\textasteriskcentered}
+\setlist[itemize,4]{label=\textperiodcentered}
+\setlist[itemize,5]{label=\textbullet}
+\setlist[itemize,6]{label=--}
+\setlist[itemize,7]{label=\textasteriskcentered}
+\setlist[itemize,8]{label=\textperiodcentered}
+\setlist[itemize,9]{label=\textbullet}
+
 % Modern typography
 \usepackage{microtype}
 
