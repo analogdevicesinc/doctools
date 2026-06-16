@@ -400,16 +400,61 @@ To build you will need, at least:</p>
 <div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
 </pre></div>
 </div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>zypper<span class="w"> </span>install<span class="w"> </span><span class="se">\</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>apt<span class="w"> </span>install<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>texlive-cmap<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>texlive-float<span class="w"> </span><span class="se">\</span>
 <span class="w">   </span>texlive-xetex<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>texlive-xcolor<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>texlive-wrapfig<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>texlive-framed<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>texlive-needspace<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>texlive-capt-of<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>texlive-amsmath<span class="se">\</span>
+<span class="w">   </span>texlive-latexmk<span class="w"> </span><span class="se">\</span>
 <span class="w">   </span>texlive-fncychap<span class="w"> </span><span class="se">\</span>
-<span class="w">   </span>texlive-gnu-freefont
+<span class="w">   </span>texlive-gnu-freefont<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>texlive-babel-english<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>texlive-needspace<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>texlive-fancyvrb<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>texlive-tabulary<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>texlive-parskip<span class="w">  </span><span class="se">\</span>
+<span class="w">   </span>texlive-fancyhdr<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>texlive-titlesec<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>texlive-hypcap<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>texlive-enumitem<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>texlive-microtype<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>texlive-pict2e<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>texlive-ellipse<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>texlive-ifoddpage<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>texlive-adjustbox<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>texlive-collectbox<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>texlive-collection-basic
+</pre></div>
+</div>
+<div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>cairosvg
 </pre></div>
 </div>
 <div class="clear-left"></div></div></div><p>Due to unicode support, <code class="docutils literal notranslate"><span class="pre">latex_engine</span></code> is set to <code class="docutils literal notranslate"><span class="pre">xelatex</span></code> internally if
 the value is Sphinx default’s <code class="docutils literal notranslate"><span class="pre">pdflatex</span></code>. If <code class="docutils literal notranslate"><span class="pre">latex_elements['fontpkg']</span></code> is
 not provided, a default is also set with unicode characters.</p>
-</section>
+<p>You will also need to install the fonts, fetch them with:</p>
+<div class="code-shell"><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>-s<span class="w"> </span>https://raw.githubusercontent.com/analogdevicesinc/doctools/refs/heads/main/ci/fetch-fonts.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>bash<span class="w"> </span>-s<span class="w"> </span>--<span class="w"> </span>~/.local/share/fonts<span class="w"> </span>ttf
+</pre></div>
+</div>
+<div class="clear-left"></div></div><div><div class="no-select float-left highlight-default notranslate"><div class="highlight"><pre><span></span>~$
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>fc-cache<span class="w"> </span>-f
+</pre></div>
+</div>
+<div class="clear-left"></div></div></div></section>
 </section>
 <section id="development-install">
 <span id="id2"></span><h2>Development install<a class="headerlink" href="#development-install" title="Link to this heading"></a></h2>
