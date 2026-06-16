@@ -92,6 +92,10 @@ def config_inited(app, config):
     """
     app.lut = get_lut()
     interref_repos_apply(config)
+    # colorrows activates colortbl which sets \CT@everycr; this may cause an
+    # infinite \everycr recursion inside tabulary's measurement pass under xelatex.
+    if 'colorrows' in config.latex_table_style:
+        config.latex_table_style = [s for s in config.latex_table_style if s != 'colorrows']
 
 
 def builder_inited(app):
