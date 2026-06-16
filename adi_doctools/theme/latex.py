@@ -93,6 +93,19 @@ latex_elements = {
 % Better spacing in lists
 \usepackage{enumitem}
 \setlist{itemsep=2pt,parsep=2pt,topsep=4pt}
+
+% If a rendered image is taller than the remaining page space,
+% break to a new page first.
+\makeatletter
+\let\adi@orig@sphinxincludegraphics\sphinxincludegraphics
+\renewcommand{\sphinxincludegraphics}[2][]{%
+  \setbox0=\hbox{\adi@orig@sphinxincludegraphics[#1]{#2}}%
+  \ifdim\ht0>\dimexpr\pagegoal-\pagetotal-\baselineskip\relax
+    \clearpage
+  \fi
+  \box0\relax
+}
+\makeatother
 ''',
 
     'sphinxsetup': '''
