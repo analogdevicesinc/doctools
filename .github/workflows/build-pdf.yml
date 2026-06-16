@@ -1,0 +1,134 @@
+name: PDF build
+run-name: PDF build for ${{ inputs.repository }}@${{ inputs.ref }}
+on:
+  workflow_dispatch:
+    inputs:
+      organization:
+        description: 'Organization name'
+        required: true
+        type: string
+        default: 'analogdevicesinc'
+      repository:
+        description: 'Repository name'
+        required: true
+        type: string
+      ref:
+        description: 'Branch/tag ref to checkout'
+        required: true
+        type: string
+        default: 'refs/heads/main'
+  workflow_call:
+    inputs:
+      organization:
+        description: 'Organization name'
+        required: true
+        type: string
+      repository:
+        description: 'Repository name'
+        required: true
+        type: string
+      ref:
+        description: 'Branch/tag ref to checkout'
+        required: true
+        type: string
+        default: 'refs/heads/main'
+
+jobs:
+  build-latex:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+    - uses: actions/checkout@v5
+      with:
+        repository: ${{ inputs.organization }}/${{ inputs.repository }}
+        ref: ${{ inputs.ref }}
+
+    - name: Setup
+      id: setup
+      run: |
+        [ -d "docs" ] && docs=$(find docs -name conf.py -exec sh -c 'dirname {}' ';' 2>/dev/null | head -1)
+        [ -d "doc" ] && docs=$(find doc -name conf.py -exec sh -c 'dirname {}' ';' 2>/dev/null | head -1)
+        [ -n "$docs" ] || { echo "::error ::Could not find 'conf.py'." ; exit 1; }
+
+        python3 -m venv venv
+        source ./venv/bin/activate
+        python3 -m ensurepip
+        pip3 install adi-doctools[pdf]
+
+        requirements=$(find "$docs" -name requirements.txt | head -1)
+        [ -n "$requirements" ] && pip3 install -r "$requirements" --upgrade || echo "::warning ::Could not find 'requirements.txt'."
+
+        echo "docs=$docs" >> $GITHUB_OUTPUT
+
+    - name: Build LaTeX sources
+      id: build
+      run: |
+        docs="${{ steps.setup.outputs.docs }}"
+        source ./venv/bin/activate
+        cd "$docs" ; sphinx-build -M latex "." "_build" -j auto
+        echo "latex=$docs/_build/latex" >> $GITHUB_OUTPUT
+
+    - name: Store LaTeX sources
+      uses: actions/upload-artifact@v4
+      with:
+        name: latex
+        path: ${{ steps.build.outputs.latex }}
+
+  build-pdf:
+    runs-on: ubuntu-latest
+    needs: build-latex
+    container:
+      image: texlive/texlive:latest-small
+    permissions:
+      contents: read
+
+    steps:
+    - name: Download LaTeX sources
+      uses: actions/download-artifact@v4
+      with:
+        name: latex
+        path: latex
+
+    - name: Fetch styles
+      run: |
+        tlmgr install \
+          wrapfig \
+          framed \
+          needspace \
+          capt-of \
+          fncychap \
+          needspace \
+          tabulary \
+          titlesec \
+          pict2e \
+          ellipse \
+          ifoddpage \
+          adjustbox \
+          collectbox \
+          varwidth \
+          fvextra \
+
+    - name: Fetch fonts
+      run: |
+        curl -sL -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+           https://raw.githubusercontent.com/analogdevicesinc/doctools/refs/heads/main/ci/fetch-fonts.sh | \
+           bash -s -- ~/.local/share/fonts ttf
+
+        fc-cache -f
+
+    - name: Build PDF
+      id: build
+      run: |
+        cd latex ; make
+
+        pdf="$(ls -t *.pdf | head -n 1)"
+        [ -n "$pdf" ] || { echo "::error ::Failed to find built pdf." ; exit 1; }
+        echo "pdf=latex/$pdf" >> $GITHUB_OUTPUT
+
+    - name: Store the generated pdf
+      uses: actions/upload-artifact@v4
+      with:
+        name: pdf
+        path: ${{ steps.build.outputs.pdf }}

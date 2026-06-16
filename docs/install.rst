@@ -204,34 +204,23 @@ To build you will need, at least:
 .. shell::
 
    $ apt install \
-       texlive-cmap \
-       texlive-float \
-       texlive-xetex \
-       texlive-xcolor \
+       texlive-collection-basic
        texlive-wrapfig \
        texlive-framed \
        texlive-needspace \
        texlive-capt-of \
-       texlive-amsmath\
-       texlive-latexmk \
        texlive-fncychap \
-       texlive-gnu-freefont \
-       texlive-babel-english \
        texlive-needspace \
-       texlive-fancyvrb \
        texlive-tabulary \
-       texlive-parskip  \
-       texlive-fancyhdr \
        texlive-titlesec \
-       texlive-hypcap \
-       texlive-enumitem \
-       texlive-microtype \
        texlive-pict2e \
        texlive-ellipse \
        texlive-ifoddpage \
        texlive-adjustbox \
        texlive-collectbox \
-       texlive-collection-basic
+       texlive-varwidth \
+       texlive-fvextra
+
    $ pip install cairosvg
 
 Due to unicode support, ``latex_engine`` is set to ``xelatex`` internally if
