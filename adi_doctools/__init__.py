@@ -192,6 +192,18 @@ def build_finished(app, exc):
         copy_asset(app, "esd-warning.svg")
 
 
+def doctree_resolved_remove_screen_only(app, doctree, docname):
+    """Strip screen-only elements from latex build, including
+    dark mode alternatives."""
+    if app.builder.format == 'html':
+        return
+    from docutils import nodes
+    for node in list(doctree.findall(nodes.Element)):
+        classes = node.get('classes', [])
+        if 'only-screen' in classes or 'only-dark' in classes:
+            node.parent.remove(node)
+
+
 def setup(app):
     for setup in theme_setup:
         setup(app)
@@ -208,6 +220,7 @@ def setup(app):
     app.connect("config-inited", config_inited)
     app.connect("builder-inited", builder_inited)
     app.connect("html-page-context", html_page_context)
+    app.connect("doctree-resolved", doctree_resolved_remove_screen_only)
     app.connect("build-finished", build_finished)
 
     app.add_config_value('numfig_per_doc', False, 'env', [str])
