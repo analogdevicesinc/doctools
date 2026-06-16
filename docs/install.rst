@@ -203,14 +203,48 @@ To build you will need, at least:
 
 .. shell::
 
-   $ zypper install \
+   $ apt install \
+       texlive-cmap \
+       texlive-float \
        texlive-xetex \
+       texlive-xcolor \
+       texlive-wrapfig \
+       texlive-framed \
+       texlive-needspace \
+       texlive-capt-of \
+       texlive-amsmath\
+       texlive-latexmk \
        texlive-fncychap \
-       texlive-gnu-freefont
+       texlive-gnu-freefont \
+       texlive-babel-english \
+       texlive-needspace \
+       texlive-fancyvrb \
+       texlive-tabulary \
+       texlive-parskip  \
+       texlive-fancyhdr \
+       texlive-titlesec \
+       texlive-hypcap \
+       texlive-enumitem \
+       texlive-microtype \
+       texlive-pict2e \
+       texlive-ellipse \
+       texlive-ifoddpage \
+       texlive-adjustbox \
+       texlive-collectbox \
+       texlive-collection-basic
+   $ pip install cairosvg
 
 Due to unicode support, ``latex_engine`` is set to ``xelatex`` internally if
 the value is Sphinx default's ``pdflatex``. If ``latex_elements['fontpkg']`` is
 not provided, a default is also set with unicode characters.
+
+You will also need to install the fonts, fetch them with:
+
+.. shell::
+
+   $ curl -s https://raw.githubusercontent.com/analogdevicesinc/doctools/refs/heads/main/ci/fetch-fonts.sh | \
+       bash -s -- ~/.local/share/fonts ttf
+   $ fc-cache -f
 
 .. _development-install:
 
