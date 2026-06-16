@@ -40,6 +40,10 @@ cli = [
     "weasyprint",
 ]
 
+pdf = [
+    "cairosvg",
+]
+
 mcp = [
     "mcp >= 1.0",
 ]
