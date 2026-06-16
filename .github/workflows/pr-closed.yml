@@ -4,7 +4,7 @@ on:
 
 jobs:
   clean-gh-pages:
-    runs-on: [self-hosted, repo-only]
+    runs-on: ${{ vars.RUNNER != '' && fromJSON(vars.RUNNER) || 'ubuntu-slim' }}
     permissions:
       contents: write
 

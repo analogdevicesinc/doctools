@@ -20,7 +20,7 @@ permissions:
 
 jobs:
   deploy-github:
-    runs-on: [self-hosted, repo-only]
+    runs-on: ${{ vars.RUNNER != '' && fromJSON(vars.RUNNER) || 'ubuntu-slim' }}
     permissions:
       contents: write
     if: ${{ github.ref == 'refs/heads/main' }}
@@ -152,7 +152,7 @@ jobs:
   # Reusable workflows are currently unsupported on the PyPI
   # https://github.com/pypa/gh-action-pypi-publish/issues/166
   deploy-pypi:
-    runs-on: [self-hosted, repo-only]
+    runs-on: ${{ vars.RUNNER != '' && fromJSON(vars.RUNNER) || 'ubuntu-slim' }}
     permissions:
       contents: read
     if: ${{ github.ref == 'refs/heads/main' && inputs.new_tag == 'true'}}
@@ -179,7 +179,7 @@ jobs:
         twine upload --password "${{ secrets.PYPI_API_KEY }}" dist/*
 
   deploy-cloudsmith:
-    runs-on: [self-hosted, repo-only]
+    runs-on: ${{ vars.RUNNER != '' && fromJSON(vars.RUNNER) || 'ubuntu-slim' }}
     permissions:
       contents: read
       id-token: write
@@ -204,7 +204,7 @@ jobs:
         service-slug: ${{ secrets.CLOUDSMITH_SERVICE_SLUG }}
 
   deploy-gh-pages:
-    runs-on: [self-hosted, repo-only]
+    runs-on: ${{ vars.RUNNER != '' && fromJSON(vars.RUNNER) || 'ubuntu-slim' }}
     permissions:
       contents: write
     if: ${{ github.ref == 'refs/heads/main' || github.event_name == 'pull_request' }}

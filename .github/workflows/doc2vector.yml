@@ -31,7 +31,7 @@ jobs:
   build:
     concurrency:
       group: vector@${{ inputs.organization }}/${{ inputs.repository }}
-    runs-on: [self-hosted, repo-only]
+    runs-on: ${{ vars.RUNNER != '' && fromJSON(vars.RUNNER) || 'ubuntu-latest' }}
 
     steps:
     - uses: analogdevicesinc/doctools/blank@action

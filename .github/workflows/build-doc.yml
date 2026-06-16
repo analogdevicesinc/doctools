@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   build-doc-latest:
-    runs-on: [self-hosted, repo-only]
+    runs-on: ${{ vars.RUNNER != '' && fromJSON(vars.RUNNER) || 'ubuntu-latest' }}
 
     steps:
     - uses: analogdevicesinc/doctools/checkout@action
@@ -52,10 +52,15 @@ jobs:
         path: docs/_build/html
 
   build-doc-min:
-    runs-on: [self-hosted, repo-only]
+    runs-on: ${{ vars.RUNNER != '' && fromJSON(vars.RUNNER) || 'ubuntu-latest' }}
 
     steps:
     - uses: analogdevicesinc/doctools/checkout@action
+
+    - uses: actions/setup-python@v6
+      if: ${{ vars.RUNNER == '' }}
+      with:
+        python-version: '3.8'
 
     - name: Ensure clean dist
       run: rm -rf dist
@@ -87,7 +92,7 @@ jobs:
         path: docs/_build/html
 
   check-doc:
-    runs-on: [self-hosted, repo-only]
+    runs-on: ${{ vars.RUNNER != '' && fromJSON(vars.RUNNER) || 'ubuntu-latest' }}
     if: ${{ github.event_name == 'pull_request' }}
 
     steps:

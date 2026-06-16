@@ -5,7 +5,7 @@ permissions:
 
 jobs:
   custom-doc:
-    runs-on: [self-hosted, repo-only]
+    runs-on: ${{ vars.RUNNER != '' && fromJSON(vars.RUNNER) || 'ubuntu-latest' }}
 
     steps:
     - uses: analogdevicesinc/doctools/checkout@action
