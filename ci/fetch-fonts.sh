@@ -1,6 +1,7 @@
 #!/bin/bash
 
-target=../adi_doctools/theme/harmonic/static/fonts
+target=${1:-../adi_doctools/theme/harmonic/static/fonts}
+format=${2:-woff2}
 
 declare -A url
 url[barlow]="https://github.com/jpt/barlow/archive/refs/tags/1.422.tar.gz"
@@ -10,9 +11,14 @@ declare -A sha
 sha[barlow]="f4bc7fd2802844deead4d19634b9c4d11710624a48fcfd7196821e353159c048"
 sha[inter]="ff970a5d4561a04f102a7cb781adbd6ac4e9b6c460914c7a101f15acb7f7d1a4"
 
+declare -A dir
+dir[inter:woff2]="web"
+dir[inter:ttf]="extras/ttf"
+dir[inter]=${dir[inter:$format]:-web}
+
 declare -A files
-files[barlow]="fonts/woff2/Barlow-Medium.woff2 fonts/woff2/Barlow-SemiBold.woff2 OFL.txt"
-files[inter]="web/Inter-Regular.woff2 web/Inter-SemiBold.woff2 LICENSE.txt"
+files[barlow]="fonts/$format/Barlow-Medium.$format fonts/$format/Barlow-SemiBold.$format OFL.txt"
+files[inter]="${dir[inter]}/Inter-Regular.$format ${dir[inter]}/Inter-SemiBold.$format LICENSE.txt"
 
 declare -A ext
 ext[barlow]="tar.gz"
