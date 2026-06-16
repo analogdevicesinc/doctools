@@ -22,7 +22,7 @@ from .transforms import setup as transforms_setup
 if importlib.util.find_spec('cairosvg'):
     import cairosvg
 
-__version__ = "0.4.42"
+__version__ = "0.4.43"
 
 logger = logging.getLogger(__name__)
 
