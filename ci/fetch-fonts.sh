@@ -32,12 +32,12 @@ mkdir .cache-fonts
 pushd .
 cd .cache-fonts
 for i in "${!url[@]}"; do
-	wget ${url[$i]} -O $i.${ext[$i]} -q
+	curl -sL "${url[$i]}" -o "$i.${ext[$i]}"
 done
 ls
 
-if [ ! -d $target ]; then
-	mkdir $target
+if [ ! -d "$target" ]; then
+	mkdir -p "$target"
 fi
 for i in "${!sha[@]}"; do
 	if echo "${sha[$i]} $i.${ext[$i]}"  | sha256sum --check --status; then
@@ -48,12 +48,12 @@ for i in "${!sha[@]}"; do
 		if [ "${ext[$i]}" == "zip" ]; then
 			unzip -q $i.zip -d $i
 		fi
-		if [ ! -d $target/$i ]; then
-			mkdir $target/$i
+		if [ ! -d "$target/$i" ]; then
+			mkdir "$target/$i"
 		fi
 		files_ar=(${files[$i]})
 		for j in "${files_ar[@]}"; do
-			cp $i/$j $target/$i
+			cp "$i/$j" "$target/$i"
 		done
 		rm -r $i
 	else
