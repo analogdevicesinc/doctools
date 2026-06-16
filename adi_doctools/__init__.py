@@ -33,8 +33,8 @@ class CairoSvgConverter(ImageConverter):
     ]
 
     def is_available(self):
-        if 'cairosvg' not in sys.modules:
-            logger.warning('cairosvg is not installed, SVG to PDF conversion disabled.')
+        if self.app.builder.name == 'latex' and 'cairosvg' not in sys.modules:
+            logger.warning("'cairosvg' is not installed, svg to pdf conversion disabled.")
             return False
         return True
 
