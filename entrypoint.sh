@@ -28,21 +28,38 @@ if [[ -z "$owner_repository_" ]]; then
     echo "No owner_repository provided"
     exit 1
 fi
+runner_dir="/home/runner"
+readonly runner_dir
+
+node="$runner_dir/externals/node24/bin/node"
+[ -x "$node" ] || node="$runner_dir/externals/node22/bin/node"
+readonly node
+
+set -e
 
 function get_runner_token () {
     if [[ ! -z "$github_token_" ]]; then
-        runner_token_=$(curl -L \
-          -X POST \
-          -H "Accept: application/vnd.github+json" \
-          -H "Authorization: Bearer $github_token_" \
-          -H "X-GitHub-Api-Version: 2022-11-28" \
-          "https://api.github.com/repos/$owner_repository_/actions/runners/registration-token" \
-          | jq -r .token)
-
-        if [[ "$runner_token_" == "null" ]]; then
-            echo "Failed to get '$owner_repository_' runner_token, check github_token permission"
-            exit 1
-        fi
+        runner_token_=$(owner_repository_="$owner_repository_" github_token_="$github_token_" \
+            $node -e "
+            fetch('https://api.github.com/repos/' + process.env.owner_repository_ + '/actions/runners/registration-token', {
+              method: 'POST',
+              headers: {
+                'Accept': 'application/vnd.github+json',
+                'Authorization': 'Bearer ' + process.env.github_token_,
+                'X-GitHub-Api-Version': '2022-11-28',
+                'User-Agent': 'nr'
+              }
+            })
+            .then(res => res.json())
+            .then(data => {
+              if (!data.token) throw new Error('Failed to get runner_token, check github_token permission');
+              process.stdout.write(data.token);
+            })
+            .catch(err => {
+              process.stderr.write(err.message + '\n');
+              process.exit(1);
+            });
+        ")
     else
         if [[ -p "/var/run/secrets/runner_token" ]] || [[ -f "/var/run/secrets/runner_token" ]]; then
             runner_token_=$(cat /var/run/secrets/runner_token)
@@ -59,10 +76,6 @@ get_runner_token
 [ -n "$runner_name_" ] || runner_name_=$(echo $owner_repository_ | sed 's|/|-|g')-$(echo $runner_token_ | sha256sum | head -c4)
 [ -n "$runner_labels_" ] || runner_labels_="self-hosted"
 
-set -e
-
-[[ -x /home/runner/config.sh ]] && runner_dir="/home/runner" || runner_dir="/home/runner/actions-runner"
-readonly runner_dir
 (cd "$runner_dir" ; ./config.sh \
     --url https://github.com/$owner_repository_ \
     --token $runner_token_ \
