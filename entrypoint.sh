@@ -1,35 +1,26 @@
 #!/bin/bash
 
-version_=$version
 github_token_=$github_token
 runner_token_=$runner_token
 owner_repository_=${owner_repository:-$org_repository}
+runner_name_=$runner_name
 runner_labels_=$runner_labels
 config_flags_=$config_flags
-name_label_=$name_label
 
 if [ -n "$CREDENTIALS_DIRECTORY" ]; then
    [ -f "$CREDENTIALS_DIRECTORY/github_token" ] && github_token_=$(cat "$CREDENTIALS_DIRECTORY/github_token")
    [ -f "$CREDENTIALS_DIRECTORY/runner_token" ] && runner_token_=$(cat "$CREDENTIALS_DIRECTORY/runner_token")
-   [ -f "$CREDENTIALS_DIRECTORY/org_repository" ] && org_repository_=$(cat "$CREDENTIALS_DIRECTORY/org_repository")
+   [ -f "$CREDENTIALS_DIRECTORY/owner_repository" ] && owner_repository_=$(cat "$CREDENTIALS_DIRECTORY/owner_repository")
 fi
 
 unset CREDENTIALS_DIRECTORY
-unset version
 unset github_token
 unset runner_token
 unset org_repository
 unset owner_repository
+unset runner_name
 unset runner_labels
 unset config_flags
-unset name_label
-
-if [[ -z "$runner_labels_" ]]; then
-    runner_labels_="repo-only"
-fi
-if [[ -n "$version_" ]]; then
-    runner_labels_="$version_,$runner_labels_"
-fi
 
 if [[ -z "$config_flags_" ]]; then
     config_flags_="--replace"
@@ -67,11 +58,8 @@ function get_runner_token () {
 
 get_runner_token
 
-if [[ -z "$name_label_" ]]; then
-    name_label_=$(echo $runner_token_ | sha256sum | head -c4)
-fi
-
-name=$(echo $owner_repository_ | sed 's|/|-|g')-$version_-$name_label_
+[ -n "$runner_name_" ] || runner_name_=$(echo $owner_repository_ | sed 's|/|-|g')-$(echo $runner_token_ | sha256sum | head -c4)
+[ -n "$runner_labels_" ] || runner_labels_="self-hosted"
 
 set -e
 
@@ -80,9 +68,10 @@ readonly runner_dir
 (cd "$runner_dir" ; ./config.sh \
     --url https://github.com/$owner_repository_ \
     --token $runner_token_ \
+    --name "$runner_name_" \
     --labels "$runner_labels_" \
+    --no-default-labels \
     --unattended \
-    --name $name \
     $config_flags_ \
 )
 
