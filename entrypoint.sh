@@ -2,7 +2,7 @@
 
 github_token_=$github_token
 runner_token_=$runner_token
-owner_repository_=${owner_repository:-$org_repository}
+owner_repository_=$owner_repository
 runner_name_=$runner_name
 runner_labels_=$runner_labels
 config_flags_=$config_flags
@@ -15,7 +15,6 @@ fi
 unset CREDENTIALS_DIRECTORY
 unset github_token
 unset runner_token
-unset org_repository
 unset owner_repository
 unset runner_name
 unset runner_labels
