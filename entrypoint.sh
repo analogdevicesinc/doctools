@@ -10,7 +10,6 @@ config_flags_=$config_flags
 if [ -n "$CREDENTIALS_DIRECTORY" ]; then
    [ -f "$CREDENTIALS_DIRECTORY/github_token" ] && github_token_=$(cat "$CREDENTIALS_DIRECTORY/github_token")
    [ -f "$CREDENTIALS_DIRECTORY/runner_token" ] && runner_token_=$(cat "$CREDENTIALS_DIRECTORY/runner_token")
-   [ -f "$CREDENTIALS_DIRECTORY/owner_repository" ] && owner_repository_=$(cat "$CREDENTIALS_DIRECTORY/owner_repository")
 fi
 
 unset CREDENTIALS_DIRECTORY
