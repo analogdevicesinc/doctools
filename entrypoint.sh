@@ -83,6 +83,7 @@ get_runner_token
     --labels "$runner_labels_" \
     --no-default-labels \
     --unattended \
+    --disableupdate \
     $config_flags_ \
 )
 
