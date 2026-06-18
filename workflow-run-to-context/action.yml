@@ -33,16 +33,19 @@ outputs:
     value: ${{ steps.pull_request.outputs.pr }}
   state:
     description: "Pull request state (draft, open, closed)"
-    value: ${{ steps.pull_request.outputs.checkout_fail_pr_fixup }}
+    value: ${{ steps.pull_request.outputs.state }}
   is_fork:
     description: "If pull request is from a fork"
-    value: ${{ steps.checkout.outputs.base_sha }}
+    value: ${{ steps.common.outputs.is_fork }}
   merge_commit_sha:
     description: "Merge commit sha"
     value: ${{ steps.pull_request.outputs.merge_commit_sha }}
   base_branch_head_sha:
     description: "Head sha of the base branch"
     value: ${{ steps.pull_request.outputs.base_branch_head_sha }}
+  url:
+    description: "Pass-through url input"
+    value: ${{ steps.common.outputs.url }}
 
 # Behaviour:
 # For workflow_run.event:
@@ -90,6 +93,7 @@ runs:
         echo "is_fork=$is_fork" >> $GITHUB_OUTPUT
         echo "pr=$pr" >> $GITHUB_OUTPUT
         echo "head_branch=$head_branch" >> $GITHUB_OUTPUT
+        echo "url=$url" >> $GITHUB_OUTPUT
 
     - name: Resolve push
       id: push
@@ -169,8 +173,8 @@ runs:
 
         echo "pr=$pr" >> $GITHUB_OUTPUT
         echo "state=$state" >> $GITHUB_OUTPUT
-        echo "merge_base_commit=$merge_base_commit" >> $GITHUB_OUTPUT
         echo "branch=$branch" >> $GITHUB_OUTPUT
+        echo "merge_commit_sha=$merge_commit_sha" >> $GITHUB_OUTPUT
         echo "base_branch_head_sha=$base_branch_head_sha" >> $GITHUB_OUTPUT
         echo "base_sha=$base_sha" >> $GITHUB_OUTPUT
         echo 'changed_files<<EOF' >> $GITHUB_OUTPUT

@@ -19,7 +19,8 @@ outputs:
   "state": "",
   "is_fork": "",
   "merge_commit_sha": "",
-  "base_branch_head_sha": "83e04bccee664e7f526c56bfab33eb84903ee848"
+  "base_branch_head_sha": "83e04bccee664e7f526c56bfab33eb84903ee848",
+  "url": "https://api.github.com/repos/analogdevicesinc/linux/actions/runs/26873974794"
 }
 ```
 
@@ -38,7 +39,8 @@ outputs
   "state": "",
   "is_fork": "",
   "merge_commit_sha": "",
-  "base_branch_head_sha": ""
+  "base_branch_head_sha": "",
+  "url": "https://api.github.com/repos/analogdevicesinc/linux/actions/runs/26882970726"
 }
 
 ```
@@ -61,7 +63,8 @@ jobs:
     steps:
     - uses: analogdevicesinc/doctools/workflow-run-to-context@action
       id: context
-      with: ${{ inputs.workflow_run_url }}
+      with:
+        url: ${{ inputs.workflow_run_url }}
 
     - name: Debug
       env:
