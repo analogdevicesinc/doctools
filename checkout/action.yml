@@ -87,6 +87,7 @@ runs:
 
         ref="${{ inputs.ref }}"
         ref="${ref//[[:space:]]/}"
+        ref="${ref#\#}"
         repository="${{ inputs.repository }}"
 
         branch=
