@@ -29,6 +29,10 @@ runs:
         service_slug="${{ inputs.service-slug }}"
         namespace="${{ inputs.namespace }}"
 
+        api_key="${api_key// /}"
+        service_slug="${service_slug// /}"
+        namespace="${namespace// /}"
+
         [[ -z "$api_key" && -z "$service_slug" ]] && { echo "::error ::No CLOUDSMITH_API_KEY and no CLOUDSMITH_SERVICE_SLUG set" ; exit 1; }
 
         validate() {
