@@ -183,7 +183,7 @@ class directive_base(Directive):
                                   uid=uid)
         rows.append(row)
 
-    def generic_table(self, description, uid: Optional[str] = None, media_print=False):
+    def generic_table(self, description, uid: Optional[str] = None):
         tgroup = nodes.tgroup(cols=2)
         for _ in range(2):
             colspec = nodes.colspec(colwidth=1)
@@ -199,10 +199,7 @@ class directive_base(Directive):
             row = nodes.row()
 
             entry = nodes.entry()
-            if not media_print:  # Check if not in PDF mode
-                entry += nodes.literal(text="{:s}".format(key))
-            else:
-                entry += nodes.paragraph(text="{:s}".format(key))  # Use paragraph for PDF mode
+            entry += nodes.literal(text="{:s}".format(key))
             row += entry
 
             entry = nodes.entry()

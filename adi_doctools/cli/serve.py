@@ -38,8 +38,8 @@ log = {
     'no_node_modules': "The node_modules tools are not installed to generate them.",
     'with_node_modules': "node_modules tools are installed, run with the --dev --once flags to generate them.",
     'fetch': "Do you want to fetch from the release?",
-    'builder': "Unknown builder '{}', valid options are: html, pdf.",
-    'no_weasyprint': "Package 'weasyprint' required for PDF generation is not installed.",
+    'builder': "Unknown builder '{}', valid options are: html, latex, latexpdf.",
+    'no_cairosvg': "Package 'cairosvg' required for PDF generation is not installed.",
     'sparse_not_found': "Sparse path '{}' does not exist.",
     'doc_not_built': "Docname '{}' is not built.",
 }
@@ -218,16 +218,16 @@ cwd = {cwd_display}""")
             logger.error(log["sphinx_too_old"].format(__sphinx_version__))
             return True
 
-        if self.builder not in ['html', 'pdf']:
+        if self.builder == 'pdf':
+            self.builder = 'latexpdf'
+        if self.builder not in ['html', 'latex', 'latexpdf']:
             logger.error(log['builder'].format(self.builder))
             return True
 
-        if self.builder == 'pdf':
-            environ["ADOC_MEDIA_PRINT"] = ""
-            if not importlib.util.find_spec("weasyprint"):
-                logger.error(log['no_weasyprint'])
+        if self.builder == 'latex' or self.builder == 'latexpdf':
+            if not importlib.util.find_spec("cairosvg"):
+                logger.error(log['no_cairosvg'])
                 return True
-            self.builder = 'singlehtml'
 
         return False
 
@@ -290,11 +290,6 @@ cwd = {cwd_display}""")
                 logger.error(msg.format(file))
                 return True
             return False
-
-        builder = self.builder
-        if builder == 'singlehtml':
-            from weasyprint import HTML, CSS
-            from weasyprint.text.fonts import FontConfiguration
 
         source_common_files = {
             'app.umd.js', 'app.umd.js.map',
@@ -394,7 +389,7 @@ cwd = {cwd_display}""")
             logger.error(log['no_conf_py'].format(self.directory))
             return
 
-        builddir = path.join(directory, builddir_, builder)
+        builddir = path.join(directory, builddir_, self.builder)
         self.builddir = builddir
         doctreedir = path.join(directory, builddir_, "doctrees")
         if dir_assert(directory, log['inv_srcdir']):
@@ -425,28 +420,6 @@ cwd = {cwd_display}""")
             # FIXME: cache check confoverrides to not have to discard sparse
             # builds.
             rmtree(path.join(directory, builddir_), ignore_errors=True)
-
-        if builder == 'singlehtml':
-            singlehtml_file = path.join(builddir, 'index.html')
-            from .aux_print import sanitize_singlehtml
-
-            def update_pdf():
-                html_ = sanitize_singlehtml(singlehtml_file)
-                logger.info("preparing pdf styles...")
-                font_config = FontConfiguration()
-                css = CSS(path.join(src_dir, 'theme', 'harmonic', 'static_common', 'app.min.css'),
-                          font_config=font_config)
-                css_extra = CSS(path.join(src_dir, 'theme', 'harmonic', 'style', 'weasyprint.css'),
-                                font_config=font_config)
-                logger.info("rendering pdf content...")
-                html = HTML(string=html_, base_url=path.dirname(singlehtml_file))
-                document = html.render(stylesheets=[css, css_extra])
-                logger.info("writing pdf...")
-                document.write_pdf(path.join(builddir, '..', 'output.pdf'))
-                if not self.once:
-                    logger.info("wrote pdf! waiting new user changes...")
-                else:
-                    logger.info("wrote pdf!")
 
         if self.jsonrpc:
             from ..lsp.logging import notify
@@ -511,7 +484,7 @@ cwd = {cwd_display}""")
             build_notify("started", mode=True)
             cmd = [
                 sys.executable, "-m", "sphinx",
-                "-b", builder,
+                "-b", self.builder,
                 ".", builddir,
                 "-d", doctreedir,
                 "-j", "auto",
@@ -686,7 +659,7 @@ cwd = {cwd_display}""")
             def log_message(_self, format, *args):
                 return
 
-        if not self.once and builder == "html":
+        if not self.once and self.builder == "html":
             try:
                 socketserver.ThreadingTCPServer.allow_reuse_address = True
                 self.http_p = socketserver.ThreadingTCPServer(("", self.port), Handler)
@@ -752,12 +725,8 @@ cwd = {cwd_display}""")
                                                   stdout=subprocess.DEVNULL)
                 self.sass_p = subprocess.Popen(cmd_sass, shell=True, cwd=par_dir,
                                                 stdout=subprocess.DEVNULL)
-            elif builder == "singlehtml":
-                update_pdf()
         else:
             app_subprocess_build()
-            if builder == "singlehtml":
-                update_pdf()
 
         if self.once:
             return
@@ -765,11 +734,11 @@ cwd = {cwd_display}""")
         # app.build() doesn't handle the cache well in parallel,
         # instead, we call through subprocess if needed
         self.app = Sphinx(directory, directory, builddir,
-                          doctreedir, builder, confoverrides=confoverrides,
+                          doctreedir, self.builder, confoverrides=confoverrides,
                           parallel=0, status=sys.stdout if self.verbose else None,
                           warning=warning_stream)
 
-        if builder == "html":
+        if self.builder == "html":
             server_url = f"http://127.0.0.1:{self.port}?v={str(uuid4())[:2]}"
             if self.jsonrpc:
                 notify("server/started", {"port": self.port, "url": server_url})
@@ -789,7 +758,7 @@ cwd = {cwd_display}""")
                 dev_f.write(dev_pool_val_)
                 dev_f.close()
 
-        if builder == "html":
+        if self.builder == "html":
             update_dev_pool("")
 
         def get_doc_sources_included():
@@ -938,7 +907,7 @@ cwd = {cwd_display}""")
                     _clean_up_global_state()
                     app_subprocess_build()
                     self.app = Sphinx(directory, directory, builddir,
-                                      doctreedir, builder, confoverrides=confoverrides,
+                                      doctreedir, self.builder, confoverrides=confoverrides,
                                       parallel=0, status=sys.stdout if self.verbose else None,
                                       warning=warning_stream)
                 else:
@@ -963,10 +932,7 @@ cwd = {cwd_display}""")
                         toctree_changed = True
                     toctree_content = _toctree_content
 
-            if builder == 'singlehtml':
-                if update_sphinx or update_dev:
-                    update_pdf()
-            elif builder == "html":
+            if self.builder == "html":
                 if update_sphinx:
                     message = ""
                     if trigger_rst[0] == '':

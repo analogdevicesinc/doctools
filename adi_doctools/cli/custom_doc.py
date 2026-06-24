@@ -1,7 +1,7 @@
 from typing import Tuple, List
 from collections import defaultdict
 
-from os import path, listdir, pardir, chdir, getcwd, mkdir, walk
+from os import path, listdir, chdir, getcwd, mkdir, walk
 from os import environ, cpu_count
 from glob import glob
 from shutil import copy2
@@ -475,7 +475,7 @@ def prepare_doc(doc, repos_dir, doc_dir, drop_ext):
         pr.run(f"rm -r {doc_dir}")
     mkdir(doc_dir)
 
-    # Some repos prefer rst2pdf, but this cli uses weasyprint
+    # Some repos set rst2pdf, but is unused for latex
     exclude_extensions = ["rst2pdf.pdfbuilder", "ext_pyadi_jif"]
 
     index_file = path.join(doc_dir, 'index.rst')
@@ -833,7 +833,7 @@ def post_prepare_doc(doc_dir):
         f.write(suppress_warnings)
 
 
-def patch_doc(doc, repos_dir, doc_dir, git_lfs, sphinx_builder):
+def patch_doc(doc, repos_dir, doc_dir, git_lfs, builder):
     """
     Patches warnings obtained from the first run.
 
@@ -925,44 +925,13 @@ def patch_doc(doc, repos_dir, doc_dir, git_lfs, sphinx_builder):
     # Second run
     warnfile = 'warnings_patched.txt'
     warning = open(warnfile, "w")
-    builddir = path.join("build", "html")
+    builddir = path.join("build", builder)
     doctreedir = path.join(builddir, "doctrees")
-    app = Sphinx(doc_dir, doc_dir,  builddir, doctreedir, sphinx_builder,
+    app = Sphinx(doc_dir, doc_dir,  builddir, doctreedir, builder,
                  warning=warning)
     app.build()
     with open(warnfile, "r") as f:
         logger.info(f.read())
-
-
-def gen_pdf(index_file):
-    # TODO consider replacing with
-    # flatpak run org.chromium.Chromium --print-to-pdf=/home/me/output.pdf "file:///home/me/pdf/build/html/index.html" --headless -no-pdf-header-footer
-    # + paged.js
-    # Drawbacks: needs to detect user chromium and, if flatpak, not all paths are in the container (e.g. /tmp).
-    from weasyprint import HTML, CSS
-    from weasyprint.text.fonts import FontConfiguration
-    from .aux_print import sanitize_singlehtml
-
-    html_ = sanitize_singlehtml(index_file)
-
-    logger.info("preparing pdf styles...")
-
-    font_config = FontConfiguration()
-    src_dir = path.abspath(path.join(path.dirname(__file__), pardir, pardir))
-    harmonic = path.join('adi_doctools', 'theme', 'harmonic')
-    base_url = path.dirname(index_file)
-    css = CSS(path.join(src_dir, harmonic, 'static_common', 'app.min.css'),
-              font_config=font_config, base_url=(path.join(base_url, '_static')))
-    css_extra = CSS(path.join(src_dir, harmonic, 'style', 'weasyprint.css'),
-                    font_config=font_config)
-
-    logger.info("rendering pdf content...")
-    html = HTML(string=html_, base_url=base_url)
-
-    document = html.render(stylesheets=[css, css_extra])
-
-    logger.info("writing pdf...")
-    document.write_pdf(path.abspath(path.join(path.dirname(index_file), '..', 'output.pdf')))
 
 
 def organize_include(doc):
@@ -1006,17 +975,13 @@ def custom_doc():
             logger.error("Invalid yaml file, no 'include' entry.")
             return
 
-    if args.builder not in ['html', 'pdf']:
-        logger.error(f"Unknown builder '{args.builder}', valid options are: html, pdf.")
+    if args.builder not in ['html', 'latex', 'latexpdf']:
+        logger.error(f"Unknown builder '{args.builder}', valid options are: html, latex, latexpdf.")
 
-    if args.builder == 'pdf':
-        if not importlib.util.find_spec("weasyprint"):
-            logger.error("Package 'weasyprint' required for PDF generation is not "
-                       "installed.")
-            return
-        sphinx_builder = 'singlehtml'
-    else:
-        sphinx_builder = 'html'
+    # valid: html, latex, latexpdf
+    if args.builder == 'latex' or args.builder == 'latexpdf':
+        if not importlib.util.find_spec("cairosvg"):
+            logger.error("Package 'cairosvg' required for SVG->PDF generation is not installed")
 
     git_lfs = is_git_lfs_installed()
     if not git_lfs:
@@ -1086,8 +1051,6 @@ def custom_doc():
 
     environ["ADOC_CUSTOM_DOC"] = ""
     environ["ADOC_NO_COLLECTIONS"] = ""
-    if args.builder == "pdf":
-        environ["ADOC_MEDIA_PRINT"] = ""
 
     do_extra_steps(directory, doc)
 
@@ -1099,15 +1062,13 @@ def custom_doc():
     post_prepare_doc(doc_dir)
     while True:
         # TODO here we could run n-times or until no warning is remaining (e.g. nested includes)
-        patch_doc(doc, directory, doc_dir, git_lfs, sphinx_builder)
+        patch_doc(doc, directory, doc_dir, git_lfs, args.builder)
         break
 
-    if args.builder == "pdf":
-        singlehtml = path.join(directory, "build", "html", "index.html")
-        gen_pdf(singlehtml)
-        f__ = "output.pdf"
-    else:
+    if args.builder == "html":
         f__ = f"html{SEP}index.html"
+    else:
+        f__ = args.builder
 
     logger.info(f"Done, {args.builder} documentation written to {directory}{SEP}build{SEP}{f__}")
 

@@ -121,7 +121,6 @@ def builder_inited(app):
             pass
         config.version = doc_version
     # Parameter to enable PDF output tweaks
-    config.media_print = True if getenv("ADOC_MEDIA_PRINT") is not None else False
     config.no_collections = True if getenv("ADOC_NO_COLLECTIONS") is not None else False
 
     # Default repository as project if not provided

@@ -4,7 +4,7 @@ permissions:
   contents: read
 
 jobs:
-  custom-doc:
+  build-latex:
     runs-on: ${{ vars.RUNNER != '' && fromJSON(vars.RUNNER) || 'ubuntu-latest' }}
 
     steps:
@@ -24,7 +24,7 @@ jobs:
         source ./venv/3/custom-doc/bin/activate
         python3 -m ensurepip
         pip3 install $(tail --lines=+2 docs/requirements.txt) --upgrade
-        pip3 install weasyprint
+        pip3 install cairosvg
         pip3 install dist/*.tar.gz
 
     - name: Prepare custom doc template
@@ -35,17 +35,50 @@ jobs:
         mkdir custom-pages
         printf "Introduction\n============\n\n" > custom-pages/intro.rst
         yes "lorem ipsum dolor sit amet" 2>/dev/null | head -n 20 | tr '\n' ' ' >> custom-pages/intro.rst
-        adoc custom-doc --builder pdf
+        adoc custom-doc --builder latex
 
     - name: Build custom doc
       run: |
         source ./venv/3/custom-doc/bin/activate
         cd /tmp/my_pdf
         export GIT_LFS_SKIP_SMUDGE=1
-        adoc custom-doc --drop-missing-extensions --builder pdf
+        adoc custom-doc --drop-missing-extensions --builder latex
+
+    - uses: actions/upload-artifact@v7
+      with:
+        name: latex
+        path: /tmp/my_pdf/build/latex
+
+  build-pdf:
+    runs-on: ubuntu-latest
+    needs: build-latex
+    permissions:
+      contents: read
+
+    steps:
+    - name: Build container
+      run: |
+        podman build --build-arg GITHUB_TOKEN=$GITHUB_TOKEN . \
+          -t adi/doctools_latex:latest \
+          -f https://raw.githubusercontent.com/analogdevicesinc/doctools/main/ci/Containerfile.latex
+
+    - name: Download LaTeX sources
+      uses: actions/download-artifact@v8
+      with:
+        name: latex
+        path: latex
+
+    - name: Build PDF
+      id: build
+      run: |
+        podman run --rm  -v $(pwd)/latex:/work -w /work adi/doctools_latex:latest make
+
+        pdf="$(ls -t latex/*.pdf | head -n 1 || :)"
+        [ -n "$pdf" ] || { echo "::error ::Failed to find built pdf." ; exit 1; }
+        echo "pdf=$pdf" >> $GITHUB_OUTPUT
 
     - name: Store the generated pdf
       uses: actions/upload-artifact@v7
       with:
-        name: custom-pdf
-        path: /tmp/my_pdf/build/output.pdf
+        name: pdf
+        path: ${{ steps.build.outputs.pdf }}

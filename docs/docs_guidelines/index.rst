@@ -476,58 +476,6 @@ to an empty string.
          * push tag: ``v2.2.2``, ``new-feature``, ...
          * pull_request: ``1234/merge``, ``23/merge``, ...
 
-Exporting to PDF
-----------------
-
-The whole documentation can be exported to a PDF document for a more compact
-format using either rs2pdf or WeasyPrint.
-This is done by setting the environment variable called
-``ADOC_MEDIA_PRINT`` (the value does not matter) and building the documentation.
-
-For rst2pdf, add ``rst2pdf`` to *conf.py* ``extensions`` list,
-install ``rst2pdf``, ``svglib`` (svg support) and ``matplotlib`` (LaTeX formulas)
-from pip and use:
-
-.. shell::
-
-   ~/some_repository/docs
-   sphinx-build -b pdf . _build/pdfbuild
-
-In the output folder, you’ll find a PDF document named after the repository
-(e.g. Doctools.pdf). This document includes an auto-generated cover, followed by
-the remaining pages. Note that an HTML build of the documentation is not
-required for the PDF build.
-
-.. warning::
-
-   The environment variable ``ADOC_MEDIA_PRINT`` should be unset when building
-   the HTML pages of documentation. If not set, some components of the pages
-   may not render properly.
-
-For WeasyPrint, install ``weasyprint``, and ``matplotlib`` (LaTeX formulas)
-from pip and use with :ref:`serve`:
-
-.. shell::
-
-   ~/some_repository/docs
-   $adoc serve --directory . --builder pdf
-
-The advantage of WeasyPrint is that the design styles (CSS stylesheet) are
-respected.
-
-Inner working
-~~~~~~~~~~~~~
-
-Internally, ``ADOC_MEDIA_PRINT`` variable is set to ``app.config.media_print``
-and should be used in scenarios where it is explicitly needed to compile the
-content in a different manner than for the **hosted** html.
-For example, to render content during build that would instead be rendered with
-third-party JavaScript libraries in the user browser.
-
-Still, another approach is to patch the generated html, like is done at
-:git-doctools:`adi_doctools/cli/aux_print.py` for :ref:`serve` and
-:ref:`custom-doc` with pdf builders.
-
 .. _local_refs:
 
 Local references
