@@ -49,7 +49,7 @@
 }
 
 body {
-    font-family: Inter, Arial, sans-serif;
+    font-family: Inter, sans-serif;
 }
 
 pre, code {
@@ -57,7 +57,7 @@ pre, code {
 }
 
 .body :is(h1, h2, h3, h4, h5, h6) {
-    font-family: Barlow, Arial, sans-serif;
+    font-family: Barlow, sans-serif;
     font-weight: 500;
     margin: 0;
     padding: 1em 0 .4em 0;
@@ -88,7 +88,7 @@ pre, code {
 }
 
 .sphinxsidebar .caption-text {
-    font-family: Barlow, Arial, sans-serif;
+    font-family: Barlow, sans-serif;
     font-weight: 600;
     font-size: 1.1em;
 }
