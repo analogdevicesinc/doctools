@@ -56,11 +56,23 @@ jobs:
       contents: read
 
     steps:
+    - uses: actions/cache@v6
+      id: cache
+      with:
+        path: /tmp/doctools_latex.tar
+        key: doctools-latex
+
+    - name: Restore container
+      if: steps.cache.outputs.cache-hit == 'true'
+      run: podman load -i /tmp/doctools_latex.tar
+
     - name: Build container
+      if: steps.cache.outputs.cache-hit != 'true'
       run: |
         podman build --build-arg GITHUB_TOKEN=$GITHUB_TOKEN . \
           -t adi/doctools_latex:latest \
           -f https://raw.githubusercontent.com/analogdevicesinc/doctools/main/ci/Containerfile.latex
+        podman save -o /tmp/doctools_latex.tar adi/doctools_latex:latest
 
     - name: Download LaTeX sources
       uses: actions/download-artifact@v8
