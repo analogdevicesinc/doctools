@@ -1,0 +1,26 @@
+FROM texlive/texlive:latest-small
+
+ARG GITHUB_TOKEN
+
+RUN tlmgr install \
+          wrapfig \
+          framed \
+          needspace \
+          capt-of \
+          fncychap \
+          needspace \
+          tabulary \
+          titlesec \
+          pict2e \
+          ellipse \
+          ifoddpage \
+          adjustbox \
+          collectbox \
+          varwidth \
+          fvextra
+
+RUN curl -sL -H "Authorization:${GITHUB_TOKEN:+Bearer $GITHUB_TOKEN}" \
+   https://raw.githubusercontent.com/analogdevicesinc/doctools/refs/heads/main/ci/fetch-fonts.sh | \
+   bash -s -- ~/.local/share/fonts ttf
+
+RUN fc-cache -f
