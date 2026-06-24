@@ -7,7 +7,7 @@ latex_elements = {
 \defaultfontfeatures{Scale=MatchLowercase}
 \setmainfont{Inter}
 \setsansfont{Barlow}
-\setmonofont{Latin Modern Mono}[Scale=0.85]
+\setmonofont{JetBrains Mono}[Scale=0.85]
 ''',
 
     'preamble': r'''
