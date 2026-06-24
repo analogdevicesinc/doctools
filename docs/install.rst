@@ -120,10 +120,10 @@ For next builds, just activate the virtual environment:
 
    $ source .venv/bin/activate
 
-Release links and optional dependencies
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+GitHub release archive
+~~~~~~~~~~~~~~~~~~~~~~
 
-The release links are always:
+Beyond PyPi, the package is also stored as GitHub releases:
 
 - | https://github.com/analogdevicesinc/doctools/releases/download/latest/adi-doctools.tar.gz
   | latest (commit at tag bump).
@@ -131,13 +131,6 @@ The release links are always:
   | pre-release (main head commit).
 - | https://github.com/analogdevicesinc/doctools/releases/download/v0.4.32/adi-doctools.tar.gz
   | specific version.
-
-Optional dependencies can be installed with:
-
-.. code:: bash
-
-   # test, cli, ...
-   pip install 'adi_doctools[test] @ https://github.com/analogdevicesinc/doctools/releases/download/latest/adi-doctools.tar.gz'
 
 .. _vscode-support:
 
