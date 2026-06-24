@@ -4,7 +4,7 @@ permissions:
   contents: read
 
 jobs:
-  custom-doc:
+  build-latex:
     runs-on: ${{ vars.RUNNER != '' && fromJSON(vars.RUNNER) || 'ubuntu-latest' }}
 
     steps:
@@ -42,10 +42,59 @@ jobs:
         source ./venv/3/custom-doc/bin/activate
         cd /tmp/my_pdf
         export GIT_LFS_SKIP_SMUDGE=1
-        adoc custom-doc --drop-missing-extensions --builder pdf
+        adoc custom-doc --drop-missing-extensions --builder latex
+
+    - uses: actions/upload-artifact@v7
+      with:
+        name: latex
+        path: /tmp/my_pdf/build/latex
+
+  build-pdf:
+    runs-on: ubuntu-latest
+    needs: build-latex
+    permissions:
+      contents: read
+
+    steps:
+    - uses: actions/cache@v6
+      id: cache
+      with:
+        path: /tmp/doctools_latex.tar
+        key: doctools-latex
+
+    - name: Restore container
+      if: steps.cache.outputs.cache-hit == 'true'
+      run: podman load -i /tmp/doctools_latex.tar
+
+    - name: Build container
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: |
+        podman build --build-arg GITHUB_TOKEN=$GITHUB_TOKEN . \
+          -t adi/doctools_latex:latest \
+          -f https://raw.githubusercontent.com/analogdevicesinc/doctools/main/ci/Containerfile.latex
+
+    - name: Download LaTeX sources
+      uses: actions/download-artifact@v8
+      with:
+        name: latex
+        path: latex
+
+    - name: Build PDF
+      id: build
+      run: |
+        podman run --rm  -v $(pwd)/latex:/work -w /work adi/doctools_latex:latest make
+
+        pdf="$(ls -t latex/*.pdf | head -n 1 || :)"
+        [ -n "$pdf" ] || { echo "::error ::Failed to find built pdf." ; exit 1; }
+        echo "pdf=$pdf" >> $GITHUB_OUTPUT
 
     - name: Store the generated pdf
       uses: actions/upload-artifact@v7
       with:
         name: custom-pdf
         path: /tmp/my_pdf/build/output.pdf
+
+    - name: Store container
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: |
+        podman save -o /tmp/doctools_latex.tar adi/doctools_latex:latest
