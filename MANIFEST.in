@@ -15,6 +15,8 @@ include adi_doctools/theme/harmonic/static/fonts/barlow/*.woff2
 include adi_doctools/theme/harmonic/static/fonts/barlow/*.txt
 include adi_doctools/theme/harmonic/static/fonts/inter/*.woff2
 include adi_doctools/theme/harmonic/static/fonts/inter/*.txt
+include adi_doctools/theme/harmonic/static/fonts/jetbrains-mono/*.woff2
+include adi_doctools/theme/harmonic/static/fonts/jetbrains-mono/*.txt
 include adi_doctools/theme/harmonic/section/*.html
 include adi_doctools/theme/harmonic/*.html
 include adi_doctools/theme/harmonic/*.conf

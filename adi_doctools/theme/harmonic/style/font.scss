@@ -30,8 +30,30 @@
     font-style: normal;
 }
 
+@font-face {
+    font-family: "JetBrainsMono";
+    font-display: fallback;
+    src: url('fonts/jetbrains-mono/JetBrainsMono-Regular.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    size-adjust: 75%;
+}
+
+@font-face {
+    font-family: "JetBrainsMono";
+    font-display: fallback;
+    src: url('fonts/jetbrains-mono/JetBrainsMono-Bold.woff2') format('woff2');
+    font-weight: 700;
+    font-style: normal;
+    size-adjust: 75%;
+}
+
 body {
     font-family: Inter, Arial, sans-serif;
+}
+
+pre, code {
+    font-family: JetBrainsMono, monospace;
 }
 
 .body :is(h1, h2, h3, h4, h5, h6) {
