@@ -195,45 +195,36 @@ You can inspect the tree with ``:InspectTree``.
 
 .. _latex:
 
-LaTeX support
-~~~~~~~~~~~~~
+PDF LaTeX support
+~~~~~~~~~~~~~~~~~
 
 Beyond the HTML harmonic theme, limited LaTeX support is available.
-To build you will need, at least:
+The LaTeX build is divided in two steps, the LaTeX files generation,
+and then the PDF generation.
+For the LaTeX files generation, install ``cairosvg`` with ``pip|pipx|uvx``.
+
+For the PDF generation, execute the same steps as provided in the
+:git+doctools:`ci/Containerfile.latex`. Without the ``tlmgr`` util, most
+distros ship the same packages suffixed with ``texlive-``, e.g.,
+``wrapfig`` -> ``texlive-wrapfig``.
+
+With the container (~1.6 GB), the end-to-end usage is:
 
 .. shell::
 
-   $ apt install \
-       texlive-collection-basic
-       texlive-wrapfig \
-       texlive-framed \
-       texlive-needspace \
-       texlive-capt-of \
-       texlive-fncychap \
-       texlive-needspace \
-       texlive-tabulary \
-       texlive-titlesec \
-       texlive-pict2e \
-       texlive-ellipse \
-       texlive-ifoddpage \
-       texlive-adjustbox \
-       texlive-collectbox \
-       texlive-varwidth \
-       texlive-fvextra
-
-   $ pip install cairosvg
+   # pip or pipx or uvx
+   $ pip install adi-doctools[pdf]
+   # podman or docker
+   $ podman build -t adi/doctools_latex:latest \
+       -f https://raw.githubusercontent.com/analogdevicesinc/doctools/main/ci/Containerfile.latex
+   $ cd docs
+   # Build latex to _build/latex
+   $ sphinx-build -M latex "." "_build" -j auto
+   # Build pdf inside the container
+   $ podman run --rm  -v $(pwd)/_build/latex:/work -w /work adi/doctools_latex:latest make
 
 Due to unicode support, ``latex_engine`` is set to ``xelatex`` internally if
-the value is Sphinx default's ``pdflatex``. If ``latex_elements['fontpkg']`` is
-not provided, a default is also set with unicode characters.
-
-You will also need to install the fonts, fetch them with:
-
-.. shell::
-
-   $ curl -s https://raw.githubusercontent.com/analogdevicesinc/doctools/refs/heads/main/ci/fetch-fonts.sh | \
-       bash -s -- ~/.local/share/fonts ttf
-   $ fc-cache -f
+the value is Sphinx default's ``pdflatex``.
 
 .. _development-install:
 
