@@ -14,7 +14,7 @@ sha[inter]="ff970a5d4561a04f102a7cb781adbd6ac4e9b6c460914c7a101f15acb7f7d1a4"
 declare -A dir
 dir[inter:woff2]="web"
 dir[inter:ttf]="extras/ttf"
-dir[inter]=${dir[inter:$format]:-web}
+dir[inter]=${dir[inter:$format]}
 
 declare -A files
 files[barlow]="fonts/$format/Barlow-Medium.$format fonts/$format/Barlow-SemiBold.$format OFL.txt"
