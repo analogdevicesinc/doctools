@@ -1,7 +1,7 @@
 from typing import Tuple, List
 from collections import defaultdict
 
-from os import path, listdir, pardir, chdir, getcwd, mkdir, walk
+from os import path, listdir, chdir, getcwd, mkdir, walk
 from os import environ, cpu_count
 from glob import glob
 from shutil import copy2
@@ -13,6 +13,9 @@ import yaml
 import sys
 import re
 
+from shutil import which
+
+from sphinx.cmd.make_mode import run_make_mode
 from sphinx.util.osutil import SEP
 from sphinx.application import Sphinx
 from adi_doctools import __version__
@@ -475,7 +478,7 @@ def prepare_doc(doc, repos_dir, doc_dir, drop_ext):
         pr.run(f"rm -r {doc_dir}")
     mkdir(doc_dir)
 
-    # Some repos prefer rst2pdf, but this cli uses weasyprint
+    # Some repos set rst2pdf, but is unused for latex
     exclude_extensions = ["rst2pdf.pdfbuilder", "ext_pyadi_jif"]
 
     index_file = path.join(doc_dir, 'index.rst')
@@ -833,7 +836,7 @@ def post_prepare_doc(doc_dir):
         f.write(suppress_warnings)
 
 
-def patch_doc(doc, repos_dir, doc_dir, git_lfs, sphinx_builder):
+def patch_doc(doc, repos_dir, doc_dir, git_lfs, builder):
     """
     Patches warnings obtained from the first run.
 
@@ -925,44 +928,13 @@ def patch_doc(doc, repos_dir, doc_dir, git_lfs, sphinx_builder):
     # Second run
     warnfile = 'warnings_patched.txt'
     warning = open(warnfile, "w")
-    builddir = path.join("build", "html")
+    builddir = path.join("build", builder)
     doctreedir = path.join(builddir, "doctrees")
-    app = Sphinx(doc_dir, doc_dir,  builddir, doctreedir, sphinx_builder,
+    app = Sphinx(doc_dir, doc_dir,  builddir, doctreedir, builder,
                  warning=warning)
     app.build()
     with open(warnfile, "r") as f:
         logger.info(f.read())
-
-
-def gen_pdf(index_file):
-    # TODO consider replacing with
-    # flatpak run org.chromium.Chromium --print-to-pdf=/home/me/output.pdf "file:///home/me/pdf/build/html/index.html" --headless -no-pdf-header-footer
-    # + paged.js
-    # Drawbacks: needs to detect user chromium and, if flatpak, not all paths are in the container (e.g. /tmp).
-    from weasyprint import HTML, CSS
-    from weasyprint.text.fonts import FontConfiguration
-    from .aux_print import sanitize_singlehtml
-
-    html_ = sanitize_singlehtml(index_file)
-
-    logger.info("preparing pdf styles...")
-
-    font_config = FontConfiguration()
-    src_dir = path.abspath(path.join(path.dirname(__file__), pardir, pardir))
-    harmonic = path.join('adi_doctools', 'theme', 'harmonic')
-    base_url = path.dirname(index_file)
-    css = CSS(path.join(src_dir, harmonic, 'static_common', 'app.min.css'),
-              font_config=font_config, base_url=(path.join(base_url, '_static')))
-    css_extra = CSS(path.join(src_dir, harmonic, 'style', 'weasyprint.css'),
-                    font_config=font_config)
-
-    logger.info("rendering pdf content...")
-    html = HTML(string=html_, base_url=base_url)
-
-    document = html.render(stylesheets=[css, css_extra])
-
-    logger.info("writing pdf...")
-    document.write_pdf(path.abspath(path.join(path.dirname(index_file), '..', 'output.pdf')))
 
 
 def organize_include(doc):
@@ -1006,17 +978,22 @@ def custom_doc():
             logger.error("Invalid yaml file, no 'include' entry.")
             return
 
-    if args.builder not in ['html', 'pdf']:
-        logger.error(f"Unknown builder '{args.builder}', valid options are: html, pdf.")
-
     if args.builder == 'pdf':
-        if not importlib.util.find_spec("weasyprint"):
-            logger.error("Package 'weasyprint' required for PDF generation is not "
-                       "installed.")
+        args.builder = 'latexpdf'
+    if args.builder not in ['html', 'latex', 'latexpdf']:
+        logger.error(f"Unknown builder '{args.builder}', valid options are: html, latex, pdf.")
+        return
+
+    if args.container and args.builder != 'latexpdf':
+        logger.error("--container is only supported with --builder pdf.")
+        return
+
+    sphinx_builder = 'latex' if args.builder == 'latexpdf' else args.builder
+
+    if sphinx_builder == 'latex':
+        if not importlib.util.find_spec("cairosvg"):
+            logger.error("Package 'cairosvg' required for PDF generation is not installed")
             return
-        sphinx_builder = 'singlehtml'
-    else:
-        sphinx_builder = 'html'
 
     git_lfs = is_git_lfs_installed()
     if not git_lfs:
@@ -1086,8 +1063,6 @@ def custom_doc():
 
     environ["ADOC_CUSTOM_DOC"] = ""
     environ["ADOC_NO_COLLECTIONS"] = ""
-    if args.builder == "pdf":
-        environ["ADOC_MEDIA_PRINT"] = ""
 
     do_extra_steps(directory, doc)
 
@@ -1102,12 +1077,29 @@ def custom_doc():
         patch_doc(doc, directory, doc_dir, git_lfs, sphinx_builder)
         break
 
-    if args.builder == "pdf":
-        singlehtml = path.join(directory, "build", "html", "index.html")
-        gen_pdf(singlehtml)
-        f__ = "output.pdf"
-    else:
+    if args.builder == "latexpdf":
+        if args.container:
+            runtime = 'podman' if which('podman') else 'docker'
+            latex_dir = path.abspath(path.join(directory, 'build', 'latex'))
+            container_cmd = [
+                runtime, 'run', '--rm',
+                '-v', f'{latex_dir}:/work',
+                '-w', '/work',
+                'adi/doctools_latex:v1', 'make'
+            ]
+            ret = subprocess.run(container_cmd).returncode
+        else:
+            ret = run_make_mode([args.builder, doc_dir, path.join(directory, 'build')])
+        if ret != 0:
+            logger.error(f"Builder '{args.builder}' exited with error code {ret}")
+            return ret
+
+    if args.builder == "html":
         f__ = f"html{SEP}index.html"
+    elif args.builder == "latex":
+        f__ = 'latex'
+    else:
+        f__ = args.builder
 
     logger.info(f"Done, {args.builder} documentation written to {directory}{SEP}build{SEP}{f__}")
 

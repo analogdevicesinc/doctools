@@ -36,10 +36,6 @@ dynamic = ["version"]
 
 [project.optional-dependencies]
 
-cli = [
-    "weasyprint",
-]
-
 pdf = [
     "cairosvg",
 ]

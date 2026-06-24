@@ -1,4 +1,5 @@
 import logging as logging_
+import sys
 
 from .logging import set_logging
 from .argument_parser import get_command, show_help
@@ -8,7 +9,7 @@ logger = logging_.getLogger(__name__)
 def main_serve():
     from .serve import serve
 
-    serve()
+    return serve()
 
 def main_hdl_render():
     from .hdl_render import hdl_render
@@ -28,7 +29,7 @@ def main_aggregate():
 def main_custom_doc():
     from .custom_doc import custom_doc
 
-    custom_doc()
+    return custom_doc()
 
 def main_search():
     from .search import search
@@ -53,7 +54,7 @@ def entry_point():
     cmd = get_command()
 
     if cmd == 'serve':
-        main_serve()
+        sys.exit(main_serve())
     elif cmd == 'hdl-render':
         main_hdl_render()
     elif cmd == 'hdl-gen':
@@ -61,7 +62,7 @@ def entry_point():
     elif cmd == 'aggregate':
         main_aggregate()
     elif cmd == 'custom-doc':
-        main_custom_doc()
+        sys.exit(main_custom_doc())
     elif cmd == 'search':
         main_search()
     elif cmd == 'search-wiki':

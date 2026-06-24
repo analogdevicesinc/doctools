@@ -58,13 +58,15 @@ def get_arguments_serve():
     parser.add_argument('-o', '--once', action='store_true', default=False,
                         help="Generate the build and exit")
     parser.add_argument('-b', '--builder', default='html',
-                        help="Builder to use, valid options are: html, pdf (WeasyPrint) (default: html)")
+                        help="Builder to use, valid options are: html, latex, pdf (default: html)")
     parser.add_argument('-s', '--sparse', nargs='*', default=None,
                         help="Include only some paths to build (e.g., --sparse learning solutions)")
     parser.add_argument('-v', '--verbose', action='store_true', default=False,
                         help="Show full Sphinx output")
     parser.add_argument('-E', '--esbonio', action='store_true', default=False,
                         help="Print a Esbonio pyproject.toml and exit")
+    parser.add_argument('--container', action='store_true', default=False,
+                        help="Use adi/doctools_latex:v1 for latex->pdf")
 
     return vars(parser.parse_args())
 
@@ -139,11 +141,13 @@ def get_arguments_custom_doc():
     parser.add_argument('-x', '--open', action='store_true', default=False,
                         help="Open after generation (xdg-open)")
     parser.add_argument('-b', '--builder', default='html',
-                        help="Builder to use, valid options are: html, pdf (WeasyPrint) (default: html)")
+                        help="Builder to use, valid options are: html, latex, pdf (default: html)")
     parser.add_argument('-s', '--ssh', action='store_true', default=False,
                         help="Clone repositories with SSH instead of HTTPS")
     parser.add_argument('--drop-missing-extensions', action='store_true', default=False,
                         help="Drop extensions not installed, useful when the pages don't use them anyway")
+    parser.add_argument('--container', action='store_true', default=False,
+                        help="Use adi/doctools_latex:v1 for latex->pdf")
 
     args = parser.parse_args()
     return args

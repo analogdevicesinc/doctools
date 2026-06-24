@@ -19,11 +19,10 @@ RUN bash ./gh-actions-runner.sh && rm ./gh-actions-runner.sh
 
 #user: bash-completion openssh
 #core: wget make git openssl ca-certificates ca-certificates-mozilla
-#weasyprint: libpango fontconfig lato-fonts
 RUN zypper install -y --no-recommends \
     bash-completion openssh \
     wget make git openssl openssl-devel ca-certificates ca-certificates-mozilla \
-    xz libpango-1_0-0 fontconfig lato-fonts
+    xz
 
 COPY ci/install-git-lfs.sh .
 RUN chmod +x install-git-lfs.sh ; \
