@@ -153,7 +153,8 @@ export class ContentActions {
     }
   }
   deinit_collection () {
-    this.collection_controller.abort()
+    if (this.collection_controller)
+      this.collection_controller.abort()
 
     if (!this.$.collection)
       return
@@ -163,6 +164,9 @@ export class ContentActions {
     delete this.collection_pattern
   }
   init_collection () {
+    if (!this.parent.state.metadata)
+      return
+
     this.collection_controller = new AbortController();
     const signal = this.collection_controller.signal
 
