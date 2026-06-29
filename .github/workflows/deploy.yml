@@ -183,7 +183,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    if: ${{ github.ref == 'refs/heads/main' }}
+    if: ${{ github.ref == 'refs/heads/main' && inputs.new_tag == 'true'}}
 
     steps:
     - name: Ensure clean dist
