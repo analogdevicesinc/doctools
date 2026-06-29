@@ -4,6 +4,7 @@ import { PageActions } from './page_actions.js'
 import { Versioned } from './versioned.js'
 import { Search } from './search.js'
 import { ContentActions } from './content_actions.js'
+import { Zoom } from './zoom.js'
 
 export default function Extra (){
   new Polyfill(app)
@@ -13,6 +14,7 @@ export default function Extra (){
     new PageActions(app)
     new Search(app)
     new ContentActions(app)
+    new Zoom(app)
   }
 
   if (document.readyState === 'loading')

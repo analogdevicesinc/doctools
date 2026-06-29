@@ -1,0 +1,52 @@
+.zoom-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(0,0,0,0);
+  cursor: zoom-out;
+  transition: background .3s;
+
+  &.is-visible {
+    backdrop-filter: blur(1em);
+  }
+
+  img {
+    position: absolute;
+    object-fit: contain;
+    cursor: grab;
+    user-select: none;
+    transition: none;
+
+    &.is-dragging {
+      cursor: grabbing;
+    }
+  }
+
+  .zoom-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 2rem;
+    height: 2rem;
+    border: none;
+    color: var(--text-color3);
+    font-size: 1.5rem;
+    cursor: pointer;
+    line-height: 1;
+    z-index: 1;
+    opacity: 0;
+
+    &:hover {
+      color: var(--text-color1);
+    }
+
+  }
+
+  &.is-visible .zoom-close {
+    opacity: 1;
+  }
+}
+
+.body a.image-reference img {
+  cursor: zoom-in;
+}
