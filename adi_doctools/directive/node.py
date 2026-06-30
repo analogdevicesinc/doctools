@@ -106,6 +106,10 @@ class node_collection(node_base):
     endtag = 'true'
 
     @staticmethod
+    def visit_latex(self, node):
+        raise nodes.SkipNode
+
+    @staticmethod
     def update_collection_env(builder, olduri, uri):
         builder.collection_image[olduri] = uri
 
@@ -158,5 +162,5 @@ def node_setup(app):
 
     app.add_node(node_collection,
         html =(node.visit, node_collection.depart),
-        latex=(node.default, node.default),
+        latex=(node_collection.visit_latex, node.default),
         text =(node.default, node.default))
