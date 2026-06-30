@@ -763,13 +763,19 @@ Renders as:
        string = "Hello world"
        print(string)
 
-Preserve the original code identation, just offset it by :green:`3 spaces`.
+Preserve the original code indentation, just offset it by :green:`3 spaces`.
 
 Images
 ------
 
-Prefer the SVG format for images, and save it as *Optimized SVG* in
-`inkscape <https://inkscape.org/>`_ to use less space.
+For real photos, use the ``figure`` directive, it enables a link to open
+the image (or *click-to-zoom* with JavaScript enabled). For PDF LaTeX builds
+it also properly align the figure in the page without relying on the image width.
+
+Use ``image`` for logos, symbols, instances where you don't want the image resized.
+
+For diagrams, or any vector, prefer the SVG format for images, and save it as
+*Optimized SVG* in `inkscape <https://inkscape.org/>`_ to use less space.
 
 Store them in a hierarchy, do not use ``images`` subdirectories. The idea is to
 have simpler relative paths, for example, e.g.:
