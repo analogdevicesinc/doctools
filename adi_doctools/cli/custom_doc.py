@@ -155,6 +155,11 @@ html_theme = 'harmonic'
 html_theme_options = {}
 html_title = '$project$: $description$'
 
+#  -- Options for PDF output --------------------------------------------------
+
+latex_show_pagerefs = True
+latex_show_urls = 'footnote'
+
 # -- External docs configuration ----------------------------------------------
 
 intersphinx_mapping = {
