@@ -219,6 +219,10 @@ With the container (~1.6 GB), the end-to-end usage is:
 Due to unicode support, ``latex_engine`` is set to ``xelatex`` internally if
 the value is Sphinx default's ``pdflatex``.
 
+If you are adding support to LaTeX for a directive or role,
+see :git+doctools:`224f5755415c <commit/224f5755415c80e0f128156246dfae0fb9083e4c+>`
+for an example on how to add 'visitors' for ``latex`` builder.
+
 .. _development-install:
 
 Development install
