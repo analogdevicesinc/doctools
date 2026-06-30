@@ -347,5 +347,7 @@ def latex_config(app):
     preamble = app.config['latex_elements'].get('preamble', '')
     if '\\usepackage{eso-pic}' not in preamble:
         preamble = '\\usepackage{eso-pic}\n' + preamble
-        app.config['latex_elements']['preamble'] = preamble
-        app.builder.context['preamble'] = preamble
+
+    preamble += '\n\\sphinxpxdimen=.5bp\\relax\n'
+    app.config['latex_elements']['preamble'] = preamble
+    app.builder.context['preamble'] = preamble
