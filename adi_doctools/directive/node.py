@@ -93,6 +93,18 @@ class node_video_print(node_base):
         self.body.append('\\end{sphinxadmonition}\n')
         self.no_latex_floats -= 1
 
+class node_clear_content(node_base):
+    tagname = 'div'
+    endtag = 'true'
+
+    @staticmethod
+    def visit_latex(self, node):
+        if 'break-after' in node.get('classes', []):
+            self.body.append('\n\\clearpage\n')
+        else:
+            self.body.append('\n\\par\n')
+        raise nodes.SkipNode
+
 class node_pre(node_base):
     tagname = 'pre'
     endtag = 'true'
@@ -159,6 +171,11 @@ def node_setup(app):
         html =(node_video_print.visit, node_video_print.depart),
         latex=(node_video_print.visit_latex, node_video_print.depart_latex),
         text =(node_video_print.default, node_video_print.default))
+
+    app.add_node(node_clear_content,
+        html =(node_clear_content.visit, node_clear_content.depart),
+        latex=(node_clear_content.visit_latex, node.default),
+        text =(node.default, node.default))
 
     app.add_node(node_collection,
         html =(node.visit, node_collection.depart),

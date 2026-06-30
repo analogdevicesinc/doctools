@@ -26,6 +26,7 @@ from docutils.nodes import Node
 
 from .node import node_div, node_input, node_label, node_icon, node_source, node_collection
 from .node import node_iframe, node_video, node_video_screen, node_video_print
+from .node import node_clear_content
 
 logger = logging.getLogger(__name__)
 
@@ -916,7 +917,7 @@ class directive_clear_content(Directive):
         classes = [f"clear-{side}"]
         if 'break' in self.options:
             classes.append('break-after')
-        node = node_div(
+        node = node_clear_content(
             classes=classes
         )
 
