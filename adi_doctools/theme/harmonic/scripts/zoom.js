@@ -17,6 +17,7 @@ export class Zoom {
     this.tx = 0
     this.ty = 0
     this.dragging = false
+    this.didDrag = false
     this.startX = 0
     this.startY = 0
     this.startTx = 0
@@ -79,10 +80,10 @@ export class Zoom {
 
     this.overlay.append(btn, this.clone)
     this.overlay.addEventListener('click', (e) => {
-      if (e.target === this.overlay) this.close()
+      if (!this.didDrag) this.close()
     })
-    this.clone.addEventListener('mousedown', (e) => { this.onDown(e) })
-    this.clone.addEventListener('wheel', (e) => { this.onWheel(e) }, {passive: false})
+    this.overlay.addEventListener('mousedown', (e) => { this.onDown(e) })
+    this.overlay.addEventListener('wheel', (e) => { this.onWheel(e) }, {passive: false})
 
     document.body.append(this.overlay)
 
@@ -125,7 +126,29 @@ export class Zoom {
     document.removeEventListener('mousemove', this._onMove)
     document.removeEventListener('mouseup', this._onUp)
   }
+  clampTranslation () {
+    let pad = 64
+    let vw = window.innerWidth, vh = window.innerHeight
+    let bl = parseFloat(this.clone.style.left)
+    let bt = parseFloat(this.clone.style.top)
+    let bw = parseFloat(this.clone.style.width)
+    let bh = parseFloat(this.clone.style.height)
+    let s = this.scale
+
+    // Rendered image edges given current tx/ty
+    let imgL = bl + this.tx + bw * (1 - s) / 2
+    let imgT = bt + this.ty + bh * (1 - s) / 2
+    let imgR = imgL + bw * s
+    let imgB = imgT + bh * s
+
+    // Image rect must overlap the padded viewport
+    if (imgR < pad)      this.tx += pad - imgR
+    if (imgL > vw - pad) this.tx -= imgL - (vw - pad)
+    if (imgB < pad)      this.ty += pad - imgB
+    if (imgT > vh - pad) this.ty -= imgT - (vh - pad)
+  }
   applyTransform () {
+    this.clampTranslation()
     this.clone.style.transform =
       'translate(' + this.tx + 'px,' + this.ty + 'px) scale(' + this.scale + ')'
   }
@@ -133,17 +156,38 @@ export class Zoom {
     e.preventDefault()
     this.clone.style.transition = 'none'
     let d = e.deltaY > 0 ? 0.9 : 1.1
-    this.scale = Math.min(Math.max(this.scale * d, 0.5), 10)
+    let newScale = Math.min(Math.max(this.scale * d, 0.5), 10)
+    let realD = newScale / this.scale
+
+    // Cursor position relative to the element's transform origin (center)
+    let rect = this.clone.getBoundingClientRect()
+    let ox = rect.left + rect.width / 2
+    let oy = rect.top + rect.height / 2
+    let cx = e.clientX - ox
+    let cy = e.clientY - oy
+
+    // Blend: full cursor-anchored zoom when pointer is on the image,
+    // fading to center-anchored zoom as the pointer moves away
+    let hw = rect.width / 2, hh = rect.height / 2
+    let fx = hw > 0 ? Math.max(0, 1 - Math.abs(cx) / hw) : 0
+    let fy = hh > 0 ? Math.max(0, 1 - Math.abs(cy) / hh) : 0
+    let f = fx * fy
+    let ax = cx * f, ay = cy * f
+
+    this.tx = ax + realD * (this.tx - ax)
+    this.ty = ay + realD * (this.ty - ay)
+    this.scale = newScale
     this.applyTransform()
   }
   onDown (e) {
     if (e.button !== 0) return
     e.preventDefault()
+    this.didDrag = false
     this.dragging = true
     this.clone.style.transition = 'none'
     this.startX = e.clientX; this.startY = e.clientY
     this.startTx = this.tx; this.startTy = this.ty
-    this.clone.classList.add('is-dragging')
+    this.overlay.classList.add('is-dragging')
     document.addEventListener('mousemove', this._onMove)
     document.addEventListener('mouseup', this._onUp)
   }
@@ -154,8 +198,11 @@ export class Zoom {
     this.applyTransform()
   }
   onUp () {
+    let dx = Math.abs(this.tx - this.startTx)
+    let dy = Math.abs(this.ty - this.startTy)
+    this.didDrag = dx > 3 || dy > 3
     this.dragging = false
-    if (this.clone) this.clone.classList.remove('is-dragging')
+    if (this.clone) this.overlay.classList.remove('is-dragging')
     document.removeEventListener('mousemove', this._onMove)
     document.removeEventListener('mouseup', this._onUp)
   }

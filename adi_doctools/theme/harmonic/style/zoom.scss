@@ -3,23 +3,22 @@
   inset: 0;
   z-index: 10000;
   background: rgba(0,0,0,0);
-  cursor: zoom-out;
+  cursor: grab;
   transition: background .3s;
 
   &.is-visible {
     backdrop-filter: blur(1em);
   }
 
+  &.is-dragging {
+    cursor: grabbing;
+  }
+
   img {
     position: absolute;
     object-fit: contain;
-    cursor: grab;
     user-select: none;
     transition: none;
-
-    &.is-dragging {
-      cursor: grabbing;
-    }
   }
 
   .zoom-close {
