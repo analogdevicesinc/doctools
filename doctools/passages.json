@@ -1,6 +1,11 @@
 {
   "text": [
     "Analog Devices Inc.\ndocumentation extensions, themes, and tools for multiple repositories in the\norganization.\n\nRead the Documentation guidelines for more documentation rules and information\non the directives and roles packaged on this repository.\n\nAnd read the Command line interface for information",
+    "Doctools is the central piece for aggregating multiple documentations together,\nexpanding the standard hierarchical, mono-repo documentation configuration.\n\nThe content is organized in three levels:\n\n- repotoc: Listing of repositories in the same organization that contain\n  documentations.\n  In gene",
+    "A Sphinx theme called *harmonic* (formerly *cosmic*) is available and\nis based on ADI\u2019s *harmonic* design language.\n",
+    "> **Tip**\n>\n> Depending on your browser and operating system shortcuts, some shortcuts may\n> collide with existing ones, due to this, the script provides many alternatives.\n\n\n`Alt+Shift+ArrowLeft` goes to the previous page and `Alt+Shift+ArrowRight`\nto the next page. Or `Alt+Shift+A` and `Alt+Shift+",
+    "As other Sphinx themes, you set doctools theme customization through the *conf.py*.\nYou add to the `html_theme_options` dictionary:\n\n```python\nhtml_theme_options = {\n    \"light_logo\": path.join(\"path\", \"to\", \"logo_light.svg\"),\n    \"dark_logo\": path.join(\"path\", \"to\", \"logo_dark.svg\"),\n    \"no_index\"",
+    "File-wide metadata are field lists at the top of the file, that\nSphinx parses into document metadata.\n\nBeyond Sphinx special metadata fields, doctools converts some metadata into HTML\nmeta tags.\nThe values and their effects are:\n\n- `no-index`: Appends an\n  \u201cnoindex\u201d meta tag\n  to the page, alternati",
     "Doctools custom Sphinx roles allow better linking, such as git links, and\nformatting, like font coloring.\n\nBelow, every added role is explained with examples.\n\n> **Note**\n>\n> Link-like roles use the `:role:`text <link>`` syntax, like external\n> links, but without the underscore at the end.\n",
     "To print text in red or green, use `:red:`text`` and `:green:`text``.\n",
     "The link roles are a group of roles defined by `adi_links.py`.\n\nThe `validate_links` global option is used to validate each link during build.\nThese links are not managed; that means only links from changed files are checked.\nYou can run a build with it set to False, then touch the desired files to ",
@@ -11,16 +16,6 @@
     "The ez role creates links to the Analog Devices Inc. EngineerZone support website.\nThe role syntax is `:ez:`community``, for example, `:ez:`fpga``\ngets rendered as EngineerZone.\n\nFor Linux Software Drivers, it is `:ez:`linux-software-drivers``.\n\nFor Microcontroller no-OS Drivers it is `:ez:`microcon",
     "The vendor role creates links to the vendor\u2019s website.\nThe role syntax is `:vendor:`text <path>``, for example,\n`:xilinx:`Zynq-7000 SoC Overview <support/documentation/data_sheets/ds190-Zynq-7000-Overview.pdf>``\ngets rendered\nZynq-7000 SoC Overview.\n\nThe text parameter is optional, if absent, the fi",
     "The supplier role creates links to a vendor\u2019s website search.\nThe role syntax is `:vendor:`text <path>``, for example,\n`:digikey:`AD9081-FMCA-EBZ``\ngets rendered\nAD9081-FMCA-EBZ.\n\nThe text parameter is optional.\n\nSupported vendors are: `digikey` (Digikey), `mouser` (Mouser) and\n`arrow` (Arrow).\n",
-    "Doctools is the central piece for aggregating multiple documentations together,\nexpanding the standard hierarchical, mono-repo documentation configuration.\n\nThe content is organized in three levels:\n\n- repotoc: Listing of repositories in the same organization that contain\n  documentations.\n  In gene",
-    "Doctools has a continuous deployment integration pipeline that works as follows:\n\n```default\n                   \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n                \u250c\u2500\u25ba\u2502Build Doc Latest  \u251c\u2500\u2510\n                \u2502  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518 \u2502\n                \u2502                       \u2502\n\u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510 \u2502  \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510   \u2502",
-    "Below are suggested instructions for setting up `podman` on a Linux environment,\nif you wish to use it as your container engine. If you already use something else\nlike `docker`, **keep it** and skip this section.\n\nAdjust to your preference as needed, and skip the steps marked in green\nif not using W",
-    "Podman default configuration expects a local user to be able to create a user\nnamespace where multiple IDs are mapped and a compatible partition to use as\nthe storage location `graphRoot`.\n\n> **Note**\n>\n> The ideal solution is to create a local **non-root** user and storage\n> location. Podman proces",
-    "To build the container image, use your favorite container engine:\n\n```bash\n~$ cd ~/doctools# or docker, ...\n~/doctools$ podman build --tag adi/doctools:latest ci\n```\n\n\nYou may want to build the container in a host, where you have all your tools installed,\nand then deploy to a server.\nIn this case, e",
-    "At its core, the workflows are straight forward, roughly they do:\n\nThe `Tests` step:\n\n```bash\n~$ cd tests ; pytest\n```\n\n\n`Build Doc *`:\n\n```bash\n~$ cd docs ; make html\n```\n\n\nBut at a specific minimum and maximum supported environment version.\n\n`Custom Doc`:\n\n```bash\n~$ mkdir /tmp/test-pdf ; cd $_\n/t",
-    "To host your GitHub Actions Runner,\nset up your secrets:\n\n```bash\n# e.g. MyVerYSecRunnerToken\n~$ printf RUNNER_TOKEN | podman secret create public_doctools_runner_token -\n```\n\n\nThe runner token is obtained from the GUI at `github.com/<org>/<repository>/settings/actions/runners/new`.\n\nIf `github_toke",
-    "Systemd can run the runner process directly in an isolated environment using\nLinux kernel namespaces. This eliminates the `conmon` intermediate process,\ngives systemd direct ownership of the runner PID, and integrates resource\nlimits into the unit, instead of using Podman/Docker equivalents.\n\nExport",
-    "`MemoryMax=` and `CPUQuota=` require cgroup v2 controllers to be delegated\nto the user slice:\n\n```shell\n$ sudo mkdir -p /etc/systemd/system/user@.service.d\n$ cat <<EOF | sudo tee /etc/systemd/system/user@.service.d/delegate.conf\n$ [Service]\n$ Delegate=cpu cpuset io memory pids\n$ EOF\n$ sudo systemctl",
-    "Instead of passing `runner_token`, you can also pass a `github_token` to\ngenerate the `runner_token` on demand. Using the `github_token` is the\nrecommended approach because during clean-up the original `runner_token` may\nhave expired already.\n\nAlternatively, you can mount a FIFO to `/var/run/secrets",
     "Doctools is developed to work offline, in a local server as a rolling release\n(e.g., on GitHub Pages) and versioned in a dedicated server with orchestration.\n",
     "For offline and local server, a `make html` suffices to generate the\ndocumentation.\n\nTo serve the build in a local server, Python built-in server can be used:\n\n```bash\n~$ python -m http.server -d /path/to/docs/_build/html\n```\n\n\nOr with hot reload using Serve:\n\n```bash\n~$ adoc serve -d /path/to/docs\n",
     "For either rolling release or versioned, you can use the shared actions.\n\nFor push to default branch and pull requests:\n\n```yaml\non:\n  push:\n    branches:\n      - main\n      - dev\n      - dev/*\n  pull_request:\n\njobs:\n  build-doc:\n    runs-on: ubuntu-latest\n\n    steps:\n    - uses: actions/checkout@v4",
@@ -55,10 +50,21 @@
     "The HDL component diagram directive gets information parsed from *component.xml*\nlibrary and generates a component diagram for the IP with buses and ports\ninformation.\n\n> **Note**\n>\n> The *component.xml* files are generated by Vivado during the library build\n> and not by the documentation tooling.\n\n",
     "The HDL regmap directive gets information from *docs/regmap/adi_regmap_*.txt* files\nand generates tables with the register maps.\n\nThe directive syntax is:\n\n```rst\n.. hdl-regmap::\n   :name: <regmap_name>\n   :no-type-info:\n```\n\n\nFor example:\n\n```rst\n.. hdl-regmap::\n   :name: DMAC\n```\n\n\n> **Note**\n>\n> ",
     "Set `hide_collapsible_content` to `True` to hide the *collapsibles* by default.\n\nSet `monolithic` to `True` prefix paths with *<repo>*.\nThis is meant for the Custom Doc custom documents only.\n",
-    "A Sphinx theme called *harmonic* (formerly *cosmic*) is available and\nis based on ADI\u2019s *harmonic* design language.\n",
-    "> **Tip**\n>\n> Depending on your browser and operating system shortcuts, some shortcuts may\n> collide with existing ones, due to this, the script provides many alternatives.\n\n\n`Alt+Shift+ArrowLeft` goes to the previous page and `Alt+Shift+ArrowRight`\nto the next page. Or `Alt+Shift+A` and `Alt+Shift+",
-    "As other Sphinx themes, you set doctools theme customization through the *conf.py*.\nYou add to the `html_theme_options` dictionary:\n\n```python\nhtml_theme_options = {\n    \"light_logo\": path.join(\"path\", \"to\", \"logo_light.svg\"),\n    \"dark_logo\": path.join(\"path\", \"to\", \"logo_dark.svg\"),\n    \"no_index\"",
-    "File-wide metadata are field lists at the top of the file, that\nSphinx parses into document metadata.\n\nBeyond Sphinx special metadata fields, doctools converts some metadata into HTML\nmeta tags.\nThe values and their effects are:\n\n- `no-index`: Appends an\n  \u201cnoindex\u201d meta tag\n  to the page, alternati",
+    "How to do a release install, and a development install of Doctools.\n\nGuaranteed to work with Python 3.8 or newer and distributions released on or after\n20H1 (e.g., Ubuntu 20.04 LTS).\n",
+    "```bash\n~$ python3 -m venv venv\n~$ source venv/bin/activate# Ensure pip is newer than 23.0 (https://github.com/pypa/setuptools/issues/3269)\n~$ pip install pip --upgrade\n~$ pip install adi-doctools\n```\n\n\n```bash\n~$ pipx install adi-doctools\n```\n\n\n```bash\n~$ uvx --from adi-doctools adoc\n```\n\n\nTest it ",
+    "The tool includes a slim MCP to expose the CLIs. It simply teaches the LLM of\nthe tools available, analogous as a skill file. This methodology ensures the\ncontext window is not penalized.\n\nTo configure the MCP to your AI coding harness, first install with the MCP\nadd-in:\n\n```bash\n~$ python3 -m venv ",
+    "Installing packages at user level through pip is not always recommended,\ninstead, consider using a Python virtual environment (`python3-venv` on\nubuntu 22.04).\n\nTo create and activate the environment, do before the previous instructions:\n\n```bash\n~$ python3 -m venv .venv\n~$ source .venv/bin/activate",
+    "Beyond PyPi, the package is also stored as GitHub releases:\n\n- https://github.com/analogdevicesinc/doctools/releases/download/latest/adi-doctools.tar.gz\n  latest (commit at tag bump).\n- https://github.com/analogdevicesinc/doctools/releases/download/pre-release/adi-doctools.tar.gz\n  pre-release (main",
+    "There are two options for  Visual Studio Code support:\n\n- Doctools (\n  VSCode/\n  VSCodium):\n  A high level extension for most users.\n- Esbonio (\n  VSCode/\n  VSCodium):\n  A extensively developed for sphinx.\n\n\nDoctools provides support to LanguageTool for\ngrammar correction and GUI support for Sparse ",
+    "Setup the virtual environment first before opening the text editor, to\navoid triggering fallback behaviours.\n\nServe is able to generate Estobio pyproject.toml entry with (including\nSparse builds):\n\n```bash\n~/git-repo$ adoc serve --esbonio \\\n    --sparse docs/docs_guidelines docs/cli.rst | tee -a pyp",
+    "Esbonio is an extensively developed Language Server\nProtocol for sphinx. See How To Integrate Esbonio with Neovim.\n\nIt is also recomemded to use the modern tree-sitter.\nMake sure you have common parsers installed, at least:\n\n```default\n:TSInstall rst\n:TSInstall markdown\n:TSInstall yaml\n:TSInstall js",
+    "Beyond the HTML harmonic theme, limited LaTeX support is available.\nThe LaTeX build is divided in two steps, the LaTeX files generation,\nand then the PDF generation.\nFor the LaTeX files generation, install `cairosvg` with `pip|pipx|uvx`.\n\nFor the PDF generation, execute the same steps as provided in",
+    "Development install allows editing the source code and applying changes without\nreinstalling.\nAlso extends Serve to watch changes on the webpage source code\n(use \u2013dev/-r option to enable this).\n",
+    "If you care about the web scripts (js modules) and style sheets (sass),\ninstall `node.js`, `npm` and the `npm` packages below, if not, read this\nsection\u2019s last paragraph.\n\n> **Note**\n>\n> If the `npm` provided by your package manager is too old and updating with\n> `npm install npm -g` fails, consider",
+    "Fetch third-party fonts:\n\n```bash\n~$ ./ci/fetch-fonts.sh\n```\n",
+    "Finally, do a symbolic installation of this repo:\n\n```bash\n~$ pip install -e . --upgrade\n```\n\n\n> **Caution**\n>\n> If using a python virtual environment for the *requirements.txt* packages,\n> do this command with the virtual environment already activated.\n> Mixing pip packages inside and outside the v",
+    "Add to you lazyvim config the path to the branch `nvim`:\n\n```lua\n{\n  dir = '/path/to/doctools/nvim',\n  -- ...\n}\n```\n",
+    "To remove, either release or development, do:\n\n```bash\n~$ pip uninstall adi-doctools\n```\n",
     "A brief set-of-rules for the documentation.\n\n> **Note**\n>\n> The old wiki uses dokuwiki. When\n> importing text from there, consider the automated options that are provided\n> in this page to convert it to reST.\n",
     "Use the following command to import a DokuWiki page (old *wiki.analog.com*):\n\n```bash\npandoc imported.txt -f dokuwiki -t rst --columns=80 -s -o imported.rst --list-tables\n```\n\n\nThe `list-tables` parameter requires *pandoc-types* >= 1.23, included in any\nrecent pandoc release;\nif it is not an option,",
     "Sphinx allows expanding functionality beyond the defaults directives and roles\nby loading extensions. Doctools implements custom directives and roles for common\nfeatures, but third-party extensions can also be used.\n\nDoctools extended directives and roles are provided at:\n\n- Custom directives\n- Cust",
@@ -101,24 +107,23 @@
     "Suppose you edited and tested multiple docs together, it could be helpful\nto try a local inventory file first, to check references before publication.\n\nHaving this in mind, if you build the edited documentation first, and then execute\n`custom-doc`, it will consider the local inventory *objects.inv* ",
     "> **Tip**\n>\n> This feature is useful to batch build/test all tracked documentations.\n\n\nGenerates all documentations of the watched repositories\n(see adi_doctools/lut.py).\n\nTwo generation strategies are available:\n\n- monolithic: patches all docs together into a single monolithic output (default).\n- s",
     "Exposes the HDL component diagram generator as a CLI.\nIt converts IP-XACT files into SVGs.\n\nTo generate and open the diagram, provide the path containing the IP-XACT and use\nthe `--open` option:\n\n```bash\n~$ adoc hdl-render --input PATH --open\n```\n\n\nFor example:\n\n```bash\n~$ adoc hdl-render --input hd",
-    "How to do a release install, and a development install of Doctools.\n\nGuaranteed to work with Python 3.8 or newer and distributions released on or after\n20H1 (e.g., Ubuntu 20.04 LTS).\n",
-    "```bash\n~$ python3 -m venv venv\n~$ source venv/bin/activate# Ensure pip is newer than 23.0 (https://github.com/pypa/setuptools/issues/3269)\n~$ pip install pip --upgrade\n~$ pip install adi-doctools\n```\n\n\n```bash\n~$ pipx install adi-doctools\n```\n\n\n```bash\n~$ uvx --from adi-doctools adoc\n```\n\n\nTest it ",
-    "The tool includes a slim MCP to expose the CLIs. It simply teaches the LLM of\nthe tools available, analogous as a skill file. This methodology ensures the\ncontext window is not penalized.\n\nTo configure the MCP to your AI coding harness, first install with the MCP\nadd-in:\n\n```bash\n~$ python3 -m venv ",
-    "Installing packages at user level through pip is not always recommended,\ninstead, consider using a Python virtual environment (`python3-venv` on\nubuntu 22.04).\n\nTo create and activate the environment, do before the previous instructions:\n\n```bash\n~$ python3 -m venv .venv\n~$ source .venv/bin/activate",
-    "Beyond PyPi, the package is also stored as GitHub releases:\n\n- https://github.com/analogdevicesinc/doctools/releases/download/latest/adi-doctools.tar.gz\n  latest (commit at tag bump).\n- https://github.com/analogdevicesinc/doctools/releases/download/pre-release/adi-doctools.tar.gz\n  pre-release (main",
-    "There are two options for  Visual Studio Code support:\n\n- Doctools (\n  VSCode/\n  VSCodium):\n  A high level extension for most users.\n- Esbonio (\n  VSCode/\n  VSCodium):\n  A extensively developed for sphinx.\n\n\nDoctools provides support to LanguageTool for\ngrammar correction and GUI support for Sparse ",
-    "Setup the virtual environment first before opening the text editor, to\navoid triggering fallback behaviours.\n\nServe is able to generate Estobio pyproject.toml entry with (including\nSparse builds):\n\n```bash\n~/git-repo$ adoc serve --esbonio \\\n    --sparse docs/docs_guidelines docs/cli.rst | tee -a pyp",
-    "Esbonio is an extensively developed Language Server\nProtocol for sphinx. See How To Integrate Esbonio with Neovim.\n\nIt is also recomemded to use the modern tree-sitter.\nMake sure you have common parsers installed, at least:\n\n```default\n:TSInstall rst\n:TSInstall markdown\n:TSInstall yaml\n:TSInstall js",
-    "Beyond the HTML harmonic theme, limited LaTeX support is available.\nThe LaTeX build is divided in two steps, the LaTeX files generation,\nand then the PDF generation.\nFor the LaTeX files generation, install `cairosvg` with `pip|pipx|uvx`.\n\nFor the PDF generation, execute the same steps as provided in",
-    "Development install allows editing the source code and applying changes without\nreinstalling.\nAlso extends Serve to watch changes on the webpage source code\n(use \u2013dev/-r option to enable this).\n",
-    "If you care about the web scripts (js modules) and style sheets (sass),\ninstall `node.js`, `npm` and the `npm` packages below, if not, read this\nsection\u2019s last paragraph.\n\n> **Note**\n>\n> If the `npm` provided by your package manager is too old and updating with\n> `npm install npm -g` fails, consider",
-    "Fetch third-party fonts:\n\n```bash\n~$ ./ci/fetch-fonts.sh\n```\n",
-    "Finally, do a symbolic installation of this repo:\n\n```bash\n~$ pip install -e . --upgrade\n```\n\n\n> **Caution**\n>\n> If using a python virtual environment for the *requirements.txt* packages,\n> do this command with the virtual environment already activated.\n> Mixing pip packages inside and outside the v",
-    "Add to you lazyvim config the path to the branch `nvim`:\n\n```lua\n{\n  dir = '/path/to/doctools/nvim',\n  -- ...\n}\n```\n",
-    "To remove, either release or development, do:\n\n```bash\n~$ pip uninstall adi-doctools\n```\n"
+    "Doctools has a continuous deployment integration pipeline that works as follows:\n\n```default\n                   \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n                \u250c\u2500\u25ba\u2502Build Doc Latest  \u251c\u2500\u2510\n                \u2502  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518 \u2502\n                \u2502                       \u2502\n\u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510 \u2502  \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510   \u2502",
+    "Below are suggested instructions for setting up `podman` on a Linux environment,\nif you wish to use it as your container engine. If you already use something else\nlike `docker`, **keep it** and skip this section.\n\nAdjust to your preference as needed, and skip the steps marked in green\nif not using W",
+    "Podman default configuration expects a local user to be able to create a user\nnamespace where multiple IDs are mapped and a compatible partition to use as\nthe storage location `graphRoot`.\n\n> **Note**\n>\n> The ideal solution is to create a local **non-root** user and storage\n> location. Podman proces",
+    "To build the container image, use your favorite container engine:\n\n```bash\n~$ cd ~/doctools# or docker, ...\n~/doctools$ podman build --tag adi/doctools:latest ci\n```\n\n\nYou may want to build the container in a host, where you have all your tools installed,\nand then deploy to a server.\nIn this case, e",
+    "At its core, the workflows are straight forward, roughly they do:\n\nThe `Tests` step:\n\n```bash\n~$ cd tests ; pytest\n```\n\n\n`Build Doc *`:\n\n```bash\n~$ cd docs ; make html\n```\n\n\nBut at a specific minimum and maximum supported environment version.\n\n`Custom Doc`:\n\n```bash\n~$ mkdir /tmp/test-pdf ; cd $_\n/t",
+    "To host your GitHub Actions Runner,\nset up your secrets:\n\n```bash\n# e.g. MyVerYSecRunnerToken\n~$ printf RUNNER_TOKEN | podman secret create public_doctools_runner_token -\n```\n\n\nThe runner token is obtained from the GUI at `github.com/<org>/<repository>/settings/actions/runners/new`.\n\nIf `github_toke",
+    "Systemd can run the runner process directly in an isolated environment using\nLinux kernel namespaces. This eliminates the `conmon` intermediate process,\ngives systemd direct ownership of the runner PID, and integrates resource\nlimits into the unit, instead of using Podman/Docker equivalents.\n\nExport",
+    "`MemoryMax=` and `CPUQuota=` require cgroup v2 controllers to be delegated\nto the user slice:\n\n```shell\n$ sudo mkdir -p /etc/systemd/system/user@.service.d\n$ cat <<EOF | sudo tee /etc/systemd/system/user@.service.d/delegate.conf\n$ [Service]\n$ Delegate=cpu cpuset io memory pids\n$ EOF\n$ sudo systemctl",
+    "Instead of passing `runner_token`, you can also pass a `github_token` to\ngenerate the `runner_token` on demand. Using the `github_token` is the\nrecommended approach because during clean-up the original `runner_token` may\nhave expired already.\n\nAlternatively, you can mount a FIFO to `/var/run/secrets"
   ],
   "url": [
     "index.html",
+    "fundamentals.html#documentation-hierarchical-structure",
+    "theme.html",
+    "theme.html#shortcuts",
+    "theme.html#theme-options",
+    "theme.html#metadata",
     "docs_guidelines/roles.html",
     "docs_guidelines/roles.html#color",
     "docs_guidelines/roles.html#link",
@@ -129,16 +134,6 @@
     "docs_guidelines/roles.html#engineerzone",
     "docs_guidelines/roles.html#vendor",
     "docs_guidelines/roles.html#supplier",
-    "fundamentals.html#documentation-hierarchical-structure",
-    "ci.html",
-    "ci.html#configure-podman",
-    "ci.html#network-users-partitions",
-    "ci.html#build-the-container-image",
-    "ci.html#interactive-run",
-    "ci.html#self-hosted-runner",
-    "ci.html#self-hosted-cluster",
-    "ci.html#resource-quotas",
-    "ci.html#runner-token-and-github-token",
     "deploy.html",
     "deploy.html#local",
     "deploy.html#github-pages-deployment",
@@ -173,10 +168,21 @@
     "docs_guidelines/directives.html#hdl-component-diagram",
     "docs_guidelines/directives.html#hdl-regmap",
     "docs_guidelines/directives.html#global-options-for-directives",
-    "theme.html",
-    "theme.html#shortcuts",
-    "theme.html#theme-options",
-    "theme.html#metadata",
+    "install.html",
+    "install.html#release-install",
+    "install.html#mcp-integration",
+    "install.html#using-a-python-virtual-environment",
+    "install.html#github-release-archive",
+    "install.html#vscode-vscodium-support",
+    "install.html#esbonio-tips",
+    "install.html#neovim-support",
+    "install.html#pdf-latex-support",
+    "install.html#development-install",
+    "install.html#install-the-web-compiler",
+    "install.html#fetch-third-party-resources",
+    "install.html#install-the-repository",
+    "install.html#id3",
+    "install.html#removing",
     "docs_guidelines/index.html",
     "docs_guidelines/index.html#importing-from-dokuwiki-to-sphinx",
     "docs_guidelines/index.html#directives-and-roles",
@@ -219,25 +225,38 @@
     "cli.html#working-with-multiple-docs",
     "cli.html#aggregate",
     "cli.html#hdl-render",
-    "install.html",
-    "install.html#release-install",
-    "install.html#mcp-integration",
-    "install.html#using-a-python-virtual-environment",
-    "install.html#github-release-archive",
-    "install.html#vscode-vscodium-support",
-    "install.html#esbonio-tips",
-    "install.html#neovim-support",
-    "install.html#pdf-latex-support",
-    "install.html#development-install",
-    "install.html#install-the-web-compiler",
-    "install.html#fetch-third-party-resources",
-    "install.html#install-the-repository",
-    "install.html#id3",
-    "install.html#removing"
+    "ci.html",
+    "ci.html#configure-podman",
+    "ci.html#network-users-partitions",
+    "ci.html#build-the-container-image",
+    "ci.html#interactive-run",
+    "ci.html#self-hosted-runner",
+    "ci.html#self-hosted-cluster",
+    "ci.html#resource-quotas",
+    "ci.html#runner-token-and-github-token"
   ],
   "hierarchy": [
     [
       "Analog Devices Doctools"
+    ],
+    [
+      "Fundamentals",
+      "Documentation hierarchical structure"
+    ],
+    [
+      "Sphinx theme"
+    ],
+    [
+      "Sphinx theme",
+      "Shortcuts"
+    ],
+    [
+      "Sphinx theme",
+      "Theme options"
+    ],
+    [
+      "Sphinx theme",
+      "Metadata"
     ],
     [
       "Documentation guidelines",
@@ -294,46 +313,6 @@
       "Custom roles",
       "Link",
       "Supplier"
-    ],
-    [
-      "Fundamentals",
-      "Documentation hierarchical structure"
-    ],
-    [
-      "Continuous integration"
-    ],
-    [
-      "Continuous integration",
-      "Configure podman"
-    ],
-    [
-      "Continuous integration",
-      "Configure podman",
-      "Network users & partitions"
-    ],
-    [
-      "Continuous integration",
-      "Build the container image"
-    ],
-    [
-      "Continuous integration",
-      "Interactive run"
-    ],
-    [
-      "Continuous integration",
-      "Self-hosted runner"
-    ],
-    [
-      "Continuous integration",
-      "Self-hosted cluster"
-    ],
-    [
-      "Continuous integration",
-      "Resource quotas"
-    ],
-    [
-      "Continuous integration",
-      "Runner token and GitHub token"
     ],
     [
       "Documentation deployment"
@@ -511,19 +490,75 @@
       "Global options for directives"
     ],
     [
-      "Sphinx theme"
+      "Installing"
     ],
     [
-      "Sphinx theme",
-      "Shortcuts"
+      "Installing",
+      "Release install"
     ],
     [
-      "Sphinx theme",
-      "Theme options"
+      "Installing",
+      "Release install",
+      "MCP integration"
     ],
     [
-      "Sphinx theme",
-      "Metadata"
+      "Installing",
+      "Release install",
+      "Using a Python virtual environment"
+    ],
+    [
+      "Installing",
+      "Release install",
+      "GitHub release archive"
+    ],
+    [
+      "Installing",
+      "Release install",
+      "VScode/VScodium support"
+    ],
+    [
+      "Installing",
+      "Release install",
+      "VScode/VScodium support",
+      "Esbonio tips"
+    ],
+    [
+      "Installing",
+      "Release install",
+      "Neovim support"
+    ],
+    [
+      "Installing",
+      "Release install",
+      "PDF LaTeX support"
+    ],
+    [
+      "Installing",
+      "Development install"
+    ],
+    [
+      "Installing",
+      "Development install",
+      "Install the web compiler"
+    ],
+    [
+      "Installing",
+      "Development install",
+      "Fetch third-party resources"
+    ],
+    [
+      "Installing",
+      "Development install",
+      "Install the repository"
+    ],
+    [
+      "Installing",
+      "Development install",
+      "Neovim support"
+    ],
+    [
+      "Installing",
+      "Removing"
     ],
     [
       "Documentation guidelines"
@@ -715,75 +750,40 @@
       "HDL Render"
     ],
     [
-      "Installing"
+      "Continuous integration"
     ],
     [
-      "Installing",
-      "Release install"
+      "Continuous integration",
+      "Configure podman"
     ],
     [
-      "Installing",
-      "Release install",
-      "MCP integration"
+      "Continuous integration",
+      "Configure podman",
+      "Network users & partitions"
     ],
     [
-      "Installing",
-      "Release install",
-      "Using a Python virtual environment"
+      "Continuous integration",
+      "Build the container image"
     ],
     [
-      "Installing",
-      "Release install",
-      "GitHub release archive"
+      "Continuous integration",
+      "Interactive run"
     ],
     [
-      "Installing",
-      "Release install",
-      "VScode/VScodium support"
+      "Continuous integration",
+      "Self-hosted runner"
     ],
     [
-      "Installing",
-      "Release install",
-      "VScode/VScodium support",
-      "Esbonio tips"
+      "Continuous integration",
+      "Self-hosted cluster"
     ],
     [
-      "Installing",
-      "Release install",
-      "Neovim support"
+      "Continuous integration",
+      "Resource quotas"
     ],
     [
-      "Installing",
-      "Release install",
-      "PDF LaTeX support"
-    ],
-    [
-      "Installing",
-      "Development install"
-    ],
-    [
-      "Installing",
-      "Development install",
-      "Install the web compiler"
-    ],
-    [
-      "Installing",
-      "Development install",
-      "Fetch third-party resources"
-    ],
-    [
-      "Installing",
-      "Development install",
-      "Install the repository"
-    ],
-    [
-      "Installing",
-      "Development install",
-      "Neovim support"
-    ],
-    [
-      "Installing",
-      "Removing"
+      "Continuous integration",
+      "Runner token and GitHub token"
     ]
   ]
 }
