@@ -34,6 +34,7 @@ runs:
           local comments_file="$4"
 
           local pr resp http_code page count total
+          local issue_comments review_comments sep ic_count rc_count root_id
 
           echo "$org_repository" "$head_sha"
 
@@ -53,6 +54,11 @@ runs:
             return 0
           fi
 
+          issue_comments=$(mktemp --suffix=.json)
+          review_comments=$(mktemp --suffix=.json)
+          echo '[]' > "$issue_comments"
+          echo '[]' > "$review_comments"
+
           # Collect issue comments
           page=1
           while :; do
@@ -64,11 +70,8 @@ runs:
             count=$(echo "$resp" | jq 'length')
             [[ "$count" -eq 0 ]] && break
 
-            echo "$resp" | jq -r '
-              .[]
-              | "## Comment by \(.user.login) at \(.created_at)\n\(.body)\n"
-            ' >> "$comments_file"
-
+            jq -s '.[0] + .[1]' "$issue_comments" <(echo "$resp") > "${issue_comments}.tmp"
+            mv "${issue_comments}.tmp" "$issue_comments"
             page=$((page + 1))
           done
 
@@ -83,17 +86,51 @@ runs:
             count=$(echo "$resp" | jq 'length')
             [[ "$count" -eq 0 ]] && break
 
-            echo "$resp" | jq -r '
-              .[]
-              | (.line // .original_line) as $line
-              | "## Review comment by \(.user.login) at \(.created_at)"
-                + (if .path != null then " on \(.path)" + (if $line != null then ":\($line)" else "" end) else "" end)
-                + "\n\(.body)\n"
-            ' >> "$comments_file"
-
+            jq -s '.[0] + .[1]' "$review_comments" <(echo "$resp") > "${review_comments}.tmp"
+            mv "${review_comments}.tmp" "$review_comments"
             page=$((page + 1))
           done
 
+          sep='------------------------------------------------------------'
+
+          # Format issue comments (plain, no threading)
+          ic_count=$(jq 'length' "$issue_comments")
+          if [[ "$ic_count" -gt 0 ]]; then
+            echo "PR #$pr — Conversation comments" >> "$comments_file"
+            echo "$sep" >> "$comments_file"
+            jq -r '.[] | "\(.created_at): @\(.user.login)\n\n\(.body)\n"' \
+              "$issue_comments" >> "$comments_file"
+          fi
+
+          # Format review comments: group roots by path:line, nest replies with >
+          rc_count=$(jq 'length' "$review_comments")
+          if [[ "$rc_count" -gt 0 ]]; then
+            [[ "$ic_count" -gt 0 ]] && echo >> "$comments_file"
+            echo "PR #$pr — Code review comments" >> "$comments_file"
+            echo "$sep" >> "$comments_file"
+
+            mapfile -t root_ids < <(jq -r '.[] | select(.in_reply_to_id == null) | .id' "$review_comments")
+
+            for root_id in "${root_ids[@]}"; do
+              jq -r --argjson id "$root_id" '
+                .[] | select(.id == $id)
+                | (.line // .original_line) as $line
+                | "\(.created_at): @\(.user.login) \(.path)" + (if $line != null then ":\($line)" else "" end)
+                  + "\n\n\(.body)\n"
+              ' "$review_comments" >> "$comments_file"
+
+              jq -r --argjson id "$root_id" '
+                .[] | select(.in_reply_to_id == $id)
+                | "  > \(.created_at): @\(.user.login)\n"
+                  + ("\(.body)" | split("\n") | map("  > " + .) | join("\n"))
+                  + "\n"
+              ' "$review_comments" >> "$comments_file"
+
+              echo "$sep" >> "$comments_file"
+            done
+          fi
+
+          rm -f "$issue_comments" "$review_comments"
           total=$(wc -l < "$comments_file")
 
           return 0
