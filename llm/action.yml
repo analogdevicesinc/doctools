@@ -66,6 +66,11 @@ runs:
         head-sha: ${{ env.head_sha }}
         run-id: ${{ inputs.run-id }}
 
+    - uses: analogdevicesinc/doctools/gh-collect-comments@action
+      if: ${{ env.LLM_AGENT_RUN == 'true' }}
+      with:
+        head-sha: ${{ env.head_sha }}
+
     - name: Prepare files and context
       shell: bash
       if: ${{ env.LLM_AGENT_RUN == 'true' }}
@@ -226,5 +231,5 @@ runs:
       run: |
         # Clean-up
         rm -rf "$HOME/.pi"
-        rm -f "$annotations_file" "$summary_file" "$comment_file" "$session_file"
+        rm -f "$annotations_file" "$comments_file" "$summary_file" "$comment_file" "$session_file"
         rm -rf "$patches_path"

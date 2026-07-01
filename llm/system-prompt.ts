@@ -14,6 +14,7 @@ function buildSystemPrompt(cwd: string): string {
   const run_url = `${server_url}/${repository}/actions/runs/${run_id}`;
 
   const annotations_file = process.env.annotations_file;
+  const comments_file = process.env.comments_file;
   const summary_file = process.env.summary_file;
   const comment_file = process.env.comment_file;
   const patches_path = process.env.patches_path;
@@ -26,6 +27,8 @@ function buildSystemPrompt(cwd: string): string {
 
   if (annotations_file)
     instructions_output += `You must read ${annotations_file} for the CI/CD notes, warnings, and errors.\n`;
+  if (comments_file)
+    instructions_output += `You must read ${comments_file} for the pull request discussion comments.\n`;
   if (summary_file)
     instructions_output += `You must write your final review in markdown at ${summary_file} as a GitHub Summary.
 Refer to files using the relative path to the repository, for temporary files use the basename, for example,
