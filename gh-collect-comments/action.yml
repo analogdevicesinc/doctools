@@ -1,0 +1,111 @@
+name: GH Collect PR Comments
+description: Collect and output pull request comments for a commit
+
+inputs:
+  github-token:
+    description: "GitHub Token"
+    default: ${{ github.token }}
+  repository:
+    description: "Repository in org/repo format"
+    default: ${{ github.repository }}
+  head-sha:
+    description: "Commit SHA to resolve to a pull request"
+    default: ${{ github.event.pull_request.head.sha }}
+
+outputs:
+  comments_file:
+    description: "File with collected PR issue comments and review comments"
+    value: ${{ steps.collect.outputs.comments_file }}
+
+runs:
+  using: composite
+  steps:
+    - name: Collect PR comments
+      id: collect
+      shell: bash
+      run: |
+        # Collect PR comments
+        [[ "${{ runner.debug }}" == "1" ]] && set -x
+
+        gh_collect_comments() {
+          local github_token="$1"
+          local org_repository="$2"
+          local head_sha="$3"
+          local comments_file="$4"
+
+          local pr resp http_code page count total
+
+          echo "$org_repository" "$head_sha"
+
+          resp=$(curl -s \
+            -H "Authorization: Bearer $github_token" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$org_repository/commits/$head_sha/pulls")
+
+          http_code=$(echo "$resp" | jq -r 'if type == "object" then .status else empty end // empty')
+          if [[ "$http_code" == "401" ]]; then
+            echo "$resp"
+            return 1
+          fi
+
+          pr=$(echo "$resp" | jq -r '.[0].number // empty')
+          if [[ -z "$pr" ]]; then
+            return 0
+          fi
+
+          # Collect issue comments
+          page=1
+          while :; do
+            resp=$(curl -s \
+              -H "Authorization: Bearer $github_token" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/$org_repository/issues/$pr/comments?per_page=100&page=$page")
+
+            count=$(echo "$resp" | jq 'length')
+            [[ "$count" -eq 0 ]] && break
+
+            echo "$resp" | jq -r '
+              .[]
+              | "## Comment by \(.user.login) at \(.created_at)\n\(.body)\n"
+            ' >> "$comments_file"
+
+            page=$((page + 1))
+          done
+
+          # Collect review comments
+          page=1
+          while :; do
+            resp=$(curl -s \
+              -H "Authorization: Bearer $github_token" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/$org_repository/pulls/$pr/comments?per_page=100&page=$page")
+
+            count=$(echo "$resp" | jq 'length')
+            [[ "$count" -eq 0 ]] && break
+
+            echo "$resp" | jq -r '
+              .[]
+              | (.line // .original_line) as $line
+              | "## Review comment by \(.user.login) at \(.created_at)"
+                + (if .path != null then " on \(.path)" + (if $line != null then ":\($line)" else "" end) else "" end)
+                + "\n\(.body)\n"
+            ' >> "$comments_file"
+
+            page=$((page + 1))
+          done
+
+          total=$(wc -l < "$comments_file")
+
+          return 0
+        }
+
+        comments_file=$(mktemp --suffix=.txt)
+        gh_collect_comments "${{ inputs.github-token }}" \
+                            "${{ inputs.repository }}" \
+                            "${{ inputs.head-sha }}" \
+                            "$comments_file"
+
+        echo "Got $(wc -l < "$comments_file") comment lines"
+
+        echo "comments_file=$comments_file" >> "$GITHUB_OUTPUT"
+        echo "comments_file=$comments_file" >> "$GITHUB_ENV"
