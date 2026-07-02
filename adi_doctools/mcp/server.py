@@ -29,6 +29,10 @@ tool_desc_search = (
     "max* (e.g., max78000fthr), or lt* (e.g., lt3045). "
     "Returns search results with URLs and summaries. "
     "The search is 'or' based, 'ad9081 ad9088' will search for both parts. "
+    "The --repo allows to search a specific repository,"
+    "in particular, --repo documentation is the system-level docs, "
+    "use it to search for overviews, such as 'MCP', or 'ad4052 user guide', "
+    "since each repository will have its own detailed user guide, mcp."
     "Use --fetch to fetch a result by index (or full url). "
     "Use --help to know about the arguments."
 )
