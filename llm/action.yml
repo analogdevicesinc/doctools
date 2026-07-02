@@ -69,7 +69,7 @@ runs:
     - uses: analogdevicesinc/doctools/gh-collect-comments@action
       if: ${{ env.LLM_AGENT_RUN == 'true' }}
       with:
-        head-sha: ${{ env.head_sha }}
+        ref: ${{ inputs.ref }}
 
     - name: Prepare files and context
       shell: bash

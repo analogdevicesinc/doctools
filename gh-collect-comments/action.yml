@@ -1,18 +1,21 @@
 name: GH Collect PR Comments
-description: Collect and output pull request comments for a commit
+description: Collect and output pull request comments
 
 inputs:
-  github-token:
+  repository:
+    description: "Repository to checkout"
+    default: ${{ github.repository }}
+  ref:
+    description: "The branch, tag, SHA, or PR number (e.g. 123 or pull/123) to resolve"
+    default: ${{ github.sha }}
+  gh-token:
     description: "GitHub Token"
     default: ${{ github.token }}
-  repository:
-    description: "Repository in org/repo format"
-    default: ${{ github.repository }}
-  head-sha:
-    description: "Commit SHA to resolve to a pull request"
-    default: ${{ github.event.pull_request.head.sha }}
 
 outputs:
+  pr:
+    description: "Pull request number"
+    value: ${{ steps.get_pr.outputs.pr }}
   comments_file:
     description: "File with collected PR issue comments and review comments"
     value: ${{ steps.collect.outputs.comments_file }}
@@ -20,6 +23,72 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Use pull request context
+      if: ${{ github.event_name == 'pull_request' && inputs.repository == github.repository && inputs.ref == github.sha }}
+      shell: bash
+      run: |
+        # Use pull request context
+        echo "pr=${{ github.event.pull_request.number }}" >> "$GITHUB_ENV"
+
+    # requires pull_requests: read
+    - name: Resolve ref to pr number
+      id: get_pr
+      if: ${{ github.event_name == 'workflow_dispatch' && inputs.repository == github.repository }}
+      shell: bash
+      run: |
+        # Resolve ref to pr number
+        [[ "${{ runner.debug }}" == "1" ]] && set -x
+
+        ref="${{ inputs.ref }}"
+        ref="${ref//[[:space:]]/}"
+        ref="${ref#\#}"
+        repository="${{ inputs.repository }}"
+
+        resp=
+        pr_json=
+        pr=
+
+        if ! [[ "$ref" =~ ^([0-9]+|pull/[0-9]+)(/head)?$ ]]; then
+          # branch/commit
+
+          # try branch
+          branch_="${ref#refs/heads/}"
+          [[ "$branch_" == *":"* ]] || {
+            owner="${repository%/*}"
+            branch_="$owner:$branch_"
+          }
+          # some-user:my-fix
+          resp=$(curl -s \
+            -H "Authorization: Bearer ${{ inputs.gh-token }}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$repository/pulls?head=$branch_&state=open")
+
+          status=$(echo "$resp" | jq -r '.status? // empty')
+          [[ "$status" == "403" ]] && echo "::notice ::gh-collect-comments: List pull requests requires pull_requests read permission." || :
+          [[ -n "$status" ]] || pr_json=$(echo "$resp" | jq '.[0] // empty')
+
+          if [[ -z "$pr_json" ]]; then
+            # try sha
+            sha="$ref"
+            resp=$(curl -s \
+              -H "Authorization: Bearer ${{ inputs.gh-token }}" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/$repository/commits/$sha/pulls")
+
+            status=$(echo "$resp" | jq -r '.status? // empty')
+            [[ -n "$status" ]] || pr_json=$(echo "$resp" | jq '.[0] // empty')
+          fi
+
+          pr=$(echo "$pr_json" | jq -r '.number // empty')
+        else
+          # pr number
+          pr="${ref#pull/}"
+          pr="${pr%/head}"
+        fi
+
+        echo "pr=$pr" >> "$GITHUB_OUTPUT"
+        echo "pr=$pr" >> "$GITHUB_ENV"
+
     - name: Collect PR comments
       id: collect
       shell: bash
@@ -30,29 +99,15 @@ runs:
         gh_collect_comments() {
           local github_token="$1"
           local org_repository="$2"
-          local head_sha="$3"
+          local pr="$3"
           local comments_file="$4"
 
-          local pr resp http_code page count total
+          local resp page count
           local issue_comments review_comments sep ic_count rc_count root_id
 
-          echo "$org_repository" "$head_sha"
+          [[ -n "$pr" ]] || return 0
 
-          resp=$(curl -s \
-            -H "Authorization: Bearer $github_token" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/$org_repository/commits/$head_sha/pulls")
-
-          http_code=$(echo "$resp" | jq -r 'if type == "object" then .status else empty end // empty')
-          if [[ "$http_code" == "401" ]]; then
-            echo "$resp"
-            return 1
-          fi
-
-          pr=$(echo "$resp" | jq -r '.[0].number // empty')
-          if [[ -z "$pr" ]]; then
-            return 0
-          fi
+          echo "$org_repository" "pr=$pr"
 
           issue_comments=$(mktemp --suffix=.json)
           review_comments=$(mktemp --suffix=.json)
@@ -131,15 +186,14 @@ runs:
           fi
 
           rm -f "$issue_comments" "$review_comments"
-          total=$(wc -l < "$comments_file")
 
           return 0
         }
 
         comments_file=$(mktemp --suffix=.txt)
-        gh_collect_comments "${{ inputs.github-token }}" \
+        gh_collect_comments "${{ inputs.gh-token }}" \
                             "${{ inputs.repository }}" \
-                            "${{ inputs.head-sha }}" \
+                            "${{ env.pr }}" \
                             "$comments_file"
 
         echo "Got $(wc -l < "$comments_file") comment lines"
