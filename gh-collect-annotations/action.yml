@@ -2,15 +2,15 @@ name: GH Collect Annotations
 description: Collect and output annotations from GitHub check runs
 
 inputs:
-  github-token:
-    description: "GitHub Token"
-    default: ${{ github.token }}
   repository:
     description: "Repository in org/repo format"
     default: ${{ github.repository }}
-  head-sha:
-    description: "Commit SHA to get annotations for"
-    required: true
+  ref:
+    description: "The branch, tag, SHA, or PR number (e.g. 123 or pull/123) to resolve"
+    default: ${{ github.sha }}
+  gh-token:
+    description: "GitHub Token"
+    default: ${{ github.token }}
   run-id:
     description: "Workflow run ID (optional, will be inferred if not provided)"
     default: ""
@@ -23,6 +23,79 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Use pull request context
+      id: use_pr_context
+      if: ${{ github.event_name == 'pull_request' && inputs.repository == github.repository && inputs.ref == github.sha }}
+      shell: bash
+      run: |
+        # Use pull request context
+        echo "head_sha=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_OUTPUT"
+
+    # requires pull_requests: read
+    - name: Resolve ref to head sha
+      id: get_head_sha
+      if: ${{ github.event_name == 'workflow_dispatch' && inputs.repository == github.repository }}
+      shell: bash
+      run: |
+        # Resolve ref to head sha
+        [[ "${{ runner.debug }}" == "1" ]] && set -x
+
+        ref="${{ inputs.ref }}"
+        ref="${ref//[[:space:]]/}"
+        ref="${ref#\#}"
+        repository="${{ inputs.repository }}"
+
+        resp=
+        pr_json=
+        pr=
+        head_sha=
+
+        if ! [[ "$ref" =~ ^([0-9]+|pull/[0-9]+)(/head)?$ ]]; then
+          # branch/commit
+
+          # try branch
+          branch_="${ref#refs/heads/}"
+          [[ "$branch_" == *":"* ]] || {
+            owner="${repository%/*}"
+            branch_="$owner:$branch_"
+          }
+          # some-user:my-fix
+          resp=$(curl -s \
+            -H "Authorization: Bearer ${{ inputs.gh-token }}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$repository/pulls?head=$branch_&state=open")
+
+          status=$(echo "$resp" | jq -r '.status? // empty')
+          [[ "$status" == "403" ]] && echo "::notice ::gh-collect-annotations: List pull requests requires pull_requests read permission." || :
+          [[ -n "$status" ]] || pr_json=$(echo "$resp" | jq '.[0] // empty')
+
+          if [[ -z "$pr_json" ]]; then
+            # treat as sha/branch directly
+            head_sha="$ref"
+          else
+            pr=$(echo "$pr_json" | jq -r '.number // empty')
+          fi
+        else
+          # pr number
+          pr="${ref#pull/}"
+          pr="${pr%/head}"
+        fi
+
+        if [[ -n "$pr" ]] && [[ -z "$head_sha" ]]; then
+          resp=$(curl -s \
+            -H "Authorization: Bearer ${{ inputs.gh-token }}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$repository/pulls/$pr")
+          status=$(echo "$resp" | jq -r '.status? // empty')
+          if [[ "$status" == "404" ]]; then
+            pr=""
+          else
+            head_sha=$(echo "$resp" | jq -r '.head.sha // empty')
+          fi
+        fi
+
+        echo "head_sha=$head_sha" >> "$GITHUB_OUTPUT"
+
     - name: Collect annotations
       id: collect
       shell: bash
@@ -40,6 +113,8 @@ runs:
           local check_run_ids=()
           local check_run_names=()
           local page=1
+
+          [[ -n "$head_sha" ]] || return 0
 
           echo "$org_repository" "$head_sha" "$run_id"
 
@@ -140,13 +215,13 @@ runs:
         }
 
         annotations_file=$(mktemp --suffix=.txt)
-        gh_annotations "${{ inputs.github-token }}" \
+        gh_annotations "${{ inputs.gh-token }}" \
                        "${{ inputs.repository }}" \
-                       "${{ inputs.head-sha }}" \
+                       "${{ steps.use_pr_context.outputs.head_sha || steps.get_head_sha.outputs.head_sha }}" \
                        "${{ inputs.run-id }}" \
                        "$annotations_file"
 
-        echo "Got $(cat $annotations_file | wc -l ) annotations lines"
+        echo "Got $(wc -l < "$annotations_file") annotation lines"
 
         echo "annotations_file=$annotations_file" >> "$GITHUB_OUTPUT"
         echo "annotations_file=$annotations_file" >> "$GITHUB_ENV"

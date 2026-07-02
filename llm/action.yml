@@ -63,7 +63,7 @@ runs:
     - uses: analogdevicesinc/doctools/gh-collect-annotations@action
       if: ${{ env.LLM_AGENT_RUN == 'true' }}
       with:
-        head-sha: ${{ env.head_sha }}
+        ref: ${{ inputs.ref }}
         run-id: ${{ inputs.run-id }}
 
     - uses: analogdevicesinc/doctools/gh-collect-comments@action
