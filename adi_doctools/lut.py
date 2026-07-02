@@ -135,6 +135,14 @@ repos = {
         branch='main',
         visibility='public'
     ),
+    'genalyzer': Repo(
+        pathname='doc',
+        name='Genalyzer',
+        description='A C++ library that facilitates common used data-converter RF performance metrics.',
+        category='tool',
+        branch='main',
+        visibility='public'
+    ),
     'libiio': Repo(
         pathname='doc/source',
         name='libiio',
