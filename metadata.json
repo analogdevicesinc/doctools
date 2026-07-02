@@ -101,6 +101,16 @@
             "url_doc": "https://analogdevicesinc.github.io/pyadi-jif",
             "url_source": "https://github.com/analogdevicesinc/pyadi-jif.git"
         },
+        "genalyzer": {
+            "name": "Genalyzer",
+            "description": "A C++ library that facilitates common used data-converter RF performance metrics.",
+            "category": "tool",
+            "visibility": "public",
+            "pathname": "doc",
+            "branch": "main",
+            "url_doc": "https://analogdevicesinc.github.io/genalyzer",
+            "url_source": "https://github.com/analogdevicesinc/genalyzer.git"
+        },
         "libiio": {
             "name": "libiio",
             "description": "Cross-platform library to access IIO devices.",
