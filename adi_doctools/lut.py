@@ -94,8 +94,8 @@ repos = {
     ),
     'lnxdsp-adi-meta': Repo(
         pathname='docs',
-        name='ADI DSP Linux',
-        description='Yocto-based Linux images for ADI Digital Signal Processors.',
+        name='ADSP Yocto',
+        description='Yocto support for ADI Digital Signal Processors (ADSP).',
         category='driver',
         branch='main',
         visibility='public'
