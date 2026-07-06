@@ -19,9 +19,11 @@ RUN bash ./gh-actions-runner.sh && rm ./gh-actions-runner.sh
 
 #user: bash-completion openssh
 #core: wget make git openssl ca-certificates ca-certificates-mozilla
+#fonts: fontconfig
 RUN zypper install -y --no-recommends \
     bash-completion openssh \
     wget make git openssl openssl-devel ca-certificates ca-certificates-mozilla \
+    fontconfig \
     xz
 
 COPY ci/install-git-lfs.sh .
