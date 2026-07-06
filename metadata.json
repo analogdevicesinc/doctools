@@ -52,8 +52,8 @@
             "url_source": "https://github.com/analogdevicesinc/linux-security-vulns.git"
         },
         "lnxdsp-adi-meta": {
-            "name": "ADI DSP Linux",
-            "description": "Yocto-based Linux images for ADI Digital Signal Processors.",
+            "name": "ADSP Yocto",
+            "description": "Yocto support for ADI Digital Signal Processors (ADSP).",
             "category": "driver",
             "visibility": "public",
             "pathname": "docs",
