@@ -11,6 +11,9 @@ inputs:
   api-key:
     description: "Cloudsmith key (skip OIDC if set)"
     required: false
+  dump-permissions:
+    description: "Dump token permissions (debug must be true too)"
+    required: false
 
 outputs:
   token:
@@ -47,8 +50,23 @@ runs:
           [[ $(echo "$resp" | jq -r '.authenticated') != "true" ]] && { echo "::error ::Cloudsmith token validation failed" ; return 1 ; } || :
         }
 
+        debug() {
+          [[ "${{ runner.debug }}" == "1" && "${{ inputs.dump-permissions }}" == "true" ]] || return 0
+
+          local token="$1" page=1 repos='[]' chunk
+          echo "--- Cloudsmith repos ---"
+          while true; do
+            chunk=$(curl -sL -H "X-Api-Key: ${token}" "https://api.cloudsmith.io/v1/repos/?page_size=100&page=${page}")
+            repos=$(printf '%s\n%s' "$repos" "$chunk" | jq -s '[.[0][], .[1][] | {namespace, slug, is_private, default_privilege, replace_packages, delete_packages, move_packages}]')
+            [[ $(echo "$chunk" | jq 'length') -lt 100 ]] && break
+            (( page++ ))
+          done
+          echo "$repos" | jq .
+        }
+
         [[ -n "$api_key" ]] && {
           validate "$api_key"
+          debug "$api_key"
           echo "token=${api_key}" >> "$GITHUB_OUTPUT"
           exit 0
         }
@@ -70,5 +88,6 @@ runs:
         [[ -n "$api_key" ]] || { echo "::error ::Cloudsmith didn't return a token"; exit 1; }
 
         validate "$api_key"
+        debug "$api_key"
         echo "CLOUDSMITH_API_KEY=${api_key}" >> "$GITHUB_ENV"
         echo "token=${api_key}" >> "$GITHUB_OUTPUT"
