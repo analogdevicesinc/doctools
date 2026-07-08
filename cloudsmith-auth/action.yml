@@ -57,7 +57,7 @@ runs:
           echo "--- Cloudsmith repos ---"
           while true; do
             chunk=$(curl -sL -H "X-Api-Key: ${token}" "https://api.cloudsmith.io/v1/repos/?page_size=100&page=${page}")
-            repos=$(printf '%s\n%s' "$repos" "$chunk" | jq -s '[.[0][], .[1][] | {namespace, slug, is_private, default_privilege, replace_packages, delete_packages, move_packages}]')
+            repos=$(printf '%s\n%s' "$repos" "$chunk" | jq -s '[.[0][], .[1][] | {namespace, slug, is_private, default_privilege, copy_packages, replace_packages, delete_packages, move_packages, resync_packages, scan_packages, manage_entitlements_privilege, use_entitlements_privilege}]')
             [[ $(echo "$chunk" | jq 'length') -lt 100 ]] && break
             (( page++ ))
           done
