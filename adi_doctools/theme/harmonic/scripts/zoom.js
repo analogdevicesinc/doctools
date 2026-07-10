@@ -25,7 +25,9 @@ export class Zoom {
 
     this._onKey = (e) => { if (e.key === 'Escape') this.close() }
     this._onMove = (e) => { this.onMove(e) }
-    this._onUp = () => { this.onUp() }
+    this._onDown = (e) => { this.onDown(e) }
+    this._onUp = (e) => { this.onUp(e) }
+    this._onWheel = (e) => { this.onWheel(e) }
 
     this.construct()
 
@@ -82,8 +84,11 @@ export class Zoom {
     this.overlay.addEventListener('click', (e) => {
       if (!this.didDrag) this.close()
     })
-    this.overlay.addEventListener('mousedown', (e) => { this.onDown(e) })
-    this.overlay.addEventListener('wheel', (e) => { this.onWheel(e) }, {passive: false})
+    this.overlay.addEventListener('mousedown', this._onDown)
+    this.overlay.addEventListener('wheel', this._onWheel, {passive: false})
+
+    document.addEventListener('mousemove', this._onMove)
+    document.addEventListener('mouseup', this._onUp)
 
     document.body.append(this.overlay)
 
@@ -98,6 +103,12 @@ export class Zoom {
   }
   close () {
     if (!this.overlay) return
+
+    this.overlay.removeEventListener('mousedown', this._onDown)
+    this.overlay.removeEventListener('wheel', this._onWheel)
+    document.removeEventListener('keydown', this._onKey)
+    document.removeEventListener('mousemove', this._onMove)
+    document.removeEventListener('mouseup', this._onUp)
 
     let cur = this.clone.getBoundingClientRect()
     let dest = this.srcImg.getBoundingClientRect()
@@ -122,9 +133,6 @@ export class Zoom {
         this.srcImg = null
       }
     }, {once: true})
-    document.removeEventListener('keydown', this._onKey)
-    document.removeEventListener('mousemove', this._onMove)
-    document.removeEventListener('mouseup', this._onUp)
   }
   clampTranslation () {
     let pad = 64
@@ -181,6 +189,8 @@ export class Zoom {
   }
   onDown (e) {
     if (e.button !== 0) return
+    if (this.overlay.classList.contains('is-dragging'))
+      return
     e.preventDefault()
     this.didDrag = false
     this.dragging = true
@@ -188,8 +198,6 @@ export class Zoom {
     this.startX = e.clientX; this.startY = e.clientY
     this.startTx = this.tx; this.startTy = this.ty
     this.overlay.classList.add('is-dragging')
-    document.addEventListener('mousemove', this._onMove)
-    document.addEventListener('mouseup', this._onUp)
   }
   onMove (e) {
     if (!this.dragging) return
@@ -197,28 +205,30 @@ export class Zoom {
     this.ty = this.startTy + (e.clientY - this.startY)
     this.applyTransform()
   }
-  onUp () {
+  onUp (e) {
+    if (!this.overlay.classList.contains('is-dragging'))
+      return
     let dx = Math.abs(this.tx - this.startTx)
     let dy = Math.abs(this.ty - this.startTy)
     this.didDrag = dx > 3 || dy > 3
     this.dragging = false
     if (this.clone) this.overlay.classList.remove('is-dragging')
-    document.removeEventListener('mousemove', this._onMove)
-    document.removeEventListener('mouseup', this._onUp)
   }
   attach () {
     let body = DOM.get('.bodywrapper .body')
     if (!body) return
-    DOM.getAll('a.image-reference img', body).forEach((img) => {
-      let a = img.closest('a')
-      a.addEventListener('click', (e) => {
+    DOM.getAll('img', body).forEach((img) => {
+      let target = img.closest('a')
+      if (target === null)
+        target = img
+      target.addEventListener('click', (e) => {
         e.preventDefault()
         this.open(img)
       })
     })
   }
   construct () {
-    this.init()
+    this.attach()
   }
   deinit () {
     this.close()
