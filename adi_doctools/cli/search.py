@@ -642,7 +642,7 @@ def fetch_intersphinx_inventory(base_url, remote_last_modified=None):
     config = _InvConfig(
         intersphinx_cache_limit=5,
         intersphinx_timeout=10,
-        tls_verify=False,
+        tls_verify=True,
         tls_cacerts=None,
         user_agent='',
     )
