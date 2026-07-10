@@ -14,12 +14,12 @@ from sphinx.directives.other import Include
 from sphinx import __version__ as __sphinx_version__
 
 import re
-import jinja2
 import yaml
 from os import path, pardir, makedirs
 from uuid import uuid4
 from hashlib import sha1
 from typing import Tuple
+from jinja2.sandbox import SandboxedEnvironment
 
 from typing import Sequence
 from docutils.nodes import Node
@@ -32,6 +32,7 @@ logger = logging.getLogger(__name__)
 
 manager = None
 dft_hide_collapsible_content = True
+jinja_env = SandboxedEnvironment()
 
 
 def _get_manager():
@@ -353,9 +354,9 @@ class directive_include_template(Include):
             return []
 
         def _render_include(path, text):
-            templ = jinja2.Template(text)
             try:
-                return templ.render(**parsed_yaml)
+                templ = jinja_env.from_string(text)
+                return templ.render(**(parsed_yaml or {}))
             except Exception as e:
                 self.state_machine.reporter.warning(
                     f"jinja2: {path}: {e}",
