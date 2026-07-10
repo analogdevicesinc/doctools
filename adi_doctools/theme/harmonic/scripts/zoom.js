@@ -75,6 +75,7 @@ export class Zoom {
     this.clone = DOM.new('img')
     this.clone.src = img.currentSrc || img.src
     this.clone.alt = img.alt
+    this.clone.classList = img.classList
 
     this.scale = 1; this.tx = 0; this.ty = 0
 
