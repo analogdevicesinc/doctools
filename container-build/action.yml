@@ -104,18 +104,11 @@ runs:
         # Prepare SBOM tools
         [[ "${{ runner.debug }}" == "1" ]] && set -x
         get_tools() {
-          command -v syft || curl -sSfL https://get.anchore.io/syft | $1 sh -s -- -b /usr/local/bin
-          command -v grype || curl -sSfL https://get.anchore.io/grype | $1 sh -s -- -b /usr/local/bin
+          command -v syft || curl -sSfL https://get.anchore.io/syft | sh -s -- -b ~/.local/bin
+          command -v grype || curl -sSfL https://get.anchore.io/grype | sh -s -- -b ~/.local/bin
         }
 
-        if [ "$(id -u)" -eq 0 ]; then
-          get_tools
-        elif command -v sudo && sudo -n true 2>/dev/null; then
-          get_tools "sudo"
-        else
-          command -v syft
-          command -v grype
-        fi
+        get_tools
 
     - name: Run SBOM tools
       id: run_sbom
