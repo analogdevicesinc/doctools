@@ -65,11 +65,14 @@ runs:
         }
 
         [[ -n "$api_key" ]] && {
+          echo "using api key"
           validate "$api_key"
           debug "$api_key"
+          echo "CLOUDSMITH_API_KEY=${api_key}" >> "$GITHUB_ENV"
           echo "token=${api_key}" >> "$GITHUB_OUTPUT"
           exit 0
         }
+        echo "using OIDC authentication"
 
         audience="https://github.com/${GITHUB_REPOSITORY_OWNER}"
         id_token=$(curl -sf \
