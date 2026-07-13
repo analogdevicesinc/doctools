@@ -103,7 +103,7 @@ runs:
       if: ${{ env.LLM_AGENT_RUN == 'true' }}
       run: |
         # Setup pi
-        npm install @earendil-works/pi-coding-agent@0.78.1
+        npm install @earendil-works/pi-coding-agent@0.80.6
 
         mkdir -p ~/.pi/agent/extensions
 
@@ -120,9 +120,9 @@ runs:
                 "portkey": {
                     "baseUrl": "https://api.portkey.ai",
                     "api": "anthropic-messages",
-                    "apiKey": "PORTKEY_API_KEY",
+                    "apiKey": "$PORTKEY_API_KEY",
                     "headers": {
-                        "x-portkey-api-key": "PORTKEY_API_KEY",
+                        "x-portkey-api-key": "$PORTKEY_API_KEY",
                         "x-portkey-virtual-key": "vertexai-global"
                     },
                     "models": [
