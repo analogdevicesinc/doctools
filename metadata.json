@@ -68,6 +68,7 @@
             "visibility": "public",
             "pathname": "docs",
             "branch": "main",
+            "alt": "adi-kuiper",
             "url_doc": "https://analogdevicesinc.github.io/kuiper",
             "url_source": "https://github.com/analogdevicesinc/kuiper.git"
         },
