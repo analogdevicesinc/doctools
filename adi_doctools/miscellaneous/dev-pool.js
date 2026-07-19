@@ -138,7 +138,7 @@ class PoolChanges {
         position: fixed;
         display: flex;
         bottom: .75em;
-        right: .75em;
+        left: .75em;
         z-index: 20;
         background-color: rgba(125, 125, 125, 0.2);
         border: 1px solid rgba(125, 125, 125, 1);
