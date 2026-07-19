@@ -266,6 +266,10 @@ export class Search {
       return
     let key = this.parent.state.subhost === '' || this.parent.state.subhost === undefined || this.parent.state.standalone ?
               'local' : this.parent.state.repository
+    if (key !== 'local')
+      key = Object.keys(this.parent.state.metadata.repotoc).find(
+        k => this.parent.state.metadata.repotoc[k].alt === key
+      ) || key
     if (this.parent.state.version !== undefined)
         this.index_state[key].version = this.parent.state.path
     let event = new Event('change');

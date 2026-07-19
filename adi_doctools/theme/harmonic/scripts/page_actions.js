@@ -33,6 +33,17 @@ export class PageActions {
       return true
     }
 
+    // 'Patched' docs report an alt name at app.state.repository, e.g.
+    // documentation -> adi-documentation-system-level-pro-adi-123
+    // Resolve it back to the canonical key
+    if (new URL(this.parent.state.metadata.remote_alt).hostname == location.hostname) {
+      const canonical = Object.keys(m['repotoc']).find(
+        k => m['repotoc'][k].alt === r
+      )
+      if (canonical)
+        r = canonical
+    }
+
     if (!m['repotoc'].hasOwnProperty(r)) {
       // The repo may not have been added yet
       console.warn(`edit_source: repository '${r}' not in the metadata`)
@@ -48,6 +59,9 @@ export class PageActions {
       console.warn(`edit_source: 'branch' missing from entry '${r}'`)
       return true
     }
+
+    this.repository = r
+    return false
   }
   /*
    * Don't show page source button on some pages.
@@ -144,7 +158,7 @@ export class PageActions {
     }
 
     let m = this.parent.state.metadata
-    let r = this.parent.state.repository
+    let r = this.repository
 
     let format_tgt = (hostname) => {
       return hostname.replace('{repository}', r)

@@ -68,7 +68,7 @@ export class ContentActions {
     tocwrapper.append(this.$.collection)
   }
   auto_collection_name (repo, path) {
-    const repo_name = repo in  this.parent.state.metadata.repotoc ?
+    const repo_name = repo in this.parent.state.metadata.repotoc ?
       this.parent.state.metadata.repotoc[repo].name : repo
     if (this.collection_pattern === undefined ||
        !(repo in this.collection_pattern))
@@ -88,7 +88,11 @@ export class ContentActions {
   }
   add_collection_entry (ul, repo, entry, props) {
     const name = "name" in props ? props["name"] : this.auto_collection_name(repo, entry)
-    const url = new URL(`${this.parent.state.metadata.remote_doc}${repo}/${entry}`)
+    const metadata = this.parent.state.metadata
+    const use_alt = new URL(metadata.remote_alt).hostname === location.hostname
+    const repository = use_alt ? metadata.repotoc[repo]?.alt || repo : repo
+    const base = use_alt ? metadata.remote_alt : metadata.remote_doc
+    const url = new URL(`${repository}/${entry}`, base)
     const m = new DOM('a', {'href': url, 'target': 'blank'})
     m.innerText = name
     ul.append(new DOM('li').append(m))
@@ -124,18 +128,19 @@ export class ContentActions {
     ])
   }
   load_collection () {
-    const repo = this.parent.state.repository
+    const state = this.parent.state
+    const repo = Object.keys(state.metadata.repotoc).find(k => state.metadata.repotoc[k].alt === state.repository) || state.repository
     const obj = this.parent.state.collection
     if (!("collection" in obj))
       return
     if ("pattern" in obj)
       this.collection_pattern = obj["pattern"]
     let path = ""
-    if (this.parent.state.offline)
+    if (state.offline)
       path = new URL("file://"+location.pathname).href
     else
       path = new URL(location.pathname, location.origin).href
-    let base = new URL(this.parent.state.content_root, path).href
+    let base = new URL(state.content_root, path).href
 
     for (const key in obj["collection"]) {
       if (!("include" in obj["collection"][key]) ||
@@ -171,9 +176,11 @@ export class ContentActions {
     const signal = this.collection_controller.signal
 
     let state = this.parent.state
+
+    const r = new URL(this.parent.state.metadata.remote_alt).hostname == location.hostname ? this.parent.state.metadata.repotoc['documentation'].alt : 'documentation'
     const base_url = (state.subhost === '' || state.offline === true) ?
-      new URL(`${state.metadata.remote_doc}documentation/`) :
-      new URL('documentation/', new URL(state.subhost, location.origin))
+      new URL(`${state.metadata.remote_doc}${r}/`) :
+      new URL(`${r}/`, new URL(state.subhost, location.origin))
     // Do you want to use single_hosted with same origin? use below:
     //const base_url =
     //  new URL(state.subhost + '/', location.origin)
