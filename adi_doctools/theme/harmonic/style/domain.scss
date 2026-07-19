@@ -147,26 +147,8 @@
             justify-content: stretch;
         }
 
-        button,
-        a {
+        button, a {
             flex: 1 1 auto;
-        }
-    }
-}
-
-@media (max-width: variable.$screen-0) {
-    .domain-popup {
-        p {
-            font-size: .9rem;
-        }
-
-        .actions {
-            flex-direction: column-reverse;
-        }
-
-        button,
-        a {
-            width: 100%;
         }
     }
 }
