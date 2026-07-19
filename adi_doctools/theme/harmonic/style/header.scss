@@ -124,7 +124,6 @@ header {
         width: fit-content;
         padding: 0 .5em 0 .5em;
         transition: padding .25s ease;
-        margin: 0 .5em;
     }
 
     a:hover {
@@ -203,20 +202,21 @@ header {
 
     #logo-org {
         display: inline-block;
-        width: 5.375rem;
-        height: 1.5rem;
-        margin: .75rem 0;
+        width: 8.75rem;   // 140
+        height: 1.25rem;  //  20
+        margin: .9rem 0 .65rem 0;
         background: url('./logo-org.svg') no-repeat center top;
+        background-size: 100% auto;
         flex-shrink: 0;
     }
 
     .vertical-divider {
-        padding: 0 0.25rem 0 0.75rem;
-        border-right: variable.$border-panel1;
+        padding-left: 0.25rem;
         height: 1.75rem;
     }
 
     #logo {
+        font-size: 0.875em;
         margin-left: 0.25rem;
         padding: 0 0.25rem;
         min-height: 2rem;
@@ -245,6 +245,10 @@ body.dark #logo-org {
 @media (max-width: variable.$screen-1) {
     header {
         backdrop-filter: blur(1em);
+
+        .vertical-divider {
+            border-right: 1px solid rgba(125,125,125,.8);
+        }
     }
 }
 
@@ -296,20 +300,24 @@ body.dark #logo-org {
 
 header {
     #show-repotoc {
+        color: var(--accent-color);
+        font-weight: bold;
+        font-size: 0.875em;
         display: flex;
         margin: 0 0 0 .25em;
         align-items: center;
         border-radius: variable.$border-radius;
-        padding: .5em .75em;
+        padding: .75em 1em .75em .75em;
         user-select: none;
+        background-color: rgba(146.115, 189.975, 251.94, 0.18);
     }
 
     #show-repotoc:hover {
-        background-color: var(--bg-color2);
+        background-color: rgba(146.115, 189.975, 251.94, 0.5);
     }
 
     #show-repotoc:after {
-        border: 1px solid var(--text-color1);
+        border: 2px solid var(--accent-color);
         border-width: 0 1px 1px 0;
         display: block;
         content: '';
@@ -337,7 +345,7 @@ header {
         display: none;
     }
     header #logo {
-        margin-left: .5em;
+        margin-left: .25em;
     }
 }
 

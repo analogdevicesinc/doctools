@@ -90,26 +90,36 @@ export class Links {
       this.$.linksOverlay.push(elem.cloneNode(true))
     })
 
-    // remote_alt doesn't have the open-source landing page
-    const _canonical = new URL(app.state.metadata.remote_alt).host === location.host ?
-                       this.parent.state.metadata.remote_doc : prefix
+    const _canonical = this.parent.state.metadata.remote_doc
     const _developer = this.parent.state.metadata.remote_alt
-    let link_landing =  DOM.new('a', {
-      'innerText': 'Open source home',
-      'href': _canonical,
-      'className': 'landing-page home'
-    })
-    let link_developer = DOM.new('a', {
-      'innerText': 'Developer portal',
-      'href': new URL('..', _developer),
+    let link_newsroom = DOM.new('a', {
+      'innerText': 'Newsroom',
+      'href': new URL('../newsroom', _developer),
       'target': '_blank',
       'className': 'landing-page ext-developer'
+    })
+    let link_solutions = DOM.new('a', {
+      'innerText': 'Solutions',
+      'href': new URL('../solutions', _developer),
+      'target': '_blank',
+      'className': 'landing-page ext-developer'
+    })
+    let link_events = DOM.new('a', {
+      'innerText': 'Events',
+      'href': new URL('../events', _developer),
+      'target': '_blank',
+      'className': 'landing-page ext-developer'
+    })
+    let link_os_landing =  DOM.new('a', {
+      'innerText': 'Open source',
+      'href': _canonical,
+      'className': 'landing-page heart'
     })
 
     let cards_links = DOM.new('div', {
       'className': 'cards-links'
     })
-    cards_links.append(link_landing, link_developer)
+    cards_links.append(link_newsroom, link_solutions, link_events, link_os_landing)
     if ($.repotocTreeOverlay) {
       DOM.removeChilds($.repotocTreeOverlay)
       let container = DOM.new('div', {
