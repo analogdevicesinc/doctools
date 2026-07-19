@@ -70,6 +70,7 @@ export class Domain {
   destination_url () {
     const state = this.parent.state
     const current = new URL(location.href)
+    const repository = state.metadata.repotoc[state.repository]?.alt || state.repository
     let path = ""
     if (state.offline)
       path = new URL("file://"+location.pathname).href
@@ -79,7 +80,7 @@ export class Domain {
     let pathname = path.substring(base.length)
 
     const destination = new URL(
-      `${state.repository}/${pathname}`,
+      `${repository}/${pathname}`,
       state.metadata.remote_alt
     )
     destination.search = current.search
@@ -130,6 +131,9 @@ export class Domain {
     const settings = this.get_settings()
 
     if (location.hostname === remote_doc.hostname) {
+      if (location.pathname === "/")
+        // Ignore for "open source landing page"
+        return
       if (settings.domain.ignore_dev === true)
         return
       this.make_domain_warning(
