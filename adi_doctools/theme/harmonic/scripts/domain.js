@@ -181,16 +181,6 @@ export class Domain {
     }, [popup])
   }
   construct () {
-    this.init()
-  }
-  deinit () {
-    if (!this.$.container)
-      return
-
-    this.$.container.$.remove()
-    delete this.$.container
-  }
-  init () {
     this.init_cookie_consent()
     this.init_domain_warning()
   }
