@@ -101,6 +101,7 @@ repos = {
         visibility='public'
     ),
     'kuiper': Repo(
+        alt='adi-kuiper',
         pathname='docs',
         name='Kuiper',
         description='A Debian-based Linux distribution designed for our hardware and evaluation boards.',
