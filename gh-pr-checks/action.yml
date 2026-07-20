@@ -1,0 +1,271 @@
+name: GH Pull Request Checks
+
+description: Attach a workflow_dispatch run to a pull request via Checks API
+
+inputs:
+  github-token:
+    description: "GitHub Token"
+    default: ${{ github.token }}
+  repository:
+    description: "Repository in org/repo format"
+    default: ${{ github.repository }}
+  ref:
+    description: "The branch, tag, SHA, or PR number (e.g. 123 or pull/123) to resolve"
+    default: ${{ github.sha }}
+  conclusion:
+    description: "Conclusion to set, empty for pending"
+    default: ""
+  name:
+    description: "Check run name"
+    default: ${{ github.workflow }}
+  run-id:
+    description: "Workflow run ID"
+    default: ${{ github.run_id }}
+  details-url:
+    description: "URL for the check details link"
+    default: ""
+  check-run-id:
+    description: "Existing check run ID to update"
+    default: ""
+
+outputs:
+  pr:
+    description: "Pull request number"
+    value: ${{ steps.check.outputs.pr }}
+  head_sha:
+    description: "Pull request head SHA"
+    value: ${{ steps.check.outputs.head_sha }}
+  check_run_id:
+    description: "Check run ID"
+    value: ${{ steps.check.outputs.check_run_id }}
+
+runs:
+  using: composite
+  steps:
+    - name: Attach pull request check
+      id: check
+      shell: bash
+      run: |
+        # Attach pull request check
+        [[ "${{ runner.debug }}" == "1" ]] && set -x
+
+        gh-pr-checks-create()
+        {
+          local github_token="$1"
+          local org_repository="$2"
+          local name="$3"
+          local head_sha="$4"
+          local external_id="$5"
+
+          local json_body
+          json_body=$(jq -n \
+            --arg name "$name" \
+            --arg head_sha "$head_sha" \
+            --arg external_id "$external_id" \
+            '{
+              name: $name,
+              head_sha: $head_sha,
+              status: "in_progress",
+              started_at: (now | strftime("%Y-%m-%dT%H:%M:%SZ")),
+              external_id: $external_id,
+              output: {
+                title: $name,
+                summary: ""
+              }
+            }')
+
+          curl -sL -X POST \
+               -H "Accept: application/vnd.github+json" \
+               -H "Authorization: Bearer $github_token" \
+               -H "X-GitHub-Api-Version: 2026-03-10" \
+               "https://api.github.com/repos/$org_repository/check-runs" \
+               -d "$json_body"
+        }
+
+        gh-pr-checks-find()
+        {
+          local github_token="$1"
+          local org_repository="$2"
+          local head_sha="$3"
+          local name="$4"
+          local external_id="$5"
+
+          curl -sL \
+               -H "Accept: application/vnd.github+json" \
+               -H "Authorization: Bearer $github_token" \
+               -H "X-GitHub-Api-Version: 2026-03-10" \
+               "https://api.github.com/repos/$org_repository/commits/$head_sha/check-runs?check_name=$(jq -rn --arg v "$name" '$v|@uri')" \
+            | jq -r --arg external_id "$external_id" \
+                '.check_runs[] | select(.external_id == $external_id) | .id' \
+            | head -1
+        }
+
+        gh-pr-checks-patch-details()
+        {
+          local github_token="$1"
+          local org_repository="$2"
+          local check_run_id="$3"
+          local name="$4"
+          local external_id="$5"
+          local details_url="$6"
+
+          local json_body
+          json_body=$(jq -n \
+            --arg name "$name" \
+            --arg external_id "$external_id" \
+            --arg details_url "$details_url" \
+            '{
+              name: $name,
+              status: "in_progress",
+              external_id: $external_id,
+              details_url: $details_url,
+              output: {
+                title: $name,
+                summary: ("Workflow run: [" + $details_url + "](" + $details_url + ")")
+              }
+            }')
+
+          curl -sL -X PATCH \
+               -H "Accept: application/vnd.github+json" \
+               -H "Authorization: Bearer $github_token" \
+               -H "X-GitHub-Api-Version: 2026-03-10" \
+               "https://api.github.com/repos/$org_repository/check-runs/$check_run_id" \
+               -d "$json_body"
+        }
+
+        gh-pr-checks-patch()
+        {
+          local github_token="$1"
+          local org_repository="$2"
+          local check_run_id="$3"
+          local conclusion="$4"
+          local details_url="$5"
+
+          local json_body
+          json_body=$(jq -n \
+            --arg conclusion "$conclusion" \
+            --arg details_url "$details_url" \
+            '{
+              status: "completed",
+              conclusion: $conclusion,
+              completed_at: (now | strftime("%Y-%m-%dT%H:%M:%SZ")),
+              details_url: $details_url,
+              output: {
+                title: $conclusion,
+                summary: ("Workflow run: [" + $details_url + "](" + $details_url + ")")
+              }
+            }')
+
+          curl -sL -X PATCH \
+               -H "Accept: application/vnd.github+json" \
+               -H "Authorization: Bearer $github_token" \
+               -H "X-GitHub-Api-Version: 2026-03-10" \
+               "https://api.github.com/repos/$org_repository/check-runs/$check_run_id" \
+               -d "$json_body"
+        }
+
+        gh-pr-checks()
+        {
+          local github_token="$1"
+          local org_repository="$2"
+          local ref="$3"
+          local conclusion="$4"
+          local name="$5"
+          local run_id="$6"
+          local details_url="$7"
+          local check_run_id="$8"
+
+          local resp status pr_json pr branch_ owner sha pr_head_sha head_sha external_id
+
+          ref="${ref//[[:space:]]/}"
+          ref="${ref#\#}"
+
+          if ! [[ "$ref" =~ ^([0-9]+|pull/[0-9]+)(/head)?$ ]]; then
+            # branch/commit
+
+            # try branch
+            branch_="${ref#refs/heads/}"
+            [[ "$branch_" == *":"* ]] || {
+              owner="${org_repository%/*}"
+              branch_="$owner:$branch_"
+            }
+            # some-user:my-fix
+            resp=$(curl -s \
+              -H "Authorization: Bearer $github_token" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/$org_repository/pulls?head=$branch_&state=open")
+
+            status=$(echo "$resp" | jq -r '.status? // empty')
+            [[ "$status" == "403" ]] && echo "::notice ::gh-pr-checks: List pull requests requires pull_requests read permission." || :
+            [[ -n "$status" ]] || pr_json=$(echo "$resp" | jq '.[0] // empty')
+
+            if [[ -z "$pr_json" ]]; then
+              # try sha
+              sha="$ref"
+              resp=$(curl -s \
+                -H "Authorization: Bearer $github_token" \
+                -H "Accept: application/vnd.github+json" \
+                "https://api.github.com/repos/$org_repository/commits/$sha/pulls")
+
+              status=$(echo "$resp" | jq -r '.status? // empty')
+              [[ -n "$status" ]] || pr_json=$(echo "$resp" | jq '.[0] // empty')
+            fi
+
+            pr=$(echo "$pr_json" | jq -r '.number // empty')
+          else
+            # pr number
+            pr="${ref#pull/}"
+            pr="${pr%/head}"
+          fi
+
+          if [[ -n "$pr" ]]; then
+            resp=$(curl -s \
+              -H "Authorization: Bearer $github_token" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/$org_repository/pulls/$pr")
+            status=$(echo "$resp" | jq -r '.status? // empty')
+            if [[ "$status" == "404" ]]; then
+              pr=""
+            else
+              pr_head_sha=$(echo "$resp" | jq -r '.head.sha // empty')
+            fi
+          fi
+
+          [[ -n "$pr" ]] || return 0
+          [[ -n "$pr_head_sha" ]] || return 0
+
+          head_sha="$pr_head_sha"
+          external_id="github-actions:$run_id:$name"
+          [[ -n "$details_url" ]] || details_url="${{ github.server_url }}/$org_repository/actions/runs/$run_id"
+
+          if [[ -z "$conclusion" ]]; then
+            resp=$(gh-pr-checks-create "$github_token" "$org_repository" "$name" "$head_sha" "$external_id")
+            check_run_id=$(echo "$resp" | jq -r '.id // empty')
+            [[ -n "$check_run_id" ]] || { echo "$resp"; return 1; }
+
+            resp=$(gh-pr-checks-patch-details "$github_token" "$org_repository" "$check_run_id" "$name" "$external_id" "$details_url")
+            [[ -n "$(echo "$resp" | jq -r '.id // empty')" ]] || { echo "$resp"; return 1; }
+          else
+            [[ -n "$check_run_id" ]] || check_run_id=$(gh-pr-checks-find "$github_token" "$org_repository" "$head_sha" "$name" "$external_id")
+            if [[ -z "$check_run_id" ]]; then
+              resp=$(gh-pr-checks-create "$github_token" "$org_repository" "$name" "$head_sha" "$external_id")
+              check_run_id=$(echo "$resp" | jq -r '.id // empty')
+            fi
+            [[ -n "$check_run_id" ]] || return 1
+            resp=$(gh-pr-checks-patch "$github_token" "$org_repository" "$check_run_id" "$conclusion" "$details_url")
+            [[ -n "$(echo "$resp" | jq -r '.id // empty')" ]] || { echo "$resp"; return 1; }
+          fi
+
+          echo "pr=$pr" >> "$GITHUB_OUTPUT"
+          echo "head_sha=$head_sha" >> "$GITHUB_OUTPUT"
+          echo "check_run_id=$check_run_id" >> "$GITHUB_OUTPUT"
+        }
+
+        gh-pr-checks "${{ inputs.github-token }}" \
+                     "${{ inputs.repository }}" \
+                     "${{ inputs.ref }}" \
+                     "${{ inputs.conclusion }}" \
+                     "${{ inputs.name }}" \
+                     "${{ inputs.run-id }}" \
+                     "${{ inputs.details-url }}" \
+                     "${{ inputs.check-run-id }}"
