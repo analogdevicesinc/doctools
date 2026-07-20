@@ -76,9 +76,10 @@ runs:
       if: ${{ env.LLM_AGENT_RUN == 'true' }}
       run: |
         # Prepare files
-        echo "session_file=$(mktemp --suffix=.jsonl)" >> "$GITHUB_ENV"
-        echo "summary_file=$(mktemp --suffix=.md)" >> "$GITHUB_ENV"
-        echo "comment_file=$(mktemp --suffix=.md)" >> "$GITHUB_ENV"
+        echo "session_file=$(mktemp -t llm-session.XXX.jsonl)" >> "$GITHUB_ENV"
+        echo "tasks_file=$(mktemp -t llm-tasks.XXX.md)" >> "$GITHUB_ENV"
+        echo "summary_file=$(mktemp -t llm-summary.XXX.md)" >> "$GITHUB_ENV"
+        echo "comment_file=$(mktemp -t llm-comment.XXX.md)" >> "$GITHUB_ENV"
         echo "patches_path=$(mktemp -d)" >> "$GITHUB_ENV"
 
         echo "server_url=${{ github.server_url }}" >> "$GITHUB_ENV"
@@ -187,12 +188,27 @@ runs:
       if: ${{ env.LLM_AGENT_RUN == 'true' }}
       run: |
         # Collect results
-        [[ -s "$summary_file" ]] && cat "$summary_file" >> $GITHUB_STEP_SUMMARY || true
+        [[ -s "$summary_file" ]] && {
+          cat "$summary_file" >> $GITHUB_STEP_SUMMARY
+        } || {
+          echo "::warning ::llm reviewer didn't write the workflow summary."
+          [[ -s "$tasks_file" ]] && cat "$tasks_file" >> $GITHUB_STEP_SUMMARY || :
+        }
         [[ -s "$comment_file" ]] && {
           echo 'comment<<EOF' >> $GITHUB_OUTPUT
           cat "$comment_file" >> $GITHUB_OUTPUT
           echo 'EOF' >> $GITHUB_OUTPUT
-        } || true
+        } || {
+          echo "::warning ::llm reviewer didn't write the review comment."
+
+          echo 'comment<<EOF' >> $GITHUB_OUTPUT
+          echo "## LLM Review
+
+        run: [${run_id}](${server_url}/${repository}/actions/runs/${run_id})
+        didn't generate any comment, but you can still review the workflow run, job 'llm'.
+        ">> $GITHUB_OUTPUT
+         echo 'EOF' >> $GITHUB_OUTPUT
+        }
 
     - name: Store suggested patches
       if: ${{ env.LLM_AGENT_RUN == 'true' }}
@@ -243,5 +259,5 @@ runs:
       run: |
         # Clean-up
         rm -rf "$HOME/.pi"
-        rm -f "$annotations_file" "$comments_file" "$summary_file" "$comment_file" "$session_file"
+        rm -f "$annotations_file" "$comments_file" "$tasks_file" "$summary_file" "$comment_file" "$session_file"
         rm -rf "$patches_path"
