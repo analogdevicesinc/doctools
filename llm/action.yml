@@ -117,7 +117,7 @@ runs:
         cat <<'EOF' > ~/.pi/agent/models.json
         {
             "providers": {
-                "portkey": {
+                "portkey-vertexai": {
                     "baseUrl": "https://api.portkey.ai",
                     "api": "anthropic-messages",
                     "apiKey": "$PORTKEY_API_KEY",
@@ -126,9 +126,20 @@ runs:
                         "x-portkey-virtual-key": "vertexai-global"
                     },
                     "models": [
-                        {"name": "small", "id": "anthropic.claude-haiku-4-5@20251001"},
-                        {"name": "medium", "id": "anthropic.claude-sonnet-4-6"},
-                        {"name": "large", "id": "anthropic.claude-opus-4-6"}
+                        {"name": "small", "id": "anthropic.claude-haiku-4-5@20251001"}
+                    ]
+                },
+                "portkey-bedrock": {
+                    "baseUrl": "https://api.portkey.ai",
+                    "api": "anthropic-messages",
+                    "apiKey": "$PORTKEY_API_KEY",
+                    "headers": {
+                        "x-portkey-api-key": "$PORTKEY_API_KEY",
+                        "x-portkey-virtual-key": "bedrock-global"
+                    },
+                    "models": [
+                        {"name": "medium", "id": "us.anthropic.claude-sonnet-5"},
+                        {"name": "large", "id": "us.anthropic.claude-opus-4-8"}
                     ]
                 }
             }
@@ -161,10 +172,11 @@ runs:
         # Run pi
         python3 /tmp/observer.py "$session_file" &
         observer_pid=$!
+        [[ "${{ inputs.model }}" == "small" ]] && provider="portkey-vertexai" || provider="portkey-bedrock"
 
         python3 /tmp/fmt_args.py "${{ inputs.prompt-file }}" | \
           ./node_modules/.bin/pi -p \
-            --provider "portkey" --model "${{ inputs.model }}" \
+            --provider "$provider" --model "${{ inputs.model }}" \
             --session "$session_file" || true
 
         kill $observer_pid
