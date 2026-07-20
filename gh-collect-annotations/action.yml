@@ -205,7 +205,7 @@ runs:
                   ] | join(",")
                 ) as $metadata
                 | "::\(.level)\(" " + $metadata)::\(.msg)\(if .count > 1 then " (\(.count) occurrences)" else "" end)"
-              ' >> $annotations_file
+              ' | sed 's/^:://' >> "$annotations_file"
               page=$((page + 1))
             done
           done
