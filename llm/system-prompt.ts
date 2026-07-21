@@ -20,6 +20,8 @@ function buildSystemPrompt(cwd: string): string {
   const comment_file = process.env.comment_file;
   const patches_path = process.env.patches_path;
 
+  const enable_goal = process.env.enable_goal;
+
   let instructions_preamble = "";
   let instructions_output = "";
 
@@ -42,6 +44,14 @@ Include in the summary the steps taken to validate the claims
 You may even create Mermaid diagrams to explain issues.\n`;
   if (comment_file)
     instructions_output += `You must write a PR comment at ${comment_file}, do not tag the author.\n`;
+
+  if (enable_goal)
+    instructions_output += `Before you stop, call report_goal_status. Set done=true only once every required
+output above (summary, comment, patches, etc.) is actually written to disk -- writing
+the files IS part of the goal, not a follow-up. If you are stopping for any other reason
+(context limits, an open question, more turns needed), call report_goal_status with
+done=false and a concrete nextSteps so the run can resume correctly.\n`;
+
   if (comment_file && server_url && repository && run_id)
     instructions_output += `For the comment, consider the template (run id, url, repository are already filled, the current run id **is** ${run_id}), don't use emojis, be concise, and focus on the issues:
 \`\`\`\`markdown
@@ -116,6 +126,7 @@ In addition to the tools above, you may have access to other custom tools depend
 - When changing multiple locations in one file, use one edit call with multiple entries in edits[]
 - edits[].oldText is matched against the original file. Do not emit overlapping or nested edits.
 - Use write only for new files or complete rewrites
+- Never search the whole disk with \`find /\` or similar, keep your commands to the current working directory.
 
 # Doing tasks
 

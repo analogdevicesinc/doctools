@@ -15,6 +15,10 @@ inputs:
     description: "Model size"
     required: false
     default: "medium"
+  enable-goal:
+    description: 'Enable goal enforcement'
+    required: false
+    default: "true"
   py-venv:
     description: "Python virtual enviroment"
     required: false
@@ -77,6 +81,7 @@ runs:
       run: |
         # Prepare files
         echo "session_file=$(mktemp -t llm-session.XXX.jsonl)" >> "$GITHUB_ENV"
+        echo "formatted_prompt_file=$(mktemp -t llm-prompt.XXX.md)" >> "$GITHUB_ENV"
         echo "tasks_file=$(mktemp -t llm-tasks.XXX.md)" >> "$GITHUB_ENV"
         echo "summary_file=$(mktemp -t llm-summary.XXX.md)" >> "$GITHUB_ENV"
         echo "comment_file=$(mktemp -t llm-comment.XXX.md)" >> "$GITHUB_ENV"
@@ -85,6 +90,7 @@ runs:
         echo "server_url=${{ github.server_url }}" >> "$GITHUB_ENV"
         echo "repository=${{ github.repository }}" >> "$GITHUB_ENV"
         echo "run_id=${{ github.run_id }}" >> "$GITHUB_ENV"
+        echo "enable_goal=${{ inputs.enable-goal }}" >> "$GITHUB_ENV"
 
     - name: Ensure node
       shell: bash
@@ -110,10 +116,12 @@ runs:
 
         curl -sL -H "Authorization: Bearer ${{ inputs.gh-token }}" -o "/tmp/fmt_args.py" \
           https://raw.githubusercontent.com/analogdevicesinc/doctools/action/llm/fmt_args.py
-        curl -sL -H "Authorization: Bearer ${{ inputs.gh-token }}" -o "/tmp/observer.py" \
-          https://raw.githubusercontent.com/analogdevicesinc/doctools/action/llm/observer.py
+        curl -sL -H "Authorization: Bearer ${{ inputs.gh-token }}" -o "/tmp/rpc_runner.py" \
+          https://raw.githubusercontent.com/analogdevicesinc/doctools/action/llm/rpc_runner.py
         curl -sL -H "Authorization: Bearer ${{ inputs.gh-token }}" -o "$HOME/.pi/agent/extensions/system-prompt.ts" \
           https://raw.githubusercontent.com/analogdevicesinc/doctools/action/llm/system-prompt.ts
+        [[ "$enable_goal" == "true" ]] && curl -sL -H "Authorization: Bearer ${{ inputs.gh-token }}" -o "$HOME/.pi/agent/extensions/goal-completion.ts" \
+          https://raw.githubusercontent.com/analogdevicesinc/doctools/action/llm/goal-completion.ts
 
         cat <<'EOF' > ~/.pi/agent/models.json
         {
@@ -171,16 +179,29 @@ runs:
         PORTKEY_API_KEY: ${{ inputs.api-key }}
       run: |
         # Run pi
-        python3 /tmp/observer.py "$session_file" &
-        observer_pid=$!
         [[ "${{ inputs.model }}" == "small" ]] && provider="portkey-vertexai" || provider="portkey-bedrock"
 
-        python3 /tmp/fmt_args.py "${{ inputs.prompt-file }}" | \
-          ./node_modules/.bin/pi -p \
-            --provider "$provider" --model "${{ inputs.model }}" \
-            --session "$session_file" || true
+        python3 /tmp/fmt_args.py "${{ inputs.prompt-file }}" > "$formatted_prompt_file"
 
-        kill $observer_pid
+        ret=0
+        python3 /tmp/rpc_runner.py \
+          --pi ./node_modules/.bin/pi \
+          --provider "$provider" --model "${{ inputs.model }}" \
+          --session "$session_file" \
+          --prompt-file "$formatted_prompt_file" \
+          --max-nudges 6 --max-seconds 1800 || ret=$?
+        ret=$?
+        set -e
+
+        echo "pi_ret=$ret" >> "$GITHUB_ENV"
+
+        case "$ret" in
+          0) : ;;
+          1) echo "::warning ::llm: agent stopped without reporting the goal complete." ;;
+          2) echo "::error ::llm: agent run failed with a fatal error." ;;
+          3) echo "::warning ::llm: agent run timed-out." ;;
+          *) echo "::warning ::llm: agent run exited with code ${ret}." ;;
+        esac
 
     - name: Collect results
       id: collect
@@ -259,5 +280,5 @@ runs:
       run: |
         # Clean-up
         rm -rf "$HOME/.pi"
-        rm -f "$annotations_file" "$comments_file" "$tasks_file" "$summary_file" "$comment_file" "$session_file"
+        rm -f "$annotations_file" "$comments_file" "$tasks_file" "$summary_file" "$comment_file" "$session_file" "$formatted_prompt_file"
         rm -rf "$patches_path"
