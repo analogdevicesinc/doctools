@@ -189,7 +189,7 @@ runs:
           --provider "$provider" --model "${{ inputs.model }}" \
           --session "$session_file" \
           --prompt-file "$formatted_prompt_file" \
-          --max-nudges 6 --max-seconds 1800 || ret=$?
+          --max-nudges 6 --max-seconds 3600 || ret=$?
         ret=$?
         set -e
 

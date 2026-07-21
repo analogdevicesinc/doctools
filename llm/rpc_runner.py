@@ -35,10 +35,21 @@ Otherwise call it with done=false and a concrete nextSteps, then continue
 with that next step in this same turn.
 </watchdog_nudge>"""
 
+FINALIZE_PROMPT = """<watchdog_nudge source="rpc_runner.py" not_user_request="true">
+Automated watchdog: the time budget for this run has been reached.
+Stop any further investigation or exploration now. Immediately finalize and
+write all required output artifacts (summary, comment, patches, etc.) using
+your best current understanding, then call report_goal_status with
+done=true right after. If you genuinely cannot finish, still call
+report_goal_status with done=false and a concrete nextSteps so the run's
+outcome is recorded before it is terminated.
+</watchdog_nudge>"""
+
 OVERFLOW_RECOVERY_FAILED = re.compile(r"context overflow recovery failed", re.I)
 
-# Longer than a compact-then-retry cycle
-IDLE_DEBOUNCE_SECONDS = 30
+IDLE_POLL_SECONDS = 2
+DEFAULT_FINALIZE_GRACE_SECONDS = 600  # 10 minutes
+FINALIZE_MAX_REMINDERS = 3
 
 
 def crop(text: str, n: int = 200) -> str:
@@ -184,7 +195,7 @@ def is_truly_idle(session: PiRpcSession) -> Optional[dict[str, Any]]:
     return state
 
 
-def run(argv: list[str], prompt: str, max_nudges: int, max_seconds: float) -> int:
+def run(argv: list[str], prompt: str, max_nudges: int, max_seconds: float, finalize_grace_seconds: float = DEFAULT_FINALIZE_GRACE_SECONDS) -> int:
     session = PiRpcSession(argv)
     session.send({"type": "prompt", "message": prompt})
 
@@ -192,42 +203,83 @@ def run(argv: list[str], prompt: str, max_nudges: int, max_seconds: float) -> in
     nudges_sent = 0
     last_goal_status: Optional[dict[str, Any]] = None
     fatal_error: Optional[str] = None
-    saw_agent_end = False
+    maybe_idle = False
+    finalizing = False
+    finalize_deadline = 0.0
+    finalize_reminders_sent = 0
+
+    def send_finalize_prompt(reason: str) -> None:
+        nonlocal finalizing, finalize_deadline, maybe_idle
+        finalizing = True
+        finalize_deadline = time.monotonic() + finalize_grace_seconds
+        maybe_idle = False
+        log(f"[runner] {reason}, asking the agent to finalize now "
+            f"(grace period: {finalize_grace_seconds}s)")
+        session.send({"type": "prompt", "message": FINALIZE_PROMPT, "streamingBehavior": "followUp"})
+
+    def check_idle_and_react() -> Optional[int]:
+        nonlocal nudges_sent, maybe_idle, finalize_reminders_sent
+        if fatal_error is not None:
+            if is_truly_idle(session) is None:
+                return None
+            log(f"[runner] fatal error: {fatal_error}")
+            return EXIT_FATAL_ERROR
+
+        if is_truly_idle(session) is None:
+            return None
+
+        if last_goal_status is not None and last_goal_status.get("done") is True:
+            log("[runner] goal reported complete, finishing")
+            session.send({"type": "abort"})
+            return EXIT_SUCCESS
+
+        if finalizing:
+            if finalize_reminders_sent >= FINALIZE_MAX_REMINDERS:
+                return None
+            finalize_reminders_sent += 1
+            log(f"[runner] still idle during finalize grace period, "
+                f"reminder {finalize_reminders_sent}/{FINALIZE_MAX_REMINDERS}")
+            maybe_idle = False
+            session.send({"type": "prompt", "message": FINALIZE_PROMPT, "streamingBehavior": "followUp"})
+            return None
+
+        if nudges_sent >= max_nudges:
+            log(f"[runner] max nudges ({max_nudges}) reached without done=true, stopping")
+            return EXIT_GOAL_NOT_REACHED
+
+        nudges_sent += 1
+        log(f"[runner] idle without goal completion, sending watchdog nudge {nudges_sent}/{max_nudges}")
+        maybe_idle = False
+        session.send({"type": "prompt", "message": WATCHDOG_NUDGE, "streamingBehavior": "followUp"})
+        return None
 
     try:
         while True:
             remaining_wall = deadline - time.monotonic()
-            if remaining_wall <= 0:
-                log(f"[runner] wall-clock budget of {max_seconds}s exceeded, aborting")
-                session.send({"type": "abort"})
-                return EXIT_ABORTED
+            if remaining_wall <= 0 and not finalizing:
+                send_finalize_prompt(f"wall-clock budget of {max_seconds}s exceeded")
+                continue
 
-            wait_timeout = min(IDLE_DEBOUNCE_SECONDS, remaining_wall) if saw_agent_end else remaining_wall
+            if finalizing:
+                remaining_grace = finalize_deadline - time.monotonic()
+                if remaining_grace <= 0:
+                    log(f"[runner] finalize grace period of {finalize_grace_seconds}s exceeded, aborting")
+                    session.send({"type": "abort"})
+                    if last_goal_status is not None and last_goal_status.get("done") is True:
+                        return EXIT_SUCCESS
+                    return EXIT_ABORTED
+                wait_timeout = min(IDLE_POLL_SECONDS, remaining_grace) if maybe_idle else remaining_grace
+            else:
+                wait_timeout = min(IDLE_POLL_SECONDS, remaining_wall) if maybe_idle else remaining_wall
+
             entry = session.next_event(timeout=wait_timeout)
 
             if entry is None:
-                if not saw_agent_end:
+                if not maybe_idle:
                     continue
-                state = is_truly_idle(session)
-                if state is None:
-                    continue
-
-                if fatal_error:
-                    break
-
-                if last_goal_status is not None and last_goal_status.get("done") is True:
-                    log("[runner] goal reported complete, finishing")
-                    session.send({"type": "abort"})
-                    break
-
-                if nudges_sent >= max_nudges:
-                    log(f"[runner] max nudges ({max_nudges}) reached without done=true, stopping")
-                    break
-
-                nudges_sent += 1
-                log(f"[runner] idle without goal completion, sending watchdog nudge {nudges_sent}/{max_nudges}")
-                saw_agent_end = False
-                session.send({"type": "prompt", "message": WATCHDOG_NUDGE, "streamingBehavior": "followUp"})
+                result = check_idle_and_react()
+                if result is not None:
+                    return result
                 continue
 
             pretty_print_event(entry)
@@ -239,8 +291,8 @@ def run(argv: list[str], prompt: str, max_nudges: int, max_seconds: float) -> in
                     break
 
             elif t == "tool_execution_end" and entry.get("toolName") == "report_goal_status":
-                result = entry.get("result") or {}
-                details = result.get("details") if isinstance(result, dict) else None
+                result_payload = entry.get("result") or {}
+                details = result_payload.get("details") if isinstance(result_payload, dict) else None
                 if isinstance(details, dict) and "done" in details:
                     last_goal_status = details
                     log(f"[runner] goal status reported: done={details.get('done')} summary={crop(str(details.get('summary', '')))}")
@@ -251,8 +303,16 @@ def run(argv: list[str], prompt: str, max_nudges: int, max_seconds: float) -> in
                     if err and OVERFLOW_RECOVERY_FAILED.search(err):
                         fatal_error = err
 
+                    maybe_idle = True
+                    result = check_idle_and_react()
+                    if result is not None:
+                        return result
+
             elif t == "agent_end":
-                saw_agent_end = True
+                maybe_idle = True
+                result = check_idle_and_react()
+                if result is not None:
+                    return result
 
     except EOFError:
         log("[runner] pi process exited")
@@ -279,6 +339,8 @@ def main() -> int:
     parser.add_argument("--prompt-file", required=True, help="Pre-formatted prompt text file to send as the initial prompt")
     parser.add_argument("--max-nudges", type=int, default=6, help="Max watchdog continuation nudges before giving up")
     parser.add_argument("--max-seconds", type=float, default=1800, help="Wall-clock budget for the whole run")
+    parser.add_argument("--finalize-grace-seconds", type=float, default=DEFAULT_FINALIZE_GRACE_SECONDS,
+                         help="Extra time given to the agent to finalize and report_goal_status after --max-seconds is reached")
     parser.add_argument("extra", nargs=argparse.REMAINDER, help="Extra args forwarded to `pi --mode rpc` after --")
     args = parser.parse_args()
 
@@ -303,7 +365,7 @@ def main() -> int:
     log(f"[runner] launching: {' '.join(argv)}")
 
     try:
-        return run(argv, prompt, args.max_nudges, args.max_seconds)
+        return run(argv, prompt, args.max_nudges, args.max_seconds, args.finalize_grace_seconds)
     except KeyboardInterrupt:
         return EXIT_ABORTED
 
