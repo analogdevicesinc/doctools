@@ -371,5 +371,4 @@ runs:
       run: |
         # Finish
         cd "${{ inputs.path }}"
-        git config --unset gc.auto
         git config --unset http.postBuffer
