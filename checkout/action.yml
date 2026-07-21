@@ -310,8 +310,8 @@ runs:
              [[ "$ref" == "${{ github.sha }}" ]]; then
             head_sha="${{ github.sha }}"
             base_sha="${{ github.event.before }}"
-            while ! git rev-list --count $base_sha~..$head_sha 2>/dev/null ; do
-              git_fetch_depth "$ref"
+            while ! git merge-base --is-ancestor $base_sha~  $head_sha 2>/dev/null ; do
+              git_fetch_depth "$head_sha"
             done
           else
             git fetch origin --depth=2 "$ref"
