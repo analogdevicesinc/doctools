@@ -30,6 +30,10 @@ blacklist = [
     "ad976_976a",
 ]
 
+# Set to non-empty to only process those
+allowlist = [
+]
+
 _BACKENDS = {
     'dlparse_v4': None,
     'dlparse_v1': 'docling.backend.docling_parse_backend.DoclingParseDocumentBackend',
@@ -58,8 +62,9 @@ class Sitemap2MD:
         self._get_sitemap()
         self._process_sitemap()
         self._filter_up_to_date()
-        self._fetch_pdfs()
         self._filter_blacklist()
+        self._filter_single()
+        self._fetch_pdfs()
         self._docling_pdfs()
 
     def _get_sitemap(self):
@@ -187,17 +192,33 @@ class Sitemap2MD:
                     logger.warning(f'Error fetching {url}: {exc}')
 
     def _filter_blacklist(self):
-        pdfs_pending = []
+        urls_pending = {}
         blacklisted = 0
 
-        for pdf_path in self.pdfs_pendings:
-            if path.basename(pdf_path[0]) in blacklist:
+        for url in self.urls_pending:
+            if path.basename(url) in blacklist:
                 blacklisted += 1
                 continue
-            pdfs_pending.append(pdf_path)
+            urls_pending[url] = self.urls_pending[url]
 
-        self.pdfs_pendings = pdfs_pending
+        self.urls_pending = urls_pending
         logger.info(f'blacklist filter: {blacklisted} ignored')
+
+    def _filter_single(self):
+        urls_pending = {}
+        skipped = 0
+
+        if len(allowlist) == 0:
+            return
+
+        for url in self.urls_pending:
+            if path.basename(url) not in allowlist:
+                skipped += 1
+                continue
+            urls_pending[url] = self.urls_pending[url]
+
+        self.urls_pending = urls_pending
+        logger.info(f'allowlist filter: {skipped} ignored')
 
     @staticmethod
     def _silence_third_party():
