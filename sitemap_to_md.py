@@ -1,3 +1,4 @@
+import argparse
 import logging
 import os
 import subprocess
@@ -53,7 +54,8 @@ def _make_converter(backend: str) -> DocumentConverter:
 
 
 class Sitemap2MD:
-    def __init__(self) -> None:
+    def __init__(self, browser=False) -> None:
+        self.browser = browser
         self.urls_sitemap = {}
         self.urls_pending = {}
         self.pdfs_pendings = []
@@ -64,7 +66,7 @@ class Sitemap2MD:
         self._filter_up_to_date()
         self._filter_blacklist()
         self._filter_single()
-        self._fetch_pdfs()
+        self._fetch_pdfs(browser=self.browser)
         self._docling_pdfs()
 
     def _get_sitemap(self):
@@ -158,12 +160,61 @@ class Sitemap2MD:
             return line[len('<!-- lastmod '):-len(' -->')]
         return None
 
-    def _fetch_pdfs(self):
+    def _fetch_pdfs(self, browser=False):
         """Download PDFs."""
+        if browser:
+            self._fetch_pdfs_browser()
+        else:
+            self._fetch_pdfs_wget()
+
+    def _fetch_pdfs_browser(self):
+        """Download PDFs using curl_cffi with browser TLS impersonation.
+        Bypasses Akami firewall by matching Firefox's TLS fingerprint.
+        Each thread gets its own session (curl_cffi is not thread-safe)."""
+        from curl_cffi import requests as cffi_requests
+
+        logger.info(f'browser: fetching {len(self.urls_pending)} PDFs')
+
+        def _fetch_one(url, lastmod):
+            parsed = urlparse(url)
+            local_path = Path(parsed.path.lstrip('/'))
+            local_path.parent.mkdir(parents=True, exist_ok=True)
+
+            session = cffi_requests.Session(impersonate='firefox')
+            try:
+                r = session.get(url, timeout=30)
+                if r.status_code == 200 and r.content[:4] == b'%PDF':
+                    local_path.write_bytes(r.content)
+                    logger.info(f'Downloaded {url} -> {local_path}')
+                    return local_path
+                else:
+                    logger.warning(f'Failed {url}: status={r.status_code}')
+                    return None
+            except Exception as exc:
+                logger.warning(f'Failed {url}: {exc}')
+                return None
+            finally:
+                session.close()
+
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = {
+                executor.submit(_fetch_one, url, lastmod): (url, lastmod)
+                for url, lastmod in self.urls_pending.items()
+            }
+            for future in as_completed(futures):
+                url, lastmod = futures[future]
+                try:
+                    pdf_path = future.result()
+                    if pdf_path is not None:
+                        self.pdfs_pendings.append((pdf_path, lastmod))
+                except Exception as exc:
+                    logger.warning(f'Error fetching {url}: {exc}')
+
+    def _fetch_pdfs_wget(self):
+        """Download PDFs using wget (parallel)."""
         def _fetch_one(url: str, lastmod: str):
             parsed = urlparse(url)
             local_path = Path(parsed.path.lstrip('/'))
-
             local_path.parent.mkdir(parents=True, exist_ok=True)
 
             logger.info(f'Downloading {url}')
@@ -174,7 +225,6 @@ class Sitemap2MD:
             if result.returncode != 0:
                 logger.warning(f'Failed to download {url}: {result.stderr.decode()}')
                 return None
-
             return local_path
 
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
@@ -289,9 +339,12 @@ class Sitemap2MD:
             real_stderr.close()
 
 
-def main():
-    set_logging()
-    Sitemap2MD().do()
 
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--browser', action='store_true', help='Download PDFs via browser/Selenium')
+    args = parser.parse_args()
+    set_logging()
+    Sitemap2MD(browser=args.browser).do()
 
 main()
