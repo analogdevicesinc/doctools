@@ -110,7 +110,7 @@ runs:
       if: ${{ env.LLM_AGENT_RUN == 'true' }}
       run: |
         # Setup pi
-        npm install @earendil-works/pi-coding-agent@0.80.6
+        npm install @earendil-works/pi-coding-agent@0.81.1
 
         mkdir -p ~/.pi/agent/extensions
 
