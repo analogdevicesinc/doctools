@@ -292,8 +292,9 @@ is ignored and a new one is requested.
    ~/doctools
    $podman run \
        --secret public_doctools_runner_token,type=env,target=runner_token \
-       --env org_repository=analogdevicesinc/doctools \
+       --env owner_repository=analogdevicesinc/doctools \
        --env runner_labels=repo-only,big_cpu \
+       --entrypoint /usr/local/bin/entrypoint.sh \
        adi/doctools
 
 .. collapsible:: Docker alternative
@@ -307,8 +308,9 @@ is ignored and a new one is requested.
       ~/doctools
       $docker run \
           --env public_doctools_runner_token=$(gpg --quiet --batch --decrypt /run/secrets/public_doctools_runner_token.gpg) \
-          --env org_repository=analogdevicesinc/doctools \
+          --env owner_repository=analogdevicesinc/doctools \
           --env runner_labels=repo-only,big_cpu \
+          --entrypoint /usr/local/bin/entrypoint.sh \
           localhost/adi/doctools
 
 The environment variable runner_labels (comma-separated), set the runner labels.
@@ -371,9 +373,9 @@ Below is a suggested systemd service at
    [Service]
    Restart=on-success
    ExecStart=/usr/local/bin/entrypoint.sh
-   Environment="version=latest"
-   Environment="name_label=%i"
-   Environment="org_repository=analogdevicesinc/doctools"
+   Environment="owner_repository=analogdevicesinc/doctools"
+   Environment="runner_name=adi-linux-%q-%i"
+   Environment="runner_labels=self-hosted,repo-only,v4"
    Environment="HOME=/home/runner"
    Environment="USER=runner"
    Environment="LOGNAME=runner"
