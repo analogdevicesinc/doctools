@@ -8,7 +8,7 @@
 
     <title>Continuous integration &#8212; Doctools  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8e8a900e" />
-    <link rel="stylesheet" type="text/css" href="_static/app.min.css?v=e2db3ef2" />
+    <link rel="stylesheet" type="text/css" href="_static/app.min.css?v=cae2157c" />
     <script async="async" src="_static/app.umd.js?v=26d0298f"></script>
     <link rel="icon" href="_static/icon.svg"/>
     <link rel="index" title="Index" href="genindex.html" />
@@ -450,13 +450,14 @@ is ignored and a new one is requested.</p>
 </div>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>podman<span class="w"> </span>run<span class="w"> </span><span class="se">\</span>
 <span class="w">   </span>--secret<span class="w"> </span>public_doctools_runner_token,type<span class="o">=</span>env,target<span class="o">=</span>runner_token<span class="w"> </span><span class="se">\</span>
-<span class="w">   </span>--env<span class="w"> </span><span class="nv">org_repository</span><span class="o">=</span>analogdevicesinc/doctools<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>--env<span class="w"> </span><span class="nv">owner_repository</span><span class="o">=</span>analogdevicesinc/doctools<span class="w"> </span><span class="se">\</span>
 <span class="w">   </span>--env<span class="w"> </span><span class="nv">runner_labels</span><span class="o">=</span>repo-only,big_cpu<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>--entrypoint<span class="w"> </span>/usr/local/bin/entrypoint.sh<span class="w"> </span><span class="se">\</span>
 <span class="w">   </span>adi/doctools
 </pre></div>
 </div>
 <div class="clear-left"></div></div></div><div><div class="collapsible docutils container">
-<input class="collapsible_input" id="2a0052c7f15167859974348edec6dacdbf569803" name="2a0052c7f15167859974348edec6dacdbf569803" type="checkbox"></input><label for="2a0052c7f15167859974348edec6dacdbf569803"><p>Docker alternative</p>
+<input class="collapsible_input" id="90ca9333b2602d469498872c18374088a7bd36cc" name="90ca9333b2602d469498872c18374088a7bd36cc" type="checkbox"></input><label for="90ca9333b2602d469498872c18374088a7bd36cc"><p>Docker alternative</p>
 <div class="icon"></div></label><div class="collapsible_content docutils container">
 <p><code class="docutils literal notranslate"><span class="pre">docker</span></code> does <strong>not</strong> have a built-in keyring, instead you pass directly
 to <code class="docutils literal notranslate"><span class="pre">run</span></code> command. <span class="red">Consider hardening strategies to mitigate risks</span>,
@@ -466,8 +467,9 @@ like using another keyring as below.</p>
 </div>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>run<span class="w"> </span><span class="se">\</span>
 <span class="w">   </span>--env<span class="w"> </span><span class="nv">public_doctools_runner_token</span><span class="o">=</span><span class="k">$(</span>gpg<span class="w"> </span>--quiet<span class="w"> </span>--batch<span class="w"> </span>--decrypt<span class="w"> </span>/run/secrets/public_doctools_runner_token.gpg<span class="k">)</span><span class="w"> </span><span class="se">\</span>
-<span class="w">   </span>--env<span class="w"> </span><span class="nv">org_repository</span><span class="o">=</span>analogdevicesinc/doctools<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>--env<span class="w"> </span><span class="nv">owner_repository</span><span class="o">=</span>analogdevicesinc/doctools<span class="w"> </span><span class="se">\</span>
 <span class="w">   </span>--env<span class="w"> </span><span class="nv">runner_labels</span><span class="o">=</span>repo-only,big_cpu<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>--entrypoint<span class="w"> </span>/usr/local/bin/entrypoint.sh<span class="w"> </span><span class="se">\</span>
 <span class="w">   </span>localhost/adi/doctools
 </pre></div>
 </div>
@@ -538,9 +540,9 @@ limits into the unit, instead of using Podman/Docker equivalents.</p>
 <span class="k">[Service]</span>
 <span class="na">Restart</span><span class="o">=</span><span class="s">on-success</span>
 <span class="na">ExecStart</span><span class="o">=</span><span class="s">/usr/local/bin/entrypoint.sh</span>
-<span class="na">Environment</span><span class="o">=</span><span class="s">&quot;version=latest&quot;</span>
-<span class="na">Environment</span><span class="o">=</span><span class="s">&quot;name_label=%i&quot;</span>
-<span class="na">Environment</span><span class="o">=</span><span class="s">&quot;org_repository=analogdevicesinc/doctools&quot;</span>
+<span class="na">Environment</span><span class="o">=</span><span class="s">&quot;owner_repository=analogdevicesinc/doctools&quot;</span>
+<span class="na">Environment</span><span class="o">=</span><span class="s">&quot;runner_name=adi-linux-%q-%i&quot;</span>
+<span class="na">Environment</span><span class="o">=</span><span class="s">&quot;runner_labels=self-hosted,repo-only,v4&quot;</span>
 <span class="na">Environment</span><span class="o">=</span><span class="s">&quot;HOME=/home/runner&quot;</span>
 <span class="na">Environment</span><span class="o">=</span><span class="s">&quot;USER=runner&quot;</span>
 <span class="na">Environment</span><span class="o">=</span><span class="s">&quot;LOGNAME=runner&quot;</span>
