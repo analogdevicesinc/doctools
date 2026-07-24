@@ -45,9 +45,9 @@ outputs:
 #   - The history is rebased into the target branch head (fail -> checkout_fail_pr_rebase)
 #   - Fixup commits are auto squashed (fail -> checkout_fail_pr_fixup)
 #
-# Note: do not use this action to dispatch a checkout at the branch head, it
+# Note: for dispatch a checkout at the branch head, it
 # will fall into the pr flow if a pull request is associated with the
-# github.sha (e.g., merged), use blank@action instead.
+# github.sha and opened.
 
 runs:
   using: composite
@@ -127,7 +127,9 @@ runs:
               "https://api.github.com/repos/$repository/commits/$sha/pulls")
 
             status=$(echo "$resp" | jq -r '.status? // empty')
-            [[ -n "$status" ]] || pr_json=$(echo "$resp" | jq '.[0] // empty')
+            # For the corner case of a dispatch with a sha that may resolve to a pr,
+            # pick pr only if it is open.
+            [[ -n "$status" ]] || pr_json=$(echo "$resp" | jq 'map(select(.state == "open"))[0] // empty')
           fi
 
           pr=$(echo "$pr_json" | jq -r '.number // empty')
