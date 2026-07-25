@@ -1,0 +1,393 @@
+<!-- lastmod 2022-08-04 -->
+## Evaluates: MAX16731
+
+## General Description
+
+The MAX16731 evaluation kit (EV kit) is a reference design platform  designed  for  evaluation  of  the  MAX16731,  a single-output  POL  regulator  with  on-chip  bias  LDO  that integrates full control circuitry and a power train that can provide  up  to  30A  to  the  load.  The  EV  kit  package comprises  a  fully  assembled  and  tested  multilayer  PCB implementation of high efficiency and high-power density solution.
+
+The selection of key converter configuration parameters, acting on one external resistor and jumpers, allows design flexibility to match several application scenario requirements.
+
+Refer to the  MAX16731  IC  data  sheet  for  detailed information regarding the Description , Features , Benefits , and Parameters .
+
+## MAX16731 EV Kit Board Photos
+
+Figure 1. Top view of the MAX16731 EV kit
+
+<!-- image -->
+
+## Features
+
+- Wide 2.7V to 16V Input Voltage Range
+- High Efficiency and Power Density
+- 0.5V to 5.8V VOUT  (Selectable  through Resistor Divider)
+- Selectable:  PWM  Frequency,  OCP  Threshold,  DEM Feature, DCM Mode, Voltage Loop Gain and Switching frequency (through jumpers)
+- Low Component Count
+- Proven PCB Layout
+- Fully Assembled and Tested for Basic Functionality
+
+Ordering Information appears at end of data sheet.
+
+## MAX16731 Evaluation Kit
+
+<!-- image -->
+
+## Evaluates: MAX16731
+
+Figure 2. Bottom view of the MAX16731 EV kit
+
+<!-- image -->
+
+## Quick Start
+
+## Required Equipment
+
+- MAX16731 EV kit and EV kit datasheet
+- 2.7V to 16V V IN  power supply (10A minimum current capability)
+- Measure instruments E.g. Digital Voltage and Current meters
+- Multi-trace digital scope (not mandatory)
+- Low voltage 30A Electronic load
+
+## Procedure
+
+The EV kit is fully assembled and tested. Make the required hardware connections to the start operation of the EV kit. Note: Do not supply V IN  until the board has been correctly configured and with input and output cables connected. Follow the steps to verify basic board operations and to run the EV kit.
+
+1. Setup V IN  powers supply at a voltage level between 2.7V and 16V. Disable the power supply output. Connect the positive and negative terminal of the V IN  power supply to the board using suitable section cables and equipped with male banana plugs. (J5 + V IN , J8 GND).
+2. Verify that the position of each jumper on the board is correct according to the Configuration that needs to be tested (See Table 1 for Jumpers and Rprog options).
+3. Connect the electronic load to the output screw connectors, respecting the polarity (if you want to test the regulator behavior under load). Disable the load. (ST1, +V OUT , ST2 GND).
+4. Connect all the measurement instruments or scope probes to the targeted test points to measure current or voltage, or to observe operating waveforms (See MAX16731 EV Kit Schematic Diagram ).
+5. Supply V IN .
+6. Enable the regulator through the EN switch SW1 (PWM starts).
+7. Enable your load.
+
+Note: Steps 5-7 are not subjected to sequence limitations.
+
+## Detailed Description of Hardware
+
+## Operation
+
+The MAX16731 IC is a monolithic, single-output, high-frequency, step-down converter with internal bias LDO, optimized for applications requiring high-power density and high-efficiency. Detailed product and application information is provided in the MAX16731 IC datasheet.
+
+## Output Enable (OE)
+
+OE pin is used to enable/disable the operation and so the output voltage. On the EV kit board, the selection switch SW1 is present to allow enabling and disabling the regulator.
+
+## Output Voltage selection
+
+The MAX16731 has an internal 0.5V reference voltage. The MAX16731, 30A, integrated step-down switching regulator performs a differential V OUT  voltage sense to improve regulation at high load current. When the desired output voltage is higher than 0.5V, it is required to use a resistor divider R 13  and R 9  to sense the output voltage. (See MAX16731 EV Kit Schematic Diagram ).
+
+The resistor divider ratio is given by Equation 1.
+
+## Equation 1:
+
+where:
+
+VOUT = Output voltage
+
+VREF = 0.5V fixed reference voltage
+
+R13  = Top divider resistor
+
+R9  = Bottom divider resistor
+
+Note:
+
+It is recommended for R9, not to exceed 5K Ω .
+
+## Test points
+
+J2 and J3 headers, respectively VCC and AVDD are intended as test points to measure the two bias voltages. VCC is provided by the on-chip LDO, AVDD (power IC internal analog blocks supply) is derived from VCC through a simple RC filter. J10 and J13 are respectively VDDH and LX test points that can be used for waveforms measurements. J2, J3, J10, and J13 must be left open if not connected to any external measurement instrument. TP13, TP14, TP1 are three test points dedicated for Bode plot acquisition. A 10 Ω resistor is in series into the feedback line and provides an input port to inject the sweep frequency signal generated by a Bode plot equipment, through a decoupling transformer.
+
+## User case selection
+
+The MAX16731 gives the flexibility to set application parameters acting on the value of one resistor (R2, connected on PGM0 pin) and the logic level of PGM1 and PGM2 at the power-up. See Table 2 for setting the value of the resistor on PGM0, a 32-level code reading capability allows selecting both the switching frequency of the converter and the voltage control loop gain, selecting through six scenario configurations (A, B, C, D, E, and F) see Table 4 .
+
+PGM1 and PGM2 can recognize only a three-level setting, instead (AVDD, AGND, Hi-impedance). See Table 3 to set the position of J1 and J4, allowing to select of the wanted OCP (over current protection) threshold level and the option to allow the converter to work into auto DCM (Discontinuous Current Mode) at light load.
+
+Note: PGM0 resistor, PGM1, and PGM2 logic level are detected only one time at the power-on reset. Moving the jumpers while the bias is present won't affect any of the parameters.
+
+Table 1. Jumpers and Rprog options
+
+| JUMPERS/Rprog   | POSSIBLE CONNECTION/VALUE      | FEATURE                    |
+|-----------------|--------------------------------|----------------------------|
+| J1              | Open, (Short 1-2), (Short 2,3) | OCP levels and DCM options |
+| J2              | Open, (Short 1-2), (Short 2,3) | OCP levels and DCM options |
+| R2              | 95.3 Ω to 115.000 Ω            | f SW and scenario settings |
+
+Note: See Table 2 , Table 3 , and Table 4 for more details.
+
+<!-- formula-not-decoded -->
+
+Evaluates: MAX16731
+
+## MAX16731 Evaluation Kit
+
+## PGM0 Factory settings
+
+The MAX16731 EV kit comes pre-assembled as follows:
+
+- R2 on PGM0, 95.3 Ω . (f SW  = 500Khz, Scenario A selected. See Table 4 for Scenario Details)
+
+The value of R2 selects the switching frequency and on of the six scenarios (A, B, C, D, E, F)
+
+## Table 2. PGM0 codes selection
+
+|   PGM0 CODES |   R(Ω) |   f SW (kHz) | Scenario   |
+|--------------|--------|--------------|------------|
+|            0 |   95.3 |          500 | A          |
+|            1 |    200 |          500 | B          |
+|            2 |    309 |          500 | C          |
+|            3 |    422 |          500 | D          |
+|            4 |    536 |          500 | E          |
+|            5 |    649 |              | F          |
+|            6 |    768 |          600 | A          |
+|            7 |    909 |          600 | B          |
+|            8 |   1050 |          600 | C          |
+|            9 |   1210 |          600 | D          |
+|           10 |   1400 |          600 | E          |
+|           11 |   1620 |          600 | F          |
+|           12 |   1870 |          750 | A          |
+|           13 |   2150 |          750 | B          |
+|           14 |   2490 |          750 | C          |
+|           15 |   2870 |          750 | D          |
+|           16 |   3740 |          750 | E          |
+|           17 |   8060 |          750 | F          |
+|           18 |  12400 |         1000 | A          |
+|           19 |  16900 |         1000 | B          |
+|           20 |  21500 |         1000 | C          |
+|           21 |  26100 |         1000 | D          |
+|           22 |  30900 |         1000 | E          |
+|           23 |  36500 |         1000 | F          |
+|           24 |  42200 |         1200 | A          |
+|           25 |  48700 |              | B          |
+|           26 |  56200 |              | C          |
+|           27 |  64900 |              | D          |
+|           28 |  75000 |              | E          |
+|           29 |  86600 |              | F          |
+|           30 | 100000 |         1500 | A          |
+|           31 | 115000 |         1500 | B          |
+
+Evaluates: MAX16731
+
+## MAX16731 Evaluation Kit
+
+## PGM1 and PGM2 settings
+
+PGM1 and PGM2 are two selection pins tri state sensitive. These pins can be connected to VCC, GND or left open acting respectively on the jumpers named as J1 and J4. Table 3 shows the selection of DCM mode and OCP level (over current protection level) according to the position of J1 and J4.
+
+Table 3. PGM1 and PGM2 selection
+
+| PGM1 CONNECTION   | PGM2 CONNECTION   | DCM     |   OCP (A) |   PGM 1 AND 2 CODE |
+|-------------------|-------------------|---------|-----------|--------------------|
+| OPEN              | OPEN              | Disable |        38 |                  0 |
+| OPEN              | AGND              | Enable  |        38 |                  1 |
+| OPEN              | AVDD              | Disable |        28 |                  2 |
+| AGND              | OPEN              | Enable  |        38 |                  3 |
+| AGND              | AGND              | Disable |        38 |                  4 |
+| AGND              | AVDD              | Enable  |        38 |                  5 |
+| AVDD              | OPEN              | Disable |        28 |                  6 |
+| AVDD              | AGND              | Enable  |        28 |                  7 |
+| AVDD              | AVDD              | Disable |        33 |                  8 |
+
+See Table 4 for the R VGA  value, that fix the gain in the con voltage control loop, according to the selected scenario.
+
+The value of the voltage control loop gain can be calculated as:
+
+<!-- formula-not-decoded -->
+
+So, it can assume values from 1.57 to 6.23.
+
+## Table 4. Voltage loop gain and DEM status according to the scenario selection
+
+| SCENARIO   |   RVGA (K Ω ) | DEM STATUS   |
+|------------|---------------|--------------|
+| A          |          15.7 | Enabled      |
+| B          |          22.7 | Enabled      |
+| C          |          31.3 | Enabled      |
+| D          |          44.8 | Disabled     |
+| E          |          52.9 | Disabled     |
+| F          |          62.3 | Disabled     |
+
+The voltage loop gain resistance affects the bandwidth of the voltage loop. For good stability and transient response, the equivalent voltage loop bandwidth is recommended to be set lower than 1/5th of the switching frequency.
+
+Refer to the MAX16731 IC datasheet for detailed calculation of the bandwidth, function of voltage feedback resistor divider ratio, and amount of output capacitance.
+
+Evaluates: MAX16731
+
+## MAX16731 EV Kit Performances Chart (TOC)
+
+<!-- image -->
+
+<!-- image -->
+
+<!-- image -->
+
+<!-- image -->
+
+Evaluates: MAX16731
+
+## MAX16731 Evaluation Kit
+
+<!-- image -->
+
+500us/div
+
+Soft start
+
+## Ordering Information
+
+| PART           | TYPE   |
+|----------------|--------|
+| MAX16731EVKIT# | EV Kit |
+
+#Denotes RoHS compliance.
+
+## Evaluates: MAX16731
+
+<!-- image -->
+
+Frequency (Hz)
+
+Bode Plot
+
+## MAX16731 Evaluation Kit
+
+## MAX16731 EV Kit Bill of Materials
+
+| REF DES                             |   QTY | MFG PART#                                              | MANUFACTURER                    | VALUE      | DESCRIPTION               |
+|-------------------------------------|-------|--------------------------------------------------------|---------------------------------|------------|---------------------------|
+| C1                                  |     1 | GMC10X7R475K6R3NT, CL10B475KQ8NQN, JMK107BB7475KA,     | SAMSUNG, TAIYO YUDEN, CAL- CHIP | 4,7uF/6,3v | CERAMIC CAP, SMT(0603)    |
+| C2, C20, C21, C30                   |     4 | CL31X226KAHN3N, GRM31CC81E226KE11                      | SAMSUNG, MURATA                 | 22uF/25v   | CERAMIC CAP, SMT(1206)    |
+| C3, C9, C11, C13, C16, C33-C35, C46 |     9 | GRM31CD80J107ME39                                      | MURATA                          | 100uF/6,3v | CERAMIC CAP, SMT(1206)    |
+| C4                                  |     1 | GRM155R70J104KA01                                      | MURATA                          | 0,1uF/6,3v | CERAMIC CAP, SMT(1206)    |
+| C6                                  |     1 | CL05B105KQ5NQNC, GRM155R70J105KA12                     | SAMSUNG, MURATA                 | 1uF/6,3v   | CERAMIC CAP, SMT(0402)    |
+| C10                                 |     1 | LMK105B7474KV, GRM155R71A474KE01                       | TAIYO YUDEN, MURATA             | 0,47uF/10v | CERAMIC CAP, SMT(0402)    |
+| C14                                 |     1 | TMK107B7105KA, C1608X7R1E105K080AE                     | TAIYO YUDEN, TDK                | 1uF/25v    | CERAMIC CAP, SMT(0603)    |
+| C26                                 |     1 | C0402C102K5GAC                                         | KEMET                           | 1000pF     | CERAMIC CAP, SMT(0603)    |
+| C29, C47                            |     2 | GRM155R71E104KE14, C1005X7R1E104K050BB, TMK105B7104KVH | MURATA, TDK, TAIYO YUDEN        | 0,1uF/25v  | CERAMIC CAP, SMT(0402)    |
+| C32, C36, C37, C39                  |     4 | T521X107M025ATE060                                     | KEMET                           | 100uF/25v  | TANTALUM, SMT(7343)       |
+| D1, D3                              |     2 | MBRS540T3G                                             | ON-SEMICONDUCTOR                | -          | SCHOTTKY DIODE            |
+| DS1                                 |     1 | LGL29K-G2J1-24-Z                                       | OSRAM                           | -          | GREEN LED                 |
+| J1, J4                              |     2 | PEC03SAAN                                              | SULLINS CONNECTOR               | 3 PIN      | MALE THROUGHT HOLE CONN.  |
+| J2, J3, J6, J10, J13, J19           |     6 | TSW-101-22-L-D                                         | SAMTEC                          | 2 PIN      | MALE THROUGHT HOLE HEADER |
+| J5, J8                              |     2 | 6095                                                   | KEISTONE                        | 1 PIN      | PANELMOUNT FEMALE         |
+| L1                                  |     1 | FP1008R5-R220-R                                        | EATON                           | 220nH      | FERRITE INDUCTOR          |
+| Q1                                  |     1 | BSS138                                                 | ONSEMI                          | -          | LOGIC LEVEL NMOS          |
+| R1                                  |     1 | CRCW04024R70FK                                         | VISHAY DALE                     | 4,7ohm     | RESISTOR SMT(0402)        |
+| R2                                  |     1 | CRCW040295R3FK                                         | VISHAY DALE                     | 95,3ohm    | RESISTOR SMT(0402)        |
+| R9, R13, R16                        |     3 | CRCW04023K00FK                                         | VISHAY DALE                     | 3Kohm      | RESISTOR SMT(0402)        |
+| R11                                 |     1 | RC0402JR-070RL                                         | YAGEO                           | 0ohm       | RESISTOR SMT(0402)        |
+| R14                                 |     1 | 9C04021A10R0FL                                         | YAGEO                           | 10ohm      | RESISTOR SMT(0402)        |
+| R41                                 |     1 | CRCW040220K0FK                                         | VISHAY DALE                     | 20Kohm     | RESISTOR SMT(0402)        |
+| R42                                 |     1 | RC0603FR-07100RL                                       | YAGEO                           | 100ohm     | RESISTOR SMT(0603)        |
+| R51                                 |     1 | ERJ-3EKF2100                                           | PANASONIC                       | 210ohm     | RESISTOR SMT(0603)        |
+
+Analog Devices | 8
+
+Evaluates: MAX16731
+
+## MAX16731 Evaluation Kit
+
+## Evaluates: MAX16731
+
+| ST1, ST2                       | 2   | 7808                               | KEYSTONE         | -          | SCREW TERMINAL            |
+|--------------------------------|-----|------------------------------------|------------------|------------|---------------------------|
+| SW1                            | 1   | GT21MCBE                           | C&K COMPONENS    | -          | THROUGH HOLE SWITCH       |
+| TP1, TP2, TP7, TP9, TP11       | 5   | 5011                               | KEYSTONE         | -          | TEST POINT                |
+| TP6, TP29, TP30                | 3   | 5010                               | KEYSTONE         | -          | TEST POINT                |
+| TP13, TP14                     | 2   | 5012                               | KEYSTONE         | -          | TEST POINT                |
+| U1                             | 1   | MAX16731AVX+                       | ANALOG DEVICE    | -          | POL REGULATOR (WLP45)     |
+| C5, C7, C8, C48, C50, C54, C55 | DNP | GRM31CD80J107ME39                  | MURATA           | 100uF/6,3v | CERAMIC CAP, SMT(1206)    |
+| C17                            | DNP | VJ0402A101FXJCW1BC                 | VISHAY           | 100pF      | CERAMIC CAP, SMT(0402)    |
+| C23                            | DNP | C0402C103J3RAC                     | KEMET            | 0,01uF/25v | CERAMIC CAP, SMT(0402)    |
+| C24                            | DNP | TMK107B7105KA, C1608X7R1E105K080AE | TAIYO YUDEN, TDK | 1uF/25v    | CERAMIC CAP, SMT(0603)    |
+| C27, C28                       | DNP | GRM155R71E472KA01                  | MURATA           | 4700pF/25v | CERAMIC CAP, SMT(0402)    |
+| C31, C40                       | DNP | T491X477K010AT                     | KEMET            | 470uF/10v  | TANTALUM, SMT(7343)       |
+| C41, C43, C44, C49             | DNP | T491X477K010AT                     |                  |            |                           |
+| C51, C53, C72                  | DNP | CL31X476KQHNNN                     | SAMSUNG          | 47uF/6,3v  | CERAMIC CAP, SMT(1206)    |
+| J7                             | DNP | TSW-101-22-L-D                     | SAMTEC           | 2 PIN      | MALE THROUGHT HOLE HEADER |
+| J9                             | DNP | PEC03SAAN                          | SULLINS          | 3 PIN      | MALE THROUGHT HOLE HEADER |
+| R4                             | DNP | ERJ-P08J101                        | PANASONIC        | 10ohm      | RESISTOR SMT(1206)        |
+| R17                            | DNP | CRCW04023K00FK                     | VISHAY           | 3Kohm      | RESISTOR SMT(0402)        |
+| R19                            | DNP | RC0402JR-070RL                     | YAGEO            | 0ohm       | RESISTOR SMT(0402)        |
+
+## MAX16731 EV Kit Schematic Diagram
+
+<!-- image -->
+
+Evaluates: MAX16731
+
+## MAX16731 EV Kit Schematic Diagram (Input/Output Caps)
+
+<!-- image -->
+
+Evaluates: MAX16731
+
+## MAX16731 EV Kit Schematic (EN switch, PGOOD indicator)
+
+<!-- image -->
+
+Evaluates: MAX16731
+
+## MAX16731 EV Kit PCB Layout Diagrams
+
+MAX16731 EV kit Component Placement Guide-Top Silkscreen
+
+<!-- image -->
+
+MAX16731 EV kit PCB Layout-Top View
+
+<!-- image -->
+
+Evaluates: MAX16731
+
+## MAX16731 Evaluation Kit
+
+## Evaluates: MAX16731
+
+MAX16731 EV Kit PCB Layout-Layer 2
+
+<!-- image -->
+
+MAX16731 EV Kit PCB Layout-Layer 3
+
+<!-- image -->
+
+## MAX16731 Evaluation Kit
+
+## Evaluates: MAX16731
+
+MAX16731 EV Kit PCB Layout-Layer 4
+
+<!-- image -->
+
+MAX16731 EV Kit PCB Layout-Layer 5
+
+<!-- image -->
+
+## MAX16731 Evaluation Kit
+
+## Evaluates: MAX16731
+
+MAX16731 EV Kit PCB Layout-Bottom View
+
+<!-- image -->
+
+MAX16731 EV kit Component Placement Guide-Silkscreen Bottom
+
+<!-- image -->
+
+O
+
+## MAX16731 Evaluation Kit
+
+## Revision History
+
+|   REVISION NUMBER | REVISION DATE   | DESCRIPTION     | PAGES CHANGED   |
+|-------------------|-----------------|-----------------|-----------------|
+|                 0 | 04/22           | Initial release | -               |
+
+<!-- image -->
+
+Information furnished by Analog Devices is believed to be accurate and reliable. However, no responsibility is assumed by Analog Devices for its use, nor for any infringements of patents or other rights of third parties that may result from its use. Specifications subject to change without notice. No license is granted by implication or otherwise under any patent or patent rights of Analog Devices. Trademarks and registered trademarks are the property of their respective owners.
+
+Evaluates: MAX16731
