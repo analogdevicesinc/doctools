@@ -1,0 +1,231 @@
+<!-- lastmod 2022-08-03 -->
+## DS4424 Evaluation Kit
+
+## General Description
+
+The  DS4422  and  DS4424  contain  two  or  four  I 2 Cprogrammable  current  DACs  that  are  each  capable  of sinking and sourcing current up to 200μA.
+
+The DS4424 evaluation kit (EV kit) provides the hardware and software graphical user interface (GUI) necessary to evaluate the DS4424 4-channel, 7-bit sink/source current DAC.  The  DS4422  has  the  same  performance  as  the DS4424, except with only two channels.
+
+The EV kit includes a DS4424 installed, as well as two populated full-scale calibration resistors (R3 and R4) and two unpopulated resistors (R5 and R6). This allows the device to be evaluated without any board rework on two channels but enables a custom-defined value to be populated on the two  open  channels. The EV kit  also  has  the  USB-to-I 2 C interface required to communicate to the device.
+
+## DS4424 EV Kit Photo
+
+<!-- image -->
+
+Windows and Windows XP are registered trademarks and registered service marks of Microsoft Corporation.
+
+## Features
+
+- Easy Evaluation of the DS4424
+- EV Kit Hardware is USB Powered
+- USB HID Interface
+- Windows XP®- and Windows® 7-Compatible Software
+- RoHS Compliant
+- Proven PCB Layout
+- Fully Assembled and Tested
+
+## EV Kit Contents
+
+- Assembled Circuit Board Including DS4424
+
+Ordering Information appears at end of data sheet.
+
+Evaluates: DS4422/DS4424
+
+<!-- image -->
+
+## DS4424 Evaluation Kit
+
+## DS4424 EV Kit Files
+
+| FILE                           | DESCRIPTION         |
+|--------------------------------|---------------------|
+| DS4424EVKitSoftwareInstall.EXE | Application program |
+
+Note: The .EXE file is downloaded as a .ZIP file.
+
+## Quick Start
+
+## Required Equipment
+
+- DS4424 EV kit hardware
+- Windows XP or Windows 7 PC
+- USB port
+- Micro-USB cable
+
+Note: In the following sections, software-related items are identified by bolding . Text in bold refers to items directly from the install or EV kit software. Text in bold and underlined refers to items from the Windows operating system.
+
+## Procedure
+
+The EV kit is fully assembled and tested. Follow the steps below to verify board operation:
+
+- 1)  Place  the  EV  kit  hardware  on  a  nonconductive surface  to  ensure  that  nothing  on  the  PCB  gets shorted together.
+- 2)  Prior to starting the GUI, connect the EV kit hardware to a PC using the Mini-USB cable, or equivalent. The power LED (D20) should be green and the com LED (D21) should be red and slowly flash orange.
+- 3)  Windows  should  automatically  begin  installing  the necessary device driver. The USB interface of the EV kit hardware is configured as an HID device and therefore does not require a unique/custom device driver. Once the  driver  installation  is  complete,  a  Windows message  appears  near  the System  Icon menu, indicating  that  the  hardware  is  ready  to  use.  Do  not attempt to run the GUI prior to this message. If you do, then you must close the application and restart it once the driver installation is complete. On some versions of Windows, administrator privileges may be required to install the USB device.
+- 4)  Once  the  device  driver  installation is  complete, visit www.maximintegrated.com/evkitsoftware to download  the  latest  version  of  the  EV  kit  software, DS4424EVKitSoftwareInstall.ZIP.  Save  the  EV  kit software to a temporary folder.
+- 5)  Open the .ZIP file and double-click the .EXE file to run the  installer.  A  message  box  stating The  publisher could not be verified. Are you sure you want to run this software? may appear. If so, click Yes .
+- 6)  The  installer  GUI  appears.  Click Next and  then Install . Once complete, click Close .
+- 7)  Go to Start | All Programs . Look for the DS44240EVKitSoftware folder and  click on  the DS4424EVKitSoftware.EXE inside the folder.
+- 8)  When  the  GUI  appears,  the  text  in  the  bottom right-hand  corner  should  display EV  Kit  Hardware Connected . The com LED (D21) on the EV kit board should turn green.
+
+Evaluates: DS4422/DS4424
+
+│
+
+## Detailed Description of Software
+
+Figure 1. DS4424 EV Kit GUI
+
+<!-- image -->
+
+## Software Startup
+
+If  the  DS4424  EV  kit  is  connected  when  the  software is  opened,  the  software  first  initializes  the  hardware  to communicate. The  software  then  searches  for  all  slave addresses on the I 2 C bus and connects to the first valid slave  address.  The  GUI  displays EV  Kit  Hardware Connected in  the  bottom  right-hand  corner.  If  the  EV kit  is  not  connected  on  software  startup,  then  the  GUI populates with default EV kit values. Once the EV kit is connected, the GUI executes the sequence above.
+
+## Menu and Status Bar
+
+The File menu item contains an exit option. To exit, select Exit .  The Device menu item allows the user to connect to a desired device. Find Slave Addresses searches for all  slave addresses connected to the I 2 C bus. To select a  device,  click Select Slave Address and  all  the  slave addresses found are shown and are selectable.
+
+## Status Log
+
+The status log located at the bottom left-hand side of the GUI displays all the actions the GUI performs. Whenever an  I 2 C  command  is  read  or  written,  the  action  is confirmed by the log. The log can be cleared by clicking on the Clear button.
+
+## Status Tab
+
+The Status tab,  located  on  the  bottom  of  the  GUI, displays the current status, EV kit software version, and whether or not the hardware is connected.
+
+## Communicating with the Device
+
+In  order  to  read  and  write  from  the  selected  slave address, there are two buttons labeled Read and Write . Clicking the Read button updates the four register values displayed  on  the  GUI.  All  values  are  represented  in  a hexadecimal  format.  To  send  data,  type  or  use  the  up/ down  arrows  to  adjust  the  registers  to  the  appropriate values. Then click the Write button.
+
+│
+
+Evaluates: DS4422/DS4424
+
+## DS4424 Evaluation Kit
+
+## Detailed Description of Hardware
+
+## Changing the Slave Address
+
+The slave  address  for  the  DS4424  can  be  changed  by changing the configuration of the jumpers on HDR1. Use two  jumpers  to  connect  the A0  and A1  nodes  to  either VCC or GND. The resulting address is shown in Table 1 .
+
+## Table 1. Slave Addresses
+
+| SLAVE ADDRESS   | A1   | A0   |
+|-----------------|------|------|
+| 20h             | GND  | GND  |
+| 60h             | GND  | V CC |
+| A0h             | V CC | GND  |
+| E0h             | V CC | V CC |
+
+## Table 2. Description of LEDs
+
+| LED         | COLOR   | DESCRIPTION                                                                                                            |
+|-------------|---------|------------------------------------------------------------------------------------------------------------------------|
+| D20 (Power) | Red     | USB Power Fault: A fault occurred due to overvoltage limit, current limit, or thermal limit.                           |
+| D20 (Power) | Green   | USB Power: USB power supply is on.                                                                                     |
+| D21 (Com)   | Red     | Communication: After the software has initialized the hardware, the LED flashes red when an I 2 C command is received. |
+| D21 (Com)   | Green   | Initialized: Hardware has been initialized by software.                                                                |
+
+## Table 3. Troubleshooting
+
+| SYMPTOM                     | CHECK                                                        | SOLUTION                                                                                                                                                                                                                                                               |
+|-----------------------------|--------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| GUI says hardware not found | Is the LED labeled D20 red?                                  | If yes, then the electronic fuse is in a fault state. Inspect for electrical shorts on the PCB and make sure that the PCB is not sitting on a conductive surface.                                                                                                      |
+| GUI says hardware not found | Does the LED labeled D21 turn green when the GUI is running? | If not, then exit the GUI and try running it again. If D20 still does not turn green, then exit the GUI and try connecting the USB cable to a different USB port on the PC and wait for a Windows message that states the hardware is ready to use. Run the GUI again. |
+| GUI says hardware not found | Are any of the LEDs illuminated?                             | If not, then the PCB may not be getting power from the USB. Try a different USB cable or a different USB port.                                                                                                                                                         |
+
+│
+
+Evaluates: DS4422/DS4424
+
+## Troubleshooting
+
+All efforts have been made to ensure that each kit works on the first try, right out of the box. In the rare occasion that a problem is suspected, see Table 3 to help troubleshoot the issue.
+
+## DS4424 Evaluation Kit
+
+## Component List
+
+| DESIGNATION      |   QTY | DESCRIPTION                                                                                 |
+|------------------|-------|---------------------------------------------------------------------------------------------|
+| C1, C212         |     2 | 0.1μF ±10%, 100V ceramic capacitors (0805) TDK CGA4J2X7R2A104K                              |
+| C201, C202, C204 |     3 | 10μF ±10%, 16V ceramic capacitors (0805) Taiyo Yuden EMK212ABJ106KD-T                       |
+| C203, C214       |     2 | 0.01μF ±10%, 100V ceramic capacitors (0805) Murata GRM21BR72A103K                           |
+| C211             |     1 | 1.0μF ±10%, 50V ceramic capacitor (0805) TDK C2012X7R1H105K/SOFT                            |
+| C213             |     1 | 0.22μF ±10%, 50V ceramic capacitor (0805) TDK C2012X7R1H224K                                |
+| C215             |     1 | Do not populate, ceramic capacitor                                                          |
+| D20, D21         |     2 | Dual red/green LEDs (0805) Knightbright APHBM2012SURKCGKC                                   |
+| D22              |     1 | 30V, 3A Schottky diode (MINI2) Panasonic SSG DB2W31900L                                     |
+| HDR1             |     1 | 6-pin, dual-row header 3M 961206-6404-AR                                                    |
+| J20              |     1 | USB micro-B receptical Molex 105017-0001                                                    |
+| J21              |     1 | 2-pin, single-row header 3M 961102-6404-AR                                                  |
+| R1, R2, R210     |     3 | 4.7kΩ ±1% resistors (0805)                                                                  |
+| R3               |     1 | 38.3kΩ ±1% resistor (0805)                                                                  |
+| R4               |     1 | 154kΩ ±1% resistor (0805)                                                                   |
+| R5, R6           |     0 | Not populated, to allow user to select the full-scale calibration current for these outputs |
+
+Evaluates: DS4422/DS4424
+
+* EP = Exposed pad.
+
+| DESIGNATION      |   QTY | DESCRIPTION                                                                      |
+|------------------|-------|----------------------------------------------------------------------------------|
+| R201, R202, R214 |     3 | 0Ω ±1% resistors (0805)                                                          |
+| R203, R205       |     2 | 560Ω ±1% resistors (0805)                                                        |
+| R204             |     1 | 100kΩ ±1% resistor (0805)                                                        |
+| R206             |     1 | 45.3kΩ ±1% resistor (0805)                                                       |
+| R207             |     1 | 10kΩ ± 1% resistor (0805)                                                        |
+| R211, R212       |     2 | 330Ω ±1% resistors (0805)                                                        |
+| R213             |     1 | 2.2kΩ ±1% resistor (0805)                                                        |
+| Ref1             |     0 | Do not populate                                                                  |
+| TP1, TP9, TP10   |     3 | Red test points Keystone 5010                                                    |
+| TP2              |     1 | Black test point Keystone 5011                                                   |
+| TP3-TP8          |     6 | White test points Keystone 5012                                                  |
+| U1               |     1 | 2-/4-channel, I 2 C, 7-bit sink/ source current DAC (10 TDFN-EP*) Maxim DS4424N+ |
+| U20              |     1 | Microcontroller (28 SO) Microchip PIC18LF2550-I/SO                               |
+| U21              |     1 | 50mA to 600mA programmable current-limit switch (6 SOT23) Maxim MAX4995AAUT+     |
+| U22              |     1 | 500mA low-noise LDO regulator 8 TDFN-EP*) Maxim MAX8902BATA+                     |
+| X1               |     1 | 48MHz, 3.3V oscillator, 3.2mm x 2.5mm SMD AVX KC3225A48.0000C30E00               |
+
+│
+
+Figure 2a. DS4244 EV Kit Schematic (Sheet 1 of 2)
+
+<!-- image -->
+
+Figure 2b. DS4244 EV Kit Schematic (Sheet 2 of 2)
+
+<!-- image -->
+
+Figure 3. DS4244 EV Kit PCB Layout-Top
+
+<!-- image -->
+
+Figure 4. DS4244 EV Kit PCB Layout-Bottom
+
+<!-- image -->
+
+## Ordering Information
+
+| PART         | TYPE   |
+|--------------|--------|
+| DS4424EVKIT# | EV Kit |
+
+# Denotes an RoHS-compliant device that may include lead(Pb) that is exempt under the RoHS requirements.
+
+## DS4424 Evaluation Kit
+
+## Revision History
+
+|   REVISION NUMBER | REVISION DATE   | DESCRIPTION     | PAGES CHANGED   |
+|-------------------|-----------------|-----------------|-----------------|
+|                 0 | 2/14            | Initial release | -               |
+
+For pricing, delivery, and ordering information, please contact Maxim Direct at 1-888-629-4642, or visit Maxim Integrated's website at www.maximintegrated.com.
+
+Maxim Integrated cannot assume responsibility for use of any circuitry other than circuitry entirely embodied in a Maxim Integrated product. No circuit patent licenses are implied. Maxim Integrated reserves the right to change the circuitry and speci¿cations without notice at any time.
+
+Evaluates: DS4422/DS4424
