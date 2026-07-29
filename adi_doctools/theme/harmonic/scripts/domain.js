@@ -61,9 +61,7 @@ export class Domain {
     this.$.container.$.classList.add('removing')
     setTimeout(() => {
       popup.$.remove()
-      if (this.$.container.$.children.length === 0)
-        this.deinit()
-      else
+      if (this.$.container.$.children.length !== 0)
         this.$.container.$.classList.remove('removing')
     }, 250)
   }
