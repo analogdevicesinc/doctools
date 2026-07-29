@@ -144,9 +144,12 @@ export class Domain {
     } else if (location.hostname !== remote_alt.hostname) {
       if (settings.domain.ignore_fork === true)
         return
+      if (!(this.parent.state.repository in metadata.repotoc))
+        return
+
       this.make_domain_warning(
         'fork',
-        'Unoficial fork of the documentation!',
+        'Unofficial fork of the documentation!',
         'ignore_fork'
       )
     }
