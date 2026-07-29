@@ -1,4 +1,5 @@
 """Shared utilities for search commands."""
+from __future__ import annotations
 
 import hashlib
 import json
@@ -247,7 +248,7 @@ class SearchResultsCache:
         try:
             with open(self.cache_file, 'r', encoding='utf-8') as f:
                 return json.load(f)
-        except (json.JSONDecodeError, IOError):
+        except (OSError, json.JSONDecodeError):
             return None
 
 
@@ -291,7 +292,7 @@ class HttpCache:
         try:
             with open(cache_path, 'r', encoding='utf-8') as f:
                 cached_data = json.load(f)
-        except (json.JSONDecodeError, OSError, IOError) as e:
+        except (json.JSONDecodeError, OSError) as e:
             logger.debug(f"Failed to load cache {cache_path}: {e}")
             return False
 
@@ -336,13 +337,12 @@ class HttpCache:
 
         cache_data = dict(data) if isinstance(data, dict) else data
 
-        if last_modified:
-            if isinstance(cache_data, dict):
-                if hasattr(last_modified, 'strftime'):
-                    lm_str = last_modified.strftime('%a, %d %b %Y %H:%M:%S GMT')
-                else:
-                    lm_str = str(last_modified)
-                cache_data['__cache_metadata__'] = {'last_modified': lm_str}
+        if last_modified and isinstance(cache_data, dict):
+            if hasattr(last_modified, 'strftime'):
+                lm_str = last_modified.strftime('%a, %d %b %Y %H:%M:%S GMT')
+            else:
+                lm_str = str(last_modified)
+            cache_data['__cache_metadata__'] = {'last_modified': lm_str}
 
         with open(cache_path, 'w', encoding='utf-8') as f:
             json.dump(cache_data, f)

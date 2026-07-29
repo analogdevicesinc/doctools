@@ -1,5 +1,5 @@
-import subprocess
 import shutil
+import subprocess
 from os import path
 
 
@@ -11,7 +11,8 @@ def get_git_top_level(path_):
         ["git", "rev-parse", "--show-toplevel"],
         capture_output=True,
         cwd=path_,
-        stdin=subprocess.DEVNULL
+        stdin=subprocess.DEVNULL,
+        check=False
     )
     if p_.returncode != 0:
         print(p_.stderr)

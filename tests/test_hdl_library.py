@@ -11,7 +11,7 @@ def test_hdl_library(monkeypatch, tmp_path):
         print(json.dumps(obj, indent=4))
 
     file = Path("library/core/core_ip.tcl")
-    obj, path_, ip_name = parse_hdl_library(str(file))
+    obj, _path, _ip_name = parse_hdl_library(str(file))
 
     log_info(obj)
 

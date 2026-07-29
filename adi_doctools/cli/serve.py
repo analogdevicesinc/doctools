@@ -1,21 +1,19 @@
-from os import path, listdir, remove, mkdir
-from os import pardir
-from os import environ, stat, utime
-from shutil import copy2, which, rmtree
-import logging
 import importlib
+import logging
 import mimetypes
 import tempfile
 import threading
+from os import environ, listdir, mkdir, pardir, path, remove, stat, utime
+from shutil import copy2, rmtree, which
 
 from packaging.version import Version
+from sphinx import __version__ as __sphinx_version__
 from sphinx.application import Sphinx
 from sphinx.testing.util import _clean_up_global_state
-from sphinx import __version__ as __sphinx_version__
 
+from .aux_git import get_git_dir, get_git_top_level, get_lfs_sha, is_git_lfs_installed
 from .aux_os import aux_killpg
-from .aux_git import get_git_top_level, get_git_dir, is_git_lfs_installed, get_lfs_sha
-from .logging import BLUE, FAIL, RED, NC
+from .logging import BLUE, FAIL, NC, RED
 
 logger = logging.getLogger(__name__)
 
@@ -230,10 +228,9 @@ cwd = {cwd_display}""")
             logger.error("--container is only supported with --builder pdf.")
             return True
 
-        if self.builder in ('latex', 'latexpdf'):
-            if not importlib.util.find_spec("cairosvg"):
-                logger.error(log['no_cairosvg'])
-                return True
+        if self.builder in ('latex', 'latexpdf') and not importlib.util.find_spec("cairosvg"):
+            logger.error(log['no_cairosvg'])
+            return True
 
         return False
 
@@ -275,14 +272,13 @@ cwd = {cwd_display}""")
     def _run(self):
         """Main server loop."""
         import glob
+        import http.server
         import re
         import sched
-        import time
-        import http.server
         import socketserver
         import subprocess
         import sys
-
+        import time
         from uuid import uuid4
 
         def symbolic_assert(file, msg):
@@ -313,14 +309,13 @@ cwd = {cwd_display}""")
             dist = path.join(path_, '.dist')
             file = "adi_doctools.tar.gz"
 
-            f = open(req, 'r')
-            for line in f:
-                if 'adi-doctools' in line:
-                    break
-            f.close()
+            with open(req, 'r') as f:
+                for line in f:
+                    if 'adi-doctools' in line:
+                        break
 
-            from urllib.request import urlretrieve
             from shutil import rmtree
+            from urllib.request import urlretrieve
             if not path.isdir(dist):
                 mkdir(dist)
             urlretrieve(line, path.join(dist, file))
@@ -430,8 +425,9 @@ cwd = {cwd_display}""")
             rmtree(path.join(directory, builddir_), ignore_errors=True)
 
         if self.jsonrpc:
-            from ..lsp.logging import notify
             from sphinx._cli.util.colour import disable_colour
+
+            from ..lsp.logging import notify
 
             disable_colour()
 
@@ -494,7 +490,7 @@ cwd = {cwd_display}""")
 
         def app_subprocess_build():
             # Windows lock the file, cannot keep open
-            warn_file = tempfile.NamedTemporaryFile(mode='w+', suffix='.log', delete=False)
+            warn_file = tempfile.NamedTemporaryFile(mode='w+', suffix='.log', delete=False)  # noqa: SIM115
             warn_file_name = warn_file.name
             warn_file.close()
 
@@ -511,12 +507,12 @@ cwd = {cwd_display}""")
                 "--warning-file", warn_file_name
             ]
             build = subprocess.run(cmd, cwd=directory, capture_output=not self.verbose,
-                                   stdin=subprocess.DEVNULL)
+                                   stdin=subprocess.DEVNULL, check=False)
             if build.returncode != 0:
                 self.build_returncode = build.returncode
             elif self.container:
                 container_build = subprocess.run(container_cmd,
-                                                 capture_output=not self.verbose)
+                                                 capture_output=not self.verbose, check=False)
                 if container_build.returncode != 0:
                     self.build_returncode = container_build.returncode
             if not self.verbose and path.getsize(warn_file_name) > 0:
@@ -546,9 +542,10 @@ cwd = {cwd_display}""")
             if self._shutdown_event.wait(0.5):
                 return
             try:
+                from urllib.error import URLError
                 from urllib.request import urlopen
                 urlopen(f"http://0.0.0.0:{self.port}", timeout=0.5)
-            except Exception as e:
+            except URLError as e:
                 logger.debug(str(e))
 
         with open(path.join(src_dir, 'miscellaneous', 'dev-pool.js'), 'r') as f:
@@ -583,8 +580,8 @@ cwd = {cwd_display}""")
                             sha_ = f.read(64)
                             if sha == sha_:
                                 return file
-                    except Exception:
-                        pass
+                    except OSError as e:
+                        logger.debug(f"Error checking file hash: {e}")
                 return None
             return None
 
@@ -697,12 +694,12 @@ cwd = {cwd_display}""")
                     wsl2_thread = threading.Thread(target=wsl2_networking)
                     wsl2_thread.daemon = True
                     wsl2_thread.start()
-            except Exception as e:
+            except OSError as e:
                 if str(e) == "[Errno 98] Address already in use":
                     logger.error(f"Could not start server on http://0.0.0.0:{FAIL}{self.port}{NC}, port in use\n"
                                  f"  {BLUE}Tip{NC}: pass another port with {BLUE}--port{NC}")
                 else:
-                    logger.error(f"Could not start server on http://0.0.0.0:{FAIL}{self.port}{NC}, {str(e)}")
+                    logger.error(f"Could not start server on http://0.0.0.0:{FAIL}{self.port}{NC}, {e!s}")
                 if self.dev:
                     if self.rollup_p is not None:
                         aux_killpg(self.rollup_p)
@@ -775,14 +772,13 @@ cwd = {cwd_display}""")
 
         def update_dev_pool(message):
             global dev_pool_val
-            dev_pool_val_ = f"{str(time.time())}\n{message}"
+            dev_pool_val_ = f"{time.time()!s}\n{message}"
             with dev_pool_lock:
                 dev_pool_val = bytes(dev_pool_val_, 'utf-8')
             reload_event.set()
             if path.isdir(builddir):
-                dev_f = open(dev_pool, 'w')
-                dev_f.write(dev_pool_val_)
-                dev_f.close()
+                with open(dev_pool, 'w') as dev_f:
+                    dev_f.write(dev_pool_val_)
 
         if self.builder == "html":
             update_dev_pool("")
@@ -889,11 +885,11 @@ cwd = {cwd_display}""")
                             update_sphinx = False
                             break
 
-            for file in watch_file_src:
+            for file, file_ctime in watch_file_src.items():
                 if not path.isfile(file):
                     continue
                 ctime = stat(file).st_mtime
-                if ctime > watch_file_src[file]:
+                if ctime > file_ctime:
                     update_dev = True
                     watch_file_src[file] = ctime
 
@@ -920,7 +916,7 @@ cwd = {cwd_display}""")
                 try:
                     subprocess.run(["git", "lfs", "pull", "-I", lfs_f_s], check=True,
                                    cwd=git_top_level)
-                except Exception as e:
+                except subprocess.CalledProcessError as e:
                     if e.returncode == 2:
                         pass
                     else:
@@ -941,7 +937,7 @@ cwd = {cwd_display}""")
                     self.app.build()
                     if self.container:
                         container_build = subprocess.run(container_cmd,
-                                                         capture_output=not self.verbose)
+                                                         capture_output=not self.verbose, check=False)
                         if container_build.returncode != 0:
                             self.build_returncode = container_build.returncode
                     if warning_stream:
@@ -1056,7 +1052,7 @@ def compute_sparse_config(directory, sparse, verbose):
 
     for item in listdir(directory):
         item_path = path.join(directory, item)
-        if item.startswith('.') or item.startswith('_'):
+        if item.startswith(('.', '_')):
             continue
         if item in exclude_patterns:
             continue
@@ -1072,7 +1068,7 @@ def compute_sparse_config(directory, sparse, verbose):
                     exclude_patterns.update([f'{item}/index', f'{item}/*'])
                 else:
                     exclude_patterns.add(item)
-        elif item.endswith('.rst') or item.endswith('.md'):
+        elif item.endswith(('.rst', '.md')):
             name = item[:-4] if item.endswith('.rst') else item[:-3]
             if name not in top_level_includes and name != 'index':
                 exclude_patterns.add(item)

@@ -10,11 +10,10 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 from typing import TYPE_CHECKING
 from urllib.parse import urljoin, urlparse, urlunparse
-from packaging.version import Version
 
-from sphinx.util import logging
-from sphinx.util import requests
+from packaging.version import Version
 from sphinx import __version__ as __sphinx_version__
+from sphinx.util import logging, requests
 
 if TYPE_CHECKING:
     from sphinx.application import Sphinx
@@ -42,7 +41,7 @@ class LinkcheckSitemap:
             try:
                 logger.info(f'Fetching sitemap: {url}')
                 self._fetch_sitemap(url)
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.warning(f'Failed to fetch sitemap {url}: {exc}')
 
     def _fetch_sitemap(self, url: str) -> None:
@@ -52,9 +51,7 @@ class LinkcheckSitemap:
             _url = urlunparse(
                 urlparse(url)._replace(path='/', params='', query='', fragment='')
             )
-            if _url in request_headers:
-                headers = request_headers['*']
-            elif '*' in request_headers:
+            if _url in request_headers or '*' in request_headers:
                 headers = request_headers['*']
             else:
                 headers = {}
@@ -64,8 +61,8 @@ class LinkcheckSitemap:
             content = response.content
 
             if url.endswith(".gz") or response.headers.get('content-type', '').endswith('gzip'):
-                from io import BytesIO
                 import gzip
+                from io import BytesIO
 
                 with gzip.GzipFile(fileobj=BytesIO(content)) as f:
                     content = f.read().decode("utf-8")
@@ -81,7 +78,7 @@ class LinkcheckSitemap:
 
         except ET.ParseError as exc:
             logger.warning(f'Failed to parse sitemap XML {url}: {exc}')
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(f'Error fetching sitemap {url}: {exc}')
 
     def _process_sitemap_index(self, root: ET.Element, base_url: str) -> None:
@@ -126,10 +123,7 @@ class LinkcheckSitemap:
     def includes(self, url: str) -> bool:
         """Check if a URL exists in the collected sitemaps."""
         normalized = self._normalize_url(url)
-        if normalized in self.normalized_urls:
-            return True
-
-        return False
+        return normalized in self.normalized_urls
 
 
 def builder_inited_linkcheck_sitemap(app: Sphinx) -> None:

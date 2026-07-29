@@ -45,7 +45,7 @@ def test_hdl_interfaces(tmp_path):
 
     assert len(interfaces[0]['ports']) == 6
     i = 0
-    for a in range(0, len(interfaces[0]['ports'])):
+    for a in range(len(interfaces[0]['ports'])):
         assert interfaces[0]['ports'][i]['width'] == i + 1
 
     assert interfaces[1]['ports'][1]['domain'] == "reset"

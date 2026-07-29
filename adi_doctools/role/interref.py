@@ -1,18 +1,20 @@
 """
 Extends intersphinx.
 """
-from typing import Dict, Any
+from __future__ import annotations
 
-from os import path, getenv
+from os import getenv, path
+from typing import Any
+
 from packaging.version import Version
 from sphinx.__init__ import __version__ as __sphinx_version__
-from sphinx.util.osutil import SEP
-
-from ..lut import repos, remote_doc
+from sphinx.application import Sphinx
 
 # For deprecation handling
 from sphinx.util import logging
-from sphinx.application import Sphinx
+from sphinx.util.osutil import SEP
+
+from ..lut import remote_doc, repos
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +67,7 @@ def interref_repos_assert(config):
                        " Is adi_doctools in the extension list?")
 
 
-def interref_setup(app: Sphinx) -> Dict[str, Any]:
+def interref_setup(app: Sphinx) -> dict[str, Any]:
     app.add_config_value('interref_repos', [], 'env')
     app.add_config_value('interref_uri', None, 'env')
     app.add_config_value('interref_local', False, 'env')

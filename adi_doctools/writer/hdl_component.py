@@ -10,7 +10,7 @@ color_bg2 = '#ebf6ff'
 stroke_width = 3
 
 
-class hdl_component():
+class hdl_component:
     @staticmethod
     def get_name(lib_name):
         return f"{lib_name.replace('/','-')}.svg"
@@ -123,13 +123,11 @@ class hdl_component():
 
         max_len_in = 0
         for elem in ins:
-            if len(elem[0]) > max_len_in:
-                max_len_in = len(elem[0])
+            max_len_in = max(max_len_in, len(elem[0]))
 
         max_len_out = 0
         for elem in outs:
-            if len(elem[0]) > max_len_out:
-                max_len_out = len(elem[0])
+            max_len_out = max(max_len_out, len(elem[0]))
 
         aux_width = (max_len_in+max_len_out)*font_size*.6
 

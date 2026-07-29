@@ -1,36 +1,38 @@
+import re
+from math import ceil
+from os import makedirs, pardir, path, walk
+from typing import ClassVar
+
 from docutils import nodes
 from docutils.parsers.rst import directives
-
-import re
-from os import path, walk
-from os import pardir, makedirs
-from math import ceil
 from lxml import etree
 from sphinx.util import logging
 from sphinx.util.osutil import SEP
 
-from .node import node_div
-from .common import directive_base
-from .common import parse_rst
-from .string import string_hdl
-from ..parser.hdl import parse_hdl_component
-from ..parser.hdl import parse_hdl_regmap, resolve_hdl_regmap
-from ..parser.hdl import parse_hdl_build_status
+from ..parser.hdl import (
+    parse_hdl_build_status,
+    parse_hdl_component,
+    parse_hdl_regmap,
+    resolve_hdl_regmap,
+)
 from ..writer.hdl_component import hdl_component
+from .common import directive_base, parse_rst
+from .node import node_div
+from .string import string_hdl
 
 logger = logging.getLogger(__name__)
 
 
 log = {
-    'signal': "{lib}/component.xml: Signal {signal} defined in the hdl-interfaces directive does not exist in the IP-XACT!",  # noqa: E501
+    'signal': "{lib}/component.xml: Signal {signal} defined in the hdl-interfaces directive does not exist in the IP-XACT!",
     'path': "Inconsistent paths, {cwd} not in {doc}",
     'regmap-no-name': "hdl-regmap directive without name option, skipped!",
-    'param': "{lib}/component.xml: {param} defined in the hdl-parameters directive does not exist in the IP-XACT!"  # noqa: E501
+    'param': "{lib}/component.xml: {param} defined in the hdl-parameters directive does not exist in the IP-XACT!"
 }
 
 
 class directive_interfaces(directive_base):
-    option_spec = {'path': directives.unchanged}
+    option_spec: ClassVar = {'path': directives.unchanged}
     required_arguments = 0
     optional_arguments = 0
 
@@ -81,7 +83,7 @@ class directive_interfaces(directive_base):
             table = nodes.table()
             table += tgroup
 
-            self.table_header(tgroup, ["Physical Port", "Logical Port", "Direction", "Dependency"])  # noqa: E501
+            self.table_header(tgroup, ["Physical Port", "Logical Port", "Direction", "Dependency"])
 
             rows = []
             pm = bs[tag]['port_map']
@@ -110,7 +112,7 @@ class directive_interfaces(directive_base):
         table = nodes.table()
         table += tgroup
 
-        self.table_header(tgroup, ["Physical Port", "Direction", "Dependency", "Description"])  # noqa: E501
+        self.table_header(tgroup, ["Physical Port", "Direction", "Dependency", "Description"])
 
         rows = []
         pr = component['ports']
@@ -175,7 +177,7 @@ class directive_interfaces(directive_base):
 
 
 class directive_regmap(directive_base):
-    option_spec = {'name': directives.unchanged,
+    option_spec: ClassVar = {'name': directives.unchanged,
                    'no-type-info': directives.unchanged}
     required_arguments = 0
     optional_arguments = 0
@@ -204,8 +206,8 @@ class directive_regmap(directive_base):
         table = nodes.table(classes=['regmap', 'colwidths-given', 'longtable'])
         table += tgroup
 
-        self.table_header(tgroup, [["Address", 1], ["Reg Name", 3], ""])  # noqa: E501
-        self.table_header(tgroup, ["HDL", "DWORD", "BITS", "Field Name", "Type", "Default Value", "Description"])  # noqa: E501
+        self.table_header(tgroup, [["Address", 1], ["Reg Name", 3], ""])
+        self.table_header(tgroup, ["HDL", "DWORD", "BITS", "Field Name", "Type", "Default Value", "Description"])
 
         rows = []
         for reg in obj['regmap']:
@@ -318,7 +320,7 @@ class directive_regmap(directive_base):
 
 
 class directive_parameters(directive_base):
-    option_spec = {'path': directives.unchanged}
+    option_spec: ClassVar = {'path': directives.unchanged}
     required_arguments = 0
     optional_arguments = 0
 
@@ -341,12 +343,12 @@ class directive_parameters(directive_base):
         table = nodes.table()
         table += tgroup
 
-        self.table_header(tgroup, ["Name", "Description", "Default Value", "Choices/Range"])  # noqa: E501
+        self.table_header(tgroup, ["Name", "Description", "Default Value", "Choices/Range"])
         
         rows = []
         for key in parameter:
             row = nodes.row()
-            self.column_entry(row, "{:s}".format(key), 'literal')
+            self.column_entry(row, f"{key:s}", 'literal')
             if key in description:
                 self.column_entry(row, description[key],
                                   'reST', classes=['description'])
@@ -404,7 +406,7 @@ class directive_parameters(directive_base):
 
 
 class directive_component_diagram(directive_base):
-    option_spec = {'path': directives.unchanged}
+    option_spec: ClassVar = {'path': directives.unchanged}
     required_arguments = 0
     optional_arguments = 0
 
@@ -419,8 +421,8 @@ class directive_component_diagram(directive_base):
     def diagram(self, outdir):
         name = hdl_component.get_name(self.options['path'])
         p = path.abspath(path.join(outdir, pardir, 'managed'))
-        f = open(path.join(p, name))
-        svg_raw = f.read()
+        with open(path.join(p, name)) as f:
+            svg_raw = f.read()
 
         svg = nodes.raw('', svg_raw, format='html')
         return [svg]
@@ -448,7 +450,7 @@ class directive_component_diagram(directive_base):
 
 
 class directive_build_status(directive_base):
-    option_spec = {'file': directives.unchanged}
+    option_spec: ClassVar = {'file': directives.unchanged}
     required_arguments = 0
     optional_arguments = 0
 

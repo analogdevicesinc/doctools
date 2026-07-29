@@ -1,24 +1,29 @@
-from typing import Dict, Tuple
-from os import path, walk, chdir, getcwd
-from glob import glob
+from __future__ import annotations
+
 import logging
 import re
+from glob import glob
+from os import chdir, getcwd, path, walk
 
+from ..parser.hdl import (
+    expand_hdl_regmap,
+    parse_hdl_interfaces,
+    parse_hdl_library,
+    parse_hdl_project,
+    parse_hdl_regmap,
+    parse_hdl_vendor,
+    resolve_hdl_library,
+    resolve_hdl_project,
+    resolve_hdl_regmap,
+)
+from ..typing.hdl import Carrier, Library, Project, vendors
+from ..writer.hdl import (
+    write_hdl_library_makefile,
+    write_hdl_project_makefile,
+    write_hdl_regmap,
+    write_hdl_regmap_test,
+)
 from .argument_parser import get_arguments_hdl_gen
-from ..typing.hdl import vendors, Library, Carrier, Project
-from ..parser.hdl import parse_hdl_regmap
-from ..parser.hdl import resolve_hdl_regmap
-from ..parser.hdl import expand_hdl_regmap
-from ..parser.hdl import parse_hdl_vendor
-from ..parser.hdl import parse_hdl_library
-from ..parser.hdl import resolve_hdl_library
-from ..parser.hdl import parse_hdl_project
-from ..parser.hdl import resolve_hdl_project
-from ..parser.hdl import parse_hdl_interfaces
-from ..writer.hdl import write_hdl_regmap
-from ..writer.hdl import write_hdl_regmap_test
-from ..writer.hdl import write_hdl_library_makefile
-from ..writer.hdl import write_hdl_project_makefile
 from .aux_git import get_git_top_level
 
 logger = logging.getLogger(__name__)
@@ -66,7 +71,7 @@ def hdl_gen():
     chdir(call_dir)
 
 
-def makefile_pre() -> Tuple[Dict[str, Project], Dict[str, Library]]:
+def makefile_pre() -> tuple[dict[str, Project], dict[str, Library]]:
     # Generate HDL carrier dictionary
     carrier = Carrier()
     for v in vendors:
@@ -90,7 +95,7 @@ def makefile_pre() -> Tuple[Dict[str, Project], Dict[str, Library]]:
         glob_ = path.join('library', '**', typ)
         files[v].extend(glob(glob_, recursive=True))
 
-    for v in files:
+    for v in files:  # noqa: PLC0206
         for f in files[v]:
             if 'interfaces_ip.tcl' in f:
                 files[v].remove(f)
@@ -102,8 +107,8 @@ def makefile_pre() -> Tuple[Dict[str, Project], Dict[str, Library]]:
         interfaces_ip[path.dirname(f)] = parse_hdl_interfaces(f)
 
     intf_key_file = {}
-    for f in interfaces_ip:
-        for k in interfaces_ip[f]:
+    for f, intf_list in interfaces_ip.items():
+        for k in intf_list:
             intf_key_file[k['name']] = f
 
     # Generate the HDL library dictionary
@@ -139,15 +144,15 @@ def makefile_pre() -> Tuple[Dict[str, Project], Dict[str, Library]]:
             if prj_:
                 prj_['vendor'] = v
                 project[path_] = prj_
-    for key in project:
-        resolve_hdl_project(project[key], library)
+    for key, prj_val in project.items():
+        resolve_hdl_project(prj_val, library)
 
     return project, library
 
 
 def makefile_post(
-        library: Dict[str, Library],
-        project: Dict[str, Project]
+        library: dict[str, Library],
+        project: dict[str, Project]
     ) -> None:
     for key in library:
         write_hdl_library_makefile(library, key)
@@ -156,7 +161,7 @@ def makefile_post(
         write_hdl_project_makefile(project, key)
 
 
-def regmap_pre() -> Dict:
+def regmap_pre() -> dict:
     """
     Generate HDL Register Map dictionary
     """
@@ -177,7 +182,7 @@ def regmap_pre() -> Dict:
     return rm
 
 
-def regmap_post(rm: Dict) -> None:
+def regmap_post(rm: dict) -> None:
     f_ = path.join('testbenches', 'library', 'regmaps')
     for m in rm:
         write_hdl_regmap(f_, rm[m]['subregmap'], m)

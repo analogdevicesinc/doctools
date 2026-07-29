@@ -1,32 +1,40 @@
-from packaging.version import Version
-from multiprocessing import Manager
-from typing import List, Optional
-
-from docutils import nodes
-from docutils.statemachine import ViewList
-from docutils.parsers.rst import Directive, directives
-from docutils.parsers.rst.roles import set_classes
-from sphinx.util import logging
-from sphinx.util.docutils import SphinxDirective
-from sphinx.directives.code import container_wrapper
-from sphinx.directives.other import Include
-
-from sphinx import __version__ as __sphinx_version__
+from __future__ import annotations
 
 import re
-import yaml
-from os import path, pardir, makedirs
-from uuid import uuid4
 from hashlib import sha1
-from typing import Tuple
-from jinja2.sandbox import SandboxedEnvironment
+from multiprocessing import Manager
+from os import makedirs, pardir, path
+from typing import ClassVar, Sequence
+from uuid import uuid4
 
-from typing import Sequence
+import jinja2
+import yaml
+from docutils import nodes
 from docutils.nodes import Node
+from docutils.parsers.rst import Directive, directives
+from docutils.parsers.rst.roles import set_classes
+from docutils.statemachine import ViewList
+from jinja2.sandbox import SandboxedEnvironment
+from packaging.version import Version
+from sphinx import __version__ as __sphinx_version__
+from sphinx.directives.code import container_wrapper
+from sphinx.directives.other import Include
+from sphinx.util import logging
+from sphinx.util.docutils import SphinxDirective
 
-from .node import node_div, node_input, node_label, node_icon, node_source, node_collection
-from .node import node_iframe, node_video, node_video_screen, node_video_print
-from .node import node_clear_content
+from .node import (
+    node_clear_content,
+    node_collection,
+    node_div,
+    node_icon,
+    node_iframe,
+    node_input,
+    node_label,
+    node_source,
+    node_video,
+    node_video_print,
+    node_video_screen,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +66,7 @@ def length_or_percentage_or_unitless_list(argument):
     return [directives.length_or_percentage_or_unitless(entry) for entry in entries]
 
 
-def parse_rst(state, content, uid: Optional[str] = None):
+def parse_rst(state, content, uid: str | None = None):
     """
     Parses rst markup, content can be:
     * String
@@ -66,7 +74,7 @@ def parse_rst(state, content, uid: Optional[str] = None):
     * Docutils ViewList
     """
     if uid is None:
-        uid = f"virtual_{str(uuid4())}"
+        uid = f"virtual_{uuid4()!s}"
     content = [content] if isinstance(content, str) else content
     rst = ViewList(source=uid, initlist=content)
     node = nodes.section()
@@ -143,12 +151,14 @@ class directive_base(Directive):
                 else:
                     line += ' '
                 items[key].append(line)
-        for key in items:
+        for key in items:  # noqa: PLC0206
             items[key] = ''.join(items[key]).replace('-', '', 1).strip()
         return items
 
-    def column_entry(self, row, text, node_type: str, classes: List = [],
-                     morecols: int = 0, uid: Optional[str] = None):
+    def column_entry(self, row, text, node_type: str, classes: list | None = None,
+                     morecols: int = 0, uid: str | None = None):
+        if classes is None:
+            classes = []
         attributes = {}
         if morecols != 0:
             attributes['morecols'] = morecols
@@ -170,7 +180,7 @@ class directive_base(Directive):
             return
         row += entry
 
-    def column_entries(self, rows, items, uid: Optional[str] = None):
+    def column_entries(self, rows, items, uid: str | None = None):
         row = nodes.row()
         for item in items:
             if len(item) == 3:
@@ -185,7 +195,7 @@ class directive_base(Directive):
                                   uid=uid)
         rows.append(row)
 
-    def generic_table(self, description, uid: Optional[str] = None):
+    def generic_table(self, description, uid: str | None = None):
         tgroup = nodes.tgroup(cols=2)
         for _ in range(2):
             colspec = nodes.colspec(colwidth=1)
@@ -201,7 +211,7 @@ class directive_base(Directive):
             row = nodes.row()
 
             entry = nodes.entry()
-            entry += nodes.literal(text="{:s}".format(key))
+            entry += nodes.literal(text=f"{key:s}")
             row += entry
 
             entry = nodes.entry()
@@ -242,7 +252,7 @@ class directive_base(Directive):
 
         thead.append(row)
 
-    def collapsible(self, section, text: [str, Tuple[str, str]] = "", node=None):
+    def collapsible(self, section, text: [str, tuple[str, str]] = "", node=None):
         """
         Creates a collapsible content.
         text: When a tuple, the first string is a unique id, useful when the
@@ -346,7 +356,7 @@ class directive_include_template(Include):
             content_text = "".join(content_text)
         try:
             parsed_yaml = yaml.safe_load(content_text) if content_text else {}
-        except Exception as e:
+        except yaml.YAMLError as e:
             self.state_machine.reporter.warning(
                 e,
                 line=self.lineno
@@ -357,7 +367,7 @@ class directive_include_template(Include):
             try:
                 templ = jinja_env.from_string(text)
                 return templ.render(**(parsed_yaml or {}))
-            except Exception as e:
+            except jinja2.TemplateError as e:
                 self.state_machine.reporter.warning(
                     f"jinja2: {path}: {e}",
                     line=self.lineno
@@ -378,8 +388,9 @@ class directive_include_template(Include):
 
         # - Sphinx < 7.2.5
         def _insert_input(include_lines, source):
-            from docutils.statemachine import StateMachine
             from pathlib import Path
+
+            from docutils.statemachine import StateMachine
 
             text = "\n".join(include_lines[:-2])
             text = _render_include(Path(source), text)
@@ -492,7 +503,7 @@ def directive_collection_build_finished(app, exc):
 
 
 class directive_collection(SphinxDirective):
-    option_spec = {
+    option_spec: ClassVar = {
         'subtitle': directives.unchanged_required,
         'image': directives.unchanged_required,
         'label': directives.unchanged_required,
@@ -528,7 +539,8 @@ class directive_collection(SphinxDirective):
         include = {}
         current_include = None
         got_itself = False
-        for i, line in enumerate(self.content[i:]):
+        start_idx = 0
+        for i, line in enumerate(self.content[start_idx:]):
             line = line.split("#", 1)[0]  # Strip comments
             if not line.startswith(' ') and line.strip().endswith(':'):
                 current_include = line.strip()[:-1]
@@ -681,7 +693,7 @@ class directive_video(Directive):
 
     align_h_values = ('left', 'center', 'right')
 
-    option_spec = {
+    option_spec: ClassVar = {
         'align': align
     }
     required_arguments = 1
@@ -764,7 +776,7 @@ class directive_flex(Directive):
     This class losely sets CSS flex rules to show content side-by-side
     if enough space is provided.
     """
-    option_spec = {
+    option_spec: ClassVar = {
         'class': directives.class_option,
     }
     has_content = True
@@ -799,7 +811,7 @@ class directive_grid(Directive):
 
     If both are provided, widths takes precedence. One of them is required.
     """
-    option_spec = {
+    option_spec: ClassVar = {
         'class': directives.class_option,
         'columns': directives.positive_int,
         'widths': length_or_percentage_or_unitless_list,
@@ -820,8 +832,7 @@ class directive_grid(Directive):
 
         if widths is None and columns is None:
             raise self.error(
-                'Error in "%s" directive: "columns" or "widths" option is required.'
-                % (self.name))
+                f'Error in "{self.name}" directive: "columns" or "widths" option is required.')
 
         classes_ = ['grid']
         if 'classes' in self.options:
@@ -849,7 +860,7 @@ class directive_card(SphinxDirective):
     optional_arguments = 1
     final_argument_whitespace = True
 
-    option_spec = {
+    option_spec: ClassVar = {
         'ref': directives.unchanged,
     }
 
@@ -898,7 +909,7 @@ class directive_clear_content(Directive):
     def side(argument):
         return directives.choice(argument, directive_clear_content.side_values)
 
-    option_spec = {
+    option_spec: ClassVar = {
         'side': side,
         'break': directives.flag
     }
@@ -926,7 +937,7 @@ class directive_clear_content(Directive):
 
 
 class directive_shell(SphinxDirective):
-    option_spec = {
+    option_spec: ClassVar = {
         'user': directives.unchanged_required,
         'group': directives.unchanged_required,
         'caption': directives.unchanged_required,
@@ -1078,7 +1089,7 @@ class directive_shell(SphinxDirective):
         if len(line) < 2:
             return wd
 
-        for i in range(0, len(line)):
+        for i in range(len(line)):
             if line[i-1] != "cd":
                 continue
 
@@ -1177,7 +1188,7 @@ class directive_svg(SphinxDirective):
 
     align_h_values = ('left', 'center', 'right')
 
-    option_spec = {
+    option_spec: ClassVar = {
         'align': align
     }
     required_arguments = 1
@@ -1194,7 +1205,7 @@ class directive_svg(SphinxDirective):
                     svg_raw = f.read()
                 svg = nodes.raw('fsdf', svg_raw, format='html')
                 figure_node += svg
-            except Exception as e:
+            except (FileNotFoundError, OSError) as e:
                 logger.warning(e)
 
         align = self.options.pop('align', None)

@@ -2,8 +2,8 @@
 SVG/PDF Cover
 Generates wave background
 """
-import math
 import hashlib
+import math
 import re
 
 

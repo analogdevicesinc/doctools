@@ -1,8 +1,8 @@
 from os import environ
 
-from sphinx.transforms.post_transforms import SphinxTransform
-from sphinx.util import logging, docname_join
 from sphinx import addnodes
+from sphinx.transforms.post_transforms import SphinxTransform
+from sphinx.util import docname_join, logging
 
 logger = logging.getLogger(__name__)
 

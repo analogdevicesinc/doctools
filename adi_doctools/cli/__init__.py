@@ -1,8 +1,8 @@
 import logging as logging_
 import sys
 
-from .logging import set_logging
 from .argument_parser import get_command, show_help
+from .logging import set_logging
 
 logger = logging_.getLogger(__name__)
 

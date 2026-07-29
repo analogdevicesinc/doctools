@@ -1,4 +1,6 @@
-from typing import TypedDict, Optional, Tuple, Dict
+from __future__ import annotations
+
+from typing import TypedDict
 
 vendors = ("xilinx", "intel")
 
@@ -7,26 +9,26 @@ class IntfPort(TypedDict):
     direction: str
     width: int
     name: str
-    domain: Optional[str]
-    default: Optional[int]
+    domain: str | None
+    default: int | None
 
 
 class Intf(TypedDict):
-    description: Optional[str]
+    description: str | None
     name: str
-    ports: Tuple[IntfPort]
+    ports: tuple[IntfPort]
 
 
 class LibraryGeneric(TypedDict):
-    dependencies: Tuple[str]
+    dependencies: tuple[str]
 
 
 class LibraryVendor(TypedDict):
-    dependencies: Tuple[str]
-    library_dependencies: Tuple[str]
-    interfaces: Tuple[str]
-    interfaces_tcl: Tuple[str]
-    parameters: Optional[Tuple[Tuple[str, str]]]
+    dependencies: tuple[str]
+    library_dependencies: tuple[str]
+    interfaces: tuple[str]
+    interfaces_tcl: tuple[str]
+    parameters: tuple[tuple[str, str]] | None
 
 
 class Library(TypedDict):
@@ -35,13 +37,13 @@ class Library(TypedDict):
     name: adi_jesd204_glue, axi_spi_engine
     """
     name: str
-    vendor: Dict[str, LibraryVendor]
+    vendor: dict[str, LibraryVendor]
     generic: LibraryGeneric
 
 
 class Carrier(TypedDict):
-    xilinx: Tuple[str]
-    intel: Tuple[str]
+    xilinx: tuple[str]
+    intel: tuple[str]
 
 
 class Project(TypedDict):
@@ -53,5 +55,5 @@ class Project(TypedDict):
     """
     name: str
     vendor: str
-    lib_deps: Tuple[str]
-    m_deps: Tuple[str]
+    lib_deps: tuple[str]
+    m_deps: tuple[str]

@@ -2,9 +2,9 @@ import logging
 import subprocess
 from os import makedirs, path
 
-from .argument_parser import get_arguments_hdl_render
 from ..parser.hdl import parse_hdl_component
 from ..writer.hdl_component import hdl_component
+from .argument_parser import get_arguments_hdl_render
 
 logger = logging.getLogger(__name__)
 

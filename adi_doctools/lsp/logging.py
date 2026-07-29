@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 import logging
 import logging.config
@@ -17,7 +19,7 @@ LEVEL_TO_LSP = {
 }
 
 
-def notify(method: str, params: dict = None):
+def notify(method: str, params: dict | None = None):
     notification = {"jsonrpc": "2.0", "method": method}
     if params is not None:
         notification["params"] = params
@@ -32,7 +34,7 @@ class JsonRpcHandler(logging.Handler):
             msg_type = LEVEL_TO_LSP.get(record.levelno, LSP_LOG)
             message = self.format(record)
             notify("window/logMessage", {"type": msg_type, "message": message})
-        except Exception:
+        except Exception:  # noqa: BLE001
             self.handleError(record)
 
 

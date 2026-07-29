@@ -1,8 +1,8 @@
-import logging
-import urllib.request
-import urllib.parse
-import json
 import importlib.util
+import json
+import logging
+import urllib.parse
+import urllib.request
 
 logger = logging.getLogger(__name__)
 
@@ -27,8 +27,8 @@ def get_tool(language: str = 'en-US'):
     if _tool is not None:
         try:
             _tool.close()
-        except Exception:
-            pass
+        except Exception as e:  # noqa: BLE001
+            logger.debug(f"Error closing LanguageTool: {e}")
         _tool = None
 
     if _init_attempted and _current_language == language:
@@ -43,7 +43,7 @@ def get_tool(language: str = 'en-US'):
     except ImportError:
         logger.warning("Language Tool (language_tool_python) not installed")
         return None
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to initialize LanguageTool: {e}")
         return None
 
@@ -51,7 +51,7 @@ def get_tool(language: str = 'en-US'):
         _tool = language_tool_python.LanguageTool(language)
         logger.info("LanguageTool initialized successfully")
         return _tool
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to initialize LanguageTool: {e}")
         return None
 
@@ -83,7 +83,7 @@ def check_text_local(text: str, language: str = 'en-US') -> dict:
 
         return {'matches': result}
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"LanguageTool check failed: {e}")
         return {'error': 'check_failed', 'message': str(e)}
 
@@ -139,7 +139,7 @@ def check_text_api(text: str, language: str = 'en-US', username: str = '', api_k
     except urllib.error.URLError as e:
         logger.error(f"LanguageTool API connection error: {e}")
         return {'error': 'connection_error', 'message': 'Could not connect to LanguageTool API'}
-    except Exception as e:
+    except (json.JSONDecodeError, UnicodeDecodeError) as e:
         logger.error(f"LanguageTool API check failed: {e}")
         return {'error': 'check_failed', 'message': str(e)}
 
@@ -165,6 +165,6 @@ def close():
     if _tool is not None:
         try:
             _tool.close()
-        except Exception:
-            pass
+        except Exception as e:  # noqa: BLE001
+            logger.debug(f"Error closing LanguageTool: {e}")
         _tool = None

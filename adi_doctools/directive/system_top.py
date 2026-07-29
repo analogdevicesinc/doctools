@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 from docutils import nodes
 from docutils.parsers.rst import directives
 
@@ -7,7 +9,7 @@ from .string import string_system_top
 
 
 class directive_esd_warning(directive_base):
-    option_spec = {'path': directives.unchanged}
+    option_spec: ClassVar = {'path': directives.unchanged}
     required_arguments = 0
     optional_arguments = 0
 

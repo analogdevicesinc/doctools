@@ -1,12 +1,12 @@
 """Tests for the search CLI command."""
 from contextlib import ExitStack
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 from urllib.request import Request
 
 from packaging.version import Version
 from sphinx import __version__ as __sphinx_version__
-from adi_doctools.cli.search import search
 
+from adi_doctools.cli.search import search
 
 SAMPLE_SEARCHINDEX = '''Search.setIndex({
     "docnames": ["index", "tutorial", "api"],

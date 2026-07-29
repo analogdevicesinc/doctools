@@ -1,18 +1,16 @@
 from os import path
-from packaging.version import Version
-
-from lxml import etree
-from lxml import html
 
 from docutils import nodes
+from lxml import etree, html
+from packaging.version import Version
+from sphinx import __version__ as __sphinx_version__
 from sphinx.highlighting import PygmentsBridge
 from sphinx.transforms.post_transforms import SphinxPostTransform
 from sphinx.util import logging
-from sphinx import __version__ as __sphinx_version__
 
+from ..cli.aux_cover import generate_latex_cover
 from .harmonic import setup as harmonic_setup
 from .latex import latex_elements
-from ..cli.aux_cover import generate_latex_cover
 
 logger = logging.getLogger(__name__)
 
@@ -67,58 +65,58 @@ def builder_inited(app):
 
 
 def build_finished(app, exc):
-    if app.builder.format == 'html' and not exc:
-        if app.env.config.core_repo:
-            from sphinx.util.fileutil import copy_asset_file
-            import json
+    if app.builder.format == 'html' and not exc and app.env.config.core_repo:
+        import json
 
-            repos = {}
-            for key in app.lut['repos']:
-                repos[key] = {
-                    'name': app.lut['repos'][key]['name'],
-                    'description': app.lut['repos'][key]['description'],
-                    'category': app.lut['repos'][key]['category'],
-                    'visibility': app.lut['repos'][key]['visibility'],
-                    'pathname': app.lut['repos'][key]['pathname'],
-                    'branch': app.lut['repos'][key]['branch']
-                }
-                if 'alt' in app.lut['repos'][key]:
-                    repos[key]['alt'] = app.lut['repos'][key]['alt']
-                # Miscellaneous expansions
-                repos[key]['url_doc'] = app.lut['remote_doc'] + key
-                repos[key]['url_source'] = app.lut['remote_https'].format(key)
-                if 'topic' in app.lut['repos'][key]:
-                    repos[key]['topic'] = app.lut['repos'][key]['topic']
-            metadata = {'repotoc': repos}
-            if app.lut['banner']['msg'] is not None:
-                metadata['banner'] = app.lut['banner']
+        from sphinx.util.fileutil import copy_asset_file
 
-            # Extra JavaScript modules
-            build_uri = path.join(app.builder.outdir, '_static')
-            src_uri = path.join(path.dirname(__file__), 'harmonic', 'static')
-            if app.lut['modules']['javascript'] is not None:
-                if 'modules' not in metadata:
-                    metadata['modules'] = {}
-                metadata['modules']['javascript'] = app.lut['modules']['javascript']
-                for m in app.lut['modules']['javascript']:
-                    copy_asset_file(path.join(src_uri, m),
-                                    path.join(build_uri, m))
-            if app.lut['modules']['stylesheet'] is not None:
-                if 'modules' not in metadata:
-                    metadata['modules'] = {}
-                metadata['modules']['stylesheet'] = app.lut['modules']['stylesheet']
-                for m in app.lut['modules']['stylesheet']:
-                    copy_asset_file(path.join(src_uri, m),
-                                    path.join(build_uri, m))
+        repos = {}
+        for key in app.lut['repos']:
+            repos[key] = {
+                'name': app.lut['repos'][key]['name'],
+                'description': app.lut['repos'][key]['description'],
+                'category': app.lut['repos'][key]['category'],
+                'visibility': app.lut['repos'][key]['visibility'],
+                'pathname': app.lut['repos'][key]['pathname'],
+                'branch': app.lut['repos'][key]['branch']
+            }
+            if 'alt' in app.lut['repos'][key]:
+                repos[key]['alt'] = app.lut['repos'][key]['alt']
+            # Miscellaneous expansions
+            repos[key]['url_doc'] = app.lut['remote_doc'] + key
+            repos[key]['url_source'] = app.lut['remote_https'].format(key)
+            if 'topic' in app.lut['repos'][key]:
+                repos[key]['topic'] = app.lut['repos'][key]['topic']
+        metadata = {'repotoc': repos}
+        if app.lut['banner']['msg'] is not None:
+            metadata['banner'] = app.lut['banner']
 
-            metadata['remote_doc'] = app.lut['remote_doc']
-            metadata['remote_alt'] = app.lut['remote_alt']
-            metadata['source_hostname'] = app.lut['source_hostname']
-            metadata['source_hostname_raw'] = app.lut['source_hostname_raw']
+        # Extra JavaScript modules
+        build_uri = path.join(app.builder.outdir, '_static')
+        src_uri = path.join(path.dirname(__file__), 'harmonic', 'static')
+        if app.lut['modules']['javascript'] is not None:
+            if 'modules' not in metadata:
+                metadata['modules'] = {}
+            metadata['modules']['javascript'] = app.lut['modules']['javascript']
+            for m in app.lut['modules']['javascript']:
+                copy_asset_file(path.join(src_uri, m),
+                                path.join(build_uri, m))
+        if app.lut['modules']['stylesheet'] is not None:
+            if 'modules' not in metadata:
+                metadata['modules'] = {}
+            metadata['modules']['stylesheet'] = app.lut['modules']['stylesheet']
+            for m in app.lut['modules']['stylesheet']:
+                copy_asset_file(path.join(src_uri, m),
+                                path.join(build_uri, m))
 
-            file = path.join(app.builder.outdir, 'metadata.json')
-            with open(file, 'w') as f:
-                json.dump(metadata, f, indent=4)
+        metadata['remote_doc'] = app.lut['remote_doc']
+        metadata['remote_alt'] = app.lut['remote_alt']
+        metadata['source_hostname'] = app.lut['source_hostname']
+        metadata['source_hostname_raw'] = app.lut['source_hostname_raw']
+
+        file = path.join(app.builder.outdir, 'metadata.json')
+        with open(file, 'w') as f:
+            json.dump(metadata, f, indent=4)
 
 
 def repotoc_tree(content_root, conf_vars, pagename):
@@ -147,7 +145,7 @@ def repotoc_tree(content_root, conf_vars, pagename):
 
     repotoc = {**topics, **repository}
     if repo is not None:
-        for item in repotoc:
+        for item, item_text in repotoc.items():
             attrib = {}
             if item.startswith(repo):
                 if '/' in item:
@@ -164,7 +162,7 @@ def repotoc_tree(content_root, conf_vars, pagename):
                     'href': href,
                     **attrib
                 })
-                link.text = repotoc[item]
+                link.text = item_text
                 root.append(link)
 
     return (etree.tostring(root, pretty_print=True, encoding='unicode'),

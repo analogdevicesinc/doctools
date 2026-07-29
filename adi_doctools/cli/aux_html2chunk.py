@@ -2,12 +2,11 @@
 Convert Sphinx HTML documentation to section-level chunks for vector search embedding.
 """
 from pathlib import Path
+
 from lxml import html as lxml_html
 
-from .aux_html2md import find_main_content
-from .aux_html2md import HTMLToMarkdown
 from ..lut import repos
-
+from .aux_html2md import HTMLToMarkdown, find_main_content
 
 HEADING_TAGS = frozenset(('h1', 'h2', 'h3', 'h4', 'h5', 'h6'))
 
@@ -22,10 +21,7 @@ def is_a_chunk(section):
     first = children[0]
     if first.tag in HEADING_TAGS:
         return True
-    if first.tag == 'span' and first.get('id') and len(children) > 1:
-        if children[1].tag in HEADING_TAGS:
-            return True
-    return False
+    return first.tag == 'span' and first.get('id') and len(children) > 1 and children[1].tag in HEADING_TAGS
 
 def _normalize_chunks(tree):
     """Convert invalid section elements to divs to avoid treating them as chunks."""

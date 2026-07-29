@@ -11,7 +11,7 @@ def test_hdl_library(monkeypatch, tmp_path):
         print(json.dumps(obj, indent=4))
 
     file = Path("projects/project/carrier/system_bd.tcl")
-    obj, path_ = parse_hdl_project(str(file))
+    obj, _path = parse_hdl_project(str(file))
     log_info(obj)
 
     assert len(obj["lib_deps"]) == 3

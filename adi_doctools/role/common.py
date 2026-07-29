@@ -1,13 +1,14 @@
-from typing import Tuple, List
+from __future__ import annotations
+
 from types import ModuleType
 
 from docutils import nodes
-from docutils.utils import Reporter
 from docutils.nodes import Node, system_message
-from sphinx.util import logging
-from sphinx.util.docutils import SphinxRole, CustomReSTDispatcher
-from sphinx.util.typing import RoleFunction
+from docutils.utils import Reporter
 from sphinx.addnodes import download_reference
+from sphinx.util import logging
+from sphinx.util.docutils import CustomReSTDispatcher, SphinxRole
+from sphinx.util.typing import RoleFunction
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +67,11 @@ def get_outer_inner(text):
 
 
 def color(class_name):
-    def role(name, rawtext, text, lineno, inliner, options={}, content=[]):
+    def role(name, rawtext, text, lineno, inliner, options=None, content=None):
+        if content is None:
+            content = []
+        if options is None:
+            options = {}
         node = nodes.inline(text=text, classes=[class_name])
         return [node], []
 
@@ -74,8 +79,12 @@ def color(class_name):
 
 
 def datasheet():
-    def role(name, rawtext, text, lineno, inliner, options={}, content=[]):
+    def role(name, rawtext, text, lineno, inliner, options=None, content=None):
         # DEPRECATED
+        if content is None:
+            content = []
+        if options is None:
+            options = {}
         logger.warning("The datasheet role has been deprecated, use the adi role "
                        "instead.",
                        location=(inliner.document.settings.env.docname, lineno))
@@ -95,7 +104,11 @@ def dokuwiki_resolve(config, text, target):
 
 
 def dokuwiki():
-    def role(name, rawtext, text, lineno, inliner, options={}, content=[]):
+    def role(name, rawtext, text, lineno, inliner, options=None, content=None):
+        if content is None:
+            content = []
+        if options is None:
+            options = {}
         text, path = get_outer_inner(text)
         config = inliner.document.settings.env.app.config
         url, text = dokuwiki_resolve(config, text, path)
@@ -117,7 +130,11 @@ def ez_resolve(config, text, target):
 
 
 def ez():
-    def role(name, rawtext, text, lineno, inliner, options={}, content=[]):
+    def role(name, rawtext, text, lineno, inliner, options=None, content=None):
+        if content is None:
+            content = []
+        if options is None:
+            options = {}
         text, path = get_outer_inner(text)
         config = inliner.document.settings.env.app.config
         url, text = ez_resolve(config, text, path)
@@ -148,10 +165,10 @@ class GitRoleDispatcher(CustomReSTDispatcher):
     """
     def role(
         self, role_name: str, language_module: ModuleType, lineno: int, reporter: Reporter,
-    ) -> Tuple[RoleFunction, List[system_message]]:
-        if len(role_name) > 4 and (role_name.startswith(('git-')) or role_name.startswith(('git+'))):
+    ) -> tuple[RoleFunction, list[system_message]]:
+        if len(role_name) > 4 and (role_name.startswith(('git-', 'git+'))):
             return git_role(role_name, False), []
-        elif len(role_name) > 8 and (role_name.startswith(('downgit-')) or role_name.startswith(('downgit+'))):
+        elif len(role_name) > 8 and (role_name.startswith(('downgit-', 'downgit+'))):
             return git_role(role_name, True), []
         else:
             return super().role(role_name, language_module, lineno, reporter)
@@ -167,7 +184,7 @@ class git_role(SphinxRole):
         self.orig_name = orig_name
         self.down = down
 
-    def run(self) -> Tuple[List[Node], List[system_message]]:
+    def run(self) -> tuple[list[Node], list[system_message]]:
         assert self.name == self.orig_name.lower()
         assert self.name.startswith('downgit' if self.down else 'git')
 
@@ -245,7 +262,11 @@ def adi_resolve(config, text, target):
     return (url, text)
 
 def adi():
-    def role(name, rawtext, text, lineno, inliner, options={}, content=[]):
+    def role(name, rawtext, text, lineno, inliner, options=None, content=None):
+        if content is None:
+            content = []
+        if options is None:
+            options = {}
         text, target = get_outer_inner(text)
         config = inliner.document.settings.env.app.config
         url, text = adi_resolve(config, text, target)
@@ -265,7 +286,11 @@ def vendor_resolve(config, vendor_name, text, target):
 
 
 def vendor(vendor_name):
-    def role(name, rawtext, text, lineno, inliner, options={}, content=[]):
+    def role(name, rawtext, text, lineno, inliner, options=None, content=None):
+        if content is None:
+            content = []
+        if options is None:
+            options = {}
         text, path = get_outer_inner(text)
         config = inliner.document.settings.env.app.config
         url, text = vendor_resolve(config, vendor_name, text, path)
@@ -284,7 +309,11 @@ def supplier_resolve(config, supplier_name, text, target):
 
 
 def supplier(supplier_name):
-    def role(name, rawtext, text, lineno, inliner, options={}, content=[]):
+    def role(name, rawtext, text, lineno, inliner, options=None, content=None):
+        if content is None:
+            content = []
+        if options is None:
+            options = {}
         text, path = get_outer_inner(text)
         config = inliner.document.settings.env.app.config
         url, text = supplier_resolve(config, supplier_name, text, path)
@@ -294,7 +323,7 @@ def supplier(supplier_name):
     return role
 
 
-def install_dispatcher(app, docname: str, source: List[str]) -> None:
+def install_dispatcher(app, docname: str, source: list[str]) -> None:
     """Enable GitRoleDispatcher.
 
     .. note:: The installed dispatcher will be uninstalled on disabling sphinx_domain
@@ -328,8 +357,8 @@ def common_setup(app):
     for name in suppliers:
         app.add_role(name, supplier(name))
 
-    for key in dft_url:
-        app.add_config_value('url_' + key, dft_url[key], 'env')
+    for key, default_val in dft_url.items():
+        app.add_config_value('url_' + key, default_val, 'env')
 
     app.connect('source-read', install_dispatcher)
     app.connect('doctree-resolved', links_target_blank)

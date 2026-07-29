@@ -1,14 +1,12 @@
-import sys
 import argparse
 import logging
+import sys
 
 logger = logging.getLogger(__name__)
 
 
 def get_command():
-    if len(sys.argv) == 1 or sys.argv[1] == '-h' or sys.argv[1] == '--help':
-        return 'help'
-    elif sys.argv[1].startswith('-'):
+    if len(sys.argv) == 1 or sys.argv[1] == '-h' or sys.argv[1] == '--help' or sys.argv[1].startswith('-'):
         return 'help'
 
     cmd = sys.argv[1]

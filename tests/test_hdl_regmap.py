@@ -1,9 +1,11 @@
+from logging import WARNING
 from pathlib import Path
 
-from logging import WARNING
-from adi_doctools.parser.hdl import parse_hdl_regmap
-from adi_doctools.parser.hdl import resolve_hdl_regmap
-from adi_doctools.parser.hdl import expand_hdl_regmap
+from adi_doctools.parser.hdl import (
+    expand_hdl_regmap,
+    parse_hdl_regmap,
+    resolve_hdl_regmap,
+)
 from adi_doctools.writer.hdl import write_hdl_regmap
 
 
@@ -32,12 +34,10 @@ def test_hdl_regmap(monkeypatch, tmp_path, caplog):
         write_hdl_regmap(d, regmap[r]['subregmap'], r)
 
         f = f"adi_regmap_{r}_pkg.sv"
-        f1 = open(Path(f"asset/hdl/testbenches/library/regmaps/{f}"), 'r')
-        f2 = open(Path(f"{d}/{f}"), 'r')
-        e1 = f1.readlines()
-        e2 = f2.readlines()
-        f1.close()
-        f2.close()
+        with open(Path(f"asset/hdl/testbenches/library/regmaps/{f}"), 'r') as f1, \
+              open(Path(f"{d}/{f}"), 'r') as f2:
+            e1 = f1.readlines()
+            e2 = f2.readlines()
 
         # Remove date time line
         e1.pop(index_date)

@@ -1,5 +1,6 @@
 from docutils import nodes
 
+
 class node_base(nodes.Element, nodes.General):
     """
     Adapted from
@@ -7,7 +8,6 @@ class node_base(nodes.Element, nodes.General):
     https://github.com/dgarcia360/sphinx-collapse
     """
 
-    @staticmethod
     def visit(self, node):
         attributes = node.attributes.copy()
 
@@ -22,17 +22,15 @@ class node_base(nodes.Element, nodes.General):
 
         align = attributes.pop("align", None)
         if align:
-            node['classes'].append('align-%s' % align)
+            node['classes'].append(f'align-{align}')
 
         text = self.starttag(node, node.tagname, **attributes)
         self.body.append(text.strip())
 
-    @staticmethod
     def depart(self, node):
         if node.endtag:
             self.body.append(f"</{node.tagname}>")
 
-    @staticmethod
     def default(self, node):
         pass
 
@@ -74,7 +72,6 @@ class node_video_screen(node_base):
     tagname = 'div'
     endtag = 'true'
 
-    @staticmethod
     def visit_latex(self, node):
         raise nodes.SkipNode
 
@@ -83,12 +80,10 @@ class node_video_print(node_base):
     tagname = 'div'
     endtag = 'true'
 
-    @staticmethod
     def visit_latex(self, node):
         self.body.append('\n\\begin{sphinxadmonition}{note}{Video:}')
         self.no_latex_floats += 1
 
-    @staticmethod
     def depart_latex(self, node):
         self.body.append('\\end{sphinxadmonition}\n')
         self.no_latex_floats -= 1
@@ -97,7 +92,6 @@ class node_clear_content(node_base):
     tagname = 'div'
     endtag = 'true'
 
-    @staticmethod
     def visit_latex(self, node):
         if 'break-after' in node.get('classes', []):
             self.body.append('\n\\clearpage\n')
@@ -117,7 +111,6 @@ class node_collection(node_base):
     tagname = 'div'
     endtag = 'true'
 
-    @staticmethod
     def visit_latex(self, node):
         raise nodes.SkipNode
 
@@ -125,7 +118,6 @@ class node_collection(node_base):
     def update_collection_env(builder, olduri, uri):
         builder.collection_image[olduri] = uri
 
-    @staticmethod
     def depart(self, node):
         """
         Check if node has child image, if so,

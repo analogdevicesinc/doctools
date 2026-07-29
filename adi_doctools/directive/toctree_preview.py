@@ -6,6 +6,7 @@ from docutils import nodes
 from sphinx import addnodes
 from sphinx.directives.other import TocTree
 from sphinx.util import logging
+
 from .common import get_document_description
 
 if TYPE_CHECKING:

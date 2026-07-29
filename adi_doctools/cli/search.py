@@ -7,26 +7,26 @@ That is a fork from sphinx provided search.
 
 import asyncio
 import json
+import logging
 import pickle
 import re
 import sys
 import time
-import logging
 from concurrent.futures import ThreadPoolExecutor
 from email.utils import parsedate_to_datetime
 from html.parser import HTMLParser
 from io import StringIO
-from packaging.version import Version
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.parse import urljoin, urlparse
 from urllib.request import urlopen
 
 import snowballstemmer
+from packaging.version import Version
 from sphinx import __version__ as __sphinx_version__
 from sphinx.ext.intersphinx._load import _InvConfig
 
-from ..lut import repos, remote_doc, source_hostname_raw
+from ..lut import remote_doc, repos, source_hostname_raw
 from .argument_parser import get_arguments_search
 from .aux_html2md import convert_html_to_markdown
 from .logging import BLUE, DIM, NC, RESET
@@ -179,7 +179,7 @@ def is_cache_valid(cache_path, remote_last_modified):
     try:
         with open(cache_path, 'r', encoding='utf-8') as f:
             cached_data = json.load(f)
-    except (json.JSONDecodeError, OSError, IOError) as e:
+    except (json.JSONDecodeError, OSError) as e:
         logger.debug(f"Failed to load cache {cache_path}: {e}")
         return False
 
@@ -214,11 +214,10 @@ def save_to_cache(cache_path, data, last_modified=None):
 
     cache_data = dict(data) if isinstance(data, dict) else data
 
-    if last_modified:
-        if isinstance(cache_data, dict):
-            cache_data['__cache_metadata__'] = {
-                'last_modified': last_modified.strftime('%a, %d %b %Y %H:%M:%S GMT') if hasattr(last_modified, 'strftime') else str(last_modified)
-            }
+    if last_modified and isinstance(cache_data, dict):
+        cache_data['__cache_metadata__'] = {
+            'last_modified': last_modified.strftime('%a, %d %b %Y %H:%M:%S GMT') if hasattr(last_modified, 'strftime') else str(last_modified)
+        }
 
     with open(cache_path, 'w', encoding='utf-8') as f:
         json.dump(cache_data, f)
@@ -268,7 +267,7 @@ def fetch_url_content(url, format='md'):
         print(error_format_src_requires_index_2)
         sys.exit(1)
 
-    print("")
+    print()
     print(f"{BLUE}Format:{RESET} {format.upper()}", end='')
     if format == 'md':
         print(format_desc_converted_markdown)
@@ -287,7 +286,7 @@ def fetch_url_content(url, format='md'):
     except URLError as e:
         logger.error(f"Failed to fetch URL - {e.reason}")
         sys.exit(1)
-    except Exception as e:
+    except UnicodeDecodeError as e:
         logger.error(f"{e}")
         sys.exit(1)
 
@@ -324,7 +323,7 @@ def fetch_source_file(index, format='src'):
 
     result_url = result['url']
 
-    print("")
+    print()
     print(f"{BLUE}Format:{RESET} {format.upper()}", end='')
     if format == 'md':
         print(format_desc_converted_markdown)
@@ -341,7 +340,7 @@ def fetch_source_file(index, format='src'):
         try:
             with urlopen(result_url, timeout=30) as response:
                 html_content = response.read().decode('utf-8')
-        except Exception as e:
+        except (URLError, UnicodeDecodeError) as e:
             logger.error(f"Failed to fetch HTML - {e}")
             sys.exit(1)
 
@@ -357,7 +356,7 @@ def fetch_source_file(index, format='src'):
         try:
             with urlopen(result_url, timeout=30) as response:
                 html_content = response.read().decode('utf-8')
-        except Exception as e:
+        except (URLError, UnicodeDecodeError) as e:
             logger.error(f"Failed to fetch HTML - {e}")
             sys.exit(1)
 
@@ -474,7 +473,7 @@ def fetch_source_file(index, format='src'):
                     print(f"Attempted URL: {included_url}\n")
                 else:
                     logger.warning(f"Could not fetch included file (HTTP {e.code}). Showing original content.")
-            except Exception as e:
+            except (URLError, UnicodeDecodeError) as e:
                 logger.warning(f"Could not fetch included file: {e}. Showing original content.")
 
     terminal_width, _ = get_terminal_size()
@@ -544,7 +543,7 @@ def load_inventory_from_cache(cache_path):
                 metadata = json.load(f)
                 if metadata.get('__cache_error__'):
                     return None
-        except (json.JSONDecodeError, OSError, IOError):
+        except (json.JSONDecodeError, OSError):
             pass
 
     with open(cache_path, 'rb') as f:
@@ -636,7 +635,7 @@ def fetch_intersphinx_inventory(base_url, remote_last_modified=None):
             cached_inv = load_inventory_from_cache(cache_path)
             if cached_inv is not None:
                 return cached_inv
-        except (pickle.UnpicklingError, OSError, IOError, EOFError) as e:
+        except (pickle.UnpicklingError, OSError, EOFError) as e:
             logger.debug(f"Failed to load inventory cache: {e}")
 
     config = _InvConfig(
@@ -1129,7 +1128,7 @@ def search():
         if showing < total:
             print(f"Top {showing} results:\n")
         else:
-            print("")
+            print()
 
         terminal_width, _ = get_terminal_size()
 
@@ -1259,6 +1258,6 @@ def search():
     except ValueError as e:
         logger.error(str(e))
         sys.exit(1)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(str(e))
         sys.exit(1)

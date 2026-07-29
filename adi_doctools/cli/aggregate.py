@@ -1,13 +1,14 @@
-from typing import Tuple, List
+from __future__ import annotations
+
+import logging
+import subprocess
+from os import environ, mkdir, pardir, path
+
 from sphinx.util.osutil import SEP
 
-from os import mkdir, path, pardir, environ
-import subprocess
-import logging
-
+from ..lut import get_lut
 from .argument_parser import get_arguments_aggregate
 from .logging import FAIL, NC
-from ..lut import get_lut
 
 logger = logging.getLogger(__name__)
 
@@ -19,8 +20,7 @@ repos = lut['repos']
 
 class pr:
     @staticmethod
-    def popen(cmd, p: List, cwd: [str, None] = None, env = None):
-        global dry_run, no_parallel
+    def popen(cmd, p: list, cwd: [str, None] = None, env = None):
         if not dry_run:
             p__ = subprocess.Popen(cmd, cwd=cwd, env=env)
             p__.wait() if no_parallel else p.append(p__)
@@ -32,9 +32,8 @@ class pr:
 
     @staticmethod
     def run(cmd, cwd=None):
-        global dry_run, no_parallel
         if not dry_run:
-            subprocess.run(cmd, shell=True, cwd=cwd)
+            subprocess.run(cmd, shell=True, cwd=cwd, check=False)
         elif cwd is not None:
             print(f"cd {cwd}; {cmd}")
         else:
@@ -47,7 +46,6 @@ class pr:
 
     @staticmethod
     def mkdir(d):
-        global dry_run
         if not dry_run:
             mkdir(d)
         else:
@@ -55,7 +53,6 @@ class pr:
 
 
 def patch_index(name, docsdir, indexfile):
-    global dry_run
     file = path.join(path.join(docsdir, name), 'index.rst')
     toctree = []
 
@@ -65,7 +62,7 @@ def patch_index(name, docsdir, indexfile):
             return
         data_ = data.copy()
         in_toc = False
-        for i in range(0, len(data)):
+        for i in range(len(data)):
             if in_toc:
                 if data[i][0:12] == '   :caption:':
                     data[i] = ""
@@ -98,8 +95,7 @@ def patch_index(name, docsdir, indexfile):
     # Add orphan flag to indexes, since toctree is expanded at /index.rst
     with open(file, 'w') as f:
         f.write(':orphan:\n\n')
-        for line in data_:
-            f.write(line)
+        f.writelines(data_)
 
     if dry_run:
         return
@@ -109,9 +105,10 @@ def patch_index(name, docsdir, indexfile):
         # Find end of last toctree
         if ".. toctree::\n" in data_:
             i = len(data_) - 1 - data_[::-1].index(".. toctree::\n")
-            for i in range(i + 1, len(data_)):
-                if data_[i][0:3] != '   ' and data_[i] != '\n':
+            for j in range(i + 1, len(data_)):
+                if data_[j][0:3] != '   ' and data_[j] != '\n':
                     break
+            i = j
         else:
             i = len(data_)
 
@@ -131,11 +128,10 @@ def patch_index(name, docsdir, indexfile):
         header.extend(body)
 
     with open(indexfile, "w") as f:
-        for line in header:
-            f.write(line)
+        f.writelines(header)
 
 
-def get_sphinx_dirs(cwd) -> Tuple[bool, str, str]:
+def get_sphinx_dirs(cwd) -> tuple[bool, str, str]:
     conf_py = path.join(cwd, 'conf.py')
     if not path.isfile(conf_py):
         logger.error(f"{FAIL}{conf_py} does not exist, skipped!{NC}")
@@ -147,7 +143,6 @@ def get_sphinx_dirs(cwd) -> Tuple[bool, str, str]:
 
 
 def do_extra_steps(repo_dir):
-    global dry_run, no_parallel
     for l_ in repos:
         if 'extra' in repos[l_]:
             cwd, cmd, no_p = repos[l_]['extra']

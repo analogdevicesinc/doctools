@@ -7,6 +7,8 @@ Exposes:
 """
 # Keep in sync with cli/*
 
+from __future__ import annotations
+
 import asyncio
 import signal
 import subprocess
@@ -14,8 +16,7 @@ from typing import Any
 
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
-from mcp.types import Tool, TextContent
-
+from mcp.types import TextContent, Tool
 
 app = Server("adoc")
 
@@ -156,7 +157,8 @@ async def run_adoc_command(command: str, args: list[str]) -> dict[str, Any]:
             cmd,
             capture_output=True,
             text=True,
-            timeout=60
+            timeout=60,
+            check=False
         )
     )
 
@@ -213,7 +215,7 @@ async def main():
             )
 
             shutdown_task = asyncio.create_task(shutdown_event.wait())
-            done, pending = await asyncio.wait(
+            _done, pending = await asyncio.wait(
                 [server_task, shutdown_task],
                 return_when=asyncio.FIRST_COMPLETED
             )

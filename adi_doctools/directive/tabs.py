@@ -1,8 +1,10 @@
-from docutils.parsers.rst import Directive
-from docutils import nodes
 from hashlib import sha1
 
+from docutils import nodes
+from docutils.parsers.rst import Directive
+
 from .node import node_div, node_input, node_label
+
 
 class directive_tab_set(Directive):
     """

@@ -1,4 +1,4 @@
-from typing import Dict
+from __future__ import annotations
 
 from datetime import datetime
 from os import path
@@ -6,9 +6,10 @@ from os import path
 from ..__init__ import __version__
 from ..typing.hdl import Library, Project
 
+_current_year = datetime.now().year  # noqa: DTZ005
 license_makefile = f"""\
 ####################################################################################
-## Copyright (c) 2018-{datetime.now().year} Analog Devices, Inc.
+## Copyright (c) 2018-{_current_year} Analog Devices, Inc.
 ### SPDX short identifier: BSD-1-Clause
 ## Auto-generated v{__version__}, do not modify!
 ####################################################################################
@@ -51,7 +52,7 @@ license_sv = """\
 // ***************************************************************************
 """
 
-def svpkg_regmap(f, regmap: Dict, key: str):
+def svpkg_regmap(f, regmap: dict, key: str):
     f.write(f"    /* {regmap['title']} */\n")
 
     for reg in regmap['regmap']:
@@ -70,9 +71,7 @@ def svpkg_regmap(f, regmap: Dict, key: str):
         f.write("\n      function new(\n")
         f.write("        input string name,\n")
         f.write("        input int address,\n")
-        reg_param_dec = []
-        for reg_param in reg['parameters']:
-            reg_param_dec.append(reg_param)
+        reg_param_dec = list(reg['parameters'])
         if len(reg_param_dec):
             reg_params_set = set(reg_param_dec)
             reg_param_dec = list(reg_params_set)
@@ -104,8 +103,8 @@ def svpkg_regmap(f, regmap: Dict, key: str):
         f.write(row)
 
 
-def svpkg_head(f, key: str, regmap: Dict):
-    run_time = datetime.now().strftime('%b %d %H:%M:%S %Y')
+def svpkg_head(f, key: str, regmap: dict):
+    run_time = datetime.now().strftime('%b %d %H:%M:%S %Y')  # noqa: DTZ005
     pkgname = f"adi_regmap_{key}_pkg"
     classname = f"adi_regmap_{key}"
     f.write(license_sv)
@@ -120,7 +119,7 @@ def svpkg_head(f, key: str, regmap: Dict):
     f.write(";\n\n")
 
 
-def svpkg_reg_decl(f, regmap: Dict):
+def svpkg_reg_decl(f, regmap: dict):
     for reg in regmap['regmap']:
         if reg['where'] is not None:
             number_of_instances = reg['where'][1]-1
@@ -133,7 +132,7 @@ def svpkg_reg_decl(f, regmap: Dict):
             f.write(row)
 
 
-def svpkg_reg_inst(f, regmap: Dict):
+def svpkg_reg_inst(f, regmap: dict):
     for reg in regmap['regmap']:
         if reg['where'] is not None:
             number_of_instances = reg['where'][1]
@@ -146,8 +145,7 @@ def svpkg_reg_inst(f, regmap: Dict):
             row += f", {addr} + 'h{reg['addr_incr']} * i * 4"
             reg_param_dec = []
 
-            for reg_param in reg['parameters']:
-                reg_param_dec.append(reg_param)
+            reg_param_dec.extend(reg['parameters'])
             if len(reg_param_dec):
                 reg_params_set = set(reg_param_dec)
                 reg_param_dec = list(reg_params_set)
@@ -164,9 +162,7 @@ def svpkg_reg_inst(f, regmap: Dict):
             row = f"      this.{reg['name']}_R = new("
             row += '"' + reg['name'] + '"'
             row += f", {addr}"
-            reg_param_dec = []
-            for reg_param in reg['parameters']:
-                reg_param_dec.append(reg_param)
+            reg_param_dec = list(reg['parameters'])
             if len(reg_param_dec):
                 reg_params_set = set(reg_param_dec)
                 reg_param_dec = list(reg_params_set)
@@ -177,7 +173,7 @@ def svpkg_reg_inst(f, regmap: Dict):
             f.write(row)
 
 
-def svpkg_footer(f, key: str, regmap: Dict):
+def svpkg_footer(f, key: str, regmap: dict):
     pkgname = f"adi_regmap_{key}_pkg"
     classname = f"adi_regmap_{key}"
     f.write(f"  endclass: {classname}\n\n")
@@ -186,57 +182,52 @@ def svpkg_footer(f, key: str, regmap: Dict):
 
 def write_hdl_regmap_pkg(
     path_: str,
-    regmap: Dict,
+    regmap: dict,
     key: str
 ) -> None:
     fname = f"adi_regmap_{key}_pkg.sv"
     file = path.join(path_, fname)
-    f = open(file, "w")
-    svpkg_head(f, key, regmap)
+    with open(file, "w") as f:
+        svpkg_head(f, key, regmap)
 
-    for rm in regmap:
-        svpkg_regmap(f, regmap[rm], rm)
+        for rm, rm_data in regmap.items():
+            svpkg_regmap(f, rm_data, rm)
 
-    for rm in regmap:
-        svpkg_reg_decl(f, regmap[rm])
+        for rm, rm_data in regmap.items():
+            svpkg_reg_decl(f, rm_data)
 
-    f.write("\n    function new(\n")
-    f.write("      input string name,\n")
-    f.write("      input int address,\n")
-    reg_param_dec = []
-    for rm in regmap:
-        for reg in regmap[rm]['regmap']:
-            for reg_param in reg['parameters']:
-                reg_param_dec.append(reg_param)
-    if len(reg_param_dec):
-        reg_params_set = set(reg_param_dec)
-        reg_param_dec = list(reg_params_set)
-        reg_param_dec.sort()
-        for reg_param in reg_param_dec:
-            f.write(f"      input int {reg_param},\n")
-    f.write("      input adi_api parent = null);\n\n")
-    f.write("      super.new(name, address, parent);\n\n")
-    for rm in regmap:
-        svpkg_reg_inst(f, regmap[rm])
-    f.write("\n")
-    f.write("      this.info($sformatf(\"Initialized\"), ADI_VERBOSITY_HIGH);\n")
-    f.write("    endfunction: new\n\n")
+        f.write("\n    function new(\n")
+        f.write("      input string name,\n")
+        f.write("      input int address,\n")
+        reg_param_dec = []
+        for rm_data in regmap.values():
+            for reg in rm_data['regmap']:
+                reg_param_dec.extend(reg['parameters'])
+        if len(reg_param_dec):
+            reg_params_set = set(reg_param_dec)
+            reg_param_dec = list(reg_params_set)
+            reg_param_dec.sort()
+            f.writelines(f"      input int {reg_param},\n" for reg_param in reg_param_dec)
+        f.write("      input adi_api parent = null);\n\n")
+        f.write("      super.new(name, address, parent);\n\n")
+        for rm, rm_data in regmap.items():
+            svpkg_reg_inst(f, rm_data)
+        f.write("\n")
+        f.write("      this.info($sformatf(\"Initialized\"), ADI_VERBOSITY_HIGH);\n")
+        f.write("    endfunction: new\n\n")
 
-    svpkg_footer(f, key, rm)
-
-    f.close()
+        svpkg_footer(f, key, rm)
 
 
 def write_hdl_regmap_definitions(
     path_: str,
-    regmap: Dict,
+    regmap: dict,
     key: str
 ) -> None:
     reg_param_dec = []
-    for rm in regmap:
-        for reg in regmap[rm]['regmap']:
-            for reg_param in reg['parameters']:
-                reg_param_dec.append(reg_param)
+    for rm_data in regmap.values():
+        for reg in rm_data['regmap']:
+            reg_param_dec.extend(reg['parameters'])
     if len(reg_param_dec):
         reg_params_set = set(reg_param_dec)
         reg_param_dec = list(reg_params_set)
@@ -245,45 +236,43 @@ def write_hdl_regmap_definitions(
 
         fname = f"adi_regmap_{key}_definitions.svh"
         file = path.join(path_, fname)
-        f = open(file, "w")
 
-        run_time = datetime.now().strftime('%b %d %H:%M:%S %Y')
-        pkgname = f"adi_regmap_{key}_pkg"
-        f.write(license_sv)
-        f.write("/* Auto generated Register Map */\n")
-        f.write(f"/* {run_time} v{__version__} */\n")
-        f.write("\n")
+        with open(file, "w") as f:
+            run_time = datetime.now().strftime('%b %d %H:%M:%S %Y')  # noqa: DTZ005
+            pkgname = f"adi_regmap_{key}_pkg"
+            f.write(license_sv)
+            f.write("/* Auto generated Register Map */\n")
+            f.write(f"/* {run_time} v{__version__} */\n")
+            f.write("\n")
 
-        f.write("`timescale 1ns/1ps\n\n")
-        f.write(f"`ifndef _{pkgname.upper()}_DEFINITIONS_SVH_\n")
-        f.write(f"`define _{pkgname.upper()}_DEFINITIONS_SVH_\n\n")
+            f.write("`timescale 1ns/1ps\n\n")
+            f.write(f"`ifndef _{pkgname.upper()}_DEFINITIONS_SVH_\n")
+            f.write(f"`define _{pkgname.upper()}_DEFINITIONS_SVH_\n\n")
 
-        f.write("// Help build VIP Interface parameters name\n")
+            f.write("// Help build VIP Interface parameters name\n")
 
-        reg_param_dec_import = reg_param_dec.copy()
-        for i, reg_param in enumerate(reg_param_dec_import):
-            reg_param_dec_import[i] = f"  n``.inst.{reg_param}"
-        row = separator.join(reg_param_dec_import)
-        f.write(f"`define {pkgname.upper()}_PARAM_IMPORT(n)")
-        f.write(f"{row}\n\n")
+            reg_param_dec_import = reg_param_dec.copy()
+            for i, reg_param in enumerate(reg_param_dec_import):
+                reg_param_dec_import[i] = f"  n``.inst.{reg_param}"
+            row = separator.join(reg_param_dec_import)
+            f.write(f"`define {pkgname.upper()}_PARAM_IMPORT(n)")
+            f.write(f"{row}\n\n")
 
-        for i, reg_param in enumerate(reg_param_dec):
-            reg_param_dec[i] = f"  {reg_param}"
-        row = separator.join(reg_param_dec)
-        f.write(f"`define {pkgname.upper()}_PARAM_DECL int")
-        f.write(f"{row}\n\n")
+            for i, reg_param in enumerate(reg_param_dec):
+                reg_param_dec[i] = f"  {reg_param}"
+            row = separator.join(reg_param_dec)
+            f.write(f"`define {pkgname.upper()}_PARAM_DECL int")
+            f.write(f"{row}\n\n")
 
-        f.write(f"`define {pkgname.upper()}_PARAM_ORDER")
-        f.write(f"{row}\n\n")
+            f.write(f"`define {pkgname.upper()}_PARAM_ORDER")
+            f.write(f"{row}\n\n")
 
-        f.write("`endif\n")
-
-        f.close()
+            f.write("`endif\n")
 
 
 def write_hdl_regmap(
     path_: str,
-    regmap: Dict,
+    regmap: dict,
     key: str
 ) -> None:
     write_hdl_regmap_pkg(path_, regmap, key)
@@ -292,166 +281,152 @@ def write_hdl_regmap(
 
 def regmap_test_program(
     path_: str,
-    regmap: Dict
+    regmap: dict
 ) -> None:
     fname = "test_program.sv"
     file = path.join(path_, fname)
-    f = open(file, "w")
 
-    f.write("`include \"utils.svh\"\n\n")
-    f.write("import logger_pkg::*;\n")
+    with open(file, "w") as f:
+        f.write("`include \"utils.svh\"\n\n")
+        f.write("import logger_pkg::*;\n")
 
-    for m in regmap:
-        row = "import adi_regmap_" + m + "_pkg::*;\n"
-        f.write(row)
+        for m in regmap:
+            row = "import adi_regmap_" + m + "_pkg::*;\n"
+            f.write(row)
 
-    f.write("\nmodule test_program;\n\n")
+        f.write("\nmodule test_program;\n\n")
 
-    for m in regmap:
-        row = "  adi_regmap_" + m + " "
+        for m in regmap:
+            row = "  adi_regmap_" + m + " "
 
-        row += "adi_regmap_" + m + "_rm;\n"
-        f.write(row)
+            row += "adi_regmap_" + m + "_rm;\n"
+            f.write(row)
 
-    f.write("\n  initial begin\n\n")
+        f.write("\n  initial begin\n\n")
 
-    f.write("\n    setLoggerVerbosity(ADI_VERBOSITY_NONE);\n\n")
+        f.write("\n    setLoggerVerbosity(ADI_VERBOSITY_NONE);\n\n")
 
-    for m in regmap:
-        row = "    adi_regmap_" + m + "_rm = new(\"" + m + "\""
-        row += ", 0"
-        reg_param_dec = []
-        for k in regmap[m]['subregmap']:
-            for reg in regmap[m]['subregmap'][k]['regmap']:
-                for reg_param in reg['parameters']:
-                    reg_param_dec.append(reg_param)
-        if len(reg_param_dec):
-            reg_params_set = set(reg_param_dec)
-            reg_param_dec = list(reg_params_set)
-            reg_param_dec.sort()
-            reg_param_t0 = []
-            for conv in reg_param_dec:
-                reg_param_t0.append("0")
-            row += ", "
-            row += ", ".join(reg_param_t0)
-        row += ");\n"
-        f.write(row)
+        for m in regmap:
+            row = "    adi_regmap_" + m + "_rm = new(\"" + m + "\""
+            row += ", 0"
+            reg_param_dec = []
+            for k in regmap[m]['subregmap']:
+                for reg in regmap[m]['subregmap'][k]['regmap']:
+                    reg_param_dec.extend(reg['parameters'])
+            if len(reg_param_dec):
+                reg_params_set = set(reg_param_dec)
+                reg_param_dec = list(reg_params_set)
+                reg_param_dec.sort()
+                reg_param_t0 = []
+                for conv in reg_param_dec:
+                    reg_param_t0.append("0")
+                row += ", "
+                row += ", ".join(reg_param_t0)
+            row += ");\n"
+            f.write(row)
 
-    f.write("\n    $finish();\n\n")
-    f.write("  end\n\n")
-    f.write("endmodule\n")
-
-    f.close()
+        f.write("\n    $finish();\n\n")
+        f.write("  end\n\n")
+        f.write("endmodule\n")
 
 
 def regmap_bash_script(
     path_: str,
-    regmap: Dict
+    regmap: dict
 ) -> None:
     fname = "test_program"
     file = path.join(path_, fname)
-    f = open(file, "w")
 
-    f.write("#!/bin/bash\n\n")
+    with open(file, "w") as f:
+        f.write("#!/bin/bash\n\n")
 
-    f.write("SOURCE=\"utils.svh \"\n")
-    f.write("SOURCE+=\"logger_pkg.sv \"\n")
-    f.write("SOURCE+=\"adi_common_pkg.sv \"\n")
-    f.write("SOURCE+=\"adi_environment_pkg.sv \"\n")
-    f.write("SOURCE+=\"adi_vip_pkg.sv \"\n")
-    f.write("SOURCE+=\"axi_definitions.svh \"\n")
-    f.write("SOURCE+=\"m_axi_sequencer.sv \"\n")
-    f.write("SOURCE+=\"adi_api_pkg.sv \"\n")
+        f.write("SOURCE=\"utils.svh \"\n")
+        f.write("SOURCE+=\"logger_pkg.sv \"\n")
+        f.write("SOURCE+=\"adi_common_pkg.sv \"\n")
+        f.write("SOURCE+=\"adi_environment_pkg.sv \"\n")
+        f.write("SOURCE+=\"adi_vip_pkg.sv \"\n")
+        f.write("SOURCE+=\"axi_definitions.svh \"\n")
+        f.write("SOURCE+=\"m_axi_sequencer.sv \"\n")
+        f.write("SOURCE+=\"adi_api_pkg.sv \"\n")
 
-    for m in regmap:
-        row = "SOURCE+=\"adi_regmap_" + m + "_pkg.sv \"\n"
-        f.write(row)
+        for m in regmap:
+            row = "SOURCE+=\"adi_regmap_" + m + "_pkg.sv \"\n"
+            f.write(row)
 
-    f.write("SOURCE+=\"test_program.sv\"\n\n")
+        f.write("SOURCE+=\"test_program.sv\"\n\n")
 
-    f.write("cp ../utilities/utils.svh .\n")
-    f.write("cp ../utilities/logger_pkg.sv .\n")
-    f.write("cp ../utilities/adi_common_pkg.sv .\n")
-    f.write("cp ../utilities/adi_environment_pkg.sv .\n")
-    f.write("cp ../utilities/adi_api_pkg.sv .\n")
-    f.write("cp ../utilities/adi_vip_pkg.sv .\n")
-    f.write("cp ../vip/amd/axi/m_axi_sequencer.sv .\n")
-    f.write("cp ../vip/amd/axi/axi_definitions.svh .\n")
-    f.write("source ../../scripts/run_unit_tb.sh")
-
-    f.close()
+        f.write("cp ../utilities/utils.svh .\n")
+        f.write("cp ../utilities/logger_pkg.sv .\n")
+        f.write("cp ../utilities/adi_common_pkg.sv .\n")
+        f.write("cp ../utilities/adi_environment_pkg.sv .\n")
+        f.write("cp ../utilities/adi_api_pkg.sv .\n")
+        f.write("cp ../utilities/adi_vip_pkg.sv .\n")
+        f.write("cp ../vip/amd/axi/m_axi_sequencer.sv .\n")
+        f.write("cp ../vip/amd/axi/axi_definitions.svh .\n")
+        f.write("source ../../scripts/run_unit_tb.sh")
 
 
 def write_hdl_regmap_test(
     path_: str,
-    regmap: Dict
+    regmap: dict
 ) -> None:
     regmap_test_program(path_, regmap)
     regmap_bash_script(path_, regmap)
 
 
 def write_hdl_library_makefile(
-    libraries: Dict[str, Library],
+    libraries: dict[str, Library],
     path_: str
 ) -> None:
     library = libraries[path_]
     fname = "Makefile"
     file = path.join('library', path_, fname)
-    f = open(file, "w")
-    f.write(license_makefile)
-    f.write("\n")
-    f.write(f"LIBRARY_NAME := {library['name']}\n")
-    f.write("\n")
-    for d in library['generic']['dependencies']:
-        f.write(f"GENERIC_DEPS += {d}\n")
-    f.write("\n")
-    for v in library['vendor']:
-        r = library['vendor'][v]
-        for d in r['dependencies']:
-            f.write(f"{v.upper()}_DEPS += {d}\n")
-        if len(r['dependencies']) > 0:
-            f.write("\n")
+    with open(file, "w") as f:
+        f.write(license_makefile)
+        f.write("\n")
+        f.write(f"LIBRARY_NAME := {library['name']}\n")
+        f.write("\n")
+        f.writelines(f"GENERIC_DEPS += {d}\n" for d in library['generic']['dependencies'])
+        f.write("\n")
+        for v in library['vendor']:
+            r = library['vendor'][v]
+            f.writelines(f"{v.upper()}_DEPS += {d}\n" for d in r['dependencies'])
+            if len(r['dependencies']) > 0:
+                f.write("\n")
 
-        for x in r['interfaces']:
-            f.write(f"{v.upper()}_DEPS += {x}\n")
-        if len(r['interfaces']) > 0:
-            f.write("\n")
+            f.writelines(f"{v.upper()}_DEPS += {x}\n" for x in r['interfaces'])
+            if len(r['interfaces']) > 0:
+                f.write("\n")
 
-        for d in r['library_dependencies']:
-            f.write(f"{v.upper()}_LIB_DEPS += {d}\n")
-        if len(r['library_dependencies']) > 0:
-            f.write("\n")
+            f.writelines(f"{v.upper()}_LIB_DEPS += {d}\n" for d in r['library_dependencies'])
+            if len(r['library_dependencies']) > 0:
+                f.write("\n")
 
-        for x in r['interfaces_tcl']:
-            f.write(f"{v.upper()}_INTERFACE_DEPS += {x}\n")
-        if len(r['interfaces_tcl']) > 0:
-            f.write("\n")
+            f.writelines(f"{v.upper()}_INTERFACE_DEPS += {x}\n" for x in r['interfaces_tcl'])
+            if len(r['interfaces_tcl']) > 0:
+                f.write("\n")
 
-    p_ = path.join('scripts', 'library.mk')
-    p_ = path.relpath(p_, path_)
-    f.write(f"include {p_}\n")
-    f.close()
+        p_ = path.join('scripts', 'library.mk')
+        p_ = path.relpath(p_, path_)
+        f.write(f"include {p_}\n")
 
 
 def write_hdl_project_makefile(
-    project: Dict[str, Project],
+    project: dict[str, Project],
     path_: str
 ) -> None:
     project = project[path_]
     fname = "Makefile"
     file = path.join('projects', path_, fname)
-    f = open(file, "w")
-    f.write(license_makefile)
-    f.write("\n")
-    f.write(f"PROJECT_NAME := {project['name']}\n")
-    f.write("\n")
-    for d in project['m_deps']:
-        f.write(f"M_DEPS += {d}\n")
-    f.write("\n")
-    for d in project['lib_deps']:
-        f.write(f"LIB_DEPS += {d}\n")
-    f.write("\n")
-    p_ = f"scripts/project-{project['vendor']}.mk"
-    p_ = path.relpath(p_, path_)
-    f.write(f"include {p_}\n")
-    f.close()
+    with open(file, "w") as f:
+        f.write(license_makefile)
+        f.write("\n")
+        f.write(f"PROJECT_NAME := {project['name']}\n")
+        f.write("\n")
+        f.writelines(f"M_DEPS += {d}\n" for d in project['m_deps'])
+        f.write("\n")
+        f.writelines(f"LIB_DEPS += {d}\n" for d in project['lib_deps'])
+        f.write("\n")
+        p_ = f"scripts/project-{project['vendor']}.mk"
+        p_ = path.relpath(p_, path_)
+        f.write(f"include {p_}\n")

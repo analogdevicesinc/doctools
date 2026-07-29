@@ -1,4 +1,4 @@
-from typing import List, Set, Optional, Union, Tuple
+from __future__ import annotations
 
 import re
 from os import path
@@ -38,7 +38,7 @@ class tcl:
     @staticmethod
     def get_list_items(
         line: str
-    ) -> List[str]:
+    ) -> list[str]:
         i1 = line.find("[list")
         if i1 != -1:
             i2 = line.index("]")
@@ -60,8 +60,8 @@ class tcl:
 
     def line_startswith(
         self,
-        start: Union[List[str], str]
-    ) -> Optional[str]:
+        start: list[str] | str
+    ) -> str | None:
         start = [start] if type(start) is str else start
         for line in self.data:
             for s in start:
@@ -73,7 +73,7 @@ class tcl:
         self,
         expr: str,
         start: str
-    ) -> Optional[Set]:
+    ) -> set | None:
         """
         Try to match all inside a tcl method.
         """
@@ -90,7 +90,7 @@ class tcl:
     def get_sourced_files(
         file: str,
         include_self: bool = True
-    ) -> Tuple[List['tcl'], List[str]]:
+    ) -> tuple[list[tcl], list[str]]:
         """
         Recursively get a list of sourced files.
         Returns a list of tcl objects
@@ -110,7 +110,7 @@ class tcl:
             for i, line in enumerate(tcl_):
                 if line.startswith("source "):
                     item = line.split()[1]
-                    if any([item.endswith(i) for i in skip_list]):
+                    if any(item.endswith(i) for i in skip_list):
                        continue
                     if item.startswith("$ad_hdl_dir/"):
                         item = path.abspath(item[12:])

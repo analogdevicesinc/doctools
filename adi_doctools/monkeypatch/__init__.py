@@ -1,6 +1,6 @@
 from docutils import nodes
-from sphinx.environment.collectors.toctree import TocTreeCollector
 from sphinx.builders.singlehtml import SingleFileHTMLBuilder
+from sphinx.environment.collectors.toctree import TocTreeCollector
 from sphinx.writers.html5 import HTML5Translator
 
 
@@ -88,6 +88,6 @@ def monkeypatch_singlehtml_builder():
         self.docnames.append(node['docname'])
         # Changed from: '<span id="document-%s"></span>'
         # To match new format: '/<docname>/' instead of 'document-<docname>'
-        self.body.append('<span id="/%s/"></span>' % node['docname'])
+        self.body.append('<span id="/{}/"></span>'.format(node['docname']))
 
     HTML5Translator.visit_start_of_file = visit_start_of_file

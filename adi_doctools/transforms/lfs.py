@@ -1,12 +1,12 @@
-from os import path, environ
 import re
+from os import environ, path
 
-from sphinx.transforms.post_transforms import SphinxPostTransform
-from sphinx.util import logging
-from sphinx import addnodes
 from docutils import nodes
 from packaging.version import Version
 from sphinx import __version__ as __sphinx_version__
+from sphinx import addnodes
+from sphinx.transforms.post_transforms import SphinxPostTransform
+from sphinx.util import logging
 
 logger = logging.getLogger(__name__)
 

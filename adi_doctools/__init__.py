@@ -1,22 +1,28 @@
 import importlib.util
 import sys
-from os import path, getenv
-from packaging.version import Version
+from os import getenv, path
+from typing import ClassVar
 
-from sphinx.util.osutil import SEP
+from packaging.version import InvalidVersion, Version
 from sphinx import __version__ as __sphinx_version__
-from sphinx.util import logging
-
 from sphinx.transforms.post_transforms.images import ImageConverter
+from sphinx.util import logging
+from sphinx.util.osutil import SEP
 
-from .theme import (navigation_tree, get_pygments_theme,
-                    write_pygments_css, wrap_elements)
-from .theme import setup as theme_setup, names as theme_names, latex_config
 from .directive import setup as directive_setup
-from .role import setup as role_setup
 from .lut import get_lut
-from .role.interref import interref_repos_apply, interref_repos_assert
 from .monkeypatch import monkeypatch_figure_numbers, monkeypatch_singlehtml_builder
+from .role import setup as role_setup
+from .role.interref import interref_repos_apply, interref_repos_assert
+from .theme import (
+    get_pygments_theme,
+    latex_config,
+    navigation_tree,
+    wrap_elements,
+    write_pygments_css,
+)
+from .theme import names as theme_names
+from .theme import setup as theme_setup
 from .transforms import setup as transforms_setup
 
 if importlib.util.find_spec('cairosvg'):
@@ -28,7 +34,7 @@ logger = logging.getLogger(__name__)
 
 
 class CairoSvgConverter(ImageConverter):
-    conversion_rules = [
+    conversion_rules: ClassVar = [
         ('image/svg+xml', 'application/pdf'),
     ]
 
@@ -42,7 +48,7 @@ class CairoSvgConverter(ImageConverter):
         try:
             cairosvg.svg2pdf(url=str(_from), write_to=str(_to))
             return True
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning('convert exited with error: \n[stderr]\n%r\n[stdout]\n%r', _from, exc)
             return False
 
@@ -117,11 +123,11 @@ def builder_inited(app):
     if doc_version is not None:
         try:
             doc_version = 'v'+str(Version(doc_version))
-        except Exception:
+        except InvalidVersion:
             pass
         config.version = doc_version
     # Parameter to enable PDF output tweaks
-    config.no_collections = True if getenv("ADOC_NO_COLLECTIONS") is not None else False
+    config.no_collections = getenv("ADOC_NO_COLLECTIONS") is not None
 
     # Default repository as project if not provided
     if config.repository is None:

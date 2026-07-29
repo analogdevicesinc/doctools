@@ -1,21 +1,20 @@
-from typing import Optional, List, Tuple, Dict
+from __future__ import annotations
 
-import re
 import contextlib
-from lxml import etree
+import re
 from os import path
+
+from lxml import etree
 from sphinx.util import logging
 
-from ..typing.hdl import Intf, IntfPort
-from ..typing.hdl import Library, LibraryVendor
-from ..typing.hdl import Project
 from ..directive.string import string_hdl
+from ..typing.hdl import Intf, IntfPort, Library, LibraryVendor, Project
 from .tcl import tcl
 
 logger = logging.getLogger(__name__)
 
 
-def parse_hdl_regmap(ctime: float, file: str) -> Dict:
+def parse_hdl_regmap(ctime: float, file: str) -> dict:
     """
     From https://github.com/tfcollins/vger/blob/main/vger/hdl_reg_map.py
     Added methods:
@@ -28,7 +27,7 @@ def parse_hdl_regmap(ctime: float, file: str) -> Dict:
         'ctime': ctime
     }
 
-    def get_where(desc: str, reg: str, fi=None) -> Tuple[any]:
+    def get_where(desc: str, reg: str, fi=None) -> tuple[any]:
         re_expr = r"FROM ([0-9]+) TO ([0-9]+)$"
 
         m = re.search(re_expr, desc)
@@ -131,7 +130,7 @@ def parse_hdl_regmap(ctime: float, file: str) -> Dict:
                         if where_desc != '':
                             logger.warning(f"Static addr {reg_addr} "
                                            f"with where method at {reg_name}!")
-                except Exception:
+                except (ValueError, IndexError):
                     logger.warning(f"Malformed register address {reg_addr} "
                                    f"for register {reg_name}.")
                     reg_addr = 0
@@ -146,10 +145,9 @@ def parse_hdl_regmap(ctime: float, file: str) -> Dict:
 
             with contextlib.suppress(ValueError):
                 tet = data.index("TITLE") if "TITLE" in data else -1
-                if tet != -1:
-                    if regi > tet:
-                        # into next regmap
-                        break
+                if tet != -1 and regi > tet:
+                    # into next regmap
+                    break
             data = data[rfi + 1:]
 
             # Get fields
@@ -187,7 +185,7 @@ def parse_hdl_regmap(ctime: float, file: str) -> Dict:
                             bits_ = [field_bits, field_bits]
                         try:
                             bit0_ = int(bits_[0])
-                        except Exception:
+                        except ValueError:
                             bit0_ = bits_[0]
                             bit_str = bit0_
                             for delimiter in delimiters:
@@ -195,11 +193,11 @@ def parse_hdl_regmap(ctime: float, file: str) -> Dict:
                             for str_part in bit_str.split():
                                 try:
                                     int(str_part)
-                                except Exception:
+                                except ValueError:
                                     reg_params.append(str_part)
                         try:
                             bit1_ = int(bits_[1])
-                        except Exception:
+                        except ValueError:
                             bit1_ = bits_[1]
                             bit_str = bit1_
                             for delimiter in delimiters:
@@ -207,7 +205,7 @@ def parse_hdl_regmap(ctime: float, file: str) -> Dict:
                             for str_part in bit_str.split():
                                 try:
                                     int(str_part)
-                                except Exception:
+                                except ValueError:
                                     reg_params.append(str_part)
                         field_bits = (bit0_, bit1_)
 
@@ -230,7 +228,7 @@ def parse_hdl_regmap(ctime: float, file: str) -> Dict:
                             field_default = fd_
                             field_default_long = fd_
 
-                        except Exception:
+                        except (TypeError, ValueError):
                             split_field = field_default.split(" = ", 2)
                             if "''" in field_default:
                                 logger.warning("Default value "
@@ -244,14 +242,14 @@ def parse_hdl_regmap(ctime: float, file: str) -> Dict:
                                     default_str = split_field[1]
                                     field_default_long = split_field[1]
                                     field_default = f"{split_field[0]}"
-                                except Exception:
+                                except IndexError:
                                     default_str = split_field[0]
                                 default_str = re.sub("`[A-Z0-9_]+", "", default_str)
                                 default_str = re.findall("[A-Z0-9_]+", default_str)
                                 for str_part in default_str:
                                     try:
                                         int(str_part)
-                                    except Exception:
+                                    except ValueError:
                                         reg_params.append(re.sub('\\[[0-9:]+\\]', ' ', str_part))
                                         # TODO: Match parse_hdl_library extracted parameters
                     else:
@@ -280,9 +278,8 @@ def parse_hdl_regmap(ctime: float, file: str) -> Dict:
                         field_rw = 'RO'
                     elif field_rw == 'W':
                         field_rw = 'WO'
-                    if '-V' in field_rw:
-                        if 'V' not in access_type:
-                            access_type.append('V')
+                    if '-V' in field_rw and 'V' not in access_type:
+                        access_type.append('V')
                     field_rw_ = field_rw.replace('-V', '')
                     field_rw = field_rw.replace('-V', 'V')
                     if field_rw_ not in access_type:
@@ -347,7 +344,7 @@ def parse_hdl_regmap(ctime: float, file: str) -> Dict:
     return regmap
 
 
-def resolve_hdl_regmap(rm: Dict) -> None:
+def resolve_hdl_regmap(rm: dict) -> None:
     """
     Resolve imported registers and fields at regmaps with the "USING" method.
     parse_hdl_regmap must be called first.
@@ -421,10 +418,9 @@ def resolve_hdl_regmap(rm: Dict) -> None:
         for k in rm[i]['subregmap']:
             resolve(rm[i]['subregmap'][k])
 
-    return
 
 
-def expand_hdl_regmap(rm: Dict) -> None:
+def expand_hdl_regmap(rm: dict) -> None:
     """
     Expand fields with the "WHERE n IS FROM {} TO {}" method.
     resolve_hdl_regmap must be called first.
@@ -450,10 +446,11 @@ def expand_hdl_regmap(rm: Dict) -> None:
         for k in rm[i]['subregmap']:
             expand_fields(rm[i]['subregmap'][k])
 
-    return
 
 
-def parse_hdl_component(file: str, ctime: float, owners: List = []) -> Dict:
+def parse_hdl_component(file: str, ctime: float, owners: list | None = None) -> dict:
+    if owners is None:
+        owners = []
     component = {
         'name': "",
         'bus_interface': {},
@@ -468,7 +465,7 @@ def parse_hdl_component(file: str, ctime: float, owners: List = []) -> Dict:
         nsmap = item.nsmap
         for i in ['spirit', 'xilinx', 'xsi']:
             if i not in nsmap:
-                raise Exception(f"Required namespace {i} not in file!")
+                raise ValueError(f"Required namespace {i} not in file!")
 
         return (nsmap['spirit'], nsmap['xilinx'], nsmap['xsi'])
 
@@ -590,10 +587,8 @@ def parse_hdl_component(file: str, ctime: float, owners: List = []) -> Dict:
                             del items[key_]['port_map'][inner_key]
 
             else:
-                if index < items[key_]['index'][0]:
-                    items[key_]['index'][0] = index
-                if index > items[key_]['index'][1]:
-                    items[key_]['index'][1] = index
+                items[key_]['index'][0] = min(items[key_]['index'][0], index)
+                items[key_]['index'][1] = max(items[key_]['index'][1], index)
 
             del items[key]
 
@@ -721,7 +716,7 @@ def parse_hdl_component(file: str, ctime: float, owners: List = []) -> Dict:
     return component
 
 
-def parse_hdl_build_status(file: str) -> Tuple[List, int, List[str]]:
+def parse_hdl_build_status(file: str) -> tuple[list, int, list[str]]:
 
     if not path.isfile(file):
         logger.warning(f"File {file} doesn't exist!")
@@ -739,7 +734,7 @@ def parse_hdl_build_status(file: str) -> Tuple[List, int, List[str]]:
     try:
         s = 'build number'
         build_number = int(data[0][data[0].find(s)+len(s)+1:])
-    except Exception as e:
+    except ValueError as e:
         build_number = -1
         logger.warning("Couldn't get the build number from the first line "
                        f"of '{file}', exception: {e}.")
@@ -758,7 +753,7 @@ def parse_hdl_build_status(file: str) -> Tuple[List, int, List[str]]:
 
 def parse_hdl_vendor(
     file: str
-) -> Tuple[Tuple[str], List[str]]:
+) -> tuple[tuple[str], list[str]]:
     """
     Obtain the carrier from the project vendor file.
     """
@@ -782,7 +777,7 @@ def parse_hdl_vendor(
 
 def parse_hdl_library(
     file: str,
-) -> Tuple[Optional[LibraryVendor], Optional[str], Optional[str]]:
+) -> tuple[LibraryVendor | None, str | None, str | None]:
     """
     Obtain the library dependencies and interfaces from the library file.
     Vendor agnostic, even though we use:
@@ -947,7 +942,6 @@ def parse_hdl_library(
             if p not in params_:
                 logger.warning(f"{file}: Parameter '{p}' in the '{pkg_sv_ttcl}'"
                                f" file not found in the top module '{top_mod}'")
-        pass
 
     obj = LibraryVendor(
         dependencies=tuple(deps),
@@ -959,7 +953,7 @@ def parse_hdl_library(
 
 
 def resolve_hdl_library(
-    libraries: Dict[str, Library],
+    libraries: dict[str, Library],
     key: str,
     intf_lut: Intf,
 ) -> None:
@@ -978,7 +972,7 @@ def resolve_hdl_library(
             deps[v] = set(library['vendor'][v]['dependencies'])
         deps['generic'] = set.intersection(*[deps[v] for v in deps])
     else:
-        v = list(library['vendor'].keys())[0]
+        v = next(iter(library['vendor'].keys()))
         deps['generic'] = set()
         deps[v] = set()
         for dep in library['vendor'][v]['dependencies']:
@@ -990,7 +984,7 @@ def resolve_hdl_library(
                 deps[v].add(dep)
 
     # Expand $ad_hdl_dir and make it relative
-    for v in deps:
+    for v in deps:  # noqa: PLC0206
         for k in deps[v]:
             if k.startswith('$ad_hdl_dir/'):
                 lib_path = path.join('library', key)
@@ -1008,9 +1002,8 @@ def resolve_hdl_library(
     # Find path (relative to hdl/library) of library dependencies
     def resolve_lib_dep(dep):
         for lib in libraries:
-            if v in libraries[lib]['vendor']:
-                if libraries[lib]['name'] == dep:
-                    return lib
+            if v in libraries[lib]['vendor'] and libraries[lib]['name'] == dep:
+                return lib
         logger.warning(f"Library dependency key '{dep}' not found!")
         return dep
     for v in library['vendor']:
@@ -1038,12 +1031,11 @@ def resolve_hdl_library(
         library['vendor'][v]['interfaces'] = tuple(sorted(deps_intf))
         library['vendor'][v]['interfaces_tcl'] = tuple(sorted(interface_deps))
 
-    return
 
 
 def parse_hdl_project(
     file: str
-) -> Tuple[Optional[Project], Optional[str]]:
+) -> tuple[Project | None, str | None]:
     """
     Obtain the project dependencies from the project files.
     Start from system_project.tcl, then walktrough the sourced tcls.
@@ -1145,7 +1137,7 @@ def parse_hdl_project(
 
 def resolve_hdl_project(
     project: Project,
-    libraries: Dict[str, Library],
+    libraries: dict[str, Library],
 ) -> None:
     def find_lib(key, vendor):
         """
@@ -1165,12 +1157,11 @@ def resolve_hdl_project(
     lib_deps.sort()
 
     project['lib_deps'] = tuple(lib_deps)
-    return
 
 
 def parse_hdl_interfaces(
     file: str,
-) -> Tuple[Intf]:
+) -> tuple[Intf]:
     """
     Obtain the interfaces from the interfaces file.
     """
@@ -1206,9 +1197,9 @@ def parse_hdl_interfaces(
             ports = line.split()
             try:
                 if len(ports) < 4:
-                    raise Exception(f"too few arguments, got {len(ports)}")
+                    raise ValueError(f"too few arguments, got {len(ports)}")
                 if ports[1] not in ['input', 'output']:
-                    raise Exception(f"unknown direction '{ports[1]}'")
+                    raise ValueError(f"unknown direction '{ports[1]}'")
                 direction = ports[3]
                 width = int(ports[2])
                 name = ports[3]
@@ -1223,7 +1214,7 @@ def parse_hdl_interfaces(
                     domain=domain,
                     default=default,
                 ))
-            except Exception as e:
+            except (ValueError, KeyError, IndexError) as e:
                 logger.warning(f"{file}: Malformed 'adi_if_ports' at line {i+1}, "
                                f"exception: {e}")
     for o in obj:

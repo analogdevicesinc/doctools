@@ -5,7 +5,9 @@ Convert Sphinx HTML documentation to Markdown format.
 import re
 import traceback
 from urllib.parse import urljoin
+
 from lxml import html as lxml_html
+
 
 def find_main_content(tree):
     for selector in (
@@ -423,6 +425,6 @@ def convert_html_to_markdown(url, html_content):
     try:
         converter = HTMLToMarkdown(url)
         return converter.convert(html_content)
-    except Exception:
+    except Exception:  # noqa: BLE001
         traceback.print_exc()
         return None

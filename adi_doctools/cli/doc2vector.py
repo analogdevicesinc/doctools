@@ -9,8 +9,8 @@ embeds them with all-MiniLM-L6-v2 (384-dim), and compresses with TurboQuant.
                   --output demo/data
 """
 
-import importlib
 import ctypes
+import importlib
 import json
 import logging
 import os
@@ -62,11 +62,7 @@ def find_html_files(directory, version, ignore_paths):
     include_pages = []
     for p in pages:
         ignore = False
-        if p.name.startswith('_'):
-            ignore = True
-        elif any(str(p).startswith(i) and i.startswith(i_) for i in ignore_paths):
-            ignore = True
-        elif any(str(p).startswith(str(d)) for d in doxygen_dirs):
+        if p.name.startswith('_') or any(str(p).startswith(i) and i.startswith(i_) for i in ignore_paths) or any(str(p).startswith(str(d)) for d in doxygen_dirs):
             ignore = True
         if not ignore:
             include_pages.append(p)

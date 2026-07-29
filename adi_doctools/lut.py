@@ -1,29 +1,31 @@
-from typing import TypedDict, Tuple, Dict, List, Optional
+from __future__ import annotations
+
+from typing import TypedDict
 
 
 class Banner(TypedDict):
-    msg: Optional[str]  # None to disable banner
+    msg: str | None  # None to disable banner
     a_href: str
     a_text: str
 
 
 class Modules(TypedDict):
-    javascript: Optional[List[str]]
-    stylesheet: Optional[List[str]]
+    javascript: list[str] | None
+    stylesheet: list[str] | None
 
 
 class Repo(TypedDict):
-    alt: Optional[str]
+    alt: str | None
     pathname: str
     name: str
-    longname: Optional[str]
+    longname: str | None
     description: str
     category: str
     branch: str
     visibility: str
-    topic: Optional[Dict[str, str]]
-    extra: Optional[Tuple[str, List[str], bool]]
-    parent: Optional[str]
+    topic: dict[str, str] | None
+    extra: tuple[str, list[str], bool] | None
+    parent: str | None
 
 
 class LUT(TypedDict):
@@ -33,7 +35,7 @@ class LUT(TypedDict):
     remote_alt: str
     source_hostname: str
     source_hostname_raw: str
-    repos: Dict[str, Repo]
+    repos: dict[str, Repo]
     banner: Banner
     modules: Modules
 

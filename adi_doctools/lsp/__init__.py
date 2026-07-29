@@ -1,17 +1,25 @@
-import logging as logging_
+from __future__ import annotations
 
-import sys
 import json
+import logging as logging_
+import sys
 
 from sphinx.util.nodes import clean_astext
 
-from .logging import set_logging
-from .language_tool import check_text as lt_check_text, get_status as lt_get_status
-from ..role.common import git_role
-from ..role.common import adi_resolve, dokuwiki_resolve, ez_resolve
-from ..role.common import vendor_resolve, supplier_resolve, vendors, suppliers
-
 from ..cli.serve import Serve
+from ..role.common import (
+    adi_resolve,
+    dokuwiki_resolve,
+    ez_resolve,
+    git_role,
+    supplier_resolve,
+    suppliers,
+    vendor_resolve,
+    vendors,
+)
+from .language_tool import check_text as lt_check_text
+from .language_tool import get_status as lt_get_status
+from .logging import set_logging
 
 logger = logging_.getLogger(__name__)
 
@@ -99,11 +107,11 @@ def role_to_objtype(role: str, inv: dict) -> str | None:
     role = ROLE_TO_OBJTYPE.get(role, role)
     objtype = f"{domain}:{role}"
 
-    if objtype in inv.keys():
+    if objtype in inv:
         return objtype
 
     # Sphinx will match any domain, do the same if 'std:<role>' fails
-    for objtype_ in inv.keys():
+    for objtype_ in inv:
         if objtype_.endswith(f":{role}"):
             return objtype_
 
@@ -145,7 +153,7 @@ def completion_inventory_types(app, inv: str) -> tuple:
         return (None, f"Inventory '{inv}' not found")
 
     roles = {}
-    for objtype in named_inv.keys():
+    for objtype in named_inv:
         role = objtype_to_role(objtype)
         if role and role not in roles:
             count = len(named_inv[objtype])
@@ -280,13 +288,13 @@ def completion_roles(app) -> tuple:
 
     # Std domain (ref, doc, ...)
     std_domain = app.env.domains.standard_domain
-    for role_name in std_domain.roles.keys():
+    for role_name in std_domain.roles:
         if role_name not in seen:
             result.append({'name': role_name, 'partial': False})
             seen.add(role_name)
 
     # Custom roles (app.add_role)
-    for role_name in docutils_roles._roles.keys():
+    for role_name in docutils_roles._roles:
         if role_name not in seen:
             result.append({'name': role_name, 'partial': False})
             seen.add(role_name)
@@ -301,20 +309,20 @@ def completion_directives(app) -> tuple:
 
     # Std domain directives (toctree, etc.)
     std_domain = app.env.domains.standard_domain
-    for directive_name in std_domain.directives.keys():
+    for directive_name in std_domain.directives:
         if directive_name not in seen:
             result.append({'name': directive_name})
             seen.add(directive_name)
 
     # Custom directives (app.add_directive)
-    for directive_name in docutils_directives._directives.keys():
+    for directive_name in docutils_directives._directives:
         if directive_name not in seen:
             result.append({'name': directive_name})
             seen.add(directive_name)
 
     # Sphinx domains (py, c, cpp, etc.)
     for domain_name, domain in app.env.domains.items():
-        for directive_name in domain.directives.keys():
+        for directive_name in domain.directives:
             full_name = f"{domain_name}:{directive_name}" if domain_name != 'std' else directive_name
             if full_name not in seen:
                 result.append({'name': full_name, 'domain': domain_name})
@@ -334,8 +342,7 @@ def handle_cmd(cmd: dict) -> dict:
         if not app:
             return {'error': 'Serve not running'}
 
-        if (role.startswith('downgit-') or role.startswith('downgit+') or
-            role.startswith('git-') or role.startswith('git+')):
+        if (role.startswith(('downgit-', 'downgit+', 'git-', 'git+'))):
             target, title = git_role.resolve(app.config, app.lut['repos'], role, title, target, role.startswith('downgit'))
         elif role == 'adi':
             target, title = adi_resolve(app.config, title, target)

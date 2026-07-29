@@ -1,28 +1,26 @@
-from typing import Tuple, List
-from collections import defaultdict
+from __future__ import annotations
 
-from os import path, listdir, chdir, getcwd, mkdir, walk
-from os import environ, cpu_count
-from glob import glob
-from shutil import copy2
-import importlib.util
 import importlib.machinery
-import subprocess
+import importlib.util
 import logging
-import yaml
-import sys
 import re
+import subprocess
+import sys
+from collections import defaultdict
+from glob import glob
+from os import chdir, cpu_count, environ, getcwd, listdir, mkdir, path, walk
+from shutil import copy2, which
 
-from shutil import which
-
+import yaml
+from sphinx.application import Sphinx
 from sphinx.cmd.make_mode import run_make_mode
 from sphinx.util.osutil import SEP
-from sphinx.application import Sphinx
+
 from adi_doctools import __version__
 
 from ..lut import get_lut, remote_doc
-from .aux_git import is_git_lfs_installed, get_lfs_sha
 from .argument_parser import get_arguments_custom_doc
+from .aux_git import get_lfs_sha, is_git_lfs_installed
 from .logging import BLUE, FAIL, NC
 
 logger = logging.getLogger(__name__)
@@ -40,16 +38,14 @@ default_config = {
 
 class pr:
     @staticmethod
-    def popen(cmd, p: List, cwd: [str, None] = None, env=None):
-        global no_parallel
+    def popen(cmd, p: list, cwd: [str, None] = None, env=None):
         p__ = subprocess.Popen(cmd, cwd=cwd, env=env)
         p__.wait() if no_parallel else p.append(p__)
         return p
 
     @staticmethod
     def run(cmd, cwd=None):
-        global no_parallel
-        subprocess.run(cmd, shell=True, cwd=cwd)
+        subprocess.run(cmd, shell=True, cwd=cwd, check=False)
 
     @staticmethod
     def wait(p):
@@ -60,7 +56,7 @@ class pr:
         return 0
 
 
-def get_sphinx_dirs(cwd) -> Tuple[bool, str, str]:
+def get_sphinx_dirs(cwd) -> tuple[bool, str, str]:
     conf_py = path.join(cwd, 'conf.py')
     if not path.isfile(conf_py):
         logger.error(f"{FAIL}{conf_py} does not exist, skipped!{NC}")
@@ -72,7 +68,6 @@ def get_sphinx_dirs(cwd) -> Tuple[bool, str, str]:
 
 
 def do_extra_steps(repo_dir, doc):
-    global no_parallel
     for l_ in doc['config']:
         if doc['config'][l_]['extra'] is False:
             continue
@@ -97,17 +92,29 @@ def do_extra_steps(repo_dir, doc):
 
 
 class SphinxWarnings:
-    orphan: List = []  # srcfile
-    ref_ref: List = []  # docname lineno label
-    ref_doc: List = []  # docname lineno label
-    toc_not_readable: List = []  # docname lineno srcfile
-    toc_glob: List = []  # docname lineno srcfile
-    image_not_readable: List = []  # docname srcfile
-    include: List = []  # docname lineno srcfile
+    orphan: list = None  # srcfile
+    ref_ref: list = None  # docname lineno label
+    ref_doc: list = None  # docname lineno label
+    toc_not_readable: list = None  # docname lineno srcfile
+    toc_glob: list = None  # docname lineno srcfile
+    image_not_readable: list = None  # docname srcfile
+    include: list = None  # docname lineno srcfile
+
+    def __init__(self):
+        self.orphan = []
+        self.ref_ref = []
+        self.ref_doc = []
+        self.toc_not_readable = []
+        self.toc_glob = []
+        self.image_not_readable = []
+        self.include = []
 
 
 class SphinxStatuses:
-    images: List = []  # repo srcfile
+    images: list = None  # repo srcfile
+
+    def __init__(self):
+        self.images = []
 
 sphinx_warnings = SphinxWarnings()
 sphinx_statuses = SphinxStatuses()
@@ -255,7 +262,7 @@ def get_includes(sourcedir, dstdir, doc):
                 continue
 
             for lineno, line in enumerate(lines, start=1):
-                for e, rx in patterns.items():
+                for rx in patterns.values():
                     m = rx.match(line)
                     if not m:
                         continue
@@ -292,10 +299,10 @@ def namespace_ref(doc_dir, path_, r):
     # 1. Prefixes references with repo name to create namespace
     # Patch ^.. _str:$         into .. _{r}+str:
     cwd = path.join(doc_dir, path_)
-    patch_cmd = """\
+    patch_cmd = f"""\
     find . -type f -name '*.rst' -exec sed -i -E \
         "s/^([ \t]*.. _)([^:]+)(:)\\$/\\1{r}:\\2\\3/g" {{}} \\;\
-    """.format(r=r)
+    """
     pr.run(patch_cmd, cwd)
 
     # MystParser formats
@@ -304,25 +311,25 @@ def namespace_ref(doc_dir, path_, r):
     # Prefixes references with repo name to create namespace
 
     # 1. Patch (target)= explicit annotations -> ({r}+target)=
-    patch_cmd = """\
+    patch_cmd = f"""\
     find . -type f -name '*.md' -exec sed -i -E \
         "s/^\\(([^)]+)\\)=/\\({r}+\\1\\)=/g" {{}} \\;\
-    """.format(r=r)
+    """
     pr.run(patch_cmd, cwd)
 
     # 2. Patch {#str}          into {#{r}+str}
     #          {#str .class}   into {#{r}+str .class}
-    patch_cmd = """\
+    patch_cmd = f"""\
     find . -type f -name '*.md' -exec sed -i -E \
         "s/\\{{#([^ }}]+)/{{#{r}+\\1/g" {{}} \\;\
-    """.format(r=r)
+    """
     pr.run(patch_cmd, cwd)
 
     # 4. Patch :name:         into :name: {r}+target
-    patch_cmd = """\
+    patch_cmd = f"""\
     find . -type f -name '*.md' -exec sed -i -E \
         "s/^:name:[ \\t]+([^ \\t]+)/:name: {r}+\\1/g" {{}} \\;\
-    """.format(r=r)
+    """
     pr.run(patch_cmd, cwd)
 
 def _patch_index(toc_file, repo):
@@ -337,7 +344,7 @@ def _patch_index(toc_file, repo):
             data = data[data.index(".. toctree::\n")+1:]
             toctrees.append([[], [], False])
 
-            for i in range(0, len(data)):
+            for i in range(len(data)):
                 if data[i] != '\n' and not data[i].rstrip().startswith('   '):
                     break
                 elif data[i].startswith('   :'):
@@ -366,8 +373,7 @@ def _patch_index(toc_file, repo):
     # Add orphan flag to indexes, since toctree is expanded at /index.rst
     with open(toc_file, 'w') as f:
         f.write(':orphan:\n\n')
-        for line in data_:
-            f.write(line)
+        f.writelines(data_)
 
     return toctrees
 
@@ -429,9 +435,8 @@ def patch_index(doc, tocs, index_file):
                 continue
 
             data.append(".. toctree::\n")
-            if not has_caption:
-                if first:
-                    first = False
+            if not has_caption and first:
+                first = False
             data.extend(options)
             data.append('\n')
             data.extend(docs)
@@ -534,9 +539,7 @@ def prepare_doc(doc, repos_dir, doc_dir, drop_ext):
                     continue
                 try:
                     if hasattr(__c, 'sys'):
-                        if finder.find_spec(ext, __c.sys.path):
-                            pass
-                        elif importlib.util.find_spec(ext):
+                        if finder.find_spec(ext, __c.sys.path) or importlib.util.find_spec(ext):
                             pass
                         else:
                             ext_miss = True
@@ -588,19 +591,19 @@ def prepare_doc(doc, repos_dir, doc_dir, drop_ext):
             d = d[:_len(d)]
             toc_resolve.append(d)
 
-        def is_orphan_or_explicit_entry(d):
-            if path.join(path_, d) in entry_points:
+        i = 1
+        also_include = []
+
+        def is_orphan_or_explicit_entry(d, _path_=path_, _also_include=also_include):
+            if path.join(_path_, d) in entry_points:
                 return True
             with open(d+".rst", "r") as f:
                 if f.readline()[:-1].strip() == ":orphan:":
                     # Handle sphinx trick for sidebar "volumes"
                     if d.count(SEP) == 1:
-                        also_include.append("index.rst")
+                        _also_include.append("index.rst")
                     return True
             return False
-
-        i = 1
-        also_include = []
         for d in toc_resolve:
             d_ = d.split(SEP)
             found = is_orphan_or_explicit_entry(d)
@@ -623,13 +626,14 @@ def prepare_doc(doc, repos_dir, doc_dir, drop_ext):
                         # skip self
                         continue
 
-                    data = open(f, "r").readlines()
+                    with open(f, "r") as file:
+                        data = file.readlines()
                     while '.. toctree::\n' in data:
                         if found:
                             break
 
                         data = data[data.index('.. toctree::\n')+1:]
-                        for j in range(0, len(data)):
+                        for j in range(len(data)):
                             if data[j].strip('\n') == f"   {d_right}" or f"<{d_right}>" in data[j]:
                                 also_include.append(f)
                                 found = True
@@ -738,8 +742,8 @@ def prepare_doc(doc, repos_dir, doc_dir, drop_ext):
     chdir(doc_dir)
     warnfile = path.join('..', 'warnings.txt')
     statusfile = path.join('..', 'status.txt')
-    warning = open(warnfile, "w")
-    status = open(statusfile, "w")
+    warning = open(warnfile, "w")  # noqa: SIM115
+    status = open(statusfile, "w")  # noqa: SIM115
     builddir = path.join("..", "build", "html_pre")
     doctreedir = path.join(builddir, ".doctrees")
 
@@ -762,65 +766,65 @@ def parse_warnings(doc_dir):
     re_include0 = r"^(.*?):(\d+): CRITICAL: Problems with \"include\" directive path:"
     re_include1 = r"^InputError: \[Errno 2\] .* '(.*)'\. \[docutils\]"
     re_toc_glob = r"^(.*?):(\d+): WARNING: toctree glob pattern '(.*)' didn't match any documents"
-    warning = open(warnfile, "r")
-    for e in warning:
-        e = e.replace("[91m", "").replace("[39;49;00m", "")
+    with open(warnfile, "r") as warning:
+        for e in warning:
+            e = e.replace("\x1b[91m", "").replace("\x1b[39;49;00m", "")
 
-        m = re.match(re_orphan, e)
-        if m:
-            sphinx_warnings.orphan.append([m.group(1)])
-            continue
+            m = re.match(re_orphan, e)
+            if m:
+                sphinx_warnings.orphan.append([m.group(1)])
+                continue
 
-        m = re.match(re_ref_ref, e)
-        if m:
-            sphinx_warnings.ref_ref.append([m.group(1), m.group(2), m.group(3)])
-            continue
+            m = re.match(re_ref_ref, e)
+            if m:
+                sphinx_warnings.ref_ref.append([m.group(1), m.group(2), m.group(3)])
+                continue
 
-        m = re.match(re_ref_doc, e)
-        if m:
-            sphinx_warnings.ref_doc.append([m.group(1), m.group(2), m.group(3)])
-            continue
+            m = re.match(re_ref_doc, e)
+            if m:
+                sphinx_warnings.ref_doc.append([m.group(1), m.group(2), m.group(3)])
+                continue
 
-        m = re.match(re_toctree, e)
-        if m:
-            sphinx_warnings.toc_not_readable.append([m.group(1), m.group(2), m.group(3)])
-            continue
+            m = re.match(re_toctree, e)
+            if m:
+                sphinx_warnings.toc_not_readable.append([m.group(1), m.group(2), m.group(3)])
+                continue
 
-        m = re.match(re_toc_glob, e)
-        if m:
-            sphinx_warnings.toc_glob.append([m.group(1), m.group(2), m.group(3)])
-            continue
+            m = re.match(re_toc_glob, e)
+            if m:
+                sphinx_warnings.toc_glob.append([m.group(1), m.group(2), m.group(3)])
+                continue
 
-        m = re.match(re_image, e)
-        if m:
-            sphinx_warnings.image_not_readable.append([m.group(1), m.group(2)])
-            continue
+            m = re.match(re_image, e)
+            if m:
+                sphinx_warnings.image_not_readable.append([m.group(1), m.group(2)])
+                continue
 
-        m = re.match(re_include0, e)
-        if m:
-            sphinx_warnings.include.append([m.group(1), m.group(2), None])
-            continue
+            m = re.match(re_include0, e)
+            if m:
+                sphinx_warnings.include.append([m.group(1), m.group(2), None])
+                continue
 
-        m = re.match(re_include1, e)
-        if m:
-            sphinx_warnings.include[-1][2] = m.group(1)
-            continue
+            m = re.match(re_include1, e)
+            if m:
+                sphinx_warnings.include[-1][2] = m.group(1)
+                continue
 
 
 def parse_status(doc_dir):
     statusfile = path.join(doc_dir, '..', 'status.txt')
 
     re_images = r"^copying images\.\.\.\s+\[\s+?\d+%\]\s(.*)$"
-    status = open(statusfile, "r")
-    for e in status:
-        e = e.replace("[33m", "").replace("[39;49;00m", "").replace("[01m", "")
+    with open(statusfile, "r") as status:
+        for e in status:
+            e = e.replace("\x1b[33m", "").replace("\x1b[39;49;00m", "").replace("\x1b[01m", "")
 
-        m = re.match(re_images, e)
-        if m:
-            repo = m.group(1)[:m.group(1).index('/')]
-            file = m.group(1)[m.group(1).index('/')+1:]
-            sphinx_statuses.images.append([repo, file])
-            continue
+            m = re.match(re_images, e)
+            if m:
+                repo = m.group(1)[:m.group(1).index('/')]
+                file = m.group(1)[m.group(1).index('/')+1:]
+                sphinx_statuses.images.append([repo, file])
+                continue
 
 
 suppress_warnings = """
@@ -872,7 +876,7 @@ def patch_doc(doc, repos_dir, doc_dir, git_lfs, builder):
             path_=path.join(repos_dir, s[0], lfs_f_s)
             if get_lfs_sha(path_):
                 subprocess.run(f"git lfs pull -I {lfs_f_s}",
-                               shell=True, cwd=path.join(repos_dir, s[0]))
+                               shell=True, cwd=path.join(repos_dir, s[0]), check=False)
                 copy2(path_, path.join(doc_dir, s[0], s[1]))
 
     # Update include paths
@@ -904,13 +908,13 @@ def patch_doc(doc, repos_dir, doc_dir, git_lfs, builder):
             toc_[src][lineno] = []
         toc_[src][lineno].append(doc_)
 
-    for src in toc_:
+    for src, src_linenos in toc_.items():
         data_filter = []
         with open(path.join(doc_dir, src), "r") as f:
             data = f.readlines()
-        for lineno in toc_[src]:
+        for lineno in src_linenos:
             d = data[int(lineno):]
-            for i in range(0, len(d)):
+            for i in range(len(d)):
                 if d[i] != '\n' and not d[i].startswith('   '):
                     break
                 d_ = d[i].strip()
@@ -918,7 +922,7 @@ def patch_doc(doc, repos_dir, doc_dir, git_lfs, builder):
                     d_ = d_[d_.index('<')+1:-1]
                 if d_.startswith('./'):
                     d_ = d_[2:]
-                for doc_ in toc_[src][lineno]:
+                for doc_ in src_linenos[lineno]:
                     if d_ == doc_:
                         data_filter.append(d[i])
 
@@ -932,7 +936,7 @@ def patch_doc(doc, repos_dir, doc_dir, git_lfs, builder):
 
     # Second run
     warnfile = 'warnings_patched.txt'
-    warning = open(warnfile, "w")
+    warning = open(warnfile, "w")  # noqa: SIM115
     builddir = path.join("build", builder)
     doctreedir = path.join(builddir, "doctrees")
     app = Sphinx(doc_dir, doc_dir,  builddir, doctreedir, builder,
@@ -995,10 +999,9 @@ def custom_doc():
 
     sphinx_builder = 'latex' if args.builder == 'latexpdf' else args.builder
 
-    if sphinx_builder == 'latex':
-        if not importlib.util.find_spec("cairosvg"):
-            logger.error("Package 'cairosvg' required for PDF generation is not installed")
-            return
+    if sphinx_builder == 'latex' and not importlib.util.find_spec("cairosvg"):
+        logger.error("Package 'cairosvg' required for PDF generation is not installed")
+        return
 
     git_lfs = is_git_lfs_installed()
     if not git_lfs:
@@ -1092,7 +1095,7 @@ def custom_doc():
                 '-w', '/work',
                 'adi/doctools_latex:v1', 'make'
             ]
-            ret = subprocess.run(container_cmd).returncode
+            ret = subprocess.run(container_cmd, check=False).returncode
         else:
             ret = run_make_mode([args.builder, doc_dir, path.join(directory, 'build')])
         if ret != 0:

@@ -1,8 +1,8 @@
-from os import name as os_name
 import signal
+from os import name as os_name
 
 if os_name != 'nt':
-    from os import killpg, getpgid
+    from os import getpgid, killpg
 
 
 def aux_killpg(proc):
