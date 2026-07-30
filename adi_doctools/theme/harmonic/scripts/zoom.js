@@ -22,12 +22,20 @@ export class Zoom {
     this.startY = 0
     this.startTx = 0
     this.startTy = 0
+    this.pinching = false
+    this.startDistance = 0
+    this.startScale = 1
+    this.lastTouchX = 0
+    this.lastTouchY = 0
 
     this._onKey = (e) => { if (e.key === 'Escape') this.close() }
     this._onMove = (e) => { this.onMove(e) }
     this._onDown = (e) => { this.onDown(e) }
     this._onUp = (e) => { this.onUp(e) }
     this._onWheel = (e) => { this.onWheel(e) }
+    this._onTouchStart = (e) => { this.onTouchStart(e) }
+    this._onTouchMove = (e) => { this.onTouchMove(e) }
+    this._onTouchEnd = (e) => { this.onTouchEnd(e) }
 
     this.construct()
 
@@ -87,6 +95,10 @@ export class Zoom {
     })
     this.overlay.addEventListener('mousedown', this._onDown)
     this.overlay.addEventListener('wheel', this._onWheel, {passive: false})
+    this.overlay.addEventListener('touchstart', this._onTouchStart, {passive: false})
+    this.overlay.addEventListener('touchmove', this._onTouchMove, {passive: false})
+    this.overlay.addEventListener('touchend', this._onTouchEnd)
+    this.overlay.addEventListener('touchcancel', this._onTouchEnd)
 
     document.addEventListener('mousemove', this._onMove)
     document.addEventListener('mouseup', this._onUp)
@@ -107,6 +119,10 @@ export class Zoom {
 
     this.overlay.removeEventListener('mousedown', this._onDown)
     this.overlay.removeEventListener('wheel', this._onWheel)
+    this.overlay.removeEventListener('touchstart', this._onTouchStart)
+    this.overlay.removeEventListener('touchmove', this._onTouchMove)
+    this.overlay.removeEventListener('touchend', this._onTouchEnd)
+    this.overlay.removeEventListener('touchcancel', this._onTouchEnd)
     document.removeEventListener('keydown', this._onKey)
     document.removeEventListener('mousemove', this._onMove)
     document.removeEventListener('mouseup', this._onUp)
@@ -158,8 +174,8 @@ export class Zoom {
   }
   applyTransform () {
     this.clampTranslation()
-    this.clone.style.transform =
-      'translate(' + this.tx + 'px,' + this.ty + 'px) scale(' + this.scale + ')'
+    let transform = 'translate(' + this.tx + 'px,' + this.ty + 'px) scale(' + this.scale + ')'
+    this.clone.style.transform = transform
   }
   onWheel (e) {
     e.preventDefault()
@@ -188,8 +204,100 @@ export class Zoom {
     this.scale = newScale
     this.applyTransform()
   }
+  touchDistance (e) {
+    return Math.hypot(
+      e.touches[0].clientX - e.touches[1].clientX,
+      e.touches[0].clientY - e.touches[1].clientY
+    )
+  }
+  touchMidpoint (e) {
+    return {
+      x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
+      y: (e.touches[0].clientY + e.touches[1].clientY) / 2
+    }
+  }
+  startTouchPan (touch) {
+    this.pinching = false
+    this.dragging = true
+    this.clone.style.transition = 'none'
+    this.startX = touch.clientX; this.startY = touch.clientY
+    this.startTx = this.tx; this.startTy = this.ty
+    this.overlay.classList.add('is-dragging')
+  }
+  startTouchPinch (e) {
+    let mid = this.touchMidpoint(e)
+    this.pinching = true
+    this.dragging = false
+    this.didDrag = true
+    this.clone.style.transition = 'none'
+    this.startDistance = this.touchDistance(e)
+    this.startScale = this.scale
+    this.lastTouchX = mid.x
+    this.lastTouchY = mid.y
+    this.overlay.classList.add('is-dragging')
+  }
+  onTouchStart (e) {
+    if (!this.clone || e.target.closest('.zoom-close')) return
+    if (e.touches.length === 2) {
+      e.preventDefault()
+      this.startTouchPinch(e)
+    } else if (e.touches.length === 1) {
+      e.preventDefault()
+      this.didDrag = false
+      this.startTouchPan(e.touches[0])
+    }
+  }
+  onTouchMove (e) {
+    if (!this.clone) return
+
+    if (e.touches.length === 2) {
+      e.preventDefault()
+      if (!this.pinching)
+        this.startTouchPinch(e)
+
+      let mid = this.touchMidpoint(e)
+      let currentDistance = this.touchDistance(e)
+      let scale = e.scale ? this.startScale * e.scale :
+        this.startScale * (currentDistance / this.startDistance)
+      let newScale = Math.min(Math.max(scale, 0.5), 10)
+      let realD = newScale / this.scale
+
+      let rect = this.clone.getBoundingClientRect()
+      let ox = rect.left + rect.width / 2
+      let oy = rect.top + rect.height / 2
+      let cx = mid.x - ox
+      let cy = mid.y - oy
+
+      this.tx = cx + realD * (this.tx - cx) + (mid.x - this.lastTouchX)
+      this.ty = cy + realD * (this.ty - cy) + (mid.y - this.lastTouchY)
+      this.scale = newScale
+      this.lastTouchX = mid.x
+      this.lastTouchY = mid.y
+      this.didDrag = true
+      this.applyTransform()
+    } else if (e.touches.length === 1 && this.dragging) {
+      e.preventDefault()
+      this.tx = this.startTx + (e.touches[0].clientX - this.startX)
+      this.ty = this.startTy + (e.touches[0].clientY - this.startY)
+      this.didDrag = Math.abs(this.tx - this.startTx) > 3 || Math.abs(this.ty - this.startTy) > 3
+      this.applyTransform()
+    }
+  }
+  onTouchEnd (e) {
+    if (!this.clone) return
+    if (e.touches.length === 1) {
+      e.preventDefault()
+      this.startTouchPan(e.touches[0])
+      return
+    }
+    if (e.touches.length === 0) {
+      this.pinching = false
+      this.dragging = false
+      this.overlay.classList.remove('is-dragging')
+    }
+  }
   onDown (e) {
-    if (e.button !== 0) return
+    if (e.button !== 0 || e.target.closest('.zoom-close')) return
     if (this.overlay.classList.contains('is-dragging'))
       return
     e.preventDefault()
