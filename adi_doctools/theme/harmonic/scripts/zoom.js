@@ -27,6 +27,7 @@ export class Zoom {
     this.startScale = 1
     this.lastTouchX = 0
     this.lastTouchY = 0
+    this.touchStartedOutside = false
 
     this._onKey = (e) => { if (e.key === 'Escape') this.close() }
     this._onMove = (e) => { this.onMove(e) }
@@ -87,12 +88,13 @@ export class Zoom {
     this.clone.classList = img.classList
 
     this.scale = 1; this.tx = 0; this.ty = 0
+    this.touchStartedOutside = false
 
     this.setRect(this.clone, rect)
 
     this.overlay.append(btn, this.clone)
     this.overlay.addEventListener('click', (e) => {
-      if (!this.didDrag) this.close()
+      if (!this.didDrag && e.target === this.overlay) this.close()
     })
     this.overlay.addEventListener('mousedown', this._onDown)
     this.overlay.addEventListener('wheel', this._onWheel, {passive: false})
@@ -251,8 +253,10 @@ export class Zoom {
   }
   onTouchStart (e) {
     if (!this.clone || e.target.closest('.zoom-close')) return
+    this.touchStartedOutside = e.target === this.overlay
     if (e.touches.length === 2) {
       e.preventDefault()
+      this.touchStartedOutside = false
       this.startTouchPinch(e)
     } else if (e.touches.length === 1) {
       e.preventDefault()
@@ -312,9 +316,13 @@ export class Zoom {
       return
     }
     if (e.touches.length === 0) {
+      let closeFromTap = this.touchStartedOutside && !this.didDrag
+      this.touchStartedOutside = false
       this.pinching = false
       this.dragging = false
       this.overlay.classList.remove('is-dragging')
+      if (closeFromTap)
+        this.close()
     }
   }
   onDown (e) {
