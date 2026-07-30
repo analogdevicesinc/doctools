@@ -33,6 +33,7 @@ export class Zoom {
     this._onDown = (e) => { this.onDown(e) }
     this._onUp = (e) => { this.onUp(e) }
     this._onWheel = (e) => { this.onWheel(e) }
+    this._onWheelBlock = (e) => { if (this.overlay) e.preventDefault() }
     this._onTouchStart = (e) => { this.onTouchStart(e) }
     this._onTouchMove = (e) => { this.onTouchMove(e) }
     this._onTouchEnd = (e) => { this.onTouchEnd(e) }
@@ -102,6 +103,7 @@ export class Zoom {
 
     document.addEventListener('mousemove', this._onMove)
     document.addEventListener('mouseup', this._onUp)
+    document.addEventListener('wheel', this._onWheelBlock, {passive: false, capture: true})
 
     document.body.append(this.overlay)
 
@@ -141,7 +143,12 @@ export class Zoom {
     this.setRect(this.clone, dest)
 
     this.overlay.classList.remove('is-visible')
-    this.overlay.addEventListener('transitionend', () => {
+
+    let didFinish = false
+    let finishClose = () => {
+      if (didFinish) return
+      didFinish = true
+      document.removeEventListener('wheel', this._onWheelBlock, {capture: true})
       if (this.overlay) {
         this.srcImg.style.opacity = 1
         this.overlay.remove()
@@ -149,7 +156,10 @@ export class Zoom {
         this.clone = null
         this.srcImg = null
       }
-    }, {once: true})
+    }
+
+    this.overlay.addEventListener('transitionend', finishClose, {once: true})
+    setTimeout(finishClose, 350)
   }
   clampTranslation () {
     let pad = 64
@@ -203,6 +213,9 @@ export class Zoom {
     this.ty = ay + realD * (this.ty - ay)
     this.scale = newScale
     this.applyTransform()
+
+    if (this.scale < 1)
+      this.close()
   }
   touchDistance (e) {
     return Math.hypot(
@@ -285,6 +298,14 @@ export class Zoom {
   }
   onTouchEnd (e) {
     if (!this.clone) return
+
+    let wasPinching = this.pinching
+    if (wasPinching && this.scale < 1) {
+      e.preventDefault()
+      this.close()
+      return
+    }
+
     if (e.touches.length === 1) {
       e.preventDefault()
       this.startTouchPan(e.touches[0])
