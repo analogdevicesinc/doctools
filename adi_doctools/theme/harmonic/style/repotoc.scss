@@ -11,7 +11,7 @@
     }
 
     .cards-links {
-        font-size: 0.875em;
+        font-size: 0.9em;
         display: flex;
     }
 
@@ -118,16 +118,28 @@
         margin-bottom: .5em;
     }
     .subtitle {
-        font-size: 0.875em;
+        font-size: 0.9em;
         color: var(--text-color2);
     }
 }
+
 .repotoc-tree.overlay .container {
-    padding-left: calc(40vw - 20rem);
-    padding-right: calc(40vw - 20rem);
     width: 100vw;
 }
 
+@media (min-width: variable.$screen-3) {
+    .repotoc-tree.overlay .container {
+        padding-left: calc(40vw - 20rem);
+        padding-right: calc(40vw - 20rem);
+    }
+}
+
+@media (max-width: variable.$screen-3) {
+    .repotoc-tree.overlay .container {
+        padding-left: 11vw;
+        padding-right: 11vw;
+    }
+}
 
 #input-show-repotoc:checked ~ div.repotoc-tree .cards {
     row-gap: 1em;
