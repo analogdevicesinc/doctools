@@ -211,8 +211,8 @@ export class Zoom {
     let f = fx * fy
     let ax = cx * f, ay = cy * f
 
-    this.tx = ax + realD * (this.tx - ax)
-    this.ty = ay + realD * (this.ty - ay)
+    this.tx += (1 - realD) * ax
+    this.ty += (1 - realD) * ay
     this.scale = newScale
     this.applyTransform()
 
@@ -285,8 +285,8 @@ export class Zoom {
       let cx = mid.x - ox
       let cy = mid.y - oy
 
-      this.tx = cx + realD * (this.tx - cx) + (mid.x - this.lastTouchX)
-      this.ty = cy + realD * (this.ty - cy) + (mid.y - this.lastTouchY)
+      this.tx += (1 - realD) * cx + (mid.x - this.lastTouchX)
+      this.ty += (1 - realD) * cy + (mid.y - this.lastTouchY)
       this.scale = newScale
       this.lastTouchX = mid.x
       this.lastTouchY = mid.y
