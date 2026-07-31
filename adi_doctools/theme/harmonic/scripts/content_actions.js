@@ -92,7 +92,7 @@ export class ContentActions {
     const use_alt = new URL(metadata.remote_alt).hostname === location.hostname
     const repository = use_alt ? metadata.repotoc[repo]?.alt || repo : repo
     const base = use_alt ? metadata.remote_alt : metadata.remote_doc
-    const url = new URL(`${repository}/${entry}`, base)
+    const url = new URL(`${repository}/${entry}.html`, base)
     const m = new DOM('a', {'href': url, 'target': 'blank'})
     m.innerText = name
     ul.append(new DOM('li').append(m))
@@ -149,7 +149,7 @@ export class ContentActions {
 
       const pages = obj["collection"][key]['include'][repo]
       for (const page in pages) {
-        const collection_base = new URL(page, base).href
+        const collection_base = new URL(`${page}.html`, base).href
         if (path.startsWith(collection_base)) {
           this.add_collection(key, obj["collection"][key]['include'])
           break
