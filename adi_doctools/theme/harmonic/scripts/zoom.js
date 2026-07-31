@@ -117,7 +117,7 @@ export class Zoom {
 
     this.clone.style.transition = options.instant ? 'none' : 'left .3s, top .3s, width .3s, height .3s'
     this.overlay.classList.add('is-visible')
-    let openRect = this.centerRect(img)
+    let openRect = options.instant ? rect : this.centerRect(img)
     this.setRect(this.clone, openRect)
     this.srcImg.style.opacity = 0
 
