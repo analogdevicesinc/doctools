@@ -28,7 +28,6 @@ export class Zoom {
     this.lastTouchX = 0
     this.lastTouchY = 0
     this.touchStartedOutside = false
-    this.openArea = 0
     this.pagePinching = false
     this.attached = new WeakSet()
 
@@ -119,7 +118,6 @@ export class Zoom {
     this.clone.style.transition = options.instant ? 'none' : 'left .3s, top .3s, width .3s, height .3s'
     this.overlay.classList.add('is-visible')
     let openRect = this.centerRect(img)
-    this.openArea = openRect.width * openRect.height
     this.setRect(this.clone, openRect)
     this.srcImg.style.opacity = 0
 
@@ -176,13 +174,12 @@ export class Zoom {
   }
   isPastCloseRegion () {
     let vw = window.innerWidth, vh = window.innerHeight
+    let cx = vw / 2, cy = vh / 2
     let rect = this.clone.getBoundingClientRect()
-    let visibleW = Math.max(0, Math.min(rect.right, vw) - Math.max(rect.left, 0))
-    let visibleH = Math.max(0, Math.min(rect.bottom, vh) - Math.max(rect.top, 0))
-    let visibleArea = visibleW * visibleH
 
-    // Close once the image occupies less than 80% of its initial opened area.
-    return this.openArea > 0 && visibleArea < this.openArea * 0.8
+    // Close once the image no longer overlaps the central region
+    return rect.right < cx || rect.left > cx ||
+      rect.bottom < cy || rect.top > cy
   }
   applyTransform () {
     let transform = 'translate(' + this.tx + 'px,' + this.ty + 'px) scale(' + this.scale + ')'
