@@ -29,6 +29,8 @@ export class Zoom {
     this.lastTouchY = 0
     this.touchStartedOutside = false
     this.openArea = 0
+    this.pagePinching = false
+    this.attached = new WeakSet()
 
     this._onKey = (e) => { if (e.key === 'Escape') this.close() }
     this._onMove = (e) => { this.onMove(e) }
@@ -39,6 +41,8 @@ export class Zoom {
     this._onTouchStart = (e) => { this.onTouchStart(e) }
     this._onTouchMove = (e) => { this.onTouchMove(e) }
     this._onTouchEnd = (e) => { this.onTouchEnd(e) }
+    this._onPagePinchMove = (e) => { this.onPagePinchMove(e) }
+    this._onPagePinchEnd = (e) => { this.onPagePinchEnd(e) }
 
     this.construct()
 
@@ -67,7 +71,7 @@ export class Zoom {
     el.style.width = r.width + 'px'
     el.style.height = r.height + 'px'
   }
-  open (img) {
+  open (img, options = {}) {
     if (this.overlay) return
     this.srcImg = img
 
@@ -112,7 +116,7 @@ export class Zoom {
 
     this.clone.offsetHeight
 
-    this.clone.style.transition = 'left .3s, top .3s, width .3s, height .3s'
+    this.clone.style.transition = options.instant ? 'none' : 'left .3s, top .3s, width .3s, height .3s'
     this.overlay.classList.add('is-visible')
     let openRect = this.centerRect(img)
     this.openArea = openRect.width * openRect.height
@@ -133,6 +137,10 @@ export class Zoom {
     document.removeEventListener('keydown', this._onKey)
     document.removeEventListener('mousemove', this._onMove)
     document.removeEventListener('mouseup', this._onUp)
+    document.removeEventListener('touchmove', this._onPagePinchMove, {capture: true})
+    document.removeEventListener('touchend', this._onPagePinchEnd, {capture: true})
+    document.removeEventListener('touchcancel', this._onPagePinchEnd, {capture: true})
+    this.pagePinching = false
 
     let cur = this.clone.getBoundingClientRect()
     let dest = this.srcImg.getBoundingClientRect()
@@ -229,6 +237,31 @@ export class Zoom {
     this.startX = touch.clientX; this.startY = touch.clientY
     this.startTx = this.tx; this.startTy = this.ty
     this.overlay.classList.add('is-dragging')
+  }
+  openFromPagePinch (img, e) {
+    e.preventDefault()
+    this.open(img, {instant: true})
+    if (!this.clone) return
+
+    this.pagePinching = true
+    this.startTouchPinch(e)
+    document.addEventListener('touchmove', this._onPagePinchMove, {passive: false, capture: true})
+    document.addEventListener('touchend', this._onPagePinchEnd, {capture: true})
+    document.addEventListener('touchcancel', this._onPagePinchEnd, {capture: true})
+  }
+  onPagePinchMove (e) {
+    if (!this.pagePinching) return
+    this.onTouchMove(e)
+  }
+  onPagePinchEnd (e) {
+    if (!this.pagePinching) return
+    this.onTouchEnd(e)
+    if (e.touches.length === 0) {
+      this.pagePinching = false
+      document.removeEventListener('touchmove', this._onPagePinchMove, {capture: true})
+      document.removeEventListener('touchend', this._onPagePinchEnd, {capture: true})
+      document.removeEventListener('touchcancel', this._onPagePinchEnd, {capture: true})
+    }
   }
   startTouchPinch (e) {
     let mid = this.touchMidpoint(e)
@@ -354,10 +387,16 @@ export class Zoom {
       let target = img.closest('a')
       if (target === null)
         target = img
+      if (this.attached.has(target)) return
+      this.attached.add(target)
       target.addEventListener('click', (e) => {
         e.preventDefault()
         this.open(img)
       })
+      target.addEventListener('touchstart', (e) => {
+        if (!this.overlay && e.touches.length === 2)
+          this.openFromPagePinch(img, e)
+      }, {passive: false})
     })
   }
   construct () {
