@@ -437,26 +437,35 @@ def directive_collection_build_finished(app, exc):
 
     pattern = app.config.collection_pattern
 
-    def get_title(entry, inventory, doc):
+    def env_resolve_doc(inventory, doc):
         if inventory == app.config.repository:
             doc = env.docname if doc == '.' else doc
             if doc in env.titles:
-                entry['name'] = env.titles[doc].astext()
-            elif f"{doc}/index" in env.titles:
-                entry['name'] = env.titles[f"{doc}/index"].astext()
-            return
+                return doc, None
+            doc_index = f"{doc}/index"
+            if doc_index in env.titles:
+                return doc_index, None
+            return doc, None
 
         if not hasattr(env, "intersphinx_named_inventory"):
-            return
+            return doc, None
         inv = env.intersphinx_named_inventory.get(inventory)
-        if inv:
-            if doc in inv['std:doc']:
-                pass
-            elif f"{doc}/index" in inv['std:doc']:
-                doc = f"{doc}/index"
-            else:
-                return
+        if not inv:
+            return doc, None
+        if doc in inv['std:doc']:
+            return doc, inv
+        doc_index = f"{doc}/index"
+        if doc_index in inv['std:doc']:
+            return doc_index, inv
+        return doc, None
 
+    def get_title(entry, inventory, doc, inv):
+        if inventory == app.config.repository:
+            if doc in env.titles:
+                entry['name'] = env.titles[doc].astext()
+            return
+
+        if inv:
             if Version(__sphinx_version__) < Version("8.1.4"):
                 _, _, _, display_name = inv['std:doc'][doc]
                 entry['name'] = display_name
@@ -471,6 +480,14 @@ def directive_collection_build_finished(app, exc):
                 f"collection: Duplicated key '{item['key']}', skipped."
             )
         used_keys.add(item['key'])
+        for inventory in item['include']:
+            for key in list(item['include'][inventory]):
+                doc, inv = env_resolve_doc(inventory, key)
+                if doc != key:
+                    item['include'][inventory][doc] = item['include'][inventory].pop(key)
+                if 'name' not in item['include'][inventory][doc]:
+                    get_title(item['include'][inventory][doc], inventory, doc, inv)
+
         collection_[item['key']] = {
             'docname': item['docname'],
             'description': item['description'],
@@ -487,11 +504,6 @@ def directive_collection_build_finished(app, exc):
             collection_[item['key']]['subtitle'] = item['subtitle']
         if 'label' in item:
             collection_[item['key']]['label'] = item['label']
-
-        for inventory in item['include']:
-            for key in item['include'][inventory]:
-                if 'name' not in item['include'][inventory][key]:
-                    get_title(item['include'][inventory][key], inventory, key)
 
     json_ = {'pattern': pattern, 'collection': collection_}
 
