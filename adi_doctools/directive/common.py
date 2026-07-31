@@ -437,40 +437,61 @@ def directive_collection_build_finished(app, exc):
 
     pattern = app.config.collection_pattern
 
-    def env_resolve_doc(inventory, doc):
+    def uri_to_doc(inventory, uri):
+        uri = uri.split('#', 1)[0]
+        mapping = app.config.intersphinx_mapping.get(inventory)
+        if mapping:
+            base = mapping[0].rstrip('/') + '/'
+            if uri.startswith(base):
+                uri = uri[len(base):]
+        uri = re.sub(r'^https?://[^/]+/' + re.escape(inventory) + '/', '', uri)
+        if uri.endswith('.html'):
+            uri = uri[:-5]
+        return uri
+
+    def env_resolve_doc(inventory, doc, reftype='doc'):
         if inventory == app.config.repository:
             doc = env.docname if doc == '.' else doc
+            if reftype == 'ref':
+                label = env.domains.standard_domain.labels.get(doc)
+                if label:
+                    return label[0], None, None
             if doc in env.titles:
-                return doc, None
+                return doc, None, None
             doc_index = f"{doc}/index"
             if doc_index in env.titles:
-                return doc_index, None
-            return doc, None
+                return doc_index, None, None
+            return doc, None, None
 
         if not hasattr(env, "intersphinx_named_inventory"):
-            return doc, None
+            return doc, None, None
         inv = env.intersphinx_named_inventory.get(inventory)
-        if not inv:
-            return doc, None
-        if doc in inv['std:doc']:
-            return doc, inv
+        inv_type = 'std:label' if reftype == 'ref' else 'std:doc'
+        if not inv or inv_type not in inv:
+            return doc, None, None
+        if doc in inv[inv_type]:
+            if reftype == 'ref':
+                uri = inv[inv_type][doc][2] if Version(__sphinx_version__) < Version("8.1.4") else inv[inv_type][doc].uri
+                return uri_to_doc(inventory, uri), inv, doc
+            return doc, inv, doc
         doc_index = f"{doc}/index"
-        if doc_index in inv['std:doc']:
-            return doc_index, inv
-        return doc, None
+        if reftype == 'doc' and doc_index in inv[inv_type]:
+            return doc_index, inv, doc_index
+        return doc, None, None
 
-    def get_title(entry, inventory, doc, inv):
+    def get_title(entry, inventory, doc, inv, inv_key):
         if inventory == app.config.repository:
             if doc in env.titles:
                 entry['name'] = env.titles[doc].astext()
             return
 
         if inv:
+            inv_type = 'std:label' if inv_key in inv.get('std:label', {}) else 'std:doc'
             if Version(__sphinx_version__) < Version("8.1.4"):
-                _, _, _, display_name = inv['std:doc'][doc]
+                _, _, _, display_name = inv[inv_type][inv_key]
                 entry['name'] = display_name
             else:
-                entry['name'] = inv['std:doc'][doc].display_name
+                entry['name'] = inv[inv_type][inv_key].display_name
 
     collection_ = {}
     used_keys = set()
@@ -482,11 +503,13 @@ def directive_collection_build_finished(app, exc):
         used_keys.add(item['key'])
         for inventory in item['include']:
             for key in list(item['include'][inventory]):
-                doc, inv = env_resolve_doc(inventory, key)
+                entry = item['include'][inventory][key]
+                reftype = 'ref' if entry.pop('ref', False) else 'doc'
+                doc, inv, inv_key = env_resolve_doc(inventory, key, reftype)
                 if doc != key:
                     item['include'][inventory][doc] = item['include'][inventory].pop(key)
                 if 'name' not in item['include'][inventory][doc]:
-                    get_title(item['include'][inventory][doc], inventory, doc, inv)
+                    get_title(item['include'][inventory][doc], inventory, doc, inv, inv_key)
 
         collection_[item['key']] = {
             'docname': item['docname'],
@@ -574,15 +597,29 @@ class directive_collection(SphinxDirective):
                 continue
 
             line = line[2:]
-            match = re.match(r'([^<]+)<([^>]+)>', line)
+            reftype = 'doc'
+            match = re.match(r':ref:`([^`<]+)<([^>]+)>`', line)
             if match:
                 name = match.group(1).strip()
                 path_ = match.group(2)
+                reftype = 'ref'
             else:
-                name = None
-                path_ = line
+                match = re.match(r':ref:`([^`<>]+)`', line)
+                if match:
+                    name = None
+                    path_ = match.group(1)
+                    reftype = 'ref'
+                else:
+                    match = re.match(r'([^<]+)<([^>]+)>', line)
+                    if match:
+                        name = match.group(1).strip()
+                        path_ = match.group(2)
+                    else:
+                        name = None
+                        path_ = line
 
-            self.assert_docname(current_include, path_, self.env.docname)
+            if not self.assert_docname(current_include, path_, self.env.docname, reftype):
+                continue
 
             docname = self.env.docname
             if docname.endswith('/index'):
@@ -602,6 +639,8 @@ class directive_collection(SphinxDirective):
             include[current_include][path_] = {}
             if name:
                 include[current_include][path_]["name"] = name
+            if reftype == 'ref':
+                include[current_include][path_]["ref"] = True
 
         if not got_itself and self.config.repository:
             if self.config.repository not in include:
@@ -637,39 +676,49 @@ class directive_collection(SphinxDirective):
 
         return [node]
 
-    def assert_docname(self, inventory, doc, doc_):
+    def assert_docname(self, inventory, doc, doc_, reftype='doc'):
         if not hasattr(self.env, "intersphinx_named_inventory"):
-            return
+            return True
         if inventory == self.config.repository:
             doc = doc_ if doc == '.' else doc
+            if reftype == 'ref':
+                if doc in self.env.domains.standard_domain.labels:
+                    return True
+                self.state_machine.reporter.warning(
+                    f"unknown reference: '{doc}'",
+                    line=self.lineno
+                )
+                return False
             if doc not in self.env.found_docs:
                 if any(doc.startswith(ex.rstrip('*')) for ex in self.env.config.exclude_patterns):
                     # Consider intentional, e.g., excluded due to sparse mode
-                    return
+                    return True
                 self.state_machine.reporter.warning(
                     f"unknown document: '{doc}'",
                     line=self.lineno
                 )
-            return
+                return False
+            return True
 
         inv = self.env.intersphinx_named_inventory.get(inventory)
         if inv:
-            if doc in inv['std:doc']:
-                return
-            if f"{doc}/index" in inv['std:doc']:
-                return
+            inv_type = 'std:label' if reftype == 'ref' else 'std:doc'
+            if doc in inv[inv_type]:
+                return True
+            if reftype == 'doc' and f"{doc}/index" in inv[inv_type]:
+                return True
 
             self.state_machine.reporter.warning(
-                f"Doc '{doc}' not in inventory '{inventory}'.",
+                f"{'Reference' if reftype == 'ref' else 'Doc'} '{doc}' not in inventory '{inventory}'.",
                 line=self.lineno
             )
-            return
+            return False
 
         self.state_machine.reporter.warning(
             f"Inventory '{inventory}' is not on loaded on intersphinx.",
             line=self.lineno
         )
-        return
+        return False
 
 
 def directive_collection_purge_doc(app, env, docname):
