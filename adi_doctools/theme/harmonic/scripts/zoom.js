@@ -28,6 +28,7 @@ export class Zoom {
     this.lastTouchX = 0
     this.lastTouchY = 0
     this.touchStartedOutside = false
+    this.openArea = 0
 
     this._onKey = (e) => { if (e.key === 'Escape') this.close() }
     this._onMove = (e) => { this.onMove(e) }
@@ -113,7 +114,9 @@ export class Zoom {
 
     this.clone.style.transition = 'left .3s, top .3s, width .3s, height .3s'
     this.overlay.classList.add('is-visible')
-    this.setRect(this.clone, this.centerRect(img))
+    let openRect = this.centerRect(img)
+    this.openArea = openRect.width * openRect.height
+    this.setRect(this.clone, openRect)
     this.srcImg.style.opacity = 0
 
     document.addEventListener('keydown', this._onKey)
@@ -163,29 +166,17 @@ export class Zoom {
     this.overlay.addEventListener('transitionend', finishClose, {once: true})
     setTimeout(finishClose, 350)
   }
-  clampTranslation () {
-    let pad = 64
+  isPastCloseRegion () {
     let vw = window.innerWidth, vh = window.innerHeight
-    let bl = parseFloat(this.clone.style.left)
-    let bt = parseFloat(this.clone.style.top)
-    let bw = parseFloat(this.clone.style.width)
-    let bh = parseFloat(this.clone.style.height)
-    let s = this.scale
+    let rect = this.clone.getBoundingClientRect()
+    let visibleW = Math.max(0, Math.min(rect.right, vw) - Math.max(rect.left, 0))
+    let visibleH = Math.max(0, Math.min(rect.bottom, vh) - Math.max(rect.top, 0))
+    let visibleArea = visibleW * visibleH
 
-    // Rendered image edges given current tx/ty
-    let imgL = bl + this.tx + bw * (1 - s) / 2
-    let imgT = bt + this.ty + bh * (1 - s) / 2
-    let imgR = imgL + bw * s
-    let imgB = imgT + bh * s
-
-    // Image rect must overlap the padded viewport
-    if (imgR < pad)      this.tx += pad - imgR
-    if (imgL > vw - pad) this.tx -= imgL - (vw - pad)
-    if (imgB < pad)      this.ty += pad - imgB
-    if (imgT > vh - pad) this.ty -= imgT - (vh - pad)
+    // Close once the image occupies less than 80% of its initial opened area.
+    return this.openArea > 0 && visibleArea < this.openArea * 0.8
   }
   applyTransform () {
-    this.clampTranslation()
     let transform = 'translate(' + this.tx + 'px,' + this.ty + 'px) scale(' + this.scale + ')'
     this.clone.style.transform = transform
   }
@@ -317,11 +308,12 @@ export class Zoom {
     }
     if (e.touches.length === 0) {
       let closeFromTap = this.touchStartedOutside && !this.didDrag
+      let closeFromDrag = this.dragging && this.didDrag && this.isPastCloseRegion()
       this.touchStartedOutside = false
       this.pinching = false
       this.dragging = false
       this.overlay.classList.remove('is-dragging')
-      if (closeFromTap)
+      if (closeFromTap || closeFromDrag)
         this.close()
     }
   }
@@ -349,8 +341,11 @@ export class Zoom {
     let dx = Math.abs(this.tx - this.startTx)
     let dy = Math.abs(this.ty - this.startTy)
     this.didDrag = dx > 3 || dy > 3
+    let closeFromDrag = this.didDrag && this.isPastCloseRegion()
     this.dragging = false
     if (this.clone) this.overlay.classList.remove('is-dragging')
+    if (closeFromDrag)
+      this.close()
   }
   attach () {
     let body = DOM.get('.bodywrapper .body')
