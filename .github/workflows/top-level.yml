@@ -38,6 +38,7 @@ jobs:
     permissions:
       contents: write
       id-token: write
+      pages: write
     with:
       asset_alias_name: ${{ needs.build-package.outputs.asset_alias_name }}
       asset_path: ${{ needs.build-package.outputs.asset_path }}

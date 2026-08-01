@@ -14,10 +14,6 @@ on:
         required: true
         type: string
 
-permissions:
-  contents: write
-  id-token: write
-
 jobs:
   deploy-github:
     runs-on: ${{ vars.RUNNER != '' && fromJSON(vars.RUNNER) || 'ubuntu-slim' }}
@@ -205,14 +201,29 @@ jobs:
 
   deploy-gh-pages:
     runs-on: ${{ vars.RUNNER != '' && fromJSON(vars.RUNNER) || 'ubuntu-slim' }}
+    if: ${{ github.ref == 'refs/heads/main' || github.event_name == 'pull_request' }}
     permissions:
       contents: write
-    if: ${{ github.ref == 'refs/heads/main' || github.event_name == 'pull_request' }}
+      id-token: write
+      pages: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
-    - uses: analogdevicesinc/doctools/gh-pages-deploy@action
+    - uses: analogdevicesinc/doctools/blank@action
+
+    - uses: actions/download-artifact@v8
+      with:
+        name: html
+        path: html
+
+    - uses: analogdevicesinc/doctools/gh-upload-pages-artifact@action
       with:
         new_tag: ${{ inputs.new_tag }}
         tag: ${{ inputs.tag }}
-        name: html
+        path: html
+
+    - uses: actions/deploy-pages@v5
+      id: deployment
 
