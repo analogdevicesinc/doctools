@@ -169,6 +169,14 @@ runs:
         jq --raw-input . |
         jq --slurp . > tags.json
 
+        if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+          echo 'LAST_DEPLOY="./${{ env.doc_tag_path }}"' > "$_site/context.txt"
+        elif [[ "${{ inputs.new_tag }}" == "true" && -n "${{ inputs.tag }}" ]]; then
+          echo 'LAST_DEPLOY=". ./${{ env.doc_tag_path }}"' > "$_site/context.txt"
+        else
+          echo 'LAST_DEPLOY="."' > "$_site/context.txt"
+        fi
+
     - name: Pack artifact
       if: ${{ env.deploy_lock_acquired == 'true' }}
       shell: bash
