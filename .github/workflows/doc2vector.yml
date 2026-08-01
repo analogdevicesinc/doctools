@@ -92,8 +92,9 @@ jobs:
     - name: Setup context
       run: |
         pages_base_sha=""
-        [[ "${{ inputs.forced }}" == "true" ]] || \
+        if [[ -z "${{ inputs.run_id }}" ]] && [[ "${{ inputs.forced }}" != "true" ]]; then
           pages_base_sha="vector/${{ inputs.repository }}/commit"
+        fi
         [[ -f "$pages_base_sha" ]] && \
           echo "pages_base_sha=$(cat $pages_base_sha)" >> $GITHUB_ENV || \
           echo "pages_base_sha=" >> $GITHUB_ENV
@@ -136,21 +137,27 @@ jobs:
         [[ "${{ runner.debug }}" == "1" ]] && set -x
         cd pages
 
-        if [[ -n "$pages_base_sha" ]]; then
-          files=$(git diff --diff-filter=ACM --no-renames --name-only "$pages_base_sha~..$pages_head_sha")
-        fi
-
         built_docs=$(find . -name objects.inv -exec sh -c 'dirname {}' ';' | sed 's|^\./||; s|^$|.|')
-        if [[ -n "$files" ]]; then
-          versions=$(
-            for file in $files; do
-              _version="${file%%/*}"
-              if echo "$built_docs" | grep -Fxq "$_version"; then
-                echo "$_version"
-              else
-                echo "."
-              fi
-          done | sort -u)
+
+        if [[ -n "${{ inputs.run_id }}" ]] && [[ -f context.txt ]]; then
+          source context.txt
+          versions=$(echo "$LAST_DEPLOY" | tr ' ' '\n' | sed 's|^\./||; s|^$|.|')
+          rm -f context.txt
+        elif [[ -n "$pages_base_sha" ]]; then
+          files=$(git diff --diff-filter=ACM --no-renames --name-only "$pages_base_sha~..$pages_head_sha")
+          if [[ -n "$files" ]]; then
+            versions=$(
+              for file in $files; do
+                _version="${file%%/*}"
+                if echo "$built_docs" | grep -Fxq "$_version"; then
+                  echo "$_version"
+                else
+                  echo "."
+                fi
+            done | sort -u)
+          else
+            versions="$built_docs"
+          fi
         else
           versions="$built_docs"
         fi
