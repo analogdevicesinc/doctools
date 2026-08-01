@@ -15,7 +15,7 @@ on:
         type: string
       ref:
         description: "The branch, tag, SHA to resolve"
-        required: true
+        required: false
         type: string
         default: 'gh-pages'
       forced:
