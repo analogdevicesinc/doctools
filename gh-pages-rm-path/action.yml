@@ -11,9 +11,12 @@ inputs:
   branch:
     description: "Branch to manage"
     default: gh-pages
+  mode:
+    description: "Mode: 'branch' (direct gh-pages push) or 'lfs' (archive method)"
+    default: branch
 
 # behaviour:
-# removes the paths provides from gh-pages branch
+# removes the paths provides from gh-pages branch or archive
 
 runs:
   using: composite
@@ -36,19 +39,19 @@ runs:
 
     - name: Clean-up gh-pages branch
       shell: bash
-      if: ${{ env.gh_pages_remove_path_run == 'true' }}
+      if: ${{ env.gh_pages_remove_path_run == 'true' && inputs.mode == 'branch' }}
       run: >
         git ls-remote --exit-code --heads origin refs/heads/${{ inputs.branch }} &&
         (
           git fetch origin ${{ inputs.branch }}:${{ inputs.branch }} -f ;
           git switch ${{ inputs.branch }} ;
-          git rm -r ${{ inputs.path }} --quiet || true ;
+          git rm -r ${{ inputs.path }} --quiet || : ;
           echo "gh_pages_exist=true" >> "$GITHUB_ENV" ;
         )
 
-    - name: Generate aux files
+    - name: Generate aux files (branch)
       shell: bash
-      if: ${{ env.gh_pages_remove_path_run == 'true' && env.gh_pages_exist == 'true' }}
+      if: ${{ env.gh_pages_remove_path_run == 'true' && inputs.mode == 'branch' && env.gh_pages_exist == 'true' }}
       run: >
         touch .nojekyll ;
         find . -name objects.inv -exec sh -c 'dirname {}' ';' |
@@ -56,9 +59,9 @@ runs:
         jq --raw-input . |
         jq --slurp . > tags.json
 
-    - name: Commit and push to gh-pages
+    - name: Commit and push to gh-pages (branch)
       shell: bash
-      if: ${{ env.gh_pages_remove_path_run == 'true' && env.gh_pages_exist == 'true' }}
+      if: ${{ env.gh_pages_remove_path_run == 'true' && inputs.mode == 'branch' && env.gh_pages_exist == 'true' }}
       run: |
         git add . >> /dev/null
         git commit -m "deploy: ${GITHUB_SHA} #${{ github.event.number }} (${{ github.event.action }})" --allow-empty
@@ -78,3 +81,130 @@ runs:
         else
           git push origin ${{ inputs.branch }}:${{ inputs.branch }}
         fi
+
+    - name: Acquire deploy lock
+      if: ${{ env.gh_pages_remove_path_run == 'true' && inputs.mode == 'lfs' }}
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.gh-token }}
+      run: |
+        [[ "${{ runner.debug }}" == "1" ]] && set -x
+
+        owner_repo="${{ github.repository }}"
+        sha=${{ github.sha }}
+        lock_name="gh-pages"
+        ref="refs/locks/$lock_name"
+
+        while true; do
+          resp=$(curl -sSL -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "X-GitHub-Api-Version: 2026-03-10" \
+            "https://api.github.com/repos/$owner_repo/git/refs" \
+            -d "{\"ref\":\"$ref\",\"sha\":\"$sha\"}")
+          status=$(echo "$resp" | jq -r '.status // empty')
+          message=$(echo "$resp" | jq -r '.message // empty')
+          if [[ "$status" = "401" ]] || [[ "$status" = "403" ]]; then
+            echo "$message"; exit 1
+          elif [ "$status" = "422" ]; then
+            echo "Waiting other deploy to finish..."
+            sleep 5
+          elif echo "$resp" | jq -e '.ref'; then
+            break
+          else
+            echo "$resp"; exit 1
+          fi
+        done
+        echo "deploy_lock_acquired=true" >> "$GITHUB_ENV"
+
+    - name: Download and unpack archive
+      if: ${{ env.deploy_lock_acquired == 'true' && inputs.mode == 'lfs' }}
+      shell: bash
+      run: |
+        [[ "${{ runner.debug }}" == "1" ]] && set -x
+        _site=$(mktemp -d -t gh-pages.XXX)
+        echo "_site=$_site" >> "$GITHUB_ENV"
+        _worktree=$(mktemp -d -t gh-pages-archive.XXX)
+        echo "_worktree=$_worktree" >> "$GITHUB_ENV"
+        git fetch origin gh-pages-archive && {
+          git worktree add "$_worktree" origin/gh-pages-archive
+          cd "$_worktree"
+          git lfs pull --include="github-pages.zip"
+          if [[ -f github-pages.zip ]]; then
+            unzip -o github-pages.zip artifact.tar
+            tar -xf artifact.tar -C "$_site"
+            rm -f artifact.tar
+          fi
+          cd -
+        } || {
+          echo "::error:: gh-pages-archive branch does not exist, nothing to remove"
+          exit 1
+        }
+
+    - name: Remove paths
+      if: ${{ env.deploy_lock_acquired == 'true' && inputs.mode == 'lfs' }}
+      shell: bash
+      run: |
+        [[ "${{ runner.debug }}" == "1" ]] && set -x
+        cd "$_site"
+        rm -rf ${{ inputs.path }} || :
+        cd -
+
+    - name: Generate aux files (lfs)
+      if: ${{ env.deploy_lock_acquired == 'true' && inputs.mode == 'lfs' }}
+      shell: bash
+      run: >
+        cd "$_site" ;
+        touch .nojekyll ;
+        find . -name objects.inv -exec sh -c 'dirname {}' ';' |
+        cut -c 3- | sort -Vr |
+        jq --raw-input . |
+        jq --slurp . > tags.json
+
+    - name: Pack and push archive
+      if: ${{ env.deploy_lock_acquired == 'true' && inputs.mode == 'lfs' }}
+      shell: bash
+      run: |
+        [[ "${{ runner.debug }}" == "1" ]] && set -x
+        rm -f github-pages
+        tar -cf "$_worktree/artifact.tar" -C "$_site" .
+
+        pushd "$_worktree"
+        git lfs install --local
+        printf 'github-pages.zip filter=lfs diff=lfs merge=lfs -text\n' > .gitattributes
+        git add .gitattributes
+        rm -f github-pages.zip
+        zip github-pages.zip artifact.tar
+        rm -f artifact.tar
+        git add github-pages.zip
+        git commit -m "deploy: ${GITHUB_SHA} #${{ github.event.number }} (${{ github.event.action }})" --allow-empty
+        git push origin HEAD:gh-pages-archive
+
+        popd
+        cp "$_worktree/github-pages.zip" github-pages
+
+        git worktree remove "$_worktree" --force || :
+        git worktree prune || :
+
+    - name: Release deploy lock
+      if: ${{ env.deploy_lock_acquired == 'true' && inputs.mode == 'lfs' }}
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.gh-token }}
+      run: |
+        owner_repo="${{ github.repository }}"
+        lock_name="gh-pages"
+        ref="refs/locks/$lock_name"
+        resp=$(curl -sSL -w '\n%{http_code}' -X DELETE \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "X-GitHub-Api-Version: 2026-03-10" \
+            "https://api.github.com/repos/$owner_repo/git/$ref")
+        code=$(echo "$resp" | tail -n1)
+        [[ "$code" == 204 ]] || { echo "::error:: Failed to release lock: $resp"; exit 1 ;}
+
+    - uses: actions/upload-artifact@v7
+      if: ${{ env.deploy_lock_acquired == 'true' && inputs.mode == 'lfs' }}
+      with:
+        path: github-pages
+        archive: false
