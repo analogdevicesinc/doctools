@@ -23,6 +23,10 @@ on:
         required: false
         type: boolean
         default: false
+      run_id:
+        description: "Workflow run id to use 'github-actions' artifact"
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -39,7 +43,8 @@ jobs:
         repository: ${{ github.repository }}
         path: vector
 
-    - name: Clone target doc (cone)
+    - name: Clone target doc (branch)
+      if: ${{ inputs.run_id == '' }}
       run: |
         # Filter out pulls|prs
         [[ "${{ runner.debug }}" == "1" ]] && set -x
@@ -59,6 +64,27 @@ jobs:
         git sparse-checkout set $sparse
         git checkout "$branch"
 
+    - name: Download and unpack artifact
+      if: ${{ inputs.run_id != '' }}
+      env:
+        GITHUB_TOKEN: ${{ inputs.gh-token }}
+      run: |
+        # Download and unpack artifact
+        [[ "${{ runner.debug }}" == "1" ]] && set -x
+        rm -rf pages && mkdir pages
+        api_url="https://api.github.com/repos/${{ inputs.repository }}/actions/runs/${{ inputs.run_id }}/artifacts?per_page=100"
+        artifact_url=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+          -H "Accept: application/vnd.github+json" "$api_url" \
+          | jq -r '.artifacts[] | select(.name == "github-pages") | .archive_download_url')
+        if [[ -z "$artifact_url" || "$artifact_url" == "null" ]]; then
+          echo "No 'github-pages' artifact found for '${{ inputs.repository }}@${{ inputs.run_id }}'"
+          exit 1
+        fi
+        curl -L -H "Authorization: Bearer $GITHUB_TOKEN" "$artifact_url" -o pages/github-pages.zip
+        unzip -o pages/github-pages.zip artifact.tar -d pages
+        tar -xf pages/artifact.tar -C pages
+        rm -f pages/github-pages.zip pages/artifact.tar
+
     - name: Setup vector branch
       run: |
         cd vector
@@ -75,6 +101,7 @@ jobs:
           echo "pages_base_sha=" >> $GITHUB_ENV
 
     - name: Setup remote ref
+      if: ${{ inputs.run_id == '' }}
       run: |
         [[ "${{ runner.debug }}" == "1" ]] && set -x
         cd pages
@@ -97,6 +124,13 @@ jobs:
           done
         fi
 
+        echo "pages_head_sha=$pages_head_sha" >> $GITHUB_ENV
+
+    - name: Setup remote ref (artifact)
+      if: ${{ inputs.run_id != '' }}
+      run: |
+        # For lfs mode, we don't have commits, just capture hash of archive if desired
+        pages_head_sha=$(find pages -type f -exec sha1sum {} \; | sort | sha1sum | awk '{print $1}')
         echo "pages_head_sha=$pages_head_sha" >> $GITHUB_ENV
 
     - name: Get touched versions
