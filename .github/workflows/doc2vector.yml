@@ -66,21 +66,19 @@ jobs:
 
     - name: Download and unpack artifact
       if: ${{ inputs.run_id != '' }}
-      env:
-        GITHUB_TOKEN: ${{ inputs.gh-token }}
       run: |
         # Download and unpack artifact
         [[ "${{ runner.debug }}" == "1" ]] && set -x
         rm -rf pages && mkdir pages
-        api_url="https://api.github.com/repos/${{ inputs.repository }}/actions/runs/${{ inputs.run_id }}/artifacts?per_page=100"
-        artifact_url=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+        api_url="https://api.github.com/repos/${{ inputs.organization }}/${{ inputs.repository }}/actions/runs/${{ inputs.run_id }}/artifacts?per_page=100"
+        artifact_url=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
           -H "Accept: application/vnd.github+json" "$api_url" \
           | jq -r '.artifacts[] | select(.name == "github-pages") | .archive_download_url')
         if [[ -z "$artifact_url" || "$artifact_url" == "null" ]]; then
-          echo "No 'github-pages' artifact found for '${{ inputs.repository }}@${{ inputs.run_id }}'"
+          echo "No 'github-pages' artifact found for '${{ inputs.organization }}/${{ inputs.repository }}@${{ inputs.run_id }}'"
           exit 1
         fi
-        curl -L -H "Authorization: Bearer $GITHUB_TOKEN" "$artifact_url" -o pages/github-pages.zip
+        curl -L -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "$artifact_url" -o pages/github-pages.zip
         unzip -o pages/github-pages.zip artifact.tar -d pages
         tar -xf pages/artifact.tar -C pages
         rm -f pages/github-pages.zip pages/artifact.tar
