@@ -12,3 +12,4 @@ jobs:
     - uses: analogdevicesinc/doctools/gh-pages-rm-path@action
       with:
         path: pull/${{ github.event.number }}
+        mode: lfs
