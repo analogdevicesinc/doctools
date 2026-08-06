@@ -147,8 +147,8 @@ runs:
                         "x-portkey-virtual-key": "bedrock-global"
                     },
                     "models": [
-                        {"name": "medium", "id": "us.anthropic.claude-sonnet-5"},
-                        {"name": "large", "id": "us.anthropic.claude-opus-4-8"}
+                        {"name": "medium", "id": "us.anthropic.claude-sonnet-5", "contextWindow": 1000000, "maxTokens": 128000},
+                        {"name": "large", "id": "us.anthropic.claude-opus-5", "contextWindow": 1000000, "maxTokens": 128000}
                     ]
                 }
             }
