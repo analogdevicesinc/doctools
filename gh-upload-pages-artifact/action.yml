@@ -121,6 +121,8 @@ runs:
     - name: Merge built docs into site
       if: ${{ env.deploy_lock_acquired == 'true' }}
       shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.token }}
       run: |
         # Merge built docs into site
         [[ "${{ runner.debug }}" == "1" ]] && set -x
@@ -157,6 +159,26 @@ runs:
           popd
           cp -af "$doc_path/." "$_site/"
         fi
+
+        # Remove stale pull/<id> docs listed in simple tags.json.
+        [[ -f "$_site/tags.json" ]] || exit 0
+        jq -e 'type == "array"' "$_site/tags.json" || exit 0 # Skip fine grained
+
+        owner_repository="${{ github.repository }}"
+        while IFS= read -r tag; do
+          [[ "$tag" =~ ^pull/([0-9]+)$ ]] || continue
+          pr_number="${BASH_REMATCH[1]}"
+          resp=$(curl -sSL \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "X-GitHub-Api-Version: 2026-03-10" \
+            "https://api.github.com/repos/$owner_repository/pulls/$pr_number")
+          state=$(echo "$resp" | jq -r '.state // empty')
+          if [[ "$state" != "open" ]]; then
+            echo "Clean-up $tag"
+            [[ -d "$_site/$tag" ]] && rm -r "$_site/$tag" || :
+          fi
+        done < <(jq -r '.[] | select(type == "string")' "$_site/tags.json")
 
     - name: Generate aux files
       if: ${{ env.deploy_lock_acquired == 'true' }}
