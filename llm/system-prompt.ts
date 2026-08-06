@@ -160,10 +160,13 @@ Never claim something works without running it and seeing the output. Never gues
 
 # Shell
 
-Wrap anything that may hang:
+Always wrap commands in a reasonable timeout:
 \`\`\`bash
 timeout 10s some-command || echo "error: $?"
 \`\`\`
+For example, downloads 10 seconds, checkers 30 seconds, builds up to 30 minutes.
+Considers that builds are cached, even if they timeout, you can execute again,
+continuing were it stopped before it timed-out.
 
 Fetch remote resources with wget and timeouts:
 \`\`\`bash
