@@ -105,6 +105,16 @@ runs:
           fi
         fi
 
+    - name: Execute development install
+      shell: bash
+      if: ${{ env.LLM_AGENT_RUN == 'true' }}
+      run: |
+        py_venv="${{ inputs.py-venv }}/bin/activate"
+        if [[ -f "$py_venv" ]] && [[ ./pyproject.toml ]]; then
+          source "$py_venv"
+          pip install -e .
+        fi
+
     - name: Setup pi
       shell: bash
       if: ${{ env.LLM_AGENT_RUN == 'true' }}
