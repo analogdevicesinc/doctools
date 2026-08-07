@@ -60,7 +60,9 @@ harmonic = 'adi_doctools'
 
 [project.scripts]
 adoc = "adi_doctools.cli:entry_point"
+adi-doctools = "adi_doctools.cli:entry_point"
 adoc-mcp = "adi_doctools.mcp:main"
+adi-doctools-mcp = "adi_doctools.mcp:main"
 
 [tool.pytest.ini_options]
 addopts = [
