@@ -113,6 +113,9 @@ runs:
         if [[ -f "$py_venv" ]] && [[ ./pyproject.toml ]]; then
           source "$py_venv"
           pip install -e .
+          venv_packages="$(pip list | tail -n +3 | cut -f 1 -d ' ')"
+          venv_packages="${venv_packages//$'\n'/ }"
+          echo "venv_packages=$venv_packages" >> $GITHUB_ENV
         fi
 
     - name: Setup pi
