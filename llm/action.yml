@@ -110,7 +110,7 @@ runs:
       if: ${{ env.LLM_AGENT_RUN == 'true' }}
       run: |
         py_venv="${{ inputs.py-venv }}/bin/activate"
-        if [[ -f "$py_venv" ]] && [[ ./pyproject.toml ]]; then
+        if [[ -f "$py_venv" ]] && [[ -f ./pyproject.toml ]]; then
           source "$py_venv"
           pip install -e .
           venv_packages="$(pip list | tail -n +3 | cut -f 1 -d ' ')"
