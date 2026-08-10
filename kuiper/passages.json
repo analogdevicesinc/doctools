@@ -1,5 +1,7 @@
 {
   "text": [
+    "- **Operating System**: Ubuntu 22.04 LTS is recommended. Other Linux\n  distributions or versions may not work as expected.\n- **Important**: Windows is not supported.\n- **Space Requirements**: At least 10GB of free disk space for building images.\n- **Note**: Ensure you clone this repository to a path",
+    "1. **Docker**:\n  Docker version 24.0.6 or compatible is required to build Kuiper images.\n  If you don\u2019t have Docker installed, follow the installation steps at:\n  https://docs.docker.com/engine/install/\n\n  - Docker version 24.0.6 or compatible is required to build Kuiper images.\n  - If you don\u2019t hav",
     "If you encounter errors related to ARM emulation, first ensure you\u2019ve properly\nset up the prerequisites as described in the\nPrerequisites section.\n\nCommon error messages and their solutions:\n\n```text\nW: Failure trying to run: chroot chroot \"//armhf_rootfs\" /bin/true\n```\n\n\nOR\n\n```text\nchroot: failed ",
     "If you encounter permission errors when running Docker commands:\n\n```bash\npermission denied while trying to connect to the Docker daemon socket\n```\n\n\n**Solution**:\n\n1. Either prefix commands with `sudo` as shown in the build instructions\n2. Or add your user to the docker group (requires logout/login",
     "If the build fails with debootstrap errors, check if your path contains spaces.\nAs mentioned in the prerequisites, the build path must not contain spaces.\n",
@@ -13,13 +15,16 @@
     "**Purpose**: Prepare boot files for different platforms\n\n**Key operations**:\n\n- Adds Intel and Xilinx boot binaries (if configured)\n- Adds Raspberry Pi boot files (if configured)\n- Creates and configures fstab for mounting partitions\n- Sets up default boot configuration for Raspberry Pi\n\n\n**Related ",
     "**Purpose**: Apply custom configurations and additions\n\n**Key operations**:\n\n- Runs custom user scripts (if specified)\n- Installs Raspberry Pi specific packages (if configured)\n- Installs Raspberry Pi WiFi firmware (if Raspberry Pi boot files are\n  configured)\n\n\n**Related config options**:\n\n- `EXTRA",
     "**Purpose**: Finalize and export the image\n\n**Key operations**:\n\n- Installs scripts to extend rootfs partition on first boot\n- Exports source code for all packages (if configured)\n- Generates license information\n- Prepares boot partition for target hardware\n- Creates and compresses the final disk im",
-    "This guide covers advanced customization options for developers and advanced\nusers who need to extend the build process beyond standard configuration\noptions.\n",
-    "Kuiper allows you to run additional scripts during the build process to\ncustomize the resulting image. This feature enables advanced customization\nbeyond the standard configuration options.\n",
-    "To use the provided example script:\n\n1. In the `config` file, set the `EXTRA_SCRIPT` variable to:\n  EXTRA_SCRIPT=stages/07.extra-tweaks/01.extra-scripts/examples/extra-script-example.sh\n2. If you need to pass `config` file parameters to the script, uncomment\n  the line where it sources the config fi",
-    "To use your own custom script:\n\n1. Place your script file inside the `kuiper/stages` directory.\n2. In the `config` file, set the `EXTRA_SCRIPT` variable to the path of\n  your script relative to the `kuiper` directory.\n3. Make sure your script is executable (`chmod +x your-script.sh`).\n\n\nCustom scrip",
-    "By default, ADI libraries are installed from Analog Devices\u2019 package\nrepository. For development, testing unreleased features, or custom builds,\nyou can build libraries from source by modifying the stage scripts.\n",
-    "Library installation is controlled by stage scripts in `stages/05.adi-tools/`.\nEach script has a `USE_ADI_REPO` variable that controls the installation\nmethod:\n\n- `USE_ADI_REPO=y` - Install from package repository (default)\n- `USE_ADI_REPO=n` - Build from source using git\n\n\n**Example: Building libii",
-    "When building from source, dependencies must be satisfied. Enable required\ndependencies in the `config` file:\n|Library/Application|Required Dependencies|\n|`CONFIG_PYADI`|`CONFIG_LIBIIO`|\n|`CONFIG_LIBM2K`|`CONFIG_LIBIIO`|\n|`CONFIG_LIBAD9166_IIO`|`CONFIG_LIBIIO`|\n|`CONFIG_LIBAD9361_IIO`|`CONFIG_LIBIIO",
+    "This guide will help you get a Kuiper image. Choose from three options\ndepending on your needs: download a tested release, get the latest development\nbuild, or create a custom build with your own configuration.\n",
+    "**Best for**: Production use, evaluation, getting started quickly\n\n**Time**: ~5 minutes (download only)\n\nDownload a tested and stable Kuiper release. Two versions are available:\n\n- **Basic Image**: Minimal system with essential boot files, no desktop\n  environment or ADI tools\n- **Full Image**: Comp",
+    "**Best for**: Testing latest features, development work, early access\n\n**Time**: ~5 minutes (download only)\n\nDownload the most recent automated builds from the main branch. These include\nthe latest changes and improvements but may have less testing than official\nreleases.\n\n**Download**: GitHub Actio",
+    "**Best for**: Custom configurations, specific tool combinations, specialized\ndeployments\n\n**Time**: 30-60 minutes (build time)\n\nBuild your own image with complete control over included components and\nconfiguration.\n",
+    "Ensure your build environment meets the prerequisites\nbefore starting:\n\n- Ubuntu 22.04 LTS (recommended)\n- Docker installed and configured\n- At least 10GB free disk space\n- Repository cloned to a path without spaces\n",
+    "Clone the repository:\n\n```bash\ngit clone --depth 1 https://github.com/analogdevicesinc/kuiper\ncd kuiper\n```\n",
+    "The default configuration will build a basic 32-bit (armhf) Debian Trixie image\nwith Raspberry Pi boot files. For most users, this is sufficient to get started:\n\n- Target architecture: `armhf` (32-bit)\n- Debian version: `trixie`\n- Essential boot files included: Yes\n- Desktop environment: No\n- ADI to",
+    "Run the build script with sudo:\n\n```bash\nsudo ./build-docker.sh\n```\n\n\nThe build process will:\n\n1. Create a Docker container with the necessary build environment\n2. Set up a minimal Debian system\n3. Configure system settings\n4. Install selected components based on your configuration\n5. Create a boota",
+    "After a successful build, your Kuiper image will be available as a zip file\nin the `kuiper-volume/` directory within the repository. The filename will\nfollow the pattern `image_YYYY-MM-DD-ADI-Kuiper-Linux-[arch].zip`.\n",
+    "Now that you have a Kuiper image (from release, latest build, or custom build),\nproceed to Using Kuiper Images to write the image to\nan SD card and boot your device.\n",
     "Kuiper is a specialized Debian-based Linux distribution designed specifically\nfor Analog Devices hardware and evaluation boards. It provides a complete,\nready-to-use environment with ADI libraries, tools, and applications\npre-configured for seamless hardware integration.\n\nWhether you\u2019re prototyping ",
     "Get up and running with Kuiper in two simple steps:\n\n1. Download a tested release image (Basic or Full) from\n  ADI Kuiper Releases\n2. Write the image to an SD card and boot your device\n\n\nFor other options including latest development builds or custom builds, see\nthe Quick Start guide.\n",
     "Kuiper provides a configurable development environment tailored for ADI\nhardware:\n\n****Core System****\n:   Debian Trixie base with optimized configurations for ARM devices\n\n****ADI Libraries (Optional)****\n:   libiio, pyadi-iio, libm2k, libad9361, libad9166 for hardware communication\n\n****Developmen",
@@ -29,16 +34,24 @@
     "**What\u2019s included:**\n\n- Configurable combination of any available components\n- Choose specific ADI libraries and tools for your needs\n- Optional desktop environment and development packages\n- Tailored boot configuration for your target hardware\n\n\n**Perfect for:** Production deployments, specialized ",
     "****Issues and Bug Reports****\n:   Report problems on GitHub Issues\n\n****Source Code****\n:   View and contribute at ADI kuiper repository\n\n****ADI Community****\n:   Connect with other developers at EngineerZone\n",
     "Getting Started\n\n- Prerequisites\n  Build Environment\n  Required Software\n\n  - Build Environment\n  - Required Software\n- Quick Start\n  Getting a Kuiper Image\n  Next Steps\n\n  - Getting a Kuiper Image\n  - Next Steps\n- Releases\n  Release Variants\n  Choosing an Architecture\n  Choosing an Edition\n  Includ",
-    "- **Operating System**: Ubuntu 22.04 LTS is recommended. Other Linux\n  distributions or versions may not work as expected.\n- **Important**: Windows is not supported.\n- **Space Requirements**: At least 10GB of free disk space for building images.\n- **Note**: Ensure you clone this repository to a path",
-    "1. **Docker**:\n  Docker version 24.0.6 or compatible is required to build Kuiper images.\n  If you don\u2019t have Docker installed, follow the installation steps at:\n  https://docs.docker.com/engine/install/\n\n  - Docker version 24.0.6 or compatible is required to build Kuiper images.\n  - If you don\u2019t hav",
-    "The Kuiper build process uses Docker to create a controlled environment for\nbuilding Debian-based images for Analog Devices products. The build follows\nthese high-level steps:\n\n1. `build-docker.sh` creates a Docker container with all necessary build\n  dependencies\n2. Inside the container, `kuiper-st",
-    "Docker is used to perform the build inside a container, which partially\nisolates the build from the host system. This allows the script to work on\nnon-Debian based systems (e.g., Fedora Linux). The isolation is not total\ndue to the need to use some kernel-level services for ARM emulation (binfmt)\nan",
-    "To build:\n\n```bash\nsudo ./build-docker.sh\n```\n\n\nYour Kuiper image will be in the `kuiper-volume/` folder inside the cloned\nrepository on your machine as a zip file named\n`image_YYYY-MM-DD-ADI-Kuiper-Linux-[arch].zip`. After successful build,\nthe Docker image and the build container are removed if\n`P",
-    "When the Docker container is run, various required command line arguments\nare provided:\n\n- `-t`: Allocates a pseudo-TTY allowing interaction with container\u2019s shell\n- `--privileged`: Provides elevated privileges required by the chroot\n  command\n- `-v /dev:/dev`: Mounts the host system\u2019s device direct",
-    "Inside the Docker container, `kuiper-stages.sh` orchestrates the entire\nbuild process. This script reads the `config` file, sets up environment\nvariables, and executes a series of stages in a specific order.\n",
-    "The build process follows these steps inside the Docker container:\n\n1. `kuiper-stages.sh` loops through the `stages` directory in\n  alphanumeric order\n2. Within each stage, it processes subdirectories in alphanumeric order\n3. For each subdirectory, it runs the following files if they exist:\n  `run.s",
-    "The build process is divided into several stages for logical clarity and\nmodularity:\n\n- **01.bootstrap** - Creates a usable filesystem using `debootstrap`\n- **02.set-locale-and-timezone** - Configures system locale and timezone\n  settings\n- **03.system-tweaks** - Sets up users, passwords, and system",
-    "The `kuiper-stages.sh` script contains a helper function called\n`install_packages` that handles package installation for each stage. This\nfunction:\n\n1. Checks if package files exist for the current stage\n2. Verifies if the corresponding configuration option is enabled\n3. Installs the packages using ",
+    "This guide covers advanced customization options for developers and advanced\nusers who need to extend the build process beyond standard configuration\noptions.\n",
+    "Kuiper allows you to run additional scripts during the build process to\ncustomize the resulting image. This feature enables advanced customization\nbeyond the standard configuration options.\n",
+    "To use the provided example script:\n\n1. In the `config` file, set the `EXTRA_SCRIPT` variable to:\n  EXTRA_SCRIPT=stages/07.extra-tweaks/01.extra-scripts/examples/extra-script-example.sh\n2. If you need to pass `config` file parameters to the script, uncomment\n  the line where it sources the config fi",
+    "To use your own custom script:\n\n1. Place your script file inside the `kuiper/stages` directory.\n2. In the `config` file, set the `EXTRA_SCRIPT` variable to the path of\n  your script relative to the `kuiper` directory.\n3. Make sure your script is executable (`chmod +x your-script.sh`).\n\n\nCustom scrip",
+    "By default, ADI libraries are installed from Analog Devices\u2019 package\nrepository. For development, testing unreleased features, or custom builds,\nyou can build libraries from source by modifying the stage scripts.\n",
+    "Library installation is controlled by stage scripts in `stages/05.adi-tools/`.\nEach script has a `USE_ADI_REPO` variable that controls the installation\nmethod:\n\n- `USE_ADI_REPO=y` - Install from package repository (default)\n- `USE_ADI_REPO=n` - Build from source using git\n\n\n**Example: Building libii",
+    "When building from source, dependencies must be satisfied. Enable required\ndependencies in the `config` file:\n|Library/Application|Required Dependencies|\n|`CONFIG_PYADI`|`CONFIG_LIBIIO`|\n|`CONFIG_LIBM2K`|`CONFIG_LIBIIO`|\n|`CONFIG_LIBAD9166_IIO`|`CONFIG_LIBIIO`|\n|`CONFIG_LIBAD9361_IIO`|`CONFIG_LIBIIO",
+    "Releases are tested, stable Kuiper images that we recommend for most users.\nEvery release is a **Kuiper 2** image. If you have an existing SD card and are\nunsure which generation it holds, see Checking Your Kuiper Version.\n\n**Download**: ADI Kuiper Releases\n\n> **Note**\n>\n> Kuiper 1 is the previous g",
+    "Each release is published in four variants, one for every combination of\n**architecture** (32-bit or 64-bit) and **edition** (Basic or Full):\n|Variant|Architecture|Edition|\n|ARM 32-bit Basic|`armhf` (32-bit)|Basic|\n|ARM 32-bit Full|`armhf` (32-bit)|Full|\n|ARM 64-bit Basic|`arm64` (64-bit)|Basic|\n|AR",
+    "The architecture must match your target device. Boot files differ between the\ntwo, so a 32-bit image will not boot a 64-bit-only target and vice versa.\n\n- **ARM 32-bit (**`armhf`**)** \u2014 the default. Includes boot files for the\n  Zynq, Arria10, and Cyclone5 platforms (ZedBoard, ZC706, DE10-Nano, etc.",
+    "The Basic edition is the minimal, default Kuiper image. It contains only the\nessential packages and configuration needed for a functional system, plus the\nboot files for its architecture. It has **no desktop environment and no ADI\nlibraries or tools**.\n\nIt is built from the default config file, with",
+    "The Full edition includes everything in the Basic edition plus the complete ADI\nsoftware stack and a graphical environment:\n\n- XFCE desktop environment with VNC server (`CONFIG_DESKTOP=y`)\n- The full ADI library suite (libiio, pyadi-iio, libm2k, libad9361, libad9166)\n- ADI applications (IIO Oscillos",
+    "The tables below list the main components that make up a release: the version\nshipped, the config option that controls it, and the Debian package it is\ninstalled from. Use the config option name to enable or disable the component\nin a custom build.\n\n> **Note**\n>\n> Versions reflect the components at ",
+    "Present in every edition. The boot files installed depend on the architecture\nand on the boot options selected (see Configuration).\n|Component|Architecture|Config option|Debian package|\n|ADI Linux kernel|armhf, arm64|(always included)|built from the ADI Linux tree|\n|ADI Raspberry Pi kernel (6.12)|ar",
+    "|Component|Version|Config option|Debian package|\n|libiio|v0.26|`CONFIG_LIBIIO`|`libiio` (from the Debian/Ubuntu upstream)|\n|pyadi-iio|v0.0.20|`CONFIG_PYADI`|`pyadi-iio` (pip package)|\n|libm2k|v0.9.0|`CONFIG_LIBM2K`|`libm2k`|\n|libad9166-iio|v0.3.0|`CONFIG_LIBAD9166_IIO`|`libad9166`|\n|libad9361-iio|v0",
+    "|Component|Version|Config option|Debian package|\n|IIO Oscilloscope|v0.18.1|`CONFIG_IIO_OSCILLOSCOPE`|`iio-oscilloscope`|\n|IIO FM Radio|v0.3.0|`CONFIG_IIO_FM_RADIO`|`iio-fm-radio`|\n|FRU Tools|v0.8.1.7|`CONFIG_FRU_TOOLS`|`fru-tools`|\n|JESD Eye Scan GTK|v0.2|`CONFIG_JESD_EYE_SCAN_GTK`|`jesd-eye-scan-gt",
+    "The Full edition also installs the XFCE desktop environment and an X11VNC\nserver for remote graphical access, controlled by `CONFIG_DESKTOP`. See\nVNC Access for how to connect.\n",
+    "The releases cover the two most common setups, Basic and Full. To pick an\narbitrary subset of the components above, or to add options not included in any\nrelease, build a custom image. Some options only available\nwhen building your own image include:\n\n- **Source code export** (`EXPORT_SOURCES`) \u2014 co",
     "Kuiper-gen\u2019s build process is controlled by settings defined in the `config`\nfile located in the root of the repository. This file contains bash variables\nthat determine what features to include and how to build the image.\n",
     "To modify the configuration:\n\n1. Edit the `config` file in your preferred text editor\n2. Set option values to `y` to enable features or `n` to disable them\n3. Modify other values as needed for your build\n4. Save the file and run the build script\n\n\nAfter the build completes, you can find a copy of th",
     "These options control the fundamental aspects of your Kuiper image:\n|Option|Default|Description|\n|`TARGET_ARCHITECTURE`|`armhf`|Target architecture: `armhf` (32-bit) or `arm64` (64-bit)|\n|`DEBIAN_VERSION`|`trixie`|Debian version to use (e.g., `trixie`, `bookworm`, `bullseye`). Versions other than th",
@@ -57,27 +70,22 @@
     "```bash\nCONFIG_ARCH_ZYNQ=n\nCONFIG_ARCH_ARRIA10=n\nCONFIG_ARCH_CYCLONE5=n\n\nCONFIG_ARCH_ZYNQMP=y\nCONFIG_ARCH_VERSAL=y\n```\n",
     "```bash\nCONFIG_DESKTOP=y\nCONFIG_LIBIIO=y\nCONFIG_LIBM2K=y\nCONFIG_GNURADIO=y\nCONFIG_GRM2K=y\n```\n",
     "When deploying multiple Kuiper boards on the same network, set unique hostnames\nto avoid conflicts:\n\n```bash\nHOSTNAME=pluto-sdr-lab-01\n```\n\n\n```bash\nHOSTNAME=pluto-sdr-lab-02\n```\n\n\nThis allows you to connect to specific devices via SSH using their hostname\n(e.g., `ssh analog@pluto-sdr-lab-01.local`)",
-    "Releases are tested, stable Kuiper images that we recommend for most users.\nEvery release is a **Kuiper 2** image. If you have an existing SD card and are\nunsure which generation it holds, see Checking Your Kuiper Version.\n\n**Download**: ADI Kuiper Releases\n\n> **Note**\n>\n> Kuiper 1 is the previous g",
-    "Each release is published in four variants, one for every combination of\n**architecture** (32-bit or 64-bit) and **edition** (Basic or Full):\n|Variant|Architecture|Edition|\n|ARM 32-bit Basic|`armhf` (32-bit)|Basic|\n|ARM 32-bit Full|`armhf` (32-bit)|Full|\n|ARM 64-bit Basic|`arm64` (64-bit)|Basic|\n|AR",
-    "The architecture must match your target device. Boot files differ between the\ntwo, so a 32-bit image will not boot a 64-bit-only target and vice versa.\n\n- **ARM 32-bit (**`armhf`**)** \u2014 the default. Includes boot files for the\n  Zynq, Arria10, and Cyclone5 platforms (ZedBoard, ZC706, DE10-Nano, etc.",
-    "The Basic edition is the minimal, default Kuiper image. It contains only the\nessential packages and configuration needed for a functional system, plus the\nboot files for its architecture. It has **no desktop environment and no ADI\nlibraries or tools**.\n\nIt is built from the default config file, with",
-    "The Full edition includes everything in the Basic edition plus the complete ADI\nsoftware stack and a graphical environment:\n\n- XFCE desktop environment with VNC server (`CONFIG_DESKTOP=y`)\n- The full ADI library suite (libiio, pyadi-iio, libm2k, libad9361, libad9166)\n- ADI applications (IIO Oscillos",
-    "The tables below list the main components that make up a release: the version\nshipped, the config option that controls it, and the Debian package it is\ninstalled from. Use the config option name to enable or disable the component\nin a custom build.\n\n> **Note**\n>\n> Versions reflect the components at ",
-    "Present in every edition. The boot files installed depend on the architecture\nand on the boot options selected (see Configuration).\n|Component|Architecture|Config option|Debian package|\n|ADI Linux kernel|armhf, arm64|(always included)|built from the ADI Linux tree|\n|ADI Raspberry Pi kernel (6.12)|ar",
-    "|Component|Version|Config option|Debian package|\n|libiio|v0.26|`CONFIG_LIBIIO`|`libiio` (from the Debian/Ubuntu upstream)|\n|pyadi-iio|v0.0.20|`CONFIG_PYADI`|`pyadi-iio` (pip package)|\n|libm2k|v0.9.0|`CONFIG_LIBM2K`|`libm2k`|\n|libad9166-iio|v0.3.0|`CONFIG_LIBAD9166_IIO`|`libad9166`|\n|libad9361-iio|v0",
-    "|Component|Version|Config option|Debian package|\n|IIO Oscilloscope|v0.18.1|`CONFIG_IIO_OSCILLOSCOPE`|`iio-oscilloscope`|\n|IIO FM Radio|v0.3.0|`CONFIG_IIO_FM_RADIO`|`iio-fm-radio`|\n|FRU Tools|v0.8.1.7|`CONFIG_FRU_TOOLS`|`fru-tools`|\n|JESD Eye Scan GTK|v0.2|`CONFIG_JESD_EYE_SCAN_GTK`|`jesd-eye-scan-gt",
-    "The Full edition also installs the XFCE desktop environment and an X11VNC\nserver for remote graphical access, controlled by `CONFIG_DESKTOP`. See\nVNC Access for how to connect.\n",
-    "The releases cover the two most common setups, Basic and Full. To pick an\narbitrary subset of the components above, or to add options not included in any\nrelease, build a custom image. Some options only available\nwhen building your own image include:\n\n- **Source code export** (`EXPORT_SOURCES`) \u2014 co",
-    "This guide will help you get a Kuiper image. Choose from three options\ndepending on your needs: download a tested release, get the latest development\nbuild, or create a custom build with your own configuration.\n",
-    "**Best for**: Production use, evaluation, getting started quickly\n\n**Time**: ~5 minutes (download only)\n\nDownload a tested and stable Kuiper release. Two versions are available:\n\n- **Basic Image**: Minimal system with essential boot files, no desktop\n  environment or ADI tools\n- **Full Image**: Comp",
-    "**Best for**: Testing latest features, development work, early access\n\n**Time**: ~5 minutes (download only)\n\nDownload the most recent automated builds from the main branch. These include\nthe latest changes and improvements but may have less testing than official\nreleases.\n\n**Download**: GitHub Actio",
-    "**Best for**: Custom configurations, specific tool combinations, specialized\ndeployments\n\n**Time**: 30-60 minutes (build time)\n\nBuild your own image with complete control over included components and\nconfiguration.\n",
-    "Ensure your build environment meets the prerequisites\nbefore starting:\n\n- Ubuntu 22.04 LTS (recommended)\n- Docker installed and configured\n- At least 10GB free disk space\n- Repository cloned to a path without spaces\n",
-    "Clone the repository:\n\n```bash\ngit clone --depth 1 https://github.com/analogdevicesinc/kuiper\ncd kuiper\n```\n",
-    "The default configuration will build a basic 32-bit (armhf) Debian Trixie image\nwith Raspberry Pi boot files. For most users, this is sufficient to get started:\n\n- Target architecture: `armhf` (32-bit)\n- Debian version: `trixie`\n- Essential boot files included: Yes\n- Desktop environment: No\n- ADI to",
-    "Run the build script with sudo:\n\n```bash\nsudo ./build-docker.sh\n```\n\n\nThe build process will:\n\n1. Create a Docker container with the necessary build environment\n2. Set up a minimal Debian system\n3. Configure system settings\n4. Install selected components based on your configuration\n5. Create a boota",
-    "After a successful build, your Kuiper image will be available as a zip file\nin the `kuiper-volume/` directory within the repository. The filename will\nfollow the pattern `image_YYYY-MM-DD-ADI-Kuiper-Linux-[arch].zip`.\n",
-    "Now that you have a Kuiper image (from release, latest build, or custom build),\nproceed to Using Kuiper Images to write the image to\nan SD card and boot your device.\n",
+    "Kuiper uses package repositories to install and manage software. This page\nexplains the available repositories and how to install, update, and manage\npackages on your Kuiper system.\n",
+    "The Kuiper APT repository provides Debian packages for Analog Devices libraries,\napplications, and boot files. All packages are pre-built, tested, and optimized\nfor Kuiper.\n\n**Advantages of using the Kuiper repository:**\n\n- Easy installation, removal, and upgrading of packages (`apt install`,\n  `apt",
+    "|Package|Description|Additional Packages|\n|`libiio0`|Library for interfacing with Linux IIO devices|`libiio-dev`, `libiio-utils`, `python3-libiio`, `iiod`|\n|`libm2k`|Library for interfacing with the ADALM2000|`libm2k-dev`, `libm2k-tools`, `python3-libm2k`, `libm2k-csharp`|\n|`libad9361`|Library for m",
+    "|Package|Description|\n|`iio-oscilloscope`|GTK+ application for interfacing with IIO devices|\n|`scopy`|Software oscilloscope and signal analysis toolset|\n|`colorimeter`|Application for the EVAL-CN0363-PMDZ (with `colorimeter-dbgsym`)|\n|`jesd-eye-scan-gtk`|JESD204 Eye Scan visualization utility (with ",
+    "Boot files are organized by processor architecture:\n|Hardware Platform Examples|Package|Architecture|\n|ZedBoard, ZC702, ZC706, Cora Z7s, ADRV9361-Z7035, ADRV9364-Z7020|`adi-zynq-boot`|armhf|\n|ZCU102, ADRV9009-ZU11EG, Jupiter SDR|`adi-zynqmp-boot`|arm64|\n|VCK190, VPK180, VHK158|`adi-versal-boot`|arm6",
+    "Search for all ADI packages:\n\n```bash\napt search adi\n```\n\n\nSearch for specific package types:\n\n```bash\napt search libiio\napt search \"adi-.*-boot\"\n```\n\n\nView detailed package information:\n\n```bash\napt show libiio0\napt show iio-oscilloscope\n```\n",
+    "Install a package:\n\n```bash\nsudo apt update\nsudo apt install libiio0\n```\n\n\nInstall with development and Python bindings:\n\n```bash\nsudo apt install libiio0 libiio-dev python3-libiio\n```\n\n\nInstall with debug symbols:\n\n```bash\nsudo apt install iio-oscilloscope iio-oscilloscope-dbgsym\n```\n\n\nUpgrade all ",
+    "By default, the Kuiper image includes the official Raspberry Pi package\nrepository in `/etc/apt/sources.list.d/raspi.list`. This repository\nprovides access to Pi-specific packages and optimizations.\n\n**Using the Raspberry Pi repository:**\n\n1. Edit `/etc/apt/sources.list.d/raspi.list` and uncomment t",
+    "The Kuiper build process uses Docker to create a controlled environment for\nbuilding Debian-based images for Analog Devices products. The build follows\nthese high-level steps:\n\n1. `build-docker.sh` creates a Docker container with all necessary build\n  dependencies\n2. Inside the container, `kuiper-st",
+    "Docker is used to perform the build inside a container, which partially\nisolates the build from the host system. This allows the script to work on\nnon-Debian based systems (e.g., Fedora Linux). The isolation is not total\ndue to the need to use some kernel-level services for ARM emulation (binfmt)\nan",
+    "To build:\n\n```bash\nsudo ./build-docker.sh\n```\n\n\nYour Kuiper image will be in the `kuiper-volume/` folder inside the cloned\nrepository on your machine as a zip file named\n`image_YYYY-MM-DD-ADI-Kuiper-Linux-[arch].zip`. After successful build,\nthe Docker image and the build container are removed if\n`P",
+    "When the Docker container is run, various required command line arguments\nare provided:\n\n- `-t`: Allocates a pseudo-TTY allowing interaction with container\u2019s shell\n- `--privileged`: Provides elevated privileges required by the chroot\n  command\n- `-v /dev:/dev`: Mounts the host system\u2019s device direct",
+    "Inside the Docker container, `kuiper-stages.sh` orchestrates the entire\nbuild process. This script reads the `config` file, sets up environment\nvariables, and executes a series of stages in a specific order.\n",
+    "The build process follows these steps inside the Docker container:\n\n1. `kuiper-stages.sh` loops through the `stages` directory in\n  alphanumeric order\n2. Within each stage, it processes subdirectories in alphanumeric order\n3. For each subdirectory, it runs the following files if they exist:\n  `run.s",
+    "The build process is divided into several stages for logical clarity and\nmodularity:\n\n- **01.bootstrap** - Creates a usable filesystem using `debootstrap`\n- **02.set-locale-and-timezone** - Configures system locale and timezone\n  settings\n- **03.system-tweaks** - Sets up users, passwords, and system",
+    "The `kuiper-stages.sh` script contains a helper function called\n`install_packages` that handles package installation for each stage. This\nfunction:\n\n1. Checks if package files exist for the current stage\n2. Verifies if the corresponding configuration option is enabled\n3. Installs the packages using ",
     "Kuiper supports multiple hardware platforms, each with different setup\nrequirements:\n\n****ADI Evaluation Boards****\n:   Require configuration to specify which evaluation board and carrier board\n:   combination you\u2019re using. This can be done during the build process or\n:   after deployment. Check out",
     "ADI evaluation boards require configuration to work with Kuiper images.\nYou must specify both your evaluation board (e.g., AD9361-FMCOMMS2) and\ncarrier board (e.g., ZedBoard, ZC706) so the system can load the\ncorrect boot files.\n",
     "Kuiper provides three configuration approaches:\n\n****Build-Time Configuration****\n:   Set `ADI_EVAL_BOARD` and `CARRIER` parameters in your config file\n:   before building. Your image will be pre-configured for that hardware\n:   combination.\n\n****On-Device Configuration****\n:   Use the `configure-se",
@@ -102,14 +110,20 @@
     "To manage the Device Tree using the `dtoverlay` command-line tool, first\nenable the Raspberry Pi Repository, then install the `raspi-utils-dt`\npackage:\n\n```bash\n~$ sudo apt install raspi-utils-dt\nThe following NEW packages will be installed:\n libdtovl0 raspi-utils-dt\n```\n\n\nThe `raspi-utils-dt` packa",
     "Here are typical scenarios for using device tree overlays:\n\n**Enable SPI Interface**\n\n```bash\n~$ sudo dtoverlay spi0-1cs\n```\n\n\nOr in `/boot/config.txt`:\n\n```text\ndtoverlay=spi0-1cs\n```\n\n\n**Load ADI Evaluation Board Overlay**\n\nFor ADI-specific overlays (assuming they exist in `/boot/overlays`):\n\n```b",
     "To remove a dynamically loaded overlay:\n\n```bash\n~$ sudo dtoverlay -r <overlay_name>\n```\n\n\nFor overlays in `/boot/config.txt`, comment out or delete the line and\nreboot.\n",
-    "Kuiper uses package repositories to install and manage software. This page\nexplains the available repositories and how to install, update, and manage\npackages on your Kuiper system.\n",
-    "The Kuiper APT repository provides Debian packages for Analog Devices libraries,\napplications, and boot files. All packages are pre-built, tested, and optimized\nfor Kuiper.\n\n**Advantages of using the Kuiper repository:**\n\n- Easy installation, removal, and upgrading of packages (`apt install`,\n  `apt",
-    "|Package|Description|Additional Packages|\n|`libiio0`|Library for interfacing with Linux IIO devices|`libiio-dev`, `libiio-utils`, `python3-libiio`, `iiod`|\n|`libm2k`|Library for interfacing with the ADALM2000|`libm2k-dev`, `libm2k-tools`, `python3-libm2k`, `libm2k-csharp`|\n|`libad9361`|Library for m",
-    "|Package|Description|\n|`iio-oscilloscope`|GTK+ application for interfacing with IIO devices|\n|`scopy`|Software oscilloscope and signal analysis toolset|\n|`colorimeter`|Application for the EVAL-CN0363-PMDZ (with `colorimeter-dbgsym`)|\n|`jesd-eye-scan-gtk`|JESD204 Eye Scan visualization utility (with ",
-    "Boot files are organized by processor architecture:\n|Hardware Platform Examples|Package|Architecture|\n|ZedBoard, ZC702, ZC706, Cora Z7s, ADRV9361-Z7035, ADRV9364-Z7020|`adi-zynq-boot`|armhf|\n|ZCU102, ADRV9009-ZU11EG, Jupiter SDR|`adi-zynqmp-boot`|arm64|\n|VCK190, VPK180, VHK158|`adi-versal-boot`|arm6",
-    "Search for all ADI packages:\n\n```bash\napt search adi\n```\n\n\nSearch for specific package types:\n\n```bash\napt search libiio\napt search \"adi-.*-boot\"\n```\n\n\nView detailed package information:\n\n```bash\napt show libiio0\napt show iio-oscilloscope\n```\n",
-    "Install a package:\n\n```bash\nsudo apt update\nsudo apt install libiio0\n```\n\n\nInstall with development and Python bindings:\n\n```bash\nsudo apt install libiio0 libiio-dev python3-libiio\n```\n\n\nInstall with debug symbols:\n\n```bash\nsudo apt install iio-oscilloscope iio-oscilloscope-dbgsym\n```\n\n\nUpgrade all ",
-    "By default, the Kuiper image includes the official Raspberry Pi package\nrepository in `/etc/apt/sources.list.d/raspi.list`. This repository\nprovides access to Pi-specific packages and optimizations.\n\n**Using the Raspberry Pi repository:**\n\n1. Edit `/etc/apt/sources.list.d/raspi.list` and uncomment t",
+    "Kuiper is configured to get your board on the network without any setup: plug\nin an Ethernet cable and the board acquires an address, either from your\nnetwork or by negotiating one directly with the computer at the other end of\nthe cable.\n\nThis page explains what that default configuration does, and",
+    "Kuiper manages network interfaces with NetworkManager. The image ships two connection profiles for\nthe Ethernet port, and NetworkManager picks between them automatically:\n|Profile|Priority|What it does|\n|`Wired connection 1`|10|Requests an address over DHCP, waiting up to 5 seconds for a reply|\n|`et",
+    "This is the default. Connect the board\u2019s Ethernet port to a router or switch\nand power it on; it will request an address automatically.\n\nTo check the address the board received:\n\n```bash\n~$ ip addr show eth0\n2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP\n    inet 192.168.1.100",
+    "If you need the board to request a fresh lease \u2014 after moving it to a\ndifferent network, for example \u2014 bring the connection down and back up:\n\n```bash\n~$ sudo nmcli connection down \"Wired connection 1\"\n~$ sudo nmcli connection up \"Wired connection 1\"\n```\n\n\n> **Note**\n>\n> Older ADI documentation sugg",
+    "To connect the board straight to a computer with a single Ethernet cable, with\nno router or switch in between, just plug the cable in. Kuiper handles the rest.\n\nBecause no DHCP server responds, the DHCP profile times out after 5 seconds\nand NetworkManager activates the `eth0-linklocal` profile, givi",
+    "A fixed address is useful when a board must stay reachable at a known location\n\u2014 in an automated test rack, or when a client application has an address\ncompiled into it.\n\nThere are two ways to do this. `nmcli` is the general method and is shown\nfirst; if you have used Kuiper before, the ADI helper s",
+    "To hand addressing back to the network:\n\n```bash\n~$ sudo nmcli connection modify \"Wired connection 1\" \\\n   ipv4.method auto \\\n   ipv4.gateway \"\" \\\n   ipv4.addresses \"\"\n~$ sudo nmcli connection up \"Wired connection 1\"\n```\n\n\nClearing `ipv4.addresses` and `ipv4.gateway` matters \u2014 a leftover static\naddr",
+    "Kuiper images include two scripts that wrap the same configuration in a single\ncommand. They come from the `adi-scripts` package and have been part of\nKuiper for a long time, so you may already be using them.\n\nTo set a static address:\n\n```bash\n~$ sudo enable_static_ip.sh 192.168.0.101 eth0\n```\n\n\nBot",
+    "Wi-Fi is not configured by default and support depends on your build:\n\n- **Raspberry Pi images** (`CONFIG_RPI_BOOT_FILES=y`, the default) include\n  the Broadcom Wi-Fi firmware and `wpasupplicant`, so the onboard adapter\n  works.\n- **Desktop images** (`CONFIG_DESKTOP=y`) additionally include the\n  Ne",
+    "Every Kuiper image uses the hostname `analog` unless you change it, and\nadvertises itself over mDNS at `<hostname>.local`. That is what makes\n`ssh analog@analog.local` work without knowing the IP address.\n\nTo look up the address behind the name from another machine:\n\n```bash\n~$ avahi-resolve-host-na",
+    "On a running system:\n\n```bash\n~$ sudo hostnamectl set-hostname analog-my-device\n~$ sudo systemctl restart avahi-daemon\n```\n\n\nThe board is then reachable at `analog-my-device.local`.\n\nTo bake the hostname into the image instead, set `HOSTNAME` in the\nconfig file before building. This is the better op",
+    "How to persistently change the MAC address depends on your carrier. You may be\nable to set it through `/boot/uEnv.txt` by adding\n`ethaddr=<new-mac-address>`. Check the carrier vendor documentation for full\ninstructions.\n",
+    "Images built with `CONFIG_LIBIIO=y` include `iiod`, the IIO daemon. It\nserves the board\u2019s IIO devices over TCP port **30431**, so tools running on\nanother machine can reach hardware attached to the board.\n\nFrom a remote machine with libiio installed, pass the board\u2019s address with\n`-n`:\n\n```bash\n~$ i",
+    "Kuiper\u2019s defaults favor getting a board reachable quickly, which is the right\ntrade-off on a lab bench and the wrong one on an untrusted network. Before\nconnecting a board to the internet or a shared network, be aware that:\n\n- **The default credentials are published.** Both `analog` and `root` use\n ",
     "After obtaining your Kuiper image (built or downloaded), you\u2019ll need to\nwrite it to an SD card or storage device and boot your target hardware.\nThis section guides you through that process.\n",
     "If you already have an SD card with Kuiper on it and are not sure which\nversion it holds, check before you use it. Two generations exist:\n\n- **Kuiper 2** \u2014 the current, stable, and actively developed version. All\n  releases and development builds are Kuiper 2.\n- **Kuiper 1** \u2014 the previous generatio",
     "Kuiper 2 copies the `config` file used to build the image into the root of\nthe root filesystem (`/config`). Kuiper 1 does not. This file is the quickest\nway to tell the two apart:\n\n- **A** `/config` **file exists** \u2192 the card holds **Kuiper 2**. As a bonus,\n  this file records exactly which options ",
@@ -127,14 +141,15 @@
     "**Username:** analog\n\n**Password:** analog\n\nRoot access is available using the same password with `sudo` or by\nlogging in directly as root.\n",
     "It is recommended to change the default password before connecting the target\nto the Internet. If you can provide Console Access or SSH Access without\nconnecting to the Internet first, simply use the `passwd` command on the\nbooted system. If it is not an option, change the password on the image befo",
     "Connect directly with a keyboard and display if your hardware supports\nit. This is the most reliable access method for initial setup.\n",
-    "If your device is connected to a network, you can access it via SSH.\n\nFirst, find your device\u2019s IP address. If you have console access:\n\n```bash\n~$ ip addr show\n1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN\n    inet 127.0.0.1/8 scope host lo\n2: eth0: <BROADCAST,MULTICAST,UP,LOW",
+    "If your device is connected to a network, you can access it via SSH. For\nconfiguring the network itself \u2014 including connecting the board directly to a\nPC, or assigning a static address \u2014 see Networking.\n\nFirst, find your device\u2019s IP address. If you have console access:\n\n```bash\n~$ ip addr show\n1: lo",
     "If you built your image with `CONFIG_DESKTOP=y`, you can access the\ngraphical environment via VNC:\n\n1. Connect to your device using a VNC client (like RealVNC, TigerVNC,\n  or Remmina).\n2. Use the device\u2019s IP address and port 5900, for example:\n  192.168.1.100:5900\n3. Enter the password `analog` when",
     "To verify that your Kuiper image is working correctly:\n\n**Check system information:**\n\n```bash\n~$ uname -a\nLinux analog 6.6.63-v8-16k+ #1 SMP PREEMPT Wed Aug 13 10:31:20 UTC 2025 aarch64 GNU/Linux\n```\n\n\n**Verify ADI tools** (if you included them in your build):\n\n```bash\n~$ iio_info --version\niio_inf",
-    "By default, the hostname is `analog` for every Kuiper image (unless customized\nat build time). If you have multiple devices on the same network with the same\nhostname, mDNS/Avahi won\u2019t work properly.\n\nTo set a new, unique hostname:\n\n```bash\n~$ hostnamectl set-hostname analog-my-device\n~$ systemctl r",
-    "To persistently change the MAC address will depend on your carrier, you may be\nable through `/boot/uEnv.txt` by adding `ethaddr=<new-mac-address>`, or\nthrough Linux through manipulating `/etc/network/interfaces`. Check the\ncarrier vendor documentation for full instructions.\n",
+    "By default, the hostname is `analog` for every Kuiper image (unless\ncustomized at build time). If you have multiple devices on the same network\nwith the same hostname, mDNS/Avahi won\u2019t work properly.\n\nSee Hostname and Network Discovery for how to\nchange the hostname on a running system or at build t",
     "Kuiper images include the nano and\nvim text editors by default.\n\nIf you are new to command-line editors, these introductory guides may help:\n\n- nano: Getting started with Nano - Red Hat\n- vim: Linux basics: A beginner\u2019s guide to text editing with vim - Red Hat\n\n\nWhen using Kuiper with a display, you"
   ],
   "url": [
+    "prerequisites.html#build-environment",
+    "prerequisites.html#required-software",
     "troubleshooting.html#cross-architecture-build-issues",
     "troubleshooting.html#docker-permission-issues",
     "troubleshooting.html#build-path-issues",
@@ -148,13 +163,16 @@
     "stage-reference.html#stage-06-boot-partition",
     "stage-reference.html#stage-07-extra-tweaks",
     "stage-reference.html#stage-08-export-stage",
-    "customization.html",
-    "customization.html#custom-script-integration",
-    "customization.html#using-the-example-script",
-    "customization.html#using-your-own-custom-script",
-    "customization.html#building-from-source",
-    "customization.html#how-to-enable-source-builds",
-    "customization.html#library-dependencies",
+    "quick-start.html",
+    "quick-start.html#release-images-recommended",
+    "quick-start.html#latest-development-builds",
+    "quick-start.html#build-custom-image",
+    "quick-start.html#prerequisites",
+    "quick-start.html#clone-the-repository",
+    "quick-start.html#review-default-configuration",
+    "quick-start.html#build-the-image",
+    "quick-start.html#locate-the-output",
+    "quick-start.html#next-steps",
     "index.html",
     "index.html#quick-start",
     "index.html#what-s-included",
@@ -164,16 +182,24 @@
     "index.html#custom-image",
     "index.html#community-and-support",
     "index.html",
-    "prerequisites.html#build-environment",
-    "prerequisites.html#required-software",
-    "build-flow.html",
-    "build-flow.html#docker-build-environment",
-    "build-flow.html#running-the-build",
-    "build-flow.html#docker-container-configuration",
-    "build-flow.html#stage-based-build-process",
-    "build-flow.html#how-stages-are-processed",
-    "build-flow.html#key-stages-overview",
-    "build-flow.html#stage-execution-logic",
+    "customization.html",
+    "customization.html#custom-script-integration",
+    "customization.html#using-the-example-script",
+    "customization.html#using-your-own-custom-script",
+    "customization.html#building-from-source",
+    "customization.html#how-to-enable-source-builds",
+    "customization.html#library-dependencies",
+    "releases.html",
+    "releases.html#release-variants",
+    "releases.html#choosing-an-architecture",
+    "releases.html#basic-edition",
+    "releases.html#full-edition",
+    "releases.html#included-components",
+    "releases.html#system-and-boot-components",
+    "releases.html#adi-libraries-full-edition",
+    "releases.html#adi-applications-full-edition",
+    "releases.html#desktop-environment-full-edition",
+    "releases.html#building-beyond-the-releases",
     "configuration.html",
     "configuration.html#how-to-configure",
     "configuration.html#system-configuration",
@@ -192,27 +218,22 @@
     "configuration.html#building-only-64-bit-boot-files",
     "configuration.html#complete-development-environment-with-gnu-radio",
     "configuration.html#building-images-for-multiple-devices",
-    "releases.html",
-    "releases.html#release-variants",
-    "releases.html#choosing-an-architecture",
-    "releases.html#basic-edition",
-    "releases.html#full-edition",
-    "releases.html#included-components",
-    "releases.html#system-and-boot-components",
-    "releases.html#adi-libraries-full-edition",
-    "releases.html#adi-applications-full-edition",
-    "releases.html#desktop-environment-full-edition",
-    "releases.html#building-beyond-the-releases",
-    "quick-start.html",
-    "quick-start.html#release-images-recommended",
-    "quick-start.html#latest-development-builds",
-    "quick-start.html#build-custom-image",
-    "quick-start.html#prerequisites",
-    "quick-start.html#clone-the-repository",
-    "quick-start.html#review-default-configuration",
-    "quick-start.html#build-the-image",
-    "quick-start.html#locate-the-output",
-    "quick-start.html#next-steps",
+    "package-management.html",
+    "package-management.html#kuiper-repository",
+    "package-management.html#adi-libraries",
+    "package-management.html#adi-applications",
+    "package-management.html#boot-files",
+    "package-management.html#discovering-packages",
+    "package-management.html#installing-and-updating-packages",
+    "package-management.html#raspberry-pi-repository",
+    "build-flow.html",
+    "build-flow.html#docker-build-environment",
+    "build-flow.html#running-the-build",
+    "build-flow.html#docker-container-configuration",
+    "build-flow.html#stage-based-build-process",
+    "build-flow.html#how-stages-are-processed",
+    "build-flow.html#key-stages-overview",
+    "build-flow.html#stage-execution-logic",
     "hardware-configuration.html",
     "hardware-configuration.html#adi-evaluation-boards",
     "hardware-configuration.html#configuration-methods",
@@ -237,14 +258,20 @@
     "hardware-configuration.html#device-tree-manipulation-utility",
     "hardware-configuration.html#common-overlay-use-cases",
     "hardware-configuration.html#removing-overlays",
-    "package-management.html",
-    "package-management.html#kuiper-repository",
-    "package-management.html#adi-libraries",
-    "package-management.html#adi-applications",
-    "package-management.html#boot-files",
-    "package-management.html#discovering-packages",
-    "package-management.html#installing-and-updating-packages",
-    "package-management.html#raspberry-pi-repository",
+    "networking.html",
+    "networking.html#how-kuiper-configures-the-network",
+    "networking.html#connecting-to-a-network-with-dhcp",
+    "networking.html#requesting-a-new-address",
+    "networking.html#connecting-directly-to-a-pc",
+    "networking.html#setting-a-static-ip-address",
+    "networking.html#reverting-to-dhcp",
+    "networking.html#using-the-adi-helper-scripts",
+    "networking.html#connecting-to-wi-fi",
+    "networking.html#hostname-and-network-discovery",
+    "networking.html#changing-the-hostname",
+    "networking.html#changing-the-mac-address",
+    "networking.html#accessing-iio-devices-over-the-network",
+    "networking.html#securing-network-access",
     "use-kuiper-image.html",
     "use-kuiper-image.html#checking-your-kuiper-version",
     "use-kuiper-image.html#how-to-tell-the-difference",
@@ -265,11 +292,18 @@
     "use-kuiper-image.html#ssh-access",
     "use-kuiper-image.html#vnc-access",
     "use-kuiper-image.html#verifying-your-installation",
-    "use-kuiper-image.html#changing-the-hostname",
-    "use-kuiper-image.html#changing-mac-address",
+    "use-kuiper-image.html#customizing-hostname-and-mac-address",
     "use-kuiper-image.html#using-text-editors"
   ],
   "hierarchy": [
+    [
+      "Prerequisites",
+      "Build Environment"
+    ],
+    [
+      "Prerequisites",
+      "Required Software"
+    ],
     [
       "Troubleshooting",
       "Cross-Architecture Build Issues"
@@ -322,35 +356,56 @@
       "Stage 08: Export Stage"
     ],
     [
-      "Advanced Customization"
+      "Quick Start"
     ],
     [
-      "Advanced Customization",
-      "Custom Script Integration"
+      "Quick Start",
+      "Getting a Kuiper Image",
+      "Release Images (Recommended)"
     ],
     [
-      "Advanced Customization",
-      "Custom Script Integration",
-      "Using the Example Script"
+      "Quick Start",
+      "Getting a Kuiper Image",
+      "Latest Development Builds"
     ],
     [
-      "Advanced Customization",
-      "Custom Script Integration",
-      "Using Your Own Custom Script"
+      "Quick Start",
+      "Getting a Kuiper Image",
+      "Build Custom Image"
     ],
     [
-      "Advanced Customization",
-      "Building from Source"
+      "Quick Start",
+      "Getting a Kuiper Image",
+      "Build Custom Image",
+      "Prerequisites"
     ],
     [
-      "Advanced Customization",
-      "Building from Source",
-      "How to Enable Source Builds"
+      "Quick Start",
+      "Getting a Kuiper Image",
+      "Build Custom Image",
+      "Clone the Repository"
     ],
     [
-      "Advanced Customization",
-      "Building from Source",
-      "Library Dependencies"
+      "Quick Start",
+      "Getting a Kuiper Image",
+      "Build Custom Image",
+      "Review Default Configuration"
+    ],
+    [
+      "Quick Start",
+      "Getting a Kuiper Image",
+      "Build Custom Image",
+      "Build the Image"
+    ],
+    [
+      "Quick Start",
+      "Getting a Kuiper Image",
+      "Build Custom Image",
+      "Locate the Output"
+    ],
+    [
+      "Quick Start",
+      "Next Steps"
     ],
     [
       "ADI Kuiper Linux"
@@ -390,48 +445,84 @@
       "Documentation"
     ],
     [
-      "Prerequisites",
-      "Build Environment"
+      "Advanced Customization"
     ],
     [
-      "Prerequisites",
-      "Required Software"
+      "Advanced Customization",
+      "Custom Script Integration"
     ],
     [
-      "Build Flow"
+      "Advanced Customization",
+      "Custom Script Integration",
+      "Using the Example Script"
     ],
     [
-      "Build Flow",
-      "Docker Build Environment"
+      "Advanced Customization",
+      "Custom Script Integration",
+      "Using Your Own Custom Script"
     ],
     [
-      "Build Flow",
-      "Docker Build Environment",
-      "Running the Build"
+      "Advanced Customization",
+      "Building from Source"
     ],
     [
-      "Build Flow",
-      "Docker Build Environment",
-      "Docker Container Configuration"
+      "Advanced Customization",
+      "Building from Source",
+      "How to Enable Source Builds"
     ],
     [
-      "Build Flow",
-      "Stage-Based Build Process"
+      "Advanced Customization",
+      "Building from Source",
+      "Library Dependencies"
     ],
     [
-      "Build Flow",
-      "Stage-Based Build Process",
-      "How Stages Are Processed"
+      "Releases"
     ],
     [
-      "Build Flow",
-      "Stage-Based Build Process",
-      "Key Stages Overview"
+      "Releases",
+      "Release Variants"
     ],
     [
-      "Build Flow",
-      "Stage-Based Build Process",
-      "Stage Execution Logic"
+      "Releases",
+      "Choosing an Architecture"
+    ],
+    [
+      "Releases",
+      "Choosing an Edition",
+      "Basic Edition"
+    ],
+    [
+      "Releases",
+      "Choosing an Edition",
+      "Full Edition"
+    ],
+    [
+      "Releases",
+      "Included Components"
+    ],
+    [
+      "Releases",
+      "Included Components",
+      "System and Boot Components"
+    ],
+    [
+      "Releases",
+      "Included Components",
+      "ADI Libraries (Full Edition)"
+    ],
+    [
+      "Releases",
+      "Included Components",
+      "ADI Applications (Full Edition)"
+    ],
+    [
+      "Releases",
+      "Included Components",
+      "Desktop Environment (Full Edition)"
+    ],
+    [
+      "Releases",
+      "Building Beyond the Releases"
     ],
     [
       "Configuration"
@@ -511,105 +602,79 @@
       "Building images for multiple devices"
     ],
     [
-      "Releases"
+      "Package Management"
     ],
     [
-      "Releases",
-      "Release Variants"
+      "Package Management",
+      "Kuiper Repository"
     ],
     [
-      "Releases",
-      "Choosing an Architecture"
+      "Package Management",
+      "Kuiper Repository",
+      "Available Packages",
+      "ADI Libraries"
     ],
     [
-      "Releases",
-      "Choosing an Edition",
-      "Basic Edition"
+      "Package Management",
+      "Kuiper Repository",
+      "Available Packages",
+      "ADI Applications"
     ],
     [
-      "Releases",
-      "Choosing an Edition",
-      "Full Edition"
+      "Package Management",
+      "Kuiper Repository",
+      "Available Packages",
+      "Boot Files"
     ],
     [
-      "Releases",
-      "Included Components"
+      "Package Management",
+      "Kuiper Repository",
+      "Discovering Packages"
     ],
     [
-      "Releases",
-      "Included Components",
-      "System and Boot Components"
+      "Package Management",
+      "Kuiper Repository",
+      "Installing and Updating Packages"
     ],
     [
-      "Releases",
-      "Included Components",
-      "ADI Libraries (Full Edition)"
+      "Package Management",
+      "Raspberry Pi Repository"
     ],
     [
-      "Releases",
-      "Included Components",
-      "ADI Applications (Full Edition)"
+      "Build Flow"
     ],
     [
-      "Releases",
-      "Included Components",
-      "Desktop Environment (Full Edition)"
+      "Build Flow",
+      "Docker Build Environment"
     ],
     [
-      "Releases",
-      "Building Beyond the Releases"
+      "Build Flow",
+      "Docker Build Environment",
+      "Running the Build"
     ],
     [
-      "Quick Start"
+      "Build Flow",
+      "Docker Build Environment",
+      "Docker Container Configuration"
     ],
     [
-      "Quick Start",
-      "Getting a Kuiper Image",
-      "Release Images (Recommended)"
+      "Build Flow",
+      "Stage-Based Build Process"
     ],
     [
-      "Quick Start",
-      "Getting a Kuiper Image",
-      "Latest Development Builds"
+      "Build Flow",
+      "Stage-Based Build Process",
+      "How Stages Are Processed"
     ],
     [
-      "Quick Start",
-      "Getting a Kuiper Image",
-      "Build Custom Image"
+      "Build Flow",
+      "Stage-Based Build Process",
+      "Key Stages Overview"
     ],
     [
-      "Quick Start",
-      "Getting a Kuiper Image",
-      "Build Custom Image",
-      "Prerequisites"
-    ],
-    [
-      "Quick Start",
-      "Getting a Kuiper Image",
-      "Build Custom Image",
-      "Clone the Repository"
-    ],
-    [
-      "Quick Start",
-      "Getting a Kuiper Image",
-      "Build Custom Image",
-      "Review Default Configuration"
-    ],
-    [
-      "Quick Start",
-      "Getting a Kuiper Image",
-      "Build Custom Image",
-      "Build the Image"
-    ],
-    [
-      "Quick Start",
-      "Getting a Kuiper Image",
-      "Build Custom Image",
-      "Locate the Output"
-    ],
-    [
-      "Quick Start",
-      "Next Steps"
+      "Build Flow",
+      "Stage-Based Build Process",
+      "Stage Execution Logic"
     ],
     [
       "Hardware Configuration"
@@ -743,43 +808,64 @@
       "Removing Overlays"
     ],
     [
-      "Package Management"
+      "Networking"
     ],
     [
-      "Package Management",
-      "Kuiper Repository"
+      "Networking",
+      "How Kuiper Configures the Network"
     ],
     [
-      "Package Management",
-      "Kuiper Repository",
-      "Available Packages",
-      "ADI Libraries"
+      "Networking",
+      "Connecting to a Network with DHCP"
     ],
     [
-      "Package Management",
-      "Kuiper Repository",
-      "Available Packages",
-      "ADI Applications"
+      "Networking",
+      "Connecting to a Network with DHCP",
+      "Requesting a New Address"
     ],
     [
-      "Package Management",
-      "Kuiper Repository",
-      "Available Packages",
-      "Boot Files"
+      "Networking",
+      "Connecting Directly to a PC"
     ],
     [
-      "Package Management",
-      "Kuiper Repository",
-      "Discovering Packages"
+      "Networking",
+      "Setting a Static IP Address"
     ],
     [
-      "Package Management",
-      "Kuiper Repository",
-      "Installing and Updating Packages"
+      "Networking",
+      "Setting a Static IP Address",
+      "Reverting to DHCP"
     ],
     [
-      "Package Management",
-      "Raspberry Pi Repository"
+      "Networking",
+      "Setting a Static IP Address",
+      "Using the ADI Helper Scripts"
+    ],
+    [
+      "Networking",
+      "Connecting to Wi-Fi"
+    ],
+    [
+      "Networking",
+      "Hostname and Network Discovery"
+    ],
+    [
+      "Networking",
+      "Hostname and Network Discovery",
+      "Changing the Hostname"
+    ],
+    [
+      "Networking",
+      "Hostname and Network Discovery",
+      "Changing the MAC Address"
+    ],
+    [
+      "Networking",
+      "Accessing IIO Devices over the Network"
+    ],
+    [
+      "Networking",
+      "Securing Network Access"
     ],
     [
       "Using Kuiper Images"
@@ -877,13 +963,7 @@
     ],
     [
       "Using Kuiper Images",
-      "Customizing Hostname and MAC Address",
-      "Changing the Hostname"
-    ],
-    [
-      "Using Kuiper Images",
-      "Customizing Hostname and MAC Address",
-      "Changing MAC Address"
+      "Customizing Hostname and MAC Address"
     ],
     [
       "Using Kuiper Images",
