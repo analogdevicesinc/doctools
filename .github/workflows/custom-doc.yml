@@ -27,22 +27,14 @@ jobs:
         pip3 install cairosvg
         pip3 install dist/*.tar.gz
 
-    - name: Prepare custom doc template
+    - name: Build custom doc
       run: |
         source ./venv/3/custom-doc/bin/activate
         cd /tmp
         rm -rf my_pdf ; mkdir my_pdf ; cd my_pdf
-        mkdir custom-pages
-        printf "Introduction\n============\n\n" > custom-pages/intro.rst
-        yes "lorem ipsum dolor sit amet" 2>/dev/null | head -n 20 | tr '\n' ' ' >> custom-pages/intro.rst
-        adoc custom-doc --builder latex
-
-    - name: Build custom doc
-      run: |
-        source ./venv/3/custom-doc/bin/activate
-        cd /tmp/my_pdf
         export GIT_LFS_SKIP_SMUDGE=1
-        adoc custom-doc --drop-missing-extensions --builder latex
+        adoc custom-doc --drop-missing-extensions --builder latex \
+          https://raw.githubusercontent.com/analogdevicesinc/documentation/refs/heads/main/docs/solutions/reference-designs/ad4052-ardz/index.rst
 
     - uses: actions/upload-artifact@v7
       with:
