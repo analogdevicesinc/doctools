@@ -64,10 +64,16 @@ jobs:
       id: get_new_tag
       if: github.ref == 'refs/heads/main'
       run: |
-        git fetch --tags --prune --prune-tags --force
-        if ! [ $(git tag -l "${{ env.tag }}") ] ; then
+        rc=0
+        git ls-remote --exit-code --tags origin "refs/tags/${{ env.tag }}" || rc=$?
+        if [ $rc -eq 0 ] ; then
+          echo "Tag ${{ env.tag }} exists"
+        elif [ $rc -eq 2 ] ; then
+          echo "Tag ${{ env.tag }} is new"
           echo "new_tag=true" >> "$GITHUB_OUTPUT"
           echo "new_tag=true" >> "$GITHUB_ENV"
+        else
+          exit $rc
         fi
 
     - name: Create dirty tag with git sha
