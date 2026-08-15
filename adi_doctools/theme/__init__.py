@@ -19,6 +19,8 @@ def theme_config_setup(app):
     app.add_config_value('repository', None, 'env', [str])
     # Prefix paths with *repos/<repo>*
     app.add_config_value('monolithic', False, 'env', [bool])
+    # Map of top-level folder to repository, e.g. {'hdl_my_label_0': 'hdl'}
+    app.add_config_value('monolithic_map', {}, 'env', [dict])
     # Include sources of metadata, scripts, and styles
     app.add_config_value('core_repo', False, 'env', [bool])
     # Setup meta tag with target depth

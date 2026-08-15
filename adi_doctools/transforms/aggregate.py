@@ -33,7 +33,14 @@ class namespace_pending_xfer(SphinxTransform):
 
     def apply(self, **kwargs) -> None:
         inventories = self.env.config.intersphinx_mapping.keys()
+        # Top-level folders can be labels of a repository, see monolithic_map
+        label_map = self.env.config.monolithic_map
         fromdocname = self.env.docname
+
+        def get_inventory(label):
+            inventory = label_map.get(label, label)
+            return inventory if inventory in inventories else None
+
         for node in self.document.findall(addnodes.pending_xref):
             if node['reftype'] == 'doc':
                 refdoc = node.get('refdoc', fromdocname)
@@ -46,25 +53,30 @@ class namespace_pending_xfer(SphinxTransform):
                         del node['intersphinx']
                         del node['inventory']
                 else:
-                    docname = docname_join(refdoc, node['reftarget'])
-                    if docname not in self.env.found_docs:
-                        node['intersphinx'] = True
-                        reftarget = docname.split('/')
-                        node['inventory'] = reftarget.pop(0)
-                        node['reftarget'] = '/'.join(reftarget)
+                    target = node['reftarget']
+                    if target.startswith('/'):
+                        target = f"/{refdoc.split('/', 1)[0]}{target}"
+                    docname = docname_join(refdoc, target)
+                    if docname in self.env.found_docs:
+                        node['reftarget'] = '/' + docname
+                        continue
+                    inventory = get_inventory(docname.split('/', 1)[0])
+                    if inventory is None:
+                        continue
+                    node['intersphinx'] = True
+                    node['inventory'] = inventory
+                    node['reftarget'] = docname.partition('/')[2]
             else:
                 if 'intersphinx' in node:
                     node['reftarget'] = node['inventory'] + ":" + node['reftarget']
                     del node['intersphinx']
                     del node['inventory']
                 else:
-                    inventory = node.get('refdoc', fromdocname).split('/')[0]
-                    match = next((k for k in inventories if (inventory == k or
-                                                             inventory.startswith(k + '_'))),
-                                 None)
+                    inventory = get_inventory(node.get('refdoc',
+                                                       fromdocname).split('/')[0])
 
-                    if match and node['reftarget'].find(':') == -1:
-                        node['reftarget'] = match + ":" + node['reftarget']
+                    if inventory and node['reftarget'].find(':') == -1:
+                        node['reftarget'] = inventory + ":" + node['reftarget']
 
 
 def setup(app):

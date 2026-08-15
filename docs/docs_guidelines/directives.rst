@@ -283,6 +283,9 @@ Includes will include all pages below the path provided, for example, for
 *user-guide/some-board/user*, *user-guide/some-board/dev* are also included.
 Includes don't take file extensions, only the basename.
 
+The collection metadata can be used to bootstrap a custom doc, see
+:ref:`custom-doc`.
+
 All collections are collected and written to *collection.json* for the html builder,
 for example:
 

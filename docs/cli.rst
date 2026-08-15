@@ -349,6 +349,25 @@ Additional configuration can be added to the ``config`` option:
 The option ``extensions`` allow appending extra Sphinx extensions, beyond the
 automatically imported from the sourced documentations.
 
+Generate the doc.yml from a collection
+++++++++++++++++++++++++++++++++++++++
+
+A :ref:`collection <directive collection>` directive describes which pages of
+which repositories belong together, and can be used to generate the *doc.yml*:
+
+.. shell::
+
+   $ cd /tmp/my_doc
+   $ adoc custom-doc ~/documentation/docs/solutions/reference-designs/ad4052-ardz/index.rst
+     Generated doc.yml at /tmp/my_doc/doc.yml from ~/documentation/docs/solutions/reference-designs/ad4052-ardz/index.rst
+     [ build output ]
+
+The page can also be an url:
+
+.. shell::
+
+   $ adoc custom-doc https://analogdevicesinc.github.io/documentation/solutions/reference-designs/ad4052-ardz/index.html
+
 Just like :ref:`serve`, Custom doc also has :ref:`serve lfs`.
 The current limitation is that only copied images (from the sphinx's "copying images..."
 step) are looked for lfs pointers, so artifacts from other steps are missed, such as

@@ -146,6 +146,9 @@ def get_arguments_custom_doc():
                         help="Drop extensions not installed, useful when the pages don't use them anyway")
     parser.add_argument('--container', action='store_true', default=False,
                         help="Use adi/doctools_latex:v1 for latex->pdf")
+    parser.add_argument('collection', nargs='?', default=None,
+                        help="File or url with a collection directive "
+                             "to generate the doc.yml and build from.")
 
     args = parser.parse_args()
     return args

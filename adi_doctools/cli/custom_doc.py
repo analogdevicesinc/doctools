@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.machinery
 import importlib.util
+import json
 import logging
 import re
 import subprocess
@@ -10,15 +11,28 @@ from collections import defaultdict
 from glob import glob
 from os import chdir, cpu_count, environ, getcwd, listdir, mkdir, path, walk
 from shutil import copy2, which
+from urllib.error import HTTPError
+from urllib.request import urlopen
 
 import yaml
+from docutils.frontend import get_default_settings
+from docutils.parsers.rst import Directive, Parser
+from docutils.parsers.rst import directives as rst_directives
+from docutils.utils import new_document
 from sphinx.application import Sphinx
 from sphinx.cmd.make_mode import run_make_mode
 from sphinx.util.osutil import SEP
 
 from adi_doctools import __version__
 
-from ..lut import get_lut, remote_doc
+from ..directive.common import collection_parse_content, directive_collection
+from ..lut import (
+    get_lut,
+    remote_alt,
+    remote_doc,
+    source_hostname,
+    source_hostname_raw,
+)
 from .argument_parser import get_arguments_custom_doc
 from .aux_git import get_lfs_sha, is_git_lfs_installed
 from .logging import BLUE, FAIL, NC
@@ -34,6 +48,8 @@ default_config = {
     'branch': 'main',
     'extra': False,
 }
+
+source_suffixes = ('.rst', '.md')
 
 
 class pr:
@@ -155,6 +171,9 @@ $myst_enable_extensions$
 # -- Custom extensions configuration ------------------------------------------
 
 monolithic = True
+monolithic_map = {
+$monolithic_map$
+}
 
 # -- Options for HTML output --------------------------------------------------
 
@@ -196,7 +215,7 @@ include:
 # Custom pages
 # Are copied over preserving the path
 custom:
-  - custom-pages/intro.rst
+  - custom-pages/intro
 
 # Create toctree for entry point page
 # Pages without a explicit entry point will be searched and globed
@@ -205,21 +224,21 @@ custom:
 entry-point:
   - caption:
     files:
-      - custom-pages/intro.rst
+      - custom-pages/intro
   - caption: Evaluation board
     files:
-      - documentation/solutions/reference-designs/ad4052-ardz/index.rst
+      - documentation/solutions/reference-designs/ad4052-ardz/index
   - caption: Linux IIO driver
     files:
-      - documentation/linux/drivers/iio-adc/ad4052/index.rst
+      - documentation/linux/drivers/iio-adc/ad4052/index
   - caption: no-OS driver&project
     files:
-      - no-OS/projects/adc/ad405x.rst
-      - no-OS/drivers/adc/ad405x.rst
+      - no-OS/projects/adc/ad405x
+      - no-OS/drivers/adc/ad405x
   - caption: HDL design
     files:
-      - hdl_my_label_0/projects/ad4630_fmc/index.rst
-      - hdl_my_label_1/projects/ad4052_ardz/index.rst
+      - hdl_my_label_0/projects/ad4630_fmc/index
+      - hdl_my_label_1/projects/ad4052_ardz/index
 
 # Per repository configuration
 # extra: do steps that require extra software (e.g. vendor sdk)
@@ -336,7 +355,7 @@ def _patch_index(toc_file, repo):
     with open(toc_file, "r") as f:
         data = f.readlines()
         if ".. toctree::\n" not in data:
-            return
+            return []
         data_ = data.copy()
 
         toctrees = []
@@ -377,8 +396,22 @@ def _patch_index(toc_file, repo):
 
     return toctrees
 
-def _len(t):
-    return -4 if t.endswith('.rst') else -3
+
+def docname(t):
+    for suffix in source_suffixes:
+        if t.endswith(suffix):
+            return t[:-len(suffix)]
+    return t
+
+
+def resolve_source(base, t):
+    if path.isdir(path.join(base, t)) or path.isfile(path.join(base, t)):
+        return t
+    for suffix in source_suffixes:
+        if path.isfile(path.join(base, f"{docname(t)}{suffix}")):
+            return f"{docname(t)}{suffix}"
+    return None
+
 
 def patch_index(doc, tocs, index_file):
     toctrees = []
@@ -388,7 +421,7 @@ def patch_index(doc, tocs, index_file):
         to_remove = []
         for e in tocs[t]:
             for t_ in doc['entry-point']:
-                if e in t_['files']:
+                if docname(e) in [docname(f) for f in t_['files']]:
                     to_remove.append(e)
         for r in to_remove:
             tocs[t].remove(r)
@@ -399,7 +432,7 @@ def patch_index(doc, tocs, index_file):
             toc_ = [[], [], False]
         else:
             toc_ = [[f"   :caption: {t['caption']}\n"], [], True]
-        toc_[1] = [f"   {t_[:_len(t_)]}\n" for t_ in t['files']]
+        toc_[1] = [f"   {docname(t_)}\n" for t_ in t['files']]
         toctrees[-1].append(toc_)
 
     for k in tocs:
@@ -410,16 +443,16 @@ def patch_index(doc, tocs, index_file):
         else:
             r = k
         for k_ in tocs[k]:
-            if f"{k}{SEP}index.rst" == k_:
-                toctrees[-1] += _patch_index(path.join(path.dirname(index_file), k, "index.rst"), k)
-                if not toctrees[-1][0][2]:
+            if docname(k_) == f"{k}{SEP}index":
+                toctrees[-1] += _patch_index(path.join(path.dirname(index_file), k_), k)
+                if toctrees[-1] and not toctrees[-1][0][2]:
                     toctrees[-1][0][0].append(f"   :caption: {repos[r]['name']}\n")
                     toctrees[-1][0][2] = True
             else:
                 # Fallback, just add somewhere
                 if k not in orphan_toc:
                     orphan_toc[k] = []
-                orphan_toc[k].append(f"   {k_[:_len(k_)]}\n")
+                orphan_toc[k].append(f"   {docname(k_)}\n")
         if k in orphan_toc:
             toctrees[-1] += [[[], orphan_toc[k], False]]
 
@@ -501,7 +534,7 @@ def prepare_doc(doc, repos_dir, doc_dir, drop_ext):
     entry_points = []
     for t in doc['entry-point']:
         entry_points.extend(t['files'])
-    entry_points = [e[:_len(e)] for e in entry_points]
+    entry_points = [docname(e) for e in entry_points]
 
     missing_ext = []
     sys_path_og = list(sys.path)
@@ -567,41 +600,48 @@ def prepare_doc(doc, repos_dir, doc_dir, drop_ext):
         sys_path_.update([p for p in sys.path if p not in sys_path_og])
         # sourcedir : /path/to/hdl/docs
         # dstdir : doc/hdl
+        include_ = []
         for d in doc['include'][path_]:
-            d__ = path.abspath(path.join(sourcedir, d))
-            if path.isfile(d__) or path.isdir(d__):
-                pr.run(f"cp -r --parents {d} {dstdir}", sourcedir)
-            else:
+            d__ = resolve_source(sourcedir, d)
+            if d__ is None:
                 logger.info(f"{path_}: source file/dir '{d}' does not exist, skipped.")
+                continue
+            include_.append(d__)
+            pr.run(f"cp -r --parents {d__} {dstdir}", sourcedir)
+        doc['include'][path_] = include_
 
         # Infeer toctree entries
         toc_resolve = []
-        for d in doc['include'][path_]:
+        for d in include_:
             if path.isdir(d):
-                index_ = path.join(d, 'index.rst')
-                if path.isfile(index_):
+                index_ = resolve_source(sourcedir, path.join(d, 'index'))
+                if index_ is not None:
                     d = index_
                 else:
-                    logger.info(f"{path_}: source dir '{d}' does not contain index.rst, "
+                    logger.info(f"{path_}: source dir '{d}' does not contain an index page, "
                                "won't try to resolve toctree for this folder.")
                     continue
             elif not path.isfile(d):
                 continue
 
-            d = d[:_len(d)]
-            toc_resolve.append(d)
+            toc_resolve.append(docname(d))
 
         i = 1
         also_include = []
 
-        def is_orphan_or_explicit_entry(d, _path_=path_, _also_include=also_include):
+        def is_orphan_or_explicit_entry(d, _sourcedir=sourcedir, _path_=path_,
+                                        _also_include=also_include):
             if path.join(_path_, d) in entry_points:
                 return True
-            with open(d+".rst", "r") as f:
+            d_ = resolve_source(_sourcedir, d)
+            if d_ is None or path.isdir(d_):
+                return False
+            with open(d_, "r") as f:
                 if f.readline()[:-1].strip() == ":orphan:":
                     # Handle sphinx trick for sidebar "volumes"
-                    if d.count(SEP) == 1:
-                        _also_include.append("index.rst")
+                    index_ = resolve_source(_sourcedir, "index")
+                    if d.count(SEP) == 1 and index_ is not None:
+                        _also_include.append(index_)
                     return True
             return False
         for d in toc_resolve:
@@ -622,7 +662,7 @@ def prepare_doc(doc, repos_dir, doc_dir, drop_ext):
                     if found:
                         break
 
-                    if SEP.join(d_) == f[:_len(f)]:
+                    if SEP.join(d_) == docname(f):
                         # skip self
                         continue
 
@@ -667,7 +707,7 @@ def prepare_doc(doc, repos_dir, doc_dir, drop_ext):
                         break
                 else:
                     # Now look for the parent
-                    d_ = also_include[-1][:_len(also_include[-1])].split(SEP)
+                    d_ = docname(also_include[-1]).split(SEP)
                     if d_[0] == '.':
                         d_.pop(0)
 
@@ -698,11 +738,15 @@ def prepare_doc(doc, repos_dir, doc_dir, drop_ext):
             logger.info("And will not be added to the configuration file.")
 
     # Copy over custom pages
+    custom_ = []
     for c in doc['custom']:
-        if path.isfile(c) or path.isdir(c):
-            pr.run(f"cp -r --parents {c} {doc_dir}", repos_dir)
-        else:
+        c__ = resolve_source(repos_dir, c)
+        if c__ is None:
             logger.info(f"custom source file/dir '{c}' does not exist, skipped.")
+            continue
+        custom_.append(c__)
+        pr.run(f"cp -r --parents {c__} {doc_dir}", repos_dir)
+    doc['custom'] = custom_
 
     conf_file = path.join(doc_dir, 'conf.py')
     config_f = template_config
@@ -729,6 +773,13 @@ def prepare_doc(doc, repos_dir, doc_dir, drop_ext):
         else:
             str_inter += " None),\n"
     config_f = config_f.replace("$intersphinx_mapping$", str_inter)
+
+    str_map = ""
+    for label in doc['config']:
+        r = doc['config'][label]['repository']
+        if r and r != label:
+            str_map += f"    '{label}': '{r}',\n"
+    config_f = config_f.replace("$monolithic_map$", str_map)
 
     config_f = config_f.replace("$project$", doc['project'])
     config_f = config_f.replace("$description$", doc['description'])
@@ -956,6 +1007,283 @@ def organize_include(doc):
     doc['include'] = include
 
 
+def _yaml_str(value):
+    return json.dumps('' if value is None else str(value))
+
+
+def get_repository(sourcedir):
+    """
+    Gets the repository label of a doc source dir, based on the lut.
+    """
+    sourcedir = path.normpath(sourcedir)
+    for r in repos:
+        pathname = path.normpath(repos[r]['pathname'])
+        if pathname in ('', '.'):
+            root = sourcedir
+        elif sourcedir.endswith(SEP + pathname):
+            root = sourcedir[:-(len(pathname)+1)]
+        else:
+            continue
+        if path.basename(root) == r:
+            return r
+    return None
+
+
+def get_url_docname(url):
+    """
+    Gets (repository, docname) out of an url of a page.
+    """
+    source = (source_hostname.split('{')[0], source_hostname_raw.split('{')[0])
+    url = re.split(r'[#?]', url)[0]
+    base = next((b for b in (remote_doc, remote_alt, *source)
+                 if url.startswith(b)), None)
+    if base is None:
+        return None, None
+
+    label, _, page = url[len(base):].partition(SEP)
+    if base == remote_alt:
+        label = next((r for r in repos if repos[r].get('alt') == label), label)
+    if base in source and label in repos:
+        # Discard the branch part, e.g. blob/main, refs/heads/main
+        page = page.partition(repos[label]['pathname'] + SEP)[2]
+
+    for suffix in ('.html', *source_suffixes):
+        if page.endswith(suffix):
+            page = page[:-len(suffix)]
+            break
+    if page == '' or page.endswith(SEP):
+        page += 'index'
+
+    return label, page
+
+
+def get_remote_source(repository, docname_):
+    """
+    Fetches the source of a page of a repository, returns (url, content).
+    """
+    branch = repos[repository]['branch']
+    pathname = repos[repository]['pathname']
+    # An url of a folder resolves to the index page
+    pages = [f"{docname_}{s}" for s in source_suffixes]
+    pages += [f"{docname_}{SEP}index{s}" for s in source_suffixes]
+    for page in pages:
+        url = source_hostname_raw.format(repository=repository, branch=branch,
+                                         pathname=f"{pathname}{SEP}{page}")
+        try:
+            with urlopen(url) as response:
+                return url, response.read().decode('utf-8')
+        except HTTPError as e:
+            if e.code != 404:
+                raise
+
+    logger.error(f"Page {FAIL}{docname_}{NC} not found at repository "
+                 f"{FAIL}{repository}{NC}, tried {', '.join(pages)}.")
+    return None, None
+
+
+def get_collection_content(source_file, content):
+    """
+    Parses a source and gets the arguments, options and content of the
+    first collection directive, or (None, None, None).
+    """
+    got = []
+
+    class capture(Directive):
+        option_spec = directive_collection.option_spec
+        has_content = True
+        final_argument_whitespace = True
+        required_arguments = 1
+        optional_arguments = 0
+
+        def run(self):
+            got.append((self.arguments[0].strip(), dict(self.options),
+                        list(self.content)))
+            return []
+
+    if source_file.endswith('.md'):
+        from myst_parser.parsers.docutils_ import Parser as Parser_
+    else:
+        Parser_ = Parser
+
+    settings = get_default_settings(Parser_)
+    settings.report_level = 5
+    settings.halt_level = 5
+    document = new_document(source_file, settings)
+    registered = rst_directives._directives.get('collection')
+    rst_directives.register_directive('collection', capture)
+    Parser_().parse(content, document)
+    if registered is None:
+        rst_directives._directives.pop('collection', None)
+    else:
+        rst_directives.register_directive('collection', registered)
+
+    return got[0] if got else (None, None, None)
+
+
+def _collection_source_to_doc_yml(source, directory):
+    """
+    Generates a doc.yml template out of a page with a collection directive,
+    the pages of the collection become the include/entry-point entries.
+    The page is either a local file or an url of the rendered/source page.
+    """
+    doc_yml = path.join(directory, 'doc.yml')
+    if path.isfile(doc_yml):
+        logger.error(f"Configuration file doc.yml {FAIL}already exists{NC} at:\n"
+                     f"{BLUE}{doc_yml}{NC}")
+        return 1
+
+    if source.startswith(('http://', 'https://')):
+        sourcedir = None
+        repository, docname_page = get_url_docname(source)
+        if repository is None:
+            logger.error(f"Url {FAIL}{source}{NC} does not match any of the "
+                         "doc or source prefixes of the lut.")
+            return 1
+        if repository not in repos:
+            logger.error(f"Repository {FAIL}{repository}{NC} of "
+                         f"{BLUE}{source}{NC} is not in the lut.")
+            return 1
+        source, text = get_remote_source(repository, docname_page)
+        if source is None:
+            return 1
+    else:
+        source = path.abspath(source)
+        if not path.isfile(source):
+            logger.error(f"Source file {FAIL}{source}{NC} does not exist.")
+            return 1
+
+        sourcedir = path.dirname(source)
+        while not path.isfile(path.join(sourcedir, 'conf.py')):
+            parent = path.dirname(sourcedir)
+            if parent == sourcedir:
+                logger.error(f"Page {BLUE}{source}{NC} is not part of a doc, "
+                             f"no {FAIL}conf.py{NC} in the parent folders.")
+                return 1
+            sourcedir = parent
+
+        repository = get_repository(sourcedir)
+        if repository is None:
+            logger.error(f"Source dir {FAIL}{sourcedir}{NC} does not belong to "
+                         "a repository of the lut, the folder of the repository "
+                         "must have the same name as in the lut.")
+            return 1
+
+        docname_page = docname(path.relpath(source, sourcedir))
+        with open(source) as f:
+            text = f.read()
+
+    key, options, content = get_collection_content(source, text)
+    if key is None:
+        logger.error(f"No {FAIL}collection{NC} directive found at "
+                     f"{BLUE}{source}{NC}.")
+        return 1
+
+    description, include_, warnings = collection_parse_content(content,
+                                                               docname_page,
+                                                               repository)
+    for warning in warnings:
+        logger.info(warning)
+
+    docname_self = (docname_page[:-6] if docname_page.endswith(f"{SEP}index")
+                    else docname_page)
+
+    include = []
+    entry_point = []
+    unknown_repos = []
+    missing = []
+    for repo, entries in include_.items():
+        if repo not in repos:
+            unknown_repos.append(repo)
+        files = []
+        names = []
+        for entry in entries:
+            file_ = entry['path']
+            if repo == repository and file_ == docname_self:
+                file_ = docname_page
+            elif repo == repository and sourcedir is not None:
+                resolved = resolve_source(sourcedir, file_)
+                if resolved is None:
+                    missing.append(f"{repo}{SEP}{file_}")
+                elif path.isdir(path.join(sourcedir, resolved)):
+                    file_ = f"{file_}/index"
+                    if resolve_source(sourcedir, file_) is None:
+                        missing.append(f"{repo}{SEP}{file_}")
+            # Include the whole folder of index pages, to get every sub page
+            if path.basename(file_) == 'index' and path.dirname(file_):
+                include_entry = path.dirname(file_)
+            else:
+                include_entry = file_
+            if f"{repo}{SEP}{include_entry}" not in include:
+                include.append(f"{repo}{SEP}{include_entry}")
+            if f"{repo}{SEP}{file_}" not in files:
+                files.append(f"{repo}{SEP}{file_}")
+                if entry['name']:
+                    names.append(entry['name'])
+        if files:
+            if len(files) == len(names) == 1:
+                caption = names[0]
+            else:
+                caption = repos[repo]['name'] if repo in repos else repo
+            entry_point.append((caption, files))
+
+    if not include:
+        logger.error(f"Collection {FAIL}{key}{NC} has no page to include.")
+        return 1
+
+    description = options.get('subtitle') or description
+    description = ' '.join(description.split())
+
+    data = [
+        "# Custom doc builder template",
+        "# ---------------------------",
+        f"# Generated with adi_doctools {__version__} from",
+        f"# {source}",
+        "",
+        f"project: {_yaml_str(key)}",
+        f"description: {_yaml_str(description)}",
+        "",
+        "# Dirs and files to include",
+        "# First level is repository name",
+        "include:",
+    ]
+    data += [f"  - {i}" for i in include]
+    data += [
+        "",
+        "# Create toctree for entry point page",
+        "# Pages without a explicit entry point will be searched and globed",
+        "# until the root of the source doc is reached, which may include",
+        "# undesired additional pages/sections.",
+        "entry-point:",
+    ]
+    for caption, files in entry_point:
+        data.append(f"  - caption: {_yaml_str(caption)}")
+        data.append("    files:")
+        data += [f"      - {f}" for f in files]
+    data += [
+        "",
+        "# Per repository configuration",
+        "# extra: do steps that require extra software (e.g. vendor sdk)",
+        "# branch: clone from a specific branch, overwrites \"main\"",
+        "#config:",
+        "#    no-OS:",
+        "#      extra: true",
+        "",
+    ]
+
+    with open(doc_yml, "w") as f:
+        f.write('\n'.join(data))
+
+    if unknown_repos:
+        logger.info(f"Collection includes unmapped repositories {unknown_repos}, "
+                    "they won't be fetched, adjust or remove them.")
+    if missing:
+        logger.info(f"Unresolved local pages {missing}, adjust or remove them.")
+    logger.info(f"Generated doc.yml at {BLUE}{doc_yml}{NC} from "
+                f"{BLUE}{source}{NC}, adjust it and rerun to change the "
+                "pages of the doc.")
+    return 0
+
+
 def custom_doc():
     """
     Creates an aggregated documentation out the repos
@@ -973,6 +1301,13 @@ def custom_doc():
     doc_dir = path.join(directory, 'sources')
     if not path.isdir(directory):
         mkdir(directory)
+
+    if args.collection:
+        # Generate the doc.yml and carry on with the build
+        ret = _collection_source_to_doc_yml(args.collection, directory)
+        if ret != 0:
+            return ret
+
     if not path.isfile(doc_yml):
         logger.info(f"Configuration file doc.yml {FAIL}not found{NC}, created template at:\n"
                    f"{BLUE}{doc_yml}{NC}\n"

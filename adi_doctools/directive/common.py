@@ -514,6 +514,82 @@ def directive_collection_build_finished(app, exc):
         json.dump(json_map, f, indent=4)
 
 
+def collection_parse_content(content, docname, repository):
+    """
+    Parses the content of a collection directive, without needing an
+    environment, so it can also be used out of a Sphinx build.
+    Returns (description, include, warnings), with include as
+    inventory -> [{'path', 'raw', 'name'}] and warnings a list of
+    messages to be reported by the caller.
+    """
+    warnings = []
+
+    i = len(content)
+    for j, line in enumerate(content):
+        # First include, break-out description part
+        if not line.startswith(' ') and line.strip().endswith(':'):
+            i = j
+            break
+    description = "\n".join(content[:i])
+
+    docname_ = docname[:-6] if docname.endswith('/index') else docname
+
+    include = {}
+    current_include = None
+    got_itself = False
+    for line in content:
+        line = line.split("#", 1)[0]  # Strip comments
+        if not line.startswith(' ') and line.strip().endswith(':'):
+            current_include = line.strip()[:-1]
+            if current_include not in include:
+                include[current_include] = []
+            continue
+        if not current_include:
+            continue
+
+        if not line.startswith('  -') and line != "":
+            warnings.append(f"collection: Malformed include line skipped: '{line}'")
+            continue
+        line = line.strip()
+        if line == "":
+            continue
+
+        line = line[2:]
+        match = re.match(r'([^<]+)<([^>]+)>', line)
+        if match:
+            name = match.group(1).strip()
+            path_ = match.group(2)
+        else:
+            name = None
+            path_ = line
+
+        raw = path_
+        if (current_include == repository and
+                path_ in ('.', docname_, docname)):
+            got_itself = True
+            path_ = docname_
+        if current_include != repository and path_ == '.':
+            warnings.append(f"collection: Got '.' repository '{current_include}', "
+                            f"which isn't the current '{repository}'.")
+
+        include[current_include].append({
+            'path': path_,
+            'raw': raw,
+            'name': name,
+        })
+
+    if not got_itself and repository:
+        if repository not in include:
+            include[repository] = []
+        include[repository].append({
+            'path': docname_,
+            'raw': docname_,
+            'name': None,
+        })
+
+    return description, include, warnings
+
+
 class directive_collection(SphinxDirective):
     option_spec: ClassVar = {
         'subtitle': directives.unchanged_required,
@@ -541,72 +617,20 @@ class directive_collection(SphinxDirective):
         label = re.split(r'(?<!\\)[ ,]', label)
         label = [d.replace('\\ ', ' ') for d in label if d]
 
-        description = []
-        for i, line in enumerate(self.content):
-            # First include, break-out description part
-            if not line.startswith(' ') and line.strip().endswith(':'):
-                break
-        description = "\n".join(self.content[:i])
+        description, include_, warnings = collection_parse_content(
+            self.content, self.env.docname, self.config.repository
+        )
+        for warning in warnings:
+            self.state_machine.reporter.warning(warning, line=self.lineno)
 
         include = {}
-        current_include = None
-        got_itself = False
-        start_idx = 0
-        for i, line in enumerate(self.content[start_idx:]):
-            line = line.split("#", 1)[0]  # Strip comments
-            if not line.startswith(' ') and line.strip().endswith(':'):
-                current_include = line.strip()[:-1]
-                if current_include not in include:
-                    include[current_include] = {}
-                continue
-            if not current_include:
-                continue
-
-            if not line.startswith('  -') and line != "":
-                self.state_machine.reporter.warning(
-                    "collection: Malformed include line skipped: "
-                    f"'{line}'",
-                    line=self.lineno
-                )
-                continue
-            line = line.strip()
-            if line == "":
-                continue
-
-            line = line[2:]
-            match = re.match(r'([^<]+)<([^>]+)>', line)
-            if match:
-                name = match.group(1).strip()
-                path_ = match.group(2)
-            else:
-                name = None
-                path_ = line
-
-            self.assert_docname(current_include, path_, self.env.docname)
-
-            docname = self.env.docname
-            if docname.endswith('/index'):
-                docname = docname[:-6]
-            if (current_include == self.config.repository and
-                (path_ == '.' or path_ == docname or path_ == self.env.docname)):
-                got_itself = True
-                path_ = docname
-            if (current_include != self.config.repository and
-                (path_ == '.')):
-                    self.state_machine.reporter.warning(
-                    f"collection: Got '.' repository '{current_include}', "
-                    f"which isn't the current '{self.config.repository}'.",
-                    line=self.lineno
-                )
-
-            include[current_include][path_] = {}
-            if name:
-                include[current_include][path_]["name"] = name
-
-        if not got_itself and self.config.repository:
-            if self.config.repository not in include:
-                include[self.config.repository] = {}
-            include[self.config.repository][docname] = {}
+        for inventory, entries in include_.items():
+            include[inventory] = {}
+            for entry_ in entries:
+                self.assert_docname(inventory, entry_['raw'], self.env.docname)
+                include[inventory][entry_['path']] = {}
+                if entry_['name']:
+                    include[inventory][entry_['path']]["name"] = entry_['name']
 
         if not hasattr(self.env, 'collection'):
             self.env.collection = []
