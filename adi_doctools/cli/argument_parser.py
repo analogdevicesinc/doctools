@@ -34,7 +34,7 @@ Commands:
     hdl-render   Creates a SVG component diagram of an IP.
     hdl-gen      Generate HDL auxiliary files.
     aggregate    Creates a symbolic-aggregated documentation out of every repo documentation.
-    custom-doc   Creates an aggregated documentation out the repos in the doc.yaml file.
+    custom-doc   Creates an aggregated documentation out the repos in the doc.yml file.
     search       Search Analog Devices Sphinx documentation.
     search-wiki  Search Analog Devices DokuWiki (legacy).
     doc2vector   Vectorize documentation.
@@ -129,7 +129,7 @@ def get_arguments_custom_doc():
     """Parse arguments for the custom-doc command."""
     parser = argparse.ArgumentParser(
         prog='adoc custom-doc',
-        description='Creates an aggregated documentation out the repos in the doc.yaml file. The tool runs Sphinx twice to resolve interrepo-references, watching for warnings and patching accordingly.')
+        description='Creates an aggregated documentation out the repos in the doc.yml file. The tool runs Sphinx twice to resolve interrepo-references, watching for warnings and patching accordingly.')
     parser.add_argument('-d', '--directory', default='.', required=False,
                         help="Path to host custom doc, contain the repositories and doc (workdir)")
     parser.add_argument('-e', '--extra', action='store_true', default=False,

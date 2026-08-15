@@ -255,15 +255,15 @@ To quick start, run the tool twice in an empty directory.
 
    $cd /tmp/my_doc
    $adoc custom-doc
-    Configuration file doc.yaml not found, created template at:
-    /tmp/my_doc/doc.yaml
+    Configuration file doc.yml not found, created template at:
+    /tmp/my_doc/doc.yml
     Update it with the desired sources and rerun the tool.
    $adoc custom-doc --builder pdf
     [ build output ]
 
-The *doc.yaml* file is a concise human-readable markup file to set the desired
+The *doc.yml* file is a concise human-readable markup file to set the desired
 content and some other options.
-Running the tool in a directory without the *doc.yaml* will instantiate a template
+Running the tool in a directory without the *doc.yml* will instantiate a template
 and return.
 If the necessary repositories are not found, the tool will clone for you.
 
@@ -282,7 +282,7 @@ For all options, do:
 
    $adoc custom-doc --help
 
-Here is a minimal *doc.yaml*:
+Here is a minimal *doc.yml*:
 
 .. code-block:: yaml
 

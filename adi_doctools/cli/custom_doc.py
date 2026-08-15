@@ -959,7 +959,7 @@ def organize_include(doc):
 def custom_doc():
     """
     Creates an aggregated documentation out the repos
-    in the doc.yaml file.
+    in the doc.yml file.
     The tool runs Sphinx twice to resolve interrepo-references,
     watching for warnings and patching accordingly.
     """
@@ -969,19 +969,19 @@ def custom_doc():
     no_parallel = args.no_parallel
     directory = path.abspath(args.directory)
 
-    doc_yaml = path.join(directory, 'doc.yaml')
+    doc_yml = path.join(directory, 'doc.yml')
     doc_dir = path.join(directory, 'sources')
     if not path.isdir(directory):
         mkdir(directory)
-    if not path.isfile(doc_yaml):
-        logger.info(f"Configuration file doc.yaml {FAIL}not found{NC}, created template at:\n"
-                   f"{BLUE}{doc_yaml}{NC}\n"
+    if not path.isfile(doc_yml):
+        logger.info(f"Configuration file doc.yml {FAIL}not found{NC}, created template at:\n"
+                   f"{BLUE}{doc_yml}{NC}\n"
                    "Update it with the desired sources and rerun the tool.")
-        with open(doc_yaml, "w") as f:
+        with open(doc_yml, "w") as f:
             f.write(template_yaml)
         return
 
-    with open(doc_yaml) as f:
+    with open(doc_yml) as f:
         doc = yaml.safe_load(f)
         if 'include' not in doc:
             logger.error("Invalid yaml file, no 'include' entry.")
