@@ -17,6 +17,8 @@ logger = logging.getLogger(__name__)
 def theme_config_setup(app):
     # Name of the repository that this doc belong to
     app.add_config_value('repository', None, 'env', [str])
+    # Subtitle of the doc, e.g. the description of a custom doc
+    app.add_config_value('description', None, 'env', [str])
     # Prefix paths with *repos/<repo>*
     app.add_config_value('monolithic', False, 'env', [bool])
     # Map of top-level folder to repository, e.g. {'hdl_my_label_0': 'hdl'}
@@ -339,6 +341,7 @@ def latex_config(app):
     maketitle = generate_latex_cover(
         str(app.builder.outdir),
         app.config.project,
+        app.config.description,
         app.config.author,
         app.config.version
     )

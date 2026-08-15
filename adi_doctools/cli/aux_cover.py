@@ -204,7 +204,8 @@ def _generate_cover_pdf(seed, width=595, height=842):
     return b''.join(pdf_parts)
 
 
-def generate_latex_cover(outdir: str, title: str, author: str, version: str) -> str:
+def generate_latex_cover(outdir: str, title: str, description: str, author: str,
+                         version: str) -> str:
     """
     Generate a PDF cover for xelatex builds.
 
@@ -226,6 +227,11 @@ def generate_latex_cover(outdir: str, title: str, author: str, version: str) -> 
     t = _tex_escape(title)
     a = _tex_escape(author)
     v = _tex_escape(version)
+    d = ''
+    if description:
+        d = ('    {\\color{white}\\fontsize{20}{24}\\selectfont\\sffamily '
+             + _tex_escape(description) + '\\par}\n'
+             '    \\vspace{0.5cm}\n')
 
     maketitle = (
         '\n'
@@ -238,6 +244,7 @@ def generate_latex_cover(outdir: str, title: str, author: str, version: str) -> 
         '  \\begin{flushright}\n'
         '    {\\color{white}\\fontsize{36}{44}\\selectfont\\sffamily\\bfseries ' + t + '\\par}\n'
         '    \\vspace{0.5cm}\n'
+        + d +
         '    {\\color{white}\\Large\\sffamily ' + a + '\\par}\n'
         '    \\vspace{0.3cm}\n'
         '    {\\color{white}\\large\\sffamily ' + v + '\\par}\n'

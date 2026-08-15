@@ -145,7 +145,8 @@ $sys_path_insert$
 # -- Project information -----------------------------------------------------
 
 repository = 'custom'
-project = '$project$'
+project = $project$
+description = $description$
 copyright = '2024, Analog Devices, Inc.'
 author = 'Analog Devices, Inc.'
 
@@ -179,7 +180,7 @@ $monolithic_map$
 
 html_theme = 'harmonic'
 html_theme_options = {}
-html_title = '$project$: $description$'
+html_title = project
 
 #  -- Options for PDF output --------------------------------------------------
 
@@ -781,8 +782,8 @@ def prepare_doc(doc, repos_dir, doc_dir, drop_ext):
             str_map += f"    '{label}': '{r}',\n"
     config_f = config_f.replace("$monolithic_map$", str_map)
 
-    config_f = config_f.replace("$project$", doc['project'])
-    config_f = config_f.replace("$description$", doc['description'])
+    config_f = config_f.replace("$project$", json.dumps(doc['project']))
+    config_f = config_f.replace("$description$", json.dumps(doc['description']))
 
     e_ = ''.join([f"\n    '{e}'," for e in doc['sphinx-conf']['myst_enable_extensions']]) + '\n'
     config_f = config_f.replace("$myst_enable_extensions$", e_)
