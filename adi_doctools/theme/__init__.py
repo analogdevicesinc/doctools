@@ -181,7 +181,7 @@ def navigation_tree(app, toctree_html, content_root, pagename):
     Parse html similar to directive/hdl_parser.py:parse_hdl_component.
     Uses checkbox~label trick, similar to
     directive/common.py:directive_base:collapsible.
-    Add elements, similar to toos/hdl_render.py:hdl_component.py
+    Add elements, similar to writer/hdl_component.py
     """
 
     conf_vars = (

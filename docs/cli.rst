@@ -442,28 +442,3 @@ For all options, do:
 
    $adoc aggregate --help
 
-HDL Render
-----------
-
-Exposes the HDL component diagram generator as a CLI.
-It converts IP-XACT files into SVGs.
-
-To generate and open the diagram, provide the path containing the IP-XACT and use
-the ``--open`` option:
-
-.. shell::
-
-   $adoc hdl-render --input PATH --open
-
-For example:
-
-.. shell::
-
-   $adoc hdl-render --input hdl/library/axi_dmac --open
-
-For all options, do:
-
-.. shell::
-
-   $adoc hdl-render --help
-

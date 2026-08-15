@@ -11,16 +11,6 @@ def main_serve():
 
     return serve()
 
-def main_hdl_render():
-    from .hdl_render import hdl_render
-
-    hdl_render()
-
-def main_hdl_gen():
-    from .hdl_gen import hdl_gen
-
-    hdl_gen()
-
 def main_aggregate():
     from .aggregate import aggregate
 
@@ -55,10 +45,6 @@ def entry_point():
 
     if cmd == 'serve':
         sys.exit(main_serve())
-    elif cmd == 'hdl-render':
-        main_hdl_render()
-    elif cmd == 'hdl-gen':
-        main_hdl_gen()
     elif cmd == 'aggregate':
         main_aggregate()
     elif cmd == 'custom-doc':

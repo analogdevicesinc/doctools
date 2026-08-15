@@ -31,8 +31,6 @@ usage: adoc COMMAND [ARGS]...
 
 Commands:
     serve        Watch the docs and source code to rebuild it on edit.
-    hdl-render   Creates a SVG component diagram of an IP.
-    hdl-gen      Generate HDL auxiliary files.
     aggregate    Creates a symbolic-aggregated documentation out of every repo documentation.
     custom-doc   Creates an aggregated documentation out the repos in the doc.yml file.
     search       Search Analog Devices Sphinx documentation.
@@ -67,40 +65,6 @@ def get_arguments_serve():
                         help="Use adi/doctools_latex:v1 for latex->pdf")
 
     return vars(parser.parse_args())
-
-
-def get_arguments_hdl_render():
-    """Parse arguments for the hdl-render command."""
-    parser = argparse.ArgumentParser(
-        prog='adoc hdl-render',
-        description="Creates a SVG component diagram of an IP. Requires the component.xml to be generated first.")
-    parser.add_argument('-i', '--input', required=True,
-                        help="Path to the library folder")
-    parser.add_argument('-o', '--output', default="",
-                        help="Output path, defaults to --input")
-    parser.add_argument('-x', '--open', action='store_true', default=False,
-                        help="Open after generation (xdg-open)")
-
-    args = parser.parse_args()
-    return args
-
-
-def get_arguments_hdl_gen():
-    """Parse arguments for the hdl-gen command."""
-    parser = argparse.ArgumentParser(
-        prog='adoc hdl-gen',
-        description='Generate HDL auxiliary files. These files are: Library and projects makefiles, SystemVerilog Register Map classes. Run from any path at hdl, including hdl/testbenches.')
-    parser.add_argument('-i', '--input', default='.',
-                        help="Path to any folder in the HDL repo (default: .)")
-    parser.add_argument('--no-regmap', action='store_true', default=False,
-                        help="Disable SystemVerilog RegisterMap generation, also disables RegMap parsing")
-    parser.add_argument('--no-makefile', action='store_true', default=False,
-                        help="Disable Makefile generation, also disables Library, Project and Carrier parsing")
-    parser.add_argument('--no-write', action='store_true', default=False,
-                        help="Disable file generation, useful to run only the parsing")
-
-    args = parser.parse_args()
-    return args
 
 
 def get_arguments_aggregate():
