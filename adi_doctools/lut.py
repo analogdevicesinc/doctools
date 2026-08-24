@@ -98,7 +98,15 @@ repos = {
         pathname='docs',
         name='ADSP Yocto',
         description='Yocto support for ADI Digital Signal Processors (ADSP).',
-        category='driver',
+        category='system',
+        branch='main',
+        visibility='public'
+    ),
+    'br2-external': Repo(
+        pathname='docs',
+        name='br2-external',
+        description='Buildroot configuration that cannot be mainlined, covers ADSP and Xilinx targets.',
+        category='system',
         branch='main',
         visibility='public'
     ),
