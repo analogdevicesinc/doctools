@@ -50,18 +50,22 @@ jobs:
         [[ "${{ runner.debug }}" == "1" ]] && set -x
         ref="${{ inputs.ref }}"
         branch="${ref#refs/heads/}"
-        [[ -d "pages" ]] && rm -r "pages" || :
+        [[ -e "pages" ]] && rm -r "pages" || :
         url="https://x-access-token:${{ inputs.gh-token }}@github.com/${{ inputs.organization }}/${{ inputs.repository }}.git"
         git clone "$url" \
           --depth 1 \
           --filter=blob:none \
           --no-checkout \
-          --branch $branch -- pages
+          --branch "$branch" -- pages
 
         cd pages
         git sparse-checkout init --cone
-        sparse=$(git ls-tree --name-only -d "origin/$branch" | grep -Ev '^(pull|prs)')
-        git sparse-checkout set $sparse
+        sparse=$(git ls-tree --name-only -d "origin/$branch" | grep -Ev '^(pull|prs)' || :)
+        if [[ -n "$sparse" ]]; then
+          git sparse-checkout set "$sparse"
+        else
+          git sparse-checkout disable
+        fi
         git checkout "$branch"
 
     - name: Download and unpack artifact
