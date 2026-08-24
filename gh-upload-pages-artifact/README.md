@@ -11,6 +11,11 @@ On pull_request, adds to ./pull/<id>
 Important: if the workflow runs in other branches, filter the branches as in the example below.
 If not, it will write to root and create tags (if new_tag == true) as well!
 
+Also, to allow deployments from pull requests, open
+https://github.com/<USER>/documentation/settings/environments page and select
+the github-pages environment. Under Deployment branches and tags, keep the
+existing main rule, click Add deployment branch or tag rule, and add
+refs/pull/*/merge.
 
 Usage:
 
