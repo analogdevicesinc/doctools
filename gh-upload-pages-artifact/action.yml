@@ -133,8 +133,9 @@ runs:
           cp -af "$doc_path/." "$_site/${{ env.doc_tag_path }}/"
         elif [[ "${{ inputs.new_tag }}" == "true" && -n "${{ inputs.tag }}" ]]; then
           pushd "$_site"
-          roots=$(find . -type f -name objects.inv -exec dirname {} \; | sed 's|^\./||' | sort -u)
-          for entry in *; do
+          roots=$(find . -mindepth 2 -type f -name objects.inv -exec dirname {} \; | cut -d/ -f2 | sort -u)
+          for entry in * .[^.]* ..?*; do
+            [ -e "$entry" ] || continue
             keep=0
             for r in $roots; do
               [ "$entry" = "$r" ] && keep=1 && break
@@ -148,8 +149,9 @@ runs:
           cp -af "$doc_path/." "$_site/${{ env.doc_tag_path }}/"
         elif [[ "${{ github.event_name }}" == "push" ]]; then
           pushd "$_site"
-          roots=$(find . -type f -name objects.inv -exec dirname {} \; | sed 's|^\./||' | sort -u)
-          for entry in *; do
+          roots=$(find . -mindepth 2 -type f -name objects.inv -exec dirname {} \; | cut -d/ -f2 | sort -u)
+          for entry in * .[^.]* ..?*; do
+            [ -e "$entry" ] || continue
             keep=0
             for r in $roots; do
               [ "$entry" = "$r" ] && keep=1 && break
