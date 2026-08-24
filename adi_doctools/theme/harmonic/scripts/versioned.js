@@ -48,7 +48,7 @@ export class Versioned {
     if (!this.prefix.endsWith('/'))
       this.prefix += '/'
     const response = fetch(
-      new Request(new URL('tags.json', this.prefix))
+      new Request(new URL('tags.json', this.prefix), { cache: 'no-store' })
     )
       .then(response => response)
       .then(response => response.json())
