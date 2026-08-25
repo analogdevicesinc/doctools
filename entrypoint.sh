@@ -76,6 +76,15 @@ get_runner_token
 [ -n "$runner_name_" ] || runner_name_=$(echo $owner_repository_ | sed 's|/|-|g')-$(echo $runner_token_ | sha256sum | head -c4)
 [ -n "$runner_labels_" ] || runner_labels_="self-hosted"
 
+JOB_STARTED="$runner_dir/.hook.started.sh"
+readonly JOB_STARTED
+cat > "$JOB_STARTED" <<'EOF'
+#!/bin/bash
+find "${TMPDIR:-/tmp}" -xdev -mindepth 1 -maxdepth 1 ! -type s ! -type p -exec rm -rf -- {} + || :
+EOF
+chmod +x "$JOB_STARTED"
+export ACTIONS_RUNNER_HOOK_JOB_STARTED="$JOB_STARTED"
+
 (cd "$runner_dir" ; ./config.sh \
     --url https://github.com/$owner_repository_ \
     --token $runner_token_ \
