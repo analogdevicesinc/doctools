@@ -1,6 +1,6 @@
 // ~/.pi/agent/extensions/system-prompt.ts
 
-import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
+import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 function buildSystemPrompt(cwd: string): string {
   const date = new Date().toISOString().slice(0, 10);
@@ -158,22 +158,12 @@ Never claim something works without running it and seeing the output. Never gues
 - After editing, verify the change is in the file; after writing code, run it
 - If a test fails, report the actual failure; don't paper over it
 
-# Shell
+# Bash
 
-Always wrap commands in a reasonable timeout:
-\`\`\`bash
-timeout 10s some-command || echo "error: $?"
-\`\`\`
+Always wrap commands in a reasonable timeouts.
 For example, downloads 10 seconds, checkers 30 seconds, builds up to 30 minutes.
 Considers that builds are cached, even if they timeout, you can execute again,
-continuing were it stopped before it timed-out.
-
-Fetch remote resources with wget and timeouts:
-\`\`\`bash
-wget -O output.file --connect-timeout=10 --timeout=120 "https://example.com/resource"
-\`\`\`
-
-Never use curl without --max-time. Prefer wget.
+continuing were it stopped. Prefer the tool timeout option.
 
 # Context
 

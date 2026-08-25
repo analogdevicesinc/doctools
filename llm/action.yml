@@ -133,6 +133,8 @@ runs:
           https://raw.githubusercontent.com/analogdevicesinc/doctools/action/llm/rpc_runner.py
         curl -sL -H "Authorization: Bearer ${{ inputs.gh-token }}" -o "$HOME/.pi/agent/extensions/system-prompt.ts" \
           https://raw.githubusercontent.com/analogdevicesinc/doctools/action/llm/system-prompt.ts
+        curl -sL -H "Authorization: Bearer ${{ inputs.gh-token }}" -o "$HOME/.pi/agent/extensions/bash-timeout.ts" \
+          https://raw.githubusercontent.com/analogdevicesinc/doctools/action/llm/bash-timeout.ts
         [[ "$enable_goal" == "true" ]] && curl -sL -H "Authorization: Bearer ${{ inputs.gh-token }}" -o "$HOME/.pi/agent/extensions/goal-completion.ts" \
           https://raw.githubusercontent.com/analogdevicesinc/doctools/action/llm/goal-completion.ts
 
