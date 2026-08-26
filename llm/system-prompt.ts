@@ -59,7 +59,7 @@ done=false and a concrete nextSteps so the run can resume correctly.\n`;
 
 This series fixes|adds|removes ...
 
-run: [${run_id}](${run_url})
+Session: [${run_id}](${run_url})
 
 ### \`<sha>\` - Add ... mode
 
