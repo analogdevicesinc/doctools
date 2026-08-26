@@ -75,7 +75,10 @@ Datasheet <.pdf> was obtained from ..., converted to markdown with ..., and used
 
 ### Suggested patches
 
-Apply the suggested patches with:
+- `\0001-fixup-...patch\` (adc1234) — removes ...
+- `\0002-fixup-...patch\` (efg5678) — adds ...
+
+Apply with:
 
 \`\`\`bash
 cd path/to/repository
