@@ -72,7 +72,7 @@ runs:
                             "${{ inputs.path }}"
         )
 
-        cs-package-store-python ${{ env.CLOUDSMITH_API_KEY }} \
+        cs-package-store-python "${{ env.CLOUDSMITH_API_KEY }}" \
                                 "${{ inputs.namespace }}" \
                                 "${{ inputs.repository }}" \
                                 "$package_file" \
