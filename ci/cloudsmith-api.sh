@@ -1,12 +1,12 @@
 cs-package-upload()
 {
   package_file=$(curl -fL \
-    -T $4 \
+    -T "$4" \
     -H "X-Api-Key: $1" \
     -H "Content-Sha256: $(shasum -a256 $4 | cut -f1 -d' ')" \
-    https://upload.cloudsmith.io/$2/$3/$(basename $4) | jq -r .identifier)
+    "https://upload.cloudsmith.io/$2/$3/$(basename $4)" | jq -r .identifier)
   [ -n "$5" ] && echo "$5=$package_file" >> "$GITHUB_ENV"
-  echo $package_file
+  echo "$package_file"
 }
 
 cs-package-store-python()
@@ -16,10 +16,10 @@ cs-package-store-python()
     -H "Accept: application/json" \
     -H "Content-Type: application/json" \
     -H "X-Api-Key: $1" \
-    -d "{\"package_file\":\"$4 \", \
+    -d "{\"package_file\":\"$4\", \
          \"republish\":\"true\", \
          \"tags\": \"$5\"}" \
-    https://api.cloudsmith.com/v1/packages/$2/$3/upload/python/
+    "https://api.cloudsmith.com/v1/packages/$2/$3/upload/python/"
 }
 
 cs-package-store-docker()
@@ -32,7 +32,7 @@ cs-package-store-docker()
     -d "{\"package_file\":\"$4\", \
          \"republish\":\"true\", \
          \"tags\": \"$5\"}" \
-    https://api.cloudsmith.com/v1/packages/$2/$3/upload/docker/
+    "https://api.cloudsmith.com/v1/packages/$2/$3/upload/docker/"
 }
 
 cs-package-store-raw () {
@@ -46,5 +46,5 @@ cs-package-store-raw () {
          \"name\":\"$5\", \
          \"tags\": \"$6\", \
          \"version\":\"$7\"}" \
-    https://api.cloudsmith.com/v1/packages/$2/$3/upload/raw/
+    "https://api.cloudsmith.com/v1/packages/$2/$3/upload/raw/"
 }
