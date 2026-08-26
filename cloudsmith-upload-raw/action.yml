@@ -72,7 +72,7 @@ runs:
         source ./cloudsmith-api.sh
 
         name="${{ inputs.name }}"
-        [ -z "$name" ] && archive_name=$(basename "${{ inputs.path }}")
+        [ -z "$name" ] && name=$(basename "${{ inputs.path }}")
 
         package_file=$(
           cs-package-upload "${{ env.CLOUDSMITH_API_KEY }}" \
