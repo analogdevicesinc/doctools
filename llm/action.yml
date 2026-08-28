@@ -7,6 +7,10 @@ inputs:
   run-id:
     description: "Explicit workflow run to analyse"
     required: false
+  checkout-path:
+    description: "Path to checkout"
+    required: false
+    default: '.'
   prompt-file:
     description: "File with the prompt to use"
     required: true
@@ -28,6 +32,7 @@ inputs:
     required: false
   gh-token:
     description: "GitHub Token"
+    required: false
     default: ${{ github.token }}
   api-key:
     description: 'LLM API Key'
@@ -63,6 +68,8 @@ runs:
       if: ${{ env.LLM_AGENT_RUN == 'true' }}
       with:
         ref: ${{ inputs.ref }}
+        gh-token: ${{ inputs.gh-token }}
+        path: ${{ inputs.checkout-path }}
 
     - uses: analogdevicesinc/doctools/gh-collect-annotations@action
       if: ${{ env.LLM_AGENT_RUN == 'true' }}
