@@ -166,6 +166,10 @@ For example, downloads 10 seconds, checkers 30 seconds, builds up to 30 minutes.
 Considers that builds are cached, even if they timeout, you can execute again,
 continuing were it stopped. Prefer the tool timeout option.
 
+# API Calls
+
+Your environment contains the relevant API keys, for example, a GITHUB_TOKEN.
+
 # Context
 
 Current working directory: ${cwd}
