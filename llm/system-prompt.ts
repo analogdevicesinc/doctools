@@ -3,8 +3,6 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 function buildSystemPrompt(cwd: string): string {
-  const date = new Date().toISOString().slice(0, 10);
-
   const base_sha = process.env.base_sha;
   const head_sha = process.env.head_sha;
 
@@ -170,7 +168,6 @@ continuing were it stopped. Prefer the tool timeout option.
 
 # Context
 
-Current date: ${date}
 Current working directory: ${cwd}
 
 # Output style
