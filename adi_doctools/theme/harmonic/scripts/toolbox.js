@@ -93,8 +93,10 @@ class Toolbox {
    * Check if the raw content is only a include directive.
    * If yes, resolve its path and redirect to it.
    */
-  static async try_include (url_raw, url, new_tab) {
+  static async try_include (url_raw, url, new_tab, fallback_raw, fallback_url) {
     let fallback = (error) => {
+      if (fallback_raw)
+        return Toolbox.try_include(fallback_raw, fallback_url, new_tab)
       if (new_tab)
         window.open(url, '_blank').focus()
       else

@@ -116,7 +116,9 @@ export class PageActions {
       Toolbox.try_include(
         this.edit_button_tgt_raw,
         this.$.edit_button.alt_href,
-        true
+        true,
+        this.edit_button_tgt_raw_flat,
+        this.$.edit_button.alt_href_flat
       )
     })
     this.$.edit_button.addEventListener('keypress', (ev) => {
@@ -125,7 +127,9 @@ export class PageActions {
       Toolbox.try_include(
         this.edit_button_tgt_raw,
         this.$.edit_button.alt_href,
-        true
+        true,
+        this.edit_button_tgt_raw_flat,
+        this.$.edit_button.alt_href_flat
       )
     })
 
@@ -192,17 +196,26 @@ export class PageActions {
     else
       pathname = pathname.concat(suffix)
 
+    const flat_pathname = pathname.endsWith(`/index${suffix}`) ?
+      pathname.substring(0, pathname.length - `/index${suffix}`.length) + suffix :
+      undefined
+
     tgt = tgt.concat('/', pathname)
     tgt_raw = tgt_raw.concat('/', pathname)
 
     this.$.edit_button.alt_href = tgt
     this.edit_button_tgt_raw = tgt_raw
+    if (flat_pathname) {
+      this.$.edit_button.alt_href_flat = format_tgt(m.source_hostname).concat('/', flat_pathname)
+      this.edit_button_tgt_raw_flat = format_tgt(m.source_hostname_raw).concat('/', flat_pathname)
+    }
   }
   deinit_page_source () {
     if (!this.with_page_source)
       return
 
     this.edit_button_tgt_raw = undefined
+    this.edit_button_tgt_raw_flat = undefined
   }
   handler_stub () {
     if (!this.parent.versioned.tags)
