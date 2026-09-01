@@ -113,24 +113,12 @@ export class PageActions {
     this.$.edit_button.addEventListener('mouseup', (ev) => {
       if (ev.which !== 1 && ev.which !== 2)
         return
-      this.resolve_pull().then((branch) => Toolbox.try_include(
-        this.edit_button_tgt_raw.replace('{branch}', branch),
-        this.$.edit_button.alt_href.replace('{branch}', branch),
-        true,
-        this.edit_button_tgt_raw_flat?.replace('{branch}', branch),
-        this.$.edit_button.alt_href_flat?.replace('{branch}', branch)
-      ))
+      this.open_page_source()
     })
     this.$.edit_button.addEventListener('keypress', (ev) => {
       if (event.key !== "Enter")
         return
-      this.resolve_pull().then((branch) => Toolbox.try_include(
-        this.edit_button_tgt_raw.replace('{branch}', branch),
-        this.$.edit_button.alt_href.replace('{branch}', branch),
-        true,
-        this.edit_button_tgt_raw_flat?.replace('{branch}', branch),
-        this.$.edit_button.alt_href_flat?.replace('{branch}', branch)
-      ))
+      this.open_page_source()
     })
 
     this.$.container.append(this.$.copy_button)
@@ -148,6 +136,14 @@ export class PageActions {
 
     this.draw_page_source()
     this.with_page_source = true
+  }
+  async open_page_source () {
+    const branch = await this.resolve_pull()
+    const candidates = this.edit_button_candidates.map(
+      (candidate) => candidate.map((url) => url.replace('{branch}', branch))
+    )
+
+    Toolbox.try_include(candidates, candidates[0][1], true)
   }
   async resolve_pull () {
     let pull = this.parent.state.path.match(/^pull\/(\d+)$/)
@@ -213,22 +209,16 @@ export class PageActions {
       pathname.substring(0, pathname.length - `/index${suffix}`.length) + suffix :
       undefined
 
-    tgt = tgt.concat('/', pathname)
-    tgt_raw = tgt_raw.concat('/', pathname)
-
-    this.$.edit_button.alt_href = tgt
-    this.edit_button_tgt_raw = tgt_raw
-    if (flat_pathname) {
-      this.$.edit_button.alt_href_flat = format_tgt(m.source_hostname).concat('/', flat_pathname)
-      this.edit_button_tgt_raw_flat = format_tgt(m.source_hostname_raw).concat('/', flat_pathname)
-    }
+    this.edit_button_candidates = [[tgt_raw.concat('/', pathname), tgt.concat('/', pathname)]]
+    if (flat_pathname)
+      this.edit_button_candidates.push([tgt_raw.concat('/', flat_pathname),
+                                        tgt.concat('/', flat_pathname)])
   }
   deinit_page_source () {
     if (!this.with_page_source)
       return
 
-    this.edit_button_tgt_raw = undefined
-    this.edit_button_tgt_raw_flat = undefined
+    this.edit_button_candidates = undefined
   }
   handler_stub () {
     if (!this.parent.versioned.tags)

@@ -90,40 +90,37 @@ class Toolbox {
     return false
   }
   /*
-   * Check if the raw content is only a include directive.
-   * If yes, resolve its path and redirect to it.
+   * Redirect to the first candidate with 200, if all fail go to fallback_url.
+   * If the raw content is only a include directive, resolve its path and
+   * redirect to it instead.
    */
-  static async try_include (url_raw, url, new_tab, fallback_raw, fallback_url) {
-    let fallback = (error) => {
-      if (fallback_raw)
-        return Toolbox.try_include(fallback_raw, fallback_url, new_tab)
+  static async try_include (candidates, fallback_url, new_tab) {
+    let open = (url) => {
       if (new_tab)
         window.open(url, '_blank').focus()
       else
         location.href = url
     }
-    const request = new Request(url_raw)
-    await fetch (request)
-      .then(
-        (response) => {
-          if (!response.ok)
-            throw new Error(response.status)
-          return response.text()
-        })
-      .then((text) => {
-        text = text.replace(/\n+$/, "")
-        if (text.startsWith(".. include:: ") && text.split(/\n/).length == 1) {
-          text = text.substring(13)
-          if (new_tab)
-            window.open(new URL(text, url).href, '_blank').focus()
-          else
-            location.href = new URL(text, url).href
-        } else {
-          fallback()
-        }
-      })
-      .catch(fallback)
-    return
+
+    for (const [url_raw, url] of candidates) {
+      let text
+      try {
+        const response = await fetch(new Request(url_raw))
+        if (!response.ok)
+          continue
+        text = (await response.text()).replace(/\n+$/, "")
+      } catch (error) {
+        continue
+      }
+
+      if (text.startsWith(".. include:: ") && text.split(/\n/).length == 1)
+        open(new URL(text.substring(13), url).href)
+      else
+        open(url)
+      return
+    }
+
+    open(fallback_url)
   }
   /*
    * Try to fetch every item in array.
