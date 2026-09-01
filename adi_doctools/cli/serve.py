@@ -971,7 +971,7 @@ cwd = {cwd_display}""")
                     if trigger_rst[0] == '':
                         pass
                     elif path.isfile(path.join(self.builddir, trigger_rst[1])):
-                        message += f"@docname {trigger_rst[1]}\n"
+                        message += f"@docname {trigger_rst[1][:-len('index.html')]}\n"
                     else:
                         logger.warning(log['doc_not_built'].format(trigger_rst[0]))
                     if toctree_changed:
