@@ -113,24 +113,24 @@ export class PageActions {
     this.$.edit_button.addEventListener('mouseup', (ev) => {
       if (ev.which !== 1 && ev.which !== 2)
         return
-      Toolbox.try_include(
-        this.edit_button_tgt_raw,
-        this.$.edit_button.alt_href,
+      this.resolve_pull().then((branch) => Toolbox.try_include(
+        this.edit_button_tgt_raw.replace('{branch}', branch),
+        this.$.edit_button.alt_href.replace('{branch}', branch),
         true,
-        this.edit_button_tgt_raw_flat,
-        this.$.edit_button.alt_href_flat
-      )
+        this.edit_button_tgt_raw_flat?.replace('{branch}', branch),
+        this.$.edit_button.alt_href_flat?.replace('{branch}', branch)
+      ))
     })
     this.$.edit_button.addEventListener('keypress', (ev) => {
       if (event.key !== "Enter")
         return
-      Toolbox.try_include(
-        this.edit_button_tgt_raw,
-        this.$.edit_button.alt_href,
+      this.resolve_pull().then((branch) => Toolbox.try_include(
+        this.edit_button_tgt_raw.replace('{branch}', branch),
+        this.$.edit_button.alt_href.replace('{branch}', branch),
         true,
-        this.edit_button_tgt_raw_flat,
-        this.$.edit_button.alt_href_flat
-      )
+        this.edit_button_tgt_raw_flat?.replace('{branch}', branch),
+        this.$.edit_button.alt_href_flat?.replace('{branch}', branch)
+      ))
     })
 
     this.$.container.append(this.$.copy_button)
@@ -149,6 +149,20 @@ export class PageActions {
     this.draw_page_source()
     this.with_page_source = true
   }
+  async resolve_pull () {
+    let pull = this.parent.state.path.match(/^pull\/(\d+)$/)
+    if (!pull)
+      return this.parent.state.metadata.repotoc[this.repository].branch
+    try {
+      const response = await fetch(`https://api.github.com/repos/analogdevicesinc/${this.repository}/pulls/${pull[1]}`)
+      if (!response.ok)
+        throw response.status
+      return (await response.json()).head.ref
+    } catch (error) {
+      console.warn(`edit_source: failed to get pull request ${pull[1]}`, error)
+      return this.parent.state.metadata.repotoc[this.repository].branch
+    }
+  }
   init_page_source () {
     if (!this.with_page_source)
       return
@@ -166,7 +180,6 @@ export class PageActions {
 
     let format_tgt = (hostname) => {
       return hostname.replace('{repository}', r)
-                              .replace('{branch}', m['repotoc'][r]['branch'])
                               .replace('{pathname}', m['repotoc'][r]['pathname'])
     }
 
