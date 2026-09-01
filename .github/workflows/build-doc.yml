@@ -36,20 +36,20 @@ jobs:
       run: |
         source ../venv/3/build-doc-latest/bin/activate
         ADOC_DOC_VERSION=${{ inputs.tag }} \
-          make html SPHINXOPTS='-W --keep-going'
-        rm -rf _build/html/_sources
+          make dirhtml SPHINXOPTS='-W --keep-going'
+        rm -rf _build/dirhtml/_sources
 
     - name: Add extra sources
       working-directory: docs
       run: |
         curl -sL -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-               https://raw.githubusercontent.com/analogdevicesinc/doctools/refs/heads/vector/index.js -o _build/html/_static/turboquant-wasm.js
+               https://raw.githubusercontent.com/analogdevicesinc/doctools/refs/heads/vector/index.js -o _build/dirhtml/_static/turboquant-wasm.js
 
     - name: Store the generated doc
       uses: actions/upload-artifact@v7
       with:
         name: html
-        path: docs/_build/html
+        path: docs/_build/dirhtml
 
   build-doc-min:
     runs-on: ${{ vars.RUNNER != '' && fromJSON(vars.RUNNER) || 'ubuntu-latest' }}
@@ -82,14 +82,14 @@ jobs:
       working-directory: docs
       run: |
         source ../venv/3.8/build-doc-min/bin/activate
-        make clean html SPHINXOPTS='-W --keep-going'
-        rm -rf _build/html/_sources
+        make clean dirhtml SPHINXOPTS='-W --keep-going'
+        rm -rf _build/dirhtml/_sources
 
     - name: Store the generated doc
       uses: actions/upload-artifact@v7
       with:
         name: html-min
-        path: docs/_build/html
+        path: docs/_build/dirhtml
 
   check-doc:
     runs-on: ${{ vars.RUNNER != '' && fromJSON(vars.RUNNER) || 'ubuntu-latest' }}

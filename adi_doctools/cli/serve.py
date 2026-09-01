@@ -153,7 +153,7 @@ class Serve:
                 override_args.extend(["-D", f"{key}={value}"])
 
         build_args = [
-            "sphinx-build", "-b", "html",
+            "sphinx-build", "-b", "dirhtml",
             srcdir_rel, builddir_rel,
             "-d", doctreedir_rel,
             "-j", "auto"
@@ -220,7 +220,9 @@ cwd = {cwd_display}""")
 
         if self.builder == 'pdf':
             self.builder = 'latexpdf'
-        if self.builder not in ['html', 'latex', 'latexpdf']:
+        elif self.builder == 'html':
+            self.builder = 'dirhtml'
+        if self.builder not in ['dirhtml', 'latex', 'latexpdf']:
             logger.error(log['builder'].format(self.builder))
             return True
 
@@ -682,7 +684,7 @@ cwd = {cwd_display}""")
             def log_message(_self, format, *args):
                 return
 
-        if not self.once and self.builder == "html":
+        if not self.once and self.builder == "dirhtml":
             try:
                 socketserver.ThreadingTCPServer.allow_reuse_address = True
                 self.http_p = socketserver.ThreadingTCPServer(("", self.port), Handler)
@@ -761,7 +763,7 @@ cwd = {cwd_display}""")
                           parallel=0, status=sys.stdout if self.verbose else None,
                           warning=warning_stream)
 
-        if self.builder == "html":
+        if self.builder == "dirhtml":
             server_url = f"http://127.0.0.1:{self.port}?v={str(uuid4())[:2]}"
             if self.jsonrpc:
                 notify("server/started", {"port": self.port, "url": server_url})
@@ -780,7 +782,7 @@ cwd = {cwd_display}""")
                 with open(dev_pool, 'w') as dev_f:
                     dev_f.write(dev_pool_val_)
 
-        if self.builder == "html":
+        if self.builder == "dirhtml":
             update_dev_pool("")
 
         def get_doc_sources_included():
@@ -843,7 +845,11 @@ cwd = {cwd_display}""")
                 c = -3
             else:
                 return trigger_rst_
-            path_ = path.relpath(file, directory)[:c] + ".html"
+            path_ = path.relpath(file, directory)[:c]
+            if path_.endswith("index"):
+                path_ = path_ + ".html"
+            else:
+                path_ = path.join(path_, "index.html")
             if path_.startswith("../"):
                 return trigger_rst_
             return (file, path_)
@@ -959,7 +965,7 @@ cwd = {cwd_display}""")
                         toctree_changed = True
                     toctree_content = _toctree_content
 
-            if self.builder == "html":
+            if self.builder == "dirhtml":
                 if update_sphinx:
                     message = ""
                     if trigger_rst[0] == '':
