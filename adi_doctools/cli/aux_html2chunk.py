@@ -60,6 +60,14 @@ def _extract_breadcrumb(tree):
     ]
 
 
+def _strip_suffix(rel_path):
+    if rel_path == 'index.html':
+        return ''
+    if rel_path.endswith('/index.html'):
+        return rel_path[:-len('/index.html')]
+    return rel_path[:-len('.html')]
+
+
 class HTMLToChunks(HTMLToMarkdown):
     """Convert Sphinx-generated HTML to Chunks."""
 
@@ -80,6 +88,7 @@ class HTMLToChunks(HTMLToMarkdown):
         with open(html_path, 'r') as f:
             html_content = f.read()
         rel_path = str(Path(html_path).relative_to(docs_root)).replace('\\', '/')
+        rel_path = _strip_suffix(rel_path)
 
         tree = lxml_html.fromstring(html_content)
 

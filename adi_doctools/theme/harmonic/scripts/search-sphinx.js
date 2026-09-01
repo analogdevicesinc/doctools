@@ -315,7 +315,7 @@ export function sphinx_results_to_groups (results, passages) {
 
   for (const result of results.reverse()) {
     const [docName, title, anchor, descr, score] = result
-    const url_page = `${docName}.html`
+    const url_page = docName.replace(/(?:\/|^)index$/, '');
     const url_full = anchor ? `${url_page}${anchor}` : url_page
 
     let text = descr || ''
