@@ -201,7 +201,6 @@ export class Versioned {
       let page = key.length > 0 ?
                  this.prefix + key + '/' :
                  this.prefix
-      page += "index.html"
       let entry = DOM.new('button', {
         'alt_href': page
       })
