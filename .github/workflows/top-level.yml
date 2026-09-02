@@ -25,15 +25,9 @@ jobs:
     secrets: inherit
     permissions:
       contents: read
-  custom-doc:
-    uses: ./.github/workflows/custom-doc.yml
-    needs: [build-package]
-    secrets: inherit
-    permissions:
-      contents: read
   deploy:
     uses: ./.github/workflows/deploy.yml
-    needs: [build-package, build-doc, tests, custom-doc]
+    needs: [build-package, build-doc, tests]
     secrets: inherit
     permissions:
       contents: write
