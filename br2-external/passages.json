@@ -1,6 +1,11 @@
 {
   "text": [
+    "The SC598 evaluation kits pair the `EV-SC598-SOM` (Rev. E) with either the\n`EV-SOMCRR-EZKIT` or the `EV-SOMCRR-EZLITE` carrier board. The processor\nhas one 1.2 GHz Cortex-A55 core and two 1 GHz SHARC DSP cores. Bare-metal or\nFreeRTOS applications for the SHARC cores can be loaded by Linux through\nre",
+    "From `buildroot/`, select the carrier board and apply the debug image\nfragments:\n\n```bash\n# EZ-KIT\nmake BR2_EXTERNAL=\"${PWD}/..\" adi_sc598_ezkit_defconfig\n\n# or EZLITE\nmake BR2_EXTERNAL=\"${PWD}/..\" adi_sc598_ezlite_defconfig\n\nsupport/kconfig/merge_config.sh .config \\\n    ../configs/buildroot.fragmen",
     "Analog Devices Inc.\nBuildroot external layer documentation.\n\nThis br2-external\ncontains Buildroot configuration specific to ADI that cannot be mainlined.\nGeneric support for ADI evaluation boards is implemented in the\nADI Buildroot tree.\n\n- ADSP\n- ADSP-SC598 Evaluation Kits\n- ADSP-SC846 Evaluation K",
+    "The Xilinx based targets are built in CI/CD using the ADSP approach documented\nin ADSP. Additionally, a non-standard ADI specific approach is also\nmaintained and documented below.\n",
+    "A small wrapper at the repo root mirrors the in-tree workflow without having\nto `cd buildroot/` first:\n\n```bash\nmake buildroot                   # clone & patch (skips if buildroot/ exists)\nmake zynq_pluto_defconfig        # from ./configs and forwarded to Buildroot\nmake -j$(nproc)                  ",
+    "`patches/buildroot/` holds ADI-specific Buildroot changes (package fix-ups,\nkernel build glue, etc.). These are already merged into the ADI Buildroot\nfork the submodule points at, so they are normally no-ops at build time. They\nare kept here as an applicable set so the same image can be built agains",
     "The SC846 evaluation kit pairs the `EV-SC846-SOM` with the\n`EV-SOMCRR2-EZKIT` carrier board. The processor has two 1.2 GHz Cortex-A55\ncores and one 1.2 GHz SHARC FX core. Bare-metal or FreeRTOS applications for\nthe SHARC core can be loaded by Linux through remoteproc.\n",
     "From `buildroot/`, select the board and apply the debug image fragments:\n\n```bash\nmake BR2_EXTERNAL=\"${PWD}/..\" adi_sc846_ezkit_defconfig\nsupport/kconfig/merge_config.sh .config \\\n    ../configs/buildroot.fragment \\\n    ../configs/debug.fragment\nmake -j$(nproc)\n```\n\n\nThe build produces `emmc.img` an",
     "The SC598 evaluation kits pair the `EV-SC598-SOM` (Rev. E) with either the\n`EV-SOMCRR-EZKIT` or the `EV-SOMCRR-EZLITE` carrier board. The processor\nhas one 1.2 GHz Cortex-A55 core and two 1 GHz SHARC DSP cores. Bare-metal or\nFreeRTOS applications for the SHARC cores can be loaded by Linux through\nre",
@@ -12,26 +17,65 @@
     "```bash\ngit clone --recurse-submodules https://github.com/analogdevicesinc/br2-external.git\ncd br2-external/buildroot\n# build Buildroot configuration for adi_sc598_ezkit\nmake BR2_EXTERNAL=\"${PWD}/..\" adi_sc598_ezkit_defconfig\n```\n\n\nAdditional configuration is applied using Buildroot fragments:\n\n```b",
     "- `configs/buildroot.fragment`\n  Configure Buildroot to speed up builds\n\n  - Configure Buildroot to speed up builds\n- `configs/debug.fragment`\n  Enable debugging in U-Boot and the kernel\n  Build the kernel image with an embedded root filesystem to reduce\n  complexity around writing and mounting a ro",
     "Debug Image:\n\n```bash\nmake BR2_EXTERNAL=\"${PWD}/..\" adi_sc598_ezkit_defconfig\nsupport/kconfig/merge_config.sh .config \\\n    ../configs/buildroot.fragment \\\n    ../configs/debug.fragment\nmake -j$(nproc)\n```\n\n\nBootstrap Image:\n\n```bash\nmake BR2_EXTERNAL=\"${PWD}/..\" adi_sc598_ezkit_defconfig\nsupport/kc",
+    "- ADSP-SC598 Evaluation Kits\n- ADSP-SC846 Evaluation Kit\n",
+    "The SC846 evaluation kit pairs the `EV-SC846-SOM` with the\n`EV-SOMCRR2-EZKIT` carrier board. The processor has two 1.2 GHz Cortex-A55\ncores and one 1.2 GHz SHARC FX core. Bare-metal or FreeRTOS applications for\nthe SHARC core can be loaded by Linux through remoteproc.\n",
+    "From `buildroot/`, select the board and apply the debug image fragments:\n\n```bash\nmake BR2_EXTERNAL=\"${PWD}/..\" adi_sc846_ezkit_defconfig\nsupport/kconfig/merge_config.sh .config \\\n    ../configs/buildroot.fragment \\\n    ../configs/debug.fragment\nmake -j$(nproc)\n```\n\n\nThe build produces `emmc.img` an",
+    "- ADSP-SC598 Evaluation Kits: ADI SC598 EZ-KIT and EZLITE.\n- ADSP-SC846 Evaluation Kit: ADI SC846 EZ-KIT.\n",
+    "```bash\ngit clone --recurse-submodules https://github.com/analogdevicesinc/br2-external.git\ncd br2-external/buildroot\n# build Buildroot configuration for adi_sc598_ezkit\nmake BR2_EXTERNAL=\"${PWD}/..\" adi_sc598_ezkit_defconfig\n```\n\n\nAdditional configuration is applied using Buildroot fragments:\n\n```b",
+    "- `configs/buildroot.fragment`\n  Configure Buildroot to speed up builds\n\n  - Configure Buildroot to speed up builds\n- `configs/debug.fragment`\n  Enable debugging in U-Boot and the kernel\n  Build the kernel image with an embedded root filesystem to reduce\n  complexity around writing and mounting a ro",
+    "Debug Image:\n\n```bash\nmake BR2_EXTERNAL=\"${PWD}/..\" adi_sc598_ezkit_defconfig\nsupport/kconfig/merge_config.sh .config \\\n    ../configs/buildroot.fragment \\\n    ../configs/debug.fragment\nmake -j$(nproc)\n```\n\n\nBootstrap Image:\n\n```bash\nmake BR2_EXTERNAL=\"${PWD}/..\" adi_sc598_ezkit_defconfig\nsupport/kc",
     "- ADSP-SC598 Evaluation Kits\n- ADSP-SC846 Evaluation Kit\n"
   ],
   "url": [
-    "",
-    "sc846",
-    "sc846#build",
     "sc598",
     "sc598#build",
+    "",
     "xilinx",
     "xilinx#top-level-makefile",
     "xilinx#buildroot-patches",
+    "sc846",
+    "sc846#build",
+    "pull/71/sc598",
+    "pull/71/sc598#build",
+    "pull/71/xilinx",
+    "pull/71/xilinx#top-level-makefile",
+    "pull/71/xilinx#buildroot-patches",
     "adsp#supported-boards",
     "adsp#getting-started",
     "adsp#adi-configuration-fragments",
     "adsp#example-builds",
-    "adsp#board-documentation"
+    "adsp#board-documentation",
+    "pull/71/sc846",
+    "pull/71/sc846#build",
+    "pull/71/adsp#supported-boards",
+    "pull/71/adsp#getting-started",
+    "pull/71/adsp#adi-configuration-fragments",
+    "pull/71/adsp#example-builds",
+    "pull/71/adsp#board-documentation"
   ],
   "hierarchy": [
     [
+      "ADSP",
+      "ADSP-SC598 Evaluation Kits"
+    ],
+    [
+      "ADSP",
+      "ADSP-SC598 Evaluation Kits",
+      "Build"
+    ],
+    [
       "ADI Buildroot External"
+    ],
+    [
+      "Xilinx"
+    ],
+    [
+      "Xilinx",
+      "Top-level Makefile"
+    ],
+    [
+      "Xilinx",
+      "Buildroot Patches"
     ],
     [
       "ADSP",
@@ -61,6 +105,35 @@
     [
       "Xilinx",
       "Buildroot Patches"
+    ],
+    [
+      "ADSP",
+      "Supported Boards"
+    ],
+    [
+      "ADSP",
+      "Getting Started"
+    ],
+    [
+      "ADSP",
+      "ADI Configuration Fragments"
+    ],
+    [
+      "ADSP",
+      "Example Builds"
+    ],
+    [
+      "ADSP",
+      "Board Documentation"
+    ],
+    [
+      "ADSP",
+      "ADSP-SC846 Evaluation Kit"
+    ],
+    [
+      "ADSP",
+      "ADSP-SC846 Evaluation Kit",
+      "Build"
     ],
     [
       "ADSP",
