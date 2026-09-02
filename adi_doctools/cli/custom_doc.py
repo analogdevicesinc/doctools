@@ -205,9 +205,9 @@ description: "Evaluating the ADXXXX/ADXXXX ... SAR ADCs"
 # Dirs and files to include
 # First level is repository name
 include:
-  - documentation/solutions/reference-designs/ad4052-ardz
-  - documentation/software/libiio/cli.rst
-  - documentation/linux/drivers/iio-adc/ad4052
+  - system-level/solutions/reference-designs/ad4052-ardz
+  - system-level/software/libiio/cli.rst
+  - linux/drivers/iio-adc/ad4630.rst
   - hdl_my_label_0/projects/ad4630_fmc
   - hdl_my_label_1/projects/ad4052_ardz
   - no-OS/drivers/adc/ad405x.rst
@@ -228,10 +228,10 @@ entry-point:
       - custom-pages/intro
   - caption: Evaluation board
     files:
-      - documentation/solutions/reference-designs/ad4052-ardz/index
+      - system-level/solutions/reference-designs/ad4052-ardz/index
   - caption: Linux IIO driver
     files:
-      - documentation/linux/drivers/iio-adc/ad4052/index
+      - linux/drivers/iio-adc/ad4630
   - caption: no-OS driver&project
     files:
       - no-OS/projects/adc/ad405x
@@ -245,6 +245,8 @@ entry-point:
 # extra: do steps that require extra software (e.g. vendor sdk)
 # branch: clone from a specific branch, overwrites "main"
 config:
+    linux:
+      branch: "ci"
     hdl_my_label_0:
       repository: "hdl"
       branch: "hdl_2023_r2"

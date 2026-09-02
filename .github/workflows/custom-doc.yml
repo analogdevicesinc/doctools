@@ -34,7 +34,7 @@ jobs:
         rm -rf my_pdf ; mkdir my_pdf ; cd my_pdf
         export GIT_LFS_SKIP_SMUDGE=1
         adoc custom-doc --drop-missing-extensions --builder latex \
-          https://raw.githubusercontent.com/analogdevicesinc/documentation/refs/heads/main/docs/solutions/reference-designs/ad4052-ardz/index.rst
+          https://raw.githubusercontent.com/analogdevicesinc/system-level/refs/heads/main/docs/solutions/reference-designs/ad4052-ardz/index.rst
 
     - uses: actions/upload-artifact@v7
       with:
