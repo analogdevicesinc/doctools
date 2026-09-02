@@ -52,7 +52,6 @@ export class Links {
                  this.parent.state.metadata.remote_doc :
                  this.parent.state.subhost.startsWith('/docs') ? '/docs/' : '/'
     const is_mirror = this.parent.state.subhost.startsWith('/docs/')
-    let home = "index.html"
     this.$.linksOverlay = []
     this.$.linksSidebar = []
     let self_link = this.parent.state.offline ?
@@ -68,7 +67,7 @@ export class Links {
                      `${prefix}${this.parent.state.metadata.repotoc[key].alt}/` : `${prefix}${key}/`
                  )
       let entry = DOM.new('a', {
-        'href': `${base}${home}`,
+        'href': base,
         'className': this.parent.state.repository === key ? 'current' : '',
       })
       let name = DOM.new('div', {
