@@ -151,6 +151,32 @@ def builder_inited(app):
     if app.builder.name == 'latex':
         latex_config(app)
 
+
+def env_updated(app, env):
+    """
+    Expire read doctrees cached by ``env.get_doctree()``.
+
+    ``env._pickled_doctree_cache`` and ``env.master_doctree`` are caches per
+    Sphinx app, never invalidated.
+    """
+    all_docs = env.all_docs
+    previous = getattr(app, '_doctree_read_stamps', None)
+    app._doctree_read_stamps = dict(all_docs)
+    if previous is None:
+        stale = {env.config.root_doc}
+    else:
+        stale = {d for d, stamp in all_docs.items() if previous.get(d) != stamp}
+        if not stale:
+            return
+
+    cache = getattr(env, '_pickled_doctree_cache', None)
+    if cache is not None:
+        for docname in stale:
+            cache.pop(docname, None)
+    if env.config.root_doc in stale:
+        env.__dict__.pop('master_doctree', None)
+
+
 def write_toctree_html(app):
     """
     Generate toctree HTML, used for dev-pool.
@@ -158,7 +184,7 @@ def write_toctree_html(app):
     from sphinx.environment.adapters.toctree import TocTree
 
     toctree_html = TocTree(app.env).get_toctree_for(
-        'index', app.builder,
+        app.env.config.root_doc, app.builder,
         collapse=False,
         titles_only=True,
         maxdepth=-1,
@@ -228,6 +254,7 @@ def setup(app):
 
     app.connect("config-inited", config_inited)
     app.connect("builder-inited", builder_inited)
+    app.connect("env-updated", env_updated)
     app.connect("html-page-context", html_page_context)
     app.connect("doctree-resolved", doctree_resolved_remove_screen_only)
     app.connect("build-finished", build_finished)
