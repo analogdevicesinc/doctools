@@ -137,7 +137,7 @@ def get_sphinx_dirs(cwd) -> tuple[bool, str, str]:
         logger.error(f"{FAIL}{conf_py} does not exist, skipped!{NC}")
         return (True, '')
 
-    builddir = path.join(cwd, "_build/html")
+    builddir = path.join(cwd, "_build")
 
     return (False, builddir)
 
@@ -167,7 +167,7 @@ def gen_symbolic_doc(repo_dir):
 
         env = environ.copy()
         env["ADOC_INTERREF_URI"] = path.abspath(path.join(repo_dir, "..", "html")) + SEP
-        pr.popen(['sphinx-build', '-M', 'html', sourcedir, builddir], p, sourcedir, env=env)
+        pr.popen(['sphinx-build', '-M', 'dirhtml', sourcedir, builddir], p, sourcedir, env=env)
     pr.wait(p)
 
     d_ = path.abspath(path.join(repo_dir, pardir))
@@ -180,7 +180,7 @@ def gen_symbolic_doc(repo_dir):
         if m[0]:
             continue
         d_ = path.join(out, r)
-        pr.popen(['cp', '-r', path.join(m[2], 'html'), d_], p)
+        pr.popen(['cp', '-r', path.join(m[2], 'dirhtml'), d_], p)
     pr.wait(p)
 
 

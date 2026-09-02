@@ -221,7 +221,7 @@ class hdl_component:
         text_element(f"(cd {lib_name}; make)",
                      .75, text_x, text_y+font_size*4+text_vertical_margin*3,
                      'monospace')
-        text_element("(cd docs; make html)",
+        text_element("(cd docs; make dirhtml)",
                      .75, text_x, text_y+font_size*5+text_vertical_margin*3.5,
                      'monospace')
 
