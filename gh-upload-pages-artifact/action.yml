@@ -125,12 +125,32 @@ runs:
         GITHUB_TOKEN: ${{ inputs.token }}
       run: |
         # Merge built docs into site
+
+        owner=$(echo ${{ github.repository }} | cut -d/ -f1)
+        repo=$(echo ${{ github.repository }} | cut -d/ -f2)
+        site_baseurl="https://$owner.github.io/$repo"
+
+        patch_sitemap() {
+          local sm="$1/sitemap.xml"
+          [[ -f "$sm" ]] || return 0
+          if grep -q '<loc>https\?://' "$sm"; then
+            return 0
+          fi
+          local extra="$2"
+          local baseurl="$site_baseurl"
+          if [[ -n "$extra" ]] && [[ "$extra" != "." ]]; then
+            baseurl="$baseurl/${extra%/}"
+          fi
+          sed -i "s#<loc>#<loc>${baseurl}/#g" "$sm"
+        }
+
         [[ "${{ runner.debug }}" == "1" ]] && set -x
         doc_path=$(realpath "${{ env.doc_path }}")
         if [[ "${{ github.event_name }}" == "pull_request" ]]; then
           rm -rf "$_site/${{ env.doc_tag_path }}"
           mkdir -p "$_site/${{ env.doc_tag_path }}"
           cp -af "$doc_path/." "$_site/${{ env.doc_tag_path }}/"
+          patch_sitemap "$_site/${{ env.doc_tag_path }}" "${{ env.doc_tag_path }}"
         elif [[ "${{ inputs.new_tag }}" == "true" && -n "${{ inputs.tag }}" ]]; then
           pushd "$_site"
           roots=$(find . -mindepth 2 -type f -name objects.inv -exec dirname {} \; | cut -d/ -f2 | sort -u)
@@ -147,6 +167,8 @@ runs:
           rm -rf "$_site/${{ env.doc_tag_path }}"
           mkdir -p "$_site/${{ env.doc_tag_path }}"
           cp -af "$doc_path/." "$_site/${{ env.doc_tag_path }}/"
+          patch_sitemap "$_site" ""
+          patch_sitemap "$_site/${{ env.doc_tag_path }}" "${{ env.doc_tag_path }}"
         elif [[ "${{ github.event_name }}" == "push" ]]; then
           pushd "$_site"
           roots=$(find . -mindepth 2 -type f -name objects.inv -exec dirname {} \; | cut -d/ -f2 | sort -u)
@@ -160,6 +182,7 @@ runs:
           done
           popd
           cp -af "$doc_path/." "$_site/"
+          patch_sitemap "$_site" ""
         fi
 
         # Remove stale pull/<id> docs listed in simple tags.json.
