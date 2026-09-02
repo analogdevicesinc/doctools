@@ -40,7 +40,7 @@ git_repos = {
     'scopy':                     ['scopy',                     "Scopy"],
     'iio-oscilloscope':          ['iio-oscilloscope',          "IIO Oscilloscope"],
     'doctools':                  ['doctools',                  "Doctools"],
-    'documentation':             ['documentation',             "System Level Documentation"],
+    'system-level':              ['system-level',              "System Level Documentation"],
     'pyadi-iio':                 ['pyadi-iio',                 "PyADI-IIO"],
     'meta-adi':                  ['meta-adi',                  "META-ADI"],
     'wiki-scripts':              ['wiki-scripts',              "Wiki Scripts"],
