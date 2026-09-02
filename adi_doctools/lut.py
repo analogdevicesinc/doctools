@@ -48,8 +48,7 @@ source_hostname = "https://github.com/analogdevicesinc/{repository}/tree/{branch
 source_hostname_raw = "https://raw.githubusercontent.com/analogdevicesinc/{repository}/refs/heads/{branch}/{pathname}"
 
 repos = {
-    'documentation': Repo(
-        alt='system-level',
+    'system-level': Repo(
         pathname='docs',
         name='System Level',
         description='User guides and tutorials for evaluation boards, software and hardware.',
