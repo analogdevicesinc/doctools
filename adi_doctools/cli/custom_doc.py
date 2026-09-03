@@ -929,6 +929,7 @@ def patch_doc(doc, repos_dir, doc_dir, git_lfs, builder):
             lfs_f_s=path.join(repos[r]['pathname'], s[1])
             path_=path.join(repos_dir, s[0], lfs_f_s)
             if get_lfs_sha(path_):
+                logger.info(f"git lfs smudging file: {lfs_f_s}")
                 subprocess.run(f"git lfs pull -I {lfs_f_s}",
                                shell=True, cwd=path.join(repos_dir, s[0]), check=False)
                 copy2(path_, path.join(doc_dir, s[0], s[1]))
