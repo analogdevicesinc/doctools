@@ -1,2 +1,5 @@
 *.pdf
 *.xml
+node_modules
+__pycache__
+*.jsonl
