@@ -36,117 +36,133 @@ runs:
   using: composite
   steps:
     - name: Check run condition
+      id: check
       shell: bash
       run: |
+        # Check run condition
+        run=""
         if [[ "${{ github.event_name }}" == "pull_request" ]]; then
           if [[ "${{ github.event.pull_request.head.repo.full_name }}" == "${{ github.repository }}" ]]; then
-            echo "gh_pages_deploy_run=true" >> "$GITHUB_ENV"
-          else
-            echo "gh_pages_deploy_run=" >> "$GITHUB_ENV"
+            run="true"
           fi
         elif [[ "${{ github.event_name }}" == "push" ]]; then
-          echo "gh_pages_deploy_run=true" >> "$GITHUB_ENV"
-        else
-          echo "gh_pages_deploy_run=" >> "$GITHUB_ENV"
+          run="true"
         fi
+        echo "run=$run" >> "$GITHUB_OUTPUT"
 
     - uses: analogdevicesinc/doctools/blank@action
-      if: ${{ env.gh_pages_deploy_run == 'true' }}
+      if: ${{ steps.check.outputs.run == 'true' }}
 
     - name: Context to path
-      if: ${{ env.gh_pages_deploy_run == 'true' }}
+      id: context
+      if: ${{ steps.check.outputs.run == 'true' }}
       shell: bash
       run: |
+        # Context to path
         base_path='${{ inputs.path }}'
         base_path="${base_path%/}"
         base_path="${base_path#./}"
         [[ -n "$base_path" ]] || base_path='.'
 
         if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-          echo "doc_tag_path=${base_path}/pull/${{ github.event.number }}" >> "$GITHUB_ENV"
+          echo "doc_tag_path=${base_path}/pull/${{ github.event.number }}" >> "$GITHUB_OUTPUT"
         elif [[ "${{ inputs.new_tag }}" == "true" ]] && [[ -n "${{ inputs.tag }}" ]]; then
-          echo "doc_tag_path=${base_path}/${{ inputs.tag }}" >> "$GITHUB_ENV"
+          echo "doc_tag_path=${base_path}/${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
         fi
-        echo "doc_path=${base_path}" >> "$GITHUB_ENV"
+        echo "doc_path=${base_path}" >> "$GITHUB_OUTPUT"
 
     - name: Prepare gh-pages branch
-      if: ${{ env.gh_pages_deploy_run == 'true' }}
+      if: ${{ steps.check.outputs.run == 'true' }}
       shell: bash
-      run: >
-        git ls-remote --exit-code --heads origin refs/heads/${{ inputs.branch }} &&
-        (
-          git fetch origin ${{ inputs.branch }}:${{ inputs.branch }} --depth 1 -f ;
-          git switch ${{ inputs.branch }} ;
+      env:
+        branch: ${{ inputs.branch }}
+        doc_path: ${{ steps.context.outputs.doc_path }}
+        doc_tag_path: ${{ steps.context.outputs.doc_tag_path }}
+      run: |
+        # Prepare gh-pages branch
+        [[ "${{ runner.debug }}" == "1" ]] && set -x
+        git ls-remote --exit-code --heads origin "refs/heads/$branch" && (
+          git fetch origin "$branch:$branch" --depth 1 -f
+          git switch "$branch"
           if [[ "${{ github.event_name }}" == "push" ]]; then
-            built_docs=$(find "${{ env.doc_path }}" -mindepth 2 -name objects.inv -exec sh -c 'dirname {}' ';' 2>/dev/null) ;
-            git rm -r "${{ env.doc_path }}" --quiet || true ;
-            if ! [ -z "$built_docs" ]; then
-              git checkout @ -- $built_docs ;
-            fi ;
-          fi ;
-          if ! [ -z "${{ env.doc_tag_path }}" ]; then
-            git rm -r "${{ env.doc_tag_path }}" --quiet || true ;
-          fi ;
+            built_docs=$(find "$doc_path" -mindepth 2 -name objects.inv -exec sh -c 'dirname {}' ';' 2>/dev/null)
+            git rm -r "$doc_path" --quiet || true
+            if [[ -n "$built_docs" ]]; then
+              git checkout @ -- $built_docs
+            fi
+          fi
+          if [[ -n "$doc_tag_path" ]]; then
+            git rm -r "$doc_tag_path" --quiet || true
+          fi
         ) || (
-          git checkout --orphan ${{ inputs.branch }} ;
-          git reset --hard ;
+          git checkout --orphan "$branch"
+          git reset --hard
           git commit -m "initial commit" --allow-empty
         )
 
     - uses: actions/download-artifact@v8
-      if: ${{ env.gh_pages_deploy_run == 'true' && github.event_name == 'push' }}
+      if: ${{ steps.check.outputs.run == 'true' && github.event_name == 'push' }}
       with:
         name: ${{ inputs.name }}
-        path: ${{ env.doc_path }}
+        path: ${{ steps.context.outputs.doc_path }}
 
     - uses: actions/download-artifact@v8
-      if: ${{ env.gh_pages_deploy_run == 'true' && env.doc_tag_path != '' }}
+      if: ${{ steps.check.outputs.run == 'true' && steps.context.outputs.doc_tag_path != '' }}
       with:
         name: ${{ inputs.name }}
-        path: ${{ env.doc_tag_path }}
+        path: ${{ steps.context.outputs.doc_tag_path }}
 
-    - name: Patch sitemap urls
-      if: ${{ env.gh_pages_deploy_run == 'true' }}
+    - name: Generate sitemap
+      if: ${{ steps.check.outputs.run == 'true' }}
       shell: bash
       run: |
+        # Generate sitemap
         [[ "${{ runner.debug }}" == "1" ]] && set -x
-        owner="$(echo ${{ github.repository }} | cut -d/ -f1)"
-        repo="$(echo ${{ github.repository }} | cut -d/ -f2)"
-        site_baseurl="https://$owner.github.io/$repo"
 
-        patch_sitemap() {
-          local sm="$1/sitemap.xml"
-          [[ -f "$sm" ]] || return 0
-          if grep -q '<loc>https\?://' "$sm"; then
-            return 0
-          fi
-          local extra="${1#./}"
-          local baseurl="$site_baseurl"
-          if [[ -n "$extra" ]] && [[ "$extra" != "." ]]; then
-            baseurl="$baseurl/${extra%/}"
-          fi
-          sed -i "s#<loc>#<loc>${baseurl}/#g" "$sm"
-        }
+        baseurl="https://$(echo ${{ github.repository }} | sed 's#/#.github.io/#')"
+        today=$(date -u +%F)
 
-        if [[ "${{ github.event_name }}" == "push" ]]; then
-          patch_sitemap "${{ env.doc_path }}"
-        fi
-        if [[ -n "${{ env.doc_tag_path }}" ]]; then
-          patch_sitemap "${{ env.doc_tag_path }}"
-        fi
+        git add -A
+
+        declare -A lastmod=()
+        while IFS='|' read -r loc modified; do
+          lastmod["/$loc"]="$modified"
+        done < <(git show HEAD:sitemap.xml 2>/dev/null |
+                 sed 's#</url>#</url>\n#g' |
+                 sed -n "s#^.*<loc>${baseurl}/\([^<]*\)</loc><lastmod>\([^<]*\)</lastmod>.*#\1|\2#p")
+
+        declare -A changed=()
+        while IFS= read -r -d '' rel; do
+          changed["/$rel"]=1
+        done < <(git diff --cached --name-only -z --diff-filter=ACMRT HEAD -- '*.html')
+
+        {
+          echo "<?xml version='1.0' encoding='utf-8'?>"
+          echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+          while IFS= read -r -d '' rel; do
+            loc=$rel
+            [[ "$rel" == index.html || "$rel" == */index.html ]] && loc=${rel%index.html}
+            modified=$today
+            [[ -n "${changed["/$rel"]:-}" ]] || modified=${lastmod["/$loc"]:-$today}
+            printf '<url><loc>%s/%s</loc><lastmod>%s</lastmod></url>\n' \
+              "$baseurl" "$loc" "$modified"
+          done < <(git ls-files -z --cached -- '*.html' | sort -z)
+          echo '</urlset>'
+        } > sitemap.xml
 
     - name: Generate aux files
-      if: ${{ env.gh_pages_deploy_run == 'true' }}
+      if: ${{ steps.check.outputs.run == 'true' }}
       shell: bash
-      run: >
-        touch .nojekyll ;
+      run: |
+        # Generate aux files
+        touch .nojekyll
         find . -name objects.inv -exec sh -c 'dirname {}' ';' |
-        cut -c 3- | sort -Vr |
-        jq --raw-input . |
-        jq --slurp . > tags.json
+          cut -c 3- | sort -Vr |
+          jq --raw-input . |
+          jq --slurp . > tags.json
 
     - name: Commit and push to gh-pages
-      if: ${{ env.gh_pages_deploy_run == 'true' }}
+      if: ${{ steps.check.outputs.run == 'true' }}
       shell: bash
       run: |
         # Commit and push to gh-pages
