@@ -868,7 +868,7 @@ def parse_warnings(doc_dir):
 def parse_status(doc_dir):
     statusfile = path.join(doc_dir, '..', 'status.txt')
 
-    re_images = r"^copying images\.\.\.\s+\[\s+?\d+%\]\s(.*)$"
+    re_images = r"^copying images\.\.\.\s+\[\s*\d+%\]\s(.*)$"
     with open(statusfile, "r") as status:
         for e in status:
             e = e.replace("\x1b[33m", "").replace("\x1b[39;49;00m", "").replace("\x1b[01m", "")
