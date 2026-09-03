@@ -77,6 +77,14 @@ repos = {
         visibility='public',
         parent='hdl'
     ),
+    'hw-test': Repo(
+        pathname='docs',
+        name='Hardware Tests',
+        description='Run hardware tests based on events, with changed-files test selection.',
+        category='tool',
+        branch='main',
+        visibility='public'
+    ),
     'linux': Repo(
         pathname='docs',
         name='Linux',
