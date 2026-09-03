@@ -364,6 +364,8 @@ runs:
     - name: Report state
       shell: bash
       run: |
+        # Report state
+        cd "${{ inputs.path }}"
         df -h .
         git show HEAD --name-only
         git status
