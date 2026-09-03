@@ -20,22 +20,23 @@ runs:
   using: composite
   steps:
     - name: Check run condition
+      id: check
       shell: bash
       run: |
+        # Check run condition
+        run=""
         if [[ "${{ github.event_name }}" == "pull_request" ]]; then
           if [[ "${{ github.event.pull_request.head.repo.full_name }}" == "${{ github.repository }}" ]]; then
-            echo "gh_pages_deploy_run=true" >> "$GITHUB_ENV"
-          else
-            echo "gh_pages_deploy_run=" >> "$GITHUB_ENV"
+            run="true"
           fi
         elif [[ "${{ github.event_name }}" == "push" ]]; then
-          echo "gh_pages_deploy_run=true" >> "$GITHUB_ENV"
-        else
-          echo "gh_pages_deploy_run=" >> "$GITHUB_ENV"
+          run="true"
         fi
+        echo "run=$run" >> "$GITHUB_OUTPUT"
 
     - name: Context to path
-      if: ${{ env.gh_pages_deploy_run == 'true' }}
+      id: context
+      if: ${{ steps.check.outputs.run == 'true' }}
       shell: bash
       run: |
         # Context to path
@@ -45,14 +46,14 @@ runs:
         [[ -n "$base_path" ]] || base_path='.'
 
         if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-          echo "doc_tag_path=pull/${{ github.event.number }}" >> "$GITHUB_ENV"
+          echo "doc_tag_path=pull/${{ github.event.number }}" >> "$GITHUB_OUTPUT"
         elif [[ "${{ inputs.new_tag }}" == "true" ]] && [[ -n "${{ inputs.tag }}" ]]; then
-          echo "doc_tag_path=${{ inputs.tag }}" >> "$GITHUB_ENV"
+          echo "doc_tag_path=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
         fi
-        echo "doc_path=${base_path}" >> "$GITHUB_ENV"
+        echo "doc_path=${base_path}" >> "$GITHUB_OUTPUT"
 
     - name: Sanity
-      if: ${{ env.gh_pages_deploy_run == 'true' }}
+      if: ${{ steps.check.outputs.run == 'true' }}
       shell: bash
       run: |
         # Sanity
@@ -61,7 +62,8 @@ runs:
         which git-lfs || { "::error:: 'git-lfs' is required"; exit 1;}
 
     - name: Acquire deploy lock
-      if: ${{ env.gh_pages_deploy_run == 'true' }}
+      id: lock
+      if: ${{ steps.check.outputs.run == 'true' }}
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.token }}
@@ -95,17 +97,24 @@ runs:
             echo "$resp"; exit 1
           fi
         done
-        echo "deploy_lock_acquired=true" >> "$GITHUB_ENV"
+        echo "acquired=true" >> "$GITHUB_OUTPUT"
 
     - name: Download github-pages artifact
-      if: ${{ env.deploy_lock_acquired == 'true' }}
+      id: download
+      if: ${{ steps.lock.outputs.acquired == 'true' }}
       shell: bash
       run: |
+        # Download github-pages artifact
         [[ "${{ runner.debug }}" == "1" ]] && set -x
         _site=$(mktemp -d -t gh-pages.XXX)
-        echo "_site=$_site" >> "$GITHUB_ENV"
+        _site_old="$_site.old"
+        mkdir -p "$_site_old"
         _worktree=$(mktemp -d -t gh-pages-archive.XXX)
-        echo "_worktree=$_worktree" >> "$GITHUB_ENV"
+        {
+          echo "site=$_site"
+          echo "site_old=$_site_old"
+          echo "worktree=$_worktree"
+        } >> "$GITHUB_OUTPUT"
         git fetch origin gh-pages-archive && {
           git worktree add "$_worktree" origin/gh-pages-archive
           cd "$_worktree"
@@ -113,46 +122,31 @@ runs:
           if [[ -f github-pages.zip ]]; then
             unzip -o github-pages.zip artifact.tar
             tar -xf artifact.tar -C "$_site"
+            cp -af "$_site/." "$_site_old/"
             rm -f artifact.tar
           fi
           cd -
         } || git worktree add --orphan -b gh-pages-archive "$_worktree"
 
     - name: Merge built docs into site
-      if: ${{ env.deploy_lock_acquired == 'true' }}
+      if: ${{ steps.lock.outputs.acquired == 'true' }}
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.token }}
+        site: ${{ steps.download.outputs.site }}
+        doc_path: ${{ steps.context.outputs.doc_path }}
+        doc_tag_path: ${{ steps.context.outputs.doc_tag_path }}
       run: |
         # Merge built docs into site
 
-        owner=$(echo ${{ github.repository }} | cut -d/ -f1)
-        repo=$(echo ${{ github.repository }} | cut -d/ -f2)
-        site_baseurl="https://$owner.github.io/$repo"
-
-        patch_sitemap() {
-          local sm="$1/sitemap.xml"
-          [[ -f "$sm" ]] || return 0
-          if grep -q '<loc>https\?://' "$sm"; then
-            return 0
-          fi
-          local extra="$2"
-          local baseurl="$site_baseurl"
-          if [[ -n "$extra" ]] && [[ "$extra" != "." ]]; then
-            baseurl="$baseurl/${extra%/}"
-          fi
-          sed -i "s#<loc>#<loc>${baseurl}/#g" "$sm"
-        }
-
         [[ "${{ runner.debug }}" == "1" ]] && set -x
-        doc_path=$(realpath "${{ env.doc_path }}")
+        doc_path=$(realpath "$doc_path")
         if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-          rm -rf "$_site/${{ env.doc_tag_path }}"
-          mkdir -p "$_site/${{ env.doc_tag_path }}"
-          cp -af "$doc_path/." "$_site/${{ env.doc_tag_path }}/"
-          patch_sitemap "$_site/${{ env.doc_tag_path }}" "${{ env.doc_tag_path }}"
+          rm -rf "$site/$doc_tag_path"
+          mkdir -p "$site/$doc_tag_path"
+          cp -af "$doc_path/." "$site/$doc_tag_path/"
         elif [[ "${{ inputs.new_tag }}" == "true" && -n "${{ inputs.tag }}" ]]; then
-          pushd "$_site"
+          pushd "$site"
           roots=$(find . -mindepth 2 -type f -name objects.inv -exec dirname {} \; | cut -d/ -f2 | sort -u)
           for entry in * .[^.]* ..?*; do
             [ -e "$entry" ] || continue
@@ -163,14 +157,12 @@ runs:
             [ $keep -eq 0 ] && rm -rf "$entry"
           done
           popd
-          cp -af "$doc_path/." "$_site/"
-          rm -rf "$_site/${{ env.doc_tag_path }}"
-          mkdir -p "$_site/${{ env.doc_tag_path }}"
-          cp -af "$doc_path/." "$_site/${{ env.doc_tag_path }}/"
-          patch_sitemap "$_site" ""
-          patch_sitemap "$_site/${{ env.doc_tag_path }}" "${{ env.doc_tag_path }}"
+          cp -af "$doc_path/." "$site/"
+          rm -rf "$site/$doc_tag_path"
+          mkdir -p "$site/$doc_tag_path"
+          cp -af "$doc_path/." "$site/$doc_tag_path/"
         elif [[ "${{ github.event_name }}" == "push" ]]; then
-          pushd "$_site"
+          pushd "$site"
           roots=$(find . -mindepth 2 -type f -name objects.inv -exec dirname {} \; | cut -d/ -f2 | sort -u)
           for entry in * .[^.]* ..?*; do
             [ -e "$entry" ] || continue
@@ -181,13 +173,12 @@ runs:
             [ $keep -eq 0 ] && rm -rf "$entry"
           done
           popd
-          cp -af "$doc_path/." "$_site/"
-          patch_sitemap "$_site" ""
+          cp -af "$doc_path/." "$site/"
         fi
 
         # Remove stale pull/<id> docs listed in simple tags.json.
-        [[ -f "$_site/tags.json" ]] || exit 0
-        jq -e 'type == "array"' "$_site/tags.json" || exit 0 # Skip fine grained
+        [[ -f "$site/tags.json" ]] || exit 0
+        jq -e 'type == "array"' "$site/tags.json" || exit 0 # Skip fine grained
 
         owner_repository="${{ github.repository }}"
         while IFS= read -r tag; do
@@ -201,39 +192,84 @@ runs:
           state=$(echo "$resp" | jq -r '.state // empty')
           if [[ "$state" != "open" ]]; then
             echo "Clean-up $tag"
-            [[ -d "$_site/$tag" ]] && rm -r "$_site/$tag" || :
+            [[ -d "$site/$tag" ]] && rm -r "$site/$tag" || :
           fi
-        done < <(jq -r '.[] | select(type == "string")' "$_site/tags.json")
+        done < <(jq -r '.[] | select(type == "string")' "$site/tags.json")
+
+    - name: Generate sitemap
+      if: ${{ steps.lock.outputs.acquired == 'true' }}
+      shell: bash
+      env:
+        site: ${{ steps.download.outputs.site }}
+        site_old: ${{ steps.download.outputs.site_old }}
+      run: |
+        # Generate sitemap
+        [[ "${{ runner.debug }}" == "1" ]] && set -x
+
+        baseurl="https://$(echo ${{ github.repository }} | sed 's#/#.github.io/#')"
+        today=$(date -u +%F)
+
+        declare -A lastmod=()
+        if [[ -f "$site_old/sitemap.xml" ]]; then
+          while IFS='|' read -r loc modified; do
+            lastmod["/$loc"]="$modified"
+          done < <(sed 's#</url>#</url>\n#g' "$site_old/sitemap.xml" |
+                   sed -n "s#^.*<loc>${baseurl}/\([^<]*\)</loc><lastmod>\([^<]*\)</lastmod>.*#\1|\2#p")
+        fi
+
+        {
+          echo "<?xml version='1.0' encoding='utf-8'?>"
+          echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+          while IFS= read -r -d '' file; do
+            rel=${file#"$site"/}
+            loc=$rel
+            [[ "$rel" == index.html || "$rel" == */index.html ]] && loc=${rel%index.html}
+            modified=$today
+            if cmp -s "$site_old/$rel" "$file"; then
+              modified=${lastmod["/$loc"]:-$today}
+            fi
+            printf '<url><loc>%s/%s</loc><lastmod>%s</lastmod></url>\n' \
+              "$baseurl" "$loc" "$modified"
+          done < <(find "$site" -type f -name '*.html' -print0 | sort -z)
+          echo '</urlset>'
+        } > "$site/sitemap.xml"
 
     - name: Generate aux files
-      if: ${{ env.deploy_lock_acquired == 'true' }}
+      if: ${{ steps.lock.outputs.acquired == 'true' }}
       shell: bash
-      run: >
-        cd "$_site" ;
-        touch .nojekyll ;
+      env:
+        site: ${{ steps.download.outputs.site }}
+        doc_tag_path: ${{ steps.context.outputs.doc_tag_path }}
+      run: |
+        # Generate aux files
+        cd "$site"
+        touch .nojekyll
         find . -name objects.inv -exec sh -c 'dirname {}' ';' |
-        cut -c 3- | sort -Vr |
-        jq --raw-input . |
-        jq --slurp . > tags.json
+          cut -c 3- | sort -Vr |
+          jq --raw-input . |
+          jq --slurp . > tags.json
 
         if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-          echo 'LAST_DEPLOY="./${{ env.doc_tag_path }}"' > "$_site/context.txt"
+          echo "LAST_DEPLOY=\"./$doc_tag_path\"" > "$site/context.txt"
         elif [[ "${{ inputs.new_tag }}" == "true" && -n "${{ inputs.tag }}" ]]; then
-          echo 'LAST_DEPLOY=". ./${{ env.doc_tag_path }}"' > "$_site/context.txt"
+          echo "LAST_DEPLOY=\". ./$doc_tag_path\"" > "$site/context.txt"
         else
-          echo 'LAST_DEPLOY="."' > "$_site/context.txt"
+          echo 'LAST_DEPLOY="."' > "$site/context.txt"
         fi
 
     - name: Pack artifact
-      if: ${{ env.deploy_lock_acquired == 'true' }}
+      if: ${{ steps.lock.outputs.acquired == 'true' }}
       shell: bash
+      env:
+        site: ${{ steps.download.outputs.site }}
+        worktree: ${{ steps.download.outputs.worktree }}
       run: |
         # Pack artifact
         [[ "${{ runner.debug }}" == "1" ]] && set -x
         rm -f github-pages
-        tar -cf "$_worktree/artifact.tar" -C "$_site" .
+        tar -cf "$worktree/artifact.tar" -C "$site" .
 
-        pushd "$_worktree"
+        pushd "$worktree"
         git lfs install --local
         printf 'github-pages.zip filter=lfs diff=lfs merge=lfs -text\n' > .gitattributes
         git add .gitattributes
@@ -255,13 +291,13 @@ runs:
         git push origin HEAD:gh-pages-archive
 
         popd
-        cp "$_worktree/github-pages.zip" github-pages
+        cp "$worktree/github-pages.zip" github-pages
 
-        git worktree remove "$_worktree" --force || :
+        git worktree remove "$worktree" --force || :
         git worktree prune || :
 
     - name: Release deploy lock
-      if: ${{ env.deploy_lock_acquired == 'true' }}
+      if: ${{ steps.lock.outputs.acquired == 'true' }}
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.token }}
@@ -279,7 +315,7 @@ runs:
         [[ "$code" == 204 ]] || { echo "::error:: Failed to release lock: $resp"; exit 1 ;}
 
     - uses: actions/upload-artifact@v7
-      if: ${{ env.deploy_lock_acquired == 'true' }}
+      if: ${{ steps.lock.outputs.acquired == 'true' }}
       with:
         path: github-pages
         archive: false
