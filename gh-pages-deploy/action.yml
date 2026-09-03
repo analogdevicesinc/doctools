@@ -124,6 +124,16 @@ runs:
 
         git add -A
 
+        # Don't index some
+        skip() {
+          case "$1" in
+            pull/*|*/pull/*) return 0 ;;
+            genindex.html|search.html|_toctree.html) return 0 ;;
+            */genindex.html|*/search.html|*/_toctree.html) return 0 ;;
+          esac
+          return 1
+        }
+
         declare -A lastmod=()
         while IFS='|' read -r loc modified; do
           lastmod["/$loc"]="$modified"
@@ -140,6 +150,7 @@ runs:
           echo "<?xml version='1.0' encoding='utf-8'?>"
           echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
           while IFS= read -r -d '' rel; do
+            skip "$rel" && continue
             loc=$rel
             [[ "$rel" == index.html || "$rel" == */index.html ]] && loc=${rel%index.html}
             modified=$today

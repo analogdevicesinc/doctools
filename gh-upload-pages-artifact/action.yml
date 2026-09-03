@@ -209,6 +209,16 @@ runs:
         baseurl="https://$(echo ${{ github.repository }} | sed 's#/#.github.io/#')"
         today=$(date -u +%F)
 
+        # Don't index some
+        skip() {
+          case "$1" in
+            pull/*|*/pull/*) return 0 ;;
+            genindex.html|search.html|_toctree.html) return 0 ;;
+            */genindex.html|*/search.html|*/_toctree.html) return 0 ;;
+          esac
+          return 1
+        }
+
         declare -A lastmod=()
         if [[ -f "$site_old/sitemap.xml" ]]; then
           while IFS='|' read -r loc modified; do
@@ -222,6 +232,7 @@ runs:
           echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
           while IFS= read -r -d '' file; do
             rel=${file#"$site"/}
+            skip "$rel" && continue
             loc=$rel
             [[ "$rel" == index.html || "$rel" == */index.html ]] && loc=${rel%index.html}
             modified=$today
