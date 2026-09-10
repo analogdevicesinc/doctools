@@ -60,9 +60,11 @@ jobs:
 
         cd pages
         git sparse-checkout init --cone
-        sparse=$(git ls-tree --name-only -d "origin/$branch" | grep -Ev '^(pull|prs)' || :)
-        if [[ -n "$sparse" ]]; then
-          git sparse-checkout set "$sparse"
+        mapfile -t sparse < <(
+          git ls-tree --name-only -d "origin/$branch" | grep -Ev '^(pull|prs)$' || :
+        )
+        if (( ${#sparse[@]} )); then
+          git sparse-checkout set -- "${sparse[@]}"
         else
           git sparse-checkout disable
         fi
@@ -152,13 +154,22 @@ jobs:
           if [[ -n "$files" ]]; then
             versions=$(
               for file in $files; do
-                _version="${file%%/*}"
-                if echo "$built_docs" | grep -Fxq "$_version"; then
-                  echo "$_version"
-                else
-                  echo "."
-                fi
-            done | sort -u)
+                case "$file" in
+                  pull/*|prs/*) continue ;;
+                esac
+
+                matched=""
+                while IFS= read -r _version; do
+                  [[ -z "$_version" || "$_version" == "." ]] && continue
+                  if [[ "$file" == "$_version/"* ]]; then
+                    echo "$_version"
+                    matched="true"
+                    break
+                  fi
+                done < <(printf '%s\n' "$built_docs" | awk '{ print length, $0 }' | sort -rn | cut -d' ' -f2-)
+
+                [[ -n "$matched" ]] || echo "."
+              done | sort -u)
           else
             versions="$built_docs"
           fi
