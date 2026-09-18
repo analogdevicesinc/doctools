@@ -151,23 +151,22 @@ runs:
           else
             merge_commit_sha=$(echo "$resp" | jq -r '.merge_commit_sha')
             branch="$(echo "$pr_json" | jq '.head.ref')"
+            pr_base_sha=$(echo "$resp" | jq -r '.base.sha')
+            pr_head_sha=$(echo "$resp" | jq -r '.head.sha')
             if [[ "$merge_commit_sha" == "null" ]]; then
               # has conflicts
               merge_commit_sha=""
-              pr=""
-            else
-              pr_base_sha=$(echo "$resp" | jq -r '.base.sha')
-              pr_head_sha=$(echo "$resp" | jq -r '.head.sha')
-              compare=$(curl -s \
-                -H "Authorization: Bearer ${{ inputs.gh-token }}" \
-                -H "Accept: application/vnd.github+json" \
-                "https://api.github.com/repos/$repository/compare/$pr_base_sha...$pr_head_sha" \
-                | jq '{behind_by, ahead_by}')
-              ahead_by=$(echo "$compare" | jq '.ahead_by // empty')
-              behind_by=$(echo "$compare" | jq '.behind_by // empty')
-              if [[ -n "$ahead_by" ]] && [[ -n "$behind_by" ]]; then
-                fetch_depth=$(( ahead_by + behind_by + 2 ))
-              fi
+              echo "::warning ::Pull request $pr has merge conflicts, checking out $pr_head_sha."
+            fi
+            compare=$(curl -s \
+              -H "Authorization: Bearer ${{ inputs.gh-token }}" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/$repository/compare/$pr_base_sha...$pr_head_sha" \
+              | jq '{behind_by, ahead_by}')
+            ahead_by=$(echo "$compare" | jq '.ahead_by // empty')
+            behind_by=$(echo "$compare" | jq '.behind_by // empty')
+            if [[ -n "$ahead_by" ]] && [[ -n "$behind_by" ]]; then
+              fetch_depth=$(( ahead_by + behind_by + 2 ))
             fi
           fi
         else
@@ -178,6 +177,8 @@ runs:
         echo "pr=$pr" >> "$GITHUB_ENV"
         echo "fetch_depth=$fetch_depth" >> "$GITHUB_ENV"
         echo "merge_commit_sha=$merge_commit_sha" >> "$GITHUB_ENV"
+        echo "pr_base_sha=$pr_base_sha" >> "$GITHUB_ENV"
+        echo "pr_head_sha=$pr_head_sha" >> "$GITHUB_ENV"
         echo "branch=$branch" >> "$GITHUB_ENV"
 
 
@@ -266,6 +267,8 @@ runs:
         fetch_depth="${{ env.fetch_depth }}"
         pr="${{ env.pr }}"
         merge_commit_sha="${{ env.merge_commit_sha }}"
+        pr_base_sha="${{ env.pr_base_sha }}"
+        pr_head_sha="${{ env.pr_head_sha }}"
         branch="${{ env.branch || github.ref_name }}"
         ref="${{ inputs.ref }}"
         ref="${ref//[[:space:]]/}"
@@ -284,7 +287,16 @@ runs:
           [[ $fetch_depth -gt 0 ]] && git fetch origin --depth=$fetch_depth "$1" || git fetch origin "$1"
           [[ $fetch_depth -gt 500 ]] && fetch_depth=500 || fetch_depth=$((fetch_depth * 2))
         }
-        if [[ -n "$pr" ]]; then
+        if [[ -n "$pr" ]] && [[ -z "$merge_commit_sha" ]]; then
+          mode="pr"
+          git fetch origin --depth=$fetch_depth "$pr_head_sha" "$pr_base_sha"
+          head_sha=$(git rev-parse "$pr_head_sha")
+          base_sha=$(git merge-base "$pr_base_sha" "$head_sha") \
+            || base_sha=$(git rev-parse "$head_sha~")
+          echo "checkout_fail_pr_rebase=true" >> "$GITHUB_ENV"
+          echo "checkout_fail_pr_rebase=true" >> "$GITHUB_OUTPUT"
+
+        elif [[ -n "$pr" ]]; then
           mode="pr"
           # use merge commit sha because refs/pull/*/merge exist only if pr is open
           git fetch origin --depth=$fetch_depth "$merge_commit_sha"
