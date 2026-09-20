@@ -97,6 +97,12 @@ export class Links {
       'target': '_blank',
       'className': 'landing-page ext-developer'
     })
+    let link_drivers = DOM.new('a', {
+      'innerText': 'Drivers',
+      'href': new URL('../drivers', _developer),
+      'target': '_blank',
+      'className': 'landing-page ext-developer'
+    })
     let link_solutions = DOM.new('a', {
       'innerText': 'Solutions',
       'href': new URL('../solutions', _developer),
@@ -118,7 +124,7 @@ export class Links {
     let cards_links = DOM.new('div', {
       'className': 'cards-links'
     })
-    cards_links.append(link_newsroom, link_solutions, link_events, link_os_landing)
+    cards_links.append(link_newsroom, link_drivers, link_solutions, link_events, link_os_landing)
     if ($.repotocTreeOverlay) {
       DOM.removeChilds($.repotocTreeOverlay)
       let container = DOM.new('div', {
