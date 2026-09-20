@@ -177,7 +177,7 @@ export class ContentActions {
 
     let state = this.parent.state
 
-    const r = new URL(this.parent.state.metadata.remote_alt).hostname == location.hostname ? this.parent.state.metadata.repotoc['documentation'].alt : 'documentation'
+    const r = 'system-level'
     const base_url = (state.subhost === '' || state.offline === true) ?
       new URL(`${state.metadata.remote_doc}${r}/`) :
       new URL(`${r}/`, new URL(state.subhost, location.origin))

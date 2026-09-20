@@ -34,7 +34,7 @@ export class PageActions {
     }
 
     // 'Patched' docs report an alt name at app.state.repository, e.g.
-    // documentation -> adi-documentation-system-level-pro-adi-123
+    // kuiper -> adi-kuiper-system-level-pro-adi-13-final
     // Resolve it back to the canonical key
     if (new URL(this.parent.state.metadata.remote_alt).hostname == location.hostname) {
       const canonical = Object.keys(m['repotoc']).find(
