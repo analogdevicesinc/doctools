@@ -219,16 +219,7 @@ export class Search {
   check_toc (key, ev) {
     if (ev.target.checked) {
       if (this.index_state[key].requested === false) {
-        let not_sub_hosted = this.parent.state.subhost === '' || this.parent.state.subhost === undefined
-        const selected_version = this.index_state[key].version
-        this.get_searchindex(key, not_sub_hosted, selected_version)
-          .then((urls) => {
-            this.load_index(urls, key)
-            this.index_state[key].requested = true
-            this.$.keyCheckbox[key].classList.add('requested')
-            this.$.keyCheckbox[key].classList.remove('failed')
-            this.renew_search()
-          })
+        this._load(key)
         return
       } else {
         this.query(this.$.searchInput.$.value)
@@ -264,12 +255,33 @@ export class Search {
     })
   }
 
-  set_default () {
-    /* Return if filter initialized */
-    for (const [key, value] of Object.entries(this.$.keyCheckbox)) {
-      if (value.$.checked)
-        return
-    }
+  /**
+   * Load once the search index of a key.
+   */
+  _load (key) {
+    const state = this.index_state[key]
+    if (state.requested)
+      return state.loading
+    state.requested = true
+    this.$.keyCheckbox[key].classList.add('requested')
+    this.$.keyCheckbox[key].classList.remove('failed')
+    const not_sub_hosted = this.parent.state.subhost === '' || this.parent.state.subhost === undefined
+    state.loading = this.get_searchindex(key, not_sub_hosted, state.version)
+      .then(urls => this.load_index(urls, key))
+      .catch(error => {
+        console.warn(`Failed to load search index for '${key}':`, error)
+        state.requested = false
+        this.$.keyCheckbox[key].classList.remove('requested')
+        this.$.keyCheckbox[key].classList.add('failed')
+      })
+      .finally(() => { state.loading = null })
+    return state.loading
+  }
+
+  /**
+   * The key of the current docs, at the current version.
+   */
+  _default_key () {
     if (this.parent.state.landing_page)
       return
     let key = this.parent.state.subhost === '' || this.parent.state.subhost === undefined || this.parent.state.standalone ?
@@ -280,8 +292,20 @@ export class Search {
       ) || key
     if (!(key in this.$.keyCheckbox))
       return
-    if (this.parent.state.version !== undefined)
-        this.index_state[key].version = this.parent.state.path
+    if (this.parent.state.version !== undefined && !this.index_state[key].requested)
+      this.index_state[key].version = this.parent.state.path
+    return key
+  }
+
+  set_default () {
+    /* Return if filter initialized */
+    for (const [key, value] of Object.entries(this.$.keyCheckbox)) {
+      if (value.$.checked)
+        return
+    }
+    const key = this._default_key()
+    if (!key)
+      return
     let event = new Event('change');
     this.$.keyCheckbox[key].$.checked = true
     this.$.keyCheckbox[key].$.dispatchEvent(event)
@@ -378,6 +402,38 @@ export class Search {
     return h.slice(slice).join(' / ')
   }
 
+  _passage_getter (items) {
+    return Array.isArray(items)
+      ? (idx) => items[idx]
+      : (idx) => ({ text: items.text[idx], url: items.url[idx], hierarchy: items.hierarchy[idx] })
+  }
+
+  _ready_keys () {
+    return Object.keys(this.index_state).filter(
+      key => this.$.keyCheckbox[key]?.$.checked &&
+             this.index_state[key].ready &&
+             this.indexData[key]
+    )
+  }
+
+  _sphinx_search (query, index, passages) {
+    if (!index || typeof Stemmer === 'undefined') return null
+    const parsed = Sphinx.parse_query(query)
+    const results = Sphinx.perform_search(...parsed, index)
+    const { groups, items } = Sphinx.sphinx_results_to_groups(results, passages)
+    return { groups, items, searchTerms: passages ? null : parsed[1] }
+  }
+
+  async _llm_search (query, data) {
+    const queryVec = await LLM.embedQuery(query)
+    const { pool, scores } = LLM.vector_search(queryVec, query, data)
+    return {
+      groups: LLM.group_results(pool, scores, data.passages, data.url_to_idx),
+      items: data.passages,
+      searchTerms: null
+    }
+  }
+
   html_to_text (text, anchor) {
     const htmlElement = new DOMParser().parseFromString(text, 'text/html');
     for (const removalQuery of [".headerlink", "script", "style"])
@@ -428,9 +484,7 @@ export class Search {
   }
 
   _render_group (key, group, items, searchTerms = null) {
-    const get_passage = Array.isArray(items)
-      ? (idx) => items[idx]
-      : (idx) => ({ text: items.text[idx], url: items.url[idx], hierarchy: items.hierarchy[idx] })
+    const get_passage = this._passage_getter(items)
 
     let li = new DOM('li', { className: 'group' })
 
@@ -496,11 +550,7 @@ export class Search {
 
     if (!query.trim()) return
 
-    const enabledKeys = Object.keys(this.index_state).filter(
-      key => this.$.keyCheckbox[key]?.$.checked &&
-             this.index_state[key].ready &&
-             this.indexData[key]
-    )
+    const enabledKeys = this._ready_keys()
     if (enabledKeys.length === 0) return
 
     for (const key of enabledKeys) {
@@ -515,16 +565,11 @@ export class Search {
           LLM.setPendingQuery(query)
 
           // Use Sphinx results while embedder is downloading
-          const sphinxIndex = this.indexData[key].sphinxIndex
-          if (sphinxIndex && typeof Stemmer !== "undefined") {
-            const [searchQuery, searchTerms, excludedTerms, highlightTerms, objectTerms] =
-              Sphinx.parse_query(query)
-            const results = Sphinx.perform_search(
-              searchQuery, searchTerms, excludedTerms, highlightTerms, objectTerms, sphinxIndex
-            )
-            const passages = this.indexData[key].passages
-            const { groups, items } = Sphinx.sphinx_results_to_groups(results, passages)
-            this._render_results(key, groups, items, passages ? null : searchTerms)
+          const interim = this._sphinx_search(
+            query, this.indexData[key].sphinxIndex, this.indexData[key].passages
+          )
+          if (interim) {
+            this._render_results(key, interim.groups, interim.items, interim.searchTerms)
           } else {
             const ul = this.$.searchUL[key]
             while (ul.$.firstElementChild) ul.$.removeChild(ul.$.lastChild)
@@ -536,29 +581,81 @@ export class Search {
         }
 
         try {
-          const data = this.indexData[key]
-          const queryVec = await LLM.embedQuery(query)
+          const { groups, items } = await this._llm_search(query, this.indexData[key])
           if (id !== this.query_id) return
-          const { pool, scores } = LLM.vector_search(queryVec, query, data)
-          const groups = LLM.group_results(pool, scores, data.passages, data.url_to_idx)
-          this._render_results(key, groups, data.passages)
+          this._render_results(key, groups, items)
         } catch (err) {
           console.error('Vector search query error:', err)
         }
 
       } else if (backend === 'sphinx') {
-        if (typeof Stemmer === "undefined") continue
-
         const data = this.indexData[key]
-        const [searchQuery, searchTerms, excludedTerms, highlightTerms, objectTerms] =
-          Sphinx.parse_query(query)
-        const results = Sphinx.perform_search(
-          searchQuery, searchTerms, excludedTerms, highlightTerms, objectTerms, data.index
-        )
-        const { groups, items } = Sphinx.sphinx_results_to_groups(results, data.passages)
-        this._render_results(key, groups, items, data.passages ? null : searchTerms)
+        const found = this._sphinx_search(query, data.index, data.passages)
+        if (found)
+          this._render_results(key, found.groups, found.items, found.searchTerms)
       }
     }
+  }
+
+  /**
+   * Search without the search area, e.g. for the chat.
+   * Empty repositories means the checked ones, or the current docs.
+   * Results take turns between repositories, as their scores differ.
+   */
+  async background_query (query, {limit = 10, repositories = [], signal} = {}) {
+    query = query.trim()
+    if (!query) return []
+
+    const available = Object.keys(this.$.keyCheckbox)
+    let keys = [...new Set(repositories.map(String))]
+    const unknown = keys.filter(key => !available.includes(key))
+    if (unknown.length)
+      throw new Error(`Unknown repositories: ${unknown.join(', ')}. Available: ${available.join(', ')}`)
+    if (!keys.length)
+      keys = available.filter(key => this.$.keyCheckbox[key].$.checked)
+    if (!keys.length)
+      keys = [this._default_key()].filter(Boolean)
+    keys.forEach(key => this._load(key))
+
+    const searchable = key => this.index_state[key].ready && this.indexData[key] &&
+      (this.indexBackend[key] === 'sphinx' || LLM.isEmbedderReady() || this.indexData[key].sphinxIndex)
+    const pending = key => this.index_state[key].loading ||
+      (this.index_state[key].ready && !searchable(key) && LLM.isEmbedderLoading())
+    const deadline = Date.now() + 30000
+    while (keys.some(pending) && Date.now() < deadline) {
+      signal?.throwIfAborted()
+      await new Promise(resolve => setTimeout(resolve, 100))
+    }
+
+    const lists = []
+    for (const key of keys.filter(searchable)) {
+      const data = this.indexData[key]
+      const llm = this.indexBackend[key] === 'llm'
+      const found = llm && LLM.isEmbedderReady()
+        ? await this._llm_search(query, data)
+        : this._sphinx_search(query, llm ? data.sphinxIndex : data.index, data.passages)
+      signal?.throwIfAborted()
+      if (!found) continue
+
+      const passage = this._passage_getter(found.items)
+      lists.push(found.groups.flatMap(group => group.entries.slice(0, 3)).map(entry => {
+        const p = passage(entry.idx)
+        return {
+          repository: key,
+          title: this._entry_label(p, 1),
+          url: `${this.key_prefix[key]}${p.url}`,
+          text: p.text || '',
+          score: entry.score
+        }
+      }))
+    }
+
+    const output = []
+    for (let i = 0; output.length < limit && lists.some(list => i < list.length); i++)
+      for (const list of lists)
+        if (i < list.length && output.length < limit)
+          output.push(list[i])
+    return output
   }
 
   get_tags_and_update_url (query) {
