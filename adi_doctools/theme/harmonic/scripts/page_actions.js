@@ -73,6 +73,26 @@ export class PageActions {
 
     return false
   }
+  copy_markdown () {
+    const selector = '.documentwrapper .body'
+    const element = DOM.get(selector)
+    if (!element) {
+      console.warn(`page_actions: got null for selector '${selector}'`)
+      return
+    }
+
+    const md = this.md_converter.convert(element)
+    navigator.clipboard.writeText(md)
+      .then(() => {
+        this.$.copy_button.classList.add(`success`)
+        setTimeout(() => {
+          this.$.copy_button.classList.remove(`success`)
+        }, 1000)
+      })
+      .catch((err) => {
+        console.error(err)
+      })
+  }
   draw_page_source () {
     this.$.container = DOM.new('div', {
       'className': 'page-actions'
@@ -82,26 +102,7 @@ export class PageActions {
       'className': 'copy-as-markdown',
       'title': 'Copy this page as markdown'
     })
-    this.$.copy_button.addEventListener('click', (ev) => {
-      const selector = '.documentwrapper .body'
-      const element = DOM.get(selector)
-      if (!element) {
-        console.warn(`page_actions: got null for selector '${selector}'`)
-        return
-      }
-
-      const md = this.md_converter.convert(element)
-      navigator.clipboard.writeText(md)
-        .then(() => {
-          this.$.copy_button.classList.add(`success`)
-          setTimeout(() => {
-            this.$.copy_button.classList.remove(`success`)
-          }, 1000)
-        })
-        .catch((err) => {
-          console.error(err)
-        })
-    })
+    this.$.copy_button.addEventListener('click', (ev) => { this.copy_markdown() })
 
     this.$.edit_button = DOM.new('button', {
       'className': 'edit-source',
