@@ -86,13 +86,17 @@ export class ContentActions {
 
     return `${repo_name} ${path}`
   }
+  dirhtml_url (docname, base) {
+    const path = docname.endsWith('/index') ? docname.slice(0, -5) : `${docname}/`
+    return new URL(path, base)
+  }
   add_collection_entry (ul, repo, entry, props) {
     const name = "name" in props ? props["name"] : this.auto_collection_name(repo, entry)
     const metadata = this.parent.state.metadata
     const use_alt = new URL(metadata.remote_alt).hostname === location.hostname
     const repository = use_alt ? metadata.repotoc[repo]?.alt || repo : repo
     const base = use_alt ? metadata.remote_alt : metadata.remote_doc
-    const url = new URL(`${repository}/${entry}.html`, base)
+    const url = this.dirhtml_url(`${repository}/${entry}`, base)
     const m = new DOM('a', {'href': url, 'target': 'blank'})
     m.innerText = name
     ul.append(new DOM('li').append(m))
@@ -135,12 +139,14 @@ export class ContentActions {
       return
     if ("pattern" in obj)
       this.collection_pattern = obj["pattern"]
-    let path = ""
+    let path_url
     if (state.offline)
-      path = new URL("file://"+location.pathname).href
+      path_url = new URL("file://"+location.pathname)
     else
-      path = new URL(location.pathname, location.origin).href
-    let base = new URL(state.content_root, path).href
+      path_url = new URL(location.pathname, location.origin)
+    path_url.pathname = path_url.pathname.replace(/\/index\.html$/, '/')
+    const path = path_url.href
+    const base = new URL(state.content_root, path).href
 
     for (const key in obj["collection"]) {
       if (!("include" in obj["collection"][key]) ||
@@ -149,7 +155,7 @@ export class ContentActions {
 
       const pages = obj["collection"][key]['include'][repo]
       for (const page in pages) {
-        const collection_base = new URL(`${page}.html`, base).href
+        const collection_base = this.dirhtml_url(page, base).href
         if (path.startsWith(collection_base)) {
           this.add_collection(key, obj["collection"][key]['include'])
           break
