@@ -4,11 +4,10 @@ import {DispatchEvent} from './event.js'
 import {DOM} from './dom.js'
 
 /**
- * Show domain and cookie consent popups.
+ * Show domain popups.
  * The actions are:
  * * Development documentation warning.
  * * Fork documentation warning.
- * * Analytics cookies consent.
  */
 export class Domain {
   constructor (app) {
@@ -33,8 +32,6 @@ export class Domain {
     }
     if (!("domain" in settings))
       settings.domain = {}
-    if (!("cookies" in settings))
-      settings.cookies = {}
     return settings
   }
   set_settings (settings) {
@@ -152,37 +149,7 @@ export class Domain {
       )
     }
   }
-  init_cookie_consent () {
-    const settings = this.get_settings()
-    if (settings.cookies.allow !== undefined)
-      return
-
-    let no = new DOM('button')
-    no.innerText = 'No'
-    let yes = new DOM('button')
-    yes.innerText = 'Yes'
-
-    let popup = this.make_popup(
-      'cookies',
-      'Allow analytics cookies?',
-      [no, yes]
-    )
-
-    no.onclick(this, (popup) => {
-      this.update_settings((settings) => {
-        settings.cookies.allow = false
-      })
-      this.remove_popup(popup)
-    }, [popup])
-    yes.onclick(this, (popup) => {
-      this.update_settings((settings) => {
-        settings.cookies.allow = true
-      })
-      this.remove_popup(popup)
-    }, [popup])
-  }
   construct () {
-    this.init_cookie_consent()
     this.init_domain_warning()
   }
 }
