@@ -92,7 +92,6 @@ export ACTIONS_RUNNER_HOOK_JOB_STARTED="$JOB_STARTED"
     --labels "$runner_labels_" \
     --no-default-labels \
     --unattended \
-    --disableupdate \
     $config_flags_ \
 )
 
