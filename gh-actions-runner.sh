@@ -2,12 +2,12 @@
 
 set -e
 
-runner_version=2.335.1
-runner_version_sha=4ef2f25285f0ae4477f1fe1e346db76d2f3ebf03824e2ddd1973a2819bf6c8cf
+runner_version=2.337.0
+runner_version_sha=70920811a4f8ad4328818682bca5c6469c1c942fab52448868071d0063816613
 node20_version=20.20.2
 node20_version_sha=19e56f0825510207dd904f087fe52faa0a4eb6b2aab5f0ea7a33830d04888b8b
-node24_version=24.17.0
-node24_version_sha=e0472427aa791ad80bdc426ff7cc73cdd28ed0f616d1ff9689a23a7f47f1265f
+node24_version=24.21.0
+node24_version_sha=6e1db87ef58b8819e5d5402eff1536491b18edd8eb7bee5ef7897876e88dc5ff
 k8s_version=0.8.1
 k8s_version_sha=2c3c4526f8a8d517373a2a0daa6122d7887bdc465c54945c6d716db87d9d9b4f
 
