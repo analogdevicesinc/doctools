@@ -77,9 +77,9 @@ runs:
         echo "version=$version" >> "$GITHUB_ENV"
         echo "version=$version" >> "$GITHUB_OUTPUT"
         echo "version: $version"
-        image_name="$(echo "${{ inputs.image-name }}" | tr '-' '_')"
+        image_name="$(echo "${{ inputs.image-name }}" | tr '_' '-')"
         echo "image_name=$image_name" >> "$GITHUB_ENV"
-        image_archive="$(mktemp -d)/$(echo $image_name | tr '/' '_').tar"
+        image_archive="$(mktemp -d)/$(echo $image_name | tr '/' '-').tar"
         echo "image_archive=$image_archive" >> "$GITHUB_ENV"
         echo "image_archive=$image_archive" >> "$GITHUB_OUTPUT"
         echo "container name: $image_name:$version"
@@ -133,7 +133,7 @@ runs:
                 --sort-by severity \
                 sbom:sbom.json > .cves || cves_ret=$?
           head -n 1 .cves > cves.json
-          sbom_archive="$(dirname $2)/$(echo $image_name | tr '/' '_').sbom.zip"
+          sbom_archive="$(dirname $2)/$(echo $image_name | tr '/' '-').sbom.zip"
           zip $sbom_archive * # No hidden files
           echo "sbom_archive=$sbom_archive" >> $GITHUB_ENV
           echo "sbom_archive=$sbom_archive" >> $GITHUB_OUTPUT
