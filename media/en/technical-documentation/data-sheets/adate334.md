@@ -1,7 +1,5 @@
-<!-- lastmod 2023-10-03 -->
+<!-- lastmod 2026-05-13 -->
 <!-- image -->
-
-## ADATE334
 
 ## 2.3 GHz Dual Integrated DCL with PPMU, Level Setting DACs, and On-Chip Calibration Registers
 
@@ -43,10 +41,6 @@ For more information on the ADATE334, contact ADATE334@analog.com.
 
 Analog Devices is in the process of updating documentation to provide terminology and language that is culturally appropriate. This is a process with a wide scope and will be phased in as quickly as possible. Thank you for your patience.
 
-Rev. SpB
-
-DOCUMENT FEEDBACK
-
 ## APPLICATIONS
 
 - ATE
@@ -69,4 +63,6 @@ The ADATE334 uses a serial programmable interface (SPI) bus to program all funct
 
 ## NOTES
 
-<!-- image -->
+## Legal Terms and Conditions
+
+Information furnished by Analog Devices is believed to be accurate and reliable "as is". However, no responsibility is assumed by Analog Devices for its use, nor for any infringements of patents or other rights of third parties that may result from its use. Specifications subject to change without notice. No license is granted by implication or otherwise under any patent or patent rights of Analog Devices. Trademarks and registered trademarks are the property of their respective owners. All Analog Devices products contained herein are subject to release and availability.

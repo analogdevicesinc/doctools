@@ -1,4 +1,4 @@
-<!-- lastmod 2026-01-26 -->
+<!-- lastmod 2026-07-15 -->
 <!-- image -->
 
 ## 0.5 GHz to 19 GHz, 1-Channel, Bidirectional True Time Delay Unit
@@ -62,16 +62,16 @@ The ADAR4002-CSL is available in a 14-lead, 3 mm × 2 mm, LFCSP and is specified
 
 ## TABLE OF CONTENTS
 
-| Features................................................................   | 1   |
+| Features................................................................   |   1 |
 |----------------------------------------------------------------------------|-----|
 | Commercial Space Features.................................1                |     |
-| Applications...........................................................    | 1   |
+| Applications...........................................................    |   1 |
 | Functional Block Diagram......................................1            |     |
 | General Description...............................................1        |     |
-| Specifications........................................................     | 3   |
-| Timing Specifications.........................................             | 8   |
-| Timing Diagrams................................................            | 9   |
-| SPI Block Write Mode......................................                 | 10  |
+| Specifications........................................................     |   3 |
+| Timing Specifications.........................................             |   8 |
+| Timing Diagrams................................................            |   9 |
+| SPI Block Write Mode......................................                 |  10 |
 | Short Control Command...................................10                 |     |
 | Shift Register Mode..........................................11            |     |
 
@@ -100,12 +100,12 @@ V1P2 = 1.2 V, V1P0 = 1.0 V, T A = 25°C, frequency = 10 GHz, TDU code = 0, and D
 
 Table 1. Specifications
 
-| Parameter                      | Test Conditions/Comments                           | Min   | Typ       | Max   | Unit   |
+| Parameter                      | Test Conditions/Comments                           |   Min | Typ       |   Max | Unit   |
 |--------------------------------|----------------------------------------------------|-------|-----------|-------|--------|
 | OPERATING CONDITIONS           |                                                    |       |           |       |        |
 | Minimum Frequency              |                                                    |       | 500       |       | MHz    |
 | Maximum Frequency              |                                                    |       | 19        |       | GHz    |
-| Operating Temperature          |                                                    | -40   |           | +85   | °C     |
+| Operating Temperature          |                                                    |   -40 |           |   +85 | °C     |
 | RF SECTION                     | RF1 and RF2                                        |       |           |       |        |
 | DC Bias Voltage                |                                                    |       | 0 1       |       | V      |
 | Insertion Loss                 |                                                    |       |           |       |        |
@@ -300,29 +300,32 @@ Table 1. Specifications (Continued)
 | High, V OH                                 | No load                                                                              |             | V1P0  |        | V       |
 |                                            | Output high current (I OH ) = -5 mA                                                  | V1P0 - 0.25 |       |        | V       |
 | Low, V OL                                  | No load                                                                              |             | 0     |        | V       |
-| POWER SUPPLIES                             |                                                                                      |             |       |        |         |
-| V1P2                                       |                                                                                      | 1.1         | 1.2   | 1.3    | V       |
-| V1P0                                       |                                                                                      | 0.9         | 1.0   | 1.1    | V       |
+| SUPPLIES                                   | Output low current (I OL ) = 5 mA                                                    |             |       |        |         |
+| V1P2                                       |                                                                                      |             | 1.2   | 1.3    |         |
+| V1P0                                       |                                                                                      | 0.9         |       | 1.1    |         |
+| POWER                                      |                                                                                      |             |       |        |         |
+|                                            |                                                                                      | 1.1         |       |        | V       |
+|                                            |                                                                                      |             | 1.0   |        | V       |
 
 ## SPECIFICATIONS
 
 Table 1. Specifications (Continued)
 
-| Parameter           | Test Conditions/Comments           | Min   | Typ   | Max   | Unit   |
+| Parameter           | Test Conditions/Comments           | Min   |   Typ | Max   | Unit   |
 |---------------------|------------------------------------|-------|-------|-------|--------|
 | I V1P2              | Quiescent, SPI mode                |       |       |       |        |
-| DSA = 0, TDU = 0    | Time Delay Range 0                 |       | 0.2   |       | mA     |
-| DSA = 63, TDU = 127 | Time Delay Range 0                 |       | 0.5   |       | mA     |
+| DSA = 0, TDU = 0    | Time Delay Range 0                 |       |   0.2 |       | mA     |
+| DSA = 63, TDU = 127 | Time Delay Range 0                 |       |   0.5 |       | mA     |
 | DSA = 0, TDU = 0    | Time Delay Range 1                 |       | 0.175 |       | mA     |
 | DSA = 63, TDU = 127 | Time Delay Range 1                 |       | 0.525 |       | mA     |
 | I V1P0              | Quiescent, SPI mode                |       |       |       |        |
-| DSA = 0, TDU = 0    | Time Delay Range 0                 |       | 0.45  |       | mA     |
-| DSA = 63, TDU = 127 | Time Delay Range 0                 |       | 0.62  |       | mA     |
-| DSA = 0, TDU = 0    | Time Delay Range 1                 |       | 0.45  |       | mA     |
+| DSA = 0, TDU = 0    | Time Delay Range 0                 |       |  0.45 |       | mA     |
+| DSA = 63, TDU = 127 | Time Delay Range 0                 |       |  0.62 |       | mA     |
+| DSA = 0, TDU = 0    | Time Delay Range 1                 |       |  0.45 |       | mA     |
 | DSA = 63, TDU = 127 | Time Delay Range 1                 |       | 0.625 |       | mA     |
-| DSA = 0, TDU = 0    | Quiescent, shift register mode     |       | 0.6   |       | mA     |
-| DSA = 0, TDU = 0    | 100 MHz clock, shift register mode |       | 2.38  |       | mA     |
-| Power Consumption   | Quiescent                          |       | 1     |       | mW     |
+| DSA = 0, TDU = 0    | Quiescent, shift register mode     |       |   0.6 |       | mA     |
+| DSA = 0, TDU = 0    | 100 MHz clock, shift register mode |       |  2.38 |       | mA     |
+| Power Consumption   | Quiescent                          |       |     1 |       | mW     |
 
 ## SPECIFICATIONS
 
@@ -332,37 +335,37 @@ V1P2 = 1.2 V, V1P0 = 1.0 V, and T A = 25°C, unless otherwise noted. See Figure 
 
 Table 2. SPI Timing
 
-| Parameter                                       | Min   | Typ   | Max   | Unit   | Test Conditions/Comments                                 |
+| Parameter                                       |   Min |   Typ |   Max | Unit   | Test Conditions/Comments                                 |
 |-------------------------------------------------|-------|-------|-------|--------|----------------------------------------------------------|
-| Maximum Clock Rate (1/t CLK_IN )                |       |       | 100   | MHz    |                                                          |
-| Minimum Clock Period (t CLK_IN )                | 10    |       |       | ns     |                                                          |
-| Minimum Pulse Width High (t PWH ) 1             | 4     |       |       | ns     |                                                          |
-| Minimum Pulse Width Low (t PWL ) 1              | 4     |       |       | ns     |                                                          |
-| Minimum Setup Time, DATA_IO to CLK_IN (t DS )   |       | 2.5   |       | ns     |                                                          |
-| Minimum Hold Time, DATA_IO to CLK_IN (t DH )    |       | 1     |       | ns     |                                                          |
-| Data Valid, CLK_IN to DATA_O (t DV )            |       | 2     |       | ns     |                                                          |
-| Setup Time, CSB_CLKO to CLK_IN (t DCS )         |       | 5     |       | ns     |                                                          |
-| DATA_IO and DATA_O Rise Time (t R )             |       | 1     |       | ns     | Outputs loaded with 80 pF, 10% to 90%                    |
-| Minimum Clock to Update (t CLK_IN-UPDATE )      |       | 10    |       | ns     |                                                          |
-| Minimum CSB_CLKO to Update (t CSB_CLKO-UPDATE ) |       | 10    |       | ns     |                                                          |
-| Minimum Update to Update (t UPDATE-UPDATE )     |       | 10    |       | ns     |                                                          |
-| Minimum Update Pulse width (t UPW )             |       | 5     |       | ns     |                                                          |
-| RF Settling Time (t RF_SETTLE )                 |       | 20    |       | ns     | TDU settling time between TDU code = 0 to TDU code = 127 |
+| Maximum Clock Rate (1/t CLK_IN )                |       |       |   100 | MHz    |                                                          |
+| Minimum Clock Period (t CLK_IN )                |    10 |       |       | ns     |                                                          |
+| Minimum Pulse Width High (t PWH ) 1             |     4 |       |       | ns     |                                                          |
+| Minimum Pulse Width Low (t PWL ) 1              |     4 |       |       | ns     |                                                          |
+| Minimum Setup Time, DATA_IO to CLK_IN (t DS )   |       |   2.5 |       | ns     |                                                          |
+| Minimum Hold Time, DATA_IO to CLK_IN (t DH )    |       |     1 |       | ns     |                                                          |
+| Data Valid, CLK_IN to DATA_O (t DV )            |       |     2 |       | ns     |                                                          |
+| Setup Time, CSB_CLKO to CLK_IN (t DCS )         |       |     5 |       | ns     |                                                          |
+| DATA_IO and DATA_O Rise Time (t R )             |       |     1 |       | ns     | Outputs loaded with 80 pF, 10% to 90%                    |
+| Minimum Clock to Update (t CLK_IN-UPDATE )      |       |    10 |       | ns     |                                                          |
+| Minimum CSB_CLKO to Update (t CSB_CLKO-UPDATE ) |       |    10 |       | ns     |                                                          |
+| Minimum Update to Update (t UPDATE-UPDATE )     |       |    10 |       | ns     |                                                          |
+| Minimum Update Pulse width (t UPW )             |       |     5 |       | ns     |                                                          |
+| RF Settling Time (t RF_SETTLE )                 |       |    20 |       | ns     | TDU settling time between TDU code = 0 to TDU code = 127 |
 
 Table 3. Shift Register Mode Timing
 
-| Parameter                                     | Min   | Typ   | Max   | Unit   | Test Conditions/Comments                                 |
+| Parameter                                     |   Min |   Typ |   Max | Unit   | Test Conditions/Comments                                 |
 |-----------------------------------------------|-------|-------|-------|--------|----------------------------------------------------------|
-| Maximum Clock Rate (1/t CLK_IN )              |       |       | 100   | MHz    |                                                          |
-| Minimum Clock Period (t CLK_IN )              | 10    |       |       | ns     |                                                          |
-| Minimum Pulse Width High (t PWH ) 1           | 4     |       |       | ns     |                                                          |
-| Minimum Pulse Width Low (t PWL ) 1            | 4     |       |       | ns     |                                                          |
-| Minimum Setup Time, DATA_IO to CLK_IN (t DS ) |       | 2.5   |       | ns     |                                                          |
-| Minimum Hold Time, DATA_IO to CLK_IN (t DH )  |       | 1     |       | ns     |                                                          |
-| Data Valid, CLK_IN to DATA_O (t DV )          |       | 2     |       | ns     |                                                          |
-| DATA_IO, DATA_O Rise Time (t R )              |       | 1     |       | ns     | Outputs loaded with 80 pF, 10% to 90%                    |
-| Minimum Clock to Update (t CLK_IN-UPDATE )    |       | 10    |       | ns     |                                                          |
-| RF Settling Time (t RF_SETTLE )               |       | 20    |       | ns     | TDU settling time between TDU code = 0 to TDU code = 127 |
+| Maximum Clock Rate (1/t CLK_IN )              |       |       |   100 | MHz    |                                                          |
+| Minimum Clock Period (t CLK_IN )              |    10 |       |       | ns     |                                                          |
+| Minimum Pulse Width High (t PWH ) 1           |     4 |       |       | ns     |                                                          |
+| Minimum Pulse Width Low (t PWL ) 1            |     4 |       |       | ns     |                                                          |
+| Minimum Setup Time, DATA_IO to CLK_IN (t DS ) |       |   2.5 |       | ns     |                                                          |
+| Minimum Hold Time, DATA_IO to CLK_IN (t DH )  |       |     1 |       | ns     |                                                          |
+| Data Valid, CLK_IN to DATA_O (t DV )          |       |     2 |       | ns     |                                                          |
+| DATA_IO, DATA_O Rise Time (t R )              |       |     1 |       | ns     | Outputs loaded with 80 pF, 10% to 90%                    |
+| Minimum Clock to Update (t CLK_IN-UPDATE )    |       |    10 |       | ns     |                                                          |
+| RF Settling Time (t RF_SETTLE )               |       |    20 |       | ns     | TDU settling time between TDU code = 0 to TDU code = 127 |
 
 ## SPECIFICATIONS
 
@@ -431,21 +434,21 @@ Electrical characteristics at V1P2 = 1.2 V, V1P0 = 1.0 V, T A = 25°C, and frequ
 
 Table 5. Radiation Specifications
 
-| Parameter              | Test Conditions/Comments   | Min   | Typ   | Max   | Unit   |
+| Parameter              | Test Conditions/Comments   |   Min | Typ   |   Max | Unit   |
 |------------------------|----------------------------|-------|-------|-------|--------|
 | SUPPLY CHARACTERISTICS |                            |       |       |       |        |
 | Quiescent Current      |                            |       |       |       |        |
-| V1P2                   |                            |       |       | 0.4   | mA     |
-| V1P0                   |                            |       |       | 0.6   | mA     |
+| V1P2                   |                            |       |       |   0.4 | mA     |
+| V1P0                   |                            |       |       |   0.6 | mA     |
 | RF SECTION             |                            |       |       |       |        |
-| Time Delay Slope       | Range 0                    | 3.9   |       | 4.2   | ps/LSB |
-|                        | Range 1                    | 1.9   |       | 2.15  | ps/LSB |
+| Time Delay Slope       | Range 0                    |   3.9 |       |   4.2 | ps/LSB |
+|                        | Range 1                    |   1.9 |       |  2.15 | ps/LSB |
 | Attenuation Slope      |                            |       |       |       |        |
-|                        | 5 GHz                      | 0.43  |       | 0.60  | dB/LSB |
-|                        | 10 GHz                     | 0.47  |       | 0.57  | dB/LSB |
-|                        | 15 GHz                     | 0.48  |       | 0.55  | dB/LSB |
+|                        | 5 GHz                      |  0.43 |       |  0.60 | dB/LSB |
+|                        | 10 GHz                     |  0.47 |       |  0.57 | dB/LSB |
+|                        | 15 GHz                     |  0.48 |       |  0.55 | dB/LSB |
 | Gain                   | Range = 1                  |       |       |       |        |
-|                        | 5 GHz                      | -11.8 |       | -9.8  | dB     |
+|                        | 5 GHz                      | -11.8 |       |  -9.8 | dB     |
 |                        | 10 GHz                     | -17.8 |       | -15.8 | dB     |
 |                        | 15 GHz                     | -23.2 |       | -21.2 | dB     |
 

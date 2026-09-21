@@ -1,4 +1,4 @@
-<!-- lastmod 2025-10-14 -->
+<!-- lastmod 2026-05-14 -->
 <!-- image -->
 
 ## FEATURES
@@ -35,21 +35,21 @@ The ADPA1112CHIP is fabricated on a gallium nitride (GaN) process and is specifi
 
 ## TABLE OF CONTENTS
 
-| Features................................................................   | 1   |
+| Features................................................................   |   1 |
 |----------------------------------------------------------------------------|-----|
-| Applications...........................................................    | 1   |
+| Applications...........................................................    |   1 |
 | Functional Block Diagram......................................1            |     |
 | General Description...............................................1        |     |
 | Electrical Specifications.........................................3        |     |
-| 2GHz to 8GHz Frequency Range......................                         | 3   |
-| 8GHz to 16GHz Frequency Range....................                          | 3   |
-| 16GHz to 20GHz Frequency Range..................                           | 4   |
-| 20GHz to 22GHz Frequency Range..................                           | 4   |
+| 2GHz to 8GHz Frequency Range......................                         |   3 |
+| 8GHz to 16GHz Frequency Range....................                          |   3 |
+| 16GHz to 20GHz Frequency Range..................                           |   4 |
+| 20GHz to 22GHz Frequency Range..................                           |   4 |
 | Absolute Maximum Ratings...................................5               |     |
-| Thermal Resistance...........................................              | 5   |
+| Thermal Resistance...........................................              |   5 |
 | Electrostatic Discharge (ESD) Ratings...............5                      |     |
 | ESD Caution.......................................................5        |     |
-| Pin Configuration and Function Descriptions........                        | 6   |
+| Pin Configuration and Function Descriptions........                        |   6 |
 | Interface Schematics..........................................7            |     |
 | Typical Performance Characteristics.....................8                  |     |
 
@@ -80,24 +80,24 @@ TCASE = 25°C, VDD1 drain bias voltage (V DD1 ) and VDD2 drain bias voltage (V D
 
 Table 1. 2GHz to 8GHz Frequency Range
 
-| Parameter                       | Min   | Typ   | Max   | Unit   | Test Conditions/Comments                                                                        |
+| Parameter                       |   Min | Typ   |   Max | Unit   | Test Conditions/Comments                                                                        |
 |---------------------------------|-------|-------|-------|--------|-------------------------------------------------------------------------------------------------|
-| FREQUENCY RANGE                 | 2     |       | 8     | GHz    |                                                                                                 |
+| FREQUENCY RANGE                 |     2 |       |     8 | GHz    |                                                                                                 |
 | GAIN                            |       |       |       |        |                                                                                                 |
-| Small Signal Gain (S21)         | 16.5  | 20.5  |       | dB     |                                                                                                 |
+| Small Signal Gain (S21)         |  16.5 | 20.5  |       | dB     |                                                                                                 |
 | Gain Flatness                   |       | ±0.5  |       | dB     |                                                                                                 |
 | Gain Variation over Temperature |       | 0.03  |       | dB/°C  |                                                                                                 |
 | RETURN LOSS                     |       |       |       |        |                                                                                                 |
 | Input (S11)                     |       | 16    |       | dB     |                                                                                                 |
 | Output (S22)                    |       | 10    |       | dB     |                                                                                                 |
 | POWER                           |       |       |       |        | P IN = 30.0dBm                                                                                  |
-| Output (P OUT )                 | 39.5  | 41.5  |       | dBm    |                                                                                                 |
-| Gain                            | 9.5   | 11.5  |       | dB     |                                                                                                 |
+| Output (P OUT )                 |  39.5 | 41.5  |       | dBm    |                                                                                                 |
+| Gain                            |   9.5 | 11.5  |       | dB     |                                                                                                 |
 | Power Added Efficiency (PAE)    |       | 24    |       | %      |                                                                                                 |
 | OIP3                            |       | 44.5  |       | dBm    | P OUT per tone = 32.0dBm with 1MHz spacing                                                      |
 | OIP2                            |       | 51    |       | dBm    | P OUT per tone = 32.0dBm with 1MHz spacing                                                      |
 | SUPPLY                          |       |       |       |        |                                                                                                 |
-| V DD                            |       | 28    | 30    | V      |                                                                                                 |
+| V DD                            |       | 28    |    30 | V      |                                                                                                 |
 | I DQ                            |       | 600   |       | mA     | Adjust the gate control voltage (V GG1 ) between -3V and -1V to achieve an I DQ = 600mA typical |
 
 ## 8GH z TO 16GH z FREQUENCY RANGE
@@ -106,24 +106,24 @@ TCASE = 25°C, V DD1 = V DD2 = 28V, I DQ = 600mA, and frequency range = 8GHz to 
 
 Table 2. 8GHz to 16GHz Frequency Range
 
-| Parameter                       | Min   | Typ   | Max   | Unit   | Test Conditions/Comments                                            |
+| Parameter                       |   Min | Typ   |   Max | Unit   | Test Conditions/Comments                                            |
 |---------------------------------|-------|-------|-------|--------|---------------------------------------------------------------------|
-| FREQUENCY RANGE                 | 8     |       | 16    | GHz    |                                                                     |
+| FREQUENCY RANGE                 |     8 |       |    16 | GHz    |                                                                     |
 | GAIN                            |       |       |       |        |                                                                     |
-| S21                             | 16    | 20    |       | dB     |                                                                     |
+| S21                             |    16 | 20    |       | dB     |                                                                     |
 | Gain Flatness                   |       | ±0.3  |       | dB     |                                                                     |
 | Gain Variation over Temperature |       | 0.03  |       | dB/°C  |                                                                     |
 | RETURN LOSS                     |       |       |       |        |                                                                     |
 | S11                             |       | 16    |       | dB     |                                                                     |
 | S22                             |       | 13    |       | dB     |                                                                     |
 | POWER                           |       |       |       |        | P IN = 30.0dBm                                                      |
-| P OUT                           | 40    | 42    |       | dBm    |                                                                     |
-| Gain                            | 10    | 12    |       | dB     |                                                                     |
+| P OUT                           |    40 | 42    |       | dBm    |                                                                     |
+| Gain                            |    10 | 12    |       | dB     |                                                                     |
 | PAE                             |       | 24    |       | %      |                                                                     |
 | OIP3                            |       | 43.5  |       | dBm    | P OUT per tone = 32.0dBm with 1MHz spacing                          |
 | OIP2                            |       | 54    |       | dBm    | P OUT per tone = 32.0dBm with 1MHz spacing                          |
 | SUPPLY                          |       |       |       |        |                                                                     |
-| V DD                            |       | 28    | 30    | V      |                                                                     |
+| V DD                            |       | 28    |    30 | V      |                                                                     |
 | I DQ                            |       | 600   |       | mA     | Adjust V GG1 between -3V and -1V to achieve an I DQ = 600mA typical |
 
 ## ELECTRICAL SPECIFICATIONS
@@ -134,24 +134,24 @@ TCASE = 25°C, V DD1 = V DD2 = 28V, I DQ = 600mA, and frequency range = 16GHz to
 
 Table 3. 16GHz to 20GHz Frequency Range
 
-| Parameter                       | Min   | Typ   | Max   | Unit   | Test Conditions/Comments                                            |
+| Parameter                       |   Min | Typ   |   Max | Unit   | Test Conditions/Comments                                            |
 |---------------------------------|-------|-------|-------|--------|---------------------------------------------------------------------|
-| FREQUENCY RANGE                 | 16    |       | 20    | GHz    |                                                                     |
+| FREQUENCY RANGE                 |    16 |       |    20 | GHz    |                                                                     |
 | GAIN                            |       |       |       |        |                                                                     |
-| S21                             | 16.5  | 20.5  |       | dB     |                                                                     |
+| S21                             |  16.5 | 20.5  |       | dB     |                                                                     |
 | Gain Flatness                   |       | ±0.5  |       | dB     |                                                                     |
 | Gain Variation over Temperature |       | 0.03  |       | dB/°C  |                                                                     |
 | RETURN LOSS                     |       |       |       |        |                                                                     |
 | S11                             |       | 16    |       | dB     |                                                                     |
 | S22                             |       | 14    |       | dB     |                                                                     |
 | POWER                           |       |       |       |        | P IN = 30.0dBm                                                      |
-| P OUT                           | 39.5  | 41.5  |       | dBm    |                                                                     |
-| Gain                            | 9.5   | 11.5  |       | dB     |                                                                     |
+| P OUT                           |  39.5 | 41.5  |       | dBm    |                                                                     |
+| Gain                            |   9.5 | 11.5  |       | dB     |                                                                     |
 | PAE                             |       | 21    |       | %      |                                                                     |
 | OIP3                            |       | 44    |       | dBm    | P OUT per tone = 32.0dBm with 1MHz spacing                          |
 | OIP2                            |       | 55    |       | dBm    | P OUT per tone = 32.0dBm with 1MHz spacing                          |
 | SUPPLY                          |       |       |       |        |                                                                     |
-| V DD                            |       | 28    | 30    | V      |                                                                     |
+| V DD                            |       | 28    |    30 | V      |                                                                     |
 | I DQ                            |       | 600   |       | mA     | Adjust V GG1 between -3V and -1V to achieve an I DQ = 600mA typical |
 
 ## 20GH z TO 22GH z FREQUENCY RANGE
@@ -160,9 +160,9 @@ TCASE = 25°C, V DD1 and V DD2 = 28V, I DQ = 600mA, and frequency range = 20GHz 
 
 Table 4. 20GHz to 22GHz Frequency Range
 
-| Parameter                       | Min   | Typ   | Max   | Unit   | Test Conditions/Comments                                            |
+| Parameter                       |   Min | Typ   |   Max | Unit   | Test Conditions/Comments                                            |
 |---------------------------------|-------|-------|-------|--------|---------------------------------------------------------------------|
-| FREQUENCY RANGE                 | 20    |       | 22    | GHz    |                                                                     |
+| FREQUENCY RANGE                 |    20 |       |    22 | GHz    |                                                                     |
 | GAIN                            |       |       |       |        |                                                                     |
 | S21                             |       | 19.5  |       | dB     |                                                                     |
 | Gain Flatness                   |       | ±1.2  |       | dB     |                                                                     |
@@ -177,7 +177,7 @@ Table 4. 20GHz to 22GHz Frequency Range
 | OIP3                            |       | 44    |       | dBm    | P OUT per tone = 32.0dBm with 1MHz spacing                          |
 | OIP2                            |       | 55    |       | dBm    | P OUT per tone = 32.0dBm with 1MHz spacing                          |
 | SUPPLY                          |       |       |       |        |                                                                     |
-| V DD                            |       | 28    | 30    | V      |                                                                     |
+| V DD                            |       | 28    |    30 | V      |                                                                     |
 | I DQ                            |       | 600   |       | mA     | Adjust V GG1 between -3V and -1V to achieve an I DQ = 600mA typical |
 
 ## ABSOLUTE MAXIMUM RATINGS

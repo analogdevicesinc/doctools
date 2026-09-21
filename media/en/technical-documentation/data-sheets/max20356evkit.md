@@ -1,4 +1,4 @@
-<!-- lastmod 2025-04-04 -->
+<!-- lastmod 2026-05-26 -->
 <!-- image -->
 
 ## Evaluates: MAX20356/MAX20358
@@ -205,9 +205,7 @@ Figure 10. LDO1 and LDO2 Tab
 
 <!-- image -->
 
-www.analog.com
-
-Evaluates: MAX20356/MAX20358
+www.analog.com Evaluates: MAX20356/MAX20358
 
 ## MAX20356 Evaluation Kit
 
@@ -358,8 +356,6 @@ Table 1 shows the detailed jumper setting, and Table 2 shows the connector descr
 
 *Default position.
 
-Evaluates: MAX20356/MAX20358
-
 Table 2. Connector Description
 
 | CONNECTOR                                                            | DESCRIPTION                                                          |
@@ -421,10 +417,6 @@ Drag and drop the firmware image file (.bin) into the MAINTENANCE drive, and the
 |     10 | C21, C22, C32, C39, C40, C47, C48, C55, C56, C87, C88, C96, C104, C105, C109, C112,                                            | -          |    18 | ANY                                   | ANY                     | 0.1UF   | CAPACITOR; SMT (0402); CERAMIC CHIP; 0.1UF; 25V; TOL=10%; MODEL=C SERIES; TG=-55 DEGC TO +125 DEGC; TC=X7R; FORMFACTOR |
 |     11 | C23, C27                                                                                                                       | -          |     2 | GRM31CR71 H475KA12;G RJ31CR71H        | MURATA; MURATA; MURATA; | 4.7UF   | CAP; SMT (1206); 4.7UF; 10%; 50V; X7R; CERAMIC                                                                         |
 
-www.analog.com
-
-Analog Devices | 16
-
 ## MAX20356 Evaluation Kit
 
 ## Evaluates: MAX20356/MAX20358
@@ -445,8 +437,6 @@ Analog Devices | 16
 | 21 | C35, C42, C43, C50, C51, C58, C59, C90, C91, C102 | -  | 10 | GRM155R71 H102JA01;G CM155R71H 102JA37                                                                     | MURATA; MURATA               | 1000P F | CAP; SMT (0402); 1000PF; 5%; 50V; X7R; CERAMIC                                                                        |
 | 22 | C36, C44, C52, C60, C92                           | -  |  5 | ANY                                                                                                        | ANY                          | 1UF     | CAPACITOR; SMT (0402); CERAMIC CHIP; 1UF; 6.3V; TOL=20%; MODEL=C SERIES; TG=-55 DEGC TO +85 DEGC; TC=X5R ; FORMFACTOR |
 | 23 | C37, C38, C45, C46, C53, C54,                     | -  | 13 | C0402C472J 5RAC                                                                                            | KEMET                        | 4700P F | CAP; SMT (0402); 4700PF; 5%; 50V; X7R; CERAMIC                                                                        |
-
-www.analog.com
 
 ## Evaluates: MAX20356/MAX20358
 
@@ -507,8 +497,6 @@ www.analog.com
 |   62 | R62, R75, R90, R148, R170                            | -   |   5 | CRCW04021 M00FK                | VISHAY DALE                       | 1M     | RES; SMT (0402); 1M; 1%; +/-100PPM/DEGC; 0.0630W                                                                                                     |
 |   63 | R63, R64, R76, R77, R91, R92, R146, R147,            | -   |  10 | ANY                            | ANY                               | 1K     | RESISTOR; 0402; 1K; 1%; 100PPM; 0.0625W; THICK FILM; FORMFACTOR                                                                                      |
 |   64 | R168, R169 R65, R67, R78, R80,                       | -   |  10 | CRCW04027 87KFK                | VISHAY DALE                       | 787K   | RES; SMT (0402); 787K; 1%; +/- 100PPM/DEGC; 0.0630W                                                                                                  |
-
-www.analog.com
 
 ## Evaluates: MAX20356/MAX20358
 

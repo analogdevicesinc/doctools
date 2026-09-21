@@ -1,4 +1,4 @@
-<!-- lastmod 2024-10-01 -->
+<!-- lastmod 2026-05-29 -->
 <!-- image -->
 
 ## Commercial Space Product
@@ -12,20 +12,20 @@
 - Accurate RMS power measurement of high crest factors (up to 12 dB) modulated waveforms
 - Low-power shutdown mode
 - Low-supply current: 30 mA at 3.3 V (typical)
-- 8-lead plastic LFCSP (05-08-1957)
+- 8-lead, plastic DFN (2 mm × 2 mm), flip chip (05-08-1957)
 - -40°C to +125°C rated with guaranteed log slope and log intercept
 
 ## COMMERCIAL SPACE FEATURES
 
+- Radiation test and performance
+- Radiation hardness assurance (RHA) up to TID of 100 krads
+- No SEL occurs at effective LET: ≤ 80 MeV-cm 2 /mg
+- Radiation reports are available at RH5596S product page
 - Supports aerospace applications
 - Certificate of Conformance
 - Wafer diffusion lot traceability
 - Qualification based on flows per NASA PEM-INST-001 and SAE AS6294
 - Burn-in, life test, and deltas analysis
-- Radiation lot acceptance test (RLAT)
-- Total ionizing dose (TID)
-- Radiation benchmark
-- No single event latch-up (SEL) occurs at effective linear energy transfer (LET): ≤ 80 MeV-cm 2 /mg
 - Outgassing characterization
 
 ## APPLICATIONS
@@ -39,9 +39,9 @@
 - Long-term evolution (LTE), Wi-Fi, WiMAX wireless networks
 - RMS power measurement
 - Receive and transmit gain control
-- RF power amplifier (PA) transmit power control
+- RF power amplifier transmit power control
 
-## RH5596S-CSH
+## [RH5596S-CSH](https://www.analog.com/rh5596s)
 
 ## 100 MHz to 40 GHz Linear-in-dB RMS Power Detector with 35 dB Dynamic Range
 
@@ -49,7 +49,7 @@
 
 The RH5596S-CSH is a high accuracy RMS power detector that provides a very wide RF input bandwidth, from 100 MHz up to 40 GHz. This makes the device suitable for a wide range of RF and microwave applications, such as point-to-point microwave links, instrumentation, and power control applications.
 
-The DC output-voltage of the detector is an accurate representation of the average signal power applied to the RF input. The response is linear-in-dB with 29 mV/dB logarithmic slope over a 35 dB dynamic range with typically better than ±1 dB accuracy over the full operating temperature range and RF frequency range, from 200 MHz to 30 GHz. In addition, the device's response has ±1dB flatness within the frequency range of 200 MHz to 30 GHz. The detector is particularly suited for measurement of waveforms with crest factor (CF) as high as 12 dB, and waveforms that exhibit a significant variation of the CF during measurement.
+The DC output-voltage of the detector is an accurate representation of the average signal power applied to the RF input. The response is linear-in-dB with 29 mV/dB logarithmic slope over a 35 dB dynamic range with typically better than ±1 dB accuracy over the full operating temperature range and RF frequency range, from 200 MHz to 30 GHz. In addition, the device's response has ±1dB flatness within the frequency range of 200 MHz to 30 GHz. The detector is particularly suited for measurement of waveforms with crest factor as high as 12 dB, and waveforms that exhibit a significant variation of the crest factor during measurement.
 
 To achieve higher accuracy and lower output ripple, the averaging bandwidth can be externally adjusted by a capacitor connected between the FLTR pin and OUT pin.
 
@@ -57,250 +57,265 @@ The enable interface switches the device between an active measurement mode and 
 
 Additional application and technical information can be found in the Commercial Space Products Program brochure and the LTC5596 data sheet.
 
-| Data Sheet RH5596S-CSH                                                                                                                                                          | Data Sheet RH5596S-CSH                                                                                                                                                          | Data Sheet RH5596S-CSH                                                                                                                                                          |
-|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| TABLE OF CONTENTS                                                                                                                                                               | TABLE OF CONTENTS                                                                                                                                                               | TABLE OF CONTENTS                                                                                                                                                               |
-| Features................................................................ 1                                                                                                      | Outgas Testing...................................................                                                                                                               | 9                                                                                                                                                                               |
-| Commercial Space Features.................................1                                                                                                                     |                                                                                                                                                                                 | Radiation Features.............................................9                                                                                                                |
-| Applications...........................................................                                                                                                         | 1                                                                                                                                                                               | Electrostatic Discharge (ESD) Ratings...............9                                                                                                                           |
-| General Description...............................................1                                                                                                             | ESD                                                                                                                                                                             | Caution.......................................................9                                                                                                                 |
-| Specifications........................................................                                                                                                          | 3                                                                                                                                                                               | Pin Configuration and Function Descriptions...... 10                                                                                                                            |
-| Burn-In Delta Limit Specifications......................                                                                                                                        | 7                                                                                                                                                                               | Typical Performance Characteristics................... 11                                                                                                                       |
-| Radiation Test and Limit Specifications..............8                                                                                                                          | Outline                                                                                                                                                                         | Dimensions............................................. 12                                                                                                                      |
-| Absolute Maximum Ratings...................................9                                                                                                                    |                                                                                                                                                                                 | Ordering Guide.................................................12                                                                                                               |
-| Thermal Resistance........................................... 9                                                                                                                 | Thermal Resistance........................................... 9                                                                                                                 | Thermal Resistance........................................... 9                                                                                                                 |
-| REVISION HISTORY                                                                                                                                                                | REVISION HISTORY                                                                                                                                                                | REVISION HISTORY                                                                                                                                                                |
-| 2/2024-Rev. 0 to Rev. A Change to Features Section............................................................................................................................1 | 2/2024-Rev. 0 to Rev. A Change to Features Section............................................................................................................................1 | 2/2024-Rev. 0 to Rev. A Change to Features Section............................................................................................................................1 |
+## Data Sheet
 
-## 2/2023-Revision 0: Initial Version
+## TABLE OF CONTENTS
+
+| Features................................................................ 1                                                                                                                                                                                                                       | Explanation of Test Levels..................................9                                                                                                                                                                                                                                    |
+|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Commercial Space Features.................................1                                                                                                                                                                                                                                      | Outgas Testing................................................... 9                                                                                                                                                                                                                              |
+| Applications........................................................... 1                                                                                                                                                                                                                        | Radiation Features.............................................9                                                                                                                                                                                                                                 |
+| General Description...............................................1                                                                                                                                                                                                                              | Electrostatic Discharge (ESD) Ratings...............9                                                                                                                                                                                                                                            |
+| Specifications........................................................ 3                                                                                                                                                                                                                         | ESD Caution.......................................................9                                                                                                                                                                                                                              |
+| Burn-In Delta Limit Specifications...................... 7                                                                                                                                                                                                                                       | Pin Configuration and Function Descriptions...... 10                                                                                                                                                                                                                                             |
+| Radiation Test and Limit Specifications..............8                                                                                                                                                                                                                                           | Typical Performance Characteristics................... 11                                                                                                                                                                                                                                        |
+| Absolute Maximum Ratings...................................9                                                                                                                                                                                                                                     | Outline Dimensions............................................. 12                                                                                                                                                                                                                               |
+| Thermal Resistance........................................... 9                                                                                                                                                                                                                                  | Ordering Guide.................................................12                                                                                                                                                                                                                                |
+| REVISION HISTORY                                                                                                                                                                                                                                                                                 |                                                                                                                                                                                                                                                                                                  |
+| 5/2026-Rev. A to Rev. B                                                                                                                                                                                                                                                                          |                                                                                                                                                                                                                                                                                                  |
+| Changed 8-Lead Plastic LFCSP to 8-Lead Plastic DFN Throughout.............................................................. 1                                                                                                                                                                    | Changed 8-Lead Plastic LFCSP to 8-Lead Plastic DFN Throughout.............................................................. 1                                                                                                                                                                    |
+| Changes to Commercial Space Features Section...........................................................................................1                                                                                                                                                         | Changes to Commercial Space Features Section...........................................................................................1                                                                                                                                                         |
+| Changes to Specifications Section and Table 1...............................................................................................3                                                                                                                                                    | Changes to Specifications Section and Table 1...............................................................................................3                                                                                                                                                    |
+| Added Explanation of Test Levels Section and Table 6; Renumbered Sequentially........................................9                                                                                                                                                                           | Added Explanation of Test Levels Section and Table 6; Renumbered Sequentially........................................9                                                                                                                                                                           |
+| Changes to Table 8..........................................................................................................................................9                                                                                                                                    | Changes to Table 8..........................................................................................................................................9                                                                                                                                    |
+| Updated Outline Dimensions.........................................................................................................................12                                                                                                                                            | Updated Outline Dimensions.........................................................................................................................12                                                                                                                                            |
+| 2/2024-Rev. 0 to Rev. A                                                                                                                                                                                                                                                                          | 2/2024-Rev. 0 to Rev. A                                                                                                                                                                                                                                                                          |
+| Change to Features Section............................................................................................................................1 Changes to Commercial Space Features Section...........................................................................................1 | Change to Features Section............................................................................................................................1 Changes to Commercial Space Features Section...........................................................................................1 |
+| Changes to Applications Section.....................................................................................................................1                                                                                                                                            | Changes to Applications Section.....................................................................................................................1                                                                                                                                            |
+| Change to Table 8 Title....................................................................................................................................9                                                                                                                                     | Change to Table 8 Title....................................................................................................................................9                                                                                                                                     |
+| Changes to Figure 1 and Table 9...................................................................................................................10                                                                                                                                             | Changes to Figure 1 and Table 9...................................................................................................................10                                                                                                                                             |
+| Updated Outline Dimensions.........................................................................................................................12                                                                                                                                            | Updated Outline Dimensions.........................................................................................................................12                                                                                                                                            |
+| Changes to Ordering Guide...........................................................................................................................12                                                                                                                                           | Changes to Ordering Guide...........................................................................................................................12                                                                                                                                           |
+
+2/2023-Revision 0: Initial Version
 
 ## SPECIFICATIONS
 
-TA = 25°C, V CC = 3.3 V, EN = 3.3 V, unless otherwise noted. Continuous wave, 50 Ω source at RF IN , RF frequency (f RF ) = 2140 MHz, unless otherwise noted.
+VCC = 3.3 V and EN = 3.3 V, unless otherwise noted. Continuous wave, 50 Ω source at RF IN and RF frequency (f RF ) = 2140 MHz, unless otherwise noted. Minimum and maximum specifications represent performance at -40°C ≤ T A ≤ +85°C, unless otherwise noted. Typical specifications represent performance at T A = 25°C.
 
 Table 1. Electrical Characteristics
 
-| Parameter                          | Test Conditions               | Temperature 1   | Min   | Typ              | Max   | Unit            |
-|------------------------------------|-------------------------------|-----------------|-------|------------------|-------|-----------------|
-| RF INPUT                           |                               |                 |       |                  |       |                 |
-| Input Frequency Range              |                               |                 |       | 0.1 to 40        |       | GHz             |
-| Input Impedance                    |                               |                 |       | 52&#124;&#124;50 |       | Ω&#124;&#124;fF |
-| DETECTOR RESPONSE (RF IN TO OUT)   |                               |                 |       |                  |       |                 |
-| RF Input Power Range, T A = 25°C   | f RF = 50 MHz                 |                 |       | -33.2 to +6.3    |       | dBm             |
-| ±1 dB Log Linearity Error 2, 3     | f RF = 100 MHz                |                 |       | -37.1 to +5.8    |       | dBm             |
-|                                    | f RF = 500 MHz                |                 |       | -40.8 to +3.3    |       | dBm             |
-|                                    | f RF = 2.14 GHz               |                 |       | -39.1 to +4.2    |       | dBm             |
-|                                    | f RF = 5.8 GHz                |                 |       | -39.7 to +3.7    |       | dBm             |
-|                                    | f RF = 7.6 GHz                |                 |       | -38.9 to +4.3    |       | dBm             |
-|                                    | f RF = 10 GHz                 |                 |       | -39.0 to +4.2    |       | dBm             |
-|                                    | f RF = 12 GHz                 |                 |       | -38.5 to +4.5    |       | dBm             |
-|                                    | f RF = 15 GHz                 |                 |       | -37.5 to +5.5    |       | dBm             |
-|                                    | f RF = 18 GHz                 |                 |       | -38.4 to +4.6    |       | dBm             |
-|                                    | f RF = 24 GHz                 |                 |       | -39.3 to +0.2    |       | dBm             |
-|                                    | f RF = 26 GHz                 |                 |       | -37.8 to +5.0    |       | dBm             |
-|                                    | f RF = 28 GHz                 |                 |       | -40.1 to -0.6    |       | dBm             |
-|                                    | f RF = 30 GHz                 |                 |       | -39.8 to +3.1    |       | dBm             |
-|                                    | f RF = 35 GHz                 |                 |       | -37.3 to +3.1    |       | dBm             |
-|                                    | f RF = 38 GHz                 |                 |       | -34.2 to +3.6    |       | dBm             |
-|                                    | f RF = 40 GHz                 |                 |       | -32.6 to +2.9    |       | dBm             |
-|                                    | f RF = 43.5 GHz               |                 |       | -28.2 to +4.6    |       | dBm             |
-| RF Input Power Range Over          | f RF = 50 MHz                 | Full            |       | -28.4 to +3.0    |       | dBm             |
-| Operating Temperature Range        | f RF = 100 MHz                | Full            |       | -37.1 to +3.0    |       | dBm             |
-| ±1 dB Log Linearity Error 2, 3     | f RF = 500 MHz                | Full            |       | -35.9 to -1.2    |       | dBm             |
-|                                    | f RF = 2.14 GHz               | Full            |       | -35.2 to -0.2    |       | dBm             |
-|                                    | f RF = 5.8 GHz                | Full            |       | -35.3 to -0.7    |       | dBm             |
-|                                    | f RF = 7.6 GHz                | Full            |       | -34.7 to -0.2    |       | dBm             |
-|                                    | f RF = 10 GHz                 | Full            |       | -34.5 to -0.5    |       | dBm             |
-|                                    | f RF = 12 GHz                 | Full            |       | -34.1 to +0.3    |       | dBm             |
-|                                    | f RF = 15 GHz                 | Full            |       | -33.5 to +1.4    |       | dBm             |
-|                                    | f RF = 18 GHz                 | Full            |       | -35.2 to -0.1    |       | dBm             |
-|                                    | f RF = 24 GHz                 | Full            |       | -36.0 to -1.2    |       | dBm             |
-|                                    | f RF = 26 GHz                 | Full            |       | -34.8 to -0.1    |       | dBm             |
-|                                    | f RF = 28 GHz                 | Full            |       | -36.4 to -2.5    |       | dBm             |
-|                                    | f RF = 30 GHz                 | Full            |       | -35.3 to -2.1    |       | dBm             |
-| ±1.5 dB Log Linearity Error        | f RF = 35 GHz                 | Full            |       | -32.3 to -1.5    |       | dBm             |
-|                                    | f RF = 38 GHz                 | Full            |       | -29.2 to -0.2    |       | dBm             |
-|                                    | f RF = 40 GHz                 | Full            |       | -27.1 to -0.9    |       | dBm             |
-|                                    | f RF = 43.5 GHz               | Full            |       | -22.1 to +0.3    |       | dBm             |
-| Linear Dynamic Range, T A = 25°C 3 | f RF = 50 MHz                 |                 |       | 39.5             |       | dB              |
-|                                    | f RF = 100 MHz                |                 |       | 42.9             |       | dB              |
-|                                    | f RF = 500 MHz                |                 |       | 44.1             |       | dB              |
-|                                    | f RF = 2.14 GHz               |                 |       | 43.3             |       | dB              |
-|                                    | f RF = 5.8 GHz f RF = 7.6 GHz |                 |       | 43.3             |       | dB dB           |
-|                                    |                               |                 |       | 43.2             |       |                 |
+| Parameter                        | Test Conditions   | Test Level 1   | Temperature (T A )   | Min   | Typ              | Max   | Unit            |
+|----------------------------------|-------------------|----------------|----------------------|-------|------------------|-------|-----------------|
+| RF INPUT                         |                   |                |                      |       |                  |       |                 |
+| Input Frequency Range            |                   |                |                      |       | 0.1 to 40        |       | GHz             |
+| Input Impedance                  |                   |                |                      |       | 52&#124;&#124;50 |       | Ω&#124;&#124;fF |
+| DETECTOR RESPONSE (RF IN TO OUT) |                   |                |                      |       |                  |       |                 |
+| RF Input Power Range             | f RF = 50 MHz     | III            | 25°C                 |       | -33.2 to +6.3    |       | dBm             |
+| ±1 dB Log Linearity Error 2, 3   | f RF = 100 MHz    | III            | 25°C                 |       | -37.1 to +5.8    |       | dBm             |
+|                                  | f RF = 500 MHz    | III            | 25°C                 |       | -40.8 to +3.3    |       | dBm             |
+|                                  | f RF = 2.14 GHz   | III            | 25°C                 |       | -39.1 to +4.2    |       | dBm             |
+|                                  | f RF = 5.8 GHz    | III            | 25°C                 |       | -39.7 to +3.7    |       | dBm             |
+|                                  | f RF = 7.6 GHz    | III            | 25°C                 |       | -38.9 to +4.3    |       | dBm             |
+|                                  | f RF = 10 GHz     | III            | 25°C                 |       | -39.0 to +4.2    |       | dBm             |
+|                                  | f RF = 12 GHz     | III            | 25°C                 |       | -38.5 to +4.5    |       | dBm             |
+|                                  | f RF = 15 GHz     | III            | 25°C                 |       | -37.5 to +5.5    |       | dBm             |
+|                                  | f RF = 18 GHz     | III            | 25°C                 |       | -38.4 to +4.6    |       | dBm             |
+|                                  | f RF = 24 GHz     | III            | 25°C                 |       | -39.3 to +0.2    |       | dBm             |
+|                                  | f RF = 26 GHz     | III            | 25°C                 |       | -37.8 to +5.0    |       | dBm             |
+|                                  | f RF = 28 GHz     | III            | 25°C                 |       | -40.1 to -0.6    |       | dBm             |
+|                                  | f RF = 30 GHz     | III            | 25°C                 |       | -39.8 to +3.1    |       | dBm             |
+|                                  | f RF = 35 GHz     | III            | 25°C                 |       | -37.3 to +3.1    |       | dBm             |
+|                                  | f RF = 38 GHz     | III            | 25°C                 |       | -34.2 to +3.6    |       | dBm             |
+|                                  | f RF = 40 GHz     | III            | 25°C                 |       | -32.6 to +2.9    |       | dBm             |
+|                                  | f RF = 43.5 GHz   | III            | 25°C                 |       | -28.2 to +4.6    |       | dBm             |
+| RF Input Power Range Over        | f RF = 50 MHz     | III            | Full                 |       | -28.4 to +3.0    |       | dBm             |
+| Operating Temperature Range      | f RF = 100 MHz    | III            | Full                 |       | -37.1 to +3.0    |       | dBm             |
+| ±1 dB Log Linearity Error 2, 3   | f RF = 500 MHz    | III            | Full                 |       | -35.9 to -1.2    |       | dBm             |
+|                                  | f RF = 2.14 GHz   | III            | Full                 |       | -35.2 to -0.2    |       | dBm             |
+|                                  | f RF = 5.8 GHz    | III            | Full                 |       | -35.3 to -0.7    |       | dBm             |
+|                                  | f RF = 7.6 GHz    | III            | Full                 |       | -34.7 to -0.2    |       | dBm             |
+|                                  | f RF = 10 GHz     | III            | Full                 |       | -34.5 to -0.5    |       | dBm             |
+|                                  | f RF = 12 GHz     | III            | Full                 |       | -34.1 to +0.3    |       | dBm             |
+|                                  | f RF = 15 GHz     | III            | Full                 |       | -33.5 to +1.4    |       | dBm             |
+|                                  | f RF = 18 GHz     | III            | Full                 |       | -35.2 to -0.1    |       | dBm             |
+|                                  | f RF = 24 GHz     | III            | Full                 |       | -36.0 to -1.2    |       | dBm             |
+|                                  | f RF = 26 GHz     | III            | Full                 |       | -34.8 to -0.1    |       | dBm             |
+|                                  | f RF = 28 GHz     | III            | Full                 |       | -36.4 to -2.5    |       | dBm             |
+|                                  | f RF = 30 GHz     | III            | Full                 |       | -35.3 to -2.1    |       | dBm             |
+| ±1.5 dB Log Linearity Error      | f RF = 35 GHz     | III            | Full                 |       | -32.3 to -1.5    |       | dBm             |
+|                                  | f RF = 38 GHz     | III            | Full                 |       | -29.2 to -0.2    |       | dBm             |
+|                                  | f RF = 40 GHz     | III            | Full                 |       | -27.1 to -0.9    |       | dBm             |
+| 3                                | f RF = 43.5 GHz   | III            | Full                 |       | -22.1 to +0.3    |       | dBm dB          |
+| Linear Dynamic Range             | f RF = 50 MHz     | III III        | 25°C 25°C            |       | 39.5             |       | dB              |
+|                                  | f RF = 100 MHz    |                |                      |       | 42.9             |       |                 |
+|                                  | f RF = 500 MHz    | III            | 25°C                 |       | 44.1             |       | dB              |
+|                                  | f RF = 2.14 GHz   | III            | 25°C                 |       | 43.3             |       | dB              |
+|                                  | f RF = 5.8 GHz    | III            | 25°C                 |       | 43.3             |       | dB              |
+|                                  | f RF = 7.6 GHz    | III            |                      |       | 43.2             |       |                 |
+|                                  |                   |                | 25°C                 |       |                  |       | dB              |
 
 ## SPECIFICATIONS
 
 Table 1. Electrical Characteristics (Continued)
 
-| Parameter                       | Test Conditions   | Temperature 1   | Min   |   Typ | Max   | Unit   |
-|---------------------------------|-------------------|-----------------|-------|-------|-------|--------|
-|                                 | f RF = 10 GHz     |                 |       |  43.1 |       | dB     |
-|                                 | f RF = 12 GHz     |                 |       |  43.1 |       | dB     |
-|                                 | f RF = 15 GHz     |                 |       |  43   |       | dB     |
-|                                 | f RF = 18 GHz     |                 |       |  43   |       | dB     |
-|                                 | f RF = 24 GHz     |                 |       |  39.5 |       | dB     |
-|                                 | f RF = 26 GHz     |                 |       |  42.8 |       | dB     |
-|                                 | f RF = 28 GHz     |                 |       |  39.5 |       | dB     |
-|                                 | f RF = 30 GHz     |                 |       |  43   |       | dB     |
-|                                 | f RF = 35 GHz     |                 |       |  40.4 |       | dB     |
-|                                 | f RF = 38 GHz     |                 |       |  37.7 |       | dB     |
-|                                 | f RF = 40 GHz     |                 |       |  35.6 |       | dB     |
-|                                 | f RF = 43.5 GHz   |                 |       |  32.8 |       | dB     |
-| Linear Dynamic Range Over       | f RF = 50 MHz     | Full            |       |  31.4 |       | dB     |
-| Operating Temperature Range 3   | f RF = 100 MHz    | Full            |       |  40.1 |       | dB     |
-|                                 | f RF = 500 MHz    | Full            |       |  34.7 |       | dB     |
-|                                 | f RF = 2.14 GHz   | Full            |       |  35.1 |       | dB     |
-|                                 | f RF = 5.8 GHz    | Full            |       |  34.6 |       | dB     |
-|                                 | f RF = 7.6 GHz    | Full            |       |  34.5 |       | dB     |
-|                                 | f RF = 10 GHz     | Full            |       |  34   |       | dB     |
-|                                 | f RF = 12 GHz     | Full            |       |  34.4 |       | dB     |
-|                                 | f RF = 15 GHz     | Full            |       |  35   |       | dB     |
-|                                 | f RF = 18 GHz     | Full            |       |  35.1 |       | dB     |
-|                                 | f RF = 24 GHz     | Full            |       |  34.8 |       | dB     |
-|                                 | f RF = 26 GHz     | Full            |       |  34.8 |       | dB     |
-|                                 | f RF = 28 GHz     | Full            |       |  33.9 |       | dB     |
-|                                 | f RF = 30 GHz     | Full            |       |  33.2 |       | dB     |
-| ±1.5 dB Log Linearity Error     | f RF = 35 GHz     | Full            |       |  30.7 |       | dB     |
-|                                 | f RF = 38 GHz     | Full            |       |  29   |       | dB     |
-|                                 | f RF = 40 GHz     | Full            |       |  26.2 |       | dB     |
-|                                 | f RF = 43.5 GHz   | Full            |       |  22.4 |       | dB     |
-| Logarithmic Slope, T A = 25°C 4 | f RF = 50 MHz     |                 |       |  27.2 |       | mV/dB  |
-|                                 | f RF = 100 MHz    |                 |       |  28.9 |       | mV/dB  |
-|                                 | f RF = 500 MHz    |                 |       |  28.2 |       | mV/dB  |
-|                                 | f RF = 2.14 GHz   |                 | 25.5  |  29.3 | 33.5  | mV/dB  |
-|                                 | f RF = 5.8 GHz    |                 |       |  28.7 |       | mV/dB  |
-|                                 | f RF = 7.6 GHz    |                 |       |  28.8 |       | mV/dB  |
-|                                 | f RF = 8 GHz      |                 |       |  28.6 |       | mV/dB  |
-|                                 | f RF = 10 GHz     |                 |       |  28.8 |       | mV/dB  |
-|                                 | f RF = 12 GHz     |                 |       |  28.9 |       | mV/dB  |
-|                                 | f RF = 15 GHz     |                 |       |  29   |       | mV/dB  |
-|                                 | f RF = 18 GHz     |                 |       |  28.9 |       | mV/dB  |
-|                                 | f RF = 20 GHz     |                 |       |  28.8 |       | mV/dB  |
-|                                 | f RF = 24 GHz     |                 |       |  28.9 |       | mV/dB  |
-|                                 | f RF = 26 GHz     |                 |       |  29.1 |       | mV/dB  |
-|                                 | f RF = 28 GHz     |                 |       |  29.1 |       | mV/dB  |
-|                                 | f RF = 30 GHz     |                 |       |  28.9 |       | mV/dB  |
-|                                 | f RF = 35 GHz     |                 |       |  29   |       | mV/dB  |
-|                                 | f RF = 38 GHz     |                 |       |  29.2 |       | mV/dB  |
-|                                 | f RF = 40 GHz     |                 |       |  29.5 |       | mV/dB  |
+| Parameter                     | Test Conditions             | Test Level   | Temperature (T A )   |   Min |   Typ |   Max | Unit        |
+|-------------------------------|-----------------------------|--------------|----------------------|-------|-------|-------|-------------|
+|                               | f RF = 10 GHz               | III          | 25°C                 |       |  43.1 |       | dB          |
+|                               | f RF = 12 GHz               | III          | 25°C                 |       |  43.1 |       | dB          |
+|                               | f RF = 15 GHz               | III          | 25°C                 |       |  43.0 |       | dB          |
+|                               | f RF = 18 GHz               | III          | 25°C                 |       |  43.0 |       | dB          |
+|                               | f RF = 24 GHz               | III          | 25°C                 |       |  39.5 |       | dB          |
+|                               | f RF = 26 GHz               | III          | 25°C                 |       |  42.8 |       | dB          |
+|                               | f RF = 28 GHz               | III          | 25°C                 |       |  39.5 |       | dB          |
+|                               | f RF = 30 GHz               | III          | 25°C                 |       |  43.0 |       | dB          |
+|                               | f RF = 35 GHz               | III          | 25°C                 |       |  40.4 |       | dB          |
+|                               | f RF = 38 GHz               | III          | 25°C                 |       |  37.7 |       | dB          |
+|                               | f RF = 40 GHz               | III          | 25°C                 |       |  35.6 |       | dB          |
+|                               | f RF = 43.5 GHz             | III          | 25°C                 |       |  32.8 |       | dB          |
+| Linear Dynamic Range Over     | f RF = 50 MHz               | III          | Full                 |       |  31.4 |       | dB          |
+| Operating Temperature Range 3 | f RF = 100 MHz              | III          | Full                 |       |  40.1 |       | dB          |
+|                               |                             | III          |                      |       |       |       | dB          |
+|                               | f RF = 500 MHz              |              | Full                 |       |  34.7 |       |             |
+|                               | f RF = 2.14 GHz             | III          | Full                 |       |  35.1 |       | dB          |
+|                               | f RF = 5.8 GHz              | III          | Full                 |       |  34.6 |       | dB          |
+|                               | f RF = 7.6 GHz              | III          | Full                 |       |  34.5 |       | dB          |
+|                               | f RF = 10 GHz               | III          | Full                 |       |  34.0 |       | dB          |
+|                               | f RF = 12 GHz               | III III      | Full                 |       |  34.4 |       | dB          |
+|                               | f RF = 15 GHz               |              | Full                 |       |  35.0 |       | dB          |
+|                               | f RF = 18 GHz               | III          | Full                 |       |  35.1 |       | dB          |
+|                               | f RF = 24 GHz               | III          | Full                 |       |  34.8 |       | dB          |
+|                               | f RF = 26 GHz               | III          | Full                 |       |  34.8 |       | dB          |
+|                               | f RF = 28 GHz               | III          | Full                 |       |  33.9 |       | dB          |
+|                               | f RF = 30 GHz               | III          | Full                 |       |  33.2 |       | dB          |
+| ±1.5 dB Log Linearity Error   | f RF = 35 GHz               | III          | Full                 |       |  30.7 |       | dB          |
+|                               | f RF = 38 GHz               | III          | Full                 |       |  29.0 |       | dB          |
+|                               | f RF = 40 GHz               | III          | Full                 |       |  26.2 |       | dB          |
+|                               | f RF = 43.5 GHz             | III          | Full                 |       |  22.4 |       | dB          |
+| Logarithmic Slope 4           | f RF = 50 MHz               | III          | 25°C                 |       |  27.2 |       | mV/dB       |
+|                               | f RF = 100 MHz              | I            | 25°C                 |  25.7 |       |  31.6 | mV/dB       |
+|                               | f RF = 500 MHz              | III          | 25°C                 |       |  28.2 |       | mV/dB       |
+|                               | f RF = 2.14 GHz             | I            | 25°C                 |  25.5 |  28.7 |  33.5 | mV/dB       |
+|                               | f RF = 5.8 GHz              | III          | 25°C                 |       |       |       | mV/dB       |
+|                               | f RF = 7.6 GHz              | III          | 25°C                 |       |  28.8 |       | mV/dB mV/dB |
+|                               | f RF = 8 GHz f = 10 GHz     | I            | 25°C 25°C            |  24.9 |  28.8 |  31.9 | mV/dB       |
+|                               | RF                          | III          | 25°C                 |       |  28.9 |       |             |
+|                               | f RF = 12 GHz               | III          |                      |       |       |       | mV/dB       |
+|                               | f RF = 15 GHz               | III          | 25°C                 |       |  29.0 |       | mV/dB       |
+|                               | f RF = 18 GHz               | I            | 25°C                 |  26.3 |       |  31.1 | mV/dB       |
+|                               | f RF = 20 GHz               | I            | 25°C                 |  26.3 |       |  31.3 | mV/dB       |
+|                               | f RF = 24 GHz               | III          | 25°C                 |       |  28.9 |       | mV/dB       |
+|                               | f RF = 26 GHz               | III          | 25°C                 |       |  29.1 |       | mV/dB       |
+|                               | f RF = 28 GHz               | III          | 25°C                 |       |  29.1 |       | mV/dB       |
+|                               | f RF = 30 GHz               | III          | 25°C                 |       |  28.9 |       | mV/dB mV/dB |
+|                               | f RF = 35 GHz f RF = 38 GHz | III III      | 25°C                 |       |  29.0 |       | mV/dB       |
+|                               | f = 40 GHz                  | III          | 25°C                 |       |  29.2 |       |             |
+|                               | RF                          |              | 25°C                 |       |  29.5 |       | mV/dB       |
 
 ## SPECIFICATIONS
 
 Table 1. Electrical Characteristics (Continued)
 
-| Parameter                           | Test Conditions   | Temperature 1   | Min   | Typ            | Max   |
-|-------------------------------------|-------------------|-----------------|-------|----------------|-------|
-|                                     | f RF = 43.5 GHz   |                 |       | 29.7           |       |
-| Logarithmic Slope                   | f RF = 50 MHz     | Full            |       | 27.6 to 28.6   |       |
-| Operating Temperature Range 4       | f RF = 100 MHz    | Full            |       | 28.2 to 29.4   |       |
-|                                     | f RF = 500 MHz    | Full            |       | 27.4 to 28.9   |       |
-|                                     | f RF = 2.14 GHz   | Full            | 25    | 28.0 to 29.5   | 33.5  |
-|                                     | f RF = 5.8 GHz    | Full            |       | 28.0 to 29.4   |       |
-|                                     | f RF = 7.6 GHz    | Full            |       | 28.1 to 29.5   |       |
-|                                     | f RF = 8 GHz      | Full            |       | 28.5 to 28.6   |       |
-|                                     | f RF = 10 GHz     | Full            |       | 28.1 to 29.5   |       |
-|                                     | f RF = 12 GHz     | Full            |       | 28.2 to 29.5   |       |
-|                                     | f RF = 15 GHz     | Full            |       | 28.3 to 29.4   |       |
-|                                     | f RF = 18 GHz     | Full            |       | 28.2 to 29.6   |       |
-|                                     | f RF = 20 GHz     | Full            |       | 28.6 to 28.8   |       |
-|                                     | f RF = 24 GHz     | Full            |       | 28.3 to 29.5   |       |
-|                                     | f RF = 26 GHz     | Full            |       | 28.4 to 29.6   |       |
-|                                     | f RF = 28 GHz     | Full            |       | 28.3 to 29.5   |       |
-|                                     | f RF = 30 GHz     | Full            |       | 28.3 to 29.5   |       |
-|                                     | f RF = 35 GHz     | Full            |       | 28.4 to 29.3   |       |
-|                                     | f RF = 38 GHz     | Full            |       | 28.6 to 29.4   |       |
-|                                     | f RF = 40 GHz     | Full            |       | 28.8 to 29.7   |       |
-|                                     | f RF = 43.5 GHz   | Full            |       | 29.1 to 29.7   |       |
-| Logarithmic Intercept, T A = 25°C 5 | f RF = 50 MHz     |                 |       | -33.1          |       |
-|                                     | f RF = 100 MHz    |                 |       | -36.2          |       |
-|                                     | f RF = 500 MHz    |                 |       | -39.9          |       |
-|                                     | f RF = 2.14 GHz   |                 | -41.5 | -39.0          | -34   |
-|                                     | f RF = 5.8 GHz    |                 |       | -38.7          |       |
-|                                     | f RF = 7.6 GHz    |                 |       | -37.9          |       |
-|                                     | f RF = 8 GHz      |                 |       | -39.0          |       |
-|                                     | f RF = 10 GHz     |                 |       | -38.0          |       |
-|                                     | f RF = 12 GHz     |                 |       | -37.6          |       |
-|                                     | f RF = 15 GHz     |                 |       | -36.5          |       |
-|                                     | f RF = 18 GHz     |                 |       | -37.4          |       |
-|                                     | f RF = 20 GHz     |                 |       | -37.1          |       |
-|                                     | f RF = 24 GHz     |                 |       | -38.4          |       |
-|                                     | f RF = 26 GHz     |                 |       | -36.8          |       |
-|                                     | f RF = 28 GHz     |                 |       | -37.1          |       |
-|                                     | f RF = 30 GHz     |                 |       | -38.9          |       |
-|                                     | f RF = 35 GHz     |                 |       | -36.3          |       |
-|                                     | f RF = 38 GHz     |                 |       | -33.2          |       |
-|                                     | f RF = 40 GHz     |                 |       | -31.7          |       |
-|                                     | f RF = 43.5 GHz   |                 |       | -27.2          |       |
-| Logarithmic Intercept Over          | f RF = 50 MHz     | Full            |       | -32.6 to -31.3 |       |
-| Operating Temperature Range 5       | f RF = 100 MHz    | Full            |       | -38.1 to -37.9 |       |
-|                                     | f RF = 500 MHz    | Full            |       | -40.4 to -38.6 |       |
-|                                     | f RF = 2.14 GHz   | Full            | -42   | -39.7 to -37.0 | -33   |
-|                                     | f RF = 5.8 GHz    | Full            |       | -39.2 to -37.4 |       |
-|                                     | f RF = 7.6 GHz    | Full            |       | -38.5 to -36.7 |       |
-|                                     | f RF = 10 GHz     | Full            |       | -38.6 to -36.7 |       |
+| Parameter                     | Test Conditions           | Test Level 1   | Temperature (T A )   |   Min | Typ            |   Max |
+|-------------------------------|---------------------------|----------------|----------------------|-------|----------------|-------|
+|                               | f RF = 43.5 GHz           | III            | 25°C                 |       | 29.7           |       |
+| Logarithmic Slope             | f RF = 50 MHz             | III            | Full                 |       | 27.6 to 28.6   |       |
+| Operating Temperature Range 4 | f RF = 100 MHz            | I              | Full                 |  25.7 |                |  31.6 |
+|                               | f RF = 500 MHz            | III            | Full                 |       | 27.4 to 28.9   |       |
+|                               | f RF = 2.14 GHz           | I              | Full                 |  25.5 |                |  33.5 |
+|                               | f RF = 5.8 GHz            | III            | Full                 |       | 28.0 to 29.4   |       |
+|                               | f RF = 7.6 GHz            | III            | Full                 |       | 28.1 to 29.5   |       |
+|                               | f RF = 8 GHz              | I              | Full                 |  24.9 | 28.5 to 28.6   |  31.9 |
+|                               | f RF = 10 GHz             | III            | Full                 |       | 28.1 to 29.5   |       |
+|                               | f RF = 12 GHz             | III            | Full                 |       | 28.2 to 29.5   |       |
+|                               | f RF = 15 GHz             | III            | Full                 |       | 28.3 to 29.4   |       |
+|                               | f RF = 18 GHz             | I              | Full                 |  26.3 |                |  31.1 |
+|                               | f RF = 20 GHz             | I              | Full                 |  26.3 |                |  31.3 |
+|                               | f RF = 24 GHz             | III            | Full                 |       | 28.3 to 29.5   |       |
+|                               | f RF = 26 GHz             | III            | Full                 |       | 28.4 to 29.6   |       |
+|                               | f RF = 28 GHz             | III            | Full                 |       | 28.3 to 29.5   |       |
+|                               | f RF = 30 GHz             | III            | Full                 |       | 28.3 to 29.5   |       |
+|                               | f RF = 35 GHz             | III            | Full                 |       | 28.4 to 29.3   |       |
+|                               | f RF = 38 GHz             | III            | Full                 |       | 28.6 to 29.4   |       |
+|                               | f RF = 40 GHz             | III            | Full Full            |       | 28.8 to 29.7   |       |
+|                               | f RF = 43.5 GHz           | III            |                      |       | 29.1 to 29.7   |       |
+| Logarithmic Intercept 5       | f RF = 50 MHz f = 100 MHz | III I          | 25°C 25°C            | -40.5 | -33.1          | -34.1 |
+|                               | RF f = 500 MHz            | III            | 25°C                 |       | -39.9          |       |
+|                               | RF f RF = 2.14 GHz        | I              | 25°C                 | -41.5 |                |   -34 |
+|                               | f RF = 5.8 GHz            | III            | 25°C                 |       | -38.7          |       |
+|                               | f RF = 7.6 GHz            | III            | 25°C                 |       | -37.9          |       |
+|                               | f RF = 8 GHz              | I              | 25°C                 | -44.1 |                | -33.4 |
+|                               | f RF = 10 GHz             | III            | 25°C                 |       | -38.0 -37.6    |       |
+|                               | f RF = 12 GHz             | III            | 25°C                 |       | -36.5          |       |
+|                               | f RF = 15 GHz f = 18 GHz  | III I          | 25°C 25°C            | -41.6 |                |   -32 |
+|                               | RF f RF = 20 GHz          | I              | 25°C                 |   -41 |                |   -28 |
+|                               | f RF = 24 GHz             | III            | 25°C                 |       | -38.4          |       |
+|                               | f = 26 GHz                | III            | 25°C                 |       | -36.8          |       |
+|                               | RF f = 28 GHz             | III            | 25°C                 |       | -37.1          |       |
+|                               | RF f RF = 30 GHz          | III            | 25°C                 |       | -38.9          |       |
+|                               | f RF = 35 GHz             | III            | 25°C                 |       | -36.3          |       |
+|                               | f RF = 38 GHz             | III            | 25°C                 |       | -33.2          |       |
+|                               |                           |                | 25°C                 |       |                |       |
+|                               | f RF = 40 GHz             | III            | 25°C                 |       | -31.7          |       |
+|                               | f RF = 43.5 GHz           | III            |                      |       | -27.2          |       |
+| Logarithmic Intercept Over    | f RF = 50 MHz             | III            | Full                 |       | -32.6 to -31.3 |       |
+| Operating Temperature Range 5 | f RF = 100 MHz            | I              | Full                 |   -41 |                |   -33 |
+|                               | f RF = 500 MHz            | III            | Full                 |       | -40.4 to -38.6 |       |
+|                               | f RF = 2.14 GHz           | I              | Full                 |   -42 |                |   -33 |
+|                               | f RF = 5.8 GHz            | III            | Full                 |       | -39.2 to -37.4 |       |
+|                               | f RF = 7.6 GHz            | III            | Full                 |       | -38.5 to -36.7 |       |
+|                               | f RF = 8 GHz              | I              | Full                 | -44.1 |                | -33.4 |
+|                               | f RF = 10 GHz             | III            | Full                 |       | -38.6 to -36.7 |       |
 
 ## SPECIFICATIONS
 
 Table 1. Electrical Characteristics (Continued)
 
-| Parameter                                                   | Test Conditions                                                 | Temperature   | Min   | Typ            | Max   | Unit   |
-|-------------------------------------------------------------|-----------------------------------------------------------------|---------------|-------|----------------|-------|--------|
-|                                                             | f RF = 12 GHz                                                   | Full          |       | -38.1 to -36.3 |       | dBm    |
-|                                                             | f RF = 15 GHz                                                   | Full          |       | -37.0 to -35.5 |       | dBm    |
-|                                                             | f RF = 18 GHz                                                   | Full          |       | -38.1 to -36.4 |       | dBm    |
-|                                                             | f RF = 20 GHz                                                   | Full          |       | -37.3 to -36.8 |       | dBm    |
-|                                                             | f RF = 24 GHz                                                   | Full          |       | -38.8 to -37.3 |       | dBm    |
-|                                                             | f RF = 26 GHz                                                   | Full          |       | -37.5 to -35.9 |       | dBm    |
-|                                                             | f RF = 28 GHz                                                   | Full          |       | -37.7 to -35.9 |       | dBm    |
-|                                                             | f RF = 30 GHz                                                   | Full          |       | -39.7 to -38.0 |       | dBm    |
-|                                                             | f RF = 35 GHz                                                   | Full          |       | -37.1 to -34.9 |       | dBm    |
-|                                                             | f RF = 38 GHz                                                   | Full          |       | -34.1 to -31.7 |       | dBm    |
-|                                                             | f RF = 40 GHz                                                   | Full          |       | -32.8 to -30.3 |       | dBm    |
-|                                                             | f RF = 43.5 GHz                                                 | Full          |       | -28.3 to -25.9 |       | dBm    |
-| Linear Dynamic Range for Various Modulation Formats 6       | Code division multiple access (CDMA), 9 channels, forward       |               |       | -39.7 to +1.7  |       | dB     |
-|                                                             | CDMA, 32 channels, forward                                      |               |       | -39.6 to +1.7  |       | dB     |
-|                                                             | CDMA, 64 channels, forward                                      |               |       | -39.5 to +1.7  |       | dB     |
-|                                                             | CDMA, 3 carriers                                                |               |       | -40.4 to +3.0  |       | dB     |
-|                                                             | CDMA, 4 carriers                                                |               |       | -40.3 to +2.7  |       | dB     |
-|                                                             | Wideband code division multiple access (W- CDMA), 1 channel, up |               |       | -39.9 to +1.8  |       | dB     |
-|                                                             | W-CDMA, 1 channel, down                                         |               |       | -39.9 to +1.7  |       | dB     |
-|                                                             | W-CDMA, 2 carriers                                              |               |       | -40.0 to +1.9  |       | dB     |
-|                                                             | W-CDMA, 3 carriers                                              |               |       | -40.4 to +2.0  |       | dB     |
-|                                                             | W-CDMA, 4 carriers                                              |               |       | -40.3 to +1.7  |       | dB     |
-|                                                             | additive white Gaussian noise (AWGN), 5 MHz bandwidth           |               |       | -40.2 to +2.6  |       | dB     |
-|                                                             | AWGN, 10 MHz bandwidth                                          |               |       | -40.2 to +3.1  |       | dB     |
-|                                                             | AWGN, 15 MHz bandwidth                                          |               |       | -40.1 to +3.1  |       | dB     |
-| Propagation Delay 7                                         | P IN from -55 dBm to 0 dBm                                      |               |       | 1.2            |       | μs     |
-| OUT INTERFACE                                               |                                                                 |               |       |                |       |        |
-| Output DC Voltage                                           | No RF signal present, EN = 1.1 V                                |               |       | 1.0            | 5.0   | mV     |
-|                                                             | P IN = 10 dBm, EN = 1.1 V                                       |               | 1.150 | 1.2            | 1.250 | V      |
-| Output-Voltage Droop                                        | 25 mA sourcing                                                  |               | -35   | +6             | +20   | mV     |
-|                                                             | 25 mA sinking                                                   |               |       | 30             |       | mV     |
-| Integrated Output Noise                                     | 1 kHz to 6.5 kHz, P IN = 0 dBm                                  |               |       | 22             |       | μV RMS |
-| Rise Time 8                                                 | 50 Ω load at OUT                                                |               |       | 2.9            |       | μs     |
-| Fall Time 9                                                 | 50 Ω load at OUT                                                |               |       | 8.1            |       | μs     |
-| ENABLE (EN) LOW = OFF, HIGH = ON EN Input High Voltage (On) |                                                                 | Full          | 1.1   |                |       | V      |
+| Parameter                                             | Test Conditions                                                | Test Level 1   | Temperature (T A )   |   Min | Typ            |   Max | Unit   |
+|-------------------------------------------------------|----------------------------------------------------------------|----------------|----------------------|-------|----------------|-------|--------|
+|                                                       | f RF = 12 GHz                                                  | III            | Full                 |       | -38.1 to -36.3 |       | dBm    |
+|                                                       | f RF = 15 GHz                                                  | III            | Full                 |       | -37.0 to -35.5 |       | dBm    |
+|                                                       | f RF = 18 GHz                                                  | I              | Full                 | -41.6 |                |   -32 | dBm    |
+|                                                       | f RF = 20 GHz                                                  | I              | Full                 |   -33 |                |   -28 | dBm    |
+|                                                       | f RF = 24 GHz                                                  | III            | Full                 |       | -38.8 to -37.3 |       | dBm    |
+|                                                       | f RF = 26 GHz                                                  | III            | Full                 |       | -37.5 to -35.9 |       | dBm    |
+|                                                       | f RF = 28 GHz                                                  | III            | Full                 |       | -37.7 to -35.9 |       | dBm    |
+|                                                       | f RF = 30 GHz                                                  | III            | Full                 |       | -39.7 to -38.0 |       | dBm    |
+|                                                       | f RF = 35 GHz                                                  | III            | Full                 |       | -37.1 to -34.9 |       | dBm    |
+|                                                       | f RF = 38 GHz                                                  | III            | Full                 |       | -34.1 to -31.7 |       | dBm    |
+|                                                       | f RF = 40 GHz                                                  | III            | Full                 |       | -32.8 to -30.3 |       | dBm    |
+|                                                       | f RF = 43.5 GHz                                                | III            | Full                 |       | -28.3 to -25.9 |       | dBm    |
+| Linear Dynamic Range for Various Modulation Formats 6 | Code division multiple access (CDMA), 9 channels, forward      | III            | 25°C                 |       | -39.7 to +1.7  |       | dB     |
+|                                                       | CDMA, 32 channels, forward                                     | III            | 25°C                 |       | -39.6 to +1.7  |       | dB     |
+|                                                       | CDMA, 64 channels, forward                                     | III            | 25°C                 |       | -39.5 to +1.7  |       | dB     |
+|                                                       | CDMA, 3 carriers                                               | III            | 25°C                 |       | -40.4 to +3.0  |       | dB     |
+|                                                       | CDMA, 4 carriers                                               | III            | 25°C                 |       | -40.3 to +2.7  |       | dB     |
+|                                                       | Wideband code division multiple access (W-CDMA), 1 channel, up | III            | 25°C                 |       | -39.9 to +1.8  |       | dB     |
+|                                                       | W-CDMA, 1 channel, down                                        | III            | 25°C                 |       | -39.9 to +1.7  |       | dB     |
+|                                                       | W-CDMA, 2 carriers                                             | III            | 25°C                 |       | -40.0 to +1.9  |       | dB     |
+|                                                       | W-CDMA, 3 carriers                                             | III            | 25°C                 |       | -40.4 to +2.0  |       | dB     |
+|                                                       | W-CDMA, 4 carriers                                             | III            | 25°C                 |       | -40.3 to +1.7  |       | dB     |
+|                                                       | additive white Gaussian noise (AWGN), 5 MHz bandwidth          | III            | 25°C                 |       | -40.2 to +2.6  |       | dB     |
+|                                                       | AWGN, 10 MHz bandwidth                                         | III            | 25°C                 |       | -40.2 to +3.1  |       | dB     |
+|                                                       | AWGN, 15 MHz bandwidth                                         | III            | 25°C                 |       | -40.1 to +3.1  |       | dB     |
+| Propagation Delay 7                                   | P IN from -55 dBm to 0 dBm                                     | II             | 25°C                 |       | 1.2            |       | μs     |
+| OUT INTERFACE                                         |                                                                |                |                      |       |                |       |        |
+| Output DC Voltage                                     | No RF signal present, EN = 1.1 V                               | I              | Full                 |       | 1.0            |   5.0 | mV     |
+|                                                       | P IN = 10 dBm, EN = 1.1 V                                      | I              | Full                 | 1.150 | 1.2            | 1.250 | V      |
+| Output-Voltage Droop                                  | 25 mA sourcing                                                 | I              | Full                 |   -35 | +6             |   +20 | mV     |
+|                                                       | 25 mA sinking                                                  | II             |                      |       | 30             |       | mV     |
+| Integrated Output Noise                               | 1 kHz to 6.5 kHz, P IN = 0 dBm                                 | II             | 25°C                 |       | 22             |       | μV RMS |
+| Rise Time 8                                           | 50 Ω load at OUT                                               | II             | 25°C                 |       | 2.9            |       | μs     |
+| Fall Time 9                                           | 50 Ω load at OUT                                               | II             | 25°C                 |       | 8.1            |       | μs     |
+| ENABLE (EN) LOW = OFF, HIGH = ON                      |                                                                |                |                      |       |                |       |        |
+| EN Input High Voltage (On)                            |                                                                | I              | Full                 |   1.1 |                |       | V      |
+| EN Input Low Voltage (Off)                            |                                                                | I              | Full                 |       |                |   0.6 | V      |
+| EN Pin Input Current                                  |                                                                | I              | Full                 |       | 50             |   500 | nA     |
+| Turn-On Time 10                                       | 50 Ω load at OUT                                               | II             | 25°C                 |       | 8              |       | μs     |
+| Turn-Off Time 11                                      | 50 Ω load at OUT                                               | II             | 25°C                 |       | 45             |       | ns     |
+|                                                       | 1 MΩ&#124;&#124;11 pF load at OUT                              | II             | 25°C                 |       | 100            |       | μs     |
 
 ## SPECIFICATIONS
 
-Table 1. Electrical Characteristics (Continued)
+## Table 1. Electrical Characteristics (Continued)
 
-| Parameter                  | Test Conditions                   | Temperature   | Min   | Typ   | Max   | Unit   |
-|----------------------------|-----------------------------------|---------------|-------|-------|-------|--------|
-| EN Input Low Voltage (Off) |                                   | Full          |       |       | 0.6   | V      |
-| EN Pin Input Current       |                                   |               |       | 50    | 500   | nA     |
-| Turn-On Time 10            | 50 Ω load at OUT                  |               |       | 8     |       | μs     |
-| Turn-Off Time 11           | 50 Ω load at OUT                  |               |       | 45    |       | ns     |
-|                            | 1 MΩ&#124;&#124;11 pF load at OUT |               |       | 100   |       | μs     |
-| POWER SUPPLY               |                                   |               |       |       |       |        |
-| Supply Voltage             |                                   | Full          | 2.7   | 3.3   | 3.6   | V      |
-| Active Supply Current      | EN = 3.3 V                        |               | 25    | 30    | 35    | mA     |
-| Shutdown Supply Current    | EN = 0 V                          |               |       | 50    | 500   | nA     |
+| Parameter               | Test Conditions   | Test Level 1   | Temperature (T A )   |   Min |   Typ |   Max | Unit   |
+|-------------------------|-------------------|----------------|----------------------|-------|-------|-------|--------|
+| POWER SUPPLY            |                   |                |                      |       |       |       |        |
+| Supply Voltage          |                   | I              | Full                 |   2.7 |   3.3 |   3.6 | V      |
+| Active Supply Current   | EN = 3.3 V        | I              | Full                 |    25 |    30 |    35 | mA     |
+| Shutdown Supply Current | EN = 0 V          | I              | Full                 |       |    50 |   500 | nA     |
 
-- 1 The RH5596S-CSH is guaranteed functional over the case temperature range -40°C to +125°C. All limits at -40°C and +125°C are guaranteed by 100% production testing.
-- 2 Log linearity error is the input-referred power measurement error relative to the best fit straight line (VOUT vs. pin in dBm) obtained by linear regression at TA = 25°C. The input power range used for the linear regression is from -32 dBm to +5 dBm for 50 MHz, from -37 dBm to -5 dBm for 100 MHz through 35 GHz, from -34 dBm to -5 dBm for 38 GHz, from-32 dBm to -5 dBm for 40 GHz, and from -28 dBm to -5 dBm for 43.5 GHz. An offset of 0.5 dB is added to the log intercept for frequencies from 50 MHz to 38 GHz, and 0.25 dB is added for 40 GHz and 43.5 GHz to center the errors over the full temperature range. See also the LTC5596 data sheet for an explanation of measurement error metrics.
-- 3 Range for which the log linearity error is within ±1 dB.
 - 4 Slope of the best fit straight line obtained by linear regression.
 - 5 Extrapolated input power level (straight line obtained by linear regression) where the voltage at OUT equals 0 V.
 - 6 Power range for which log linearity error is within ±1 dB, relative to best fit straight line for continuous wave data (see footnote 2).
@@ -329,36 +344,32 @@ TA = 25°C, V CC = 3.3 V, and EN = 3.3 V. Continuous wave, 50 Ω source at RF IN
 
 Table 3. Radiation Test and Limit Specifications
 
-| Parameter                           | Test Conditions/Comments                 | Min   | Typ   | Max   | Unit   |
-|-------------------------------------|------------------------------------------|-------|-------|-------|--------|
-| LOGARITHMIC SLOPE, T A = 25°C 1     | f RF = 100 MHz                           | 24    | 28.9  | 34    | mV/dB  |
-| LOGARITHMIC SLOPE, T A = 25°C 1     | f RF = 2.14 GHz                          | 24    | 29.3  | 35    | mV/dB  |
-| LOGARITHMIC SLOPE, T A = 25°C 1     | f RF = 8 GHz                             | 23    | 28.6  | 34    | mV/dB  |
-| LOGARITHMIC SLOPE, T A = 25°C 1     | f RF = 18 GHz                            | 24    | 28.9  | 34    | mV/dB  |
-| LOGARITHMIC SLOPE, T A = 25°C 1     | f RF = 20 GHz                            | 24    | 28.8  | 34    | mV/dB  |
-| LOGARITHMIC INTERCEPT, T A = 25°C 2 | f RF = 100 MHz                           | -43   | -36.2 | -30   | dBm    |
-| LOGARITHMIC INTERCEPT, T A = 25°C 2 | f RF = 2.14 GHz                          | -46   | -39   | -32   | dBm    |
-| LOGARITHMIC INTERCEPT, T A = 25°C 2 | f RF = 8 GHz                             | -46   | -39   | -32   | dBm    |
-| LOGARITHMIC INTERCEPT, T A = 25°C 2 | f RF = 18 GHz                            | -44   | -37.4 | -31   | dBm    |
-| LOGARITHMIC INTERCEPT, T A = 25°C 2 | f RF = 20 GHz                            | -44   | -37.1 | -30   | dBm    |
-| OUT INTERFACE                       |                                          |       |       |       |        |
-| Output DC Voltage                   | No RF signal present, EN = 1.1 V         |       | 1.0   | 5.0   | mV     |
-| Output DC Voltage                   | Input power (P IN ) = 10 dBm, EN = 1.1 V | 1.150 | 1.2   | 1.250 | V      |
-| ENABLE (EN) LOW = OFF, HIGH = ON    |                                          |       |       |       |        |
-| EN Pin Input Current                |                                          |       | 50    | 500   | nA     |
-| POWER SUPPLY                        |                                          |       |       |       |        |
-| Active Supply Current               | EN = 3.3 V                               | 25    | 30    | 35    | mA     |
-| Shutdown Supply Current             | EN = 0 V                                 |       | 50    | 500   | nA     |
-
-1 Slope of the best fit straight line obtained by linear regression.
-
-2 Extrapolated input power level (straight line obtained by linear regression) where the voltage at OUT equals 0 V.
+| Parameter                                             | Test Conditions/Comments                 |   Min |   Typ |   Max | Unit   |
+|-------------------------------------------------------|------------------------------------------|-------|-------|-------|--------|
+| LOGARITHMIC SLOPE, T A = 25°C 1                       | f RF = 100 MHz                           |    24 |  28.9 |    34 | mV/dB  |
+|                                                       | f RF = 2.14 GHz                          |    24 |  29.3 |    35 | mV/dB  |
+|                                                       | f RF = 8 GHz                             |    23 |  28.6 |    34 | mV/dB  |
+|                                                       | f RF = 18 GHz                            |    24 |  28.9 |    34 | mV/dB  |
+|                                                       | f RF = 20 GHz                            |    24 |  28.8 |    34 | mV/dB  |
+| LOGARITHMIC INTERCEPT, T A = 25°C 2                   | f RF = 100 MHz                           |   -43 | -36.2 |   -30 | dBm    |
+|                                                       | f RF = 2.14 GHz                          |   -46 |   -39 |   -32 | dBm    |
+|                                                       | f RF = 8 GHz                             |   -46 |   -39 |   -32 | dBm    |
+|                                                       | f RF = 18 GHz                            |   -44 | -37.4 |   -31 | dBm    |
+|                                                       | f RF = 20 GHz                            |   -44 | -37.1 |   -30 | dBm    |
+| OUT INTERFACE                                         |                                          |       |       |       |        |
+| Output DC Voltage                                     | No RF signal present, EN = 1.1 V         |       |   1.0 |   5.0 | mV     |
+|                                                       | Input power (P IN ) = 10 dBm, EN = 1.1 V | 1.150 |   1.2 | 1.250 | V      |
+| ENABLE (EN) LOW = OFF, HIGH = ON EN Pin Input Current |                                          |       |    50 |   500 | nA     |
+| POWER SUPPLY                                          |                                          |       |       |       |        |
+| Active Supply Current                                 | EN = 3.3 V                               |    25 |    30 |    35 | mA     |
+| Shutdown Supply Current                               | EN = 0 V                                 |       |    50 |   500 | nA     |
 
 ## ABSOLUTE MAXIMUM RATINGS
 
-| Table 4.                             |                  |
-|--------------------------------------|------------------|
+## Table 4. Absolute Maximum Ratings
+
 | Parameter 1                          | Rating           |
+|--------------------------------------|------------------|
 | Supply Voltage (V CC )               | 3.8 V            |
 | Input Signal Power (RF IN ), Average | 15 dBm           |
 | Input Signal Power (RF IN ), Peak 2  | 20 dBm           |
@@ -368,9 +379,6 @@ Table 3. Radiation Test and Limit Specifications
 | T JMAX                               | 150°C            |
 | Operating Temperature Range          | -40°C to 125°C   |
 | Storage Temperature Range            | -65°C to 150°C   |
-
-- 1 The voltage on all pins must not exceed 3.8 V, V CC + 0.3 V, or be less than -0.3 V, otherwise damage to the ESD diodes may occur.
-- 2 Not production tested. Guaranteed by design and correlation to production tested parameters.
 
 Stresses at or above those listed under Absolute Maximum Ratings may cause permanent damage to the product. This is a stress rating only; functional operation of the product at these or any other conditions above those indicated in the operational section of this specification is not implied. Operation beyond the maximum operating conditions for extended periods may affect product reliability.
 
@@ -386,34 +394,36 @@ Thermal performance is directly linked to the printed circuit board (PCB) design
 |------------------|--------|--------|
 | 05-08-1957       |     25 | °C/W   |
 
+## EXPLANATION OF TEST LEVELS
+
+## Table 6. Explanation of Test Levels
+
+| Test Level   | Description                                                                  |
+|--------------|------------------------------------------------------------------------------|
+| I            | 100% production tested at minimum, room, and maximum operating temperatures. |
+| II           | Parameter is guaranteed by design and not production tested.                 |
+| III          | Parameter is guaranteed by bench characterization and not production tested. |
+
 ## OUTGAS TESTING
 
 The criteria used for the acceptance and rejection of materials must be determined by the user and based upon specific component and system requirements. Historically, a total mass loss (TML) of 1.00% and collected volatile condensable material (CVCM) of 0.10% have been used as screening levels for rejection of spacecraft materials.
 
-## Table 6. Outgas Testing
+## Table 7. Outgas Testing
 
 | Specification (Tested per ASTM E595-15)   |   Value | Unit   |
 |-------------------------------------------|---------|--------|
 | Total Mass Lost                           |    0.06 | %      |
 | Collected Volatile Condensable Material   |    0.01 | %      |
-
-## Table 6. Outgas Testing (Continued)
-
-| Specification (Tested per ASTM E595-15)   |   Value | Unit   |
-|-------------------------------------------|---------|--------|
 | Water Vapor Recovered                     |    0.02 | %      |
 
 ## RADIATION FEATURES
 
-## Table 7. Radiation Features
+## Table 8. Radiation Features
 
-| Specifications                                                                    | Value   | Unit          |
-|-----------------------------------------------------------------------------------|---------|---------------|
-| Maximum Total Dose Available (Dose Rate = 50 rad(Si)/s to 300 rad(Si)/s) 1        | 100     | krad(Si)      |
-| No Single Event Latch-Up (SEL) Occurs at Effective Linear Energy Transfer (LET) 2 | ≤80     | MeV- cm 2 /mg |
-
-- 1 Guaranteed by device and process characterization. Contact Analog Devices, Inc., for data available up to 100 krads.
-- 2 Limits are characterized at initial qualification and after any design or process changes that may affect the SEL characteristics but are not production lot tested, unless specified by the customer through the purchase order or contract. For more information on single event effect (SEE) test results, contact Analog Devices for further data beyond published report on the Analog Devices website.
+| Specifications                                                                  | Value   | Unit          |
+|---------------------------------------------------------------------------------|---------|---------------|
+| Maximum Total Dose Available (Dose Rate = 50 rad(Si)/s to 300 rad(Si)/s) 1      | 100     | krad(Si)      |
+| No Single Event Latch-Up (SEL) Occurs at Effective Linear Energy Transfer (LET) | ≤80     | MeV- cm 2 /mg |
 
 ## ELECTROSTATIC DISCHARGE (ESD) RATINGS
 
@@ -425,7 +435,7 @@ Charged device model (CDM) per ANSI/ESDA/JEDEC JS-002.
 
 ## ESD Rating for the RH5596S-CSH
 
-Table 8. RH5596S-CSH, 8-Lead Plastic LFCSP
+Table 9. RH5596S-CSH, 8-Lead, Plastic DFN (2 mm × 2 mm), Flip Chip
 
 | ESD Model   |   Withstand Threshold (V) | Class   |
 |-------------|---------------------------|---------|
@@ -440,9 +450,11 @@ ESD (electrostatic discharge) sensitive device . Charged devices and circuit boa
 
 ## PIN CONFIGURATION AND FUNCTION DESCRIPTIONS
 
+Figure 1. Pin Configuration
+
 <!-- image -->
 
-Figure 1. Pin Configuration
+Table 10. Pin Function Descriptions
 
 | Pin No.   | Mnemonic   | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 |-----------|------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -454,24 +466,38 @@ Figure 1. Pin Configuration
 | 8         | EN         | Chip-Enable. A voltage above 1.1 V applied to the EN pin brings the device into normal operating mode. A voltage below 0.6 V brings the device into a low-power shutdown mode. Do not float the EN pin.                                                                                                                                                                                                                                                                                   |
 |           | EPAD       | Exposed Pad. The exposed pad must be soldered to PCB ground .                                                                                                                                                                                                                                                                                                                                                                                                                             |
 
-## Table 9. Pin Function Descriptions
-
 ## TYPICAL PERFORMANCE CHARACTERISTICS
 
 See the LTC5596 data sheet for the full set of typical performance characteristics plots.
 
 ## OUTLINE DIMENSIONS
 
-| Package Drawing (Option)   | Package Type   | Package Description                   |
-|----------------------------|----------------|---------------------------------------|
-| 05-08-1957                 | LFCSP          | 8-Lead, Lead Frame Chip Scale Package |
+<!-- image -->
 
-For the latest package outline information and land patterns (footprints), go to Package Index.
+RECOMMENDED SOLDER PAD PITCH AND DIMENSIONS APPLY SOLDER MASK TO AREAS THAT ARE NOT SOLDERED EXPOSED BASE METAL COVERAGE GREATER THAN 5%
+
+<!-- image -->
+
+NOTE:
+
+1. DRAWING IS NOT A JEDEC PACKAGE OUTLINE
+2. DRAWING NOT TO SCALE
+3. ALL DIMENSIONS ARE IN MILLIMETERS
+4. DIMENSIONS OF EXPOSED PAD ON BOTTOM OF PACKAGE DO NOT INCLUDE MOLD FLASH. MOLD FLASH, IF PRESENT, SHALL NOT EXCEED 0.15mm ON ANY SIDE
+5. SHADED AREA IS ONLY A REFERENCE FOR PIN 1 LOCATION ON THE TOP AND BOTTOM OF PACKAGE
+
+Figure 2. 8-Lead Plastic DFN (2 mm × 2 mm), Flip Chip (Reference LTC DWG # 05-08-1957 Rev A
 
 ## ORDERING GUIDE
 
 | Model 1           | Temperature Range   | Package Description                          | Packing Quantity   | Package Option   |
 |-------------------|---------------------|----------------------------------------------|--------------------|------------------|
-| RH5596HDC#PBF-CSH | -40°C to +125°C     | 8-Lead Lead Frame Chip Scale Package (LFCSP) | Reel, 500          | 05-08-1957       |
+| RH5596HDC#PBF-CSH | -40°C to +125°C     | 8-Lead, Plastic DFN (2 mm × 2 mm), Flip Chip | Reel, 500          | 05-08-1957       |
 
-<!-- image -->
+- 1 RH5596HDC#PBF-CSH is a RoHS compliant part.
+
+## Legal Terms and Conditions
+
+Information furnished by Analog Devices is believed to be accurate and reliable "as is". However, no responsibility is assumed by Analog Devices for its use, nor for any infringements of patents or other rights of third parties that may result from its use. Specifications subject to change without notice. No license is granted by implication or otherwise under any patent or patent rights of Analog Devices. Trademarks and registered trademarks are the property of their respective owners. All Analog Devices products contained herein are subject to release and availability.
+
+Updated: May 15, 2026

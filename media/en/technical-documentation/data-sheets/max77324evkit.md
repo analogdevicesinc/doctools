@@ -1,4 +1,4 @@
-<!-- lastmod 2022-08-02 -->
+<!-- lastmod 2026-07-16 -->
 <!-- image -->
 
 Evaluates: MAX77324
