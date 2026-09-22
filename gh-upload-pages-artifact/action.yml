@@ -176,11 +176,25 @@ runs:
           cp -af "$doc_path/." "$site/"
         fi
 
+    - name: Remove stale pull request docs
+      if: ${{ steps.lock.outputs.acquired == 'true' }}
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.token }}
+        site: ${{ steps.download.outputs.site }}
+      run: |
         # Remove stale pull/<id> docs listed in simple tags.json.
         [[ -f "$site/tags.json" ]] || exit 0
         jq -e 'type == "array"' "$site/tags.json" || exit 0 # Skip fine grained
 
         owner_repository="${{ github.repository }}"
+        status=$(curl -sSL -o /dev/null -w '%{http_code}' \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: Bearer $GITHUB_TOKEN" \
+          -H "X-GitHub-Api-Version: 2026-03-10" \
+          "https://api.github.com/repos/$owner_repository/pulls?per_page=1")
+        [[ "$status" == "200" ]] || { echo "::notice ::Permission pull-requests read is unset, stale versions won't be cleaned up." ; exit 0 ; }
+
         while IFS= read -r tag; do
           [[ "$tag" =~ ^pull/([0-9]+)$ ]] || continue
           pr_number="${BASH_REMATCH[1]}"

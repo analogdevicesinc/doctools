@@ -112,6 +112,40 @@ runs:
         name: ${{ inputs.name }}
         path: ${{ steps.context.outputs.doc_tag_path }}
 
+    - name: Remove stale pull request docs
+      if: ${{ steps.check.outputs.run == 'true' }}
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.gh-token }}
+        site: ${{ steps.context.outputs.doc_path }}
+      run: |
+        # Remove stale pull/<id> docs listed in simple tags.json.
+        [[ -f "$site/tags.json" ]] || exit 0
+        jq -e 'type == "array"' "$site/tags.json" || exit 0 # Skip fine grained
+
+        owner_repository="${{ github.repository }}"
+        status=$(curl -sSL -o /dev/null -w '%{http_code}' \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: Bearer $GITHUB_TOKEN" \
+          -H "X-GitHub-Api-Version: 2026-03-10" \
+          "https://api.github.com/repos/$owner_repository/pulls?per_page=1")
+        [[ "$status" == "200" ]] || { echo "::notice ::Permission pull-requests read is unset, stale versions won't be cleaned up." ; exit 0 ; }
+
+        while IFS= read -r tag; do
+          [[ "$tag" =~ ^pull/([0-9]+)$ ]] || continue
+          pr_number="${BASH_REMATCH[1]}"
+          resp=$(curl -sSL \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "X-GitHub-Api-Version: 2026-03-10" \
+            "https://api.github.com/repos/$owner_repository/pulls/$pr_number")
+          state=$(echo "$resp" | jq -r '.state // empty')
+          if [[ "$state" != "open" ]]; then
+            echo "Clean-up $tag"
+            [[ -d "$site/$tag" ]] && rm -r "$site/$tag" || :
+          fi
+        done < <(jq -r '.[] | select(type == "string")' "$site/tags.json")
+
     - name: Generate sitemap
       if: ${{ steps.check.outputs.run == 'true' }}
       shell: bash
@@ -175,6 +209,8 @@ runs:
     - name: Commit and push to gh-pages
       if: ${{ steps.check.outputs.run == 'true' }}
       shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.gh-token }}
       run: |
         # Commit and push to gh-pages
         [[ "${{ runner.debug }}" == "1" ]] && set -x
@@ -197,7 +233,7 @@ runs:
         if [[ "${{ github.event_name }}" == "pull_request" ]]; then
           response=$(curl -s -L -w '\n%{http_code}' \
             -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ inputs.gh-token }}" \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}")
           http_code=$(echo "$response" | tail -n1)
