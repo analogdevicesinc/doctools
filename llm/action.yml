@@ -148,16 +148,43 @@ runs:
         cat <<'EOF' > ~/.pi/agent/models.json
         {
             "providers": {
-                "portkey-vertexai": {
-                    "baseUrl": "https://api.portkey.ai",
-                    "api": "anthropic-messages",
+                "portkey-azure": {
+                    "baseUrl": "https://api.portkey.ai/v1",
+                    "api": "openai-responses",
                     "apiKey": "$PORTKEY_API_KEY",
                     "headers": {
                         "x-portkey-api-key": "$PORTKEY_API_KEY",
-                        "x-portkey-virtual-key": "vertexai-global"
+                        "x-portkey-provider": "@azure-openai-eus-global",
+                        "x-portkey-azure-api-version": "2025-03-01-preview"
+                    },
+                    "compat": {
+                        "supportsReasoningEffort": true,
+                        "supportsStrictMode": true,
+                        "supportsOpenAIGrammarTools": true
                     },
                     "models": [
-                        {"name": "small", "id": "anthropic.claude-haiku-4-5@20251001"}
+                        {
+                            "name": "small",
+                            "id": "gpt-5.6-luna-dzs",
+                            "reasoning": true,
+                            "contextWindow": 1000000,
+                            "maxTokens": 128000,
+                            "thinkingLevelMap": {
+                                "off": "none",
+                                "minimal": null,
+                                "low": "low",
+                                "medium": "medium",
+                                "high": "high",
+                                "xhigh": "xhigh"
+                            },
+                            "input": ["text", "image"],
+                            "cost": {
+                                "input": 0,
+                                "output": 0,
+                                "cacheRead": 0,
+                                "cacheWrite": 0
+                            }
+                        }
                     ]
                 },
                 "portkey-bedrock": {
@@ -201,7 +228,7 @@ runs:
         PORTKEY_API_KEY: ${{ inputs.api-key }}
       run: |
         # Run pi
-        [[ "${{ inputs.model }}" == "small" ]] && provider="portkey-vertexai" || provider="portkey-bedrock"
+        [[ "${{ inputs.model }}" == "small" ]] && provider="portkey-azure" || provider="portkey-bedrock"
 
         python3 /tmp/fmt_args.py "${{ inputs.prompt-file }}" > "$formatted_prompt_file"
 
