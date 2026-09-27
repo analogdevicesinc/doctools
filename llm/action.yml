@@ -204,7 +204,7 @@ runs:
         }
         EOF
 
-        cat <<'EOF' > ~/.pi/agent/settings.json
+        [[ -f ~/.pi/agent/settings.json ]] || cat <<'EOF' > ~/.pi/agent/settings.json
         {
             "shellCommandPrefix": ""
         }
