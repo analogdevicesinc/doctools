@@ -3,7 +3,7 @@ name: LLM Agent
 inputs:
   ref:
     description: "The branch, tag, PR number, or SHA to checkout"
-    required: true
+    required: false
   run-id:
     description: "Explicit workflow run to analyse"
     required: false
@@ -65,20 +65,20 @@ runs:
 
     - uses: analogdevicesinc/doctools/checkout@action
       id: checkout
-      if: ${{ env.LLM_AGENT_RUN == 'true' }}
+      if: ${{ env.LLM_AGENT_RUN == 'true' && inputs.ref != '' }}
       with:
         ref: ${{ inputs.ref }}
         gh-token: ${{ inputs.gh-token }}
         path: ${{ inputs.checkout-path }}
 
     - uses: analogdevicesinc/doctools/gh-collect-annotations@action
-      if: ${{ env.LLM_AGENT_RUN == 'true' }}
+      if: ${{ env.LLM_AGENT_RUN == 'true' && inputs.ref != '' }}
       with:
         ref: ${{ inputs.ref }}
         run-id: ${{ inputs.run-id }}
 
     - uses: analogdevicesinc/doctools/gh-collect-comments@action
-      if: ${{ env.LLM_AGENT_RUN == 'true' }}
+      if: ${{ env.LLM_AGENT_RUN == 'true' && inputs.ref != '' }}
       with:
         ref: ${{ inputs.ref }}
 
@@ -91,8 +91,8 @@ runs:
         echo "formatted_prompt_file=$(mktemp -t llm-prompt.XXX.md)" >> "$GITHUB_ENV"
         echo "tasks_file=$(mktemp -t llm-tasks.XXX.md)" >> "$GITHUB_ENV"
         echo "summary_file=$(mktemp -t llm-summary.XXX.md)" >> "$GITHUB_ENV"
-        echo "comment_file=$(mktemp -t llm-comment.XXX.md)" >> "$GITHUB_ENV"
-        echo "patches_path=$(mktemp -d)" >> "$GITHUB_ENV"
+        [[ -z "${{ inputs.ref }}" ]] || echo "comment_file=$(mktemp -t llm-comment.XXX.md)" >> "$GITHUB_ENV"
+        [[ -z "${{ inputs.ref }}" ]] || echo "patches_path=$(mktemp -d)" >> "$GITHUB_ENV"
 
         echo "server_url=${{ github.server_url }}" >> "$GITHUB_ENV"
         echo "repository=${{ github.repository }}" >> "$GITHUB_ENV"
@@ -237,24 +237,26 @@ runs:
           echo "::warning ::llm reviewer didn't write the workflow summary."
           [[ -s "$tasks_file" ]] && cat "$tasks_file" >> $GITHUB_STEP_SUMMARY || :
         }
-        [[ -s "$comment_file" ]] && {
-          echo 'comment<<EOF' >> $GITHUB_OUTPUT
-          cat "$comment_file" >> $GITHUB_OUTPUT
-          echo 'EOF' >> $GITHUB_OUTPUT
-        } || {
-          echo "::warning ::llm reviewer didn't write the review comment."
+        if [[ -n "${{ inputs.ref }}" ]]; then
+          [[ -s "$comment_file" ]] && {
+            echo 'comment<<EOF' >> $GITHUB_OUTPUT
+            cat "$comment_file" >> $GITHUB_OUTPUT
+            echo 'EOF' >> $GITHUB_OUTPUT
+          } || {
+            echo "::warning ::llm reviewer didn't write the review comment."
 
-          echo 'comment<<EOF' >> $GITHUB_OUTPUT
-          echo "## LLM Review
+            echo 'comment<<EOF' >> $GITHUB_OUTPUT
+            echo "## LLM Review
 
         run: [${run_id}](${server_url}/${repository}/actions/runs/${run_id})
         didn't generate any comment, but you can still review the workflow run, job 'llm'.
         ">> $GITHUB_OUTPUT
-         echo 'EOF' >> $GITHUB_OUTPUT
-        }
+            echo 'EOF' >> $GITHUB_OUTPUT
+          }
+        fi
 
     - name: Store suggested patches
-      if: ${{ env.LLM_AGENT_RUN == 'true' }}
+      if: ${{ env.LLM_AGENT_RUN == 'true' && inputs.ref != ''}}
       id: upload_patches
       uses: actions/upload-artifact@v7
       with:
@@ -276,7 +278,8 @@ runs:
       if: ${{ env.LLM_AGENT_RUN == 'true' }}
       run: |
         # Add patches to summary
-        [[ -z "$(ls -A "$patches_path")" ]] && exit 0
+        [[ -n "$patches_path" ]] || exit 0
+        [[ -n "$(ls -A "$patches_path")" ]] || exit 0
 
         # Requires upload-artifact@v7
         url="${{ steps.upload_patches.outputs.artifact-url }}"
