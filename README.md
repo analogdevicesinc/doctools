@@ -46,6 +46,9 @@ GPU is much faster and is used automatically if PyTorch sees one, but getting a
 matching PyTorch/CUDA-or-ROCm/driver stack working is often more trouble than
 letting the CPU run overnight.
 
+docling does not fall back to CPU if the GPU path is broken; a bad
+CUDA/ROCm stack can segfault conversion silently instead of raising an error.
+
 ## Converting PDFs that are not in the sitemap yet
 
 `en-pdf-sitemap.xml` on analog.com is only regenerated about once a month, so
