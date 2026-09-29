@@ -20,6 +20,7 @@ export class HotReload {
     $.related = document.querySelector('.documentwrapper .related')
     $.breadcrumb = document.querySelector('.bodywrapper .body-header .breadcrumb')
     $.title = document.querySelector('head title')
+    $.sidebarwrapper = document.querySelector('.sphinxsidebarwrapper')
     $.sidebar_logo = document.querySelector('.sphinxsidebarwrapper > a')
     $.header_logo = document.querySelector('header a#logo')
 
@@ -369,6 +370,9 @@ export class HotReload {
     DispatchEvent('app:hot_reload:page_unload')
     if (changed_build) {
       DispatchEvent('app:hot_reload:doc_unload')
+      this.$.sidebarwrapper.classList.add('fetch')
+      if (!this.reduced_motion)
+        await new Promise(resolve => setTimeout(resolve, 125))
       this.change_doc(doc, url, next_doc)
     }
     this.sync_scripts(scripts)
@@ -429,6 +433,7 @@ export class HotReload {
       if ("init" in this.parent[key])
         this.parent[key].init()
     }
+    this.$.sidebarwrapper.classList.remove('fetch')
     this.$.bodywrapper.classList.remove('fetch')
     this.$.tocwrapper.classList.remove('fetch')
     this.$.loader.classList.remove('fetch')
