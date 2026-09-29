@@ -139,6 +139,8 @@ export class Domain {
     } else if (location.hostname !== remote_alt.hostname) {
       if (settings.domain.ignore_fork === true)
         return
+      if (/^(\d{1,3}\.){3}\d{1,3}$|^\[.*\]$/.test(location.hostname))
+        return
       if (!(this.parent.state.repository in metadata.repotoc))
         return
 
