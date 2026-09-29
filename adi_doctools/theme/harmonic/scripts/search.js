@@ -78,6 +78,9 @@ export class Search {
     $.searchResults = new DOM('ul', {
       className: 'search-results',
       tabIndex: '-1',
+    }).onclick(this, (e) => {
+      if (e.target.closest('a[href]') && !(e.ctrlKey || e.metaKey || e.shiftKey))
+        this.cancel_search()
     });
     $.searchContainer = new DOM('span', {
       className: 'search-container'
