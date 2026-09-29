@@ -1,21 +1,6 @@
 @use "variable";
 
 footer {
-    border-top: variable.$border-panel1;
-    margin-top: 1em;
-    padding: 1em;
-    position: relative;
+    display: none;
     z-index: 4;
-}
-
-@media screen {
-    footer {
-        background: var(--bg-color1);
-    }
-}
-
-@media (min-width: variable.$screen-3) {
-    footer {
-        margin-left: calc(5vw + 15rem);
-    }
 }
