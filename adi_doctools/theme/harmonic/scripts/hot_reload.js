@@ -345,11 +345,7 @@ export class HotReload {
     this.parent.state.collection = undefined
     this.parent.state.tags = undefined
   }
-  async replace (dom, url, txt, track_changes = false) {
-
-    const parser = new DOMParser()
-    const doc = parser.parseFromString(txt, 'text/html');
-
+  async replace (dom, url, doc, track_changes = false) {
     const localtoc = doc.querySelector('.localtoc nav');
     const related = doc.querySelector('.documentwrapper .related')
     const content = doc.querySelector('.documentwrapper .body');
@@ -558,26 +554,23 @@ export class HotReload {
     if (track_changes)
       request_url.searchParams.append(Toolbox.UID(), '')
     const time_ = Date.now()
-    const response = fetch(
-      new Request(request_url)
-    )
-      .then(async response => {
-        if (!response.ok) throw new Error(`HTTP ${response.status}`)
-        // e.g. /doctools -> /doctools/
-        const final_url = new URL(response.url || request_url.href)
-        final_url.search = target_url.search
-        final_url.hash = target_url.hash
+    this.fetch_page(request_url)
+      .then(({url: final_url, doc, refreshed}) => {
+        if (!refreshed)
+          final_url.search = target_url.search
+        if (!final_url.hash)
+          final_url.hash = target_url.hash
         if (final_url.href !== target_url.href) {
           request_url = final_url
           this.location_href = final_url.href
           history.replaceState(history.state, '', final_url.href)
         }
-        return response.text()
+        return doc
       })
-      .then(async txt => {
+      .then(async doc => {
         const timeout = Math.max(0, this.reduced_motion ? 0 : 125 - (Date.now() - time_))
         if (timeout) await new Promise(resolve => setTimeout(resolve, timeout))
-        if (!(await this.replace(dom, request_url, txt, is_same_page ? track_changes : false))) {
+        if (!(await this.replace(dom, request_url, doc, is_same_page ? track_changes : false))) {
           const error = new Error('Destination is not a supported documentation build')
           error.unsupported = true
           throw error
@@ -588,7 +581,7 @@ export class HotReload {
           console.warn('hot_reload: falling back to navigation', error)
           this.location_href = previous_href
           this.lock_load = false
-          location.replace(request_url.href)
+          location.replace((error.url || request_url).href)
           return
         }
         this.$.tocwrapper.classList.add('fetch')
@@ -740,6 +733,24 @@ export class HotReload {
       return
     input.checked = false
     input.dispatchEvent(new Event('change'))
+  }
+  /**
+   * Honor one meta refresh redirect:
+   * <meta http-equiv="refresh" content="0; url=main/">
+   */
+  async fetch_page (url, refresh = true) {
+    const response = await fetch(url)
+    if (!response.ok)
+      throw new Error(`HTTP ${response.status}`)
+    const doc = new DOMParser().parseFromString(await response.text(), 'text/html')
+    const target = refresh && doc.querySelector('meta[http-equiv="refresh" i]')
+      ?.content.split(/url=/i)[1]?.trim()
+    if (!target)
+      return {url: new URL(response.url), doc, refreshed: !refresh}
+    const next = new URL(target, response.url)
+    if (next.origin !== location.origin)
+      throw Object.assign(new Error('Redirect to another origin'), {unsupported: true, url: next})
+    return this.fetch_page(next, false)
   }
   /**
    * Hot load url, or fallback if it does not exist.
