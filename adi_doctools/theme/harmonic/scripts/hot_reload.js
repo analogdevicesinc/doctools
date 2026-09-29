@@ -119,11 +119,17 @@ export class HotReload {
   }
   /**
    * Adds scripts is missing, or call to regen to the updated page.
+   * Returns a promise if the script is new and must be loaded.
    */
-  ensure_script (value, key, map) {
+  ensure_script (value, key) {
     if (!this.js_script_current.has(key))
       return
-    document.querySelector('head')?.append(value)
+    const loaded = !value.isConnected && value.src ?
+      new Promise(resolve => {
+        value.addEventListener('load', resolve, {once: true})
+        value.addEventListener('error', resolve, {once: true})
+      }) : undefined
+    document.querySelector('head').append(value)
 
     if (key.startsWith("https://")) {
       if (new RegExp("^https://cdn\\.jsdelivr\\.net/npm/mathjax@[^/]+/(?:es5/)?tex-mml-chtml\\.js$").test(key)) {
@@ -160,6 +166,7 @@ export class HotReload {
         }
       }
     }
+    return loaded
   }
   /**
    * app.umd.js and app.min.css are identical in every build.
@@ -293,7 +300,7 @@ export class HotReload {
     if (idx !== Infinity)
       return doms[idx]
   }
-  async change_doc (doc, url) {
+  async probe_doc (doc, url) {
     const repository = doc.querySelector('meta[name="repository"]')?.content
     if (!this.is_known_repository(repository) ||
         !doc.querySelector('.sphinxsidebar .toc-tree, .sphinxsidebar .repotoc-tree') ||
@@ -312,10 +319,10 @@ export class HotReload {
       toctree = doc.querySelector('.sphinxsidebar .toc-tree')?.innerHTML
       toctree_base = url
     }
-    if (toctree === undefined)
-      return false
-
-    DispatchEvent('app:hot_reload:doc_deinit')
+    if (toctree !== undefined)
+      return {toctree, toctree_base}
+  }
+  change_doc (doc, url, {toctree, toctree_base}) {
     this.sync_styles(doc)
     const sidebar = doc.querySelector('.sphinxsidebarwrapper > a')
     const logo = doc.querySelector('header a#logo')
@@ -336,7 +343,6 @@ export class HotReload {
     this.body_classes.forEach(name => document.body.classList.add(name))
     this.parent.state.collection = undefined
     this.parent.state.tags = undefined
-    return true
   }
   async replace (dom, url, txt, track_changes = false) {
 
@@ -354,11 +360,17 @@ export class HotReload {
       return false
     }
 
-    const old_root = new URL(this.parent.state.content_root, this.previous_href || location.href)
+    const old_root = new URL(this.parent.state.content_root, this.previous_href)
     const new_root = new URL(State.content_root(doc), url)
     const changed_build = old_root.href !== new_root.href
-    if (changed_build && !(await this.change_doc(doc, url)))
+    const next_doc = changed_build && await this.probe_doc(doc, url)
+    if (changed_build && !next_doc)
       return false
+    DispatchEvent('app:hot_reload:page_unload')
+    if (changed_build) {
+      DispatchEvent('app:hot_reload:doc_unload')
+      this.change_doc(doc, url, next_doc)
+    }
     this.sync_scripts(scripts)
     this.sync_meta(doc)
     if (!changed_build)
@@ -404,11 +416,14 @@ export class HotReload {
     this.$.title.innerText = title.innerText
 
     this.regen_breadcrumb(dom)
+    const loaded = []
+    this.js_script_memory.forEach((value, key) => loaded.push(this.ensure_script(value, key)))
+    await Promise.all(loaded)
     if (changed_build) {
       this.parent.versioned.reset()
       this.parent.versioned.construct()
       this.parent.links.update_repotoc(this.parent.state.metadata.repotoc)
-      DispatchEvent('app:hot_reload:doc_init')
+      DispatchEvent('app:hot_reload:doc_loaded')
     }
     for (const key in this.parent) {
       if ("init" in this.parent[key])
@@ -417,10 +432,7 @@ export class HotReload {
     this.$.bodywrapper.classList.remove('fetch')
     this.$.tocwrapper.classList.remove('fetch')
     this.$.loader.classList.remove('fetch')
-
-
-    this.js_script_memory.forEach((value, key, map) => this.ensure_script(value, key, map))
-    DispatchEvent("app:hot_reload:page_loaded")
+    DispatchEvent('app:hot_reload:page_loaded')
 
     if (!this.reduced_motion && !track_changes)
       window.scrollTo({ top: 0, left: 0, behavior: "instant" })
@@ -764,5 +776,14 @@ export class HotReload {
     this.init_loader()
     document.addEventListener('click', ev => this.delegate_link(ev))
     onpopstate = (ev) => {this.popstate(ev)}
+
+    const init = () => {
+      DispatchEvent('app:hot_reload:doc_loaded')
+      DispatchEvent('app:hot_reload:page_loaded')
+    }
+    if (document.readyState === 'complete')
+      init()
+    else
+      addEventListener('load', init, {once: true})
   }
 }
