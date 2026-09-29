@@ -81,6 +81,7 @@ export class PageActions {
       return
     }
 
+    this.md_converter.baseUrl = location.href
     const md = this.md_converter.convert(element)
     navigator.clipboard.writeText(md)
       .then(() => {
@@ -125,19 +126,6 @@ export class PageActions {
     this.$.container.append(this.$.copy_button)
     this.$.container.append(this.$.edit_button)
   }
-  preinit_page_source () {
-    let m = this.parent.state.metadata
-    let r = this.parent.state.repository
-
-    if (this.page_source_sanity(m, r))
-      return
-
-    if (this.page_source_ignore())
-      return
-
-    this.draw_page_source()
-    this.with_page_source = true
-  }
   async open_page_source () {
     const branch = await this.resolve_pull()
     const candidates = this.edit_button_candidates.map(
@@ -161,6 +149,9 @@ export class PageActions {
     }
   }
   init_page_source () {
+    this.with_page_source =
+      !this.page_source_sanity(this.parent.state.metadata, this.parent.state.repository) &&
+      !this.page_source_ignore()
     if (!this.with_page_source)
       return
 
@@ -220,6 +211,7 @@ export class PageActions {
       return
 
     this.edit_button_candidates = undefined
+    this.$.container.remove()
   }
   handler_stub () {
     if (!this.parent.versioned.tags)
@@ -248,7 +240,7 @@ export class PageActions {
     await_()
   }
   construct () {
-    this.preinit_page_source()
+    this.draw_page_source()
     this.init()
   }
   init () {
