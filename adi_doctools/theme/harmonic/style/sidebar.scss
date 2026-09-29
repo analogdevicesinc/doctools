@@ -125,10 +125,7 @@
     .sphinxsidebarwrapper {
         height: calc(100vh - 3.5rem);
 	width: calc(5vw + 15rem);
-    }
-
-    body:not(.overflow-hidden) .sphinxsidebarwrapper {
-        border-right: variable.$border-panel2;
+        margin-left: calc(50vw - 5vw - 15rem - 20rem - 10vw);
     }
 }
 
