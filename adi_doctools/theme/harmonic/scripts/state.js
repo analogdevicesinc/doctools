@@ -45,8 +45,8 @@ export class State {
    * Get repository name, e.g.
    * doctools, hdl, pyadi-iio
    */
-  repository () {
-    let dom = document.querySelector('meta[name="repository"]')
+  repository (doc = document) {
+    let dom = doc.querySelector('meta[name="repository"]')
     return dom ? dom.content : ''
   }
   /**
@@ -56,8 +56,8 @@ export class State {
    * so inhering from path has higher precedence.
    * Should only be used as a fallback.
    */
-  version () {
-    let dom = document.querySelector('meta[name="version"]')
+  version (doc = document) {
+    let dom = doc.querySelector('meta[name="version"]')
     if (dom === null)
       return ""
 
@@ -93,8 +93,8 @@ export class State {
    * / , /v0.2.2 -> (empty)
    * For correctness, the html meta repository tag must match the url repository.
    */
-  subhost (content_root, repository) {
-    let doc_root   = new URL(content_root, location).href,
+  subhost (content_root, repository, url = location.href) {
+    let doc_root   = new URL(content_root, url).href,
         no_docs    = new URL(repository, location.origin).href,
         under_docs = new URL(`docs/${repository}`, location.origin).href
     if (doc_root.startsWith(under_docs))
@@ -110,8 +110,8 @@ export class State {
    * file://../docs/doctools, file://../docs/doctools/v0.2.2 -> file://../docs/doctools
    * For correctness, the html meta repository tag must match the url repository.
    */
-  subhost_offline (content_root, repository) {
-    let doc_root = new URL(content_root, location).href
+  subhost_offline (content_root, repository, url = location.href) {
+    let doc_root = new URL(content_root, url).href
     let index = doc_root.search("/_build/html")
     if (index !== -1)
       return doc_root.substring(0, index + "/_build/html".length)
@@ -128,8 +128,8 @@ export class State {
    * /doctools/v1.1.1 -> "v1.1.1"
    * /v1.1.1 -> "v1.1.1"
    */
-  path (content_root, subhost) {
-    let url = new URL(content_root, location).href,
+  path (content_root, subhost, page_url = location.href) {
+    let url = new URL(content_root, page_url).href,
         org = new URL(subhost, location.origin).href
     if (!url.startsWith(org))
       return ""
@@ -141,10 +141,10 @@ export class State {
    * file://../doctools -> ""
    * file://../doctools/v1.1.1 -> "v1.1.1"
    */
-  path_offline (content_root, subhost) {
+  path_offline (content_root, subhost, page_url = location.href) {
     if (subhost === undefined)
       return undefined
-    let url = new URL(content_root, location).href,
+    let url = new URL(content_root, page_url).href,
         org = subhost
     if (!url.startsWith(org))
       return ""
@@ -164,33 +164,33 @@ export class State {
   /**
    * Disable integrations.
    */
-  standalone () {
-    return document.querySelector('meta[name="standalone"]') ? true : false
+  standalone (doc = document) {
+    return doc.querySelector('meta[name="standalone"]') ? true : false
   }
   /**
    * Detect if is a landing page.
    */
-  landing_page () {
-    return document.querySelector('meta[name="landing_page"]') ? true : false
+  landing_page (doc = document) {
+    return doc.querySelector('meta[name="landing_page"]') ? true : false
   }
   /**
    * Init app state object.
    */
-  init_state (state) {
-    state.repository = this.repository()
-    state.version = this.version()
+  init_state (state, doc = document, url = location.href) {
+    state.repository = this.repository(doc)
+    state.version = this.version(doc)
     state.offline = 'file:' == window.location.protocol
     state.theme = localStorage.getItem('theme')
-    state.content_root = State.content_root(document)
+    state.content_root = State.content_root(doc)
     if (!state.offline) {
-      state.subhost = this.subhost(state.content_root, state.repository)
-      state.path = this.path(state.content_root, state.subhost)
+      state.subhost = this.subhost(state.content_root, state.repository, url)
+      state.path = this.path(state.content_root, state.subhost, url)
     } else {
-      state.subhost = this.subhost_offline(state.content_root, state.repository)
-      state.path = this.path_offline(state.content_root, state.subhost)
+      state.subhost = this.subhost_offline(state.content_root, state.repository, url)
+      state.path = this.path_offline(state.content_root, state.subhost, url)
     }
     state.reloaded = this.reloaded()
-    state.standalone = this.standalone()
-    state.landing_page = this.landing_page()
+    state.standalone = this.standalone(doc)
+    state.landing_page = this.landing_page(doc)
   }
 }

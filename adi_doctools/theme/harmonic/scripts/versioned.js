@@ -13,6 +13,8 @@ export class Versioned {
     this.tags
     this.prefix
     this.callback = []
+    this.generation = 0
+    addEventListener('resize', () => { this.show(undefined, false) })
     this.construct()
 
     app.versioned = this
@@ -31,7 +33,20 @@ export class Versioned {
 
     this.render({"": [version, ""]})
   }
+  /**
+   * Remove dropdowns and ignore pending tags.json responses.
+   */
+  reset () {
+    this.generation++
+    this.show(undefined, false)
+    this.$.list?.remove()
+    this.$.cancel?.remove()
+    this.$.dropdowns?.forEach(node => node.remove())
+    this.$ = {}
+    this.tags = undefined
+  }
   construct () {
+    const generation = this.generation
     if (this.parent.state.offline) {
       let path = location.href
       this.prefix = new URL(app.state.content_root, path).href
@@ -52,8 +67,13 @@ export class Versioned {
     )
       .then(response => response)
       .then(response => response.json())
-      .then(obj => this.init_tags(obj))
+      .then(obj => {
+        if (generation === this.generation)
+          this.init_tags(obj)
+      })
       .catch(error => {
+        if (generation !== this.generation)
+          return
         console.log("versioned: no tags.json and no current version")
         this.fallback()
       })
@@ -151,6 +171,7 @@ export class Versioned {
    * Got to a version, tries current docname and anchor
    */
   select_version(entry, new_tab) {
+    this.show(undefined, false)
     const start = app.state.path.length > 0 ?
                   this.prefix + app.state.path + '/' :
                   this.prefix
@@ -158,10 +179,15 @@ export class Versioned {
       const pathname = location.href.substring(start.length)
       let url = new URL(pathname, entry.dataset['alt_href'])
       url.hash = location.hash
-      Toolbox.try_redirect(url, entry.dataset['alt_href'], new_tab)
+      if (this.parent.hot_reload?.navigate)
+        this.parent.hot_reload.navigate(url, entry.dataset['alt_href'], new_tab)
+      else
+        Toolbox.try_redirect(url, entry.dataset['alt_href'], new_tab)
     } else {
       if (new_tab)
         window.open(entry.dataset['alt_href'], '_blank').focus()
+      else if (this.parent.hot_reload?.navigate)
+        this.parent.hot_reload.navigate(entry.dataset['alt_href'])
       else
         location.href = entry.dataset['alt_href']
     }
@@ -265,11 +291,11 @@ export class Versioned {
     })
     container3.onclick = (ev) => { this.show(container3, true) }
     cancel_dropdown.onclick = (ev) => {this.show(undefined, false) }
-    onresize = (ev) => { this.show(undefined, false) }
     nav_bar.append(container3)
 
     this.$.list = container2
     this.$.cancel= cancel_dropdown
+    this.$.dropdowns = [container, container3]
   }
   /**
    * Append callbacks to call after tags.json is loaded.
@@ -282,8 +308,8 @@ export class Versioned {
   }
   show (dom, show) {
     if (!show) {
-      this.$.cancel.classList.remove('on')
-      this.$.list.classList.remove('on')
+      this.$.cancel?.classList.remove('on')
+      this.$.list?.classList.remove('on')
       return
     }
 

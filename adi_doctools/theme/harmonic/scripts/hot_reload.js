@@ -20,16 +20,22 @@ export class HotReload {
     $.related = document.querySelector('.documentwrapper .related')
     $.breadcrumb = document.querySelector('.bodywrapper .body-header .breadcrumb')
     $.title = document.querySelector('head title')
+    $.sidebar_logo = document.querySelector('.sphinxsidebarwrapper > a')
+    $.header_logo = document.querySelector('header a#logo')
 
     this.toctree = new Map()
     this.js_script_current = new Set()
     this.js_script_memory = new Map()
+    this.stylesheets = new Map()
+    this.load_failed = false
+    this.body_classes = this.get_body_classes(document)
 
     this.location_href
     this.lock_load = false
     this.reduced_motion
     this.scrollY = undefined
 
+    this.state_helper = Object.create(State.prototype)
     this.construct()
 
     app.hot_reload = this
@@ -67,24 +73,46 @@ export class HotReload {
       ol.appendChild(li)
     })
   }
-  hot_links () {
-    let attach_load = (elem) => {
-      if (elem.constructor.name !== 'HTMLAnchorElement')
-        return
-      let url = new URL(elem)
-      url.hash = ''
-      let dom = this.toctree.get(url.href)
-      if (dom === undefined)
-        return
-
-      elem.onclick = (ev) => {
-        ev.preventDefault()
-        this.load(dom, elem.href, false, false)
-      }
-    }
-    document.querySelectorAll('a[href]', this.$.related).forEach(attach_load)
-    document.querySelectorAll('.reference.internal', this.$.content).forEach(attach_load)
-    document.querySelectorAll('a[href]', this.$.breadcrumb).forEach(attach_load)
+  get_body_classes (doc) {
+    return new Set([...doc.body.classList]
+      .filter(name => !['js-on', 'dark', 'light'].includes(name)))
+  }
+  /**
+   * Delegated, as repotoc and extras are generated after metadata.json.
+   */
+  delegate_link (ev) {
+    if (ev.defaultPrevented || ev.button !== 0 ||
+        ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey)
+      return
+    const elem = ev.target.closest('a[href]')
+    if (!elem || (elem.target && elem.target !== '_self') || elem.hasAttribute('download'))
+      return
+    const url = new URL(elem.href)
+    if (url.origin !== location.origin ||
+        (/\.[^/]+$/.test(url.pathname) && !url.pathname.endsWith('.html')))
+      return
+    url.hash = ''
+    const dom = this.toctree.get(url.href)
+    if (dom === undefined && !this.is_known_doc(url))
+      return
+    ev.preventDefault()
+    this.load(dom || this.$.header_logo, elem.href, false)
+  }
+  landing_root () {
+    return this.parent.state.subhost?.startsWith('/docs/') ? '/docs/' : '/'
+  }
+  is_known_repository (repository) {
+    const repotoc = this.parent.state.metadata?.repotoc
+    return !!repository && !!repotoc && Object.keys(repotoc).some(key =>
+      key === repository || repotoc[key].alt === repository)
+  }
+  is_known_doc (url) {
+    if (url.origin !== location.origin)
+      return false
+    if (url.pathname === this.landing_root())
+      return !!this.parent.state.metadata?.repotoc
+    const parts = url.pathname.split('/').filter(Boolean)
+    return this.is_known_repository(parts[0] === 'docs' ? parts[1] : parts[0])
   }
   remove_script (key) {
     /* Nothing to do */
@@ -93,6 +121,8 @@ export class HotReload {
    * Adds scripts is missing, or call to regen to the updated page.
    */
   ensure_script (value, key, map) {
+    if (!this.js_script_current.has(key))
+      return
     document.querySelector('head')?.append(value)
 
     if (key.startsWith("https://")) {
@@ -131,13 +161,21 @@ export class HotReload {
       }
     }
   }
-  get_script_key (script) {
+  /**
+   * app.umd.js and app.min.css are identical in every build.
+   */
+  asset_key (href) {
+    const url = new URL(href)
+    url.searchParams.delete('v')
+    if (/\/_static\/app\.(?:umd\.js|min\.css)$/.test(url.pathname))
+      return url.pathname.substring(url.pathname.lastIndexOf('/'))
+    return url.href
+  }
+  get_script_key (script, base = this.location_href) {
     if (!script.hasAttribute("src"))
       return script.innerHTML
 
-    const url = new URL(script.src)
-    url.searchParams.delete("v")
-    return url.href
+    return this.asset_key(new URL(script.getAttribute('src'), base).href)
   }
   /**
    * Synchronize added and removed scripts
@@ -147,12 +185,6 @@ export class HotReload {
    */
   sync_scripts (scripts) {
     let js_script = new Map()
-    // Append metadata extra scripts, for proper filtering
-    if (this.parent.state.metadata) {
-      this.parent.state.metadata.modules.javascript.forEach((item) => {
-        js_script.set(new URL('_static/extra.umd.js', this.parent.fetch.base_url).href)
-      })
-    }
     for (let i = 0; i < scripts.length; i++) {
       js_script.set(this.get_script_key(scripts[i]), scripts[i])
     }
@@ -164,19 +196,45 @@ export class HotReload {
     this.js_script_current = new Set(js_script.keys())
 
     added.forEach((item) => {
-      // already in memory
       if (this.js_script_memory.has(item))
         return
-      // Prepare script element
-      const script = document.createElement("script");
+      // Scripts from DOMParser are inert, and importNode copies that state.
+      const script = document.createElement('script')
       const cache = js_script.get(item)
-      for (const attr of cache.attributes) {
-        script.setAttribute(attr.name, attr.value);
-      }
+      for (const attr of cache.attributes)
+        script.setAttribute(attr.name, attr.value)
+      if (script.hasAttribute('src'))
+        script.src = new URL(script.getAttribute('src'), this.location_href).href
       if (cache.innerHTML)
         script.innerHTML = cache.innerHTML
       this.js_script_memory.set(item, script)
     })
+  }
+  sync_styles (doc) {
+    const next = new Map()
+    doc.head.querySelectorAll('link[rel="stylesheet"]').forEach(link => {
+      const href = this.asset_key(new URL(link.getAttribute('href'), this.location_href).href)
+      next.set(href, link)
+      if (!this.stylesheets.has(href)) {
+        const copy = document.importNode(link, true)
+        copy.href = new URL(link.getAttribute('href'), this.location_href).href
+        document.head.append(copy)
+        this.stylesheets.set(href, copy)
+      }
+    })
+    for (const [href, link] of this.stylesheets) {
+      if (!next.has(href)) {
+        link.remove()
+        this.stylesheets.delete(href)
+      }
+    }
+    document.head.querySelectorAll('link[rel="icon"]').forEach(link => link.remove())
+    const icon = doc.head.querySelector('link[rel="icon"]')
+    if (icon) {
+      const copy = document.importNode(icon, true)
+      copy.href = new URL(icon.getAttribute('href'), this.location_href).href
+      document.head.append(copy)
+    }
   }
   /**
    * Replaces all meta tags with the new page meta tags.
@@ -235,7 +293,52 @@ export class HotReload {
     if (idx !== Infinity)
       return doms[idx]
   }
-  replace (dom, url, txt, track_changes = false) {
+  async change_doc (doc, url) {
+    const repository = doc.querySelector('meta[name="repository"]')?.content
+    if (!this.is_known_repository(repository) ||
+        !doc.querySelector('.sphinxsidebar .toc-tree, .sphinxsidebar .repotoc-tree') ||
+        !doc.querySelector('.documentwrapper .body'))
+      return false
+
+    const root = new URL(State.content_root(doc), url)
+    let toctree, toctree_base = root
+    try {
+      const response = await fetch(new URL('_toctree.html', root))
+      if (response.ok)
+        toctree = await response.text()
+    } catch (error) {}
+    // e.g. the landing page has no _toctree.html.
+    if (toctree === undefined) {
+      toctree = doc.querySelector('.sphinxsidebar .toc-tree')?.innerHTML
+      toctree_base = url
+    }
+    if (toctree === undefined)
+      return false
+
+    DispatchEvent('app:hot_reload:doc_deinit')
+    this.sync_styles(doc)
+    const sidebar = doc.querySelector('.sphinxsidebarwrapper > a')
+    const logo = doc.querySelector('header a#logo')
+    this.$.sidebar_logo.innerHTML = sidebar.innerHTML
+    this.$.sidebar_logo.href = new URL(sidebar.getAttribute('href'), url).href
+    this.$.sidebar_logo.id = sidebar.id
+    this.$.header_logo.innerHTML = logo.innerHTML
+    this.$.header_logo.href = new URL(logo.getAttribute('href'), url).href
+    this.$.toctree.innerHTML = toctree
+    this.$.toctree.querySelectorAll('a[href]').forEach(a => {
+      a.href = new URL(a.getAttribute('href'), toctree_base).href
+    })
+    this.toctree.clear()
+    this.init_toctree()
+    this.state_helper.init_state(this.parent.state, doc, url.href)
+    this.body_classes.forEach(name => document.body.classList.remove(name))
+    this.body_classes = this.get_body_classes(doc)
+    this.body_classes.forEach(name => document.body.classList.add(name))
+    this.parent.state.collection = undefined
+    this.parent.state.tags = undefined
+    return true
+  }
+  async replace (dom, url, txt, track_changes = false) {
 
     const parser = new DOMParser()
     const doc = parser.parseFromString(txt, 'text/html');
@@ -246,13 +349,23 @@ export class HotReload {
     const scripts = doc.head.querySelectorAll('script') || []
     const title = doc.querySelector('head title')
 
+    if (!content || !localtoc || !title) {
+      console.warn("page: failed to get elements for ", url)
+      return false
+    }
+
+    const old_root = new URL(this.parent.state.content_root, this.previous_href || location.href)
+    const new_root = new URL(State.content_root(doc), url)
+    const changed_build = old_root.href !== new_root.href
+    if (changed_build && !(await this.change_doc(doc, url)))
+      return false
     this.sync_scripts(scripts)
     this.sync_meta(doc)
-
-    if (!content || !localtoc) {
-      console.warn("page: failed to get elements for ", url)
-      return
-    }
+    if (!changed_build)
+      this.sync_styles(doc)
+    document.documentElement.dataset.content_root = State.content_root(doc)
+    dom = this.toctree.get(new URL(url.pathname, url.origin).href) ||
+      (changed_build ? this.$.header_logo : dom)
 
     let child, node = dom
     if (dom.id !== "logo") while (node && node !== this.$.toctree) {
@@ -287,10 +400,16 @@ export class HotReload {
       if (old_texts.length > 0)
         changed_dom = this.highlight_change(old_texts, new_texts, doms)
     }
-    this.$.related.innerHTML = related.innerHTML
+    this.$.related.innerHTML = related?.innerHTML || ''
     this.$.title.innerText = title.innerText
 
     this.regen_breadcrumb(dom)
+    if (changed_build) {
+      this.parent.versioned.reset()
+      this.parent.versioned.construct()
+      this.parent.links.update_repotoc(this.parent.state.metadata.repotoc)
+      DispatchEvent('app:hot_reload:doc_init')
+    }
     for (const key in this.parent) {
       if ("init" in this.parent[key])
         this.parent[key].init()
@@ -300,10 +419,8 @@ export class HotReload {
     this.$.loader.classList.remove('fetch')
 
 
-    this.js_script_memory.forEach(this.ensure_script)
+    this.js_script_memory.forEach((value, key, map) => this.ensure_script(value, key, map))
     DispatchEvent("app:hot_reload:page_loaded")
-
-    this.hot_links()
 
     if (!this.reduced_motion && !track_changes)
       window.scrollTo({ top: 0, left: 0, behavior: "instant" })
@@ -339,6 +456,8 @@ export class HotReload {
     this.$.content.style.minHeight = ""
 
     this.lock_load = false
+    this.load_failed = false
+    return true
   }
   /**
    * track_changes forces fetching and replacing, even if is the same page.
@@ -353,8 +472,8 @@ export class HotReload {
     let current_url = new URL(this.location_href)
     let request_url = new URL(pathname, current_url)
     let is_same_page = false
-    this.location_href = request_url.href
-    if (current_url.pathname === request_url.pathname &&
+    if (!this.load_failed &&
+        current_url.pathname === request_url.pathname &&
         current_url.origin === request_url.origin) {
       is_same_page = true
       if (!track_changes) {
@@ -372,9 +491,11 @@ export class HotReload {
         this.scrollY = window.scrollY
       }
     }
+    this.close_repotoc()
     this.lock_load = true
-    // Push even before fetching, so in case of failure the user can easily
-    // reload the page
+    const previous_href = this.location_href
+    this.previous_href = previous_href
+    this.location_href = request_url.href
     if (state === false) {
       if (current_url.pathname !== request_url.pathname) {
         /* If visiting a new page, store last scroll position */
@@ -416,24 +537,49 @@ export class HotReload {
       elem.classList.remove('current')
     })
 
+    const target_url = new URL(request_url)
     if (track_changes)
       request_url.searchParams.append(Toolbox.UID(), '')
     const time_ = Date.now()
     const response = fetch(
       new Request(request_url)
     )
-      .then(response => response)
-      .then(response => response.text())
-      .then(txt => {
-        const timeout = this.reduced_motion ? 0 : 125 - (Date.now() - time_)
-        const body_= setTimeout(() => {
-          this.replace(dom, request_url, txt, is_same_page ? track_changes : false)
-        }, timeout)
+      .then(async response => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`)
+        // e.g. /doctools -> /doctools/
+        const final_url = new URL(response.url || request_url.href)
+        final_url.search = target_url.search
+        final_url.hash = target_url.hash
+        if (final_url.href !== target_url.href) {
+          request_url = final_url
+          this.location_href = final_url.href
+          history.replaceState(history.state, '', final_url.href)
+        }
+        return response.text()
+      })
+      .then(async txt => {
+        const timeout = Math.max(0, this.reduced_motion ? 0 : 125 - (Date.now() - time_))
+        if (timeout) await new Promise(resolve => setTimeout(resolve, timeout))
+        if (!(await this.replace(dom, request_url, txt, is_same_page ? track_changes : false))) {
+          const error = new Error('Destination is not a supported documentation build')
+          error.unsupported = true
+          throw error
+        }
       })
       .catch(error => {
+        if (error.unsupported) {
+          console.warn('hot_reload: falling back to navigation', error)
+          this.location_href = previous_href
+          this.lock_load = false
+          location.replace(request_url.href)
+          return
+        }
         this.$.tocwrapper.classList.add('fetch')
         this.$.bodywrapper.classList.add('fetch')
         this.$.loader.classList.add('fail')
+        // Retrying the same URL is not a same-page jump.
+        this.load_failed = true
+        this.lock_load = false
       })
       .finally(() => {
         if (loader_ !== undefined)
@@ -446,7 +592,7 @@ export class HotReload {
         alt_dom = dom
       // Make absolute and strip trailing #
       alt_dom.href = alt_dom.href.replace(/#$/, '')
-      this.toctree.set(alt_dom.href, alt_dom)
+      this.toctree.set(alt_dom.href, dom)
 
       alt_dom.onclick = (ev) => {
         ev.preventDefault()
@@ -457,8 +603,8 @@ export class HotReload {
       .forEach(dom => append_load(dom))
     const alt_dom = DOM.get('.sphinxsidebarwrapper > a')
     const dom = DOM.get('header a#logo')
-    append_load(dom, alt_dom)
-    append_load(dom)
+    if (dom && alt_dom) append_load(dom, alt_dom)
+    if (dom) append_load(dom)
   }
   init_others () {
     // Map scripts
@@ -469,6 +615,9 @@ export class HotReload {
       this.js_script_current.add(key)
       this.js_script_memory.set(key, scripts[i])
     }
+    document.head.querySelectorAll('link[rel="stylesheet"]:not([data-app-module])').forEach(link => {
+      this.stylesheets.set(this.asset_key(link.href), link)
+    })
   }
   init_loader() {
     let sides = []
@@ -502,8 +651,8 @@ export class HotReload {
     let url = new URL(location.href)
     url.hash = ''
     let dom = this.toctree.get(url.href)
-    if (dom !== undefined)
-      this.load(dom, location.href, ev.state, false)
+    if (dom !== undefined || this.is_known_doc(url))
+      this.load(dom || this.$.header_logo, location.href, ev.state, false)
     else // Fallback
       location.href = location.href
   }
@@ -520,13 +669,16 @@ export class HotReload {
     return fetch(
       new Request(toctree_url)
     )
-      .then(response => response.text())
+      .then(response => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`)
+        return response.text()
+      })
       .then(txt => {
         this.$.toctree.innerHTML = txt
 
         const content_root = this.parent.state.content_root
         DOM.getAll('a[href]', this.$.toctree).forEach(a => {
-          a.href = content_root + a.getAttribute('href')
+          a.href = new URL(a.getAttribute('href'), new URL(content_root, this.location_href)).href
         })
 
         this.toctree.clear()
@@ -565,6 +717,32 @@ export class HotReload {
       location.href = url.href
     }
   }
+  close_repotoc () {
+    const input = document.querySelector('#input-show-repotoc')
+    if (!input.checked)
+      return
+    input.checked = false
+    input.dispatchEvent(new Event('change'))
+  }
+  /**
+   * Hot load url, or fallback if it does not exist.
+   */
+  async navigate (url, fallback, new_tab = false) {
+    if (new_tab)
+      return Toolbox.try_redirect(url, fallback, true)
+    let target = new URL(url, location.href)
+    try {
+      const response = await fetch(target, { method: 'HEAD' })
+      if (response.status === 404 && fallback)
+        target = new URL(fallback, location.href)
+    } catch (error) {
+      if (fallback)
+        target = new URL(fallback, location.href)
+    }
+    this.load(this.toctree.get(new URL(target.pathname, target.origin).href) || this.$.header_logo,
+      target.href, false)
+    return false
+  }
   /**
    * If some of the elements are missing in the page,
    * create
@@ -574,7 +752,7 @@ export class HotReload {
       this.$.related = DOM.new('div', {
         className: 'related'
       })
-      this.$.documentwrapper.insertAdjacentElement('beforeend', $.related)
+      this.$.documentwrapper.insertAdjacentElement('beforeend', this.$.related)
     }
   }
   construct () {
@@ -584,7 +762,7 @@ export class HotReload {
     this.init_toctree()
     this.init_others()
     this.init_loader()
-    this.hot_links()
+    document.addEventListener('click', ev => this.delegate_link(ev))
     onpopstate = (ev) => {this.popstate(ev)}
   }
 }

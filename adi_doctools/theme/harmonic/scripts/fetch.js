@@ -61,12 +61,14 @@ export class Fetch {
     let script = DOM.new('script', {
       'src': new URL('_static/extra.umd.js', base_url)
     });
+    script.setAttribute('data-app-module', '')
     this.$.head.append(script)
     let style = DOM.new('link', {
       'rel': 'stylesheet',
       'type': 'text/css',
       'href': new URL('_static/extra.min.css', base_url)
     });
+    style.setAttribute('data-app-module', '')
     this.$.head.append(style)
 
     this.base_url = base_url
@@ -111,6 +113,7 @@ export class Fetch {
         let script = DOM.new('script', {
           'src': new URL(elem, url)
         });
+        script.setAttribute('data-app-module', '')
         this.$.head.append(script)
       })
     }
@@ -123,6 +126,7 @@ export class Fetch {
           'type': 'text/css',
           'href': new URL(elem, url)
         });
+        style.setAttribute('data-app-module', '')
         this.$.head.append(style)
       })
     }

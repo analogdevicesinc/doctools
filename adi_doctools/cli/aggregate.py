@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 dry_run = True
 no_parallel = True
 lut = get_lut()
-repos = lut['repos']
+repos = {k: v for k, v in lut['repos'].items() if v['visibility'] != 'hidden'}
 
 
 class pr:
@@ -143,9 +143,9 @@ def get_sphinx_dirs(cwd) -> tuple[bool, str, str]:
 
 
 def do_extra_steps(repo_dir):
-    for l_ in repos:
-        if 'extra' in repos[l_]:
-            cwd, cmd, no_p = repos[l_]['extra']
+    for l_, repo in repos.items():
+        if 'extra' in repo:
+            cwd, cmd, no_p = repo['extra']
             cwd = path.join(repo_dir, f"{l_}/{cwd}")
             nproc = 1 if no_parallel or no_p else 4
             if cmd[0] == 'make':

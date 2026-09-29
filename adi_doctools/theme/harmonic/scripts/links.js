@@ -13,6 +13,7 @@ export class Links {
     this.$.show_repotoc.onchange = (ev) => { this.renew_index(ev) }
     this.set_doms()
     this.parent = app
+    app.links = this
     if (typeof this.parent.fetch === 'object')
       this.parent.fetch.then(this.construct.bind(this))
     else
@@ -58,7 +59,7 @@ export class Links {
                     this.parent.state.content_root :
                     new URL(this.parent.state.content_root, location.href)
     for (const [key, value] of Object.entries(obj)) {
-      if (!('name' in value))
+      if (!('name' in value) || value.visibility === 'hidden')
         continue
 
       let base = key == this.parent.state.repository ?
