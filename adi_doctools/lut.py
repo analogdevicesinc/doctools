@@ -107,7 +107,7 @@ repos = {
         description='Vulnerabilities monitoring workflow for the Linux kernel.',
         category='system',
         branch='ci',
-        visibility='hidden'
+        visibility='public'
     ),
     'lnxdsp-adi-meta': Repo(
         pathname='docs',
