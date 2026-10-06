@@ -179,7 +179,7 @@ export class Navigation {
       href_.hash = anchor
       dom.href = href_
     }
-    dom.dispatchEvent(new Event('click'))
+    dom.click()
   }
   keyup (e) {
     switch (e.code) {
