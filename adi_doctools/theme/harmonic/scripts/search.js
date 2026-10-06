@@ -273,11 +273,11 @@ export class Search {
       key = Object.keys(this.parent.state.metadata.repotoc).find(
         k => this.parent.state.metadata.repotoc[k].alt === key
       ) || key
+    if (!(key in this.$.keyCheckbox))
+      return
     if (this.parent.state.version !== undefined)
         this.index_state[key].version = this.parent.state.path
     let event = new Event('change');
-    if (!(key in this.$.keyCheckbox))
-      return
     this.$.keyCheckbox[key].$.checked = true
     this.$.keyCheckbox[key].$.dispatchEvent(event)
   }
@@ -882,6 +882,8 @@ export class Search {
 
     if (!this.parent.state.standalone)
       for (const [key, value] of Object.entries(this.parent.state.metadata.repotoc)) {
+        if (value.visibility === 'hidden')
+          continue
         this.include_item(key, value['name'], alphanumeric.shift())
       }
     let not_subhosted = (this.parent.state.subhost === '' || this.parent.state.subhost === undefined) && !this.parent.state.landing_page
