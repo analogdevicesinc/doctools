@@ -5,6 +5,10 @@ import { Toolbox } from './toolbox.js'
 import { State } from './state.js'
 import { DOM } from './dom.js'
 
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
+const BLOCKS = 'h1, h2, h3, h4, h5, h6, p, pre, pre > span, span.pre, a, ul, ol, dl, table, blockquote'
+const own_text = node => DOM.getOwnText(node).replace(/\s+/g, " ").trim()
+
 export class HotReload {
   constructor (app) {
     this.parent = app
@@ -31,48 +35,31 @@ export class HotReload {
     this.js_script_memory = new Map()
     this.stylesheets = new Map()
     this.load_failed = false
-    this.body_classes = this.get_body_classes(document)
-
     this.lock_load = false
-    this.pending_load = undefined
-    this.reduced_motion
-    this.scrollY = undefined
-
+    this.body_classes = this.get_body_classes(document)
     this.state_helper = Object.create(State.prototype)
     this.construct()
   }
+  toc_get (href) {
+    const url = new URL(href, this.href)
+    return this.toctree.get(url.origin + url.pathname)
+  }
   regen_breadcrumb (dom) {
-    let ol = this.$.breadcrumb.firstElementChild
-    ol.innerHTML = ''
-
-    if (dom.id === "logo") {
-      this.$.breadcrumb.classList.add('empty')
-      return
-    }
-
-    let node = dom.parentElement.parentElement
-    let arr = []
-    while (node && node !== this.$.toctree) {
-      node = node.parentElement
-      if (node && node.tagName == 'LI') {
-        if (node.childNodes[1]) {
-          let elem = node.childNodes[1].childNodes[0]
-          arr.push(elem)
-        }
+    const arr = []
+    if (dom.id !== "logo") {
+      let node = dom.parentElement.parentElement
+      while (node && node !== this.$.toctree) {
+        node = node.parentElement
+        if (node?.tagName === 'LI' && node.childNodes[1])
+          arr.unshift(node.childNodes[1].childNodes[0])
       }
     }
-    if (arr.length === 0)
-      this.$.breadcrumb.classList.add('empty')
-    else
-      this.$.breadcrumb.classList.remove('empty')
-    arr.reverse().forEach((elem) => {
+    this.$.breadcrumb.classList.toggle('empty', arr.length === 0)
+    this.$.breadcrumb.firstElementChild.replaceChildren(...arr.map(elem => {
       const li = DOM.new('li')
-      li.append(DOM.new('a', {
-        'href': elem.href,
-        'innerText': elem.innerText
-      }))
-      ol.appendChild(li)
-    })
+      li.append(DOM.new('a', {href: elem.href, innerText: elem.innerText}))
+      return li
+    }))
   }
   get_body_classes (doc) {
     return new Set([...doc.body.classList]
@@ -96,12 +83,10 @@ export class HotReload {
       ev.preventDefault()
       return
     }
-    url.hash = ''
-    const dom = this.toctree.get(url.href)
-    if (dom === undefined && !this.is_known_doc(url))
+    if (!this.toc_get(url) && !this.is_known_doc(url))
       return
     ev.preventDefault()
-    this.load(dom || this.$.header_logo, elem.href, false)
+    this.load(elem.href, false)
   }
   landing_root () {
     return this.parent.state.subhost?.startsWith('/docs/') ? '/docs/' : '/'
@@ -119,9 +104,6 @@ export class HotReload {
     const parts = url.pathname.split('/').filter(Boolean)
     return this.is_known_repository(parts[0] === 'docs' ? parts[1] : parts[0])
   }
-  remove_script (key) {
-    /* Nothing to do */
-  }
   /**
    * Adds scripts is missing, or call to regen to the updated page.
    * Returns a promise if the script is new and must be loaded.
@@ -134,41 +116,34 @@ export class HotReload {
         value.addEventListener('load', resolve, {once: true})
         value.addEventListener('error', resolve, {once: true})
       }) : undefined
-    document.querySelector('head').append(value)
+    document.head.append(value)
 
-    if (key.startsWith("https://")) {
-      if (new RegExp("^https://cdn\\.jsdelivr\\.net/npm/mathjax@[^/]+/(?:es5/)?tex-mml-chtml\\.js$").test(key)) {
-        // MathJax will apply on load, so only call if already loaded,
-        // instead of having to wait if it to be loaded to call.
-        if (typeof MathJax !== 'undefined')
-          MathJax.typeset()
-        // For reference only, if custom initialization was necessary
-        //else
-        //  value.onload = () => { console.log("MathJax loaded") }
-      } else if (new RegExp("^https://cdn\\.jsdelivr\\.net/npm/mermaid@[^/]+/dist/mermaid\\.esm\\.min\\.mjs$").test(key)) {
-        if (typeof Mermaid !== 'undefined')
+    if (/^https:\/\/cdn\.jsdelivr\.net\/npm\/mathjax@[^/]+\/(?:es5\/)?tex-mml-chtml\.js$/.test(key)) {
+      // MathJax will apply on load, so only call if already loaded,
+      // instead of having to wait if it to be loaded to call.
+      if (typeof MathJax !== 'undefined')
+        MathJax.typeset()
+    } else if (/^https:\/\/cdn\.jsdelivr\.net\/npm\/mermaid@[^/]+\/dist\/mermaid\.esm\.min\.mjs$/.test(key)) {
+      if (typeof Mermaid !== 'undefined')
+        Mermaid.run()
+      else
+        import(key).then(m => {
+          window.Mermaid = m.default
           Mermaid.run()
-        else
-          import(key).then(m => {
-            window.Mermaid = m.default
-            Mermaid.run()
-          })
-      }
-    } else {
-      if (new RegExp("^import mermaid from \"https://cdn\\.jsdelivr\\.net/npm/mermaid@[^/]+/dist/mermaid\\.esm\\.min\\.mjs\";").test(key)) {
-        if (typeof runMermaid !== 'undefined') {
-          runMermaid(true)
-        } else {
-          // Needs custom initialization, use one-shot setter
-          Object.defineProperty(window, 'runMermaid', {
-            configurable: true,
-            set: f => {
-              delete window.runMermaid
-              window.runMermaid = f
-              f(true)
-            }
-          })
-        }
+        })
+    } else if (/^import mermaid from "https:\/\/cdn\.jsdelivr\.net\/npm\/mermaid@[^/]+\/dist\/mermaid\.esm\.min\.mjs";/.test(key)) {
+      if (typeof runMermaid !== 'undefined') {
+        runMermaid(true)
+      } else {
+        // Needs custom initialization, use one-shot setter
+        Object.defineProperty(window, 'runMermaid', {
+          configurable: true,
+          set: f => {
+            delete window.runMermaid
+            window.runMermaid = f
+            f(true)
+          }
+        })
       }
     }
     return loaded
@@ -186,53 +161,42 @@ export class HotReload {
   get_script_key (script, base = this.href) {
     if (!script.hasAttribute("src"))
       return script.innerHTML
-
     return this.asset_key(new URL(script.getAttribute('src'), base).href)
   }
   /**
-   * Synchronize added and removed scripts
-   * Scripts already in memory cannot be removed, so maintain the head is for
-   * cleanness. Instead, rules per-script exist to neutralize and re-apply when
-   * necessary
+   * Scripts already in memory cannot be removed, instead, rules per-script
+   * exist to neutralize and re-apply when necessary.
    */
   sync_scripts (scripts, url) {
-    let js_script = new Map()
-    for (let i = 0; i < scripts.length; i++) {
-      js_script.set(this.get_script_key(scripts[i], url), scripts[i])
-    }
-    const added = [...js_script.keys()].filter(k => !this.js_script_current.has(k));
-    const removed = [...this.js_script_current.keys()].filter(k => !js_script.has(k));
-
-    removed.forEach((item) => { this.remove_script(item) })
-
+    const js_script = new Map([...scripts].map(script => [this.get_script_key(script, url), script]))
     this.js_script_current = new Set(js_script.keys())
-
-    added.forEach((item) => {
-      if (this.js_script_memory.has(item))
-        return
+    for (const [key, cache] of js_script) {
+      if (this.js_script_memory.has(key))
+        continue
       // Scripts from DOMParser are inert, and importNode copies that state.
       const script = document.createElement('script')
-      const cache = js_script.get(item)
       for (const attr of cache.attributes)
         script.setAttribute(attr.name, attr.value)
       if (script.hasAttribute('src'))
         script.src = new URL(script.getAttribute('src'), url).href
       if (cache.innerHTML)
         script.innerHTML = cache.innerHTML
-      this.js_script_memory.set(item, script)
-    })
+      this.js_script_memory.set(key, script)
+    }
+  }
+  import_link (link, url) {
+    const copy = document.importNode(link, true)
+    copy.href = new URL(link.getAttribute('href'), url).href
+    document.head.append(copy)
+    return copy
   }
   sync_styles (doc, url) {
-    const next = new Map()
+    const next = new Set()
     doc.head.querySelectorAll('link[rel="stylesheet"]').forEach(link => {
       const href = this.asset_key(new URL(link.getAttribute('href'), url).href)
-      next.set(href, link)
-      if (!this.stylesheets.has(href)) {
-        const copy = document.importNode(link, true)
-        copy.href = new URL(link.getAttribute('href'), url).href
-        document.head.append(copy)
-        this.stylesheets.set(href, copy)
-      }
+      next.add(href)
+      if (!this.stylesheets.has(href))
+        this.stylesheets.set(href, this.import_link(link, url))
     })
     for (const [href, link] of this.stylesheets) {
       if (!next.has(href)) {
@@ -242,40 +206,30 @@ export class HotReload {
     }
     document.head.querySelectorAll('link[rel="icon"]').forEach(link => link.remove())
     const icon = doc.head.querySelector('link[rel="icon"]')
-    if (icon) {
-      const copy = document.importNode(icon, true)
-      copy.href = new URL(icon.getAttribute('href'), url).href
-      document.head.append(copy)
-    }
+    if (icon)
+      this.import_link(icon, url)
   }
   /**
    * Replaces all meta tags with the new page meta tags.
    */
   sync_meta (doc) {
-    document.head.querySelectorAll("meta")
-      .forEach(meta => meta.remove())
+    document.head.querySelectorAll("meta").forEach(meta => meta.remove())
     doc.head.querySelectorAll("meta")
-      .forEach(meta => document.head.appendChild(document.importNode(meta, true)))
+      .forEach(meta => document.head.append(document.importNode(meta, true)))
   }
   /**
    * Compensate scroll due to layout shifting (e.g. images loading)
    */
-  scroll_compensate_layout(anchor) {
+  scroll_compensate_layout (anchor) {
     let settle_timeout, raf
-
     const observer = new ResizeObserver(() => {
       clearTimeout(settle_timeout)
-
       cancelAnimationFrame(raf)
       anchor.scrollIntoView()
-
       settle_timeout = setTimeout(() => {
-        raf = requestAnimationFrame(() => {
-          observer.disconnect()
-        })
+        raf = requestAnimationFrame(() => observer.disconnect())
       }, 750)
     })
-
     observer.observe(this.$.bodywrapper)
   }
   /**
@@ -284,9 +238,7 @@ export class HotReload {
   highlight_change (old_texts, new_texts, doms) {
     const _apply = (elem, mod) => {
       elem.classList.add(`highlight-${mod}`)
-      setTimeout(() => {
-        elem.classList.remove(`highlight-${mod}`)
-      }, 3000)
+      setTimeout(() => elem.classList.remove(`highlight-${mod}`), 3000)
     }
     const {added, modified, deleted} = Toolbox.LCS(old_texts, new_texts)
     for (const i of added)
@@ -300,7 +252,6 @@ export class HotReload {
       if (i < doms.length)
         _apply(doms[i], 'deleted')
     }
-
     const idx = Math.min(...added, ...modified, ...deleted)
     if (idx !== Infinity)
       return doms[idx]
@@ -315,19 +266,23 @@ export class HotReload {
       return false
 
     const root = new URL(State.content_root(doc), url)
-    let toctree, toctree_base = root
     try {
       const response = await fetch(new URL('_toctree.html', root))
       if (response.ok)
-        toctree = await response.text()
-    } catch (error) {}
+        return {toctree: await response.text(), toctree_base: root}
+    } catch {}
     // e.g. the landing page has no _toctree.html.
-    if (toctree === undefined) {
-      toctree = doc.querySelector('.sphinxsidebar .toc-tree')?.innerHTML
-      toctree_base = url
-    }
+    const toctree = doc.querySelector('.sphinxsidebar .toc-tree')?.innerHTML
     if (toctree !== undefined)
-      return {toctree, toctree_base}
+      return {toctree, toctree_base: url}
+  }
+  set_toctree (html, base) {
+    this.$.toctree.innerHTML = html
+    this.$.toctree.querySelectorAll('a[href]').forEach(a => {
+      a.href = new URL(a.getAttribute('href'), base).href
+    })
+    this.toctree.clear()
+    this.init_toctree()
   }
   change_doc (doc, url, {toctree, toctree_base}) {
     this.sync_styles(doc, url)
@@ -338,12 +293,7 @@ export class HotReload {
     this.$.sidebar_logo.id = sidebar.id
     this.$.header_logo.innerHTML = logo.innerHTML
     this.$.header_logo.href = new URL(logo.getAttribute('href'), url).href
-    this.$.toctree.innerHTML = toctree
-    this.$.toctree.querySelectorAll('a[href]').forEach(a => {
-      a.href = new URL(a.getAttribute('href'), toctree_base).href
-    })
-    this.toctree.clear()
-    this.init_toctree()
+    this.set_toctree(toctree, toctree_base)
     this.state_helper.init_state(this.parent.state, doc, url.href)
     this.body_classes.forEach(name => document.body.classList.remove(name))
     this.body_classes = this.get_body_classes(doc)
@@ -351,11 +301,10 @@ export class HotReload {
     this.parent.state.collection = undefined
     this.parent.state.tags = undefined
   }
-  async replace (dom, url, doc, track_changes = false, state = false) {
-    const localtoc = doc.querySelector('.localtoc nav');
+  async replace (url, doc, track_changes = false, state = false) {
+    const localtoc = doc.querySelector('.localtoc nav')
     const related = doc.querySelector('.documentwrapper .related')
-    const content = doc.querySelector('.documentwrapper .body');
-    const scripts = doc.head.querySelectorAll('script') || []
+    const content = doc.querySelector('.documentwrapper .body')
     const title = doc.querySelector('head title')
 
     if (!content || !localtoc || !title) {
@@ -363,16 +312,16 @@ export class HotReload {
       return false
     }
 
-    const old_root = new URL(this.parent.state.content_root, this.href)
-    const new_root = new URL(State.content_root(doc), url)
-    const changed_build = old_root.href !== new_root.href
+    const content_root = State.content_root(doc)
+    const changed_build = new URL(this.parent.state.content_root, this.href).href !==
+      new URL(content_root, url).href
     const next_doc = changed_build && await this.probe_doc(doc, url)
-    if (changed_build && !next_doc)
-      return false
     if (changed_build) {
+      if (!next_doc)
+        return false
       this.$.sidebarwrapper.classList.add('fetch')
       if (!this.reduced_motion)
-        await new Promise(resolve => setTimeout(resolve, 125))
+        await sleep(125)
     }
     if (this.pending_load && this.pending_load.state !== false)
       return true
@@ -386,57 +335,40 @@ export class HotReload {
       DispatchEvent('app:hot_reload:doc_unload')
       this.change_doc(doc, url, next_doc)
     }
-    this.sync_scripts(scripts, url)
+    this.sync_scripts(doc.head.querySelectorAll('script'), url)
     this.sync_meta(doc)
     if (!changed_build)
       this.sync_styles(doc, url)
     DOM.getAll('.current', this.$.toctree).forEach(elem => elem.classList.remove('current'))
-    document.documentElement.dataset.content_root = State.content_root(doc)
-    dom = this.toctree.get(new URL(url.pathname, url.origin).href) ||
-      (changed_build ? this.$.header_logo : dom)
+    document.documentElement.dataset.content_root = content_root
+    const dom = this.toc_get(url) || this.$.header_logo
 
-    let child, node = dom
-    if (dom.id !== "logo") while (node && node !== this.$.toctree) {
-      // if li child is input
+    if (dom.id !== "logo") for (let node = dom; node && node !== this.$.toctree; node = node.parentElement) {
       node.classList.add('current')
-      child = node.firstElementChild
-      if (child !== null && child.type === "checkbox")
-        child.checked = true
-      node = node.parentElement
+      if (node.firstElementChild?.type === "checkbox")
+        node.firstElementChild.checked = true
     }
-    dom.scrollIntoView({
-      behavior: "smooth",
-      block: "nearest",
-      container: "all"
-    });
+    dom.scrollIntoView({behavior: "smooth", block: "nearest", container: "all"})
 
-    const block_selector = 'h1, h2, h3, h4, h5, h6, p, pre, pre > span, span.pre, a, ul, ol, dl, table, blockquote'
-    let old_texts, new_texts, doms
-    let changed_dom
-    if (track_changes)
-      old_texts = Array.from(this.$.content.querySelectorAll(block_selector))
-        .map(n => DOM.getOwnText(n).replace(/\s+/g, " ").trim());
+    const old_texts = track_changes &&
+      [...this.$.content.querySelectorAll(BLOCKS)].map(own_text)
 
     this.commit_history(url, state)
-    this.parent.state.content_root = State.content_root(doc)
+    this.parent.state.content_root = content_root
     this.href = url.href
     this.$.content.innerHTML = content.innerHTML
     this.$.localtoc.innerHTML = localtoc.innerHTML
 
-    if (track_changes) {
-      let doms = Array.from(this.$.content.querySelectorAll(block_selector))
-      new_texts = doms
-        .map(n => DOM.getOwnText(n).replace(/\s+/g, " ").trim());
-      if (old_texts.length > 0)
-        changed_dom = this.highlight_change(old_texts, new_texts, doms)
+    let changed_dom
+    if (track_changes && old_texts.length > 0) {
+      const doms = [...this.$.content.querySelectorAll(BLOCKS)]
+      changed_dom = this.highlight_change(old_texts, doms.map(own_text), doms)
     }
     this.$.related.innerHTML = related?.innerHTML || ''
     this.$.title.innerText = title.innerText
 
     this.regen_breadcrumb(dom)
-    const loaded = []
-    this.js_script_memory.forEach((value, key) => loaded.push(this.ensure_script(value, key)))
-    await Promise.all(loaded)
+    await Promise.all([...this.js_script_memory].map(([key, value]) => this.ensure_script(value, key)))
     if (changed_build) {
       this.parent.versioned.reset()
       this.parent.versioned.construct()
@@ -450,32 +382,28 @@ export class HotReload {
     this.clear_fetch()
     DispatchEvent('app:hot_reload:page_loaded')
 
+    const scroll_to = (top, behavior = "instant") => window.scrollTo({top, left: 0, behavior})
     if (!this.reduced_motion && !track_changes)
-      window.scrollTo({ top: 0, left: 0, behavior: "instant" })
+      scroll_to(0)
     if (track_changes) {
-      if (changed_dom) {
-        const rect = changed_dom.getBoundingClientRect();
-        if (rect.bottom < 0 || rect.top > window.innerHeight)
-          changed_dom.scrollIntoView({ behavior: 'auto', block: 'center' })
-        else {
-          window.scrollTo({ top: this.scrollY, left: 0, behavior: "instant" })
-        }
-      } else {
-        window.scrollTo({ top: this.scrollY, left: 0, behavior: "instant" })
-      }
+      const rect = changed_dom?.getBoundingClientRect()
+      if (rect && (rect.bottom < 0 || rect.top > window.innerHeight))
+        changed_dom.scrollIntoView({behavior: 'auto', block: 'center'})
+      else
+        scroll_to(this.scrollY)
     } else if (url.hash && isNaN(this.scrollY)) {
       setTimeout(() => {
-        let anchor = document.querySelector(`${url.hash}`)
+        const anchor = document.querySelector(url.hash)
         if (anchor) {
-          anchor.scrollIntoView({ behavior: 'auto' })
+          anchor.scrollIntoView({behavior: 'auto'})
           this.scroll_compensate_layout(anchor)
         }
       }, this.reduced_motion ? 0 : 125)
     } else if (!isNaN(this.scrollY)) {
-      window.scrollTo({ top: this.scrollY, left: 0, behavior: "instant" })
+      scroll_to(this.scrollY)
       if (!this.reduced_motion)
         setTimeout(() => {
-          window.scrollTo({ top: this.scrollY, left: 0, behavior: "auto" })
+          scroll_to(this.scrollY, "auto")
           this.scrollY = undefined
         }, 125) /* Correction due to Z-transform */
       else
@@ -490,69 +418,56 @@ export class HotReload {
     this.$.content.style.minHeight = ""
   }
   commit_history (url, state) {
-    if (state === false) {
-      if (location.href !== url.href)
-        history.pushState({}, '', url.href)
-    } else {
+    if (state !== false)
       history.replaceState(state, '', url.href)
-    }
+    else if (location.href !== url.href)
+      history.pushState({}, '', url.href)
   }
   load_pending () {
     const pending = this.pending_load
     this.pending_load = undefined
     if (pending === undefined)
       return
-    const {pathname, state, track_changes} = pending
-    const url = new URL(pathname, this.href)
+    const {href, state, track_changes} = pending
     const current = new URL(this.href)
     current.hash = ''
-    if (!this.load_failed && state === false && !track_changes &&
-        !url.hash && url.href === current.href)
+    if (!this.load_failed && state === false && !track_changes && href === current.href)
       return
-    url.hash = ''
-    this.load(this.toctree.get(url.href) || this.$.header_logo, pathname, state, track_changes)
+    this.load(href, state, track_changes)
   }
   /**
    * track_changes forces fetching and replacing, even if is the same page.
    * state: popstate event state or false to store current state.
    */
-  async load (dom, pathname, state, track_changes = false) {
+  async load (pathname, state, track_changes = false) {
     if (pathname === '#')
       return
     if (this.lock_load === true) {
-      if (state === false && location.href !== this.href)
-        return
-      this.pending_load = {
-        pathname: new URL(pathname, this.href).href,
-        state, track_changes
-      }
+      if (state !== false || location.href === this.href)
+        this.pending_load = {href: new URL(pathname, this.href).href, state, track_changes}
       return
     }
 
     const current_url = new URL(this.href)
     let request_url = new URL(pathname, current_url)
     const is_same_page = !this.load_failed &&
-      current_url.pathname === request_url.pathname &&
       current_url.origin === request_url.origin &&
+      current_url.pathname === request_url.pathname &&
       current_url.search === request_url.search
     if (is_same_page && !track_changes) {
       const hash = request_url.hash || '#top-anchor'
-      if (state === false) {
+      if (state === false)
         location.hash = hash
-      } else if (state !== null && Object.hasOwn(state, 'scrollY')) {
+      else if (state?.scrollY !== undefined)
         window.scrollTo({top: state.scrollY, left: 0, behavior: 'instant'})
-      } else {
-        const anchor = document.querySelector(hash)
-        if (anchor)
-          anchor.scrollIntoView()
-      }
+      else
+        document.querySelector(hash)?.scrollIntoView()
       this.href = location.href
       return
     }
 
-    this.reduced_motion = Toolbox.reducedMotion(track_changes && is_same_page)
-    this.scrollY = is_same_page && track_changes ? window.scrollY :
-      (state !== false && state !== null ? state.scrollY : undefined)
+    this.reduced_motion = Toolbox.reducedMotion(is_same_page)
+    this.scrollY = is_same_page ? window.scrollY : state?.scrollY
     this.close_repotoc()
     this.lock_load = true
     if (state === false)
@@ -561,7 +476,7 @@ export class HotReload {
     this.$.content.style.minHeight = this.$.content.getBoundingClientRect().height + "px"
 
     let loader_
-    if (!track_changes || !is_same_page) {
+    if (!is_same_page) {
       this.$.tocwrapper.classList.add('fetch')
       this.$.bodywrapper.classList.add('fetch')
       this.$.loader.classList.remove('fail')
@@ -579,23 +494,18 @@ export class HotReload {
       if (!url.hash)
         url.hash = request_url.hash
       request_url = url
-      const timeout = Math.max(0, this.reduced_motion ? 0 : 125 - (Date.now() - time_))
-      if (timeout)
-        await new Promise(resolve => setTimeout(resolve, timeout))
-      if (!(await this.replace(dom, request_url, doc, is_same_page && track_changes, state))) {
+      const timeout = this.reduced_motion ? 0 : 125 - (Date.now() - time_)
+      if (timeout > 0)
+        await sleep(timeout)
+      if (!(await this.replace(request_url, doc, is_same_page, state)))
         throw Object.assign(new Error('Destination is not a supported documentation build'),
           {unsupported: true})
-      }
     } catch (error) {
       if (this.pending_load)
         return
       if (error.unsupported) {
         console.warn('hot_reload: falling back to navigation', error)
-        const href = (error.url || request_url).href
-        if (state === false)
-          location.assign(href)
-        else
-          location.replace(href)
+        location[state === false ? 'assign' : 'replace']((error.url || request_url).href)
         return
       }
       this.commit_history(request_url, state)
@@ -612,73 +522,47 @@ export class HotReload {
     }
   }
   init_toctree () {
-    const append_load = (dom, alt_dom) => {
-      if (alt_dom === undefined)
-        alt_dom = dom
+    const append_load = (dom, alt_dom = dom) => {
       // Make absolute and strip trailing #
       alt_dom.href = alt_dom.href.replace(/#$/, '')
       this.toctree.set(alt_dom.href, dom)
-
-      alt_dom.onclick = (ev) => {
-        ev.preventDefault()
-        this.load(dom, alt_dom.href, false, false)
-      }
     }
-    DOM.getAll('.reference.internal', this.$.toctree)
-      .forEach(dom => append_load(dom))
-    const alt_dom = DOM.get('.sphinxsidebarwrapper > a')
-    const dom = DOM.get('header a#logo')
-    if (dom && alt_dom) append_load(dom, alt_dom)
-    if (dom) append_load(dom)
+    DOM.getAll('.reference.internal', this.$.toctree).forEach(dom => append_load(dom))
+    const {header_logo, sidebar_logo} = this.$
+    if (header_logo) {
+      if (sidebar_logo)
+        append_load(header_logo, sidebar_logo)
+      append_load(header_logo)
+    }
   }
   init_others () {
-    // Map scripts
-    const scripts = document.querySelector('head')?.querySelectorAll('script') || []
-    for (let i = 0; i < scripts.length; i++) {
-      const key = this.get_script_key(scripts[i])
-
+    for (const script of document.head.querySelectorAll('script')) {
+      const key = this.get_script_key(script)
       this.js_script_current.add(key)
-      this.js_script_memory.set(key, scripts[i])
+      this.js_script_memory.set(key, script)
     }
     document.head.querySelectorAll('link[rel="stylesheet"]:not([data-app-module])').forEach(link => {
       link.href = link.href
       this.stylesheets.set(this.asset_key(link.href), link)
     })
   }
-  init_loader() {
-    let sides = []
+  init_loader () {
+    const loader = this.$.loader = DOM.new('div', {id: 'loader'})
     for (let j = 0; j < 2; j++) {
-      const side = DOM.new('div', {
-        'className': `wave-spinner-${j}`
-      });
-      let bars = []
+      const side = DOM.new('div', {className: `wave-spinner-${j}`})
       for (let i = 0; i < 7; i++) {
-        const bar = DOM.new('span');
-        bar.style.animationDelay = `${i * 0.1}s`;
-        bars.push(bar);
+        const bar = DOM.new('span')
+        bar.style.animationDelay = `${i * 0.1}s`
+        side.append(bar)
       }
-      bars.forEach((node) => { side.append(node) })
-      sides.push(side)
+      loader.append(side)
     }
-    sides.push(DOM.new('div', {
-      'className': 'text'
-    }))
-    sides.push(DOM.new('div', {
-      'className': 'subtext'
-    }))
-
-    this.$.loader = DOM.new('div', {
-      'id': 'loader'
-    })
-    sides.forEach((node) => { this.$.loader.append(node) })
-    this.$.documentwrapper.append(this.$.loader)
+    loader.append(DOM.new('div', {className: 'text'}), DOM.new('div', {className: 'subtext'}))
+    this.$.documentwrapper.append(loader)
   }
   popstate (ev) {
-    let url = new URL(location.href)
-    url.hash = ''
-    let dom = this.toctree.get(url.href)
-    if (dom !== undefined || this.is_known_doc(url))
-      this.load(dom || this.$.header_logo, location.href, ev.state, false)
+    if (this.toc_get(location.href) || this.is_known_doc(new URL(location.href)))
+      this.load(location.href, ev.state)
     else // Fallback
       location.href = location.href
   }
@@ -686,46 +570,23 @@ export class HotReload {
    * Hot reload the toctree.
    */
   load_toctree (toctree_url, reselect) {
-    const checked_names = new Set()
-    DOM.getAll('input.toctree-collapse:checked', this.$.toctree).forEach(input => {
-      checked_names.add(input.name)
-    })
-
+    const checked_names = [...DOM.getAll('input.toctree-collapse:checked', this.$.toctree)]
+      .map(input => input.name)
     toctree_url.searchParams.append(Toolbox.UID(), '')
-    return fetch(
-      new Request(toctree_url)
-    )
+    return fetch(toctree_url)
       .then(response => {
         if (!response.ok) throw new Error(`HTTP ${response.status}`)
         return response.text()
       })
       .then(txt => {
-        this.$.toctree.innerHTML = txt
-
-        const content_root = this.parent.state.content_root
-        DOM.getAll('a[href]', this.$.toctree).forEach(a => {
-          a.href = new URL(a.getAttribute('href'), new URL(content_root, this.href)).href
-        })
-
-        this.toctree.clear()
-        this.init_toctree()
-
+        this.set_toctree(txt, new URL(this.parent.state.content_root, this.href))
         checked_names.forEach(name => {
           const input = this.$.toctree.querySelector(`input[name="${name}"]`)
           if (input) input.checked = true
         })
-
-        if (reselect) {
-          let current_url = new URL(this.href)
-          current_url.hash = ''
-          let node = this.toctree.get(current_url.href)
-          if (node) {
-            while (node && node !== this.$.toctree) {
-              node.classList.add('current')
-              node = node.parentElement
-            }
-          }
-        }
+        if (reselect)
+          for (let node = this.toc_get(this.href); node && node !== this.$.toctree; node = node.parentElement)
+            node.classList.add('current')
       })
       .catch(error => {
         console.warn("hot_reload: failed to fetch at load_toctree", error)
@@ -736,12 +597,10 @@ export class HotReload {
    */
   load_href (url) {
     url.hash = ''
-    let dom = this.toctree.get(url.href)
-    if (dom !== undefined)
-      this.load(dom, url.href, false, true)
-    else {
+    if (this.toc_get(url))
+      this.load(url.href, false, true)
+    else
       location.href = url.href
-    }
   }
   close_repotoc () {
     const input = document.querySelector('#input-show-repotoc')
@@ -774,38 +633,24 @@ export class HotReload {
   async navigate (url, fallback, new_tab = false) {
     if (new_tab)
       return Toolbox.try_redirect(url, fallback, true)
-    let target = new URL(url, location.href)
     try {
-      const response = await fetch(target, { method: 'HEAD' })
-      if (response.status === 404 && fallback)
-        target = new URL(fallback, location.href)
-    } catch (error) {
-      if (fallback)
-        target = new URL(fallback, location.href)
-    }
-    this.load(this.toctree.get(new URL(target.pathname, target.origin).href) || this.$.header_logo,
-      target.href, false)
+      const response = await fetch(new URL(url, location.href), {method: 'HEAD'})
+      if (response.status !== 404)
+        fallback = undefined
+    } catch {}
+    this.load(new URL(fallback || url, location.href).href, false)
     return false
   }
-  /**
-   * If some of the elements are missing in the page,
-   * create
-   */
-  ensure_dom () {
-    if (this.$.related === null) {
-      this.$.related = DOM.new('div', {
-        className: 'related'
-      })
-      this.$.documentwrapper.insertAdjacentElement('beforeend', this.$.related)
-    }
-  }
   construct () {
-    this.ensure_dom()
+    if (this.$.related === null) {
+      this.$.related = DOM.new('div', {className: 'related'})
+      this.$.documentwrapper.append(this.$.related)
+    }
     this.init_toctree()
     this.init_others()
     this.init_loader()
     document.addEventListener('click', ev => this.delegate_link(ev))
-    onpopstate = (ev) => {this.popstate(ev)}
+    onpopstate = ev => this.popstate(ev)
 
     const init = () => {
       DispatchEvent('app:hot_reload:doc_loaded')
