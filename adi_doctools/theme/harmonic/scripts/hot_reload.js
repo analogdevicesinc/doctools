@@ -326,6 +326,7 @@ export class HotReload {
     if (this.pending_load && this.pending_load.state !== false)
       return true
 
+    this.push_history(url, state)
     for (const key of Object.keys(this.parent).reverse()) {
       if ("deinit" in this.parent[key])
         this.parent[key].deinit()
@@ -353,7 +354,6 @@ export class HotReload {
     const old_texts = track_changes &&
       [...this.$.content.querySelectorAll(BLOCKS)].map(own_text)
 
-    this.commit_history(url, state)
     this.parent.state.content_root = content_root
     this.href = url.href
     this.$.content.innerHTML = content.innerHTML
@@ -417,7 +417,7 @@ export class HotReload {
       this.$[key].classList.remove('fetch')
     this.$.content.style.minHeight = ""
   }
-  commit_history (url, state) {
+  push_history (url, state) {
     if (state !== false)
       history.replaceState(state, '', url.href)
     else if (location.href !== url.href)
@@ -508,7 +508,7 @@ export class HotReload {
         location[state === false ? 'assign' : 'replace']((error.url || request_url).href)
         return
       }
-      this.commit_history(request_url, state)
+      this.push_history(request_url, state)
       this.$.tocwrapper.classList.add('fetch')
       this.$.bodywrapper.classList.add('fetch')
       this.$.loader.classList.add('fail')
