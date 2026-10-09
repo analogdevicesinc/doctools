@@ -177,8 +177,10 @@ export class HotReload {
       const script = document.createElement('script')
       for (const attr of cache.attributes)
         script.setAttribute(attr.name, attr.value)
-      if (script.hasAttribute('src'))
+      if (script.hasAttribute('src')) {
         script.src = new URL(script.getAttribute('src'), url).href
+        script.async = cache.hasAttribute('async')
+      }
       if (cache.innerHTML)
         script.innerHTML = cache.innerHTML
       this.js_script_memory.set(key, script)
