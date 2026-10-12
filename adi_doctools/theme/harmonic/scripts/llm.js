@@ -168,6 +168,7 @@ export class LLM {
     script.dataset.projectLogo = 'https://cdn.jsdelivr.net/npm/remixicon@4.9.1/icons/Logos/bard-line.svg'
     script.dataset.botProtectionMechanism = 'hcaptcha'
     script.dataset.viewMode = 'sidebar'
+    script.dataset.modalZIndex = '6'
     script.dataset.modalWithOverlay = 'false'
     script.dataset.modalLockScroll = 'false'
     script.dataset.modalFullScreenOnMobile = 'false'
