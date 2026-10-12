@@ -101,8 +101,16 @@ export class LLM {
     button.setAttribute('aria-label', 'Ask AI')
     button.setAttribute('aria-expanded', 'false')
     button.setAttribute('aria-controls', 'kapa-modal-content')
-    window.Kapa('onModalOpen', () => button.setAttribute('aria-expanded', 'true'))
+    window.Kapa('onModalOpen', () => {
+      if (this.parent.search.$.searchArea.classList.contains('on'))
+        this.parent.search.cancel_search()
+      button.setAttribute('aria-expanded', 'true')
+    })
     window.Kapa('onModalClose', () => button.setAttribute('aria-expanded', 'false'))
+    window.addEventListener('app:search:opened', () => {
+      if (button.getAttribute('aria-expanded') === 'true')
+        window.Kapa.close()
+    })
     button.addEventListener('click', () => {
       if (button.getAttribute('aria-expanded') === 'true')
         window.Kapa.close()
