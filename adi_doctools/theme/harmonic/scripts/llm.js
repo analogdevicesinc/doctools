@@ -26,6 +26,32 @@ export class LLM {
     return false
   }
 
+  navigate_link (ev) {
+    const hot_reload = this.parent.hot_reload
+    if (!hot_reload || ev.defaultPrevented || ev.button !== 0 ||
+        ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey)
+      return
+
+    const path = ev.composedPath()
+    if (!path.some(node => node.id === 'kapa-widget-container'))
+      return
+    const link = path.find(node => node.matches?.('a[href]'))
+    if (!link || link.hasAttribute('download') ||
+        (link.target && !['_self', '_blank'].includes(link.target)))
+      return
+
+    const url = new URL(link.href)
+    if (url.origin !== location.origin ||
+        (/\.[^/]+$/.test(url.pathname) && !url.pathname.endsWith('.html')))
+      return
+    if (!hot_reload.toc_get(url) && !hot_reload.is_known_doc?.(url))
+      return
+
+    ev.preventDefault()
+    window.Kapa?.close?.()
+    hot_reload.load(link.href, false)
+  }
+
   construct () {
     if (this.script || !this.has_functional_consent())
       return
@@ -51,6 +77,7 @@ export class LLM {
     script.dataset.modalTitleColor = accentColor
     script.dataset.mcpEnabled = 'true'
     script.dataset.mcpServerUrl = 'https://analog.mcp.kapa.ai'
+    document.addEventListener('click', ev => this.navigate_link(ev), {capture: true})
     document.head.appendChild(script)
     this.script = script
   }
