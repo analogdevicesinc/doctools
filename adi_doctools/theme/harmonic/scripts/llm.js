@@ -48,7 +48,6 @@ export class LLM {
       return
 
     ev.preventDefault()
-    window.Kapa?.close?.()
     hot_reload.load(link.href, false)
   }
 
@@ -100,17 +99,47 @@ export class LLM {
     button.type = 'button'
     button.title = 'Ask AI'
     button.setAttribute('aria-label', 'Ask AI')
-    button.addEventListener('click', () => window.Kapa.open())
+    button.setAttribute('aria-expanded', 'false')
+    button.setAttribute('aria-controls', 'kapa-modal-content')
+    window.Kapa('onModalOpen', () => button.setAttribute('aria-expanded', 'true'))
+    window.Kapa('onModalClose', () => button.setAttribute('aria-expanded', 'false'))
+    button.addEventListener('click', () => {
+      if (button.getAttribute('aria-expanded') === 'true')
+        window.Kapa.close()
+      else
+        window.Kapa.open()
+    })
     document.querySelector('header #search').after(button)
   }
 
-  style_modal () {
+  style_sidebar () {
     const root = document.getElementById('kapa-widget-container').shadowRoot
     const style = document.createElement('style')
     style.textContent = `
-      .mantine-Modal-overlay {
-        background: none !important;
-        backdrop-filter: blur(1em);
+      .mantine-Modal-inner {
+        left: var(--llm-sidebar-left, 0px) !important;
+        right: auto !important;
+        width: var(--llm-sidebar-width, 100vw) !important;
+        padding: 0 !important;
+      }
+      .mantine-Modal-content {
+        box-shadow: none !important;
+        flex: 0 0 100% !important;
+        width: 100% !important;
+        max-width: 100% !important;
+      }
+      .mantine-Modal-close {
+        display: var(--llm-close-display, inline-flex) !important;
+      }
+      .mantine-Modal-header [role="button"][aria-expanded] .mantine-Text-root {
+        text-wrap: nowrap;
+        font-size: .8em !important;
+      }
+      .mantine-Modal-header {
+        box-sizing: border-box;
+        height: 3.5rem !important;
+        min-height: 3.5rem !important;
+        max-height: 3.5rem !important;
       }
     `
     root.appendChild(style)
@@ -130,9 +159,13 @@ export class LLM {
     script.dataset.projectColor = accentColor
     script.dataset.projectLogo = 'https://cdn.jsdelivr.net/npm/remixicon@4.9.1/icons/Logos/bard-line.svg'
     script.dataset.botProtectionMechanism = 'hcaptcha'
+    script.dataset.viewMode = 'sidebar'
+    script.dataset.modalWithOverlay = 'false'
+    script.dataset.modalLockScroll = 'false'
+    script.dataset.modalFullScreenOnMobile = 'false'
     script.dataset.modalTitle = 'AI Assistant'
-    script.dataset.modalTransition = 'fade'
-    script.dataset.modalTransitionDuration = '0'
+    script.dataset.modalTransition = 'slide-left'
+    script.dataset.modalTransitionDuration = '150'
     script.dataset.modalDisclaimer = 'Answers are AI-generated with access to developer documentation.'
     script.dataset.buttonHide = 'true'
     script.dataset.modalHeaderBgColor = '#FFFFFF'
@@ -141,7 +174,7 @@ export class LLM {
     script.dataset.mcpServerUrl = 'https://analog.mcp.kapa.ai'
     script.addEventListener('load', () => {
       this.create_launcher()
-      this.style_modal()
+      this.style_sidebar()
     }, {once: true})
     document.addEventListener('click', ev => this.navigate_link(ev), {capture: true})
     this.script = script

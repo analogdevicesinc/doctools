@@ -1,4 +1,36 @@
+@use 'sass:math';
+@use 'size';
+@use 'variable';
+
 header #ask-ai:before {
   mask-image: url('https://cdn.jsdelivr.net/npm/remixicon@4.9.1/icons/Logos/bard-line.svg');
   mask-size: contain;
+}
+
+header #ask-ai[aria-expanded='true'] {
+  background-color: var(--bg-color2);
+}
+
+@mixin sidebar-position($rem, $vw, $offset: 0vw) {
+  body {
+    --llm-close-display: none;
+    --llm-sidebar-width: calc(50vw + #{$offset} - #{math.div($rem, 2)} - #{math.div($vw, 2)} - .25em);
+    --llm-sidebar-left: calc(50vw - #{$offset} + #{math.div($rem, 2)} + #{math.div($vw, 2)} + .25em);
+  }
+}
+
+@media (min-width: variable.$screen-1) and (max-width: variable.$screen-3) {
+  @include sidebar-position(size.$bodywrapper-1-3-rem, size.$bodywrapper-1-3-vw, size.$bodywrapper-1-3-offset);
+}
+
+@media (min-width: variable.$screen-3) {
+  @include sidebar-position(size.$bodywrapper-3-rem, size.$bodywrapper-3-vw, -2vw);
+}
+
+@media (max-width: variable.$screen-1) {
+  body {
+    --llm-close-display: inline-flex;
+    --llm-sidebar-width: 100vw;
+    --llm-sidebar-left: 0px;
+  }
 }
