@@ -104,6 +104,18 @@ export class LLM {
     document.querySelector('header #search').after(button)
   }
 
+  style_modal () {
+    const root = document.getElementById('kapa-widget-container').shadowRoot
+    const style = document.createElement('style')
+    style.textContent = `
+      .mantine-Modal-overlay {
+        background: none !important;
+        backdrop-filter: blur(1em);
+      }
+    `
+    root.appendChild(style)
+  }
+
   construct () {
     if (this.script || !this.has_functional_consent())
       return
@@ -119,13 +131,18 @@ export class LLM {
     script.dataset.projectLogo = 'https://cdn.jsdelivr.net/npm/remixicon@4.9.1/icons/Logos/bard-line.svg'
     script.dataset.botProtectionMechanism = 'hcaptcha'
     script.dataset.modalTitle = 'AI Assistant'
+    script.dataset.modalTransition = 'fade'
+    script.dataset.modalTransitionDuration = '0'
     script.dataset.modalDisclaimer = 'Answers are AI-generated with access to developer documentation.'
     script.dataset.buttonHide = 'true'
     script.dataset.modalHeaderBgColor = '#FFFFFF'
     script.dataset.modalTitleColor = accentColor
     script.dataset.mcpEnabled = 'true'
     script.dataset.mcpServerUrl = 'https://analog.mcp.kapa.ai'
-    script.addEventListener('load', () => this.create_launcher(), {once: true})
+    script.addEventListener('load', () => {
+      this.create_launcher()
+      this.style_modal()
+    }, {once: true})
     document.addEventListener('click', ev => this.navigate_link(ev), {capture: true})
     this.script = script
     this.watch_theme()
