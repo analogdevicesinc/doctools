@@ -6,7 +6,7 @@ from os import path
 from ..__init__ import __version__
 from ..typing.hdl import Library, Project
 
-_current_year = datetime.now().year  # noqa: DTZ005
+_current_year = datetime.now().year
 license_makefile = f"""\
 ####################################################################################
 ## Copyright (c) 2018-{_current_year} Analog Devices, Inc.
@@ -104,7 +104,7 @@ def svpkg_regmap(f, regmap: dict, key: str):
 
 
 def svpkg_head(f, key: str, regmap: dict):
-    run_time = datetime.now().strftime('%b %d %H:%M:%S %Y')  # noqa: DTZ005
+    run_time = datetime.now().strftime('%b %d %H:%M:%S %Y')
     pkgname = f"adi_regmap_{key}_pkg"
     classname = f"adi_regmap_{key}"
     f.write(license_sv)
@@ -238,7 +238,7 @@ def write_hdl_regmap_definitions(
         file = path.join(path_, fname)
 
         with open(file, "w") as f:
-            run_time = datetime.now().strftime('%b %d %H:%M:%S %Y')  # noqa: DTZ005
+            run_time = datetime.now().strftime('%b %d %H:%M:%S %Y')
             pkgname = f"adi_regmap_{key}_pkg"
             f.write(license_sv)
             f.write("/* Auto generated Register Map */\n")
