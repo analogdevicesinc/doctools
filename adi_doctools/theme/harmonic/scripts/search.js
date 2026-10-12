@@ -3,6 +3,7 @@
 import {Versioned} from './versioned.js'
 import {Toolbox} from './toolbox.js'
 import {DOM} from './dom.js'
+import {DispatchEvent} from './event.js'
 
 import * as LLM from './search-llm.js'
 import * as Sphinx from './search-sphinx.js'
@@ -104,14 +105,7 @@ export class Search {
       })
       this.parent.navigation.$.rightHeader.append([$.searchButton])
     }
-    $.searchButton.onclick(this, () => {
-      $.searchArea.classList.add('on')
-      $.searchAreaBg.classList.add('on')
-      $.searchInput.focus()
-      $.searchInput.$.select()
-      this.$.body.classList.add('overflow-hidden')
-      this.set_default()
-    })
+    $.searchButton.onclick(this, this.open_search)
 
     if (this.parent.state.offline)
       this.construct_offline()
@@ -121,6 +115,16 @@ export class Search {
       this.construct()
 
     app.search = this
+  }
+
+  open_search () {
+    DispatchEvent('app:search:opened')
+    this.$.searchArea.classList.add('on')
+    this.$.searchAreaBg.classList.add('on')
+    this.$.body.classList.add('overflow-hidden')
+    this.$.searchInput.focus()
+    this.$.searchInput.$.select()
+    this.set_default()
   }
 
   cancel_search () {
@@ -287,12 +291,7 @@ export class Search {
     if (((e.code === 'IntlRo' || e.code === 'Slash') ||
          (e.code === 'KeyK' && (e.ctrlKey || e.altKey)))
         && !this.$.searchArea.classList.contains('on')) {
-      this.$.searchArea.classList.add('on')
-      this.$.searchAreaBg.classList.add('on')
-      this.$.body.classList.add('overflow-hidden')
-      this.$.searchInput.focus()
-      this.$.searchInput.$.select()
-      this.set_default()
+      this.open_search()
     } else if (e.code === 'Escape') {
       if (this.$.list.classList.contains('on'))
         this._show_version_dropdown(undefined, false)
