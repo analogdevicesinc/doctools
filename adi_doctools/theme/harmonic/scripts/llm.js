@@ -62,10 +62,6 @@ export class LLM {
     const foreground = dark ? '#FFFFFF' : '#1668b3'
     const config = {
       'data-color-scheme': scheme,
-      'data-button-bg-color': background,
-      'data-button-hover-bg-color': background,
-      'data-button-text-color': foreground,
-      'data-button-border': '1px solid rgba(125,125,125,.5)',
       'data-modal-header-bg-color': background,
       'data-modal-title-color': foreground,
     }
@@ -97,24 +93,15 @@ export class LLM {
     this.os_theme.addEventListener('change', () => this.sync_theme())
   }
 
-  style_launcher () {
-    const root = document.getElementById('kapa-widget-container')?.shadowRoot
-    if (!root) return
-
-    const style = document.createElement('style')
-    style.textContent = `
-      #kapa-button {
-        left: var(--llm-button-left, auto) !important;
-        right: var(--llm-button-right, 20px) !important;
-        min-width: 0;
-        white-space: nowrap;
-      }
-      #kapa-button .mantine-Flex-root {
-        flex-direction: row !important;
-        gap: 8px;
-      }
-    `
-    root.appendChild(style)
+  create_launcher () {
+    const button = document.createElement('button')
+    button.id = 'ask-ai'
+    button.className = 'icon'
+    button.type = 'button'
+    button.title = 'Ask AI'
+    button.setAttribute('aria-label', 'Ask AI')
+    button.addEventListener('click', () => window.Kapa.open())
+    document.querySelector('header #search').after(button)
   }
 
   construct () {
@@ -129,29 +116,16 @@ export class LLM {
     script.dataset.websiteId = '48c61e30-2cf1-4f06-82d4-f0736bd4040d'
     script.dataset.projectName = 'ADI Developer'
     script.dataset.projectColor = accentColor
-    script.dataset.projectLogo = 'https://cdn.jsdelivr.net/npm/remixicon@4.9.1/icons/Logos/bard-fill.svg'
+    script.dataset.projectLogo = 'https://cdn.jsdelivr.net/npm/remixicon@4.9.1/icons/Logos/bard-line.svg'
     script.dataset.botProtectionMechanism = 'hcaptcha'
     script.dataset.modalTitle = 'AI Assistant'
     script.dataset.modalDisclaimer = 'Answers are AI-generated with access to developer documentation.'
-    script.dataset.buttonText = 'Ask AI'
-    script.dataset.buttonImageHeight = '20'
-    script.dataset.buttonImageWidth = '20'
-    script.dataset.buttonHeight = '40px'
-    script.dataset.buttonWidth = 'auto'
-    script.dataset.buttonPadding = '0 12px'
-    script.dataset.buttonBorderRadius = '20px'
-    script.dataset.buttonTextFontSize = '16px'
-    script.dataset.buttonBoxShadow = 'none'
-    script.dataset.buttonBgColor = '#FFFFFF'
-    script.dataset.buttonHoverBgColor = '#FFFFFF'
-    script.dataset.buttonAnimationEnabled = 'false'
-    script.dataset.buttonHoverAnimationEnabled = 'false'
-    script.dataset.buttonTextColor = accentColor
+    script.dataset.buttonHide = 'true'
     script.dataset.modalHeaderBgColor = '#FFFFFF'
     script.dataset.modalTitleColor = accentColor
     script.dataset.mcpEnabled = 'true'
     script.dataset.mcpServerUrl = 'https://analog.mcp.kapa.ai'
-    script.addEventListener('load', () => this.style_launcher(), {once: true})
+    script.addEventListener('load', () => this.create_launcher(), {once: true})
     document.addEventListener('click', ev => this.navigate_link(ev), {capture: true})
     this.script = script
     this.watch_theme()

@@ -1,11 +1,4 @@
-@use 'sass:math';
-@use 'size';
-@use 'variable';
-
-// Inherited by Kapa's shadow root; use the same geometry as .bodywrapper.
-@media (min-width: variable.$screen-3) {
-  body {
-    --llm-button-left: calc(50vw + #{math.div(size.$bodywrapper-3-rem, 2)} + #{math.div(size.$bodywrapper-3-vw, 2)} + 1em);
-    --llm-button-right: auto;
-  }
+header #ask-ai:before {
+  mask-image: url('https://cdn.jsdelivr.net/npm/remixicon@4.9.1/icons/Logos/bard-line.svg');
+  mask-size: contain;
 }
