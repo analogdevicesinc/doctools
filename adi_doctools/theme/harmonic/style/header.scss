@@ -270,7 +270,7 @@ body.dark #logo-org {
 
 @media (min-width: variable.$screen-1) and (max-width: variable.$screen-3) {
     header #right {
-        width: calc(75vw - 1rem);
+        width: calc(70vw + 2.5rem);
     }
 }
 
