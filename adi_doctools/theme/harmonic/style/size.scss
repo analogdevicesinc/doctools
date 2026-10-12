@@ -27,10 +27,10 @@ $bodywrapper-sizes: (
 
 @mixin localtoc-position($rem, $vw, $offset: 0vw) {
     .tocwrapper {
-        width: calc(100vw - 50vw + $offset - #{math.div($rem, 2)} - #{math.div($vw, 2)});
+        width: calc(100vw - 50vw + $offset - #{math.div($rem, 2)} - #{math.div($vw, 2)} - 0.25rem);
     }
     .localtoc {
-        left: calc(50vw - $offset + #{math.div($rem, 2)} + #{math.div($vw, 2)});
+        left: calc(50vw - $offset + #{math.div($rem, 2)} + #{math.div($vw, 2)} + 0.25rem);
     }
 }
 
