@@ -7,6 +7,14 @@ header #ask-ai:before {
   mask-size: contain;
 }
 
+#input-show-repotoc:checked ~ .repotoc-tree.overlay {
+  z-index: 201;
+}
+
+#input-show-repotoc:checked ~ header {
+  z-index: 202;
+}
+
 header #ask-ai[aria-expanded='true'] {
   background-color: var(--bg-color2);
 }
