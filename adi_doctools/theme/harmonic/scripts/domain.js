@@ -4,15 +4,19 @@ import {DispatchEvent} from './event.js'
 import {DOM} from './dom.js'
 
 /**
- * Show domain popups.
+ * Show domain and cookie consent popups.
  * The actions are:
  * * Development documentation warning.
  * * Fork documentation warning.
+ * * Developer Portal only: OnetTrust consent.
  */
 export class Domain {
   constructor (app) {
     this.$ = {}
     this.parent = app
+
+    if (location.hostname === 'developer.analog.com')
+      this.load_onetrust()
 
     if (typeof this.parent.fetch === 'object')
       this.parent.fetch.then(this.construct.bind(this))
@@ -21,6 +25,16 @@ export class Domain {
 
     app.domain = this
     DispatchEvent("app:domain:constructed")
+  }
+  load_onetrust () {
+    let script = document.createElement('script')
+    script.src = 'https://cdn.cookielaw.org/scripttemplates/otSDKStub.js'
+    script.type = 'text/javascript'
+    script.async = true
+    script.charset = 'UTF-8'
+    script.dataset.domainScript = '8497fbb6-7fae-4ce8-8025-2b1ab08d0ba6'
+    script.dataset.documentLanguage = 'true'
+    document.head.appendChild(script)
   }
   get_settings () {
     let settings = {}
