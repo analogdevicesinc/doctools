@@ -5,8 +5,10 @@ export class LLM {
   constructor (app) {
     this.parent = app
     this.script = undefined
+    this.pending_open = false
     app.llm = this
     this.$ = {}
+    this.show_cookie_settings = this.show_cookie_settings.bind(this)
 
     if (location.hostname === 'developer.analog.com') {
       window.addEventListener('OneTrustGroupsUpdated', () => this.init_kapa())
@@ -95,8 +97,10 @@ export class LLM {
   }
 
   show_cookie_settings () {
-    if (location.hostname === 'developer.analog.com')
+    if (location.hostname === 'developer.analog.com') {
       window.OneTrust?.ToggleInfoDisplay?.()
+      this.pending_open = true
+    }
   }
 
   create_button () {
@@ -117,8 +121,9 @@ export class LLM {
     this.$.button.removeEventListener('click', this.show_cookie_settings)
     this.$.button.title = 'Ask AI'
     this.$.button.setAttribute('aria-label', this.$.button.title)
-    this.$.button.setAttribute('aria-expanded', 'false')
+    this.$.button.setAttribute('aria-expanded', this.pending_open ? 'true' : 'false')
     this.$.button.setAttribute('aria-controls', 'kapa-modal-content')
+    this.pending_open = false
 
     window.Kapa('onModalOpen', () => {
       if (this.parent.search.$.searchArea.classList.contains('on'))
@@ -202,6 +207,8 @@ export class LLM {
     script.dataset.modalTitleColor = accentColor
     script.dataset.mcpEnabled = 'true'
     script.dataset.mcpServerUrl = 'https://analog.mcp.kapa.ai'
+    if (this.pending_open)
+      script.dataset.modalOpenByDefault = 'true'
     script.addEventListener('load', () => {
       this.button_attach_kapa()
       this.style_sidebar()
