@@ -205,8 +205,8 @@ header {
         width: 8.75rem;   // 140
         height: 1.25rem;  //  20
         margin: .9rem 0 .65rem 0;
-        background: url('./logo-org.svg') no-repeat center top;
-        background-size: 100% auto;
+        background: url('./logo-org.svg') no-repeat left top;
+        background-size: 8.75rem auto;
         flex-shrink: 0;
     }
 
@@ -238,7 +238,7 @@ body.dark #logo-org {
 
 @media (prefers-color-scheme: dark) {
     body:not(.light) #logo-org {
-        background-position: center bottom;
+        background-position: left bottom;
     }
 }
 
@@ -248,6 +248,19 @@ body.dark #logo-org {
 
         .vertical-divider {
             border-right: 1px solid rgba(125,125,125,.8);
+        }
+
+    }
+}
+
+@media (max-width: variable.$screen-0) {
+    header {
+        #logo {
+          line-height: 0.9rem;
+        }
+
+        #logo-org {
+            width: 3.35rem;
         }
     }
 }
