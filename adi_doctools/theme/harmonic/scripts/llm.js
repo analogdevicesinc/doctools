@@ -6,10 +6,12 @@ export class LLM {
     this.parent = app
     this.script = undefined
     app.llm = this
+    this.$ = {}
 
-    if (location.hostname === 'developer.analog.com')
-      window.addEventListener('OneTrustGroupsUpdated', () => this.construct())
-    this.construct()
+    if (location.hostname === 'developer.analog.com') {
+      window.addEventListener('OneTrustGroupsUpdated', () => this.init_kapa())
+      this.construct()
+    }
   }
 
   has_functional_consent () {
@@ -92,32 +94,50 @@ export class LLM {
     this.os_theme.addEventListener('change', () => this.sync_theme())
   }
 
-  create_launcher () {
+  show_cookie_settings () {
+    if (location.hostname === 'developer.analog.com')
+      window.OneTrust?.ToggleInfoDisplay?.()
+  }
+
+  create_button () {
     const button = document.createElement('button')
     button.id = 'ask-ai'
-    button.className = 'icon'
+    button.className = 'icon off'
     button.type = 'button'
-    button.title = 'Ask AI'
-    button.setAttribute('aria-label', 'Ask AI')
-    button.setAttribute('aria-expanded', 'false')
-    button.setAttribute('aria-controls', 'kapa-modal-content')
+    button.title = 'Ask AI (needs functional cookies)'
+    button.setAttribute('aria-label', button.title)
+    button.addEventListener('click', this.show_cookie_settings)
+
+    document.querySelector('header #search').after(button)
+
+    this.$.button = button
+  }
+
+  button_attach_kapa () {
+    this.$.button.removeEventListener('click', this.show_cookie_settings)
+    this.$.button.title = 'Ask AI'
+    this.$.button.setAttribute('aria-label', this.$.button.title)
+    this.$.button.setAttribute('aria-expanded', 'false')
+    this.$.button.setAttribute('aria-controls', 'kapa-modal-content')
+
     window.Kapa('onModalOpen', () => {
       if (this.parent.search.$.searchArea.classList.contains('on'))
         this.parent.search.cancel_search()
-      button.setAttribute('aria-expanded', 'true')
+      this.$.button.setAttribute('aria-expanded', 'true')
     })
-    window.Kapa('onModalClose', () => button.setAttribute('aria-expanded', 'false'))
+    window.Kapa('onModalClose', () => this.$.button.setAttribute('aria-expanded', 'false'))
     window.addEventListener('app:search:opened', () => {
-      if (button.getAttribute('aria-expanded') === 'true')
+      if (this.$.button.getAttribute('aria-expanded') === 'true')
         window.Kapa.close()
     })
-    button.addEventListener('click', () => {
-      if (button.getAttribute('aria-expanded') === 'true')
+    this.$.button.addEventListener('click', () => {
+      if (this.$.button.getAttribute('aria-expanded') === 'true')
         window.Kapa.close()
       else
         window.Kapa.open()
     })
-    document.querySelector('header #search').after(button)
+
+    this.$.button.classList.remove('off')
   }
 
   style_sidebar () {
@@ -153,7 +173,7 @@ export class LLM {
     root.appendChild(style)
   }
 
-  construct () {
+  init_kapa () {
     if (this.script || !this.has_functional_consent())
       return
 
@@ -183,7 +203,7 @@ export class LLM {
     script.dataset.mcpEnabled = 'true'
     script.dataset.mcpServerUrl = 'https://analog.mcp.kapa.ai'
     script.addEventListener('load', () => {
-      this.create_launcher()
+      this.button_attach_kapa()
       this.style_sidebar()
     }, {once: true})
     document.addEventListener('click', ev => this.navigate_link(ev), {capture: true})
@@ -191,5 +211,10 @@ export class LLM {
     this.watch_theme()
     this.load_logo()
     document.head.appendChild(script)
+  }
+
+  construct () {
+    this.create_button()
+    this.init_kapa()
   }
 }

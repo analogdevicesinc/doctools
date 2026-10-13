@@ -2,6 +2,14 @@
 @use 'size';
 @use 'variable';
 
+header #ask-ai {
+  transition: opacity .25s ease;
+}
+
+header #ask-ai.off {
+  opacity: 0.5;
+}
+
 header #ask-ai:before {
   mask-image: url('https://cdn.jsdelivr.net/npm/remixicon@4.9.1/icons/Logos/bard-line.svg');
   mask-size: contain;
