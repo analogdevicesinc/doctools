@@ -1,8 +1,12 @@
 @use 'sass:math';
 @use 'size';
 @use 'variable';
+@use 'mixin_icons';
 
 header #ask-ai {
+  /* Ensure icon inclusion */
+  @include mixin_icons.icons(("sparks"));
+
   transition: opacity .25s ease;
 }
 
@@ -11,7 +15,7 @@ header #ask-ai.off {
 }
 
 header #ask-ai:before {
-  mask-image: url('https://cdn.jsdelivr.net/npm/remixicon@4.9.1/icons/Logos/bard-line.svg');
+  mask-image: var(--icon-sparks);
   mask-size: contain;
 }
 

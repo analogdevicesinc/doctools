@@ -68,24 +68,12 @@ export class LLM {
       'data-modal-header-bg-color': background,
       'data-modal-title-color': foreground,
     }
-    if (this.logo_svg) {
-      const color = scheme === 'dark' ? '#FFFFFF' : '#1668b3'
-      const svg = this.logo_svg.replace('fill="currentColor"', `fill="${color}"`)
-      config['data-project-logo'] = `data:image/svg+xml,${encodeURIComponent(svg)}`
-    }
-    if (this.script.dataset.colorScheme === scheme &&
-        (!this.logo_svg || this.script.dataset.projectLogo === config['data-project-logo']))
+    if (this.script.dataset.colorScheme === scheme)
       return
 
     for (const [name, value] of Object.entries(config))
       this.script.setAttribute(name, value)
     window.Kapa?.updateConfig?.(config)
-  }
-
-  async load_logo () {
-    const response = await fetch(this.script.dataset.projectLogo)
-    this.logo_svg = await response.text()
-    this.sync_theme()
   }
 
   watch_theme () {
@@ -190,7 +178,6 @@ export class LLM {
     script.dataset.websiteId = '48c61e30-2cf1-4f06-82d4-f0736bd4040d'
     script.dataset.projectName = 'ADI Developer'
     script.dataset.projectColor = accentColor
-    script.dataset.projectLogo = 'https://cdn.jsdelivr.net/npm/remixicon@4.9.1/icons/Logos/bard-line.svg'
     script.dataset.botProtectionMechanism = 'hcaptcha'
     script.dataset.viewMode = 'sidebar'
     script.dataset.modalZIndex = '200'
@@ -216,7 +203,6 @@ export class LLM {
     document.addEventListener('click', ev => this.navigate_link(ev), {capture: true})
     this.script = script
     this.watch_theme()
-    this.load_logo()
     document.head.appendChild(script)
   }
 
