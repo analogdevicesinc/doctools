@@ -24,7 +24,7 @@ video {
 }
 
 @media screen {
-    section, #top-anchor, aside, a, .literal-block-wrapper {
+    section, #top-anchor, aside, a, .literal-block-wrapper, dt[id] {
         scroll-margin-top: 3.5rem;
     }
 
