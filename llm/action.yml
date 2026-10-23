@@ -100,17 +100,10 @@ runs:
         echo "enable_goal=${{ inputs.enable-goal }}" >> "$GITHUB_ENV"
 
     - name: Ensure node
-      shell: bash
+      uses: actions/setup-node@v7
       if: ${{ env.LLM_AGENT_RUN == 'true' }}
-      run: |
-        # Ensure node
-        if ! which node ; then
-          if [[ -d "/home/runner/externals/node24/bin" ]]; then
-            echo "/home/runner/externals/node24/bin" >> "$GITHUB_PATH"
-          elif [[ -d "/home/runner/externals/node20/bin" ]]; then
-            echo "/home/runner/externals/node20/bin" >> "$GITHUB_PATH"
-          fi
-        fi
+      with:
+        node-version: 24
 
     - name: Execute development install
       shell: bash
