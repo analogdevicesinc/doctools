@@ -338,6 +338,9 @@ def latex_config(app):
         for key, value in latex_elements.items():
             app.builder.context[key] = value
 
+    figure_align = app.config['latex_elements'].setdefault('figure_align', 'H')
+    app.builder.context['figure_align'] = figure_align
+
     maketitle = generate_latex_cover(
         str(app.builder.outdir),
         app.config.project,
@@ -348,6 +351,8 @@ def latex_config(app):
     app.config['latex_elements']['maketitle'] = maketitle
     app.builder.context['maketitle'] = maketitle
     preamble = app.config['latex_elements'].get('preamble', '')
+    if figure_align == 'H' and '\\usepackage{float}' not in preamble:
+        preamble = '\\usepackage{float}\n' + preamble
     if '\\usepackage{eso-pic}' not in preamble:
         preamble = '\\usepackage{eso-pic}\n' + preamble
 
