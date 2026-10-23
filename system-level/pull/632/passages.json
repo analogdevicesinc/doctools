@@ -1,0 +1,468 @@
+{
+  "text": [
+    "The ADI Linux kernel can also be compiled using Petalinux to be used on AMD Xilinx\nSoC FPGA based platforms (using ADI Yocto repository).\nThe following table specifies the supported Petalinux versions and documentation:\n|Petalinux version|Meta-adi branch|Documentation|\n|2018.2|2018_R2|README|\n|2018.",
+    "If you are interested in the Linux console messages and command line interface,\nconnect a USB cable to the USB UART port.\nTerminal settings are 115200, 8N1.\n\nThe user is:\n|user|password|\n|root|analog|\n\n\n> **Note**\n>\n> This specifies any shell prompt running on the target.\n\n\nFull boot log\n\n```default",
+    "There are several approaches for modifying and customizing the device trees of\na Petalinux project.\n\nPlease see:\n",
+    "> **Attention**\n>\n> Work-in-progress, not all content available at the\n> wiki\n> has been imported yet.\n\n\nThe System Level documentation provides developers using Analog Devices\nproducts with software and documentation, including HDL interface code,\nsoftware drivers, and reference project examples fo",
+    "Firmware & Software\n\n- Kernel and devicetrees\n",
+    "The device tree is a data structure for describing hardware.\nRather than hard coding every detail of a device into an\noperating system, many aspect of the hardware can be described\nin a data structure that is passed to the operating system at\nboot time.\n\nFor your convenience \u2013 all device tree files ",
+    "This section provides a concise guide on building the Linux kernel and\ndevicetrees for different platforms on different hosts.\n\nJump to your platform and preferred method:\n\n- Build Zynq\n  Using a script\n  Building with Petalinux\n  On the development host\n  On the target platform (devicetrees)\n\n  - U",
+    "We provide\na script\nthat does automates the build for Zynq using the Linaro toolchain.\n\n> **Attention**\n>\n> This script differs from the one for Zynq.\n\n\nThe script takes up to 3 parameters, but if left blank, it uses defaults:\n\n1. **<local_kernel_dir>** - default is **linux-adi** if left blank ; use",
+    "Please see here: Build with Petalinux.\n",
+    "Make sure you have `u-boot-tools` installed, to have the `mkimage` utility\navailable. You can install it via your distro\u2019s package manager.\n\nThen\n\n```bash\n~$ git clone https://github.com/analogdevicesinc/linux.git \\\n            --no-single-branch --depth=10 \\\n            -- linux\n```\n\n\nor do a git p",
+    "> **Tip**\n>\n> Use the latest release, if not required otherwise!\n\n\nThe release branches have the format `<Year>_R[1|2]`, starting from `2014_R2`.\n\n```bash\n~$ git checkout origin/2026_R1 -b 2026_R1\nBranch 2026_R1 set up to track remote branch 2026_R1 from origin.\nSwitched to a new branch '2026_R1'\n``",
+    "```bash\n~$ source $PATH_TO_XILINX/Vitis/$VITIS_VERSION/settings64.sh\n~$ which aarch64-linux-gnu-gcc\n$PATH_TO_XILINX/Vitis/$VITIS_VERSION/gnu/aarch64/lin/aarch64-linux/bin/aarch64-linux-gnu-gcc\n```\n\n\n> **Important**\n>\n> Find the path to the AMD Xilinx installation folder, and then use\n> it to replace",
+    "Alternatively, the Arm GNU Toolchain can be used to compile the kernel.\nDownload the `aarch64-none-linux-gnu` tarball for your host from the\nArm GNU Toolchain downloads\npage. Always use the latest release just in case.\n\nExtract the downloaded tarball and set the environment variables:\n\n```bash\n~$ ex",
+    "Inside the repository, generate the configuration file before building the\nkernel tree.\n\n```bash\n~$ make adi_zynqmp_defconfig\n#\n# configuration written to .config\n#\n```\n\n\nBuild the kernel via \u2018make\u2019. This is the same for all Xlinx ZYNQMP MPSoC FPGAs.\n\n```bash\n~$ make -j5 Image UIMAGE_LOADADDR=0x8000",
+    "Build the one that fits your FPGA carrier and FMC card\n|device tree|board|chip|\n|zynqmp-zcu102-rev10-ad9361-fmcomms2-3.dts|ZCU102 **Rev. 1.0**|FMCOMMS2 or Hardware User Guide board|\n|zynqmp-zcu102-rev10-ad9364-fmcomms4.dts|ZCU102 **Rev. 1.0**|AD-FMCOMMS4-EBZ board|\n|zynqmp-zcu102-revB-ad9361-fmcomms",
+    "The output files for building the kernel and device tree are **uImage** and\n**<device_tree_name>.dtb**. Refer to the code below to find their respective\noutput directories. Take note that the device tree file needs to be renamed to\n**devicetree.dtb**.\nSee ADI Kuiper Linux for more information in con",
+    "This sections goes through common issues related to the Linux Kernel on the\nZynqMP.\n",
+    "The default configuration for most of the projects is to use the HDMI output,\nand that is what the configuration is set up for.\n\nFor DisplayPort projects, you may need to add a custom `xorg.conf` file.\n\n```bash\nprintf 'Section \"Device\"\n  Identifier \"myfb\"\n  Driver \"fbdev\"\n  Option \"fbdev\" \"/dev/fb0\"",
+    "> **Warning**\n>\n> Support for the A10GX carrier is discontinued and will not be supported in\n> future releases. The last supported HDL release is **hdl_2021_r1**.\n",
+    "Pre-built Linux images are available for the following hardware configurations:\n|Carrier|FMC Card|\n|Arria 10 GX|EVAL-ADRV9008-9009, ADRV9371, EVAL-AD-FMCDAQ2-EBZ, EVAL-AD-FMCDAQ3-EBZ|\n|Arria V GT|AD-FMCJESDADC1-EBZ|\n\n\nOn Windows with Quartus II installed, run the provided `program.bat` script to\npro",
+    "Install IIO Oscilloscope on a host PC and connect\nremotely to the target platform:\n\n1. Open **Settings > Connect**\n2. Select **Manual** and enter the URI: `ip:<board-ip>`\n3. Press **Refresh** then **Connect**\n\n\nTo determine the board IP, log in on the Nios2 terminal with user `root` and\npassword `an",
+    "```bash\n~$ wget https://raw.githubusercontent.com/analogdevicesinc/wiki-scripts/main/linux/build_nios2_kernel_image.sh && \\\nchmod +x build_nios2_kernel_image.sh && \\\n./build_nios2_kernel_image.sh\n```\n\n\nThe script will:\n\n- Clone the ADI kernel repository\n- Download the Nios2 GCC toolchain\n- Compile t",
+    "Clone the ADI Linux kernel:\n\n```bash\n~$ git clone https://github.com/analogdevicesinc/linux.git \\\n            --no-single-branch --depth=10 \\\n            -- linux\n```\n\n\nCheckout the release branch:\n\n```bash\n~/linux$ git checkout origin/2026_R1 -b 2026_R1\n```\n\n\nDownload the root filesystem:\n\n```bash\n",
+    "The image for the AD9361/AD9364 based boards can be found, and created by\nfollowing the directions here.\n\nAfter that is complete, and running, you should see the IIO scope, which will be\ndescribed here\n",
+    "The default slot for the AD9361 based boards is the LPC FMC slot, as shown:\n",
+    "- ADV7511\n- FMCOMMS-1\n- FMCOMMS-2\n- FMCOMMS-3\n- FMCOMMS-4\n- FMCOMMS-5 (ZC702, ZC706 only)\n- AD-FMCADC2-EBZ (ZC706 only)\n- AD-FMCDAQ2-EBZ (ZC706 only)\n- EVAL-FMCDAQ3-EBZ (ZC706 only)\n- AD-FMCJESDADC1-EBZ (ZC706 only)\n",
+    "- ZC702\n- ZC706\n- Zed Board\n  (not for FMCOMMS-5)\n",
+    "To boot the system on the ZED, ZC702 or ZC706 board you\u2019ll need a SD memory\ncard. The SD card should have at least 4 GB of storage and it is recommended to\nuse a card with speed-grade 6 or higher to achieve optimal file transfer\nperformance.\n\nThe SD card needs to be partitioned with two partitions. ",
+    "The ZYNQ does not have a on-chip graphics or audio core, instead the FPGA is\nused to generate the necessary signals to deliver the video and audio streams to\nthe ADV7511. Analog Devices provides a reference HDL design which contain\nsupport for generating the necessary video and audio as well as supp",
+    "To complete this step you need to have a u-boot image for the Zynq platform.\nPlease refer to the Xilinx wiki on how to build\nsuch an image.\n\nThe bootloader can be build with Xilinx SDK. In order to do so it is necessary\nto first export the HDL design from the Xilinx Platform Studio to the SDK, this\n",
+    "The boot image BOOT.BIN is build using the bootgen tool which requires several\ninput files.\n\nInstructions on how to build the Hardware Description File (HDF) handover file\ncan be found here:\n\n- Building HDL\n\n\nAll further steps are lengthy explained in the Build the boot\nimage BOOT.BIN guide and on t",
+    "For ease of use we provide a bash shell script which allows building BOOT.BIN\nfrom system_top.hdf, u-boot.elf and either bl31.elf or a path to the Arm Trusted\nFirmware repository\n",
+    "The script can be downloaded from here:\n\n- build_zynqmp_boot_bin.sh\n\n\n> **Tip**\n>\n> **NOTE: After downloading the script you need to make it executable**\n> $ chmod +x build_zynqmp_boot_bin.sh\n",
+    "```default\nusage: build_zynqmp_boot_bin.sh system_top.xsa u-boot.elf (download | bl31.elf | <path-to-arm-trusted-firmware-source>) [output-archive]\n```\n\n\n- Path to `system_top.xsa` and `u-boot.elf` are required parameters.\n- The 3rd argument must either be `download` (which will git clone the ATF\n  ",
+    "> **Note**\n>\n> The prerequistes for following these instructions are to have:\n> mkimage from your distribution (normally `apt-get install u-boot-tools`)\n> C compiler from the Xilinx SDK\n\n\n> **Note**\n>\n> The most stable kernel source tree containing support for the ZED, ZC702 and\n> ZC706 plus **AD-FM",
+    "The default environment that is used by the u-boot bootloader instructions the\nkernel to use a ramfs disk for its root filesystem. In order to boot from the SD\ncard it is necessary to overwrite the default environment. This can be done by\nplacing a file called uEnv.txt in the BOOT partition of the S",
+    "In this example we will use a Linaro Ubuntu ARM rootfs as\nit provides a good out of the box experience. The latest version can be found on\nthe Linaro Download page. In this example\nwe will use the 12.11 release.\n\nThe first step is to download the\narchive containing the root filesystem.\n\nDownload Lin",
+    "Once all of the previous tasks have been completed it is time to test the\nsystem. To do this insert the SD-card into the board and power-up the board.\nAfter a few seconds the blue \u201cDONE\u201d LED should light up. This means that the\nbitstream has been loaded and the system will now start to boot. It is a",
+    "After the system has been installed it is time to do some post-installation\ntweaks to the system. None of them is required to get a basic working system,\nbut they improve the overall video and audio experience quite a bit.\n",
+    "The xf86-video-modesetting driver is a driver which has been written to take\nadvantage of the new Kernel Mode Setting (KMS) API of the DRM layer. This allows\nto switch between different screen resolutions at runtime (using the Xservers\nxrandr interface) and adds plug-and-play support for monitors.\n\n",
+    "PulseAudio is the audio daemon used by default on the Linaro Ubuntu\ninstallation. Unfortunately PulseAudio\u2019s \u2018glitch-free\u2019 algorithm seems to cause\naudio glitches on this particular platform. To get seamless audio experience it\nis necessary to disable the glitch-free feature. To disable the \u2018glitch-",
+    "- AD-FMCOMMS1-EBZ Reference Design\n- AD-FMCOMMS2-EBZ User Guide\n- AD-FMCOMMS3-EBZ User Guide\n- AD-FMCOMMS4-EBZ User Guide\n- AD-FMCOMMS5-EBZ User Guide\n- AD-FMCDAQ2-EBZ User Guide\n- AD-FMCADC2-EBZ User Guide\n- ADI IIO Oscilloscope\n- ADV7511 HDMI transmitter Linux Driver\n- AXI HDMI HDL Linux Driver\n- ",
+    "This guide provides some step-by-step instructions on how to build a MicroBlaze\nLinux Kernel image for the FMC board connected to a:\n\n- KC705\n- KCU105\n- VC707\n- VCU118\n- VCU128\n\n\nThe ADI Linux repository contains the Linux Kernel flavor from Analog Devices Inc.\n`mb_rootfs`\ncontains the files system ",
+    "> **Tip**\n>\n> Use the latest release, if not required otherwise!\n\n\nThe release branches have the format `<Year>_R[1|2]`, starting from `2014_R2`.\n\n```bash\n~$ git checkout origin/2026_R1 -b 2026_R1\nBranch 2026_R1 set up to track remote branch 2026_R1 from origin.\nSwitched to a new branch '2026_R1'\n``",
+    "The MicroBlaze GNU Toolchain included in AMD Vivado/Xilinx is the recommended\ncompiler.\n\n/data/opt/Xilinx/Vitis/$XVERSION/gnu/microblaze/linux_toolchain/lin64_le/bin/\n\n```bash\n~$ XVERSION=2026.1\n~$ GCC_MICROBLAZE=$PATH_TO_XILINX/Vitis/$VITIS_VERSION/gnu/microblaze/linux_toolchain/lin64_le/bin/\n~$ ex",
+    "Prepare the configuration. For AD9084 and AD9088, use:\n\n```bash\n~/linux$ make adi_mb_apollo_defconfig\n#\n# configuration written to .config\n#\n```\n\n\nFor other devices, use:\n\n```bash\n~/linux$ make adi_mb_defconfig\n#\n# configuration written to .config\n#\n```\n\n\nDownload the mb_rootfs\nfrom the published ar",
+    "MicroBlaze embeds the device tree into the simpleImage, but if you need to\ngenerate a batch of images with the same kernel, you can create an \u201cempty\u201d\ndevicetree, build the simpleImage:\n\n```bash\n/path/to/linux$ printf \"/dts-v1/;\\n\\n/ { };\\n\" > arch/microblaze/boot/dts/generic.dts\n/path/to/linux$ make",
+    "One method to load the kernel onto the already built and running FPGA which has\nthe MicroBlaze processor is to use `xsdb`/`xsct` or `xmd` from the AMD\nXilinx Vivado/Vitis toolset to download the build *.strip* file.\n\nGo to the folder containing the *.strip* and *system_top.bit* file, to flash the\nbi",
+    "We provide\na script\nthat does automates the build for Zynq using the Linaro toolchain.\n\nThe script takes up to 3 parameters, but if left blank, it uses defaults:\n\n1. **<local_kernel_dir>** - default is **linux-adi** if left blank ; use this,\n  if you want to use an already cloned kernel repo\n2. **<d",
+    "Please see here: Build with Petalinux.\n",
+    "Make sure you have `u-boot-tools` installed, to have the `mkimage` utility\navailable. You can install it via your distro\u2019s package manager.\n\nThen\n\n```bash\n~$ git clone https://github.com/analogdevicesinc/linux.git \\\n            --no-single-branch --depth=10 \\\n            -- linux\n```\n\n\nor do a git p",
+    "> **Tip**\n>\n> Use the latest release, if not required otherwise!\n\n\nThe release branches have the format `<Year>_R[1|2]`, starting from `2014_R2`.\n\n```bash\n~$ git checkout origin/2026_R1 -b 2026_R1\nBranch 2026_R1 set up to track remote branch 2026_R1 from origin.\nSwitched to a new branch '2026_R1'\n``",
+    "There are a few toolchains that can be used. The AMD Xilinx toolchain is\nrecommended, but the Linaro toolchain can also be used.\n\nOther toolchains/compilers for ARM may work as well, but the ones described here\nhave been tested and found to work.\n",
+    "|Release names and Branches|Required Vivado/Vitis versions|\n|2014_R2|Vivado 2014.2|\n|2015_R2|Vivado 2015.2|\n|2016_R1|Vivado 2015.4.2|\n|2016_R2|Vivado 2016.2|\n|2017_R1|Vivado 2016.4|\n|2018_R1|Vivado 2017.4|\n|2018_R2|Vivado 2018.2|\n|2019_R1|Vivado 2018.3|\n|2019_R2|Vivado 2019.1|\n|2021_R1|Vivado 2021.1",
+    "Alternatively, the Arm GNU Toolchain can be used to compile the kernel.\nDownload the `arm-none-linux-gnueabihf` tarball for your host from the\nArm GNU Toolchain downloads\npage. Always use the latest release just in case.\n\nExtract the downloaded tarball and set the environment variables:\n\n```bash\n~$ ",
+    "Inside the repository, generate the configuration file before building the\nkernel tree.\nThe command shown below is generic and is not project specific.\nAs long as the board is a ZYNQ FPGA, use the configuration below.\n\n```bash\n~$ make zynq_xcomm_adv7511_defconfig\n#\n# configuration written to .config",
+    "Build the kernel via \u2018make\u2019. This is the same for all AMD Xilinx ZYNQ FPGAs.\n\n```bash\n~$ make -j5 UIMAGE_LOADADDR=0x8000 uImage\nscripts/kconfig/conf --silentoldconfig Kconfig\n  CHK     include/config/kernel.release\n  CHK     include/generated/uapi/linux/version.h\n  UPD     include/config/kernel.rele",
+    "Build the one that fits your FPGA carrier and FMC card\n|device tree|board|chip|\n|zynq-adrv9361-z7035-bob|ADRV1CRR-BOB|ADRV9361|\n|zynq-adrv9361-z7035-bob-cmos|ADRV1CRR-BOB|ADRV9361|\n|zynq-adrv9361-z7035-packrf|ADRV-PACKRF|ADRV9361|\n|zynq-adrv9361-z7035-fmc|ADRV1CRR-FMC|ADV7511 (on-board) and the ADRV",
+    "The output files for building the kernel and device tree are **uImage** and\n**<device_tree_name>.dtb**. Refer to the code below to find their respective\noutput directories. Take note that the device tree file needs to be renamed to\n**devicetree.dtb**.\nSee ADI Kuiper Linux for more information in con",
+    "To modify devicetrees on the target platform:\n\n1. Make sure the boot partition is mounted. On new images, this can be done by\n  right-clicking the boot icon on the desktop and selecting the \u201cMount Volume\u201d\n  option. The partition will then be mounted at */media/analog/boot*.\n2. Convert the compiled d"
+  ],
+  "url": [
+    "linux/kernel/petalinux",
+    "linux/kernel/petalinux#messages",
+    "linux/kernel/petalinux#petalinux-meta-adi-and-device-trees",
+    "",
+    "#contents",
+    "linux/kernel/zynq_tips_tricks#customizing-the-device-tree-on-the-target",
+    "linux/kernel",
+    "linux/kernel/zynqmp#using-a-script",
+    "linux/kernel/zynqmp#building-with-petalinux",
+    "linux/kernel/zynqmp#on-the-development-host",
+    "linux/kernel/zynqmp#checkout-the-release-branch",
+    "linux/kernel/zynqmp#using-the-amd-xilinx-toolchain",
+    "linux/kernel/zynqmp#using-the-arm-gnu-toolchain",
+    "linux/kernel/zynqmp#configure-the-kernel",
+    "linux/kernel/zynqmp#build-the-devicetree-fcmomms2-3",
+    "linux/kernel/zynqmp#copy-the-generated-files-to-your-sd-card",
+    "linux/kernel/zynqmp#common-issues",
+    "linux/kernel/zynqmp#displayport-no-picture",
+    "linux/kernel/nios2",
+    "linux/kernel/nios2#pre-built-images",
+    "linux/kernel/nios2#iio-oscilloscope-remote",
+    "linux/kernel/nios2#using-a-script",
+    "linux/kernel/nios2#step-by-step",
+    "linux/kernel/zynq_hdmi",
+    "linux/kernel/zynq_hdmi#zc706",
+    "linux/kernel/zynq_hdmi#supported-devices",
+    "linux/kernel/zynq_hdmi#supported-carriers",
+    "linux/kernel/zynq_hdmi#preparing-the-sd-card",
+    "linux/kernel/zynq_hdmi#obtain-the-hdl-reference-design",
+    "linux/kernel/zynq_hdmi#build-the-boot-image",
+    "linux/kernel/zynq_hdmi#alternative-method-of-building-the-zynq-boot-image",
+    "linux/kernel/zynq_hdmi#use-script-to-build-boot-bin",
+    "linux/kernel/zynq_hdmi#download",
+    "linux/kernel/zynq_hdmi#usage",
+    "linux/kernel/zynq_hdmi#build-and-install-the-kernel-image",
+    "linux/kernel/zynq_hdmi#uenv-txt",
+    "linux/kernel/zynq_hdmi#install-the-root-file-system",
+    "linux/kernel/zynq_hdmi#testing-the-system",
+    "linux/kernel/zynq_hdmi#post-installation-tweaks",
+    "linux/kernel/zynq_hdmi#enable-xf86-video-modesetting-xorg-driver",
+    "linux/kernel/zynq_hdmi#fixing-issues-with-pulse-audio",
+    "linux/kernel/zynq_hdmi#more-information",
+    "linux/kernel/microblaze#on-the-development-host",
+    "linux/kernel/microblaze#checkout-the-release-branch",
+    "linux/kernel/microblaze#setup-cross-compile-environment-variables",
+    "linux/kernel/microblaze#compile-the-kernel",
+    "linux/kernel/microblaze#patch-a-dtb-to-a-simpleimage",
+    "linux/kernel/microblaze#boot-on-fpga-microblaze",
+    "linux/kernel/zynq#using-a-script",
+    "linux/kernel/zynq#building-with-petalinux",
+    "linux/kernel/zynq#on-the-development-host",
+    "linux/kernel/zynq#checkout-the-release-branch",
+    "linux/kernel/zynq#setup-cross-compile-environment-variables",
+    "linux/kernel/zynq#using-the-amd-xilinx-toolchain",
+    "linux/kernel/zynq#using-the-arm-gnu-toolchain",
+    "linux/kernel/zynq#configure-the-kernel",
+    "linux/kernel/zynq#build-the-kernel",
+    "linux/kernel/zynq#build-the-devicetree-fcmomms2-3-4-5",
+    "linux/kernel/zynq#copy-the-generated-files-to-your-sd-card",
+    "linux/kernel/zynq#on-the-target-platform-devicetrees"
+  ],
+  "hierarchy": [
+    [
+      "Kernel and devicetrees",
+      "Build with Petalinux"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Build with Petalinux",
+      "Messages"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Build with Petalinux",
+      "Petalinux, meta-adi and Device Trees"
+    ],
+    [
+      "System Level Documentation"
+    ],
+    [
+      "System Level Documentation",
+      "Contents"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Tips & Tricks",
+      "Customizing the device tree on the target"
+    ],
+    [
+      "Kernel and devicetrees"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Build ZynqMP / MPSoC Linux kernel and devicetree",
+      "Using a script"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Build ZynqMP / MPSoC Linux kernel and devicetree",
+      "Building with Petalinux"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Build ZynqMP / MPSoC Linux kernel and devicetree",
+      "On the development host"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Build ZynqMP / MPSoC Linux kernel and devicetree",
+      "On the development host",
+      "Checkout the Release branch"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Build ZynqMP / MPSoC Linux kernel and devicetree",
+      "On the development host",
+      "Add aarch64-linux-gnu-gcc to PATH",
+      "Using the AMD Xilinx toolchain"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Build ZynqMP / MPSoC Linux kernel and devicetree",
+      "On the development host",
+      "Add aarch64-linux-gnu-gcc to PATH",
+      "Using the Arm GNU Toolchain"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Build ZynqMP / MPSoC Linux kernel and devicetree",
+      "On the development host",
+      "Configure the kernel"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Build ZynqMP / MPSoC Linux kernel and devicetree",
+      "On the development host",
+      "Build the devicetree FCMOMMS2/3"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Build ZynqMP / MPSoC Linux kernel and devicetree",
+      "On the development host",
+      "Copy the generated files to your SD Card"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Build ZynqMP / MPSoC Linux kernel and devicetree",
+      "Common Issues"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Build ZynqMP / MPSoC Linux kernel and devicetree",
+      "Common Issues",
+      "DisplayPort - no picture?"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Nios2 Linux on Altera FPGA Development Boards"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Nios2 Linux on Altera FPGA Development Boards",
+      "Pre-built images"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Nios2 Linux on Altera FPGA Development Boards",
+      "Pre-built images",
+      "IIO Oscilloscope remote"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Nios2 Linux on Altera FPGA Development Boards",
+      "Building Linux",
+      "Using a script"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Nios2 Linux on Altera FPGA Development Boards",
+      "Building Linux",
+      "Step-by-step"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Embedded ARM and AD9361/AD9364"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Embedded ARM and AD9361/AD9364",
+      "ZC706"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Embedded ARM and AD9361/AD9364",
+      "Linux with HDMI video output on the ZED, ZC702 and ZC706 boards",
+      "Supported devices"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Embedded ARM and AD9361/AD9364",
+      "Linux with HDMI video output on the ZED, ZC702 and ZC706 boards",
+      "Supported carriers"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Embedded ARM and AD9361/AD9364",
+      "Linux with HDMI video output on the ZED, ZC702 and ZC706 boards",
+      "Preparing the SD-card"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Embedded ARM and AD9361/AD9364",
+      "Linux with HDMI video output on the ZED, ZC702 and ZC706 boards",
+      "Obtain the HDL reference design"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Embedded ARM and AD9361/AD9364",
+      "Linux with HDMI video output on the ZED, ZC702 and ZC706 boards",
+      "Build the boot image"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Embedded ARM and AD9361/AD9364",
+      "Linux with HDMI video output on the ZED, ZC702 and ZC706 boards",
+      "Alternative method of building the Zynq boot image"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Embedded ARM and AD9361/AD9364",
+      "Linux with HDMI video output on the ZED, ZC702 and ZC706 boards",
+      "Use script to build BOOT.BIN"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Embedded ARM and AD9361/AD9364",
+      "Linux with HDMI video output on the ZED, ZC702 and ZC706 boards",
+      "Use script to build BOOT.BIN",
+      "Download"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Embedded ARM and AD9361/AD9364",
+      "Linux with HDMI video output on the ZED, ZC702 and ZC706 boards",
+      "Use script to build BOOT.BIN",
+      "Usage"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Embedded ARM and AD9361/AD9364",
+      "Linux with HDMI video output on the ZED, ZC702 and ZC706 boards",
+      "Build and install the kernel image"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Embedded ARM and AD9361/AD9364",
+      "Linux with HDMI video output on the ZED, ZC702 and ZC706 boards",
+      "uEnv.txt"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Embedded ARM and AD9361/AD9364",
+      "Linux with HDMI video output on the ZED, ZC702 and ZC706 boards",
+      "Install the root file system"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Embedded ARM and AD9361/AD9364",
+      "Linux with HDMI video output on the ZED, ZC702 and ZC706 boards",
+      "Testing the system"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Embedded ARM and AD9361/AD9364",
+      "Linux with HDMI video output on the ZED, ZC702 and ZC706 boards",
+      "Post-installation tweaks"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Embedded ARM and AD9361/AD9364",
+      "Linux with HDMI video output on the ZED, ZC702 and ZC706 boards",
+      "Post-installation tweaks",
+      "Enable xf86-video-modesetting Xorg driver"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Embedded ARM and AD9361/AD9364",
+      "Linux with HDMI video output on the ZED, ZC702 and ZC706 boards",
+      "Post-installation tweaks",
+      "Fixing issues with pulse audio"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Embedded ARM and AD9361/AD9364",
+      "Linux with HDMI video output on the ZED, ZC702 and ZC706 boards",
+      "More information"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Build MicroBlaze Linux kernel",
+      "On the development host"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Build MicroBlaze Linux kernel",
+      "On the development host",
+      "Checkout the Release branch"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Build MicroBlaze Linux kernel",
+      "On the development host",
+      "Setup cross compile environment variables"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Build MicroBlaze Linux kernel",
+      "On the development host",
+      "Compile the kernel"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Build MicroBlaze Linux kernel",
+      "On the development host",
+      "Patch a DTB to a simpleImage"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Build MicroBlaze Linux kernel",
+      "On the development host",
+      "Boot on FPGA MicroBlaze"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Build Zynq Linux kernel and devicetree",
+      "Using a script"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Build Zynq Linux kernel and devicetree",
+      "Building with Petalinux"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Build Zynq Linux kernel and devicetree",
+      "On the development host"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Build Zynq Linux kernel and devicetree",
+      "On the development host",
+      "Checkout the Release branch"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Build Zynq Linux kernel and devicetree",
+      "On the development host",
+      "Setup cross compile environment variables"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Build Zynq Linux kernel and devicetree",
+      "On the development host",
+      "Setup cross compile environment variables",
+      "Using the AMD Xilinx toolchain"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Build Zynq Linux kernel and devicetree",
+      "On the development host",
+      "Setup cross compile environment variables",
+      "Using the Arm GNU Toolchain"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Build Zynq Linux kernel and devicetree",
+      "On the development host",
+      "Configure the kernel"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Build Zynq Linux kernel and devicetree",
+      "On the development host",
+      "Build the kernel"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Build Zynq Linux kernel and devicetree",
+      "On the development host",
+      "Build the devicetree FCMOMMS2/3/4/5"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Build Zynq Linux kernel and devicetree",
+      "On the development host",
+      "Copy the generated files to your SD Card"
+    ],
+    [
+      "Kernel and devicetrees",
+      "Build Zynq Linux kernel and devicetree",
+      "On the target platform (devicetrees)"
+    ]
+  ]
+}
