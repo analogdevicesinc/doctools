@@ -511,6 +511,12 @@ hr {
     max-height: 10em;
 }
 
+@media (max-width: variable.$screen-0) {
+    .body .card {
+        max-width: calc(100vw - 2.5rem);
+    }
+}
+
 @media (min-width: variable.$screen-1) {
     .body .flex {
         display: flex;
