@@ -60,9 +60,17 @@ apply-patches ()
 	done
 
 	if [[ -z "$github_token" ]]; then
+		if github_token=$(printf 'protocol=https\nhost=github.com\n\n' | git credential fill); then
+			github_token=$(printf '%s\n' "$github_token" | awk '/^password=/{sub(/^password=/, ""); print; exit}')
+		else
+			github_token=
+		fi
+	fi
+
+	if [[ -z "$github_token" ]]; then
 		echo "no token provided, usage:"
 		printf "$help_usage" | sed -e 's/^\t//'
-		return
+		return 1
 	fi
 
 	if [[ -z "$repository" ]]; then
