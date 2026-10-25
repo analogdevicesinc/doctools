@@ -16,13 +16,11 @@ apply-patches ()
 	    $ apply-patches 123456789 --repo=my-repo
 	    $ apply-patches 123456789 --repo=personal-account/my-repo
 	    $ apply-patches 123456789 --repo=my-repo --artifact=my-patches
-	    $ apply-patches 123456789 --repo=my-repo --token=ghp_xxx
 
 	Options:
 
 	--repo=<name>       GitHub repository name, may contain owner.
 	--artifact=<name>   Artifact name (default: llm-patches).
-	--token=<token>     GitHub token (default: \$GITHUB_TOKEN).
 	"
 
 	local repository=
@@ -44,11 +42,6 @@ apply-patches ()
 				artifact="${arg#--artifact=}"
 			elif [[ "$arg" == "--artifact" ]]; then
 				echo "missing --artifact= value (e.g. --artifact=llm-patches)"
-				return
-			elif [[ "$arg" =~ ^--token= ]]; then
-				github_token="${arg#--token=}"
-			elif [[ "$arg" == "--token" ]]; then
-				echo "missing --token= value (e.g. --token=ghp_xxx)"
 				return
 			else
 				echo "unknown option $arg"
