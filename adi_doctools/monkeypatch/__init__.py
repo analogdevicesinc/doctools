@@ -91,3 +91,22 @@ def monkeypatch_singlehtml_builder():
         self.body.append('<span id="/{}/"></span>'.format(node['docname']))
 
     HTML5Translator.visit_start_of_file = visit_start_of_file
+
+
+def monkeypatch_requests_auth(prefix, get_token):
+    """
+    Add a bearer token to sphinx.util.requests.get calls.
+    """
+    from sphinx.util import requests
+
+    if getattr(requests.get, 'auth_prefix', None) == prefix:
+        return
+    get = requests.get
+
+    def get_auth(url, **kwargs):
+        if url.startswith(prefix) and (token := get_token()):
+            kwargs.setdefault('headers', {})['Authorization'] = f'Bearer {token}'
+        return get(url, **kwargs)
+
+    get_auth.auth_prefix = prefix
+    requests.get = get_auth

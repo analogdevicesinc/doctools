@@ -638,6 +638,19 @@ current repository:
 
 The correct relative paths are resolved looking into the ``lut.py``.
 
+.. _private-org-ref:
+
+Private organization Sphinx reference
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For private docs:
+
+.. code:: python
+
+   interref_private_repos = ['krabby-patty-recipe', 'x-files/v1.1']
+
+``GITHUB_TOKEN`` from the environment or ``git credential fill`` is used.
+
 .. _out-org-ref:
 
 Outside organization Sphinx reference

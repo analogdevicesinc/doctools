@@ -46,6 +46,7 @@ remote_doc = "https://analogdevicesinc.github.io/"
 remote_alt = "https://developer.analog.com/docs/"
 source_hostname = "https://github.com/analogdevicesinc/{repository}/tree/{branch}/{pathname}"
 source_hostname_raw = "https://raw.githubusercontent.com/analogdevicesinc/{repository}/refs/heads/{branch}/{pathname}"
+source_internal_org = "adi-innersource"
 
 repos = {
     'analogdevicesinc.github.io': Repo(

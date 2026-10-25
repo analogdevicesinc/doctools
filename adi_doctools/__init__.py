@@ -13,7 +13,11 @@ from .directive import setup as directive_setup
 from .lut import get_lut
 from .monkeypatch import monkeypatch_figure_numbers, monkeypatch_singlehtml_builder
 from .role import setup as role_setup
-from .role.interref import interref_repos_apply, interref_repos_assert
+from .role.interref import (
+    interref_private_repos_apply,
+    interref_repos_apply,
+    interref_repos_assert,
+)
 from .theme import (
     get_pygments_theme,
     latex_config,
@@ -98,6 +102,7 @@ def config_inited(app, config):
     """
     app.lut = get_lut()
     interref_repos_apply(config)
+    interref_private_repos_apply(config)
     # colorrows activates colortbl which sets \CT@everycr; this may cause an
     # infinite \everycr recursion inside tabulary's measurement pass under xelatex.
     if 'colorrows' in config.latex_table_style:
