@@ -21,11 +21,17 @@ apply-patches ()
 
 	--repo=<name>       GitHub repository name, may contain owner.
 	--artifact=<name>   Artifact name (default: llm-patches).
+
+	Enviroment:
+
+	    GITHUB_TOKEN: Token to use.
+	    GITHUB_PROXY: Alternative gateway.
 	"
 
 	local repository=
 	local run_id=
 	local artifact="llm-patches"
+	local github_proxy="$GITHUB_PROXY"
 	local github_token="$GITHUB_TOKEN"
 
 	for arg; do
@@ -60,11 +66,12 @@ apply-patches ()
 		fi
 	fi
 
-	if [[ -z "$github_token" ]]; then
+	if [[ -z "$github_token" ]] && [[ -z "$github_proxy" ]]; then
 		echo "no token provided, usage:"
 		printf "$help_usage" | sed -e 's/^\t//'
 		return 1
 	fi
+	[[ -n "$github_proxy" ]] || github_proxy="https://api.github.com"
 
 	if [[ -z "$repository" ]]; then
 		echo "missing repository, usage:"
@@ -93,7 +100,7 @@ apply-patches ()
 	artifact_id=$(curl -s \
 		-H "Authorization: Bearer $github_token" \
 		-H "Accept: application/vnd.github+json" \
-		"https://api.github.com/repos/$org/$repository/actions/runs/$run_id/artifacts" \
+		"$github_proxy/repos/$org/$repository/actions/runs/$run_id/artifacts" \
 		| jq -r ".artifacts[] | select(.name == \"$artifact\") | .id ")
 
 	[ -n "$artifact_id" ] || { echo "Artifact '$artifact' at '$org/$repository' run '$run_id' not found." ;  return 1 ; }
@@ -103,7 +110,7 @@ apply-patches ()
 		-H "Authorization: Bearer $github_token" \
 		-H "Accept: application/vnd.github+json" \
 		-o "$patches_zip" \
-		"https://api.github.com/repos/$org/$repository/actions/artifacts/$artifact_id/zip"
+		"$github_proxy/repos/$org/$repository/actions/artifacts/$artifact_id/zip"
 
 	local patches_dir=$(mktemp -d -t "$artifact.XXX.zip")
 	unzip -q "$patches_zip" -d "$patches_dir"
