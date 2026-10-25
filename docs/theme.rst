@@ -60,6 +60,9 @@ flag will permanently disable the features for a build.
 With ``landing_page``, mark the doc as a landing page, this disables search
 for the current doc content.
 
+For LaTex, the covers default to white themed, set
+``latex_cover_theme = 'dark'``  for dark background.
+
 .. _theme metadata:
 
 Metadata

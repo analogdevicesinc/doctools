@@ -27,6 +27,8 @@ def theme_config_setup(app):
     app.add_config_value('core_repo', False, 'env', [bool])
     # Setup meta tag with target depth
     app.add_config_value('target_depth', None, 'env', [str])
+    # LaTex cover theme
+    app.add_config_value('latex_cover_theme', 'light', 'env', [str])
 
     app.connect("builder-inited", builder_inited)
     app.connect("build-finished", build_finished)
@@ -346,7 +348,8 @@ def latex_config(app):
         app.config.project,
         app.config.description,
         app.config.author,
-        app.config.version
+        app.config.version,
+        app.config.latex_cover_theme,
     )
     app.config['latex_elements']['maketitle'] = maketitle
     app.builder.context['maketitle'] = maketitle

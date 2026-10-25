@@ -1,147 +1,172 @@
 """
 SVG/PDF Cover
-Generates wave background
+Generates a pixel-field background
 """
 import hashlib
 import math
-import re
+
+PALETTE = ["#627eea", "#6e8ef2", "#64a9ee", "#62c5dd", "#8bd7cf", "#c1b4ef"]
+
+RIPPLE_SPEED = 250
+RIPPLE_DECAY = 1.9
+RIPPLE_WIDTH = 150
 
 
-def _wave_data(seed: str, is_volume: bool = False):
-    seed = int(hashlib.md5(seed.encode()).hexdigest()[:8], 16)
-
-    if is_volume:
-        base_color = [255, 255, 255]
-        waves = [
-            {"amp": 15, "freq": 0.02, "phase": (seed % 100) / 100 * 20,
-             "color": "rgba(180, 180, 200, 0.2)", "fill": "rgba(180, 180, 200, 0.05)"},
-            {"amp": 20, "freq": 0.015, "phase": (seed % 80) / 80 * 15,
-             "color": "rgba(160, 160, 180, 0.3)", "fill": "rgba(160, 160, 180, 0.07)"},
-            {"amp": 25, "freq": 0.012, "phase": (seed % 60) / 60 * 10,
-             "color": "rgba(140, 140, 160, 0.4)", "fill": "rgba(140, 140, 160, 0.08)"},
-            {"amp": 35, "freq": 0.008, "phase": (seed % 40) / 40 * 8,
-             "color": "rgba(120, 120, 140, 0.5)", "fill": "rgba(120, 120, 140, 0.1)"},
-        ]
-    else:
-        base_color = [0, 103, 185]
-        waves = [
-            {"amp": 15, "freq": 0.02, "phase": (seed % 100) / 100 * 20,
-             "color": "rgba(212, 173, 240, 0.25)", "fill": "rgba(212, 173, 240, 0.05)"},
-            {"amp": 20, "freq": 0.015, "phase": (seed % 80) / 80 * 15,
-             "color": "rgba(180, 180, 230, 0.35)", "fill": "rgba(180, 180, 230, 0.08)"},
-            {"amp": 25, "freq": 0.012, "phase": (seed % 60) / 60 * 10,
-             "color": "rgba(130, 185, 225, 0.45)", "fill": "rgba(130, 185, 225, 0.12)"},
-            {"amp": 35, "freq": 0.008, "phase": (seed % 40) / 40 * 8,
-             "color": "rgba(110, 190, 220, 0.5)", "fill": "rgba(110, 190, 220, 0.15)"},
-        ]
-
-    return seed, base_color, waves
+def clamp(value, lo=0.0, hi=1.0):
+    return min(hi, max(lo, value))
 
 
-def _wave_points(wave, width, height, is_volume, num_points=200):
-    """
-    Compute the (x, svg_y) points for a single wave path.
-    """
-    points = []
-    for i in range(-5, num_points + 5):
-        x = (i / num_points) * width
-        clamper = (x + width * 0.5) / (width * 1.5) if not is_volume else 1
-        base_y = height * 0.88
-        wave_y = math.sin(x * wave["freq"] + wave["phase"]) * wave["amp"]
-        y = base_y + wave_y * clamper
-        points.append((x, y))
-    return points
+def mix(a, b, amount):
+    return a + (b - a) * amount
 
 
-def _parse_rgba(s):
-    m = re.match(r'rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)', s)
-    return (int(m.group(1)) / 255, int(m.group(2)) / 255,
-            int(m.group(3)) / 255, float(m.group(4)))
+def fade(value):
+    return value * value * (3 - 2 * value)
+
+
+def hash2(x, y):
+    value = math.sin(x * 127.1 + y * 311.7) * 43758.5453123
+    return value - math.floor(value)
+
+
+def noise(x, y):
+    x0 = math.floor(x)
+    y0 = math.floor(y)
+    tx = fade(x - x0)
+    ty = fade(y - y0)
+    top = mix(hash2(x0, y0), hash2(x0 + 1, y0), tx)
+    bottom = mix(hash2(x0, y0 + 1), hash2(x0 + 1, y0 + 1), tx)
+    return mix(top, bottom, ty)
+
+
+def js_round(value):
+    """Math.round semantics (half rounds towards +inf)."""
+    return math.floor(value + 0.5)
+
+
+def fmt(value):
+    return f"{value:.2f}".rstrip("0").rstrip(".")
+
+
+def build_ripples(specs):
+    """specs: list of (x, y, strength, age_seconds)."""
+    ripples = []
+    for x, y, strength, age in specs:
+        age = max(0.0, age)
+        amplitude = strength * math.exp(-age * RIPPLE_DECAY)
+        if amplitude < 0.02:
+            continue
+        ripples.append((x, y, amplitude, age * RIPPLE_SPEED))
+    return ripples
+
+
+def pixels(width, height, time=0.0, ripples=(), cell=None, gap=None):
+    """Yield (x, y, size, color, alpha) for every square, like hero.js draw()."""
+    if cell is None:
+        cell = 14 if width < 640 else 17
+    if gap is None:
+        gap = 3 if width < 640 else 4
+
+    columns = math.ceil(width / cell) + 1
+    rows = math.ceil(height / cell) + 1
+    offset_x = js_round((width - columns * cell) * 0.5)
+    offset_y = js_round((height - rows * cell) * 0.5)
+    max_size = cell - gap
+    min_size = max(1, cell * 0.16)
+
+    for row in range(rows):
+        center_y = offset_y + (row + 0.5) * cell
+        v = center_y / max(height, 1)
+
+        for column in range(columns):
+            center_x = offset_x + (column + 0.5) * cell
+            u = center_x / max(width, 1)
+
+            broad_wave = math.sin(u * 8.5 + v * 5.2 - time * 1.25)
+            cross_wave = math.sin(u * -3.8 + v * 10.5 + time * 0.82)
+            fine_wave = math.sin((u + v) * 18 - time * 1.8)
+            turbulence = noise(u * 5.2 + time * 0.11, v * 5.2 - time * 0.08)
+
+            h = 0.5
+            h += broad_wave * 0.23
+            h += cross_wave * 0.13
+            h += fine_wave * 0.05
+            h += (turbulence - 0.5) * 0.36
+
+            for rx, ry, amplitude, radius in ripples:
+                front = math.hypot(center_x - rx, center_y - ry) - radius
+                if front > RIPPLE_WIDTH or front < -RIPPLE_WIDTH:
+                    continue
+                h += (math.cos(front * 0.055)
+                      * math.exp(-abs(front) / 70)
+                      * amplitude * 0.42)
+
+            intensity = clamp(h)
+            crest = intensity ** 1.55
+            alpha = mix(0.08, 0.72, crest)
+            index = min(len(PALETTE) - 1, math.floor(intensity * len(PALETTE)))
+            size = mix(min_size, max_size, crest)
+            half = size * 0.5
+
+            yield center_x - half, center_y - half, size, PALETTE[index], alpha
+
+
+
+def _cover_pixels(seed, width, height, theme='light'):
+    """Use the landing-page field with a stable, title-specific frame."""
+    frame = int(hashlib.md5(seed.encode()).hexdigest()[:8], 16) / 0xffffffff * 8
+    for x, y, size, color, alpha in pixels(width, height, time=frame):
+        # Fade toward the lower title area; blend opacity against the dark base.
+        alpha *= 1 - fade(clamp((y / height - 0.45) / 0.5)) * 0.85
+        rgb = tuple(int(color[i:i + 2], 16) / 255 for i in (1, 3, 5))
+        base = (1, 1, 1) if theme == 'light' else (13 / 255, 17 / 255, 23 / 255)
+        color = tuple(b + (c - b) * alpha for b, c in zip(base, rgb))
+        yield x, y, size, color
 
 
 def generate_wave_cover(seed: str, width: int = 595, height: int = 842,
-                        is_volume: bool = False):
-    """
-    Generate an SVG cover with layered sine waves.
-    """
-    _, base_color, waves = _wave_data(seed, is_volume)
+                        is_volume: bool = False, theme: str = 'light'):
+    """Generate the landing-page pixel field (legacy public function name).
 
-    svg_paths = []
-    for wave in waves:
-        points = _wave_points(wave, width, height, is_volume)
-        coords = " L ".join(f"{x:.2f},{y:.2f}" for x, y in points)
-        path_data = f"M 0,{height + 5} L {coords} L {width + 5},{height + 5} Z"
-
-        svg_paths.append(
-            f'<path d="{path_data}" '
-            f'fill="{wave["fill"]}" '
-            f'stroke="{wave["color"]}" '
-            f'stroke-width="1.5" '
-            f'opacity="0.9"/>'
+    Volume covers retain their light background for dark overlaid text.
+    """
+    if theme not in ('light', 'dark'):
+        raise ValueError("cover theme must be 'light' or 'dark'")
+    if is_volume:
+        theme = 'light'
+    rects = []
+    for x, y, size, rgb in _cover_pixels(seed, width, height, theme):
+        color = "#" + "".join(f"{round(c * 255):02x}" for c in rgb)
+        rects.append(
+            f'<rect x="{x:.2f}" y="{y:.2f}" width="{size:.2f}" '
+            f'height="{size:.2f}" fill="{color}"/>'
         )
-
-    bg_color = f"rgb({base_color[0]}, {base_color[1]}, {base_color[2]})"
-
-    svg = f'''<svg xmlns="http://www.w3.org/2000/svg"
-         width="{width}" height="{height}"
-         viewBox="0 0 {width} {height}"
-         preserveAspectRatio="none">
-    <rect width="{width}" height="{height}" fill="{bg_color}"/>
-    {''.join(svg_paths)}
-</svg>'''
-
-    return svg
+    background = "#ffffff" if theme == "light" else "#0d1117"
+    return (
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" '
+        f'height="{height}" viewBox="0 0 {width} {height}" '
+        f'preserveAspectRatio="none">'
+        f'<rect width="{width}" height="{height}" fill="{background}"/>'
+        + "".join(rects) + "</svg>"
+    )
 
 
-def _generate_cover_pdf(seed, width=595, height=842):
-    """
-    Generate a PDF cover with layered sine waves (no external dependencies).
-
-    Returns the raw PDF bytes.
-    """
-    _, base_color, waves = _wave_data(seed, is_volume=False)
-    opacity = 0.9
-
-    # Build PDF content stream
-    stream_parts = []
-
-    # Background rectangle
-    r, g, b = base_color[0] / 255, base_color[1] / 255, base_color[2] / 255
-    stream_parts.append(f'{r:.4f} {g:.4f} {b:.4f} rg')
-    stream_parts.append(f'0 0 {width} {height} re f')
-
-    # Build ExtGState objects for fill/stroke alpha
+def _generate_cover_pdf(seed, width=595, height=842, theme='light'):
+    """Generate a vector pixel-field PDF without external dependencies."""
+    if theme not in ("light", "dark"):
+        raise ValueError("cover theme must be 'light' or 'dark'")
+    stream_parts = [
+        "1 1 1 rg" if theme == "light" else "0.05098 0.06667 0.09020 rg",
+        f"0 0 {width} {height} re f",
+    ]
+    for x, y, size, (r, g, b) in _cover_pixels(seed, width, height, theme):
+        stream_parts.append(f"{r:.5f} {g:.5f} {b:.5f} rg")
+        stream_parts.append(
+            f"{x:.2f} {height - y - size:.2f} {size:.2f} {size:.2f} re f"
+        )
     gs_names = []
     gs_objects = []
-    obj_offset = 5  # objects 1-4 are catalog/pages/page/stream
-
-    for i, wave in enumerate(waves):
-        fc = _parse_rgba(wave["fill"])
-        sc = _parse_rgba(wave["color"])
-        gs_names.append(f'GS{i}')
-        gs_objects.append(
-            f'<< /Type /ExtGState '
-            f'/ca {fc[3] * opacity:.4f} /CA {sc[3] * opacity:.4f} >>'
-        )
-
-    # Draw each wave path
-    for i, wave in enumerate(waves):
-        fc = _parse_rgba(wave["fill"])
-        sc = _parse_rgba(wave["color"])
-
-        stream_parts.append(f'/{gs_names[i]} gs')
-        stream_parts.append(f'{fc[0]:.4f} {fc[1]:.4f} {fc[2]:.4f} rg')
-        stream_parts.append(f'{sc[0]:.4f} {sc[1]:.4f} {sc[2]:.4f} RG')
-        stream_parts.append('1.5 w')
-
-        points = _wave_points(wave, width, height, is_volume=False)
-
-        bottom = -5
-        stream_parts.append(f'0 {bottom:.2f} m')
-        for x, svg_y in points:
-            stream_parts.append(f'{x:.2f} {height - svg_y:.2f} l')
-        stream_parts.append(f'{width + 5} {bottom:.2f} l')
-        stream_parts.append('h B')  # close, fill and stroke
+    obj_offset = 5
 
     stream_data = '\n'.join(stream_parts)
     stream_bytes = stream_data.encode('latin-1')
@@ -205,7 +230,7 @@ def _generate_cover_pdf(seed, width=595, height=842):
 
 
 def generate_latex_cover(outdir: str, title: str, description: str, author: str,
-                         version: str) -> str:
+                         version: str, theme: str = 'light') -> str:
     """
     Generate a PDF cover for xelatex builds.
 
@@ -215,7 +240,7 @@ def generate_latex_cover(outdir: str, title: str, description: str, author: str,
     import os
 
     cover_pdf = os.path.join(outdir, '_cover.pdf')
-    pdf_bytes = _generate_cover_pdf(title)
+    pdf_bytes = _generate_cover_pdf(title, theme=theme)
     with open(cover_pdf, 'wb') as f:
         f.write(pdf_bytes)
 
@@ -254,4 +279,6 @@ def generate_latex_cover(outdir: str, title: str, description: str, author: str,
         '\\setcounter{footnote}{0}\n'
     )
 
+    if theme == 'light':
+        maketitle = maketitle.replace(r'\color{white}', r'\color[HTML]{212836}')
     return maketitle
