@@ -80,7 +80,7 @@ Apply with:
 
 \`\`\`bash
 cd path/to/repository
-export GITHUB_TOKEN=ghp_***
+export GITHUB_TOKEN=ghp_*** # explicit instead of git credentials
 apply-patches --repo=${repository} ${run_id}
 \`\`\`
 
