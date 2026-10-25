@@ -205,16 +205,16 @@ With the container (~1.6 GB), the end-to-end usage is:
 
 .. shell::
 
+   ~/repository
    # pip or pipx or uvx
    $ pip install adi-doctools[pdf]
    # podman or docker
    $ podman build -t adi/doctools_latex:latest \
        -f https://raw.githubusercontent.com/analogdevicesinc/doctools/main/ci/Containerfile.latex
-   $ cd docs
    # Build latex to _build/latex
-   $ sphinx-build -M latex "." "_build" -j auto
+   $ sphinx-build -M latex "docs" "docs/_build" -j auto
    # Build pdf inside the container
-   $ podman run --rm  -v $(pwd)/_build/latex:/work -w /work adi/doctools_latex:latest make
+   $ podman run --rm -v "$PWD/_build/latex:/work" -w /work adi/doctools_latex:latest make
 
 Due to unicode support, ``latex_engine`` is set to ``xelatex`` internally if
 the value is Sphinx default's ``pdflatex``.
