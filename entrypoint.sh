@@ -32,7 +32,7 @@ runner_dir="/home/runner"
 readonly runner_dir
 
 node="$runner_dir/externals/node24/bin/node"
-[ -x "$node" ] || node="$runner_dir/externals/node22/bin/node"
+[ -x "$node" ] || node="$runner_dir/externals/node20/bin/node"
 readonly node
 
 set -e
@@ -81,6 +81,13 @@ readonly JOB_STARTED
 cat > "$JOB_STARTED" <<'EOF'
 #!/bin/bash
 find "${TMPDIR:-/tmp}" -xdev -mindepth 1 -maxdepth 1 ! -type s ! -type p -exec rm -rf -- {} + || :
+# https://github.com/actions/runner/issues/2094
+for b in /home/runner/externals/node*/lib/node_modules/npm; do
+    b=${b%/lib/node_modules/npm}/bin
+    ln -sfn ../lib/node_modules/npm/bin/npm-cli.js "$b/npm"
+    ln -sfn ../lib/node_modules/npm/bin/npx-cli.js "$b/npx"
+    ln -sfn ../lib/node_modules/corepack/dist/corepack.js "$b/corepack"
+done || :
 EOF
 chmod +x "$JOB_STARTED"
 export ACTIONS_RUNNER_HOOK_JOB_STARTED="$JOB_STARTED"
