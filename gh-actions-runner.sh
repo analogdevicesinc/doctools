@@ -2,8 +2,8 @@
 
 set -e
 
-runner_version=2.337.0
-runner_version_sha=70920811a4f8ad4328818682bca5c6469c1c942fab52448868071d0063816613
+runner_version=2.338.2
+runner_version_sha=baebf204307bac6193480852732f0aba2ae97b6c5597c244f4d5558390147c40
 k8s_version=0.8.1
 k8s_version_sha=2c3c4526f8a8d517373a2a0daa6122d7887bdc465c54945c6d716db87d9d9b4f
 
