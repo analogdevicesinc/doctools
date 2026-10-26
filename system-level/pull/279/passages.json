@@ -1,0 +1,208 @@
+{
+  "text": [
+    "> **Attention**\n>\n> Work-in-progress, not all content available at the\n> wiki\n> has been imported yet.\n\n\nThe System Level documentation provides developers using Analog Devices\nproducts with software and documentation, including HDL interface code,\nsoftware drivers, and reference project examples fo",
+    "Apps & Solutions\n\n- Reference Designs\n  AD-TRXBOOST1-EBZ\n  Overview\n  Table of contents\n  Block diagram\n  Help and support\n  Warning\n\n  - AD-TRXBOOST1-EBZ\n    Overview\n    Table of contents\n    Block diagram\n    Help and support\n    Warning\n\n    - Overview\n    - Table of contents\n    - Block diagram",
+    "> **Note**\n>\n> We are in the process of moving the reference design documentation from\n> wiki.analog.com to ADI Documentation repository.\n> We apologize for any inconvenience that may occur due to this migration.\n\n\nAnalog Devices has developed hundreds of reference designs to help solve our\ncustomer",
+    "The Quick Start Guide provides step by step instructions detailing how to plug\nin, and set up the AD-TRXBOOST1-EBZ board. The\nZC706 and AD-FMCOMMS3-EBZ platforms\nwill be used to demonstrate the appropriate board and cable connections.\n",
+    "The TRXBOOST1-EBZ has four SMA connectors (TX_IN, RX_OUT, TX_OUT, RX_IN). 2\nmale to male SMA connectors are required to connect the TRXBOOST1-EBZ board\nto the FMCOMMS3 platform.\n\nStart by lining up TRXBOOST1 connectors RX_OUT and TX_IN with FMCOMMS3\nconnectors TX1A and RX1A. This alignment requires ",
+    "Power supply is brought to the TRXBOOST1 through a 3 pin cable. The\nconnection is made at P2 (pin1 = 3.3V, pin2 = GND, pin3 = 12V), which sits\ndirectly between TX_IN and RX_OUT.\n\nThe power can originates from the FMCOMMS3 board, connector P301. It is very\nimportant to properly plug in this cable on ",
+    "Due to the high gain that the TX and RX paths exert, it is important to know\nwhat is the Max RF input power that should be applied to the TX and RX to\nallow the max gain before hitting the 1dB compression point.\n\nFor the TX path: Because the TX gain is around 17dB at 2.45GHz, and the\noutput 1dB comp",
+    "![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/wiki_migration/ad-trxboost1-ebz_landing/docs/solutions/reference-designs/ad-trxboost1-ebz/images/rx_path.png)\n\n*Figure 1 RX path Gain vs. Freq*\n\n\n![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/wi",
+    "|AD9361 without TRXBOOST board (LNA)|TRXBOOST board (LNA) connected to RX path of AD9361|\n|||\n|||\n|||\n",
+    "Although the AD-TRXBOOST1-EBZ board was designed and tested with the\nAD-FMCOMMS3-EBZ, this methodology is appropriate for any Rx/Tx signal\nchain.\n",
+    "This block diagram is shown to help with the discussion below, to better\nunderstand the Tx and Rx signal chain.\n\n![](../../../../_images/ad9361.svg)\n",
+    "You would not be using the TRXBOOST board, unless you wanted maximum output\npower, so let\u2019s understand how to do that without sacrificing dynamic range,\nor causing distortion.\n",
+    "The first step on understanding what sort of digital input can be provided to\nthe FIR filters without causing the FIR/Half Bands to saturate/overflow (and\ncause distortion). Normally the FIR filter has some small gain to compensate\nfor losses in the half bands, and analog filters.\n\nLuckily - the\nMAT",
+    "Also keep in mind that in this specific case - scaling back 0.93667 ensures\nthat there isn\u2019t any overflow/saturation in the digital sections, and will\nstill cause full scale signals to be provided to the DAC.\n\nAs these Full scale I and Q signals (assume for now \u00b11), as these baseband\nsignals are mod",
+    "The AD-TRXBOOST1-EBZ is an add on board for the\nFMCOMMS2/3/4/5 boards which contain the\nAD9361. While the complete chip level design package can be found on the\nADI product pages of this RF transceiver, information on the card, and how to\nuse it and the design package that surrounds it, can be found",
+    "1. Use the board as an add-on to the\n  AD-FMCOMMS2/3/4/5 platform\n  Quick Start Guide\n  Characterization\n  Production Testing\n  Practical Guide to using the\n  AD-TRXBOOST1-EBZ with the AD-FMCOMMS3-EBZ\n\n  1. Quick Start Guide\n  2. Characterization\n  3. Production Testing\n  4. Practical Guide to using",
+    "People who follow the flow that is outlined, have a much better experience with\nthings. However, like many things, documentation is never as complete as it\nshould be. If you have any questions, feel free to ask on the\nEngineerZone Support Community, but before that,\nplease make sure you read our doc",
+    "> **Warning**\n>\n> All the products described on this page include ESD (electrostatic discharge) sensitive devices. Electrostatic charges as high as 4000V readily accumulate on the human body or test equipment and can discharge without detection.\n> Although the boards feature ESD protection circuitry",
+    "The AD-TRXBOOST1-EBZ is an add-on board for the\nAD-FMCOMMS2/3/4/5 platform. It adds a pre-amp to the TX\noutput and an LNA to the RX input of the AD9361.\n\n![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/wiki_migration/ad-trxboost1-ebz_landing/docs/solutions/reference-desig",
+    "- 30MHz to 6 GHz\n- Fixed gain of 18.4dB\n- Noise figure: 2.2dB at 900MHz\n- OIP3: 38.8dBm at 900MHz\n- P1dB: 20.4dBm at 900MHz\n- Single 5V supply\n",
+    "- 400MHz to 4GHz\n- Fixed gain of 20.8dB at 900MHz\n- Noise figure: 0.8dB at 900MHz\n- OIP3: 37.0dBm at 900MHz\n- P1dB: 21.8dBm at 900MHz\n- Single supply between 3V and 5V\n",
+    "Power supply is brought to the AD-TRXBOOST1-EBZ through a 3 pin cable. The\nconnection is made at P2 (pin1 = 3.3V, pin2 = GND, pin3 = 12V), which sits\ndirectly between TX_IN and RX_OUT.\n\nThe power originates from the FMCOMMS3 board, connector P301. It can also come\nfrom an external power supply.\n",
+    "The production testing is quite simple, since each board has been completely\ncharacterized and we know the layout is good, we can just look for gross\nerrors. First the noise floor is checked when no input is supplied to make\nsure it is within a certain threshold, then a couple tones are input and th",
+    "First, write the latest available SD card image found at\nkuiper-linux to a spare card and prepare the\ncard to boot into Linux as detailed on that page for the target FMCOMMS and\ncarrier boards. In this case copy the BOOT.BIN and devicetree.dtb files from\nthe zynq-zc706-adv7511-ad9361-fmcomms2-3 fold",
+    "- 1 ZC706 carrier board and power supply\n- 1 keyboard/mouse\n- 1 HDMI monitor\n- 1 SD test card\n- 1 AD-FMCOMMS3-EBZ board\n- 1 AD-TRXBOOST1-EBZ board\n- 1 3 pin power cable\n- 1 SMA loopback cable\n",
+    "The TRXBOOST1 testing should be done using the following steps:\n\n- Make sure the ZC706 is plugged in with the testing SD card inserted and\n  the HDMI monitor and keyboard/mouse are properly attached to the system\n  and powered on.\n- The TRXBOOST1 board should be mounted on the TX2A/RX2A jacks of the"
+  ],
+  "url": [
+    "",
+    "#contents",
+    "solutions/reference-designs",
+    "solutions/reference-designs/ad-trxboost1-ebz/quickstart",
+    "solutions/reference-designs/ad-trxboost1-ebz/quickstart#connecting-to-fmcomms2-3-4",
+    "solutions/reference-designs/ad-trxboost1-ebz/quickstart#power-cable-connection-and-orientation",
+    "solutions/reference-designs/ad-trxboost1-ebz/quickstart#rf-input-output-power-limitations",
+    "solutions/reference-designs/ad-trxboost1-ebz/characterization#frequency-response",
+    "solutions/reference-designs/ad-trxboost1-ebz/characterization#receive-path-of-ad9361-with-and-without-trxboost1",
+    "solutions/reference-designs/ad-trxboost1-ebz/practical",
+    "solutions/reference-designs/ad-trxboost1-ebz/practical#ad9361-block-diagram",
+    "solutions/reference-designs/ad-trxboost1-ebz/practical#transmit",
+    "solutions/reference-designs/ad-trxboost1-ebz/practical#maximum-input-to-the-firs",
+    "solutions/reference-designs/ad-trxboost1-ebz/practical#the-digital-to-analog-converter-dac-and-modulators",
+    "solutions/reference-designs/ad-trxboost1-ebz#overview",
+    "solutions/reference-designs/ad-trxboost1-ebz#table-of-contents",
+    "solutions/reference-designs/ad-trxboost1-ebz#help-and-support",
+    "solutions/reference-designs/ad-trxboost1-ebz#warning",
+    "solutions/reference-designs/ad-trxboost1-ebz/ad-trxboost1-ebz",
+    "solutions/reference-designs/ad-trxboost1-ebz/ad-trxboost1-ebz#adl5610-gain-block",
+    "solutions/reference-designs/ad-trxboost1-ebz/ad-trxboost1-ebz#adl5521-lna",
+    "solutions/reference-designs/ad-trxboost1-ebz/ad-trxboost1-ebz#power-supply",
+    "solutions/reference-designs/ad-trxboost1-ebz/testing#overview",
+    "solutions/reference-designs/ad-trxboost1-ebz/testing#creating-an-sd-test-card",
+    "solutions/reference-designs/ad-trxboost1-ebz/testing#required-hardware",
+    "solutions/reference-designs/ad-trxboost1-ebz/testing#test-process"
+  ],
+  "hierarchy": [
+    [
+      "System Level Documentation"
+    ],
+    [
+      "System Level Documentation",
+      "Contents"
+    ],
+    [
+      "Reference Designs"
+    ],
+    [
+      "Reference Designs",
+      "AD-TRXBOOST1-EBZ",
+      "AD-TRXBOOST1-EBZ Quick Start Guide"
+    ],
+    [
+      "Reference Designs",
+      "AD-TRXBOOST1-EBZ",
+      "AD-TRXBOOST1-EBZ Quick Start Guide",
+      "Connecting to FMCOMMS2/3/4"
+    ],
+    [
+      "Reference Designs",
+      "AD-TRXBOOST1-EBZ",
+      "AD-TRXBOOST1-EBZ Quick Start Guide",
+      "Power Cable Connection and Orientation"
+    ],
+    [
+      "Reference Designs",
+      "AD-TRXBOOST1-EBZ",
+      "AD-TRXBOOST1-EBZ Quick Start Guide",
+      "RF Input / Output Power Limitations"
+    ],
+    [
+      "Reference Designs",
+      "AD-TRXBOOST1-EBZ",
+      "Characterization",
+      "Frequency response"
+    ],
+    [
+      "Reference Designs",
+      "AD-TRXBOOST1-EBZ",
+      "Characterization",
+      "Receive path of AD9361 with and without TRXBOOST1"
+    ],
+    [
+      "Reference Designs",
+      "AD-TRXBOOST1-EBZ",
+      "Using the AD-TRXBOOST1-EBZ Board"
+    ],
+    [
+      "Reference Designs",
+      "AD-TRXBOOST1-EBZ",
+      "Using the AD-TRXBOOST1-EBZ Board",
+      "AD9361 Block Diagram"
+    ],
+    [
+      "Reference Designs",
+      "AD-TRXBOOST1-EBZ",
+      "Using the AD-TRXBOOST1-EBZ Board",
+      "Transmit"
+    ],
+    [
+      "Reference Designs",
+      "AD-TRXBOOST1-EBZ",
+      "Using the AD-TRXBOOST1-EBZ Board",
+      "Transmit",
+      "Maximum input to the FIRs"
+    ],
+    [
+      "Reference Designs",
+      "AD-TRXBOOST1-EBZ",
+      "Using the AD-TRXBOOST1-EBZ Board",
+      "Transmit",
+      "The Digital to Analog Converter (DAC) and modulators"
+    ],
+    [
+      "Reference Designs",
+      "AD-TRXBOOST1-EBZ",
+      "Overview"
+    ],
+    [
+      "Reference Designs",
+      "AD-TRXBOOST1-EBZ",
+      "Table of contents"
+    ],
+    [
+      "Reference Designs",
+      "AD-TRXBOOST1-EBZ",
+      "Help and support"
+    ],
+    [
+      "Reference Designs",
+      "AD-TRXBOOST1-EBZ",
+      "Warning"
+    ],
+    [
+      "Reference Designs",
+      "AD-TRXBOOST1-EBZ",
+      "User guide"
+    ],
+    [
+      "Reference Designs",
+      "AD-TRXBOOST1-EBZ",
+      "User guide",
+      "Hardware guide",
+      "Components",
+      "ADL5610 Gain Block"
+    ],
+    [
+      "Reference Designs",
+      "AD-TRXBOOST1-EBZ",
+      "User guide",
+      "Hardware guide",
+      "Components",
+      "ADL5521 LNA"
+    ],
+    [
+      "Reference Designs",
+      "AD-TRXBOOST1-EBZ",
+      "User guide",
+      "Hardware guide",
+      "Power supply"
+    ],
+    [
+      "Reference Designs",
+      "AD-TRXBOOST1-EBZ",
+      "AD-TRXBOOST1-EBZ Production Testing",
+      "Overview"
+    ],
+    [
+      "Reference Designs",
+      "AD-TRXBOOST1-EBZ",
+      "AD-TRXBOOST1-EBZ Production Testing",
+      "Creating an SD test card"
+    ],
+    [
+      "Reference Designs",
+      "AD-TRXBOOST1-EBZ",
+      "AD-TRXBOOST1-EBZ Production Testing",
+      "Required hardware"
+    ],
+    [
+      "Reference Designs",
+      "AD-TRXBOOST1-EBZ",
+      "AD-TRXBOOST1-EBZ Production Testing",
+      "Test process"
+    ]
+  ]
+}
