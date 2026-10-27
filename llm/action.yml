@@ -190,7 +190,7 @@ runs:
         PORTKEY_API_KEY: ${{ inputs.api-key }}
       run: |
         # Run pi
-        [[ "${{ inputs.model }}" == "small" ]] && provider="portkey-azure" || provider="portkey-bedrock"
+        provider="portkey-bedrock"
 
         python3 /tmp/fmt_args.py "${{ inputs.prompt-file }}" > "$formatted_prompt_file"
 
