@@ -1,6 +1,8 @@
 @use "variable";
+@use "mixin_icons";
 
 .zoom-overlay {
+  @include mixin_icons.icons(("close", "pen"));
   position: fixed;
   inset: 0;
   z-index: 10000;
@@ -26,7 +28,24 @@
     transition: none;
   }
 
-  .zoom-close {
+  .zoom-annotations {
+    position: absolute;
+    overflow: hidden;
+    pointer-events: none;
+    transform-origin: center;
+
+    polyline {
+      fill: none;
+      stroke: #e00000;
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+  }
+
+  &.is-pen { cursor: crosshair; }
+
+  .zoom-close, .zoom-pen {
     position: absolute;
     top: 1rem;
     right: 1rem;
@@ -34,19 +53,49 @@
     height: 2rem;
     border: none;
     color: var(--text-color3);
-    font-size: 1.5rem;
+    padding: .25rem;
+    border-radius: variable.$border-radius;
     cursor: pointer;
-    line-height: 1;
     z-index: 1;
     opacity: 0;
 
-    &:hover {
-      color: var(--text-color1);
+    &::before {
+      content: '';
+      display: block;
+      width: 1.5rem;
+      height: 1.5rem;
+      background-color: currentColor;
+      mask-repeat: no-repeat;
     }
 
+    &:hover {
+      color: var(--text-color1);
+      background-color: var(--bg-color2);
+    }
+
+    &:focus-visible {
+      outline: .125em solid var(--accent-color);
+    }
   }
 
-  &.is-visible .zoom-close {
+  .zoom-close::before {
+    mask-image: var(--icon-close);
+  }
+
+  .zoom-pen {
+    right: 3.5rem;
+
+    &::before {
+      mask-image: var(--icon-pen);
+    }
+
+    &[aria-pressed="true"] {
+      color: white;
+      background: #c00000;
+    }
+  }
+
+  &.is-visible .zoom-close, &.is-visible .zoom-pen {
     opacity: 1;
   }
 }

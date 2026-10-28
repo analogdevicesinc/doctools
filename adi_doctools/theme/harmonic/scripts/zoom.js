@@ -12,6 +12,9 @@ export class Zoom {
     this.parent = app
     this.overlay = null
     this.clone = null
+    this.annotations = null
+    this.penEnabled = false
+    this.stroke = null
     this.srcImg = null
     this.scale = 1
     this.tx = 0
@@ -82,9 +85,32 @@ export class Zoom {
 
     let btn = DOM.new('button', {
       className: 'zoom-close',
-      innerHTML: '&#x2715;'
+      type: 'button',
+      title: 'Close image'
     })
+    btn.setAttribute('aria-label', 'Close image')
     btn.onclick = () => { this.close() }
+
+    let pen = DOM.new('button', {
+      className: 'zoom-pen',
+      type: 'button',
+      title: 'Red pen'
+    })
+    pen.setAttribute('aria-label', 'Red pen')
+    pen.setAttribute('aria-pressed', 'false')
+    pen.onclick = () => {
+      this.penEnabled = !this.penEnabled
+      this.stroke = null
+      pen.setAttribute('aria-pressed', String(this.penEnabled))
+      this.overlay.classList.toggle('is-pen', this.penEnabled)
+    }
+    this.penEnabled = false
+    this.stroke = null
+    this.didDrag = false
+    this.annotations = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+    this.annotations.classList.add('zoom-annotations')
+    this.annotations.setAttribute('aria-hidden', 'true')
+    this.annotations.setAttribute('preserveAspectRatio', 'none')
 
     this.clone = DOM.new('img')
     this.clone.src = img.currentSrc || img.src
@@ -95,8 +121,9 @@ export class Zoom {
     this.touchStartedOutside = false
 
     this.setRect(this.clone, rect)
+    this.setRect(this.annotations, rect)
 
-    this.overlay.append(btn, this.clone)
+    this.overlay.append(this.clone, this.annotations, btn, pen)
     this.overlay.addEventListener('click', (e) => {
       if (!this.didDrag && e.target === this.overlay) this.close()
     })
@@ -116,9 +143,12 @@ export class Zoom {
     this.clone.offsetHeight
 
     this.clone.style.transition = options.instant ? 'none' : 'left .3s, top .3s, width .3s, height .3s'
+    this.annotations.style.transition = this.clone.style.transition
     this.overlay.classList.add('is-visible')
     let openRect = options.instant ? rect : this.centerRect(img)
+    this.annotations.setAttribute('viewBox', `0 0 ${openRect.width} ${openRect.height}`)
     this.setRect(this.clone, openRect)
+    this.setRect(this.annotations, openRect)
     this.srcImg.style.opacity = 0
 
     document.addEventListener('keydown', this._onKey)
@@ -140,6 +170,10 @@ export class Zoom {
     document.removeEventListener('touchcancel', this._onPagePinchEnd, {capture: true})
     this.pagePinching = false
 
+    this.stroke = null
+    this.annotations.style.display = 'none'
+    this.dragging = false
+    this.pinching = false
     let cur = this.clone.getBoundingClientRect()
     let dest = this.srcImg.getBoundingClientRect()
 
@@ -165,6 +199,7 @@ export class Zoom {
         this.overlay.remove()
         this.overlay = null
         this.clone = null
+        this.annotations = null
         this.srcImg = null
       }
     }
@@ -184,9 +219,40 @@ export class Zoom {
   applyTransform () {
     let transform = 'translate(' + this.tx + 'px,' + this.ty + 'px) scale(' + this.scale + ')'
     this.clone.style.transform = transform
+    this.annotations.style.transition = 'none'
+    this.annotations.style.transform = transform
+  }
+  annotationPoint (x, y) {
+    let rect = this.clone.getBoundingClientRect()
+    if (!rect.width || !rect.height) return null
+    let viewBox = this.annotations.viewBox.baseVal
+    return {
+      x: (x - rect.left) * viewBox.width / rect.width,
+      y: (y - rect.top) * viewBox.height / rect.height
+    }
+  }
+  startStroke (x, y) {
+    let rect = this.clone.getBoundingClientRect()
+    if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) return
+    let point = this.annotationPoint(x, y)
+    if (!point) return
+    this.stroke = document.createElementNS('http://www.w3.org/2000/svg', 'polyline')
+    this.annotations.append(this.stroke)
+    this.extendStroke(x, y)
+    this.extendStroke(x, y)
+    this.didDrag = true
+  }
+  extendStroke (x, y) {
+    if (!this.stroke) return
+    let point = this.annotationPoint(x, y)
+    if (!point) return
+    let svgPoint = this.annotations.createSVGPoint()
+    svgPoint.x = point.x; svgPoint.y = point.y
+    this.stroke.points.appendItem(svgPoint)
   }
   onWheel (e) {
     e.preventDefault()
+    this.stroke = null
     this.clone.style.transition = 'none'
     let d = e.deltaY > 0 ? 0.9 : 1.1
     let newScale = Math.min(Math.max(this.scale * d, 0.5), 10)
@@ -273,16 +339,22 @@ export class Zoom {
     this.overlay.classList.add('is-dragging')
   }
   onTouchStart (e) {
-    if (!this.clone || e.target.closest('.zoom-close')) return
+    if (!this.clone || e.target.closest('.zoom-close, .zoom-pen')) return
     this.touchStartedOutside = e.target === this.overlay
     if (e.touches.length === 2) {
+      this.stroke = null
       e.preventDefault()
       this.touchStartedOutside = false
       this.startTouchPinch(e)
     } else if (e.touches.length === 1) {
       e.preventDefault()
       this.didDrag = false
-      this.startTouchPan(e.touches[0])
+      if (this.penEnabled) {
+        this.touchStartedOutside = false
+        this.startStroke(e.touches[0].clientX, e.touches[0].clientY)
+      } else {
+        this.startTouchPan(e.touches[0])
+      }
     }
   }
   onTouchMove (e) {
@@ -313,6 +385,9 @@ export class Zoom {
       this.lastTouchY = mid.y
       this.didDrag = true
       this.applyTransform()
+    } else if (e.touches.length === 1 && this.stroke) {
+      e.preventDefault()
+      this.extendStroke(e.touches[0].clientX, e.touches[0].clientY)
     } else if (e.touches.length === 1 && this.dragging) {
       e.preventDefault()
       this.tx = this.startTx + (e.touches[0].clientX - this.startX)
@@ -324,6 +399,11 @@ export class Zoom {
   onTouchEnd (e) {
     if (!this.clone) return
 
+    if (this.stroke) {
+      this.stroke = null
+      this.touchStartedOutside = false
+      return
+    }
     let wasPinching = this.pinching
     if (wasPinching && this.scale < 1) {
       e.preventDefault()
@@ -333,7 +413,15 @@ export class Zoom {
 
     if (e.touches.length === 1) {
       e.preventDefault()
-      this.startTouchPan(e.touches[0])
+      this.pinching = false
+      this.dragging = false
+      this.overlay.classList.remove('is-dragging')
+      if (this.penEnabled) {
+        if (e.type !== 'touchcancel')
+          this.startStroke(e.touches[0].clientX, e.touches[0].clientY)
+      } else {
+        this.startTouchPan(e.touches[0])
+      }
       return
     }
     if (e.touches.length === 0) {
@@ -348,7 +436,13 @@ export class Zoom {
     }
   }
   onDown (e) {
-    if (e.button !== 0 || e.target.closest('.zoom-close')) return
+    if (e.button !== 0 || e.target.closest('.zoom-close, .zoom-pen')) return
+    if (this.penEnabled) {
+      e.preventDefault()
+      this.didDrag = false
+      this.startStroke(e.clientX, e.clientY)
+      return
+    }
     if (this.overlay.classList.contains('is-dragging'))
       return
     e.preventDefault()
@@ -360,13 +454,22 @@ export class Zoom {
     this.overlay.classList.add('is-dragging')
   }
   onMove (e) {
+    if (this.stroke) {
+      this.extendStroke(e.clientX, e.clientY)
+      return
+    }
     if (!this.dragging) return
     this.tx = this.startTx + (e.clientX - this.startX)
     this.ty = this.startTy + (e.clientY - this.startY)
     this.applyTransform()
   }
   onUp (e) {
-    if (!this.overlay.classList.contains('is-dragging'))
+    if (this.stroke) {
+      this.extendStroke(e.clientX, e.clientY)
+      this.stroke = null
+      return
+    }
+    if (!this.overlay || !this.overlay.classList.contains('is-dragging'))
       return
     let dx = Math.abs(this.tx - this.startTx)
     let dy = Math.abs(this.ty - this.startTy)
