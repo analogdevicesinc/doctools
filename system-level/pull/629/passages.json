@@ -1,33 +1,33 @@
 {
   "text": [
-    "> **Note**\n>\n> We are in the process of moving the reference design documentation from\n> wiki.analog.com to ADI Documentation repository.\n> We apologize for any inconvenience that may occur due to this migration.\n\n\nAnalog Devices has developed hundreds of reference designs to help solve our\ncustomer",
     "> **Attention**\n>\n> Work-in-progress, not all content available at the\n> wiki\n> has been imported yet.\n\n\nSoftware, documentation and reference designs for Analog Devices\nproducts.\n\nThe System Level documentation provides developers using Analog Devices\nproducts with software and documentation, inclu",
     "Reference Designs\n\nReference designs combining mixed signal hardware, software and\nalgorithms.\n\nProducts\n\nEvaluation boards, embedded processors and lab tools for hardware\ndevelopment.\n\nADC Platforms\n\nIntegrated evaluation and demonstration platforms for data converter\nsystems.\n\nApplication Software",
     "Kuiper\n\nDebian-based Linux distribution with tools and drivers for evaluation\nhardware.\n\nKernel and devicetrees\n\nBuild guides for the Linux kernel and devicetrees across supported\nplatforms.\n\nLinux drivers\n\nLinux kernel drivers for connecting devices and accessing their\nfunctionality.\n\nSoftware\n\nLib",
     "Tutorials & Workshops\n\nHands-on tutorials and workshops covering mixed signal basics and\nsystem design.\n\nUniversity Program\n\nLearning tools and practical courses for the next generation of design\nengineers.\n",
-    "The quick start guide provides step-by-step instructions on how to do\nan initial system setup for the EVAL-AD9783 evaluation board on the\nsupported FPGA carrier or controller boards. This guide covers how to\nprepare the SD card, program the bitstream, and boot Kuiper Linux.\n\n- On ZCU102 (ZynqMP)\n  S",
+    "What you need depends on what you are trying to do. As a minimum, you need to\nstart out with:\n",
+    "1. The AD9783-based evaluation board: EVAL-AD9783\n2. 5 V 1 A Power supply for the evaluation board\n3. A supported FPGA carrier platform, currently\n  ZCU102 on HPC0\n4. Or SDP-H1 Board / ADS7-V2 Board\n5. AD-DAC-FMC-ADP High-Speed DAC Evaluation Board to FMC Adapter Board\n6. Some way to interact with t",
+    "The following software is needed on the host PC:\n\n- A UART terminal (e.g. PuTTY, Tera Term, Minicom) configured for 115200 baud,\n  8N1\n- A microSD card flashed with the ADI Kuiper Linux image; follow\n  this guide\n\n\nFor capturing and visualizing data from the device:\n\n1. ACE and DPG Lite Software App",
+    "> **Note**\n>\n> We are in the process of moving the reference design documentation from\n> wiki.analog.com to ADI Documentation repository.\n> We apologize for any inconvenience that may occur due to this migration.\n\n\nAnalog Devices has developed hundreds of reference designs to help solve our\ncustomer",
+    "The quick start guide provides step-by-step instructions on how to do an initial\nsystem setup for the EVAL-AD9783 evaluation board on the supported FPGA\ncarrier or controller boards. This guide covers how to prepare the SD card,\nprogram the bitstream, and boot Kuiper Linux.\n\n- On ZCU102 (ZynqMP)\n  S",
     "The EVAL-AD9783 connect to the FPGA carrier via SPI and GPIO signals,\nrouted through an AD-DAC-FMC adapter board.\n|FPGA board|EVAL-AD9783|\n|ZCU102 (ZynqMP)|SPI|\n",
     "The EVAL-AD9783 connect to the high speed controller boards via SPI and\nGPIO signals, routed through an AD-DAC-FMC adapter board.\n",
     "|FPGA board|HDL|Linux software|No-OS software|\n|ZCU102 (ZynqMP)|Yes|Yes|\u2014|\n",
-    "What you need depends on what you are trying to do. As a minimum, you need\nto start out with:\n",
-    "1. The AD9783-based evaluation board: EVAL-AD9783\n2. 5 V 1 A Power supply for the evaluation board\n3. A supported FPGA carrier platform, currently\n  ZCU102 on HPC0\n4. Or SDP-H1 Board / ADS7-V2 Board\n5. AD-DAC-FMC-ADP High-Speed DAC Evaluation Board to FMC Adapter Board\n6. Some way to interact with t",
-    "The following software is needed on the host PC:\n\n- A UART terminal (e.g. PuTTY, Tera Term, Minicom) configured for\n  115200 baud, 8N1\n- A microSD card flashed with the ADI Kuiper Linux image; follow\n  this guide\n\n\nFor capturing and visualizing data from the device:\n\n1. ACE and DPG Lite Software App",
     "Dual 16-Bit / 14-Bit / 12-Bit LVDS Interface 500 MSPS DACs Evaluation Board.\n",
-    "The EVAL-AD9783 evaluation board allows users to easily set up and test\nthe 72-lead lead frame chip scale package (LFCSP_VQ) of the AD9783 /\nAD9781 / AD9780 devices. Paying careful attention to layout and\ncircuit design, combined with a prototyping area, allows the user to\neffectively evaluate the A",
-    "People who follow the flow that is outlined have a much better experience\nwith things. However, like many things, documentation is never as complete\nas it should be. If you have any questions, feel free to ask on our\nEngineerZone, but before that, please make sure you read our documentation\nthorough",
-    "1. Using the evaluation board/full stack reference design that we offer:\n  Prerequisites - what you\n  need to get started\n  Quick start guides:\n  Using the ZCU102\n  Linux Applications\n  IIO Oscilloscope\n  Scopy\n\n  1. Prerequisites - what you\n    need to get started\n  2. Quick start guides:\n    Using",
-    "The AD9783-EBZ HDL project on the ZCU102 uses the\nAXI AD9783 IP core to interface the\nDAC via a parallel bus. The AXI-DMAC streams sample data from DDR memory\nto the IP core, which drives the AD9783 at up to 500 MSPS.\n\n![AD9783 block diagram](https://media.githubusercontent.com/media/analogdevicesin",
+    "The EVAL-AD9783 evaluation board allows users to easily set up and test\nthe 72-lead lead frame chip scale package (LFCSP_VQ) of the AD9783 /\nAD9781 / AD9780 devices. Paying careful attention to layout and\ncircuit design, combined with a prototyping area, allows the user to effectively\nevaluate the A",
+    "People who follow the flow that is outlined have a much better experience with\nthings. However, like many things, documentation is never as complete as it\nshould be. If you have any questions, feel free to ask on our EngineerZone, but\nbefore that, please make sure you read our documentation thorough",
+    "1. Using the evaluation board/full stack reference design that we offer:\n  Prerequisites - what you need to get\n  started\n  Quick start guides:\n  Using the ZCU102\n  Linux Applications\n  IIO Oscilloscope\n  Scopy\n\n  1. Prerequisites - what you need to get\n    started\n  2. Quick start guides:\n    Using",
+    "The AD9783-EBZ HDL project on the ZCU102 uses the\nAXI AD9783 IP core to interface the DAC via a\nparallel bus. The AXI-DMAC streams sample data from DDR memory to the IP core,\nwhich drives the AD9783 at up to 500 MSPS.\n\n![AD9783 block diagram](https://media.githubusercontent.com/media/analogdevicesin",
     "1. AD9783 Product Page\n2. AD9781 Product Page\n3. AD9780 Product Page\n",
     "> **Warning**\n>\n> All the products described on this page include ESD (electrostatic discharge) sensitive devices. Electrostatic charges as high as 4000V readily accumulate on the human body or test equipment and can discharge without detection.\n> Although the boards feature ESD protection circuitry",
     "The complete documentation of the evaluation board can be found at:\n\n- AD978x data sheet\n- IBIS models:\n  AD9783,\n  AD9781,\n  AD9780\n",
     "The EVAL-AD9783 connects to the controller board (SDP-H1/ADS7-V2) or to\nthe FPGA carrier through the AD-DAC-FMC adapter board.\n\nThe main connectors and controls of the evaluation board are:\n|Reference|Description|\n|J1|Clock input (SMA)|\n|J5 (IOUT1P), J9 (IOUT2P)|DAC outputs (SMA)|\n|J2 (LO IN)|Local ",
-    "By default, solder jumpers JP4, JP5, JP6, and JP7 are configured to route the\nDAC outputs to SMA J5 (IOUT1P) and to J9 (IOUT2P). This jumper setting is\nshown on the left of Figure 1. To connect the\nDAC output to the filter that feeds into the ADL5375, the solder\njumpers should be reconfigured as sho",
-    "To use the SPI communication through a cable directly into the ZCU102 PMOD0,\nthe solder jumpers XJP1, XJP3, XJP4 and XJP5 must be desoldered from the\nevaluation board, and the SPI signals are connected from XP3 of the evaluation\nboard to PMOD0 of the ZCU102. The steps and the pinout are described in",
+    "By default, solder jumpers JP4, JP5, JP6, and JP7 are configured to route the\nDAC outputs to SMA J5 (IOUT1P) and to J9 (IOUT2P). This jumper setting is shown\non the left of Figure 1. To connect the DAC\noutput to the filter that feeds into the ADL5375, the solder jumpers\nshould be reconfigured as sho",
+    "To use the SPI communication through a cable directly into the ZCU102 PMOD0, the\nsolder jumpers XJP1, XJP3, XJP4 and XJP5 must be desoldered from the evaluation\nboard, and the SPI signals are connected from XP3 of the evaluation board to\nPMOD0 of the ZCU102. The steps and the pinout are described in",
     "The evaluation board is supplied with a **5 Vdc 1 A** power supply connected to\nP5 and P6. The controller board (SDP-H1/ADS7-V2) is supplied separately with a\n12 Vdc power supply.\n\nThe supply voltages of the evaluation board can be checked at:\n\n- P5 and P6: 5 V\n- TP3, TP5 and TP7: 3.3 V\n- TP9 and TP",
     "Design files (schematics, PCB layout, and BOM) are available for the\nAD9783-DPG2-EBZ RevB and the AD9783-DUAL-EBZ RevB.\n",
-    "The evaluation board is controlled from the PC through\nACE and the\nDPG Lite application, using\nan SDP-H1 or ADS7-V2 controller board. For a step-by-step walkthrough, see the\nEVALUATING THE AD9780/AD9781/AD9783 DIGITAL-TO-ANALOG CONVERTERS guide.\n",
+    "The evaluation board is controlled from the PC through ACE and the\nDPG Lite application, using\nan SDP-H1 or ADS7-V2 controller board. For a step-by-step walkthrough, see the\nEVALUATING THE AD9780/AD9781/AD9783 DIGITAL-TO-ANALOG CONVERTERS guide.\n",
     "This section lists items to check and practices to use when debugging any\nunexpected performance of a board. If unexpected results occur:\n\n- Check the voltage rails of the evaluation board. P5 and P6 should be 5 V;\n  TP3, TP5, and TP7 should be 3.3 V; TP9 and TP11 should be 1.8 V.\n- Check if all (3)",
-    "The AD9783 includes pin-compatible, high dynamic range, dual digital-to-analog converters (DACs) with 16-bit resolution, and sample rate of up to 500 MSPS. The device includes specific features for direct conversion transmit applications, including gain and offset compensation, interfacing seamlessl",
+    "The AD9783 includes pin-compatible, high dynamic range, dual\ndigital-to-analog converters (DACs) with 16-bit resolution, and sample rate of\nup to 500 MSPS. The device includes specific features for direct conversion\ntransmit applications, including gain and offset compensation, interfacing\nseamlessl",
     "- AD9783 Evaluation board\n- DAC FMC Interposer board\n",
     "- ZCU102\n",
     "The reference design consists of a DDS module and a LVDS interface.\n\n![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/add_ad9783/docs/solutions/reference-designs/eval-ad9783/images/ad9783-zcu102-block-diagram.jpg)\n\n*Figure 1 AD9783 reference design block diagram*\n",
@@ -36,25 +36,25 @@
     "- An UART terminal, with baud rate 115200\n",
     "![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/add_ad9783/docs/solutions/reference-designs/eval-ad9783/images/ad9783-zcu102-setup.jpg)\n\n*Figure 2 AD9783 evaluation board with the ZCU102*\n\n\n1. Hardware adjustments:\n  Desolder XJP1, 3, 4, 5 from the AD9783-DPG-EBZ in order",
     "- Check if the voltage supply test points of the evaluation board have the\n  correct value\n- Check if all (3) blue LEDs on the AD-DAC-FMC-ADP board are lit up. Reconnect\n  the board to the FMC connector of the carrier if not lit up\n- Check if the carrier is being supplied properly\n- Check on the spe",
-    "This guide describes both the hardware and software setup needed to download\ndata to the AD9783-DPG2-EBZ\nevaluation board to characterize the AD9780/AD9781/AD9783\n12-/14-/16-bit 500 MSPS high-speed digital-to-analog converters.\n\nThis guide shows how the AD9783-DPG2-EBZ works with the ADS7-V2/SDP-H1\n",
+    "This guide describes both the hardware and software setup needed to download\ndata to the AD9783-DPG2-EBZ evaluation board to\ncharacterize the AD9780/AD9781/AD9783 12-/14-/16-bit 500\nMSPS high-speed digital-to-analog converters.\n\nThis guide shows how the AD9783-DPG2-EBZ works with the ADS7-V2/SDP-H1\n",
     "![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/add_ad9783/docs/solutions/reference-designs/eval-ad9783/images/ad9783-with-sdp-h1.png)\n\n*Figure 1 EVAL-AD978x with SDP-H1*\n\n\n![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/add_ad9783/docs/solutio",
-    "- Analysis | Control | Evaluation (ACE) Software\n- DPG Lite\n  (recommended; installed with ACE) or\n  DPG Downloader\n\n\n> **Important**\n>\n> Known issue: ACE may fail to detect HS-DAC boards, details\n> here.\n",
+    "- Analysis | Control | Evaluation (ACE) Software\n- DPG Lite (recommended;\n  installed with ACE) or\n  DPG Downloader\n\n\n> **Important**\n>\n> Known issue: ACE may fail to detect HS-DAC boards, details\n> here.\n",
     "- AD9783-DPG2-EBZ evaluation board\n- SDP-H1 (EVAL-SDP-CH1Z) board /\n  ADS7-V2 (ADS7-V2EBZ) board\n- 5 Vdc 1 A power supply for the evaluation board\n- AD-DAC-FMC-ADP high-speed DAC evaluation board to FMC adapter board\n- PC with ACE and DPG Lite software applications\n- High-frequency continuous wave g",
-    "- Attach the AD9783-DPG2-EBZ\n  to the controller board\u2019s (SDP-H1/ADS7-V2) FMC connector using the\n  AD-DAC-FMC-ADP adapter board.\n- Connect the controller board (SDP-H1/ADS7-V2) to the PC via USB and to a\n  **12 V power supply**.\n- Connect the evaluation board to the PC via USB and to a **5 Vdc 1 A "
+    "- Attach the AD9783-DPG2-EBZ to the controller board\u2019s\n  (SDP-H1/ADS7-V2) FMC connector using the AD-DAC-FMC-ADP adapter board.\n- Connect the controller board (SDP-H1/ADS7-V2) to the PC via USB and to a\n  **12 V power supply**.\n- Connect the evaluation board to the PC via USB and to a\n  **5 Vdc 1 A "
   ],
   "url": [
-    "solutions/reference-designs",
     "",
     "#apps-solutions",
     "#firmware-software",
     "#learning",
+    "solutions/reference-designs/eval-ad9783/prerequisites",
+    "solutions/reference-designs/eval-ad9783/prerequisites#hardware-prerequisites",
+    "solutions/reference-designs/eval-ad9783/prerequisites#software-prerequisites",
+    "solutions/reference-designs",
     "solutions/reference-designs/eval-ad9783/quickstart",
     "solutions/reference-designs/eval-ad9783/quickstart#supported-carriers",
     "solutions/reference-designs/eval-ad9783/quickstart#supported-controller-boards",
     "solutions/reference-designs/eval-ad9783/quickstart#supported-environments",
-    "solutions/reference-designs/eval-ad9783/prerequisites",
-    "solutions/reference-designs/eval-ad9783/prerequisites#hardware-prerequisites",
-    "solutions/reference-designs/eval-ad9783/prerequisites#software-prerequisites",
     "solutions/reference-designs/eval-ad9783",
     "solutions/reference-designs/eval-ad9783#overview",
     "solutions/reference-designs/eval-ad9783#recommendations",
@@ -87,9 +87,6 @@
   ],
   "hierarchy": [
     [
-      "Reference Designs"
-    ],
-    [
       "System Level Documentation"
     ],
     [
@@ -103,6 +100,26 @@
     [
       "System Level Documentation",
       "Learning"
+    ],
+    [
+      "Reference Designs",
+      "EVAL-AD9783",
+      "Prerequisites"
+    ],
+    [
+      "Reference Designs",
+      "EVAL-AD9783",
+      "Prerequisites",
+      "Hardware prerequisites"
+    ],
+    [
+      "Reference Designs",
+      "EVAL-AD9783",
+      "Prerequisites",
+      "Software prerequisites"
+    ],
+    [
+      "Reference Designs"
     ],
     [
       "Reference Designs",
@@ -126,23 +143,6 @@
       "EVAL-AD9783",
       "Quick start",
       "Supported environments"
-    ],
-    [
-      "Reference Designs",
-      "EVAL-AD9783",
-      "Prerequisites"
-    ],
-    [
-      "Reference Designs",
-      "EVAL-AD9783",
-      "Prerequisites",
-      "Hardware prerequisites"
-    ],
-    [
-      "Reference Designs",
-      "EVAL-AD9783",
-      "Prerequisites",
-      "Software prerequisites"
     ],
     [
       "Reference Designs",
