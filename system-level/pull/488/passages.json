@@ -1,0 +1,717 @@
+{
+  "text": [
+    "> **Attention**\n>\n> Work-in-progress, not all content available at the\n> wiki\n> has been imported yet.\n\n\nSoftware, documentation and reference designs for Analog Devices\nproducts.\n\nThe System Level documentation provides developers using Analog Devices\nproducts with software and documentation, inclu",
+    "Reference Designs\n\nReference designs combining mixed signal hardware, software and\nalgorithms.\n\nProducts\n\nEvaluation boards, embedded processors and lab tools for hardware\ndevelopment.\n\nADC Platforms\n\nIntegrated evaluation and demonstration platforms for data converter\nsystems.\n\nApplication Software",
+    "Kuiper\n\nDebian-based Linux distribution with tools and drivers for evaluation\nhardware.\n\nKernel and devicetrees\n\nBuild guides for the Linux kernel and devicetrees across supported\nplatforms.\n\nLinux drivers\n\nLinux kernel drivers for connecting devices and accessing their\nfunctionality.\n\nSoftware\n\nLib",
+    "Tutorials & Workshops\n\nHands-on tutorials and workshops covering mixed signal basics and\nsystem design.\n\nUniversity Program\n\nLearning tools and practical courses for the next generation of design\nengineers.\n",
+    "- Digital Signal Processors (ADSP)\n  ADI has a large portfolio of Digital Signal Processors\n  (see Selection Table for Digital Signal Processors).\n  A subset of those processors include ARM Cortex cores and are prefixed with SC\n  for \u201cSHARC Connect\u201d. They can run baremetal applications, an RTOS or L",
+    "Analog Devices Digital Signal Processors (ADSP) are industry standards for both\nautomotive and consumer audio.\n",
+    "The Neural DSP Quad Cortex is a flagship\nfloorboard amp modeler that utilizes the ADSP-SC589 (Quad-Core SHARC+). The dual SHARC+ cores\nprovide the high-performance floating-point processing required for neural\ncapture, an AI-driven process that replicates physical amplifiers and effects\nwith extreme",
+    "The Dante Embedded Platform (DEP) is available as a software-based solution for\nADSP-SC5xx processors. Manufacturers can integrate high-performance Dante\naudio-over-IP networking directly onto the chip\u2019s ARM core. This provides a\nsingle-chip solution for low-latency networked audio, eliminating the ",
+    "Modern vehicles use high-performance SHARC+ processors (like the **SC59x**\nseries) to manage complex cabin acoustics.\n\n- **Road Noise Cancellation (RNC):** SHARC+ processors generate anti-noise\n  signals in real-time to cancel tire and road vibrations. This requires the\n  extremely low deterministic",
+    "Automotive Grade Linux is a project under The Linux Foundation that defines a\nfull software stack for vehicles. It classically targets infotainment systems,\nbut in 2026 expanded support to the Electronic Control Unit (ECU) of vehicles.\nIt provides a complex layering of software based on virtualizati",
+    "ADI has a large portfolio of Digital Signal Processors\n(see Selection Table for Digital Signal Processors).\nA subset of those processors include ARM Cortex cores and are prefixed with SC\nfor \u201cSHARC Connect\u201d. They can run baremetal applications, an RTOS or Linux.\nCortex-M33 models are appropriate for",
+    "The System Protection Unit (SPU) protects peripheral configuration registers from\nunintended writes. In systems with multiple processors and DMA controllers, the SPU\nacts like a security guard, controlling who can modify critical peripheral settings.\n\n> **Note**\n>\n> This guide applies to all ADSP-SC",
+    "Think of the SPU as a gatekeeper for peripheral registers. It sits between the\nsystem bus and peripheral configuration registers, checking every write request.\nIf a write comes from an unauthorized source, the SPU blocks it.\n",
+    "Each peripheral has a dedicated protection register `SPU_WP[n]` that controls\nwhich bus requesters can write to its registers. We can:\n\n- Allow or block specific processor cores\n- Allow or block DMA controllers\n- Configure different permissions for each peripheral\n",
+    "The SPU can issue a system-wide lock signal that all peripherals recognize. When\nenabled, any peripheral with its lock bit set will reject all write attempts to\nits control register.\n",
+    "The SPU integrates with ARM TrustZone to enforce security boundaries:\n\n- Secure peripherals only accept secure transactions\n- Non-secure masters cannot access secure peripherals\n- Each peripheral\u2019s security level is configurable\n",
+    "The SPU can protect its own configuration registers, preventing unauthorized changes\nto the protection settings. Once locked, only a system reset can restore access.\n",
+    "The SPU examines every write transaction in this order:\n\n1. Destination Check - Which peripheral is being accessed?\n2. Source Check - Which bus requester is requesting the write?\n3. Permission Check - Is this master allowed to write to this peripheral?\n4. Decide - Pass the write through, or return a",
+    "To protect a peripheral from writes by specific bus requesters, we need to configure several registers.\n\nFirst, we should find the peripheral\u2019s write-protect register number in the Hardware Reference Manual.\n\nSecond, we can set the corresponding bits in `SPU_WP[n]` for bus requesters we want to bloc",
+    "Global lock provides a quick way to simultaneously protect control registers\nacross multiple peripherals. This mechanism is controlled by registers both in SPU and others.\nFor example CDU_CTL register has LOCK bit to enable it. When we activate the global lock over\nSPU_CTL by setting GLCK bit, the r",
+    "TrustZone security features apply to all SC5xx processors with ARM Cortex cores.\nThe SPU security register numbers match the WP numbers. This is controlled over\nSSEC and MSEC bits under `SPU_SECUREP[n]` registers for peripherals. For cores, there is\n`SPU_SECUREC[n]` register with `CSEC[n]` bits. For",
+    "Software can check if it\u2019s running in secure or non-secure mode by examining the value of\n`SPU_SECURECHK` register. The `SPU_SECURECHK` register reads by secure requesters return\n`0xFFFFFFFF`. Reads by non-secure requesters return `0x00000000`.\n",
+    "To prevent any changes to SPU configuration until the next reset, we can even lock the SPU itself.\nFor this, we can set WPLCK and GLCK and also block all masters to SPUs own write-protect registers.\nWe need to be careful since this lock can only be unlocked with a reset.\n",
+    "The SPU can generate interrupts when a write is blocked.\n\nWe can configure the SPU to generate interrupts. This is controlled by the `PINTEN`\nbit in the `SPU_CTL` register. After setting this bit, we can examine the `SPU_STAT`\nregister to see the details of the violation. Detailed instructions on ho",
+    "When a transaction is blocked, the SPU returns a bus error to the requesting master.\nThe master\u2019s bus fault handler will be called. We can examine the `SPU_STAT` register to see the\ndetails of the violation. Specifically, the LWERR, ADDRERR or VIRQ bits can be used to see\nthe details of the error. D",
+    "The following peripherals support the global lock feature (they have a lock\nenable bit in their control register) for SC59x.\n\n- General-Purpose IO\n- System Event Controller\n- Trigger Routing Unit\n- Clock Generation Unit\n- Clock Distribution Unit\n- Dynamic Power Management\n- Reset Control Unit\n- Syst",
+    "Key SPU registers:\n|Register|Purpose|\n|`SPU_CTL`|Control: Global lock, write-protect lock, interrupt enable|\n|`SPU_STAT`|Status: Lock write errors, interrupts|\n|`SPU_WP[n]`|Write-protect register for each peripheral (n = 0-202)|\n|`SPU_SECURECTL`|Security control: Lock secure config, interrupt enable",
+    "- Don\u2019t lock peripherals before completing all initialization. You might lock\n  yourself out and need a hard reset.\n- If you lock the SPU\u2019s control register but forget to protect the SPU\u2019s own\n  WP register (WP121), someone can still modify the protection settings.\n- Global lock only works if the pe",
+    "SPU driver support is currently being tracked in the ADI Linux kernel repository\n(Implement system partitioning in ADSP SoCs).\n\nThe ADI DSP Linux kernel and accompanying examples are designed with the intent\nthat the ARM core owns and allocates most of the system\u2019s peripherals.\nThe accompanying SHAR",
+    "- System Memory Protection Unit (SMPU) for memory protection\n- System Protection Features for overview of protection features\n- Hardware Reference Manuals for\n  SC57x,\n  SC58x,\n  SC592/SC594,\n  and SC595/SC596/SC598\n- Silicon Anomaly 20000003 in the applicable anomaly list for\n  SC57x,\n  SC58x,\n  SC",
+    "The ADSP-SC5xx processors include two important hardware protection\nunits that help secure and protect system resources from unintended access or modification.\n\n> **Note**\n>\n> This documentation applies to all SHARC Connect processors (SC57x, SC58x, SC59x).\n> The core concepts are the same across al",
+    "The system protection features consist of:\n\n- **System Protection Unit (SPU)** - Protects peripheral registers from\n  unauthorized writes\n- **System Memory Protection Unit (SMPU)** - Protects memory regions from\n  unauthorized read/write access\n\n\nThese protection mechanisms work together to create a",
+    "Use the system protection features when you need to:\n\n- Prevent unintended configuration changes to critical peripherals\n- Implement security boundaries between secure and non-secure software\n- Protect sensitive memory regions from unauthorized access\n- Create multiple protection zones with differen",
+    "- Lock down clock, power, and boot configuration registers after system\n  initialization to prevent accidental reconfiguration that could\n  destabilize the system.\n- Configure SPU and SMPU to enforce ARM TrustZone security boundaries,\n  ensuring secure firmware has exclusive access to sensitive peri",
+    "The following pages describe each protection unit in detail:\n\n- System Protection Unit (SPU)\n  What Does the SPU Do?\n  Key Features\n  How It Works\n  Basic Configuration\n  Error Handling\n  Peripherals with Global Lock Support\n  Register Summary\n  Important Notes\n  Current Linux Support Status\n  See A",
+    "The ADSP clock architecture is made up of a few core hardware blocks that are\nresponsible for generating and routing core system clocks throughout the SoC.\nThe exact clock trees between SoCs can vary however they share a common\nstructure between them, allowing customers to configure system clocks to",
+    "The CGU is responsible for generating all core system clocks used throughout\nthe ADSP SoCs, it is made up of various core parts such as the PLL\n(phased-locked loops), divider clocks and clock gating control. The ADSP SoCs\nhave two CGU blocks, CGU0 and CGU1. By default core system peripherals are\nclo",
+    "The Clock Distribution Unit (CDU) selects and routes clocks generated by the\nCGUs to core SoC peripherals. Each CDU output (`CLKO[n]`) contains a\nmultiplexer that selects one of up to four possible input clocks, along with\nclock gating functionality used to enable or disable the output. Each\n`CLKO[n",
+    "The initial ADSP clock configuration is programmed by U-Boot during early\nsystem initialisation before Linux has started. U-Boot configures the CDU\nfollowed by the CGU during this phase. The CDU initialisation selects the\nreference clock used by CGU1 and programs the initial input clock\nselection an",
+    "The ADSP Linux clock implementation consists of shared clock drivers and SoC\nspecific drivers:\n|Driver|Description|\n|`clk-adi-pll.c`|Shared CGU PLL clock implementation|\n|`clk-adsp-cdu.c`|Shared Clock Distribution Unit driver|\n|`clk-adi-sc57x.c`|Clock Generation Unit driver for the ADSP-SC573 SoC|\n|",
+    "Linux provides several `debugfs` interfaces that can be used to inspect the\nADSP clock configuration. The Linux common clock framework provides a summary of the Linux\nclock topology, while the ADSP CDU driver provides access to the current CDU\nhardware register state.\n",
+    "The Linux common clock framework exposes `clk_summary` through `debugfs`.\nThis provides an overview of the clocks registered with Linux, including their\nparent relationships, enable states, and current clock rates.\n\nTo view the clock summary:\n\n```console\n$ cat /sys/kernel/debug/clk/clk_summary\n```\n\n",
+    "The ADSP CDU driver exposes a register dump through `debugfs` for CDU\nspecific clock debugging. The dump provides the live CDU register state,\nincluding input clock selection, output enable state, and CDU status\ninformation.\n\nTo view the CDU register dump:\n\n```console\n$ cat /sys/kernel/debug/clk/cdu",
+    "The clock tree structure varies between ADSP SoCs depending on the available\nCGU, CDU, and peripheral clocking requirements. The following section details\nSoC-specific clock trees and how clocks are routed throughout the system.\n",
+    "```mermaid\n\n        graph LR\n    Crystal[\"SYS_CLKIN0<br/>25 MHz<br/>(sc5xx.dtsi:80)\"]\n\n    subgraph CGU0[\"CGU0 - Main CGU (clk-adi-sc598.c:100-209)\"]\n        DF0[\"DF: \u00f71<br/>25 MHz\"]\n        VCO0[\"VCO: \u00d780<br/>2000 MHz<br/>(CGU_CTL MSEL)\"]\n        PLL0[\"PLLCLK: \u00f72<br/>1000 MHz<br/>(line 125-128)\"]\n\n",
+    "The System Memory Protection Unit (SMPU) provides flexible protection of memory\nregions against unauthorized read or write access. Think of it as a security\ncheckpoint for memory. This peripheral examines every memory transaction and\ndecides whether to allow or block it.\n\n> **Note**\n>\n> This guide a",
+    "The SMPU protects specific memory regions from unauthorized read or write\ntransactions by specific cores and DMA requesters. We can configure:\n\n- Which memory regions to protect\n- Whether to protect reads, writes, or both\n- Which bus requesters are allowed to access each region\n- Whether secure or n",
+    "- **Multiple SMPU Instances** - Each processor family has multiple SMPU\n  instances protecting different memory paths; the number and configuration\n  varies by family.\n- **Multiple Protection Regions** - Each SMPU instance can monitor up to 8\n  memory regions simultaneously, each with its own size a",
+    "Make sure you\u2019re configuring the right SMPU instance for the memory path you want\nto protect; L2 memory has multiple SMPU instances. An example from SC59x is given below.\n",
+    "|Instance|Location|What It Protects|\n|SMPU-CL2_0|L2 Core Port 0|L2 SRAM Banks 0-3, Boot ROM0|\n|SMPU-DL2_0|L2 DMA Port 0|L2 SRAM Banks 0-7, Boot ROM0-2|\n|SMPU-CL2_1|L2 Core Port 1|L2 SRAM Banks 4-7, Boot ROM1-2|\n|SMPU-DL2_1|L2 DMA Port 1|L2 SRAM Banks 0-7, Boot ROM0-2|\n|SMPU-CL2_2|L2 Core Port 2|L2 S",
+    "The SMPU examines every memory transaction in this order:\n\n1. Address Check - Does it fall within a protected region?\n2. Operation Check - Is it a read or write?\n3. Bus Requester ID check - Which bus requester is making the request?\n4. Security Level Check - Is it a secure or non-secure transaction?",
+    "To protect a memory region, we need to configure several registers.\n\nFirst, we should define the region to protect. This can be done by setting the\nbase address and size in `SMPU_RADDR[n]` and `SMPU_RCTL[n]`.\n\nSecond, we need to configure the protection itself. After deciding whether we allow\nread/w",
+    "As described above, each bus requester has a unique ID that the SMPU uses to control access.\n\n**Example SC59x Bus Requester IDs (partial list)**\n\nThe table below is a partial SC59x example; it does not list every bus requester\n(for example, the ARM cores are omitted). See the applicable\nSC592/SC594 ",
+    "SMPU allows us to set region size between 4KB and 4GB. Each size has an address alignment requirement.\nIf the address is not properly aligned, the SMPU will mask the lower bits. It may end up with\npotentially protecting a different region than intended. Some of the valid region sizes and their\nalign",
+    "Here, secure and non-secure refer to the corresponding ARM TrustZone transaction\nstates. We can control whether these transactions are allowed by writing to the\n`SMPU_SECURECTL` register. As default, only secure transactions are allowed. To\nalso support non-secure transactions, we can set `WNSEN` an",
+    "We can also configure the security for individual regions by writing to\n`SMPU_SECURERCTL[n]`. Each register covers one region (selected by `n`) and\nconsists of 4 bits: read/write permission crossed with secure/non-secure access.\n",
+    "The SMPU can forward read requests to memory before checking permissions,\nsaving one clock cycle. However, this may cause side effects for memory-mapped\nregisters that change state when read (like FIFOs that auto-clear). This is controlled\nby `RSDIS` bit in `SMPU_CTL` register. When protecting memor",
+    "We can configure the SMPU to generate interrupts. This is controlled by the `PINTEN`\nbit in the `SMPU_CTL` register. After setting this bit, we can examine the `SMPU_IADDR`\nand `SMPU_IDTLS` registers to see the details of the violation. Detailed instructions on\nhow we can handle interrupts can be ex",
+    "Bus errors are enabled as default. We can disable them by setting the `PBEDIS` bit in the\n`SMPU_CTL` register. When a transaction is blocked and bus error generation is enabled, the\nSMPU returns an error to the requesting master. The master\u2019s bus fault handler will be called.\nWe can examine the `SMP",
+    "SMPU allows us to protect the configurations we created by providing a lock mechanism. This lock\nis simply the `LOCK` and/or `RLOCK` bits under `SMPU_CTL` register. If we lock the configs,\nthey are protected until SPU releases global lock.\n",
+    "Key SMPU registers for each region n (0-7):\n|Register|Purpose|\n|`SMPU_CTL`|Control: Lock, interrupts, bus errors, read speculation|\n|`SMPU_STAT`|Status: Interrupts, errors, overruns|\n|`SMPU_RADDR[n]`|Region base address (bits 31:12)|\n|`SMPU_RCTL[n]`|Region control: Size, enable, read/write protectio",
+    "- An overly permissive mask might allow more IDs than intended. Always verify\n  your mask matches only the intended IDs.\n- After reset, only secure transactions are allowed. If you\u2019re running non-secure\n  code, you must enable non-secure transactions or you\u2019ll be blocked.\n- Don\u2019t enable protection o",
+    "SMPU Linux support is currently under development\n(PR #3339).\n\nThe ADI DSP Linux kernel and accompanying examples are designed with the intent\nthat the ARM core owns and allocates most of the system\u2019s peripherals.\nThe accompanying SHARC examples leverage peripherals minimally to prevent\ncontention w",
+    "- System Protection Unit (SPU) for peripheral protection\n- System Protection Features for overview of protection features\n- Hardware Reference Manuals for\n  SC57x,\n  SC58x,\n  SC592/SC594,\n  and SC595/SC596/SC598\n- Silicon Anomaly 20000003 in the applicable anomaly list for\n  SC57x,\n  SC58x,\n  SC591/",
+    "ADI supports running Linux on all ADSP SoCs with Cortex-A5 and A55 cores.\nThat includes the following repositories. New features are tracked in the\nADSP Github Project\nand coordinated with the community during weekly public office hours at 17:00 CET\non Thursdays using a\nJitsi meeting.\n\nTo set up new",
+    "The ADSP Linux team maintains branches based on upstream releases (see\nADI Linux version support).\n\nChanges made to support ADI hardware is upstreamed as quickly as possible.\nUntil those changes have been accepted upstream, they are maintained in the\nfollowing ADI forks.\n\nRelease versions include th",
+    "For Yocto support see Yocto below.\n\n- ADI adsp-ldr repository\n  v1.0.0\n  v1.0.1\n  v1.0.2\n  v1.0.3\n- ADI lnxdsp-repo-manifest repository\n- ADI br2-external repository\n  v2025.05:\n  Release 0.1.0\n  Release 0.2.0\n  v2026.02:\n  Release 0.1.0\n  Release 0.2.0\n  Release 0.2.0\n- ADI rpmsg-examples repositor",
+    "**ADI lnxdsp-adi-meta repository**\n:   Kirkstone:\n:   Release v3.0.0\n:   Release v3.1.0\n:   Release v3.1.1\n:   Release v3.1.2\n:   Scarthgap:\n:   Release v5.0.0\n:   Release v5.0.1\n:   Release v5.1.0\n\n\n\nFor every official Yocto release, Poky defines the oldest and newest default supported\nkernel versi",
+    "ADSP evaluation boards do not ship with pre-installed software. The chips also\ndo not support booting directly from SD cards. Therefore the evaluation boards\nneed to be bootstrapped over JTAG using either an external JTAG debugger such\nas the ADI ICE-1000 or ICE-2000\nor a JTAG debugger embedded on s",
+    "To communicate with the board, you must build and run the ADI fork of OpenOCD.\n",
+    "```sh\n~$ sudo apt install -y git autoconf automake libtool pkg-config \\\n      libjim-dev gcc g++ make texinfo gdb-multiarch libusb-1.0-0-dev\n```\n\n\n```sh\n~$ sudo dnf install -y git autoconf automake libtool pkgconfig \\\n     jimtcl-devel gcc gcc-c++ make texinfo gdb libusb1-devel\n```\n\n\n```sh\n#Open a M",
+    "```sh\n~$ git clone https://github.com/analogdevicesinc/openocd\n~$ cd openocd\n~/openocd$ ./bootstrap\n~/openocd$ ./configure\n~/openocd$ make -j$(nproc)\n```\n\n\nOn Windows, the resulting `openocd.exe` can be run directly.\n",
+    "Run `openocd` from the cloned repository. Select the interface configuration\nthat matches your JTAG connection.\n\nFor the EV-SC598-SOM or EV-SC846-SOM with an ICE-1000, run:\n\n```sh\n~/openocd$ sudo src/openocd -f ice1000.cfg \\\n      -f adspsc59x_a55.cfg \\\n      --search tcl/ \\\n      --search tcl/inter",
+    "A serial console is highly recommended for interacting with U-Boot and Linux.\n\nConnect a standard USB-C cable from your PC to the SoM.\n\nWhen connecting to ADSP evaluation boards, the console appears as a CP2102N\nUSB-to-UART bridge with a unique serial number:\n\n```sh\n~$ tree /dev/serial/by-id\n/dev/se",
+    "A hybrid boot architecture is being used:\n\n- **SPI Flash** stores the bootloader (U-Boot SPL and U-Boot Proper)\n- **eMMC** stores the full system image (Linux kernel and root filesystem)\n",
+    "Navigate to the br2-external releases page and\ndownload a release archive. The archives combine the bootstrap, debug, and\nFedora root filesystem artifacts.\n\nExtract the archive:\n\n```sh\n$ tar -xf adi_sc598_ezkit_defconfig-*.tar.xz\n$ cd adi_sc598_ezkit_defconfig-*/\n```\n\n\n```sh\n$ tar -xf adi_sc598_ezli",
+    "> **Warning**\n>\n> **Check Boot Mode Switch (S1)**\n> Before powering on, locate the rotary switch labeled \u201cS1 (Boot Mode Select)\u201d on the board.\n> Ensure the arrow on the dial is pointing to position \u201c0\u201d.\n\n\nYou need a multi-architecture GDB to load the bootloader.\n\n```sh\n~$ sudo apt-get install -y gdb",
+    "Start a file server in a new terminal on your PC in the release directory:\n\n```sh\n~$ python3 -m http.server\n```\n\n\n```sh\n~$ python -m http.server\n```\n\n\nFind your IP address:\n\n```sh\n~$ ip a\n```\n\n\n```sh\n~$ ipconfig\n```\n\n\nIn the U-Boot console, run the following after replacing `<your-pc-ip>`:\n\n```conso",
+    "After Linux boots, the system automatically enters an installer environment.\n\nSerial console displays a prompt:\n\n```console\n======== Installer Environment ========\nInstall U-Boot to SPI Flash\n\nThis will erase and program SPI flash.\nContinue? [y/N]:\n```\n\n\nType `y` to erase the flash contents and inst",
+    "The serial console presents a menu to select what to install on eMMC:\n\n```console\n======== Install Image on eMMC ========\n\nSelect what to install:\n  1) Buildroot kernel and root filesystem\n  2) Buildroot kernel and Fedora root filesystem\n  0) Skip\n\nChoice [0/1/2]:\n```\n\n\nAfter selecting, enter your P",
+    "After reboot from SPI flash, U-Boot does not boot automatically. At the U-Boot\nprompt, type:\n\n```console\n=> run mmcboot\n```\n\n\nU-Boot loads the kernel and device tree from the eMMC boot partition and starts\nLinux with the root filesystem on eMMC.\n",
+    "On first boot, a setup service prompts you to create a user account:\n\n```console\n======== First Boot Setup ========\nCreate your user account.\n\nUsername:\n```\n\n\nEnter a username and set a password when prompted. The user is created with\n`wheel` group membership. After setup completes, the board displa"
+  ],
+  "url": [
+    "",
+    "#apps-solutions",
+    "#firmware-software",
+    "#learning",
+    "products",
+    "products/adsp/use-cases",
+    "products/adsp/use-cases#neural-dsp-quad-cortex",
+    "products/adsp/use-cases#audinate-dante-networking",
+    "products/adsp/use-cases#automotive",
+    "products/adsp/use-cases#automotive-grade-linux",
+    "products/adsp",
+    "products/adsp/spu",
+    "products/adsp/spu#what-does-the-spu-do",
+    "products/adsp/spu#write-protection-per-peripheral",
+    "products/adsp/spu#global-locking",
+    "products/adsp/spu#security-integration",
+    "products/adsp/spu#self-protection",
+    "products/adsp/spu#how-it-works",
+    "products/adsp/spu#protecting-a-peripheral",
+    "products/adsp/spu#using-global-lock",
+    "products/adsp/spu#configuring-security",
+    "products/adsp/spu#checking-security-status",
+    "products/adsp/spu#locking-the-spu",
+    "products/adsp/spu#interrupts",
+    "products/adsp/spu#bus-errors",
+    "products/adsp/spu#peripherals-with-global-lock-support",
+    "products/adsp/spu#register-summary",
+    "products/adsp/spu#important-notes",
+    "products/adsp/spu#current-linux-support-status",
+    "products/adsp/spu#see-also",
+    "products/adsp/system-protection",
+    "products/adsp/system-protection#overview",
+    "products/adsp/system-protection#when-to-use-these-features",
+    "products/adsp/system-protection#common-use-cases",
+    "products/adsp/system-protection#detailed-documentation",
+    "products/adsp/adsp-clock-architecture",
+    "products/adsp/adsp-clock-architecture#clock-generation-unit-cgu",
+    "products/adsp/adsp-clock-architecture#clock-distribution-unit-cdu",
+    "products/adsp/adsp-clock-architecture#initial-u-boot-clock-configuration",
+    "products/adsp/adsp-clock-architecture#adsp-clock-drivers",
+    "products/adsp/adsp-clock-architecture#debugging-adsp-clocks",
+    "products/adsp/adsp-clock-architecture#ccf-clock-summary",
+    "products/adsp/adsp-clock-architecture#cdu-register-dump",
+    "products/adsp/adsp-clock-architecture#adsp-clock-trees",
+    "products/adsp/adsp-clock-architecture#sc598-clock-tree",
+    "products/adsp/smpu",
+    "products/adsp/smpu#what-does-the-smpu-do",
+    "products/adsp/smpu#key-features",
+    "products/adsp/smpu#multiple-smpu-instances",
+    "products/adsp/smpu#adsp-sc59x-smpu-instances",
+    "products/adsp/smpu#how-it-works",
+    "products/adsp/smpu#protecting-a-memory-region",
+    "products/adsp/smpu#bus-requester-ids",
+    "products/adsp/smpu#memory-region-sizes",
+    "products/adsp/smpu#global-security-settings",
+    "products/adsp/smpu#per-region-security",
+    "products/adsp/smpu#read-speculation",
+    "products/adsp/smpu#interrupts",
+    "products/adsp/smpu#bus-errors",
+    "products/adsp/smpu#locking-configuration",
+    "products/adsp/smpu#register-summary",
+    "products/adsp/smpu#important-notes",
+    "products/adsp/smpu#current-linux-support-status",
+    "products/adsp/smpu#see-also",
+    "products/adsp/linux-support",
+    "products/adsp/linux-support#upstream-forks",
+    "products/adsp/linux-support#adi-repositories",
+    "products/adsp/linux-support#yocto",
+    "products/adsp/setup",
+    "products/adsp/setup#jtag-openocd-setup",
+    "products/adsp/setup#install-dependencies",
+    "products/adsp/setup#build-openocd",
+    "products/adsp/setup#run-openocd",
+    "products/adsp/setup#serial-console-setup",
+    "products/adsp/setup#booting-the-system",
+    "products/adsp/setup#download-release",
+    "products/adsp/setup#boot-u-boot-proper",
+    "products/adsp/setup#boot-linux",
+    "products/adsp/setup#install-u-boot",
+    "products/adsp/setup#install-emmc-image",
+    "products/adsp/setup#boot-linux-from-emmc",
+    "products/adsp/setup#first-boot-setup"
+  ],
+  "hierarchy": [
+    [
+      "System Level Documentation"
+    ],
+    [
+      "System Level Documentation",
+      "Apps & Solutions"
+    ],
+    [
+      "System Level Documentation",
+      "Firmware & Software"
+    ],
+    [
+      "System Level Documentation",
+      "Learning"
+    ],
+    [
+      "Products"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "Use cases"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "Use cases",
+      "Professional & Consumer Audio",
+      "Neural DSP Quad Cortex"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "Use cases",
+      "Professional & Consumer Audio",
+      "Audinate Dante networking"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "Use cases",
+      "Automotive"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "Use cases",
+      "Automotive",
+      "Automotive Grade Linux"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features",
+      "System Protection Unit (SPU)"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features",
+      "System Protection Unit (SPU)",
+      "What Does the SPU Do?"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features",
+      "System Protection Unit (SPU)",
+      "Key Features",
+      "Write Protection per Peripheral"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features",
+      "System Protection Unit (SPU)",
+      "Key Features",
+      "Global Locking"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features",
+      "System Protection Unit (SPU)",
+      "Key Features",
+      "Security Integration"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features",
+      "System Protection Unit (SPU)",
+      "Key Features",
+      "Self-Protection"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features",
+      "System Protection Unit (SPU)",
+      "How It Works"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features",
+      "System Protection Unit (SPU)",
+      "Basic Configuration",
+      "Protecting a Peripheral"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features",
+      "System Protection Unit (SPU)",
+      "Basic Configuration",
+      "Using Global Lock"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features",
+      "System Protection Unit (SPU)",
+      "Basic Configuration",
+      "Configuring Security"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features",
+      "System Protection Unit (SPU)",
+      "Basic Configuration",
+      "Checking Security Status"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features",
+      "System Protection Unit (SPU)",
+      "Basic Configuration",
+      "Locking the SPU"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features",
+      "System Protection Unit (SPU)",
+      "Error Handling",
+      "Interrupts"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features",
+      "System Protection Unit (SPU)",
+      "Error Handling",
+      "Bus Errors"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features",
+      "System Protection Unit (SPU)",
+      "Peripherals with Global Lock Support"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features",
+      "System Protection Unit (SPU)",
+      "Register Summary"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features",
+      "System Protection Unit (SPU)",
+      "Important Notes"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features",
+      "System Protection Unit (SPU)",
+      "Current Linux Support Status"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features",
+      "System Protection Unit (SPU)",
+      "See Also"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features",
+      "Overview"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features",
+      "When to Use These Features"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features",
+      "Common Use Cases"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features",
+      "Detailed Documentation"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "ADSP SoC Clock Architecture"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "ADSP SoC Clock Architecture",
+      "Clock Generation Unit (CGU)"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "ADSP SoC Clock Architecture",
+      "Clock Distribution Unit (CDU)"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "ADSP SoC Clock Architecture",
+      "Initial U-Boot clock configuration"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "ADSP SoC Clock Architecture",
+      "ADSP Clock Drivers"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "ADSP SoC Clock Architecture",
+      "Debugging ADSP clocks"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "ADSP SoC Clock Architecture",
+      "Debugging ADSP clocks",
+      "CCF clock summary"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "ADSP SoC Clock Architecture",
+      "Debugging ADSP clocks",
+      "CDU register dump"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "ADSP SoC Clock Architecture",
+      "ADSP Clock Trees"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "ADSP SoC Clock Architecture",
+      "ADSP Clock Trees",
+      "SC598 Clock Tree"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features",
+      "System Memory Protection Unit (SMPU)"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features",
+      "System Memory Protection Unit (SMPU)",
+      "What Does the SMPU Do?"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features",
+      "System Memory Protection Unit (SMPU)",
+      "Key Features"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features",
+      "System Memory Protection Unit (SMPU)",
+      "Key Features",
+      "Multiple SMPU Instances"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features",
+      "System Memory Protection Unit (SMPU)",
+      "Key Features",
+      "Multiple SMPU Instances",
+      "ADSP-SC59x SMPU Instances"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features",
+      "System Memory Protection Unit (SMPU)",
+      "How It Works"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features",
+      "System Memory Protection Unit (SMPU)",
+      "Basic Configuration",
+      "Protecting a Memory Region"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features",
+      "System Memory Protection Unit (SMPU)",
+      "Bus Requester IDs"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features",
+      "System Memory Protection Unit (SMPU)",
+      "Memory Region Sizes"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features",
+      "System Memory Protection Unit (SMPU)",
+      "Configuring Security",
+      "Global Security Settings"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features",
+      "System Memory Protection Unit (SMPU)",
+      "Configuring Security",
+      "Per-Region Security"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features",
+      "System Memory Protection Unit (SMPU)",
+      "Read Speculation"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features",
+      "System Memory Protection Unit (SMPU)",
+      "Error Handling",
+      "Interrupts"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features",
+      "System Memory Protection Unit (SMPU)",
+      "Error Handling",
+      "Bus Errors"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features",
+      "System Memory Protection Unit (SMPU)",
+      "Locking Configuration"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features",
+      "System Memory Protection Unit (SMPU)",
+      "Register Summary"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features",
+      "System Memory Protection Unit (SMPU)",
+      "Important Notes"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features",
+      "System Memory Protection Unit (SMPU)",
+      "Current Linux Support Status"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "System Protection Features",
+      "System Memory Protection Unit (SMPU)",
+      "See Also"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "Linux support"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "Linux support",
+      "Upstream forks"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "Linux support",
+      "ADI repositories"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "Linux support",
+      "ADI repositories",
+      "Yocto"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "Getting started"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "Getting started",
+      "JTAG & OpenOCD Setup"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "Getting started",
+      "JTAG & OpenOCD Setup",
+      "Install Dependencies"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "Getting started",
+      "JTAG & OpenOCD Setup",
+      "Build OpenOCD"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "Getting started",
+      "JTAG & OpenOCD Setup",
+      "Run OpenOCD"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "Getting started",
+      "Serial Console Setup"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "Getting started",
+      "Booting the System"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "Getting started",
+      "Booting the System",
+      "Download Release"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "Getting started",
+      "Booting the System",
+      "Boot U-Boot Proper"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "Getting started",
+      "Booting the System",
+      "Boot Linux"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "Getting started",
+      "Booting the System",
+      "Install U-Boot"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "Getting started",
+      "Booting the System",
+      "Install eMMC Image"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "Getting started",
+      "Booting the System",
+      "Boot Linux from eMMC"
+    ],
+    [
+      "Products",
+      "Digital Signal Processors (ADSP)",
+      "Getting started",
+      "Booting the System",
+      "First Boot Setup"
+    ]
+  ]
+}
