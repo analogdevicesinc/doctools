@@ -1,0 +1,139 @@
+{
+  "text": [
+    "To find answers to some common question refer to our\nFAQ page.\n",
+    "> **Note**\n>\n> We are in the process of moving the reference design documentation from\n> wiki.analog.com to ADI Documentation repository.\n> We apologize for any inconvenience that may occur due to this migration.\n\n\nAnalog Devices has developed hundreds of reference designs to help solve our\ncustomer",
+    "The latest LabVIEW GUI installer (*EVAL-ADE1201EBZ evaluation software\ninstaller*) is available from the\nEVAL-ADE1202 product page.\n\nThe LabVIEW GUI is designed to work with the EVAL-ADE1202EBZ evaluation board.\nIt provides an interface to allow the user to access all the functionality of\nthe ADE120",
+    "Evaluating the ADE1201/ADE1202 configurable, isolated binary input monitors.\n\n![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/wiki_migration/eval-ade120x_landing/docs/solutions/reference-designs/eval-ade120x/eval-ade1202.png)\n\n*Figure 1 EVAL-ADE1202EBZ*\n",
+    "The ADE120x is an isolated binary input monitor. It performs an isolated\nmeasurement of a binary input voltage and communicates the status of this input\nto low voltage processors or logic circuits. The ADE120x application circuit\ncan accept a wide range of binary input voltages from 10 V to 300 V sc",
+    "The user guides are provided at:\n\n- Tools and Driver Details\n- ADE1202 Evaluation Board User Guide\n  Introduction\n  Schematics, PCB Layout, Bill of Materials\n\n  - Introduction\n  - Schematics, PCB Layout, Bill of Materials\n\n\nThe evaluation hardware also requires one of the following controller boards",
+    "People who follow the flow that is outlined, have a much better experience with\nthings. However, like many things, documentation is never as complete as it\nshould be. If you have any questions, feel free to ask on our\nEngineerZone forums, but before that, please make\nsure you read our documentation ",
+    "> **Warning**\n>\n> All the products described on this page include ESD (electrostatic discharge) sensitive devices. Electrostatic charges as high as 4000V readily accumulate on the human body or test equipment and can discharge without detection.\n> Although the boards feature ESD protection circuitry",
+    "- Help and Support\n\n\nFor other questions, see the Help and Support for ADI FMC Cards & RF SoMs page.\n",
+    "The software drivers for the ADE120x products were written using the MBED\nplatform. MBED is an open source, online development environment that supports a\nlarge array of controller boards with ARM core processors. The SDP-K1 is a\ncontroller board developed by ADI and is designed to be used to develo",
+    "1. To use the EVAL-SDP-K1 with the MBED online compiler a user account must be\n  set up first. To set up an account navigate to\n  MBED.\n2. Follow this link for\n  instructions on setting up the SDP-K1 within the MBED environment.\n3. The ADE1202 example application can be found\n  here.\n4. To get start",
+    "This chapter provides all the necessary steps to download, install, and setup\nthe software environment from Analog Devices.\n\nIt contains two main sections:\n\n- How to setup and use the LabVIEW GUI Tool: provides all the necessary instructions on\n  how to download and install the LabVIEW GUI.\n- How to",
+    "![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/wiki_migration/eval-ade120x_landing/docs/solutions/reference-designs/eval-ade120x/eval-ade1202.png)\n\n*Figure 1 EVAL-ADE1202EBZ*\n",
+    "The EVAL-ADE1202EBZ reference design board allows the performance of the\nADE1202 Binary Input IC to be evaluated in a context very similar to a\nreal binary input interface application. The kit requires purchasing a second\nboard: the controller board for the system demonstration platform\n(EVAL-SDP-CB",
+    "> **Download**\n>\n> EVAL-ADE1202EBZ Rev B Design Files\n> Schematics (PDF)\n> Layout (PDF)\n> Bill of Materials (Excel)\n> Fabrication Files (ZIP)\n",
+    "> **Attention**\n>\n> Work-in-progress, not all content available at the\n> wiki\n> has been imported yet.\n\n\nSoftware, documentation and reference designs for Analog Devices\nproducts.\n\nThe System Level documentation provides developers using Analog Devices\nproducts with software and documentation, inclu",
+    "Reference Designs\n\nReference designs combining mixed signal hardware, software and\nalgorithms.\n\nProducts\n\nEvaluation boards, embedded processors and lab tools for hardware\ndevelopment.\n\nADC Platforms\n\nIntegrated evaluation and demonstration platforms for data converter\nsystems.\n\nApplication Software",
+    "Kuiper\n\nDebian-based Linux distribution with tools and drivers for evaluation\nhardware.\n\nKernel and devicetrees\n\nBuild guides for the Linux kernel and devicetrees across supported\nplatforms.\n\nLinux drivers\n\nLinux kernel drivers for connecting devices and accessing their\nfunctionality.\n\nSoftware\n\nLib",
+    "Tutorials & Workshops\n\nHands-on tutorials and workshops covering mixed signal basics and\nsystem design.\n\nUniversity Program\n\nLearning tools and practical courses for the next generation of design\nengineers.\n"
+  ],
+  "url": [
+    "solutions/reference-designs/eval-ade120x/help_and_support",
+    "solutions/reference-designs",
+    "solutions/reference-designs/eval-ade120x/tools/labview_setup_guide",
+    "solutions/reference-designs/eval-ade120x",
+    "solutions/reference-designs/eval-ade120x#overview",
+    "solutions/reference-designs/eval-ade120x#user-guides",
+    "solutions/reference-designs/eval-ade120x#recommendations",
+    "solutions/reference-designs/eval-ade120x#warning",
+    "solutions/reference-designs/eval-ade120x#help-and-support",
+    "solutions/reference-designs/eval-ade120x/tools/software_drivers",
+    "solutions/reference-designs/eval-ade120x/tools/software_drivers#getting-started",
+    "solutions/reference-designs/eval-ade120x/tools",
+    "solutions/reference-designs/eval-ade120x/hardware/eval-ade1202",
+    "solutions/reference-designs/eval-ade120x/hardware/eval-ade1202#introduction",
+    "solutions/reference-designs/eval-ade120x/hardware/eval-ade1202#schematics-pcb-layout-bill-of-materials",
+    "",
+    "#apps-solutions",
+    "#firmware-software",
+    "#learning"
+  ],
+  "hierarchy": [
+    [
+      "Reference Designs",
+      "EVAL-ADE120x",
+      "Help and Support"
+    ],
+    [
+      "Reference Designs"
+    ],
+    [
+      "Reference Designs",
+      "EVAL-ADE120x",
+      "Tools and Driver Details",
+      "How to setup and use the LabVIEW GUI Tool"
+    ],
+    [
+      "Reference Designs",
+      "EVAL-ADE120x"
+    ],
+    [
+      "Reference Designs",
+      "EVAL-ADE120x",
+      "Overview"
+    ],
+    [
+      "Reference Designs",
+      "EVAL-ADE120x",
+      "User guides"
+    ],
+    [
+      "Reference Designs",
+      "EVAL-ADE120x",
+      "Recommendations"
+    ],
+    [
+      "Reference Designs",
+      "EVAL-ADE120x",
+      "Warning"
+    ],
+    [
+      "Reference Designs",
+      "EVAL-ADE120x",
+      "Help and support"
+    ],
+    [
+      "Reference Designs",
+      "EVAL-ADE120x",
+      "Tools and Driver Details",
+      "How to Use ADE120x Software Drivers"
+    ],
+    [
+      "Reference Designs",
+      "EVAL-ADE120x",
+      "Tools and Driver Details",
+      "How to Use ADE120x Software Drivers",
+      "Getting Started"
+    ],
+    [
+      "Reference Designs",
+      "EVAL-ADE120x",
+      "Tools and Driver Details"
+    ],
+    [
+      "Reference Designs",
+      "EVAL-ADE120x",
+      "ADE1202 Evaluation Board User Guide"
+    ],
+    [
+      "Reference Designs",
+      "EVAL-ADE120x",
+      "ADE1202 Evaluation Board User Guide",
+      "Introduction"
+    ],
+    [
+      "Reference Designs",
+      "EVAL-ADE120x",
+      "ADE1202 Evaluation Board User Guide",
+      "Schematics, PCB Layout, Bill of Materials"
+    ],
+    [
+      "System Level Documentation"
+    ],
+    [
+      "System Level Documentation",
+      "Apps & Solutions"
+    ],
+    [
+      "System Level Documentation",
+      "Firmware & Software"
+    ],
+    [
+      "System Level Documentation",
+      "Learning"
+    ]
+  ]
+}
