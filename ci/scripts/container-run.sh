@@ -190,7 +190,7 @@ container-run ()
 				run_params+=(--volume $HOME/.pi:$home/.pi)
 
 				profile_pi=$(mktemp -t pi_path.XXX.sh)
-				echo "export PATH=\"\$PATH:$home/externals/node24/bin:$home/.local/pi/node_modules/.bin\"" > "$profile_pi"
+				echo "export PATH=\"\$PATH:$home/externals/node24/bin:$home/.local/pi/node_modules/bin\"" > "$profile_pi"
 				run_params+=(--volume "$profile_pi":/etc/profile.d/pi.sh:ro)
 			fi
 
