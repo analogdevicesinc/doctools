@@ -52,6 +52,8 @@ export class LLM {
       return
 
     ev.preventDefault()
+    if (window.matchMedia('(max-width: 65em)').matches) // screen-1
+      window.Kapa?.close()
     hot_reload.load(link.href, false)
   }
 
