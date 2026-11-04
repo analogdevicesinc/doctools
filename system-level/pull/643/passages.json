@@ -1,0 +1,56 @@
+{
+  "text": [
+    "- JTAG\n  List of ADI JTAG debuggers\n",
+    "> **Attention**\n>\n> Work-in-progress, not all content available at the\n> wiki\n> has been imported yet.\n\n\nSoftware, documentation and reference designs for Analog Devices\nproducts.\n\nThe System Level documentation provides developers using Analog Devices\nproducts with software and documentation, inclu",
+    "Reference Designs\n\nReference designs combining mixed signal hardware, software and\nalgorithms.\n\nProducts\n\nEvaluation boards, embedded processors and lab tools for hardware\ndevelopment.\n\nADC Platforms\n\nIntegrated evaluation and demonstration platforms for data converter\nsystems.\n\nApplication Software",
+    "Kuiper\n\nDebian-based Linux distribution with tools and drivers for evaluation\nhardware.\n\nKernel and devicetrees\n\nBuild guides for the Linux kernel and devicetrees across supported\nplatforms.\n\nLinux drivers\n\nLinux kernel drivers for connecting devices and accessing their\nfunctionality.\n\nSoftware\n\nLib",
+    "Tutorials & Workshops\n\nHands-on tutorials and workshops covering mixed signal basics and\nsystem design.\n\nUniversity Program\n\nLearning tools and practical courses for the next generation of design\nengineers.\n",
+    "List of ADI JTAG debuggers\n|JTAG version|Product Page|\n|ICE-1000|EMULATORS|\n|ICE-1500|EMULATORS|\n|ICE-2000|EMULATORS|\n|Debug Agent|usually comes on carrier boards like EV-SOMCRR-EZLITE and EV-SOMCRR-EZKITE|\n\n\nAll of the debuggers above support OpenOCD\n",
+    "|JTAG version|Voltage level switch|Voltage Levels|\n|ICE-1000|manual|1.8/3.3V|\n|ICE-1500|manual|1.8/3.3V|\n|ICE-2000|automatic|1.8/3.3V|\n|Debug Agent|manual|1.8/3.3V|\n",
+    "|ADSP Product|Voltage Level|Supported ICE|\n|ADSP-SC573|3.3V|1000/1500/2000/Debug Agent|\n|ADSP-SC589|3.3V|1000/1500/2000/Debug Agent|\n|ADSP-SC594|3.3V|1000/1500/2000/Debug Agent|\n|ADSP-SC598|3.3V|1000/1500/2000/Debug Agent|\n|ADSP-SC846|1.8V|1000/1500/Debug Agent|\n"
+  ],
+  "url": [
+    "tools",
+    "",
+    "#apps-solutions",
+    "#firmware-software",
+    "#learning",
+    "tools/jtag",
+    "tools/jtag#supported-adsp-scxxx-products-by-ice-debugger",
+    "tools/jtag#ice-jtag-adsp-products-voltage-levels"
+  ],
+  "hierarchy": [
+    [
+      "Tools"
+    ],
+    [
+      "System Level Documentation"
+    ],
+    [
+      "System Level Documentation",
+      "Apps & Solutions"
+    ],
+    [
+      "System Level Documentation",
+      "Firmware & Software"
+    ],
+    [
+      "System Level Documentation",
+      "Learning"
+    ],
+    [
+      "Tools",
+      "JTAG"
+    ],
+    [
+      "Tools",
+      "JTAG",
+      "Supported ADSP-SCxxx products by ICE debugger"
+    ],
+    [
+      "Tools",
+      "JTAG",
+      "ICE JTAG ADSP Products Voltage levels"
+    ]
+  ]
+}
