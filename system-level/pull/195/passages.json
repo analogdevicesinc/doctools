@@ -1,0 +1,382 @@
+{
+  "text": [
+    "> **Attention**\n>\n> Work-in-progress, not all content available at the\n> wiki\n> has been imported yet.\n\n\nSoftware, documentation and reference designs for Analog Devices\nproducts.\n\nThe System Level documentation provides developers using Analog Devices\nproducts with software and documentation, inclu",
+    "Reference Designs\n\nReference designs combining mixed signal hardware, software and\nalgorithms.\n\nProducts\n\nEvaluation boards, embedded processors and lab tools for hardware\ndevelopment.\n\nADC Platforms\n\nIntegrated evaluation and demonstration platforms for data converter\nsystems.\n\nApplication Software",
+    "Kuiper\n\nDebian-based Linux distribution with tools and drivers for evaluation\nhardware.\n\nKernel and devicetrees\n\nBuild guides for the Linux kernel and devicetrees across supported\nplatforms.\n\nLinux drivers\n\nLinux kernel drivers for connecting devices and accessing their\nfunctionality.\n\nSoftware\n\nLib",
+    "Tutorials & Workshops\n\nHands-on tutorials and workshops covering mixed signal basics and\nsystem design.\n\nUniversity Program\n\nLearning tools and practical courses for the next generation of design\nengineers.\n",
+    "The **ADC System Platforms** team develops and supports fully integrated\nevaluation and demonstration systems built around ADI data-converter\ntechnologies.\n\nEach platform delivers a validated system stack \u2014 from RF hardware to\napplication software \u2014 enabling rapid performance evaluation and\nreal-wor",
+    "Signal-Chain Hardware\n\nADI MxFE, SDR, MEMS and power solutions integrated into validated system architectures.\n\nFPGA + Reference HDL\n\nCOTS FPGA platforms with production-grade HDL reference designs.\n\nLinux + IIO\n\nEmbedded Linux builds with native IIO support.\n\nApplication Software\n\nSystem-level cont",
+    "For more information on each of ADC Platforms, please click on the links below:\n\nPhaser (CN0566)\n\nX-Band Beamforming and Radar Learning Platform\n\nPluto SDR\n\nLow-cost SDR system based on the AD9361\n\nTriton\n\n16T/16R X-Band System Platform\n\nX-Band Development Platform\n\n32T/32R Hybrid Beamforming Phased",
+    "Each platform includes at least one **Pilot** \u2014 a fully documented system-level example of a representative use case\u2013complete with all the key elements to implement that use case.\n\n**Pilots are more than just a demo!**  A Pilot provides:\n\n- Hardware + software setup\n- Stable drivers, APIs, and plug-",
+    "ADI operates dedicated **ADC Catalyst Centers** where customers can\nexperience platforms and pilots live, receive training, and collaborate\ndirectly with ADI engineers.\n\nWe have a Catalyst centres in:\n\n- North Carolina (USA): Contact Ian Beavers\n- Limerick (Ireland): Contact Simon Walkin\n",
+    "1. **Elevate System-Level Expertise**\n  Enable customers to solve real-world system integration challenges.\n2. **Empower Customer Learning**\n  Provide hands-on access to ADI hardware, tools, and training.\n3. **Drive Collaborative Innovation**\n  Co-develop system-level solutions with customers and AD",
+    "- Scalable Phased Array & Adaptive RF Systems Enabled by ADI DataX\u2122\n  Complex RF needs a faster path from idea to array. ADI DataX accelerates\n  Software Defined Radio (SDR) systems-based development by simplifying evaluation\n  across platforms like ADALM-PHASER, Jupiter SDR, and Talise SOM. These p",
+    "PlutoSDR Picture\n\n\nThe ADALM\u2011PLUTO, commonly known as the Pluto SDR, is a portable, self\u2011contained software\u2011defined radio (SDR). It is designed primarily as an educational platform for students, hobbyists, and engineers to explore radio frequency (RF) concepts, wireless communication, and SDR fundam",
+    "- Simple Programming\n  Python Programming\n  MATLAB Programming\n  GNU Radio\n  QIQ Software\n  C Programming\n  BASH USB OTG Scripts\n\n  - Python Programming\n  - MATLAB Programming\n  - GNU Radio\n  - QIQ Software\n  - C Programming\n  - BASH USB OTG Scripts\n\n\nThis video is a quick introduction to the Pluto ",
+    "The Phaser ships fully assembled.  However, there are still a couple of steps to perform when first unboxing it:\n\n- Update Pluto Firmware\n  Updating Pluto Firmware\n  Pluto Configuration\n\n  - Updating Pluto Firmware\n  - Pluto Configuration\n\n\nFor a detailed unboxing and setup video of the entire proce",
+    "The Pluto that ships with the Phaser kit has been pre-configured and should not need to be modified.  However, in case something goes wrong or the firmware needs to be updated, this page details the Pluto setup procedures.\n",
+    "The latest Pluto firmware is found here:\n\nhttps://github.com/analogdevicesinc/plutosdr-fw/releases\n\nIt is recommended that all Phaser\u2019s operate with version 0.39, or later.  Details on how to perform the firmware update are found here:\n\nFirmware Updates\n",
+    "The next step is to update the Pluto configuration to enable the AD9361\u2019s second channel. Follow the directions at: Updating to the AD9364\n\nFor setting the mode of a Rev. C PlutoSDR to 2r2t, login to Pluto (via PuTTY) and enter the following sequence of commands:\n\n```bash\nfw_setenv attr_name compati",
+    "In the previous sections, we covered how to set up the PlutoSDR hardware and connect it to your computer. Now that you have established a connection with Pluto, you can start using it with various software tools and programming languages. In this section, we will cover how to use Pluto with Python, ",
+    "You can attach a micro USB SD card reader (included in the ADALM-PLUTO box) to Pluto\u2019s center USB port.  Then power Pluto from the other micro USB port.  Upon powerup, Pluto will automount the SD card and look for this special file name:  runme[0-9].sh\n",
+    "Example BASH Control\n\nUSB OTG\n\nUSB OTG \u2013 HOST function Support\n",
+    "runme1.sh\n\n```bash\n#!/bin/sh\n# the default directory the script runs in is /dev, so change to the drive\n# reference : https://archive.fosdem.org/2018/schedule/event/plutosdr/attachments/slides/2503/export/events/attachments/plutosdr/slides/2503/pluto_stupid_tricks.pdf\n# pages 29 to 31\ncd /tmp\n# crea",
+    "QIQ Systems software comprises a suite of powerful applications for a variety of Analog Devices transceivers and high speed data converters.  This software is used in a variety of debug and prototyping use cases.  And also provides complete VSA (vector signal analyzer) and VSG (vector signal generat",
+    "MATLAB is another popular choice for working with PlutoSDR, especially for those who are already familiar with MATLAB\u2019s signal processing capabilities. You can use the `Communications Toolbox Support Package for Analog Devices ADALM-Pluto Radio` in MATLAB to interface with PlutoSDR. This toolbox pro",
+    "To use PlutoSDR with MATLAB, you need to install:\n\n1. Communications Toolbox\n2. DSP System Toolbox\n3. Signal Processing Toolbox\n4. The Communications Toolbox Support Package for Analog Devices ADALM-Pluto Radio\n\n\nThese can all be found in the MATLAB \u201cAdd-Ons\u201d:\n\nThen search for the desired toolbox:\n\n",
+    "If you are using Pluto in the 2T2R configuration, then you\u2019ll also need to install the toolboxes necessary for the AD9361 control. They are found in the MATLAB Add On manager. The toolboxes to install are:\n\n1. Analog Devices, Inc. Transceiver Toolbox\n2. MATLAB Support for MinGW-w64 C/C++ Compiler\n\n\n",
+    "Once you have the Pluto Toolbox installed, perform a simple test just to make sure everything is working.  With Pluto connected to the center USB port, type:\n\n```matlab\nrx = sdrrx('Pluto', 'RadioID', 'ip:192.168.2.1');\ndata = rx();\ndata(1:10)\n```\n\n\nThis first creates a Pluto receive object (\u201crx\u201d).  ",
+    "If you are using Pluto as a 2T/2R device, then you need to address it as a AD9361, and not as a Pluto.  That means that instead of using the Pluto Toolbox, you\u2019ll use the Analog Devices Transceiver Toolbox. The setup is very similar though. Here are some examples:\n\nSimple example (just a check that ",
+    "- Additional Examples\n- Pluto Toolbox\n- Test and Troubleshooting\n- MATLAB Pluto Examples\n- Analog Devices Labs with MATLAB and Pluto\n- Intro to Comms Systems Using Pluto\n- Chapter 5: Pluto Hardware and MATLAB\n\n\n> **Note**\n>\n> For questions or help with the Pluto SDR, please visit:\n> EngineerZone\n",
+    "Phaser Picture\n\n\nThe **ADALM-PHASER** (part number EVAL-CN0566-RPIZ) is a beamforming development system designed to demonstrate phased array concepts with a compact, software-defined architecture. It provides a low cost, simplified, phased array radar system which allows real beamforming hardware t",
+    "- Unboxing and Initial Setup\n  Update Pluto Firmware\n\n  - Update Pluto Firmware\n\n\n> **Video**\n>\n> Video\n\n\n> **Note**\n>\n> For questions or help with the Phaser, please visit:\n> EngineerZone\n",
+    "GNU Radio is a powerful open-source software development toolkit that provides signal processing blocks to implement software-defined radios and signal processing systems. You can use GNU Radio to create flowgraphs that interface with PlutoSDR and process the data it receives. To use PlutoSDR with G",
+    "GNU Radio Companion (GRC), works best in Linux.  However, if you need to use it with a Windows operating system, then the best way to do this is through Radioconda:\n\n1. Download the most recent \u201cradioconda-Windows-x86_64.exe\u201d Radioconda install package here.\n2. Update Radioconda to the latest versio",
+    "(Ubuntu 24, etc\u2026)\n\nJust install GNU Radio by following these instructions:\nhttps://wiki.gnuradio.org/index.php/UbuntuInstall\n",
+    "(Instructions for Raspberry Pi are given)\n\n(instructions for Raspberry Pi 4 are given):\n\n1. Download the latest ADI-Kuiper Linux image here.\n\n\n- Just click on the first \u201cworkflow run\u201d\n- Download the kuiper_full_64_image (only the \u201cfull\u201d image has GNU Radio pre installed)\n- Write ADI-Kuiper-full.img ",
+    "Whichever operating system you use, let\u2019s test the GRC installation now.\n\n1. Open the installed GNU Radio Companion application.\n2. Find the \u201cPython Module\u201d block and place it in the workflow.\n3. Open that \u201cPython Module\u201d and click \u201cOpen in Editor\u201d\n4. In the editor, type:\n\n\n```python\nimport iio\nprin",
+    "1. GNU Radio\n2. IIO GRC Blocks\n3. Practical SDR Book\n4. Field Expedient SDR Books\n5. Learn SDR (Harvey Mudd College)\n6. Using Python with GRC and Pluto 7h16m\n\n\n> **Video**\n>\n> Video\n\n\n> **Video**\n>\n> Video\n\n\n> **Note**\n>\n> For questions or help with the Pluto SDR, please visit:\n> EngineerZone\n",
+    "If you prefer to work with C, you can use the `libiio` library to interface with PlutoSDR. The `libiio` library provides a low-level API for controlling Pluto and accessing its data. You can install `libiio` from the Analog Devices website or using your package manager if it is available. Once you h",
+    "Programming with Python is a popular choice for working with PlutoSDR due to its simplicity and the availability of powerful libraries for signal processing and data analysis. There are two Python libraries that can be used with Pluto:  pyADI-IIO and pyLIBIIO:\n|Library Name|Python Import Command|Com",
+    "For most users, the `pyadi-iio` library (commonly called PyADI) provides a more user-friendly and high-level API for controlling Pluto and accessing its data. The PyADI quick start guide, installation instructions, and examples are all found here.\n\nThis library can be installed using pip, but note t",
+    "There is another Python library that works with every IIO device \u2013 pyLIBIIO.  Prior to the creation of PyADI-IIO, pyLIBIIO was the only recommended Python library for the PlutoSDR.  But now, with the advent of PyADI-IIO, there is not much reason to use pyLIBIIO for Pluto.  However, there is occasion",
+    "Complex RF needs a faster path from idea to array. ADI DataX accelerates\nSoftware Defined Radio (SDR) systems-based development by simplifying evaluation\nacross platforms like ADALM-PHASER, Jupiter SDR, and Talise SOM. These platforms\nsupport synchronized MIMO scaling and rapid prototyping for compl",
+    "- Holohub:\n  Jupiter Holohub Project\n- Matlab:\n  Talise Matlab Project\n- Hardware:\n  AD-SYNCHRONA14-EBZ\n  (user guide)\n  AD-JUPITER-EBZ\n  (user guide)\n  ADRV9009-ZU11EG RF-SOM\n  (user guide)\n  ADRV2CRR-FMC\n  ADALM-PLUTO (user guide)\n\n  - AD-SYNCHRONA14-EBZ\n    (user guide)\n  - AD-JUPITER-EBZ\n    (us",
+    "- Holohub\n- Matlab\n  With Transceiver Toolbox add-on\n  installed using the add-on explorer in Matlab.\n\n  - With Transceiver Toolbox add-on\n    installed using the add-on explorer in Matlab.\n",
+    "![](../../_images/demo-block-diagram.svg)\n\n*Figure 1 Demo Block Diagram*\n",
+    "This demo illustrates the implementation of a monopulse tracking system using\nADI\u2019s DataX\u2122, showcasing the platform independence and scalability of our\nsystems. The demo consists of two main systems: the transmitter and the receiver\nsystem.\n\nThe transmitter system is using an ADALM-PLUTO to\ngenerate",
+    "The name refers to its ability to extract range and direction from a single\nsignal pulse.\nThe method uses two simultaneous beams, the **SUM** and **DELTA** beams, to\ncompare the received signal\u2019s amplitude and phase, enabling precise angle\nestimation. This technique is widely used in radar and commu",
+    "|Component|Role|Quantity|Notes|\n|AD-SYNCHRONA14-EBZ|The main clock source for the AD-JUPITER-EBZs.|1|Sources the reference clock and the Multi-chip Synchronization signals.|\n|AD-JUPITER-EBZ|The platform for the Holoscan implementation.|2|Samples the incoming signals and performs the digital signal p",
+    "- For the ADRV9009-ZU11EG RF-SOM platform, write the\n  Kuiper image to an SD card, as described at\n  Writing the Image to an SD Card, and copy the\n  ADRV9009-ZU11EG boot files to the boot partition, as described at\n  ADI Evaluation Boards.\n- For the AD-JUPITER-EBZ platform, begin by writing the\n  im",
+    "Here are presented the plotted results of the demo. On the X axis the angle of\narrival is presented, while on the Y axis the time is presented, to make a\nwaterfall type of plot.\n\n![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/data-x-monopulse-tracker/docs/learning/monopu"
+  ],
+  "url": [
+    "",
+    "#apps-solutions",
+    "#firmware-software",
+    "#learning",
+    "solutions/platforms#complete-evaluation-demonstration-systems-for-adi-data-converters",
+    "solutions/platforms#what-makes-a-platform",
+    "solutions/platforms#platforms",
+    "solutions/platforms#platform-pilots",
+    "solutions/platforms#adc-catalyst",
+    "solutions/platforms#catalyst-mission",
+    "learning",
+    "solutions/platforms/pluto#overview",
+    "solutions/platforms/pluto#table-of-contents",
+    "solutions/platforms/phaser/setup",
+    "solutions/platforms/phaser/setup/pluto-setup",
+    "solutions/platforms/phaser/setup/pluto-setup#updating-pluto-firmware",
+    "solutions/platforms/phaser/setup/pluto-setup#pluto-configuration",
+    "solutions/platforms/pluto/software",
+    "solutions/platforms/pluto/software/bash_install",
+    "solutions/platforms/pluto/software/bash_install#basic-examples",
+    "solutions/platforms/pluto/software/bash_install#some-additional-examples",
+    "solutions/platforms/pluto/software/qiq_install",
+    "solutions/platforms/pluto/software/matlab_install",
+    "solutions/platforms/pluto/software/matlab_install#matlab-pluto-toolbox-installation",
+    "solutions/platforms/pluto/software/matlab_install#matlab-pluto-2t-2r-installation",
+    "solutions/platforms/pluto/software/matlab_install#test-matlab-pluto-1t-1r-installation",
+    "solutions/platforms/pluto/software/matlab_install#test-matlab-pluto-2t-2r-installation",
+    "solutions/platforms/pluto/software/matlab_install#useful-pluto-matlab-links",
+    "solutions/platforms/phaser",
+    "solutions/platforms/phaser#table-of-contents",
+    "solutions/platforms/pluto/software/grc_install",
+    "solutions/platforms/pluto/software/grc_install#windows-install",
+    "solutions/platforms/pluto/software/grc_install#linux-installation",
+    "solutions/platforms/pluto/software/grc_install#adi-kuiper-linux",
+    "solutions/platforms/pluto/software/grc_install#test-the-installation",
+    "solutions/platforms/pluto/software/grc_install#pluto-gnu-radio-resources",
+    "solutions/platforms/pluto/software/c_install#c",
+    "solutions/platforms/pluto/software/python_install",
+    "solutions/platforms/pluto/software/python_install#pyadi-iio",
+    "solutions/platforms/pluto/software/python_install#pylibiio",
+    "learning/monopulse-tracker",
+    "learning/monopulse-tracker#resources",
+    "learning/monopulse-tracker#required-software",
+    "learning/monopulse-tracker#block-diagram",
+    "learning/monopulse-tracker#demo-description",
+    "learning/monopulse-tracker#but-what-is-monopulse-tracking",
+    "learning/monopulse-tracker#required-hardware",
+    "learning/monopulse-tracker#sd-card-configuration",
+    "learning/monopulse-tracker#results"
+  ],
+  "hierarchy": [
+    [
+      "System Level Documentation"
+    ],
+    [
+      "System Level Documentation",
+      "Apps & Solutions"
+    ],
+    [
+      "System Level Documentation",
+      "Firmware & Software"
+    ],
+    [
+      "System Level Documentation",
+      "Learning"
+    ],
+    [
+      "Aerospace, Defense and Communication Platforms",
+      "Complete Evaluation & Demonstration Systems for ADI Data Converters"
+    ],
+    [
+      "Aerospace, Defense and Communication Platforms",
+      "What Makes a Platform?"
+    ],
+    [
+      "Aerospace, Defense and Communication Platforms",
+      "Platforms"
+    ],
+    [
+      "Aerospace, Defense and Communication Platforms",
+      "Platform Pilots"
+    ],
+    [
+      "Aerospace, Defense and Communication Platforms",
+      "ADC Catalyst"
+    ],
+    [
+      "Aerospace, Defense and Communication Platforms",
+      "ADC Catalyst",
+      "Catalyst Mission\u200b"
+    ],
+    [
+      "Learning! Tutorials, Workshops, Etc"
+    ],
+    [
+      "Aerospace, Defense and Communication Platforms",
+      "Pluto",
+      "Overview"
+    ],
+    [
+      "Aerospace, Defense and Communication Platforms",
+      "Pluto",
+      "Table of Contents"
+    ],
+    [
+      "Aerospace, Defense and Communication Platforms",
+      "ADALM-PHASER",
+      "Unboxing and Initial Setup"
+    ],
+    [
+      "Aerospace, Defense and Communication Platforms",
+      "ADALM-PHASER",
+      "Unboxing and Initial Setup",
+      "Updating Pluto for Phaser"
+    ],
+    [
+      "Aerospace, Defense and Communication Platforms",
+      "ADALM-PHASER",
+      "Unboxing and Initial Setup",
+      "Updating Pluto for Phaser",
+      "Updating Pluto Firmware"
+    ],
+    [
+      "Aerospace, Defense and Communication Platforms",
+      "ADALM-PHASER",
+      "Unboxing and Initial Setup",
+      "Updating Pluto for Phaser",
+      "Pluto Configuration"
+    ],
+    [
+      "Aerospace, Defense and Communication Platforms",
+      "Pluto",
+      "Software"
+    ],
+    [
+      "Aerospace, Defense and Communication Platforms",
+      "Pluto",
+      "Software",
+      "BASH Scripts and USB OTG"
+    ],
+    [
+      "Aerospace, Defense and Communication Platforms",
+      "Pluto",
+      "Software",
+      "BASH Scripts and USB OTG",
+      "Basic Examples"
+    ],
+    [
+      "Aerospace, Defense and Communication Platforms",
+      "Pluto",
+      "Software",
+      "BASH Scripts and USB OTG",
+      "Some Additional Examples:"
+    ],
+    [
+      "Aerospace, Defense and Communication Platforms",
+      "Pluto",
+      "Software",
+      "QIQ Systems Installation and Examples"
+    ],
+    [
+      "Aerospace, Defense and Communication Platforms",
+      "Pluto",
+      "Software",
+      "MATLAB Installation and Examples"
+    ],
+    [
+      "Aerospace, Defense and Communication Platforms",
+      "Pluto",
+      "Software",
+      "MATLAB Installation and Examples",
+      "MATLAB Pluto Toolbox Installation"
+    ],
+    [
+      "Aerospace, Defense and Communication Platforms",
+      "Pluto",
+      "Software",
+      "MATLAB Installation and Examples",
+      "MATLAB Pluto (2T/2R) Installation"
+    ],
+    [
+      "Aerospace, Defense and Communication Platforms",
+      "Pluto",
+      "Software",
+      "MATLAB Installation and Examples",
+      "Test MATLAB Pluto (1T/1R) Installation"
+    ],
+    [
+      "Aerospace, Defense and Communication Platforms",
+      "Pluto",
+      "Software",
+      "MATLAB Installation and Examples",
+      "Test MATLAB Pluto (2T/2R) Installation"
+    ],
+    [
+      "Aerospace, Defense and Communication Platforms",
+      "Pluto",
+      "Software",
+      "MATLAB Installation and Examples",
+      "Useful Pluto MATLAB Links"
+    ],
+    [
+      "Aerospace, Defense and Communication Platforms",
+      "ADALM-PHASER"
+    ],
+    [
+      "Aerospace, Defense and Communication Platforms",
+      "ADALM-PHASER",
+      "Table of Contents"
+    ],
+    [
+      "Aerospace, Defense and Communication Platforms",
+      "Pluto",
+      "Software",
+      "GNU Radio Installation and Examples"
+    ],
+    [
+      "Aerospace, Defense and Communication Platforms",
+      "Pluto",
+      "Software",
+      "GNU Radio Installation and Examples",
+      "GNU Radio Installation",
+      "Windows Install"
+    ],
+    [
+      "Aerospace, Defense and Communication Platforms",
+      "Pluto",
+      "Software",
+      "GNU Radio Installation and Examples",
+      "GNU Radio Installation",
+      "Linux Installation"
+    ],
+    [
+      "Aerospace, Defense and Communication Platforms",
+      "Pluto",
+      "Software",
+      "GNU Radio Installation and Examples",
+      "GNU Radio Installation",
+      "ADI-Kuiper Linux"
+    ],
+    [
+      "Aerospace, Defense and Communication Platforms",
+      "Pluto",
+      "Software",
+      "GNU Radio Installation and Examples",
+      "GNU Radio Installation",
+      "Test the Installation"
+    ],
+    [
+      "Aerospace, Defense and Communication Platforms",
+      "Pluto",
+      "Software",
+      "GNU Radio Installation and Examples",
+      "GNU Radio Installation",
+      "Pluto GNU Radio Resources"
+    ],
+    [
+      "Aerospace, Defense and Communication Platforms",
+      "Pluto",
+      "Software",
+      "C Installation and Examples",
+      "C"
+    ],
+    [
+      "Aerospace, Defense and Communication Platforms",
+      "Pluto",
+      "Software",
+      "Using Python with Pluto"
+    ],
+    [
+      "Aerospace, Defense and Communication Platforms",
+      "Pluto",
+      "Software",
+      "Using Python with Pluto",
+      "PyADI-IIO"
+    ],
+    [
+      "Aerospace, Defense and Communication Platforms",
+      "Pluto",
+      "Software",
+      "Using Python with Pluto",
+      "pyLIBIIO"
+    ],
+    [
+      "Learning! Tutorials, Workshops, Etc",
+      "Scalable Phased Array & Adaptive RF Systems Enabled by ADI DataX\u2122"
+    ],
+    [
+      "Learning! Tutorials, Workshops, Etc",
+      "Scalable Phased Array & Adaptive RF Systems Enabled by ADI DataX\u2122",
+      "Resources"
+    ],
+    [
+      "Learning! Tutorials, Workshops, Etc",
+      "Scalable Phased Array & Adaptive RF Systems Enabled by ADI DataX\u2122",
+      "Required Software"
+    ],
+    [
+      "Learning! Tutorials, Workshops, Etc",
+      "Scalable Phased Array & Adaptive RF Systems Enabled by ADI DataX\u2122",
+      "Block diagram"
+    ],
+    [
+      "Learning! Tutorials, Workshops, Etc",
+      "Scalable Phased Array & Adaptive RF Systems Enabled by ADI DataX\u2122",
+      "Demo description"
+    ],
+    [
+      "Learning! Tutorials, Workshops, Etc",
+      "Scalable Phased Array & Adaptive RF Systems Enabled by ADI DataX\u2122",
+      "But what is Monopulse Tracking?"
+    ],
+    [
+      "Learning! Tutorials, Workshops, Etc",
+      "Scalable Phased Array & Adaptive RF Systems Enabled by ADI DataX\u2122",
+      "Required Hardware"
+    ],
+    [
+      "Learning! Tutorials, Workshops, Etc",
+      "Scalable Phased Array & Adaptive RF Systems Enabled by ADI DataX\u2122",
+      "SD Card Configuration"
+    ],
+    [
+      "Learning! Tutorials, Workshops, Etc",
+      "Scalable Phased Array & Adaptive RF Systems Enabled by ADI DataX\u2122",
+      "Results"
+    ]
+  ]
+}
