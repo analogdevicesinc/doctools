@@ -287,7 +287,7 @@ def parse_hdl_regmap(ctime: float, file: str) -> dict:
                             logger.warning(f"Malformed access type {field_rw} "
                                            f"for reg {field_name}")
                         else:
-                            access_type.append(field_rw)
+                            access_type.append(field_rw_)
 
                     field_desc = [data[f_].replace("''", "``") for f_ in range(fi + 4, efi)]
                     if where_desc != '':
