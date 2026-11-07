@@ -18,6 +18,27 @@ Color
 
 To print text in red or green, use :code:`:red:\`text\`` and :code:`:green:\`text\``.
 
+Badges
+~~~~~~
+
+Use :code:`:badge:\`text\`` to mark a text, for example:
+
+.. code:: rst
+
+   .. _example-feature:
+
+   Example feature :badge:`new`
+   ++++++++++++++++++++++++++++
+
+It is styled as capitalize (transforms the first character of each word to
+uppercase), on titles, they also show in the table of contents.
+Example badge: :badge:`example`.
+
+Example feature :badge:`new`
+++++++++++++++++++++++++++++
+
+A heading badge can also contain :badge:`since v1.23` or :badge:`deprecated`.
+
 Link
 ~~~~
 

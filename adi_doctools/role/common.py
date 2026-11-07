@@ -347,6 +347,7 @@ def links_target_blank(app, doctree, fromdocname):
 def common_setup(app):
     app.add_role("red",                 color('red'))
     app.add_role("green",               color('green'))
+    app.add_role("badge",               color('badge'))
     app.add_role("datasheet",           datasheet())
     app.add_role("ez",                  ez())
     app.add_role("adi",                 adi())

@@ -381,6 +381,26 @@ figcaption p {
     text-align: center !important;
 }
 
+.body .badge, .localtoc .badge {
+    display: inline-block;
+    vertical-align: middle;
+    text-transform: capitalize;
+    font-size: .7em;
+    font-weight: bold;
+    line-height: 1.3;
+    padding: .125em .5em;
+    border-radius: 1em;
+    border: 1px solid currentColor;
+}
+
+.body .badge{
+    color: var(--accent-color);
+}
+
+.localtoc .badge {
+    color: var(--text-color3);
+}
+
 .red {
     color: red;
 }
