@@ -415,8 +415,10 @@ export class HotReload {
     return true
   }
   clear_fetch () {
-    for (const key of ['sidebarwrapper', 'bodywrapper', 'tocwrapper', 'loader'])
+    for (const key of ['sidebarwrapper', 'bodywrapper', 'tocwrapper', 'loader']) {
       this.$[key].classList.remove('fetch')
+      this.$[key].classList.remove('still')
+    }
     this.$.content.style.minHeight = ""
   }
   push_history (url, state) {
@@ -477,12 +479,13 @@ export class HotReload {
 
     this.$.content.style.minHeight = this.$.content.getBoundingClientRect().height + "px"
 
-    let loader_
+    let loader_, loader_still_
     if (!is_same_page) {
       this.$.tocwrapper.classList.add('fetch')
       this.$.bodywrapper.classList.add('fetch')
       this.$.loader.classList.remove('fail')
       loader_ = setTimeout(() => this.$.loader.classList.add('fetch'), 500)
+      loader_still_ = setTimeout(() => this.$.loader.classList.add('still'), 5000)
     }
 
     const fetch_url = new URL(request_url)
@@ -517,6 +520,7 @@ export class HotReload {
       this.load_failed = true
     } finally {
       clearTimeout(loader_)
+      clearTimeout(loader_still_)
       if (!this.load_failed)
         this.clear_fetch()
       this.lock_load = false

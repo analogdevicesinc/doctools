@@ -87,6 +87,10 @@
 }
 
 /* hot reload loader */
+.documentwrapper #loader, .documentwrapper .subtext {
+  transition: ease opacity .25s;
+}
+
 .documentwrapper #loader {
   pointer-events: none;
   user-select: none;
@@ -99,6 +103,14 @@
   opacity: 0;
 
   &.fetch, &.fail {
+    opacity: 1;
+  }
+
+  .subtext {
+    opacity: 0;
+  }
+
+  &.still.fetch .subtext, &.fail .subtext {
     opacity: 1;
   }
 
@@ -136,20 +148,20 @@
   }
 
   .text::before {
-    content: 'Loading content.';
+    content: 'Loading content';
   }
 
   .subtext::before {
-    content: "Shouldn't take long.";
+    content: "Shouldn't take long";
   }
 
   &.fail {
     .text::before {
-      content: 'Ahhh, Technology.';
+      content: 'Ahhh, Technology';
     }
 
     .subtext::before {
-      content: 'Content failed to load.';
+      content: 'Content failed to load';
     }
 
     .wave-spinner-0, .wave-spinner-1 {
