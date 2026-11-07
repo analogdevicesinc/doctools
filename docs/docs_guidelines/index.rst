@@ -467,8 +467,9 @@ in the pipeline (e.g. ``main``, ``v1.0.0``), for GitHub Actions, that can be
    If creating a branch or PR output, consider using GitHub short reference
    ``${{ github.ref_name }}``.
 
-If both environment variable and ``version`` on ``conf.py`` are unset, it defaults
-to an empty string.
+If both environment variable and ``version`` on ``conf.py`` are unset, it
+defaults to an empty string. For deployment layouts, see
+:ref:`deploy-versioned`.
 
 .. [#f1] Quick cheat sheet for ``github.ref_name`` values on event:
 

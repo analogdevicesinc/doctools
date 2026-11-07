@@ -230,8 +230,8 @@ The live versioned version requires additional orchestration than the
 :ref:`deploy-rolling-release`.
 
 The versions are described in ``tags.json`` file on the root path
-that can take two formats, one simpler with a plain string array and other
-fine-grained to allow full control.
+that can take three formats: a plain string array, a fine-grained path
+mapping, or versions containing packages.
 
 But first, store each version in separated folders in the root path, e.g.
 ``v1.1``, ``v2.2``, ``main``, ``dev``.
@@ -292,6 +292,36 @@ was used to provide a concise but clearer name to this entry.
 The doc version set, either via ``conf.py`` or ``ADOC_DOC_VERSION``
 (:ref:`more info <version>`), should match a value on the ``name`` column, and
 not the ``path`` column.
+
+Package form
+~~~~~~~~~~~~
+
+For SDKs containing multiple independently built packages per version, use
+stable package IDs to associate the same package across releases:
+
+.. code:: json
+
+   {
+     "dev": {
+       "label": "unstable",
+       "packages": {
+         "hats": "core",
+         "shirt": ["T-Shirt", "new"],
+         "pants": ""
+       }
+     },
+     "main": {
+       "label": "latest",
+       "packages": {
+         "hats": "core",
+         "pants": ""
+       }
+     }
+   }
+
+Each package is built at ``<version>/<package>/``. A package value is either
+its label (``""`` for none), or ``["Alt Name", "label"]`` to display an
+alternative name.
 
 Git LFS
 ~~~~~~~

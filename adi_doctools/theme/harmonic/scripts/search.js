@@ -166,7 +166,7 @@ export class Search {
       else if (arr.some(item => item.includes("adi_meta")))
         path = `${arr.find(item => item.includes("adi_meta"))}`
       else
-        path = `${arr.at(0)}/`
+        path = arr.at(0) ?? ""
       return path
     }
     let process = (obj) => {
@@ -176,14 +176,15 @@ export class Search {
         if (mode === true)
           return prefix
 
-        if (mode == "fine-grained")
+        if (mode === "packages")
+          this.versions_available[key] = Versioned.packages_to_object(obj['obj'])
+        else if (mode === "fine-grained")
           this.versions_available[key] = obj['obj']
         else
           this.versions_available[key] = Versioned.string_array_to_object(obj['obj'])
 
-        if (mode == "fine-grained")
-          obj['obj'] = Versioned.object_to_string_array(obj['obj'])
-        let arr = obj['obj']
+        let arr = mode === "string-array" ? obj['obj'] :
+                  Versioned.object_to_string_array(this.versions_available[key])
 
         if (key in this.versions_available) {
           if (version in this.versions_available[key]) {
