@@ -3,909 +3,651 @@
 Documentation guidelines
 ========================
 
-A brief set-of-rules for the documentation.
-
-.. note::
-   The old wiki uses `dokuwiki <https://www.dokuwiki.org/dokuwiki>`_. When
-   importing text from there, consider the automated options that are provided
-   in this page to convert it to reST.
-
-Importing from DokuWiki to Sphinx
----------------------------------
-
-Use the following command to import a DokuWiki page (old *wiki.analog.com*):
-
-.. code:: bash
-
-   pandoc imported.txt -f dokuwiki -t rst --columns=80 -s -o imported.rst --list-tables
-
-The :code:`list-tables` parameter requires *pandoc-types* >= 1.23, included in any
-recent `pandoc release <https://github.com/jgm/pandoc/releases>`__;
-if it is not an option, you shall remove it and export in the *grid* table
-format (see :ref:`tables` for more information).
-
-After converting, update it to better conform with the guidelines below, and
-make sure to use our directives and roles, for example, the :ref:`role git`.
-
-To speed thing up, combine with wget:
-
-.. code:: bash
-
-   wikifile=resources/eval/user-guides/adrv9009/adrv9009
-   outfile=output.rst
-
-   wget -O - https://wiki.analog.com/$wikifile?do=export_raw --no-verbose | \
-     pandoc -f dokuwiki -t rst --columns=80 -s -o $outfile --list-tables
-
-Also, consider recording macros in your favorite text editor to automate
-repetitive steps.
-
-There is also the
-`DokuWiki to Sphinx (bash.sh) <https://gist.github.com/gastmaier/9d9c8281dc3c8551991a857cdb2692cc>`__
-to further help importing.
-
-Directives and roles
---------------------
-
-Sphinx allows expanding functionality beyond the defaults directives and roles
-by loading extensions. Doctools implements custom directives and roles for common
-features, but :ref:`third-party extensions <extension-third-party>` can also be used.
-
-.. toctree::
-   :caption: Doctools extended directives and roles are provided at:
-   :titlesonly:
-
-   directives
-   roles
-
-.. _extension-third-party:
-
-Third-party directives and roles
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Repositories have the freedom to choose the third-party extensions they want to
-include in their documentation.
-They are listed in the *requirements.txt* file, and are installed with:
-
-.. code:: bash
-
-   pip install -r requirements.txt
-
-The recommendation is to avoid using extensions that render content on the
-client-side using JavaScript, because it requires:
-
-* Fetching third-party scripts from someone else's server most of the time; and
-* Makes exporting to other formats (like pdf) harder, because it is then necessary to
-  patch and replace with another non-JavaScript renderer.
-* Requires managing these added scripts to ensure they apply on hot reload.
-
-Support custom JavaScript in hot reload
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Hot reload is a feature that reloads only parts of a webpage, allowing super
-fast content-loading, cool animations, and a better user experience.
-
-However, for third-party client-side JavaScript, it is necessary to map the
-added globals to the hot reload module.
-
-On :git-doctools:`adi_doctools/theme/harmonic/scripts/hot_reload.js`, extend the
-``script_remove`` and ``script_add`` to include hooks for your particular added
-script.
-
-For example, for MathJax, that is simply calling the global method
-``MathJax.typeset()`` to process the new page (hot reload) if the page includes
-the script.
-
-Here is a template:
-
-.. code:: javascript
-
-   export class HotReload {
-     // ...
-     script_remove (url) {
-       switch(url) {
-         case "https://example.com/npm/my_script.js":
-           if (typeof MyScript !== 'undefined')
-             // If there is a clean-up/deinit method, call it
-             // to try to keep memory usage in check.
-             MyScript.cleanup()
-           break;
-         // ...
-       }
-     }
-     script_add (url) {
-       // Get templated script node.
-       const elem = this.js_script_memory.get(url)
-       // Append to page to init loading.
-       document.querySelector('head')?.append(elem)
-       switch(url) {
-         case "https://example.com/npm/my_script.js":
-           if (typeof MyScript !== 'undefined')
-             // On hot reload, already loaded, retrigger init.
-             // You need to check the script documentation for
-             // the exact methods names, calls.
-             MyScript.init()
-           else
-             // On hot reload, first load, do
-             elem.onload = () => {
-               console.log("MyScript loaded!")
-               // Do other things, if necessary, but in general those scripts
-               // already do their thing on load.
-             }
-           break;
-         // ...
-       }
-     }
-
-.. _extension-repository:
-
-Repository-specific extensions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Extensions with repository-specific functionalities can be added to the repository
-source code.
-
-At *conf.py*, add:
-
-.. code:: python
-
-   import os
-   import sys
-   sys.path.insert(0, os.path.abspath(os.path.join('.', 'ext'))
-
-   extensions = [
-        ...
-        "ext_repo_name"
-   ]
-
-Create the *ext/ext_repo_name.py* and implement your custom directives/roles.
-Replace *repo_name* with your repository name.
-
-.. tip::
-
-   If you think your extension could be useful for other repositories, consider
-   migrating it to Doctools source code.
-
-If the extension relies on files at the repository (like XML files), and/or
-uses either env.found_docs or docnames to manage cache,
-check if ``env.config.monolithic`` exists and is true.
-
-If yes, prefix:
-
-* The path to files with the relative path from the custom doc to the
-  repository (always `../<repository>` (e.g.,`../hdl`)); and
-* Doc-names with the repository name (e.g., `hdl/`).
-
-This ensures compatibility with :ref:`custom-doc`.
-
-Here is a practical example:
-
-* Metadata to be parsed is at ``repo_name/builds/info.xml``
-* The sphinx source dir ``env.srcdir`` values are:
-
- * Original doc (per repo): ``repo_name/doc/sphinx/source``
- * Custom doc (always): ``_build``.
-
-So, if it is necessary to check ``env.config.monolithic`` to correct infer the
-target file path, for example:
-
-.. code:: python
-
-   if hasattr(env.config, 'monolithic') and env.config.monolithic:
-        repo_path = path.join(env.srcdir, '..', 'repo_name')
-   else:
-        repo_path = path.join(env.srcdir, '..', '..', '..')
-
-   artifact_path = path.abspath(path.join(repo_root, 'builds', 'info.xml'))
-
-This is necessary because Sphinx has no way of knowing the repository root
-(without invoking a git shell), so hard-coding a relative path is necessary.
-
-.. note::
-
-   If the extensions are reused by multiple repositories, infer the repository
-   name from the first level (``my_repo/``) of the docname
-   (``my_repo/tutorial/index``).
-
-Custom doc copies
-``env.srcdir(original)`` to ``env.srcdir(custom)/repo_name``
-to avoid page conflicts when aggregating.
-So, sometimes it is necessary to prefix docnames with the repository name:
-
-.. code:: python
-
-   if hasattr(env.config, 'monolithic') and env.config.monolithic:
-        prefix = "repo_name"
-   else:
-        prefix = "."
-
-   _somedoc = path.join(prefix, _somedoc)
-
-For intermediary files, for example a SQLite database, it is recommended
-to anchor to ``outdir/../managed``:
-
-.. code:: python
-
-   dest_dir = path.abspath(path.join(env.app.builder.outdir, pardir, 'managed'))
-   sql_path = (dest_dir, "my_repo.sqlite")
-
-Indentation matters
--------------------
-
-Directives are indented with :green:`3 spaces`. At code directives, the code
-keeps its original indentation (e.g. 2 spaces for Verilog code, tabs for C
-code), but is offset by 3 spaces at the beginning of every line, to instruct
-Sphinx the beginning and end of the code directive.
-
-This offset tells Sphinx where the code directive starts and ends, Even though
-*wonky* offset may work, the end-result is frequently worse.
-
-The rule of thumb is to always align the next line with the first word of the previous line,
-like this:
-
-.. code:: rst
-
-   #. Parent ordered item.
-
-      * Child unordered item.
-
-        #. Child ordered item.
-        #. Child ordered item.
-
-   .. code::
-
-      void main()
-      {
-      	printf("Hello world");
-      }
-
-Renders as:
-
-#. Parent ordered item.
-
-   * Child unordered item.
-
-     #. Child ordered item.
-     #. Child ordered item.
-
-.. code::
-
-   void main()
-   {
-   	printf("Hello world");
-   }
-
-Table of contents
------------------
-
-The Table of Contents (ToC) is created with the ``toctree`` directive, and content
-added to it is included in the navigation bars and table of contents.
-
-The basic structure of a ``toctree`` is:
-
-.. code:: rst
-
-   .. toctree::
-      :maxdepth: <depth>
-
-      Custom title <path/to/page>
-
-For pages where the title is already short and clear (like library pages), the
-page name is taken directly from the file itself:
-
-.. code:: rst
-
-   .. toctree::
-
-      library/axi_dmac/index
-      library/spi_engine/index
-
-For longer titles (common in project documentation), override the visible label
-using a shorter alias:
-
-.. code:: rst
-
-   .. toctree::
-
-      AD7616-SDZ <projects/ad7616_sdz/index>
-
-This ensures that "AD7616-SDZ" is shown in the navigation instead of the full
-title defined in the page, such as "AD7616-SDZ HDL project".
-
-Position matters
-~~~~~~~~~~~~~~~~
-
-The placement of a ``toctree`` within a page determines where content is
-injected when generating a PDF.
-
-A recommended usage looks like:
-
-.. code:: rst
-
-   My evaluation board
-   ===================
-
-   User guides
-   -----------
-
-   To simplify and speed up bring-up, a ... .
-   They describe how ... .
-
-   .. toctree::
-      :caption: The user-guides are provided at:
-
-      hardware_guide
-      software_guide
-
-   Help and support
-   ----------------
-
-   ...
-
-In HTML output, this renders as:
-
-.. code:: rst
-
-   # My evaluation board
-
-   ## User guides
-
-   To simplify and speed up bring-up, a ... .
-   They describe how ... .
-   The user-guides are provided at:
-
-   * Hardware Guide
-   * Software Guide
-
-   ## Help and support
-
-   ...
-
-For PDF output, the caption ``The user-guides are provided at:`` is
-intentionally not rendered. This allows the caption to contextualize the list
-visually in HTML, and not on the PDF, where no list is rendered, but the actual
-sections.
-
-.. code:: markdown
-
-   # My evaluation board
-
-   ## User guides
-
-   ### Hardware Guide
-
-   <Hardware guide content>
-
-   ### Software Guide
-
-   <Software guide content>
-
-   ## Help and support
-
-   ...
-
-A common but :red:`incorrect` usage is placing a hidden ``toctree`` away from
-its related section:
-
-.. code:: rst
-
-   My evaluation board
-   ===================
-
-   Help and support
-   ----------------
-
-   To get help ...
-
-   .. toctree::
-      :hidden:
-
-      hardware_guide
-      software_guide
-
-In PDF output, this results in the user guides added **under** an
-:red:`unrelated` section:
-
-.. code:: markdown
-
-   # My evaluation board
-
-   ## Help and support
-
-   To get help ...
-
-   ### Hardware Guide
-
-   <Hardware guide content>
-
-   ### Software Guide
-
-   <Software guide content>
-
-
-Top-level caption
-~~~~~~~~~~~~~~~~~
-
-Captions on top-level ``toctree`` entries also appear in the sidebar. Use them
-to group related documentation areas logically—such as ``Software``,
-``Tutorials``, ``API Usage``, or ``Contributing``, rather than as explanatory
-phrases like ``Tutorials are provided at:``.
-
-You can think of top-level ``toctree`` captions as book volumes. For example,
-the :git-documentation:`/` uses them to organize areas like evaluation boards,
-university programs, and Linux drivers.
-
-With preview
-~~~~~~~~~~~~
-
-Doctools extends ``toctree`` with a ``toctree-preview``, that adds a
-description of the page right below the link. Only the first level is shown,
-even if ``maxdepth`` is set. Internally it uses the result of the
-:ref:`description` directive.
-
-It is useful when you have a list of projects and wants to provide a quick
-overview.
-
-.. _version:
-
-Versioning
-----------
-
-To avoid having the version set in multiple places or having to tweak ``conf.py``
-to obtain it from somewhere else, continuous integration can set the environment
-variable ``ADOC_DOC_VERSION`` to set the version value.
-
-The ``version`` value on ``conf.py`` has lower precedence, and
-will be overwritten if ``ADOC_DOC_VERSION`` is set.
-
-The CI, in general, should set ``ADOC_DOC_VERSION`` as the current checkout branch
-in the pipeline (e.g. ``main``, ``v1.0.0``), for GitHub Actions, that can be
-``${{ github.ref_name}}`` [#f1]_.
-
-.. tip::
-
-   If creating a branch or PR output, consider using GitHub short reference
-   ``${{ github.ref_name }}``.
-
-If both environment variable and ``version`` on ``conf.py`` are unset, it
-defaults to an empty string. For deployment layouts, see
-:ref:`deploy-versioned`.
-
-.. [#f1] Quick cheat sheet for ``github.ref_name`` values on event:
-
-         * push branch: ``main``, ``dev``, ...
-         * push tag: ``v2.2.2``, ``new-feature``, ...
-         * pull_request: ``1234/merge``, ``23/merge``, ...
-
-.. _local_refs:
-
-Local references
-----------------
-
-References to labels have the format :code:`:ref:\`context topic\``, e.g.
-:code:`:ref:\`role git\`` renders as :ref:`role git`.
-
-Labels are created for any content with the syntax
-(dot-dot underscore<label>two-dots):
-
-.. code:: rst
-
-   .. _context topic:
-
-.. hint::
-
-   Add labels to any content that may be linked, locally or
-   :ref:`externally <inter-refs>`.
-
-References to docs have the format :code:`:doc:\`path/to/doc\``, e.g.
-:code:`:doc:\`docs_guidelines\`` for *docs_guidelines.rst*.
-
-.. attention::
-
-   Do not break reference roles between lines!
-   Even though Sphinx allows breaking line inside the reference role,
-   it makes pattern matching hard.
-
-Prefer hyphen separation ``-`` over underline ``_`` for the "title" section,
-and always lower case,
-for example
-``my_code control-interface`` instead of ``MY_CODE Control_Interface``.
-
-Numbered references
-~~~~~~~~~~~~~~~~~~~
-
-References can be numbered by using :external+sphinx:rst:role:`numref`, for
-example, "*see Figure 1*".
-
-To use this feature, enable on the *conf.py*:
-
-.. code-block:: python
-
-   numfig = True
-
-To customize the format, set ``numfig_format``:
-
-.. code-block:: python
-
-   numfig_format = {'figure': 'Figure %s',
-                    'table': 'Table %s',
-                    'code-block': 'Listing %s',
-                    'section': 'Section %s'}
-
-.. tip::
-
-   By default enumeration is global, so if the
-   :external+sphinx:rst:dir:`toctree` is not ``numbered`` to divide the pages
-   in numbered sections (e.g. *Figure 3.4.4*), the numbering will "propagate"
-   across page which may be counter-intuitive.
-
-   To have the numbering reset at every page, add ``numfig_per_doc = True`` to
-   *conf.py*.
-
-.. _inter-refs:
-
-External references
--------------------
-
-External references to other Sphinx documentation are created using the built-in
-``sphinx.ext.intersphinx`` extension.
-
-To set up **in-organization** references read the :ref:`section below <in-org-ref>`,
-and for **third-party** docs, the section :ref:`that follows <out-org-ref>`.
-
-| For either, to create a reference to a **label**, use:
-| :code:`:external+inv:ref:\`label\``, where ``inv`` is a mapped source,
-  for example, :code:`:external+hdl:ref:\`spi_engine control-interface\``.
-
-| To create a reference to a **doc**, use:
-| :code:`:external+inv:doc:\`label\``, where ``inv`` is a mapped source,
-  for example, :code:`:external+hdl:doc:\`library/spi_engine/index\``.
-
-As the other roles, it is possible to customize the text, e.g.
-:code:`:external+hdl:ref:\`Custom text <spi_engine control-interface>\``.
-
-.. tip::
-
-    Pay attention to the log output, since
-    warnings is thrown for each reference not found.
-
-External references work with any kind of references, such as
-*ref*, *doc*, *envvar*, *token*, *term*, *numref* and *keyword*.
-
-| For references to **labels** it is possible to use the short form:
-| :code:`:ref-inv:\`label\`` (equivalent to :code:`:external+inv:ref:\`label\``),
-  but is discouraged.
-
-.. note::
-
-   Sphinx 8 allows the syntax :code:`:ref:\`<inv>:label\``,
-   which allows local references to have higher precedence than external
-   refs, useful for generating custom docs like user guides.
-   However, since some users may require Sphinx 7, use the former syntax,
-   and let :ref:`adoc <cli>` patch it when necessary.
-
-To show all links of an InterSphinx mapping file, use the built-in tool:
-
-.. code:: bash
-
-   python3 -m sphinx.ext.intersphinx https://analogdevicesinc.github.io/hdl/objects.inv
-
-.. _in-org-ref:
-
-In organization reference
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-To create references to Sphinx docs inside the organization add the repositories
-of interest to the `conf.py` file with the following format:
-
-.. code:: python
-
-   interref_repos = [external...]
-
-For example:
-
-.. code:: python
-
-   interref_repos = ['hdl', 'no-OS', 'pyadi-iio/main']
-
-Notice that in the example ``main`` suffixes ``pyadi-iio``, this means that will
-look for the build at path ``main`` of this repo instead of at root.
-This can be used to target a specific version, if the target repository stores
-multiple, for example, ``v1.1``, more about that :ref:`deploy-versioned`.
-
-.. tip::
-
-   For even more freedom, you can set up with an explicit path as
-   an :ref:`out-org-ref`.
-
-It is possible to customize the target URL with the ``interref_uri`` config or
-``ADOC_INTERREF_URI`` environment variables.
-The default value is *https://analogdevicesinc.github.io/* and can be set to a
-local path like *../../*.
-
-Beyond the main target dictated by *interref_uri*,
-by setting the config ``interref_local`` as true, a secondary target is inferred
-foreseeing a local copy of the target external documentation alongside the
-current repository:
-
-.. code::
-
-   /data/work
-   ├─my-repo-0/doc/sources
-   │
-   ├─my-repo-1/docs
-   │
-   └─my-repo-2/doc
-
-The correct relative paths are resolved looking into the ``lut.py``.
-
-.. _private-org-ref:
-
-Private organization Sphinx reference
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-For private docs:
-
-.. code:: python
-
-   interref_private_repos = ['krabby-patty-recipe', 'x-files/v1.1']
-
-``GITHUB_TOKEN`` from the environment or ``git credential fill`` is used.
-
-.. _out-org-ref:
-
-Outside organization Sphinx reference
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-To create references to third-party Sphinx documentations, add the mappings to
-the `conf.py` file with the following format:
-
-.. code:: python
-
-   intersphinx_mapping = {
-       '<name>': ('<path/to/external>', None)
-   }
-
-For example:
-
-.. code:: python
-
-   intersphinx_mapping = {
-       'sphinx': ('https://www.sphinx-doc.org/en/master', None)
-   }
-
-Text width
-----------
-
-Each line must be less than **80** columns wide. This visually ensures while
-writing that the paragraphs are concise and well structured.
-
-For **neovim**, you can visual select the block ``Ctrl+V`` then wrap with
-``gq``.
-
-For **vscode**, you can install
-`Rewrap <https://marketplace.visualstudio.com/items?itemName=stkb.rewrap>`__,
-select the block and wrap with ``Alt+Q``.
-
-As a last resort, you can use the :code:`fold` command to break the lines of the
-imported text while respecting word-breaks:
-
-.. code:: bash
-
-   cat imported.txt | fold -sw 80 > imported.rst
-
-The header divider "``---``" shall be either 80 characters wide or end at the
-title character, that means, this is also valid:
-
-.. code::
-
-   My title
-   ========
-
-.. _tables:
-
-Tables
-------
-
-Prefer
-`list-tables <https://docutils.sourceforge.io/docs/ref/rst/directives.html#list-table>`__
-and imported
-`csv-tables <https://docutils.sourceforge.io/docs/ref/rst/directives.html#csv-table-1>`__
-(using the file option), because they are faster to create, easier to maintain
-and the 80 column-width rule can be respected with list-tables.
-
-Only use :external+sphinx:ref:`Grid Tables <rst-tables>` if strictly necessary,
-since they are hard to update.
-
-To tune styling, the following classes are available:
-
-* *bold-header*: Make the header bold.
-* *bold-first-column*: Make the first column bold.
-
-Lists
------
-
-Unordered lists use ``*`` or ``-`` and ordered lists ``#.``.
-
-Child items must be aligned with the first letter of the parent item; that means,
-2 spaces for unordered lists and 3 spaces for ordered lists, for example:
+The documentation is written in reStructuredText (reST) and built with Sphinx
+and Doctools. This page explains how to write pages, add links, code, images,
+and tables, and organize the navigation.
+
+Sections marked :badge:`sphinx` work in any Sphinx documentation.
+Sections marked :badge:`doctools` require ``adi_doctools``.
+See :doc:`roles` and :doc:`directives` for all Doctools roles and directives,
+and :doc:`advanced` for configuration and extension development.
+
+For the full upstream reference, see Sphinx's
+:external+sphinx:doc:`Roles <usage/restructuredtext/roles>` and
+:external+sphinx:doc:`Directives <usage/restructuredtext/directives>`, and the
+:external+sphinx:doc:`reST primer <usage/restructuredtext/basics>`.
+
+Writing a page
+--------------
+
+Start with a title and a short paragraph saying what the page is about.
+Split the content into sections, and use numbered lists for step-by-step
+instructions, for example:
 
 .. code-block:: rst
 
-   #. Parent ordered item.
+   .. _board-setup:
 
-      * Child unordered item.
+   Board setup
+   ===========
 
-        #. Child ordered item.
-        #. Child ordered item.
+   Connect and configure the evaluation board.
 
-Renders as:
+   Prerequisites
+   -------------
 
-#. Parent numbered item.
+   * A USB cable.
+   * The board's power supply.
 
-   * Child unordered item.
+   Procedure
+   ---------
 
-     #. Child ordered item.
-     #. Child ordered item.
+   #. Connect the cable.
+   #. Apply power.
 
-Code
-----
+Use a consistent heading hierarchy within each file; do not skip levels.
+Underline headings with at least as many characters as the source title.
+Wrap prose to fewer than 80 columns. Do not wrap inside a reference role or
+a URL. Code examples should retain their language's own indentation.
 
-Prefer :external+sphinx:rst:dir:`code-block` to ``code`` directives, because
-code-blocks have more options, such as showing line numbers and emphasizing
-lines.
+For directives, lists, the indentation rule of
+thumb is to align with the content to the previous line, never indent less than
+the marker, for example ``.. note::`` 3 spaces, ``#. Step`` 3 spaces, ``* Item`` 2 spaces.
+Leave a blank line between the directive options and its content, as well as a blank line
+to close the content block:
 
-For example,
+.. code-block:: rst
 
-.. code:: rst
+   #. Configure the device.
+
+      * Select the interface.
+      * Set the sample rate:
+
+        .. code-block:: bash
+           :caption: Set the sample rate to 1 MSPS
+
+           iio_attr -c ad4052 voltage0 sampling_frequency 1000000
+
+Inline markup and roles :badge:`sphinx`
+------------------------------------------------
+
+Roles format a short piece of text inside a paragraph, with the syntax
+``:role:`content```; see Sphinx's
+:external+sphinx:doc:`roles reference <usage/restructuredtext/roles>`. Plain
+reST also provides ``*italic*``, ``**bold**``, and double backticks for
+``inline code``.
+
+.. list-table:: Common inline roles
+   :header-rows: 1
+   :widths: 25 40 35
+
+   * - Use
+     - Source
+     - Result
+   * - :external+sphinx:rst:role:`Command <command>`
+     - ``:command:`make```
+     - :command:`make`
+   * - :external+sphinx:rst:role:`Program <program>`
+     - ``:program:`python```
+     - :program:`python`
+   * - :external+sphinx:rst:role:`Path with a variable part <file>`
+     - ``:file:`/sys/{device}/config```
+     - :file:`/sys/{device}/config`
+   * - :external+sphinx:rst:role:`Replaceable command argument <samp>`
+     - ``:samp:`adoc serve -p {port}```
+     - :samp:`adoc serve -p {port}`
+   * - :external+sphinx:rst:role:`Keyboard shortcut <kbd>`
+     - ``:kbd:`Control-C```
+     - :kbd:`Control-C`
+   * - :external+sphinx:rst:role:`UI label <guilabel>`
+     - ``:guilabel:`Apply```
+     - :guilabel:`Apply`
+   * - :external+sphinx:rst:role:`Menu path <menuselection>`
+     - ``:menuselection:`File --> Open```
+     - :menuselection:`File --> Open`
+   * - :external+sphinx:rst:role:`Abbreviation <abbr>`
+     - ``:abbr:`ADC (analog-to-digital converter)```
+     - :abbr:`ADC (analog-to-digital converter)`
+   * - :external+sphinx:rst:role:`Inline code <code>`
+     - ``:code:`value = 1```
+     - :code:`value = 1`
+   * - :external+sphinx:rst:role:`Inline mathematics <math>`
+     - ``:math:`f_s = 1/T```
+     - :math:`f_s = 1/T`
+
+Other roles include :external+sphinx:rst:role:`dfn` for defining a term,
+:external+sphinx:rst:role:`regexp` for a regular expression,
+:external+sphinx:rst:role:`makevar` for a Make variable,
+:external+sphinx:rst:role:`manpage` for a manual page, and
+:external+sphinx:rst:role:`mimetype` or :external+sphinx:rst:role:`mailheader`
+for protocol text. :external+sphinx:rst:role:`pep`,
+:external+sphinx:rst:role:`rfc`, :external+sphinx:rst:role:`cve`, and
+:external+sphinx:rst:role:`cwe` link to standards and security entries.
+
+Inline :external+sphinx:rst:role:`code` is not syntax-highlighted by default.
+Define a language role when needed:
+
+.. code-block:: rst
+
+   .. role:: python(code)
+      :language: python
+
+   Use :python:`len(samples)` to count samples.
+
+The :external+sphinx:ref:`substitutions <default-substitutions>`
+``|version|``, ``|release|``, and ``|today|`` come from Sphinx
+configuration. Use ``version`` for the short version and ``release``
+for the full release string.
+
+.. _local_refs:
+
+Links and references :badge:`sphinx`
+---------------------------------------------
+
+Use references instead of hard-coded HTML URLs for content in the same
+project. Sphinx checks them and reports missing targets. See
+:external+sphinx:doc:`Cross-references <usage/referencing>`.
+
+.. code-block:: rst
+
+   .. _device-configuration:
+
+   Device configuration
+   --------------------
+
+   See :ref:`device-configuration`.
+   See :ref:`Configure the device <device-configuration>`.
+   Read :doc:`Installation <../install>`.
+   Visit `Analog Devices <https://www.analog.com/>`__.
+
+* :external+sphinx:rst:role:`ref` points to a label, normally placed immediately
+  before a heading. Labels are unique throughout the project; use descriptive
+  lower-case names.
+* :external+sphinx:rst:role:`doc` points to a source document **without** its
+  extension. Relative paths start at the current document; ``/`` starts at the
+  source root.
+* :external+sphinx:rst:role:`download` links a downloadable source file, for
+  example ``:download:`Fruit list <sample/fruits.csv>```.
+* :external+sphinx:rst:role:`numref` links numbered figures, tables, and code
+  listings with captions and names. Enable ``numfig = True`` in ``conf.py``
+  first; see :ref:`advanced-configuration` for numbering configuration.
+
+For example, :ref:`tables` links to a section, :doc:`../install` links to a
+page, and :download:`the sample CSV <sample/fruits.csv>` downloads a file.
+
+For API documentation, use domain roles such as ``py:func``, ``py:class``,
+``c:func``, or ``cpp:class`` with objects documented by that domain. Prefer a
+specific role to ``any`` when the target type is known. Prefix ``~`` in
+supported object roles to shorten the displayed qualified name; prefix ``!``
+to suppress linking. See :external+sphinx:doc:`Domains <usage/domains/index>`.
+
+Glossaries and documented options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use :external+sphinx:rst:role:`term` for :external+sphinx:rst:dir:`glossary`
+entries and :external+sphinx:rst:role:`option` or
+:external+sphinx:rst:role:`envvar` for documented command-line options or
+environment variables. These roles link to matching directives, not to arbitrary
+strings:
+
+.. code-block:: rst
+
+   .. glossary::
+
+      sample rate
+         Number of measurements acquired per second.
+
+   See :term:`sample rate`.
+
+   .. program:: capture
+
+   .. option:: --rate HZ
+
+      Select the sample rate.
+
+   Run :program:`capture` with :option:`--rate`.
+
+.. _inter-refs:
+
+External Sphinx references :badge:`sphinx`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:external+sphinx:ref:`Intersphinx <ext-intersphinx>` resolves references against
+another project's inventory. Enable ``sphinx.ext.intersphinx`` in ``conf.py``
+and add a mapping:
+
+.. code-block:: python
+
+   intersphinx_mapping = {
+       'sphinx': ('https://www.sphinx-doc.org/en/master', None),
+   }
+
+Use the inventory name explicitly to avoid ambiguous targets:
+
+.. code-block:: rst
+
+   :external+sphinx:rst:dir:`code-block`
+   :external+sphinx:doc:`Roles <usage/restructuredtext/roles>`
+
+These render as :external+sphinx:rst:dir:`code-block` and
+:external+sphinx:doc:`Roles <usage/restructuredtext/roles>`. Use ``ref`` for
+external labels, ``doc`` for pages, and domain roles for documented objects.
+If the target does not exist in the other project, the build shows a warning.
+
+.. _out-org-ref:
+
+Third-party inventories
++++++++++++++++++++++++
+
+Add other projects to ``intersphinx_mapping`` in the same way, using their
+published documentation URL and inventory name. Prefer inventories to URLs
+containing theme-specific HTML anchors.
+
+.. _in-org-ref:
+
+ADI repository references :badge:`doctools`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Doctools can configure organization inventories from repository names:
+
+.. code-block:: python
+
+   interref_repos = ['hdl', 'no-OS', 'pyadi-iio/main']
+
+The suffix selects a deployed build. For example, a reference into HDL is
+``:external+hdl:ref:`spi_engine control-interface```; use the actual label
+exported by the target repository. Private inventories and local checkouts
+are covered in :ref:`advanced-configuration`.
+
+For source-code links rather than documentation references, use
+:ref:`the Git role <role git>`:
+``:git-doctools:`docs/docs_guidelines/index.rst```. See :doc:`roles` for ADI,
+EngineerZone, vendor, and supplier links.
+
+Code and reusable content :badge:`sphinx`
+--------------------------------------------------
+
+Use :external+sphinx:rst:dir:`code-block` for multiline code. Useful options are
+``linenos``, ``emphasize-lines``, ``caption``, and ``name``:
+
+.. code-block:: rst
 
    .. code-block:: python
+      :caption: Read one sample
+      :name: read-sample-example
       :linenos:
       :emphasize-lines: 2
 
-      def hello_world():
-          string = "Hello world"
-          print(string)
+      def read_sample(device):
+          return device.read()
 
-Renders as:
+Use :external+sphinx:rst:dir:`literalinclude` to display maintained source files
+instead of copying them into prose. Paths are relative to the current source
+document. Select excerpts with ``lines``, ``start-after``, or ``end-before``;
+choose syntax highlighting with ``language``:
 
-.. code-block:: python
-   :linenos:
-   :emphasize-lines: 2
+.. code-block:: rst
 
-   def hello_world():
-       string = "Hello world"
-       print(string)
+   .. literalinclude:: sample/fruits.csv
+      :language: text
+      :caption: Fruit data
+      :lines: 1-3
 
-Preserve the original code indentation, just offset it by :green:`3 spaces`.
+Use `include <docutils-include_>`__ when the file contains reST that should be
+*parsed*, not shown as code. Store reusable fragments with a non-``.rst`` suffix
+(e.g. ``.inc``) so they are not also built as standalone pages.
 
-Images
-------
+For command sessions with prompts, working directories, and output, use the
+Doctools :doc:`shell directive <directives>` rather than manually formatting
+prompts in code blocks.
 
-For real photos, use the ``figure`` directive, it enables a link to open
-the image (or *click-to-zoom* with JavaScript enabled). For PDF LaTeX builds
-it also properly align the figure in the page without relying on the image width.
+Notes and warnings :badge:`sphinx`
+-------------------------------------------
 
-Use ``image`` for logos, symbols, instances where you don't want the image resized.
+Use :external+sphinx:rst:dir:`note` for context, :external+sphinx:rst:dir:`tip`
+or :external+sphinx:rst:dir:`hint` for advice,
+:external+sphinx:rst:dir:`important` for required information, and
+:external+sphinx:rst:dir:`warning`, :external+sphinx:rst:dir:`caution`, or
+:external+sphinx:rst:dir:`danger` for risks.
+:external+sphinx:rst:dir:`attention` and :external+sphinx:rst:dir:`error` are
+also available; :external+sphinx:rst:dir:`admonition` takes a custom title and
+:external+sphinx:rst:dir:`seealso` lists related pages. Avoid putting ordinary
+explanatory text into callouts.
 
-For diagrams, or any vector, prefer the SVG format for images, and save it as
-*Optimized SVG* in `inkscape <https://inkscape.org/>`_ to use less space.
+.. code-block:: rst
 
-Store them in a hierarchy, do not use ``images`` subdirectories. The idea is to
-have simpler relative paths, for example, e.g.:
+   .. warning::
 
-.. code:: rst
+      Disconnect power before changing the jumpers.
 
-   .. image:: ad2234_sdz_schematic.svg
+   .. admonition:: Before you start
 
-Or even simpler ``schematic.svg``, if already in a ``ad2234`` directory.
+      Check the board revision.
 
-Instead of overcomplicated paths like:
+   .. seealso::
 
-.. code:: rst
+      :doc:`Installation <../install>`
 
-   .. image:: ../../project/images/ad2234_sdz/ad2234_sdz_schematic.svg
+For a short visual heading without a new section, use
+:external+sphinx:rst:dir:`rubric`. Use real
+section headings when the content should appear in navigation.
 
-In general, this avoids dangling artifacts and keeps the documentation simple.
+.. _guide-version-notes:
 
-In dark theme, the images have a white background by default, to remove it, use
-class ``no-background``:
+Version history :badge:`sphinx`
+----------------------------------------
 
-.. code:: rst
+Use these directives to record changes to a feature. Explain what changed and,
+for deprecations and removals, what to use instead:
 
-   .. image:: ad2234_sdz_schematic.svg
-      :class: no-background
+.. code-block:: rst
 
-To show only on the light theme, use ``only-light``, and ``only-dark`` to show
-only on the dark theme. Analogous, ``only-print`` to show only on printable
-format (PDFs), and ``only-screen`` only on screens (HTML).
+   .. version-added:: 1.23
+      Added streaming capture.
 
-.. _git-lfs:
+   .. version-changed:: 1.24
+      Capture now returns timestamps.
 
-Git Large File Storage
-----------------------
+   .. version-deprecated:: 1.25
+      Use streaming capture instead of polling.
 
-Where applicable, Git Large File Storage (LFS) is used to replace large files
-with text pointers inside Git, reducing cloning time.
+   .. version-removed:: 2.0
+      Polling was removed; use streaming capture.
 
-To setup, install from your package manager and init:
+See Sphinx's :external+sphinx:rst:dir:`version-added` for details.
 
-.. code:: bash
+Images and mathematics :badge:`sphinx`
+-----------------------------------------------
 
-   apt install git-lfs
-   git lfs install --skip-smudge
+Use `figure <docutils-figure_>`__ when an image needs a caption or a numbered
+reference; use `image <docutils-image_>`__ for an uncaptioned logo or
+illustration. Provide alternative text and prefer SVG for diagrams:
 
-The files that will use Git LFS are tracked at ``.gitattributes``, to add new
-files use a pattern at the repo root, for example:
+.. code-block:: rst
 
-.. code:: bash
+   .. figure:: schematic.svg
+      :alt: ADC connected to the controller over SPI
+      :width: 80%
+      :name: adc-connections
 
-   git lfs track *.jpg
+      Connections between the ADC and controller.
 
-Or edit ``.gitattributes`` directly.
+Keep assets next to the page or under a relevant topic rather than adding
+long chains of ``../../`` paths. Doctools' ``no-background`` class removes
+an image's default white background in dark mode. ``only-light`` and
+``only-dark`` select theme-specific assets; ``only-print`` and ``only-screen``
+select print versus screen presentation.
 
-Common sections
----------------
+Use :external+sphinx:rst:dir:`math` for a displayed equation and
+:external+sphinx:rst:role:`math` inline. A labeled ``math`` block can be
+referenced with ``:eq:`label```:
 
-HDL common sections
-~~~~~~~~~~~~~~~~~~~
+.. code-block:: rst
 
-The **More information** and **Support** sections that are present in
-the HDL project documentation, are actually separate pages inserted as links.
-They're located at *hdl/projects/common/more_information.rst* and */support.rst*,
-and cannot be referenced here because they don't have an ID at the beginning
-of the page, so not to have warnings when the documentation is rendered that
-they're not included in any toctree.
+   .. math::
+      :label: sample-period
 
-They are inserted like this:
+      T = \frac{1}{f_s}
 
-.. code-block::
+   The sample period follows :eq:`sample-period`.
 
-   .. include:: ../common/more_information.rst
+.. _tables:
 
-   .. include:: ../common/support.rst
+Tables :badge:`sphinx`
+-------------------------------
 
-And will be rendered as sections of the page.
+Use tables for data organized in rows and columns. To place links or content
+side by side, use :ref:`cards and grids <guide-layout>` instead.
+All the table types below are built-in; the Doctools CSS classes at the end
+are optional.
 
-Dynamic elements
-----------------
+List tables
+~~~~~~~~~~~
 
-Dynamic elements refer to sections of the documentation that are updated using
-dynamically loaded metadata, scripts, and styles (modules).
+Prefer `list-table <docutils-list-table_>`__ for hand-maintained data. Each
+outer item is a row; each inner item is a cell. Every row must contain the same
+number of cells. ``header-rows`` identifies column headers, ``stub-columns``
+identifies row headers, and ``widths`` sets relative column widths:
 
-The dynamic elements implemented:
+.. code-block:: rst
 
-* ``doctools/metadata.json``:
+   .. list-table:: Fruits
+      :name: fruit-table
+      :header-rows: 1
+      :stub-columns: 1
+      :widths: 25 75
 
-   - The navigation bar at the top (``repotoc`` entry).
-   - A banner at the top (``banner`` entry).
+      * - Fruit
+        - Color
+      * - Papaya
+        - Orange inside, green to yellow outside.
+      * - Rambutan
+        - Red, with soft spines.
 
-The metadata/modules files are generated when ``core_repo`` is true in the
-``conf.py``.
-From the JavaScript side, it fetches first
-``{content_root}[../versioned]/../doctools/[versioned]/metadata.json``,
-which contains the basic metadata and the list of the extra scripts and styles.
+.. list-table:: Fruits
+   :name: fruit-table
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 25 75
 
-.. note::
+   * - Fruit
+     - Color
+   * - Papaya
+     - Orange inside, green to yellow outside.
+   * - Rambutan
+     - Red, with soft spines.
 
-   Path ``version`` is present and set if ``latest`` exists at
-   ``{content_root}/../doctools`` and the stored version can be extracted.
+Cells can contain inline roles, references, paragraphs, and lists; indent
+nested content under the cell's text. A list table cannot span cells.
 
-To add new JavaScript modules and CSS styles:
+CSV tables
+~~~~~~~~~~
 
-* Update :git-doctools:`ci/rollup.config.app.mjs`.
-* Add the list of modules to :git-doctools:`adi_doctools/lut.py`.
+Use `csv-table <docutils-csv-table_>`__ for imported or generated data.
+``file`` is relative to the source document; ``header-rows: 1`` uses the file's
+first row as headings:
 
-The rollup should always output to the ``static`` directory, the same as the
-base ``app.umd.js`` and ``app.min.css``.
+.. code-block:: rst
 
-Example use cases/suggestions:
+   .. csv-table:: Fruits from a file
+      :file: sample/fruits.csv
+      :header-rows: 1
+      :widths: 25 75
 
-* An ever improving ``search.umd.js``, that follows the natural evolution of the doc (in progress).
-* A unified footer across releases, using DOM manipulation by a ``footer.umd.js``.
+.. csv-table:: Fruits from a file
+   :file: sample/fruits.csv
+   :header-rows: 1
+   :widths: 25 75
 
-Known issues
-~~~~~~~~~~~~
+:download:`Download the CSV <sample/fruits.csv>`. For inline CSV, use
+``header`` to supply column names separately:
 
-* On Firefox on Windows, fetch requests can only happen to the same port (8000 -> 8000),
-  so :ref:`serve` daemon must be on port 8000
+.. code-block:: rst
+
+   .. csv-table:: Fruits
+      :header: "Fruit", "Color"
+
+      "Papaya", "Orange, yellow"
+      "Rambutan", "Red"
+
+Quote cells containing commas and double embedded quotation marks according
+to CSV rules. Options such as ``delim`` and ``encoding`` handle other inputs.
+
+Simple and grid tables
+~~~~~~~~~~~~~~~~~~~~~~
+
+:external+sphinx:ref:`Simple tables <rst-tables>` work for short text. Blank
+lines separate multiline rows; empty first-column cells need special care.
+Prefer list tables once editing becomes awkward:
+
+.. code-block:: rst
+
+   ========  ==============
+   Fruit     Color
+   ========  ==============
+   Papaya    Orange, yellow
+   Rambutan  Red
+   ========  ==============
+
+Grid tables support multiline cells and row/column spans. Draw every border
+carefully; the ``=`` separator marks the header boundary. Use
+`table <docutils-table_>`__ to
+add a caption, name, and widths:
+
+.. code-block:: rst
+
+   .. table:: Fruits
+      :name: grid-fruits
+      :widths: 25 75
+
+      +----------+----------------+
+      | Fruit    | Color          |
+      +==========+================+
+      | Papaya   | Orange, yellow |
+      +----------+----------------+
+      | Rambutan | Red            |
+      +----------+----------------+
+
+See :external+sphinx:ref:`Grid tables <rst-tables>` for the full syntax.
+
+HTML, PDF, and long tables
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* Give tables a caption and a header row; do not simulate headers with bold
+  text alone. Use ``name`` and ``numref`` when numbering is enabled.
+* Keep cells concise and avoid very wide tables. Relative ``widths`` are
+  layout hints, not a guarantee of identical HTML and PDF wrapping.
+* For multipage PDF tables, add ``:class: longtable``. Sphinx's
+  :external+sphinx:rst:dir:`tabularcolumns` sets LaTeX column specifications
+  for the next table; it does not control HTML widths.
+* Avoid enormous cells with nested blocks: a single table row may not fit
+  on a PDF page. Split the data into smaller tables when necessary.
+* Do not use ``raw:: html`` tables for normal documentation: they disappear
+  from PDF and text output.
+
+For example, a LaTeX-specific width override for an imported long table is:
+
+.. code-block:: rst
+
+   .. tabularcolumns:: |p{2cm}|p{9cm}|
+
+   .. csv-table:: Fruit catalog
+      :file: sample/fruits.csv
+      :header-rows: 1
+      :widths: 20 80
+      :class: longtable
+
+The Doctools theme also provides ``bold-header`` and ``bold-first-column``
+classes, e.g. ``:class: bold-header bold-first-column``. These change visual
+emphasis, not table semantics. See the
+`Tables with Sphinx
+<https://tables-with-sphinx.readthedocs.io/en/latest/>`__ for HTML/PDF
+comparisons; its examples use an older Sphinx release, so check
+current Sphinx options before copying builder-specific workarounds.
+
+.. _guide-layout:
+
+Cards, grids, and tabs :badge:`doctools`
+---------------------------------------------
+
+Use cards for navigation, not for tabular data. Doctools provides its own
+``grid``, ``flex``, and ``card`` directives; they do not require sphinx-design
+and do not share all of that extension's options. Card targets use reference
+labels:
+
+.. code-block:: rst
+
+   .. grid::
+      :columns: 2
+
+      .. card:: Custom roles
+         :ref: role
+
+         Links, colors, and badges.
+
+      .. card:: Custom directives
+         :ref: directive
+
+         Layout, shell sessions, and media.
+
+.. grid::
+   :columns: 2
+
+   .. card:: Custom roles
+      :ref: role
+
+      Links, colors, and badges.
+
+   .. card:: Custom directives
+      :ref: directive
+
+      Layout, shell sessions, and media.
+
+``grid`` chooses columns; ``flex`` lets content flow. Both adapt to narrow
+screens. Use ``collapsible`` for optional details and ``tab-set`` with
+``tab-item`` for alternatives, like Linux and Windows instructions. Do not
+put required steps inside a collapsed block.
+For syntax and rendered examples, see :doc:`directives`.
+
+Navigation and page order :badge:`sphinx`
+--------------------------------------------------
+
+:external+sphinx:rst:dir:`toctree` connects pages into the documentation
+hierarchy. Entries are source document names without extensions, relative to the
+containing file:
+
+.. code-block:: rst
+
+   .. toctree::
+      :maxdepth: 2
+      :caption: The following user guides are available:
+
+      hardware-guide
+      Software setup <software-guide>
+
+Use ``maxdepth`` to limit displayed section levels, ``titlesonly`` for page
+titles alone, and ``numbered`` on a top-level tree for section numbering.
+``glob`` matches document names; ``hidden`` records hierarchy without an in-page
+list. `contents <docutils-contents_>`__ instead creates a list of
+headings in the current page; it does not connect documents.
+
+Place a toctree in the section where its documents belong. In PDF its entries
+become content **at that location**, including for hidden trees. Do not put
+user-guide documents under an unrelated "Help and support" heading.
+The ``caption`` is hidden on PDF output, use it to briefly describe the HTML
+pages available (while on a PDF, the sections immediately follow on the next
+pages).
+
+Doctools' ``toctree-preview`` adds page descriptions below the first-level
+links, using the :ref:`description` directive. This is a
+:badge:`doctools` enhancement.
+
+Before publishing
+-----------------
+
+* Preview with :ref:`serve` and check the build warnings for missing
+  references, invalid syntax, unlisted pages, among others.
+* Check that example commands work, and that images have alt text.
+* Use :external+sphinx:rst:dir:`only` (e.g. ``only:: html`` or ``only:: latex``)
+  only when the HTML and PDF really need different content.
+* Extension setup, custom JavaScript, version configuration, wiki imports,
+  and repository-specific quirks are described in :ref:`advanced-configuration`.
+
+Reference and advanced guide
+----------------------------
+
+.. toctree::
+   :caption: The following section describe Doctools custom tools and advanced usage:
+   :maxdepth: 1
+
+   roles
+   directives
+   advanced
+
+.. _docutils-csv-table: https://docutils.sourceforge.io/docs/ref/rst/directives.html#csv-table
+.. _docutils-figure: https://docutils.sourceforge.io/docs/ref/rst/directives.html#figure
+.. _docutils-image: https://docutils.sourceforge.io/docs/ref/rst/directives.html#image
+.. _docutils-include: https://docutils.sourceforge.io/docs/ref/rst/directives.html#include
+.. _docutils-list-table: https://docutils.sourceforge.io/docs/ref/rst/directives.html#list-table
+.. _docutils-table: https://docutils.sourceforge.io/docs/ref/rst/directives.html#table
+.. _docutils-contents: https://docutils.sourceforge.io/docs/ref/rst/directives.html#contents

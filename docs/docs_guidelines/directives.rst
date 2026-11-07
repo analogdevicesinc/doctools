@@ -6,7 +6,8 @@ Custom directives
 Doctools custom Sphinx directives allow better formatting, and add extra
 features, such as videos and shell code snippets.
 
-Below, every added directive is explained with examples.
+Below, every added directive is explained with examples. For built-in code
+blocks, notes, figures, tables, and navigation, see :ref:`docs_guidelines`.
 
 Container
 ~~~~~~~~~

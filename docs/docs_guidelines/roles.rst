@@ -6,7 +6,8 @@ Custom roles
 Doctools custom Sphinx roles allow better linking, such as git links, and
 formatting, like font coloring.
 
-Below, every added role is explained with examples.
+Below, every added role is explained with examples. For Sphinx's built-in roles and
+references, see :ref:`docs_guidelines`.
 
 .. note::
 
