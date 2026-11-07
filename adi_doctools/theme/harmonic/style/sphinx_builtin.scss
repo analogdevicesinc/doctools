@@ -1,0 +1,29 @@
+/* Sphinx built-in roles, directives. */
+
+@use 'variable';
+
+.body .versionmodified {
+    font-weight: 600;
+
+    &.added { color: variable.$hmc-color-blue-700; }
+    &.changed { color: variable.$hmc-color-purple-700; }
+    &.deprecated, &.removed { color: variable.$hmc-color-red-700; }
+}
+
+@mixin dark-version-colors {
+    .body .versionmodified {
+        &.added { color: variable.$hmc-color-blue-300; }
+        &.changed { color: variable.$hmc-color-purple-300; }
+        &.deprecated, &.removed { color: variable.$hmc-color-red-300; }
+    }
+}
+
+body.dark {
+    @include dark-version-colors;
+}
+
+@media (prefers-color-scheme: dark) {
+    body:not(.light) {
+        @include dark-version-colors;
+    }
+}
