@@ -65,7 +65,7 @@ export class ContentActions {
       {'className': 'collections'}
     ).append(header)
 
-    tocwrapper.append(this.$.collection)
+    tocwrapper.$.prepend(this.$.collection.$)
   }
   auto_collection_name (repo, path) {
     const repo_name = repo in this.parent.state.metadata.repotoc ?
@@ -102,7 +102,8 @@ export class ContentActions {
     ul.append(new DOM('li').append(m))
   }
   add_collection (name, obj) {
-    if (!this.$.collection)
+    const first = !this.$.collection
+    if (first)
       this.init_collection_wrapper()
 
     const id = name.replace(" ", "-")
@@ -115,7 +116,7 @@ export class ContentActions {
       'type': 'checkbox',
       'id': `collection-${id}`,
     })
-    input_collection.$.checked = true
+    input_collection.$.checked = first
     collection.innerText = name
 
     let ul = new DOM('ul')
