@@ -90,7 +90,7 @@ export class ContentActions {
     const path = docname.endsWith('/index') ? docname.slice(0, -5) : `${docname}/`
     return new URL(path, base)
   }
-  add_collection_entry (ul, repo, entry, props) {
+  add_collection_entry (ul, repo, entry, props, current) {
     const name = "name" in props ? props["name"] : this.auto_collection_name(repo, entry)
     const metadata = this.parent.state.metadata
     const use_alt = new URL(metadata.remote_alt).hostname === location.hostname
@@ -98,10 +98,12 @@ export class ContentActions {
     const base = use_alt ? metadata.remote_alt : metadata.remote_doc
     const url = this.dirhtml_url(`${repository}/${entry}`, base)
     const m = new DOM('a', {'href': url})
+    if (`${repo}/${entry}` === current)
+      m.classList.add('current')
     m.innerText = name
     ul.append(new DOM('li').append(m))
   }
-  add_collection (name, obj) {
+  add_collection (name, obj, current) {
     const first = !this.$.collection
     if (first)
       this.init_collection_wrapper()
@@ -122,7 +124,7 @@ export class ContentActions {
     let ul = new DOM('ul')
     for (const repo in obj) {
       for (const page in obj[repo])
-        this.add_collection_entry(ul, repo, page, obj[repo][page])
+        this.add_collection_entry(ul, repo, page, obj[repo][page], current)
     }
     this.$.collection.append([
       new DOM('div', {'className': 'group'}).append([
@@ -158,7 +160,7 @@ export class ContentActions {
       for (const page in pages) {
         const collection_base = this.dirhtml_url(page, base).href
         if (path.startsWith(collection_base)) {
-          this.add_collection(key, obj["collection"][key]['include'])
+          this.add_collection(key, obj["collection"][key]['include'], `${repo}/${page}`)
           break
         }
       }
