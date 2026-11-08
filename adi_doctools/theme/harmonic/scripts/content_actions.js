@@ -56,7 +56,6 @@ export class ContentActions {
     })
   }
   init_collection_wrapper () {
-    let tocwrapper = new DOM(DOM.get('.localtoc .tocwrapper'))
     let header = new DOM('div', {
       'className': 'header'
     })
@@ -65,7 +64,7 @@ export class ContentActions {
       {'className': 'collections'}
     ).append(header)
 
-    tocwrapper.$.prepend(this.$.collection.$)
+    DOM.get('.localtoc .localtoc-header').before(this.$.collection.$)
   }
   auto_collection_name (repo, path) {
     const repo_name = repo in this.parent.state.metadata.repotoc ?

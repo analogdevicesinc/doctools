@@ -16,6 +16,7 @@
     /* Ensure icon inclusion */
     @include mixin_icons.icons(("edit"));
     @include mixin_icons.icons(("checkmark"));
+    @include mixin_icons.icons(("bookmark", "bookmark-fill"));
 
     a, button {
         cursor: pointer;
@@ -58,6 +59,14 @@
     mask-image: var(--icon-checkmark);
 }
 
+.save::before {
+    mask-image: var(--icon-bookmark);
+}
+
+.save.on::before {
+    mask-image: var(--icon-bookmark-fill);
+}
+
 @media print {
     .page-actions {
         display: none;
@@ -86,6 +95,10 @@
 }
 
 @media (min-width: variable.$screen-0) and (max-width: variable.$screen-2) {
+    .page-actions .save::before {
+        margin-right: 0;
+    }
+
     .edit-source::after {
         content: "Edit";
     }
@@ -102,5 +115,9 @@
 
     .copy-as-markdown::after {
         content: "Copy content";
+    }
+
+    .save::after {
+        content: "Save";
     }
 }

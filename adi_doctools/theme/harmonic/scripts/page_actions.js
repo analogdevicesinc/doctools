@@ -1,6 +1,6 @@
 "use strict";
 import {DOM} from './dom.js'
-import {Toolbox} from './toolbox.js'
+import {Toolbox, Channel} from './toolbox.js'
 import {HTMLToMarkdown} from './html2md.js'
 
 /**
@@ -9,6 +9,7 @@ import {HTMLToMarkdown} from './html2md.js'
  * * An edit page button to open the page source code on the git hosting website.
  * * An copy as markdown button
  * * Resolve stub pages
+ * * Save page, with the bookmarks listed above the local toc
  */
 export class PageActions {
   constructor (app) {
@@ -23,6 +24,7 @@ export class PageActions {
 
     this.parent.versioned.then(this.handler_stub.bind(this))
     this.md_converter = new HTMLToMarkdown(location.href)
+    this.channel = new Channel('bookmarks')
 
     app.page_actions = this
   }
@@ -94,10 +96,127 @@ export class PageActions {
         console.error(err)
       })
   }
+  get_bookmarks () {
+    try {
+      return JSON.parse(localStorage.getItem('bookmarks')) || []
+    } catch {
+      return []
+    }
+  }
+  set_bookmarks (bookmarks) {
+    localStorage.setItem('bookmarks', JSON.stringify(bookmarks))
+    this.channel.post(bookmarks)
+    this.update_bookmarks(bookmarks)
+  }
+  current_page () {
+    let path
+    if (this.parent.state.offline)
+      path = new URL("file://"+location.pathname).href
+    else
+      path = new URL(location.pathname, location.origin).href
+    const base = new URL(this.parent.state.content_root, path).href
+    const h1 = document.querySelector('.body h1')
+    return {
+      repo: this.repository,
+      version: this.parent.state.path || '',
+      path: path.substring(base.length).replace(/(^|\/)index\.html$/, '$1'),
+      title: h1 ? [...h1.childNodes]
+        .filter(n => !n.classList?.contains('headerlink'))
+        .map(n => n.textContent).join('').trim() : document.title,
+    }
+  }
+  same_bookmark (a, b) {
+    return a.repo === b.repo && (a.version || '') === (b.version || '') &&
+      a.path === b.path
+  }
+  is_current (entry) {
+    return this.same_bookmark(entry, this.current_page())
+  }
+  toggle_bookmark () {
+    const bookmarks = this.get_bookmarks()
+    if (bookmarks.some(e => this.is_current(e)))
+      this.set_bookmarks(bookmarks.filter(e => !this.is_current(e)))
+    else
+      this.set_bookmarks([...bookmarks, this.current_page()])
+  }
+  remove_bookmark (entry) {
+    this.set_bookmarks(this.get_bookmarks().filter(e => !this.same_bookmark(e, entry)))
+  }
+  bookmark_url (entry) {
+    const metadata = this.parent.state.metadata
+    const use_alt = new URL(metadata.remote_alt).hostname === location.hostname
+    const repository = use_alt ? metadata.repotoc[entry.repo]?.alt || entry.repo : entry.repo
+    const base = use_alt ? metadata.remote_alt : metadata.remote_doc
+    const version = entry.version ? `${entry.version}/` : ''
+    return new URL(`${repository}/${version}${entry.path}`, base)
+  }
+  draw_bookmarks () {
+    const tocwrapper = DOM.get('.localtoc .tocwrapper')
+    if (!tocwrapper || !this.parent.state.metadata)
+      return
+
+    const input = DOM.new('input', {
+      'className': 'collection-collapse',
+      'type': 'checkbox',
+      'id': 'bookmarks-collapse',
+    })
+    input.checked = this.bookmarks_open === true
+    const label = DOM.new('label', {
+      'className': 'header',
+      'htmlFor': 'bookmarks-collapse',
+      'innerText': 'Bookmarks',
+    })
+    this.$.bookmarks_list = DOM.new('ul')
+    const span = DOM.new('span', {'className': 'span-ul'})
+    span.append(this.$.bookmarks_list)
+    const content = DOM.new('div', {'className': 'content'})
+    content.append(input, label, span)
+
+    this.$.bookmarks = DOM.new('div', {'className': 'bookmarks'})
+    this.$.bookmarks.append(content)
+    tocwrapper.prepend(this.$.bookmarks)
+  }
+  draw_bookmarks_list (bookmarks) {
+    const repotoc = this.parent.state.metadata.repotoc
+    this.$.bookmarks_list.replaceChildren(...bookmarks.map(entry => {
+      const name = repotoc[entry.repo]?.name || entry.repo
+      const a = DOM.new('a', {
+        'href': this.bookmark_url(entry),
+        'innerText': [name, ...(entry.version || '').split('/'),
+          entry.path === '' ? '' : entry.title].filter(Boolean).join(' / '),
+      })
+      if (this.is_current(entry))
+        a.classList.add('current')
+      const remove = DOM.new('button', {'className': 'remove', 'title': 'Remove bookmark'})
+      remove.addEventListener('click', () => this.remove_bookmark(entry))
+      const li = DOM.new('li')
+      li.append(a, remove)
+      return li
+    }))
+    this.$.bookmarks.classList.toggle('empty', bookmarks.length === 0)
+    if (bookmarks.length === 0)
+      this.$.bookmarks.querySelector('.collection-collapse').checked = false
+  }
+  update_bookmarks (bookmarks = this.get_bookmarks()) {
+    if (!this.$.bookmarks)
+      this.draw_bookmarks()
+    if (this.$.bookmarks)
+      this.draw_bookmarks_list(bookmarks)
+
+    const on = bookmarks.some(e => this.is_current(e))
+    this.$.save_button.classList.toggle('on', on)
+    this.$.save_button.setAttribute('aria-pressed', on)
+    this.$.save_button.title = on ? 'Remove bookmark' : 'Save this page'
+  }
   draw_page_source () {
     this.$.container = DOM.new('div', {
       'className': 'page-actions'
     })
+
+    this.$.save_button = DOM.new('button', {
+      'className': 'save',
+    })
+    this.$.save_button.addEventListener('click', (ev) => { this.toggle_bookmark() })
 
     this.$.copy_button = DOM.new('button', {
       'className': 'copy-as-markdown',
@@ -125,6 +244,7 @@ export class PageActions {
 
     this.$.container.append(this.$.copy_button)
     this.$.container.append(this.$.edit_button)
+    this.$.container.append(this.$.save_button)
   }
   async open_page_source () {
     const branch = await this.resolve_pull()
@@ -241,13 +361,19 @@ export class PageActions {
   }
   construct () {
     this.draw_page_source()
+    this.channel.on(bookmarks => this.update_bookmarks(bookmarks))
     this.init()
   }
   init () {
     this.init_page_source()
+    this.update_bookmarks()
     this.handler_stub()
   }
   deinit () {
     this.deinit_page_source()
+    this.bookmarks_open = this.$.bookmarks?.querySelector('.collection-collapse').checked
+    this.$.bookmarks?.remove()
+    delete this.$.bookmarks
+    delete this.$.bookmarks_list
   }
 }

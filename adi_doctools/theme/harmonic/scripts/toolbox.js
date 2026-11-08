@@ -1,6 +1,6 @@
 "use strict";
 
-export {Toolbox}
+export {Toolbox, Channel}
 
 /**
  * Provides useful generic functions.
@@ -203,5 +203,18 @@ class Toolbox {
     }
 
     return { added: [...A], deleted: [...D], modified };
+  }
+}
+
+class Channel {
+  constructor (name) {
+    this.bc = typeof BroadcastChannel === 'function' ?
+      new BroadcastChannel(name) : undefined
+  }
+  post (data) {
+    this.bc?.postMessage(data)
+  }
+  on (callback) {
+    this.bc?.addEventListener('message', ev => callback(ev.data))
   }
 }
