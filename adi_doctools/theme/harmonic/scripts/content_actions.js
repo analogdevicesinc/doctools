@@ -97,7 +97,7 @@ export class ContentActions {
     const repository = use_alt ? metadata.repotoc[repo]?.alt || repo : repo
     const base = use_alt ? metadata.remote_alt : metadata.remote_doc
     const url = this.dirhtml_url(`${repository}/${entry}`, base)
-    const m = new DOM('a', {'href': url, 'target': 'blank'})
+    const m = new DOM('a', {'href': url})
     m.innerText = name
     ul.append(new DOM('li').append(m))
   }
