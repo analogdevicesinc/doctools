@@ -242,8 +242,8 @@ export class PageActions {
       this.open_page_source()
     })
 
-    this.$.container.append(this.$.copy_button)
     this.$.container.append(this.$.edit_button)
+    this.$.container.append(this.$.copy_button)
     this.$.container.append(this.$.save_button)
   }
   async open_page_source () {
