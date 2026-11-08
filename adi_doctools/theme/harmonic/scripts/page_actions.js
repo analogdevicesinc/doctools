@@ -17,6 +17,7 @@ export class PageActions {
 
     this.with_page_source = false
     this.parent = app
+    this.channel = new Channel('bookmarks')
     if (typeof this.parent.fetch === 'object')
       this.parent.fetch.then(this.construct.bind(this))
     else
@@ -24,7 +25,6 @@ export class PageActions {
 
     this.parent.versioned.then(this.handler_stub.bind(this))
     this.md_converter = new HTMLToMarkdown(location.href)
-    this.channel = new Channel('bookmarks')
 
     app.page_actions = this
   }
