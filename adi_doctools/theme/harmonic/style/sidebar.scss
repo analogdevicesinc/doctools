@@ -335,9 +335,20 @@
     }
 }
 
+@media (min-width: variable.$screen-3) {
+    .tocwrapper {
+        padding-top: 1rem;
+    }
+}
+
+@media (min-width: variable.$screen-1) and (max-width: variable.$screen-3) {
+    .tocwrapper {
+        padding-top: .5rem;
+    }
+}
+
 .tocwrapper {
     box-sizing: content-box;
-    padding-top: 1rem;
     font-size: 0.9em;
 
     .caption-text {
