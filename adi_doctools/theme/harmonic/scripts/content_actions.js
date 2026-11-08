@@ -103,6 +103,9 @@ export class ContentActions {
     ul.append(new DOM('li').append(m))
   }
   add_collection (name, obj, current) {
+    if (Object.values(obj).reduce((n, pages) => n + Object.keys(pages).length, 0) < 2)
+      return
+
     const first = !this.$.collection
     if (first)
       this.init_collection_wrapper()
