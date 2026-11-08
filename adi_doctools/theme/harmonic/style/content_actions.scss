@@ -70,29 +70,55 @@ div.highlight {
 
 /* Collections */
 .tocwrapper .collections {
+    @include mixin_icons.icons(("collection"));
+
+    border: variable.$border-panel2;
+    border-radius: variable.$border-radius;
+    padding: .5em;
+    margin-right: .5em;
+    margin-bottom: .5em;
+    box-shadow: variable.$box-shadow-raised;
+    max-width: 20rem;
+
+    .header {
+        display: flex;
+        padding: .25em .25em 0 .25em;
+        color: var(--accent-color-code);
+
+        &::before {
+            margin-right: .25em;
+            display: block;
+            content: '';
+            width: 1.25rem;
+            height: 1.25rem;
+            background-color: var(--accent-color-code);
+            mask-image: var(--icon-collection);
+            mask-repeat: no-repeat;
+        }
+    }
+
     .sub-header {
+        display: flex;
         user-select: none;
         cursor: pointer;
 
-        &:before {
-            font-size: 1.5em;
-            padding-right: .5em;
-            font-family: monospace;
-            content: "+";
+        &:hover {
+            color: var(--accent-color-code);
         }
+    }
 
-        &:hover:before {
-            color: var(--accent-color);
-        }
+    a:hover {
+        color: var(--accent-color-code);
     }
 
     .group {
         margin-bottom: .5em;
+        margin-left: .125em;
     }
 
     ul {
         overflow: hidden;
-        margin: 0;
+        margin: .25em 0 0 .5em;
     }
 
     .span-ul {
@@ -112,6 +138,12 @@ div.highlight {
     opacity: 1;
 }
 
-.tocwrapper .collection-collapse:checked ~ .sub-header:before {
-    content: "-";
+.tocwrapper .collection-collapse:checked ~ .sub-header {
+    color: var(--accent-color-code);
+}
+
+.tocwrapper .group:has(> .collection-collapse:checked),
+.tocwrapper .group:has(> .sub-header:hover) {
+    border-left: 2px solid  var(--accent-color-code);
+    margin-left: calc(.125em - 1px);
 }
