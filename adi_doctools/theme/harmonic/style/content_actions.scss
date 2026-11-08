@@ -72,12 +72,9 @@ div.highlight {
 .tocwrapper .collections {
     @include mixin_icons.icons(("collection"));
 
-    border: variable.$border-panel2;
-    border-radius: variable.$border-radius;
     padding: .5em;
     margin-right: .5em;
     margin-bottom: .5em;
-    box-shadow: variable.$box-shadow-raised;
     max-width: 20rem;
 
     .header {
@@ -126,6 +123,20 @@ div.highlight {
         grid-template-rows: 0fr;
         transition: opacity .25s ease, grid-template-rows .25s ease;
         opacity: 0;
+    }
+}
+
+@media (min-width: variable.$screen-1) {
+    .tocwrapper .collections {
+        border: variable.$border-panel2;
+        border-radius: variable.$border-radius;
+        box-shadow: variable.$box-shadow-raised;
+    }
+}
+
+@media (max-width: variable.$screen-1) {
+    .tocwrapper .collections {
+        border-bottom: variable.$border-panel2;
     }
 }
 
