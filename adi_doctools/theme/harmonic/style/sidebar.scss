@@ -307,6 +307,7 @@
 
 @media screen {
     .tocwrapper ul {
+        margin-top: .25em;
         padding: 0 0 0 .5em;
     }
 }
@@ -384,7 +385,6 @@
 @media screen {
     .localtoc .header {
         padding-left: 1rem;
-        margin-bottom: 1em;
     }
 
     .localtoc .sub-header {
