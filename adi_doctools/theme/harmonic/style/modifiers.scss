@@ -1,0 +1,88 @@
+@use "variable";
+
+/* hero */
+@media screen {
+  .body section.hero {
+    & > h1 {
+      max-width: 40rem;
+      margin: 0 auto;
+      padding: 2.25em 0 1em;
+      font-size: clamp(1.7em, 4vw, 2.5rem);
+      text-align: center;
+      text-wrap: balance;
+
+      strong {
+        color: var(--accent-color);
+      }
+    }
+
+    & > p:not(:has(img)) {
+      max-width: 60ch;
+      margin: .5rem auto 1.5rem auto;
+      color: var(--text-color2);
+      font-size: 1.1em;
+      line-height: 1.7;
+      text-align: center;
+      text-wrap: pretty;
+    }
+
+    & > img + section,
+    & > p + section,
+    & > figure + section,
+    & > p + .rubric {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid color-mix(in srgb, var(--text-color1) 15%, transparent);
+    }
+  }
+
+  .body section.hero {
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0 0 auto;
+      height: min(36rem, 100%);
+      z-index: -1;
+      background-size: 100% 100%, 2rem 2rem, 2rem 2rem;
+      background-repeat: no-repeat, repeat, repeat;
+      mask-image: radial-gradient(closest-side, #000 40%, transparent);
+    }
+  }
+
+  @media (max-width: variable.$screen-1) or (min-width: variable.$screen-3) {
+      .body section.hero {
+        &::before {
+          background-image:
+            radial-gradient(ellipse 45rem 30rem at 50% 70%, color-mix(in srgb, var(--accent-color) 10%, transparent), transparent 75%),
+            linear-gradient(color-mix(in srgb, var(--accent-color) 6%, transparent) 1px, transparent 1px),
+            linear-gradient(90deg, color-mix(in srgb, var(--accent-color) 6%, transparent) 1px, transparent 1px);
+        }
+      }
+  }
+
+  @media (min-width: variable.$screen-1) and (max-width: variable.$screen-3) {
+      .body section.hero {
+        &::before {
+          background-image:
+            radial-gradient(ellipse 45rem 30rem at 40% 70%, color-mix(in srgb, var(--accent-color) 10%, transparent), transparent 75%),
+            linear-gradient(color-mix(in srgb, var(--accent-color) 6%, transparent) 1px, transparent 1px),
+            linear-gradient(90deg, color-mix(in srgb, var(--accent-color) 6%, transparent) 1px, transparent 1px);
+        }
+      }
+  }
+
+  .body section.hero {
+    .body > section.hero {
+      padding-top: clamp(1rem, 4vw, 3rem);
+
+      & > h1 {
+        margin-top: .5em;
+        font-size: clamp(1.7em, 4vw, 2.5rem);
+      }
+    }
+  }
+}
+
+.body section.hero > h1:has(+ .rubric) {
+   display: none;
+}

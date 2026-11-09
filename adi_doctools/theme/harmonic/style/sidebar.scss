@@ -256,7 +256,6 @@
     }
 
     .tocwrapper {
-        background: var(--bg-color1);
         height: calc(100vh - 4.5rem);
         overflow-y: auto;
 
@@ -498,6 +497,7 @@
         direction: rtl;
 
         .tocwrapper {
+            background: var(--bg-color1);
             direction: ltr;
             transition: .25s ease width;
             box-shadow: variable.$box-shadow-right-sidebar;

@@ -1,0 +1,34 @@
+@use "variable";
+
+.body .toctree-wrapper.grid > ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  gap: 1rem;
+  padding: 0;
+  list-style: none;
+  align-items: start;
+
+  & > li {
+    min-width: 0;
+    margin: 0;
+    padding: 1.25rem;
+    border: 1px solid var(--bg-color3);
+    border-radius: variable.$border-radius;
+
+    & > a {
+      font-weight: bold;
+      font-size: 1.1em;
+    }
+  }
+}
+
+.body img.window {
+  border-radius: clamp(0.5em, 1vw, 1em) !important;
+  margin-bottom: 1em;
+}
+
+@media screen {
+  .body img.window {
+    box-shadow: 0 .5em 1em 0px rgba(0, 0, 0, 0.2), 0px 0px 1em 0px rgba(0, 0, 0, 0.1);
+  }
+}
