@@ -5,12 +5,10 @@ from __future__ import annotations
 
 import posixpath
 import subprocess
-from functools import lru_cache
+from functools import cache
 from os import environ, getenv, path
 from typing import Any
 
-from packaging.version import Version
-from sphinx.__init__ import __version__ as __sphinx_version__
 from sphinx.application import Sphinx
 
 # For deprecation handling
@@ -65,7 +63,7 @@ def interref_repos_apply(config):
     config.interref_repos = []  # Consumed
 
 
-@lru_cache(maxsize=None)
+@cache
 def get_github_token(org: str) -> str | None:
     """
     GITHUB_TOKEN, or the git credential for https://github.com/<org>.
@@ -124,17 +122,8 @@ def interref_setup(app: Sphinx) -> dict[str, Any]:
             logger.warning(f"Config '{c}' must be a list.")
             setattr(app.config, c, [])
 
-    if Version(__sphinx_version__) < Version("7.3.0"):
-        # Prior to Sphinx 7.3.x, config values were default during setup,
-        # so we cannot enable on demand.
-        auto_enable_intersphinx = True
-    elif (len(app.config.interref_repos) > 0 or
-          len(app.config.interref_private_repos) > 0):
-        auto_enable_intersphinx = True
-    else:
-        auto_enable_intersphinx = False
-
-    if auto_enable_intersphinx:
+    if (len(app.config.interref_repos) > 0 or
+            len(app.config.interref_private_repos) > 0):
         app.setup_extension('sphinx.ext.intersphinx')
         if (len(app.config.intersphinx_disabled_reftypes) == 1 and
            app.config.intersphinx_disabled_reftypes[0] == 'std:doc'):

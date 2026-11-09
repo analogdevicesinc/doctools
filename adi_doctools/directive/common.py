@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Sequence
 from hashlib import sha1
 from multiprocessing import Manager
 from os import makedirs, pardir, path
-from typing import ClassVar, Sequence
+from typing import ClassVar
 from uuid import uuid4
 
 import jinja2
@@ -378,31 +379,12 @@ class directive_include_template(Include):
             arg[0] = _render_include(path, arg[0])
             self.env.events.disconnect(listener_id)
 
-        if Version(__sphinx_version__) >= Version('7.2.5'):
-            listener_id = self.env.events.connect(
-                    "include-read",
-                    _include_read,
-                    priority=500
-                )
-            return super().run()
-
-        # - Sphinx < 7.2.5
-        def _insert_input(include_lines, source):
-            from pathlib import Path
-
-            from docutils.statemachine import StateMachine
-
-            text = "\n".join(include_lines[:-2])
-            text = _render_include(Path(source), text)
-            include_lines = text.splitlines() + include_lines[-2:]
-            return StateMachine.insert_input(self.state_machine, include_lines, source)
-
-        old_insert_input = self.state_machine.insert_input
-        self.state_machine.insert_input = _insert_input
-        try:
-            return super().run()
-        finally:
-            self.state_machine.insert_input = old_insert_input
+        listener_id = self.env.events.connect(
+                "include-read",
+                _include_read,
+                priority=500
+            )
+        return super().run()
 
 
 def directive_collection_before_read_docs(app, env, docnames):
@@ -532,7 +514,7 @@ def collection_parse_content(content, docname, repository):
             break
     description = "\n".join(content[:i])
 
-    docname_ = docname[:-6] if docname.endswith('/index') else docname
+    docname_ = docname.removesuffix('/index')
 
     include = {}
     current_include = None
