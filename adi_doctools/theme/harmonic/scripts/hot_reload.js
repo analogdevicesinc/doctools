@@ -297,9 +297,6 @@ export class HotReload {
     this.$.header_logo.href = new URL(logo.getAttribute('href'), url).href
     this.set_toctree(toctree, toctree_base)
     this.state_helper.init_state(this.parent.state, doc, url.href)
-    this.body_classes.forEach(name => document.body.classList.remove(name))
-    this.body_classes = this.get_body_classes(doc)
-    this.body_classes.forEach(name => document.body.classList.add(name))
     this.parent.state.collection = undefined
     this.parent.state.tags = undefined
   }
@@ -340,6 +337,9 @@ export class HotReload {
     }
     this.sync_scripts(doc.head.querySelectorAll('script'), url)
     this.sync_meta(doc)
+    this.body_classes.forEach(name => document.body.classList.remove(name))
+    this.body_classes = this.get_body_classes(doc)
+    this.body_classes.forEach(name => document.body.classList.add(name))
     if (!changed_build)
       this.sync_styles(doc, url)
     DOM.getAll('.current', this.$.toctree).forEach(elem => elem.classList.remove('current'))
