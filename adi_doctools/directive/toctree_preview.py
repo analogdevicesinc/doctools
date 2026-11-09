@@ -73,8 +73,17 @@ def directive_toctree_preview_doctree_resolved(app, doctree, fromdocname):
 
             bullet_list += node_list_item
 
+        replacement = []
+        if caption := toctreenode.get('caption'):
+            caption_node = nodes.paragraph('', '', classes=['caption'])
+            caption_node += nodes.inline('', caption, classes=['caption-text'])
+            caption_node.source = toctreenode.source
+            caption_node.line = toctreenode.line
+            replacement.append(caption_node)
+        replacement.append(bullet_list)
+
         # Replace pending resolve_toctree with early-resolved
-        toctreenode.replace_self(bullet_list)
+        toctreenode.replace_self(replacement)
 
 
 def toctree_preview_setup(app: Sphinx) -> None:
