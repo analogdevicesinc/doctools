@@ -47,6 +47,11 @@
         padding: 0;
     }
 
+    .localtoc .bookmarks,
+    .localtoc .collections {
+        display: none !important;
+    }
+
     .sphinxsidebar,
     .repotoc-tree.overlay,
     .banner, .search-area, .reverse,
