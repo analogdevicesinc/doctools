@@ -28,7 +28,8 @@
 
     & > img + section,
     & > p + section,
-    & > figure + section {
+    & > figure + section,
+    & > p + .rubric {
       margin-top: 2rem;
       padding-top: 1.5rem;
       border-top: 1px solid color-mix(in srgb, var(--text-color1) 15%, transparent);
@@ -44,7 +45,7 @@
       z-index: -1;
       background-size: 100% 100%, 2rem 2rem, 2rem 2rem;
       background-repeat: no-repeat, repeat, repeat;
-      mask-image: radial-gradient(ellipse 60rem 40rem at 50% 50%, #000, transparent);
+      mask-image: radial-gradient(closest-side, #000 40%, transparent);
     }
   }
 
