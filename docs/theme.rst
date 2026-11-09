@@ -81,9 +81,27 @@ The values and their effects are:
 * ``stub``: Marks the page as a temporary or incomplete page that serves as a
   placeholder for future content.
 * ``body-class``: Add classes to the body HTML tag, scoping the whole webpage.
-  Useful for customizing the header, sidebars.
+  Useful for customizing the header, sidebars. Use :ref:`rst-class <theme rst-class>`
+  for direct element styling.
 
 When visiting a page with the ``stub`` metadata, the script searches for the
 suggested alternative to redirect to. Useful for when the content is under
 review in a pull request or different tag. The suggested alternative is the
 value, for example ``:stub: pull/1234``.
+
+.. _theme rst-class:
+
+Direct classes
+--------------
+
+Some directives like ``figure`` and ``toctree`` support setting a class with the ``class`` option; for any directive, ``rst-class`` can be used, for example:
+
+.. code:: rst
+
+   .. rst-class:: hero
+
+   **Software**: The best software ever!
+   =====================================
+
+Enables a fancy landing page. Another notable mentions is setting
+``:class: grid`` at the toctree to show cards for each top-level table of contents item.

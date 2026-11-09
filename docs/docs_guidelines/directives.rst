@@ -64,6 +64,8 @@ element.
 
 On of the options are required.
 
+.. _directive card:
+
 Card
 ++++
 
@@ -121,6 +123,8 @@ Renders at:
       :ref: directive
 
       More about all directives.
+
+.. _include-template:
 
 Include template
 ~~~~~~~~~~~~~~~~
@@ -380,6 +384,8 @@ The supported template variables are:
 * ``path``: Replaces with the current include path ``path/to/include``.
 * ``basename``: Replaces with the current include path basename ``include``.
 
+.. _directive shell:
+
 Shell
 ~~~~~
 
@@ -568,6 +574,8 @@ At its core, for the HTML builder, it is somewhat equivalent to:
 
 But has the proper hooks for future implementation for other outputs (LaTeX, etc.).
 
+.. _directive collapsible:
+
 Collapsible
 ~~~~~~~~~~~
 
@@ -600,6 +608,8 @@ Renders as:
       print("Hello World!")
 
 Notice how you can use any Sphinx syntax, even nest other directives.
+
+.. _directive tabs:
 
 Tabs
 ~~~~
