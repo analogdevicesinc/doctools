@@ -7,7 +7,6 @@ from packaging.version import InvalidVersion, Version
 from sphinx import __version__ as __sphinx_version__
 from sphinx.transforms.post_transforms.images import ImageConverter
 from sphinx.util import logging
-from sphinx.util.osutil import SEP
 
 from .directive import setup as directive_setup
 from .lut import get_lut
@@ -69,12 +68,6 @@ def get_navigation_tree(app, context, pagename):
         )
     else:
         toctree_html = ""
-
-    if Version(__sphinx_version__) < Version('7.2.0'):
-        from urllib.parse import quote
-
-        url = quote(pagename)
-        context['content_root'] = (f'..{SEP}' * url.count(SEP)) or f'.{SEP}'
 
     return navigation_tree(app, toctree_html,
                            context['content_root'], pagename)

@@ -5,7 +5,7 @@ Installing
 
 How to do a release install, and a development install of Doctools.
 
-Guaranteed to work with Python 3.8 or newer and distributions released on or after
+Guaranteed to work with Python 3.9 or newer and distributions released on or after
 20H1 (e.g., Ubuntu 20.04 LTS).
 
 .. _release-install:

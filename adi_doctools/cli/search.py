@@ -95,8 +95,7 @@ def extract_path_from_url(url):
     if '#' in path:
         path = path.split('#')[0]
 
-    if path.endswith('.html'):
-        path = path[:-5]
+    path = path.removesuffix('.html')
 
     return path
 

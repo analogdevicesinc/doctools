@@ -975,8 +975,7 @@ def patch_doc(doc, repos_dir, doc_dir, git_lfs, builder):
                 d_ = d[i].strip()
                 if '<' in d_:
                     d_ = d_[d_.index('<')+1:-1]
-                if d_.startswith('./'):
-                    d_ = d_[2:]
+                d_ = d_.removeprefix('./')
                 for doc_ in src_linenos[lineno]:
                     if d_ == doc_:
                         data_filter.append(d[i])

@@ -6,8 +6,6 @@ import threading
 from os import environ, listdir, mkdir, pardir, path, remove, stat, utime
 from shutil import copy2, rmtree, which
 
-from packaging.version import Version
-from sphinx import __version__ as __sphinx_version__
 from sphinx.application import Sphinx
 from sphinx.testing.util import _clean_up_global_state
 
@@ -18,7 +16,6 @@ from .logging import BLUE, FAIL, NC, RED
 logger = logging.getLogger(__name__)
 
 log = {
-    'sphinx_too_old': "Serve does not support sphinx < 7.3.0, current installed is {}.",
     'no_lfs': "File .gitattributes contains lfs rules, but git-lfs is not installed.",
     'lfs_skip_smudge': "GIT_LFS_SKIP_SMUDGE=1 is set, GET requests won't smudge files, only touching the source!",
     'no_conf_py': "File conf.py not found, is {} a docs folder?",
@@ -214,10 +211,6 @@ cwd = {cwd_display}""")
 
     def _setup(self):
         """Validate environment and prepare for serving. Returns True on error."""
-        if Version(__sphinx_version__) < Version('7.3.0'):
-            logger.error(log["sphinx_too_old"].format(__sphinx_version__))
-            return True
-
         if self.builder == 'pdf':
             self.builder = 'latexpdf'
         elif self.builder == 'html':
