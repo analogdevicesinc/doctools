@@ -1,0 +1,2469 @@
+{
+  "text": [
+    "Low-cost Battery Management System Reference Design for E2W/E3W\nApplications\n",
+    "![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/reference-designs/ad-bmse2e3wlc-sl/ad-bmse2e3wlc-sl_solution_kit.png)\n\n*Figure 1 AD-BMSE2E3WLC-SL Solution Kit*\n\n\nThe AD-BMSE2E3WLC-SL is a cost-competitive system-level reference design\nfor medium t",
+    "**Wide Range BMS System**\n\n- can operate from 36V to 96V, can handle currents up to 100A\n- Simplified E2W/E3W AD-BMSE2E3WLC-SL baseboard + EVAL-ADBMS1816WLC\n  daughterboard configuration\n\n\n**Battery Chemistry Compatibility**\n\n- Supports multiple battery chemistries: Ni-MH, Li-ion, LiFePO4,\n  Sodium-",
+    "- Medium to High Performance Electric and Hybrid 2-Wheeler and 3-Wheeler Vehicles\n- Light Electric Vehicles\n- BMS Battery Research and Development\n- Adaptive Battery Type System Monitoring\n- Portable Energy Storage Systems\n",
+    "![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/reference-designs/ad-bmse2e3wlc-sl/ad-bmse2e3wlc-sl_block_diagram.png)\n\n*Figure 2 AD-BMSE2E3WLC-SL System Block Diagram*\n",
+    "The AD-BMSE2E3WLC-SL system combines battery cell monitoring, current\nsensing, temperature monitoring, charge/discharge control, and host\ncommunication into a scalable platform supporting battery packs from\n36V to 96V and up to 32 series-connected cells.\n\nAt the core of the system is the ADBMS1816W ",
+    "|**Parameter**|Min|Typical|Max|Unit|**Notes**|\n|**System**||||||\n|Total Vin+ Supply Voltage|30||100|V|Input voltage supply from battery|\n|Battery Emulator Output|30||100|V|Safe output voltage from Battery Emulator|\n|Discharge Current||40|100|A|Current rating at discharge mode|\n|Charge Current|0.3|40",
+    "Upon purchase, the AD-BMSE2E3WLC-SL comes complete with 1 baseboard, 1 daughter\nboard, and 1 microcontroller.\n\n**However, customers also have the option to avail of the components individually\nas intended for their application development.**\n\n- 1x AD-BMSE2E3WLC-48V Baseboard\n- 1x EVAL-ADBMS1816WLC D",
+    "Proceed to the following pages for detailed information on\nhow to use the AD-BMSE2E3WLC-SL reference design:\n\n- Hardware Guide\n",
+    "- ADBMS1816 Product Page\n- LTC7000 Product Page\n- MAX32666 Product Page\n- DC2472A Product Page\n",
+    "> **Download**\n>\n> AD-BMSE2E3WLC-SL Design Support Package\n> Schematic\n> PCB Layout\n> Bill of Materials\n> Allegro Project\n",
+    "For questions and more information, please visit the EngineerZone Support Community.\n",
+    "daq2_part_breakdown.png\n",
+    "For those that don\u2019t want to load up the Allegro viewer, here is a basic\noutline/component placements of the board.\n",
+    "The size of the board (not including the SMA connectors, which project beyond\nthe edge of the board) is 3.12 inches by 2.72 inches (or about 79mm x 69mm).\n",
+    "AD-FMCDAQ2-EBZ Design & Integration Files are comprised of:\n\n- Schematic\n- PCB Layout\n- Bill of Materials\n- Allegro Project (get the Allegro FREE Physical Viewer; you need 16.5 or higher)\n",
+    "The production testing is quite simple. Since each board has been completely\ncharacterized, and we know the layout is good, we can just look for gross\nerrors.\n\nThe test is broken down into the following sections:\n",
+    "The `ad7291.in_temp0_raw` is the raw results from the AD7291 - which is\n0.25\u00b0C. 80 refers to 80 steps of 0.25\u00b0C or 20\u00b0C, and 160 refers to 40\u00b0C. This\nallows the tests to be done in a normal lab setting.\n",
+    "This section requires checking the schematics. Specifically, sheet 7\nshows how the AD7291 is connected. 1% resistors connect various voltages, and things are\ndivided down to ensure that the voltage levels don\u2019t exceed full scale.\n\nThe explanation of how the valid ranges are calculated is similar to ",
+    "First the noise floor is checked when no input is supplied to make sure it is\nwithin a certain threshold. Then tones of approximately 97 MHz, 185 MHz, and 233\nMHz are input against each channel individually and the fundamental frequency as\nwell as the 2nd through 7th harmonics are checked to make su",
+    "**Creating a ZC706 carrier SD test card**\n\n- First, write the latest available SD card image found to a spare card and\n  prepare the card to boot into Linux.\n\n\n**Creating a Raspberry Pi SD test card**\n\n- The SD image used is based on Raspbian with Desktop.\n",
+    "- Zynq ZC706\n- Raspberry Pi4\n- FMCDAQ2/3\n- RF loopback cables (2x)\n- External monitor connected to the Raspberry Pi via micro HDMI\n- Keyboard and mouse (with USB hub if they aren\u2019t part of a combo device)\n- Ethernet cable (needs to be plugged between Raspberry Pi and carrier)\n- QR code scanner\n- DAQ",
+    "- Attach the RF loopback cables to the board. The images at the bottom of the\n  page show the correct placement for each type of AD-FMCDAQ board.\n- Insert the SD card into the carrier board.\n- Insert the AD-FMCDAQ2/3 board onto the carrier\n- Connect the HDMI cable to Raspberry Pi\n- Connect USB keybo",
+    "Firstly, make sure all the required steps from the setup explained above are\ncompleted. Once the setup is ready, testing should be done using the following\nsteps:\n\n- Power the carrier board and the Raspberry Pi. The following screen will\n  appear once the system has booted.\n\n\n- The testing sequence ",
+    "|||\n|FMCDAQ2|FMCDAQ3|\n",
+    "||||\n|FMCDAQ2|FMCDAQ3 top|FMCDAQ3 bottom|\n",
+    "If you have any questions regarding the AD-FMCDAQ2-EBZ or are\nexperiencing any problems while using the AD-FMCDAQ2-EBZ or while following any\nof the AD-FMCDAQ2-EBZ user guides feel free to ask us a question. Questions can\nbe asked on our EngineerZone support community.\n\nFor questions regarding the A",
+    "The AD-FMCDAQ2-EBZ\nmodule is comprised of the AD9680\ndual, 14-bit, 1.0 GSPS, JESD204B ADC, the AD9144 quad,\n16-bit, 2.8 GSPS, JESD204B DAC, the AD9523-1\nclock, and power management components. It is clocked by an internally\ngenerated carrier platform via the FMC connector, comprising a completely se",
+    "- Includes schematics, layout, BOM, Gerber files, HDL, Linux\u00ae drivers, IIO\n  Oscilloscope, VisualANALOG,\u2026\n- FMC-compatible form factor\n- Powered from single FMC connector\n- Provides two channels of ADC and two channels of DAC with full\n  synchronization capabilities\n",
+    "- JESD204B (subclass 1) 4-lane coded serial digital outputs\n- SFDR: 80 dBc at 1 GHz AIN, 1.0 GSPS\n- Noise density: \u2013154 dBFS/Hz @ 1.0 GSPS\n- 2 GHz of usable analog input full power bandwidth\n- Two integrated DDCs per channel\n",
+    "- JESD204B (subclass 1) coded serial digital outputs\n- Supports complex signal bandwidths up to 800 MHz\n- 6-carrier GSM IMD = 75 dBc at 75 MHz IF\n- SFDR = 85 dBc (BW = 300 MHz) at DC IF\n- Selectable 2\u00d7, 4\u00d7, 8\u00d7 interpolation filters\n",
+    "- Electronic test and measurement equipment\n- General-purpose software radios\n- Radar systems\n- Ultra wideband satellite receivers\n- Signals intelligence (SIGINT)\n- Point to point communication systems\n- DOCSIS 3.0 CMTS and HFC networks\n- Multiple input/multiple output (MIMO) radios\n- Automated test",
+    "The AD-ACEVSECRDSET-SL design incorporates the ADE9113\n3-Channel, Isolated, Sigma Delta (\u03a3-\u0394) ADC and the MAX32655\nlow-power, Arm Cortex-M4 processor with FPU-Based microcontroller\nand Bluetooth 5.2 allowing the implementation of type 2 EVSE charging cables.\nThe ADE9113 has two voltage measurement c",
+    "![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/reference-designs/ad-acevsecrdset-sl/hardware-guide/02_ad_acevsecrdset_sl_top_components.png)\n\n*Figure 1 Revision A Top Components*\n\n\n![](https://media.githubusercontent.com/media/analogdevicesinc/sy",
+    "![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/reference-designs/ad-acevsecrdset-sl/hardware-guide/ad-acevsecrdset-sl_board_with_components-top_rev_d.png)\n\n*Figure 3 Revision D Top Components*\n\n\n![](https://media.githubusercontent.com/media/analo",
+    "To power up the board, connect the `grid connector` to a single-phase 230V AC line.\nA 3-wire cable rated at 16A is the minimum acceptable. The output can be connected to\nan EVSE test adapter, a type 2 cable (and EV), or left disconnected for first time power-up\nor programming. The program/debug conn",
+    "Three programable push buttons, one MCU reset button and four LEDs, are available\nfor user interface.\n\n![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/reference-designs/ad-acevsecrdset-sl/hardware-guide/user_interface.png)\n\n*Figure 9 Programmable ",
+    "For evaluation and debugging purpose, test points are provided at every\nimportant point on the PCB. The names of the test points are printed on the\nsilkscreen.\n",
+    "**CP signal values corelated to the EVSE states**\n\nThe CP signal is shown for each state (A, B, C, D, and diode error) in the\nfollowing images, measured at two different points on the board. The first image\nfor each case shows the value measured at the CP test point highlighted in\nthe following imag",
+    "Two measurements are presented following a complete run of the state machine,\nfrom power-up to charging and EV disconnection. The tests are performed using\nthe following test bench setup.\n\n![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/reference-",
+    "The purpose of this test procedure is to identify connectivity issues, poor\nsoldering, and potential manufacturing defects in the AD-ACEVSECRDSET-SL\nboard. Some issues are directly identified by explicit part-targeted tests,\nwhile others are detected implicitly by running adjacent tests.\n",
+    "|Step Description|Estimated Time (minutes)|\n|Test bench setup|5 min|\n|Software test|5 min|\n|**Total time**|**10 min**|\n",
+    "- MAX32625PICO (Daplink programmer)\n- AD-ACEVSECRDSET-SL board\n- Raspberry Pi 4, power cable, HDMI cable\n- Mouse and keyboard\n- Power cable for AD-ACEVSECRDSET-SL board\n",
+    "- SD card with the test image\n",
+    "- Insert the SD card into the Raspberry Pi.\n- Connect the Raspberry Pi to a monitor and power it.\n  Figure 1 Raspberry Pi Setup\n- Connect the MAX32625PICO (Daplink programmer) to the Raspberry Pi\n  and the DUT.\n- Power the DUT.\n- Connect the mouse and keyboard to the Raspberry Pi.\n  Figure 2 DUT Set",
+    "Ensure the Raspberry Pi is connected to Wi-Fi before starting the tests. If\nthe test screen is already running, you will need to exit it first to configure\nthe network connection.\n\n- After the Raspberry Pi boots, press **Ctrl+C** to exit the test screen.\n- Click on the Wi-Fi icon in the system tray ",
+    "- After the Raspberry Pi reboots, the test screen will appear on the monitor.\n  Figure 5 Test Screen\n- Type **1** and press **ENTER** to start the **System Test**.\n  Figure 6 Starting System Test\n- Press the reset button on the board and press **ENTER**.\n  Figure 7 Press Reset Button on DUT\n- Visual",
+    "The AD9523-1 is responsible for generating and distributing all clock\nsignals used on the AD-FMCDAQ2-EBZ platform.\n\nThe AD-FMCDAQ2-EBZ platform only uses the second PLL of the AD9523-1 with the\nreference for the PLL being sourced from a external 125 MHz crystal. The PLL2\nVCO has a locking range of 2",
+    "This is the default AD-FMCDAQ2-EBZ configuration with both converters running at\nthe maximum supported samplerate of 1 GSPS.\n|Clock|Frequency|Divider setting|\n|Master clock|1000 MHz|3|\n|ADC converter clock|1000 MHz|1|\n|ADC FPGA reference clock|500 MHz|2|\n|ADC SYSREF clock|7.8125 MHz|128|\n|ADC FPGA S",
+    "Non-harmonic DAC and ADC sampling rate (No deterministic latency between DAC and\nADC datapath).\n|Clock|Frequency|Divider setting|\n|Master clock|750 MHz|4|\n|ADC converter clock|375 MHz|2|\n|ADC FPGA reference clock|187.5 MHz|4|\n|ADC SYSREF clock|2.9296875 MHz|256|\n|ADC FPGA SYSREF clock|2.9296875 MHz|",
+    "On the AD-FMCDAQ2-EBZ platform the reference clock signal for the AD9523-1 PLL2\nis provided by a crystal oscillator (XO). The default populated crystal\noscillator has a output frequency of 125 MHz, this results in a nominal AD9523-1\nVCO frequency of 3 GHz, all other clock signals are integer down-di",
+    "In this example the frequency doubler is bypassed and the reference divider is\nset to 1. That means the PFD input frequency is equal to the reference\nfrequency.\n\n`N2` = `fVCO` / `fPFD` => `N2` = `2949.12` / `122.88` = `24`\n\n`A` = `N2` % `4` => `A` = `24` % `4` = `0`\n\n`B` = `N2` / `4` => `B` = `24` /",
+    "On Linux the default clock configuration is supplied through the devicetree.\n\nThe devicetree file that is used for the AD-FMCDAQ2-EBZ and contains the clock\nconfiguration is called arch/arm/boot/dts/adi-daq2.dtsi. This file\ncontains nodes for the AD9523-1, the AD9144 and the AD9680. Each node contai",
+    "> **Warning**\n>\n> The AD-FMCADC7-EBZ is a **legacy product**\n> and is no longer actively supported. This documentation is provided for\n> reference only.\n\n\nWhat you need depends on what you are trying to do. As a minimum, you need to\nstart out with:\n",
+    "1. The AD9625-based evaluation board: AD-FMCADC7-EBZ\n2. An FPGA carrier platform. Our supported ones can be found in the\n  Quick start guide.\n3. A signal source for the analog input connectors (J202 for single-ended,\n  J201 for differential): -15 dBm input level\n4. A UART cable for serial console ac",
+    "Normally, for basic functionalities regarding visualizing the data captured\nfrom the ADC, we use the following:\n\n1. IIO Oscilloscope, a graphical tool for capturing and displaying IIO\n  device data\n2. Scopy v2.0 or later (must include the IIO\n  plugin)\n\n\n> **Note**\n>\n> ADI does not offer FPGA carrie",
+    "> **Warning**\n>\n> The AD-FMCADC7-EBZ is a **legacy product**\n> and is no longer actively supported. This documentation is provided for\n> reference only.\n",
+    "The AD-FMCADC7-EBZ board\u2019s primary purpose is to quickly and easily connect\nto an FMC carrier platform and start collecting data using the AD9625\nADC. The board is designed to self power and self clock when connected to the\nFMC carrier. The analog signals (AIN+ and AIN-) are connected to J202 and\nJ2",
+    "The AD-FMCADC7-EBZ includes various clocking options:\n\n- 2.5 GHz Crystek on-board oscillator (Y401) connected via a differential\n  balun directly to the converter\u2019s clock input pins.\n- An external reference supplied at J301 for use with the ADF4355-2.\n- 122.88 MHz Crystek on-board oscillator referen",
+    "The AD-FMCADC7-EBZ uses an active front end designed for very wide bandwidth.\nA single-ended input needs to be provided to the analog inputs at -15 dBm.\nThe broadband ADL5567 amplifier gains and converts the analog input\nsignal differentially to the converter\u2019s inputs and has a 1.8 GHz bandwidth\nat ",
+    "- AD9625 AXI Linux driver\n- JESD204B/C Receive Linux driver\n- JESD204B/C AXI_ADXCVR Highspeed Transceivers Linux\n  driver\n- Kuiper Linux\n",
+    "> **Hint**\n>\n> Build an HDL project contains all the documentation, build\n> instructions and register map tables.\n> Browse the HDL GitHub repository:\n> library components\n> and projects.\n> Questions? Ask on FPGA questions,\n> Linux driver questions,\n> or No-OS Drivers questions.\n",
+    "12-Bit, 2500 MSPS, JESD204B, RF Data Acquisition FMC Board.\n\n> **Warning**\n>\n> The AD-FMCADC7-EBZ is a **legacy product**\n> and is no longer actively supported. This documentation is provided for\n> reference only.\n\n\n> **Note**\n>\n> Support was discontinued starting with the **2022_R2** Kuiper Linux r",
+    "The AD-FMCADC7-EBZ is a high speed single channel data acquisition\nboard featuring the AD9625 12-bit single channel differential\nAnalog-to-Digital converter at 2.5 GHz and an ADL5567 dual channel\ndifferential 4.8 GHz amplifier. The board is FMC compatible. Clocking can be\ndone three different ways: ",
+    "People who follow the flow that is outlined, have a much better experience\nwith things. However, like many things, documentation is never as complete as\nit should be. If you have any questions, feel free to ask on our\nEngineerZone, but before that, please make sure you read our documentation\nthoroug",
+    "1. Using the evaluation board/full stack reference design that we offer:\n  Prerequisites\n  Quick start guides\n  Supported carriers\n  Hardware setup\n  ZC706 quick start\n  User guide\n  Hardware guide\n  Software guide\n\n  1. Prerequisites\n  2. Quick start guides\n    Supported carriers\n    Hardware setup",
+    "> **Warning**\n>\n> All the products described on this page include ESD (electrostatic discharge) sensitive devices. Electrostatic charges as high as 4000V readily accumulate on the human body or test equipment and can discharge without detection.\n> Although the boards feature ESD protection circuitry",
+    "- AD-96TOF1-EBZ development kit\n- Nvidia Jetson Nano\n- 5V power supply for Jetson. (Jetson board can be powered up from USB but external 4A 5V supply is recommended)\n- To run the system in standalone mode, besides the accessories that are provided in the AD-96TOF1-EBZ box you\u2019ll need an additional H",
+    "All changes required for RPi are applicable to Nvidia Jetson. So please follow the instructions presented here: Raspberry Pi User Guide\n",
+    "- Download and flash on a SD card the latest image provided from the following link: aditof_sdk#ad-96tof1-ebz\n- Download L4T BSP L4T BSP package (Tested release R32.3.1)\n- Extract kernel_src from BSP package\n- ADI ToF camera driver and devicetree should be taken from aditof_sdk\n- Copy paste and repl",
+    "- Plug the SD card into the Nvidia Jetson SD card slot\n- Connect the HDMI cable from the monitor to the Jetson HDMI connector\n- Connect the camera cable between the Jetson Nano and the P1 connector of the ToF board\n- Connect a USB mouse and keyboard to the Jetson\n- connect the 5V power supply to the",
+    "- Open a terminal and type **sudo poweroff**. This will safely power off and ensure that the SD card is properly unmounted\n- remove the 5V supply from the Nvidia Jetson\n- Set the camera board power switch to off\n",
+    "This example demonstrates how to capture data from the TOF system on the Nvidia jetson and display it using OpenCV.\n\nOnce Linux boots you\u2019ll see on the HDMI monitor the Linux desktop and on the top\nleft corner a shortcut to the evaluation application. Double clicking on the\nicon will start the evalu",
+    "- The demo application has the capability to display a point cloud image if it\n  detects an OpenCV module called viz.\n\n\nUnfortunately OpenCV does not provide binaries for this module so a manual build is needed. The steps required to install OpenCV and include it in the project are presented here: W",
+    "- The demo application hangs after closing the main window\n  Due to some limitations the application always hangs if it is closed using\n  the regular X button from the window top bar (title bar). To avoid this\n  unpleasant hang, we\u2019ve made available a second X button in the top right\n  corner right ",
+    "- AD-96TOF1-EBZ development kit\n- DragonBoard 410c\n- DragonBoard410c 12V power supply (e.g. AK-ND-49)\n- Micro-USB to USB Cable\n",
+    "- Plug the SD card that came in the AD-96TOF1-EBZ box into the DragonBoard410c SD card slot. To benefit from the most recent software updates it is highly recommended to update the SD card with the latest SD card image\n- Make sure that switch S6 on the DragonBoard410C is set to SD BOOT (position 2 O",
+    "- After the DragonBoard boots up press the S3 button on the camera board. This will start on the DragonBoard the application that manages the USB host interface\n- Once the USB connection is active the DS4 LED will light up on the camera board and the USB camera driver will be loaded on the PC enabli",
+    "- The PC does not load the USB driver after pressing the S3 button on the\n  camera board\n  Press S3 so that DS4 turns off, reconnect the USB cable to the PC into a different USB port, press S3 again so that DS4 turns on\n  Restart the DragonBoard410c while the USB cable is still connected to the\n  ho",
+    "- The IP address of the target is needed in order to use the ethernet connection. To find the IP address, connect a keyboard, a mouse and a monitor to the camera. After booting open a terminal and type either sudo ifconfig or ip addr command.\n- There are two examples that show how to use the etherne",
+    "You can build the evaluation application from source as part of the SDK build\nprocess described on github.\n\naditof-demo\n\n\nWhen starting the application, a terminal window will open to display status\nmessages (also warning and error messages, in case there are any issues). Shorty\nthe main window will",
+    "- The demo application has the capability to display a point cloud image if it\n  detects an OpenCV module called viz.\n\n\nUnfortunately OpenCV does not provide binaries for this module so a manual build is needed. The steps required to install OpenCV and include it in the project are presented here: W",
+    "- The demo application hangs after closing the main window\n  Due to some limitations the application always hangs if it is closed using\n  the regular X button from the window top bar (title bar). To avoid this\n  unpleasant hang, we\u2019ve made available a second X button in the top right\n  corner right ",
+    "- AD-96TOF1-EBZ development kit\n- Nvidia Xavier NX\n- 9V to 19V power supply for Jetson.\n- To run the system in standalone mode, besides the accessories that are provided in the AD-96TOF1-EBZ box you\u2019ll need an additional HDMI cable to connect to a monitor and a USB keyboard and mouse\n- Camera flex c",
+    "All changes required for RPi are applicable to Nvidia Xavier NX. So please follow the instructions presented here: Raspberry Pi User Guide\n",
+    "- Download and flash on a SD card the latest image provided from the following link: aditof_sdk#ad-96tof1-ebz\n- Download L4T BSP L4T BSP package (Tested release R32.3.1)\n- Extract kernel_src from BSP package\n- ADI ToF camera driver and devicetree should be taken from aditof_sdk.\n- Copy paste and rep",
+    "- Plug the SD card into the Nvidia Xavier NX SD card slot\n- Connect the HDMI cable from the monitor to the Jetson HDMI connector\n- Connect the camera cable between the J1 connector of Jetson Xavier NX and the P1 connector of the ToF board\n- Connect a USB mouse and keyboard to the Xavier NX\n- connect",
+    "- Open a terminal and type **sudo poweroff**. This will safely power off and ensure that the SD card is properly unmounted\n- remove the 5V supply from the Nvidia Jetson\n- Set the camera board power switch to off\n",
+    "- Linux does not boot\n  The SD card is corrupted and this prevents the system from booting.\n  Reflash the SD card or check generated devicetree or kernel image\n\n  - The SD card is corrupted and this prevents the system from booting.\n    Reflash the SD card or check generated devicetree or kernel ima",
+    "This example demonstrates how to capture data from the TOF system on the Nvidia jetson and display it using OpenCV.\n\nOnce Linux boots you\u2019ll see on the HDMI monitor the Linux desktop and on the top\nleft corner a shortcut to the evaluation application. Double clicking on the\nicon will start the evalu",
+    "- The demo application has the capability to display a point cloud image if it\n  detects an OpenCV module called viz.\n\n\nUnfortunately OpenCV does not provide binaries for this module so a manual build is needed. The steps required to install OpenCV and include it in the project are presented here: W",
+    "- The demo application hangs after closing the main window\n  Due to some limitations the application always hangs if it is closed using\n  the regular X button from the window top bar (title bar). To avoid this\n  unpleasant hang, we\u2019ve made available a second X button in the top right\n  corner right ",
+    "- AD-96TOF1-EBZ development kit\n- Nvidia Xavier AGX\n- 19V power supply for Jetson.\n- To run the system in standalone mode, besides the accessories that are provided in the AD-96TOF1-EBZ box you\u2019ll need an additional HDMI cable to connect to a monitor and a USB keyboard and mouse\n- Camera flex cable ",
+    "All changes required for RPi are applicable to Nvidia Xavier AGX. So please follow the instructions presented here: Raspberry Pi User Guide\n",
+    "- Download and flash on a SD card the latest image provided from the following link: aditof_sdk#ad-96tof1-ebz\n- Download L4T BSP L4T BSP package (Tested release R32.3.1)\n- Extract kernel_src from BSP package\n- ADI ToF camera driver and devicetree should be taken from ADI ToF camera driver and device",
+    "- Plug the SD card into the Nvidia Xavier AGX SD card slot\n- Connect the HDMI cable from the monitor to the Jetson HDMI connector\n- Connect the camera cable between the camera interposer of Jetson Xavier AGX and the P1 connector of the ToF board\n- Connect a USB mouse and keyboard to the Xavier AGX\n-",
+    "- Open a terminal and type **sudo poweroff**. This will safely power off and ensure that the SD card is properly unmounted\n- remove the 5V supply from the Nvidia XAVIER AGX\n- Set the camera board power switch to off\n",
+    "- Linux does not boot\n  The SD card is corrupted and this prevents the system from booting.\n  Reflash the SD card or check generated devicetree or kernel image\n\n  - The SD card is corrupted and this prevents the system from booting.\n    Reflash the SD card or check generated devicetree or kernel ima",
+    "This example demonstrates how to capture data from the TOF system on the Nvidia jetson and display it using OpenCV.\n\nOnce Linux boots you\u2019ll see on the HDMI monitor the Linux desktop and on the top\nleft corner a shortcut to the evaluation application. Double clicking on the\nicon will start the evalu",
+    "- The demo application has the capability to display a point cloud image if it\n  detects an OpenCV module called viz.\n\n\nUnfortunately OpenCV does not provide binaries for this module so a manual build is needed. The steps required to install OpenCV and include it in the project are presented here: W",
+    "- The demo application hangs after closing the main window\n  Due to some limitations the application always hangs if it is closed using\n  the regular X button from the window top bar (title bar). To avoid this\n  unpleasant hang, we\u2019ve made available a second X button in the top right\n  corner right ",
+    "- AD-96TOF1-EBZ development kit\n- DragonBoard 410c\n- DragonBoard410c 12V power supply (e.g. AK-ND-49)\n- Micro-USB to USB Cable\n",
+    "- Plug the SD card that came in the AD-96TOF1-EBZ box into the DragonBoard410c SD card slot. To benefit from the most recent software updates it is highly recommended to update the SD card with the latest SD card image\n- Make sure that switch S6 on the DragonBoard410C is set to SD BOOT (position 2 O",
+    "- The demo application has the capability to display a point cloud image if it\n  detects an OpenCV module called viz.\n\n\nUnfortunately OpenCV does not provide binaries for this module so a manual build is needed. The steps required to install OpenCV and include it in the project are presented here: W",
+    "- The demo application hangs after closing the main window\n  Due to some limitations the application always hangs if it is closed using\n  the regular X button from the window top bar (title bar). To avoid this\n  unpleasant hang, we\u2019ve made available a second X button in the top right\n  corner right ",
+    "- AD-96TOF1-EBZ development kit\n- DragonBoard 410c\n- DragonBoard410c 12V power supply (e.g. AK-ND-49)\n- Micro-USB to USB Cable\n",
+    "- Plug the SD card that came in the AD-96TOF1-EBZ box into the DragonBoard410c SD card slot. To benefit from the most recent software updates it is highly recommended to update the SD card with the latest SD card image\n- Make sure that switch S6 on the DragonBoard410C is set to SD BOOT (position 2 O",
+    "- After the DragonBoard boots up press the S3 button on the camera board. This will start on the DragonBoard the application that manages the USB host interface\n- Once the USB connection is active the DS4 LED will light up on the camera\n  board and the USB camera driver will be loaded on the PC enab",
+    "- The PC does not load the USB driver after pressing the S3 button on the\n  camera board\n  Press S3 so that DS4 turns off, reconnect the USB cable to the PC into a different USB port, press S3 again so that DS4 turns on\n  Restart the DragonBoard410c while the USB cable is still connected to the\n  ho",
+    "- The IP address of the target is needed in order to use the ethernet connection. To find the IP address, connect a keyboard, a mouse and a monitor to the camera. After booting open a terminal and type either **sudo ifconfig** or **ip addr** command.\n- There are two examples that show how to use the",
+    "You can either build the evaluation application from source or install it using the aditof-demo installer\n\nNavigate to the location where you chose to install the evaluation application\nand run aditof-demo.exe. Alternatively, run the shortcut Aditof-Demo from\ndesktop if you enabled the installer to ",
+    "- The demo application has the capability to display a point cloud image if it\n  detects an OpenCV module called viz.\n\n\nUnfortunately OpenCV does not provide binaries for this module so a manual build is needed. The steps required to install OpenCV and include it in the project are presented here: W",
+    "- The demo application hangs after closing the main window\n  Due to some limitations the application always hangs if it is closed using\n  the regular X button from the window top bar (title bar). To avoid this\n  unpleasant hang, we\u2019ve made available a second X button in the top right\n  corner right ",
+    "- AD-96TOF1-EBZ development kit\n- DragonBoard410c\n- DragonBoard410c 12V power supply (e.g. AK-ND-49)\n- To run the system in standalone mode, besides the accessories that are\n  provided in the AD-96TOF1-EBZ box you\u2019ll need an additional HDMI cable to\n  connect to a monitor and a USB keyboard and mous",
+    "- Plug the SD card that came in the AD-96TOF1-EBZ box into the DragonBoard410c SD card slot. To benefit from the most recent software updates it is highly recommended to update the SD card with the latest SD card image\n- Make sure that switch S6 on the DragonBoard410C is set to SD BOOT (position 2 O",
+    "- Open a terminal and type **sudo halt**. This will safely turn off the OS on DragonBoard410c and ensure that the SD card is properly unmounted\n- Remove the 12V supply from the DragonBoard410c\n- Set the camera board power switch to off\n",
+    "- Linux does not boot\n  Sometimes the SD card is not read correctly and this prevents the system to boot. Reset the system by removing and reapplying power to the DragonBoard410c\n  The SD card is corrupted and this prevents the system from booting.\n  Reflash the SD card with the SD card image.\n\n  - ",
+    "Once Linux boots you\u2019ll see on the HDMI monitor the Linux desktop and on the top\nleft corner a shortcut to the evaluation application. Double clicking on the\nicon will start the evaluation application. A console window will open to show\nthe application\u2019s status and, after a few seconds, the evaluati",
+    "- The demo application has the capability to display a point cloud image if it\n  detects an OpenCV module called viz.\n\n\nUnfortunately OpenCV does not provide binaries for this module so a manual build is needed. The steps required to install OpenCV and include it in the project are presented here: W",
+    "- The demo application hangs after closing the main window\n  Due to some limitations the application always hangs if it is closed using\n  the regular X button from the window top bar (title bar). To avoid this\n  unpleasant hang, we\u2019ve made available a second X button in the top right\n  corner right ",
+    "- AD-96TOF1-EBZ development kit\n- Raspberry Pi The system was tested on Raspberry Pi3 Model B V1.2 and Raspberry Pi 4. It can work on other models that have a CSI camera interface input.\n- Raspberry Pi 5V power supply\n- To run the system in standalone mode, besides the accessories that are provided ",
+    "For the **AD-96TOF1-EBZ rev.B** to work with the RPi the following changes must be made on the camera board:\n\n- short pins 2 and 3 on JP1. JP1 is located underneath the laser board so the laser board must be first detached from the camera board to have access to this solder jumper\n- short R98 and R1",
+    "- Plug the SD card into the Raspberry Pi SD card slot. To benefit from the most recent software updates it is highly recommended to update the SD card with the latest SD card image\n- Connect the HDMI cable from the monitor to the Raspberry Pi HDMI connector\n- Connect the RPi camera cable between the",
+    "- connect the I2C1 of the Raspberry Pi to AD-96TOF1-EBZ development kit. Please\n  use jumper wires and the table below.\n\n|Raspberry Pi GPIO Header (J8)|AD-96TOF1-EBZ pin header (P4)|\n|Pin 3 (SDA)|Pin 17|\n||Pin 21|\n|Pin 5 (SCL)|Pin 15|\n||Pin 19|\n\n\n- take care that the jumper wire connected to RPi hea",
+    "RPi connections rev. C\n\n\n- connect the 5V power supply to the camera board and set the camera power switch S2 to on. Once the camera board is powered up the DS1 LED will turn on\n- connect the 5V power supply to the Raspberry Pi. Once power is connected to\n  the Raspberry Pi the system will boot the ",
+    "- Open a terminal and type **sudo poweroff**. This will safely power off the Raspberry Pi and ensure that the SD card is properly unmounted\n- remove the 5V supply from the Raspberry Pi\n- Set the camera board power switch to off\n",
+    "- Linux does not boot\n  The SD card is corrupted and this prevents the system from booting.\n  Reflash the SD card with the SD card image.\n\n  - The SD card is corrupted and this prevents the system from booting.\n    Reflash the SD card with the SD card image.\n",
+    "Once Linux boots you\u2019ll see on the HDMI monitor the Linux desktop and on the top\nleft corner a shortcut to the evaluation application. Double clicking on the\nicon will start the evaluation application. A console window will open to show\nthe application\u2019s status and, after a few seconds, the evaluati",
+    "- The demo application has the capability to display a point cloud image if it\n  detects an OpenCV module called viz.\n\n\nUnfortunately OpenCV does not provide binaries for this module so a manual build is needed. The steps required to install OpenCV and include it in the project are presented here: W",
+    "- The demo application hangs after closing the main window\n  Due to some limitations the application always hangs if it is closed using\n  the regular X button from the window top bar (title bar). To avoid this\n  unpleasant hang, we\u2019ve made available a second X button in the top right\n  corner right ",
+    "> **Attention**\n>\n> Work-in-progress, not all content available at the\n> wiki\n> has been imported yet.\n\n\nSoftware, documentation and reference designs for Analog Devices\nproducts.\n\nThe System Level documentation provides developers using Analog Devices\nproducts with software and documentation, inclu",
+    "Reference Designs\n\nReference designs combining mixed signal hardware, software and\nalgorithms.\n\nProducts\n\nEvaluation boards, embedded processors and lab tools for hardware\ndevelopment.\n\nADC Platforms\n\nIntegrated evaluation and demonstration platforms for data converter\nsystems.\n\nApplication Software",
+    "Kuiper\n\nDebian-based Linux distribution with tools and drivers for evaluation\nhardware.\n\nKernel and devicetrees\n\nBuild guides for the Linux kernel and devicetrees across supported\nplatforms.\n\nLinux drivers\n\nLinux kernel drivers for connecting devices and accessing their\nfunctionality.\n\nSoftware\n\nLib",
+    "Tutorials & Workshops\n\nHands-on tutorials and workshops covering mixed signal basics and\nsystem design.\n\nUniversity Program\n\nLearning tools and practical courses for the next generation of design\nengineers.\n",
+    "The AD-96TOF1-EBZ is a pulsed Time-of-Flight (ToF) system. Is consists of a CCD sensor, an illumination source (VCSEL), and an analog front-end (AFE) with a ToF processor. To calculate depth a target scene is illuminated, the returned light is captured by the CCD sensor. The AFE reads the captured d",
+    "Calibration is required for the AD-96TOF1-EBZ to map the depth output of the\nsystem to the real world. The accuracy of depth is dependent on the calibration\nenvironment as well as the target environment conditions. Depth calibration is\nperformed by placing a target at the known distance in from of t",
+    "The following procedure takes place when running a calibration (\u201cparams\u201d are\nconfigurable in JSON files specified later in this document):\n\n- Firmware specified from the **.json** file is loaded into the system;\n- The system is turned on and allowed to run for a certain warmup period;\n- The sweep st",
+    "To run a linear calibration a target is placed a known distance away from the ToF system. The reflectivity of the target is dependent on the final use case of the system. For the AD-96TOF1-EBZ calibration, a target of 98% reflectivity for 940nm wavelength light is used. It is also important to keep ",
+    "To run a calibration first it is necessary to enter the correct parameters to a config file provided with each set of firmware files. The config file is in JSON format. Each mode comes with a recommended calibration config file **sweep_config_mode.json** in the firmware directory. The following para",
+    "To store a calibrated files to EEPROM the **eeprom_replace_config.json** in the calibration folder must be modified. The JSON parameters are shown below:\n|Parameter|Value|Description|\n|mode|string \u2013 (\u201cnear\u201d, \u201cmid\u201d, \u201cfar\u201d)|Specifies which mode is being stored to eeprom|\n|firmware_path|string|Specifie",
+    "The following steps run through a **near mode calibration** with the target positioned at 300mm:\n\n- Place target 300mm away from the sensor;\n- Modify the following parameters in the sweep_config_near.json file, located\n  in the firmware path\n  (aditof_sdk/tools/calibration-96tof1/config/BM_Kit/Near)",
+    "![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/reference-designs/ad-bmse2e3wlc-48v/hardware-guide/baseboard-main-components.png)\n\n*Figure 1 AD-BMSE2E3WLC-48V Components*\n\n|No.|Component|Function|\n|1|Battery Cell Connector|Connector going to batte",
+    "**Requirements**\n\n- 1 \u00d7 AD-BMSE2E3WLC-48V Baseboard\n- 1x DC2472A Battery Emulator\n- 1 x Digital Multimeter (DMM)\n",
+    "Install the shunt connectors (if not yet installed) and ensure correct\npositions, as highlighted in red in the figure below.\n\n> **Important**\n>\n> Header P16 must be configured with the shunt installed between\n> pin 2 and pin 3. This setting configures the board for 48V operation.\n\n\n![](https://media",
+    "> **Note**\n>\n> The DC2472A Battery Emulator Board is used for cell voltage\n> input in this setup.\n\n\n- Plug the screw-terminal block into the cell voltage connector of the\n  DC2472A battery emulator.\n- Connect the DC2472A battery emulator to the AD-BMSE2E3WLC-48V\n  Baseboard through the cell connecto",
+    "Using a **Digital Multimeter (DMM)**:\n\nRotate the knob of the DC2472A clockwise to set it to the lowest\nvoltage. Record the measurement for each cell voltage (C1 to C16).\n\n- Set the DMM to voltage mode\n- Place the probes (+) and (\u2013) between adjacent cells to measure voltage\n- The reading should fall",
+    "Using the DMM, measure the following test points (TP) and verify whether\neach reading is within range. Mark as \u201cGood\u201d if within range; otherwise,\nmark as \u201cBad\u201d. Remove the USB supply after completing the test.\n\n![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/doc",
+    "**Requirements**\n\n- 1 \u00d7 AD-BMSE2E3WLC-48V Baseboard\n- 1 \u00d7 EVAL-ADBMS1816WLC Daughter Board\n- 2 \u00d7 DC2472A Battery Emulator\n- 1 \u00d7 MAX32666FTHR Microcontroller\n- 1 \u00d7 MAX32625PICO Programming Board\n- 2 \u00d7 isoSPI twisted-pair cables\n- 1 \u00d7 10-pin swd debugger cable\n- 3 \u00d7 Micro-USB to USB cables\n- 1 \u00d7 PC/La",
+    "From the list of required hardware, select the **EVAL-ADBMS1816WLC Daughter Board**.\n\n- Configure the shunt connectors in **P17, P24, P34, P30, P18, and P35.**\n  Refer to the pin positions in the figure below for proper shunt configuration.\n  Figure 8 EVAL-ADBMSE2E3WLC Daughter Board Shunt Configura",
+    "- Attach the MAX32666FTHR microcontroller to the AD-BMSE2E3WLC-48V\n  Baseboard through the Featherwing connector.\n  Figure 10 MAX32666FTHR Mounted to the AD-BMSE2E3WLC-48V Baseboard\n",
+    "- Connect the red alligator to banana jack cable between **48V** and\n  **TP11** on the AD-BMSE2E3WLC-48V as shown below.\n  Figure 11 48V Connection\n",
+    "(A). Plug the micro-USB cable to the first DC2472A battery emulator that is connected to AD-BMSE2E3WLC-48V.\n\n(B). Plug the micro-USB cable to the second DC2472A battery emulator that is connected to EVAL-ADBMS1816WLC.\n\n(C). Plug the micro-USB cable into the MAX32666FTHR.\n\n(D). Connect the 2-wire iso",
+    "Refer to the diagram below for the sample application setup for Charge and Discharge applications.\n",
+    "![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/reference-designs/ad-bmse2e3wlc-48v/hardware-guide/charge-application.png)\n\n*Figure 13 Charge Application Setup*\n",
+    "![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/reference-designs/ad-bmse2e3wlc-48v/hardware-guide/discharge-application.png)\n\n*Figure 14 Discharge Application Setup*\n\n\n> **Tip**\n>\n> The AD-BMSE2E3WLC-48V can be evaluated through the ACE GUI by ru",
+    "![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/reference-designs/ad-bmse2e3wlc-sl/hardware-guide/baseboard-components.png)\n\n*Figure 1 AD-BMSE2E3WLC-48V Baseboard Components*\n\n|No.|Component|Function|\n|1|Battery Cell Connector|Connector going to b",
+    "**AD-BMSE2E3WLC-48V Baseboard**\n\n![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/reference-designs/ad-bmse2e3wlc-sl/hardware-guide/baseboard-testpoints.png)\n\n*Figure 3 AD-BMSE2E3WLC-48V Baseboard Test Points*\n\n|Test Point|Name|Typical (V)|Range (V",
+    "**Required Hardware**\n\n- 1 \u00d7 AD-BMSE2E3WLC-48V Baseboard\n- 1 \u00d7 EVAL-ADBMS1816WLC Daughter Board\n- 2 \u00d7 DC2472A Battery Emulator\n- 1 \u00d7 MAX32666FTHR Microcontroller\n- 1 \u00d7 MAX32625PICO Programming Board\n- 2 \u00d7 isoSPI twisted-pair cables\n- 1 \u00d7 10-pin SWD debugger cable\n- 3 \u00d7 Micro-USB to USB cables\n- 1 \u00d7 ",
+    "**AD-BMSE2E3WLC-48V Baseboard**\n\nFrom the list of required hardware, select the **AD-BMSE2E3WLC-48V Baseboard**.\n\nInstall the shunt connectors (if not yet installed) and ensure correct\npositions, as highlighted in red in the figure below.\n\n> **Important**\n>\n> Header P16 must be configured with the s",
+    "> **Note**\n>\n> The DC2472A Battery Emulator Board is used for cell voltage\n> input in this setup.\n\n\n- Plug the screw-terminal block into the cell voltage connector of the\n  two DC2472A battery emulators.\n- Connect the first DC2472A battery emulator to the AD-BMSE2E3WLC-48V\n  Baseboard through the ce",
+    "- Attach the MAX32666FTHR microcontroller to the AD-BMSE2E3WLC-48V\n  baseboard through the Featherwing connector.\n  Figure 10 MAX32666FTHR MCU to AD-BMSE2E3WLC-48V Baseboard\n",
+    "- Connect the red alligator to banana jack cable between **48V** and\n  **TP11** on the AD-BMSE2E3WLC-48V as shown below.\n  Figure 11 48V Connection\n",
+    "**(A). Plug the micro-USB cable to the first DC2472A battery emulator**\n:   that is connected to the AD-BMSE2E3WLC-48V baseboard.\n\n**(B). Plug the micro-USB cable to the second DC2472A battery emulator**\n:   that is connected to the EVAL-ADBMS1816WLC daughterboard.\n\n\n\n(C). Plug the micro-USB cable i",
+    "Refer to the diagrams below for the sample application setup for Charge and Discharge applications.\n",
+    "![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/reference-designs/ad-bmse2e3wlc-sl/hardware-guide/charge-application.png)\n\n*Figure 13 Charge Application Setup*\n",
+    "![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/reference-designs/ad-bmse2e3wlc-sl/hardware-guide/discharge-application.png)\n\n*Figure 14 Discharge Application Setup*\n\n\n> **Tip**\n>\n> The AD-BMSE2E3WLC-SL comes complete with firmware and easy-to-use",
+    "![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/reference-designs/ad-apard32690-sl/ad-t1lusb-ebz/ad-t1lusb2.0-ebz_angle-web.png)\n\n*Figure 1 AD-T1LUSB2.0-EBZ Interface Board*\n\n\nThe AD-T1LUSB2.0-EBZ board is an interface between USB 2.0 and a 10BASE",
+    "- Easy-to-use USB2.0 to 10BASE-T1L interface\n- Efficient data communication utilizing LAN9500A USB Ethernet Controller and\n  MAC connected via MII to the ADIN1100 PHY\n- Onboard EEPROM for saving and recalling MAC configurations\n- LEDs indicating MAC link status and user-programmable PHY status flags",
+    "- Industrial Ethernet Application Development\n- Building Automation\n",
+    "![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/reference-designs/ad-apard32690-sl/ad-t1lusb-ebz/ad-t1lusb2.0-ebz_block_diagram.png)\n\n*Figure 2 AD-T1LUSB2.0-EBZ Simplified Block Diagram*\n",
+    "![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/reference-designs/ad-apard32690-sl/ad-t1lusb-ebz/ad-t1lusb2.0-ebz_package_contents.png)\n\n*Figure 3 AD-T1LUSB2.0-EBZ Package Contents*\n",
+    "The AD-T1LUSB2.0-EBZ board is intended to be ready for use out of the box to\nquickly control any system with a 10BASE-T1L interface.\n\nA couple of design examples that have a 10BASE-T1L interface that will work\ntogether with the AD-T1LUSB2.0-EBZ board are:\n\n- AD-SWIOT1L-SL - Software-configurable Ana",
+    "![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/reference-designs/ad-apard32690-sl/ad-t1lusb-ebz/ad-swiot1l-sl_ad-t1lusb20-ebz.png)\n\n*Figure 4 AD-T1LUSB2.0-EBZ Setup with AD-SWIOT1L-SL*\n",
+    "![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/reference-designs/ad-apard32690-sl/ad-t1lusb-ebz/ad-adard32690-sl_ad-t1lusb20-ebz.png)\n\n*Figure 5 AD-T1LUSB2.0-EBZ Setup with AD-APARD32690-SL*\n",
+    "When the AD-T1LUSB2.0-EBZ board is connected to a computer via a USB cable, a new network interface should be available.\n\nThis can be verified by running on a shell terminal the **``ipconfig`` command\non a Windows system** or **``ifconfig`` on a Linux system**.\n\nThe new network configuration which c",
+    "> **Download**\n>\n> AD-T1LUSB2.0-EBZ Design Support Package\n> Schematic\n> PCB Layout\n> Bill of Materials\n> Allegro Project\n",
+    "Analog Devices will provide **limited** online\nsupport for anyone using the reference design with Analog Devices components via\nthe EngineerZone Reference Designs forum.\n",
+    "Dual 14-bit 1 GSPS ADC and quad 16-bit 2.8 GSPS DAC FMC evaluation board.\n\nAD9144 chip\n\n\nAD9680 chip\n",
+    "The AD-FMCDAQ2-EBZ module is comprised of the AD9680 dual, 14-bit,\n1.0 GSPS, JESD204B ADC, the AD9144 quad, 16-bit, 2.8 GSPS, JESD204B DAC,\nthe AD9523-1 clock, and power management components. It is clocked by an\ninternally generated carrier platform via the FMC connector, comprising a\ncompletely se",
+    "People who follow the flow that is outlined have a much better experience.\nHowever, like many things, documentation is never as complete as it should be.\nIf you have any questions, feel free to ask on our\nEngineerZone forums, but before that, please make\nsure you read our documentation thoroughly.\n\n",
+    "1. Using the AD-FMCDAQ2-EBZ full stack reference design:\n  Prerequisites \u2014 what you need to\n  get started\n  Quick Start Guides:\n  ZC706\n  ZCU102\n  MICROBLAZE\n  Arria 10 SoC\n  A10GX (OBSOLETE)\n  Configure an SD card with Kuiper\n  Linux applications:\n  IIO Oscilloscope\n\n  1. Prerequisites \u2014 what you n",
+    "About the JESD204B standard:\n\n1. JESD204B Survival Guide\n2. JESD204C Primer: What\u2019s New and in It for You \u2014 Part 1\n3. JESD204C Primer: What\u2019s New and in It for You \u2014 Part 2\n",
+    "> **Warning**\n>\n> All the products described on this page include ESD (electrostatic discharge) sensitive devices. Electrostatic charges as high as 4000V readily accumulate on the human body or test equipment and can discharge without detection.\n> Although the boards feature ESD protection circuitry",
+    "Please go to Help and Support page.\n",
+    "72 V to 96 V Battery Management System for Electric 2- and 3-Wheelers.\n\nA concise version of this document is available in portable document format.\nClick on the file below to download:\n\n> **Download**\n>\n> AD-BMSE2E3W-SL QuickStart Guide (pdf)\n",
+    "![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/reference-designs/ad-bmse2e3w-sl/ad-bmse2e3w-sl_angle.jpg)\n\n*Figure 1 AD-BMSE2E3W-SL*\n\n\nThe AD-BMSE2E3W-SL is a BMS reference design for light electric vehicles (LEVs). With a voltage range of 72 V t",
+    "- Variable 72 V to 96 V regulated voltage range, suitable for E2W/E3W applications\n- ASIL-D compliant and automotive grade BMS chip\n- Built-in charge/pre-charge, and discharge circuitry\n- 1.8 mV total measurement error for cell voltage monitoring\n- High performance cell/pack voltage and current moni",
+    "- Electric and hybrid 2-wheeler vehicles\n- Electric and hybrid 3-wheeler vehicles\n- Light electric vehicles\n",
+    "![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/reference-designs/ad-bmse2e3w-sl/updated_block_diagram_72vto96v.png)\n\n*Figure 2 AD-BMSE2E3W-SL Simplified Block Diagram*\n\n|SYSTEM||||||\n|Parameter|Min|Typical|Max|Unit|Notes|\n|System Vin+\u00a0Supply Volt",
+    "Upon purchase of the AD-BMSE2E3W-SL kit, the package comes with the following boards and accessories:\n\n![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/reference-designs/ad-bmse2e3w-sl/ad-bmse2e3w-sl_package_contents.png)\n\n*Figure 3 AD-BMSE2E3W-SL ",
+    "![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/reference-designs/ad-bmse2e3w-sl/revised_ad-bmse2e3w-sl_board_with_pin_labels.png)\n\n*Figure 4 Hardware Components and Connections*\n\n|No.|Part|Function|\n|1|Battery Cell Connector|Connector going to ba",
+    "Follow the setup shown in the diagram below to get the board up and running. Ensure that the hardware parts and equipment are complete based on list of Equipment Needed. The banana plug cables used in this setup only have a maximum rating of 10A. Cables suitable for higher current rating must be use",
+    "- 1x AD-BMSE2E3W-SL Board\n- 2x DC2472A Battery Cell Emulator Boards\n- 1x MAX32625PICO Programming Adapter with 10-pin SWD cable (loaded with firmware image)\n- 2x Cell Connector Block (18-cell connector)\n- 2x USB Type A to Micro-B cable\n- 2x Stackable Banana Plug to Alligator Clip Cable (BU-P1166-12-",
+    "By default (upon purchase), the AD+BMSE2E3W+SL board comes with a MAX32625PICO programmer adapter that is loaded with firmware image.\n\nOtherwise, if you are using a new MAX32625PICO programmer (that is not part of the original kit), make sure to flash it first with the correct firmware image before ",
+    "The board utilizes the DC2472A battery emulator as input for cell voltage measurement. The DC2472A allows a cell voltage of 1.4 V (min) to 4.2 V (max). Follow below steps to set up the board for cell measurement:\n\n1. Screw the two cell connector blocks to the two DC2472A battery emulators. Note that",
+    "- ADBMS6830\n- ADBMS2950\n- ADBMS6822\n- MAX32690\n- LT8303\n- ADUM225N\n- LTC7001\n- LTC3639\n",
+    "> **Download**\n>\n> AD-BMSE2E3W-SL Design Support Package\n> Schematic\n> PCB Layout\n> Bill of Materials\n> Allegro Project\n",
+    "A software user-guide and sample application for AD-BMSE2E3W-SL are available:\n",
+    "For questions and more information, please visit the EngineerZone Support Community.\n",
+    "E2/E3W BMS Extension Board\n",
+    "![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/reference-designs/eval-adbms1816wlc/eval-adbms1816wlc_board.png)\n\n*Figure 1 EVAL-ADBMS1816WLC Board*\n\n\nThe EVAL-ADBMS1816WLC is an expansion and evaluation platform\ndesigned to work in conjunction wi",
+    "**Wide Range BMS System**\n\n- can operate from 36V to 48V, can handle currents up to 100A\n\n\n**Battery Chemistry Compatibility**\n\n- Supports multiple battery chemistries: Ni-MH, Li-ion, LiFePO4, Sodium-ion\n\n\n**System Integration**\n\n- Can be used with Arduino-based microcontroller board\n- Plug-and-play",
+    "- Medium to High Performance Electric and Hybrid 2-and 3-Wheeler Vehicles\n- Light Electric Vehicles\n- BMS Battery Research and Development\n- Adaptive Battery Type System Monitoring\n- Portable Energy Storage Systems\n",
+    "![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/reference-designs/eval-adbms1816wlc/eval-adbms1816wlc-block_diagram.png)\n\n*Figure 2 EVAL-ADBMS1816WLC Simplified Block Diagram*\n",
+    "|**Parameter**|Min|Typical|Max|Unit|**Notes**|\n|**ADBMS1816W Cell Monitor**||||||\n|VREG Supply|4.5|5|5.5|V||\n|VREF1, VREF2|3||3.3|V|Supply to internal ADCs|\n|VRES/VDD|4.5|5|5.5|V||\n|Operating Temperature|-40||125|\u00b0C||\n|CPIN Input Range|-2.5||5.5|V||\n|Cell Count|1||32||Minimum 17 cells to initiate da",
+    "Proceed to the following pages for detailed information on\nhow to use the EVAL-ADBMS1816WLC reference design:\n\n- Hardware Guide\n",
+    "- ADBMS1816W Data Sheet\n",
+    "> **Download**\n>\n> EVAL-ADBMS1816WLC Design Support Package\n> Schematic\n> PCB Layout\n> Bill of Materials\n> Allegro Project\n",
+    "For questions and more information, please visit the EngineerZone Support Community.\n",
+    "48V Battery Monitor for E2/E3W Applications\n",
+    "![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/reference-designs/ad-bmse2e3wlc-48v/ad-bmse2e3wlc-48v_baseboard.png)\n\n*Figure 1 AD-BMSE2E3WLC-48V Board*\n\n\nThe **AD-BMSE2E3WLC-48V** is the baseboard of the\nAD-BMSE2E3WLC-SL Solution Kit, developed t",
+    "**Wide Range BMS System**\n\n- can operate from 36V to 48V, can handle currents up to 100A\n\n\n**Battery Chemistry Compatibility**\n\n- Supports multiple battery chemistries: Ni-MH, Li-ion, LiFePO4,\n  Sodium-ion, and others\n\n\n**System Integration**\n\n- Plug-and-play integration\n- MCU-agnostic design for ea",
+    "- Medium to High Performance Electric and Hybrid 2-Wheeler and 3-Wheeler Vehicles\n- Light Electric Vehicles\n- BMS Battery Research and Development\n- Adaptive Battery Type System Monitoring\n- Portable Energy Storage Systems\n",
+    "![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/reference-designs/ad-bmse2e3wlc-48v/ad-bmse2e3wlc-48v_block_diagram.png)\n\n*Figure 2 AD-BMSE2E3WLC-48V Simplified Block Diagram*\n",
+    "|**Parameter**|Min|Typical|Max|Unit|**Notes**|\n|**ADBMS1816W Cell Monitor**||||||\n|VREG Supply|4.5|5|5.5|V||\n|VREF1, VREF2|3||3.3|V|Supply to internal ADCs|\n|VRES/VDD|4.5|5|5.5|V||\n|Operating Temperature|-40||125|\u00b0C||\n|CPIN Input Range|-2.5||5.5|V||\n|Cell Count|1||32||Minimum 17 cells to initiate da",
+    "Proceed to the following pages for detailed information on\nhow to use and evaluate the AD-BMSE2E3WLC-48V reference design:\n\n- Hardware Guide\n",
+    "- ADBMS1816 Data Sheet\n- ADBMS1816 Product Page\n- LTC7000 Product Page\n",
+    "> **Download**\n>\n> AD-BMSE2E3WLC-48V Design Support Package\n> Schematic\n> PCB Layout\n> Bill of Materials\n> Allegro Project\n",
+    "For questions and more information, please visit the EngineerZone Support Community.\n",
+    "What you need, depends on what you are trying to do. As a minimum, you need to\nstart out with:\n",
+    "1. The AD9680/AD9144-based evaluation board: AD-FMCDAQ2-EBZ\n2. An FPGA carrier platform. Our recommended ones can be found\n  here.\n  There are a few more boards, which do work, but are currently not supported\n  by us. The experience with the fabric-only solutions is very close to the\n  ARM/FPGA SoC ",
+    "Normally, for basic functionalities regarding visualizing the data received from\nthe FPGA, we use the following:\n\n1. Scopy v2.0 or later (must contain the IIO\n  plugin)\n\n\n> **Note**\n>\n> ADI does not offer FPGA carrier platforms for sale or loan; getting\n> one yourself is the normal part of developme",
+    "The AD-96TOF1-EBZ\nis a proven hardware platform for depth perception. When paired with a processor\nboard from the 96Boards ecosystem or Raspberry Pi family, it can be used for 3D\nsoftware and algorithm development. This modular platform can be used as a baseline\nto design a ToF system.\n\nFeatures:\n\n-",
+    "**The full system hardware includes:**\n\n- Laser Transmitter Board\n- AFE Receiver Board\n\n\nRev C board\n\n\n**High level specification**\n\n```default\n *Range\n   *Near: 25cm to 80cm\n   *Medium: 30cm to 4.5m (Rev.B: 80cm to 3m)\n   *Far: 3m to 6m\n   *Accuracy: < 2% for all ranges\n *Frame Rate upto 30fps depe",
+    "The development kit is delivered with an SD card containing the evaluation\nsoftware for the supported embedded platforms and a set of accessories required\nto put the system together and get it up and running in no time.\n\nBox contents\n\n\nDevelopment kit contents:\n\n- Laser Board\n- AFE Mezzanine Board\n-",
+    "The system has options of USB, Ethernet or Wi-Fi to connect to a host computer,\nthis flexibility enables evaluation across a wide range of use cases and\nenvironments. Sampling rates of up to 30fps are supported. Data is fed from the\ndepth camera to the processor board over MIPI-CSI interface. This d",
+    "> **Important**\n>\n> This device complies with International Standards IEC 60825-1:2014 & 2007 for\n> a Class 1 laser product. This device also complies with 21 CFR 1040.10 and\n> 1040.11 except for deviations pursuant to Laser Notice No. 50, dated June 24,\n> 2007. Only use Software and Firmware update",
+    "> **Video**\n>\n> Video\n\n\n> **Video**\n>\n> Video\n\n\n> **Video**\n>\n> Video\n\n\n> **Video**\n>\n> Video\n\n\n> **Video**\n>\n> Video\n\n\n> **Video**\n>\n> Video\n",
+    "For questions and more information please contact us on the Analog Devices\nEngineer Zone.\n\n> **Hint**\n>\n> EngineerZone 3D ToF Depth Sensing\n",
+    "> **Note**\n>\n> We are in the process of moving the reference design documentation from\n> wiki.analog.com to ADI Documentation repository.\n> We apologize for any inconvenience that may occur due to this migration.\n\n\nAnalog Devices has developed hundreds of reference designs to help solve our\ncustomer",
+    "![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/reference-designs/eval-adbms1816wlc/hardware-guide/eval-adbms1816wlc-components.png)\n\n*Figure 1 EVAL-ADBMS1816WLC Components*\n\n|No.|Component|Function|\n|1|Battery Cell Connector|Connector for Cell In",
+    "**Requirements**\n\n- 1 \u00d7 EVAL-ADBMS1816WLC Board\n- 1 \u00d7 DC2472A Battery Emulator\n- 1 \u00d7 Digital Multimeter (DMM)\n",
+    "Configure the shunt connectors in **P17, P24,\nP34, P30, P18, and P35.** Refer to the pin positions in the\nfigure below for proper shunt configuration.\n\n![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/reference-designs/eval-adbms1816wlc/hardware-gu",
+    "> **Note**\n>\n> The DC2472A Battery Emulator Board is used for cell voltage\n> input in this setup.\n\n\n- Plug the screw-terminal block into the cell voltage connector of the\n  DC2472A battery emulator.\n- Connect the DC2472A battery emulator to the EVAL-ADBMS1816WLC\n  daughterboard through the cell conn",
+    "Using a **Digital Multimeter (DMM)**:\n\nRotate the knob of the DC2472A clockwise to set it to the lowest\nvoltage. Record the measurement for each cell voltage (C1 to C16).\n\n- Set the DMM to voltage mode\n- Place the probes (+) and (\u2013) between adjacent cells to measure voltage\n- The reading should fall",
+    "**Requirements**\n\n- 1 \u00d7 AD-BMSE2E3WLC-48V Baseboard\n- 1 \u00d7 EVAL-ADBMS1816WLC Daughter Board\n- 2 \u00d7 DC2472A Battery Emulator\n- 1 \u00d7 MAX32666FTHR Microcontroller\n- 1 \u00d7 MAX32625PICO Programming Board\n- 2 \u00d7 isoSPI twisted-pair cables\n- 1 \u00d7 10-pin SWD debugger cable\n- 3 \u00d7 Micro-USB to USB cables\n- 1 \u00d7 PC/La",
+    "From the list of required hardware, select the **AD-BMSE2E3WLC-48V Baseboard**.\n\n- Install the shunt connectors (if not yet installed) and ensure correct\n  positions, as highlighted in red in the figure below.\n  Important\n  Header P16 must be configured with the shunt installed between\n  pin 2 and p",
+    "- Attach the MAX32666FTHR microcontroller to the AD-BMSE2E3WLC-48V\n  Baseboard through the Featherwing connector.\n  Figure 8 MAX32666FTHR Mounted to the AD-BMSE2E3WLC-48V Baseboard\n",
+    "- Connect the red alligator to banana jack cable between **48V** and\n  **TP11** on the AD-BMSE2E3WLC-48V as shown below.\n  Figure 9 48V Connection\n",
+    "**(A). Plug the micro-USB cable to the first DC2472A battery emulator**\n:   that is connected to AD-BMSE2E3WLC-48V.\n\n**(B). Plug the micro-USB cable to the second DC2472A battery emulator**\n:   that is connected to EVAL-ADBMS1816WLC.\n\n\n\n(C). Plug the micro-USB cable into the MAX32666FTHR.\n\n(D). Conn",
+    "Refer to the diagram below for the sample application setup for Charge and Discharge applications.\n",
+    "![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/reference-designs/eval-adbms1816wlc/hardware-guide/charge-application.png)\n\n*Figure 11 Charge Application Setup*\n",
+    "![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/reference-designs/eval-adbms1816wlc/hardware-guide/discharge-application.png)\n\n*Figure 12 Discharge Application Setup*\n\n\n> **Tip**\n>\n> The EVAL-ADBMS1816WLC can be evaluated through the ACE GUI by ru",
+    "Ethernet-APL Field Platform for Intelligent, Safe, Secure, and Connected Industrial Devices\n",
+    "The AD-ETHERNETAPLDEVICE-SL is a complete Ethernet-APL field platform designed\nfor prototyping intelligent, secure, and connected industrial field devices.\n",
+    "- Certified for intrinsic safety (Ex ia IIC Ga)\n- Pre-certified Ethernet-APL\n- Extensive security features: built-in security for hardware root-of-trust,\n  data confidentiality and integrity, and secure communications.\n  Designed with IEC 62443 and EUCRA requirements in mind.\n  Support available for",
+    "> **Download**\n>\n> The hardware design files are available for download from the product page.\n> The design files include schematics, PCB layouts, and bill of materials (BOM)\n> for the AD-EthernetAPLDevice-SL.\n> AD-EthernetAPLDevice-SL Design Files\n> `Schematic Power and Comms board`\n> `Schematic Di",
+    "The development kit is delivered with a set of accessories required to put the\nsystem together and get it up and running in no time.\n\nThis is what you\u2019ll find in the development kit box:\n\n- 1x AD-EthernetAPLDevice-SL intrinsic safety certified kit (Power and Comms +\n  Digital IS boards)\n- 1x Digital",
+    "![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/reference-designs/ad-ethernetapldevice-sl/sw_block_diagram.png)\n\n*Figure 3 Software Architecture*\n\n\nThe AD-ETHERNETAPLDEVICE-SL firmware examples are based on ADI\u2019s\nopen-source no-OS framework. It in",
+    "![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/reference-designs/ad-ethernetapldevice-sl/power-connectors.png)\n\n*Figure 4 Power Board Connections*\n\n\n![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/soluti",
+    "- **Development kit**: AD-EthernetAPLDevice-SL\n- **Debugging board**: If RISC-V co-processor needs to be debugged, replace the\n  IS digital board with the NON-IS Digital board\n- **Power supply**: Powered via DEMO-ADIN1100D2Z supplied from external power connector\n  (from 9V to 15V), or an Ethernet-A",
+    "1. Connect the AD-EthernetAPLDevice-SL to the DEMO-ADIN1100D2Z and ensure that\n  all connectors are fully seated.\n2. Connect a 2- or 4-wire PT100 sensor to the temperature-sensor connector.\n3. Connect the MAX32625PICO programmer to the ARM debug header with the\n  10-pin ribbon cable.\n4. To debug the",
+    "The AD-EthernetAPLDevice-SL is supported by an open-source software stack based\non Analog Devices\u2019 no-OS framework. It includes:\n\n- Baremetal drivers for all on-board components\n- Example applications for data acquisition and system configuration via 10BASE-T1L\n- Zephyr RTOS board definition\n- Integ",
+    "For questions and more information, please visit the EngineerZone community or\ncontact your local ADI representative.\n",
+    "Type 2 EVSE 3.6 kW Charging Cable.\n",
+    "The AD-ACEVSECRDSET-SL is  a complete Type 2 EVSE 3.6kW\ncharging cable solution, providing a reference design intended for evaluation\nand prototyping of EV charging systems.\n\nThe system includes the ADE9113 3-channel isolated sigma-delta (\u03a3-\u0394) ADC\nfor voltage and current measurement on the single-ph",
+    "- Complete reference design for Type 2 EVSE Cordset (IC-CPD)\n- Power level from 2.3kW up to 3.6kW (at 230V)\n- Designed to meet the applicable standards: IEC61851, IEC62752\n- Incorporates a 6mA DC/30mA rms RCD and a control pilot circuit\n- Relay soldered contacts detection\n- Upstream and downstream P",
+    "- EV Charging\n",
+    "![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/reference-designs/ad-acevsecrdset-sl/block_diagram_new.png)\n\n*Figure 2 AD-ACEVSECRDSET-SL Simplified Block Diagram*\n",
+    "|Electrical Specs||\n|Power|3.6kW|\n|Input voltage|230V +/-15% or 120V +/-15%|\n|Input current|16A|\n|Input frequency|50Hz / 60Hz|\n|Output voltage|230V +/-15% or 120V +/-15%|\n|Output current|10A/16A|\n|Output frequency|50Hz / 60Hz|\n|**Operating Conditions**|\n|Operating temperature|-25\u00b0C to +45\u00b0C|\n|Residu",
+    "- Hardware User Guide\n- Production Testing\n",
+    "- AD-ACEVSECRDSET-SL Product Page\n- MAX32655 Product Page\n- ADE9113 Product Page\n- ADA4523-1 Product Page\n- ADT75 Product Page\n- MAX20457 Product Page\n- LT8330 Product Page\n",
+    "- Link to the project source code\n",
+    "> **Download**\n>\n> AD-ACEVSECRDSET-SL Design & Integration Files (Rev E)\n> Schematics\n> PCB Layout\n> Bill of Materials\n> Allegro Project\n",
+    "For questions and more information, please visit the EngineerZone.\n",
+    "Arduino Form-factor Development Platform Based on MAX32690 ARM Cortex-M4.\n",
+    "The AD-APARD32690-SL is an Arduino Form-factor\nDevelopment Platform based on MAX32690 ARM Cortex-M4\nMicrocontroller, targeted for prototyping intelligent, secure, and connected\nindustrial field devices. Some of the main features and benefits include:\n\n- Arduino Mega-compatible form factor\n- Two Pmod",
+    "The development kit is delivered with a set of accessories required to put the\nsystem together and get it up and running in no time.\n\nThis is what you\u2019ll find in the development kit box:\n\n- 1 x AD-APARD32690-SL board\n- 1 x AD-T1LUSB2.0-EBZ\n  10BASE-T1L to USB adapter board\n- 1 x PROFIBUS (1x2x18AWG)",
+    "![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/reference-designs/ad-apard32690-sl/sw_block_diagram.png)\n\n*Figure 3 Software Architecture*\n\n\nThe AD-APARD32690-SL firmware is based on ADI\u2019s\nopen-source no-OS framework. It includes the bare-metal de",
+    "> **Attention**\n>\n> TO BE REPLACED!\n\n\n![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/reference-designs/ad-apard32690-sl/apard32690_hw_components.png)\n\n*Figure 4 Hardware Components and Connections*\n\n|LEDs||\n|DS1|Power good|\n|DS2|User LED|\n|Button",
+    "- **Development kit**: AD-APARD32690-SL Microcontroller Board\n- **Power supplies**: 5V to 28V at 2A external power supply or 5V USB-C power\n  supply\n- **Programmer**: MAX32625PICO or any other similar programmer\n  supporting the SWD interface\n\n\n1. Connect the AD-APARD32690-SL to the AD-T1LUSB2.0-EBZ",
+    "To update the board\u2019s firmware, a new bootloader has to be flashed on the\nMAX32625PICO.\n\n1. Download the firmware image: MAX32625PICO firmware\n2. Set the MAX32625PICO in MAINTENANCE mode:\n  Disconnect the MAX32625PICO from the PC and the AD-SWIOT1L-SL board.\n  Plug the micro USB cable only in the MA",
+    "1. Connect the MAX32625PICO to the PC using the micro USB cable.\n2. Connect the MAX32625PICO to the AD-APARD32690-SL board using the 10-pin\n  ribbon cable.\n3. Connect the power supply to the AD-APARD32690-SL. Make sure the board is\n  powered up for the next steps.\n4. A DAPLINK drive should appear as",
+    "The system is accompanied by an open-source software stack and associated\ncollateral, enabling a complete experience from evaluation and prototyping all\nthe way to production firmware and applications development.\n\nThe AD-APARD32690-SL firmware\nis based on Analog Devices\u2019 open-source no-OS framework",
+    "- AD-APARDSPOE-SL\n- AD-T1LUSB2.0-EBZ\n",
+    "For questions and more information, please visit the EngineerZone.\n",
+    "![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/reference-designs/ad-apard32690-sl/ad-apardspoe-sl/apard-spoe-top-iso.png)\n\n*Figure 1 AD-APARDSPOE-SL*\n\n\nThe AD-APARDSPOE-SL is a 10BASE-T1L power extractor\nwith Single Pair Power over Ethernet (SPoE",
+    "![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/reference-designs/ad-apard32690-sl/ad-apardspoe-sl/apard-spoe-top-with-labels.png)\n\n*Figure 2 AD-APARDSPOE-SL Primary Side*\n\n\nThe AD-APARDSPOE-SL uses 3 headers to connect to the\nAD-APARD32690-SL pla",
+    "By default, the LTC9111 SPoE PD\ncontroller included in the AD-APARDSPOE-SL circuit is configured for\nPD Class 12. If a different PD class is required for the application, the\n**JP1** and **JP2** solder jumpers should be reconfigured to match the desired\nclass.\n\n![](https://media.githubusercontent.co",
+    "![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/reference-designs/ad-apard32690-sl/ad-apardspoe-sl/apard-spoe-bottom-with-labels.png)\n\n*Figure 4 AD-APARDSPOE-SL Secondary Side*\n",
+    "**Required Equipment**\n\n**Hardware**\n\n- AD-APARDSPOE-SL Circuit Evaluation Board\n- AD-APARD32690-SL\n- Power Source, either:\n  AD-RPI-T1LPSE-SL 2-port 10BASE-T1L with SPoE\n  PSE Development Platform\n  Raspberry Pi Model 3B (or higher)\n  MicroSD Card for Raspberry Pi\n  Other 10BASE-T1L Power Coupling ",
+    "The AD-RPI-T1LPSE-SL 2-port 10BASE-T1L with SPoE PSE\nDevelopment Platform provides a complete solution for powering\nthe AD-APARDSPOE-SL evaluation board\nand the AD-APARD32690-SL platform board via SPoE.\n\n![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solut",
+    "![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/reference-designs/ad-apard32690-sl/ad-apardspoe-sl/apard-spoe-setup.png)\n\n*Figure 6 Complete Evaluation Setup*\n\n\nTo establish a 10BASE-T1L connection to an\nAD-APARD32690-SL using the\nAD-APARDSPOE-SL ",
+    "> **Download**\n>\n> AD-APARDSPOE-SL Design & Integration Files\n> Schematics\n> PCB Layout\n> Bill of Materials\n> Allegro Project\n",
+    "- ADIN1110 Product Page\n- LTC9111 Product Page\n- LT8304 Product Page\n",
+    "> **Tip**\n>\n> Receive software update notifications, documentation updates, view the latest\n> videos, and more when you register your\n> hardware.\n",
+    "For questions and more information about this product, connect with us through\nthe Analog Devices EngineerZone .\n",
+    "The purpose of the test procedure is to identify connectivity issues, poor\nsoldering, and potential manufacturing defects.\n",
+    "|Step Description|Estimate Time (minutes)|\n|Test bench setup|5 min|\n|Software test|1 min|\n|**Total time**|**6 min**|\n",
+    "- 1 x AD-SWIOT1L-SL board\n- 24V power supply for the AD-SWIOT1L-SL board\n- Raspberry Pi, power supply, Mini-HDMI cable\n- Mouse and keyboard\n- T1L-to-Usb cable and AD-T1LUSB2.0-EBZ (media converter) as Device\n  Under Test (DUT)\n- Usb-A to Type-C cable for the media converter\n",
+    "The test image is provided on a pre-configured SD card.\n",
+    "1. Insert the SD card into the Raspberry Pi and power it.\n2. Connect the HDMI cable between Rpi and the monitor, insert mouse and\n  keyboard dongle into the Rpi\u2019s Usb port.\n  Figure 1 Raspberry Pi connections\n3. Connect the T1L-TO-Usb cable into the AD-SWIOT1L-SL and into the\n  AD-T1LUSB2.0-EBZ (med",
+    "Before starting the testing procedure, make sure the Raspberry Pi is connected\nto Wi-Fi.\n\n1. After the Rpi boots the OS, press **CONTROL+C** to exit the test screen.\n2. Click on the Wi-Fi network you want to connect to.\n  Figure 4 Wi-Fi connection\n3. Type in the password.\n4. After successfully conne",
+    "After the Raspberry Pi reboots, the test screen will appear on the monitor.\n\n![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/reference-designs/ad-apard32690-sl/ad-t1lusb-ebz/production_testing/images/test_monitor.png)\n\n*Figure 6 Test menu*\n",
+    "Type **1** into the terminal then press **ENTER** to start the\n\u201c1) T1L TO Usb TEST\u201d.\n\n![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/reference-designs/ad-apard32690-sl/ad-t1lusb-ebz/production_testing/images/test_command_1.png)\n\n*Figure 7 T1L TO ",
+    "The purpose of the test procedure is to identify connectivity issues, poor\nsoldering, and potential manufacturing defects. Some of the issues are directly\nidentified by explicit part-targeted tests, others are implicit, by running\nadjacent tests.\n",
+    "|Step Description|Estimate Time (minutes)|\n|Test bench setup|3 min|\n|Software test|5 min|\n|**Total time**|**8 min**|\n",
+    "- Raspberry Pi 4\n- HDMI cable\n- Mouse and keyboard\n- 1 x AD-RPI-T1LPSE-SL board\n- 1 x AD-APARDSPOE-SL (Device Under Test)\n- 1 x AD-APARD32690-SL board\n- 1 x T1L cable\n- 12V power supply USB Type-C\n- MAX32625PICO (DAPLink programmer)\n",
+    "The test image is provided on a pre-configured SD card.\n",
+    "1. Insert the SD card into the Raspberry Pi.\n2. Connect the Raspberry Pi to a monitor, keyboard, and mouse.\n3. Insert the AD-RPI-T1LPSE-SL on top of the Raspberry Pi.\n4. Connect the AD-APARD32690-SPOE shield on top of the AD-APARD32690-SL board.\n5. Connect the T1L cable to AD-RPI-T1LPSE-SL and the A",
+    "Make sure the Raspberry Pi is connected to Wi-Fi before starting the tests.\n\n1. Power the Raspberry Pi.\n2. Press **CONTROL+C** to exit the test screen.\n3. Click on the network and type in the password.\n  Figure 3 Wi-Fi connection\n4. After successfully connecting, reboot the Raspberry Pi by following",
+    "After the Raspberry Pi reboots, the test screen will appear on the monitor.\n\n![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/reference-designs/ad-apard32690-sl/ad-apardspoe-sl/production_testing/images/terminal_command_1.png)\n\n*Figure 4 Test menu*",
+    "Type **1** into the terminal then press **ENTER** to start \u201c1) System Test\u201d.\nConnect the T1L cable to port 1.\n\nIf the test is **PASSED**, the DUT is functional. Continue testing the other\nboards.\n\n![](https://media.githubusercontent.com/media/analogdevicesinc/system-level/fix_links/docs/solutions/re"
+  ],
+  "url": [
+    "solutions/reference-designs/ad-bmse2e3wlc-sl",
+    "solutions/reference-designs/ad-bmse2e3wlc-sl#overview",
+    "solutions/reference-designs/ad-bmse2e3wlc-sl#features",
+    "solutions/reference-designs/ad-bmse2e3wlc-sl#applications",
+    "solutions/reference-designs/ad-bmse2e3wlc-sl#system-architecture",
+    "solutions/reference-designs/ad-bmse2e3wlc-sl#theory-of-operation",
+    "solutions/reference-designs/ad-bmse2e3wlc-sl#specifications",
+    "solutions/reference-designs/ad-bmse2e3wlc-sl#package-contents",
+    "solutions/reference-designs/ad-bmse2e3wlc-sl#user-guides",
+    "solutions/reference-designs/ad-bmse2e3wlc-sl#resources",
+    "solutions/reference-designs/ad-bmse2e3wlc-sl#design-integration-files",
+    "solutions/reference-designs/ad-bmse2e3wlc-sl#help-and-support",
+    "solutions/reference-designs/ad-fmcdaq2-ebz/hardware#picture-and-main-components",
+    "solutions/reference-designs/ad-fmcdaq2-ebz/hardware#outline",
+    "solutions/reference-designs/ad-fmcdaq2-ebz/hardware#size",
+    "solutions/reference-designs/ad-fmcdaq2-ebz/hardware#schematic-pcb-layout-bill-of-materials",
+    "solutions/reference-designs/ad-fmcdaq2-ebz/testing#overview",
+    "solutions/reference-designs/ad-fmcdaq2-ebz/testing#temperature",
+    "solutions/reference-designs/ad-fmcdaq2-ebz/testing#voltage",
+    "solutions/reference-designs/ad-fmcdaq2-ebz/testing#signals",
+    "solutions/reference-designs/ad-fmcdaq2-ebz/testing#required-software",
+    "solutions/reference-designs/ad-fmcdaq2-ebz/testing#required-hardware",
+    "solutions/reference-designs/ad-fmcdaq2-ebz/testing#required-setup",
+    "solutions/reference-designs/ad-fmcdaq2-ebz/testing#test-process",
+    "solutions/reference-designs/ad-fmcdaq2-ebz/testing#cable-placement",
+    "solutions/reference-designs/ad-fmcdaq2-ebz/testing#heatsink-placement",
+    "solutions/reference-designs/ad-fmcdaq2-ebz/help_and_support",
+    "solutions/reference-designs/ad-fmcdaq2-ebz/introduction",
+    "solutions/reference-designs/ad-fmcdaq2-ebz/introduction#features",
+    "solutions/reference-designs/ad-fmcdaq2-ebz/introduction#ad9680-1000-adc",
+    "solutions/reference-designs/ad-fmcdaq2-ebz/introduction#ad9144-dac",
+    "solutions/reference-designs/ad-fmcdaq2-ebz/introduction#applications",
+    "solutions/reference-designs/ad-acevsecrdset-sl/hardware-guide#introduction",
+    "solutions/reference-designs/ad-acevsecrdset-sl/hardware-guide#revision-a",
+    "solutions/reference-designs/ad-acevsecrdset-sl/hardware-guide#revision-d",
+    "solutions/reference-designs/ad-acevsecrdset-sl/hardware-guide#setting-up-the-board",
+    "solutions/reference-designs/ad-acevsecrdset-sl/hardware-guide#user-interface",
+    "solutions/reference-designs/ad-acevsecrdset-sl/hardware-guide#test-points",
+    "solutions/reference-designs/ad-acevsecrdset-sl/hardware-guide#scope-images",
+    "solutions/reference-designs/ad-acevsecrdset-sl/hardware-guide#testing-the-evse",
+    "solutions/reference-designs/ad-acevsecrdset-sl/production_testing#overview",
+    "solutions/reference-designs/ad-acevsecrdset-sl/production_testing#test-duration",
+    "solutions/reference-designs/ad-acevsecrdset-sl/production_testing#required-hardware",
+    "solutions/reference-designs/ad-acevsecrdset-sl/production_testing#required-software",
+    "solutions/reference-designs/ad-acevsecrdset-sl/production_testing#required-setup",
+    "solutions/reference-designs/ad-acevsecrdset-sl/production_testing#wi-fi-setup",
+    "solutions/reference-designs/ad-acevsecrdset-sl/production_testing#running-the-tests",
+    "solutions/reference-designs/ad-fmcdaq2-ebz/clocking#overview",
+    "solutions/reference-designs/ad-fmcdaq2-ebz/clocking#fdac-1000-msps-fadc-1000-msps",
+    "solutions/reference-designs/ad-fmcdaq2-ebz/clocking#fdac-250-msps-fadc-375-msps",
+    "solutions/reference-designs/ad-fmcdaq2-ebz/clocking#replacing-the-crystal-oscillator",
+    "solutions/reference-designs/ad-fmcdaq2-ebz/clocking#example-fxo-122-88-mhz-fvco-2949-12-mhz",
+    "solutions/reference-designs/ad-fmcdaq2-ebz/clocking#linux",
+    "solutions/reference-designs/ad-fmcadc7-ebz/prerequisites",
+    "solutions/reference-designs/ad-fmcadc7-ebz/prerequisites#hardware-prerequisites",
+    "solutions/reference-designs/ad-fmcadc7-ebz/prerequisites#software-prerequisites",
+    "solutions/reference-designs/ad-fmcadc7-ebz/user-guide",
+    "solutions/reference-designs/ad-fmcadc7-ebz/user-guide#specifications",
+    "solutions/reference-designs/ad-fmcadc7-ebz/user-guide#clocking",
+    "solutions/reference-designs/ad-fmcadc7-ebz/user-guide#analog-front-end",
+    "solutions/reference-designs/ad-fmcadc7-ebz/user-guide#linux",
+    "solutions/reference-designs/ad-fmcadc7-ebz/user-guide#help-support",
+    "solutions/reference-designs/ad-fmcadc7-ebz",
+    "solutions/reference-designs/ad-fmcadc7-ebz#overview",
+    "solutions/reference-designs/ad-fmcadc7-ebz#recommendations",
+    "solutions/reference-designs/ad-fmcadc7-ebz#table-of-contents",
+    "solutions/reference-designs/ad-fmcadc7-ebz#warning",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_jetson#required-hardware",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_jetson#modifying-the-ad-96tof1-ebz-to-work-with-the-nvidia-jetson-nano",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_jetson#prepare-sd-card",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_jetson#power-on-sequence",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_jetson#power-off-sequence",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_jetson#running-the-evaluation-application",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_jetson#enabling-the-point-cloud-display-in-aditof-demo",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_jetson#troubleshooting",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_linux#required-hardware",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_linux#power-on-sequence",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_linux#enable-the-usb-connection-to-the-host-pc",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_linux#troubleshooting",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_linux#ethernet-connection",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_linux#running-the-evaluation-application",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_linux#enabling-the-point-cloud-display-in-aditof-demo",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_linux#id1",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_xavier_nx#required-hardware",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_xavier_nx#modifying-the-ad-96tof1-ebz-to-work-with-the-nvidia-xavier-nx",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_xavier_nx#prepare-sd-card",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_xavier_nx#power-on-sequence",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_xavier_nx#power-off-sequence",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_xavier_nx#troubleshooting",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_xavier_nx#running-the-evaluation-application",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_xavier_nx#enabling-the-point-cloud-display-in-aditof-demo",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_xavier_nx#id1",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_xavier_agx#required-hardware",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_xavier_agx#modifying-the-ad-96tof1-ebz-to-work-with-the-nvidia-xavier-agx",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_xavier_agx#prepare-sd-card",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_xavier_agx#power-on-sequence",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_xavier_agx#power-off-sequence",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_xavier_agx#troubleshooting",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_xavier_agx#running-the-evaluation-application",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_xavier_agx#enabling-the-point-cloud-display-in-aditof-demo",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_xavier_agx#id1",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_host_system_setup",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_host_system_setup",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_aditof_demo",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_aditof_demo",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_windows#required-hardware",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_windows#power-on-sequence",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_windows#enable-the-usb-connection-to-the-host-pc",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_windows#troubleshooting",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_windows#ethernet-connection",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_windows#running-the-evaluation-application",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_windows#enabling-the-point-cloud-display-in-aditof-demo",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_windows#id1",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_db410c#required-hardware",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_db410c#power-on-sequence",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_db410c#power-off-sequence",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_db410c#troubleshooting",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_db410c#running-the-evaluation-application",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_db410c#enabling-the-point-cloud-display-in-aditof-demo",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_db410c#id1",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_rpi#required-hardware",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_rpi#modifying-the-ad-96tof1-ebz-to-work-with-the-rpi",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_rpi#power-on-sequence",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_rpi#ad-96tof1-ebz-rev-b",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_rpi#ad-96tof1-ebz-rev-c",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_rpi#power-off-sequence",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_rpi#troubleshooting",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_rpi#running-the-evaluation-application",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_rpi#enabling-the-point-cloud-display-in-aditof-demo",
+    "solutions/reference-designs/ad-96tof1-ebz/ug_rpi#id1",
+    "",
+    "#apps-solutions",
+    "#firmware-software",
+    "#learning",
+    "solutions/reference-designs/ad-96tof1-ebz/calibration#introduction",
+    "solutions/reference-designs/ad-96tof1-ebz/calibration#calibration-overview",
+    "solutions/reference-designs/ad-96tof1-ebz/calibration#calibration-pipeline",
+    "solutions/reference-designs/ad-96tof1-ebz/calibration#physical-setup",
+    "solutions/reference-designs/ad-96tof1-ebz/calibration#calibration-configuration",
+    "solutions/reference-designs/ad-96tof1-ebz/calibration#eeprom-configuration",
+    "solutions/reference-designs/ad-96tof1-ebz/calibration#calibrate-and-store-to-eeprom-example",
+    "solutions/reference-designs/ad-bmse2e3wlc-48v/hardware-guide#components-and-connections",
+    "solutions/reference-designs/ad-bmse2e3wlc-48v/hardware-guide#hardware-setup",
+    "solutions/reference-designs/ad-bmse2e3wlc-48v/hardware-guide#jumper-configuration",
+    "solutions/reference-designs/ad-bmse2e3wlc-48v/hardware-guide#battery-emulator-setup",
+    "solutions/reference-designs/ad-bmse2e3wlc-48v/hardware-guide#cell-voltage-measurement-using-dmm",
+    "solutions/reference-designs/ad-bmse2e3wlc-48v/hardware-guide#test-point-measurement",
+    "solutions/reference-designs/ad-bmse2e3wlc-48v/hardware-guide#full-system-integration-setup",
+    "solutions/reference-designs/ad-bmse2e3wlc-48v/hardware-guide#eval-adbms1816wlc-daughter-board-setup",
+    "solutions/reference-designs/ad-bmse2e3wlc-48v/hardware-guide#microcontroller-connection",
+    "solutions/reference-designs/ad-bmse2e3wlc-48v/hardware-guide#v-connection",
+    "solutions/reference-designs/ad-bmse2e3wlc-48v/hardware-guide#cable-and-pc-connection",
+    "solutions/reference-designs/ad-bmse2e3wlc-48v/hardware-guide#sample-application-setup",
+    "solutions/reference-designs/ad-bmse2e3wlc-48v/hardware-guide#charge-application",
+    "solutions/reference-designs/ad-bmse2e3wlc-48v/hardware-guide#discharge-application",
+    "solutions/reference-designs/ad-bmse2e3wlc-sl/hardware-guide#components-and-connections",
+    "solutions/reference-designs/ad-bmse2e3wlc-sl/hardware-guide#test-points",
+    "solutions/reference-designs/ad-bmse2e3wlc-sl/hardware-guide#hardware-setup",
+    "solutions/reference-designs/ad-bmse2e3wlc-sl/hardware-guide#jumper-configuration",
+    "solutions/reference-designs/ad-bmse2e3wlc-sl/hardware-guide#battery-emulator-setup",
+    "solutions/reference-designs/ad-bmse2e3wlc-sl/hardware-guide#microcontroller-connection",
+    "solutions/reference-designs/ad-bmse2e3wlc-sl/hardware-guide#v-connection",
+    "solutions/reference-designs/ad-bmse2e3wlc-sl/hardware-guide#cable-and-pc-connection",
+    "solutions/reference-designs/ad-bmse2e3wlc-sl/hardware-guide#sample-application-setup",
+    "solutions/reference-designs/ad-bmse2e3wlc-sl/hardware-guide#charge-application",
+    "solutions/reference-designs/ad-bmse2e3wlc-sl/hardware-guide#discharge-application",
+    "solutions/reference-designs/ad-apard32690-sl/ad-t1lusb-ebz#overview",
+    "solutions/reference-designs/ad-apard32690-sl/ad-t1lusb-ebz#features",
+    "solutions/reference-designs/ad-apard32690-sl/ad-t1lusb-ebz#applications",
+    "solutions/reference-designs/ad-apard32690-sl/ad-t1lusb-ebz#system-architecture",
+    "solutions/reference-designs/ad-apard32690-sl/ad-t1lusb-ebz#whats-inside-the-box",
+    "solutions/reference-designs/ad-apard32690-sl/ad-t1lusb-ebz#setup-examples",
+    "solutions/reference-designs/ad-apard32690-sl/ad-t1lusb-ebz#ad-swiot1l-sl-interfacing",
+    "solutions/reference-designs/ad-apard32690-sl/ad-t1lusb-ebz#ad-apard32690-sl-interfacing",
+    "solutions/reference-designs/ad-apard32690-sl/ad-t1lusb-ebz#network-testing",
+    "solutions/reference-designs/ad-apard32690-sl/ad-t1lusb-ebz#design-and-integration-files",
+    "solutions/reference-designs/ad-apard32690-sl/ad-t1lusb-ebz#support",
+    "solutions/reference-designs/ad-fmcdaq2-ebz",
+    "solutions/reference-designs/ad-fmcdaq2-ebz#overview",
+    "solutions/reference-designs/ad-fmcdaq2-ebz#recommendations",
+    "solutions/reference-designs/ad-fmcdaq2-ebz#table-of-contents",
+    "solutions/reference-designs/ad-fmcdaq2-ebz#adi-articles",
+    "solutions/reference-designs/ad-fmcdaq2-ebz#warning",
+    "solutions/reference-designs/ad-fmcdaq2-ebz#help-and-support",
+    "solutions/reference-designs/ad-bmse2e3w-sl",
+    "solutions/reference-designs/ad-bmse2e3w-sl#overview",
+    "solutions/reference-designs/ad-bmse2e3w-sl#features",
+    "solutions/reference-designs/ad-bmse2e3w-sl#applications",
+    "solutions/reference-designs/ad-bmse2e3w-sl#system-architecture",
+    "solutions/reference-designs/ad-bmse2e3w-sl#what-s-inside-the-box",
+    "solutions/reference-designs/ad-bmse2e3w-sl#components-and-connections",
+    "solutions/reference-designs/ad-bmse2e3w-sl#system-evaluation",
+    "solutions/reference-designs/ad-bmse2e3w-sl#equipment-needed",
+    "solutions/reference-designs/ad-bmse2e3w-sl#preparing-the-mcu",
+    "solutions/reference-designs/ad-bmse2e3w-sl#hardware-setup",
+    "solutions/reference-designs/ad-bmse2e3w-sl#resources",
+    "solutions/reference-designs/ad-bmse2e3w-sl#design-integration-files",
+    "solutions/reference-designs/ad-bmse2e3w-sl#guides-sample-software",
+    "solutions/reference-designs/ad-bmse2e3w-sl#help-and-support",
+    "solutions/reference-designs/eval-adbms1816wlc",
+    "solutions/reference-designs/eval-adbms1816wlc#overview",
+    "solutions/reference-designs/eval-adbms1816wlc#features",
+    "solutions/reference-designs/eval-adbms1816wlc#applications",
+    "solutions/reference-designs/eval-adbms1816wlc#system-architecture",
+    "solutions/reference-designs/eval-adbms1816wlc#specifications",
+    "solutions/reference-designs/eval-adbms1816wlc#user-guides",
+    "solutions/reference-designs/eval-adbms1816wlc#resources",
+    "solutions/reference-designs/eval-adbms1816wlc#design-integration-files",
+    "solutions/reference-designs/eval-adbms1816wlc#help-and-support",
+    "solutions/reference-designs/ad-bmse2e3wlc-48v",
+    "solutions/reference-designs/ad-bmse2e3wlc-48v#overview",
+    "solutions/reference-designs/ad-bmse2e3wlc-48v#features",
+    "solutions/reference-designs/ad-bmse2e3wlc-48v#applications",
+    "solutions/reference-designs/ad-bmse2e3wlc-48v#system-architecture",
+    "solutions/reference-designs/ad-bmse2e3wlc-48v#specifications",
+    "solutions/reference-designs/ad-bmse2e3wlc-48v#user-guides",
+    "solutions/reference-designs/ad-bmse2e3wlc-48v#resources",
+    "solutions/reference-designs/ad-bmse2e3wlc-48v#design-integration-files",
+    "solutions/reference-designs/ad-bmse2e3wlc-48v#help-and-support",
+    "solutions/reference-designs/ad-fmcdaq2-ebz/prerequisites",
+    "solutions/reference-designs/ad-fmcdaq2-ebz/prerequisites#hardware-prerequisites",
+    "solutions/reference-designs/ad-fmcdaq2-ebz/prerequisites#software-prerequisites",
+    "solutions/reference-designs/ad-96tof1-ebz#overview",
+    "solutions/reference-designs/ad-96tof1-ebz#hardware",
+    "solutions/reference-designs/ad-96tof1-ebz#system-setup-evaluation",
+    "solutions/reference-designs/ad-96tof1-ebz#application-development",
+    "solutions/reference-designs/ad-96tof1-ebz#laser-safety",
+    "solutions/reference-designs/ad-96tof1-ebz#videos",
+    "solutions/reference-designs/ad-96tof1-ebz#help-and-support",
+    "solutions/reference-designs",
+    "solutions/reference-designs/eval-adbms1816wlc/hardware-guide#components-and-connections",
+    "solutions/reference-designs/eval-adbms1816wlc/hardware-guide#hardware-setup",
+    "solutions/reference-designs/eval-adbms1816wlc/hardware-guide#jumper-configuration",
+    "solutions/reference-designs/eval-adbms1816wlc/hardware-guide#battery-emulator-setup",
+    "solutions/reference-designs/eval-adbms1816wlc/hardware-guide#cell-voltage-measurement-using-dmm",
+    "solutions/reference-designs/eval-adbms1816wlc/hardware-guide#full-system-integration-setup",
+    "solutions/reference-designs/eval-adbms1816wlc/hardware-guide#ad-bmse2e3wlc-48v-baseboard-setup",
+    "solutions/reference-designs/eval-adbms1816wlc/hardware-guide#microcontroller-connection",
+    "solutions/reference-designs/eval-adbms1816wlc/hardware-guide#v-connection",
+    "solutions/reference-designs/eval-adbms1816wlc/hardware-guide#cable-and-pc-connection",
+    "solutions/reference-designs/eval-adbms1816wlc/hardware-guide#sample-application-setup",
+    "solutions/reference-designs/eval-adbms1816wlc/hardware-guide#charge-application",
+    "solutions/reference-designs/eval-adbms1816wlc/hardware-guide#discharge-application",
+    "solutions/reference-designs/ad-ethernetapldevice-sl",
+    "solutions/reference-designs/ad-ethernetapldevice-sl#introduction",
+    "solutions/reference-designs/ad-ethernetapldevice-sl#key-features",
+    "solutions/reference-designs/ad-ethernetapldevice-sl#hardware-design-files",
+    "solutions/reference-designs/ad-ethernetapldevice-sl#package-contents",
+    "solutions/reference-designs/ad-ethernetapldevice-sl#application-development",
+    "solutions/reference-designs/ad-ethernetapldevice-sl#hardware-components-and-connections",
+    "solutions/reference-designs/ad-ethernetapldevice-sl#required-hardware",
+    "solutions/reference-designs/ad-ethernetapldevice-sl#setup-instructions",
+    "solutions/reference-designs/ad-ethernetapldevice-sl#programming-the-ad-ethernetapldevice-sl",
+    "solutions/reference-designs/ad-ethernetapldevice-sl#help-and-support",
+    "solutions/reference-designs/ad-acevsecrdset-sl",
+    "solutions/reference-designs/ad-acevsecrdset-sl#introduction",
+    "solutions/reference-designs/ad-acevsecrdset-sl#features",
+    "solutions/reference-designs/ad-acevsecrdset-sl#applications",
+    "solutions/reference-designs/ad-acevsecrdset-sl#block-diagram",
+    "solutions/reference-designs/ad-acevsecrdset-sl#specifications",
+    "solutions/reference-designs/ad-acevsecrdset-sl#system-setup",
+    "solutions/reference-designs/ad-acevsecrdset-sl#additional-information-and-useful-links",
+    "solutions/reference-designs/ad-acevsecrdset-sl#software-resources",
+    "solutions/reference-designs/ad-acevsecrdset-sl#design-and-integration-files",
+    "solutions/reference-designs/ad-acevsecrdset-sl#help-and-support",
+    "solutions/reference-designs/ad-apard32690-sl",
+    "solutions/reference-designs/ad-apard32690-sl#introduction",
+    "solutions/reference-designs/ad-apard32690-sl#package-contents",
+    "solutions/reference-designs/ad-apard32690-sl#application-development",
+    "solutions/reference-designs/ad-apard32690-sl#hardware-components-and-connections",
+    "solutions/reference-designs/ad-apard32690-sl#required-hardware",
+    "solutions/reference-designs/ad-apard32690-sl#updating-the-ad-apard32690-sl-firmware",
+    "solutions/reference-designs/ad-apard32690-sl#programming-the-ad-apard32690-sl",
+    "solutions/reference-designs/ad-apard32690-sl#ad-apard32690-sl-software-stack",
+    "solutions/reference-designs/ad-apard32690-sl#user-guide",
+    "solutions/reference-designs/ad-apard32690-sl#help-and-support",
+    "solutions/reference-designs/ad-apard32690-sl/ad-apardspoe-sl#general-description",
+    "solutions/reference-designs/ad-apard32690-sl/ad-apardspoe-sl#primary-side",
+    "solutions/reference-designs/ad-apard32690-sl/ad-apardspoe-sl#spoe-pd-power-class-selection-jp1-and-jp2",
+    "solutions/reference-designs/ad-apard32690-sl/ad-apardspoe-sl#secondary-side",
+    "solutions/reference-designs/ad-apard32690-sl/ad-apardspoe-sl#system-setup",
+    "solutions/reference-designs/ad-apard32690-sl/ad-apardspoe-sl#setup-with-spoe-via-pse",
+    "solutions/reference-designs/ad-apard32690-sl/ad-apardspoe-sl#basic-operation",
+    "solutions/reference-designs/ad-apard32690-sl/ad-apardspoe-sl#schematic-pcb-layout-bill-of-materials",
+    "solutions/reference-designs/ad-apard32690-sl/ad-apardspoe-sl#additional-information-and-useful-links",
+    "solutions/reference-designs/ad-apard32690-sl/ad-apardspoe-sl#hardware-registration",
+    "solutions/reference-designs/ad-apard32690-sl/ad-apardspoe-sl#help-and-support",
+    "solutions/reference-designs/ad-apard32690-sl/ad-t1lusb-ebz/production_testing#overview",
+    "solutions/reference-designs/ad-apard32690-sl/ad-t1lusb-ebz/production_testing#test-duration",
+    "solutions/reference-designs/ad-apard32690-sl/ad-t1lusb-ebz/production_testing#required-hardware",
+    "solutions/reference-designs/ad-apard32690-sl/ad-t1lusb-ebz/production_testing#required-software",
+    "solutions/reference-designs/ad-apard32690-sl/ad-t1lusb-ebz/production_testing#required-setup",
+    "solutions/reference-designs/ad-apard32690-sl/ad-t1lusb-ebz/production_testing#wi-fi-setup",
+    "solutions/reference-designs/ad-apard32690-sl/ad-t1lusb-ebz/production_testing#running-the-tests",
+    "solutions/reference-designs/ad-apard32690-sl/ad-t1lusb-ebz/production_testing#t1l-to-usb-test",
+    "solutions/reference-designs/ad-apard32690-sl/ad-apardspoe-sl/production_testing#overview",
+    "solutions/reference-designs/ad-apard32690-sl/ad-apardspoe-sl/production_testing#test-duration",
+    "solutions/reference-designs/ad-apard32690-sl/ad-apardspoe-sl/production_testing#required-hardware",
+    "solutions/reference-designs/ad-apard32690-sl/ad-apardspoe-sl/production_testing#required-software",
+    "solutions/reference-designs/ad-apard32690-sl/ad-apardspoe-sl/production_testing#required-setup",
+    "solutions/reference-designs/ad-apard32690-sl/ad-apardspoe-sl/production_testing#wi-fi-setup",
+    "solutions/reference-designs/ad-apard32690-sl/ad-apardspoe-sl/production_testing#running-the-tests",
+    "solutions/reference-designs/ad-apard32690-sl/ad-apardspoe-sl/production_testing#system-test"
+  ],
+  "hierarchy": [
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-SL"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-SL",
+      "Overview"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-SL",
+      "Features"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-SL",
+      "Applications"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-SL",
+      "System Architecture"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-SL",
+      "Theory of Operation"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-SL",
+      "Specifications"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-SL",
+      "Package Contents"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-SL",
+      "User Guides"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-SL",
+      "Resources"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-SL",
+      "Resources",
+      "Design & Integration Files"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-SL",
+      "Help and Support"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCDAQ2-EBZ",
+      "AD-FMCDAQ2-EBZ Hardware",
+      "Picture and Main components"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCDAQ2-EBZ",
+      "AD-FMCDAQ2-EBZ Hardware",
+      "Outline"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCDAQ2-EBZ",
+      "AD-FMCDAQ2-EBZ Hardware",
+      "Size"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCDAQ2-EBZ",
+      "AD-FMCDAQ2-EBZ Hardware",
+      "Schematic, PCB Layout, Bill of Materials"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCDAQ2-EBZ",
+      "Production testing of the AD-FMCDAQ2 / AD-FMCDAQ3",
+      "Overview"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCDAQ2-EBZ",
+      "Production testing of the AD-FMCDAQ2 / AD-FMCDAQ3",
+      "Overview",
+      "Temperature"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCDAQ2-EBZ",
+      "Production testing of the AD-FMCDAQ2 / AD-FMCDAQ3",
+      "Overview",
+      "Voltage"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCDAQ2-EBZ",
+      "Production testing of the AD-FMCDAQ2 / AD-FMCDAQ3",
+      "Overview",
+      "Signals"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCDAQ2-EBZ",
+      "Production testing of the AD-FMCDAQ2 / AD-FMCDAQ3",
+      "Required Software"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCDAQ2-EBZ",
+      "Production testing of the AD-FMCDAQ2 / AD-FMCDAQ3",
+      "Required hardware"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCDAQ2-EBZ",
+      "Production testing of the AD-FMCDAQ2 / AD-FMCDAQ3",
+      "Required setup"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCDAQ2-EBZ",
+      "Production testing of the AD-FMCDAQ2 / AD-FMCDAQ3",
+      "Test process"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCDAQ2-EBZ",
+      "Production testing of the AD-FMCDAQ2 / AD-FMCDAQ3",
+      "Test process",
+      "Cable placement"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCDAQ2-EBZ",
+      "Production testing of the AD-FMCDAQ2 / AD-FMCDAQ3",
+      "Test process",
+      "Heatsink placement"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCDAQ2-EBZ",
+      "AD-FMCDAQ2-EBZ Help and Support"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCDAQ2-EBZ",
+      "Introduction"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCDAQ2-EBZ",
+      "Introduction",
+      "Features"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCDAQ2-EBZ",
+      "Introduction",
+      "AD9680-1000 ADC"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCDAQ2-EBZ",
+      "Introduction",
+      "AD9144 DAC"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCDAQ2-EBZ",
+      "Introduction",
+      "Applications"
+    ],
+    [
+      "Reference Designs",
+      "AD-ACEVSECRDSET-SL",
+      "Hardware User Guide",
+      "Introduction"
+    ],
+    [
+      "Reference Designs",
+      "AD-ACEVSECRDSET-SL",
+      "Hardware User Guide",
+      "Components",
+      "Revision A"
+    ],
+    [
+      "Reference Designs",
+      "AD-ACEVSECRDSET-SL",
+      "Hardware User Guide",
+      "Components",
+      "Revision D"
+    ],
+    [
+      "Reference Designs",
+      "AD-ACEVSECRDSET-SL",
+      "Hardware User Guide",
+      "Setting up the board"
+    ],
+    [
+      "Reference Designs",
+      "AD-ACEVSECRDSET-SL",
+      "Hardware User Guide",
+      "User Interface"
+    ],
+    [
+      "Reference Designs",
+      "AD-ACEVSECRDSET-SL",
+      "Hardware User Guide",
+      "Test Points"
+    ],
+    [
+      "Reference Designs",
+      "AD-ACEVSECRDSET-SL",
+      "Hardware User Guide",
+      "Scope Images"
+    ],
+    [
+      "Reference Designs",
+      "AD-ACEVSECRDSET-SL",
+      "Hardware User Guide",
+      "Testing the EVSE"
+    ],
+    [
+      "Reference Designs",
+      "AD-ACEVSECRDSET-SL",
+      "Production Testing",
+      "Overview"
+    ],
+    [
+      "Reference Designs",
+      "AD-ACEVSECRDSET-SL",
+      "Production Testing",
+      "Test Duration"
+    ],
+    [
+      "Reference Designs",
+      "AD-ACEVSECRDSET-SL",
+      "Production Testing",
+      "Test Requirements",
+      "Required Hardware"
+    ],
+    [
+      "Reference Designs",
+      "AD-ACEVSECRDSET-SL",
+      "Production Testing",
+      "Test Requirements",
+      "Required Software"
+    ],
+    [
+      "Reference Designs",
+      "AD-ACEVSECRDSET-SL",
+      "Production Testing",
+      "Test Requirements",
+      "Required Setup"
+    ],
+    [
+      "Reference Designs",
+      "AD-ACEVSECRDSET-SL",
+      "Production Testing",
+      "Test Process",
+      "Wi-Fi Setup"
+    ],
+    [
+      "Reference Designs",
+      "AD-ACEVSECRDSET-SL",
+      "Production Testing",
+      "Test Process",
+      "Running the Tests"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCDAQ2-EBZ",
+      "AD-FMCDAQ2-EBZ Clocking",
+      "Overview"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCDAQ2-EBZ",
+      "AD-FMCDAQ2-EBZ Clocking",
+      "Examples",
+      "fDAC = 1000 MSPS, fADC = 1000 MSPS"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCDAQ2-EBZ",
+      "AD-FMCDAQ2-EBZ Clocking",
+      "Examples",
+      "fDAC = 250 MSPS, fADC = 375 MSPS"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCDAQ2-EBZ",
+      "AD-FMCDAQ2-EBZ Clocking",
+      "Replacing the Crystal Oscillator"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCDAQ2-EBZ",
+      "AD-FMCDAQ2-EBZ Clocking",
+      "Replacing the Crystal Oscillator",
+      "Example: fXO = 122.88 MHz, fVCO = 2949.12 MHz"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCDAQ2-EBZ",
+      "AD-FMCDAQ2-EBZ Clocking",
+      "Modifying the Clock Configuration",
+      "Linux"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCADC7-EBZ (Obsolete)",
+      "Prerequisites"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCADC7-EBZ (Obsolete)",
+      "Prerequisites",
+      "Hardware prerequisites"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCADC7-EBZ (Obsolete)",
+      "Prerequisites",
+      "Software prerequisites"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCADC7-EBZ (Obsolete)",
+      "User guide"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCADC7-EBZ (Obsolete)",
+      "User guide",
+      "Hardware guide",
+      "Specifications"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCADC7-EBZ (Obsolete)",
+      "User guide",
+      "Hardware guide",
+      "Clocking"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCADC7-EBZ (Obsolete)",
+      "User guide",
+      "Hardware guide",
+      "Analog Front End"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCADC7-EBZ (Obsolete)",
+      "User guide",
+      "Software guide",
+      "Linux"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCADC7-EBZ (Obsolete)",
+      "User guide",
+      "Software guide",
+      "Help & Support"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCADC7-EBZ (Obsolete)"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCADC7-EBZ (Obsolete)",
+      "Overview"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCADC7-EBZ (Obsolete)",
+      "Recommendations"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCADC7-EBZ (Obsolete)",
+      "Table of contents"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCADC7-EBZ (Obsolete)",
+      "Warning"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Nvidia Jetson Nano User Guide",
+      "Setting up the system",
+      "Required hardware"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Nvidia Jetson Nano User Guide",
+      "Setting up the system",
+      "Modifying the AD-96TOF1-EBZ to work with the Nvidia Jetson Nano"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Nvidia Jetson Nano User Guide",
+      "Setting up the system",
+      "Prepare SD card"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Nvidia Jetson Nano User Guide",
+      "Setting up the system",
+      "Power on sequence"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Nvidia Jetson Nano User Guide",
+      "Setting up the system",
+      "Power off sequence"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Nvidia Jetson Nano User Guide",
+      "Running the evaluation application"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Nvidia Jetson Nano User Guide",
+      "Running the evaluation application",
+      "Enabling the point cloud display in aditof-demo"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Nvidia Jetson Nano User Guide",
+      "Running the evaluation application",
+      "Troubleshooting"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Linux User Guide",
+      "Required hardware"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Linux User Guide",
+      "Power on sequence"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Linux User Guide",
+      "Enable the USB connection to the host PC"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Linux User Guide",
+      "Troubleshooting"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Linux User Guide",
+      "Ethernet connection"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Linux User Guide",
+      "Ethernet connection",
+      "Running the evaluation application"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Linux User Guide",
+      "Ethernet connection",
+      "Enabling the point cloud display in aditof-demo"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Linux User Guide",
+      "Ethernet connection",
+      "Troubleshooting"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Nvidia Xavier NX User Guide",
+      "Setting up the system",
+      "Required hardware"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Nvidia Xavier NX User Guide",
+      "Setting up the system",
+      "Modifying the AD-96TOF1-EBZ to work with the Nvidia Xavier NX"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Nvidia Xavier NX User Guide",
+      "Setting up the system",
+      "Prepare SD card"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Nvidia Xavier NX User Guide",
+      "Setting up the system",
+      "Power on sequence"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Nvidia Xavier NX User Guide",
+      "Setting up the system",
+      "Power off sequence"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Nvidia Xavier NX User Guide",
+      "Setting up the system",
+      "Troubleshooting"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Nvidia Xavier NX User Guide",
+      "Running the evaluation application"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Nvidia Xavier NX User Guide",
+      "Running the evaluation application",
+      "Enabling the point cloud display in aditof-demo"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Nvidia Xavier NX User Guide",
+      "Running the evaluation application",
+      "Troubleshooting"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Nvidia Xavier AGX User Guide",
+      "Setting up the system",
+      "Required hardware"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Nvidia Xavier AGX User Guide",
+      "Setting up the system",
+      "Modifying the AD-96TOF1-EBZ to work with the Nvidia Xavier AGX"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Nvidia Xavier AGX User Guide",
+      "Setting up the system",
+      "Prepare SD card"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Nvidia Xavier AGX User Guide",
+      "Setting up the system",
+      "Power on sequence"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Nvidia Xavier AGX User Guide",
+      "Setting up the system",
+      "Power off sequence"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Nvidia Xavier AGX User Guide",
+      "Setting up the system",
+      "Troubleshooting"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Nvidia Xavier AGX User Guide",
+      "Running the evaluation application"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Nvidia Xavier AGX User Guide",
+      "Running the evaluation application",
+      "Enabling the point cloud display in aditof-demo"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Nvidia Xavier AGX User Guide",
+      "Running the evaluation application",
+      "Troubleshooting"
+    ],
+    [
+      "Required hardware"
+    ],
+    [
+      "Power on sequence"
+    ],
+    [
+      "Enabling the point cloud display in aditof-demo"
+    ],
+    [
+      "Troubleshooting"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Windows User Guide",
+      "Required hardware"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Windows User Guide",
+      "Power on sequence"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Windows User Guide",
+      "Enable the USB connection to the host PC"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Windows User Guide",
+      "Troubleshooting"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Windows User Guide",
+      "Ethernet connection"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Windows User Guide",
+      "Ethernet connection",
+      "Running the evaluation application"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Windows User Guide",
+      "Ethernet connection",
+      "Enabling the point cloud display in aditof-demo"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Windows User Guide",
+      "Ethernet connection",
+      "Troubleshooting"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "DragonBoard410C User Guide",
+      "Setting up the system",
+      "Required hardware"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "DragonBoard410C User Guide",
+      "Setting up the system",
+      "Power on sequence"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "DragonBoard410C User Guide",
+      "Setting up the system",
+      "Power off sequence"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "DragonBoard410C User Guide",
+      "Setting up the system",
+      "Troubleshooting"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "DragonBoard410C User Guide",
+      "Running the evaluation application"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "DragonBoard410C User Guide",
+      "Running the evaluation application",
+      "Enabling the point cloud display in aditof-demo"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "DragonBoard410C User Guide",
+      "Running the evaluation application",
+      "Troubleshooting"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Raspberry Pi User Guide",
+      "Setting up the system",
+      "Required hardware"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Raspberry Pi User Guide",
+      "Setting up the system",
+      "Modifying the AD-96TOF1-EBZ to work with the RPi"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Raspberry Pi User Guide",
+      "Setting up the system",
+      "Power on sequence"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Raspberry Pi User Guide",
+      "Setting up the system",
+      "Power on sequence",
+      "AD-96TOF1-EBZ rev.B"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Raspberry Pi User Guide",
+      "Setting up the system",
+      "Power on sequence",
+      "AD-96TOF1-EBZ rev.C"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Raspberry Pi User Guide",
+      "Setting up the system",
+      "Power off sequence"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Raspberry Pi User Guide",
+      "Setting up the system",
+      "Troubleshooting"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Raspberry Pi User Guide",
+      "Running the evaluation application"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Raspberry Pi User Guide",
+      "Running the evaluation application",
+      "Enabling the point cloud display in aditof-demo"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Raspberry Pi User Guide",
+      "Running the evaluation application",
+      "Troubleshooting"
+    ],
+    [
+      "System Level Documentation"
+    ],
+    [
+      "System Level Documentation",
+      "Apps & Solutions"
+    ],
+    [
+      "System Level Documentation",
+      "Firmware & Software"
+    ],
+    [
+      "System Level Documentation",
+      "Learning"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "AD-96TOF1-EBZ Calibration Guide",
+      "Introduction"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "AD-96TOF1-EBZ Calibration Guide",
+      "Calibration Overview"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "AD-96TOF1-EBZ Calibration Guide",
+      "Calibration Pipeline"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "AD-96TOF1-EBZ Calibration Guide",
+      "Physical Setup"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "AD-96TOF1-EBZ Calibration Guide",
+      "Calibration Configuration"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "AD-96TOF1-EBZ Calibration Guide",
+      "EEPROM configuration"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "AD-96TOF1-EBZ Calibration Guide",
+      "Calibrate and store to EEPROM Example"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-48V",
+      "Hardware Guide",
+      "Components and Connections"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-48V",
+      "Hardware Guide",
+      "Hardware Setup"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-48V",
+      "Hardware Guide",
+      "Hardware Setup",
+      "Jumper Configuration"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-48V",
+      "Hardware Guide",
+      "Hardware Setup",
+      "Battery Emulator Setup"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-48V",
+      "Hardware Guide",
+      "Cell Voltage Measurement Using DMM"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-48V",
+      "Hardware Guide",
+      "Cell Voltage Measurement Using DMM",
+      "Test Point Measurement"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-48V",
+      "Hardware Guide",
+      "Full System Integration Setup"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-48V",
+      "Hardware Guide",
+      "Full System Integration Setup",
+      "EVAL-ADBMS1816WLC Daughter Board Setup"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-48V",
+      "Hardware Guide",
+      "Full System Integration Setup",
+      "Microcontroller Connection"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-48V",
+      "Hardware Guide",
+      "Full System Integration Setup",
+      "48V Connection"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-48V",
+      "Hardware Guide",
+      "Full System Integration Setup",
+      "Cable and PC Connection"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-48V",
+      "Hardware Guide",
+      "Sample Application Setup"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-48V",
+      "Hardware Guide",
+      "Sample Application Setup",
+      "Charge Application"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-48V",
+      "Hardware Guide",
+      "Sample Application Setup",
+      "Discharge Application"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-SL",
+      "Hardware Guide",
+      "Components and Connections"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-SL",
+      "Hardware Guide",
+      "Test Points"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-SL",
+      "Hardware Guide",
+      "Hardware Setup"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-SL",
+      "Hardware Guide",
+      "Hardware Setup",
+      "Jumper Configuration"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-SL",
+      "Hardware Guide",
+      "Hardware Setup",
+      "Battery Emulator Setup"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-SL",
+      "Hardware Guide",
+      "Hardware Setup",
+      "Microcontroller Connection"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-SL",
+      "Hardware Guide",
+      "Hardware Setup",
+      "48V Connection"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-SL",
+      "Hardware Guide",
+      "Hardware Setup",
+      "Cable and PC Connection"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-SL",
+      "Hardware Guide",
+      "Sample Application Setup"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-SL",
+      "Hardware Guide",
+      "Sample Application Setup",
+      "Charge Application"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-SL",
+      "Hardware Guide",
+      "Sample Application Setup",
+      "Discharge Application"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "AD-T1LUSB2.0-EBZ",
+      "USB2.0 to 10BASE-T1L Interface Board",
+      "Overview"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "AD-T1LUSB2.0-EBZ",
+      "USB2.0 to 10BASE-T1L Interface Board",
+      "Features"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "AD-T1LUSB2.0-EBZ",
+      "USB2.0 to 10BASE-T1L Interface Board",
+      "Applications"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "AD-T1LUSB2.0-EBZ",
+      "USB2.0 to 10BASE-T1L Interface Board",
+      "System Architecture"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "AD-T1LUSB2.0-EBZ",
+      "USB2.0 to 10BASE-T1L Interface Board",
+      "What\u2019s Inside the Box?"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "AD-T1LUSB2.0-EBZ",
+      "USB2.0 to 10BASE-T1L Interface Board",
+      "Setup Examples"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "AD-T1LUSB2.0-EBZ",
+      "USB2.0 to 10BASE-T1L Interface Board",
+      "AD-SWIOT1L-SL Interfacing"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "AD-T1LUSB2.0-EBZ",
+      "USB2.0 to 10BASE-T1L Interface Board",
+      "AD-APARD32690-SL Interfacing"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "AD-T1LUSB2.0-EBZ",
+      "USB2.0 to 10BASE-T1L Interface Board",
+      "Network Testing"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "AD-T1LUSB2.0-EBZ",
+      "USB2.0 to 10BASE-T1L Interface Board",
+      "Design and Integration Files"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "AD-T1LUSB2.0-EBZ",
+      "USB2.0 to 10BASE-T1L Interface Board",
+      "Support"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCDAQ2-EBZ"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCDAQ2-EBZ",
+      "Overview"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCDAQ2-EBZ",
+      "Recommendations"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCDAQ2-EBZ",
+      "Table of contents"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCDAQ2-EBZ",
+      "ADI articles"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCDAQ2-EBZ",
+      "Warning"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCDAQ2-EBZ",
+      "Help and support"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3W-SL"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3W-SL",
+      "Overview"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3W-SL",
+      "Overview",
+      "Features"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3W-SL",
+      "Overview",
+      "Applications"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3W-SL",
+      "Overview",
+      "System Architecture"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3W-SL",
+      "Overview",
+      "What\u2019s Inside the Box?"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3W-SL",
+      "Overview",
+      "Components and Connections"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3W-SL",
+      "Overview",
+      "System Evaluation"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3W-SL",
+      "Overview",
+      "System Evaluation",
+      "Equipment Needed"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3W-SL",
+      "Overview",
+      "Preparing the MCU"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3W-SL",
+      "Overview",
+      "Hardware Setup"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3W-SL",
+      "Overview",
+      "Resources"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3W-SL",
+      "Overview",
+      "Design & Integration Files"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3W-SL",
+      "Guides&Sample Software"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3W-SL",
+      "Help and Support"
+    ],
+    [
+      "Reference Designs",
+      "EVAL-ADBMS1816WLC"
+    ],
+    [
+      "Reference Designs",
+      "EVAL-ADBMS1816WLC",
+      "Overview"
+    ],
+    [
+      "Reference Designs",
+      "EVAL-ADBMS1816WLC",
+      "Features"
+    ],
+    [
+      "Reference Designs",
+      "EVAL-ADBMS1816WLC",
+      "Applications"
+    ],
+    [
+      "Reference Designs",
+      "EVAL-ADBMS1816WLC",
+      "System Architecture"
+    ],
+    [
+      "Reference Designs",
+      "EVAL-ADBMS1816WLC",
+      "Specifications"
+    ],
+    [
+      "Reference Designs",
+      "EVAL-ADBMS1816WLC",
+      "User Guides"
+    ],
+    [
+      "Reference Designs",
+      "EVAL-ADBMS1816WLC",
+      "Resources"
+    ],
+    [
+      "Reference Designs",
+      "EVAL-ADBMS1816WLC",
+      "Resources",
+      "Design & Integration Files"
+    ],
+    [
+      "Reference Designs",
+      "EVAL-ADBMS1816WLC",
+      "Help and Support"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-48V"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-48V",
+      "Overview"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-48V",
+      "Features"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-48V",
+      "Applications"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-48V",
+      "System Architecture"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-48V",
+      "Specifications"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-48V",
+      "User Guides"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-48V",
+      "Resources"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-48V",
+      "Resources",
+      "Design & Integration Files"
+    ],
+    [
+      "Reference Designs",
+      "AD-BMSE2E3WLC-48V",
+      "Help and Support"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCDAQ2-EBZ",
+      "Prerequisites"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCDAQ2-EBZ",
+      "Prerequisites",
+      "Hardware prerequisites"
+    ],
+    [
+      "Reference Designs",
+      "AD-FMCDAQ2-EBZ",
+      "Prerequisites",
+      "Software prerequisites"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Overview"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Hardware"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "System setup & evaluation"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Application Development"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Laser Safety"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Videos"
+    ],
+    [
+      "Reference Designs",
+      "AD-96TOF1-EBZ",
+      "Help and Support"
+    ],
+    [
+      "Reference Designs"
+    ],
+    [
+      "Reference Designs",
+      "EVAL-ADBMS1816WLC",
+      "Hardware Guide",
+      "Components and Connections"
+    ],
+    [
+      "Reference Designs",
+      "EVAL-ADBMS1816WLC",
+      "Hardware Guide",
+      "Hardware Setup"
+    ],
+    [
+      "Reference Designs",
+      "EVAL-ADBMS1816WLC",
+      "Hardware Guide",
+      "Hardware Setup",
+      "Jumper Configuration"
+    ],
+    [
+      "Reference Designs",
+      "EVAL-ADBMS1816WLC",
+      "Hardware Guide",
+      "Hardware Setup",
+      "Battery Emulator Setup"
+    ],
+    [
+      "Reference Designs",
+      "EVAL-ADBMS1816WLC",
+      "Hardware Guide",
+      "Cell Voltage Measurement Using DMM"
+    ],
+    [
+      "Reference Designs",
+      "EVAL-ADBMS1816WLC",
+      "Hardware Guide",
+      "Full System Integration Setup"
+    ],
+    [
+      "Reference Designs",
+      "EVAL-ADBMS1816WLC",
+      "Hardware Guide",
+      "Full System Integration Setup",
+      "AD-BMSE2E3WLC-48V Baseboard Setup"
+    ],
+    [
+      "Reference Designs",
+      "EVAL-ADBMS1816WLC",
+      "Hardware Guide",
+      "Full System Integration Setup",
+      "Microcontroller Connection"
+    ],
+    [
+      "Reference Designs",
+      "EVAL-ADBMS1816WLC",
+      "Hardware Guide",
+      "Full System Integration Setup",
+      "48V Connection"
+    ],
+    [
+      "Reference Designs",
+      "EVAL-ADBMS1816WLC",
+      "Hardware Guide",
+      "Full System Integration Setup",
+      "Cable and PC Connection"
+    ],
+    [
+      "Reference Designs",
+      "EVAL-ADBMS1816WLC",
+      "Hardware Guide",
+      "Sample Application Setup"
+    ],
+    [
+      "Reference Designs",
+      "EVAL-ADBMS1816WLC",
+      "Hardware Guide",
+      "Sample Application Setup",
+      "Charge Application"
+    ],
+    [
+      "Reference Designs",
+      "EVAL-ADBMS1816WLC",
+      "Hardware Guide",
+      "Sample Application Setup",
+      "Discharge Application"
+    ],
+    [
+      "Reference Designs",
+      "AD-ETHERNETAPLDEVICE-SL"
+    ],
+    [
+      "Reference Designs",
+      "AD-ETHERNETAPLDEVICE-SL",
+      "Introduction"
+    ],
+    [
+      "Reference Designs",
+      "AD-ETHERNETAPLDEVICE-SL",
+      "Introduction",
+      "Key Features"
+    ],
+    [
+      "Reference Designs",
+      "AD-ETHERNETAPLDEVICE-SL",
+      "Introduction",
+      "Hardware Design Files"
+    ],
+    [
+      "Reference Designs",
+      "AD-ETHERNETAPLDEVICE-SL",
+      "Package Contents"
+    ],
+    [
+      "Reference Designs",
+      "AD-ETHERNETAPLDEVICE-SL",
+      "Application Development"
+    ],
+    [
+      "Reference Designs",
+      "AD-ETHERNETAPLDEVICE-SL",
+      "Hardware Components and Connections"
+    ],
+    [
+      "Reference Designs",
+      "AD-ETHERNETAPLDEVICE-SL",
+      "Hardware Setup",
+      "Required Hardware"
+    ],
+    [
+      "Reference Designs",
+      "AD-ETHERNETAPLDEVICE-SL",
+      "Hardware Setup",
+      "Setup Instructions"
+    ],
+    [
+      "Reference Designs",
+      "AD-ETHERNETAPLDEVICE-SL",
+      "Software Setup",
+      "Programming the AD-EthernetAPLDevice-SL"
+    ],
+    [
+      "Reference Designs",
+      "AD-ETHERNETAPLDEVICE-SL",
+      "Help and Support"
+    ],
+    [
+      "Reference Designs",
+      "AD-ACEVSECRDSET-SL"
+    ],
+    [
+      "Reference Designs",
+      "AD-ACEVSECRDSET-SL",
+      "Introduction"
+    ],
+    [
+      "Reference Designs",
+      "AD-ACEVSECRDSET-SL",
+      "Features"
+    ],
+    [
+      "Reference Designs",
+      "AD-ACEVSECRDSET-SL",
+      "Applications"
+    ],
+    [
+      "Reference Designs",
+      "AD-ACEVSECRDSET-SL",
+      "Block Diagram"
+    ],
+    [
+      "Reference Designs",
+      "AD-ACEVSECRDSET-SL",
+      "Specifications"
+    ],
+    [
+      "Reference Designs",
+      "AD-ACEVSECRDSET-SL",
+      "System Setup"
+    ],
+    [
+      "Reference Designs",
+      "AD-ACEVSECRDSET-SL",
+      "Additional Information and Useful Links"
+    ],
+    [
+      "Reference Designs",
+      "AD-ACEVSECRDSET-SL",
+      "Software Resources"
+    ],
+    [
+      "Reference Designs",
+      "AD-ACEVSECRDSET-SL",
+      "Design and Integration Files"
+    ],
+    [
+      "Reference Designs",
+      "AD-ACEVSECRDSET-SL",
+      "Help and Support"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "Introduction"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "Package Contents"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "Application Development"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "Hardware Components and Connections"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "Hardware Setup",
+      "Required Hardware"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "Software Setup",
+      "Updating the AD-APARD32690-SL Firmware"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "Software Setup",
+      "Programming the AD-APARD32690-SL"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "Software Setup",
+      "AD-APARD32690-SL Software Stack"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "User Guide"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "Help and Support"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "AD-APARDSPOE-SL",
+      "10BASE-T1L Power Extractor with Class 10-14 SPoE",
+      "General Description"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "AD-APARDSPOE-SL",
+      "10BASE-T1L Power Extractor with Class 10-14 SPoE",
+      "Evaluation Board Hardware",
+      "Primary Side"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "AD-APARDSPOE-SL",
+      "10BASE-T1L Power Extractor with Class 10-14 SPoE",
+      "Evaluation Board Hardware",
+      "Primary Side",
+      "SPoE PD Power Class Selection (JP1 and JP2)"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "AD-APARDSPOE-SL",
+      "10BASE-T1L Power Extractor with Class 10-14 SPoE",
+      "Evaluation Board Hardware",
+      "Secondary Side"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "AD-APARDSPOE-SL",
+      "10BASE-T1L Power Extractor with Class 10-14 SPoE",
+      "System Setup"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "AD-APARDSPOE-SL",
+      "10BASE-T1L Power Extractor with Class 10-14 SPoE",
+      "System Setup",
+      "Block Diagram",
+      "Setup with SPoE via PSE"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "AD-APARDSPOE-SL",
+      "10BASE-T1L Power Extractor with Class 10-14 SPoE",
+      "System Setup",
+      "Basic Operation"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "AD-APARDSPOE-SL",
+      "10BASE-T1L Power Extractor with Class 10-14 SPoE",
+      "Schematic, PCB Layout, Bill of Materials"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "AD-APARDSPOE-SL",
+      "10BASE-T1L Power Extractor with Class 10-14 SPoE",
+      "Additional Information and Useful Links"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "AD-APARDSPOE-SL",
+      "10BASE-T1L Power Extractor with Class 10-14 SPoE",
+      "Hardware Registration"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "AD-APARDSPOE-SL",
+      "10BASE-T1L Power Extractor with Class 10-14 SPoE",
+      "Help and Support"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "AD-T1LUSB2.0-EBZ",
+      "Production Testing",
+      "Overview"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "AD-T1LUSB2.0-EBZ",
+      "Production Testing",
+      "Test Duration"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "AD-T1LUSB2.0-EBZ",
+      "Production Testing",
+      "Test Requirements",
+      "Required Hardware"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "AD-T1LUSB2.0-EBZ",
+      "Production Testing",
+      "Test Requirements",
+      "Required Software"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "AD-T1LUSB2.0-EBZ",
+      "Production Testing",
+      "Test Requirements",
+      "Required Setup"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "AD-T1LUSB2.0-EBZ",
+      "Production Testing",
+      "Test Process",
+      "Wi-Fi Setup"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "AD-T1LUSB2.0-EBZ",
+      "Production Testing",
+      "Test Process",
+      "Running the Tests"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "AD-T1LUSB2.0-EBZ",
+      "Production Testing",
+      "Test Process",
+      "Running the Tests",
+      "1) T1L TO Usb Test"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "AD-APARDSPOE-SL",
+      "Production Testing",
+      "Overview"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "AD-APARDSPOE-SL",
+      "Production Testing",
+      "Test Duration"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "AD-APARDSPOE-SL",
+      "Production Testing",
+      "Test Requirements",
+      "Required Hardware"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "AD-APARDSPOE-SL",
+      "Production Testing",
+      "Test Requirements",
+      "Required Software"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "AD-APARDSPOE-SL",
+      "Production Testing",
+      "Test Requirements",
+      "Required Setup"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "AD-APARDSPOE-SL",
+      "Production Testing",
+      "Test Process",
+      "Wi-Fi Setup"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "AD-APARDSPOE-SL",
+      "Production Testing",
+      "Test Process",
+      "Running the Tests"
+    ],
+    [
+      "Reference Designs",
+      "AD-APARD32690-SL",
+      "AD-APARDSPOE-SL",
+      "Production Testing",
+      "Test Process",
+      "Running the Tests",
+      "1) System Test"
+    ]
+  ]
+}
