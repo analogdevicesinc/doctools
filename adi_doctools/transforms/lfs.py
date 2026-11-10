@@ -73,11 +73,11 @@ class lfs_to_links(SphinxPostTransform):
             if '://' in targetname:
                 continue
 
-            if 'filename' in node:
-                del node['filename']
-
             if self.is_not_lfs(targetname):
                 continue
+
+            if 'filename' in node:
+                del node['filename']
 
             targetname = path.abspath(path.join(f"/{docname}", '..', targetname))
             node['refuri'] = f"{url}{targetname}"
