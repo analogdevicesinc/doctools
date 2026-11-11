@@ -1,0 +1,272 @@
+{
+  "text": [
+    "> **Note**\n>\n> We are in the process of moving the reference design documentation from\n> wiki.analog.com to ADI Documentation repository.\n> We apologize for any inconvenience that may occur due to this migration.\n\n\nAnalog Devices has developed hundreds of reference designs to help solve our\ncustomer",
+    "> **Attention**\n>\n> Work-in-progress, not all content available at the\n> wiki\n> has been imported yet.\n\n\nSoftware, documentation and reference designs for Analog Devices\nproducts.\n\nThe System Level documentation provides developers using Analog Devices\nproducts with software and documentation, inclu",
+    "Reference Designs\n\nReference designs combining mixed signal hardware, software and\nalgorithms.\n\nProducts\n\nEvaluation boards, embedded processors and lab tools for hardware\ndevelopment.\n\nADC Platforms\n\nIntegrated evaluation and demonstration platforms for data converter\nsystems.\n\nApplication Software",
+    "Kuiper\n\nDebian-based Linux distribution with tools and drivers for evaluation\nhardware.\n\nKernel and devicetrees\n\nBuild guides for the Linux kernel and devicetrees across supported\nplatforms.\n\nLinux drivers\n\nLinux kernel drivers for connecting devices and accessing their\nfunctionality.\n\nSoftware\n\nLib",
+    "Tutorials & Workshops\n\nHands-on tutorials and workshops covering mixed signal basics and\nsystem design.\n\nUniversity Program\n\nLearning tools and practical courses for the next generation of design\nengineers.\n",
+    "The quick start guides provide simple step by step instructions on how to do\nan initial system setup for the ADAR3000/3001-EVALZ board on the supported\nFPGA development boards.\n\n- On ZCU102\n  Using no-OS as software\n  Necessary files\n  Required software\n  Required hardware\n  Testing\n  Creating the s",
+    "The ADAR3000/3001-EVALZ connects to the carrier through an SDP-I-FMC\ninterposer, which plugs into an FMC connector of the carrier.\n|FPGA board|ADAR3000/3001-EVALZ|\n|ZCU102|FMC HPC1, through the SDP-I-FMC interposer|\n",
+    "|FPGA board|HDL|Linux software|No-OS software|\n|ZCU102|Yes|No|Yes|\n",
+    "The carrier setup requires the bench supplies of the evaluation board, the\ncarrier\u2019s power supply, and UART and JTAG connections to the host PC.\n",
+    "ZCU102 with the SDP-I-FMC interposer and the evaluation board\n\n\nGo to the setup guide.\n",
+    "What you need, depends on what you are trying to do. As a minimum, you need to\nstart out with:\n",
+    "1. An FPGA carrier platform. Our recommended ones can be found\n  here.\n  There are a few more boards, which do work, but are currently not\n  supported by us. The experience with the fabric-only solutions is very\n  close to the ARM/FPGA SoC based solutions, but the GUI runs on a host PC\n  (Windows or",
+    "Normally, for basic functionalities regarding visualizing the data received\nfrom the FPGA, we use the following:\n\n1. Scopy v2.0 or later (must contain the IIO\n  plugin)\n2. AMD Xilinx Vivado and Vitis 2025.1\n3. libiio 1.0.0 or later, for the IIO example\n4. UART terminal application (PuTTY/TeraTerm/Mi",
+    "17.7 GHz to 21.2 GHz, 4-Beam, 4-Element Ka Band Beamformer.\n",
+    "The ADAR3000/3001-EVALZ evaluation board evaluates the ADAR3000 and\nADAR3001, 17.7 GHz to 21.2 GHz transmit or receive, 4-beam and 4-element\nKa band beamforming core chips for phased arrays. Each of the 16 RF channels\nprovides a 31.5 dB gain range in 0.5 dB steps and up to 54.5 ps of time delay\nin 0",
+    "People who follow the flow that is outlined, have a much better experience with\nthings. However, like many things, documentation is never as complete as it\nshould be. If you have any questions, check the\nHelp and Support section at the bottom\nof the page.\n",
+    "1. Using the evaluation board:\n  Prerequisites: what you need to get\n  started\n  Quick start guides:\n  Using the ZCU102 with no-OS\n  User guide: hardware setup and board\n  details\n\n  1. Prerequisites: what you need to get\n    started\n  2. Quick start guides:\n    Using the ZCU102 with no-OS\n\n    1. U",
+    "- ADAR3000 data sheet\n- ADAR3001 data sheet\n",
+    "> **Warning**\n>\n> All the products described on this page include ESD (electrostatic discharge) sensitive devices. Electrostatic charges as high as 4000V readily accumulate on the human body or test equipment and can discharge without detection.\n> Although the boards feature ESD protection circuitry",
+    "For questions and more information, please visit the EngineerZone technical support\ncommunity.\n",
+    "This user guide describes how to set up the ADAR3000/3001-EVALZ evaluation\nboard for the ADAR3000 and ADAR3001, and how it connects to an\nFPGA carrier. The ADAR3000 and ADAR3001 data sheets provide\nadditional information and should be consulted when using the evaluation\nboard.\n",
+    "The ADAR3000/3001-EVALZ carries the beamformer, with its RF inputs RFIN1 to\nRFIN4 and RF outputs RFOUT1 to RFOUT4 on 2.92 mm connectors, as single-ended\n50 \u03a9 coplanar waveguides. It is controlled through the 120-pin SDP connector\nP5. On the bench it is usually driven by an SDP-S controller board and",
+    "The evaluation board is supplied from two bench supplies, applied to the test\nloops on the board:\n|Rail|Test loops|Supply capability|Expected draw|\n|1.2 V analog|Red `1P2V` to `AGND`|250 mA|128 mA \u00b1 12 mA (ADAR3000), 110 mA \u00b1 10 mA (ADAR3001)|\n|1.8 V digital|Red `1P8V` to `DGND`|20 mA|7 mA \u00b1 3 mA|\n\n",
+    "Set the jumpers as follows for control from an FPGA carrier:\n|Header|Setting|Function|\n|P8|Pin 1 to pin 2|Connects the chip\u2019s internal 1.0 V LDO output. Required.|\n|P9|Pin 1 to pin 2|Connects the chip\u2019s internal 1.0 V LDO output. Required.|\n|P4|Pin 1 to pin 2|Ties `RESET_N` (RSTB) to 1.8 V, as shipp",
+    "All control signals reach the device through the SDP connector P5. The logic\nlevel on the SDP side is VIO, which the controller supplies on P5: 3.3 V from\nan SDP-S, and the FMC `VADJ` rail through the SDP-I-FMC interposer. Two\nlevel translators shift VIO to the device\u2019s 1.8 V:\n\n- U1 carries the SPI:",
+    "Through the interposer, VIO is the carrier\u2019s FMC `VADJ` rail, which must be\nat **1.8 V**. `VADJ` also supplies the FPGA I/O banks behind the FMC\nconnector; at 0 V no pin on that connector can drive, and the SDP side of the\nlevel translators is unpowered.\n\nOn the ZCU102, `VADJ` is not fixed. At power",
+    "The board is the ADAR3000/3001-EVALZ, schematic 02-059137 revision C. Contact\nAnalog Devices for its design files.\n",
+    "This guide provides quick instructions on how to set up the\nADAR3000/3001-EVALZ on:\n\n- ZCU102 on FMC HPC1, through the SDP-I-FMC interposer\n",
+    "The following files are needed:\n\n- HDL boot file: `system_top.xsa`, built from the\n  projects/adar3000/zcu102 HDL project\n- no-OS project: projects/adar300x\n\n\nInstructions on how to build them from source can be found here:\n\n- ADAR300X no-OS Example Project. More no-OS build\n  details at Xilinx Buil",
+    "- AMD Xilinx Vivado and Vitis 2025.1 (downloading Vitis from\n  here\n  will include Vivado as well)\n- A UART terminal (PuTTY/Tera Term/Minicom, etc.), baud rate 115200 (8N1)\n- For the IIO example, libiio 1.0.0 or later\n",
+    "- AMD Xilinx ZCU102 FPGA board and its power supply\n- ADAR3000/3001-EVALZ evaluation board\n- SDP-I-FMC interposer\n- Two bench power supplies, see\n  Power supply\n- 2x Micro-USB cables, one for UART and one for JTAG\n\n\nMore details as to why you need these, can be found at\nPrerequisites.\n",
+    "![ZCU102 with the SDP-I-FMC interposer and the evaluation board](https://media.githubusercontent.com/media/analogdevicesinc/system-level/eval-adar3000/docs/solutions/reference-designs/eval-adar3000/images/adar3000_zcu102_setup.jpg)\n\n*Figure 1 ZCU102 with the SDP-I-FMC interposer on FMC HPC1 and the ",
+    "The basic example checks every feature of the driver against the device and\nstops at the first mismatch. On a working setup the console shows the\nfollowing; the temperature follows the board:\n\nBasic example console output\n\n```default\nZynq MP First Stage Boot Loader\nRelease 2025.1\nPMU-FW is not runni",
+    "The IIO example serves the device over the same UART to libiio clients such as\n`iio_info`, `iio_attr` and `iio_rwdev`. Build and flash the\n`iio_example` variant, close the UART terminal, and check that the device\nenumerates:\n\n```bash\niio_info -u serial:/dev/ttyUSB0,115200,8n1\n```\n\n\nThe output lists "
+  ],
+  "url": [
+    "solutions/reference-designs",
+    "",
+    "#apps-solutions",
+    "#firmware-software",
+    "#learning",
+    "solutions/reference-designs/eval-adar3000/quickstart",
+    "solutions/reference-designs/eval-adar3000/quickstart#supported-carriers",
+    "solutions/reference-designs/eval-adar3000/quickstart#supported-environments",
+    "solutions/reference-designs/eval-adar3000/quickstart#hardware-setup",
+    "solutions/reference-designs/eval-adar3000/quickstart#zcu102-adar3000-3001-evalz",
+    "solutions/reference-designs/eval-adar3000/prerequisites",
+    "solutions/reference-designs/eval-adar3000/prerequisites#hardware-prerequisites",
+    "solutions/reference-designs/eval-adar3000/prerequisites#software-prerequisites",
+    "solutions/reference-designs/eval-adar3000",
+    "solutions/reference-designs/eval-adar3000#overview",
+    "solutions/reference-designs/eval-adar3000#recommendations",
+    "solutions/reference-designs/eval-adar3000#table-of-contents",
+    "solutions/reference-designs/eval-adar3000#helpful-documents",
+    "solutions/reference-designs/eval-adar3000#warning",
+    "solutions/reference-designs/eval-adar3000#help-and-support",
+    "solutions/reference-designs/eval-adar3000/user-guide",
+    "solutions/reference-designs/eval-adar3000/user-guide#evaluation-board-hardware",
+    "solutions/reference-designs/eval-adar3000/user-guide#power-supply",
+    "solutions/reference-designs/eval-adar3000/user-guide#hardware-configuration",
+    "solutions/reference-designs/eval-adar3000/user-guide#control-interface",
+    "solutions/reference-designs/eval-adar3000/user-guide#fmc-vadj",
+    "solutions/reference-designs/eval-adar3000/user-guide#schematic-pcb-layout-bill-of-materials",
+    "solutions/reference-designs/eval-adar3000/quickstart/zcu102",
+    "solutions/reference-designs/eval-adar3000/quickstart/zcu102#necessary-files",
+    "solutions/reference-designs/eval-adar3000/quickstart/zcu102#required-software",
+    "solutions/reference-designs/eval-adar3000/quickstart/zcu102#required-hardware",
+    "solutions/reference-designs/eval-adar3000/quickstart/zcu102#creating-the-setup",
+    "solutions/reference-designs/eval-adar3000/quickstart/zcu102#console-output",
+    "solutions/reference-designs/eval-adar3000/quickstart/zcu102#using-the-iio-example"
+  ],
+  "hierarchy": [
+    [
+      "Reference Designs"
+    ],
+    [
+      "System Level Documentation"
+    ],
+    [
+      "System Level Documentation",
+      "Apps & Solutions"
+    ],
+    [
+      "System Level Documentation",
+      "Firmware & Software"
+    ],
+    [
+      "System Level Documentation",
+      "Learning"
+    ],
+    [
+      "Reference Designs",
+      "ADAR3000/3001-EVALZ",
+      "Quickstart"
+    ],
+    [
+      "Reference Designs",
+      "ADAR3000/3001-EVALZ",
+      "Quickstart",
+      "Supported carriers"
+    ],
+    [
+      "Reference Designs",
+      "ADAR3000/3001-EVALZ",
+      "Quickstart",
+      "Supported environments"
+    ],
+    [
+      "Reference Designs",
+      "ADAR3000/3001-EVALZ",
+      "Quickstart",
+      "Hardware setup"
+    ],
+    [
+      "Reference Designs",
+      "ADAR3000/3001-EVALZ",
+      "Quickstart",
+      "ZCU102 + ADAR3000/3001-EVALZ"
+    ],
+    [
+      "Reference Designs",
+      "ADAR3000/3001-EVALZ",
+      "Prerequisites"
+    ],
+    [
+      "Reference Designs",
+      "ADAR3000/3001-EVALZ",
+      "Prerequisites",
+      "Hardware prerequisites"
+    ],
+    [
+      "Reference Designs",
+      "ADAR3000/3001-EVALZ",
+      "Prerequisites",
+      "Software prerequisites"
+    ],
+    [
+      "Reference Designs",
+      "ADAR3000/3001-EVALZ"
+    ],
+    [
+      "Reference Designs",
+      "ADAR3000/3001-EVALZ",
+      "Overview"
+    ],
+    [
+      "Reference Designs",
+      "ADAR3000/3001-EVALZ",
+      "Recommendations"
+    ],
+    [
+      "Reference Designs",
+      "ADAR3000/3001-EVALZ",
+      "Table of contents"
+    ],
+    [
+      "Reference Designs",
+      "ADAR3000/3001-EVALZ",
+      "Helpful documents"
+    ],
+    [
+      "Reference Designs",
+      "ADAR3000/3001-EVALZ",
+      "Warning"
+    ],
+    [
+      "Reference Designs",
+      "ADAR3000/3001-EVALZ",
+      "Help and support"
+    ],
+    [
+      "Reference Designs",
+      "ADAR3000/3001-EVALZ",
+      "User guide"
+    ],
+    [
+      "Reference Designs",
+      "ADAR3000/3001-EVALZ",
+      "User guide",
+      "Evaluation board hardware"
+    ],
+    [
+      "Reference Designs",
+      "ADAR3000/3001-EVALZ",
+      "User guide",
+      "Power supply"
+    ],
+    [
+      "Reference Designs",
+      "ADAR3000/3001-EVALZ",
+      "User guide",
+      "Hardware configuration"
+    ],
+    [
+      "Reference Designs",
+      "ADAR3000/3001-EVALZ",
+      "User guide",
+      "Control interface"
+    ],
+    [
+      "Reference Designs",
+      "ADAR3000/3001-EVALZ",
+      "User guide",
+      "FMC VADJ"
+    ],
+    [
+      "Reference Designs",
+      "ADAR3000/3001-EVALZ",
+      "User guide",
+      "Schematic, PCB Layout, Bill of Materials"
+    ],
+    [
+      "Reference Designs",
+      "ADAR3000/3001-EVALZ",
+      "Quickstart",
+      "ZCU102 Quick start"
+    ],
+    [
+      "Reference Designs",
+      "ADAR3000/3001-EVALZ",
+      "Quickstart",
+      "ZCU102 Quick start",
+      "Using no-OS as software",
+      "Necessary files"
+    ],
+    [
+      "Reference Designs",
+      "ADAR3000/3001-EVALZ",
+      "Quickstart",
+      "ZCU102 Quick start",
+      "Using no-OS as software",
+      "Required software"
+    ],
+    [
+      "Reference Designs",
+      "ADAR3000/3001-EVALZ",
+      "Quickstart",
+      "ZCU102 Quick start",
+      "Using no-OS as software",
+      "Required hardware"
+    ],
+    [
+      "Reference Designs",
+      "ADAR3000/3001-EVALZ",
+      "Quickstart",
+      "ZCU102 Quick start",
+      "Using no-OS as software",
+      "Testing",
+      "Creating the setup"
+    ],
+    [
+      "Reference Designs",
+      "ADAR3000/3001-EVALZ",
+      "Quickstart",
+      "ZCU102 Quick start",
+      "Using no-OS as software",
+      "Testing",
+      "Console output"
+    ],
+    [
+      "Reference Designs",
+      "ADAR3000/3001-EVALZ",
+      "Quickstart",
+      "ZCU102 Quick start",
+      "Using no-OS as software",
+      "Testing",
+      "Using the IIO example"
+    ]
+  ]
+}
