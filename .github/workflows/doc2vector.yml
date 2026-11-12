@@ -168,7 +168,9 @@ jobs:
                   fi
                 done < <(printf '%s\n' "$built_docs" | awk '{ print length, $0 }' | sort -rn | cut -d' ' -f2-)
 
-                [[ -n "$matched" ]] || echo "."
+                if [[ -z "$matched" ]] && [[ -f objects.inv ]]; then
+                  echo "."
+                fi
               done | sort -u)
           else
             versions="$built_docs"

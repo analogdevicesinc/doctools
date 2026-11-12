@@ -231,6 +231,12 @@ def doc2vector():
 
     logger.info("got %d chunks", len(chunks))
 
+    if not chunks:
+        logger.warning("No indexable chunks in %s; removing existing index", docs_root)
+        for name in ("passages.json", "embeddings-minilml6-dim384.bin"):
+            (output_dir / name).unlink(missing_ok=True)
+        return
+
     from sentence_transformers import SentenceTransformer
 
     model_cache = script_dir / "model"
