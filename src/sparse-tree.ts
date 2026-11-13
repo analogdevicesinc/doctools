@@ -295,12 +295,12 @@ export class SparseTreeProvider implements vscode.TreeDataProvider<SparseTreeIte
     if (!this.walkthroughShown && this.state.size === 0 && this.cachedTotalCount >= 100) {
       this.walkthroughShown = true
       const action = await vscode.window.showInformationMessage(
-        `This docs has ${this.cachedTotalCount}+ pages, use Sparse Build to build only the sections you're working on.`,
-        'Show Sparse Build',
+        `This docs has ${this.cachedTotalCount}+ pages, use Sparse build to build only the sections you're working on.`,
+        'Show Sparse build',
         'Dismiss'
       )
 
-      if (action === 'Show Sparse Build') {
+      if (action === 'Show Sparse build') {
         vscode.commands.executeCommand('adi-doctools.sparse-tree.focus')
       }
     }

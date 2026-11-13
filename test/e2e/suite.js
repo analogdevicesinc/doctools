@@ -171,6 +171,69 @@ test('semantic tokens are provided', async () => {
   assert.ok(tokens && tokens.data.length > 100, 'no semantic tokens')
 })
 
+test('format commands and toolbar edit the document', async () => {
+  const document = await vscode.workspace.openTextDocument(file('guide/sub/page.rst'))
+  const editor = await vscode.window.showTextDocument(document, vscode.ViewColumn.One)
+  const select = text => {
+    const offset = document.getText().indexOf(text)
+    editor.selection = new vscode.Selection(document.positionAt(offset), document.positionAt(offset + text.length))
+  }
+
+  select('sentence')
+  await vscode.commands.executeCommand('adi-doctools.format.bold')
+  assert.ok(document.getText().includes('an **sentence** with'))
+  assert.equal(document.getText(editor.selection), 'sentence')
+  await vscode.commands.executeCommand('adi-doctools.format.bold')
+  assert.ok(document.getText().includes('an sentence with'))
+
+  select('Sub page')
+  await vscode.commands.executeCommand('adi-doctools.format.heading', 2)
+  assert.ok(document.getText().startsWith('Sub page\n--------\n'))
+  await vscode.commands.executeCommand('adi-doctools.format.heading', 1)
+  assert.ok(document.getText().startsWith('Sub page\n========\n'))
+
+  select('See :ref:`guide`.')
+  await vscode.commands.executeCommand('adi-doctools.format.admonition', 'tip')
+  assert.ok(document.getText().includes('.. tip::\n\n   See :ref:`guide`.'))
+
+  await vscode.commands.executeCommand('adi-doctools.show-toolbar')
+  const frame = `document.querySelector('iframe')?.contentDocument`
+  const toolbar = await waitFor('toolbar webview', async () => {
+    for (const target of await Cdp.targets()) {
+      if (!target.url.startsWith('vscode-webview://') || !target.webSocketDebuggerUrl)
+        continue
+      const cdp = await Cdp.connect(t => t.id === target.id)
+      if (await cdp.evaluate(`!!${frame}?.querySelector('[data-command="italic"]')`))
+        return cdp
+      cdp.close()
+    }
+  }, 15000, 250)
+  await waitFor('toolbar enabled', () =>
+    toolbar.evaluate(`!${frame}.querySelector('[data-command="italic"]').disabled`), 5000)
+  const status = await toolbar.evaluate(`${frame}.getElementById('status').textContent`)
+  assert.match(status, /page\.rst .* reStructuredText/)
+  await screenshot('00-toolbar')
+
+  select('mistake')
+  await toolbar.evaluate(`${frame}.querySelector('[data-command="italic"]').click()`)
+  await waitFor('italic from the toolbar', () => document.getText().includes('speling *mistake*.'), 5000)
+  await waitFor('focus back in the editor', () => vscode.window.activeTextEditor?.document === document, 5000)
+
+  await toolbar.evaluate(`(() => {
+    const select = ${frame}.querySelector('select[data-command="codeBlock"]')
+    select.value = 'python'
+    select.dispatchEvent(new Event('change'))
+  })()`)
+  await waitFor('code block from the toolbar', () =>
+    document.getText().includes('.. code-block:: python\n\n   speling *mistake*.') ||
+    document.getText().includes('.. code-block:: python\n\n   This is an sentence'), 5000)
+  toolbar.close()
+
+  await vscode.commands.executeCommand('workbench.action.files.revert')
+  assert.ok(!document.isDirty)
+  ctx.editor = await vscode.window.showTextDocument(ctx.editor.document, vscode.ViewColumn.One)
+})
+
 if (withLanguageTool) {
   test('local spell check reports and fixes mistakes', async () => {
     const document = await vscode.workspace.openTextDocument(file('guide/sub/page.rst'))

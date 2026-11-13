@@ -12,7 +12,8 @@
     "../src/sphinx-warnings.ts",
     "../src/version.ts",
     "../src/sparse-state.ts",
-    "../src/annotated-text.ts"
+    "../src/annotated-text.ts",
+    "../src/format.ts"
   ],
   "exclude": []
 }

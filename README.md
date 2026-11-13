@@ -25,6 +25,7 @@ Sphinx Python object directly.
 - **Synchronized Preview**: The preview panel follows the active editor and locks its scroll position with the editor, in both directions.
 - **Sparse Build**: Build only the folders you are working on.
 - **Spell Check**: LanguageTool grammar and spell check, local by default.
+- **Format Toolbar**: Word-like toolbar for headings, bold, italic, lists, links, references, images, tables, code blocks and admonitions, for reStructuredText and MyST Markdown.
 - **Diagnostics**: Display build warnings and errors as diagnostics in the editor
 - **Language Injection**: Syntax highlighting for embedded languages blocks (bash, YAML)
 
@@ -81,7 +82,7 @@ Do not open the sphinx source folder as the workspace folder, it may consider th
 - Open a repository with documentation.
 - Open a `.rst` file to activate the extension.
 - Click `yes` in the prompt to install the virtual enviroment, if `adi-doctools` is not already available.
-- Use the `Explorer > Doctools Sparse Build` to select just some pages to build.
+- Use the `Explorer > Sparse build` to select just some pages to build.
 
   - Drastically improves first time build time.
 
@@ -89,6 +90,16 @@ Do not open the sphinx source folder as the workspace folder, it may consider th
 
   - `Docs`: Start/stop server, open preview.
   - `Spell Check`: Switch between local, cloud and off grammar correction.
+
+## Format toolbar
+
+The `Format text` pane in the Explorer (or `Doctools: Show Format Toolbar`)
+writes the markup for the selection in the last active `.rst` or `.md` editor.
+The same actions are available in the editor context menu (`Format`),
+in the command palette, and with `Ctrl+B` / `Ctrl+I` for bold and italic in
+reStructuredText files. Buttons toggle: applying bold to bold text removes it.
+The reference buttons insert a `:ref:` / `:doc:` role and open the list of
+targets (requires the server to be running).
 
 ## Settings
 

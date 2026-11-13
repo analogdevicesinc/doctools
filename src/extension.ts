@@ -21,6 +21,7 @@ import { LanguageToolChecker, GrammarCodeActionProvider } from './language-tool'
 import { GrammarController } from './grammar'
 import { PreviewManager } from './browser'
 import { SparseTreeProvider, SparseTreeItem } from './sparse-tree'
+import { FormatToolbar } from './toolbar'
 
 const RST = { language: 'restructuredtext' }
 const isRst = (doc: vscode.TextDocument) => doc.languageId === 'restructuredtext'
@@ -163,6 +164,9 @@ export async function activate(ctx: vscode.ExtensionContext) {
     grammar,
     preview,
     provider,
+    new FormatToolbar(),
+    vscode.commands.registerCommand('adi-doctools.show-toolbar', () =>
+      vscode.commands.executeCommand(`${FormatToolbar.viewType}.focus`)),
     vscode.languages.registerDocumentSemanticTokensProvider(RST, provider, LEGEND),
     vscode.languages.registerCompletionItemProvider(RST, completionProvider, ':', '`', '<', '+', '.', ' '),
     vscode.languages.registerHoverProvider(RST, hoverProvider),

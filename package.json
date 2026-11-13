@@ -66,14 +66,111 @@
       {
         "command": "adi-doctools.check-grammar",
         "title": "Doctools: Check Grammar"
+      },
+      {
+        "command": "adi-doctools.format.bold",
+        "title": "Bold",
+        "category": "Doctools Format"
+      },
+      {
+        "command": "adi-doctools.format.italic",
+        "title": "Italic",
+        "category": "Doctools Format"
+      },
+      {
+        "command": "adi-doctools.format.code",
+        "title": "Inline Code",
+        "category": "Doctools Format"
+      },
+      {
+        "command": "adi-doctools.format.subscript",
+        "title": "Subscript",
+        "category": "Doctools Format"
+      },
+      {
+        "command": "adi-doctools.format.superscript",
+        "title": "Superscript",
+        "category": "Doctools Format"
+      },
+      {
+        "command": "adi-doctools.format.heading",
+        "title": "Heading",
+        "category": "Doctools Format"
+      },
+      {
+        "command": "adi-doctools.format.bulletList",
+        "title": "Bullet List",
+        "category": "Doctools Format"
+      },
+      {
+        "command": "adi-doctools.format.numberedList",
+        "title": "Numbered List",
+        "category": "Doctools Format"
+      },
+      {
+        "command": "adi-doctools.format.quote",
+        "title": "Block Quote",
+        "category": "Doctools Format"
+      },
+      {
+        "command": "adi-doctools.format.link",
+        "title": "Link",
+        "category": "Doctools Format"
+      },
+      {
+        "command": "adi-doctools.format.reference",
+        "title": "Reference to Section",
+        "category": "Doctools Format"
+      },
+      {
+        "command": "adi-doctools.format.document",
+        "title": "Reference to Page",
+        "category": "Doctools Format"
+      },
+      {
+        "command": "adi-doctools.format.image",
+        "title": "Image",
+        "category": "Doctools Format"
+      },
+      {
+        "command": "adi-doctools.format.table",
+        "title": "Table",
+        "category": "Doctools Format"
+      },
+      {
+        "command": "adi-doctools.format.codeBlock",
+        "title": "Code Block",
+        "category": "Doctools Format"
+      },
+      {
+        "command": "adi-doctools.format.admonition",
+        "title": "Admonition",
+        "category": "Doctools Format"
+      },
+      {
+        "command": "adi-doctools.format.rule",
+        "title": "Horizontal Rule",
+        "category": "Doctools Format"
+      },
+      {
+        "command": "adi-doctools.show-toolbar",
+        "title": "Doctools: Show Format Toolbar",
+        "icon": "$(symbol-text)"
       }
     ],
     "views": {
       "explorer": [
         {
+          "type": "webview",
+          "id": "adi-doctools.toolbar",
+          "name": "Format text",
+          "contextualTitle": "Format text"
+        },
+        {
           "id": "adi-doctools.sparse-tree",
-          "name": "Doctools Sparse Build",
-          "when": "workspaceFolderCount > 0"
+          "name": "Sparse build",
+          "when": "workspaceFolderCount > 0",
+          "contextualTitle": "Sparse build"
         }
       ]
     },
@@ -157,12 +254,85 @@
         {
           "command": "adi-doctools.clear-sparse",
           "when": "workspaceFolderCount > 0"
+        },
+        {
+          "command": "adi-doctools.format.bold",
+          "when": "editorLangId == restructuredtext || editorLangId == markdown || editorLangId == myst"
+        },
+        {
+          "command": "adi-doctools.format.italic",
+          "when": "editorLangId == restructuredtext || editorLangId == markdown || editorLangId == myst"
+        },
+        {
+          "command": "adi-doctools.format.code",
+          "when": "editorLangId == restructuredtext || editorLangId == markdown || editorLangId == myst"
+        },
+        {
+          "command": "adi-doctools.format.subscript",
+          "when": "editorLangId == restructuredtext || editorLangId == markdown || editorLangId == myst"
+        },
+        {
+          "command": "adi-doctools.format.superscript",
+          "when": "editorLangId == restructuredtext || editorLangId == markdown || editorLangId == myst"
+        },
+        {
+          "command": "adi-doctools.format.heading",
+          "when": "editorLangId == restructuredtext || editorLangId == markdown || editorLangId == myst"
+        },
+        {
+          "command": "adi-doctools.format.bulletList",
+          "when": "editorLangId == restructuredtext || editorLangId == markdown || editorLangId == myst"
+        },
+        {
+          "command": "adi-doctools.format.numberedList",
+          "when": "editorLangId == restructuredtext || editorLangId == markdown || editorLangId == myst"
+        },
+        {
+          "command": "adi-doctools.format.quote",
+          "when": "editorLangId == restructuredtext || editorLangId == markdown || editorLangId == myst"
+        },
+        {
+          "command": "adi-doctools.format.link",
+          "when": "editorLangId == restructuredtext || editorLangId == markdown || editorLangId == myst"
+        },
+        {
+          "command": "adi-doctools.format.reference",
+          "when": "editorLangId == restructuredtext || editorLangId == markdown || editorLangId == myst"
+        },
+        {
+          "command": "adi-doctools.format.document",
+          "when": "editorLangId == restructuredtext || editorLangId == markdown || editorLangId == myst"
+        },
+        {
+          "command": "adi-doctools.format.image",
+          "when": "editorLangId == restructuredtext || editorLangId == markdown || editorLangId == myst"
+        },
+        {
+          "command": "adi-doctools.format.table",
+          "when": "editorLangId == restructuredtext || editorLangId == markdown || editorLangId == myst"
+        },
+        {
+          "command": "adi-doctools.format.codeBlock",
+          "when": "editorLangId == restructuredtext || editorLangId == markdown || editorLangId == myst"
+        },
+        {
+          "command": "adi-doctools.format.admonition",
+          "when": "editorLangId == restructuredtext || editorLangId == markdown || editorLangId == myst"
+        },
+        {
+          "command": "adi-doctools.format.rule",
+          "when": "editorLangId == restructuredtext || editorLangId == markdown || editorLangId == myst"
         }
       ],
       "editor/title": [
         {
           "command": "adi-doctools.open-preview",
           "when": "editorLangId == restructuredtext",
+          "group": "navigation"
+        },
+        {
+          "command": "adi-doctools.show-toolbar",
+          "when": "editorLangId == restructuredtext || editorLangId == markdown || editorLangId == myst",
           "group": "navigation"
         }
       ],
@@ -172,8 +342,105 @@
           "when": "view == adi-doctools.sparse-tree",
           "group": "navigation"
         }
+      ],
+      "editor/context": [
+        {
+          "submenu": "adi-doctools.format",
+          "when": "editorLangId == restructuredtext || editorLangId == markdown || editorLangId == myst",
+          "group": "1_modification@9"
+        }
+      ],
+      "adi-doctools.format": [
+        {
+          "command": "adi-doctools.format.bold",
+          "group": "1_inline@0"
+        },
+        {
+          "command": "adi-doctools.format.italic",
+          "group": "1_inline@1"
+        },
+        {
+          "command": "adi-doctools.format.code",
+          "group": "1_inline@2"
+        },
+        {
+          "command": "adi-doctools.format.subscript",
+          "group": "1_inline@3"
+        },
+        {
+          "command": "adi-doctools.format.superscript",
+          "group": "1_inline@4"
+        },
+        {
+          "command": "adi-doctools.format.heading",
+          "group": "2_block@0"
+        },
+        {
+          "command": "adi-doctools.format.bulletList",
+          "group": "2_block@1"
+        },
+        {
+          "command": "adi-doctools.format.numberedList",
+          "group": "2_block@2"
+        },
+        {
+          "command": "adi-doctools.format.quote",
+          "group": "2_block@3"
+        },
+        {
+          "command": "adi-doctools.format.link",
+          "group": "3_insert@0"
+        },
+        {
+          "command": "adi-doctools.format.reference",
+          "group": "3_insert@1"
+        },
+        {
+          "command": "adi-doctools.format.document",
+          "group": "3_insert@2"
+        },
+        {
+          "command": "adi-doctools.format.image",
+          "group": "3_insert@3"
+        },
+        {
+          "command": "adi-doctools.format.table",
+          "group": "3_insert@4"
+        },
+        {
+          "command": "adi-doctools.format.codeBlock",
+          "group": "3_insert@5"
+        },
+        {
+          "command": "adi-doctools.format.admonition",
+          "group": "3_insert@6"
+        },
+        {
+          "command": "adi-doctools.format.rule",
+          "group": "3_insert@7"
+        }
       ]
-    }
+    },
+    "submenus": [
+      {
+        "id": "adi-doctools.format",
+        "label": "Format"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "adi-doctools.format.bold",
+        "key": "ctrl+b",
+        "mac": "cmd+b",
+        "when": "editorTextFocus && !editorReadonly && editorLangId == restructuredtext"
+      },
+      {
+        "command": "adi-doctools.format.italic",
+        "key": "ctrl+i",
+        "mac": "cmd+i",
+        "when": "editorTextFocus && !editorReadonly && editorLangId == restructuredtext"
+      }
+    ]
   },
   "scripts": {
     "prebuild": "node scripts/fetch.js",
