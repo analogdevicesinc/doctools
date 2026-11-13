@@ -176,7 +176,11 @@ export async function activate(ctx: vscode.ExtensionContext) {
       { providedCodeActionKinds: GrammarCodeActionProvider.providedCodeActionKinds }
     ),
 
-    onBuildStatusChanged((status) => sparseTreeProvider.setBuildStatus(status)),
+    onBuildStatusChanged((status) => {
+      sparseTreeProvider.setBuildStatus(status)
+      if (status === 'ready')
+        preview.onBuildCompleted()
+    }),
     onServerStarted((info) => {
       ignoreForwardedPort(info.port)
       preview.open(info)

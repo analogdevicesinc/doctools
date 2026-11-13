@@ -421,15 +421,22 @@ test('sparse selection rebuilds only the selected folder', async () => {
   const uri = vscode.Uri.file(file('reference/index.rst'))
   const sphinx = () => vscode.languages.getDiagnostics(uri).filter(d => d.source === 'Sphinx')
   assert.ok(sphinx().length > 0)
+  const page = ctx.api.preview().pagePath
+  const onPage = async () =>
+    ctx.api.preview().pagePath === page && (await ctx.page.evaluate(PAGE_STATE)).path === page
   await ctx.api.toggleSparse(path.join('docs', 'guide'))
   assert.deepEqual(ctx.api.sparsePaths(), [path.join('docs', 'guide')])
   await waitFor('sparse rebuild', () => sphinx().length === 0 && ctx.api.buildStatus() === 'ready', 60000, 250)
   await waitFor('preview reconnected', () => ctx.api.preview().connected, 10000)
+  await sleep(2500)
+  await waitFor('preview kept the page after the sparse rebuild', onPage, 5000)
   await screenshot('05-sparse')
 
   await ctx.api.toggleSparse(path.join('docs', 'guide'))
   assert.equal(ctx.api.sparsePaths(), null)
   await waitFor('full rebuild', () => sphinx().length > 0 && ctx.api.buildStatus() === 'ready', 60000, 250)
+  await sleep(2500)
+  await waitFor('preview kept the page after the full rebuild', onPage, 5000)
 })
 
 test('backend crash is recovered by starting the server again', async () => {

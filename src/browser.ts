@@ -14,6 +14,7 @@ import {
 
 const EDITOR_ECHO_MS = 350
 const PREVIEW_LEAD_MS = 500
+const REBUILD_REDIRECT_MS = 5000
 
 export interface PreviewState {
   open: boolean
@@ -35,6 +36,7 @@ export class PreviewManager implements vscode.Disposable {
   private previewLeadsUntil = 0
   private lastSentLine: number | undefined
   private lastReceivedLine: number | undefined
+  private buildCompletedAt = 0
   private disposables: vscode.Disposable[] = []
 
   constructor() {
@@ -71,6 +73,27 @@ export class PreviewManager implements vscode.Disposable {
 
   setServer(server: ServerInfo | undefined) {
     this.server = server
+  }
+
+  onBuildCompleted() {
+    this.buildCompletedAt = Date.now()
+  }
+
+  private isBuilt(pagePath: string): boolean {
+    return !!this.server && fs.existsSync(path.join(this.server.builddir, pagePath, 'index.html'))
+  }
+
+  private restoreAfterRebuild(previous: string | undefined, current: string): boolean {
+    if (!previous || previous === current || pagePathToDocnames(current)[0] !== 'index')
+      return false
+    if (Date.now() - this.buildCompletedAt > REBUILD_REDIRECT_MS || !this.isBuilt(previous))
+      return false
+    const editor = vscode.window.activeTextEditor
+    if (editor && this.pagePathFor(editor.document) === current)
+      return false
+    this.buildCompletedAt = 0
+    this.post({ type: 'navigate', path: previous })
+    return true
   }
 
   async open(server?: ServerInfo) {
@@ -148,14 +171,12 @@ export class PreviewManager implements vscode.Disposable {
   private pagePathFor(document: vscode.TextDocument): string | undefined {
     if (!this.server || document.uri.scheme !== 'file')
       return undefined
-    const { srcdir, builddir } = this.server
+    const { srcdir } = this.server
     const docname = sourceToDocname(path.relative(realpath(srcdir), realpath(document.uri.fsPath)))
     if (!docname)
       return undefined
     const pagePath = docnameToPagePath(docname)
-    if (!fs.existsSync(path.join(builddir, pagePath, 'index.html')))
-      return undefined
-    return pagePath
+    return this.isBuilt(pagePath) ? pagePath : undefined
   }
 
   private sourceFor(pagePath: string): string | undefined {
@@ -193,8 +214,11 @@ export class PreviewManager implements vscode.Disposable {
       return
 
     if (msg.type === 'ready') {
+      const previous = this.pagePath
       this.connected = true
       this.pagePath = String(msg.path)
+      if (this.restoreAfterRebuild(previous, this.pagePath))
+        return
       this.source = this.sourceFor(this.pagePath)
       this.previewLeadsUntil = 0
       this.syncFromEditor()
