@@ -107,6 +107,7 @@ Do not open the sphinx source folder as the workspace folder, it may consider th
 ```
 npm install
 npm run build      # bundle to dist/
+npm test           # unit tests
 npm run test:e2e   # end-to-end tests in VSCodium/VSCode (headless with Xvfb)
 ```
 

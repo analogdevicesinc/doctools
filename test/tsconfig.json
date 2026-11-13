@@ -1,0 +1,18 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "..",
+    "outDir": "../out",
+    "sourceMap": false
+  },
+  "include": [
+    "unit",
+    "../src/rpc.ts",
+    "../src/scroll-map.ts",
+    "../src/sphinx-warnings.ts",
+    "../src/version.ts",
+    "../src/sparse-state.ts",
+    "../src/annotated-text.ts"
+  ],
+  "exclude": []
+}
