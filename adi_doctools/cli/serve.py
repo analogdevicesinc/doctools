@@ -231,8 +231,28 @@ cwd = {cwd_display}""")
 
     def _start_thread(self):
         """Start the server in a background thread."""
-        self._server_thread = threading.Thread(target=self._run, daemon=True)
+        self._server_thread = threading.Thread(target=self._run_thread, daemon=True)
         self._server_thread.start()
+
+    def _run_thread(self):
+        try:
+            self._run()
+        except Exception:
+            logger.exception("Server failed")
+        if self._shutdown_event.is_set():
+            return
+        self._shutdown_event.set()
+        self._reload_event.set()
+        if self.http_p is not None:
+            self.http_p.shutdown()
+            self.http_p.server_close()
+        _clean_up_global_state()
+        with Serve._lock:
+            if Serve._instance is self:
+                Serve._instance = None
+        if self.jsonrpc:
+            from ..lsp.logging import notify
+            notify("server/stopped", {"failed": True})
 
     def _shutdown(self):
         """Signal shutdown and cleanup."""
@@ -373,6 +393,8 @@ cwd = {cwd_display}""")
                 else:
                     logger.info(log['with_node_modules'])
                     return
+                if self.jsonrpc:
+                    return
                 fetch_resp = input(log['fetch'] + " (y/n): ").strip().lower()
                 if fetch_resp in ['y', 'yes']:
                     if fetch_compiled(par_dir):
@@ -413,7 +435,13 @@ cwd = {cwd_display}""")
                           environ["GIT_LFS_SKIP_SMUDGE"] == "1"):
                         logger.error(f"{FAIL}{log['lfs_skip_smudge']}{NC}")
 
-        confoverrides = compute_sparse_config(directory, self.sparse, self.verbose)
+        def get_confoverrides(sparse):
+            confoverrides = compute_sparse_config(directory, sparse, self.verbose)
+            if self.jsonrpc:
+                confoverrides['source_line_markers'] = True
+            return confoverrides
+
+        confoverrides = get_confoverrides(self.sparse)
         if self.sparse:
             # FIXME: cache check confoverrides to not have to discard sparse
             # builds.
@@ -460,6 +488,8 @@ cwd = {cwd_display}""")
             for key, value in confoverrides.items():
                 if isinstance(value, list):
                     override_args.extend(["-D", f"{key}={','.join(value)}"])
+                elif isinstance(value, bool):
+                    override_args.extend(["-D", f"{key}={int(value)}"])
                 else:
                     override_args.extend(["-D", f"{key}={value}"])
             return override_args
@@ -544,7 +574,11 @@ cwd = {cwd_display}""")
                 logger.debug(str(e))
 
         with open(path.join(src_dir, 'miscellaneous', 'dev-pool.js'), 'r') as f:
-            dev_pool_script = f'<script id="dev-pool">\n{f.read()}</script>\n</body>'.encode()
+            dev_pool_script = f'<script id="dev-pool">\n{f.read()}</script>\n'
+        if self.jsonrpc:
+            with open(path.join(src_dir, 'miscellaneous', 'editor-sync.js'), 'r') as f:
+                dev_pool_script += f'<script id="editor-sync">\n{f.read()}</script>\n'
+        dev_pool_script = f'{dev_pool_script}</body>'.encode()
 
         shutdown_event = self._shutdown_event
         reload_event = self._reload_event
@@ -746,7 +780,7 @@ cwd = {cwd_display}""")
         else:
             app_subprocess_build()
 
-        if self.once:
+        if self.once or self._shutdown_event.is_set():
             return
 
         # app.build() doesn't handle the cache well in parallel,
@@ -759,7 +793,12 @@ cwd = {cwd_display}""")
         if self.builder == "dirhtml":
             server_url = f"http://127.0.0.1:{self.port}?v={str(uuid4())[:2]}"
             if self.jsonrpc:
-                notify("server/started", {"port": self.port, "url": server_url})
+                notify("server/started", {
+                    "port": self.port,
+                    "url": server_url,
+                    "srcdir": directory,
+                    "builddir": builddir,
+                })
             else:
                 logger.info(f"\nRunning server on {BLUE}{server_url}{NC}\n")
 
@@ -861,7 +900,7 @@ cwd = {cwd_display}""")
                 self._sparse_update_event.clear()
                 with self._sparse_lock:
                     new_sparse = self.sparse
-                confoverrides = compute_sparse_config(directory, new_sparse, self.verbose)
+                confoverrides = get_confoverrides(new_sparse)
                 update_sphinx = True
                 deep_clean = True
                 trigger_rst = ("", "")

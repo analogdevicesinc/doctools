@@ -42,6 +42,8 @@ def get_tool(language: str = 'en-US'):
         logger.info(f"Initializing LanguageTool with language '{language}'...")
     except ImportError:
         logger.warning("Language Tool (language_tool_python) not installed")
+        _init_attempted = False
+        importlib.invalidate_caches()
         return None
     except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to initialize LanguageTool: {e}")
@@ -144,12 +146,13 @@ def check_text_api(text: str, language: str = 'en-US', username: str = '', api_k
         return {'error': 'check_failed', 'message': str(e)}
 
 
-def check_text(text: str, mode: str = 'api', language: str = 'en-US',
+def check_text(text: str, mode: str = 'local', language: str = 'en-US',
                username: str = '', api_key: str = '') -> dict:
+    if mode == 'api':
+        return check_text_api(text, language, username, api_key)
     if mode == 'local':
         return check_text_local(text, language)
-    else:
-        return check_text_api(text, language, username, api_key)
+    return {'matches': []}
 
 
 def get_status() -> dict:

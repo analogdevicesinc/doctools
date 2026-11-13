@@ -3,7 +3,9 @@ from __future__ import annotations
 import json
 import logging
 import logging.config
+import os
 import sys
+import threading
 
 LSP_ERROR = 1
 LSP_WARNING = 2
@@ -19,11 +21,30 @@ LEVEL_TO_LSP = {
 }
 
 
+_send_lock = threading.Lock()
+
+
+def _reset_send_lock():
+    global _send_lock
+    _send_lock = threading.Lock()
+
+
+if hasattr(os, 'register_at_fork'):
+    os.register_at_fork(after_in_child=_reset_send_lock)
+
+
+def send(message: dict):
+    line = json.dumps(message) + "\n"
+    with _send_lock:
+        sys.stdout.write(line)
+        sys.stdout.flush()
+
+
 def notify(method: str, params: dict | None = None):
     notification = {"jsonrpc": "2.0", "method": method}
     if params is not None:
         notification["params"] = params
-    print(json.dumps(notification), file=sys.stdout, flush=True)
+    send(notification)
 
 
 class JsonRpcHandler(logging.Handler):

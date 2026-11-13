@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import json
 import logging as logging_
+import signal
 import sys
+from concurrent.futures import ThreadPoolExecutor
 
 from sphinx.util.nodes import clean_astext
 
@@ -18,8 +20,9 @@ from ..role.common import (
     vendors,
 )
 from .language_tool import check_text as lt_check_text
+from .language_tool import close as lt_close
 from .language_tool import get_status as lt_get_status
-from .logging import set_logging
+from .logging import send, set_logging
 
 logger = logging_.getLogger(__name__)
 
@@ -422,7 +425,9 @@ def handle_cmd(cmd: dict) -> dict:
             if Serve.is_running():
                 return { 'return': 'already_running' }
             sparse = cmd.get('sparse')
-            Serve.start(jsonrpc=True, sparse=sparse)
+            port = cmd.get('port') or 8080
+            if not Serve.start(jsonrpc=True, sparse=sparse, port=port):
+                return { 'return': 'failed' }
             return { 'return': 'success' }
         elif cmd['server'] == 'stop':
             Serve.stop()
@@ -438,7 +443,7 @@ def handle_cmd(cmd: dict) -> dict:
         action = cmd['languageTool']
         if action == 'check':
             text = cmd.get('text', '')
-            mode = cmd.get('mode', 'api')
+            mode = cmd.get('mode', 'local')
             language = cmd.get('language', 'en-US')
             username = cmd.get('username', '')
             api_key = cmd.get('apiKey', '')
@@ -448,16 +453,50 @@ def handle_cmd(cmd: dict) -> dict:
 
     return {'error': 'Unknown command'}
 
-set_logging()
+def respond(cmd: dict):
+    try:
+        response = handle_cmd(cmd)
+    except Exception as e:
+        logger.exception("Command failed")
+        response = {'error': str(e) or type(e).__name__}
+    response['id'] = cmd.get('id')
+    send(response)
 
-for line in sys.stdin:
-    line = line.strip()
-    if not line:
-        continue
+
+def read_commands(language_tool):
+    stdin = open(sys.stdin.fileno(), encoding='utf-8', closefd=False)  # noqa: SIM115
+
+    for line in stdin:
+        line = line.strip()
+        if not line:
+            continue
+
+        try:
+            cmd = json.loads(line)
+        except json.JSONDecodeError:
+            send({'error': 'Invalid JSON'})
+            continue
+        if not isinstance(cmd, dict):
+            send({'error': 'Invalid command'})
+            continue
+
+        if 'languageTool' in cmd:
+            language_tool.submit(respond, cmd)
+        else:
+            respond(cmd)
+
+
+def main():
+    set_logging()
+    signal.signal(signal.SIGTERM, lambda signum, frame: sys.exit(0))
+    language_tool = ThreadPoolExecutor(max_workers=1)
 
     try:
-        cmd = json.loads(line)
-        response = handle_cmd(cmd)
-        print(json.dumps(response), flush=True)
-    except json.JSONDecodeError:
-        print(json.dumps({'error': 'Invalid JSON'}), flush=True)
+        read_commands(language_tool)
+    finally:
+        language_tool.shutdown(wait=False, cancel_futures=True)
+        Serve.stop()
+        lt_close()
+
+
+main()
