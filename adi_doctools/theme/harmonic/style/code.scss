@@ -53,6 +53,8 @@ em.sig-param, em.property {
     margin-bottom: .5em;
     user-select: text;
     overflow-x: auto;
+    display: grid;
+    grid-template-columns: minmax(min-content, 1fr);
 
     .highlight {
         padding: 0;
@@ -80,7 +82,12 @@ em.sig-param, em.property {
     }
 
     & > div {
+        display: flex;
         padding-bottom: .25em;
+
+        > div[class^='highlight-']:not(.no-select) {
+            flex: 1;
+        }
     }
 }
 
