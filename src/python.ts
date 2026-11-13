@@ -9,7 +9,8 @@ import {
   initializePython,
   installRequirements,
   pipInstall,
-  InitResult
+  InitResult,
+  SetupPrompt
 } from './python-init'
 import { RpcClient, Notification } from './rpc'
 import { parseWarningLine, stripAnsi, ParsedWarning } from './sphinx-warnings'
@@ -89,6 +90,19 @@ const serverStoppedEmitter = new vscode.EventEmitter<void>()
 export const onServerStopped = serverStoppedEmitter.event
 const lspStartedEmitter = new vscode.EventEmitter<void>()
 export const onLspStarted = lspStartedEmitter.event
+const setupNeededEmitter = new vscode.EventEmitter<boolean>()
+export const onSetupNeeded = setupNeededEmitter.event
+let setupNeeded = false
+
+function setSetupNeeded(value: boolean) {
+  if (setupNeeded === value) return
+  setupNeeded = value
+  setupNeededEmitter.fire(value)
+}
+
+export function isSetupNeeded(): boolean {
+  return setupNeeded
+}
 
 let serverWaiters: ((started: boolean) => void)[] = []
 
@@ -233,7 +247,7 @@ export class buildServer {
   }
 
   static async start (): Promise<boolean> {
-    if (!rpc && !await startPyProcess())
+    if (!rpc && !await startPyProcess('modal'))
       return false
     if (serverInfo)
       return true
@@ -371,14 +385,18 @@ function clearDiagnostics() {
   canonicalPathCache.clear()
 }
 
-export async function startPyProcess(interactive = true): Promise<boolean> {
+export async function startPyProcess(prompt: SetupPrompt = 'modal'): Promise<boolean> {
   if (rpc) return true
   if (starting) return starting
 
   starting = (async () => {
-    const result = await initializePython(interactive)
-    if (!result) return false
+    const result = await initializePython(prompt)
+    if (!result) {
+      setSetupNeeded(true)
+      return false
+    }
     init = result
+    setSetupNeeded(false)
     return startLspProcess(result)
   })()
 
@@ -389,9 +407,20 @@ export async function startPyProcess(interactive = true): Promise<boolean> {
   }
 }
 
-export async function restartPyProcess(): Promise<boolean> {
+export async function restartPyProcess(prompt: SetupPrompt = 'modal'): Promise<boolean> {
   await stopPyProcess()
-  return startPyProcess()
+  return startPyProcess(prompt)
+}
+
+export async function onPythonSettingChanged(): Promise<void> {
+  if (starting)
+    return
+  const setting = vscode.workspace.getConfiguration('adi-doctools').get<string>('pythonPath', '').trim()
+  if (rpc && init?.setting === setting)
+    return
+  const wasRunning = buildStatus !== 'off'
+  if (await restartPyProcess('notify') && wasRunning)
+    await buildServer.start()
 }
 
 export async function installPythonPackage(name: string): Promise<boolean> {

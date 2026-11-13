@@ -31,6 +31,7 @@ export class SparseTreeProvider implements vscode.TreeDataProvider<SparseTreeIte
   private onSparseChanged: (() => void) | undefined
   private sparseUpdateTimeout: NodeJS.Timeout | undefined
   private buildStatus: 'off' | 'building' | 'ready' = 'off'
+  private setupNeeded = false
   private watcher: vscode.FileSystemWatcher | undefined
   private refreshTimeout: NodeJS.Timeout | undefined
   private cachedDirs: DirectoryItem[] | undefined
@@ -111,6 +112,11 @@ export class SparseTreeProvider implements vscode.TreeDataProvider<SparseTreeIte
     this.onSparseChanged = handler
   }
 
+  setSetupNeeded(needed: boolean) {
+    this.setupNeeded = needed
+    this.updateStatusBar()
+  }
+
   setBuildStatus(status: 'off' | 'building' | 'ready') {
     this.buildStatus = status
     this.updateStatusBar()
@@ -162,6 +168,13 @@ export class SparseTreeProvider implements vscode.TreeDataProvider<SparseTreeIte
 
   private updateStatusBar() {
     const sparse = this.state.size > 0 ? ` (sparse: ${this.state.size})` : ''
+    if (this.setupNeeded && this.buildStatus === 'off') {
+      this.statusBarItem.text = '$(warning) Docs: Set up Python'
+      this.statusBarItem.tooltip = 'No Python environment with adi-doctools was found, click to set it up'
+      this.statusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.warningBackground')
+      this.statusBarItem.show()
+      return
+    }
     switch (this.buildStatus) {
       case 'off':
         this.statusBarItem.text = '$(circle-slash) Docs: Stopped'

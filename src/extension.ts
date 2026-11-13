@@ -15,8 +15,12 @@ import {
   onBuildStatusChanged,
   onServerStarted,
   onServerStopped,
-  onLspStarted
+  onLspStarted,
+  onSetupNeeded,
+  isSetupNeeded,
+  onPythonSettingChanged
 } from './python'
+import { SETUP_COMMAND } from './python-init'
 import { LanguageToolChecker, GrammarCodeActionProvider } from './language-tool'
 import { GrammarController } from './grammar'
 import { PreviewManager } from './browser'
@@ -85,6 +89,10 @@ export async function activate(ctx: vscode.ExtensionContext) {
   })
 
   const showServerMenu = async () => {
+    if (isSetupNeeded()) {
+      await vscode.commands.executeCommand(SETUP_COMMAND)
+      return
+    }
     const isRunning = getBuildStatus() !== 'off'
 
     const options = isRunning
@@ -187,6 +195,11 @@ export async function activate(ctx: vscode.ExtensionContext) {
     }),
     onServerStopped(() => preview.close()),
     onLspStarted(() => grammar.onBackendStarted()),
+    onSetupNeeded((needed) => sparseTreeProvider.setSetupNeeded(needed)),
+    vscode.commands.registerCommand(SETUP_COMMAND, async () => {
+      if (await restartPyProcess('modal'))
+        grammar.checkVisible()
+    }),
 
     vscode.window.onDidChangeTextEditorSelection((e) => {
       if (!isRst(e.textEditor.document)) return
@@ -222,11 +235,8 @@ export async function activate(ctx: vscode.ExtensionContext) {
     vscode.workspace.onDidChangeConfiguration(async (e) => {
       if (e.affectsConfiguration('adi-doctools.grammar'))
         grammar.onConfigurationChanged()
-      if (e.affectsConfiguration('adi-doctools.pythonPath')) {
-        const wasRunning = getBuildStatus() !== 'off'
-        if (await restartPyProcess() && wasRunning)
-          await buildServer.start()
-      }
+      if (e.affectsConfiguration('adi-doctools.pythonPath'))
+        await onPythonSettingChanged()
     }),
 
     vscode.commands.registerCommand('adi-doctools.start-server', () => buildServer.start()),
@@ -268,13 +278,14 @@ export async function activate(ctx: vscode.ExtensionContext) {
     serverInfo: () => getServerInfo(),
     pythonPath: () => getPythonPath(),
     lspRunning: () => isLspRunning(),
+    setupNeeded: () => isSetupNeeded(),
     grammarMode: () => grammar.effectiveMode(),
     log: () => [...log],
     sparsePaths: () => sparseTreeProvider.getSparsePaths(),
     toggleSparse: (relativePath: string) => sparseTreeProvider.togglePath(relativePath)
   }
 
-  startPyProcess().then(() => grammar.checkVisible())
+  startPyProcess('notify').then(() => grammar.checkVisible())
 
   return api
 }

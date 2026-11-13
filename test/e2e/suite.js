@@ -145,6 +145,33 @@ test('activates and starts the python backend', async () => {
   assert.equal(ctx.api.buildStatus(), 'off')
 })
 
+test('a missing environment does not block the server start', async () => {
+  const config = vscode.workspace.getConfiguration('adi-doctools')
+  const original = config.inspect('pythonPath').workspaceValue
+  try {
+    await config.update('pythonPath', path.join(workspace, 'no-such-python'), vscode.ConfigurationTarget.Workspace)
+    await waitFor('setup needed', () => ctx.api.setupNeeded() && !ctx.api.lspRunning(), 15000)
+    const workbench = await Cdp.connect(t => t.type === 'page' && t.url.includes('workbench'))
+    const status = await workbench.evaluate(`[...document.querySelectorAll('.statusbar-item')].map(i => i.innerText).join('|')`)
+    workbench.close()
+    assert.match(status, /Docs: Set up Python/)
+    await screenshot('00-setup-needed')
+
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const start = vscode.commands.executeCommand('adi-doctools.start-server')
+      assert.equal(await Promise.race([start, sleep(5000).then(() => 'hang')]), false)
+    }
+    assert.equal(ctx.api.buildStatus(), 'off')
+  } finally {
+    await config.update('pythonPath', original, vscode.ConfigurationTarget.Workspace)
+  }
+  await waitFor('backend restarted', () => ctx.api.lspRunning() && !ctx.api.setupNeeded(), 30000)
+  const workbench = await Cdp.connect(t => t.type === 'page' && t.url.includes('workbench'))
+  await waitFor('status restored', async () =>
+    /Docs: Stopped/.test(await workbench.evaluate(`[...document.querySelectorAll('.statusbar-item')].map(i => i.innerText).join('|')`)), 5000)
+  workbench.close()
+})
+
 test('spell check defaults to local', async () => {
   const config = vscode.workspace.getConfiguration('adi-doctools.grammar')
   assert.equal(config.inspect('mode').defaultValue, 'local')

@@ -287,9 +287,86 @@ export interface InitResult {
   requirementsPath: string | null
   managed: boolean
   version: string | null
+  setting: string
 }
 
-export async function initializePython(interactive = true): Promise<InitResult | null> {
+export type SetupPrompt = 'none' | 'notify' | 'modal'
+
+async function ask<T extends string>(show: () => Thenable<T | undefined>): Promise<T | undefined> {
+  try {
+    return await show()
+  } catch (err: any) {
+    output.appendLine(`Prompt failed: ${err?.message ?? err}`)
+    return undefined
+  }
+}
+
+export const SETUP_COMMAND = 'adi-doctools.setup-python'
+
+const settingsTarget = () => vscode.workspace.workspaceFolders?.length
+  ? vscode.ConfigurationTarget.Workspace
+  : vscode.ConfigurationTarget.Global
+
+function notifySetup(message: string) {
+  vscode.window.showWarningMessage(message, 'Set Up...').then(choice => {
+    if (choice === 'Set Up...')
+      vscode.commands.executeCommand(SETUP_COMMAND)
+  })
+}
+
+async function selectPython(workspacePath: string, requirementsPath: string | null): Promise<InitResult | null> {
+  const picked = await vscode.window.showOpenDialog({
+    title: `Select a Python interpreter or the adoc executable (adi-doctools ${MIN_DOCTOOLS_VERSION} or newer)`,
+    openLabel: 'Use for Doctools',
+    canSelectFiles: true,
+    canSelectFolders: false,
+    canSelectMany: false,
+    defaultUri: vscode.Uri.file(workspacePath)
+  })
+  if (!picked?.length)
+    return null
+
+  const selected = picked[0].fsPath
+  const pythonPath = resolveConfiguredPython(selected, workspacePath)
+  const version = pythonPath && await getDoctoolsVersion(pythonPath)
+  if (!pythonPath || !version || !isSupported(version)) {
+    const reason = version
+      ? `provides adi-doctools ${version}, ${MIN_DOCTOOLS_VERSION} or newer is required`
+      : 'does not provide adi-doctools'
+    output.appendLine(`Selected ${selected} ${reason}`)
+    vscode.window.showErrorMessage(`Doctools: ${path.basename(selected)} ${reason}.`)
+    return null
+  }
+
+  await vscode.workspace.getConfiguration('adi-doctools').update('pythonPath', selected, settingsTarget())
+  output.appendLine(`Using selected Python ${pythonPath} (adi_doctools ${version})`)
+  return { pythonPath, workspacePath, requirementsPath, managed: false, version, setting: selected }
+}
+
+async function createManagedVenv(
+  workspacePath: string, requirementsPath: string | null, hasVenv: boolean, venvVersion: string | null
+): Promise<InitResult | null> {
+  const venvPath = getVenvPythonPath(workspacePath)
+  if (!hasVenv && !await createVenv(workspacePath)) {
+    vscode.window.showErrorMessage('Failed to create virtual environment')
+    return null
+  }
+
+  output.show(true)
+  if (!await installRequirements(venvPath, requirementsPath, venvVersion !== null))
+    return null
+
+  const version = await getDoctoolsVersion(venvPath)
+  if (!version || !isSupported(version)) {
+    vscode.window.showErrorMessage(version
+      ? `adi-doctools ${version} was installed, but ${MIN_DOCTOOLS_VERSION} or newer is required`
+      : 'adi-doctools could not be imported after the installation')
+    return null
+  }
+  return { pythonPath: venvPath, workspacePath, requirementsPath, managed: true, version, setting: '' }
+}
+
+export async function initializePython(prompt: SetupPrompt): Promise<InitResult | null> {
   const workspace = vscode.workspace.workspaceFolders?.[0]
   if (!workspace) {
     output.appendLine('No workspace folder open, the documentation server is disabled')
@@ -311,27 +388,31 @@ export async function initializePython(interactive = true): Promise<InitResult |
     output.appendLine(`Found requirements: ${requirementsPath}`)
   }
 
-  const configured = vscode.workspace.getConfiguration('adi-doctools').get<string>('pythonPath', '')
-  if (configured.trim()) {
+  const configured = vscode.workspace.getConfiguration('adi-doctools').get<string>('pythonPath', '').trim()
+  if (configured) {
     const pythonPath = resolveConfiguredPython(configured, workspacePath)
     const version = pythonPath && await getDoctoolsVersion(pythonPath)
-    if (!pythonPath || !version || !isSupported(version)) {
-      const reason = version
-        ? `provides adi-doctools ${version}, ${MIN_DOCTOOLS_VERSION} or newer is required`
-        : `does not provide adi-doctools`
-      output.appendLine(`Configured adi-doctools.pythonPath '${configured}' ${reason}`)
-      if (interactive) {
-        const choice = await vscode.window.showErrorMessage(
-          `Doctools: the configured Python '${configured}' ${reason}.`,
-          'Open Settings'
-        )
-        if (choice === 'Open Settings')
-          vscode.commands.executeCommand('workbench.action.openSettings', 'adi-doctools.pythonPath')
-      }
-      return null
+    if (pythonPath && version && isSupported(version)) {
+      output.appendLine(`Using configured Python ${pythonPath} (adi_doctools ${version})`)
+      return { pythonPath, workspacePath, requirementsPath, managed: false, version, setting: configured }
     }
-    output.appendLine(`Using configured Python ${pythonPath} (adi_doctools ${version})`)
-    return { pythonPath, workspacePath, requirementsPath, managed: false, version }
+
+    const reason = version
+      ? `provides adi-doctools ${version}, ${MIN_DOCTOOLS_VERSION} or newer is required`
+      : 'does not provide adi-doctools'
+    output.appendLine(`Configured adi-doctools.pythonPath '${configured}' ${reason}`)
+    const message = `Doctools: the configured Python '${configured}' ${reason}.`
+    if (prompt === 'notify')
+      notifySetup(message)
+    if (prompt !== 'modal')
+      return null
+
+    const choice = await ask(() => vscode.window.showErrorMessage(message, { modal: true }, 'Select Python', 'Open Settings'))
+    if (choice === 'Select Python')
+      return selectPython(workspacePath, requirementsPath)
+    if (choice === 'Open Settings')
+      vscode.commands.executeCommand('workbench.action.openSettings', 'adi-doctools.pythonPath')
+    return null
   }
 
   const venvPath = getVenvPythonPath(workspacePath)
@@ -339,14 +420,14 @@ export async function initializePython(interactive = true): Promise<InitResult |
   const venvVersion = hasVenv ? await getDoctoolsVersion(venvPath) : null
   if (venvVersion && isSupported(venvVersion)) {
     output.appendLine(`Using ${venvPath} (adi_doctools ${venvVersion})`)
-    return { pythonPath: venvPath, workspacePath, requirementsPath, managed: true, version: venvVersion }
+    return { pythonPath: venvPath, workspacePath, requirementsPath, managed: true, version: venvVersion, setting: '' }
   }
 
   for (const pythonPath of pathCandidates()) {
     const version = await getDoctoolsVersion(pythonPath)
     if (version && isSupported(version)) {
       output.appendLine(`Using ${pythonPath} from PATH (adi_doctools ${version})`)
-      return { pythonPath, workspacePath, requirementsPath, managed: false, version }
+      return { pythonPath, workspacePath, requirementsPath, managed: false, version, setting: '' }
     }
     if (version)
       output.appendLine(`Skipping ${pythonPath}: adi_doctools ${version} is older than ${MIN_DOCTOOLS_VERSION}`)
@@ -355,43 +436,33 @@ export async function initializePython(interactive = true): Promise<InitResult |
   output.appendLine(venvVersion
     ? `adi_doctools ${venvVersion} in .venv is older than ${MIN_DOCTOOLS_VERSION}`
     : 'Doctools (adi-doctools) is not installed')
-  if (!interactive)
-    return null
 
   const source = requirementsPath ? path.basename(requirementsPath) : 'PyPI'
-  const choice = await vscode.window.showInformationMessage(
-    venvVersion
-      ? `adi-doctools ${venvVersion} in .venv is older than the required ${MIN_DOCTOOLS_VERSION}, upgrade from ${source}?`
-      : hasVenv
-        ? `Doctools (adi-doctools) is not installed in .venv, install from ${source}?`
-        : `No Python environment with adi-doctools ${MIN_DOCTOOLS_VERSION} or newer found. Create .venv and install from ${source}?`,
-    'Yes', 'Select Python', 'No'
-  )
-
-  if (choice === 'Select Python') {
-    vscode.commands.executeCommand('workbench.action.openSettings', 'adi-doctools.pythonPath')
+  if (prompt === 'notify')
+    notifySetup(venvVersion
+      ? `Doctools: adi-doctools ${venvVersion} in .venv is older than ${MIN_DOCTOOLS_VERSION}.`
+      : `Doctools: no Python environment with adi-doctools ${MIN_DOCTOOLS_VERSION} or newer found.`)
+  if (prompt !== 'modal')
     return null
-  }
-  if (choice !== 'Yes') {
+
+  const create = venvVersion ? 'Upgrade .venv' : hasVenv ? 'Install into .venv' : 'Create .venv'
+  const choice = await ask(() => vscode.window.showInformationMessage(
+    venvVersion
+      ? `adi-doctools ${venvVersion} in .venv is older than the required ${MIN_DOCTOOLS_VERSION}.`
+      : `Doctools needs a Python environment with adi-doctools ${MIN_DOCTOOLS_VERSION} or newer.`,
+    {
+      modal: true,
+      detail: `${create}: installs from ${source} into ${path.join(workspacePath, '.venv')}.\n` +
+        'Select Python: use an existing interpreter, virtual environment or adoc executable.'
+    },
+    create, 'Select Python'
+  ))
+
+  if (choice === 'Select Python')
+    return selectPython(workspacePath, requirementsPath)
+  if (choice !== create) {
     output.appendLine('Skipped environment setup')
     return null
   }
-
-  if (!hasVenv && !await createVenv(workspacePath)) {
-    vscode.window.showErrorMessage('Failed to create virtual environment')
-    return null
-  }
-
-  output.show(true)
-  if (!await installRequirements(venvPath, requirementsPath, venvVersion !== null))
-    return null
-
-  const version = await getDoctoolsVersion(venvPath)
-  if (!version || !isSupported(version)) {
-    vscode.window.showErrorMessage(version
-      ? `adi-doctools ${version} was installed, but ${MIN_DOCTOOLS_VERSION} or newer is required`
-      : 'adi-doctools could not be imported after the installation')
-    return null
-  }
-  return { pythonPath: venvPath, workspacePath, requirementsPath, managed: true, version }
+  return createManagedVenv(workspacePath, requirementsPath, hasVenv, venvVersion)
 }

@@ -51,6 +51,10 @@
         "title": "Doctools: Open in Browser"
       },
       {
+        "command": "adi-doctools.setup-python",
+        "title": "Doctools: Set Up Python Environment"
+      },
+      {
         "command": "adi-doctools.show-output",
         "title": "Doctools: Show Output"
       },
