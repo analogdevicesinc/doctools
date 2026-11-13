@@ -1,70 +1,47 @@
 import * as vscode from 'vscode'
 import * as readline from 'readline'
 import * as fs from 'fs/promises'
+import * as net from 'net'
+import * as path from 'path'
 import { spawn, ChildProcess } from 'child_process'
 import {
   setOutputChannel as setInitOutputChannel,
   initializePython,
-  installRequirements
+  installRequirements,
+  pipInstall,
+  InitResult
 } from './python-init'
-import { openBrowserPanel, closeBrowserPanel } from './browser'
+import { RpcClient, Notification } from './rpc'
+import { parseWarningLine, stripAnsi, ParsedWarning } from './sphinx-warnings'
 
 let py_process: ChildProcess | undefined
+let rpc: RpcClient | undefined
+let init: InitResult | undefined
+let starting: Promise<boolean> | undefined
+let stopping = false
 let output: vscode.OutputChannel
 let debugOutput: vscode.OutputChannel
-let lineReader: readline.Interface | undefined
 let diagnosticCollection: vscode.DiagnosticCollection
 
-function stripAnsi(str: string): string {
-  return str.replace(/\x1B\[[0-9;]*[a-zA-Z]/g, '')
-            .replace(/\[9\dm/g, '')
-            .replace(/\[39;49;00m/g, '')
+const DEFAULT_PORT = 8080
+const GRACEFUL_EXIT_MS = 3000
+
+export interface ServerInfo {
+  url: string
+  port: number
+  srcdir: string
+  builddir: string
 }
 
-// Sphinx warning patterns
-// file:line: WARNING: message or file:line: ERROR: message
-const WARNING_PATTERN = /^(.+?):(\d+):\s*(WARNING|ERROR):\s*(.+)$/
-const WARNING_NO_LINE_PATTERN = /^(.+?):\s*(WARNING|ERROR):\s*(.+)$/
+let serverInfo: ServerInfo | undefined
 
-interface ParsedWarning {
-  file: string
-  line: number
-  message: string
-  severity: vscode.DiagnosticSeverity
-}
-
-function parseWarningLine(line: string): ParsedWarning | null {
-  const cleaned = stripAnsi(line).trim()
-
-  let match = cleaned.match(WARNING_PATTERN)
-  if (match) {
-    return {
-      file: match[1],
-      line: parseInt(match[2], 10),
-      message: match[4],
-      severity: match[3] === 'ERROR'
-        ? vscode.DiagnosticSeverity.Error
-        : vscode.DiagnosticSeverity.Warning
-    }
-  }
-
-  match = cleaned.match(WARNING_NO_LINE_PATTERN)
-  if (match) {
-    return {
-      file: match[1],
-      line: 1,
-      message: match[3],
-      severity: match[2] === 'ERROR'
-        ? vscode.DiagnosticSeverity.Error
-        : vscode.DiagnosticSeverity.Warning
-    }
-  }
-
-  return null
-}
-
-const fileDiagnostics = new Map<string, vscode.Diagnostic[]>()
+const fileDiagnostics = new Map<string, { uri: vscode.Uri; diagnostics: vscode.Diagnostic[] }>()
+const buildDiagnostics = new Map<string, { uri: vscode.Uri; diagnostics: vscode.Diagnostic[] }>()
 const canonicalPathCache = new Map<string, string>()
+let buildMode: 'subprocess' | 'incremental' = 'subprocess'
+let buildStartedAt = 0
+let pendingDiagnostics: Promise<void> = Promise.resolve()
+let lastPublishedAt = 0
 
 async function getCanonicalPath(filePath: string): Promise<string> {
   const cached = canonicalPathCache.get(filePath)
@@ -101,59 +78,112 @@ const lsp_message_type: Record<number, string> = {
   4: 'log'
 }
 
-let pendingResolve: ((value: any) => void) | null = null
-let pendingReject: ((reason: any) => void) | null = null
-let serverStartResolve: (() => void) | null = null
-
 export type BuildStatus = 'off' | 'building' | 'ready'
+let buildStatus: BuildStatus = 'off'
 export const buildStatusEmitter = new vscode.EventEmitter<BuildStatus>()
 export const onBuildStatusChanged = buildStatusEmitter.event
 
-function handleNotification(parsed: any) {
-  const { method, params } = parsed
+const serverStartedEmitter = new vscode.EventEmitter<ServerInfo>()
+export const onServerStarted = serverStartedEmitter.event
+const serverStoppedEmitter = new vscode.EventEmitter<void>()
+export const onServerStopped = serverStoppedEmitter.event
+const lspStartedEmitter = new vscode.EventEmitter<void>()
+export const onLspStarted = lspStartedEmitter.event
+
+let serverWaiters: ((started: boolean) => void)[] = []
+
+function setBuildStatus(status: BuildStatus) {
+  if (buildStatus === status) return
+  buildStatus = status
+  buildStatusEmitter.fire(status)
+}
+
+function settleServerWaiters(started: boolean) {
+  const waiters = serverWaiters
+  serverWaiters = []
+  for (const waiter of waiters)
+    waiter(started)
+}
+
+function serverStopped() {
+  const wasRunning = serverInfo !== undefined || buildStatus !== 'off'
+  serverInfo = undefined
+  setBuildStatus('off')
+  settleServerWaiters(false)
+  if (wasRunning)
+    serverStoppedEmitter.fire()
+}
+
+export function getBuildStatus(): BuildStatus {
+  return buildStatus
+}
+
+export function getServerInfo(): ServerInfo | undefined {
+  return serverInfo
+}
+
+export function isLspRunning(): boolean {
+  return rpc !== undefined
+}
+
+export function getPythonPath(): string | undefined {
+  return init?.pythonPath
+}
+
+function handleNotification(parsed: Notification) {
+  const { method, params = {} } = parsed
 
   switch (method) {
     case 'window/logMessage': {
-      const level = lsp_message_type[params.type] || 'LOG'
-      output.appendLine(`[${level}] ${params.message}`)
+      const level = lsp_message_type[params.type] || 'log'
+      output.appendLine(`[${level}] ${stripAnsi(String(params.message))}`)
       break
     }
     case 'build/started': {
       output.appendLine(`-- Building -- (${params.mode})`)
-      clearDiagnostics()
-      buildStatusEmitter.fire('building')
+      buildMode = params.mode === 'incremental' ? 'incremental' : 'subprocess'
+      buildStartedAt = Date.now()
+      buildDiagnostics.clear()
+      if (buildMode === 'subprocess')
+        clearDiagnostics()
+      setBuildStatus('building')
       break
     }
     case 'build/output': {
-      output.appendLine(params.line)
-      const warning = parseWarningLine(params.line)
+      const line = String(params.line)
+      output.appendLine(line)
+      const warning = parseWarningLine(line)
       if (warning) {
         debugOutput.appendLine(`[diagnostic] ${warning.file}:${warning.line} - ${warning.message}`)
-        addDiagnostic(warning).catch(() => {})
+        pendingDiagnostics = pendingDiagnostics.then(() => addDiagnostic(warning)).catch(() => {})
       }
       break
     }
     case 'build/completed': {
       output.appendLine(`---- Done ----`)
-      const count = Array.from(fileDiagnostics.values()).reduce((sum, arr) => sum + arr.length, 0)
-      buildStatusEmitter.fire('ready')
+      const mode = buildMode
+      const startedAt = buildStartedAt
+      pendingDiagnostics = pendingDiagnostics.then(() => publishDiagnostics(mode, startedAt)).catch(() => {})
+      if (serverInfo)
+        setBuildStatus('ready')
       break
     }
     case 'server/started': {
-      if (serverStartResolve) {
-        serverStartResolve()
-        serverStartResolve = null
+      serverInfo = {
+        url: params.url,
+        port: params.port,
+        srcdir: params.srcdir,
+        builddir: params.builddir
       }
       output.appendLine(`[server] Running on ${params.url}`)
-      vscode.window.showInformationMessage(`Server running on ${params.url}`)
-      openBrowserPanel(params.url)
-      buildStatusEmitter.fire('ready')
+      setBuildStatus('ready')
+      settleServerWaiters(true)
+      serverStartedEmitter.fire(serverInfo)
       break
     }
     case 'server/stopped': {
-      output.appendLine(`[server] Stopped`)
-      closeBrowserPanel()
-      buildStatusEmitter.fire('off')
+      output.appendLine(params.failed ? `[server] Failed` : `[server] Stopped`)
+      serverStopped()
       break
     }
     default:
@@ -161,39 +191,38 @@ function handleNotification(parsed: any) {
   }
 }
 
-function handleLine(line: string) {
-  try {
-    const parsed = JSON.parse(line)
-
-    if (parsed.method) {
-      handleNotification(parsed)
-      return
-    }
-
-    if (pendingResolve) {
-      debugOutput.appendLine(`[recv] ${line}`)
-      pendingResolve(parsed)
-      pendingResolve = null
-      pendingReject = null
-    }
-  } catch (err) {
-    output.appendLine(line)
-  }
+export async function lspSend(msg: object, timeoutMs?: number): Promise<any> {
+  if (!rpc)
+    throw new Error('LSP process not running')
+  return rpc.request(msg, timeoutMs)
 }
 
-export async function lspSend(msg: object): Promise<any> {
-  if (!py_process || !py_process.stdin || !lineReader) {
-    throw new Error('LSP process not running')
-  }
-
-  return new Promise((resolve, reject) => {
-    const json = JSON.stringify(msg)
-    debugOutput.appendLine(`[send] ${json}`)
-
-    pendingResolve = resolve
-    pendingReject = reject
-    py_process!.stdin!.write(json + '\n')
+function isPortFree(port: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    const server = net.createServer()
+    server.once('error', () => resolve(false))
+    server.once('listening', () => server.close(() => resolve(true)))
+    server.listen(port)
   })
+}
+
+async function pickPort(): Promise<number> {
+  const configured = vscode.workspace.getConfiguration('adi-doctools').get<number>('port', DEFAULT_PORT)
+  const first = Number.isInteger(configured) && configured > 0 && configured < 65536 ? configured : DEFAULT_PORT
+  for (let port = first; port < Math.min(first + 20, 65536); port++) {
+    if (await isPortFree(port)) {
+      if (port !== first)
+        output.appendLine(`[server] Port ${first} is in use, using ${port}`)
+      return port
+    }
+  }
+  return first
+}
+
+async function showServerFailure(message: string) {
+  const choice = await vscode.window.showErrorMessage(message, 'Show Output')
+  if (choice === 'Show Output')
+    output.show()
 }
 
 export class buildServer {
@@ -203,33 +232,74 @@ export class buildServer {
     buildServer.sparsePathsGetter = getter
   }
 
-  static async start (): Promise<void> {
+  static async start (): Promise<boolean> {
+    if (!rpc && !await startPyProcess())
+      return false
+    if (serverInfo)
+      return true
+    if (serverWaiters.length > 0)
+      return new Promise<boolean>(resolve => serverWaiters.push(resolve))
+
     const sparse = buildServer.sparsePathsGetter?.() ?? null
-    const result = await lspSend({ 'server': 'start', 'sparse': sparse })
+    const started = new Promise<boolean>(resolve => serverWaiters.push(resolve))
+    let result: any
+    try {
+      result = await lspSend({ 'server': 'start', 'sparse': sparse, 'port': await pickPort() })
+    } catch (err: any) {
+      settleServerWaiters(false)
+      showServerFailure(`Doctools: failed to start the server: ${err.message}`)
+      return false
+    }
     if (result?.return === 'already_running') {
-      return
+      settleServerWaiters(serverInfo !== undefined)
+      return true
+    }
+    if (result?.return !== 'success') {
+      settleServerWaiters(false)
+      showServerFailure('Doctools: failed to start the documentation server.')
+      return false
     }
 
-    buildStatusEmitter.fire('building')
+    if (serverWaiters.length > 0)
+      setBuildStatus('building')
 
-    await vscode.window.withProgress({
-      location: vscode.ProgressLocation.Notification,
-      title: `Building documentation...`,
+    const ok = await vscode.window.withProgress({
+      location: vscode.ProgressLocation.Window,
+      title: sparse ? 'Building documentation (sparse)...' : 'Building documentation...',
       cancellable: false
-    }, async () => {
-      return new Promise<void>((resolve) => {
-        serverStartResolve = resolve
-      })
-    })
+    }, () => started)
+
+    if (!ok && !stopping)
+      showServerFailure('Doctools: the documentation server failed to start.')
+    return ok
   }
 
   static async stop (): Promise<void> {
-    lspSend({ 'server': 'stop' })
+    if (!rpc) return
+    stopping = true
+    try {
+      await lspSend({ 'server': 'stop' }, 30000)
+    } catch (err: any) {
+      output.appendLine(`[server] Stop failed: ${err.message}`)
+    } finally {
+      stopping = false
+    }
+    serverStopped()
+  }
+
+  static async restart (): Promise<boolean> {
+    await buildServer.stop()
+    return buildServer.start()
   }
 
   static async updateSparse (): Promise<void> {
+    if (!rpc || buildStatus === 'off') return
     const sparse = buildServer.sparsePathsGetter?.() ?? null
-    await lspSend({ 'server': 'update_sparse', 'sparse': sparse })
+    try {
+      await lspSend({ 'server': 'update_sparse', 'sparse': sparse })
+    } catch (err: any) {
+      output.appendLine(`[server] Sparse update failed: ${err.message}`)
+    }
   }
 }
 
@@ -248,104 +318,209 @@ export function getDiagnosticCollection(): vscode.DiagnosticCollection {
   return diagnosticCollection
 }
 
-async function addDiagnostic(warning: ParsedWarning) {
-  const uri = await findMatchingDocumentUri(warning.file)
-  const uriKey = uri.toString()
-
+function toDiagnostic(warning: ParsedWarning): vscode.Diagnostic {
   const line = Math.max(0, warning.line - 1)
   const range = new vscode.Range(line, 0, line, 1000)
-  const diagnostic = new vscode.Diagnostic(range, warning.message, warning.severity)
+  const diagnostic = new vscode.Diagnostic(
+    range,
+    warning.message,
+    warning.severity === 'error' ? vscode.DiagnosticSeverity.Error : vscode.DiagnosticSeverity.Warning
+  )
   diagnostic.source = 'Sphinx'
+  return diagnostic
+}
 
-  const existing = fileDiagnostics.get(uriKey) || []
-  existing.push(diagnostic)
-  fileDiagnostics.set(uriKey, existing)
-  diagnosticCollection.set(uri, existing)
+async function addDiagnostic(warning: ParsedWarning) {
+  const file = path.isAbsolute(warning.file) || !serverInfo
+    ? warning.file
+    : path.join(serverInfo.srcdir, warning.file)
+  const uri = await findMatchingDocumentUri(file)
+  const uriKey = uri.toString()
+
+  const entry = buildDiagnostics.get(uriKey) || { uri, diagnostics: [] }
+  entry.diagnostics.push(toDiagnostic(warning))
+  buildDiagnostics.set(uriKey, entry)
+}
+
+async function publishDiagnostics(mode: 'subprocess' | 'incremental', startedAt: number) {
+  if (mode === 'incremental') {
+    for (const [key, entry] of [...fileDiagnostics]) {
+      if (buildDiagnostics.has(key)) continue
+      let modified = true
+      try {
+        modified = (await fs.stat(entry.uri.fsPath)).mtimeMs > lastPublishedAt
+      } catch { }
+      if (modified) {
+        fileDiagnostics.delete(key)
+        diagnosticCollection.delete(entry.uri)
+      }
+    }
+  }
+  for (const [key, entry] of buildDiagnostics) {
+    fileDiagnostics.set(key, entry)
+    diagnosticCollection.set(entry.uri, entry.diagnostics)
+  }
+  buildDiagnostics.clear()
+  lastPublishedAt = startedAt
 }
 
 function clearDiagnostics() {
   fileDiagnostics.clear()
+  buildDiagnostics.clear()
   diagnosticCollection.clear()
   canonicalPathCache.clear()
 }
 
-export async function startPyProcess() {
-  const init = await initializePython()
-  if (!init) return
+export async function startPyProcess(interactive = true): Promise<boolean> {
+  if (rpc) return true
+  if (starting) return starting
 
-  await startLspProcess(init.pythonPath, init.workspacePath, init.requirementsPath)
+  starting = (async () => {
+    const result = await initializePython(interactive)
+    if (!result) return false
+    init = result
+    return startLspProcess(result)
+  })()
+
+  try {
+    return await starting
+  } finally {
+    starting = undefined
+  }
 }
 
-async function startLspProcess(pythonPath: string, workspacePath: string, requirementsPath: string | null) {
+export async function restartPyProcess(): Promise<boolean> {
+  await stopPyProcess()
+  return startPyProcess()
+}
+
+export async function installPythonPackage(name: string): Promise<boolean> {
+  if (!init) return false
+  return pipInstall(init.pythonPath, [name], `Installing ${name}...`)
+}
+
+async function handleMissingModule(result: InitResult, moduleName: string) {
+  const installChoice = await vscode.window.showErrorMessage(
+    `Missing Python module '${moduleName}'. Install dependencies?`,
+    'Yes', 'No'
+  )
+  if (installChoice !== 'Yes') return
+
+  if (await installRequirements(result.pythonPath, result.requirementsPath, false))
+    await startLspProcess(result)
+}
+
+function startLspProcess(result: InitResult): Promise<boolean> {
+  const { pythonPath, workspacePath } = result
   output.appendLine(`Starting LSP with ${pythonPath}`)
 
-  const proc = spawn(pythonPath, ['-m', 'adi_doctools.lsp'], {
-    cwd: workspacePath,
-    env: { ...process.env }
-  })
+  return new Promise<boolean>((resolve) => {
+    const proc = spawn(pythonPath, ['-m', 'adi_doctools.lsp'], {
+      cwd: workspacePath,
+      env: { ...process.env, PYTHONUNBUFFERED: '1' }
+    })
 
-  proc.on('error', (err: any) => {
-    output.appendLine(err.message)
-    vscode.window.showErrorMessage('Failed to start python3')
-  })
+    const client = new RpcClient(
+      (line) => { proc.stdin.write(line) },
+      handleNotification,
+      (line) => output.appendLine(stripAnsi(line)),
+      (direction, line) => debugOutput.appendLine(`[${direction}] ${line.slice(0, 2000)}`)
+    )
 
-  proc.stderr.on('data', async (data) => {
-    const msg = data.toString().trim()
-    if (!msg) return
+    let missingModule: string | undefined
+    let settled = false
+    const settle = (value: boolean) => {
+      if (settled) return
+      settled = true
+      resolve(value)
+    }
 
-    if (msg.includes('ModuleNotFoundError')) {
-      output.appendLine(msg)
-      proc.kill()
+    proc.on('error', (err: any) => {
+      output.appendLine(err.message)
+      vscode.window.showErrorMessage(`Doctools: failed to start ${pythonPath}`)
+      client.close(new Error('LSP process failed to start'))
+      settle(false)
+    })
 
-      const match = msg.match(/No module named '([^']+)'/)
-      const moduleName = match ? match[1] : 'unknown'
+    proc.stdin.on('error', () => {})
 
-      if (requirementsPath) {
-        const installChoice = await vscode.window.showErrorMessage(
-          `Missing Python module '${moduleName}'. Install dependencies?`,
-          'Yes', 'No'
-        )
+    proc.stderr.on('data', (data) => {
+      const msg = data.toString().trim()
+      if (!msg) return
 
-        if (installChoice === 'Yes') {
-          const success = await installRequirements(pythonPath, requirementsPath, false)
-          if (success) {
-            await startLspProcess(pythonPath, workspacePath, requirementsPath)
-          }
+      const match = msg.includes('ModuleNotFoundError') && msg.match(/No module named '([^']+)'/)
+      if (match && !match[1].startsWith('adi_doctools.lsp.'))
+        missingModule = match[1]
+
+      for (const line of msg.split('\n')) {
+        if (line.includes("'adi_doctools.lsp' is a package and cannot be directly executed"))
+          continue
+        try {
+          const log = JSON.parse(line)
+          const level = log.level || 'LOG'
+          output.appendLine(`[${level}] ${log.message}`)
+        } catch {
+          output.appendLine(stripAnsi(line))
         }
-      } else {
-        vscode.window.showErrorMessage(`Missing module '${moduleName}' and no requirements.txt found`)
       }
-      return
-    }
+    })
 
-    for (const line of msg.split('\n')) {
-      try {
-        const log = JSON.parse(line)
-        const level = log.level || 'LOG'
-        output.appendLine(`[${level}] ${log.message}`)
-      } catch {
-        output.appendLine(line)
+    proc.on('exit', (code, signal) => {
+      output.appendLine(`LSP exited with ${signal ? `signal ${signal}` : `code ${code}`}`)
+      const intentional = stopping || py_process !== proc
+      client.close(new Error('LSP process exited'))
+      if (py_process === proc) {
+        py_process = undefined
+        rpc = undefined
+        serverStopped()
       }
-    }
-  })
+      settle(false)
 
-  proc.on('exit', (code) => {
-    output.appendLine(`LSP exited with code ${code}`)
-    lineReader = undefined
-    py_process = undefined
-    buildStatusEmitter.fire('off')
-  })
+      if (missingModule)
+        handleMissingModule(result, missingModule)
+      else if (!intentional)
+        vscode.window.showWarningMessage('Doctools: the Python process exited unexpectedly.', 'Restart', 'Show Output')
+          .then(choice => {
+            if (choice === 'Restart') startPyProcess()
+            else if (choice === 'Show Output') output.show()
+          })
+    })
 
-  lineReader = readline.createInterface({
-    input: proc.stdout!,
-    crlfDelay: Infinity
-  })
-  lineReader.on('line', handleLine)
+    const lineReader = readline.createInterface({
+      input: proc.stdout!,
+      crlfDelay: Infinity
+    })
+    lineReader.on('line', (line) => client.handleLine(line))
 
-  py_process = proc
-  output.appendLine("LSP process started")
+    proc.on('spawn', () => {
+      py_process = proc
+      rpc = client
+      output.appendLine("LSP process started")
+      lspStartedEmitter.fire()
+      settle(true)
+    })
+  })
 }
 
-export function stopPyProcess() {
-  py_process?.kill()
+export function stopPyProcess(): Promise<void> {
+  const proc = py_process
+  if (!proc) return Promise.resolve()
+
+  py_process = undefined
+  rpc?.close(new Error('LSP process stopped'))
+  rpc = undefined
+  serverStopped()
+
+  return new Promise<void>((resolve) => {
+    const timer = setTimeout(() => proc.kill(), GRACEFUL_EXIT_MS)
+    proc.once('exit', () => {
+      clearTimeout(timer)
+      resolve()
+    })
+    try {
+      proc.stdin?.end()
+    } catch {
+      proc.kill()
+    }
+  })
 }

@@ -2,7 +2,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import * as vscode from 'vscode'
 import { Parser, Language, Tree, Node, Query, QueryMatch } from 'web-tree-sitter'
-import { lspSend } from './python'
+import { lspSend, getServerInfo, isLspRunning } from './python'
 
 const TOKEN_TYPES = [
   'namespace', 'class', 'enum', 'interface', 'struct', 'typeParameter',
@@ -57,6 +57,36 @@ const findChild = (node: Node, type: string): Node | null => {
 export class SemanticTokensProvider implements vscode.DocumentSemanticTokensProvider {
   private langs = new Map<string, LangConfig>()
   private initPromise?: Promise<void>
+  private trees = new Map<string, { version: number; tree: Tree }>()
+
+  async getTree(doc: vscode.TextDocument): Promise<Tree | null> {
+    const rst = await this.init()
+    const key = doc.uri.toString()
+    const cached = this.trees.get(key)
+    if (cached?.version === doc.version)
+      return cached.tree
+
+    const tree = rst.parser.parse(doc.getText())
+    cached?.tree.delete()
+    if (!tree) {
+      this.trees.delete(key)
+      return null
+    }
+    this.trees.set(key, { version: doc.version, tree })
+    return tree
+  }
+
+  releaseTree(doc: vscode.TextDocument) {
+    const key = doc.uri.toString()
+    this.trees.get(key)?.tree.delete()
+    this.trees.delete(key)
+  }
+
+  dispose() {
+    for (const { tree } of this.trees.values())
+      tree.delete()
+    this.trees.clear()
+  }
 
   async init(): Promise<LangConfig> {
     if (!this.initPromise) {
@@ -90,7 +120,8 @@ export class SemanticTokensProvider implements vscode.DocumentSemanticTokensProv
 
   async provideDocumentSemanticTokens(doc: vscode.TextDocument): Promise<vscode.SemanticTokens> {
     const rst = await this.init()
-    const tokens = await this.getTokens(rst, doc.getText(), 0, 0)
+    const tree = await this.getTree(doc)
+    const tokens = tree ? this.getTokens(rst, tree, 0, 0) : []
     const deduped = this.deduplicateTokens(tokens)
 
     const builder = new vscode.SemanticTokensBuilder(LEGEND)
@@ -113,10 +144,7 @@ export class SemanticTokensProvider implements vscode.DocumentSemanticTokensProv
     return deduped
   }
 
-  private async getTokens(cfg: LangConfig, text: string, rowOff: number, colOff: number): Promise<Token[]> {
-    const tree = cfg.parser.parse(text)
-    if (!tree) return []
-
+  private getTokens(cfg: LangConfig, tree: Tree, rowOff: number, colOff: number): Token[] {
     let tokens = this.extractTokens(cfg.highlights.matches(tree.rootNode), rowOff, colOff)
 
     for (const m of cfg.injections.matches(tree.rootNode)) {
@@ -131,7 +159,14 @@ export class SemanticTokensProvider implements vscode.DocumentSemanticTokensProv
       const { node } = cap
       const nodeRow = node.startPosition.row + rowOff
       const nodeCol = node.startPosition.row === 0 ? node.startPosition.column + colOff : node.startPosition.column
-      const injTokens = await this.getTokens(target, node.text, nodeRow, nodeCol)
+      const injTree = target.parser.parse(node.text)
+      if (!injTree) continue
+      let injTokens: Token[]
+      try {
+        injTokens = this.getTokens(target, injTree, nodeRow, nodeCol)
+      } finally {
+        injTree.delete()
+      }
       const range = new vscode.Range(nodeRow, nodeCol, node.endPosition.row + rowOff,
         node.endPosition.row === 0 ? node.endPosition.column + colOff : node.endPosition.column)
       tokens = tokens.filter(t => !range.contains(t.range)).concat(injTokens)
@@ -191,7 +226,11 @@ export class SemanticTokensProvider implements vscode.DocumentSemanticTokensProv
         const injTree = cfg.parser.parse(node.text)
         if (!injTree) continue
 
-        return this.findRoleWithInjections(cfg, injTree, pos, absRow, absCol)
+        try {
+          return this.findRoleWithInjections(cfg, injTree, pos, absRow, absCol)
+        } finally {
+          injTree.delete()
+        }
       }
     }
 
@@ -433,13 +472,13 @@ const docnameToFileUri = (target: string): string => {
   const workspace = vscode.workspace.workspaceFolders?.[0]
   if (!workspace) return target
 
-  const [docname, _] = target.split('#')
-  const docsDir = path.join(workspace.uri.fsPath, 'docs')
+  const [docname] = target.split('#')
+  const docsDir = getServerInfo()?.srcdir || path.join(workspace.uri.fsPath, 'docs')
 
   for (const ext of ['.rst', '.md']) {
     const filePath = path.join(docsDir, docname + ext)
     if (fs.existsSync(filePath)) {
-      return `file://${filePath}`
+      return vscode.Uri.file(filePath).toString()
     }
   }
   return target
@@ -452,12 +491,19 @@ export class RoleHoverProvider implements vscode.HoverProvider {
     document: vscode.TextDocument,
     position: vscode.Position
   ): Promise<vscode.Hover | undefined> {
-    const rst = await this.provider.init()
-    const tree = rst.parser.parse(document.getText())
+    const tree = await this.provider.getTree(document)
     if (!tree) return
 
     const info = this.provider.getRoleAtCursor(tree, position)
     if (!info) return
+
+    if (!isLspRunning() || !getServerInfo()) {
+      const hint = new vscode.MarkdownString(
+        `**Role:** \`${info.role}\`\n\n[Start the Doctools server](command:adi-doctools.start-server) to resolve targets.`
+      )
+      hint.isTrusted = { enabledCommands: ['adi-doctools.start-server'] }
+      return new vscode.Hover(hint)
+    }
 
     const resolved = await this.provider.resolveRole(info)
     if (!resolved) return

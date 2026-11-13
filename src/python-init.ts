@@ -1,29 +1,32 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import * as vscode from 'vscode'
-import { spawn, execSync } from 'child_process'
+import { spawn, execFile } from 'child_process'
+import { compareVersions } from './version'
+
+export const MIN_DOCTOOLS_VERSION = '0.5.3'
 
 let output: vscode.OutputChannel
+
+const isWindows = process.platform === 'win32'
+const SYSTEM_PYTHON = isWindows ? 'python' : 'python3'
 
 export function setOutputChannel(channel: vscode.OutputChannel) {
   output = channel
 }
 
-export function getExtensionVersion(): string {
-  const ext = vscode.extensions.getExtension('analogdevicesinc.adi-doctools')
-  return ext?.packageJSON?.version || '0.0.0'
-}
+const isSupported = (version: string) => compareVersions(version, MIN_DOCTOOLS_VERSION) >= 0
 
 export function findConfPy(workspacePath: string): string | null {
   const candidates = [
+    'conf.py',
     'docs/conf.py',
     'doc/conf.py',
     'docs/source/conf.py',
     'doc/source/conf.py',
     'doc/sphinx/source/conf.py',
     'docs/sphinx/source/conf.py',
-    'source/conf.py',
-    'conf.py'
+    'source/conf.py'
   ]
 
   for (const candidate of candidates) {
@@ -59,14 +62,26 @@ export function findRequirements(workspacePath: string, confPyPath: string | nul
   return null
 }
 
+function venvPython(venvPath: string): string {
+  if (isWindows)
+    return path.join(venvPath, 'Scripts', 'python.exe')
+  return path.join(venvPath, 'bin', 'python3')
+}
+
 export function getVenvPythonPath(workspacePath: string): string {
-  if (process.platform === 'win32')
-    return path.join(workspacePath, '.venv', 'Scripts', 'python.exe')
-  return path.join(workspacePath, '.venv', 'bin', 'python3')
+  return venvPython(path.join(workspacePath, '.venv'))
 }
 
 export function venvExists(workspacePath: string): boolean {
   return fs.existsSync(getVenvPythonPath(workspacePath))
+}
+
+function run(command: string, args: string[], timeout = 15000): Promise<string | null> {
+  return new Promise((resolve) => {
+    execFile(command, args, { encoding: 'utf-8', timeout, windowsHide: true }, (err, stdout) => {
+      resolve(err ? null : stdout.trim())
+    })
+  })
 }
 
 export async function createVenv(workspacePath: string): Promise<boolean> {
@@ -74,10 +89,15 @@ export async function createVenv(workspacePath: string): Promise<boolean> {
 
   return new Promise((resolve) => {
     output.appendLine(`Creating venv at ${venvPath}...`)
-    const proc = spawn('python3', ['-m', 'venv', venvPath])
+    const proc = spawn(SYSTEM_PYTHON, ['-m', 'venv', venvPath])
 
-    proc.stdout.on('data', (data) => output.appendLine(data.toString()))
-    proc.stderr.on('data', (data) => output.appendLine(data.toString()))
+    proc.stdout.on('data', (data) => output.appendLine(data.toString().trimEnd()))
+    proc.stderr.on('data', (data) => output.appendLine(data.toString().trimEnd()))
+
+    proc.on('error', (err) => {
+      output.appendLine(`Failed to run ${SYSTEM_PYTHON}: ${err.message}`)
+      resolve(false)
+    })
 
     proc.on('close', (code) => {
       if (code === 0) {
@@ -91,37 +111,95 @@ export async function createVenv(workspacePath: string): Promise<boolean> {
   })
 }
 
-export function getDoctoolsVersion(pythonPath: string): string | null {
+export function getDoctoolsVersion(pythonPath: string): Promise<string | null> {
+  return run(pythonPath, ['-c', 'import adi_doctools; print(adi_doctools.__version__)'])
+}
+
+export { compareVersions }
+
+function expandHome(p: string): string {
+  if (p === '~' || p.startsWith('~/') || p.startsWith('~\\'))
+    return path.join(process.env.HOME || process.env.USERPROFILE || '', p.slice(1))
+  return p
+}
+
+function siblingPython(dir: string): string | null {
+  const names = isWindows ? ['python.exe'] : ['python3', 'python']
+  for (const name of names) {
+    const candidate = path.join(dir, name)
+    if (fs.existsSync(candidate))
+      return candidate
+  }
+  return null
+}
+
+function shebangPython(script: string): string | null {
   try {
-    const result = execSync(
-      `${pythonPath} -c "import adi_doctools; print(adi_doctools.__version__)"`,
-      { encoding: 'utf-8', timeout: 10000 }
-    ).trim()
-    return result
+    const fd = fs.openSync(script, 'r')
+    const buffer = Buffer.alloc(512)
+    const length = fs.readSync(fd, buffer, 0, buffer.length, 0)
+    fs.closeSync(fd)
+    const match = buffer.subarray(0, length).toString('utf-8').match(/^#!\s*(\S*python[^\s]*)/)
+    return match && fs.existsSync(match[1]) ? match[1] : null
   } catch {
     return null
   }
 }
 
-export function compareVersions(v1: string, v2: string): number {
-  const parts1 = v1.split('.').map(Number)
-  const parts2 = v2.split('.').map(Number)
-
-  for (let i = 0; i < Math.max(parts1.length, parts2.length); i++) {
-    const p1 = parts1[i] || 0
-    const p2 = parts2[i] || 0
-    if (p1 > p2) return 1
-    if (p1 < p2) return -1
+function findOnPath(name: string): string | null {
+  const extensions = isWindows ? (process.env.PATHEXT || '.EXE;.CMD;.BAT').split(';') : ['']
+  for (const dir of (process.env.PATH || '').split(path.delimiter)) {
+    if (!dir) continue
+    for (const ext of extensions) {
+      const candidate = path.join(dir, name + ext)
+      try {
+        if (fs.statSync(candidate).isFile())
+          return candidate
+      } catch { }
+    }
   }
-  return 0
+  return null
+}
+
+export function resolveConfiguredPython(configured: string, workspacePath: string): string | null {
+  let resolved = expandHome(configured.trim().replace(/\$\{workspaceFolder\}/g, workspacePath))
+  if (!resolved)
+    return null
+  if (!path.isAbsolute(resolved))
+    resolved = /[\\/]/.test(resolved) ? path.resolve(workspacePath, resolved) : (findOnPath(resolved) || resolved)
+
+  let stat: fs.Stats
+  try {
+    stat = fs.statSync(resolved)
+  } catch {
+    return null
+  }
+
+  if (stat.isDirectory()) {
+    const python = venvPython(resolved)
+    return fs.existsSync(python) ? python : siblingPython(resolved)
+  }
+  if (/^(adoc|adi-doctools)(\.exe)?$/i.test(path.basename(resolved)))
+    return siblingPython(path.dirname(resolved)) || shebangPython(resolved)
+  return resolved
+}
+
+function pathCandidates(): string[] {
+  const candidates: string[] = []
+  const adoc = findOnPath('adoc')
+  if (adoc) {
+    const python = siblingPython(path.dirname(adoc)) || shebangPython(adoc)
+    if (python) candidates.push(python)
+  }
+  const python = findOnPath(SYSTEM_PYTHON)
+  if (python) candidates.push(python)
+  return candidates
 }
 
 async function ensurePip(pythonPath: string): Promise<void> {
-  return new Promise((resolve) => {
-    const proc = spawn(pythonPath, ['-m', 'ensurepip', '--upgrade'])
-    proc.on('close', () => resolve())
-    proc.on('error', () => resolve())
-  })
+  if (await run(pythonPath, ['-m', 'pip', '--version']) !== null)
+    return
+  await run(pythonPath, ['-m', 'ensurepip', '--upgrade'], 120000)
 }
 
 export async function pipInstall(pythonPath: string, args: string[], title: string): Promise<boolean> {
@@ -129,70 +207,71 @@ export async function pipInstall(pythonPath: string, args: string[], title: stri
 
   const fullArgs = ['-m', 'pip', 'install', ...args]
 
-  output.show(true)
-
   return vscode.window.withProgress({
     location: vscode.ProgressLocation.Notification,
     title,
-    cancellable: false
-  }, async (progress) => {
+    cancellable: true
+  }, async (progress, token) => {
     return new Promise<boolean>((resolve) => {
       output.appendLine(`Running: ${pythonPath} ${fullArgs.join(' ')}`)
       const proc = spawn(pythonPath, fullArgs)
+      token.onCancellationRequested(() => proc.kill())
 
-      let lineCount = 0
-      const updateProgress = () => {
-        lineCount++
-        progress.report({ increment: Math.max(1, 10 - Math.floor(lineCount / 5)) })
+      const report = (data: Buffer) => {
+        const text = data.toString().trim()
+        if (!text) return
+        output.appendLine(text)
+        progress.report({ message: text.split('\n').pop()!.slice(0, 80) })
       }
 
-      proc.stdout.on('data', (data) => {
-        output.appendLine(data.toString().trim())
-        updateProgress()
-      })
-      proc.stderr.on('data', (data) => {
-        output.appendLine(data.toString().trim())
-        updateProgress()
+      proc.stdout.on('data', report)
+      proc.stderr.on('data', report)
+
+      proc.on('error', (err) => {
+        output.appendLine(`Failed to run pip: ${err.message}`)
+        resolve(false)
       })
 
       proc.on('close', async (code) => {
         if (code === 0) {
           resolve(true)
-        } else {
-          output.appendLine(`pip install failed (exit code ${code})`)
-          const choice = await vscode.window.showErrorMessage(
-            'Failed to install dependencies',
-            'Show Output'
-          )
-          if (choice === 'Show Output') {
-            output.show()
-          }
-          resolve(false)
+          return
+        }
+        resolve(false)
+        if (token.isCancellationRequested) {
+          output.appendLine('pip install cancelled')
+          return
+        }
+        output.appendLine(`pip install failed (exit code ${code})`)
+        const choice = await vscode.window.showErrorMessage(
+          'Failed to install dependencies',
+          'Show Output'
+        )
+        if (choice === 'Show Output') {
+          output.show()
         }
       })
     })
   })
 }
 
-export async function installRequirements(pythonPath: string, requirementsPath: string, upgrade: boolean): Promise<boolean> {
-  const title = upgrade ? 'Upgrading dependencies...' : 'Installing dependencies...'
-  const success = await pipInstall(pythonPath, ['-r', requirementsPath, '--upgrade'], title)
-
-  if (success) {
+export async function installRequirements(pythonPath: string, requirementsPath: string | null, upgrade: boolean): Promise<boolean> {
+  if (requirementsPath) {
+    const title = upgrade ? 'Upgrading dependencies...' : 'Installing dependencies...'
+    if (!await pipInstall(pythonPath, ['-r', requirementsPath, '--upgrade'], title))
+      return false
     output.appendLine(`Requirements installed successfully`)
-    await installDoctools(pythonPath, upgrade)
   }
 
-  return success
+  return installDoctools(pythonPath, upgrade)
 }
 
 export async function installDoctools(pythonPath: string, upgrade: boolean): Promise<boolean> {
-  const installedVersion = getDoctoolsVersion(pythonPath)
-
   const title = upgrade ? 'Upgrading adi-doctools...' : 'Installing adi-doctools...'
+  const requirement = `adi-doctools>=${MIN_DOCTOOLS_VERSION}`
   const args = upgrade
-    ? ['adi-doctools', 'language_tool_python', '--upgrade']
-    : ['adi-doctools', 'language_tool_python']
+    ? [requirement, 'language_tool_python', '--upgrade']
+    : [requirement, 'language_tool_python']
   const success = await pipInstall(pythonPath, args, title)
 
   if (success) {
@@ -205,13 +284,15 @@ export async function installDoctools(pythonPath: string, upgrade: boolean): Pro
 export interface InitResult {
   pythonPath: string
   workspacePath: string
-  requirementsPath: string
+  requirementsPath: string | null
+  managed: boolean
+  version: string | null
 }
 
-export async function initializePython(): Promise<InitResult | null> {
+export async function initializePython(interactive = true): Promise<InitResult | null> {
   const workspace = vscode.workspace.workspaceFolders?.[0]
   if (!workspace) {
-    vscode.window.showErrorMessage('No workspace folder open')
+    output.appendLine('No workspace folder open, the documentation server is disabled')
     return null
   }
 
@@ -230,64 +311,87 @@ export async function initializePython(): Promise<InitResult | null> {
     output.appendLine(`Found requirements: ${requirementsPath}`)
   }
 
-  const pythonPath = getVenvPythonPath(workspacePath)
+  const configured = vscode.workspace.getConfiguration('adi-doctools').get<string>('pythonPath', '')
+  if (configured.trim()) {
+    const pythonPath = resolveConfiguredPython(configured, workspacePath)
+    const version = pythonPath && await getDoctoolsVersion(pythonPath)
+    if (!pythonPath || !version || !isSupported(version)) {
+      const reason = version
+        ? `provides adi-doctools ${version}, ${MIN_DOCTOOLS_VERSION} or newer is required`
+        : `does not provide adi-doctools`
+      output.appendLine(`Configured adi-doctools.pythonPath '${configured}' ${reason}`)
+      if (interactive) {
+        const choice = await vscode.window.showErrorMessage(
+          `Doctools: the configured Python '${configured}' ${reason}.`,
+          'Open Settings'
+        )
+        if (choice === 'Open Settings')
+          vscode.commands.executeCommand('workbench.action.openSettings', 'adi-doctools.pythonPath')
+      }
+      return null
+    }
+    output.appendLine(`Using configured Python ${pythonPath} (adi_doctools ${version})`)
+    return { pythonPath, workspacePath, requirementsPath, managed: false, version }
+  }
 
-  if (!requirementsPath) {
-    vscode.window.showWarningMessage('No requirements file (requirements.txt or requirements_doc.txt) found')
+  const venvPath = getVenvPythonPath(workspacePath)
+  const hasVenv = venvExists(workspacePath)
+  const venvVersion = hasVenv ? await getDoctoolsVersion(venvPath) : null
+  if (venvVersion && isSupported(venvVersion)) {
+    output.appendLine(`Using ${venvPath} (adi_doctools ${venvVersion})`)
+    return { pythonPath: venvPath, workspacePath, requirementsPath, managed: true, version: venvVersion }
+  }
+
+  for (const pythonPath of pathCandidates()) {
+    const version = await getDoctoolsVersion(pythonPath)
+    if (version && isSupported(version)) {
+      output.appendLine(`Using ${pythonPath} from PATH (adi_doctools ${version})`)
+      return { pythonPath, workspacePath, requirementsPath, managed: false, version }
+    }
+    if (version)
+      output.appendLine(`Skipping ${pythonPath}: adi_doctools ${version} is older than ${MIN_DOCTOOLS_VERSION}`)
+  }
+
+  output.appendLine(venvVersion
+    ? `adi_doctools ${venvVersion} in .venv is older than ${MIN_DOCTOOLS_VERSION}`
+    : 'Doctools (adi-doctools) is not installed')
+  if (!interactive)
+    return null
+
+  const source = requirementsPath ? path.basename(requirementsPath) : 'PyPI'
+  const choice = await vscode.window.showInformationMessage(
+    venvVersion
+      ? `adi-doctools ${venvVersion} in .venv is older than the required ${MIN_DOCTOOLS_VERSION}, upgrade from ${source}?`
+      : hasVenv
+        ? `Doctools (adi-doctools) is not installed in .venv, install from ${source}?`
+        : `No Python environment with adi-doctools ${MIN_DOCTOOLS_VERSION} or newer found. Create .venv and install from ${source}?`,
+    'Yes', 'Select Python', 'No'
+  )
+
+  if (choice === 'Select Python') {
+    vscode.commands.executeCommand('workbench.action.openSettings', 'adi-doctools.pythonPath')
+    return null
+  }
+  if (choice !== 'Yes') {
+    output.appendLine('Skipped environment setup')
     return null
   }
 
-  if (!venvExists(workspacePath)) {
-    const setupChoice = await vscode.window.showInformationMessage(
-      `No Python environment found. Create venv and install dependencies from ${path.basename(requirementsPath)}?`,
-      'Yes', 'No'
-    )
-
-    if (setupChoice !== 'Yes') {
-      output.appendLine('Skipped environment setup')
-      return null
-    }
-
-    const created = await createVenv(workspacePath)
-    if (!created) {
-      vscode.window.showErrorMessage('Failed to create virtual environment')
-      return null
-    }
-
-    await installRequirements(pythonPath, requirementsPath, false)
-  } else {
-    const installedVersion = getDoctoolsVersion(pythonPath)
-
-    if (!installedVersion) {
-      output.appendLine("Doctools (adi-doctools) is not installed")
-
-      const installChoice = await vscode.window.showInformationMessage(
-        `Doctools (adi-doctools) is not installed, install from ${path.basename(requirementsPath)}?`,
-        'Yes', 'No'
-      )
-
-      if (installChoice === 'Yes') {
-        await installRequirements(pythonPath, requirementsPath, false)
-      } else {
-        return null
-      }
-    } else {
-      const extVersion = getExtensionVersion()
-      output.appendLine(`adi_doctools version: ${installedVersion}`)
-      output.appendLine(`Extension version: ${extVersion}`)
-
-      if (compareVersions(extVersion, installedVersion) > 0) {
-        const upgradeChoice = await vscode.window.showInformationMessage(
-          `Extension version (${extVersion}) > adi-doctools (${installedVersion}), upgrade dependencies?`,
-          'Yes', 'No'
-        )
-
-        if (upgradeChoice === 'Yes') {
-          await installRequirements(pythonPath, requirementsPath, true)
-        }
-      }
-    }
+  if (!hasVenv && !await createVenv(workspacePath)) {
+    vscode.window.showErrorMessage('Failed to create virtual environment')
+    return null
   }
 
-  return { pythonPath, workspacePath, requirementsPath }
+  output.show(true)
+  if (!await installRequirements(venvPath, requirementsPath, venvVersion !== null))
+    return null
+
+  const version = await getDoctoolsVersion(venvPath)
+  if (!version || !isSupported(version)) {
+    vscode.window.showErrorMessage(version
+      ? `adi-doctools ${version} was installed, but ${MIN_DOCTOOLS_VERSION} or newer is required`
+      : 'adi-doctools could not be imported after the installation')
+    return null
+  }
+  return { pythonPath: venvPath, workspacePath, requirementsPath, managed: true, version }
 }

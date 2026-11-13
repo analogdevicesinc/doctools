@@ -1,10 +1,14 @@
 import * as vscode from 'vscode'
 import * as path from 'path'
 import * as fs from 'fs'
+import { SparseSelection } from './sparse-state'
 
-export interface SparseState {
-  paths: Set<string>
-}
+const IGNORED_DIRS = new Set(['node_modules', 'venv', 'env'])
+const isDocDir = (entry: fs.Dirent) =>
+  entry.isDirectory() &&
+  !entry.name.startsWith('.') &&
+  !entry.name.startsWith('_') &&
+  !IGNORED_DIRS.has(entry.name)
 
 interface DirectoryItem {
   name: string
@@ -18,9 +22,8 @@ export class SparseTreeProvider implements vscode.TreeDataProvider<SparseTreeIte
   private _onDidChangeTreeData = new vscode.EventEmitter<SparseTreeItem | undefined>()
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event
 
-  private state: SparseState = {
-    paths: new Set()
-  }
+  private state = new SparseSelection([], path.sep)
+  private containDocCache = new Map<string, Promise<boolean>>()
 
   private docsRoot: string | undefined
   private statusBarItem: vscode.StatusBarItem
@@ -53,14 +56,14 @@ export class SparseTreeProvider implements vscode.TreeDataProvider<SparseTreeIte
       paths: string[]
     }>('sparseState')
 
-    if (saved) {
-      this.state.paths = new Set(saved.paths)
+    if (saved?.paths) {
+      this.state = new SparseSelection(saved.paths, path.sep)
     }
   }
 
   private saveState() {
     this.context.workspaceState.update('sparseState', {
-      paths: Array.from(this.state.paths)
+      paths: this.state.toArray()
     })
   }
 
@@ -74,6 +77,12 @@ export class SparseTreeProvider implements vscode.TreeDataProvider<SparseTreeIte
     this.watcher.onDidCreate(() => this.debouncedRefresh())
     this.watcher.onDidDelete(() => this.debouncedRefresh())
     this.context.subscriptions.push(this.watcher)
+
+    const root = docsRoot
+    if (this.state.prune(p => fs.existsSync(path.join(root, p)))) {
+      this.saveState()
+      this.updateStatusBar()
+    }
 
     this.invalidateCache()
     this.refresh()
@@ -91,24 +100,11 @@ export class SparseTreeProvider implements vscode.TreeDataProvider<SparseTreeIte
 
   private invalidateCache() {
     this.cachedDirs = undefined
+    this.containDocCache.clear()
   }
 
   private getSelectionState(relativePath: string): 'all' | 'some' | 'none' {
-    if (this.state.paths.has(relativePath)) {
-      return 'all'
-    }
-    for (const p of this.state.paths) {
-      if (relativePath.startsWith(p + path.sep)) {
-        return 'all'
-      }
-    }
-    const prefix = relativePath + path.sep
-    for (const p of this.state.paths) {
-      if (p.startsWith(prefix)) {
-        return 'some'
-      }
-    }
-    return 'none'
+    return this.state.stateOf(relativePath)
   }
 
   setOnSparseChanged(handler: () => void) {
@@ -129,38 +125,34 @@ export class SparseTreeProvider implements vscode.TreeDataProvider<SparseTreeIte
     }, 300)
   }
 
-  getState(): SparseState {
-    return this.state
-  }
-
   getSparsePaths(): string[] | null {
-    return this.state.paths.size > 0 ? Array.from(this.state.paths) : null
+    return this.state.size > 0 ? this.state.toArray() : null
   }
 
   isSparseMode(): boolean {
-    return this.state.paths.size > 0
+    return this.state.size > 0
   }
 
-  togglePath(relativePath: string) {
-    const currentState = this.getSelectionState(relativePath)
+  clear() {
+    if (this.state.size === 0) return
+    this.state = new SparseSelection([], path.sep)
+    this.saveState()
+    this.updateStatusBar()
+    this.refresh()
+    this.notifySparseChanged()
+  }
 
-    if (currentState === 'all') {
-      this.state.paths.delete(relativePath)
-      const prefix = relativePath + path.sep
-      for (const p of Array.from(this.state.paths)) {
-        if (p.startsWith(prefix)) {
-          this.state.paths.delete(p)
-        }
+  async togglePath(relativePath: string) {
+    const siblings = new Map<string, string[]>()
+    if (this.docsRoot) {
+      const parts = relativePath.split(path.sep)
+      for (let i = 1; i < parts.length; i++) {
+        const parent = parts.slice(0, i).join(path.sep)
+        const children = await this.getSubDirectories(path.join(this.docsRoot, parent), parent)
+        siblings.set(parent, children.map(c => c.relativePath))
       }
-    } else {
-      const prefix = relativePath + path.sep
-      for (const p of Array.from(this.state.paths)) {
-        if (p.startsWith(prefix) || relativePath.startsWith(p + path.sep)) {
-          this.state.paths.delete(p)
-        }
-      }
-      this.state.paths.add(relativePath)
     }
+    this.state.toggle(relativePath, parent => siblings.get(parent) ?? [])
 
     this.saveState()
     this.updateStatusBar()
@@ -169,6 +161,7 @@ export class SparseTreeProvider implements vscode.TreeDataProvider<SparseTreeIte
   }
 
   private updateStatusBar() {
+    const sparse = this.state.size > 0 ? ` (sparse: ${this.state.size})` : ''
     switch (this.buildStatus) {
       case 'off':
         this.statusBarItem.text = '$(circle-slash) Docs: Stopped'
@@ -176,13 +169,15 @@ export class SparseTreeProvider implements vscode.TreeDataProvider<SparseTreeIte
         this.statusBarItem.backgroundColor = undefined
         break
       case 'building':
-        this.statusBarItem.text = '$(sync~spin) Docs: Building...'
+        this.statusBarItem.text = `$(sync~spin) Docs: Building...${sparse}`
         this.statusBarItem.tooltip = 'Building the documentation'
         this.statusBarItem.backgroundColor = undefined
         break
       case 'ready':
-        this.statusBarItem.text = '$(check) Docs: Up-to-date'
-        this.statusBarItem.tooltip = 'The documentation build is up-to-date.'
+        this.statusBarItem.text = `$(check) Docs: Up-to-date${sparse}`
+        this.statusBarItem.tooltip = sparse
+          ? `The documentation build is up-to-date, limited to: ${this.state.toArray().join(', ')}`
+          : 'The documentation build is up-to-date.'
         this.statusBarItem.backgroundColor = undefined
         break
     }
@@ -276,9 +271,7 @@ export class SparseTreeProvider implements vscode.TreeDataProvider<SparseTreeIte
     const entries = await fs.promises.readdir(this.docsRoot, { withFileTypes: true })
 
     for (const entry of entries) {
-      if (!entry.isDirectory()) continue
-      if (entry.name.startsWith('.') || entry.name.startsWith('_')) continue
-      if (entry.name === 'node_modules') continue
+      if (!isDocDir(entry)) continue
 
       const fullPath = path.join(this.docsRoot, entry.name)
 
@@ -299,7 +292,7 @@ export class SparseTreeProvider implements vscode.TreeDataProvider<SparseTreeIte
 
     this.cachedTotalCount = await this.countDocDirectories()
 
-    if (!this.walkthroughShown && this.state.paths.size === 0 && this.cachedTotalCount >= 100) {
+    if (!this.walkthroughShown && this.state.size === 0 && this.cachedTotalCount >= 100) {
       this.walkthroughShown = true
       const action = await vscode.window.showInformationMessage(
         `This docs has ${this.cachedTotalCount}+ pages, use Sparse Build to build only the sections you're working on.`,
@@ -324,9 +317,7 @@ export class SparseTreeProvider implements vscode.TreeDataProvider<SparseTreeIte
         const entries = await fs.promises.readdir(dirPath, { withFileTypes: true })
 
         for (const entry of entries) {
-          if (!entry.isDirectory()) continue
-          if (entry.name.startsWith('.') || entry.name.startsWith('_')) continue
-          if (entry.name === 'node_modules') continue
+          if (!isDocDir(entry)) continue
 
           const fullPath = path.join(dirPath, entry.name)
 
@@ -351,8 +342,7 @@ export class SparseTreeProvider implements vscode.TreeDataProvider<SparseTreeIte
       const entries = await fs.promises.readdir(dirPath, { withFileTypes: true })
 
       for (const entry of entries) {
-        if (!entry.isDirectory()) continue
-        if (entry.name.startsWith('.') || entry.name.startsWith('_')) continue
+        if (!isDocDir(entry)) continue
 
         const fullPath = path.join(dirPath, entry.name)
 
@@ -377,17 +367,26 @@ export class SparseTreeProvider implements vscode.TreeDataProvider<SparseTreeIte
   private async hasSubDirectories(dirPath: string): Promise<boolean> {
     try {
       const entries = await fs.promises.readdir(dirPath, { withFileTypes: true })
-      return entries.some(e =>
-        e.isDirectory() &&
-        !e.name.startsWith('.') &&
-        !e.name.startsWith('_')
-      )
+      for (const entry of entries) {
+        if (isDocDir(entry) && await this.containDoc(path.join(dirPath, entry.name)))
+          return true
+      }
+      return false
     } catch {
       return false
     }
   }
 
-  private async containDoc(dirPath: string): Promise<boolean> {
+  private containDoc(dirPath: string): Promise<boolean> {
+    let cached = this.containDocCache.get(dirPath)
+    if (!cached) {
+      cached = this.scanForDoc(dirPath)
+      this.containDocCache.set(dirPath, cached)
+    }
+    return cached
+  }
+
+  private async scanForDoc(dirPath: string): Promise<boolean> {
     try {
       const entries = await fs.promises.readdir(dirPath, { withFileTypes: true })
 
@@ -395,7 +394,7 @@ export class SparseTreeProvider implements vscode.TreeDataProvider<SparseTreeIte
       if (hasRstFiles) return true
 
       for (const entry of entries) {
-        if (entry.isDirectory() && !entry.name.startsWith('.') && !entry.name.startsWith('_')) {
+        if (isDocDir(entry)) {
           const subPath = path.join(dirPath, entry.name)
           if (await this.containDoc(subPath)) {
             return true

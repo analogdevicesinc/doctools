@@ -22,6 +22,9 @@ Sphinx Python object directly.
   - Directives (`.. note::`, `.. figure::`, ...)
   - Local and external references (`:doc:`, `:external+inv:ref:`, ...)
 - **Live Server**: Automatically build changes on save, and see the changes highlighted in the browser.
+- **Synchronized Preview**: The preview panel follows the active editor and locks its scroll position with the editor, in both directions.
+- **Sparse Build**: Build only the folders you are working on.
+- **Spell Check**: LanguageTool grammar and spell check, local by default.
 - **Diagnostics**: Display build warnings and errors as diagnostics in the editor
 - **Language Injection**: Syntax highlighting for embedded languages blocks (bash, YAML)
 
@@ -31,6 +34,10 @@ Sphinx Python object directly.
 - OpenJDK (Java): Optional, for **local** grammar correction.
 
 For grammar correction with the Language Tool API, Java is not required.
+
+Grammar correction is **local** by default, the text never leaves the machine.
+The cloud mode sends the text of the documents to `api.languagetool.org` and
+must be allowed once per workspace.
 
 ### Linux/Mac:
 
@@ -57,7 +64,15 @@ For grammar correction, install OpenJDK from the
 ([direct link](https://download.visualstudio.microsoft.com/download/pr/cc04eebf-9582-40aa-aaf7-3c60932ab808/1b08c9fae820c7030a2aca38ceb19666/microsoft-jdk-25.0.2-windows-x64.msi)).
 Must re-open the IDE (not just reload the window).
 
-`sphinx`, `adi-doctools` are installed automatically (with user confirmation) at ./.venv (current workspace/open folder).
+## Python environment
+
+The Python environment that provides `adi-doctools` is resolved in this order:
+
+1. The `adi-doctools.pythonPath` setting: a Python interpreter, a virtual environment folder or the `adoc` executable.
+2. `./.venv` (current workspace/open folder).
+3. `adoc`, then `python3`, from `PATH`.
+
+If none is found, `sphinx` and `adi-doctools` are installed (with user confirmation) at `./.venv`.
 Do not open the sphinx source folder as the workspace folder, it may consider the venv files as source files.
 
 ## Quick start
@@ -65,7 +80,7 @@ Do not open the sphinx source folder as the workspace folder, it may consider th
 - Install the extension.
 - Open a repository with documentation.
 - Open a `.rst` file to activate the extension.
-- Click `yes` in the prompt to install the virtual enviroment.
+- Click `yes` in the prompt to install the virtual enviroment, if `adi-doctools` is not already available.
 - Use the `Explorer > Doctools Sparse Build` to select just some pages to build.
 
   - Drastically improves first time build time.
@@ -73,7 +88,30 @@ Do not open the sphinx source folder as the workspace folder, it may consider th
 - Use the bottom panel `Docs` and `Spell Check` to configure the features.
 
   - `Docs`: Start/stop server, open preview.
-  - `Spell Check`: Switch between off, local and cloud grammar correction.
+  - `Spell Check`: Switch between local, cloud and off grammar correction.
+
+## Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `adi-doctools.pythonPath` | | Python interpreter, virtual environment folder or `adoc` executable |
+| `adi-doctools.port` | `8080` | Port of the documentation server, the next free port is used when busy |
+| `adi-doctools.preview.scrollSync` | `true` | Lock the scroll position of the preview and the editor |
+| `adi-doctools.preview.followEditor` | `true` | Show the page of the active editor in the preview |
+| `adi-doctools.grammar.mode` | `local` | `local`, `api` (cloud) or `off` |
+| `adi-doctools.grammar.language` | `en-US` | LanguageTool language code |
+| `adi-doctools.grammar.disabledRules` | `[]` | LanguageTool rule IDs to disable |
+
+## Development
+
+```
+npm install
+npm run build      # bundle to dist/
+npm run test:e2e   # end-to-end tests in VSCodium/VSCode (headless with Xvfb)
+```
+
+The end-to-end tests use `adoc` from `PATH`, or the Python set in `ADOC_PYTHON`.
+Set `ADOC_E2E_LANGUAGETOOL=0` to skip the local spell check test (requires Java and `language_tool_python`).
 
 ## Alternative
 

@@ -1,78 +1,26 @@
 import * as vscode from 'vscode'
-import * as fs from 'fs'
-import * as path from 'path'
-import { Parser, Language, Node, Query } from 'web-tree-sitter'
+import * as fs from 'fs/promises'
+import { Parser, Language, Node } from 'web-tree-sitter'
 import { lspSend } from './python'
+import { AnnotatedTextBuilder, LTMatch, LTResult, codePointToUtf16 } from './annotated-text'
 
-// Directives whose body contains RST (recursive injection)
-const RST_DIRECTIVES = new Set([
-  'attention', 'caution', 'danger', 'error', 'hint', 'important', 'note', 'tip', 'warning', 'admonition',
-  'line-block', 'parsed-literal', 'epigraph', 'highlights', 'pull-quote', 'compound', 'header', 'footer',
-  'meta', 'replace', 'topic', 'sidebar', 'container', 'table', 'list-table', 'class', 'role',
-  'restructuredtext-test-directive'
-])
+export { AnnotatedTextBuilder, LTMatch, LTResult }
 
-// Directives that inject other languages (skip for grammar checking)
-const CODE_DIRECTIVES = new Set([
-  'code', 'code-block', 'sourcecode', 'raw', 'math', 'csv-table', 'shell', 'include-template'
-])
+export type GrammarMode = 'off' | 'local' | 'api'
 
-// Directives with file path arguments - skip arguments, but check content (caption) if present
-const PATH_ARG_DIRECTIVES = new Set([
-  'figure', 'image', 'include', 'literalinclude', 'toctree'
-])
-
-// Role types for LanguageTool processing
-// Format roles: spellchecked (addText)
-const FORMAT_ROLES = new Set(['red', 'green'])
-// Literal roles: never checked (addMarkup)
-const LITERAL_ROLES = new Set(['code'])
-
-// Skip these node types entirely
-const SKIP_NODE_TYPES = new Set([
-  'literal_block', 'doctest_block', 'comment', 'line_block',
-  'substitution_definition', 'footnote', 'citation',
-  'target', 'directive_marker', 'field_list'
-])
-
-export interface TextSegment {
-  type: 'text' | 'markup'
-  content: string
-  // Source position (in original document)
-  srcStart: number
-  srcEnd: number
-  // Output position (in LanguageTool input)
-  outStart?: number
-  outEnd?: number
-  // For markup: how to render in output
-  // 'silent' = skip entirely (partial markup around text)
-  // 'backticks' = output `content`
-  // 'literal' = output the content as-is (e.g., URLs)
-  renderMode?: 'silent' | 'backticks' | 'literal'
+export interface GrammarOptions {
+  mode: GrammarMode
+  language: string
+  username: string
+  apiKey: string
+  disabledRules: string[]
 }
 
-export interface LTMatch {
-  message: string
-  offset: number
-  length: number
-  replacements: string[]
-  ruleId: string
-  // Mapped back to source
-  srcOffset?: number
-  srcLength?: number
-  matchedText?: string
-}
-
-export interface LTResult {
+export interface CheckOutcome {
+  status: 'ok' | 'stale' | 'error'
   error?: string
   message?: string
   matches?: LTMatch[]
-}
-
-export interface LTStatusResult {
-  installed: boolean
-  initialized: boolean
-  language: string | null
 }
 
 interface LangConfig {
@@ -80,447 +28,10 @@ interface LangConfig {
   lang: Language
 }
 
-const findChild = (node: Node, type: string): Node | null => {
-  for (let i = 0; i < node.childCount; i++) {
-    const child = node.child(i)
-    if (child?.type === type) return child
-  }
-  return null
-}
+const CHECK_TIMEOUT_MS = 10 * 60 * 1000
+const VOCABULARY_GLOB = '**/config/vocabularies/*/{accept,reject}.txt'
+const VOCABULARY_EXCLUDE = '**/{node_modules,.venv,venv,_build,build,.git}/**'
 
-export class AnnotatedTextBuilder {
-  private segments: TextSegment[] = []
-  private langConfig: LangConfig | null = null
-
-  setLangConfig(config: LangConfig) {
-    this.langConfig = config
-  }
-
-  clear() {
-    this.segments = []
-  }
-
-  addText(content: string, srcStart: number, srcEnd: number) {
-    this.segments.push({ type: 'text', content, srcStart, srcEnd })
-  }
-
-  addMarkup(content: string, srcStart: number, srcEnd: number, renderMode: 'silent' | 'backticks' | 'literal' = 'silent') {
-    this.segments.push({ type: 'markup', content, srcStart, srcEnd, renderMode })
-  }
-
-  getSegments(): TextSegment[] {
-    return this.segments
-  }
-
-  // Build the text that will be sent to LanguageTool
-  buildText(sourceText: string): string {
-    let outPos = 0
-    const parts: string[] = []
-    let lastSrcEnd = 0
-
-    for (const seg of this.segments) {
-      // Insert whitespace/newlines that exist between segments in source
-      if (seg.srcStart > lastSrcEnd) {
-        const gap = sourceText.slice(lastSrcEnd, seg.srcStart)
-        // Preserve newlines, collapse other whitespace to single space
-        const hasNewline = gap.includes('\n')
-        if (hasNewline) {
-          const newlineCount = (gap.match(/\n/g) || []).length
-          const whitespace = '\n'.repeat(newlineCount)
-          parts.push(whitespace)
-          outPos += whitespace.length
-        } else if (/\s/.test(gap)) {
-          // Any whitespace in gap - add single space
-          parts.push(' ')
-          outPos += 1
-        }
-      }
-
-      if (seg.type === 'text') {
-        seg.outStart = outPos
-        parts.push(seg.content)
-        outPos += seg.content.length
-        seg.outEnd = outPos
-      } else if (seg.renderMode === 'backticks') {
-        // Backticks mode - wrap content in backticks
-        seg.outStart = outPos
-        const output = '`' + seg.content + '`'
-        parts.push(output)
-        outPos += output.length
-        seg.outEnd = outPos
-      } else if (seg.renderMode === 'literal') {
-        // Literal mode - output content as-is
-        seg.outStart = outPos
-        parts.push(seg.content)
-        outPos += seg.content.length
-        seg.outEnd = outPos
-      }
-      // Silent mode (default) - skip entirely, no output
-
-      lastSrcEnd = seg.srcEnd
-    }
-
-    return parts.join('')
-  }
-
-  // Map a position in LanguageTool output back to source position
-  mapToSource(outOffset: number, outLength: number): { srcOffset: number; srcLength: number } | null {
-    // Find the segment(s) that contain this range
-    let srcStart: number | null = null
-    let srcEnd: number | null = null
-
-    for (const seg of this.segments) {
-      if (seg.type !== 'text' || seg.outStart === undefined || seg.outEnd === undefined) continue
-
-      // Check if this segment overlaps with the range
-      if (seg.outStart <= outOffset && outOffset < seg.outEnd) {
-        // Start is in this segment
-        const offsetInSeg = outOffset - seg.outStart
-        srcStart = seg.srcStart + offsetInSeg
-      }
-
-      const outEnd = outOffset + outLength
-      if (seg.outStart < outEnd && outEnd <= seg.outEnd) {
-        // End is in this segment
-        const offsetInSeg = outEnd - seg.outStart
-        srcEnd = seg.srcStart + offsetInSeg
-      }
-
-      // If range spans entire segment
-      if (outOffset <= seg.outStart && seg.outEnd <= outEnd) {
-        if (srcStart === null) srcStart = seg.srcStart
-        srcEnd = seg.srcEnd
-      }
-    }
-
-    if (srcStart !== null && srcEnd !== null) {
-      return { srcOffset: srcStart, srcLength: srcEnd - srcStart }
-    }
-
-    return null
-  }
-
-  // Build annotated text from RST tree
-  buildFromTree(tree: Node, sourceText: string) {
-    this.clear()
-    if (!this.langConfig) {
-      throw new Error('Language config not set')
-    }
-    this.walkNode(this.langConfig, tree, sourceText)
-  }
-
-  private walkNode(cfg: LangConfig, node: Node, sourceText: string) {
-    const srcStart = node.startIndex
-    const srcEnd = node.endIndex
-
-    // Skip nodes that should not be grammar checked
-    if (SKIP_NODE_TYPES.has(node.type)) {
-      this.addMarkup(node.text, srcStart, srcEnd, 'silent')
-      return
-    }
-
-    // Handle directives
-    if (node.type === 'directive') {
-      this.walkDirective(cfg, node, sourceText)
-      return
-    }
-
-    // Handle interpreted_text (roles)
-    if (node.type === 'interpreted_text') {
-      this.walkRole(node)
-      return
-    }
-
-    // Handle references (inline links)
-    if (node.type === 'reference') {
-      this.walkReference(node)
-      return
-    }
-
-    // Handle standalone hyperlinks - output the URL as-is
-    if (node.type === 'standalone_hyperlink') {
-      this.addMarkup(node.text, srcStart, srcEnd, 'literal')
-      return
-    }
-
-    // Handle inline literals (``text``) - output content in single backticks
-    if (node.type === 'literal') {
-      const content = node.text.replace(/^``|``$/g, '')
-      this.addMarkup(content, srcStart, srcEnd, 'backticks')
-      return
-    }
-
-    // Handle emphasis (*text*) and strong (**text**) - output text content directly
-    if (node.type === 'emphasis') {
-      const content = node.text.replace(/^\*|\*$/g, '')
-      this.addMarkup(content, srcStart, srcEnd, 'literal')
-      return
-    }
-
-    if (node.type === 'strong') {
-      const content = node.text.replace(/^\*\*|\*\*$/g, '')
-      this.addMarkup(content, srcStart, srcEnd, 'literal')
-      return
-    }
-
-    // Leaf text nodes
-    if (node.type === 'text') {
-      this.addText(node.text, srcStart, srcEnd)
-      return
-    }
-
-    // Container nodes - recurse
-    for (let i = 0; i < node.childCount; i++) {
-      const child = node.child(i)
-      if (child) this.walkNode(cfg, child, sourceText)
-    }
-  }
-
-  private walkDirective(cfg: LangConfig, node: Node, sourceText: string) {
-    const nameNode = findChild(node, 'type')
-    const directiveName = nameNode?.text || 'unknown'
-    const srcStart = node.startIndex
-    const srcEnd = node.endIndex
-
-    // Code directives - skip entirely
-    if (CODE_DIRECTIVES.has(directiveName)) {
-      this.addMarkup(node.text, srcStart, srcEnd, 'silent')
-      return
-    }
-
-    // Path argument directives (figure, image, etc.) - skip args/options, check content only
-    if (PATH_ARG_DIRECTIVES.has(directiveName)) {
-      const bodyNode = findChild(node, 'body')
-      if (bodyNode) {
-        const contentNode = findChild(bodyNode, 'content')
-        if (contentNode) {
-          // Skip everything before content
-          this.addMarkup(sourceText.slice(srcStart, contentNode.startIndex), srcStart, contentNode.startIndex)
-          // Parse content as RST
-          const injTree = cfg.parser.parse(contentNode.text)
-          if (injTree) {
-            this.walkInjectedTree(cfg, injTree.rootNode, contentNode.startIndex, sourceText)
-          }
-        } else {
-          // No content node, skip the whole directive
-          this.addMarkup(node.text, srcStart, srcEnd, 'silent')
-        }
-      } else {
-        this.addMarkup(node.text, srcStart, srcEnd, 'silent')
-      }
-      return
-    }
-
-    // RST directives - add directive marker as markup, recurse into body
-    if (RST_DIRECTIVES.has(directiveName)) {
-      const bodyNode = findChild(node, 'body')
-      if (bodyNode) {
-        // Add directive marker as markup
-        this.addMarkup(sourceText.slice(srcStart, bodyNode.startIndex), srcStart, bodyNode.startIndex)
-
-        // Parse and process body content as RST
-        const contentNode = findChild(bodyNode, 'content') || bodyNode
-        const injTree = cfg.parser.parse(contentNode.text)
-        if (injTree) {
-          // Walk the injected tree, but adjust source positions
-          this.walkInjectedTree(cfg, injTree.rootNode, contentNode.startIndex, sourceText)
-        }
-      }
-      return
-    }
-
-    // Unknown directive - skip (standalone)
-    this.addMarkup(node.text, srcStart, srcEnd, 'silent')
-  }
-
-  private walkInjectedTree(cfg: LangConfig, node: Node, baseOffset: number, sourceText: string) {
-    const srcStart = baseOffset + node.startIndex
-    const srcEnd = baseOffset + node.endIndex
-
-    if (SKIP_NODE_TYPES.has(node.type)) {
-      this.addMarkup(node.text, srcStart, srcEnd, 'silent')
-      return
-    }
-
-    if (node.type === 'directive') {
-      // For nested directives, recalculate positions
-      const nameNode = findChild(node, 'type')
-      const directiveName = nameNode?.text || 'unknown'
-
-      if (CODE_DIRECTIVES.has(directiveName)) {
-        this.addMarkup(node.text, srcStart, srcEnd, 'silent')
-        return
-      }
-
-      if (PATH_ARG_DIRECTIVES.has(directiveName)) {
-        const bodyNode = findChild(node, 'body')
-        if (bodyNode) {
-          const contentNode = findChild(bodyNode, 'content')
-          if (contentNode) {
-            this.addMarkup(node.text.slice(0, contentNode.startIndex - node.startIndex), srcStart, baseOffset + contentNode.startIndex)
-            const injTree = cfg.parser.parse(contentNode.text)
-            if (injTree) {
-              this.walkInjectedTree(cfg, injTree.rootNode, baseOffset + contentNode.startIndex, sourceText)
-            }
-          } else {
-            this.addMarkup(node.text, srcStart, srcEnd, 'silent')
-          }
-        } else {
-          this.addMarkup(node.text, srcStart, srcEnd, 'silent')
-        }
-        return
-      }
-
-      if (RST_DIRECTIVES.has(directiveName)) {
-        const bodyNode = findChild(node, 'body')
-        if (bodyNode) {
-          // Directive marker is partial (not standalone)
-          this.addMarkup(node.text.slice(0, bodyNode.startIndex - node.startIndex), srcStart, baseOffset + bodyNode.startIndex)
-          const contentNode = findChild(bodyNode, 'content') || bodyNode
-          const injTree = cfg.parser.parse(contentNode.text)
-          if (injTree) {
-            this.walkInjectedTree(cfg, injTree.rootNode, baseOffset + contentNode.startIndex, sourceText)
-          }
-        }
-        return
-      }
-
-      this.addMarkup(node.text, srcStart, srcEnd, 'silent')
-      return
-    }
-
-    if (node.type === 'interpreted_text') {
-      this.walkRoleWithOffset(node, baseOffset)
-      return
-    }
-
-    if (node.type === 'reference') {
-      this.walkReferenceWithOffset(node, baseOffset)
-      return
-    }
-
-    if (node.type === 'standalone_hyperlink') {
-      this.addMarkup(node.text, srcStart, srcEnd, 'literal')
-      return
-    }
-
-    if (node.type === 'literal') {
-      const content = node.text.replace(/^``|``$/g, '')
-      this.addMarkup(content, srcStart, srcEnd, 'backticks')
-      return
-    }
-
-    if (node.type === 'emphasis') {
-      const content = node.text.replace(/^\*|\*$/g, '')
-      this.addMarkup(content, srcStart, srcEnd, 'literal')
-      return
-    }
-
-    if (node.type === 'strong') {
-      const content = node.text.replace(/^\*\*|\*\*$/g, '')
-      this.addMarkup(content, srcStart, srcEnd, 'literal')
-      return
-    }
-
-    if (node.type === 'text') {
-      this.addText(node.text, srcStart, srcEnd)
-      return
-    }
-
-    for (let i = 0; i < node.childCount; i++) {
-      const child = node.child(i)
-      if (child) this.walkInjectedTree(cfg, child, baseOffset, sourceText)
-    }
-  }
-
-  private walkRole(node: Node) {
-    this.walkRoleWithOffset(node, 0)
-  }
-
-  private walkRoleWithOffset(node: Node, baseOffset: number) {
-    const roleNode = findChild(node, 'role')
-    const innerNode = findChild(node, 'interpreted_text')
-    const srcStart = baseOffset + node.startIndex
-    const srcEnd = baseOffset + node.endIndex
-
-    if (!roleNode || !innerNode) {
-      this.addMarkup(node.text, srcStart, srcEnd, 'silent')
-      return
-    }
-
-    const roleMatch = roleNode.text.match(/^:(\S+):$/)
-    const contentMatch = innerNode.text.match(/^`([^`]+)`$/)
-
-    if (!roleMatch || !contentMatch) {
-      this.addMarkup(node.text, srcStart, srcEnd, 'silent')
-      return
-    }
-
-    const roleName = roleMatch[1]
-    const content = contentMatch[1]
-    const innerStart = baseOffset + innerNode.startIndex
-
-    // Literal roles - output content in backticks
-    if (LITERAL_ROLES.has(roleName)) {
-      this.addMarkup(content, srcStart, srcEnd, 'backticks')
-      return
-    }
-
-    // Format roles - content is spellchecked (partial markup)
-    if (FORMAT_ROLES.has(roleName)) {
-      this.addMarkup(roleNode.text + '`', srcStart, innerStart + 1)
-      this.addText(content, innerStart + 1, innerStart + 1 + content.length)
-      this.addMarkup('`', srcEnd - 1, srcEnd)
-      return
-    }
-
-    // Reference roles
-    const titleMatch = content.match(/^\s*(.+?)\s*<\s*(.+?)\s*>\s*$/)
-
-    if (titleMatch) {
-      // Has title - partial markup
-      const title = titleMatch[1]
-      const titleStartInContent = content.indexOf(title)
-      const titleStart = innerStart + 1 + titleStartInContent
-      const titleEnd = titleStart + title.length
-
-      this.addMarkup(node.text.slice(0, innerNode.startIndex - node.startIndex + 1 + titleStartInContent), srcStart, titleStart)
-      this.addText(title, titleStart, titleEnd)
-      this.addMarkup(node.text.slice(innerNode.startIndex - node.startIndex + 1 + titleStartInContent + title.length), titleEnd, srcEnd)
-    } else {
-      // No title - output target in backticks
-      this.addMarkup(content, srcStart, srcEnd, 'backticks')
-    }
-  }
-
-  private walkReference(node: Node) {
-    this.walkReferenceWithOffset(node, 0)
-  }
-
-  private walkReferenceWithOffset(node: Node, baseOffset: number) {
-    const srcStart = baseOffset + node.startIndex
-    const srcEnd = baseOffset + node.endIndex
-
-    const titleMatch = node.text.match(/^`\s*(.+?)\s*<([^>]+)>`(_+)$/)
-
-    if (titleMatch) {
-      // Has title - partial markup
-      const [, title, , ] = titleMatch
-      const titleStartInNode = node.text.indexOf(title)
-      const titleStart = srcStart + titleStartInNode
-      const titleEnd = titleStart + title.length
-
-      this.addMarkup(node.text.slice(0, titleStartInNode), srcStart, titleStart)
-      this.addText(title, titleStart, titleEnd)
-      this.addMarkup(node.text.slice(titleStartInNode + title.length), titleEnd, srcEnd)
-    } else {
-      // No title - standalone markup
-      this.addMarkup(node.text, srcStart, srcEnd, 'silent')
-    }
-  }
-}
-
-// CodeActionProvider for grammar fix suggestions
 export class GrammarCodeActionProvider implements vscode.CodeActionProvider {
   static readonly providedCodeActionKinds = [vscode.CodeActionKind.QuickFix]
 
@@ -537,7 +48,6 @@ export class GrammarCodeActionProvider implements vscode.CodeActionProvider {
       const replacements = (diagnostic as any).replacements as string[] | undefined
       const ruleId = diagnostic.code as string | undefined
 
-      // Add replacement suggestions
       if (replacements && replacements.length > 0) {
         for (const replacement of replacements) {
           const action = new vscode.CodeAction(
@@ -552,8 +62,7 @@ export class GrammarCodeActionProvider implements vscode.CodeActionProvider {
         }
       }
 
-      // Add "Disable rule" action
-      if (ruleId) {
+      if (ruleId && ruleId !== 'VALE_REJECT') {
         const disableRule = new vscode.CodeAction(
           `Disable rule "${ruleId}"`,
           vscode.CodeActionKind.QuickFix
@@ -572,124 +81,49 @@ export class GrammarCodeActionProvider implements vscode.CodeActionProvider {
   }
 }
 
-// Vale vocabulary loading
 interface ValeVocabulary {
   accept: RegExp[]
   reject: { pattern: RegExp; original: string }[]
-  lastLoaded: number
 }
 
-let valeVocabulary: ValeVocabulary | null = null
-const VALE_CACHE_TTL = 30000 // 30 seconds
-
-function expandValePattern(pattern: string): RegExp | null {
+function valePattern(pattern: string, search: boolean): RegExp | null {
   try {
-    // Check for case-insensitive flag
-    let flags = ''
-    let regexStr = pattern
-
-    if (pattern.startsWith('(?i)')) {
-      flags = 'i'
-      regexStr = pattern.slice(4)
-    }
-
-    // Escape special regex chars except those Vale uses
-    // Vale patterns can use: (s)?, [Aa], etc.
-    // We need to make it match the whole word
-    return new RegExp(`^${regexStr}$`, flags)
+    const insensitive = pattern.startsWith('(?i)')
+    const body = insensitive ? pattern.slice(4) : pattern
+    const flags = (search ? 'g' : '') + (insensitive ? 'i' : '')
+    return new RegExp(search ? `\\b(${body})\\b` : `^${body}$`, flags)
   } catch {
     return null
   }
 }
 
-function expandValePatternForSearch(pattern: string): RegExp | null {
+async function readPatterns(file: vscode.Uri): Promise<string[]> {
   try {
-    // Check for case-insensitive flag
-    let flags = 'g'
-    let regexStr = pattern
-
-    if (pattern.startsWith('(?i)')) {
-      flags = 'gi'
-      regexStr = pattern.slice(4)
-    }
-
-    // Word boundary search
-    return new RegExp(`\\b(${regexStr})\\b`, flags)
+    const content = await fs.readFile(file.fsPath, 'utf-8')
+    return content.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#'))
   } catch {
-    return null
+    return []
   }
 }
 
-async function loadValeVocabulariesAsync(): Promise<{ accept: RegExp[]; reject: { pattern: RegExp; original: string }[] }> {
-  const accept: RegExp[] = []
-  const reject: { pattern: RegExp; original: string }[] = []
+async function loadValeVocabulary(): Promise<ValeVocabulary> {
+  const vocabulary: ValeVocabulary = { accept: [], reject: [] }
 
   try {
-    // Find all accept.txt and reject.txt files matching the pattern
-    const acceptFiles = await vscode.workspace.findFiles('**/config/vocabularies/*/accept.txt')
-    const rejectFiles = await vscode.workspace.findFiles('**/config/vocabularies/*/reject.txt')
-
-    for (const file of acceptFiles) {
-      try {
-        const content = fs.readFileSync(file.fsPath, 'utf-8')
-        for (const line of content.split('\n')) {
-          const trimmed = line.trim()
-          if (!trimmed || trimmed.startsWith('#')) continue
-
-          const regex = expandValePattern(trimmed)
-          if (regex) accept.push(regex)
-        }
-      } catch {
-        // Skip unreadable files
-      }
-    }
-
-    for (const file of rejectFiles) {
-      try {
-        const content = fs.readFileSync(file.fsPath, 'utf-8')
-        for (const line of content.split('\n')) {
-          const trimmed = line.trim()
-          if (!trimmed || trimmed.startsWith('#')) continue
-
-          const regex = expandValePatternForSearch(trimmed)
-          if (regex) reject.push({ pattern: regex, original: trimmed })
-        }
-      } catch {
-        // Skip unreadable files
+    for (const file of await vscode.workspace.findFiles(VOCABULARY_GLOB, VOCABULARY_EXCLUDE)) {
+      const accept = file.path.endsWith('/accept.txt')
+      for (const original of await readPatterns(file)) {
+        const pattern = valePattern(original, !accept)
+        if (!pattern) continue
+        if (accept) vocabulary.accept.push(pattern)
+        else vocabulary.reject.push({ pattern, original })
       }
     }
   } catch (err) {
     console.error('Failed to load Vale vocabularies:', err)
   }
 
-  return { accept, reject }
-}
-
-let vocabLoadPromise: Promise<void> | null = null
-
-async function ensureValeVocabulary(): Promise<ValeVocabulary> {
-  const now = Date.now()
-
-  if (valeVocabulary && (now - valeVocabulary.lastLoaded) < VALE_CACHE_TTL) {
-    return valeVocabulary
-  }
-
-  // Avoid concurrent loads
-  if (!vocabLoadPromise) {
-    vocabLoadPromise = (async () => {
-      const { accept, reject } = await loadValeVocabulariesAsync()
-      valeVocabulary = { accept, reject, lastLoaded: Date.now() }
-      vocabLoadPromise = null
-    })()
-  }
-
-  await vocabLoadPromise
-  return valeVocabulary!
-}
-
-async function isWordAllowed(word: string): Promise<boolean> {
-  const vocab = await ensureValeVocabulary()
-  return vocab.accept.some(p => p.test(word))
+  return vocabulary
 }
 
 interface RejectMatch {
@@ -699,15 +133,17 @@ interface RejectMatch {
   pattern: string
 }
 
-async function findRejectedWords(text: string): Promise<RejectMatch[]> {
-  const vocab = await ensureValeVocabulary()
+function findRejectedWords(vocabulary: ValeVocabulary, text: string): RejectMatch[] {
   const matches: RejectMatch[] = []
 
-  for (const { pattern, original } of vocab.reject) {
-    // Reset lastIndex for global regex
+  for (const { pattern, original } of vocabulary.reject) {
     pattern.lastIndex = 0
     let match
     while ((match = pattern.exec(text)) !== null) {
+      if (match[0].length === 0) {
+        pattern.lastIndex++
+        continue
+      }
       matches.push({
         word: match[1] || match[0],
         offset: match.index,
@@ -720,113 +156,120 @@ async function findRejectedWords(text: string): Promise<RejectMatch[]> {
   return matches
 }
 
-// LanguageTool checker that uses the Python backend
-export class LanguageToolChecker {
-  private builder = new AnnotatedTextBuilder()
-  private diagnosticCollection: vscode.DiagnosticCollection
-  private lastCheckedUri: vscode.Uri | undefined
+export class LanguageToolChecker implements vscode.Disposable {
+  private langConfig: LangConfig | undefined
+  private vocabulary: Promise<ValeVocabulary> | undefined
+  private watcher: vscode.FileSystemWatcher
 
-  constructor(diagnosticCollection: vscode.DiagnosticCollection) {
-    this.diagnosticCollection = diagnosticCollection
+  constructor(private diagnosticCollection: vscode.DiagnosticCollection) {
+    this.watcher = vscode.workspace.createFileSystemWatcher(VOCABULARY_GLOB)
+    const invalidate = () => { this.vocabulary = undefined }
+    this.watcher.onDidChange(invalidate)
+    this.watcher.onDidCreate(invalidate)
+    this.watcher.onDidDelete(invalidate)
+  }
+
+  dispose() {
+    this.watcher.dispose()
   }
 
   setLangConfig(config: LangConfig) {
-    this.builder.setLangConfig(config)
+    this.langConfig = config
   }
 
-  async check(document: vscode.TextDocument, tree: Node): Promise<LTMatch[]> {
-    // Check if grammar checking is enabled
-    const config = vscode.workspace.getConfiguration('adi-doctools.grammar')
-    const mode = config.get<string>('mode', 'api')
+  clear(uri: vscode.Uri) {
+    this.diagnosticCollection.delete(uri)
+  }
 
-    if (mode === 'off') {
-      this.diagnosticCollection.delete(document.uri)
-      return []
+  private getVocabulary(): Promise<ValeVocabulary> {
+    if (!this.vocabulary)
+      this.vocabulary = loadValeVocabulary()
+    return this.vocabulary
+  }
+
+  async check(document: vscode.TextDocument, tree: Node, options: GrammarOptions): Promise<CheckOutcome> {
+    if (options.mode === 'off') {
+      this.clear(document.uri)
+      return { status: 'ok', matches: [] }
     }
-    const apiUsername = config.get<string>('apiUsername', '')
-    const apiKey = config.get<string>('apiKey', '')
-    const language = 'en-US'  // Default language
 
+    const version = document.version
     const sourceText = document.getText()
 
-    // Build annotated text
-    this.builder.buildFromTree(tree, sourceText)
-    const text = this.builder.buildText(sourceText)
+    if (!this.langConfig)
+      return { status: 'error', error: 'unavailable', message: 'Parser not initialized' }
+    const mapper = new AnnotatedTextBuilder()
+    mapper.setLangConfig(this.langConfig)
+    mapper.buildFromTree(tree, sourceText)
+    const text = mapper.buildText(sourceText)
 
     if (!text.trim()) {
-      this.diagnosticCollection.delete(document.uri)
-      return []
+      this.clear(document.uri)
+      return { status: 'ok', matches: [] }
     }
 
-    // Get filter settings
-    const disabledRules = new Set(config.get<string[]>('disabledRules', []) || [])
-
+    let result: LTResult
     try {
-      // Send to Python backend
-      const result: LTResult = await lspSend({
+      result = await lspSend({
         languageTool: 'check',
         text: text,
-        mode: mode,
-        language: language,
-        username: apiUsername,
-        apiKey: apiKey
-      })
-
-      // Handle errors with user-friendly prompts
-      if (result.error) {
-        await this.handleError(result.error, result.message || '', mode)
-        return []
-      }
-
-      // Map matches back to source positions and filter
-      const mappedMatches: LTMatch[] = []
-      for (const match of result.matches || []) {
-        // Filter by disabled rules
-        if (disabledRules.has(match.ruleId)) continue
-
-        const mapped = this.builder.mapToSource(match.offset, match.length)
-        if (mapped) {
-          // Get the matched text from source
-          const matchedText = sourceText.slice(mapped.srcOffset, mapped.srcOffset + mapped.srcLength)
-
-          // Filter by Vale vocabulary patterns
-          if (await isWordAllowed(matchedText)) continue
-
-          mappedMatches.push({
-            ...match,
-            srcOffset: mapped.srcOffset,
-            srcLength: mapped.srcLength,
-            matchedText
-          })
-        }
-      }
-
-      // Find rejected words in the text sent to LanguageTool
-      const rejectedWords = await findRejectedWords(text)
-      for (const rejected of rejectedWords) {
-        const mapped = this.builder.mapToSource(rejected.offset, rejected.length)
-        if (mapped) {
-          mappedMatches.push({
-            message: `"${rejected.word}" is a rejected term`,
-            offset: rejected.offset,
-            length: rejected.length,
-            replacements: [],
-            ruleId: 'VALE_REJECT',
-            srcOffset: mapped.srcOffset,
-            srcLength: mapped.srcLength,
-            matchedText: rejected.word
-          })
-        }
-      }
-
-      // Update diagnostics
-      this.updateDiagnostics(document, mappedMatches)
-
-      return mappedMatches
-    } catch (err) {
-      console.error('LanguageTool check failed:', err)
-      return []
+        mode: options.mode,
+        language: options.language,
+        username: options.mode === 'api' ? options.username : '',
+        apiKey: options.mode === 'api' ? options.apiKey : ''
+      }, CHECK_TIMEOUT_MS)
+    } catch (err: any) {
+      return { status: 'error', error: 'unavailable', message: err?.message }
     }
+
+    if (document.isClosed || document.version !== version)
+      return { status: 'stale' }
+
+    if (result.error)
+      return { status: 'error', error: result.error, message: result.message || '' }
+
+    const vocabulary = await this.getVocabulary()
+    const disabledRules = new Set(options.disabledRules)
+    const mappedMatches: LTMatch[] = []
+
+    for (const match of result.matches || []) {
+      if (disabledRules.has(match.ruleId)) continue
+
+      const { offset, length } = options.mode === 'local'
+        ? codePointToUtf16(text, match.offset, match.length)
+        : match
+      const mapped = mapper.mapToSource(offset, length)
+      if (!mapped) continue
+
+      const matchedText = sourceText.slice(mapped.srcOffset, mapped.srcOffset + mapped.srcLength)
+      if (vocabulary.accept.some(p => p.test(matchedText))) continue
+
+      mappedMatches.push({
+        ...match,
+        srcOffset: mapped.srcOffset,
+        srcLength: mapped.srcLength,
+        matchedText
+      })
+    }
+
+    for (const rejected of findRejectedWords(vocabulary, text)) {
+      const mapped = mapper.mapToSource(rejected.offset, rejected.length)
+      if (mapped) {
+        mappedMatches.push({
+          message: `"${rejected.word}" is a rejected term`,
+          offset: rejected.offset,
+          length: rejected.length,
+          replacements: [],
+          ruleId: 'VALE_REJECT',
+          srcOffset: mapped.srcOffset,
+          srcLength: mapped.srcLength,
+          matchedText: rejected.word
+        })
+      }
+    }
+
+    this.updateDiagnostics(document, mappedMatches)
+    return { status: 'ok', matches: mappedMatches }
   }
 
   private updateDiagnostics(document: vscode.TextDocument, matches: LTMatch[]) {
@@ -848,7 +291,6 @@ export class LanguageToolChecker {
       diagnostic.code = match.ruleId
 
       if (match.replacements && match.replacements.length > 0) {
-        // Store replacements for quick fix
         (diagnostic as any).replacements = match.replacements
       }
 
@@ -859,30 +301,6 @@ export class LanguageToolChecker {
       diagnostics.push(diagnostic)
     }
 
-    if (this.lastCheckedUri && this.lastCheckedUri.toString() !== document.uri.toString())
-      this.diagnosticCollection.delete(this.lastCheckedUri)
-
     this.diagnosticCollection.set(document.uri, diagnostics)
-    this.lastCheckedUri = document.uri
-  }
-
-  private async handleError(error: string, message: string, mode: string) {
-    if (error === 'init_failed' && mode === 'local') {
-      vscode.window.showErrorMessage(
-        `LanguageTool initialization failed: ${message}. Make sure Java is installed.`
-      )
-    } else if (error === 'rate_limited') {
-      vscode.window.showWarningMessage(
-        'LanguageTool API rate limit exceeded. Try again later or switch to local mode.'
-      )
-    } else if (error === 'connection_error') {
-      vscode.window.showWarningMessage('Could not connect to LanguageTool API.')
-    } else if (error === 'api_error') {
-      vscode.window.showErrorMessage(
-        `LanguageTool API error: ${message}. Consider switching to local mode.`
-      )
-    } else {
-      console.error('LanguageTool error:', error, message)
-    }
   }
 }

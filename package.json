@@ -38,8 +38,30 @@
         "title": "Doctools: Stop server"
       },
       {
+        "command": "adi-doctools.restart-server",
+        "title": "Doctools: Restart server"
+      },
+      {
         "command": "adi-doctools.open-preview",
-        "title": "Doctools: Open Preview"
+        "title": "Doctools: Open Preview",
+        "icon": "$(open-preview)"
+      },
+      {
+        "command": "adi-doctools.open-in-browser",
+        "title": "Doctools: Open in Browser"
+      },
+      {
+        "command": "adi-doctools.show-output",
+        "title": "Doctools: Show Output"
+      },
+      {
+        "command": "adi-doctools.cycle-grammar-mode",
+        "title": "Doctools: Select Spell Check Mode"
+      },
+      {
+        "command": "adi-doctools.clear-sparse",
+        "title": "Doctools: Clear Sparse Build Selection",
+        "icon": "$(clear-all)"
       },
       {
         "command": "adi-doctools.check-grammar",
@@ -58,16 +80,48 @@
     "configuration": {
       "title": "Doctools",
       "properties": {
+        "adi-doctools.pythonPath": {
+          "type": "string",
+          "default": "",
+          "scope": "machine-overridable",
+          "markdownDescription": "Python interpreter, virtual environment folder or `adoc` executable that provides `adi-doctools`. When empty, the workspace `.venv` is used, then `adoc` and `python3` from `PATH`."
+        },
+        "adi-doctools.port": {
+          "type": "integer",
+          "default": 8080,
+          "minimum": 1,
+          "maximum": 65535,
+          "description": "Port of the documentation server. The next free port is used when it is busy."
+        },
+        "adi-doctools.preview.scrollSync": {
+          "type": "boolean",
+          "default": true,
+          "description": "Lock the scroll position of the preview panel and the editor of the previewed file."
+        },
+        "adi-doctools.preview.followEditor": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the page of the active editor in the preview panel."
+        },
         "adi-doctools.grammar.mode": {
           "type": "string",
-          "enum": ["off", "local", "api"],
-          "default": "off",
+          "enum": [
+            "local",
+            "api",
+            "off"
+          ],
+          "default": "local",
           "enumDescriptions": [
-            "Disable grammar checking",
-            "Use local LanguageTool (requires Java)",
-            "Use LanguageTool public API (no installation required, but rate-limited)"
+            "Use the local LanguageTool (requires Java)",
+            "Send text to the LanguageTool public API (rate-limited)",
+            "Disable grammar checking"
           ],
           "description": "LanguageTool grammar checking mode"
+        },
+        "adi-doctools.grammar.language": {
+          "type": "string",
+          "default": "en-US",
+          "description": "LanguageTool language code (e.g., en-US, en-GB)"
         },
         "adi-doctools.grammar.apiUsername": {
           "type": "string",
@@ -81,7 +135,9 @@
         },
         "adi-doctools.grammar.disabledRules": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "default": [],
           "description": "LanguageTool rule IDs to disable (e.g., MORFOLOGIK_RULE_EN_US)"
         },
@@ -97,6 +153,24 @@
         {
           "command": "adi-doctools.check-grammar",
           "when": "config.adi-doctools.debug"
+        },
+        {
+          "command": "adi-doctools.clear-sparse",
+          "when": "workspaceFolderCount > 0"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "adi-doctools.open-preview",
+          "when": "editorLangId == restructuredtext",
+          "group": "navigation"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "adi-doctools.clear-sparse",
+          "when": "view == adi-doctools.sparse-tree",
+          "group": "navigation"
         }
       ]
     }
@@ -104,6 +178,10 @@
   "scripts": {
     "prebuild": "node scripts/fetch.js",
     "build": "webpack --mode production && cp node_modules/web-tree-sitter/web-tree-sitter.wasm dist/",
+    "check": "tsc --noEmit -p tsconfig.json",
+    "pretest": "node scripts/fetch.js && tsc -p test/tsconfig.json",
+    "test": "node --test \"out/test/unit/*.test.js\"",
+    "test:e2e": "npm run build && node test/e2e/run.js",
     "package": "vsce package"
   },
   "devDependencies": {
@@ -120,5 +198,11 @@
   },
   "dependencies": {
     "web-tree-sitter": "^0.26.6"
+  },
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false,
+      "description": "Doctools runs Python from the workspace environment."
+    }
   }
 }
