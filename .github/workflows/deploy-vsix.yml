@@ -25,7 +25,7 @@ permissions:
 jobs:
   deploy-vsce:
     if: ${{ inputs.new_tag == 'true' }}
-    runs-on: [self-hosted, repo-only]
+    runs-on: ${{ vars.RUNNER != '' && fromJSON(vars.RUNNER) || 'ubuntu-latest' }}
 
     steps:
     - uses: actions/download-artifact@v5
@@ -50,7 +50,7 @@ jobs:
         npm exec ovsx -- publish "${{ inputs.asset_path }}" -p ${{ secrets.OVSX_TOKEN }}
 
   deploy-github:
-    runs-on: [self-hosted, repo-only]
+    runs-on: ${{ vars.RUNNER != '' && fromJSON(vars.RUNNER) || 'ubuntu-latest' }}
 
     steps:
     - uses: actions/download-artifact@v5
