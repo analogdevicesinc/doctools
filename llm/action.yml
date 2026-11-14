@@ -134,16 +134,11 @@ runs:
 
         mkdir -p ~/.pi/agent/extensions
 
-        curl -sL -H "Authorization: Bearer ${{ inputs.gh-token }}" -o "/tmp/fmt_args.py" \
-          https://raw.githubusercontent.com/analogdevicesinc/doctools/action/llm/fmt_args.py
-        curl -sL -H "Authorization: Bearer ${{ inputs.gh-token }}" -o "/tmp/rpc_runner.py" \
-          https://raw.githubusercontent.com/analogdevicesinc/doctools/action/llm/rpc_runner.py
-        curl -sL -H "Authorization: Bearer ${{ inputs.gh-token }}" -o "$HOME/.pi/agent/extensions/system-prompt.ts" \
-          https://raw.githubusercontent.com/analogdevicesinc/doctools/action/llm/system-prompt.ts
-        curl -sL -H "Authorization: Bearer ${{ inputs.gh-token }}" -o "$HOME/.pi/agent/extensions/bash-timeout.ts" \
-          https://raw.githubusercontent.com/analogdevicesinc/doctools/action/llm/bash-timeout.ts
-        [[ "$enable_goal" == "true" ]] && curl -sL -H "Authorization: Bearer ${{ inputs.gh-token }}" -o "$HOME/.pi/agent/extensions/goal-completion.ts" \
-          https://raw.githubusercontent.com/analogdevicesinc/doctools/action/llm/goal-completion.ts
+        cp "$GITHUB_ACTION_PATH/system-prompt.ts" "$HOME/.pi/agent/extensions/"
+        cp "$GITHUB_ACTION_PATH/bash-timeout.ts" "$HOME/.pi/agent/extensions/"
+        if [[ "$enable_goal" == "true" ]]; then
+          cp "$GITHUB_ACTION_PATH/goal-completion.ts" "$HOME/.pi/agent/extensions/"
+        fi
 
         cat <<'EOF' > ~/.pi/agent/models.json
         {
@@ -192,10 +187,10 @@ runs:
         # Run pi
         provider="portkey-bedrock"
 
-        python3 /tmp/fmt_args.py "${{ inputs.prompt-file }}" > "$formatted_prompt_file"
+        python3 "$GITHUB_ACTION_PATH/fmt_args.py" "${{ inputs.prompt-file }}" > "$formatted_prompt_file"
 
         ret=0
-        python3 /tmp/rpc_runner.py \
+        python3 "$GITHUB_ACTION_PATH/rpc_runner.py" \
           --pi ./node_modules/.bin/pi \
           --provider "$provider" --model "${{ inputs.model }}" \
           --session "$session_file" \
