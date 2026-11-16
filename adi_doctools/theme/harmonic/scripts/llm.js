@@ -4,7 +4,7 @@ import {DOM} from './dom.js'
 import {HTMLToMarkdown} from './html2md.js'
 import {animateIn, createPresence, createLink, createLineStream,
         createPlainRenderer, createMarkdownRenderer} from './llm-markdown.js'
-import {responsesStream, mockStream} from './llm-stream.js'
+import {responsesStream, mockStream, kapaStream} from './llm-stream.js'
 
 /**
  * AI assistant chat.
@@ -16,7 +16,8 @@ import {responsesStream, mockStream} from './llm-stream.js'
 const SCREEN_0 = '(max-width: 40em)'
 const STORE_KEY = 'llm:sessions'
 const BACKEND_KEY = 'llm:backend'
-const BACKENDS = {'v1-responses': responsesStream, 'mock': mockStream}
+const BACKENDS = {'v1-responses': responsesStream, 'mock': mockStream, 'kapa': kapaStream}
+const KAPA_HOSTS = ['developer.analog.com', 'analogdevicesinc.github.io']
 
 /* Replies how to set one, see LLM.backend(). */
 const noBackend = name => (turns, onEvent, onEnd) => {
@@ -471,6 +472,9 @@ function createOutputMessage (turn, sources, live) {
           closeActivity()
           streamInto(msg.body, 'text').write(ev.delta)
           break
+        case 'source':
+          sources.cite(ev.url, sourceTitle(ev.title))
+          break
       }
     },
     end (stopped) {
@@ -482,6 +486,9 @@ function createOutputMessage (turn, sources, live) {
     }
   }
 }
+
+/* kapa.ai titles are "page|section", the section may be empty. */
+const sourceTitle = title => (title || '').split('|').map(s => s.trim()).filter(Boolean).join(' - ')
 
 /* Pages read or cited by a session, deduplicated, as on this site. */
 function createSources (onChange) {
@@ -800,7 +807,8 @@ export class LLM {
    * localStorage as "<name>[:<arg>]", e.g. "mock" or "v1-responses:127.0.0.1:8200".
    */
   backend () {
-    const value = localStorage.getItem(BACKEND_KEY) || ''
+    let value = KAPA_HOSTS.includes(location.hostname) ? 'kapa' : ''
+    value = localStorage.getItem(BACKEND_KEY) || value
     const i = value.indexOf(':')
     return i < 0 ? {name: value, arg: ''} : {name: value.slice(0, i), arg: value.slice(i + 1)}
   }
