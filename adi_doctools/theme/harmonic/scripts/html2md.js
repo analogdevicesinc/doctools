@@ -35,7 +35,7 @@ export class HTMLToMarkdown {
     }
 
     const tag = elem.tagName.toLowerCase()
-    const classes = elem.className || ''
+    const classes = elem.getAttribute('class') || ''
 
     if (tag.match(/^h[1-6]$/)) {
       this.handleHeading(elem)
@@ -187,7 +187,7 @@ export class HTMLToMarkdown {
     }
 
     const getLanguage = (elem) => {
-      const classes = elem.className || ''
+      const classes = elem.getAttribute('class') || ''
       const langMatch = classes.match(/highlight-(\w+)|language-(\w+)/)
       if (langMatch) {
         return langMatch[1] || langMatch[2]
@@ -390,7 +390,7 @@ export class HTMLToMarkdown {
    * @param {HTMLElement} elem - Admonition element
    */
   handleAdmonition (elem) {
-    const classes = elem.className || ''
+    const classes = elem.getAttribute('class') || ''
 
     let admType = 'Note'
     const types = ['note', 'warning', 'attention', 'important', 'tip', 'caution']
@@ -468,7 +468,7 @@ export class HTMLToMarkdown {
       if (node.nodeType === Node.TEXT_NODE) {
         parts.push(node.textContent)
       } else if (node.nodeType === Node.ELEMENT_NODE) {
-        const classes = node.className || ''
+        const classes = node.getAttribute('class') || ''
         if (classes.includes('headerlink')) {
           return
         }
