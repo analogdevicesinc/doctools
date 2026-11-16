@@ -6,7 +6,6 @@ import { Search } from './search.js'
 import { ContentActions } from './content_actions.js'
 import { Zoom } from './zoom.js'
 import { Domain } from './domain.js'
-import { LLM } from './llm.js'
 
 export default function Extra (){
   new Polyfill(app)
@@ -18,7 +17,6 @@ export default function Extra (){
     new ContentActions(app)
     new Zoom(app)
     new Domain(app)
-    new LLM(app)
   }
 
   if (document.readyState === 'loading')
