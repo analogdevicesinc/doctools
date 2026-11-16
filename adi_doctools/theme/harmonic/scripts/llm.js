@@ -5,6 +5,7 @@ import {HTMLToMarkdown} from './html2md.js'
 import {animateIn, createPresence, createLink, createLineStream,
         createPlainRenderer, createMarkdownRenderer} from './llm-markdown.js'
 import {responsesStream, mockStream, kapaStream} from './llm-stream.js'
+import {hasKapaConsent, requestKapaConsent} from './llm-cookie.js'
 
 /**
  * AI assistant chat.
@@ -812,6 +813,9 @@ export class LLM {
     const i = value.indexOf(':')
     return i < 0 ? {name: value, arg: ''} : {name: value.slice(0, i), arg: value.slice(i + 1)}
   }
+  has_consent () {
+    return this.backend().name !== 'kapa' || hasKapaConsent()
+  }
   stream () {
     const {name, arg} = this.backend()
     const backend = Object.hasOwn(BACKENDS, name) ? BACKENDS[name] : noBackend(name)
@@ -1082,7 +1086,12 @@ export class LLM {
       }
     })
     $.input.addEventListener('focus', () => {
-      this.set_open(true)
+      if (this.has_consent()) {
+        this.set_open(true)
+      } else {
+        $.input.blur() // so the next focus asks again
+        requestKapaConsent(() => $.input.focus())
+      }
     })
     // the whole field, icon and padding included, opens the chat
     $.field.addEventListener('click', e => {
