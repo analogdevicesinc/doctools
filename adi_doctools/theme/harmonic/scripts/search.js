@@ -824,8 +824,8 @@ export class Search {
       'className': 'version-dropdown-list',
     })
 
-    let cancel_dropdown = DOM.new('dev', {
-      'id': 'cancel-area-show-version-dropdown'
+    let cancel_dropdown = DOM.new('div', {
+      'id': 'cancel-area-show-search-dropdown'
     })
     body.append(cancel_dropdown)
     body.append(container2)
