@@ -108,7 +108,7 @@
   }
 }
 
-.chat[hidden], .chat-model-popup[hidden], .chat-model-popup [hidden] {
+.chat[hidden], .chat-model-popup [hidden] {
   display: none !important;
 }
 
@@ -1209,14 +1209,17 @@ body:has(> .chat[data-shown="true"]) .localtoc {
   box-shadow: variable.$box-shadow-raised;
   opacity: 0;
   pointer-events: none;
+  visibility: hidden;
   transform: perspective(1em) translate3d(0, 2em, -.25em);
   transform-origin: bottom;
-  transition: .125s ease-out transform, .125s opacity ease;
+  transition: .125s ease-out transform, .125s opacity ease, visibility 0s .125s;
 
   &.on {
     opacity: 1;
     pointer-events: initial;
+    visibility: visible;
     transform: translate3d(0, 0, 0);
+    transition-delay: 0s;
   }
 
   &, *, *::before {

@@ -26,7 +26,7 @@ export function createModelSelector (domain) {
   const models = () => [...builtins, ...(settings().models || [])]
   const selected = () => models().find(m => m.id === (settings().model ?? builtins[0]?.id))
   const button = DOM.new('button', {className: 'chat-model', type: 'button', title: 'Model', ariaExpanded: 'false', ariaHasPopup: 'dialog'})
-  const popup = DOM.new('div', {className: 'chat-model-popup', role: 'dialog', ariaLabel: 'Model', hidden: true})
+  const popup = DOM.new('div', {className: 'chat-model-popup', role: 'dialog', ariaLabel: 'Model'})
   const cancel = DOM.new('div', {className: 'chat-model-cancel', hidden: true})
   const list = DOM.new('div', {className: 'chat-model-list'})
   const add = DOM.new('button', {className: 'chat-model-add', type: 'button', textContent: 'Add model gateway'})
@@ -41,7 +41,7 @@ export function createModelSelector (domain) {
 
   const close = () => {
     popup.classList.remove('on')
-    popup.hidden = cancel.hidden = true
+    cancel.hidden = true
     button.ariaExpanded = 'false'
   }
   const closeEditor = () => {
@@ -115,7 +115,7 @@ export function createModelSelector (domain) {
   const open = (configure = false) => {
     render()
     closeEditor()
-    popup.hidden = cancel.hidden = false
+    cancel.hidden = false
     const rect = button.getBoundingClientRect()
     popup.style.bottom = `${window.innerHeight - rect.top + 8}px`
     popup.style.left = `${Math.max(8, Math.min(rect.left, window.innerWidth - popup.offsetWidth - 8))}px`
@@ -161,7 +161,7 @@ export function createModelSelector (domain) {
   })
   input.addEventListener('input', () => { input.ariaInvalid = 'false' })
   add.addEventListener('click', () => edit(null))
-  button.addEventListener('click', () => popup.hidden ? open() : close())
+  button.addEventListener('click', () => popup.classList.contains('on') ? close() : open())
   cancel.addEventListener('click', close)
   popup.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
