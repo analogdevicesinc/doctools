@@ -883,14 +883,17 @@ export class LLM {
     this.$.new_session.ariaPressed = String(empty)
     this.$.new_session.hidden = !started.length
     this.$.tabs.replaceChildren(...started.map(session => this.new_tab(session)))
-    const streaming = this.view_of(store.active).streaming
-    this.$.send.dataset.streaming = streaming
-    setLabel(this.$.send, streaming ? 'Stop' : 'Send')
+    this.refresh_send()
     const queued = this.view_of(store.active).queued
     if (queued)
       this.$.queued_text.textContent = queued
     this.show_queued(queued !== '')
     this.show_placeholder(empty)
+  }
+  refresh_send () {
+    const stop = this.view_of(this.store.active).streaming && !this.$.input.value.trim()
+    this.$.send.dataset.streaming = stop
+    setLabel(this.$.send, stop ? 'Stop' : 'Send')
   }
   scroll_tab () {
     this.$.tabs.querySelector('[data-active="true"]')
@@ -975,6 +978,7 @@ export class LLM {
     const typed = this.$.input.value.trim()
     this.$.input.value = typed ? `${queued}\n${typed}` : queued
     this.autosize()
+    this.refresh_send()
     this.$.input.focus()
   }
   escape () {
@@ -1098,13 +1102,14 @@ export class LLM {
     $.composer.addEventListener('submit', e => {
       e.preventDefault()
       const view = this.view_of(this.store.active)
-      if (view.streaming) {
+      if (view.streaming && !$.input.value.trim()) {
         view.stop()
         if (view.queued)
           this.restore_queued()
       } else
         this.send_message()
     })
+    $.input.addEventListener('input', () => this.refresh_send())
     $.input.addEventListener('keydown', e => {
       if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
         e.preventDefault()
