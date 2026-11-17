@@ -5,7 +5,7 @@
   @include mixin_icons.icons(("close", "pen"));
   position: fixed;
   inset: 0;
-  z-index: 10000;
+  z-index: 21;
   background: rgba(0,0,0,0);
   cursor: grab;
   touch-action: none;
