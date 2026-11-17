@@ -353,7 +353,7 @@ $chat-resize: left .2s ease, width .2s ease, padding .2s ease;
     overflow-x: auto;
     overflow-y: hidden;
     scrollbar-width: thin;
-    mask-image: linear-gradient(to right, transparent, #000 1em, #000 calc(100% - 1em), transparent);
+    mask-image: linear-gradient(to right, transparent, #000 .5rem, #000 calc(100% - .5rem), transparent);
   }
 
   .tab {

@@ -938,7 +938,7 @@ export class LLM {
   }
   scroll_tab () {
     this.$.tabs.querySelector('[data-active="true"]')
-      ?.scrollIntoView({block: 'nearest', inline: 'nearest'})
+      ?.scrollIntoView({block: 'nearest', inline: 'center'})
   }
   activate (id) {
     this.store.setActive(id)
@@ -1021,6 +1021,7 @@ export class LLM {
       return view.queue(text)
     view.send(text)
     this.stick.stick()
+    this.scroll_tab()
   }
   restore_queued () {
     const queued = this.view_of(this.store.active).unqueue()
