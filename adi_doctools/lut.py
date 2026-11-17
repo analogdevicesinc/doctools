@@ -50,6 +50,7 @@ source_internal_org = "adi-innersource"
 
 repos = {
     'analogdevicesinc.github.io': Repo(
+        alt='os-tools',
         pathname='docs',
         name='Landing Page',
         description='',
