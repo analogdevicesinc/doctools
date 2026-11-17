@@ -17,6 +17,7 @@ export class Domain {
 
     if (location.hostname === 'developer.analog.com')
       this.load_onetrust()
+    this.set_org_link()
 
     if (typeof this.parent.fetch === 'object')
       this.parent.fetch.then(this.construct.bind(this))
@@ -25,6 +26,14 @@ export class Domain {
 
     app.domain = this
     DispatchEvent("app:domain:constructed")
+  }
+  set_org_link () {
+    const link = document.querySelector('#logo-org')
+    if (!link || link.getAttribute('href') !== 'https://developer.analog.com/')
+      return
+    link.href = location.hostname === 'developer.analog.com' ?
+      'https://developer.analog.com/docs/os-tools/' :
+      'https://analogdevicesinc.github.io/'
   }
   load_onetrust () {
     let script = document.createElement('script')
