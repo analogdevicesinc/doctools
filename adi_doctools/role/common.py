@@ -17,7 +17,7 @@ dft_url = {
     'dokuwiki': 'https://wiki.analog.com',
     'ez': 'https://ez.analog.com',
     'mw': 'https://www.mathworks.com',
-    'digikey': 'https://www.digikey.com/scripts/DkSearch/dksus.dll?KeywordSearch?Site=US&Keywords=',
+    'digikey': 'https://www.digikey.com/en/products/result?keywords=',
     'mouser': 'https://www.mouser.com/c/?q=',
     'arrow': 'https://www.arrow.com/en/products/search?q=',
     'git_gui': 'https://github.com/analogdevicesinc/{repo}/tree',
