@@ -1,8 +1,14 @@
 "use strict"
 
 /**
- * Chat backends: v1/responses server and mock.
+ * Chat backends: v1/responses server, mock, and kapa.ai.
  */
+
+const KAPA_PROXY = 'https://proxy.kapa.ai/proxy/query/v2'
+const KAPA_INTEGRATION = '48c61e30-2cf1-4f06-82d4-f0736bd4040d'
+const HCAPTCHA_SITE_KEY = '565487b2-a67c-4aac-bb92-3fb64732c7b8'
+const STREAM_DELIMITER = '\u241e'
+const CAPTCHA_TIMEOUT_MS = 30000
 
 const WORDS = ('lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor ' +
   'incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation ' +
@@ -12,6 +18,7 @@ const rand = (a, b) => a + Math.floor(Math.random() * (b - a + 1))
 const words = n => Array.from({length: n}, () => WORDS[rand(0, WORDS.length - 1)]).join(' ')
 const F = '```'
 const CONNECTION_ERROR = 'Connection error.'
+const TOO_MANY_REQUESTS = 'Too many requests, please try again in a minute.'
 const DOT_SVG = 'data:image/svg+xml,' + encodeURIComponent(
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">' +
   '<circle cx="8" cy="8" r="6" fill="#1668b3"/></svg>').replace(/[()]/g, c => '%' + c.charCodeAt(0).toString(16))
@@ -251,6 +258,134 @@ export function responsesStream (turns, onEvent, onEnd, {thinking, endpoint, mod
       onEnd(stopped || controller.signal.aborted)
     }
   }
+  run()
+  return () => controller.abort()
+}
+
+let hcaptcha = null
+const captchaToken = signal => {
+  if (!hcaptcha) {
+    hcaptcha = new Promise((resolve, reject) => {
+      const onload = `hcaptcha_${Math.random().toString(36).slice(2)}`
+      window[onload] = () => {
+        const container = document.createElement('div')
+        container.hidden = true
+        document.body.append(container)
+        resolve(window.hcaptcha.render(container, {sitekey: HCAPTCHA_SITE_KEY, size: 'invisible'}))
+      }
+      const script = document.createElement('script')
+      script.src = `https://js.hcaptcha.com/1/api.js?render=explicit&recaptchacompat=off&onload=${onload}`
+      script.async = true
+      script.onerror = () => {
+        hcaptcha = null
+        reject(new Error('hCaptcha did not load'))
+      }
+      document.head.append(script)
+    })
+  }
+  return hcaptcha.then(widget => new Promise((resolve, reject) => {
+    if (signal.aborted)
+      return reject(signal.reason)
+    const give_up = err => {
+      clearTimeout(timer)
+      window.hcaptcha.close(widget)
+      reject(err)
+    }
+    const timer = setTimeout(() => give_up(new Error('the bot check timed out')), CAPTCHA_TIMEOUT_MS)
+    signal.addEventListener('abort', () => give_up(signal.reason), {once: true})
+    window.hcaptcha.reset(widget)
+    window.hcaptcha.execute(widget, {async: true}).then(({response}) => {
+      clearTimeout(timer)
+      resolve(response)
+    }, give_up)
+  }))
+}
+
+export function kapaStream (turns, onEvent, onEnd, {thinking} = {}) {
+  const controller = new AbortController()
+  const turn = turns[turns.length - 1]
+  const thread = turns.slice(0, -1).flatMap(t => t.events)
+    .findLast(e => e.type === 'thread')?.id
+  const fail = reason => onEvent({type: 'text', delta: `\n\n${reason}`})
+
+  const consume = chunk => {
+    const {type, content} = chunk
+    switch (type) {
+      case 'partial_answer':
+        onEvent({type: 'text', delta: content.text})
+        break
+      case 'relevant_sources':
+        for (const s of content.relevant_sources)
+          onEvent({type: 'source', url: s.source_url, title: s.title})
+        break
+      case 'agent_activity_update':
+        if (content.status === 'started')
+          onEvent({type: 'tool_call', id: content.id, name: content.name, input: {}})
+        else
+          onEvent({type: 'tool_result', id: content.id, output: {summary: content.summary}})
+        break
+      case 'identifiers':
+        onEvent({type: 'thread', id: content.thread_id})
+        break
+      case 'error':
+        throw new Error(content.reason)
+    }
+  }
+
+  const run = async () => {
+    let stopped = false
+    let reader
+    try {
+      const token = await captchaToken(controller.signal)
+      const url = thread ? `${KAPA_PROXY}/thread/${encodeURIComponent(thread)}/chat/stream/` :
+                           `${KAPA_PROXY}/chat/stream/`
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-HCAPTCHA-TOKEN': token,
+          'X-WEBSITE-ID': KAPA_INTEGRATION,
+        },
+        body: JSON.stringify({
+          query: turn.user,
+          mode: thinking ? 'deep_thinking' : 'default',
+          user: {},
+          metadata: {origin_url: location.origin + location.pathname},
+          ...thread ? {thread_id: thread} : {},
+        }),
+        signal: controller.signal,
+      })
+      if (!response.ok)
+        throw new Error(response.status === 429 ? TOO_MANY_REQUESTS : `HTTP ${response.status}`)
+      reader = response.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+      while (true) {
+        const {value, done} = await reader.read()
+        buffer += decoder.decode(value, {stream: !done})
+        const chunks = buffer.split(STREAM_DELIMITER)
+        buffer = chunks.pop()
+        for (const chunk of chunks)
+          consume(JSON.parse(chunk).chunk)
+        if (done)
+          break
+      }
+    } catch (err) {
+      stopped = true
+      if (!controller.signal.aborted) {
+        console.warn('llm: kapa', err)
+        fail(err.message === TOO_MANY_REQUESTS ? TOO_MANY_REQUESTS : CONNECTION_ERROR)
+      }
+    } finally {
+      if (reader) {
+        try {
+          await reader.cancel()
+        } catch {}
+      }
+      onEnd(stopped || controller.signal.aborted)
+    }
+  }
+
   run()
   return () => controller.abort()
 }

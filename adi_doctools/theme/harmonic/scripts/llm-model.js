@@ -19,6 +19,7 @@ const baseUrl = value => {
 
 export function createModelSelector (domain) {
   const builtins = [
+    ...location.hostname === 'developer.analog.com' ? [{id: 'kapa', name: 'Kapa'}] : [],
     ...isIP(location.hostname) ? [{id: 'mock', name: 'Mock'}] : [],
   ]
   const settings = () => domain.get_settings().llm || {}
