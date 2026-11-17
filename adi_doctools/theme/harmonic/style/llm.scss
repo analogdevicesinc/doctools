@@ -36,11 +36,11 @@
 }
 
 #input-show-repotoc:checked ~ .repotoc-tree.overlay {
-  z-index: 201;
+  z-index: 19;
 }
 
 #input-show-repotoc:checked ~ header {
-  z-index: 202;
+  z-index: 20;
 }
 
 @media screen and (max-width: variable.$screen-1) {
@@ -108,7 +108,7 @@
   }
 }
 
-.chat[hidden] {
+.chat[hidden], .chat-model-popup[hidden], .chat-model-popup [hidden] {
   display: none !important;
 }
 
@@ -167,7 +167,7 @@ $chat-resize: left .2s ease, width .2s ease, padding .2s ease;
 
 .chat {
   position: relative;
-  z-index: 200;
+  z-index: 16;
   opacity: 0;
   transition: opacity 0.2s ease-out;
   font-size: .95rem;
@@ -1086,6 +1086,32 @@ $chat-resize: left .2s ease, width .2s ease, padding .2s ease;
     transition: opacity .2s ease;
   }
 
+  .chat-model {
+    min-width: 0;
+    max-width: 12rem;
+    height: 2rem;
+    padding: 0 .75rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font: inherit;
+    font-size: .85em;
+    color: var(--text-color2);
+    border: variable.$border-panel2;
+    border-radius: 1rem;
+    cursor: pointer;
+    transition: color .2s ease, background-color .2s ease, border-color .2s ease;
+
+    &:hover, &[aria-expanded="true"] {
+      color: var(--text-color1);
+      background: var(--bg-color2);
+    }
+
+    &[data-empty="true"] {
+      border-style: dashed;
+    }
+  }
+
   .chat-effort {
     display: flex;
     align-items: center;
@@ -1157,10 +1183,247 @@ body:has(> .chat[data-shown="true"]) .localtoc {
   pointer-events: none;
 }
 
+.chat-model-cancel {
+  position: fixed;
+  inset: 0;
+  z-index: 17;
+}
+
+.chat-model-popup {
+  @include mixin_icons.icons(("plus", "close", "edit", "arrow-right"));
+
+  position: fixed;
+  z-index: 18;
+  display: flex;
+  flex-direction: column;
+  width: 20rem;
+  max-width: calc(100vw - 1rem);
+  padding: .375rem;
+  overflow: hidden;
+  font-size: .9rem;
+  line-height: 1.4;
+  color: var(--text-color1);
+  background: var(--bg-color2);
+  border: variable.$border-panel1;
+  border-radius: variable.$border-radius;
+  box-shadow: variable.$box-shadow-raised;
+  opacity: 0;
+  pointer-events: none;
+  transform: perspective(1em) translate3d(0, 2em, -.25em);
+  transform-origin: bottom;
+  transition: .125s ease-out transform, .125s opacity ease;
+
+  &.on {
+    opacity: 1;
+    pointer-events: initial;
+    transform: translate3d(0, 0, 0);
+  }
+
+  &, *, *::before {
+    box-sizing: border-box;
+  }
+
+  :where(button, input) {
+    font: inherit;
+    color: inherit;
+  }
+
+  :where(button) {
+    cursor: pointer;
+    border-radius: variable.$border-radius;
+
+    &:focus-visible {
+      outline: .125em solid var(--accent-color);
+      outline-offset: -.125em;
+    }
+  }
+}
+
+.chat-model-list {
+  display: grid;
+  align-content: start;
+  gap: .25rem;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.chat-model-group {
+  display: grid;
+
+  & + & {
+    padding-top: .25rem;
+    border-top: variable.$border-panel1;
+  }
+
+  &:not(:hover, :focus-within) .chat-model-action {
+    opacity: 0;
+  }
+}
+
+.chat-model-provider {
+  display: flex;
+  align-items: center;
+  min-height: 2rem;
+  padding-left: .5rem;
+  font-size: .8em;
+  color: var(--text-color3);
+}
+
+.chat-model-provider-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-model-option {
+  padding: .4rem .5rem;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  &:hover, &:focus-visible {
+    background: var(--bg-color1);
+  }
+
+  &[aria-pressed="true"] {
+    color: var(--accent-color);
+  }
+}
+
+.chat-model-action {
+  flex: none;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-color3);
+  transition: opacity .15s ease, color .15s ease;
+
+  &:hover, &:focus-visible {
+    color: var(--text-color1);
+    background: var(--bg-color1);
+  }
+
+  &.chat-model-edit::before {
+    @include icon("edit", 1rem);
+  }
+
+  &.chat-model-remove::before {
+    @include icon("close", 1rem);
+  }
+}
+
+.chat-model-add, .chat-model-editor {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: .5rem;
+  height: 2.125rem;
+}
+
+.chat-model-divider {
+  display: block;
+  flex: none;
+  margin: .25rem .5rem;
+  border-top: variable.$border-panel1;
+}
+
+.chat-model-add {
+  padding: 0 .5rem;
+  color: var(--text-color2);
+
+  &::before {
+    @include icon("plus", 1rem);
+  }
+
+  &:hover {
+    color: var(--text-color1);
+    background: var(--bg-color1);
+  }
+}
+
+.chat-model-editor {
+  gap: .375rem;
+  padding: 0 .125rem;
+
+  input {
+    flex: 1;
+    min-width: 0;
+    height: 1.875rem;
+    padding: 0 .5rem;
+    background: var(--bg-color1);
+    border: variable.$border-panel2;
+    border-radius: variable.$border-radius;
+
+    &:focus {
+      outline: none;
+      border-color: var(--accent-color);
+    }
+
+    &[aria-invalid="true"] {
+      border-color: variable.$hmc-color-red-700;
+    }
+  }
+}
+
+.chat-model-set {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 1.875rem;
+  height: 1.875rem;
+  padding: 0;
+  color: var(--bg-color1);
+  background: var(--accent-color);
+
+  &::before {
+    @include icon("arrow-right", 1rem);
+  }
+
+  &:disabled {
+    cursor: progress;
+  }
+
+  &[aria-busy="true"]::before {
+    width: .875rem;
+    height: .875rem;
+    background: none;
+    mask: none;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: chat-model-spin .7s linear infinite;
+  }
+}
+
+@keyframes chat-model-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-model-popup {
+    transition: none;
+  }
+
+  .chat-model-set[aria-busy="true"]::before {
+    animation: none;
+    border-right-color: currentColor;
+    opacity: .6;
+  }
+}
+
 #cancel-area-llm-fullscreen {
   position: fixed;
   inset: 0;
-  z-index: 198;
+  z-index: 14;
   background: var(--bg-color1);
   opacity: 0;
   pointer-events: none;
@@ -1173,7 +1436,7 @@ body:has(> .chat[data-shown="true"]) .localtoc {
 }
 
 .chat[data-shown="true"] ~ .chat-composer {
-  z-index: 199;
+  z-index: 15;
 
   .chat-field::before {
     width: 0;

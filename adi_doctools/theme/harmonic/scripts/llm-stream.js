@@ -143,15 +143,8 @@ const pageItem = page => ({
   ].join('\n\n'),
 })
 
-export function responsesStream (turns, onEvent, onEnd, {thinking, arg, page} = {}) {
+export function responsesStream (turns, onEvent, onEnd, {thinking, endpoint, model, page} = {}) {
   const controller = new AbortController()
-  const m = /^(.+):(\d+)$/.exec(arg || '')
-  if (!m) {
-    onEvent({type: 'text', delta: 'No server set, use the llm:backend "v1-responses:<addr>:<port>".'})
-    onEnd(true)
-    return () => {}
-  }
-  const endpoint = `http://${m[1]}:${m[2]}/v1/responses`
   const past = turns.slice(0, -1)
   const turn = turns[turns.length - 1]
   const pastEvents = past.flatMap(t => t.events)
@@ -169,11 +162,12 @@ export function responsesStream (turns, onEvent, onEnd, {thinking, arg, page} = 
     ]
   }
   const newItems = [...(newPage ? [pageItem(newPage)] : []), userItem(turn)]
-  const request = stateful => fetch(endpoint, {
+  const request = stateful => fetch(`${endpoint}/v1/responses`, {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({
       ...stateful ? {previous_response_id: previousId} : {},
+      model,
       input: stateful ? newItems : [...past.flatMap(turnItems), ...newItems],
       stream: true,
       reasoning: {effort: thinking ? 'medium' : 'none'},

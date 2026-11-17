@@ -5,6 +5,7 @@ import {HTMLToMarkdown} from './html2md.js'
 import {animateIn, createPresence, createLink, createLineStream,
         createPlainRenderer, createMarkdownRenderer} from './llm-markdown.js'
 import {responsesStream, mockStream} from './llm-stream.js'
+import {createModelSelector} from './llm-model.js'
 
 /**
  * AI assistant chat.
@@ -15,17 +16,6 @@ import {responsesStream, mockStream} from './llm-stream.js'
 /* Below $screen-0 the chat covers the page, so a page change closes it. */
 const SCREEN_0 = '(max-width: 40em)'
 const STORE_KEY = 'llm:sessions'
-const BACKEND_KEY = 'llm:backend'
-const BACKENDS = {'v1-responses': responsesStream, 'mock': mockStream}
-
-/* Replies how to set one, see LLM.backend(). */
-const noBackend = name => (turns, onEvent, onEnd) => {
-  onEvent({type: 'text', delta: name ? 'Unknown backend, verify settings.' :
-    `No backend set, use the llm:backend on the localStorage: ${Object.keys(BACKENDS).map(n => `\`${n}\``).join(', ')}.`})
-  onEnd(true)
-  return () => {}
-}
-
 const PAGE_MAX = 50000
 
 function currentPage () {
@@ -811,19 +801,20 @@ export class LLM {
     }
     this.activate(this.store.activeId)
   }
-  /**
-   * Backend for the next reply, as {name, arg}, from the llm:backend on the
-   * localStorage as "<name>[:<arg>]", e.g. "mock" or "v1-responses:127.0.0.1:8200".
-   */
-  backend () {
-    const value = localStorage.getItem(BACKEND_KEY) || ''
-    const i = value.indexOf(':')
-    return i < 0 ? {name: value, arg: ''} : {name: value.slice(0, i), arg: value.slice(i + 1)}
-  }
   stream () {
-    const {name, arg} = this.backend()
-    const backend = Object.hasOwn(BACKENDS, name) ? BACKENDS[name] : noBackend(name)
-    return (turns, onEvent, onEnd) => backend(turns, onEvent, onEnd, {thinking: this.effort, arg, page: currentPage()})
+    const model = this.models.selected()
+    const backend = model.id === 'mock' ? mockStream : responsesStream
+    return (turns, onEvent, onEnd) => {
+      const thread = turns.slice(0, -1).flatMap(t => t.events).findLast(e => e.type === 'thread')
+      const history = thread?.model === model.id ? turns : turns.map(t => ({
+        ...t, events: t.events.filter(e => e.type !== 'thread'),
+      }))
+      return backend(history, ev => {
+        onEvent(ev.type === 'thread' ? {...ev, model: model.id} : ev)
+      }, onEnd, {
+        thinking: this.effort, endpoint: model.endpoint, model: model.name, page: currentPage(),
+      })
+    }
   }
   set_effort (effort) {
     this.effort = effort
@@ -966,6 +957,10 @@ export class LLM {
     const view = this.view_of(this.store.active)
     if (!text)
       return
+    if (!this.models.selected()) {
+      this.models.open(true)
+      return
+    }
     this.$.input.value = ''
     this.autosize()
     if (view.streaming)
@@ -992,6 +987,7 @@ export class LLM {
    * Below $screen-0 and expanded the chat covers the page, so close it
    */
   deinit () {
+    this.models.close()
     if (window.matchMedia(SCREEN_0).matches)
       this.set_open(false)
     else if (this.expanded)
@@ -1061,7 +1057,8 @@ export class LLM {
     $.field = DOM.new('div', {className: 'chat-field'})
     $.field.append($.input)
     const actions = DOM.new('div', {className: 'chat-actions'})
-    actions.append($.effort, $.send)
+    this.models = createModelSelector(this.parent.domain)
+    actions.append(this.models.button, $.effort, $.send)
     $.composer.append($.field, actions)
   }
   construct () {
@@ -1132,7 +1129,7 @@ export class LLM {
       if (e.key !== 'Escape')
         e.stopPropagation()
     }
-    for (const node of [$.chat, $.composer]) {
+    for (const node of [$.chat, $.composer, this.models.popup]) {
       node.addEventListener('keydown', own_key)
       node.addEventListener('keyup', own_key)
     }
