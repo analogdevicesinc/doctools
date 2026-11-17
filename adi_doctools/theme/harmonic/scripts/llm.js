@@ -318,8 +318,47 @@ const TOOL_VIEWS = {
     done: 'Read',
     target: (input, output) => createLink(docUrl(input.url), output?.title || docUrl(input.url)),
   },
+  search_docs: {
+    running: 'Searching',
+    done: 'Searched',
+    target: (input, output) => DOM.new('span', {
+      textContent: output ? `“${input.query}”, ${output.results?.length ?? 0} results` : `“${input.query}”`,
+    }),
+  },
 }
 const DEFAULT_TOOL_VIEW = {running: 'Calling', done: 'Called', target: () => null}
+
+const SEARCH_TEXT_MAX = 600
+
+function searchTool (search) {
+  return {
+    name: 'search_docs',
+    description: 'Search the documentation by keywords. Returns sections with title, url and text.',
+    parameters: {
+      type: 'object',
+      properties: {
+        query: {
+          type: 'string',
+          description: 'Keywords, like part names. Avoid questions.',
+        },
+        repositories: {
+          type: 'array',
+          items: {type: 'string', enum: Object.keys(search.$.keyCheckbox)},
+          description: 'Documentation to search, empty for the current one.',
+        },
+      },
+      required: ['query'],
+    },
+    async run ({query = '', repositories = []}, signal) {
+      const results = await search.background_query(String(query), {repositories, signal})
+      return {
+        output: results.map(({repository, title, url, text}) =>
+          ({repository, title, url, text: text.slice(0, SEARCH_TEXT_MAX)})),
+        display: {results: results.map(({title, url}) => ({title, url}))},
+      }
+    },
+  }
+}
 
 function createToolPart (parent, call) {
   const view = Object.hasOwn(TOOL_VIEWS, call.name) ? TOOL_VIEWS[call.name] : DEFAULT_TOOL_VIEW
@@ -823,6 +862,7 @@ export class LLM {
         onEvent(ev.type === 'thread' ? {...ev, model: model.id} : ev)
       }, onEnd, {
         thinking: this.effort, endpoint: model.endpoint, model: model.name, page: currentPage(),
+        tools: [searchTool(this.parent.search)],
       })
     }
   }

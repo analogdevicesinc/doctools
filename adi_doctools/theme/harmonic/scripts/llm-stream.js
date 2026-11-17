@@ -139,6 +139,7 @@ export function mockStream (turns, onEvent, onEnd, {thinking} = {}) {
 }
 
 const statelessServers = new Set()
+const TOOL_ROUNDS = 4
 
 const pageItem = page => ({
   type: 'message',
@@ -150,7 +151,7 @@ const pageItem = page => ({
   ].join('\n\n'),
 })
 
-export function responsesStream (turns, onEvent, onEnd, {thinking, endpoint, model, page} = {}) {
+export function responsesStream (turns, onEvent, onEnd, {thinking, endpoint, model, page, tools = []} = {}) {
   const controller = new AbortController()
   const past = turns.slice(0, -1)
   const turn = turns[turns.length - 1]
@@ -160,30 +161,41 @@ export function responsesStream (turns, onEvent, onEnd, {thinking, endpoint, mod
   const newPage = page && (!lastPage || lastPage.url !== page.url || lastPage.markdown !== page.markdown) ? page : null
 
   const userItem = t => ({type: 'message', role: 'user', content: t.user})
+  const assistantItem = text => ({type: 'message', role: 'assistant', content: [{type: 'output_text', text}]})
   const turnItems = t => {
     const text = t.events.filter(e => e.type === 'text').map(e => e.delta).join('')
     return [
       ...t.events.filter(e => e.type === 'page').map(pageItem),
       userItem(t),
-      ...(text ? [{type: 'message', role: 'assistant', content: [{type: 'output_text', text}]}] : []),
+      ...(text ? [assistantItem(text)] : []),
     ]
   }
   const newItems = [...(newPage ? [pageItem(newPage)] : []), userItem(turn)]
-  const request = stateful => fetch(`${endpoint}/v1/responses`, {
+  const toolDefs = tools.map(({name, description, parameters}) => ({type: 'function', name, description, parameters}))
+  const post = (previous, input, last) => fetch(`${endpoint}/v1/responses`, {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({
-      ...stateful ? {previous_response_id: previousId} : {},
+      ...previous ? {previous_response_id: previous} : {},
       model,
-      input: stateful ? newItems : [...past.flatMap(turnItems), ...newItems],
+      input,
       stream: true,
       reasoning: {effort: thinking ? 'medium' : 'none'},
+      ...toolDefs.length ? {tools: toolDefs, tool_choice: last ? 'none' : 'auto'} : {},
     }),
     signal: controller.signal,
   })
-  let responseId
+  const request = async (previous, input, full, last) => {
+    if (previous && !statelessServers.has(endpoint)) {
+      const response = await post(previous, input, last)
+      if (response.status !== 400)
+        return response
+      statelessServers.add(endpoint)
+    }
+    return post(undefined, full, last)
+  }
 
-  const consume = line => {
+  const consume = (line, round) => {
     if (!line.startsWith('data:'))
       return false
     const data = line.slice(5).trim()
@@ -192,19 +204,22 @@ export function responsesStream (turns, onEvent, onEnd, {thinking, endpoint, mod
     const event = JSON.parse(data)
     switch (event.type) {
       case 'response.created':
-        responseId = event.response.id
+        round.id = event.response.id
         break
       case 'response.reasoning_text.delta':
         onEvent({type: 'thinking', delta: event.delta})
         break
       case 'response.output_text.delta':
+        round.text += event.delta
         onEvent({type: 'text', delta: event.delta})
         break
+      case 'response.output_item.done':
+        if (event.item.type === 'function_call') {
+          const {call_id, name, arguments: args} = event.item
+          round.calls.push({type: 'function_call', call_id, name, arguments: args})
+        }
+        break
       case 'response.completed':
-        if (newPage)
-          onEvent({type: 'page', ...newPage})
-        if (responseId)
-          onEvent({type: 'thread', id: responseId})
         return true
       case 'response.failed':
       case 'response.incomplete':
@@ -214,35 +229,75 @@ export function responsesStream (turns, onEvent, onEnd, {thinking, endpoint, mod
     return false
   }
 
-  const run = async () => {
-    let stopped = false
-    let reader
+  const readRound = async response => {
+    if (!response.ok)
+      throw new Error(`HTTP ${response.status}: ${await response.text()}`)
+    const round = {id: null, text: '', calls: []}
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder()
+    let buffer = ''
     try {
-      const stateful = previousId && !statelessServers.has(endpoint)
-      let response = await request(stateful)
-      if (stateful && response.status === 400) {
-        statelessServers.add(endpoint)
-        response = await request(false)
-      }
-      if (!response.ok)
-        throw new Error(`HTTP ${response.status}: ${await response.text()}`)
-      reader = response.body.getReader()
-      const decoder = new TextDecoder()
-      let buffer = ''
       while (true) {
         const {value, done} = await reader.read()
         buffer += decoder.decode(value, {stream: !done})
         const lines = buffer.split('\n')
         buffer = lines.pop()
-        for (const line of lines) {
-          if (consume(line))
-            return
-        }
+        if (lines.some(line => consume(line, round)))
+          return round
         if (done) {
-          consume(buffer)
-          break
+          consume(buffer, round)
+          return round
         }
       }
+    } finally {
+      try {
+        await reader.cancel()
+      } catch {}
+    }
+  }
+
+  const callTool = async call => {
+    let input = {}
+    try {
+      input = JSON.parse(call.arguments || '{}')
+    } catch {}
+    onEvent({type: 'tool_call', id: call.call_id, name: call.name, input})
+    const tool = tools.find(t => t.name === call.name)
+    let result
+    try {
+      result = tool ? await tool.run(input, controller.signal) : {output: {error: `Unknown tool ${call.name}.`}}
+    } catch (err) {
+      if (controller.signal.aborted)
+        throw err
+      result = {output: {error: err.message}}
+    }
+    onEvent({type: 'tool_result', id: call.call_id, output: result.display ?? result.output})
+    return {type: 'function_call_output', call_id: call.call_id, output: JSON.stringify(result.output)}
+  }
+
+  const run = async () => {
+    let stopped = false
+    try {
+      let full = [...past.flatMap(turnItems), ...newItems]
+      let previous = previousId
+      let input = newItems
+      let round
+      for (let i = 0; ; i++) {
+        const last = i === TOOL_ROUNDS
+        round = await readRound(await request(previous, input, full, last))
+        if (!round.calls.length || last)
+          break
+        const outputs = []
+        for (const call of round.calls)
+          outputs.push(await callTool(call))
+        full = [...full, ...(round.text ? [assistantItem(round.text)] : []), ...round.calls, ...outputs]
+        previous = round.id
+        input = outputs
+      }
+      if (newPage)
+        onEvent({type: 'page', ...newPage})
+      if (round.id)
+        onEvent({type: 'thread', id: round.id})
     } catch (err) {
       stopped = true
       if (!controller.signal.aborted) {
@@ -250,11 +305,6 @@ export function responsesStream (turns, onEvent, onEnd, {thinking, endpoint, mod
         onEvent({type: 'text', delta: `\n\n${CONNECTION_ERROR}`})
       }
     } finally {
-      if (reader) {
-        try {
-          await reader.cancel()
-        } catch {}
-      }
       onEnd(stopped || controller.signal.aborted)
     }
   }
