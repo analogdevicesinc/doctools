@@ -1154,6 +1154,11 @@ export class LLM {
     window.addEventListener('app:search:opened', () => this.set_open(false))
     window.addEventListener('pagehide', () => this.store.save())
 
-    this.activate(this.store.activeId)
+    if (performance.getEntriesByType('navigation')[0]?.type === 'navigate') {
+      const empty = this.store.sessions.find(s => !s.turns.length)
+      this.activate((empty || this.store.create()).id)
+    } else {
+      this.activate(this.store.activeId)
+    }
   }
 }
