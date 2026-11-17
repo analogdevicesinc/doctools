@@ -140,6 +140,7 @@ export function mockStream (turns, onEvent, onEnd, {thinking} = {}) {
 
 const statelessServers = new Set()
 const TOOL_ROUNDS = 4
+const INSTRUCTIONS = 'Reply in Markdown.'
 
 const pageItem = page => ({
   type: 'message',
@@ -160,6 +161,7 @@ export function responsesStream (turns, onEvent, onEnd, {thinking, endpoint, mod
   const lastPage = pastEvents.findLast(e => e.type === 'page')
   const newPage = page && (!lastPage || lastPage.url !== page.url || lastPage.markdown !== page.markdown) ? page : null
 
+  const instructionsItem = {type: 'message', role: 'developer', content: INSTRUCTIONS}
   const userItem = t => ({type: 'message', role: 'user', content: t.user})
   const assistantItem = text => ({type: 'message', role: 'assistant', content: [{type: 'output_text', text}]})
   const turnItems = t => {
@@ -278,7 +280,7 @@ export function responsesStream (turns, onEvent, onEnd, {thinking, endpoint, mod
   const run = async () => {
     let stopped = false
     try {
-      let full = [...past.flatMap(turnItems), ...newItems]
+      let full = [instructionsItem, ...past.flatMap(turnItems), ...newItems]
       let previous = previousId
       let input = newItems
       let round
