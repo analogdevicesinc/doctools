@@ -650,13 +650,14 @@ function recordEvent (turn, ev) {
  * One session's DOM and live stream, built by replaying the stored turns.
  * Keeps working while detached, so a reply goes on in a background tab.
  * hooks.onSources(items): the sources list changed.
- * hooks.onState(): a turn started or ended.
+ * hooks.onState(): a turn started or ended, or the queue changed.
  * hooks.stream(): the backend for the next reply.
  */
 function createSessionView (session, hooks) {
   const root = DOM.new('div', {className: 'session'})
   const sources = createSources(hooks.onSources)
   let abort = null // set while a reply is streaming
+  let queued = '' // sent once the reply is done
 
   const addTurn = (turn, live) => {
     const container = DOM.new('div', {className: 'turn'})
@@ -705,12 +706,27 @@ function createSessionView (session, hooks) {
         output.end(stopped)
         abort = null
         hooks.onState()
+        if (!stopped && queued)
+          this.send(this.unqueue())
       }
       const stop = hooks.stream()(session.turns, onEvent, onEnd)
       if (!ended) {
         abort = stop
         hooks.onState()
       }
+    },
+    get queued () {
+      return queued
+    },
+    queue (text) {
+      queued = queued ? `${queued}\n${text}` : text
+      hooks.onState()
+    },
+    unqueue () {
+      const text = queued
+      queued = ''
+      hooks.onState()
+      return text
     },
     stop () {
       if (abort)
@@ -870,6 +886,10 @@ export class LLM {
     const streaming = this.view_of(store.active).streaming
     this.$.send.dataset.streaming = streaming
     setLabel(this.$.send, streaming ? 'Stop' : 'Send')
+    const queued = this.view_of(store.active).queued
+    if (queued)
+      this.$.queued_text.textContent = queued
+    this.show_queued(queued !== '')
     this.show_placeholder(empty)
   }
   scroll_tab () {
@@ -941,12 +961,21 @@ export class LLM {
   send_message (text = this.$.input.value.trim()) {
     this.set_open(true)
     const view = this.view_of(this.store.active)
-    if (view.streaming || !text)
+    if (!text)
       return
     this.$.input.value = ''
     this.autosize()
+    if (view.streaming)
+      return view.queue(text)
     view.send(text)
     this.stick.stick()
+  }
+  restore_queued () {
+    const queued = this.view_of(this.store.active).unqueue()
+    const typed = this.$.input.value.trim()
+    this.$.input.value = typed ? `${queued}\n${typed}` : queued
+    this.autosize()
+    this.$.input.focus()
   }
   escape () {
     if (this.tray.open)
@@ -984,7 +1013,12 @@ export class LLM {
     actions.append($.sources, $.expand, $.close)
     header.append($.tabs, $.new_session, actions)
     $.panel = DOM.new('div', {className: 'chat-panel'})
-    $.panel.append($.log)
+    $.queued = DOM.new('button', {className: 'chat-queued', type: 'button', hidden: true, title: 'Edit queued message'})
+    $.queued_text = DOM.new('span', {className: 'chat-queued-text'})
+    const bubble = DOM.new('span', {className: 'chat-queued-bubble'})
+    bubble.append($.queued_text)
+    $.queued.append(DOM.new('span', {className: 'chat-queued-label', textContent: 'Queued'}), bubble)
+    $.panel.append($.log, $.queued)
     $.chat.append(header, $.tray, $.panel, $.placeholder)
   }
   new_placeholder () {
@@ -1040,6 +1074,7 @@ export class LLM {
     this.autosize = createAutosize($.input)
     this.show_chat = createPresence($.chat)
     this.show_placeholder = createPresence($.placeholder)
+    this.show_queued = createPresence($.queued)
     this.tray = createTray($.tray, $.sources)
     this.store = createSessionStore(STORE_KEY)
 
@@ -1054,6 +1089,7 @@ export class LLM {
         this.activate(id)
     })
     $.new_session.addEventListener('click', () => this.new_session())
+    $.queued.addEventListener('click', () => this.restore_queued())
     // opening the thinking is reading it, do not scroll it away
     $.thread.addEventListener('click', e => {
       if (e.target.closest('.activity-status'))
@@ -1062,9 +1098,11 @@ export class LLM {
     $.composer.addEventListener('submit', e => {
       e.preventDefault()
       const view = this.view_of(this.store.active)
-      if (view.streaming)
+      if (view.streaming) {
         view.stop()
-      else
+        if (view.queued)
+          this.restore_queued()
+      } else
         this.send_message()
     })
     $.input.addEventListener('keydown', e => {
