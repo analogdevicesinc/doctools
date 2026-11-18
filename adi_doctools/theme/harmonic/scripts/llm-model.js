@@ -31,7 +31,7 @@ export function createModelSelector (domain) {
   const list = DOM.new('div', {className: 'chat-model-list'})
   const add = DOM.new('button', {className: 'chat-model-add', type: 'button', textContent: 'Add model gateway'})
   const editor = DOM.new('form', {className: 'chat-model-editor', hidden: true})
-  const input = DOM.new('input', {type: 'text', inputMode: 'url', placeholder: 'https://example.com', ariaLabel: 'Model server URL', autocomplete: 'url', spellcheck: false})
+  const input = DOM.new('input', {type: 'text', inputMode: 'url', placeholder: 'Responses API URL', ariaLabel: 'Model server URL', autocomplete: 'url', spellcheck: false})
   const set = DOM.new('button', {className: 'chat-model-set', type: 'submit', title: 'Set'})
   editor.append(input, set)
   const divider = DOM.new('span', {className: 'chat-model-divider', role: 'separator'})
