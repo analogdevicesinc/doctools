@@ -167,7 +167,8 @@ runs:
 
         [[ -f ~/.pi/agent/settings.json ]] || cat <<'EOF' > ~/.pi/agent/settings.json
         {
-            "shellCommandPrefix": ""
+            "shellCommandPrefix": "unset PORTKEY_API_KEY; ",
+            "defaultTools": ["+codemode"]
         }
         EOF
 
@@ -198,6 +199,7 @@ runs:
       if: ${{ env.LLM_AGENT_RUN == 'true' }}
       env:
         PORTKEY_API_KEY: ${{ inputs.api-key }}
+        GITHUB_TOKEN: ${{ inputs.gh-token }}
       run: |
         # Run pi
         provider="portkey-bedrock"

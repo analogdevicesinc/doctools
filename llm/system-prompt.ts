@@ -20,8 +20,11 @@ function buildSystemPrompt(cwd: string): string {
 
   const enable_goal = process.env.enable_goal;
 
+  const github_token_set = !!process.env.GITHUB_TOKEN;
+
   let instructions_preamble = "";
   let instructions_output = "";
+  let api_calls = "";
 
   if (base_sha && head_sha)
     instructions_preamble += `You are reviewing the commits after ${base_sha} up to and including ${head_sha}.\n`;
@@ -49,6 +52,11 @@ output above (summary, comment, patches, etc.) is actually written to disk -- wr
 the files IS part of the goal, not a follow-up. If you are stopping for any other reason
 (context limits, an open question, more turns needed), call report_goal_status with
 done=false and a concrete nextSteps so the run can resume correctly.\n`;
+
+  if (github_token_set)
+    api_calls += `- GITHUB_TOKEN, use for GitHub REST API.\n`;
+  if (api_calls)
+    api_calls = `# API Calls\n\nThe following API keys are set in the environment:\n${api_calls}`
 
   if (comment_file && server_url && repository && run_id)
     instructions_output += `For the comment, consider the template (run id, url, repository are already filled, the current run id **is** ${run_id}), don't use emojis, be concise, and focus on the issues:
@@ -166,9 +174,7 @@ For example, downloads 10 seconds, checkers 30 seconds, builds up to 30 minutes.
 Considers that builds are cached, even if they timeout, you can execute again,
 continuing were it stopped. Prefer the tool timeout option.
 
-# API Calls
-
-Your environment contains the relevant API keys, for example, a GITHUB_TOKEN.
+${api_calls}
 
 # Context
 
