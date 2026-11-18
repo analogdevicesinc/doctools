@@ -1,0 +1,37 @@
+{
+  "text": [
+    "## Open code, ship faster.\n\n\nExplore our open source solutions to build with confidence.\n",
+    "Games\n\nQuick games in the ADI Arcade\n",
+    "View all\n",
+    "View all\n",
+    "Open source is a shared effort, we support the projects that help us\nbuild, test, and collaborate.\n\nSilver sponsor \u00b7 2026\n\nlabgrid\n\nFrom quick hardware tests to continuous testing.\n\nlabgrid is an embedded board control python library with a focus on\ntesting, development and general automation. It in"
+  ],
+  "url": [
+    "",
+    "#games",
+    "#evaluation-boards",
+    "#learning",
+    "#sponsoring"
+  ],
+  "hierarchy": [
+    [
+      "ADI Open Source"
+    ],
+    [
+      "ADI Open Source",
+      "Games"
+    ],
+    [
+      "ADI Open Source",
+      "Evaluation boards"
+    ],
+    [
+      "ADI Open Source",
+      "Learning"
+    ],
+    [
+      "ADI Open Source",
+      "Sponsoring"
+    ]
+  ]
+}
