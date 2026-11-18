@@ -22,6 +22,12 @@ outputs:
   pr:
     description: "Pull request number"
     value: ${{ steps.get_pr.outputs.pr }}
+  head_ref:
+    description: "Pull request source branch name"
+    value: ${{ steps.pr_context.outputs.head_ref || steps.get_pr.outputs.head_ref }}
+  base_ref:
+    description: "Pull request target branch name"
+    value: ${{ steps.pr_context.outputs.base_ref || steps.get_pr.outputs.base_ref }}
   head_sha:
     description: "Head commit sha"
     value: ${{ steps.checkout.outputs.head_sha }}
@@ -53,13 +59,17 @@ runs:
   using: composite
   steps:
     - name: Use pull request context
+      id: pr_context
       if: ${{ github.event_name == 'pull_request' && inputs.repository == github.repository && inputs.ref == github.sha }}
       shell: bash
       run: |
         # Use pull request context
         echo "merge_commit_sha=${{ github.sha }}" >> "$GITHUB_ENV"
         echo "pr=${{ github.event.pull_request.number }}" >> "$GITHUB_ENV"
-        echo "branch=${{ github.head_ref }}" >> "$GITHUB_ENV"
+        echo "head_ref=${{ github.head_ref }}" >> "$GITHUB_ENV"
+        echo "base_ref=${{ github.base_ref }}" >> "$GITHUB_ENV"
+        echo "head_ref=${{ github.head_ref }}" >> "$GITHUB_OUTPUT"
+        echo "base_ref=${{ github.base_ref }}" >> "$GITHUB_OUTPUT"
 
         pr_base_sha=${{ github.event.pull_request.base.sha }}
         pr_head_sha=${{ github.event.pull_request.head.sha }}
@@ -90,7 +100,8 @@ runs:
         ref="${ref#\#}"
         repository="${{ inputs.repository }}"
 
-        branch=
+        head_ref=
+        base_ref=
         resp=
         pr_json=
         pr=
@@ -150,7 +161,8 @@ runs:
             pr=""
           else
             merge_commit_sha=$(echo "$resp" | jq -r '.merge_commit_sha')
-            branch="$(echo "$pr_json" | jq '.head.ref')"
+            head_ref=$(echo "$resp" | jq -r '.head.ref // empty')
+            base_ref=$(echo "$resp" | jq -r '.base.ref // empty')
             pr_base_sha=$(echo "$resp" | jq -r '.base.sha')
             pr_head_sha=$(echo "$resp" | jq -r '.head.sha')
             if [[ "$merge_commit_sha" == "null" ]]; then
@@ -169,17 +181,18 @@ runs:
               fetch_depth=$(( ahead_by + behind_by + 2 ))
             fi
           fi
-        else
-          branch="trunk"
         fi
 
         echo "pr=$pr" >> "$GITHUB_OUTPUT"
+        echo "head_ref=$head_ref" >> "$GITHUB_OUTPUT"
+        echo "base_ref=$base_ref" >> "$GITHUB_OUTPUT"
         echo "pr=$pr" >> "$GITHUB_ENV"
         echo "fetch_depth=$fetch_depth" >> "$GITHUB_ENV"
         echo "merge_commit_sha=$merge_commit_sha" >> "$GITHUB_ENV"
         echo "pr_base_sha=$pr_base_sha" >> "$GITHUB_ENV"
         echo "pr_head_sha=$pr_head_sha" >> "$GITHUB_ENV"
-        echo "branch=$branch" >> "$GITHUB_ENV"
+        echo "head_ref=$head_ref" >> "$GITHUB_ENV"
+        echo "base_ref=$base_ref" >> "$GITHUB_ENV"
 
 
     - name: Prepare git
@@ -269,7 +282,7 @@ runs:
         merge_commit_sha="${{ env.merge_commit_sha }}"
         pr_base_sha="${{ env.pr_base_sha }}"
         pr_head_sha="${{ env.pr_head_sha }}"
-        branch="${{ env.branch || github.ref_name }}"
+        rename_branch="${{ env.head_ref || github.ref_name }}"
         ref="${{ inputs.ref }}"
         ref="${ref//[[:space:]]/}"
 
@@ -370,7 +383,7 @@ runs:
         echo "touched files:"
         git --no-pager diff --name-only $base_sha..$head_sha
 
-        git branch -m $branch 2>/dev/null || true
+        git branch -m "$rename_branch" 2>/dev/null || true
 
         echo "head_sha=$head_sha" >> "$GITHUB_OUTPUT"
         echo "base_sha=$base_sha" >> "$GITHUB_OUTPUT"
