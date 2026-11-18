@@ -23,6 +23,10 @@ inputs:
     description: 'Enable goal enforcement'
     required: false
     default: "true"
+  skills:
+    description: "Skills to enable"
+    required: false
+    default: ""
   py-venv:
     description: "Python virtual enviroment"
     required: false
@@ -92,7 +96,7 @@ runs:
         echo "tasks_file=$(mktemp -t llm-tasks.XXX.md)" >> "$GITHUB_ENV"
         echo "summary_file=$(mktemp -t llm-summary.XXX.md)" >> "$GITHUB_ENV"
         [[ -z "${{ inputs.ref }}" ]] || echo "comment_file=$(mktemp -t llm-comment.XXX.md)" >> "$GITHUB_ENV"
-        [[ -z "${{ inputs.ref }}" ]] || echo "patches_path=$(mktemp -d)" >> "$GITHUB_ENV"
+        [[ -z "${{ inputs.ref }}" ]] || echo "patches_path=$(mktemp -dt llm-patches.XXX)" >> "$GITHUB_ENV"
 
         echo "server_url=${{ github.server_url }}" >> "$GITHUB_ENV"
         echo "repository=${{ github.repository }}" >> "$GITHUB_ENV"
@@ -130,7 +134,7 @@ runs:
       if: ${{ env.LLM_AGENT_RUN == 'true' }}
       run: |
         # Setup pi
-        npm install @earendil-works/pi-coding-agent@1.1.0
+        npm install @earendil-works/pi-coding-agent@1.5.2
 
         mkdir -p ~/.pi/agent/extensions
 
@@ -177,6 +181,17 @@ runs:
           jq --arg cmd "source $sh_source; " '.shellCommandPrefix += $cmd' ~/.pi/agent/settings.json > $tmp && mv $tmp ~/.pi/agent/settings.json
 
         rm -f $tmp
+
+    - name: Setup skills
+      shell: bash
+      if: ${{ env.LLM_AGENT_RUN == 'true' && inputs.skills != '' }}
+      env:
+        PI_SKILLS: ${{ inputs.skills }}
+      run: |
+        # Setup skills
+        skills_dir="$(mktemp -dt llm-skills.XXX)"
+        echo "skills_dir=$skills_dir" >> "$GITHUB_ENV"
+        python3 "$GITHUB_ACTION_PATH/setup_skills.py" "$skills_dir" ~/.pi/agent/settings.json
 
     - name: Run pi
       shell: bash
@@ -290,4 +305,4 @@ runs:
         # Clean-up
         rm -rf "$HOME/.pi"
         rm -f "$annotations_file" "$comments_file" "$tasks_file" "$summary_file" "$comment_file" "$session_file" "$formatted_prompt_file"
-        rm -rf "$patches_path"
+        rm -rf "$patches_path" "$skills_dir"

@@ -1,6 +1,6 @@
-from os import environ
-import sys
 import re
+import sys
+from os import environ
 
 pattern = re.compile(r'\$(\w+)|\$\{([^}]+)\}')
 

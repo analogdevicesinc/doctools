@@ -45,7 +45,7 @@ report_goal_status with done=false and a concrete nextSteps so the run's
 outcome is recorded before it is terminated.
 </watchdog_nudge>"""
 
-OVERFLOW_RECOVERY_FAILED = re.compile(r"context overflow recovery failed", re.I)
+OVERFLOW_RECOVERY_FAILED = re.compile(r"context overflow recovery failed", re.IGNORECASE)
 
 IDLE_POLL_SECONDS = 2
 DEFAULT_FINALIZE_GRACE_SECONDS = 600  # 10 minutes
@@ -115,7 +115,7 @@ class PiRpcSession:
             bufsize=1,
         )
         self._req_id = 0
-        self._queue: "queue.Queue[Optional[dict[str, Any]]]" = queue.Queue()
+        self._queue: queue.Queue[Optional[dict[str, Any]]] = queue.Queue()
         self._reader = threading.Thread(target=self._read_loop, daemon=True)
         self._reader.start()
 

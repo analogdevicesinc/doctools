@@ -1,6 +1,6 @@
 // ~/.pi/agent/extensions/system-prompt.ts
 
-import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import { formatSkillsForPrompt, type ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 function buildSystemPrompt(cwd: string): string {
   const base_sha = process.env.base_sha;
@@ -181,9 +181,10 @@ ${instructions_output}`;
 }
 
 export default function (pi: ExtensionAPI) {
-  pi.on("before_agent_start", async (_event, ctx) => {
+  pi.on("before_agent_start", async (event, ctx) => {
     return {
-      systemPrompt: buildSystemPrompt(ctx.cwd),
+      systemPrompt: buildSystemPrompt(ctx.cwd) +
+        formatSkillsForPrompt(event.systemPromptOptions.skills ?? []),
     };
   });
 }
