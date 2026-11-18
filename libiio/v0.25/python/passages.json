@@ -1,0 +1,102 @@
+{
+  "text": [
+    "Copyright (C) 2015 Analog Devices, Inc.\nAuthor: Paul Cercueil <paul.cercueil@analog.com>\n\nThis program is free software; you can redistribute it and/or\nmodify it under the terms of the GNU General Public License\nas published by the Free Software Foundation; either version 2\nof the License, or (at yo",
+    "Python bindings for the Industrial I/O interface library.\n",
+    "The libiio python bindings can be installed from pip\n\n```bash\n(sudo) pip install pylibiio\n```\n\n\nor by grabbing the source directly\n\n```bash\ngit clone https://github.com/analogdevicesinc/libiio.git\ncd bindings/python\n(sudo) python3 setup.py install\n```\n\n\n> **Note**\n>\n> On Linux the libiio python bind",
+    "- Contexts\n- Buffer\n- Device\n- Channels\n- Trigger\n- Examples\n",
+    "- Index\n- Module Index\n- Search Page\n",
+    "- iio_readdev\n  `Arguments`\n  `BufferBuilder`\n  `BufferBuilder.create()`\n  `ContextBuilder`\n  `ContextBuilder.create()`\n  `DataReader`\n  `DataReader.read()`\n  `main()`\n\n  - `Arguments`\n  - `BufferBuilder`\n    `BufferBuilder.create()`\n\n    - `BufferBuilder.create()`\n  - `ContextBuilder`\n    `ContextB",
+    "Scan contexts and list channels of each device\n\n```python\nimport iio\n\nfor ctxname in iio.scan_contexts():\n    ctx = iio.Context(ctxname)\n    for dev in ctx.devices:\n        if dev.channels:\n            for chan in dev.channels:\n                print(\"{} - {} - {}\".format(ctxname, dev.name, chan._id)",
+    "Copyright (C) 2020 Analog Devices, Inc.\nAuthor: Cristian Iacob <cristian.iacob@analog.com>\n\nThis program is free software; you can redistribute it and/or\nmodify it under the terms of the GNU General Public License\nas published by the Free Software Foundation; either version 2\nof the License, or (at ",
+    "***class*iio.Trigger(*ctx*, *_device*)[source]**\n:   Contains the representation of an IIO device that can act as a trigger.\n:   *property*attrs\n:   List of attributes for this IIO device.\n:   type=dict of iio.DeviceAttr\n:   *property*buffer_attrs\n:   List of buffer attributes for this IIO device.\n:",
+    "***class*iio.Channel(*dev*, *_channel*)[source]**\n:   Represents a channel of an IIO device.\n:   *property*attrs\n:   List of attributes for this channel.\n:   type=dict of iio.ChannelAttr\n:   *property*data_format\n:   Channel data format.\n:   type: iio.DataFormat\n:   *property*device\n:   Correspondin",
+    "***class*iio.DataFormat[source]**\n:   Represents the data format of an IIO channel.\n\n\n\n***class*iio.ChannelModifier(*value*)[source]**\n:   Contains the modifier type of an IIO channel.\n\n\n\n***class*iio.ChannelType(*value*)[source]**\n:   Contains the type of an IIO channel.\n",
+    "***class*iio.Buffer(*device*, *samples_count*, *cyclic=False*)[source]**\n:   The class used for all I/O operations.\n:   cancel()[source]\n:   Cancel the current buffer.\n:   *property*device\n:   Device for the buffer.\n:   type: iio.Device\n:   *property*poll_fd\n:   Poll_fd for the buffer.\n:   type: int",
+    "Copyright (C) 2020 Analog Devices, Inc.\nAuthor: Cristian Iacob <cristian.iacob@analog.com>\n\nThis program is free software; you can redistribute it and/or\nmodify it under the terms of the GNU General Public License\nas published by the Free Software Foundation; either version 2\nof the License, or (at ",
+    "***class*iio.Device(*ctx*, *_device*)[source]**\n:   Contains the representation of an IIO device.\n:   *property*attrs\n:   List of attributes for this IIO device.\n:   type=dict of iio.DeviceAttr\n:   *property*buffer_attrs\n:   List of buffer attributes for this IIO device.\n:   type=dict of iio.DeviceB",
+    "***class*iio.DeviceDebugAttr(*device*, *name*)[source]**\n:   Represents a debug attribute of an IIO device.\n:   *property*filename\n:   The filename in sysfs to which this attribute is bound.\n:   type=str\n:   *property*name\n:   The name of this attribute.\n:   type=str\n:   *property*value\n:   Current ",
+    "Copyright (C) 2020 Analog Devices, Inc.\nAuthor: Cristian Iacob <cristian.iacob@analog.com>\n\nThis program is free software; you can redistribute it and/or\nmodify it under the terms of the GNU General Public License\nas published by the Free Software Foundation; either version 2\nof the License, or (at ",
+    "***class*iio.Context(*_context=None*)[source]**\n:   Contains the representation of an IIO context.\n:   *property*attrs\n:   List of context-specific attributes\n:   type=dict of str objects\n:   clone()[source]\n:   Clone this instance.\n:   returns: type=iio.LocalContextAn new instance of this class\n:  "
+  ],
+  "url": [
+    "iio_info",
+    "",
+    "",
+    "",
+    "",
+    "examples#complete-application-examples",
+    "examples#code-snippets",
+    "iio_attr",
+    "trigger#members",
+    "channel#members",
+    "channel#channel-attributes",
+    "buffer#members",
+    "iio_writedev",
+    "device#members",
+    "device#device-attributes",
+    "iio_readdev",
+    "context#members"
+  ],
+  "hierarchy": [
+    [
+      "iio_info"
+    ],
+    [
+      "libiio Python Bindings"
+    ],
+    [
+      "Installation"
+    ],
+    [
+      "Components"
+    ],
+    [
+      "Indices and tables"
+    ],
+    [
+      "Examples",
+      "Complete Application Examples"
+    ],
+    [
+      "Examples",
+      "Code Snippets"
+    ],
+    [
+      "iio_attr"
+    ],
+    [
+      "Trigger",
+      "Members"
+    ],
+    [
+      "Channels",
+      "Members"
+    ],
+    [
+      "Channels",
+      "Channel attributes"
+    ],
+    [
+      "Buffer",
+      "Members"
+    ],
+    [
+      "iio_writedev"
+    ],
+    [
+      "Device",
+      "Members"
+    ],
+    [
+      "Device",
+      "Device attributes"
+    ],
+    [
+      "iio_readdev"
+    ],
+    [
+      "Contexts",
+      "Members"
+    ]
+  ]
+}
