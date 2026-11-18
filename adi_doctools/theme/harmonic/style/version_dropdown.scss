@@ -186,7 +186,8 @@ header .version-dropdown {
 }
 
 @media screen {
-    #cancel-area-show-version-dropdown.on {
+    #cancel-area-show-version-dropdown.on,
+    #cancel-area-show-search-dropdown.on {
         position: fixed;
         background: rgba(0,0,0,.05);
         top: 0;
