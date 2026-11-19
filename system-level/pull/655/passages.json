@@ -1,0 +1,432 @@
+{
+  "text": [
+    "> **Attention**\n>\n> Work-in-progress, not all content available at the\n> wiki\n> has been imported yet.\n\n\nSoftware, documentation and reference designs for Analog Devices\nproducts.\n\nThe System Level documentation provides developers using Analog Devices\nproducts with software and documentation, inclu",
+    "Reference Designs\n\nReference designs combining mixed signal hardware, software and\nalgorithms.\n\nProducts\n\nEvaluation boards, embedded processors and lab tools for hardware\ndevelopment.\n\nADC Platforms\n\nIntegrated evaluation and demonstration platforms for data converter\nsystems.\n\nApplication Software",
+    "Kuiper\n\nDebian-based Linux distribution with tools and drivers for evaluation\nhardware.\n\nKernel and devicetrees\n\nBuild guides for the Linux kernel and devicetrees across supported\nplatforms.\n\nLinux drivers\n\nLinux kernel drivers for connecting devices and accessing their\nfunctionality.\n\nSoftware\n\nLib",
+    "Tutorials & Workshops\n\nHands-on tutorials and workshops covering mixed signal basics and\nsystem design.\n\nUniversity Program\n\nLearning tools and practical courses for the next generation of design\nengineers.\n",
+    "> **Note**\n>\n> We are in the process of moving the reference design documentation from\n> wiki.analog.com to ADI Documentation repository.\n> We apologize for any inconvenience that may occur due to this migration.\n\n\nAnalog Devices has developed hundreds of reference designs to help solve our\ncustomer",
+    "This user guide describes the switches and jumpers needed to use the\nEV-SC846-SOM on the EV-SOMCRR2-EZKIT carrier board.\n",
+    "The complete user guide of the EV-SC846-SOM can be found at the\nEV-SC846-SOM manual. This section only describes\nthe settings needed to set up the boards.\n",
+    "Jumper **JP1** selects the power input of the SoM.\n|Mode|JP1|Power input|\n|Standalone|1-2|USB Type-C connector P2|\n|On a carrier board|2-3|SoM 2.0 connector, from the carrier board|\n",
+    "Switch **S2** selects the boot mode of the processor. Use\nposition 0 to bootstrap the processor over JTAG, as\ndescribed in Getting started, and position 1 to boot\nU-Boot from the flash after it is installed.\n|Position|Boot mode|\n|0|No boot|\n|1|SPI1 flash boot (default)|\n|2|SPI2 host boot|\n|3|UART0 b",
+    "**P4** is the JTAG header for an external ICE, such as the ICE-1000 or\nICE-1500. Use it in standalone mode, or on a carrier board with the debug\nagent disabled.\n",
+    "- EV-SC846-SOM schematic\n- EV-SC846-SOM bill of materials\n",
+    "The complete user guide of the EV-SOMCRR2-EZKIT can be found at the\nEV-SOMCRR2-EZKIT manual. This section only describes\nthe settings needed to set up the boards.\n",
+    "Switch **S11** enables or disables the on-board debug\nagent. Disable it to attach an external ICE to the JTAG header of the SoM.\n|Debugger|S11.1 to S11.6|S11.7 and S11.8|\n|On-board debug agent|ON|OFF|\n|External ICE|OFF|OFF|\n\n\n> **Note**\n>\n> The \u201cDebug Agent\u201d section of the carrier board manual calls",
+    "Switches **S1** and **S2**\nroute the JTAG signals of the debug agent to a single SoM, or to all SoMs in a\ndaisy chain. If only one SoM is installed, route the JTAG signals to that SoM.\n|Route|S1|S2|\n|SOM A only|1-2|1-2|\n|SOM B only|1-2|2-3|\n|Daisy chain|2-3|1-2|\n",
+    "- EV-SOMCRR2-EZKIT schematic\n- EV-SOMCRR2-EZKIT bill of materials\n",
+    "ADSP-SC846 system-on-module on the EV-SOMCRR2-EZKIT carrier board.\n",
+    "This page describes how to evaluate the ADSP-SC846\nwith the EV-SC846-SOM system-on-module (SoM) on the EV-SOMCRR2-EZKIT\ncarrier board. The SoM carries the processor, its memories and power supplies;\nthe carrier board provides the peripherals and the on-board debug agent.\n",
+    "The EV-SC846-SOM is a System-on-Module 2.0 (SoM 2.0) evaluation board for the ADSP-SC846, a SHARC Connect processor with a SHARC-FX core and two ARM Cortex-A55 cores. The SoM carries the processor, its memories and power supplies, and plugs into a carrier board through its finger edge connector. It ",
+    "The EV-SOMCRR2-EZKIT carrier board provides the peripherals needed to evaluate the processor on the SoM: audio converters, S/PDIF, Gigabit Ethernet, CAN and A2B expansion. It has two SoM 2.0 connectors, SOM A and SOM B, and an on-board debug agent, so the processor can be debugged over JTAG without ",
+    "People who follow the flow that is outlined, have a much better experience with\nthings. However, like many things, documentation is never as complete as it\nshould be. If you have any questions, check the\nHelp and Support section at the bottom of\nthe page.\n",
+    "1. Using the evaluation boards:\n  Prerequisites: what you need to get\n  started\n  Quick start: set up the boards and boot\n  Linux\n  User guide: board settings, and the\n  manuals of both boards\n\n  1. Prerequisites: what you need to get\n    started\n  2. Quick start: set up the boards and boot\n    Linu",
+    "- ADSP-SC846 data sheet\n- ADSP-2184x/ADSP-SC84x hardware reference manual\n- ADSP-21844/ADSP-21846/ADSP-SC844/ADSP-SC846 anomaly list\n",
+    "> **Warning**\n>\n> All the products described on this page include ESD (electrostatic discharge) sensitive devices. Electrostatic charges as high as 4000V readily accumulate on the human body or test equipment and can discharge without detection.\n> Although the boards feature ESD protection circuitry",
+    "For questions and more information, please visit the\nProcessors and DSP community on EngineerZone.\n",
+    "What you need, depends on what you are trying to do. As a minimum, you need to\nstart out with:\n",
+    "1. The EV-SC846-SOM\n  system-on-module\n2. The EV-SOMCRR2-EZKIT\n  carrier board, with the power supply and USB cables that come with it\n3. Host PC (Windows or Linux)\n4. Ethernet cable, and a network with a DHCP server, to load Linux from the\n  host PC\n5. Optional: an external ICE, such as the ICE-100",
+    "1. The ADI fork of OpenOCD, built as described in Getting started\n2. A GDB that supports the ARM architecture (`gdb-multiarch` on\n  Ubuntu/Debian)\n3. UART terminal application (PuTTY/TeraTerm/Minicom), 115200 8N1\n4. Python 3, to serve the Linux images to U-Boot over HTTP\n5. Optional: CrossCore Embed",
+    "The complete user guide of the evaluation board can be found at\nADRV9026/ADRV9029 System Development User Guide (Rev. 0).\n",
+    "The archive\nadrv9026-adrv9029-design-file-package.zip\ncontains the following:\n",
+    "This directory contains reusable reStructuredText (RST) templates for\ngenerating consistent documentation for Analog Devices reference designs.\n",
+    "The template system uses Jinja2-based RST templates to generate\ncomprehensive documentation for ADI evaluation boards and reference\ndesigns. This ensures consistency across different projects while allowing\ncustomization through template variables.\n",
+    "A reusable template for generating the prerequisites section of\ndocumentation. This template provides a standardized way to document the\nhardware and software requirements for any reference design.\n",
+    "|Variable|Type|Description|\n|`prerequisites_ref`|string|Reference ID for cross-linking (e.g., \u201cadrv9002 prerequisites\u201d)|\n|`chip_name`|string or list|Name(s) of the chip(s) used in the evaluation board. Accepts a single string (e.g., `ADRV9002`) or a list for multiple chips (e.g., `[AD9162, AD9625]`)",
+    "```rst\n.. include-template:: ../template/prerequisites.rst.jinja\n\n   prerequisites_ref: adrv9002 prerequisites\n   chip_name: ADRV9002\n   eval_board: EVAL-ADRV9002\n   carriers_ref: adrv9002 carriers\n   has_linux: true\n   has_rf_test_equipment: true\n   additional_hardware:\n     - USB-JTAG programmer f",
+    "A comprehensive template for generating ZedBoard quick start guides for\nADI evaluation boards. It supports both Linux and no-OS software\nconfigurations.\n",
+    "|Variable|Type|Description|\n|`quickstart_ref`|string|Reference ID for the quick start guide (e.g., \u201cadrv9002-zed\u201d)|\n|`eval_board`|string|Name of the ADI evaluation board (e.g., \u201cEVAL-ADRV9002\u201d)|\n|`hdl_project_doc`|string|HDL project documentation path for Sphinx reference (e.g., \u201cadrv9001\u201d)|\n|`prere",
+    "**General Configuration**\n\n- `has_linux` (boolean): Enable Linux software section\n- `has_no_os` (boolean): Enable no-OS software section\n- `has_lvds_support` (boolean): Show LVDS support warning for ZedBoard\n- `has_jesd` (boolean): Show JESD204 status utility section (only if\n  design has JESD suppo",
+    "```rst\n.. include-template:: ../../template/quickstart/zed.rst.jinja\n\n   quickstart_ref: adrv9002-zed\n   eval_board: EVAL-ADRV9002\n   has_linux: true\n   has_no_os: true\n   has_lvds_support: true\n   hdl_project_doc: template_project\n   prerequisites_ref: adrv9002 prerequisites\n   quickstart_image: ..",
+    "The quickstart template generates the following sections:\n\n1. **Introduction** - Overview with ZedBoard image and ESD warning\n2. **LVDS Support** (optional) - Warning about LVDS limitations on\n  ZedBoard\n3. **Linux Section** (if `has_linux: true`)\n  Necessary files (BOOT.bin, uImage, devicetree.dtb)",
+    "See these example implementations in the repository:\n\n- `../adrv9002/quickstart/zed.rst` - ZedBoard quickstart with Linux\n  and no-OS\n- `../adrv9002/prerequisites.rst` - Prerequisites example\n",
+    "- Image paths should be relative to the file that includes the template\n- Common files (like setup steps) can be included from the same directory\n- Use `../images/` for images in the project\u2019s images folder\n- Use `../files/` for binary artifacts and downloadable files (e.g.,\n  .zip, .pdf, .docx, .bi",
+    "Each reference design project should follow this directory structure:\n\n```text\nproject/\n\u251c\u2500\u2500 index.rst                 # Main documentation files (RST only)\n\u251c\u2500\u2500 prerequisites.rst\n\u251c\u2500\u2500 user-guide.rst\n\u251c\u2500\u2500 images/                   # Image files only (.png, .jpg, etc.)\n\u2502   \u251c\u2500\u2500 project_setup.png\n\u2502   \u2514\u2500\u2500 .",
+    "- **General variables** shared by both Linux and no-OS: no prefix (e.g.,\n  `has_vadj_warning`, `has_vadj_led`, `vadj_led_image`)\n- **Linux-specific variables**: prefix with `linux_` (e.g.,\n  `linux_setup_steps_file`, `linux_additional_hardware`,\n  `linux_has_loopback`)\n- **No-OS-specific variables**",
+    "- All boolean variables default to `false` if not specified\n- Image sections are only rendered if both the flag is `true` AND the\n  image path is provided\n- Both Linux and no-OS sections share VADJ warnings and VADJ LED\n  information using the same general variables\n- Loopback configuration notes ar",
+    "This quick start guide sets up the EV-SC846-SOM on the\nEV-SOMCRR2-EZKIT carrier board, with JTAG through the on-board debug\nagent. The software steps, OpenOCD, U-Boot and Linux, are described in\nGetting started; this page covers the board specific settings.\n\nBefore you start, make sure you have ever",
+    "Disconnect all power before changing switches and jumpers, or inserting the\nSoM.\n",
+    "1. Set jumper **JP1** to 2-3, to power the SoM\n  from the carrier board.\n2. Set the boot mode switch **S2** to position\n  0, so the processor waits to be bootstrapped over\n  JTAG.\n\n\nThe serial console of the SoM is on its USB Type-C connector P2.\n\n> **Important**\n>\n> Getting started calls the boot m",
+    "1. Insert the SoM into the **SOM A** connector.\n  The default SoftConfig settings of the carrier route the audio ADCs to SOM A.\n2. Enable the debug agent with switch **S11**:\n  positions 1 to 6 ON, positions 7 and 8 OFF.\n3. Route JTAG to SOM A:\n  **S1** to 1-2 and **S2** to 1-2.\n4. Connect the Ether",
+    "Follow Getting started, with these settings:\n\n1. Start OpenOCD with the debug agent interface and the target configuration of\n  the ADSP-SC846:\n  ~/openocd$\n  sudo src/openocd -f adi-dbgagent.cfg \\\n        -f adspsc59x_a55.cfg \\\n        --search tcl/ \\\n        --search tcl/interface/ \\\n        --sea",
+    "The EVALUATION BOARD, is a FMC radio card for the\nCHIP, highly integrated, radio frequency (RF)\nagile transceivers offering four independently controlled transmitters,\n(\u2026).\n\nFeatures:\n\n- feature 1\n- feature 2\n\n\nApplications:\n\n- application 1\n- application 2\n",
+    "People who follow the flow that is outlined, have a much better experience with\nthings. However, like many things, documentation is never as complete as it\nshould be. If you have any questions, feel free to ask on our\nEngineerZone forums, but before that, please make\nsure you read our documentation ",
+    "1. Using the evaluation board/full stack reference design that we offer:\n\n\n1. Design with the CHIP1/CHIP2\n  Block diagram\n  CHIP1 product page\n  CHIP2 product page\n  Hardware in the Loop / How to design your own custom BaseBand\n  GNU Radio\n  Transceiver Toolbox\n  Resources for designing a custom CHI",
+    "About JESD standard:\n\n1. JESD204B Survival Guide\n2. JESD204C Primer: What\u2019s New and in It for You\u2014Part 1\n3. JESD204C Primer: What\u2019s New and in It for You\u2014Part 2\n",
+    "> **Warning**\n>\n> All the products described on this page include ESD (electrostatic discharge) sensitive devices. Electrostatic charges as high as 4000V readily accumulate on the human body or test equipment and can discharge without detection.\n> Although the boards feature ESD protection circuitry",
+    "Please go to Help and Support page.\n",
+    "This directory contains the templates for the ADSP system-on-module (SoM)\nreference designs. Each reference design is one combination of a SoM and a\ncarrier board, for example the EV-SC846-SOM on the EV-SOMCRR2-EZKIT. A SoM can\nbe used on several carrier boards and a carrier board can host several S",
+    "```text\nreference-designs/\n\u251c\u2500\u2500 template/adsp/\n\u2502   \u251c\u2500\u2500 boards/                    # One data file per board\n\u2502   \u2502   \u251c\u2500\u2500 ev-sc846-som.yaml\n\u2502   \u2502   \u2514\u2500\u2500 ev-somcrr2-ezkit.yaml\n\u2502   \u251c\u2500\u2500 images/                    # Board pictures, shared by all pages\n\u2502   \u251c\u2500\u2500 index.rst.jinja            # Combination templat",
+    "1. If the SoM or the carrier board is new, add its data file to `boards/` and\n  its pictures to `images/`. Use an existing file of the same board type as\n  a starting point.\n2. Create the directory `<som>-<carrier>/`, with a `combination.yaml` and\n  the four pages `index.rst`, `prerequisites.rst`, `",
+    "|Variable|Type|Description|\n|`som`|string|Identifier of the SoM, the name of its file in `boards/`|\n|`carrier`|string|Identifier of the carrier board, the name of its file in `boards/`|\n|`processor`|string|Processor on the SoM, as in its analog.com product page URL (e.g., `ADSP-SC846`)|\n|`openocd_in",
+    "Common to SoMs and carrier boards:\n|Variable|Type|Description|\n|`id`|string|Identifier of the board, the same as the file name|\n|`description`|RST|Overview paragraph, with a link to the product page|\n|`features`|list|Features of the board|\n|`images`|list|Pictures in `images/`, each with `file`, `alt"
+  ],
+  "url": [
+    "",
+    "#apps-solutions",
+    "#firmware-software",
+    "#learning",
+    "solutions/reference-designs",
+    "solutions/reference-designs/ev-sc846-som-ev-somcrr2-ezkit/user-guide",
+    "solutions/reference-designs/ev-sc846-som-ev-somcrr2-ezkit/user-guide#ev-sc846-som",
+    "solutions/reference-designs/ev-sc846-som-ev-somcrr2-ezkit/user-guide#power-supply-jp1",
+    "solutions/reference-designs/ev-sc846-som-ev-somcrr2-ezkit/user-guide#boot-mode-s2",
+    "solutions/reference-designs/ev-sc846-som-ev-somcrr2-ezkit/user-guide#jtag-p4",
+    "solutions/reference-designs/ev-sc846-som-ev-somcrr2-ezkit/user-guide#schematic-pcb-layout-bill-of-materials",
+    "solutions/reference-designs/ev-sc846-som-ev-somcrr2-ezkit/user-guide#ev-somcrr2-ezkit",
+    "solutions/reference-designs/ev-sc846-som-ev-somcrr2-ezkit/user-guide#debug-agent-enable-s11",
+    "solutions/reference-designs/ev-sc846-som-ev-somcrr2-ezkit/user-guide#jtag-routing-s1-s2",
+    "solutions/reference-designs/ev-sc846-som-ev-somcrr2-ezkit/user-guide#id1",
+    "solutions/reference-designs/ev-sc846-som-ev-somcrr2-ezkit",
+    "solutions/reference-designs/ev-sc846-som-ev-somcrr2-ezkit#overview",
+    "solutions/reference-designs/ev-sc846-som-ev-somcrr2-ezkit#ev-sc846-som",
+    "solutions/reference-designs/ev-sc846-som-ev-somcrr2-ezkit#ev-somcrr2-ezkit",
+    "solutions/reference-designs/ev-sc846-som-ev-somcrr2-ezkit#recommendations",
+    "solutions/reference-designs/ev-sc846-som-ev-somcrr2-ezkit#table-of-contents",
+    "solutions/reference-designs/ev-sc846-som-ev-somcrr2-ezkit#helpful-documents",
+    "solutions/reference-designs/ev-sc846-som-ev-somcrr2-ezkit#warning",
+    "solutions/reference-designs/ev-sc846-som-ev-somcrr2-ezkit#help-and-support",
+    "solutions/reference-designs/ev-sc846-som-ev-somcrr2-ezkit/prerequisites",
+    "solutions/reference-designs/ev-sc846-som-ev-somcrr2-ezkit/prerequisites#hardware-prerequisites",
+    "solutions/reference-designs/ev-sc846-som-ev-somcrr2-ezkit/prerequisites#software-prerequisites",
+    "solutions/reference-designs/template/user-guide",
+    "solutions/reference-designs/template/user-guide#schematic-pcb-layout-bill-of-materials",
+    "solutions/reference-designs/template/README",
+    "solutions/reference-designs/template/README#overview",
+    "solutions/reference-designs/template/README#prerequisites-template-prerequisites-rst-jinja",
+    "solutions/reference-designs/template/README#prerequisites-template-variables",
+    "solutions/reference-designs/template/README#prerequisites-usage-example",
+    "solutions/reference-designs/template/README#zedboard-quick-start-template-quickstart-zed-rst-jinja",
+    "solutions/reference-designs/template/README#required-variables",
+    "solutions/reference-designs/template/README#optional-variables",
+    "solutions/reference-designs/template/README#quick-start-usage-example",
+    "solutions/reference-designs/template/README#quick-start-template-structure",
+    "solutions/reference-designs/template/README#example-implementations",
+    "solutions/reference-designs/template/README#path-conventions",
+    "solutions/reference-designs/template/README#project-structure-guidelines",
+    "solutions/reference-designs/template/README#variable-naming-conventions",
+    "solutions/reference-designs/template/README#notes",
+    "solutions/reference-designs/ev-sc846-som-ev-somcrr2-ezkit/quickstart",
+    "solutions/reference-designs/ev-sc846-som-ev-somcrr2-ezkit/quickstart#hardware-setup",
+    "solutions/reference-designs/ev-sc846-som-ev-somcrr2-ezkit/quickstart#prepare-the-ev-sc846-som",
+    "solutions/reference-designs/ev-sc846-som-ev-somcrr2-ezkit/quickstart#prepare-the-ev-somcrr2-ezkit",
+    "solutions/reference-designs/ev-sc846-som-ev-somcrr2-ezkit/quickstart#software-setup",
+    "solutions/reference-designs/template/_index#overview",
+    "solutions/reference-designs/template/_index#recommendations",
+    "solutions/reference-designs/template/_index#table-of-contents",
+    "solutions/reference-designs/template/_index#adi-articles",
+    "solutions/reference-designs/template/_index#warning",
+    "solutions/reference-designs/template/_index#help-and-support",
+    "solutions/reference-designs/template/adsp/README",
+    "solutions/reference-designs/template/adsp/README#overview",
+    "solutions/reference-designs/template/adsp/README#adding-a-combination",
+    "solutions/reference-designs/template/adsp/README#combination-variables",
+    "solutions/reference-designs/template/adsp/README#board-variables"
+  ],
+  "hierarchy": [
+    [
+      "System Level Documentation"
+    ],
+    [
+      "System Level Documentation",
+      "Apps & Solutions"
+    ],
+    [
+      "System Level Documentation",
+      "Firmware & Software"
+    ],
+    [
+      "System Level Documentation",
+      "Learning"
+    ],
+    [
+      "Reference Designs"
+    ],
+    [
+      "Reference Designs",
+      "EV-SC846-SOM on the EV-SOMCRR2-EZKIT",
+      "User guide"
+    ],
+    [
+      "Reference Designs",
+      "EV-SC846-SOM on the EV-SOMCRR2-EZKIT",
+      "User guide",
+      "EV-SC846-SOM"
+    ],
+    [
+      "Reference Designs",
+      "EV-SC846-SOM on the EV-SOMCRR2-EZKIT",
+      "User guide",
+      "EV-SC846-SOM",
+      "Power supply (JP1)"
+    ],
+    [
+      "Reference Designs",
+      "EV-SC846-SOM on the EV-SOMCRR2-EZKIT",
+      "User guide",
+      "EV-SC846-SOM",
+      "Boot mode (S2)"
+    ],
+    [
+      "Reference Designs",
+      "EV-SC846-SOM on the EV-SOMCRR2-EZKIT",
+      "User guide",
+      "EV-SC846-SOM",
+      "JTAG (P4)"
+    ],
+    [
+      "Reference Designs",
+      "EV-SC846-SOM on the EV-SOMCRR2-EZKIT",
+      "User guide",
+      "EV-SC846-SOM",
+      "Schematic, PCB Layout, Bill of Materials"
+    ],
+    [
+      "Reference Designs",
+      "EV-SC846-SOM on the EV-SOMCRR2-EZKIT",
+      "User guide",
+      "EV-SOMCRR2-EZKIT"
+    ],
+    [
+      "Reference Designs",
+      "EV-SC846-SOM on the EV-SOMCRR2-EZKIT",
+      "User guide",
+      "EV-SOMCRR2-EZKIT",
+      "Debug agent enable (S11)"
+    ],
+    [
+      "Reference Designs",
+      "EV-SC846-SOM on the EV-SOMCRR2-EZKIT",
+      "User guide",
+      "EV-SOMCRR2-EZKIT",
+      "JTAG routing (S1, S2)"
+    ],
+    [
+      "Reference Designs",
+      "EV-SC846-SOM on the EV-SOMCRR2-EZKIT",
+      "User guide",
+      "EV-SOMCRR2-EZKIT",
+      "Schematic, PCB Layout, Bill of Materials"
+    ],
+    [
+      "Reference Designs",
+      "EV-SC846-SOM on the EV-SOMCRR2-EZKIT"
+    ],
+    [
+      "Reference Designs",
+      "EV-SC846-SOM on the EV-SOMCRR2-EZKIT",
+      "Overview"
+    ],
+    [
+      "Reference Designs",
+      "EV-SC846-SOM on the EV-SOMCRR2-EZKIT",
+      "Overview",
+      "EV-SC846-SOM"
+    ],
+    [
+      "Reference Designs",
+      "EV-SC846-SOM on the EV-SOMCRR2-EZKIT",
+      "Overview",
+      "EV-SOMCRR2-EZKIT"
+    ],
+    [
+      "Reference Designs",
+      "EV-SC846-SOM on the EV-SOMCRR2-EZKIT",
+      "Recommendations"
+    ],
+    [
+      "Reference Designs",
+      "EV-SC846-SOM on the EV-SOMCRR2-EZKIT",
+      "Table of contents"
+    ],
+    [
+      "Reference Designs",
+      "EV-SC846-SOM on the EV-SOMCRR2-EZKIT",
+      "Helpful documents"
+    ],
+    [
+      "Reference Designs",
+      "EV-SC846-SOM on the EV-SOMCRR2-EZKIT",
+      "Warning"
+    ],
+    [
+      "Reference Designs",
+      "EV-SC846-SOM on the EV-SOMCRR2-EZKIT",
+      "Help and support"
+    ],
+    [
+      "Reference Designs",
+      "EV-SC846-SOM on the EV-SOMCRR2-EZKIT",
+      "Prerequisites"
+    ],
+    [
+      "Reference Designs",
+      "EV-SC846-SOM on the EV-SOMCRR2-EZKIT",
+      "Prerequisites",
+      "Hardware prerequisites"
+    ],
+    [
+      "Reference Designs",
+      "EV-SC846-SOM on the EV-SOMCRR2-EZKIT",
+      "Prerequisites",
+      "Software prerequisites"
+    ],
+    [
+      "User guide"
+    ],
+    [
+      "User guide",
+      "Hardware guide",
+      "Schematic, PCB Layout, Bill of Materials"
+    ],
+    [
+      "Reference Design Documentation Templates"
+    ],
+    [
+      "Reference Design Documentation Templates",
+      "Overview"
+    ],
+    [
+      "Reference Design Documentation Templates",
+      "Available Templates",
+      "1. Prerequisites Template (prerequisites.rst.jinja)"
+    ],
+    [
+      "Reference Design Documentation Templates",
+      "Available Templates",
+      "1. Prerequisites Template (prerequisites.rst.jinja)",
+      "Prerequisites Template Variables"
+    ],
+    [
+      "Reference Design Documentation Templates",
+      "Available Templates",
+      "1. Prerequisites Template (prerequisites.rst.jinja)",
+      "Prerequisites Usage Example"
+    ],
+    [
+      "Reference Design Documentation Templates",
+      "Available Templates",
+      "2. ZedBoard Quick Start Template (quickstart/zed.rst.jinja)"
+    ],
+    [
+      "Reference Design Documentation Templates",
+      "Available Templates",
+      "2. ZedBoard Quick Start Template (quickstart/zed.rst.jinja)",
+      "Quick Start Template Variables",
+      "Required Variables"
+    ],
+    [
+      "Reference Design Documentation Templates",
+      "Available Templates",
+      "2. ZedBoard Quick Start Template (quickstart/zed.rst.jinja)",
+      "Quick Start Template Variables",
+      "Optional Variables"
+    ],
+    [
+      "Reference Design Documentation Templates",
+      "Available Templates",
+      "2. ZedBoard Quick Start Template (quickstart/zed.rst.jinja)",
+      "Quick Start Usage Example"
+    ],
+    [
+      "Reference Design Documentation Templates",
+      "Available Templates",
+      "2. ZedBoard Quick Start Template (quickstart/zed.rst.jinja)",
+      "Quick Start Template Structure"
+    ],
+    [
+      "Reference Design Documentation Templates",
+      "Example Implementations"
+    ],
+    [
+      "Reference Design Documentation Templates",
+      "Path Conventions"
+    ],
+    [
+      "Reference Design Documentation Templates",
+      "Project Structure Guidelines"
+    ],
+    [
+      "Reference Design Documentation Templates",
+      "Variable Naming Conventions"
+    ],
+    [
+      "Reference Design Documentation Templates",
+      "Notes"
+    ],
+    [
+      "Reference Designs",
+      "EV-SC846-SOM on the EV-SOMCRR2-EZKIT",
+      "Quick start"
+    ],
+    [
+      "Reference Designs",
+      "EV-SC846-SOM on the EV-SOMCRR2-EZKIT",
+      "Quick start",
+      "Hardware setup"
+    ],
+    [
+      "Reference Designs",
+      "EV-SC846-SOM on the EV-SOMCRR2-EZKIT",
+      "Quick start",
+      "Hardware setup",
+      "Prepare the EV-SC846-SOM"
+    ],
+    [
+      "Reference Designs",
+      "EV-SC846-SOM on the EV-SOMCRR2-EZKIT",
+      "Quick start",
+      "Hardware setup",
+      "Prepare the EV-SOMCRR2-EZKIT"
+    ],
+    [
+      "Reference Designs",
+      "EV-SC846-SOM on the EV-SOMCRR2-EZKIT",
+      "Quick start",
+      "Software setup"
+    ],
+    [
+      "EVALUATION BOARD",
+      "Overview"
+    ],
+    [
+      "EVALUATION BOARD",
+      "Recommendations"
+    ],
+    [
+      "EVALUATION BOARD",
+      "Table of contents"
+    ],
+    [
+      "EVALUATION BOARD",
+      "ADI articles"
+    ],
+    [
+      "EVALUATION BOARD",
+      "Warning"
+    ],
+    [
+      "EVALUATION BOARD",
+      "Help and support"
+    ],
+    [
+      "ADSP SoM and Carrier Board Templates"
+    ],
+    [
+      "ADSP SoM and Carrier Board Templates",
+      "Overview"
+    ],
+    [
+      "ADSP SoM and Carrier Board Templates",
+      "Adding a combination"
+    ],
+    [
+      "ADSP SoM and Carrier Board Templates",
+      "Combination variables"
+    ],
+    [
+      "ADSP SoM and Carrier Board Templates",
+      "Board variables"
+    ]
+  ]
+}
