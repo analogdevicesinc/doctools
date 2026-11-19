@@ -32,6 +32,7 @@ export class Search {
     this.index_state = {}
     this.key_prefix = {}
     this.versions_available = {}
+    this.packages_available = {}
     this.query_id = 0
     this._debounceTimer = null
     this.search_page = new URL(`${this.parent.state.content_root}search`, location).pathname
@@ -39,6 +40,7 @@ export class Search {
     let $ = this.$ = {}
     $.keyCheckbox = {}
     $.keyVersion = {}
+    $.keyPackage = {}
     $.searchUL = {}
     $.searchLI = {}
     $.body = new DOM(DOM.get('body'))
@@ -176,34 +178,33 @@ export class Search {
         if (mode === true)
           return prefix
 
-        if (mode === "packages")
-          this.versions_available[key] = Versioned.packages_to_object(obj['obj'])
-        else if (mode === "fine-grained")
-          this.versions_available[key] = obj['obj']
-        else
-          this.versions_available[key] = Versioned.string_array_to_object(obj['obj'])
+        let arr
+        if (mode === "packages") {
+          this.packages_available[key] = obj['obj']
+          delete this.versions_available[key]
+          arr = Versioned.package_paths(obj['obj'])
+        } else {
+          delete this.packages_available[key]
+          this.versions_available[key] = mode === "fine-grained" ? obj['obj'] :
+            Versioned.string_array_to_object(obj['obj'])
+          arr = mode === "string-array" ? obj['obj'] :
+                Versioned.object_to_string_array(this.versions_available[key])
+        }
 
-        let arr = mode === "string-array" ? obj['obj'] :
-                  Versioned.object_to_string_array(this.versions_available[key])
-
-        if (key in this.versions_available) {
-          if (version in this.versions_available[key]) {
-            path = version
-            this.$.keyVersion[key].innerText = this.versions_available[key][version][0]
-          } else {
-            path = guess_default(arr)
-            this.index_state[key].version = null
-            this.$.keyVersion[key].innerText = this.versions_available[key][path][0]
-          }
+        if (arr.includes(version)) {
+          path = version
         } else {
           path = guess_default(arr)
           this.index_state[key].version = null
-          this.$.keyVersion[key].innerText = "-"
         }
+        if (mode !== "packages")
+          this.$.keyVersion[key].innerText = this.versions_available[key][path][0]
       } else {
           this.index_state[key].version = null
           this.$.keyVersion[key].innerText = "-"
       }
+      this.index_state[key].path = path
+      this.render_package_button(key)
       return [`${prefix}/`, path.length > 0 ? `${path}/` : ``]
     }
 
@@ -770,7 +771,30 @@ export class Search {
       ])
     ])
     this.$.keyVersion[key] = version_button
+    this.$.keyPackage[key] = new DOM('button', {
+      className: 'version-filter',
+      title: 'Select package to search'
+    })
+    this.$.keyPackage[key].onclick(this, (key, e) => {
+      this.show_version_dropdown(key, this.$.keyPackage[key], true)
+    }, [key])
     this.$.keyCheckbox[key] = input_
+  }
+
+  package_menus (key) {
+    const obj = this.packages_available[key]
+    return obj && Versioned.package_menus(obj, this.index_state[key].path)
+  }
+
+  render_package_button (key) {
+    const menus = this.package_menus(key)
+    const button = this.$.keyPackage[key].$
+    if (!menus)
+      return button.remove()
+    const path = this.index_state[key].path
+    this.$.keyVersion[key].innerText = menus.versions[path][0]
+    button.innerText = menus.packages[path][0]
+    this.$.keyVersion[key].$.after(button)
   }
 
   get_class_labels (text) {
@@ -787,8 +811,9 @@ export class Search {
   /**
    * Show version dropdown for a specific search entry
    */
-  show_version_dropdown (key, version_button, ev) {
-    let obj = this.versions_available[key]
+  show_version_dropdown (key, version_button, packages = false) {
+    const menus = this.package_menus(key)
+    let obj = menus ? menus[packages ? 'packages' : 'versions'] : this.versions_available[key]
     if (!obj) {
       console.warn(`No versions available for key: ${key}`)
       obj = {}

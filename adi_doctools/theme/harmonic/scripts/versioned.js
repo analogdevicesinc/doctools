@@ -208,19 +208,9 @@ export class Versioned {
         location.href = entry.dataset['alt_href']
     }
   }
-  /**
-   * Flatten package form into fine-grained form
-   * The package label has precedence over the version label.
-   */
-  static packages_to_object (obj) {
-    let obj_ = {}
-    for (const [id, version] of Object.entries(obj)) {
-      for (const [pkg, entry] of Object.entries(version.packages)) {
-        const [name, label] = Versioned.package_entry(pkg, entry)
-        obj_[`${id}/${pkg}`] = [`${id} > ${name}`, label || version.label]
-      }
-    }
-    return obj_
+  static package_paths (obj) {
+    return Object.entries(obj).flatMap(([id, version]) =>
+      Object.keys(version.packages).map(pkg => `${id}/${pkg}`))
   }
   /**
    * Normalize a package value, "label" or ["Alt Name", "label"],

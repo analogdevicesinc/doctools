@@ -156,6 +156,9 @@
               outline: .125em solid var(--accent-color);
             }
         }
+        button.version-filter + button.version-filter {
+            margin-left: .25em;
+        }
         input:not(:checked) ~ button.version-filter {
             display: none;
         }
@@ -223,7 +226,7 @@
             animation: blink 1s linear infinite;
         }
 
-        button.version-filter {
+        button.version-filter:last-child {
             margin-right: 1em;
         }
     }
