@@ -1,5 +1,14 @@
 # doctools-docling
 
+## Contents
+
+- [Requirements](#requirements)
+- [Usage](#usage)
+  - [How it works](#how-it-works)
+- [Performance](#performance)
+- [Converting PDFs that are not in the sitemap
+  yet](#converting-pdfs-that-are-not-in-the-sitemap-yet)
+
 Converts PDFs published on [analog.com](https://www.analog.com) into Markdown
 with [docling](https://github.com/docling-project/docling), so the text can be
 indexed/searched together with the rest of the documentation tooling.
