@@ -173,10 +173,34 @@ avoid triggering fallback behaviours.
 Neovim support
 ~~~~~~~~~~~~~~
 
-:external+esbonio:doc:`index` is an extensively developed Language Server
-Protocol for sphinx. See :external+esbonio:std:ref:`integrate-nvim`.
+A :git+doctools:`Neovim plugin <nvim:/>` is available, install with
+`lazy.nvim <https://github.com/folke/lazy.nvim>`__:
 
-It is also recomemded to use the modern `tree-sitter <https://tree-sitter.github.io/>`__.
+.. code:: lua
+
+   {
+     'analogdevicesinc/doctools',
+     branch = 'nvim',
+     ft = { 'rst', 'markdown' },
+     config = function()
+       require('adi-doctools').setup()
+     end,
+   }
+
+It is also recommended to use the modern `tree-sitter <https://tree-sitter.github.io/>`__:
+
+.. code:: lua
+
+   {
+     'nvim-treesitter/nvim-treesitter',
+     branch = 'main',
+     lazy = false,
+     build = ':TSUpdate',
+     config = function()
+       require('nvim-treesitter').install({ 'rst' })
+     end,
+   }
+
 Make sure you have common parsers installed, at least:
 
 ::
@@ -185,8 +209,13 @@ Make sure you have common parsers installed, at least:
    :TSInstall markdown
    :TSInstall yaml
    :TSInstall json
+   :TSInstall bash
 
 You can inspect the tree with ``:InspectTree``.
+
+Alternatively to the Doctools Neovim plugin, :external+esbonio:doc:`index` is
+an extensively developed Language Server Protocol for sphinx. See
+:external+esbonio:std:ref:`integrate-nvim`.
 
 .. _latex:
 
