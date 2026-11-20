@@ -15,6 +15,7 @@ import socket
 import subprocess
 import sys
 import threading
+import time
 from pathlib import Path
 
 CONF_CANDIDATES = [
@@ -83,11 +84,29 @@ def free_port(first: int) -> int:
     return first
 
 
+def page_path(srcdir: str | None, file: Path) -> str | None:
+    """The path of the page of a source file on the documentation server."""
+    if not srcdir:
+        return None
+    try:
+        relative = Path(os.path.realpath(file)).relative_to(os.path.realpath(srcdir))
+    except ValueError:
+        return None
+    docname = relative.with_suffix('').as_posix()
+    if docname == 'index':
+        return '/'
+    if docname.endswith('/index'):
+        return f'/{docname[:-len("index")]}'
+    return f'/{docname}/'
+
+
 class Docs:
-    """The state of the build, for one file."""
+    """The state of the build. file: the file that is edited, its warnings
+    are the ones given to the page."""
 
     def __init__(self, file: Path, port: int = 8080, log=lambda line: print(line, flush=True)):
         self.file = file
+        self.sparse: list[str] = []
         self.port = port
         self.log = log
         self.workspace = find_workspace(file)
@@ -256,26 +275,45 @@ class Docs:
                     del self.diagnostics[path]
             self.diagnostics.update(self._pending)
         self._pending = {}
-        self._published = os.stat(self.file).st_mtime if self.file.exists() else 0.0
+        self._published = time.time()
 
     # For the page ----------------------------------------------------------------
 
-    def state(self) -> dict:
+    def state(self, file: Path | None = None) -> dict:
         with self._lock:
+            if file is not None:
+                self.file = file
             return {
                 'problem': self.problem,
                 'build': self.build,
                 'url': self.url,
+                'page': page_path(self.srcdir, self.file) if self.url else None,
+                'srcdir': self.srcdir if self.url else None,
+                'sparse': self.sparse,
                 'revision': self.revision,
                 'diagnostics': self.diagnostics.get(os.path.realpath(self.file), []),
             }
+
+    def set_sparse(self, paths: list) -> dict:
+        """Build only these folders, relative to the workspace. All when empty."""
+        paths = sorted({str(path).strip('/') for path in paths if isinstance(path, str) and path.strip('/')})
+        with self._lock:
+            changed = paths != self.sparse
+            self.sparse = paths
+            running = self.url is not None
+            if changed:
+                self.revision += 1
+        if changed and running:
+            return self.request({'server': 'update_sparse', 'sparse': paths or None}, timeout=60)
+        return {'return': 'success'}
 
     def start(self) -> dict:
         if self.problem:
             return {'error': self.problem}
         if self.url:
             return {'return': 'already_running'}
-        answer = self.request({'server': 'start', 'sparse': None, 'port': free_port(self.port)}, timeout=60)
+        answer = self.request(
+            {'server': 'start', 'sparse': self.sparse or None, 'port': free_port(self.port)}, timeout=60)
         if answer.get('return') == 'success':
             with self._lock:
                 if not self.url:

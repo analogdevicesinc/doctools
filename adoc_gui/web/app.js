@@ -5,6 +5,8 @@ import {
 } from './ops.js'
 import { render, getSelection, setSelection, markActive, showDiagnostics } from './view.js'
 import { completionAt, matching, roleQuestion } from './lsp.js'
+import { SparseSelection } from './sparse.js'
+import { renderTree, foldersOf, ancestorsOf } from './nav.js'
 
 const SAVE_DELAY_MS = 400
 const POLL_MS = 1500
@@ -20,6 +22,9 @@ const toolbar = document.querySelector('.toolbar')
 const docsButton = document.getElementById('toggle-docs')
 const menu = document.getElementById('menu')
 const tooltip = document.getElementById('tooltip')
+const canvas = document.querySelector('.canvas')
+const tree = document.getElementById('tree')
+const frame = document.getElementById('frame')
 
 const state = {
   parser: undefined,
@@ -35,7 +40,13 @@ const state = {
   saving: false,
   held: false,
   fileState: '',
-  docs: { build: 'off', problem: null, url: null, revision: -1, diagnostics: [] },
+  docs: { build: 'off', problem: null, url: null, page: null, revision: -1, diagnostics: [] },
+  path: '',
+  files: undefined,
+  root: '',
+  expanded: new Set(),
+  sparse: new SparseSelection(),
+  tab: 'source',
   composing: undefined
 }
 
@@ -213,7 +224,7 @@ function renderToolbar() {
 // The source pane and the structure can be shown or hidden
 function toggle(button, name, shown) {
   const apply = value => {
-    document.body.classList.toggle(name, name === 'no-source' ? !value : value)
+    document.body.classList.toggle(name, name.startsWith('no-') ? !value : value)
     button.setAttribute('aria-pressed', String(value))
     try {
       localStorage.setItem(`doctools.${name}`, String(value))
@@ -227,6 +238,7 @@ function toggle(button, name, shown) {
   button.addEventListener('click', () => apply(button.getAttribute('aria-pressed') !== 'true'))
 }
 toggle(document.getElementById('toggle-source'), 'no-source', true)
+toggle(document.getElementById('toggle-nav'), 'no-nav', true)
 toggle(document.getElementById('toggle-inspect'), 'inspect', false)
 
 // Tab moves between the cells of a table
@@ -453,13 +465,17 @@ let docsTimer
 
 async function pollDocs(once) {
   try {
-    const docs = await (await fetch('api/docs', { headers: { 'X-Doctools': '1' } })).json()
-    if (docs.revision !== state.docs.revision || docs.build !== state.docs.build) {
+    const path = state.path
+    const docs = await (await fetch(`api/docs?path=${encodeURIComponent(path)}`, { headers: { 'X-Doctools': '1' } })).json()
+    if (path === state.path && (docs.revision !== state.docs.revision || docs.build !== state.docs.build ||
+        docs.page !== state.docs.page || docs.diagnostics.length !== state.docs.diagnostics.length)) {
+      if (docs.build === 'ready' && docs.revision !== state.docs.revision) builtAt = performance.now()
       state.docs = docs
       answers.clear()
       showDiagnostics(view, state.model, docs.diagnostics)
       renderBackdrop()
       renderDocs()
+      renderPreview()
     }
   } catch { }
   if (once) return
@@ -605,7 +621,8 @@ view.addEventListener('mouseout', ev => {
 
 // File --------------------------------------------------------------------------
 
-const api = (options = {}) => fetch('api/file', { ...options, headers: { 'X-Doctools': '1', ...options.headers } })
+const api = (path, options = {}) => fetch(`api/file?path=${encodeURIComponent(path)}`,
+  { ...options, headers: { 'X-Doctools': '1', ...options.headers } })
 
 let saveTimer
 
@@ -632,11 +649,12 @@ async function save(force) {
   state.held = false
   state.saving = true
   const text = state.source
+  const path = state.path
   try {
-    const response = await api({ method: 'PUT', body: text })
+    const response = await api(path, { method: 'PUT', body: text })
     if (!response.ok) throw new Error(`${response.status} ${response.statusText}`)
-    state.mtime = (await response.json()).mtime
-    if (state.source === text) {
+    if (path === state.path) state.mtime = (await response.json()).mtime
+    if (path === state.path && state.source === text) {
       state.dirty = false
       setFileState('Saved')
     }
@@ -651,8 +669,11 @@ async function save(force) {
 async function poll() {
   try {
     if (!state.dirty && !state.saving) {
-      const file = await (await api()).json()
-      if (file.mtime !== state.mtime && !state.dirty && file.text !== state.source) {
+      const path = state.path
+      const file = await (await api(path)).json()
+      if (path !== state.path) {
+        // Another file was opened meanwhile
+      } else if (file.mtime !== state.mtime && !state.dirty && file.text !== state.source) {
         remember()
         setSource(file.text, diff(state.source, file.text))
         paint()
@@ -660,11 +681,280 @@ async function poll() {
         renderStatus()
         setFileState('Reloaded from the file')
       }
-      state.mtime = file.mtime
+      if (path === state.path) state.mtime = file.mtime
     }
   } catch { }
   setTimeout(poll, POLL_MS)
 }
+
+// Show a file of the server: { path, absolute, name, mtime, text }
+function show(file) {
+  state.path = file.path
+  state.mtime = file.mtime
+  state.undo = []
+  state.redo = []
+  state.caret = { anchor: 0, focus: 0 }
+  state.dirty = false
+  state.held = false
+  state.docs = { ...state.docs, diagnostics: [], page: null }
+  setSource(file.text)
+  state.lastEdit = undefined
+  document.title = `${file.name} - Doctools`
+  title.textContent = file.path
+  title.title = file.absolute
+  history.replaceState(null, '', `#${encodeURIComponent(file.path)}`)
+  setFileState('Saved')
+  closeMenu()
+  renderView(false)
+  renderCode(false)
+  canvas.scrollTop = 0
+  for (const folder of ancestorsOf(file.path)) state.expanded.add(folder)
+  drawTree()
+  pollDocs(true)
+}
+
+// Open another file, what is not saved of this one is saved first
+async function openFile(path) {
+  if (path === state.path) return
+  clearTimeout(saveTimer)
+  await save(true)
+  const response = await api(path)
+  if (!response.ok) return setFileState(`Cannot open ${path}`)
+  show(await response.json())
+}
+
+// Files and sparse build ------------------------------------------------------
+
+function drawTree() {
+  if (!state.files) return
+  renderTree(tree, state.files, { current: state.path, expanded: state.expanded, selection: state.sparse })
+  const count = state.sparse.size
+  document.getElementById('sparse-state').textContent = count
+    ? `Building ${count} folder${count > 1 ? 's' : ''}`
+    : 'Files'
+  document.getElementById('sparse-clear').hidden = !count
+}
+
+const store = (name, value) => {
+  try {
+    localStorage.setItem(`doctools.${name}:${state.root}`, JSON.stringify(value))
+  } catch { }
+}
+const stored = name => {
+  try {
+    return JSON.parse(localStorage.getItem(`doctools.${name}:${state.root}`) ?? 'null')
+  } catch {
+    return null
+  }
+}
+
+let sparseTimer
+
+// Tell the server what to build, it builds again when it is running
+function sparseChanged() {
+  store('sparse', state.sparse.toArray())
+  drawTree()
+  clearTimeout(sparseTimer)
+  sparseTimer = setTimeout(() => post('api/docs/sparse', { paths: state.sparse.toArray() }).catch(() => {}), 300)
+}
+
+tree.addEventListener('click', ev => {
+  const row = ev.target.closest('.tree-row')
+  if (!row) return
+  const { path } = row.dataset
+  if (row.classList.contains('file')) return openFile(path)
+  if (ev.target.closest('.check')) {
+    state.sparse.toggle(path, parent => foldersOf(state.files, parent))
+    return sparseChanged()
+  }
+  if (state.expanded.has(path)) state.expanded.delete(path)
+  else state.expanded.add(path)
+  store('expanded', [...state.expanded])
+  drawTree()
+})
+
+document.getElementById('sparse-clear').addEventListener('click', () => {
+  state.sparse = new SparseSelection()
+  sparseChanged()
+})
+
+async function loadTree() {
+  try {
+    const answer = await (await fetch('api/tree', { headers: { 'X-Doctools': '1' } })).json()
+    const first = !state.files
+    state.files = answer.tree
+    state.root = answer.root
+    if (first) {
+      state.expanded = new Set([...(stored('expanded') ?? []), ...ancestorsOf(state.path)])
+      state.sparse = new SparseSelection(stored('sparse') ?? [])
+      if (state.sparse.size) post('api/docs/sparse', { paths: state.sparse.toArray() }).catch(() => {})
+    }
+    drawTree()
+  } catch { }
+}
+window.addEventListener('focus', loadTree)
+
+// Live view ---------------------------------------------------------------------
+
+const originOf = () => state.docs.url ? new URL(state.docs.url).origin : undefined
+let previewReady = false
+
+function renderPreview() {
+  const { url, page, build, problem } = state.docs
+  const empty = document.getElementById('preview-empty')
+  const shown = state.tab === 'preview'
+  const target = url && page ? originOf() + page : undefined
+  frame.hidden = !target
+  empty.hidden = Boolean(target)
+  document.getElementById('preview-start').hidden = Boolean(problem) || build !== 'off'
+  document.getElementById('preview-text').textContent = problem
+    ?? (build === 'off' ? 'The live view shows the built page of this file.'
+      : build === 'building' && !url ? 'Building the documentation…'
+        : 'This file is not a page of the documentation.')
+  if (!shown) return
+  if (!target) {
+    frame.removeAttribute('src')
+    delete frame.dataset.src
+    previewReady = false
+  } else if (frame.dataset.src !== target) {
+    previewReady = false
+    frame.dataset.src = target
+    frame.src = target
+  }
+}
+
+// The page of the server follows the editor, through its editor-sync script
+const toFrame = message => {
+  if (originOf() && frame.contentWindow) frame.contentWindow.postMessage({ adoc: message }, originOf())
+}
+
+// The source line at the top of the page of the editor
+function topLine() {
+  const top = canvas.getBoundingClientRect().top + 8
+  const { lineStarts } = state.model
+  const lineOf = offset => {
+    let row = 0
+    while (row + 1 < lineStarts.length && lineStarts[row + 1] <= offset) row++
+    return row + 1
+  }
+  for (const el of view.querySelectorAll('.b-document > .block')) {
+    const rect = el.getBoundingClientRect()
+    if (rect.bottom <= top) continue
+    const first = lineOf(Number(el.dataset.s))
+    const last = lineOf(Number(el.dataset.e))
+    const inside = rect.height > 0 ? Math.min(Math.max((top - rect.top) / rect.height, 0), 1) : 0
+    return first + inside * (last - first + 1)
+  }
+  return lineStarts.length
+}
+
+let followUntil = 0
+
+function syncPreview() {
+  if (state.tab !== 'preview' || !previewReady || performance.now() < followUntil) return
+  toFrame({ type: 'scroll', line: canvas.scrollTop <= 0 ? 1 : topLine(), lines: state.model.lineStarts.length })
+}
+
+frame.addEventListener('load', () => toFrame({ type: 'host' }))
+window.addEventListener('message', ev => {
+  if (ev.source !== frame.contentWindow || ev.origin !== originOf() || !ev.data?.adoc) return
+  const message = ev.data.adoc
+  const { page } = state.docs
+  if (message.type === 'ready') {
+    if (message.path === page) {
+      previewReady = true
+      syncPreview()
+    } else if (performance.now() - builtAt < REBUILD_RESET_MS) {
+      // A full build loads the first page again: go back to the page of the file
+      toFrame({ type: 'navigate', path: page })
+    } else {
+      // A link was followed in the live view: open the file of that page
+      previewReady = false
+      const path = sourceOf(message.path)
+      if (path) openFile(path)
+    }
+  } else if (message.type === 'scroll' && typeof message.line === 'number' && message.path === page) {
+    scrollToLine(message.line)
+  }
+})
+
+const REBUILD_RESET_MS = 5000
+let builtAt = 0
+
+// The file of a page of the documentation, when it is one of the tree
+function sourceOf(page) {
+  const { sources } = state.docs
+  if (sources === null || sources === undefined || !state.files) return undefined
+  const name = decodeURIComponent(page.split(/[?#]/)[0]).replace(/\/index\.html$/, '/').replace(/^\/+|\/+$/g, '')
+  const prefix = sources === '.' || sources === '' ? '' : `${sources}/`
+  const candidates = name === '' ? ['index.rst'] : [`${name}.rst`, `${name}/index.rst`]
+  const has = path => {
+    let node = state.files
+    const parts = path.split('/')
+    for (const part of parts.slice(0, -1)) {
+      node = node.dirs.find(dir => dir.name === part)
+      if (!node) return false
+    }
+    return node.files.some(file => file.path === path)
+  }
+  return candidates.map(candidate => prefix + candidate).find(has)
+}
+
+// The live view was scrolled: show the same line at the top of the editor
+function scrollToLine(line) {
+  const { lineStarts } = state.model
+  const lineOf = offset => {
+    let row = 0
+    while (row + 1 < lineStarts.length && lineStarts[row + 1] <= offset) row++
+    return row + 1
+  }
+  const top = canvas.getBoundingClientRect().top
+  let target
+  for (const el of view.querySelectorAll('.b-document > .block')) {
+    const first = lineOf(Number(el.dataset.s))
+    const last = lineOf(Number(el.dataset.e))
+    const rect = el.getBoundingClientRect()
+    if (line < first) {
+      target ??= rect.top
+      break
+    }
+    const inside = Math.min(Math.max((line - first) / (last - first + 1), 0), 1)
+    target = rect.top + inside * rect.height
+    if (line <= last) break
+  }
+  if (target === undefined) return
+  followUntil = performance.now() + 400
+  canvas.scrollTop += target - top - 8
+}
+
+let scrollFrame = 0
+canvas.addEventListener('scroll', () => {
+  if (scrollFrame) return
+  scrollFrame = requestAnimationFrame(() => {
+    scrollFrame = 0
+    syncPreview()
+  })
+}, { passive: true })
+
+document.getElementById('preview-start').addEventListener('click', () => docsButton.click())
+
+// Tabs of the side pane
+function selectTab(name) {
+  state.tab = name
+  for (const tab of document.querySelectorAll('.tab'))
+    tab.setAttribute('aria-selected', String(tab.dataset.tab === name))
+  document.getElementById('source').hidden = name !== 'source'
+  document.getElementById('preview').hidden = name !== 'preview'
+  try {
+    localStorage.setItem('doctools.tab', name)
+  } catch { }
+  renderPreview()
+  if (name === 'source') renderCode(true)
+}
+document.querySelector('.tabs').addEventListener('click', ev => {
+  const tab = ev.target.closest('.tab')
+  if (tab) selectTab(tab.dataset.tab)
+})
 
 async function main() {
   await Parser.init()
@@ -672,21 +962,22 @@ async function main() {
   state.parser = new Parser()
   state.parser.setLanguage(language)
 
-  const file = await (await api()).json()
-  state.path = file.path
-  state.mtime = file.mtime
-  setSource(file.text)
-  document.title = `${file.name} - Doctools`
-  title.textContent = file.name
-  title.title = file.path
-  setFileState('Saved')
-  renderView(false)
-  renderCode(false)
+  // The file of the address, else the one the server was started with
+  let response = await api(decodeURIComponent(location.hash.slice(1)))
+  if (!response.ok) response = await api('')
+  setSource('')
+  show(await response.json())
+  let tab = 'source'
+  try {
+    tab = localStorage.getItem('doctools.tab') === 'preview' ? 'preview' : 'source'
+  } catch { }
+  selectTab(tab)
+  await loadTree()
   setTimeout(poll, POLL_MS)
   pollDocs()
 
   // For the tests and the console
-  window.doctools = { state, view, code }
+  window.doctools = { state, view, code, openFile, preview: () => ({ ready: previewReady }) }
 }
 
 main().catch(err => {

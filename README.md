@@ -12,16 +12,24 @@ pip install -e .   # in the environment of adi-doctools
 adoc-gui doc.rst   # without a file: the index.rst of the current folder
 ```
 
-The page has two panes, both editable and kept in sync:
+The page has three parts:
 
-- **Document**: the rendered document. Type, press Enter and Backspace as in a
-  word processor; `Ctrl+B`, `Ctrl+I` and `Ctrl+E` toggle bold, italic and
-  literal; `Ctrl+Z` / `Ctrl+Y` undo and redo.
-- **Source**: the `.rst` text. The block of the caret and the last edit are
-  highlighted.
+- **Files**, at the left: the `.rst` files of the documentation. A click opens
+  a file, what is not saved of the open one is saved first. The check box of a
+  folder selects it for the sparse build, see below.
+- **Document**, in the middle: the rendered document. Type, press Enter and
+  Backspace as in a word processor; `Ctrl+B`, `Ctrl+I` and `Ctrl+E` toggle
+  bold, italic and literal; `Ctrl+Z` / `Ctrl+Y` undo and redo.
+- **Side pane**, at the right, with two tabs:
+  - *Source*: the `.rst` text, also editable. The block of the caret and the
+    last edit are highlighted.
+  - *Live view*: the built page of the file, from the documentation server.
+    It scrolls with the document, in both directions, and a link followed in
+    it opens the file of that page.
 
 Changes are saved to the file as you type, and changes made to the file by
-other programs are loaded.
+other programs are loaded. The buttons of the top bar hide the files and the
+side pane.
 
 ## Documentation server
 
@@ -35,6 +43,11 @@ changes. `adoc-gui --serve` starts it right away. While it runs:
   typed: `:`, `` :ref:` ``, `:external+`, `.. `. The arrows select, `Enter` or
   `Tab` accept, `Escape` closes.
 - The pointer over a role shows what it points to.
+- The live view shows the page of the file.
+
+**Sparse build**: check folders in the files to build only those, which makes
+the first build of a large documentation much faster. *Build all* clears the
+selection. The selection is kept by the browser, per documentation.
 
 The file is not saved, and so not built, while a role or a directive is being
 completed: the half-written markup would only be reported as an error. It is
@@ -72,8 +85,10 @@ a tree that is updated incrementally can differ from a fresh one.
   input becomes a source edit, then the page is rendered again from the new
   tree.
 - `web/lsp.js` finds what to complete at the caret.
-- `__main__.py` serves the page and reads and writes the one file, on
-  `127.0.0.1` only; `docs.py` runs the backend of Doctools, the same process
+- `web/nav.js` shows the files and `web/sparse.js` holds the selection of the
+  sparse build.
+- `__main__.py` serves the page and reads and writes the `.rst` files of the
+  documentation, on `127.0.0.1` only; `docs.py` runs the backend of Doctools, the same process
   the editor extensions use.
 
 ## What is rendered

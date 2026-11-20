@@ -2,8 +2,9 @@
 
     adoc-gui [path/to/file.rst] [--port 8300] [--no-open] [--serve]
 
-Serves the page and gives it one file to read and write. Without a file, the
-index.rst of the documentation in the current folder is opened.
+Serves the page and gives it the .rst files of the documentation of the file
+to read and write. Without a file, the index.rst of the documentation in the
+current folder is opened.
 """
 
 import argparse
@@ -14,6 +15,7 @@ import sys
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import parse_qs, urlsplit
 
 from .docs import Docs
 
@@ -25,7 +27,42 @@ mimetypes.add_type('application/wasm', '.wasm')
 mimetypes.add_type('text/javascript', '.js')
 
 
-def make_handler(file: Path, docs: Docs):
+IGNORED_FOLDERS = {'node_modules', 'venv', 'env', '__pycache__'}
+MAX_DEPTH = 12
+
+
+def list_tree(directory: Path, relative: str = '', depth: int = 0) -> dict:
+    """The folders that hold .rst files, and those files."""
+    node = {'name': directory.name, 'path': relative, 'dirs': [], 'files': []}
+    try:
+        entries = sorted(os.scandir(directory), key=lambda entry: entry.name.lower())
+    except OSError:
+        return node
+    for entry in entries:
+        name = entry.name
+        if name.startswith(('.', '_')) or name in IGNORED_FOLDERS:
+            continue
+        path = f'{relative}/{name}' if relative else name
+        if entry.is_dir():
+            if depth < MAX_DEPTH:
+                sub = list_tree(Path(entry.path), path, depth + 1)
+                if sub['dirs'] or sub['files']:
+                    node['dirs'].append(sub)
+        elif name.endswith('.rst'):
+            node['files'].append({'name': name, 'path': path})
+    return node
+
+
+def make_handler(first: Path, root: Path, docs: Docs):
+    def resolve(relative: str | None) -> Path | None:
+        """A .rst file of the root, from its path relative to the root."""
+        if not relative:
+            return first
+        target = (root / relative).resolve()
+        if root not in target.parents or target.suffix != '.rst' or not target.is_file():
+            return None
+        return target
+
     class Handler(BaseHTTPRequestHandler):
         def reply(self, status, body=b'', content_type='text/plain; charset=utf-8'):
             self.send_response(status)
@@ -38,9 +75,14 @@ def make_handler(file: Path, docs: Docs):
         def reply_json(self, status, value):
             self.reply(status, json.dumps(value).encode(), 'application/json')
 
-        def file_info(self, with_text=True):
+        def file_info(self, file, with_text=True):
             stat = file.stat()
-            info = {'path': str(file), 'name': file.name, 'mtime': stat.st_mtime_ns}
+            info = {
+                'path': file.relative_to(root).as_posix(),
+                'absolute': str(file),
+                'name': file.name,
+                'mtime': stat.st_mtime_ns,
+            }
             if with_text:
                 info['text'] = file.read_text(encoding='utf-8')
             return info
@@ -59,12 +101,33 @@ def make_handler(file: Path, docs: Docs):
                 return None
             return self.rfile.read(length).decode('utf-8')
 
+        def target(self):
+            """The file of the request, replies when there is none."""
+            query = parse_qs(urlsplit(self.path).query)
+            file = resolve(query.get('path', [None])[0])
+            if file is None:
+                self.reply(404, b'Not a file of the documentation')
+            return file
+
         def do_GET(self):
-            path = self.path.split('?')[0]
+            path = urlsplit(self.path).path
             if path == '/api/file':
-                return self.allowed() and self.reply_json(200, self.file_info())
+                file = self.allowed() and self.target()
+                return file and self.reply_json(200, self.file_info(file))
             if path == '/api/docs':
-                return self.allowed() and self.reply_json(200, docs.state())
+                file = self.allowed() and self.target()
+                if not file:
+                    return None
+                state = docs.state(file)
+                # Where the sources of the pages are, from the root of the files
+                srcdir = state.pop('srcdir')
+                try:
+                    state['sources'] = Path(os.path.realpath(srcdir)).relative_to(root).as_posix() if srcdir else None
+                except ValueError:
+                    state['sources'] = None
+                return self.reply_json(200, state)
+            if path == '/api/tree':
+                return self.allowed() and self.reply_json(200, {'root': str(root), 'tree': list_tree(root)})
 
             relative = 'index.html' if path == '/' else path.lstrip('/')
             target = (WEB / relative).resolve()
@@ -74,9 +137,10 @@ def make_handler(file: Path, docs: Docs):
             self.reply(200, target.read_bytes(), content_type)
 
         def do_PUT(self):
-            if self.path.split('?')[0] != '/api/file':
+            if urlsplit(self.path).path != '/api/file':
                 return self.reply(404, b'Not found')
-            if not self.allowed():
+            file = self.allowed() and self.target()
+            if not file:
                 return
             text = self.body()
             if text is None:
@@ -84,11 +148,11 @@ def make_handler(file: Path, docs: Docs):
             temporary = file.with_name(f'.{file.name}.doctools-tmp')
             temporary.write_text(text, encoding='utf-8')
             os.replace(temporary, file)
-            self.reply_json(200, self.file_info(with_text=False))
+            self.reply_json(200, self.file_info(file, with_text=False))
 
         def do_POST(self):
-            path = self.path.split('?')[0]
-            if path not in ('/api/docs/start', '/api/docs/stop', '/api/docs/ask'):
+            path = urlsplit(self.path).path
+            if path not in ('/api/docs/start', '/api/docs/stop', '/api/docs/ask', '/api/docs/sparse'):
                 return self.reply(404, b'Not found')
             if not self.allowed():
                 return
@@ -103,6 +167,11 @@ def make_handler(file: Path, docs: Docs):
                 message = json.loads(text)
             except json.JSONDecodeError:
                 return self.reply(400, b'Bad request')
+            if path == '/api/docs/sparse':
+                paths = message.get('paths') if isinstance(message, dict) else None
+                if not isinstance(paths, list):
+                    return self.reply(400, b'Bad request')
+                return self.reply_json(200, docs.set_sparse(paths))
             self.reply_json(200, docs.ask(message))
 
         def log_message(self, format, *args):
@@ -134,7 +203,9 @@ def main():
         sys.exit(f"The parser is missing in {WEB / 'vendor'}, run 'make vendor' in the source of adoc-gui")
 
     docs = Docs(file)
-    server = ThreadingHTTPServer(('127.0.0.1', args.port), make_handler(file, docs))
+    # The files that can be opened: the ones of the documentation, or of the folder
+    root = docs.workspace or file.parent
+    server = ThreadingHTTPServer(('127.0.0.1', args.port), make_handler(file, root, docs))
     url = f'http://127.0.0.1:{server.server_address[1]}/'
     print(f'Editing {file}\n{url}', flush=True)
     if docs.problem:

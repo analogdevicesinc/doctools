@@ -9,6 +9,9 @@
 </head>
 <body>
   <header class="app-bar">
+    <button class="icon-button" id="toggle-nav" type="button" title="Show the files" aria-pressed="true">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+    </button>
     <svg class="logo" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
     <div class="titles">
       <h1 id="title">Doctools</h1>
@@ -20,7 +23,7 @@
     <button class="icon-button" id="toggle-inspect" type="button" title="Show the structure" aria-pressed="false">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 8h-2.81c-.45-.78-1.07-1.45-1.82-1.96L17 4.41 15.59 3l-2.17 2.17C12.96 5.06 12.49 5 12 5c-.49 0-.96.06-1.41.17L8.41 3 7 4.41l1.62 1.63C7.88 6.55 7.26 7.22 6.81 8H4v2h2.09c-.05.33-.09.66-.09 1v1H4v2h2v1c0 .34.04.67.09 1H4v2h2.81c1.04 1.79 2.97 3 5.19 3s4.15-1.21 5.19-3H20v-2h-2.09c.05-.33.09-.66.09-1v-1h2v-2h-2v-1c0-.34-.04-.67-.09-1H20V8zm-6 8h-4v-2h4v2zm0-4h-4v-2h4v2z"/></svg>
     </button>
-    <button class="icon-button" id="toggle-source" type="button" title="Show the source" aria-pressed="true">
+    <button class="icon-button" id="toggle-source" type="button" title="Show the side pane" aria-pressed="true">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 15h8v-2H3v2zm0 4h8v-2H3v2zm0-8h8V9H3v2zm0-6v2h8V5H3zm10 0h8v14h-8V5z"/></svg>
     </button>
   </header>
@@ -45,14 +48,31 @@
   </div>
 
   <main>
+    <nav class="drawer" aria-label="Files">
+      <div class="drawer-head">
+        <span id="sparse-state">Files</span>
+        <button class="text-button" id="sparse-clear" type="button" hidden>Build all</button>
+      </div>
+      <div id="tree" role="tree"></div>
+    </nav>
     <div class="canvas">
       <article id="view" class="page" contenteditable="true" spellcheck="false"></article>
     </div>
-    <aside class="sheet" id="source-pane" aria-label="Source">
-      <h2>Source</h2>
-      <div id="source">
+    <aside class="sheet" id="source-pane" aria-label="Side pane">
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" data-tab="source" type="button" aria-selected="true">Source</button>
+        <button class="tab" role="tab" data-tab="preview" type="button" aria-selected="false">Live view</button>
+      </div>
+      <div id="source" role="tabpanel">
         <pre id="backdrop" aria-hidden="true"></pre>
         <textarea id="code" spellcheck="false" wrap="off" aria-label="Source"></textarea>
+      </div>
+      <div id="preview" role="tabpanel" hidden>
+        <iframe id="frame" title="Live view" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+        <div id="preview-empty">
+          <p id="preview-text"></p>
+          <button class="text-button" id="preview-start" type="button">Build the documentation</button>
+        </div>
       </div>
     </aside>
   </main>
