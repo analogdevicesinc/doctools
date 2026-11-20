@@ -60,6 +60,10 @@ export class Zoom {
     } else {
       h = vh * pad; w = h * nat
     }
+    let max = img.naturalWidth * 1.5
+    if (max > 0 && w > max) {
+      w = max; h = w / nat
+    }
     return {
       left: (vw - w) / 2,
       top: (vh - h) / 2,
