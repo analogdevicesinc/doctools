@@ -15,7 +15,7 @@ const CARD_DIRECTIVES = new Set([
 
 // Directives without content
 const NO_CONTENT = new Set([
-  'image', 'include', 'literalinclude', 'contents', 'sectnum', 'index', 'only-doc', 'rst-class', 'clear-content'
+  'image', 'include', 'literalinclude', 'contents', 'sectnum', 'index', 'only-doc', 'rst-class', 'clear-content', 'rubric'
 ])
 
 // What the argument of a directive is, for the directives that take one
@@ -24,7 +24,7 @@ const ARGUMENT = {
   image: 'path', figure: 'path', include: 'path', literalinclude: 'path',
   table: 'title', 'list-table': 'title', 'csv-table': 'title',
   admonition: 'title', topic: 'title', sidebar: 'title', 'tab-item': 'title',
-  collapsible: 'title', card: 'title', collection: 'title', video: 'url', svg: 'path', 'rst-class': 'class'
+  collapsible: 'title', card: 'title', collection: 'title', video: 'url', svg: 'path', 'rst-class': 'class', rubric: 'title'
 }
 
 // Directives whose content is reStructuredText

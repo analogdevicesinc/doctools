@@ -17,7 +17,7 @@ const TAGS = {
   table: 'table', row: 'tr', line: 'div', caption: 'div', target: 'span', options: 'span', option: 'span'
 }
 
-const UNBOXED = new Set(['table', 'list-table', 'tab-set', 'tab-item'])
+const UNBOXED = new Set(['table', 'list-table', 'tab-set', 'tab-item', 'rubric'])
 
 // Blocks that can hold side elements: the labels before them and their options
 const HOSTS = new Set(['heading', 'paragraph', 'directive'])
@@ -79,6 +79,12 @@ function renderBlock(model, block, attached = []) {
   // A directive that is not rendered as something of its own: a box with its name
   if (block.kind === 'directive' && !block.card && !UNBOXED.has(block.name)) el.classList.add('boxed')
   if (block.kind === 'raw') el.dataset.raw = block.type
+  // A rubric is a heading that is not a section: of the level of its option
+  if (block.name === 'rubric') {
+    const level = block.children.find(c => c.kind === 'options')?.children
+      .find(o => o.name === 'heading-level')?.inlines.slice(1).map(l => model.source.slice(l.s, l.e)).join('')
+    el.dataset.level = /^[1-6]$/.test(level?.trim() ?? '') ? level.trim() : ''
+  }
   if (block.hint) el.dataset.hint = block.hint
   el.dataset.s = block.s
   el.dataset.e = block.e

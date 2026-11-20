@@ -143,6 +143,13 @@ test('a tab set holds tabs, their content is parsed', () => {
   assert.equal(sets[0].children.some(c => c.kind === 'caption'), false)
 })
 
+test('a rubric has a title and no content', () => {
+  const model = assertCovered('.. rubric:: **Doctools**: docs\n   :heading-level: 1\n\nText\n')
+  assert.equal(outline(model.root), 'document(directive:rubric(caption options(option:heading-level)) paragraph)')
+  assert.equal(model.root.children[0].takesContent, false)
+  assert.deepEqual(texts(model).slice(0, 3), ['text:', 'strong:Doctools', 'text:: docs'])
+})
+
 test('rst-class has a class and no content', () => {
   const model = assertCovered('.. rst-class:: some-class\n\nText\n')
   assert.equal(outline(model.root), 'document(directive:rst-class(caption) paragraph)')
