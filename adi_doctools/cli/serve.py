@@ -37,6 +37,7 @@ log = {
     'no_cairosvg': "Package 'cairosvg' required for PDF generation is not installed.",
     'sparse_not_found': "Sparse path '{}' does not exist.",
     'doc_not_built': "Docname '{}' is not built.",
+    'no_doctools_gui': "Package 'adi-doctools-gui' required for the graphical interface is not installed.",
 }
 
 # Hall of shame of poorly managed artifacts
@@ -169,7 +170,8 @@ cwd = {cwd_display}""")
 
         return False
 
-    def __init__(self, directory, port, dev, once, builder, sparse, verbose, jsonrpc=False, esbonio=False, container=False):
+    def __init__(self, directory, port, dev, once, builder, sparse, verbose,
+                 jsonrpc=False, esbonio=False, container=False, gui=False):
         self.esbonio = esbonio
         if esbonio:
             Serve.esbonio_pyproject(directory, sparse, verbose)
@@ -184,6 +186,7 @@ cwd = {cwd_display}""")
         self.verbose = verbose
         self.jsonrpc = jsonrpc
         self.container = container
+        self.gui = gui
 
         # Process handles
         self.rollup_p = None
@@ -225,6 +228,10 @@ cwd = {cwd_display}""")
 
         if self.builder in ('latex', 'latexpdf') and not importlib.util.find_spec("cairosvg"):
             logger.error(log['no_cairosvg'])
+            return True
+
+        if self.gui and not importlib.util.find_spec("adoc_gui"):
+            logger.error(log['no_doctools_gui'])
             return True
 
         return False
@@ -1151,6 +1158,14 @@ def serve():
 
     if instance._setup():
         return True
+
+    if instance.gui:
+        from pathlib import Path
+
+        from adoc_gui.__main__ import run
+
+        return run(directory=Path(instance.directory), serve=True, docs_port=instance.port,
+                   sparse=instance.sparse)
 
     def signal_handler(sig, frame):
         instance._shutdown()

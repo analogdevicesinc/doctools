@@ -40,6 +40,10 @@ pdf = [
     "cairosvg",
 ]
 
+gui = [
+    "adi-doctools-gui",
+]
+
 mcp = [
     "mcp >= 1.0",
 ]

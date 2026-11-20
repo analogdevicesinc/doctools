@@ -63,6 +63,8 @@ def get_arguments_serve():
                         help="Print a Esbonio pyproject.toml and exit")
     parser.add_argument('--container', action='store_true', default=False,
                         help="Use adi/doctools_latex:v1 for latex->pdf")
+    parser.add_argument('--gui', action='store_true', default=False,
+                        help="Launch graphical interface editor")
 
     return vars(parser.parse_args())
 
