@@ -14,7 +14,9 @@ const CARD_DIRECTIVES = new Set([
 ])
 
 // Directives without content
-const NO_CONTENT = new Set(['image', 'include', 'literalinclude', 'contents', 'sectnum', 'index', 'only-doc'])
+const NO_CONTENT = new Set([
+  'image', 'include', 'literalinclude', 'contents', 'sectnum', 'index', 'only-doc', 'rst-class', 'clear-content'
+])
 
 // What the argument of a directive is, for the directives that take one
 const ARGUMENT = {
@@ -22,7 +24,7 @@ const ARGUMENT = {
   image: 'path', figure: 'path', include: 'path', literalinclude: 'path',
   table: 'title', 'list-table': 'title', 'csv-table': 'title',
   admonition: 'title', topic: 'title', sidebar: 'title', 'tab-item': 'title',
-  collapsible: 'title', card: 'title', collection: 'title', video: 'url', svg: 'path'
+  collapsible: 'title', card: 'title', collection: 'title', video: 'url', svg: 'path', 'rst-class': 'class'
 }
 
 // Directives whose content is reStructuredText
@@ -34,7 +36,7 @@ const RST_DIRECTIVES = new Set([
 // Directives without an argument
 const NO_ARGUMENT = new Set([
   'shell', 'tab-set', 'toctree', 'math', 'carousel', 'grid', 'flex', 'description', 'hdl-parameters',
-  'hdl-interfaces', 'esd-warning'
+  'hdl-interfaces', 'esd-warning', 'clear-content'
 ])
 
 import { readTable } from './table.js'

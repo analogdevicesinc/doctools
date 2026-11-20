@@ -143,6 +143,16 @@ test('a tab set holds tabs, their content is parsed', () => {
   assert.equal(sets[0].children.some(c => c.kind === 'caption'), false)
 })
 
+test('rst-class has a class and no content', () => {
+  const model = assertCovered('.. rst-class:: some-class\n\nText\n')
+  assert.equal(outline(model.root), 'document(directive:rst-class(caption) paragraph)')
+  const directive = model.root.children[0]
+  assert.equal(directive.takesContent, false)
+  assert.equal(directive.children[0].hint, 'class')
+  assert.deepEqual(texts(model), ['text:some-class', 'text:Text'])
+  assert.equal(modelOf('.. rst-class::\n').root.children[0].children[0].empty, true)
+})
+
 test('the content of the doctools directives is parsed', () => {
   const source = [
     '.. carousel::', '', '   .. figure:: a.png', '', '      A *caption*.', '', '   .. image:: b.png', '',

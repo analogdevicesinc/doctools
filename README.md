@@ -99,7 +99,7 @@ a tree that is updated incrementally can differ from a fresh one.
 
 | Source | Shown as |
 |--------|----------|
-| Sections | Headings, the level follows the order of the adornments, which follow the length of the title |
+| Sections | Headings, the level follows the order of the adornments, which follow the length of the title. A line of text, `Enter`, then `=`, `-`, `~`, `^`, `"`, `'`, `#` or `+` makes it a heading; typing the rest of the underline does nothing, another character (`- ` for a list) makes it text again |
 | `.. _label:` | A chip in the margin, beside the block that follows. `+ label` beside a heading adds one |
 | The arguments of a directive | A caption: the title of a table or of an admonition, the language of a code block |
 | A directive without an argument or without content | Empty fields that say what goes there: type the argument, `Enter` goes to the content; `Backspace` in an emptied directive removes it |
@@ -115,6 +115,7 @@ a tree that is updated incrementally can differ from a fresh one.
 | Tables with cells that span columns or rows, `csv-table` | Their source, in a box |
 | `code`, `code-block`, `sourcecode`, `shell` | A code editor, coloured by the language of the argument; the indentation of the source is not shown, and is added to what is written |
 | `carousel`, `collapsible`, `card`, `grid`, `flex`, `figure`, `video`, ... | A box with their name, caption and options, the content is edited as a document |
+| `rst-class` | A box with its name and the class to type, no content |
 | Other directives | A box with their name, caption and options, the content as source |
 | Literal blocks | Their text as it is written; the `::` alone on its line is hidden |
 | Comments, targets with a link, definition and field lists | Their source, in a box |
