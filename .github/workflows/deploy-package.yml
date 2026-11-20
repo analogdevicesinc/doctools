@@ -1,0 +1,160 @@
+on:
+  workflow_call:
+    inputs:
+      asset_alias_name:
+        required: true
+        type: string
+      asset_path:
+        required: true
+        type: string
+      new_tag:
+        required: true
+        type: string
+      tag:
+        required: true
+        type: string
+    secrets:
+      PYPI_API_KEY:
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  # Reusable workflows are currently unsupported on the PyPI
+  # https://github.com/pypa/gh-action-pypi-publish/issues/166
+  deploy-pypi:
+    if: ${{ inputs.new_tag == 'true' }}
+    runs-on: ${{ vars.RUNNER != '' && fromJSON(vars.RUNNER) || 'ubuntu-latest' }}
+    permissions:
+      contents: read
+
+    steps:
+    - name: Ensure clean dist
+      run: rm -rf dist
+
+    - uses: actions/download-artifact@v5
+      with:
+        name: dist
+        path: dist
+
+    - name: Publish to PyPI
+      env:
+        PYPI_API_KEY: ${{ secrets.PYPI_API_KEY }}
+      if: ${{ env.PYPI_API_KEY != '' }}
+      run: |
+        command -v python3 || alias python3=$(compgen -c python3 | grep -v '-' | sort --version-sort -r | head -n 1)
+        python3 -m venv venv/3/deploy-pypi
+        source ./venv/3/deploy-pypi/bin/activate
+        python3 -m pip install twine --upgrade
+        twine upload --password "${{ secrets.PYPI_API_KEY }}" dist/*
+
+  deploy-github:
+    if: ${{ github.ref == 'refs/heads/gui' }}
+    runs-on: ${{ vars.RUNNER != '' && fromJSON(vars.RUNNER) || 'ubuntu-latest' }}
+
+    steps:
+    - name: Ensure clean dist
+      run: rm -rf dist
+
+    - uses: actions/download-artifact@v5
+      with:
+        name: dist
+        path: dist
+
+    - name: Get sources
+      run: |
+        curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -L -o github-api.sh \
+          https://raw.githubusercontent.com/analogdevicesinc/doctools/refs/heads/main/ci/github-api.sh
+
+    - name: Create git tag
+      if: ${{ inputs.new_tag == 'true' }}
+      run: |
+        source ./github-api.sh
+
+        # After PyPi package
+        release_id=$(
+          gh-get-release-id ${{ secrets.GITHUB_TOKEN }} \
+                            ${{ github.repository }} \
+                            ${{ inputs.tag }} \
+                            tag_release_id
+        )
+
+        gh-upload-asset ${{ secrets.GITHUB_TOKEN }} \
+                        ${{ github.repository }} \
+                        $release_id \
+                        ${{ inputs.asset_alias_name }} \
+                        ${{ inputs.asset_path }}
+
+        gh-create-tag ${{ secrets.GITHUB_TOKEN }} \
+                      ${{ github.repository }} \
+                      "gui/${{ inputs.tag }}" \
+                      ${{ github.sha }}
+
+    - name: Get pre-release vars
+      run: |
+        source ./github-api.sh
+        release_id=$(
+          gh-get-release-id ${{ secrets.GITHUB_TOKEN }} \
+                            ${{ github.repository }} \
+                            pre-release \
+                            pre_release_id
+        )
+
+        asset_id=$(
+          gh-get-asset-id ${{ secrets.GITHUB_TOKEN }} \
+                          ${{ github.repository }} \
+                          $release_id \
+                          ${{ inputs.asset_alias_name }} \
+                          pre_release_asset_id
+        )
+
+    - name: Get latest vars
+      if: ${{ inputs.new_tag == 'true' }}
+      run: |
+        source ./github-api.sh
+        release_id=$(
+          gh-get-release-id ${{ secrets.GITHUB_TOKEN }} \
+                            ${{ github.repository }} \
+                            latest \
+                            latest_id
+        )
+
+        asset_id=$(
+          gh-get-asset-id ${{ secrets.GITHUB_TOKEN }} \
+                          ${{ github.repository }} \
+                          $release_id \
+                          ${{ inputs.asset_alias_name }} \
+                          latest_asset_id
+        )
+
+    - name: GitHub upload pre-release asset
+      run: |
+        source ./github-api.sh
+        if [[ ! "$pre_release_asset_id" == "" ]]; then
+          gh-delete-asset ${{ secrets.GITHUB_TOKEN }} \
+                          ${{ github.repository }} \
+                          $pre_release_asset_id
+        fi
+
+        gh-upload-asset ${{ secrets.GITHUB_TOKEN }} \
+                        ${{ github.repository }} \
+                        $pre_release_id \
+                        ${{ inputs.asset_alias_name }} \
+                        ${{ inputs.asset_path }}
+
+    - name: GitHub upload latest asset
+      if: ${{ inputs.new_tag == 'true' }}
+      run: |
+        source ./github-api.sh
+        if [[ ! "$latest_asset_id" == "" ]]; then
+          gh-delete-asset ${{ secrets.GITHUB_TOKEN }} \
+                          ${{ github.repository }} \
+                          $latest_asset_id
+        fi
+
+        gh-upload-asset ${{ secrets.GITHUB_TOKEN }} \
+                        ${{ github.repository }} \
+                        $latest_id \
+                        ${{ inputs.asset_alias_name }} \
+                        ${{ inputs.asset_path }}
