@@ -130,23 +130,30 @@ const same = (a, b) => {
 export class CodeEditors {
   constructor(on) {
     this.on = on
-    this.list = []
-    this.used = 0
+    this.list = new Set()
+    this.used = new Set()
   }
 
   begin() {
-    this.used = 0
+    this.used = new Set()
   }
 
-  // The element of the code of a directive
-  host(model, directive) {
+  // The element of the code of a directive. old: the element it had, kept
+  // with its editor
+  host(model, directive, old) {
     const code = codeOf(model, directive)
-    let editor = this.list[this.used]
+    const el = old?.editor && this.list.has(old.editor) ? old : document.createElement('div')
+    let editor = el.editor
     if (!editor) {
-      editor = this.create()
-      this.list.push(editor)
+      editor = el.editor = this.create()
+      this.list.add(editor)
+      el.className = 'block b-raw code code-editor'
+      el.contentEditable = 'false'
+      el.dataset.kind = 'raw'
+      el.append(editor.view.dom)
+      editor.host = el
     }
-    this.used++
+    this.used.add(editor)
     editor.model = model
     editor.code = code
     const language = languageOf(model, directive)
@@ -156,23 +163,23 @@ export class CodeEditors {
     }
     if (!same(editor.view.state.doc.toString(), code.text)) setText(editor.view, code.text)
 
-    const el = document.createElement('div')
-    el.className = 'block b-raw code code-editor'
-    el.contentEditable = 'false'
-    el.dataset.kind = 'raw'
-    el.dataset.type = code.block?.type ?? 'content'
-    el.dataset.s = code.block?.s ?? directive.headEnd
-    el.dataset.e = code.block?.e ?? directive.headEnd
+    const s = String(code.block?.s ?? directive.headEnd)
+    const e = String(code.block?.e ?? directive.headEnd)
+    const type = code.block?.type ?? 'content'
+    if (el.dataset.type !== type) el.dataset.type = type
+    if (el.dataset.s !== s) el.dataset.s = s
+    if (el.dataset.e !== e) el.dataset.e = e
     el.block = code.block
-    el.editor = editor
-    el.append(editor.view.dom)
-    editor.host = el
     return el
   }
 
   // The editors of the code that is gone are dropped
   end() {
-    for (const editor of this.list.splice(this.used)) editor.view.destroy()
+    for (const editor of this.list) {
+      if (this.used.has(editor)) continue
+      editor.view.destroy()
+      this.list.delete(editor)
+    }
   }
 
   create() {
@@ -217,10 +224,10 @@ export class CodeEditors {
 
   // The editor of the code that holds a source offset
   at(offset) {
-    return this.list.slice(0, this.used).find(({ code: { block } }) => block && block.s <= offset && offset <= block.e)
+    return [...this.list].find(({ code: { block } }) => block && block.s <= offset && offset <= block.e)
   }
 
   of(directive) {
-    return this.list.slice(0, this.used).find(editor => editor.code.directive === directive)
+    return [...this.list].find(editor => editor.code.directive === directive)
   }
 }

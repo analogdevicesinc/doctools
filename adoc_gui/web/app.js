@@ -486,7 +486,7 @@ const codes = new CodeEditors({
   undo: () => ACTIONS.undo(),
   redo: () => ACTIONS.redo()
 })
-setCodeHost((model, directive) => codes.host(model, directive))
+setCodeHost((model, directive, old) => codes.host(model, directive, old))
 
 // The focus and the caret of an editor moved to the page rendered again: the
 // browser lost its selection, it is written again

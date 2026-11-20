@@ -6,10 +6,13 @@
 import { leafAt, blockAt } from './model.js'
 import { CODE_DIRECTIVES } from './code.js'
 
-// Makes the element of the code of a code directive: (model, directive) => element
+// Makes the element of the code of a code directive, from the one it had:
+// (model, directive, old) => element
 let codeHost
 export function setCodeHost(make) {
+  const before = codeHost
   codeHost = make
+  return before
 }
 
 const TAGS = {
@@ -67,9 +70,176 @@ function button(name, title) {
   return el
 }
 
+// Partial refresh ---------------------------------------------------------------
+//
+// The page is not made again on every edit. An element remembers what it was
+// made from (its signature: the kind of the block and its source), and the
+// elements of the blocks in it. On the next render:
+//
+// - a block with the same signature keeps its element, as it is: only the
+//   offsets in the source, of the element and of what is in it, are updated;
+// - a block that changed keeps its element too, when there is one of the same
+//   kind: what is in it is made again, but for the blocks in it, which are
+//   looked for among the ones it had, the same way.
+//
+// So an edit makes again the elements of the edited block and of the blocks
+// around it, and leaves the rest of the page as it is.
+
+const FLAGS = ['code', 'error', 'card', 'empty', 'ordered', 'header', 'takesContent']
+
+// What the element of a block is made from. The offsets are not part of it:
+// the same block further in the source has the same element.
+function signature(model, block, attached) {
+  if (block.sig === undefined) {
+    const { source } = model
+    // Its text, which can go past the block: the spaces of an empty argument
+    const leaves = (block.inlines ?? [])
+      .map(l => `${l.kind}${l.role ?? ''}${l.bare ? 1 : 0}${l.newline ? 1 : 0}:${source.slice(l.s, l.e)}`).join('\u0001')
+    block.sig = [block.kind, block.type, block.name ?? '', block.level ?? '', block.hint ?? '',
+      FLAGS.map(flag => block[flag] ? 1 : 0).join('')].join('|') + '|' + source.slice(block.s, block.e) + '\u0002' + leaves
+  }
+  if (!attached.length) return block.sig
+  return block.sig + attached.map(target => `\u0000${signature(model, target, [])}`).join('')
+}
+
+// The blocks shown in the element of a block: at its side (the labels before
+// it and its options) and in it, each with the labels attached to it
+function plan(block, attached) {
+  const children = block.children ?? []
+  const directive = block.kind === 'directive'
+  const coded = directive && Boolean(codeHost) && CODE_DIRECTIVES.has(block.name)
+  const sides = attached.map(target => [target, []])
+  if (directive) sides.push(...children.filter(c => c.kind === 'options').map(c => [c, []]))
+
+  const body = []
+  let labels = []
+  children.forEach((child, i) => {
+    if (directive && child.kind === 'options') return
+    // The code is in an editor of its own
+    if (coded && child.kind === 'raw' && child.code) return
+    // A label goes to the side of the block that follows it
+    if (child.kind === 'target') {
+      const next = children.slice(i + 1).find(c => c.kind !== 'target')
+      if (next && HOSTS.has(next.kind)) {
+        labels.push(child)
+        return
+      }
+    }
+    body.push([child, labels])
+    labels = []
+  })
+  return { sides, body, coded }
+}
+
+// For each part, the element to make it from: the one of the same block,
+// else one of a block of the same kind, to change in place.
+//
+// The blocks before and after an edit are the same, in the same order: they
+// are matched from both ends first, so equal blocks (the same example
+// twice in a page) keep each its own element. What is left in the middle is
+// matched by signature, then by kind.
+function match(model, parts, olds) {
+  const found = new Array(parts.length)
+  if (!olds?.length) return found
+  const sigs = parts.map(([block, attached]) => signature(model, block, attached))
+
+  let head = 0
+  while (head < parts.length && head < olds.length && olds[head].sig === sigs[head]) {
+    found[head] = olds[head]
+    head++
+  }
+  let tail = 0
+  while (tail < parts.length - head && tail < olds.length - head &&
+    olds[olds.length - 1 - tail].sig === sigs[parts.length - 1 - tail]) {
+    found[parts.length - 1 - tail] = olds[olds.length - 1 - tail]
+    tail++
+  }
+  const middle = olds.slice(head, olds.length - tail)
+  if (!middle.length) return found
+  const end = parts.length - tail
+
+  const same = new Map()
+  for (const el of middle) {
+    if (!same.has(el.sig)) same.set(el.sig, [])
+    same.get(el.sig).push(el)
+  }
+  const taken = new Set()
+  for (let i = head; i < end; i++) {
+    const el = same.get(sigs[i])?.shift()
+    if (!el) continue
+    found[i] = el
+    taken.add(el)
+  }
+  const rest = middle.filter(el => !taken.has(el))
+  for (let i = head; i < end && rest.length; i++) {
+    if (found[i]) continue
+    const block = parts[i][0]
+    const at = rest.findIndex(el => el.block.kind === block.kind && el.block.name === block.name)
+    if (at !== -1) found[i] = rest.splice(at, 1)[0]
+  }
+  return found
+}
+
+function setSpan(el, s, e) {
+  if (el.dataset.s !== String(s)) el.dataset.s = s
+  if (el.dataset.e !== String(e)) el.dataset.e = e
+}
+
+// Where the caret goes in an empty list item or cell
+function emptyOffset(model, block) {
+  const lineEnd = model.source.indexOf('\n', block.marker.e)
+  return Math.min(block.marker.e + 1, lineEnd === -1 ? model.source.length : lineEnd)
+}
+
+// The children of an element become the nodes, in order: the ones that are
+// already there are not moved
+function sync(el, nodes) {
+  const keep = new Set(nodes)
+  for (const child of [...el.childNodes]) if (!keep.has(child)) child.remove()
+  nodes.forEach((node, i) => {
+    const current = el.childNodes[i]
+    if (current !== node) el.insertBefore(node, current ?? null)
+  })
+}
+
+// The element of a block that did not change: only where it is in the source
+function refresh(model, el, block, attached) {
+  const inlines = block.inlines ?? []
+  const { sides, body, coded } = plan(block, attached)
+  const parts = [...sides, ...body]
+  if (parts.length !== el.made.length || inlines.length !== el.leaves.length) {
+    el.sig = undefined
+    return renderBlock(model, block, attached, el)
+  }
+  el.block = block
+  setSpan(el, block.s, block.e)
+  inlines.forEach((leaf, i) => setSpan(el.leaves[i], leaf.s, leaf.e))
+  parts.forEach(([child, labels], i) => {
+    const made = renderBlock(model, child, labels, el.made[i])
+    if (made === el.made[i]) return
+    el.made[i].replaceWith(made)
+    el.made[i] = made
+  })
+  if (coded) codeHost(model, block, el.code)
+  if (el.place) setSpan(el.place, emptyOffset(model, block), emptyOffset(model, block))
+  return el
+}
+
 // attached: the labels before the block, shown at its side
-function renderBlock(model, block, attached = []) {
-  const el = document.createElement(tagOf(block))
+// old: the element of the block, or of a block of its kind, from the render
+// before
+function renderBlock(model, block, attached = [], old) {
+  const sig = signature(model, block, attached)
+  if (old && old.sig === sig) return refresh(model, old, block, attached)
+
+  const { sides, body, coded } = plan(block, attached)
+  const parts = [...sides, ...body]
+  const olds = match(model, parts, old?.made)
+  const made = parts.map(([child, labels], i) => renderBlock(model, child, labels, olds[i]))
+
+  const tag = tagOf(block)
+  const el = old && old.localName === tag ? old : document.createElement(tag)
+  if (el === old) for (const name of el.getAttributeNames()) el.removeAttribute(name)
   el.className = `block b-${block.kind}`
   for (const flag of ['code', 'error', 'card', 'empty'])
     if (block[flag]) el.classList.add(flag)
@@ -89,63 +259,48 @@ function renderBlock(model, block, attached = []) {
   el.dataset.s = block.s
   el.dataset.e = block.e
   el.block = block
+  el.sig = sig
+  el.made = made
+  el.place = undefined
+
+  const nodes = []
+  if (block.kind === 'option' || block.kind === 'target') nodes.push(button('remove-side', 'Remove'))
 
   // The side elements come first, they are placed in the margin
-  const sides = attached.map(target => renderBlock(model, target))
-  const children = block.children ?? []
-  if (block.kind === 'directive') {
-    sides.push(...children.filter(c => c.kind === 'options').map(c => renderBlock(model, c)))
-    sides.push(button('add-option', 'Add an option'))
-  }
-  if (block.kind === 'heading') sides.push(button('add-label', 'Add a label'))
-  if (block.kind === 'option' || block.kind === 'target') el.append(button('remove-side', 'Remove'))
-  if (sides.length) {
+  const aside = made.slice(0, sides.length)
+  if (block.kind === 'directive') aside.push(button('add-option', 'Add an option'))
+  if (block.kind === 'heading') aside.push(button('add-label', 'Add a label'))
+  if (aside.length) {
     const holder = document.createElement('span')
     holder.className = 'sides'
-    holder.append(...sides)
-    el.append(holder)
+    holder.append(...aside)
+    nodes.push(holder)
     el.classList.add('has-sides')
   }
 
-  for (const leaf of block.inlines ?? [])
-    el.append(renderLeaf(model, leaf))
+  el.leaves = (block.inlines ?? []).map(leaf => renderLeaf(model, leaf))
+  nodes.push(...el.leaves, ...made.slice(sides.length))
 
-  const coded = block.kind === 'directive' && codeHost && CODE_DIRECTIVES.has(block.name)
-  let labels = []
-  children.forEach((child, i) => {
-    if (block.kind === 'directive' && child.kind === 'options') return
-    if (coded && child.kind === 'raw' && child.code) return
-    // A label goes to the side of the block that follows it
-    if (child.kind === 'target') {
-      const next = children.slice(i + 1).find(c => c.kind !== 'target')
-      if (next && HOSTS.has(next.kind)) {
-        labels.push(child)
-        return
-      }
-    }
-    el.append(renderBlock(model, child, labels))
-    labels = []
-  })
-
-  if (block.kind === 'directive' && block.name === 'tab-set') el.append(button('add-tab', 'Add a tab'))
+  if (block.kind === 'directive' && block.name === 'tab-set') nodes.push(button('add-tab', 'Add a tab'))
 
   // The code is in an editor of its own
-  if (coded) el.append(codeHost(model, block))
-  // A directive without content: a place to click to write it
-  else if (block.kind === 'directive' && block.takesContent &&
-      !children.some(c => c.kind !== 'caption' && c.kind !== 'options')) {
+  el.code = coded ? codeHost(model, block, old?.code) : undefined
+  if (el.code) {
+    nodes.push(el.code)
+  } else if (block.kind === 'directive' && block.takesContent && !body.some(([c]) => c.kind !== 'caption')) {
+    // A directive without content: a place to click to write it
     const hint = document.createElement('div')
     hint.className = 'content-hint'
     hint.contentEditable = 'false'
-    el.append(hint)
+    nodes.push(hint)
   }
 
   // An empty list item or cell still needs a place for the caret
   if ((block.kind === 'item' || block.kind === 'cell') && !block.children.length && block.marker) {
-    const lineEnd = model.source.indexOf('\n', block.marker.e)
-    const end = lineEnd === -1 ? model.source.length : lineEnd
-    el.append(placeholder(Math.min(block.marker.e + 1, end)))
+    el.place = placeholder(emptyOffset(model, block))
+    nodes.push(el.place)
   }
+  sync(el, nodes)
   return el
 }
 
@@ -183,14 +338,27 @@ function showTabs(root, model, caret) {
   }
 }
 
-const leafElements = root => [...root.querySelectorAll('.leaf, .soft')]
-  .sort((a, b) => Number(a.dataset.s) - Number(b.dataset.s))
+// The elements of the leaves, in the order of the source: kept until the
+// next render
+let leafCache
+function leafElements(root) {
+  if (leafCache?.root !== root) {
+    leafCache = {
+      root,
+      list: [...root.querySelectorAll('.leaf, .soft')].sort((a, b) => Number(a.dataset.s) - Number(b.dataset.s))
+    }
+  }
+  return leafCache.list
+}
 
 // caret: a source offset where the caret must be able to go, an empty
 // paragraph is shown there when no text holds it
 export function render(root, model, caret) {
-  const doc = renderBlock(model, model.root)
-  root.replaceChildren(doc)
+  leafCache = undefined
+  for (const el of root.querySelectorAll('.caret-place')) el.remove()
+  const before = root.firstElementChild
+  const doc = renderBlock(model, model.root, [], before?.made ? before : undefined)
+  if (doc !== before || root.childNodes.length !== 1) root.replaceChildren(doc)
   showTabs(root, model, caret)
 
   if (caret === undefined || leafAt(model, caret))
@@ -202,7 +370,10 @@ export function render(root, model, caret) {
   while (target.inlines && target.parent) target = target.parent
   const parent = [...root.querySelectorAll('.block')].find(el => el.block === target) ?? doc
   const next = [...parent.children].find(el => el.classList.contains('block') && Number(el.dataset.s) >= caret)
-  parent.insertBefore(placeholder(caret), next ?? null)
+  const place = placeholder(caret)
+  place.classList.add('caret-place')
+  parent.insertBefore(place, next ?? null)
+  leafCache = undefined
 }
 
 const span = el => ({ s: Number(el.dataset.s), e: Number(el.dataset.e) })

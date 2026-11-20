@@ -106,7 +106,10 @@ a tree that is updated incrementally can differ from a fresh one.
   hidden. What is not understood is a leaf with its source, so nothing is ever
   dropped.
 - `web/view.js` shows the model as HTML and maps the caret between the page
-  and the source offsets.
+  and the source offsets. The page is refreshed in part: the element of a
+  block is kept while the source of the block is the same, only its offsets
+  are updated, so an edit makes again the elements of the edited block and
+  leaves the rest of the page, and its code editors, as they are.
 - `web/ops.js` turns what the user does (typing, Enter, Backspace, bold) into
   an edit of the source.
 - `web/app.js` wires them: the browser never edits the page itself, every
