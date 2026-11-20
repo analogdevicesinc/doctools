@@ -157,3 +157,25 @@ li > .placeholder { margin: 0; }
   color: #000;
   background: transparent;
 }
+
+/* Tables ---------------------------------------------------------------------- */
+
+table.block { border-collapse: collapse; border: 2px solid #036; padding: 0; }
+tr.block { border: none; margin: 0; padding: 0; }
+td.block, th.block {
+  border: 1px solid #036;
+  margin: 0;
+  padding: 4px 6px;
+  min-width: 40px;
+  height: 1.8em;
+  vertical-align: top;
+  text-align: left;
+}
+th.block { background: #dde6f0; }
+table.block::before, tr.block::before, td.block::before, th.block::before { content: none; }
+td.block.active, th.block.active { background: #eef5ff; }
+.b-line { border: none; margin: 0; padding: 0; min-height: 1.4em; }
+.b-line::before { content: none; }
+.b-line.active { background: #dbe9ff; }
+td > .block, th > .block { margin: 0; }
+td > .placeholder, th > .placeholder { margin: 0; border: none; padding: 0; }

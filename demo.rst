@@ -7,23 +7,23 @@ This is a *plain* paragraph with **strong** **strong** text, ``literal`` text, a
 Tables
 -----
 
-=====  =====  =======
-A      B      A and B
-=====  =====  =======
-False  False  False
-True   False  False
-False  True   False
-True   True   True
-=====  =====  =======
+=====  ======  =======
+A      B       A and B
+=====  ======  =======
+False  False   False
+True   False   False
+False  dasdas  False
+True   True    True
+=====  ======  =======
 
-+------------------------+------------+----------+----------+
-| Header row, column 1   | Header 2   | Header 3 | Header 4 |
-| (header rows optional) |            |          |          |
-+========================+============+==========+==========+
-| body row 1, column 1   | column 2   | column 3 | column 4 |
-+------------------------+------------+----------+----------+
-| body row 2             | ...        | ...      |          |
-+------------------------+------------+----------+----------+
++------------------------+----------+----------+----------+
+| Header row, column 1   | Header 2 | Header 3 | Header 4 |
+| (header rows optional) |          |          |          |
++========================+==========+==========+==========+
+| body row 1, column 1   | column 2 | column 3 | column 4 |
++------------------------+----------+----------+----------+
+| body row 2             | ...      | ...      |          |
++------------------------+----------+----------+----------+
 
 
 .. list-table:: Frozen Delights!
@@ -88,3 +88,41 @@ A literal block::
 
 term
    definition
+
+Tables
+------
+
+A grid table:
+
++-------+---------+
+| Name  | Value   |
++=======+=========+
+| one   | *first* |
++-------+---------+
+| two   | second  |
++-------+---------+
+
+A simple table:
+
+=====  ======
+Name   Value
+=====  ======
+one    first
+two    second
+=====  ======
+
+.. list-table:: A list table
+   :header-rows: 1
+
+   * - Name
+     - Value
+   * - one
+     - **first**
+
+A table with a cell that spans columns is shown as source:
+
++-------+---------+
+| Name and value  |
++-------+---------+
+| one   | first   |
++-------+---------+

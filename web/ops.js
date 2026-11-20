@@ -6,6 +6,7 @@
 // as source offsets with a <= b.
 
 import { leafAt, blockAt, ancestor } from './model.js'
+import { writeTable } from './table.js'
 
 const INLINE = { bold: '**', italic: '*', code: '``' }
 
@@ -45,7 +46,7 @@ function insertBlock(source, offset, text) {
   return edit(offset, offset, head + text + tail + missing, offset + head.length + text.length)
 }
 
-export function insertText(model, a, b, text) {
+function insertTextRaw(model, a, b, text) {
   const { source } = model
   if (a === b && !leafAt(model, a) && !blockAt(model, a).marker)
     return insertBlock(source, a, text)
@@ -76,7 +77,7 @@ function unlist(source, item, caret) {
   return edit(ls, to, head, caret ?? ls + head.length)
 }
 
-export function deleteBackward(model, a, b) {
+function deleteBackwardRaw(model, a, b) {
   const { source } = model
   if (a !== b) return edit(a, b, '')
   if (a === 0) return undefined
@@ -114,7 +115,7 @@ export function deleteBackward(model, a, b) {
   return undefined
 }
 
-export function deleteForward(model, a, b) {
+function deleteForwardRaw(model, a, b) {
   const { source } = model
   if (a !== b) return edit(a, b, '')
   if (a >= source.length) return undefined
@@ -140,7 +141,7 @@ function nextMarker(marker) {
 }
 
 // Enter
-export function insertParagraph(model, a, b) {
+function insertParagraphRaw(model, a, b) {
   const { source } = model
   const item = leafAt(model, a)
   const owner = item ? item.block : blockAt(model, a)
@@ -204,7 +205,7 @@ export function insertParagraph(model, a, b) {
 
 // kind: bold, italic or code. Wraps the selection, or removes the markup
 // when the selection is exactly the text of a leaf of that kind.
-export function toggleInline(model, a, b, kind) {
+function toggleInlineRaw(model, a, b, kind) {
   const { source } = model
   const mark = INLINE[kind]
   const names = { bold: 'strong', italic: 'emphasis', code: 'literal' }
@@ -220,4 +221,185 @@ export function toggleInline(model, a, b, kind) {
   if (from === to || source.slice(from, to).includes('\n')) return undefined
   const text = mark + source.slice(from, to) + mark
   return { start: from, end: to, text, caret: to + mark.length, anchor: from + mark.length }
+}
+
+// Tables ----------------------------------------------------------------------
+
+function tablesOf(model) {
+  if (!model.tables) {
+    model.tables = []
+    const walk = b => {
+      if (b.kind === 'table') model.tables.push(b)
+      for (const child of b.children ?? []) walk(child)
+    }
+    walk(model.root)
+  }
+  return model.tables
+}
+
+// The cell of the caret: { table, row, cell, line, r, c, i }
+function cellAt(model, offset) {
+  const item = leafAt(model, offset)
+  const owner = item ? item.block : blockAt(model, offset)
+  const cell = ancestor(owner, 'cell')
+  if (!cell) return undefined
+  const row = cell.parent
+  const table = row.parent
+  const line = ancestor(owner, 'line')
+  return {
+    table, row, cell, line,
+    r: table.children.indexOf(row), c: row.children.indexOf(cell), i: line ? cell.children.indexOf(line) : 0
+  }
+}
+
+// Where the caret goes in a cell
+function cellStart(model, cell) {
+  const first = model.leaves.find(l => l.kind !== 'soft' && l.s >= cell.s && l.e <= cell.e && ancestor(l.block, 'cell') === cell)
+  if (first) return first.s
+  const end = lineEnd(model.source, cell.marker.e)
+  return Math.min(cell.marker.e + 1, end)
+}
+
+const isEmptyRow = (model, row) =>
+  model.leaves.every(l => ancestor(l.block, 'row') !== row || model.source.slice(l.s, l.e).trim() === '')
+
+// The text of the lines of the cells of a grid or simple table
+const textOf = (model, table) => table.children.map(row =>
+  row.children.map(cell => cell.children.map(line => model.source.slice(line.s, line.e).replace(/\s+$/, ''))))
+
+// Write a grid or simple table again. at: [row, column, line, offset in the line]
+function rewrite(model, table, rows, at, headers = table.headers) {
+  const { text, offsets } = writeTable(table.format, rows, { headers, indent: table.indent, gap: table.gap })
+  const caret = table.s + offsets[at[0]][at[1]][at[2]] + at[3]
+  return { start: table.s, end: table.e, text, caret }
+}
+
+// An edit that touches a grid or simple table is made on the text of one
+// cell and the table is written again, so it stays aligned. An edit that
+// would break the table is dropped.
+function guard(model, change) {
+  if (!change) return change
+  for (const table of tablesOf(model)) {
+    if (table.format === 'list') continue
+    const inside = offset => offset >= table.s && offset <= table.e
+    if (!inside(change.start) && !inside(change.end) && !(change.start < table.s && change.end > table.e)) continue
+    if (change.start <= table.s && change.end >= table.e && change.end > change.start) continue
+
+    const at = cellAt(model, change.start)
+    const line = at?.line
+    if (!line || at.table !== table || change.start < line.s || change.end > line.e) return undefined
+
+    const before = model.source.slice(line.s, line.e)
+    // A cell line holds one line of text
+    const inserted = change.text.replace(/\s*\n\s*/g, ' ')
+    const shorter = change.text.length - inserted.length
+    let text = before.slice(0, change.start - line.s) + inserted + before.slice(change.end - line.s)
+    const columnOf = offset => offset - line.s - (offset >= change.start + change.text.length ? shorter : 0)
+    let caret = columnOf(change.caret)
+    let anchor = change.anchor === undefined ? undefined : columnOf(change.anchor)
+    if (before.trim() === '') {
+      const lead = text.length - text.trimStart().length
+      text = text.slice(lead)
+      caret = Math.max(caret - lead, 0)
+      if (anchor !== undefined) anchor = Math.max(anchor - lead, 0)
+    }
+    // The space just typed at the end is kept until more is typed
+    text = text.slice(0, Math.max(text.trimEnd().length, Math.min(caret, text.length)))
+
+    const rows = textOf(model, table)
+    rows[at.r][at.c][at.i] = text
+    const result = rewrite(model, table, rows, [at.r, at.c, at.i, caret])
+    if (anchor !== undefined) result.anchor = result.caret - caret + anchor
+    return result
+  }
+  return change
+}
+
+// A new row below the one of the caret
+function insertRow(model, at) {
+  const { source } = model
+  const { table, row } = at
+  if (table.format !== 'list') {
+    const rows = textOf(model, table)
+    rows.splice(at.r + 1, 0, row.children.map(() => ['']))
+    return rewrite(model, table, rows, [at.r + 1, 0, 0, 0])
+  }
+  const indent = source.slice(lineStart(source, row.marker.s), row.marker.s)
+  const outer = source.slice(row.marker.s, row.marker.e)
+  const inner = source.slice(row.children[0].marker.s, row.children[0].marker.e)
+  const pad = ' '.repeat(outer.length + 1)
+  const lines = row.children.map((_, c) => `${indent}${c === 0 ? outer + ' ' : pad}${inner} `)
+  const end = lineEnd(source, Math.max(row.e - 1, row.s))
+  return edit(end, end, '\n' + lines.join('\n'), end + 1 + lines[0].length)
+}
+
+// Remove the row of the caret, the caret goes to the end of the row above
+function deleteRow(model, at) {
+  const { source } = model
+  const { table, row } = at
+  if (table.children.length < 2) return undefined
+  const above = table.children[at.r - 1]
+  if (table.format !== 'list') {
+    const rows = textOf(model, table)
+    rows.splice(at.r, 1)
+    const headers = at.r < table.headers ? table.headers - 1 : table.headers
+    if (!above) return rewrite(model, table, rows, [0, 0, 0, 0], headers)
+    const c = above.children.length - 1
+    const i = rows[at.r - 1][c].length - 1
+    return rewrite(model, table, rows, [at.r - 1, c, i, rows[at.r - 1][c][i].length], headers)
+  }
+  const start = lineStart(source, row.marker.s)
+  const end = Math.min(lineEnd(source, Math.max(row.e - 1, row.s)) + 1, source.length)
+  const previous = [...model.leaves].reverse().find(l => l.e <= start && l.kind !== 'soft')
+  if (!above) return edit(start, end, '', start + (cellStart(model, row.children[0]) - start))
+  return edit(start, end, '', previous ? previous.e : start)
+}
+
+// Tab and Shift+Tab: the next or previous cell, a new row after the last one.
+// Returns { caret } or an edit, undefined when the caret is not in a table.
+export function tableStep(model, offset, step) {
+  const at = cellAt(model, offset)
+  if (!at) return undefined
+  const cells = at.table.children.flatMap(row => row.children)
+  const next = cells[cells.indexOf(at.cell) + step]
+  if (next) return { caret: cellStart(model, next) }
+  return step > 0 ? insertRow(model, at) : { caret: offset }
+}
+
+export function insertText(model, a, b, text) {
+  return guard(model, insertTextRaw(model, a, b, text))
+}
+
+export function deleteBackward(model, a, b) {
+  const at = a === b ? cellAt(model, a) : undefined
+  if (at) {
+    // At the start of an empty row: remove the row
+    if (a === cellStart(model, at.row.children[0]) && isEmptyRow(model, at.row))
+      return deleteRow(model, at)
+    // The cells are not joined
+    const item = leafAt(model, a)
+    if (!item || (a === item.s && model.leaves[model.leaves.indexOf(item) - 1]?.block !== item.block))
+      return undefined
+  }
+  return guard(model, deleteBackwardRaw(model, a, b))
+}
+
+export function deleteForward(model, a, b) {
+  const at = a === b ? cellAt(model, a) : undefined
+  if (at) {
+    const item = leafAt(model, a)
+    if (!item || (a === item.e && model.leaves[model.leaves.indexOf(item) + 1]?.block !== item.block))
+      return undefined
+  }
+  return guard(model, deleteForwardRaw(model, a, b))
+}
+
+export function insertParagraph(model, a, b) {
+  const at = cellAt(model, a)
+  if (at) return a === b || cellAt(model, b)?.cell === at.cell ? insertRow(model, at) : undefined
+  return guard(model, insertParagraphRaw(model, a, b))
+}
+
+export function toggleInline(model, a, b, kind) {
+  return guard(model, toggleInlineRaw(model, a, b, kind))
 }

@@ -13,6 +13,8 @@ const RST_DIRECTIVES = new Set([
   'epigraph', 'highlights', 'pull-quote', 'compound', 'topic', 'sidebar', 'container'
 ])
 
+import { readTable } from './table.js'
+
 const DELIMITED = { strong: 2, emphasis: 1, literal: 2 }
 const INLINE_KIND = {
   interpreted_text: 'role',
@@ -125,7 +127,80 @@ export function buildModel(parser, tree, source) {
     return b
   }
 
+  // The leaves of one line of a table cell, its inline markup is parsed
+  const cellLine = (range, parent) => {
+    const b = { kind: 'line', type: 'line', s: range.s, e: range.e, parent }
+    let children = []
+    let subtree
+    if (/[*`:_|]/.test(source.slice(range.s, range.e))) {
+      subtree = parser.parse(source, null, {
+        includedRanges: [{
+          startIndex: range.s, endIndex: range.e, startPosition: pointOf(range.s), endPosition: pointOf(range.e)
+        }]
+      })
+      const first = subtree?.rootNode.children[0]
+      if (first?.type === 'paragraph') children = first.children
+    }
+    b.inlines = inlines(b, children, range.s, range.e)
+    subtree?.delete()
+    b.e = range.e
+    if (!b.inlines.length) b.inlines = [leaf(b, 'text', range.s, range.e)]
+    return b
+  }
+
+  // A grid or simple table, read from the lines of a paragraph
+  const textTable = (node, parent) => {
+    const read = readTable(source, node.startIndex, node.endIndex)
+    if (!read) return undefined
+    hidden.push([node.startIndex, node.endIndex], ...read.hidden)
+    const b = block('table', node, parent, {
+      format: read.format, headers: read.headers, indent: read.indent, gap: read.gap
+    })
+    b.children = read.rows.map((cells, r) => {
+      const row = { kind: 'row', type: 'row', parent: b, header: r < read.headers }
+      row.children = cells.map(cell => {
+        const c = { kind: 'cell', type: 'cell', parent: row, header: row.header }
+        c.children = cell.lines.map(range => cellLine(range, c))
+        c.s = c.children[0].s
+        c.e = c.children[c.children.length - 1].e
+        return c
+      })
+      row.s = Math.min(...row.children.map(c => c.s))
+      row.e = Math.max(...row.children.map(c => c.e))
+      return row
+    })
+    return b
+  }
+
+  // The list of lists of a list-table directive, as a table
+  const listTable = (kids, parent, head) => {
+    const outer = kids.length === 1 && kids[0].kind === 'list' ? kids[0] : undefined
+    if (!outer || !outer.children.length) return undefined
+    if (!outer.children.every(item => item.children.length === 1 && item.children[0].kind === 'list'))
+      return undefined
+    const headers = Number(/:header-rows:\s*(\d+)/.exec(head)?.[1] ?? 0)
+    const b = { kind: 'table', type: 'list-table', format: 'list', s: outer.s, e: outer.e, parent, headers }
+    b.children = outer.children.map((item, r) => {
+      const row = { kind: 'row', type: 'row', s: item.s, e: item.e, parent: b, marker: item.marker, header: r < headers }
+      row.children = item.children[0].children.map(inner => {
+        const c = { kind: 'cell', type: 'cell', s: inner.s, e: inner.e, parent: row, marker: inner.marker, header: row.header }
+        c.children = inner.children
+        for (const child of c.children) child.parent = c
+        return c
+      })
+      return row
+    })
+    return b
+  }
+
   const paragraph = (node, parent) => {
+    if (/^(\+-|=)/.test(source.slice(node.startIndex, node.startIndex + 2))) {
+      const table = textTable(node, parent)
+      if (table) return [table]
+      // A table that is not read is shown as it is written
+      if (/^(\+-[-+]*|=+( +=+)*)$/.test(source.slice(node.startIndex, lineEnd(node.startIndex))))
+        return [raw(node, parent, undefined, undefined, { code: true })]
+    }
     const literal = node.children.find(c => c.type === 'literal_block')
     const end = literal ? node.children[node.children.indexOf(literal) - 1].endIndex : node.endIndex
     const b = block('paragraph', node, parent)
@@ -184,7 +259,11 @@ export function buildModel(parser, tree, source) {
       headEnd = before ? before.endIndex : node.children.find(c => c.type === '::')?.endIndex ?? body.startIndex
     }
     b.children = [raw(node, b, node.startIndex, headEnd, { head: true })]
-    if (content && b.rst)
+    if (content && name === 'list-table') {
+      const kids = nested(content, b)
+      const table = listTable(kids, b, source.slice(node.startIndex, headEnd))
+      b.children.push(...(table ? [table] : kids))
+    } else if (content && b.rst)
       b.children.push(...nested(content, b))
     else if (content)
       b.children.push(raw(content, b, lineStart(content.startIndex), content.endIndex, { code: true }))

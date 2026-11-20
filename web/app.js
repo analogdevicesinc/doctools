@@ -1,6 +1,8 @@
 import { Parser, Language } from './vendor/web-tree-sitter.js'
 import { buildModel, leafAt } from './model.js'
-import { applyEdit, insertText, deleteBackward, deleteForward, insertParagraph, toggleInline } from './ops.js'
+import {
+  applyEdit, insertText, deleteBackward, deleteForward, insertParagraph, toggleInline, tableStep
+} from './ops.js'
 import { render, getSelection, setSelection, markActive } from './view.js'
 
 const SAVE_DELAY_MS = 400
@@ -30,16 +32,6 @@ const state = {
 
 // Source ----------------------------------------------------------------------
 
-function pointAt(source, index) {
-  let row = 0
-  let lineStart = 0
-  for (let i = source.indexOf('\n'); i !== -1 && i < index; i = source.indexOf('\n', i + 1)) {
-    row++
-    lineStart = i + 1
-  }
-  return { row, column: index - lineStart }
-}
-
 // The smallest edit that turns one text into the other
 function diff(before, after) {
   let start = 0
@@ -54,21 +46,12 @@ function diff(before, after) {
   return { start, end: endBefore, text: after.slice(start, endAfter) }
 }
 
-// Parse again, the tree-sitter tree is updated with the edit and reused
+// Parse again, from scratch: with this grammar a tree that is updated with
+// the edit and reused can differ from the tree of a fresh parse (seen in the
+// content of directives), and a fresh parse of a document takes milliseconds.
 function setSource(source, edit) {
   const before = state.source
-  if (state.tree && edit) {
-    const newEnd = edit.start + edit.text.length
-    state.tree.edit({
-      startIndex: edit.start,
-      oldEndIndex: edit.end,
-      newEndIndex: newEnd,
-      startPosition: pointAt(before, edit.start),
-      oldEndPosition: pointAt(before, edit.end),
-      newEndPosition: pointAt(source, newEnd)
-    })
-  }
-  const tree = state.parser.parse(source, edit ? state.tree : null)
+  const tree = state.parser.parse(source)
   state.tree?.delete()
   state.tree = tree
   state.source = source
@@ -163,7 +146,26 @@ view.addEventListener('compositionend', ev => {
   else renderView(true)
 })
 
+// Tab moves between the cells of a table
+function stepCell(step) {
+  const result = tableStep(state.model, state.caret.focus, step)
+  if (!result) return false
+  if (result.text !== undefined) {
+    commit(result)
+  } else {
+    state.caret = { anchor: result.caret, focus: result.caret }
+    renderView(true)
+    renderCode(true)
+  }
+  return true
+}
+
 view.addEventListener('keydown', ev => {
+  if (ev.key === 'Tab' && !ev.ctrlKey && !ev.metaKey && !ev.altKey) {
+    selection()
+    if (stepCell(ev.shiftKey ? -1 : 1)) ev.preventDefault()
+    return
+  }
   if (!(ev.ctrlKey || ev.metaKey) || ev.altKey) return
   const key = ev.key.toLowerCase()
   const { a, b } = selection()

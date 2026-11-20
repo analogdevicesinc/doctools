@@ -29,8 +29,9 @@ changes made to the file by other programs are loaded.
 
 [tree-sitter](https://tree-sitter.github.io) with the
 [tree-sitter-rst](https://github.com/stsewd/tree-sitter-rst) grammar parses
-the source on every edit, incrementally, and gives a tree even when the markup
-is broken.
+the source on every edit and gives a tree even when the markup is broken. The
+whole document is parsed each time, which takes milliseconds: with this grammar
+a tree that is updated incrementally can differ from a fresh one.
 
 - `web/model.js` turns the tree into blocks and *leaves*. A leaf is a piece of
   text shown as-is, `source.slice(leaf.s, leaf.e)`; the markup around it is
@@ -55,7 +56,9 @@ is broken.
 | Bullet and enumerated lists | Lists, nested |
 | `note`, `warning`, `tip`, ... | A box, the content is edited as a document |
 | Roles and links | Their source, coloured |
-| Other directives, literal blocks, comments, targets, definition and field lists, tables | Their source, in a box |
+| Grid tables, simple tables and `list-table` | Tables: type in the cells, `Tab` moves between them, `Enter` adds a row, `Backspace` in an empty row removes it |
+| Tables with cells that span columns or rows, `csv-table` | Their source, in a box |
+| Other directives, literal blocks, comments, targets, definition and field lists | Their source, in a box |
 
 ## Development
 

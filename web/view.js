@@ -5,11 +5,15 @@
 
 import { leafAt, blockAt } from './model.js'
 
-const TAGS = { document: 'div', paragraph: 'p', item: 'li', directive: 'div', quote: 'blockquote', raw: 'pre' }
+const TAGS = {
+  document: 'div', paragraph: 'p', item: 'li', directive: 'div', quote: 'blockquote', raw: 'pre',
+  table: 'table', row: 'tr', line: 'div'
+}
 
 function tagOf(block) {
   if (block.kind === 'heading') return `h${Math.min(block.level, 6)}`
   if (block.kind === 'list') return block.ordered ? 'ol' : 'ul'
+  if (block.kind === 'cell') return block.header ? 'th' : 'td'
   return TAGS[block.kind] ?? 'div'
 }
 
@@ -51,8 +55,8 @@ function renderBlock(model, block) {
   for (const child of block.children ?? [])
     el.append(renderBlock(model, child))
 
-  // An empty list item still needs a place for the caret
-  if (block.kind === 'item' && !block.children.length && block.marker) {
+  // An empty list item or cell still needs a place for the caret
+  if ((block.kind === 'item' || block.kind === 'cell') && !block.children.length && block.marker) {
     const lineEnd = model.source.indexOf('\n', block.marker.e)
     const end = lineEnd === -1 ? model.source.length : lineEnd
     el.append(placeholder(Math.min(block.marker.e + 1, end)))
