@@ -815,6 +815,36 @@ li > .diag { margin: 0 0 4px; }
   color: var(--on-surface-variant);
 }
 
+.context-menu {
+  position: fixed;
+  z-index: 20;
+  min-width: 220px;
+  max-width: 360px;
+  padding: 8px 0;
+  border-radius: 4px;
+  font: 14px/20px var(--font);
+  color: var(--on-surface);
+  background: var(--surface-container);
+  box-shadow: 0 2px 6px 2px rgb(0 0 0 / 0.15), 0 1px 2px rgb(0 0 0 / 0.3);
+  user-select: none;
+}
+.context-menu[hidden] { display: none; }
+.context-item {
+  display: flex;
+  gap: 24px;
+  justify-content: space-between;
+  align-items: center;
+  height: 32px;
+  padding: 0 12px;
+  cursor: pointer;
+}
+.context-item.selected, .context-item:hover { background: color-mix(in srgb, var(--on-surface) 8%, transparent); }
+.context-item[aria-disabled='true'] { color: color-mix(in srgb, var(--on-surface) 38%, transparent); cursor: default; background: none; }
+.context-item .keys { font-size: 12px; color: var(--on-surface-variant); }
+.context-item.suggestion { font-weight: 600; color: var(--primary); }
+.context-note { padding: 4px 12px 6px; font-size: 12px; line-height: 16px; color: var(--on-surface-variant); white-space: normal; }
+.context-separator { height: 1px; margin: 8px 0; background: var(--outline-variant); }
+
 .tooltip {
   position: fixed;
   z-index: 10;

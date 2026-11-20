@@ -340,6 +340,14 @@ class Docs:
             return {'error': 'the documentation server is not running'}
         return self.request(message)
 
+    def grammar(self, text: str) -> dict:
+        """The grammar mistakes of a text, by LanguageTool on this machine.
+        The first check starts LanguageTool, which takes a while."""
+        if not isinstance(text, str) or len(text) > 20000:
+            return {'error': 'not allowed'}
+        return self.request({'languageTool': 'check', 'text': text, 'mode': 'local', 'language': 'en-US'},
+                            timeout=120)
+
     def close(self):
         process = self._process
         if not process or process.poll() is not None:

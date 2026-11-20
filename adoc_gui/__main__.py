@@ -152,7 +152,7 @@ def make_handler(first: Path, root: Path, docs: Docs):
 
         def do_POST(self):
             path = urlsplit(self.path).path
-            if path not in ('/api/docs/start', '/api/docs/stop', '/api/docs/ask', '/api/docs/sparse'):
+            if path not in ('/api/docs/start', '/api/docs/stop', '/api/docs/ask', '/api/docs/sparse', '/api/grammar'):
                 return self.reply(404, b'Not found')
             if not self.allowed():
                 return
@@ -172,6 +172,8 @@ def make_handler(first: Path, root: Path, docs: Docs):
                 if not isinstance(paths, list):
                     return self.reply(400, b'Bad request')
                 return self.reply_json(200, docs.set_sparse(paths))
+            if path == '/api/grammar':
+                return self.reply_json(200, docs.grammar(message.get('text') if isinstance(message, dict) else None))
             self.reply_json(200, docs.ask(message))
 
         def log_message(self, format, *args):

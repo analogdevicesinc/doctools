@@ -31,6 +31,13 @@ The page has three parts:
     It scrolls with the document, in both directions, and a link followed in
     it opens the file of that page.
 
+The right click opens a menu: bold, italic, literal, what
+can be added there (a label to a heading, an option to a directive, a tab),
+undo and redo. On a word of prose it first shows the grammar mistake there
+and its corrections, from LanguageTool (`pip install language_tool_python`,
+needs Java; the first check starts it and takes a few seconds). Shift and the
+right click opens the menu of the browser.
+
 Changes are saved to the file as you type, and changes made to the file by
 other programs are loaded. The buttons of the top bar hide the files and the
 side pane.

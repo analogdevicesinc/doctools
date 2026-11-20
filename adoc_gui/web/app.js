@@ -1,15 +1,17 @@
 import { Parser, Language } from './vendor/web-tree-sitter.js'
-import { buildModel, leafAt } from './model.js'
+import { buildModel, leafAt, blockAt } from './model.js'
 import {
   applyEdit, insertText, deleteBackward, deleteForward, insertParagraph, toggleInline, tableStep, openContent, intoContent, addOption, addLabel, removeSide, addTab
 } from './ops.js'
 import {
-  render, getSelection, setSelection, markActive, showDiagnostics, selectTab as showTab, setCodeHost
+  render, getSelection, setSelection, markActive, showDiagnostics, selectTab as showTab, setCodeHost, offsetOf
 } from './view.js'
 import { codeEdit, toSource, fromSource, sourceMarks, CODE_DIRECTIVES } from './code.js'
 import { sourceEditor, CodeEditors } from './editors.js'
 import { completionAt, matching, roleQuestion } from './lsp.js'
 import { SparseSelection } from './sparse.js'
+import { ContextMenu } from './contextmenu.js'
+import { proseOf, sourceRange } from './grammar.js'
 import { renderTree, foldersOf, ancestorsOf } from './nav.js'
 
 const SAVE_DELAY_MS = 400
@@ -283,6 +285,7 @@ function stepCell(step) {
 }
 
 view.addEventListener('keydown', ev => {
+  if (context.key(ev)) return
   if (inCode(ev) || menuKey(ev)) return
   // Down from the argument of a directive goes to its content, also when
   // there is none yet
@@ -693,6 +696,131 @@ menu.addEventListener('mousedown', ev => {
 view.addEventListener('blur', closeMenu)
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') save(true)
+})
+
+// The menu of the right click -----------------------------------------------------
+
+const context = new ContextMenu(document.getElementById('context'))
+
+// The grammar of the texts checked, by text: a promise of the mistakes
+const checked = new Map()
+
+function checkGrammar(text) {
+  if (!checked.has(text)) {
+    if (checked.size > 200) checked.clear()
+    checked.set(text, fetch('api/grammar', {
+      method: 'POST', headers: { 'X-Doctools': '1', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text })
+    }).then(r => r.json()).catch(() => ({ error: 'unreachable' })).then(answer => {
+      if (answer.error) checked.delete(text)
+      return answer
+    }))
+  }
+  return checked.get(text)
+}
+
+// The block of prose of an offset: a paragraph, a heading, an item, a cell
+function proseAt(offset) {
+  const block = leafAt(state.model, offset)?.block ?? blockAt(state.model, offset)
+  if (!block?.inlines || block.kind === 'raw' || block.kind === 'option' || block.kind === 'target') return undefined
+  return block
+}
+
+// The grammar part of the menu: a mistake at the offset and what replaces it
+function grammarItems(answer, prose, offset) {
+  if (!answer) return [{ kind: 'note', label: 'Checking the grammar…' }]
+  if (answer.error) return []
+  const source = state.source
+  for (const match of answer.matches ?? []) {
+    const range = sourceRange(prose, match.offset, match.length)
+    if (!range || offset < range.s || offset > range.e) continue
+    const items = [{ kind: 'note', label: match.message }]
+    for (const value of match.replacements.slice(0, 5)) {
+      items.push({
+        kind: 'suggestion', label: value || '(remove)',
+        run: () => {
+          if (state.source !== source) return
+          commit(insertText(state.model, range.s, range.e, value))
+        }
+      })
+    }
+    if (!match.replacements.length) items.push({ kind: 'note', label: 'No suggestion' })
+    return [...items, { kind: 'separator' }]
+  }
+  return []
+}
+
+function menuItems(a, b) {
+  const model = state.model
+  const items = [
+    { label: 'Bold', keys: 'Ctrl+B', run: () => commit(toggleInline(state.model, a, b, 'bold')) },
+    { label: 'Italic', keys: 'Ctrl+I', run: () => commit(toggleInline(state.model, a, b, 'italic')) },
+    { label: 'Literal', keys: 'Ctrl+E', run: () => commit(toggleInline(state.model, a, b, 'code')) }
+  ]
+
+  // What can be added to the block there
+  const block = blockAt(model, a)
+  const heading = block?.kind === 'heading' ? block : block?.parent?.kind === 'heading' ? block.parent : undefined
+  let directive
+  for (let up = block; up; up = up.parent) if (up.kind === 'directive') { directive = up; break }
+  const extra = []
+  if (heading) extra.push({ label: 'Add a label', run: () => commit(addLabel(state.model, heading)) })
+  if (directive) extra.push({ label: `Add an option to ${directive.name}`, run: () => commit(addOption(state.model, directive)) })
+  let tabSet
+  for (let up = block; up; up = up.parent) if (up.name === 'tab-set') { tabSet = up; break }
+  if (tabSet) extra.push({ label: 'Add a tab', run: () => commit(addTab(state.model, tabSet)) })
+  if (extra.length) items.push({ kind: 'separator' }, ...extra)
+
+  items.push(
+    { kind: 'separator' },
+    { label: 'Undo', keys: 'Ctrl+Z', disabled: !state.undo.length, run: () => ACTIONS.undo() },
+    { label: 'Redo', keys: 'Ctrl+Y', disabled: !state.redo.length, run: () => ACTIONS.redo() }
+  )
+  return items
+}
+
+view.addEventListener('contextmenu', ev => {
+  // Shift and the right click: the menu of the browser
+  if (ev.shiftKey || inCode(ev)) return
+  ev.preventDefault()
+  closeMenu()
+
+  // A click outside the selection puts the caret there
+  let { a, b } = selection()
+  const keyboard = ev.button !== 2 && ev.clientX === 0 && ev.clientY === 0
+  if (!keyboard) {
+    const point = document.caretPositionFromPoint?.(ev.clientX, ev.clientY)
+    const offset = point && view.contains(point.offsetNode) ? offsetOf(view, point.offsetNode, point.offset) : undefined
+    if (offset !== undefined && (offset < a || offset > b || a === b)) {
+      a = b = offset
+      state.caret = { anchor: offset, focus: offset }
+      setSelection(view, offset)
+      markActive(view, offset)
+      renderCode(true)
+    }
+  }
+  let x = ev.clientX
+  let y = ev.clientY
+  if (keyboard) {
+    const rect = window.getSelection().rangeCount ? window.getSelection().getRangeAt(0).getBoundingClientRect() : view.getBoundingClientRect()
+    x = rect.left
+    y = rect.bottom
+  }
+
+  const items = menuItems(a, b)
+  const block = a === b ? proseAt(a) : undefined
+  if (!block) return context.show(x, y, items)
+
+  const prose = proseOf(state.model, block)
+  if (!prose.text.trim()) return context.show(x, y, items)
+  const source = state.source
+  const pending = checkGrammar(prose.text)
+  let answer
+  context.show(x, y, [...grammarItems(answer, prose, a), ...items])
+  pending.then(result => {
+    answer = result
+    if (context.open && state.source === source) context.update([...grammarItems(answer, prose, a), ...items])
+  })
 })
 
 // Hover: what a role points to
