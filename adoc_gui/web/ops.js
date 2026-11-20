@@ -573,7 +573,36 @@ export function tableStep(model, offset, step) {
   return step > 0 ? insertRow(model, at) : { caret: offset }
 }
 
+// The adornments typed on the empty line after a one-line paragraph make it a
+// heading: 'Title', Enter, '=' is 'Title\n=====\n'
+export const UNDERLINES = new Set(['=', '-', '~', '^', '"', "'", '#', '+'])
+
+function underline(model, offset, marker) {
+  const { source } = model
+  if (!UNDERLINES.has(marker) || !isBlank(lineOf(source, offset))) return undefined
+  // The line before is blank, and the one before it is the paragraph
+  const blank = lineStart(source, offset) - 1
+  if (blank < 1 || !isBlank(lineOf(source, blank))) return undefined
+  const titleEnd = blank - 1
+  const paragraph = blockAt(model, Math.max(titleEnd - 1, 0))
+  if (paragraph?.kind !== 'paragraph' || paragraph.parent?.kind !== 'document') return undefined
+  const title = source.slice(paragraph.s, titleEnd)
+  if (paragraph.s !== lineStart(source, paragraph.s) || !title.trim() || title.includes('\n')) return undefined
+  if (lineEnd(source, paragraph.s) !== titleEnd) return undefined
+
+  const end = lineEnd(source, offset)
+  const rest = source.slice(end)
+  // A blank line between the heading and what follows it
+  const tail = !rest ? '\n' : /^\n[ \t]*\S/.test(rest) ? '\n' : ''
+  const text = `\n${marker.repeat([...title.trim()].length)}${tail}`
+  return { ...edit(titleEnd, end, text, titleEnd), underline: marker }
+}
+
 export function insertText(model, a, b, text) {
+  if (a === b && text.length === 1) {
+    const heading = underline(model, a, text)
+    if (heading) return heading
+  }
   const owner = leafAt(model, a)?.block
   // The colon that ends the name of an option goes to its value
   if (text === ':' && a === b && owner?.kind === 'option') {

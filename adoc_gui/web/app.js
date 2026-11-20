@@ -101,6 +101,9 @@ function remember() {
 // An edit made in the view: { start, end, text, caret, anchor }
 function commit(edit) {
   if (!edit) return
+  // A heading made by typing its underline: see the input of the view
+  const before = { source: state.source, caret: state.caret.focus }
+  state.underlined = edit.underline && { marker: edit.underline, caret: edit.caret, before }
   remember()
   setSource(applyEdit(state.source, edit), edit)
   state.caret = { anchor: edit.anchor ?? edit.caret, focus: edit.caret }
@@ -110,6 +113,7 @@ function commit(edit) {
 }
 
 function restore(from, to) {
+  state.underlined = undefined
   const entry = from.pop()
   if (!entry) return
   to.push({ source: state.source, caret: { ...state.caret } })
@@ -176,6 +180,19 @@ view.addEventListener('beforeinput', ev => {
   const handler = INPUT[ev.inputType]
   if (!handler) return
   const { a, b } = selection()
+  // Right after a heading was made by typing its underline: the same
+  // character again is the underline being typed out, it is already there;
+  // another one means the line was text, as '- ' starting a list
+  const made = state.underlined
+  if (made && a === b && a === made.caret && ev.inputType === 'insertText' && state.source !== made.before.source) {
+    if (ev.data === made.marker) return
+    if (ev.data) {
+      restore(state.undo, state.redo)
+      state.redo = []
+      const at = made.before.caret
+      return commit(insertText(state.model, at, at, made.marker + ev.data))
+    }
+  }
   commit(handler(state.model, a, b, ev))
   if (/^(insertText|insertReplacementText|deleteContent)/.test(ev.inputType)) suggest()
   else closeMenu()
@@ -340,6 +357,8 @@ document.addEventListener('selectionchange', () => {
   const current = getSelection(view)
   if (!current) return
   state.caret = { anchor: current.anchor, focus: current.focus }
+  if (state.underlined && (current.anchor !== current.focus || current.focus !== state.underlined.caret))
+    state.underlined = undefined
   if (completion && (current.anchor !== current.focus || current.focus !== completion.caret)) closeMenu()
   flush()
   markActive(view, current.focus)

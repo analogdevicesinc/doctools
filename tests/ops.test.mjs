@@ -182,6 +182,19 @@ test('labels are added to a heading and side elements are removed', () => {
   assert.equal(run('.. code-block:: c|\n   :linenos:\n   :b: 1\n\n   x\n', remove('option')), '.. code-block:: c|\n   :b: 1\n\n   x\n')
 })
 
+test('an adornment after a one-line paragraph makes it a heading', () => {
+  assert.equal(type('Title\n\n|', '='), 'Title|\n=====\n')
+  assert.equal(type('Intro\n\nTitle\n\n|\n\nNext\n', '-'), 'Intro\n\nTitle|\n-----\n\nNext\n')
+  assert.equal(type('Intro\n\nTitle\n\n|\nNext\n', '~'), 'Intro\n\nTitle|\n~~~~~\n\nNext\n')
+  // Not after a paragraph of several lines, nor in a directive, nor other text
+  const plain = (marked, marker) => assert.ok(!type(marked, marker).includes(marker.repeat(2)), marked)
+  plain('One\ntwo\n\n|', '=')
+  plain('.. note::\n\n   Title\n\n   |', '=')
+  plain('Title\n\n|', '.')
+  plain('Title\n\n|', '*')
+  plain('- Title\n\n|', '=')
+})
+
 test('tabs are added, filled and removed', () => {
   const add = model => addTab(model, model.root.children.find(b => b.name === 'tab-set'))
   const tabs = '.. tab-set::\n\n   .. tab-item:: pip|\n\n      one\n'
