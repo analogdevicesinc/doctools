@@ -33,10 +33,13 @@ The page has three parts:
 
 The right click opens a menu: bold, italic, literal, what
 can be added there (a label to a heading, an option to a directive, a tab),
-undo and redo. On a word of prose it first shows the grammar mistake there
-and its corrections, from LanguageTool (`pip install language_tool_python`,
-needs Java; the first check starts it and takes a few seconds). Shift and the
-right click opens the menu of the browser.
+undo and redo. Shift and the right click opens the menu of the browser.
+
+The spelling and grammar mistakes of the prose are underlined, red and blue,
+from LanguageTool (`pip install language_tool_python`, needs Java; the first
+check starts it and takes a few seconds). The right click on one shows its
+corrections; a word can be added to the words that are not mistakes, kept by
+the browser.
 
 Changes are saved to the file as you type, and changes made to the file by
 other programs are loaded. The buttons of the top bar hide the files and the
@@ -123,6 +126,7 @@ a tree that is updated incrementally can differ from a fresh one.
 | `code`, `code-block`, `sourcecode`, `shell` | A code editor, coloured by the language of the argument; the indentation of the source is not shown, and is added to what is written |
 | `carousel`, `collapsible`, `card`, `grid`, `flex`, `figure`, `video`, ... | A box with their name, caption and options, the content is edited as a document |
 | `rst-class` | A box with its name and the class to type, no content |
+| `rubric` | A heading that is not a section: its title, of the size of its `:heading-level:` |
 | Other directives | A box with their name, caption and options, the content as source |
 | Literal blocks | Their text as it is written; the `::` alone on its line is hidden |
 | Comments, targets with a link, definition and field lists | Their source, in a box |

@@ -343,6 +343,19 @@ h1.block, h2.block, h3.block, h4.block, h5.block, h6.block {
   color: var(--on-surface);
 }
 h1.block { font-size: 28px; margin: 0 0 16px; }
+/* A rubric: a heading that is not a section, of the level of its option */
+.b-directive[data-name='rubric'] { margin: 18px 0 8px; }
+.b-directive[data-name='rubric'] > .b-caption {
+  margin: 0;
+  font: 500 15px/1.35 var(--font);
+  color: var(--on-surface-variant);
+  cursor: text;
+  user-select: text;
+}
+.b-directive[data-name='rubric']:not([data-level='']) > .b-caption { font-weight: 400; }
+.b-directive[data-name='rubric'][data-level='1'] > .b-caption { font-size: 28px; color: var(--on-surface); }
+.b-directive[data-name='rubric'][data-level='2'] > .b-caption { font-size: 22px; color: var(--on-surface); }
+.b-directive[data-name='rubric'][data-level='3'] > .b-caption { font-size: 18px; }
 h2.block { font-size: 22px; margin: 28px 0 10px; }
 h3.block { font-size: 18px; margin: 22px 0 8px; color: var(--on-surface-variant); }
 h4.block, h5.block, h6.block { font-size: 15px; font-weight: 500; margin: 18px 0 6px; }
@@ -813,6 +826,18 @@ li > .diag { margin: 0 0 4px; }
   text-overflow: ellipsis;
   font-family: var(--font);
   color: var(--on-surface-variant);
+}
+
+/* The mistakes of the prose, from LanguageTool */
+::highlight(spelling) {
+  text-decoration: underline wavy var(--error);
+  text-decoration-thickness: 1px;
+  background-color: color-mix(in srgb, var(--error) 10%, transparent);
+}
+::highlight(grammar) {
+  text-decoration: underline wavy var(--primary);
+  text-decoration-thickness: 1px;
+  background-color: color-mix(in srgb, var(--primary) 10%, transparent);
 }
 
 .context-menu {

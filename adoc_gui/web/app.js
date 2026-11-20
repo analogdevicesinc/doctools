@@ -4,7 +4,7 @@ import {
   applyEdit, insertText, deleteBackward, deleteForward, insertParagraph, toggleInline, tableStep, openContent, intoContent, addOption, addLabel, removeSide, addTab
 } from './ops.js'
 import {
-  render, getSelection, setSelection, markActive, showDiagnostics, selectTab as showTab, setCodeHost, offsetOf
+  render, getSelection, setSelection, markActive, showDiagnostics, selectTab as showTab, setCodeHost, offsetOf, pointOf
 } from './view.js'
 import { codeEdit, toSource, fromSource, sourceMarks, CODE_DIRECTIVES } from './code.js'
 import { sourceEditor, CodeEditors } from './editors.js'
@@ -134,6 +134,7 @@ function paint(caret) {
   render(view, state.model, caret)
   codes.end()
   showDiagnostics(view, state.model, state.docs.diagnostics)
+  showMistakes()
 }
 
 function renderView(withCaret) {
@@ -702,21 +703,125 @@ document.addEventListener('visibilitychange', () => {
 
 const context = new ContextMenu(document.getElementById('context'))
 
-// The grammar of the texts checked, by text: a promise of the mistakes
+// The grammar of the texts checked, by text: a promise of the mistakes, and
+// the answers that came
 const checked = new Map()
+const answered = new Map()
+// false once LanguageTool is known not to work here
+let grammarWorks = true
+
+// Rules that only add noise in documentation
+const IGNORED_RULES = new Set(['WHITESPACE_RULE', 'EN_QUOTES', 'UPPERCASE_SENTENCE_START', 'DASH_RULE'])
 
 function checkGrammar(text) {
   if (!checked.has(text)) {
-    if (checked.size > 200) checked.clear()
+    if (checked.size > 2000) {
+      checked.clear()
+      answered.clear()
+    }
     checked.set(text, fetch('api/grammar', {
       method: 'POST', headers: { 'X-Doctools': '1', 'Content-Type': 'application/json' },
       body: JSON.stringify({ text })
     }).then(r => r.json()).catch(() => ({ error: 'unreachable' })).then(answer => {
-      if (answer.error) checked.delete(text)
+      if (answer.error) {
+        checked.delete(text)
+        // What is not worth trying again
+        if (!['unreachable', 'check_failed', 'the backend did not answer'].includes(answer.error)) grammarWorks = false
+      } else {
+        answer.matches = (answer.matches ?? []).filter(m => !IGNORED_RULES.has(m.ruleId))
+        answered.set(text, answer)
+      }
       return answer
     }))
   }
   return checked.get(text)
+}
+
+// The words that are not mistakes, kept by the browser
+let words = new Set()
+try {
+  words = new Set(JSON.parse(localStorage.getItem('doctools.words') ?? '[]'))
+} catch { }
+
+const known = (prose, match) =>
+  match.category === 'TYPOS' && words.has(prose.text.slice(match.offset, match.offset + match.length))
+
+function addWord(word) {
+  words.add(word)
+  try {
+    localStorage.setItem('doctools.words', JSON.stringify([...words]))
+  } catch { }
+  showMistakes()
+}
+
+// The captions that are prose: titles
+const TITLED = new Set([
+  'rubric', 'admonition', 'topic', 'sidebar', 'tab-item', 'collapsible', 'card', 'table', 'list-table', 'csv-table'
+])
+
+// The blocks of prose of the document
+function proseBlocks(model) {
+  const out = []
+  const walk = block => {
+    if (block.inlines && (block.kind === 'paragraph' || block.kind === 'heading' ||
+        (block.kind === 'caption' && TITLED.has(block.parent?.name))))
+      out.push(block)
+    for (const child of block.children ?? []) walk(child)
+  }
+  walk(model.root)
+  return out
+}
+
+// Underline the mistakes found in the prose, and check what is not checked
+// yet once the typing stops
+let scanTimer
+function showMistakes() {
+  if (!grammarWorks || !CSS.highlights) return
+  const spelling = new Highlight()
+  const grammar = new Highlight()
+  const waiting = []
+  for (const block of proseBlocks(state.model)) {
+    const prose = proseOf(state.model, block)
+    if (!prose.text.trim()) continue
+    const answer = answered.get(prose.text)
+    if (!answer) {
+      if (!checked.has(prose.text)) waiting.push(prose.text)
+      continue
+    }
+    for (const match of answer.matches) {
+      if (known(prose, match)) continue
+      const range = sourceRange(prose, match.offset, match.length)
+      const from = range && pointOf(view, range.s)
+      const to = range && pointOf(view, range.e)
+      if (!from || !to) continue
+      const dom = document.createRange()
+      dom.setStart(from.node, from.offset)
+      dom.setEnd(to.node, to.offset)
+      ;(match.category === 'TYPOS' ? spelling : grammar).add(dom)
+    }
+  }
+  CSS.highlights.set('spelling', spelling)
+  CSS.highlights.set('grammar', grammar)
+  clearTimeout(scanTimer)
+  if (waiting.length) scanTimer = setTimeout(() => scan(waiting), 800)
+}
+
+// One check at a time: LanguageTool answers them in turn
+let scanning = false
+async function scan(texts) {
+  if (scanning || !grammarWorks) return
+  scanning = true
+  try {
+    for (const text of texts) {
+      if (!grammarWorks) break
+      const source = state.source
+      await checkGrammar(text)
+      if (state.source === source) showMistakes()
+    }
+  } finally {
+    scanning = false
+  }
+  showMistakes()
 }
 
 // The block of prose of an offset: a paragraph, a heading, an item, a cell
@@ -733,7 +838,7 @@ function grammarItems(answer, prose, offset) {
   const source = state.source
   for (const match of answer.matches ?? []) {
     const range = sourceRange(prose, match.offset, match.length)
-    if (!range || offset < range.s || offset > range.e) continue
+    if (!range || offset < range.s || offset > range.e || known(prose, match)) continue
     const items = [{ kind: 'note', label: match.message }]
     for (const value of match.replacements.slice(0, 5)) {
       items.push({
@@ -745,6 +850,10 @@ function grammarItems(answer, prose, offset) {
       })
     }
     if (!match.replacements.length) items.push({ kind: 'note', label: 'No suggestion' })
+    if (match.category === 'TYPOS') {
+      const word = prose.text.slice(match.offset, match.offset + match.length)
+      items.push({ label: `Add “${word}” to the words`, run: () => addWord(word) })
+    }
     return [...items, { kind: 'separator' }]
   }
   return []
