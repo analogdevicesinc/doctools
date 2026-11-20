@@ -81,15 +81,16 @@ a tree that is updated incrementally can differ from a fresh one.
 | Source | Shown as |
 |--------|----------|
 | Sections | Headings, the level follows the order of the adornments, which follow the length of the title |
-| `.. _label:` | A chip in the margin, beside the block that follows |
+| `.. _label:` | A chip in the margin, beside the block that follows. `+ label` beside a heading adds one |
 | The arguments of a directive | A caption: the title of a table or of an admonition, the language of a code block |
 | A directive without an argument or without content | Empty fields that say what goes there: type the argument, `Enter` goes to the content; `Backspace` in an emptied directive removes it |
-| The options of a directive | Chips in the margin, beside the directive |
+| The options of a directive | Chips in the margin, beside the directive. The `+` below them adds one: type its name, then `:`, `Tab` or `Enter` for its value |
 | Paragraphs, `*emphasis*`, `**strong**`, ` ``literal`` ` | Text, the markup is hidden |
 | Bullet and enumerated lists | Lists, nested |
 | `note`, `warning`, `tip`, ... | A card, the content is edited as a document |
 | Roles | A chip with the name of the role and its title, or its target |
 | Links | Their text |
+| | The `−` at the left of a chip in the margin removes the label or the option |
 | Grid tables, simple tables, `table` and `list-table` | Tables: type in the cells, `Tab` moves between them, `Enter` adds a row, `Backspace` in an empty row removes it |
 | Tables with cells that span columns or rows, `csv-table` | Their source, in a box |
 | Other directives | A box with their name, caption and options, the content as source |

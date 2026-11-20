@@ -83,7 +83,7 @@ test('other directives show their source', () => {
   assert.equal(outline(model.root),
     'document(directive:code-block(caption options(option:linenos) raw) directive:image(caption options(option:width)))')
   assert.deepEqual(texts(model), [
-    'text:bash', 'name:linenos', 'raw:   echo hi\n     ls', 'text:a.png', 'name:width', 'text:50%'
+    'text:bash', 'name:linenos', 'text:', 'raw:   echo hi\n     ls', 'text:a.png', 'name:width', 'text:50%'
   ])
 })
 

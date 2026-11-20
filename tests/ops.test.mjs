@@ -1,8 +1,8 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { run } from './helper.mjs'
+import { run, modelOf } from './helper.mjs'
 import {
-  insertText, deleteBackward, deleteForward, insertParagraph, toggleInline, intoContent
+  insertText, deleteBackward, deleteForward, insertParagraph, toggleInline, intoContent, addOption, tableStep, addLabel, removeSide
 } from '../adoc_gui/web/ops.js'
 
 const type = (marked, text) => run(marked, insertText, text)
@@ -134,6 +134,50 @@ test('down from the argument goes to the content that is not written yet', () =>
   assert.equal(run('.. code-block:: c|\n\n   x\n', down), '.. code-block:: c|\n\n   x\n')
   assert.equal(run('.. image:: a|\n', down), '.. image:: a|\n')
   assert.equal(run('Para|\n', down), 'Para|\n')
+})
+
+test('options are added, filled and removed', () => {
+  const add = model => addOption(model, model.root.children[0])
+  assert.equal(run('.. code-block:: c|\n\n   x\n', add), '.. code-block:: c\n   :[option]:\n\n   x\n')
+  assert.equal(run('.. table:: T|\n   :width: 5\n\n   x\n', add), '.. table:: T\n   :width: 5\n   :[option]:\n\n   x\n')
+  assert.equal(run('.. note::|\n', add), '.. note::\n   :[option]:\n')
+  // The name is typed over, then Enter or Tab go to the value
+  let text = type('.. code-block:: c\n   :[option]:\n\n   x\n', 'linenos')
+  assert.equal(text, '.. code-block:: c\n   :linenos|:\n\n   x\n')
+  text = run(text, insertParagraph)
+  assert.equal(text, '.. code-block:: c\n   :linenos:|\n\n   x\n')
+  assert.equal(type(text, '5'), '.. code-block:: c\n   :linenos: 5|\n\n   x\n')
+  const source = '.. code-block:: c\n   :linenos:\n\n   x\n'
+  assert.equal(tableStep(modelOf(source), source.indexOf('linenos') + 2, 1).caret, source.indexOf('linenos:') + 8)
+  // Removed with its name
+  assert.equal(run('.. code-block:: c\n   :l|:\n\n   x\n', deleteBackward), '.. code-block:: c|\n\n   x\n')
+  assert.equal(run('.. code-block:: c\n   :|linenos:\n\n   x\n', deleteBackward), '.. code-block:: c|\n\n   x\n')
+  assert.equal(run('.. code-block:: c\n   :|width: 5\n\n   x\n', deleteBackward), '.. code-block:: c\n   :|width: 5\n\n   x\n')
+  assert.equal(run('.. code-block:: c\n   :a: 1\n   :b|:\n\n   x\n', deleteBackward), '.. code-block:: c\n   :a: 1|\n\n   x\n')
+  assert.equal(run('.. code-block:: c\n   :li|nenos:\n', deleteBackward), '.. code-block:: c\n   :l|nenos:\n')
+})
+
+test('a colon ends the name of an option and goes to its value', () => {
+  assert.equal(type('.. code-block:: c\n   :linenos|:\n', ':'), '.. code-block:: c\n   :linenos:|\n')
+  assert.equal(type('.. code-block:: c\n   :wid|th: 5\n', ':'), '.. code-block:: c\n   :width: 5|\n')
+  assert.equal(type('.. code-block:: c\n   :width: 5|\n', ':'), '.. code-block:: c\n   :width: 5:|\n')
+})
+
+test('labels are added to a heading and side elements are removed', () => {
+  const heading = model => model.root.children.find(b => b.kind === 'heading')
+  const add = model => addLabel(model, heading(model))
+  assert.equal(run('Ti|tle\n=====\n', add), '.. _[label]:\n\nTitle\n=====\n')
+  assert.equal(run('Text\n\nTi|tle\n=====\n', add), 'Text\n\n.. _[label]:\n\nTitle\n=====\n')
+  assert.equal(run('.. _a:\n\n=====\nTi|tle\n=====\n', add), '.. _a:\n\n.. _[label]:\n\n=====\nTitle\n=====\n')
+  assert.equal(type('.. _[label]:\n\nTitle\n=====\n', 'intro'), '.. _intro|:\n\nTitle\n=====\n')
+
+  const remove = kind => model => {
+    const find = b => b.kind === kind ? b : (b.children ?? []).map(find).find(Boolean)
+    return removeSide(model, find(model.root))
+  }
+  assert.equal(run('Text\n\n.. _a:\n\nTitle|\n=====\n', remove('target')), 'Text\n\n|Title\n=====\n')
+  assert.equal(run('.. _a:\n.. _b:\n\nTitle|\n=====\n', remove('target')), '|.. _b:\n\nTitle\n=====\n'.replace('|.. _', '.. _|'))
+  assert.equal(run('.. code-block:: c|\n   :linenos:\n   :b: 1\n\n   x\n', remove('option')), '.. code-block:: c|\n   :b: 1\n\n   x\n')
 })
 
 test('an emptied directive is removed with backspace', () => {

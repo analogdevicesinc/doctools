@@ -49,6 +49,15 @@ function renderLeaf(model, leaf) {
   return el
 }
 
+// A button that is not part of the text
+function button(name, title) {
+  const el = document.createElement('span')
+  el.className = name
+  el.contentEditable = 'false'
+  el.title = title
+  return el
+}
+
 // attached: the labels before the block, shown at its side
 function renderBlock(model, block, attached = []) {
   const el = document.createElement(tagOf(block))
@@ -67,8 +76,12 @@ function renderBlock(model, block, attached = []) {
   // The side elements come first, they are placed in the margin
   const sides = attached.map(target => renderBlock(model, target))
   const children = block.children ?? []
-  if (block.kind === 'directive')
+  if (block.kind === 'directive') {
     sides.push(...children.filter(c => c.kind === 'options').map(c => renderBlock(model, c)))
+    sides.push(button('add-option', 'Add an option'))
+  }
+  if (block.kind === 'heading') sides.push(button('add-label', 'Add a label'))
+  if (block.kind === 'option' || block.kind === 'target') el.append(button('remove-side', 'Remove'))
   if (sides.length) {
     const holder = document.createElement('span')
     holder.className = 'sides'

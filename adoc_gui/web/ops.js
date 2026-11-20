@@ -80,6 +80,62 @@ export function intoContent(model, offset) {
   return openContent(model, owner.parent)
 }
 
+// Options ----------------------------------------------------------------------
+
+// A new option for a directive, after the ones it has. Its name is selected,
+// to type the name over it.
+export function addOption(model, directive) {
+  const { source } = model
+  const indent = ' '.repeat(directive.s - lineStart(source, directive.s) + 3)
+  const at = directive.headEnd
+  const name = 'option'
+  const start = at + 1 + indent.length + 1
+  return { start: at, end: at, text: `\n${indent}:${name}:`, anchor: start, caret: start + name.length }
+}
+
+// From the name of an option to its value: { caret }
+function optionValue(model, offset) {
+  const item = leafAt(model, offset)
+  if (item?.kind !== 'name' || item.block.kind !== 'option') return undefined
+  const value = item.block.inlines[item.block.inlines.length - 1]
+  return { start: offset, end: offset, text: '', caret: value.e }
+}
+
+// A new label before a heading, its name is selected to type over it
+export function addLabel(model, heading) {
+  const { source } = model
+  const at = lineStart(source, heading.s)
+  const head = at > 0 && !isBlank(lineOf(source, at - 1)) ? '\n' : ''
+  const name = 'label'
+  const start = at + head.length + 4
+  return { start: at, end: at, text: `${head}.. _${name}:\n\n`, anchor: start, caret: start + name.length }
+}
+
+function removeTarget(model, target) {
+  const { source } = model
+  const start = lineStart(source, target.s)
+  let end = Math.min(lineEnd(source, target.e) + 1, source.length)
+  // The empty line after it goes with it, unless it parts two blocks
+  if (end < source.length && isBlank(lineOf(source, end)) && (start === 0 || isBlank(lineOf(source, start - 1))))
+    end = Math.min(lineEnd(source, end) + 1, source.length)
+  const next = model.leaves.find(l => l.s >= end && l.kind !== 'soft')
+  return edit(start, end, '', next ? next.s - (end - start) : start)
+}
+
+// Remove a side element: an option or a label
+export function removeSide(model, block) {
+  if (block.kind === 'option') return removeOption(model, block)
+  if (block.kind === 'target') return removeTarget(model, block)
+  return undefined
+}
+
+function removeOption(model, option) {
+  const { source } = model
+  const start = lineStart(source, option.s)
+  const previous = [...model.leaves].reverse().find(l => l.e < start && l.kind !== 'soft')
+  return edit(start - 1, lineEnd(source, option.e), '', previous ? previous.e : start - 1)
+}
+
 // A directive with nothing written in it, its options aside
 const isBlankDirective = (model, directive) => model.leaves.every(l =>
   ancestor(l.block, 'directive') !== directive || ancestor(l.block, 'options') ||
@@ -114,8 +170,8 @@ function insertTextRaw(model, a, b, text) {
   if (a === b) {
     const item = leafAt(model, a)
     const owner = item ? item.block : blockAt(model, a)
-    // The argument of a directive comes after a space
-    if (item && owner.kind === 'caption' && owner.empty)
+    // The argument of a directive, and the value of an option, come after a space
+    if (item && item.s === item.e && owner.empty && (owner.kind === 'caption' || owner.kind === 'option'))
       return edit(a, a, (source[a - 1] === ' ' ? '' : ' ') + text)
     // In a directive without a caption nor content: the text is its content
     if (!item && owner.kind === 'directive' && !hasContent(owner) && a <= owner.headEnd)
@@ -480,6 +536,10 @@ function deleteRow(model, at) {
 // Tab and Shift+Tab: the next or previous cell, a new row after the last one.
 // Returns { caret } or an edit, undefined when the caret is not in a table.
 export function tableStep(model, offset, step) {
+  if (step > 0) {
+    const value = optionValue(model, offset)
+    if (value) return { caret: value.caret }
+  }
   const at = cellAt(model, offset)
   if (!at) return undefined
   const cells = at.table.children.flatMap(row => row.children)
@@ -490,11 +550,26 @@ export function tableStep(model, offset, step) {
 
 export function insertText(model, a, b, text) {
   const owner = leafAt(model, a)?.block
+  // The colon that ends the name of an option goes to its value
+  if (text === ':' && a === b && owner?.kind === 'option') {
+    const value = optionValue(model, a)
+    if (value) return value
+  }
   if (owner && ONE_LINE.has(owner.kind)) text = text.replace(/\s*\n\s*/g, ' ')
   return guard(model, adorn(model, insertTextRaw(model, a, b, text)))
 }
 
 export function deleteBackward(model, a, b) {
+  // An option goes with its name: with the last character of the name, or
+  // at the start of the name when it has no value
+  if (a === b) {
+    const item = leafAt(model, a)
+    if (item?.kind === 'name' && item.block.kind === 'option') {
+      const option = item.block
+      if ((a === item.e && item.e - item.s === 1) || (a === item.s && option.empty)) return removeOption(model, option)
+      if (a === item.s) return undefined
+    }
+  }
   // In the head of a directive with nothing in it: remove the directive
   if (a === b) {
     const directive = ancestor(leafAt(model, a)?.block ?? blockAt(model, a), 'directive')
@@ -531,6 +606,7 @@ export function insertParagraph(model, a, b) {
   const owner = leafAt(model, a)?.block
   // From the caption of a directive, Enter goes to its content
   if (owner?.kind === 'caption' && owner.parent.takesContent) return openContent(model, owner.parent)
+  if (owner?.kind === 'option') return optionValue(model, a)
   if (owner && ONE_LINE.has(owner.kind)) return undefined
   const at = cellAt(model, a)
   if (at) return a === b || cellAt(model, b)?.cell === at.cell ? insertRow(model, at) : undefined

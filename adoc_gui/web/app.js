@@ -1,7 +1,7 @@
 import { Parser, Language } from './vendor/web-tree-sitter.js'
 import { buildModel, leafAt } from './model.js'
 import {
-  applyEdit, insertText, deleteBackward, deleteForward, insertParagraph, toggleInline, tableStep, openContent, intoContent
+  applyEdit, insertText, deleteBackward, deleteForward, insertParagraph, toggleInline, tableStep, openContent, intoContent, addOption, addLabel, removeSide
 } from './ops.js'
 import { render, getSelection, setSelection, markActive, showDiagnostics } from './view.js'
 import { completionAt, matching, roleQuestion } from './lsp.js'
@@ -286,11 +286,15 @@ view.addEventListener('drop', ev => ev.preventDefault())
 
 // A click on the empty content of a directive starts it
 view.addEventListener('mousedown', ev => {
-  const hint = ev.target.closest?.('.content-hint')
-  if (!hint) return
+  const el = ev.target.closest?.('.content-hint, .add-option, .add-label, .remove-side')
+  if (!el) return
   ev.preventDefault()
   view.focus()
-  commit(openContent(state.model, hint.parentElement.block))
+  const block = el.closest('.block').block
+  if (el.matches('.content-hint')) commit(openContent(state.model, block))
+  else if (el.matches('.add-option')) commit(addOption(state.model, block))
+  else if (el.matches('.add-label')) commit(addLabel(state.model, block))
+  else commit(removeSide(state.model, block))
 })
 
 document.addEventListener('selectionchange', () => {

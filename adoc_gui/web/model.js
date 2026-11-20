@@ -313,7 +313,13 @@ export function buildModel(parser, tree, source) {
     if (!name) return raw(field, parent)
     const b = block('option', field, parent, { name: source.slice(name.startIndex, name.endIndex) })
     b.inlines = [leaf(b, 'name', name.startIndex, name.endIndex, field.startIndex, value ? value.startIndex : field.endIndex)]
-    if (value) b.inlines.push(leaf(b, 'text', value.startIndex, value.endIndex))
+    if (value) {
+      b.inlines.push(leaf(b, 'text', value.startIndex, value.endIndex))
+    } else {
+      // An empty value, to type it in
+      b.inlines.push(leaf(b, 'text', field.endIndex, field.endIndex))
+      b.empty = true
+    }
     return b
   }
 

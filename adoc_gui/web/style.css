@@ -668,3 +668,53 @@ li > .diag { margin: 0 0 4px; }
   border-radius: 8px;
 }
 .b-directive.card > .placeholder { border-color: currentColor; opacity: 0.8; }
+
+/* Buttons of the side elements: shown with the pointer or the caret there ------- */
+
+.add-option, .add-label, .remove-side {
+  display: block;
+  height: 18px;
+  border-radius: 9px;
+  text-align: center;
+  font: 500 12px/18px var(--font);
+  color: var(--on-surface-variant);
+  background: var(--surface-container-high);
+  cursor: pointer;
+  user-select: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.add-option:hover, .add-label:hover, .remove-side:hover {
+  color: var(--on-secondary-container);
+  background: var(--secondary-container);
+}
+
+.add-option { width: 18px; font-size: 14px; }
+.add-option::before { content: '+'; }
+.b-directive:hover > .sides > .add-option, .b-directive:has(.active) > .sides > .add-option,
+.b-directive.active > .sides > .add-option { opacity: 1; }
+
+.add-label { padding: 0 7px; font: 400 11px/18px var(--mono); white-space: nowrap; }
+.add-label::before { content: '+ label'; }
+.has-sides:hover > .sides > .add-label, .has-sides.active > .sides > .add-label,
+.sides:has(.active) > .add-label { opacity: 1; }
+
+/* At the left of an option or a label, to remove it */
+.sides .b-option, .sides .b-target { position: relative; }
+.remove-side { display: none; }
+.sides .remove-side {
+  display: block;
+  position: absolute;
+  top: 0;
+  right: 100%;
+  width: 18px;
+  margin-right: 3px;
+  font-size: 14px;
+}
+.remove-side::before { content: '\2212'; }
+/* The gap between the button and its chip keeps the pointer on the chip */
+.sides .remove-side::after { content: ''; position: absolute; top: 0; left: 100%; width: 4px; height: 100%; }
+.sides .block:hover > .remove-side { opacity: 1; }
+.remove-side:hover { color: var(--on-error-container); background: var(--error-container); }
+
+body.inspect .page .add-option, body.inspect .page .add-label { opacity: 1; }
