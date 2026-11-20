@@ -72,6 +72,20 @@ test('figure captions are checked and paths are not', () => {
   assert.equal(sourceOf(source, 'captoin'), 'captoin')
 })
 
+test('the content of the doctools directives is checked, down the nesting', () => {
+  const source = [
+    '.. tab-set::', '', '   .. tab-item:: pip', '', '      A speling in a tab.', '',
+    '      .. shell::', '', '         $ ehco wrongg', '',
+    '.. carousel::', '', '   .. figure:: imgs/some_pathh.svg', '', '      A captoin in a carousel.', '',
+    '.. collection:: Title', '', '   documentaton:', '     - User guide <.>', ''
+  ].join('\n')
+  const { text } = build(source)
+  assert.equal(sourceOf(source, 'speling'), 'speling')
+  assert.equal(sourceOf(source, 'captoin'), 'captoin')
+  for (const skipped of ['wrongg', 'some_pathh', 'documentaton'])
+    assert.ok(!text.includes(skipped), skipped)
+})
+
 test('code point offsets are converted to utf-16', () => {
   assert.deepEqual(codePointToUtf16('plain text', 6, 4), { offset: 6, length: 4 })
   const text = 'a \u{1F600} speling \u{1F600} end'
