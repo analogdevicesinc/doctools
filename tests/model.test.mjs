@@ -90,8 +90,8 @@ test('other directives show their source', () => {
 test('the arguments of a directive are its caption, with inline markup', () => {
   const model = assertCovered('.. admonition:: A *custom* title\n\n   text\n\n.. contents::\n\n.. figure:: a.png\n\n   Legend\n')
   assert.equal(outline(model.root),
-    'document(directive:admonition(caption paragraph) directive:contents() directive:figure(caption paragraph))')
-  assert.deepEqual(texts(model), ['text:A ', 'emphasis:custom', 'text: title', 'text:text', 'text:a.png', 'text:Legend'])
+    'document(directive:admonition(caption paragraph) directive:contents(caption) directive:figure(caption paragraph))')
+  assert.deepEqual(texts(model), ['text:A ', 'emphasis:custom', 'text: title', 'text:text', 'text:', 'text:a.png', 'text:Legend'])
 })
 
 test('a table directive holds a table, its caption and its options', () => {
@@ -102,7 +102,25 @@ test('a table directive holds a table, its caption and its options', () => {
   const table = model.root.children[0].children[2]
   assert.equal(table.format, 'grid')
   assert.equal(table.indent, 2)
-  assert.equal(outline(modelOf('.. table::\n\n   not a table\n').root), 'document(directive:table(raw))')
+  assert.equal(outline(modelOf('.. table::\n\n   not a table\n').root), 'document(directive:table(caption raw))')
+})
+
+test('a directive without an argument has an empty caption to type it in', () => {
+  const model = modelOf('.. code-block::\n\n   ls\n\n.. note::\n\n   text\n\n.. image::\n')
+  assert.equal(outline(model.root),
+    'document(directive:code-block(caption raw) directive:note(paragraph) directive:image(caption))')
+  const [code, note, image] = model.root.children
+  assert.deepEqual([code.children[0].empty, code.children[0].hint], [true, 'language'])
+  assert.equal(image.children[0].hint, 'path')
+  assert.deepEqual([code.takesContent, note.takesContent, image.takesContent], [true, true, false])
+  const slot = model.leaves.find(l => l.block === code.children[0])
+  assert.deepEqual([slot.s, slot.e], [15, 15])
+})
+
+test('a comment that is being typed holds the caret after its space', () => {
+  const model = modelOf('.. \n')
+  assert.deepEqual(texts(model), ['raw:.. '])
+  assert.equal(leafAt(model, 3).kind, 'raw')
 })
 
 test('a target shows its label', () => {

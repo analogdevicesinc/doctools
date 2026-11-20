@@ -13,6 +13,17 @@ const CARD_DIRECTIVES = new Set([
   'epigraph', 'highlights', 'pull-quote', 'compound', 'topic', 'sidebar', 'container'
 ])
 
+// Directives without content
+const NO_CONTENT = new Set(['image', 'include', 'literalinclude', 'contents', 'sectnum', 'index', 'only-doc'])
+
+// What the argument of a directive is, for the directives that take one
+const ARGUMENT = {
+  'code-block': 'language', code: 'language', sourcecode: 'language',
+  image: 'path', figure: 'path', include: 'path', literalinclude: 'path',
+  table: 'title', 'list-table': 'title', 'csv-table': 'title',
+  admonition: 'title', topic: 'title', sidebar: 'title'
+}
+
 // Directives whose content is reStructuredText
 const RST_DIRECTIVES = new Set([...CARD_DIRECTIVES, 'figure'])
 
@@ -150,7 +161,11 @@ export function buildModel(parser, tree, source) {
     return out
   }
 
-  const raw = (node, parent, s = node.startIndex, e = node.endIndex, extra = {}) => {
+  const raw = (node, parent, s = node.startIndex, to = node.endIndex, extra = {}) => {
+    // Typed spaces at the end of the line belong to the text
+    let e = to
+    while (e < source.length && (source[e] === ' ' || source[e] === '\t')) e++
+    if (e < source.length && source[e] !== '\n') e = to
     const b = { kind: 'raw', type: node.type, s, e, parent, ...extra }
     b.inlines = [leaf(b, 'raw', s, e)]
     return b
@@ -318,8 +333,20 @@ export function buildModel(parser, tree, source) {
     hidden.push([node.startIndex, colons.endIndex])
     b.children = []
 
-    if (args)
+    // Where the content starts when there is none yet: the end of the head
+    const head = options ?? args ?? colons
+    b.headEnd = lineEnd(head.endIndex)
+    b.takesContent = !NO_CONTENT.has(name)
+
+    if (args) {
       b.children.push(textLine('caption', { s: args.startIndex, e: args.endIndex }, b))
+    } else if (ARGUMENT[name] || !b.card) {
+      // An empty caption, to type the argument in
+      const slot = textLine('caption', { s: colons.endIndex, e: colons.endIndex }, b)
+      slot.empty = true
+      b.children.push(slot)
+    }
+    if (b.children[0]) b.children[0].hint = ARGUMENT[name] ?? 'argument'
     if (options) {
       const list = block('options', options, b)
       list.children = options.children.filter(c => c.endIndex > c.startIndex).map(c =>
@@ -438,10 +465,28 @@ export function leafAt(model, offset) {
   return found
 }
 
+// The end of the empty lines after a directive that are indented as its
+// content: the place of the content that is not written yet
+export function contentReach(model, directive) {
+  const { source } = model
+  const column = directive.s - (source.lastIndexOf('\n', directive.s - 1) + 1)
+  let reach = directive.e
+  let at = source.indexOf('\n', directive.e)
+  while (at !== -1) {
+    const next = source.indexOf('\n', at + 1)
+    const line = source.slice(at + 1, next === -1 ? source.length : next)
+    if (line.trim() !== '') break
+    if (line.length > column) reach = at + 1 + line.length
+    at = next
+  }
+  return reach
+}
+
 // The deepest block whose lines contain the offset
 export function blockAt(model, offset) {
   const { source } = model
   const reach = b => {
+    if (b.kind === 'directive') return Math.max(contentReach(model, b), b.e)
     let e = b.e
     while (e < source.length && (source[e] === ' ' || source[e] === '\t')) e++
     return e

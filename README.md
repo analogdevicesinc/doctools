@@ -83,6 +83,7 @@ a tree that is updated incrementally can differ from a fresh one.
 | Sections | Headings, the level follows the order of the adornments, which follow the length of the title |
 | `.. _label:` | A chip in the margin, beside the block that follows |
 | The arguments of a directive | A caption: the title of a table or of an admonition, the language of a code block |
+| A directive without an argument or without content | Empty fields that say what goes there: type the argument, `Enter` goes to the content; `Backspace` in an emptied directive removes it |
 | The options of a directive | Chips in the margin, beside the directive |
 | Paragraphs, `*emphasis*`, `**strong**`, ` ``literal`` ` | Text, the markup is hidden |
 | Bullet and enumerated lists | Lists, nested |

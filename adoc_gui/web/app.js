@@ -1,7 +1,7 @@
 import { Parser, Language } from './vendor/web-tree-sitter.js'
 import { buildModel, leafAt } from './model.js'
 import {
-  applyEdit, insertText, deleteBackward, deleteForward, insertParagraph, toggleInline, tableStep
+  applyEdit, insertText, deleteBackward, deleteForward, insertParagraph, toggleInline, tableStep, openContent
 } from './ops.js'
 import { render, getSelection, setSelection, markActive, showDiagnostics } from './view.js'
 import { completionAt, matching, roleQuestion } from './lsp.js'
@@ -272,6 +272,15 @@ for (const name of ['copy', 'cut']) {
   })
 }
 view.addEventListener('drop', ev => ev.preventDefault())
+
+// A click on the empty content of a directive starts it
+view.addEventListener('mousedown', ev => {
+  const hint = ev.target.closest?.('.content-hint')
+  if (!hint) return
+  ev.preventDefault()
+  view.focus()
+  commit(openContent(state.model, hint.parentElement.block))
+})
 
 document.addEventListener('selectionchange', () => {
   if (document.activeElement !== view || state.composing) return

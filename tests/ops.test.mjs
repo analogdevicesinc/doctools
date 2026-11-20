@@ -110,6 +110,58 @@ test('the caret has a place after the markup that ends a paragraph', () => {
   assert.equal(type('a **bold|**\n', 'er'), 'a **bolder|**\n')
 })
 
+test('a directive is filled: its argument, then enter for its content', () => {
+  assert.equal(type('.. code-block::|\n', 'b'), '.. code-block:: b|\n')
+  assert.equal(type('.. code-block:: b|\n', 'ash'), '.. code-block:: bash|\n')
+  assert.equal(run('.. code-block:: bash|\n', insertParagraph), '.. code-block:: bash\n\n   |\n')
+  assert.equal(type('.. code-block:: bash\n\n   |\n', 'ls'), '.. code-block:: bash\n\n   ls|\n')
+  assert.equal(run('.. code-block::|\n', insertParagraph), '.. code-block::\n\n   |\n')
+  assert.equal(run('.. code-block:: bash|\n   :linenos:\n\nnext\n', insertParagraph),
+    '.. code-block:: bash\n   :linenos:\n\n   |\n\nnext\n')
+  assert.equal(run('.. code-block:: ba|sh\n\n   ls\n', insertParagraph), '.. code-block:: bash\n\n   |ls\n')
+  assert.equal(run('.. table:: Cap|tion\n   :width: 50%\n', insertParagraph), '.. table:: Caption\n   :width: 50%\n\n   |\n')
+  assert.equal(run('.. image:: a.png|\n', insertParagraph), '.. image:: a.png|\n')
+})
+
+test('an emptied directive is removed with backspace', () => {
+  // The content, then the empty line of the content, then the argument
+  assert.equal(run('a\n\n.. code-block:: bash\n\n   l|\n\nb\n', deleteBackward), 'a\n\n.. code-block:: bash\n\n   |\n\nb\n')
+  assert.equal(run('a\n\n.. code-block:: bash\n\n   |\n\nb\n', deleteBackward), 'a\n\n.. code-block:: bash|\n\nb\n')
+  assert.equal(run('a\n\n.. code-block:: b|\n\nb\n', deleteBackward), 'a\n\n.. code-block:: |\n\nb\n')
+  assert.equal(run('a\n\n.. code-block:: |\n\nb\n', deleteBackward), 'a|\n\nb\n')
+  assert.equal(run('a\n\n.. code-block::|\n\nb\n', deleteBackward), 'a|\n\nb\n')
+  assert.equal(run('a\n\n.. note::|\n\nb\n', deleteBackward), 'a|\n\nb\n')
+  assert.equal(run('.. note::|\n', deleteBackward), '|')
+  assert.equal(run('a\n\n.. code-block::|\n   :linenos:\n\n   \n\nb\n', deleteBackward), 'a|\n\nb\n')
+  // Not while something is written in it
+  assert.equal(run('.. code-block::|\n\n   ls\n', deleteBackward), '.. code-block::|\n\n   ls\n')
+  assert.equal(run('.. note::\n\n   |text\n', deleteBackward), '.. note::\n\n   |text\n')
+})
+
+test('typing a directive from an empty line', () => {
+  let text = 'Para\n\n|\n'
+  for (const char of '.. code-block::') text = type(text, char)
+  assert.equal(text, 'Para\n\n.. code-block::|\n')
+  text = type(type(text, 'c'), 'pp')
+  assert.equal(text, 'Para\n\n.. code-block:: cpp|\n')
+  text = run(text, insertParagraph)
+  text = type(text, 'int a;')
+  assert.equal(text, 'Para\n\n.. code-block:: cpp\n\n   int a;|\n')
+})
+
+test('code goes on after enter, and enter on its empty line leaves it', () => {
+  let text = '.. code-block:: py\n\n   print(1)|\n\nAfter\n'
+  text = run(text, insertParagraph)
+  assert.equal(text, '.. code-block:: py\n\n   print(1)\n   |\n\nAfter\n')
+  assert.equal(type(text, 'x'), '.. code-block:: py\n\n   print(1)\n   x|\n\nAfter\n')
+  text = run(text, insertParagraph)
+  assert.equal(text, '.. code-block:: py\n\n   print(1)\n|\n\nAfter\n')
+  assert.equal(type(text, 'P'), '.. code-block:: py\n\n   print(1)\n\nP|\n\nAfter\n')
+  assert.equal(run('.. code-block:: py\n\n   print(1)\n   |\n\nAfter\n', deleteBackward),
+    '.. code-block:: py\n\n   print(1)|\n\nAfter\n')
+  assert.equal(type('Text::\n\n   literal\n   |\n', 'x'), 'Text::\n\n   literal\n   x|\n')
+})
+
 test('typing after an empty directive fills it', () => {
   assert.equal(type('.. note::|\n', 'T'), '.. note::\n\n   T|\n')
   assert.equal(type('.. note::|\n\nnext\n', 'T'), '.. note::\n\n   T|\n\nnext\n')
@@ -117,8 +169,7 @@ test('typing after an empty directive fills it', () => {
   assert.equal(type('* a\n\n  .. tip::|\n', 'T'), '* a\n\n  .. tip::\n\n     T|\n')
   assert.equal(run('.. note::|\n', insertParagraph), '.. note::\n\n   |\n')
   assert.equal(type('.. image::|\n', 'a'), '.. image:: a|\n')
-  assert.equal(type('.. image:: |\n', 'a'), '.. image:: a|\n')
-  assert.equal(type('.. code-block::|\n', 'b'), '.. code-block:: b|\n')
+  assert.equal(type('.. image:: |\n', 'a'), '.. image:: a |\n'.replace('a |', 'a|'))
   assert.equal(type('.. note::\n\n   T|\n', 'x'), '.. note::\n\n   Tx|\n')
 })
 
@@ -134,7 +185,6 @@ test('typing a role at the start of a line', () => {
 })
 
 test('captions, options and labels stay on one line', () => {
-  assert.equal(run('.. table:: Cap|tion\n   :width: 50%\n', insertParagraph), '.. table:: Cap|tion\n   :width: 50%\n')
   assert.equal(run('.. table:: Caption\n   :width: 5|0%\n', insertParagraph), '.. table:: Caption\n   :width: 5|0%\n')
   assert.equal(run('.. _la|bel:\n\nTitle\n=====\n', insertParagraph), '.. _la|bel:\n\nTitle\n=====\n')
   assert.equal(run('.. _label|:\n\nTitle\n=====\n', insertText, '-x'), '.. _label-x|:\n\nTitle\n=====\n')

@@ -53,12 +53,13 @@ function renderLeaf(model, leaf) {
 function renderBlock(model, block, attached = []) {
   const el = document.createElement(tagOf(block))
   el.className = `block b-${block.kind}`
-  for (const flag of ['code', 'error', 'card'])
+  for (const flag of ['code', 'error', 'card', 'empty'])
     if (block[flag]) el.classList.add(flag)
   el.dataset.kind = block.kind
   el.dataset.type = block.name ? `${block.type} ${block.name}` : block.type
   if (block.name) el.dataset.name = block.name
   if (block.kind === 'raw') el.dataset.raw = block.type
+  if (block.hint) el.dataset.hint = block.hint
   el.dataset.s = block.s
   el.dataset.e = block.e
   el.block = block
@@ -93,6 +94,15 @@ function renderBlock(model, block, attached = []) {
     el.append(renderBlock(model, child, labels))
     labels = []
   })
+
+  // A directive without content: a place to click to write it
+  if (block.kind === 'directive' && block.takesContent &&
+      !children.some(c => c.kind !== 'caption' && c.kind !== 'options')) {
+    const hint = document.createElement('div')
+    hint.className = 'content-hint'
+    hint.contentEditable = 'false'
+    el.append(hint)
+  }
 
   // An empty list item or cell still needs a place for the caret
   if ((block.kind === 'item' || block.kind === 'cell') && !block.children.length && block.marker) {

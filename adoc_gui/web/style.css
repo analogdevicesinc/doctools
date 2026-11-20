@@ -636,3 +636,27 @@ li > .diag { margin: 0 0 4px; }
   pointer-events: none;
 }
 .tooltip.error { background: var(--error); color: var(--on-primary); }
+
+/* Empty parts of a directive: what to write there -------------------------------- */
+
+.b-caption.empty { min-width: 1em; }
+.b-caption.empty::after {
+  content: attr(data-hint);
+  color: var(--outline);
+  font-style: italic;
+  pointer-events: none;
+}
+
+.content-hint {
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px dashed var(--outline-variant);
+  border-radius: 8px;
+  font: italic 13px/20px var(--font);
+  color: var(--outline);
+  cursor: text;
+  user-select: none;
+}
+.content-hint::before { content: 'content'; }
+.b-directive:has(> .placeholder) > .content-hint { display: none; }
+.b-directive > .placeholder { margin: 0; }
