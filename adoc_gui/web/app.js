@@ -33,6 +33,7 @@ const state = {
   mtime: undefined,
   dirty: false,
   saving: false,
+  held: false,
   fileState: '',
   docs: { build: 'off', problem: null, url: null, revision: -1, diagnostics: [] },
   composing: undefined
@@ -65,6 +66,17 @@ function setSource(source, edit) {
   state.source = source
   state.model = buildModel(state.parser, tree, source)
   state.lastEdit = edit && { start: edit.start, removed: before.slice(edit.start, edit.end), text: edit.text }
+  if (edit) moveDiagnostics(before, edit)
+}
+
+// Until the next build, the warnings follow the lines that an edit moves
+function moveDiagnostics(before, edit) {
+  const count = text => text.split('\n').length - 1
+  const delta = count(edit.text) - count(before.slice(edit.start, edit.end))
+  if (!delta || !state.docs.diagnostics.length) return
+  const row = count(before.slice(0, edit.start)) + 1
+  state.docs.diagnostics = state.docs.diagnostics.map(item =>
+    item.line > row ? { ...item, line: Math.max(item.line + delta, row) } : item)
 }
 
 function remember() {
@@ -267,6 +279,7 @@ document.addEventListener('selectionchange', () => {
   if (!current) return
   state.caret = { anchor: current.anchor, focus: current.focus }
   if (completion && (current.anchor !== current.focus || current.focus !== completion.caret)) closeMenu()
+  flush()
   markActive(view, current.focus)
   renderCode(true)
   renderStatus()
@@ -437,6 +450,24 @@ const answers = new Map()
 function closeMenu() {
   completion = undefined
   menu.hidden = true
+  flush()
+}
+
+// What can be completed at the caret, see completionAt
+function contextAtCaret() {
+  const { anchor, focus } = state.caret
+  if (anchor !== focus) return undefined
+  const { source } = state
+  const lineStart = source.lastIndexOf('\n', focus - 1) + 1
+  const lineEnd = source.indexOf('\n', focus)
+  return completionAt(source.slice(lineStart, focus), source.slice(focus, lineEnd === -1 ? source.length : lineEnd))
+}
+
+// A role or a directive is being typed: the file is not saved meanwhile, a
+// build of the half-written markup would only report it as an error
+function completing() {
+  if (state.docs.build === 'off' || document.activeElement !== view) return false
+  return completion !== undefined || contextAtCaret() !== undefined
 }
 
 function renderMenu() {
@@ -468,12 +499,9 @@ function renderMenu() {
 }
 
 async function suggest() {
-  const { anchor, focus } = state.caret
-  if (anchor !== focus || state.docs.build === 'off') return closeMenu()
+  const { focus } = state.caret
   const { source } = state
-  const lineStart = source.lastIndexOf('\n', focus - 1) + 1
-  const lineEnd = source.indexOf('\n', focus)
-  const context = completionAt(source.slice(lineStart, focus), source.slice(focus, lineEnd === -1 ? source.length : lineEnd))
+  const context = state.docs.build === 'off' ? undefined : contextAtCaret()
   if (!context) return closeMenu()
 
   const key = JSON.stringify(context.request)
@@ -518,6 +546,9 @@ menu.addEventListener('mousedown', ev => {
   if (item && completion) accept(Number(item.dataset.index))
 })
 view.addEventListener('blur', closeMenu)
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') save(true)
+})
 
 // Hover: what a role points to
 let hoverTimer
@@ -558,11 +589,23 @@ function changed() {
   state.dirty = true
   setFileState('Saving…')
   clearTimeout(saveTimer)
-  saveTimer = setTimeout(save, SAVE_DELAY_MS)
+  saveTimer = setTimeout(() => save(), SAVE_DELAY_MS)
 }
 
-async function save() {
+// Save what was held back while a completion was taking place
+function flush() {
+  if (state.held && !completing()) changed()
+}
+
+// force: also while a completion is taking place
+async function save(force) {
+  if (!state.dirty) return
   if (state.saving) return changed()
+  if (force !== true && completing()) {
+    state.held = true
+    return setFileState('Not saved while completing')
+  }
+  state.held = false
   state.saving = true
   const text = state.source
   try {

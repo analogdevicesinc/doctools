@@ -359,9 +359,20 @@ export function buildModel(parser, tree, source) {
     return b
   }
 
+  // Text of one line that is not a paragraph for the grammar, shown as one
+  const textBlock = (node, parent, extra = {}) => {
+    const b = block('paragraph', node, parent, extra)
+    b.inlines = inlines(b, [], node.startIndex, node.endIndex)
+    return b
+  }
+
+  const oneLine = node => !source.slice(node.startIndex, node.endIndex).includes('\n')
+
   const convert = (node, parent) => {
+    // Markup that is being typed is often an error for a moment: it is shown
+    // as the text it is, only a larger broken part is shown as source
     if (node.isError || node.isMissing)
-      return [raw(node, parent, undefined, undefined, { error: true })]
+      return [oneLine(node) ? textBlock(node, parent, { error: true }) : raw(node, parent, undefined, undefined, { error: true })]
     switch (node.type) {
       case 'section': return [heading(node, parent)]
       case 'paragraph': return paragraph(node, parent)
@@ -369,6 +380,10 @@ export function buildModel(parser, tree, source) {
       case 'enumerated_list': return [list(node, parent)]
       case 'directive': return [directive(node, parent)]
       case 'target': return [target(node, parent)]
+      // ':name:' alone on its line, as while a role is typed
+      case 'field_list':
+        return [oneLine(node) && /^:[^:\s]+:$/.test(source.slice(node.startIndex, node.endIndex))
+          ? textBlock(node, parent) : raw(node, parent)]
       case 'block_quote': {
         const b = block('quote', node, parent)
         b.children = blocks(node.children, b)
@@ -379,7 +394,28 @@ export function buildModel(parser, tree, source) {
   }
 
   function blocks(nodes, parent) {
-    return nodes.filter(n => n.endIndex > n.startIndex).flatMap(n => convert(n, parent))
+    const list = nodes.filter(n => n.endIndex > n.startIndex)
+    const out = []
+    for (let i = 0; i < list.length; i++) {
+      const node = list[i]
+      const next = list[i + 1]
+      // An error followed by a paragraph on its line, as ':ref:`' at the
+      // start of a line: one paragraph
+      if (node.isError && next?.type === 'paragraph' &&
+          !source.slice(node.startIndex, next.startIndex).includes('\n')) {
+        const [first, ...rest] = paragraph(next, parent)
+        if (first.kind === 'paragraph') {
+          first.inlines = [...inlines(first, [], node.startIndex, next.startIndex), ...first.inlines]
+          first.s = node.startIndex
+          first.error = true
+          out.push(first, ...rest)
+          i++
+          continue
+        }
+      }
+      out.push(...convert(node, parent))
+    }
+    return out
   }
 
   const root = { kind: 'document', type: 'document', s: 0, e: source.length, parent: null }

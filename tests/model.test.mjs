@@ -127,6 +127,21 @@ test('broken markup loses nothing', () => {
     assertCovered(source)
 })
 
+test('markup that is being typed stays a paragraph', () => {
+  const kinds = source => {
+    const model = assertCovered(source)
+    return outline(model.root) + ' ' + texts(model).join('|')
+  }
+  assert.equal(kinds(':ref:'), 'document(paragraph) text::ref:')
+  assert.equal(kinds(':ref:`'), 'document(paragraph) text::ref:|text:`')
+  assert.equal(kinds(':ref:`gu'), 'document(paragraph) text::ref:|text:`gu')
+  assert.equal(kinds('Para\n\n:ref:`gu\n\nNext\n'), 'document(paragraph paragraph paragraph) text:Para|text::ref:|text:`gu|text:Next')
+  assert.equal(kinds(':ref:`guide`'), 'document(paragraph) text:|role:guide|text:')
+  assert.equal(kinds('.. note::\n\n   :ref:`\n'), 'document(directive:note(paragraph)) text::ref:|text:`')
+  assert.equal(kinds(':orphan:\n\nText\n'), 'document(paragraph paragraph) text::orphan:|text:Text')
+  assert.equal(kinds(':field: value\n'), 'document(raw) raw::field: value')
+})
+
 test('the demo document loses nothing', () => {
   assertCovered(readFileSync(new URL('../demo.rst', import.meta.url), 'utf-8'))
 })

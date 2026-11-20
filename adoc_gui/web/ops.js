@@ -46,10 +46,29 @@ function insertBlock(source, offset, text) {
   return edit(offset, offset, head + text + tail + missing, offset + head.length + text.length)
 }
 
+// The caret at the end of the line of a directive that has nothing else:
+// the text goes to its content, or is its argument when it is not a card
+function intoDirective(model, offset, text) {
+  const { source } = model
+  const owner = blockAt(model, offset)
+  if (leafAt(model, offset) || owner.kind !== 'directive' || owner.children.length || offset < owner.e)
+    return undefined
+  if (!owner.card)
+    return edit(offset, offset, (source[offset - 1] === ' ' ? '' : ' ') + text)
+  const indent = ' '.repeat(owner.s - lineStart(source, owner.s) + 3)
+  const tail = lineEnd(source, offset) < source.length && !isBlank(lineOf(source, lineEnd(source, offset) + 1)) ? '\n' : ''
+  const head = `\n\n${indent}${text}`
+  return edit(offset, lineEnd(source, offset), head + tail, offset + head.length)
+}
+
 function insertTextRaw(model, a, b, text) {
   const { source } = model
-  if (a === b && !leafAt(model, a) && !blockAt(model, a).marker)
-    return insertBlock(source, a, text)
+  if (a === b) {
+    const directive = intoDirective(model, a, text)
+    if (directive) return directive
+    if (!leafAt(model, a) && !blockAt(model, a).marker)
+      return insertBlock(source, a, text)
+  }
   return edit(a, b, text)
 }
 
@@ -181,9 +200,10 @@ function insertParagraphRaw(model, a, b) {
     }
   }
 
+  // After the line of an empty directive: go to its content
   // An empty line is already a paragraph break, there is nothing to add
   if (!item)
-    return undefined
+    return owner.card ? intoDirective(model, a, '') : undefined
 
   // Split the paragraph, the new one keeps the indentation
   const indent = ' '.repeat(owner.s - lineStart(source, owner.s))

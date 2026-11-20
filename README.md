@@ -36,6 +36,11 @@ changes. `adoc-gui --serve` starts it right away. While it runs:
   `Tab` accept, `Escape` closes.
 - The pointer over a role shows what it points to.
 
+The file is not saved, and so not built, while a role or a directive is being
+completed: the half-written markup would only be reported as an error. It is
+saved once the completion is accepted, or when the caret or the focus leaves
+it.
+
 It needs a `conf.py` at a common location (`docs/conf.py`, ...) in the
 repository of the file, or in a folder above the file.
 

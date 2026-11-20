@@ -241,7 +241,6 @@ pre.block {
   overflow-x: auto;
 }
 pre.block.code { color: var(--on-surface); }
-pre.block.error { color: var(--on-error-container); background: var(--error-container); }
 
 pre.block[data-raw='comment'], pre.block[data-raw='target'], pre.block[data-raw='substitution_definition'] {
   padding: 0 0 0 12px;
@@ -526,6 +525,8 @@ body.inspect .page table.block::before { content: none; }
 body.inspect .page .sides .block { padding-top: 0; margin: 0; outline-offset: 0; }
 body.inspect .page .sides .block::before, body.inspect .page .b-caption::before { content: none; }
 body.inspect .page .b-directive::after { content: none; }
+body.inspect .page .block.error { outline-color: var(--error); }
+body.inspect .page .block.error::before { background: var(--error); }
 body.inspect .page .block.active { outline: 2px solid var(--primary); }
 body.inspect .page .block.active::before { background: var(--primary); color: var(--on-primary); }
 body.inspect .page .leaf { box-shadow: inset 0 -2px var(--outline-variant); }

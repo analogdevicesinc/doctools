@@ -110,6 +110,29 @@ test('the caret has a place after the markup that ends a paragraph', () => {
   assert.equal(type('a **bold|**\n', 'er'), 'a **bolder|**\n')
 })
 
+test('typing after an empty directive fills it', () => {
+  assert.equal(type('.. note::|\n', 'T'), '.. note::\n\n   T|\n')
+  assert.equal(type('.. note::|\n\nnext\n', 'T'), '.. note::\n\n   T|\n\nnext\n')
+  assert.equal(type('.. note::|\nnext\n', 'T'), '.. note::\n\n   T|\n\nnext\n')
+  assert.equal(type('* a\n\n  .. tip::|\n', 'T'), '* a\n\n  .. tip::\n\n     T|\n')
+  assert.equal(run('.. note::|\n', insertParagraph), '.. note::\n\n   |\n')
+  assert.equal(type('.. image::|\n', 'a'), '.. image:: a|\n')
+  assert.equal(type('.. image:: |\n', 'a'), '.. image:: a|\n')
+  assert.equal(type('.. code-block::|\n', 'b'), '.. code-block:: b|\n')
+  assert.equal(type('.. note::\n\n   T|\n', 'x'), '.. note::\n\n   Tx|\n')
+})
+
+test('typing a role at the start of a line', () => {
+  let text = '|'
+  for (const char of ':ref:`guide`') text = type(text, char)
+  assert.equal(text, ':ref:`guide`|\n')
+  text = 'Para\n\n|\n'
+  for (const char of ':ref:`gu') text = type(text, char)
+  assert.equal(text, 'Para\n\n:ref:`gu|\n')
+  assert.equal(run(text, deleteBackward), 'Para\n\n:ref:`g|\n')
+  assert.equal(run(':ref:|`gu\n', deleteBackward), ':ref|`gu\n')
+})
+
 test('captions, options and labels stay on one line', () => {
   assert.equal(run('.. table:: Cap|tion\n   :width: 50%\n', insertParagraph), '.. table:: Cap|tion\n   :width: 50%\n')
   assert.equal(run('.. table:: Caption\n   :width: 5|0%\n', insertParagraph), '.. table:: Caption\n   :width: 5|0%\n')
