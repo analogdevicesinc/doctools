@@ -95,10 +95,31 @@ body {
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 8px 12px 4px 16px;
+  padding: 8px 16px 4px 20px;
 }
 
-.logo { width: 32px; height: 32px; margin-right: 8px; fill: var(--primary); flex: none; }
+/* Build the documentation: the one action of the bar */
+.build-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  margin-right: 8px;
+  padding: 0 16px 0 10px;
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-small);
+  font: 600 14px/20px var(--font);
+  color: var(--on-primary);
+  background: var(--primary);
+  cursor: pointer;
+}
+.build-button svg { width: 20px; height: 20px; fill: currentColor; }
+.build-button:hover { background: color-mix(in srgb, var(--primary) 88%, var(--on-surface)); }
+.build-button:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+/* Running: it stops the server */
+.build-button[aria-pressed='true'] { color: var(--primary); background: transparent; }
+.build-button[aria-pressed='true']:hover { background: color-mix(in srgb, var(--primary) 8%, transparent); }
+.build-button:disabled { border-color: var(--outline-variant); color: var(--outline); background: transparent; cursor: default; }
 
 .titles { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 
@@ -111,6 +132,7 @@ body {
 }
 
 #file { font: 12px/16px var(--font); color: var(--on-surface-variant); min-height: 16px; }
+#file.offline { color: var(--error); font-weight: 600; }
 
 .icon-button {
   position: relative;
@@ -153,7 +175,10 @@ body {
   display: flex;
   align-items: center;
   gap: 2px;
-  margin: 4px 16px 8px;
+  position: relative;
+  z-index: 3;
+  height: var(--bar);
+  margin: 4px var(--edge) 0;
   padding: 4px 8px;
   border-radius: var(--radius);
   background: var(--surface);
@@ -165,7 +190,6 @@ body {
   display: flex;
   align-items: center;
   gap: 4px;
-  margin-left: auto;
   padding: 0 4px 0 8px;
   height: 32px;
   border-radius: var(--radius-small);
@@ -186,29 +210,82 @@ body {
 
 .divider { width: 1px; height: 20px; margin: 0 6px; background: var(--outline-variant); }
 
-/* Layout ---------------------------------------------------------------------- */
+/* Layout ----------------------------------------------------------------------
+   The page in the middle, as wide as the window allows; the files and the
+   side pane float in what is left at its sides, each centred in its part.
+   The page scrolls under the toolbar, and fades as it gets there. */
 
-main { flex: 1; display: flex; min-height: 0; }
+:root {
+  --bar: 44px;
+  /* The space at the edges of the window and around the panels */
+  --edge: clamp(12px, 1.6vw, 40px);
+  --page: clamp(520px, 44vw, 960px);
+}
 
-.canvas { flex: 1; min-width: 0; overflow: auto; padding: 8px 24px 48px; }
+main { flex: 1; display: flex; min-height: 0; margin-top: calc(-1 * var(--bar)); }
 
-.sheet {
-  flex: none;
-  width: 38%;
-  max-width: 720px;
+.canvas {
+  flex: 0 1 var(--page);
+  min-width: 0;
+  overflow: auto;
+  padding: calc(var(--bar) + 16px) 4px 48px;
+  scrollbar-width: thin;
+  mask-image: linear-gradient(to bottom, transparent calc(var(--bar) - 12px), #000 calc(var(--bar) + 16px));
+}
+
+/* The part at a side of the page, with its panel */
+.side {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+  padding: calc(var(--bar) + 16px) var(--edge) 16px;
+  transition: flex-grow 0.2s ease, flex-basis 0.2s ease;
+}
+.side.right { flex-grow: 2; }
+
+.panel {
   display: flex;
   flex-direction: column;
-  margin: 0 16px 16px 0;
+  width: 100%;
   border-radius: var(--radius);
   background: var(--surface);
   box-shadow: var(--shadow);
   overflow: hidden;
+  transition: transform 0.2s ease, opacity 0.2s ease, visibility 0.2s;
 }
+.drawer { max-width: 340px; transform-origin: top left; }
+.sheet { max-width: 860px; transform-origin: top right; }
 
-body.no-source .sheet { display: none; }
+/* A panel that is hidden is a button, in its corner below the toolbar: the
+   panel opens from it */
+.open-panel {
+  position: absolute;
+  top: calc(var(--bar) + 16px);
+  color: var(--on-surface-variant);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s;
+}
+.side.left .open-panel { left: var(--edge); }
+.side.right .open-panel { right: var(--edge); }
+.close-panel { width: 32px; height: 32px; padding: 4px; margin-left: auto; }
+
+/* The part of a hidden panel keeps half of its place, so the page moves
+   only a little */
+body.no-nav .side.left { flex-grow: 0.5; }
+body.no-source .side.right { flex-grow: 1; }
+/* With both hidden the page is in the middle */
+body.no-nav.no-source .side { flex-grow: 1; }
+body.no-nav .drawer, body.no-source .sheet { transform: scale(0.1); opacity: 0; visibility: hidden; }
+body.no-nav .side.left .open-panel, body.no-source .side.right .open-panel { opacity: 1; visibility: visible; }
 
 /* Tabs of the side pane */
-.tabs { display: flex; padding: 0 12px; border-bottom: 1px solid var(--outline-variant); }
+.tabs { display: flex; align-items: center; padding: 0 8px 0 12px; border-bottom: 1px solid var(--outline-variant); }
+.tab[hidden] { display: none; }
 .tab {
   position: relative;
   height: 44px;
@@ -263,27 +340,15 @@ body.no-source .sheet { display: none; }
 .text-button:hover { background: color-mix(in srgb, var(--primary) 8%, transparent); }
 .text-button[hidden] { display: none; }
 
-/* Files: a navigation drawer ---------------------------------------------------- */
+/* Files ------------------------------------------------------------------------ */
 
-.drawer {
-  flex: none;
-  width: 248px;
-  display: flex;
-  flex-direction: column;
-  margin: 0 0 16px 16px;
-  border-radius: var(--radius);
-  background: var(--surface);
-  box-shadow: var(--shadow);
-  overflow: hidden;
-}
-body.no-nav .drawer { display: none; }
-
+#sparse-state { flex: 1; }
 .drawer-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  min-height: 48px;
-  padding: 8px 8px 4px 20px;
+  gap: 4px;
+  min-height: 44px;
+  padding: 6px 8px 2px 20px;
   font: 500 14px/20px var(--font);
   letter-spacing: 0.1px;
   color: var(--on-surface-variant);
@@ -360,7 +425,6 @@ body.inspect #status { display: block; }
 /* Page ------------------------------------------------------------------------ */
 
 .page {
-  max-width: 816px;
   min-height: 100%;
   margin: 0 auto;
   padding: 72px 88px 96px;
@@ -776,9 +840,6 @@ body.inspect .page .block.active::before { background: var(--primary); color: va
 body.inspect .page .leaf { box-shadow: inset 0 -2px var(--outline-variant); }
 body.inspect .page .soft { background: var(--surface-container-highest); }
 
-@media (max-width: 1100px) {
-  .drawer { width: 200px; }
-}
 
 /* A narrow page has no margin for the side elements */
 .canvas { container-type: inline-size; }
@@ -796,9 +857,9 @@ body.inspect .page .soft { background: var(--surface-container-highest); }
   .page { padding: 40px 32px 64px; }
 }
 
-@media (max-width: 900px) {
-  .canvas { padding: 8px 8px 32px; }
-  .sheet { width: 50%; margin-right: 8px; }
+/* A narrow window: the page gives its place to the panels */
+@media (max-width: 1000px) {
+  :root { --page: 46vw; --edge: 8px; }
 }
 
 .icon-button:disabled { opacity: 0.38; cursor: default; }

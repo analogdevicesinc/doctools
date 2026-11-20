@@ -31,7 +31,8 @@ The page has three parts:
   - *Source*: the `.rst` text, also editable, in a code editor (CodeMirror),
     coloured from the parsed document. The block of the caret and the last
     edit are highlighted.
-  - *Live view*: the built page of the file, from the documentation server.
+  - *Live view*: the built page of the file, from the documentation server;
+    the tab is there while the server runs.
     It scrolls with the document, in both directions, and a link followed in
     it opens the file of that page.
 
@@ -55,13 +56,19 @@ and a role, a link or a literal is kept on one line. Only the line being
 typed is wrapped, the lines that are already there are left as they are.
 
 Changes are saved to the file as you type, and changes made to the file by
-other programs are loaded. The buttons of the top bar hide the files and the
-side pane, and switch between the light and the dark theme: as in the Doctools
-theme, the one of the system until another is chosen.
+other programs are loaded. The files and the side pane float at the sides of
+the page; the cross in each hides it, and a button in its corner, below the
+toolbar, shows it again. The top bar switches between the light and the dark
+theme: as in the Doctools theme, the one of the system until another is
+chosen.
+
+`Ctrl+C` in the terminal stops `adoc-gui`, with the documentation server and
+LanguageTool. The page says so, and goes on, with what was typed meanwhile,
+when `adoc-gui` is started again.
 
 ## Documentation server
 
-The play button at the top right builds the documentation with the server of
+The *Build* button at the top right builds the documentation with the server of
 Doctools (`adoc serve`), in the background, and builds it again when the file
 changes. `adoc-gui --serve` starts it right away. While it runs:
 

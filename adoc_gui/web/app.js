@@ -256,7 +256,27 @@ function renderToolbar() {
   }
 }
 
-// The source pane and the structure can be shown or hidden
+// A panel is hidden with the button in it, and shown with the one that is
+// in its place when it is hidden
+function panel(name, open, close) {
+  const apply = shown => {
+    document.body.classList.toggle(name, !shown)
+    try {
+      localStorage.setItem(`doctools.${name}`, String(shown))
+    } catch { }
+  }
+  let stored = null
+  try {
+    stored = localStorage.getItem(`doctools.${name}`)
+  } catch { }
+  apply(stored !== 'false')
+  open.addEventListener('click', () => apply(true))
+  close.addEventListener('click', () => apply(false))
+}
+panel('no-nav', document.getElementById('open-nav'), document.getElementById('close-nav'))
+panel('no-source', document.getElementById('open-source'), document.getElementById('close-source'))
+
+// The structure can be shown or hidden
 function toggle(button, name, shown) {
   const apply = value => {
     document.body.classList.toggle(name, name.startsWith('no-') ? !value : value)
@@ -272,8 +292,6 @@ function toggle(button, name, shown) {
   apply(stored === null ? shown : stored === 'true')
   button.addEventListener('click', () => apply(button.getAttribute('aria-pressed') !== 'true'))
 }
-toggle(document.getElementById('toggle-source'), 'no-source', true)
-toggle(document.getElementById('toggle-nav'), 'no-nav', true)
 toggle(document.getElementById('toggle-inspect'), 'inspect', false)
 
 // The theme, as the Doctools theme does: the system one until another is
@@ -581,9 +599,16 @@ function docsText() {
   return `Docs: up to date${counts ? `, ${counts}` : ''}`
 }
 
+// The server of the editor does not answer
+let offline = false
+
 function setFileState(text) {
   if (text !== undefined) state.fileState = text
-  fileStatus.textContent = [state.fileState, docsText()].filter(Boolean).join('  ·  ')
+  // adoc-gui was stopped: nothing is saved until it runs again
+  fileStatus.classList.toggle('offline', offline)
+  fileStatus.textContent = offline
+    ? 'adoc-gui is not running: the changes are not saved. Start it again, this page will go on.'
+    : [state.fileState, docsText()].filter(Boolean).join('  ·  ')
 }
 
 function renderDocs() {
@@ -593,6 +618,11 @@ function renderDocs() {
   docsButton.setAttribute('aria-pressed', String(running))
   docsButton.title = problem ?? (running ? 'Stop the documentation server' : 'Build the documentation')
   docsButton.querySelector('path').setAttribute('d', running ? STOP : PLAY)
+  document.getElementById('docs-label').textContent = running ? 'Stop' : 'Build'
+  // The live view is there while the server runs
+  document.querySelector('.tab[data-tab=preview]').hidden = !running
+  const wanted = running && preferredTab() === 'preview' ? 'preview' : 'source'
+  if (state.tab !== wanted) selectTab(wanted, false)
   setFileState()
 }
 
@@ -622,7 +652,19 @@ async function pollDocs(once) {
       renderDocs()
       renderPreview()
     }
-  } catch { }
+    if (offline) {
+      offline = false
+      setFileState()
+      if (state.dirty) save(true)
+    }
+  } catch {
+    if (!offline) {
+      offline = true
+      state.docs = { ...state.docs, build: 'off', url: null }
+      renderDocs()
+      renderPreview()
+    }
+  }
   if (once) return
   clearTimeout(docsTimer)
   docsTimer = setTimeout(pollDocs, 1000)
@@ -1361,15 +1403,24 @@ canvas.addEventListener('scroll', () => {
 
 document.getElementById('preview-start').addEventListener('click', () => docsButton.click())
 
-// Tabs of the side pane
-function selectTab(name) {
+// The tab the user chose, kept by the browser
+function preferredTab() {
+  try {
+    return localStorage.getItem('doctools.tab') === 'preview' ? 'preview' : 'source'
+  } catch {
+    return 'source'
+  }
+}
+
+// Tabs of the side pane. remember: the user chose it
+function selectTab(name, remember = true) {
   state.tab = name
   for (const tab of document.querySelectorAll('.tab'))
     tab.setAttribute('aria-selected', String(tab.dataset.tab === name))
   document.getElementById('source').hidden = name !== 'source'
   document.getElementById('preview').hidden = name !== 'preview'
   try {
-    localStorage.setItem('doctools.tab', name)
+    if (remember) localStorage.setItem('doctools.tab', name)
   } catch { }
   renderPreview()
   if (name === 'source') renderCode(true)
@@ -1390,11 +1441,7 @@ async function main() {
   if (!response.ok) response = await api('')
   setSource('')
   show(await response.json())
-  let tab = 'source'
-  try {
-    tab = localStorage.getItem('doctools.tab') === 'preview' ? 'preview' : 'source'
-  } catch { }
-  selectTab(tab)
+  selectTab('source', false)
   await loadTree()
   setTimeout(poll, POLL_MS)
   pollDocs()

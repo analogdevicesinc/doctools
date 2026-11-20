@@ -11,6 +11,7 @@ import importlib.util
 import json
 import os
 import re
+import signal
 import socket
 import subprocess
 import sys
@@ -142,6 +143,9 @@ class Docs:
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             text=True, encoding='utf-8', bufsize=1,
             env={**os.environ, 'PYTHONUNBUFFERED': '1'},
+            # In a session of its own: Ctrl+C in the terminal goes to adoc-gui
+            # only, which stops it in order, see close
+            start_new_session=True,
         )
         threading.Thread(target=self._read, args=(self._process,), daemon=True).start()
         threading.Thread(target=self._read_errors, args=(self._process,), daemon=True).start()
@@ -349,12 +353,37 @@ class Docs:
         return self.request({'languageTool': 'check', 'text': text, 'mode': 'api' if mode == 'cloud' else 'local',
                              'language': 'en-US'}, timeout=120)
 
-    def close(self):
+    def close(self, wait: float = 5):
+        """Stop the backend, and the programs it started (the build, LanguageTool)."""
+        # What it says while it stops is not of interest
+        self.log = lambda line: None
         process = self._process
         if not process or process.poll() is not None:
             return
         try:
+            # It stops when its input ends
             process.stdin.close()
-            process.wait(timeout=3)
-        except (OSError, subprocess.TimeoutExpired):
+            process.wait(timeout=wait)
+        except (OSError, subprocess.TimeoutExpired, KeyboardInterrupt):
+            pass
+        self.kill()
+
+    def kill(self):
+        """Stop what is left of the backend and of what it started, now."""
+        process = self._process
+        if not process:
+            return
+        if not hasattr(os, 'killpg'):
             process.terminate()
+            return
+        for sig in (signal.SIGTERM, signal.SIGKILL):
+            try:
+                os.killpg(process.pid, sig)
+            except (ProcessLookupError, PermissionError, OSError):
+                return
+            try:
+                process.wait(timeout=2)
+            except (subprocess.TimeoutExpired, KeyboardInterrupt):
+                continue
+            # The others of its session, if any
+            time.sleep(0.2)

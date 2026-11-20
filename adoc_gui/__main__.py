@@ -11,6 +11,7 @@ import argparse
 import json
 import mimetypes
 import os
+import signal
 import sys
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -228,12 +229,25 @@ def main():
         docs.start()
     if not args.no_open:
         webbrowser.open(url)
+    # Stopped from the terminal, or by a signal: the same way
+    def interrupt(signum, frame):
+        raise KeyboardInterrupt
+    signal.signal(signal.SIGTERM, interrupt)
+    if hasattr(signal, 'SIGHUP'):
+        signal.signal(signal.SIGHUP, interrupt)
+
     try:
         server.serve_forever()
     except KeyboardInterrupt:
         pass
-    finally:
+    print('\nStopping, the files are saved as they were typed. Ctrl+C again to stop now.', flush=True)
+    try:
+        # No new request, then the backend: the build and LanguageTool go with it
+        server.server_close()
         docs.close()
+    except KeyboardInterrupt:
+        docs.kill()
+    print('Stopped.', flush=True)
 
 
 if __name__ == '__main__':
