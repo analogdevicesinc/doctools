@@ -6,6 +6,45 @@
 import { leafAt, blockAt } from './model.js'
 import { CODE_DIRECTIVES } from './code.js'
 
+// The address of an image of the page: src as written => URL
+let imageUrl = src => src
+export function setImageUrl(make) {
+  imageUrl = make
+}
+
+// The image of an image or a figure directive, as written: { src, width, align }
+function imageOf(model, block) {
+  const caption = block.children.find(c => c.kind === 'caption')
+  const src = (caption?.inlines ?? []).map(l => model.source.slice(l.s, l.e)).join('').trim()
+  const options = {}
+  for (const option of block.children.find(c => c.kind === 'options')?.children ?? [])
+    options[option.name] = (option.inlines ?? []).slice(1).map(l => model.source.slice(l.s, l.e)).join('').trim()
+  return { src, width: options.width, scale: options.scale, align: options.align, alt: options.alt }
+}
+
+// The image, shown as it is built: not part of the text
+function imageElement(model, block) {
+  const { src, width, scale, align, alt } = imageOf(model, block)
+  const box = document.createElement('div')
+  box.className = 'figure-image'
+  box.contentEditable = 'false'
+  if (align) box.dataset.align = align
+  if (!src) return box
+  const img = document.createElement('img')
+  img.alt = alt ?? ''
+  img.loading = 'lazy'
+  img.draggable = false
+  if (width && /^\d+(\.\d+)?(px|%|em|rem)?$/.test(width)) img.style.width = /\d$/.test(width) ? `${width}px` : width
+  else if (scale && /^\d+%?$/.test(scale)) img.style.width = `${parseInt(scale, 10)}%`
+  img.addEventListener('error', () => {
+    box.classList.add('missing')
+    box.dataset.missing = `Image not found: ${src}`
+  })
+  img.src = imageUrl(src)
+  box.append(img)
+  return box
+}
+
 // Makes the element of the code of a code directive, from the one it had:
 // (model, directive, old) => element
 let codeHost
@@ -279,7 +318,13 @@ function renderBlock(model, block, attached = [], old) {
   }
 
   el.leaves = (block.inlines ?? []).map(leaf => renderLeaf(model, leaf))
-  nodes.push(...el.leaves, ...made.slice(sides.length))
+  const inner = made.slice(sides.length)
+  // The image of an image or a figure: after its path
+  if (block.kind === 'directive' && (block.name === 'image' || block.name === 'figure')) {
+    const at = inner.findIndex(child => child.block?.kind === 'caption') + 1
+    inner.splice(at, 0, imageElement(model, block))
+  }
+  nodes.push(...el.leaves, ...inner)
 
   if (block.kind === 'directive' && block.name === 'tab-set') nodes.push(button('add-tab', 'Add a tab'))
 

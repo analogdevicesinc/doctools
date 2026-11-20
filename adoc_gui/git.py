@@ -187,6 +187,31 @@ class Git:
             return {'error': done.stderr.strip() or 'git apply failed'}
         return {'output': 'done'}
 
+    def discard(self, path: str, hunk, header: str | None = None) -> dict:
+        """Throw away a change that is not staged: the file goes back to what
+        is staged, or committed, for that change."""
+        if not self.top:
+            return {'error': 'not a git repository'}
+        file = (self.root / path).resolve()
+        if self.root.resolve() not in file.parents:
+            return {'error': 'the file is not in the documentation'}
+        try:
+            relative = self._relative(file)
+        except ValueError:
+            return {'error': 'the file is not in the repository'}
+        diff = next((f for f in self._diff(False) if f['path'] == relative), None)
+        if diff is None or not isinstance(hunk, int) or not 0 <= hunk < len(diff['hunks']):
+            return {'error': 'the change is not there anymore'}
+        chosen = diff['hunks'][hunk]
+        if header is not None and chosen['header'] != header:
+            return {'error': 'the change is not there anymore'}
+        patch = '\n'.join([*diff['header'], chosen['header'], *chosen['lines']]) + '\n'
+        done = subprocess.run(['git', '-C', str(self.top), 'apply', '-R', '--recount', '--whitespace=nowarn', '-'],
+                              input=patch, capture_output=True, text=True, timeout=TIMEOUT)
+        if done.returncode != 0:
+            return {'error': done.stderr.strip() or 'git apply failed'}
+        return {'output': 'done'}
+
     def head(self, file: Path) -> str | None:
         """The text of the file in the last commit, None when it is not in it."""
         if not self.top:

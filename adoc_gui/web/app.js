@@ -4,7 +4,8 @@ import {
   applyEdit, insertText, deleteBackward, deleteForward, insertParagraph, toggleInline, tableStep, openContent, intoContent, addOption, addLabel, removeSide, addTab, shiftItem, removeDirective
 } from './ops.js'
 import {
-  render, getSelection, setSelection, markActive, showDiagnostics, selectTab as showTab, setCodeHost, offsetOf, pointOf
+  render, getSelection, setSelection, markActive, showDiagnostics, selectTab as showTab, setCodeHost, offsetOf, pointOf,
+  setImageUrl
 } from './view.js'
 import { codeEdit, toSource, fromSource, sourceMarks, CODE_DIRECTIVES } from './code.js'
 import { sourceEditor, CodeEditors } from './editors.js'
@@ -529,6 +530,10 @@ const codes = new CodeEditors({
   redo: () => ACTIONS.redo()
 })
 setCodeHost((model, directive, old) => codes.host(model, directive, old))
+// The images of the page: from the server, relative to the open file
+setImageUrl(src => /^(https?:)?\/\//.test(src) || src.startsWith('data:')
+  ? src
+  : `api/asset?from=${encodeURIComponent(state.path)}&src=${encodeURIComponent(src)}`)
 
 // The focus and the caret of an editor moved to the page rendered again: the
 // browser lost its selection, it is written again
@@ -856,9 +861,18 @@ function showPeek(from, to, anchor, side) {
     peek.append(head)
   } else {
     head.append(element('span', 'git-peek-at', `line ${hunk.start}${hunk.staged ? ' · staged' : ''}`))
+    const actions = element('span', 'git-peek-actions')
+    // A change that is not staged can be thrown away, with a second click
+    if (!hunk.staged) {
+      const discard = element('button', 'text-button plain git-peek-discard', 'Discard')
+      discard.type = 'button'
+      discard.title = 'Throw this change away: the text goes back to the last commit'
+      actions.append(discard)
+    }
     const button = element('button', `text-button git-peek-do${hunk.staged ? ' plain' : ''}`, hunk.staged ? '− Unstage' : '+ Stage')
     button.type = 'button'
-    head.append(button)
+    actions.append(button)
+    head.append(actions)
     const pre = element('pre', 'changes-lines')
     for (const line of hunk.lines) {
       const kind = line[0] === '+' ? 'add' : line[0] === '-' ? 'del' : 'ctx'
@@ -933,11 +947,47 @@ canvas.addEventListener('scroll', () => hidePeek(false), { passive: true })
 source.view.scrollDOM.addEventListener('scroll', () => hidePeek(false), { passive: true })
 peek.addEventListener('mousedown', ev => ev.preventDefault())
 peek.addEventListener('click', async ev => {
-  if (!ev.target.closest('.git-peek-do') || !peekHunk) return
+  if (!peekHunk) return
+  const discard = ev.target.closest('.git-peek-discard')
+  if (discard) {
+    if (!discard.classList.contains('sure')) {
+      discard.classList.add('sure')
+      discard.textContent = 'Discard it?'
+      return
+    }
+    const { index, header } = peekHunk
+    hidePeek(false)
+    return discardChange({ path: state.path, hunk: index, header })
+  }
+  if (!ev.target.closest('.git-peek-do')) return
   const { index, header, staged } = peekHunk
   hidePeek(false)
   await stage({ path: state.path, hunk: index, header, staged })
 })
+
+// Throw a change away, in the file: the page takes the file again, and the
+// change can be had back with undo
+async function discardChange(body) {
+  await save(true)
+  const answer = await post('api/git/stage', { ...body, discard: true }).catch(() => ({ error: 'adoc-gui is not running' }))
+  if (answer.error) return setFileState(answer.error.split('\n')[0])
+  const path = state.path
+  const file = await (await api(path)).json().catch(() => undefined)
+  if (file && path === state.path && file.text !== state.source) {
+    remember()
+    setSource(file.text, diff(state.source, file.text))
+    state.mtime = file.mtime
+    state.dirty = false
+    const caret = Math.min(state.caret.focus, file.text.length)
+    state.caret = { anchor: caret, focus: caret }
+    paint()
+    renderCode(false)
+    renderStatus()
+    setFileState('Change discarded, undo brings it back')
+  }
+  loadGit()
+  if (state.tab === 'changes') loadChanges()
+}
 new ResizeObserver(() => showGitMarks()).observe(view)
 
 // Commit the open file, with a message

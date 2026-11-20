@@ -63,6 +63,18 @@ def list_tree(directory: Path, relative: str = '', depth: int = 0) -> dict:
     return node
 
 
+# The images a page shows
+IMAGES = {'.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.bmp', '.avif'}
+
+
+def conf_dir(file: Path) -> Path | None:
+    """The folder of the conf.py of a file: the source folder of the docs"""
+    for parent in file.parents:
+        if (parent / 'conf.py').is_file():
+            return parent
+    return None
+
+
 def make_handler(first: Path, root: Path, docs: Docs, repo: Git | None = None):
     def resolve(relative: str | None) -> Path | None:
         """A .rst file of the root, from its path relative to the root."""
@@ -70,6 +82,22 @@ def make_handler(first: Path, root: Path, docs: Docs, repo: Git | None = None):
             return first
         target = (root / relative).resolve()
         if root not in target.parents or target.suffix != '.rst' or not target.is_file():
+            return None
+        return target
+
+    def asset(rst: str | None, src: str | None) -> Path | None:
+        """An image of a file: src as written in it, relative to the file, or
+        to the folder of conf.py when it starts with '/'."""
+        page = resolve(rst)
+        if page is None or not isinstance(src, str) or not src.strip():
+            return None
+        src = src.strip()
+        if src.startswith('/'):
+            base = conf_dir(page) or root
+            target = (base / src.lstrip('/')).resolve()
+        else:
+            target = (page.parent / src).resolve()
+        if root not in target.parents or target.suffix.lower() not in IMAGES or not target.is_file():
             return None
         return target
 
@@ -136,6 +164,17 @@ def make_handler(first: Path, root: Path, docs: Docs, repo: Git | None = None):
                 except ValueError:
                     state['sources'] = None
                 return self.reply_json(200, state)
+            if path == '/api/asset':
+                # An image of the page: it cannot send the header of the API,
+                # the browser says where the request comes from
+                if self.headers.get('Sec-Fetch-Site') not in ('same-origin', None) and not self.allowed():
+                    return None
+                query = parse_qs(urlsplit(self.path).query)
+                target = asset(query.get('from', [None])[0], query.get('src', [None])[0])
+                if target is None:
+                    return self.reply(404, b'Not found')
+                content_type = mimetypes.guess_type(target.name)[0] or 'application/octet-stream'
+                return self.reply(200, target.read_bytes(), content_type)
             if path == '/api/git':
                 if not self.allowed():
                     return None
@@ -212,6 +251,8 @@ def make_handler(first: Path, root: Path, docs: Docs, repo: Git | None = None):
                 if repo is None or not isinstance(message, dict) or not isinstance(message.get('path'), str):
                     return self.reply(400, b'Bad request')
                 hunk = message.get('hunk')
+                if message.get('discard') is True:
+                    return self.reply_json(200, repo.discard(message['path'], hunk, message.get('header')))
                 return self.reply_json(200, repo.stage(message['path'], hunk if isinstance(hunk, int) else None,
                                                        message.get('staged') is True, message.get('header')))
             if path == '/api/grammar':

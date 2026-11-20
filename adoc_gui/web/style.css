@@ -1203,7 +1203,19 @@ body.inspect .page .add-tab { opacity: 1; }
 .git-peek.open { display: block; }
 .git-peek-head { position: sticky; top: 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 4px 4px 10px; background: var(--surface-container); }
 .git-peek-at { font: 12px/20px var(--mono); color: var(--on-surface-variant); }
-.git-peek-do { height: 28px; }
+.git-peek-do, .git-peek-discard { height: 28px; }
+.git-peek-actions { display: flex; gap: 4px; }
+.git-peek-discard { color: var(--error); }
+.git-peek-discard.sure { border-color: var(--error); }
+
+/* The image of an image or a figure, as it is built */
+.figure-image { margin: 6px 0; line-height: 0; user-select: none; }
+.figure-image img { max-width: 100%; height: auto; border-radius: var(--radius-small); }
+.figure-image[data-align='center'] { text-align: center; }
+.figure-image[data-align='right'] { text-align: right; }
+.figure-image.missing { line-height: 1.4; }
+.figure-image.missing img { display: none; }
+.figure-image.missing::after { content: attr(data-missing); font: italic 12px/18px var(--font); color: var(--error); }
 .git-bar.added { background: var(--git-added); }
 .git-bar.changed { background: var(--git-changed); }
 .git-bar.deleted { width: 0; height: 0; margin: -5px 0 0 -2px; border: 5px solid transparent; border-left-color: var(--git-deleted); border-radius: 0; }
