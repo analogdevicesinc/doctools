@@ -30,34 +30,36 @@
   --mono: 'Roboto Mono', 'Cascadia Code', 'Source Code Pro', ui-monospace, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --primary: #a8c7fa;
-    --on-primary: #062e6f;
-    --primary-container: #0842a0;
-    --on-primary-container: #d3e3fd;
-    --secondary-container: #004a77;
-    --on-secondary-container: #c2e7ff;
-    --tertiary-container: #0f5223;
-    --on-tertiary-container: #c4eed0;
-    --warning-container: #5c4300;
-    --on-warning-container: #ffdf99;
-    --error: #f2b8b5;
-    --error-container: #8c1d18;
-    --on-error-container: #f9dedc;
-    --surface: #1f1f1f;
-    --surface-dim: #131314;
-    --surface-container-low: #1b1b1b;
-    --surface-container: #1e1f20;
-    --surface-container-high: #282a2c;
-    --surface-container-highest: #333537;
-    --on-surface: #e3e3e3;
-    --on-surface-variant: #c4c7c5;
-    --outline: #8e918f;
-    --outline-variant: #444746;
-    --shadow: 0 1px 2px rgb(0 0 0 / 0.6), 0 1px 3px 1px rgb(0 0 0 / 0.3);
-  }
+:root.dark {
+  --primary: #a8c7fa;
+  --on-primary: #062e6f;
+  --primary-container: #0842a0;
+  --on-primary-container: #d3e3fd;
+  --secondary-container: #004a77;
+  --on-secondary-container: #c2e7ff;
+  --tertiary-container: #0f5223;
+  --on-tertiary-container: #c4eed0;
+  --warning-container: #5c4300;
+  --on-warning-container: #ffdf99;
+  --error: #f2b8b5;
+  --error-container: #8c1d18;
+  --on-error-container: #f9dedc;
+  --surface: #1f1f1f;
+  --surface-dim: #131314;
+  --surface-container-low: #1b1b1b;
+  --surface-container: #1e1f20;
+  --surface-container-high: #282a2c;
+  --surface-container-highest: #333537;
+  --on-surface: #e3e3e3;
+  --on-surface-variant: #c4c7c5;
+  --outline: #8e918f;
+  --outline-variant: #444746;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.6), 0 1px 3px 1px rgb(0 0 0 / 0.3);
 }
+
+/* The theme: dark with the class of the page, set as the Doctools theme does */
+:root { color-scheme: light; }
+:root.dark { color-scheme: dark; }
 
 * { box-sizing: border-box; }
 
@@ -109,6 +111,9 @@ body {
 }
 
 .icon-button svg { display: block; width: 24px; height: 24px; fill: currentColor; }
+/* The sun in the light theme, the moon in the dark one */
+#toggle-theme .moon, :root.dark #toggle-theme .sun { display: none; }
+:root.dark #toggle-theme .moon { display: block; }
 
 /* State layer */
 .icon-button::after {
@@ -662,22 +667,20 @@ td > p.block, th > p.block, td > .placeholder, th > .placeholder { margin: 0; }
   --c-builtin: #00796b;
   --c-meta: #b06000;
 }
-@media (prefers-color-scheme: dark) {
-  :root {
-    --c-markup: #8e918f;
-    --c-heading: #a8c7fa;
-    --c-directive: #e1a6f0;
-    --c-role: #80cbc4;
-    --c-literal: #f2b8b5;
-    --c-link: #a8c7fa;
-    --c-keyword: #e1a6f0;
-    --c-string: #a6d8a8;
-    --c-comment: #8e918f;
-    --c-number: #ffcc80;
-    --c-def: #a8c7fa;
-    --c-builtin: #80cbc4;
-    --c-meta: #ffcc80;
-  }
+:root.dark {
+  --c-markup: #8e918f;
+  --c-heading: #a8c7fa;
+  --c-directive: #e1a6f0;
+  --c-role: #80cbc4;
+  --c-literal: #f2b8b5;
+  --c-link: #a8c7fa;
+  --c-keyword: #e1a6f0;
+  --c-string: #a6d8a8;
+  --c-comment: #8e918f;
+  --c-number: #ffcc80;
+  --c-def: #a8c7fa;
+  --c-builtin: #80cbc4;
+  --c-meta: #ffcc80;
 }
 .t-markup { color: var(--c-markup); }
 .t-heading { color: var(--c-heading); font-weight: 600; }
@@ -787,9 +790,7 @@ body.inspect .page .soft { background: var(--surface-container-highest); }
 /* Warnings of the build, as virtual text below their block ---------------------- */
 
 :root { --warning: #9a5b00; }
-@media (prefers-color-scheme: dark) {
-  :root { --warning: #ffb95c; }
-}
+:root.dark { --warning: #ffb95c; }
 
 .diag {
   margin: -8px 0 12px;

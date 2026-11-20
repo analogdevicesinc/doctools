@@ -273,6 +273,28 @@ toggle(document.getElementById('toggle-source'), 'no-source', true)
 toggle(document.getElementById('toggle-nav'), 'no-nav', true)
 toggle(document.getElementById('toggle-inspect'), 'inspect', false)
 
+// The theme, as the Doctools theme does: the system one until another is
+// chosen; choosing the one of the system again forgets the choice
+const systemDark = matchMedia('(prefers-color-scheme: dark)')
+const systemTheme = () => systemDark.matches ? 'dark' : 'light'
+function chosenTheme() {
+  try {
+    return localStorage.getItem('theme')
+  } catch {
+    return null
+  }
+}
+const applyTheme = theme => document.documentElement.classList.toggle('dark', theme === 'dark')
+document.getElementById('toggle-theme').addEventListener('click', () => {
+  const theme = (chosenTheme() ?? systemTheme()) === 'dark' ? 'light' : 'dark'
+  try {
+    if (theme === systemTheme()) localStorage.removeItem('theme')
+    else localStorage.setItem('theme', theme)
+  } catch { }
+  applyTheme(theme)
+})
+systemDark.addEventListener('change', () => applyTheme(chosenTheme() ?? systemTheme()))
+
 // Tab moves between the cells of a table
 function stepCell(step) {
   const result = tableStep(state.model, state.caret.focus, step)

@@ -46,7 +46,8 @@ the browser.
 
 Changes are saved to the file as you type, and changes made to the file by
 other programs are loaded. The buttons of the top bar hide the files and the
-side pane.
+side pane, and switch between the light and the dark theme: as in the Doctools
+theme, the one of the system until another is chosen.
 
 ## Documentation server
 
