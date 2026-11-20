@@ -88,9 +88,26 @@
       <div class="tabs" role="tablist">
         <button class="tab" role="tab" data-tab="source" type="button" aria-selected="true">Source</button>
         <button class="tab" role="tab" data-tab="preview" type="button" aria-selected="false" hidden>Live view</button>
+        <button class="tab" role="tab" data-tab="changes" type="button" aria-selected="false" hidden>Changes</button>
         <button class="icon-button close-panel" id="close-source" type="button" title="Hide the side pane"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
       </div>
       <div id="source" role="tabpanel">
+      </div>
+      <div id="changes" role="tabpanel" hidden>
+      <form id="commit-box" class="commit-box">
+        <label for="commit-subject" id="commit-title">Commit</label>
+        <div class="commit-subject">
+          <input id="commit-subject" type="text" spellcheck="true" autocomplete="off" placeholder="Summary: what changed">
+          <span id="commit-count" title="Keep the summary short: 50 characters, at most 72"></span>
+        </div>
+        <textarea id="commit-message" rows="4" spellcheck="true" placeholder="Why, and how (optional)"></textarea>
+        <div class="commit-actions">
+          <label class="commit-signoff" title="Add a Signed-off-by line (git commit -s)"><input id="commit-signoff" type="checkbox"> Sign off</label>
+          <span id="commit-problem"></span>
+          <button class="build-button" id="commit-do" type="submit">Commit</button>
+        </div>
+      </form>
+        <div id="changes-list"></div>
       </div>
       <div id="preview" role="tabpanel" hidden>
         <iframe id="frame" title="Live view" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>

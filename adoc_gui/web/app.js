@@ -12,6 +12,7 @@ import { completionAt, matching, roleQuestion } from './lsp.js'
 import { SparseSelection } from './sparse.js'
 import { ContextMenu } from './contextmenu.js'
 import { proseOf, sourceRange } from './grammar.js'
+import { lineChanges } from './gitdiff.js'
 import { renderTree, foldersOf, ancestorsOf } from './nav.js'
 
 const SAVE_DELAY_MS = 400
@@ -51,6 +52,9 @@ const state = {
   expanded: new Set(),
   sparse: new SparseSelection(),
   tab: 'source',
+  // What git knows: { available, branch, files, head }, head: the text of
+  // the open file in the last commit
+  git: { available: false, branch: null, files: {}, head: null },
   composing: undefined
 }
 
@@ -135,6 +139,7 @@ function paint(caret) {
   codes.end()
   showDiagnostics(view, state.model, state.docs.diagnostics)
   showMistakes()
+  showGitMarks()
 }
 
 function renderView(withCaret) {
@@ -462,6 +467,12 @@ function renderBackdrop() {
     const row = Math.min(Math.max(item.line - 1, 0), lineStarts.length - 1)
     marks.push({ from: lineStarts[row], to: lineStarts[row], line: true, name: `m-${item.severity}` })
   }
+  for (const [rows, name] of gitRows()) {
+    for (const row of rows) {
+      const at = row < 0 ? 0 : row
+      if (at < lineStarts.length) marks.push({ from: lineStarts[at], to: lineStarts[at], line: true, name })
+    }
+  }
   if (text === source.view.state.doc.toString()) source.setMarks(marks)
 }
 
@@ -558,6 +569,416 @@ function focusCode(anchor, focus) {
   return true
 }
 
+// Git ---------------------------------------------------------------------------
+
+let gitTimer
+const loadGitSoon = () => {
+  clearTimeout(gitTimer)
+  gitTimer = setTimeout(loadGit, 300)
+}
+
+async function loadGit() {
+  try {
+    const path = state.path
+    const answer = await (await fetch(`api/git?path=${encodeURIComponent(path)}`, { headers: { 'X-Doctools': '1' } })).json()
+    if (path !== state.path) return
+    state.git = {
+      available: Boolean(answer.available), branch: answer.branch ?? null, files: answer.files ?? {},
+      head: answer.head ?? null, staged: Boolean(answer.staged)
+    }
+  } catch {
+    return
+  }
+  gitCache = undefined
+  await loadHunks()
+  drawTree()
+  setFileState()
+  renderBackdrop()
+  showGitMarks()
+  // Only what is staged is committed
+  document.getElementById('commit-do').disabled = !state.git.staged
+  document.getElementById('commit-title').textContent = state.git.staged ? 'Commit the staged changes' : 'Stage changes to commit them'
+  document.querySelector('.tab[data-tab=changes]').hidden = !state.git.available
+  if (state.tab === 'changes') loadChanges()
+}
+
+// The changes of the files, not staged and staged: a click on a change
+// stages it, or unstages it
+const changesPane = document.getElementById('changes')
+const changesList = document.getElementById('changes-list')
+let changesRun = 0
+
+async function loadChanges() {
+  const run = ++changesRun
+  let answer
+  try {
+    answer = await (await fetch('api/git/changes', { headers: { 'X-Doctools': '1' } })).json()
+  } catch {
+    return
+  }
+  if (run !== changesRun) return
+  renderChanges(answer)
+}
+
+function element(tag, className, text) {
+  const el = document.createElement(tag)
+  if (className) el.className = className
+  if (text !== undefined) el.textContent = text
+  return el
+}
+
+function renderChanges({ unstaged = [], staged = [], untracked = [] }) {
+  const top = changesPane.scrollTop
+  const section = (title, files, isStaged) => {
+    const count = files.reduce((n, f) => n + Math.max(f.hunks?.length ?? 1, 1), 0)
+    const box = element('section', 'changes-group')
+    const head = element('div', 'changes-head')
+    head.append(element('span', 'changes-title', `${title}${count ? ` (${count})` : ''}`))
+    if (files.length) {
+      const all = element('button', 'text-button plain', isStaged ? 'Unstage all' : 'Stage all')
+      all.type = 'button'
+      all.dataset.all = isStaged ? 'staged' : 'unstaged'
+      head.append(all)
+    }
+    box.append(head)
+    if (!files.length) box.append(element('p', 'changes-empty', isStaged ? 'Nothing staged.' : 'No change.'))
+    for (const file of files) {
+      const el = element('div', 'changes-file')
+      const name = element('div', 'changes-name')
+      const link = element('button', 'changes-path', file.path)
+      link.type = 'button'
+      link.dataset.open = file.path
+      link.title = 'Open the file'
+      name.append(link)
+      if (file.untracked) name.append(element('span', 'changes-new', 'new'))
+      const whole = element('button', 'icon-button changes-whole', isStaged ? '−' : '+')
+      whole.type = 'button'
+      whole.title = isStaged ? 'Unstage the file' : 'Stage the file'
+      Object.assign(whole.dataset, { path: file.path, staged: String(isStaged) })
+      name.append(whole)
+      el.append(name)
+      ;(file.hunks ?? []).forEach((hunk, i) => {
+        const block = element('div', 'changes-hunk')
+        Object.assign(block.dataset, { path: file.path, hunk: String(i), header: hunk.header, staged: String(isStaged) })
+        block.title = isStaged ? 'Click to unstage this change' : 'Click to stage this change'
+        const range = hunk.header.match(/^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@\s?(.*)$/)
+        block.append(element('div', 'changes-at', range ? `line ${range[1]}${range[3] ? `  ${range[3]}` : ''}` : hunk.header))
+        const pre = element('pre', 'changes-lines')
+        for (const line of hunk.lines) {
+          const kind = line[0] === '+' ? 'add' : line[0] === '-' ? 'del' : 'ctx'
+          pre.append(element('span', `changes-line ${kind}`, line.slice(1) || ' '))
+        }
+        block.append(pre)
+        el.append(block)
+      })
+      box.append(el)
+    }
+    return box
+  }
+  const notStaged = [...unstaged, ...untracked.map(path => ({ path, untracked: true, hunks: [] }))]
+  changesList.replaceChildren(section('Staged', staged, true), section('Changes', notStaged, false))
+  changesPane.scrollTop = top
+}
+
+async function stage(body) {
+  // What is typed is in the file first
+  await save(true)
+  const answer = await post('api/git/stage', body).catch(() => ({ error: 'adoc-gui is not running' }))
+  if (answer.error) setFileState(answer.error.split('\n')[0])
+  loadGit()
+  loadChanges()
+}
+
+changesList.addEventListener('click', async ev => {
+  const open = ev.target.closest('[data-open]')
+  if (open) return openFile(open.dataset.open)
+  const all = ev.target.closest('[data-all]')
+  if (all) {
+    const staged = all.dataset.all === 'staged'
+    const paths = [...changesList.querySelectorAll(`.changes-whole[data-staged="${staged}"]`)].map(el => el.dataset.path)
+    await save(true)
+    for (const path of paths) await post('api/git/stage', { path, staged }).catch(() => {})
+    loadGit()
+    return loadChanges()
+  }
+  const whole = ev.target.closest('.changes-whole')
+  if (whole) return stage({ path: whole.dataset.path, staged: whole.dataset.staged === 'true' })
+  const hunk = ev.target.closest('.changes-hunk')
+  if (hunk && !window.getSelection().toString()) {
+    hunk.classList.add('busy')
+    stage({ path: hunk.dataset.path, hunk: Number(hunk.dataset.hunk), header: hunk.dataset.header, staged: hunk.dataset.staged === 'true' })
+  }
+})
+
+// The changes of the open file as git has them, to stage them from the page:
+// [{ staged, index, header, lines, start, end }], start and end: its lines in
+// the file, from 1
+let hunks = []
+async function loadHunks() {
+  let answer
+  try {
+    answer = await (await fetch('api/git/changes', { headers: { 'X-Doctools': '1' } })).json()
+  } catch {
+    return
+  }
+  const of = (files, staged) => (files ?? []).filter(f => f.path === state.path).flatMap(f => f.hunks.map((hunk, index) => {
+    const range = hunk.header.match(/^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@/)
+    const start = range ? Number(range[1]) : 0
+    const count = range && range[2] !== undefined ? Number(range[2]) : 1
+    return { staged, index, header: hunk.header, lines: hunk.lines, start, end: start + Math.max(count, 1) - 1 }
+  }))
+  hunks = [...of(answer.unstaged, false), ...of(answer.staged, true)]
+}
+
+// The lines that changed, kept until the source or the commit changes
+let gitCache
+function gitChanges() {
+  const { head } = state.git
+  if (head === null || head === undefined) return undefined
+  if (gitCache?.source !== state.source || gitCache?.head !== head)
+    gitCache = { source: state.source, head, changes: lineChanges(head, state.source) }
+  return gitCache.changes
+}
+
+// [rows, the class of their lines in the source]
+function gitRows() {
+  const changes = gitChanges()
+  if (!changes) return []
+  return [[changes.added, 'm-git-added'], [changes.changed, 'm-git-changed'], [changes.deleted.map(row => row + 1), 'm-git-deleted']]
+}
+
+// The bars at the right of the page, beside the blocks that changed
+const gitLayer = document.createElement('div')
+gitLayer.className = 'git-marks'
+gitLayer.setAttribute('aria-hidden', 'true')
+canvas.append(gitLayer)
+
+function showGitMarks() {
+  const changes = gitChanges()
+  if (!changes || (!changes.added.length && !changes.changed.length && !changes.deleted.length)) {
+    hidePeek(false)
+    return gitLayer.replaceChildren()
+  }
+  const { lineStarts } = state.model
+  const kinds = new Map()
+  for (const row of changes.added) kinds.set(row, 'added')
+  for (const row of changes.changed) kinds.set(row, 'changed')
+  const deleted = new Set(changes.deleted.map(row => row + 1))
+
+  // The innermost blocks that hold a line, one bar by block
+  const blocks = [...view.querySelectorAll('.block')].filter(el => el.dataset.kind !== 'document' && el.getClientRects().length)
+  const spans = blocks.map(el => ({ el, s: Number(el.dataset.s), e: Number(el.dataset.e) }))
+  const rowOf = offset => {
+    let lo = 0, hi = lineStarts.length - 1
+    while (lo < hi) {
+      const mid = (lo + hi + 1) >> 1
+      if (lineStarts[mid] <= offset) lo = mid
+      else hi = mid - 1
+    }
+    return lo
+  }
+  const marks = new Map()
+  const holder = row => {
+    const at = lineStarts[Math.min(row, lineStarts.length - 1)]
+    let best
+    for (const span of spans) {
+      if (span.s <= at + 200 && span.e >= at && rowOf(span.s) <= row && rowOf(span.e) >= row)
+        if (!best || (span.e - span.s) < (best.e - best.s)) best = span
+    }
+    if (best) return best
+    // A line between blocks: the block after it
+    return spans.find(span => span.s >= at)
+  }
+  const markOf = el => {
+    if (!marks.has(el)) marks.set(el, { kinds: new Set(), rows: [] })
+    return marks.get(el)
+  }
+  for (const [row, kind] of kinds) {
+    const span = holder(row)
+    if (!span) continue
+    const mark = markOf(span.el)
+    mark.kinds.add(kind)
+    mark.rows.push(row)
+  }
+  for (const row of deleted) {
+    const span = holder(row)
+    if (!span) continue
+    const mark = markOf(span.el)
+    mark.deleted = true
+    mark.rows.push(row)
+  }
+
+  const peeking = peek.isConnected
+  const base = canvas.getBoundingClientRect()
+  // At the right of the page, inside its edge
+  const left = view.getBoundingClientRect().right - base.left + canvas.scrollLeft - 9
+  gitLayer.replaceChildren(...[...marks].map(([el, mark]) => {
+    const rect = el.getBoundingClientRect()
+    const bar = document.createElement('div')
+    const kind = mark.kinds.has('changed') || mark.kinds.size > 1 ? 'changed' : mark.kinds.has('added') ? 'added' : 'deleted'
+    bar.className = `git-bar ${kind}`
+    bar.style.left = `${left}px`
+    bar.style.top = `${rect.top - base.top + canvas.scrollTop}px`
+    bar.style.height = `${kind === 'deleted' ? 0 : rect.height}px`
+    bar.dataset.from = Math.min(...mark.rows) + 1
+    bar.dataset.to = Math.max(...mark.rows) + 1
+    return bar
+  }))
+  if (peeking) gitLayer.append(peek)
+}
+
+// On the pointer, a bar opens to the change it is part of, to stage it, or
+// unstage it
+const peek = document.createElement('div')
+peek.className = 'git-peek'
+let peekTimer
+let peekHunk
+
+function hunkOf(bar) {
+  const from = Number(bar.dataset.from)
+  const to = Number(bar.dataset.to)
+  // A removed line is between two lines: the change ends or starts there
+  return hunks.find(h => !h.staged && h.start <= to + 1 && h.end >= from - 1) ??
+    hunks.find(h => h.staged && h.start <= to + 1 && h.end >= from - 1)
+}
+
+function showPeek(bar) {
+  clearTimeout(peekTimer)
+  const hunk = hunkOf(bar)
+  peekHunk = hunk
+  peek.replaceChildren()
+  const head = element('div', 'git-peek-head')
+  if (!hunk) {
+    head.append(element('span', 'changes-at', state.dirty ? 'Not saved yet' : 'Changed since the last commit'))
+    peek.append(head)
+  } else {
+    head.append(element('span', 'git-peek-at', `line ${hunk.start}${hunk.staged ? ' · staged' : ''}`))
+    const button = element('button', `text-button git-peek-do${hunk.staged ? ' plain' : ''}`, hunk.staged ? '− Unstage' : '+ Stage')
+    button.type = 'button'
+    head.append(button)
+    const pre = element('pre', 'changes-lines')
+    for (const line of hunk.lines) {
+      const kind = line[0] === '+' ? 'add' : line[0] === '-' ? 'del' : 'ctx'
+      pre.append(element('span', `changes-line ${kind}`, line.slice(1) || ' '))
+    }
+    peek.append(head, pre)
+  }
+  peek.style.width = `${Math.min(520, view.clientWidth - 48)}px`
+  gitLayer.append(peek)
+  peek.classList.add('open')
+  // Over the page, its right edge at the bar
+  const right = parseFloat(bar.style.left) - 6
+  peek.style.left = `${Math.max(right - peek.offsetWidth, 0)}px`
+  peek.style.top = `${parseFloat(bar.style.top)}px`
+}
+
+function hidePeek(later = true) {
+  clearTimeout(peekTimer)
+  const hide = () => {
+    peek.classList.remove('open')
+    peek.remove()
+    peekHunk = undefined
+  }
+  if (later) peekTimer = setTimeout(hide, 250)
+  else hide()
+}
+
+gitLayer.addEventListener('mouseover', ev => {
+  const bar = ev.target.closest('.git-bar')
+  if (bar) showPeek(bar)
+  else if (peek.contains(ev.target)) clearTimeout(peekTimer)
+})
+gitLayer.addEventListener('mouseout', ev => {
+  if (!gitLayer.contains(ev.relatedTarget) || (!peek.contains(ev.relatedTarget) && !ev.relatedTarget?.closest?.('.git-bar')))
+    hidePeek()
+})
+peek.addEventListener('mousedown', ev => ev.preventDefault())
+peek.addEventListener('click', async ev => {
+  if (!ev.target.closest('.git-peek-do') || !peekHunk) return
+  const { index, header, staged } = peekHunk
+  hidePeek(false)
+  await stage({ path: state.path, hunk: index, header, staged })
+})
+new ResizeObserver(() => showGitMarks()).observe(view)
+
+// Commit the open file, with a message
+const commitBox = document.getElementById('commit-box')
+const commitSubject = document.getElementById('commit-subject')
+const commitMessage = document.getElementById('commit-message')
+const commitProblem = document.getElementById('commit-problem')
+const commitSignoff = document.getElementById('commit-signoff')
+const commitCount = document.getElementById('commit-count')
+try {
+  commitSignoff.checked = localStorage.getItem('doctools.signoff') !== 'false'
+} catch {
+  commitSignoff.checked = true
+}
+commitSignoff.addEventListener('change', () => {
+  try {
+    localStorage.setItem('doctools.signoff', String(commitSignoff.checked))
+  } catch { }
+})
+
+// The length of the summary: short is better, past 72 it is too long
+function countSubject() {
+  const length = [...commitSubject.value].length
+  commitCount.textContent = length ? String(length) : ''
+  commitCount.className = length > 72 ? 'long' : length > 50 ? 'warn' : ''
+}
+commitSubject.addEventListener('input', countSubject)
+// Enter in the summary goes to the body, a line pasted in it is split
+commitSubject.addEventListener('keydown', ev => {
+  if (ev.key === 'Enter' && (ev.ctrlKey || ev.metaKey)) commitBox.requestSubmit()
+  else if (ev.key === 'Enter') {
+    ev.preventDefault()
+    commitMessage.focus()
+  }
+})
+commitSubject.addEventListener('paste', ev => {
+  const text = ev.clipboardData?.getData('text/plain') ?? ''
+  if (!text.includes('\n')) return
+  ev.preventDefault()
+  const [first, ...rest] = text.replace(/\r\n?/g, '\n').split('\n')
+  commitSubject.value = first
+  commitMessage.value = rest.join('\n').replace(/^\n+/, '')
+  countSubject()
+})
+
+commitMessage.addEventListener('keydown', ev => {
+  if (ev.key === 'Enter' && (ev.ctrlKey || ev.metaKey)) commitBox.requestSubmit()
+})
+commitBox.addEventListener('submit', async ev => {
+  ev.preventDefault()
+  const subject = commitSubject.value.trim()
+  const body = commitMessage.value.replace(/\s+$/, '')
+  if (!subject) {
+    commitProblem.textContent = 'Write a summary'
+    commitSubject.focus()
+    return
+  }
+  if (!state.git.staged) {
+    commitProblem.textContent = 'Nothing is staged'
+    return
+  }
+  const message = body.trim() ? `${subject}\n\n${body}` : subject
+  commitProblem.textContent = 'Committing…'
+  // What is typed is in the file first
+  await save(true)
+  const answer = await post('api/git/commit', { message, signoff: commitSignoff.checked })
+    .catch(() => ({ error: 'adoc-gui is not running' }))
+  if (answer.error) {
+    commitProblem.textContent = answer.error.split('\n')[0]
+    return
+  }
+  commitSubject.value = ''
+  commitMessage.value = ''
+  commitProblem.textContent = ''
+  countSubject()
+  setFileState(`Committed ${answer.output}`)
+  loadGit()
+  if (state.tab === 'changes') loadChanges()
+})
+
 // Status ------------------------------------------------------------------------
 
 function renderStatus() {
@@ -588,6 +1009,14 @@ const post = (path, body) => fetch(path, {
 
 const ask = question => post('api/docs/ask', question).catch(() => ({ error: 'no answer' }))
 
+// The branch, and what happened to the open file since the last commit
+function gitText() {
+  const { available, branch, files } = state.git
+  if (!available) return ''
+  const change = files[state.path]
+  return [branch, change && change !== 'modified' ? change : change && 'changed'].filter(Boolean).join(', ')
+}
+
 function docsText() {
   const { problem, build, diagnostics } = state.docs
   if (problem) return `Docs: ${problem}`
@@ -609,7 +1038,7 @@ function setFileState(text) {
   fileStatus.classList.toggle('offline', offline)
   fileStatus.textContent = offline
     ? 'adoc-gui is not running: the changes are not saved. Start it again, this page will go on.'
-    : [state.fileState, docsText()].filter(Boolean).join('  ·  ')
+    : [state.fileState, gitText(), docsText()].filter(Boolean).join('  ·  ')
 }
 
 let wasRunning = false
@@ -1131,6 +1560,7 @@ async function save(force) {
       state.dirty = false
       setFileState('Saved')
     }
+    loadGitSoon()
   } catch (err) {
     setFileState(`Not saved: ${err.message}`)
   } finally {
@@ -1184,6 +1614,7 @@ function show(file) {
   for (const folder of ancestorsOf(file.path)) state.expanded.add(folder)
   drawTree()
   pollDocs(true)
+  loadGit()
 }
 
 // Open another file, what is not saved of this one is saved first
@@ -1200,7 +1631,9 @@ async function openFile(path) {
 
 function drawTree() {
   if (!state.files) return
-  renderTree(tree, state.files, { current: state.path, expanded: state.expanded, selection: state.sparse })
+  renderTree(tree, state.files, {
+    current: state.path, expanded: state.expanded, selection: state.sparse, changes: state.git.files
+  })
   const count = state.sparse.size
   document.getElementById('sparse-state').textContent = count
     ? `Building ${count} folder${count > 1 ? 's' : ''}`
@@ -1265,7 +1698,10 @@ async function loadTree() {
     drawTree()
   } catch { }
 }
-window.addEventListener('focus', loadTree)
+window.addEventListener('focus', () => {
+  loadTree()
+  loadGit()
+})
 
 // Live view ---------------------------------------------------------------------
 
@@ -1418,6 +1854,8 @@ function selectTab(name, remember = true) {
     tab.setAttribute('aria-selected', String(tab.dataset.tab === name))
   document.getElementById('source').hidden = name !== 'source'
   document.getElementById('preview').hidden = name !== 'preview'
+  document.getElementById('changes').hidden = name !== 'changes'
+  if (name === 'changes') loadChanges()
   try {
     if (remember) localStorage.setItem('doctools.tab', name)
   } catch { }

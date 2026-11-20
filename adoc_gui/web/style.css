@@ -226,10 +226,18 @@ body {
 main { flex: 1; display: flex; min-height: 0; margin-top: calc(-1 * var(--bar)); }
 
 .canvas {
-  flex: 0 1 var(--page);
+  position: relative;
+  /* Over the files, so what goes out of the page at its left (the labels,
+     the options, and their whole text on hover) is seen: the part at the
+     left of the page is transparent to the pointer */
+  --bleed: 640px;
+  z-index: 2;
+  flex: 0 1 calc(var(--page) + var(--bleed));
   min-width: 0;
+  margin-left: calc(-1 * var(--bleed));
   overflow: auto;
-  padding: calc(var(--bar) + 16px) 4px 48px;
+  padding: calc(var(--bar) + 16px) 4px 48px calc(4px + var(--bleed));
+  pointer-events: none;
   scrollbar-width: thin;
   mask-image: linear-gradient(to bottom, transparent calc(var(--bar) - 12px), #000 calc(var(--bar) + 16px));
 }
@@ -255,6 +263,8 @@ main { flex: 1; display: flex; min-height: 0; margin-top: calc(-1 * var(--bar));
   display: flex;
   flex-direction: column;
   width: 100%;
+  /* Not wider than its part, whatever is in it: long names of files */
+  min-width: 0;
   border-radius: var(--radius);
   background: var(--surface);
   box-shadow: var(--shadow);
@@ -433,6 +443,7 @@ body.inspect #status { display: block; }
 /* Page ------------------------------------------------------------------------ */
 
 .page {
+  pointer-events: auto;
   min-height: 100%;
   margin: 0 auto;
   padding: 72px 88px 96px;
@@ -733,8 +744,9 @@ td > p.block, th > p.block, td > .placeholder, th > .placeholder { margin: 0; }
 #source:not([hidden]) { display: flex; flex-direction: column; }
 #source .cm-editor { flex: 1; min-height: 0; background: transparent; color: var(--on-surface); }
 #source .cm-scroller { padding: 4px 0 20px; font: 13px/20px var(--mono); }
-#source .cm-content { padding: 0 20px; caret-color: var(--primary); }
-#source .cm-line { padding: 0; }
+#source .cm-content { padding: 0 20px 0 8px; caret-color: var(--primary); }
+/* The bars of git go in the space at the left of the lines */
+#source .cm-line { padding-left: 12px; }
 .cm-editor.cm-focused { outline: none; }
 .cm-editor .cm-cursor { border-left: 2px solid var(--primary); }
 .cm-editor .cm-selectionBackground { background: color-mix(in srgb, var(--primary) 18%, transparent) !important; }
@@ -1160,3 +1172,140 @@ body.inspect .page .b-directive[data-name='tab-item'] { display: block; }
 body.inspect .page .b-directive[data-name='tab-item']:not(.selected) > :not(.b-caption) { display: block; }
 body.inspect .page .b-directive[data-name='tab-set'] { display: block; overflow: visible; }
 body.inspect .page .add-tab { opacity: 1; }
+
+/* Git ---------------------------------------------------------------------------- */
+
+:root { --git-added: #2e9e6f; --git-changed: #0067b9; --git-deleted: #c81a28; }
+:root.dark { --git-added: #6fcea6; --git-changed: #92befc; --git-deleted: #ffa3ab; }
+
+/* What changed since the last commit: bars at the right of the blocks of the
+   page, and of the lines of the source */
+.git-marks { position: absolute; inset: 0 auto auto 0; width: 0; height: 0; pointer-events: none; }
+.git-bar { position: absolute; width: 3px; border-radius: 2px; pointer-events: auto; cursor: pointer; }
+/* A wider place to point at than the bar */
+.git-bar::after { content: ''; position: absolute; inset: -2px -6px; }
+.git-bar:hover { width: 5px; margin-left: -1px; }
+
+/* The change of a bar, open on the pointer: over the page, from the bar */
+.git-peek {
+  position: absolute;
+  z-index: 3;
+  display: none;
+  max-height: 320px;
+  overflow: auto;
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-raised);
+  pointer-events: auto;
+}
+.git-peek.open { display: block; }
+.git-peek-head { position: sticky; top: 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 4px 4px 10px; background: var(--surface-container); }
+.git-peek-at { font: 12px/20px var(--mono); color: var(--on-surface-variant); }
+.git-peek-do { height: 28px; }
+.git-bar.added { background: var(--git-added); }
+.git-bar.changed { background: var(--git-changed); }
+.git-bar.deleted { width: 0; height: 0; margin: -5px 0 0 -2px; border: 5px solid transparent; border-left-color: var(--git-deleted); border-radius: 0; }
+
+#source .cm-line.m-git-added, #source .cm-line.m-git-changed, #source .cm-line.m-git-deleted { background-repeat: no-repeat; }
+#source .cm-line.m-git-added { background-image: linear-gradient(to right, var(--git-added) 3px, transparent 3px); }
+#source .cm-line.m-git-changed { background-image: linear-gradient(to right, var(--git-changed) 3px, transparent 3px); }
+#source .cm-line.m-git-deleted { background-image: linear-gradient(to bottom, var(--git-deleted) 2px, transparent 2px); background-size: 12px 100%; }
+
+/* The files that changed, and the folders they are in */
+.git-mark { flex: none; margin-left: auto; font: 600 11px/16px var(--mono); color: var(--git-changed); }
+.tree-row.git-untracked .git-mark, .tree-row.git-added .git-mark { color: var(--git-added); }
+.tree-row.git-deleted .git-mark, .tree-row.git-conflict .git-mark { color: var(--git-deleted); }
+.git-dot { flex: none; width: 6px; height: 6px; margin-left: auto; border-radius: 3px; background: var(--git-changed); opacity: 0.7; }
+
+/* Commit the file */
+.commit-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 0 14px;
+  border-bottom: 1px solid var(--outline-variant);
+}
+.build-button:disabled:hover { background: transparent; }
+#commit-title { font: 600 13px/20px var(--font); color: var(--on-surface-variant); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* The summary is the title of the commit, the body is text below it */
+.commit-subject { position: relative; display: flex; }
+.commit-subject input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 40px 8px 8px;
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-small);
+  font: 600 14px/20px var(--font);
+  color: var(--on-surface);
+  background: var(--surface);
+  outline: none;
+}
+.commit-subject input:focus { border-color: var(--primary); }
+#commit-count { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font: 11px/16px var(--mono); color: var(--outline); }
+#commit-count.warn { color: var(--warning); }
+#commit-count.long { color: var(--error); font-weight: 600; }
+.commit-signoff { display: flex; align-items: center; gap: 6px; font: 13px/20px var(--font); color: var(--on-surface-variant); cursor: pointer; user-select: none; }
+.commit-signoff input { margin: 0; accent-color: var(--primary); }
+.commit-box textarea {
+  resize: vertical;
+  padding: 8px;
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-small);
+  font: 13px/20px var(--mono);
+  color: var(--on-surface);
+  background: var(--surface-container-low);
+  outline: none;
+}
+.commit-box textarea:focus { border-color: var(--primary); }
+.commit-actions { display: flex; align-items: center; gap: 8px; }
+#commit-problem { flex: 1; font-size: 12px; color: var(--error); }
+.text-button.plain { border-color: transparent; }
+
+/* The changes of the files: not staged and staged, a click on a change moves
+   it to the other side */
+#changes { flex: 1; min-height: 0; overflow: auto; padding: 0 12px 24px; }
+#changes[hidden] { display: none; }
+.changes-group + .changes-group { margin-top: 12px; }
+.changes-head { display: flex; align-items: center; justify-content: space-between; height: 36px; position: sticky; top: 0; z-index: 1; background: var(--surface); }
+.changes-title { font: 600 13px/20px var(--font); color: var(--on-surface-variant); text-transform: uppercase; letter-spacing: 0.4px; }
+.changes-empty { margin: 4px 0 8px; font-size: 13px; color: var(--outline); }
+.changes-file { margin: 4px 0 10px; }
+.changes-name { display: flex; align-items: center; gap: 6px; min-height: 28px; }
+.changes-path {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  font: 600 13px/20px var(--mono);
+  text-align: left;
+  color: var(--on-surface);
+  background: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.changes-path:hover { color: var(--primary); text-decoration: underline; }
+.changes-new { font: 600 11px/16px var(--mono); color: var(--git-added); }
+.changes-whole { width: 28px; height: 28px; padding: 0; font: 600 16px/28px var(--mono); }
+.changes-hunk {
+  margin: 4px 0;
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-small);
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.1s, opacity 0.1s;
+}
+.changes-hunk:hover { border-color: var(--primary); }
+.changes-hunk:hover .changes-at { color: var(--primary); }
+.changes-hunk.busy { opacity: 0.5; }
+.changes-at { padding: 2px 8px; font: 11px/18px var(--mono); color: var(--on-surface-variant); background: var(--surface-container); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.changes-lines { margin: 0; padding: 2px 0; font: 12px/18px var(--mono); overflow-x: auto; }
+.changes-line { display: block; padding: 0 8px 0 20px; white-space: pre; position: relative; }
+.changes-line::before { position: absolute; left: 7px; color: var(--outline); }
+.changes-line.add { background: color-mix(in srgb, var(--git-added) 14%, transparent); }
+.changes-line.add::before { content: '+'; color: var(--git-added); }
+.changes-line.del { background: color-mix(in srgb, var(--git-deleted) 14%, transparent); }
+.changes-line.del::before { content: '−'; color: var(--git-deleted); }
+.changes-line.ctx { color: var(--on-surface-variant); }

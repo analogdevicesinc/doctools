@@ -4,8 +4,10 @@
 
 Serves the page and gives it the .rst files of the documentation of the file
 to read and write. Without a file, the index.rst of the documentation in the
-current folder is opened.
+current folder is opened. Also run by `adoc serve --gui`.
 """
+
+from __future__ import annotations
 
 import argparse
 import json
@@ -19,6 +21,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
 from .docs import Docs
+from .git import Git
 
 WEB = Path(__file__).resolve().parent / 'web'
 
@@ -60,7 +63,7 @@ def list_tree(directory: Path, relative: str = '', depth: int = 0) -> dict:
     return node
 
 
-def make_handler(first: Path, root: Path, docs: Docs):
+def make_handler(first: Path, root: Path, docs: Docs, repo: Git | None = None):
     def resolve(relative: str | None) -> Path | None:
         """A .rst file of the root, from its path relative to the root."""
         if not relative:
@@ -133,6 +136,23 @@ def make_handler(first: Path, root: Path, docs: Docs):
                 except ValueError:
                     state['sources'] = None
                 return self.reply_json(200, state)
+            if path == '/api/git':
+                if not self.allowed():
+                    return None
+                if repo is None or not repo.available:
+                    return self.reply_json(200, {'available': False})
+                answer = {'available': True, **repo.status()}
+                query = parse_qs(urlsplit(self.path).query)
+                if query.get('path'):
+                    file = resolve(query['path'][0])
+                    answer['head'] = repo.head(file) if file else None
+                return self.reply_json(200, answer)
+            if path == '/api/git/changes':
+                if not self.allowed():
+                    return None
+                if repo is None or not repo.available:
+                    return self.reply_json(200, {'unstaged': [], 'staged': [], 'untracked': []})
+                return self.reply_json(200, repo.changes())
             if path == '/api/tree':
                 return self.allowed() and self.reply_json(200, {'root': str(root), 'tree': list_tree(root)})
 
@@ -163,7 +183,8 @@ def make_handler(first: Path, root: Path, docs: Docs):
 
         def do_POST(self):
             path = urlsplit(self.path).path
-            if path not in ('/api/docs/start', '/api/docs/stop', '/api/docs/ask', '/api/docs/sparse', '/api/grammar'):
+            if path not in ('/api/docs/start', '/api/docs/stop', '/api/docs/ask', '/api/docs/sparse', '/api/grammar',
+                            '/api/git/commit', '/api/git/stage'):
                 return self.reply(404, b'Not found')
             if not self.allowed():
                 return
@@ -183,6 +204,16 @@ def make_handler(first: Path, root: Path, docs: Docs):
                 if not isinstance(paths, list):
                     return self.reply(400, b'Bad request')
                 return self.reply_json(200, docs.set_sparse(paths))
+            if path == '/api/git/commit':
+                if repo is None or not isinstance(message, dict):
+                    return self.reply(400, b'Bad request')
+                return self.reply_json(200, repo.commit(message.get('message'), signoff=message.get('signoff') is True))
+            if path == '/api/git/stage':
+                if repo is None or not isinstance(message, dict) or not isinstance(message.get('path'), str):
+                    return self.reply(400, b'Bad request')
+                hunk = message.get('hunk')
+                return self.reply_json(200, repo.stage(message['path'], hunk if isinstance(hunk, int) else None,
+                                                       message.get('staged') is True, message.get('header')))
             if path == '/api/grammar':
                 if not isinstance(message, dict):
                     return self.reply(400, b'Bad request')
@@ -195,43 +226,60 @@ def make_handler(first: Path, root: Path, docs: Docs):
     return Handler
 
 
-def find_index() -> Path:
+def find_index(directory: Path = Path('.')) -> Path | None:
     for candidate in INDEX_CANDIDATES:
-        if Path(candidate).is_file():
-            return Path(candidate)
-    sys.exit('No file given and no index.rst found, run: adoc-gui path/to/file.rst')
+        if (directory / candidate).is_file():
+            return directory / candidate
+    return None
 
 
-def main():
-    parser = argparse.ArgumentParser(
-        prog='adoc-gui', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('file', type=Path, nargs='?', help='the .rst file to edit')
-    parser.add_argument('--port', type=int, default=8300)
-    parser.add_argument('--no-open', action='store_true', help='do not open the browser')
-    parser.add_argument('--serve', action='store_true', help='start the documentation server')
-    args = parser.parse_args()
-
-    file = (args.file or find_index()).resolve()
+def run(file: Path | None = None, port: int = 8300, open_browser: bool = True, serve: bool = False,
+        directory: Path = Path('.'), docs_port: int = 8080, sparse: list | None = None) -> int:
+    """Edit a file in the browser, until Ctrl+C. file: else the index.rst of
+    the directory. serve: start the documentation server, on docs_port (or
+    the next free port), building only the sparse folders when given."""
+    if file is None:
+        file = find_index(directory)
+        if file is None:
+            print(f'No index.rst found in {directory.resolve()}, give the file to edit', file=sys.stderr)
+            return 1
+    file = file.resolve()
     if not file.is_file():
-        sys.exit(f'{file} is not a file')
+        print(f'{file} is not a file', file=sys.stderr)
+        return 1
     if not (WEB / 'vendor' / 'tree-sitter-rst.wasm').is_file():
-        sys.exit(f"The parser is missing in {WEB / 'vendor'}, run 'make vendor' in the source of adoc-gui")
+        print(f"The parser is missing in {WEB / 'vendor'}, run 'make vendor' in the source of adoc-gui",
+              file=sys.stderr)
+        return 1
 
-    docs = Docs(file)
+    docs = Docs(file, port=docs_port)
+    if sparse:
+        docs.sparse = sorted({str(path).strip('/') for path in sparse if str(path).strip('/')})
     # The files that can be opened: the ones of the documentation, or of the folder
     root = docs.workspace or file.parent
-    server = ThreadingHTTPServer(('127.0.0.1', args.port), make_handler(file, root, docs))
+    # The port, else the next free one: another editor can be running
+    server = None
+    for candidate in range(port, port + 20):
+        try:
+            server = ThreadingHTTPServer(('127.0.0.1', candidate), make_handler(file, root, docs, Git(root)))
+            break
+        except OSError as err:
+            problem = err.strerror
+    if server is None:
+        print(f'Cannot listen on ports {port} to {port + 19}: {problem}', file=sys.stderr)
+        return 1
     url = f'http://127.0.0.1:{server.server_address[1]}/'
     print(f'Editing {file}\n{url}', flush=True)
     if docs.problem:
         print(f'Documentation server not available: {docs.problem}', flush=True)
-    elif args.serve:
+    elif serve:
         docs.start()
-    if not args.no_open:
+    if open_browser:
         webbrowser.open(url)
     # Stopped from the terminal, or by a signal: the same way
     def interrupt(signum, frame):
         raise KeyboardInterrupt
+    signal.signal(signal.SIGINT, signal.default_int_handler)
     signal.signal(signal.SIGTERM, interrupt)
     if hasattr(signal, 'SIGHUP'):
         signal.signal(signal.SIGHUP, interrupt)
@@ -248,6 +296,20 @@ def main():
     except KeyboardInterrupt:
         docs.kill()
     print('Stopped.', flush=True)
+    return 0
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        prog='adoc-gui', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument('file', type=Path, nargs='?', help='the .rst file to edit')
+    parser.add_argument('--port', type=int, default=8300)
+    parser.add_argument('--no-open', action='store_true', help='do not open the browser')
+    parser.add_argument('--serve', action='store_true', help='start the documentation server')
+    args = parser.parse_args()
+    if args.file is None and find_index() is None:
+        sys.exit('No file given and no index.rst found, run: adoc-gui path/to/file.rst')
+    sys.exit(run(args.file, port=args.port, open_browser=not args.no_open, serve=args.serve))
 
 
 if __name__ == '__main__':

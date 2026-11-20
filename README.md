@@ -12,6 +12,10 @@ pip install -e .   # in the environment of adi-doctools
 adoc-gui doc.rst   # without a file: the index.rst of the current folder
 ```
 
+`adoc serve --gui` does the same from Doctools, with the documentation server
+started: `-d`, `--port` and `--sparse` are the ones of the server, the editor
+takes port 8300 or the next free one.
+
 It follows Harmonic, the design system of ADI, as the Doctools theme does: its
 colours, and its fonts (Inter, Barlow, JetBrains Mono) when they are installed
 or fetched for the theme (`ci/fetch-fonts.sh`).
@@ -65,6 +69,28 @@ chosen.
 `Ctrl+C` in the terminal stops `adoc-gui`, with the documentation server and
 LanguageTool. The page says so, and goes on, with what was typed meanwhile,
 when `adoc-gui` is started again.
+
+## Git
+
+When the documentation is in a git repository, `adoc-gui` runs `git` to show
+what changed since the last commit, as an editor gutter does:
+
+- The branch, and whether the open file changed, after its state at the top.
+- A letter beside the files that changed (`M`, `U` for a new file, ...), and a
+  dot beside the folders that hold them.
+- Bars at the right of the blocks of the page, and at the left of the lines
+  of the source: green for added, blue for changed; a red mark where lines
+  were removed. The pointer on a bar of the page opens its change, with
+  *+ Stage*, or *− Unstage* when it is staged.
+- *Changes*, a tab of the side pane: the changes of the files, not staged
+  and staged, as their lines. A click on a change stages it, or unstages it
+  when it is staged; `+` and `−` stage and unstage a whole file, a click
+  on its name opens it.
+- *Commit*, at the top of the *Changes* tab: it commits what is staged, and
+  only that. The summary is the first line of the message, with
+  its length (short is better, 50; at most 72), `Enter` goes to the body
+  below it, `Ctrl+Enter` commits. *Sign off* adds the `Signed-off-by` line
+  (`git commit -s`), on by default; the browser keeps the choice.
 
 ## Documentation server
 
@@ -125,6 +151,9 @@ a tree that is updated incrementally can differ from a fresh one.
 - `web/lsp.js` finds what to complete at the caret.
 - `web/nav.js` shows the files and `web/sparse.js` holds the selection of the
   sparse build.
+- `git.py` runs `git`: the branch, the state of the files, the text of the
+  open file in the last commit, the changes and their staging (`git apply
+  --cached` of one change), and the commit.
 - `__main__.py` serves the page and reads and writes the `.rst` files of the
   documentation, on `127.0.0.1` only; `docs.py` runs the backend of Doctools, the same process
   the editor extensions use.

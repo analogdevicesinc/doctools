@@ -20,8 +20,13 @@ function span(className, text = '') {
 
 // tree: { name, path, dirs, files } of the server
 // current: the path of the open file, expanded: the Set of the open folders,
-// selection: the SparseSelection
-export function renderTree(container, tree, { current, expanded, selection }) {
+// selection: the SparseSelection, changes: { path: state } of git
+export function renderTree(container, tree, { current, expanded, selection, changes = {} }) {
+  // The folders with a change in them
+  const changed = new Set()
+  for (const path of Object.keys(changes))
+    for (const folder of ancestorsOf(path)) changed.add(folder)
+
   const rows = []
 
   const walk = (node, depth) => {
@@ -34,6 +39,7 @@ export function renderTree(container, tree, { current, expanded, selection }) {
       check.setAttribute('aria-checked', CHECKS[selection.stateOf(dir.path)])
       check.title = 'Build only the selected folders'
       el.append(span('twisty'), check, span('name', dir.name))
+      if (changed.has(dir.path)) el.append(span('git-dot'))
       rows.push(el)
       if (open) walk(dir, depth + 1)
     }
@@ -41,6 +47,13 @@ export function renderTree(container, tree, { current, expanded, selection }) {
       const el = row('file', file.path, depth)
       if (file.path === current) el.classList.add('current')
       el.append(span('name', file.name))
+      const change = changes[file.path]
+      if (change) {
+        el.classList.add(`git-${change}`)
+        const mark = span('git-mark', { untracked: 'U', added: 'A', modified: 'M', deleted: 'D', renamed: 'R', conflict: '!' }[change] ?? 'M')
+        mark.title = change
+        el.append(mark)
+      }
       rows.push(el)
     }
   }
