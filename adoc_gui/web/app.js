@@ -3,7 +3,8 @@ import { buildModel, leafAt } from './model.js'
 import {
   applyEdit, insertText, deleteBackward, deleteForward, insertParagraph, toggleInline, tableStep
 } from './ops.js'
-import { render, getSelection, setSelection, markActive } from './view.js'
+import { render, getSelection, setSelection, markActive, showDiagnostics } from './view.js'
+import { completionAt, matching, roleQuestion } from './lsp.js'
 
 const SAVE_DELAY_MS = 400
 const POLL_MS = 1500
@@ -16,6 +17,9 @@ const status = document.getElementById('status')
 const title = document.getElementById('title')
 const fileStatus = document.getElementById('file')
 const toolbar = document.querySelector('.toolbar')
+const docsButton = document.getElementById('toggle-docs')
+const menu = document.getElementById('menu')
+const tooltip = document.getElementById('tooltip')
 
 const state = {
   parser: undefined,
@@ -29,6 +33,8 @@ const state = {
   mtime: undefined,
   dirty: false,
   saving: false,
+  fileState: '',
+  docs: { build: 'off', problem: null, url: null, revision: -1, diagnostics: [] },
   composing: undefined
 }
 
@@ -91,8 +97,14 @@ function restore(from, to) {
 
 // View ------------------------------------------------------------------------
 
+// Render the page, with the warnings of the build
+function paint(caret) {
+  render(view, state.model, caret)
+  showDiagnostics(view, state.model, state.docs.diagnostics)
+}
+
 function renderView(withCaret) {
-  render(view, state.model, withCaret ? state.caret.focus : undefined)
+  paint(withCaret ? state.caret.focus : undefined)
   if (withCaret) {
     view.focus()
     setSelection(view, state.caret.anchor, state.caret.focus)
@@ -134,6 +146,8 @@ view.addEventListener('beforeinput', ev => {
   if (!handler) return
   const { a, b } = selection()
   commit(handler(state.model, a, b, ev))
+  if (/^(insertText|insertReplacementText|deleteContent)/.test(ev.inputType)) suggest()
+  else closeMenu()
 })
 
 // Input methods edit the DOM themselves: take the result, then render again
@@ -218,6 +232,7 @@ function stepCell(step) {
 }
 
 view.addEventListener('keydown', ev => {
+  if (menuKey(ev)) return
   if (ev.key === 'Tab' && !ev.ctrlKey && !ev.metaKey && !ev.altKey) {
     selection()
     if (stepCell(ev.shiftKey ? -1 : 1)) ev.preventDefault()
@@ -251,6 +266,7 @@ document.addEventListener('selectionchange', () => {
   const current = getSelection(view)
   if (!current) return
   state.caret = { anchor: current.anchor, focus: current.focus }
+  if (completion && (current.anchor !== current.focus || current.focus !== completion.caret)) closeMenu()
   markActive(view, current.focus)
   renderCode(true)
   renderStatus()
@@ -267,6 +283,12 @@ function renderBackdrop() {
   const marks = []
   if (active) marks.push({ s: Number(active.dataset.s), e: Number(active.dataset.e), name: 'block' })
   if (lastEdit?.text) marks.push({ s: lastEdit.start, e: lastEdit.start + lastEdit.text.length, name: 'edit' })
+  const { lineStarts } = state.model
+  for (const item of state.docs.diagnostics) {
+    const row = Math.min(Math.max(item.line - 1, 0), lineStarts.length - 1)
+    const e = row + 1 < lineStarts.length ? lineStarts[row + 1] - 1 : source.length
+    if (e > lineStarts[row]) marks.push({ s: lineStarts[row], e, name: item.severity })
+  }
 
   const cuts = [...new Set([0, source.length, ...marks.flatMap(m => [m.s, m.e])])]
     .filter(i => i >= 0 && i <= source.length).sort((x, y) => x - y)
@@ -302,7 +324,7 @@ code.addEventListener('input', () => {
   remember()
   setSource(code.value, edit)
   state.caret = { anchor: code.selectionStart, focus: code.selectionStart }
-  render(view, state.model)
+  paint()
   markActive(view, code.selectionStart, true)
   renderBackdrop()
   renderStatus()
@@ -342,6 +364,190 @@ function renderStatus() {
   ].filter(Boolean).join('   |   ')
 }
 
+// Documentation server: build, warnings, completion and hover -------------------
+
+const PLAY = 'M8 5v14l11-7z'
+const STOP = 'M6 6h12v12H6z'
+
+const post = (path, body) => fetch(path, {
+  method: 'POST', headers: { 'X-Doctools': '1' }, body: body === undefined ? '' : JSON.stringify(body)
+}).then(response => response.json())
+
+const ask = question => post('api/docs/ask', question).catch(() => ({ error: 'no answer' }))
+
+function docsText() {
+  const { problem, build, diagnostics } = state.docs
+  if (problem) return `Docs: ${problem}`
+  if (build === 'building') return 'Docs: building…'
+  if (build !== 'ready') return ''
+  const errors = diagnostics.filter(d => d.severity === 'error').length
+  const warnings = diagnostics.length - errors
+  const counts = [errors && `${errors} error${errors > 1 ? 's' : ''}`, warnings && `${warnings} warning${warnings > 1 ? 's' : ''}`]
+    .filter(Boolean).join(', ')
+  return `Docs: up to date${counts ? `, ${counts}` : ''}`
+}
+
+function setFileState(text) {
+  if (text !== undefined) state.fileState = text
+  fileStatus.textContent = [state.fileState, docsText()].filter(Boolean).join('  ·  ')
+}
+
+function renderDocs() {
+  const { problem, build } = state.docs
+  const running = build !== 'off'
+  docsButton.disabled = Boolean(problem)
+  docsButton.setAttribute('aria-pressed', String(running))
+  docsButton.title = problem ?? (running ? 'Stop the documentation server' : 'Build the documentation')
+  docsButton.querySelector('path').setAttribute('d', running ? STOP : PLAY)
+  setFileState()
+}
+
+docsButton.addEventListener('click', async () => {
+  const running = state.docs.build !== 'off'
+  if (!running) {
+    state.docs.build = 'building'
+    renderDocs()
+  }
+  await post(running ? 'api/docs/stop' : 'api/docs/start').catch(() => {})
+  pollDocs(true)
+})
+
+let docsTimer
+
+async function pollDocs(once) {
+  try {
+    const docs = await (await fetch('api/docs', { headers: { 'X-Doctools': '1' } })).json()
+    if (docs.revision !== state.docs.revision || docs.build !== state.docs.build) {
+      state.docs = docs
+      answers.clear()
+      showDiagnostics(view, state.model, docs.diagnostics)
+      renderBackdrop()
+      renderDocs()
+    }
+  } catch { }
+  if (once) return
+  clearTimeout(docsTimer)
+  docsTimer = setTimeout(pollDocs, 1000)
+}
+
+// Completion: a menu at the caret, while a role or a directive is typed
+let completion
+const answers = new Map()
+
+function closeMenu() {
+  completion = undefined
+  menu.hidden = true
+}
+
+function renderMenu() {
+  menu.replaceChildren(...completion.items.map((item, i) => {
+    const el = document.createElement('div')
+    el.className = 'menu-item'
+    el.setAttribute('role', 'option')
+    el.setAttribute('aria-selected', String(i === completion.index))
+    el.dataset.index = i
+    const label = document.createElement('span')
+    label.textContent = item.label
+    const detail = document.createElement('span')
+    detail.className = 'detail'
+    detail.textContent = item.detail
+    el.append(label, detail)
+    return el
+  }))
+  menu.hidden = false
+
+  const selection = window.getSelection()
+  const range = selection.rangeCount ? selection.getRangeAt(0) : undefined
+  const rect = range?.getClientRects()[0] ?? selection.anchorNode?.parentElement?.getBoundingClientRect()
+  if (rect) {
+    const below = rect.bottom + 4 + menu.offsetHeight <= window.innerHeight
+    menu.style.top = `${below ? rect.bottom + 4 : Math.max(rect.top - 4 - menu.offsetHeight, 0)}px`
+    menu.style.left = `${Math.max(Math.min(rect.left, window.innerWidth - menu.offsetWidth - 8), 0)}px`
+  }
+  menu.querySelector('[aria-selected=true]')?.scrollIntoView({ block: 'nearest' })
+}
+
+async function suggest() {
+  const { anchor, focus } = state.caret
+  if (anchor !== focus || state.docs.build === 'off') return closeMenu()
+  const { source } = state
+  const lineStart = source.lastIndexOf('\n', focus - 1) + 1
+  const lineEnd = source.indexOf('\n', focus)
+  const context = completionAt(source.slice(lineStart, focus), source.slice(focus, lineEnd === -1 ? source.length : lineEnd))
+  if (!context) return closeMenu()
+
+  const key = JSON.stringify(context.request)
+  if (!answers.has(key)) answers.set(key, ask(context.request))
+  const answer = await answers.get(key)
+  if (state.caret.focus !== focus || state.source !== source) return
+  if (!Array.isArray(answer.list)) {
+    answers.delete(key)
+    return closeMenu()
+  }
+  const items = matching(answer.list, context)
+  if (!items.length) return closeMenu()
+  completion = { items, index: 0, caret: focus, start: focus - context.partial.length, end: focus + context.skip }
+  renderMenu()
+}
+
+function accept(index = completion.index) {
+  const item = completion.items[index]
+  const { start, end } = completion
+  closeMenu()
+  commit({ start, end, text: item.text, caret: start + item.text.length })
+  suggest()
+}
+
+// The keys of the menu, true when the key was for it
+function menuKey(ev) {
+  if (!completion || ev.ctrlKey || ev.metaKey || ev.altKey) return false
+  const count = completion.items.length
+  if (ev.key === 'ArrowDown') completion.index = (completion.index + 1) % count
+  else if (ev.key === 'ArrowUp') completion.index = (completion.index + count - 1) % count
+  else if (ev.key === 'Enter' || ev.key === 'Tab') accept()
+  else if (ev.key === 'Escape') closeMenu()
+  else return false
+  ev.preventDefault()
+  if (completion) renderMenu()
+  return true
+}
+
+menu.addEventListener('mousedown', ev => {
+  ev.preventDefault()
+  const item = ev.target.closest('.menu-item')
+  if (item && completion) accept(Number(item.dataset.index))
+})
+view.addEventListener('blur', closeMenu)
+
+// Hover: what a role points to
+let hoverTimer
+
+view.addEventListener('mouseover', ev => {
+  const el = ev.target.closest?.('.k-role')
+  clearTimeout(hoverTimer)
+  if (!el) tooltip.hidden = true
+  if (!el || state.docs.build === 'off') return
+  hoverTimer = setTimeout(async () => {
+    const leaf = state.model.leaves.find(l => l.kind === 'role' && l.s === Number(el.dataset.s))
+    const question = leaf && roleQuestion(state.source.slice(leaf.os, leaf.oe))
+    if (!question) return
+    const answer = await ask(question)
+    if (!el.isConnected || !el.matches(':hover')) return
+    tooltip.textContent = answer.error ?? [answer.title, answer.target].filter(Boolean).join('  →  ')
+    tooltip.classList.toggle('error', Boolean(answer.error))
+    tooltip.hidden = false
+    const rect = el.getBoundingClientRect()
+    tooltip.style.top = `${rect.bottom + 6}px`
+    tooltip.style.left = `${Math.max(Math.min(rect.left, window.innerWidth - tooltip.offsetWidth - 8), 0)}px`
+  }, 350)
+})
+view.addEventListener('mouseout', ev => {
+  if (ev.target.closest?.('.k-role')) {
+    clearTimeout(hoverTimer)
+    tooltip.hidden = true
+  }
+})
+
 // File --------------------------------------------------------------------------
 
 const api = (options = {}) => fetch('api/file', { ...options, headers: { 'X-Doctools': '1', ...options.headers } })
@@ -350,7 +556,7 @@ let saveTimer
 
 function changed() {
   state.dirty = true
-  fileStatus.textContent = 'Saving…'
+  setFileState('Saving…')
   clearTimeout(saveTimer)
   saveTimer = setTimeout(save, SAVE_DELAY_MS)
 }
@@ -365,10 +571,10 @@ async function save() {
     state.mtime = (await response.json()).mtime
     if (state.source === text) {
       state.dirty = false
-      fileStatus.textContent = 'Saved'
+      setFileState('Saved')
     }
   } catch (err) {
-    fileStatus.textContent = `Not saved: ${err.message}`
+    setFileState(`Not saved: ${err.message}`)
   } finally {
     state.saving = false
   }
@@ -382,10 +588,10 @@ async function poll() {
       if (file.mtime !== state.mtime && !state.dirty && file.text !== state.source) {
         remember()
         setSource(file.text, diff(state.source, file.text))
-        render(view, state.model)
+        paint()
         renderCode(false)
         renderStatus()
-        fileStatus.textContent = 'Reloaded from the file'
+        setFileState('Reloaded from the file')
       }
       state.mtime = file.mtime
     }
@@ -406,10 +612,11 @@ async function main() {
   document.title = `${file.name} - Doctools`
   title.textContent = file.name
   title.title = file.path
-  fileStatus.textContent = 'Saved'
+  setFileState('Saved')
   renderView(false)
   renderCode(false)
   setTimeout(poll, POLL_MS)
+  pollDocs()
 
   // For the tests and the console
   window.doctools = { state, view, code }

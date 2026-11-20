@@ -1,2 +1,3 @@
-web/vendor/
+adoc_gui/web/vendor/
 __pycache__/
+*.egg-info/

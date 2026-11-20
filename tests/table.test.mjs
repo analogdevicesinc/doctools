@@ -1,8 +1,8 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { modelOf, outline } from './helper.mjs'
-import { readTable, writeTable } from '../web/table.js'
-import { insertText, deleteBackward, deleteForward, insertParagraph, toggleInline, tableStep, applyEdit } from '../web/ops.js'
+import { readTable, writeTable } from '../adoc_gui/web/table.js'
+import { insertText, deleteBackward, deleteForward, insertParagraph, toggleInline, tableStep, applyEdit } from '../adoc_gui/web/ops.js'
 
 const GRID = [
   '+-----+-------+',

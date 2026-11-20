@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { modelOf, outline } from './helper.mjs'
-import { leafAt, blockAt } from '../web/model.js'
+import { leafAt, blockAt } from '../adoc_gui/web/model.js'
 
 const texts = model => model.leaves.map(l => `${l.kind}:${model.source.slice(l.s, l.e)}`)
 
@@ -43,7 +43,7 @@ test('roles and links show their title, or their target', () => {
   const source = ':doc:`page` `text`:sup: `plain` name_ `two words`_ `anon <http://x>`__ http://y.z |sub|\n'
   const model = assertCovered(source)
   assert.deepEqual(texts(model), [
-    'role:page', 'text: ', 'role:text', 'text: ', 'role:plain', 'text: ', 'link:name', 'text: ',
+    'text:', 'role:page', 'text: ', 'role:text', 'text: ', 'role:plain', 'text: ', 'link:name', 'text: ',
     'link:two words', 'text: ', 'link:anon', 'text: ', 'link:http://y.z', 'text: ', 'markup:|sub|'
   ])
   assert.deepEqual(model.leaves.filter(l => l.kind === 'role').map(l => l.role), ['doc', 'sup', ''])

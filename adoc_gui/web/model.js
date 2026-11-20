@@ -140,6 +140,13 @@ export function buildModel(parser, tree, source) {
     }
     plain(owner, out, at, end)
     owner.e = Math.max(owner.e, end)
+
+    // Hidden markup at the start or the end: an empty text gives the caret
+    // a place outside of it
+    const first = out[0]
+    if (first && first.os < first.s) out.unshift(leaf(owner, 'text', from, from))
+    const last = out[out.length - 1]
+    if (last && last.kind !== 'soft' && last.oe > last.e && last.oe === end) out.push(leaf(owner, 'text', end, end))
     return out
   }
 

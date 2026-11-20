@@ -1,0 +1,25 @@
+[build-system]
+requires = ["flit_core"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "adi-doctools-gui"
+dynamic = ["version", "description"]
+readme = "README.md"
+license = {text = "BSD-3-Clause"}
+authors = [
+    {name = "Jorge Marques", email = "jorge.marques@analog.com"},
+]
+requires-python = ">=3.9"
+dependencies = [
+    "adi-doctools>=0.5.3",
+]
+
+[project.urls]
+Homepage = "https://github.com/analogdevicesinc/doctools"
+
+[project.scripts]
+adoc-gui = "adoc_gui.__main__:main"
+
+[tool.flit.module]
+name = "adoc_gui"

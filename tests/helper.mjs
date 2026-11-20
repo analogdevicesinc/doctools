@@ -1,9 +1,9 @@
 import { fileURLToPath } from 'node:url'
-import { Parser, Language } from '../web/vendor/web-tree-sitter.js'
-import { buildModel } from '../web/model.js'
-import { applyEdit } from '../web/ops.js'
+import { Parser, Language } from '../adoc_gui/web/vendor/web-tree-sitter.js'
+import { buildModel } from '../adoc_gui/web/model.js'
+import { applyEdit } from '../adoc_gui/web/ops.js'
 
-const vendor = name => fileURLToPath(new URL(`../web/vendor/${name}`, import.meta.url))
+const vendor = name => fileURLToPath(new URL(`../adoc_gui/web/vendor/${name}`, import.meta.url))
 
 await Parser.init()
 const language = await Language.load(vendor('tree-sitter-rst.wasm'))

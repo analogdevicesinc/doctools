@@ -554,3 +554,84 @@ body.inspect .page .soft { background: var(--surface-container-highest); }
 .b-document > h2.has-sides > .sides { min-height: 29px; }
 .b-document > h3.has-sides > .sides { min-height: 23px; }
 .b-document > p.has-sides > .sides { min-height: 24px; }
+
+/* Warnings of the build, as virtual text below their block ---------------------- */
+
+:root { --warning: #9a5b00; }
+@media (prefers-color-scheme: dark) {
+  :root { --warning: #ffb95c; }
+}
+
+.diag {
+  margin: -8px 0 12px;
+  font: 12px/18px var(--mono);
+  color: var(--warning);
+  white-space: pre-wrap;
+  user-select: none;
+}
+.diag::before { content: '▲ '; font-size: 9px; }
+.diag.error { color: var(--error); }
+.diag.error::before { content: '● '; }
+li > .diag { margin: 0 0 4px; }
+
+.has-warning > .leaf, .has-warning > .block > .leaf {
+  text-decoration: underline wavy var(--warning);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+.has-error > .leaf, .has-error > .block > .leaf {
+  text-decoration: underline wavy var(--error);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+#backdrop mark.warning { box-shadow: inset 0 -2px var(--warning); }
+#backdrop mark.error { box-shadow: inset 0 -2px var(--error); }
+
+/* Menu and tooltip -------------------------------------------------------------- */
+
+.menu {
+  position: fixed;
+  z-index: 10;
+  min-width: 180px;
+  max-width: 420px;
+  max-height: 248px;
+  padding: 4px 0;
+  border-radius: 8px;
+  overflow-y: auto;
+  font: 13px/20px var(--mono);
+  color: var(--on-surface);
+  background: var(--surface-container);
+  box-shadow: 0 2px 6px 2px rgb(0 0 0 / 0.15), 0 1px 2px rgb(0 0 0 / 0.3);
+}
+.menu[hidden], .tooltip[hidden] { display: none; }
+
+.menu-item {
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  padding: 4px 12px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.menu-item:hover { background: var(--surface-container-high); }
+.menu-item[aria-selected='true'] { color: var(--on-secondary-container); background: var(--secondary-container); }
+.menu-item .detail {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: var(--font);
+  color: var(--on-surface-variant);
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 10;
+  max-width: 480px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font: 12px/16px var(--font);
+  color: #f2f2f2;
+  background: #303030;
+  pointer-events: none;
+}
+.tooltip.error { background: var(--error); color: var(--on-primary); }

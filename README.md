@@ -7,8 +7,9 @@
 Edit reStructuredText in the browser, as the document and not as markup.
 
 ```
-make vendor              # once: fetch the parser
-python3 serve.py doc.rst # or: make run FILE=doc.rst
+make vendor        # once: fetch the parser
+pip install -e .   # in the environment of adi-doctools
+adoc-gui doc.rst   # without a file: the index.rst of the current folder
 ```
 
 The page has two panes, both editable and kept in sync:
@@ -22,11 +23,31 @@ The page has two panes, both editable and kept in sync:
 Changes are saved to the file as you type, and changes made to the file by
 other programs are loaded.
 
-The buttons at the top right hide the source, and show the structure: every
+## Documentation server
+
+The play button at the top right builds the documentation with the server of
+Doctools (`adoc serve`), in the background, and builds it again when the file
+changes. `adoc-gui --serve` starts it right away. While it runs:
+
+- The warnings and the errors of the build are shown below the block of their
+  line, and on that line in the source.
+- A menu completes the roles, the directives and their targets while they are
+  typed: `:`, `` :ref:` ``, `:external+`, `.. `. The arrows select, `Enter` or
+  `Tab` accept, `Escape` closes.
+- The pointer over a role shows what it points to.
+
+It needs a `conf.py` at a common location (`docs/conf.py`, ...) in the
+repository of the file, or in a folder above the file.
+
+## Structure
+
+The other buttons at the top right hide the source, and show the structure: every
 block is outlined with the tree-sitter node it comes from, and a status line
 shows the offset, the leaf and the node of the caret, and the last edit.
 
 ## How it works
+
+The code is in `adoc_gui/`.
 
 [tree-sitter](https://tree-sitter.github.io) with the
 [tree-sitter-rst](https://github.com/stsewd/tree-sitter-rst) grammar parses
@@ -45,8 +66,10 @@ a tree that is updated incrementally can differ from a fresh one.
 - `web/app.js` wires them: the browser never edits the page itself, every
   input becomes a source edit, then the page is rendered again from the new
   tree.
-- `serve.py` serves the page and reads and writes the one file, on
-  `127.0.0.1` only.
+- `web/lsp.js` finds what to complete at the caret.
+- `__main__.py` serves the page and reads and writes the one file, on
+  `127.0.0.1` only; `docs.py` runs the backend of Doctools, the same process
+  the editor extensions use.
 
 ## What is rendered
 

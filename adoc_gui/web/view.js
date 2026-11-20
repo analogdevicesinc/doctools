@@ -40,6 +40,11 @@ function renderLeaf(model, leaf) {
     if (leaf.bare) el.classList.add('bare')
     if (leaf.role) el.dataset.role = leaf.role
     el.textContent = model.source.slice(leaf.s, leaf.e)
+    // An empty text still has to hold the caret: a zero-width space
+    if (leaf.s === leaf.e) {
+      el.textContent = '\u200b'
+      el.dataset.empty = ''
+    }
   }
   return el
 }
@@ -129,6 +134,8 @@ export function offsetOf(root, node, offset) {
     const { s, e } = span(holder)
     if (holder.classList.contains('soft'))
       return offset === 0 ? s : e
+    if ('empty' in holder.dataset)
+      return s
     if (node.nodeType === Node.TEXT_NODE)
       return Math.min(s + offset, e)
     return offset === 0 ? s : e
@@ -172,6 +179,8 @@ export function pointOf(root, offset) {
   const text = found.firstChild
   if (!text || text.nodeType !== Node.TEXT_NODE)
     return { node: found, offset: 0 }
+  if ('empty' in found.dataset)
+    return { node: text, offset: 1 }
   return { node: text, offset: offset - span(found).s }
 }
 
@@ -210,4 +219,37 @@ export function markActive(root, offset, scroll = false) {
     if (scroll) best.scrollIntoView({ block: 'nearest' })
   }
   return best
+}
+
+// Show the warnings of the build below the block of their line, as the
+// virtual text of an editor. items: [{ line, message, severity }]
+export function showDiagnostics(root, model, items) {
+  for (const el of root.querySelectorAll('.diag')) el.remove()
+  for (const el of root.querySelectorAll('.has-warning, .has-error')) el.classList.remove('has-warning', 'has-error')
+
+  const blocks = [...root.querySelectorAll('.block')].filter(el => el.dataset.kind !== 'document')
+  for (const item of items) {
+    const { lineStarts, source } = model
+    let offset = lineStarts[Math.min(Math.max(item.line - 1, 0), lineStarts.length - 1)]
+    while (source[offset] === ' ' || source[offset] === '\t') offset++
+
+    let host
+    for (const el of blocks) {
+      const { s, e } = span(el)
+      if (s <= offset && offset <= e) host = el
+    }
+    host ??= blocks.find(el => span(el).s >= offset) ?? blocks[blocks.length - 1]
+    if (!host) continue
+    // Not inside a table, nor in the side elements
+    for (let up = host; up && up !== root; up = up.parentElement)
+      if (up.matches('table.block') || up.parentElement?.classList.contains('sides')) host = up.matches('table.block') ? up : up.parentElement.parentElement
+
+    const note = document.createElement('div')
+    note.className = `diag ${item.severity}`
+    note.contentEditable = 'false'
+    note.textContent = item.message
+    host.classList.add(`has-${item.severity}`)
+    if (host.tagName === 'LI') host.append(note)
+    else host.after(note)
+  }
 }

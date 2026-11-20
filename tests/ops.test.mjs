@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { run } from './helper.mjs'
-import { insertText, deleteBackward, deleteForward, insertParagraph, toggleInline } from '../web/ops.js'
+import { insertText, deleteBackward, deleteForward, insertParagraph, toggleInline } from '../adoc_gui/web/ops.js'
 
 const type = (marked, text) => run(marked, insertText, text)
 
@@ -100,6 +100,14 @@ test('the adornments of a heading follow its title', () => {
   assert.equal(run('A [big] title\n===========\n', toggleInline, 'bold'), 'A **[big]** title\n===============\n')
   assert.equal(run('T|\n=\n', deleteBackward), '|\n=\n')
   assert.equal(type('one\n\nTitle\n=====\n\ntw|o\n', 'x'), 'one\n\nTitle\n=====\n\ntwx|o\n')
+})
+
+test('the caret has a place after the markup that ends a paragraph', () => {
+  assert.equal(type('See :ref:`guide`|\n', ' and more'), 'See :ref:`guide` and more|\n')
+  assert.equal(run('See :ref:`guide`|\n\nnext\n', insertParagraph), 'See :ref:`guide`\n\n|\n\nnext\n')
+  assert.equal(run('a **bold**|\n', deleteBackward), 'a **bol|**\n')
+  assert.equal(type('|**bold** a\n', 'x'), 'x|**bold** a\n')
+  assert.equal(type('a **bold|**\n', 'er'), 'a **bolder|**\n')
 })
 
 test('captions, options and labels stay on one line', () => {
