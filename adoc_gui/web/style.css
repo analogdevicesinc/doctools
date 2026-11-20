@@ -95,7 +95,8 @@ body {
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 8px 16px 4px 20px;
+  /* In line with what is in the toolbar */
+  padding: 8px calc(var(--edge) + 8px) 4px;
 }
 
 /* Build the documentation: the one action of the bar */
@@ -104,7 +105,7 @@ body {
   align-items: center;
   gap: 6px;
   height: 36px;
-  margin-right: 8px;
+  margin-right: 4px;
   padding: 0 16px 0 10px;
   border: 1px solid var(--primary);
   border-radius: var(--radius-small);
@@ -211,15 +212,15 @@ body {
 .divider { width: 1px; height: 20px; margin: 0 6px; background: var(--outline-variant); }
 
 /* Layout ----------------------------------------------------------------------
-   The page in the middle, as wide as the window allows; the files and the
-   side pane float in what is left at its sides, each centred in its part.
+   The page in the middle, as wide as the window allows; the files float at
+   the left edge of the window, the side pane at the right of the page.
    The page scrolls under the toolbar, and fades as it gets there. */
 
 :root {
   --bar: 44px;
   /* The space at the edges of the window and around the panels */
   --edge: clamp(12px, 1.6vw, 40px);
-  --page: clamp(520px, 44vw, 960px);
+  --page: clamp(520px, 42vw, 960px);
 }
 
 main { flex: 1; display: flex; min-height: 0; margin-top: calc(-1 * var(--bar)); }
@@ -239,11 +240,16 @@ main { flex: 1; display: flex; min-height: 0; margin-top: calc(-1 * var(--bar));
   flex: 1 1 0;
   min-width: 0;
   display: flex;
-  justify-content: center;
+  /* The files at the edge of the window, the side pane next to the page */
+  justify-content: flex-start;
   padding: calc(var(--bar) + 16px) var(--edge) 16px;
   transition: flex-grow 0.2s ease, flex-basis 0.2s ease;
 }
-.side.right { flex-grow: 2; }
+/* The page stays near the middle: the files have 40% of what is left at the
+   sides of the page, the side pane 60%, and at most 20% more or less when a
+   panel is hidden */
+.side.left { flex-grow: 4; }
+.side.right { flex-grow: 6; }
 
 .panel {
   display: flex;
@@ -256,7 +262,7 @@ main { flex: 1; display: flex; min-height: 0; margin-top: calc(-1 * var(--bar));
   transition: transform 0.2s ease, opacity 0.2s ease, visibility 0.2s;
 }
 .drawer { max-width: 340px; transform-origin: top left; }
-.sheet { max-width: 860px; transform-origin: top right; }
+.sheet { max-width: 860px; transform-origin: top left; }
 
 /* A panel that is hidden is a button, in its corner below the toolbar: the
    panel opens from it */
@@ -271,15 +277,17 @@ main { flex: 1; display: flex; min-height: 0; margin-top: calc(-1 * var(--bar));
   transition: opacity 0.2s ease, visibility 0.2s;
 }
 .side.left .open-panel { left: var(--edge); }
-.side.right .open-panel { right: var(--edge); }
+.side.right .open-panel { left: var(--edge); }
 .close-panel { width: 32px; height: 32px; padding: 4px; margin-left: auto; }
 
-/* The part of a hidden panel keeps half of its place, so the page moves
+/* The part of a hidden panel keeps most of its place, so the page moves
    only a little */
-body.no-nav .side.left { flex-grow: 0.5; }
-body.no-source .side.right { flex-grow: 1; }
+body.no-nav .side.left { flex-grow: 3; }
+body.no-nav .side.right { flex-grow: 7; }
+body.no-source .side.left { flex-grow: 5; }
+body.no-source .side.right { flex-grow: 5; }
 /* With both hidden the page is in the middle */
-body.no-nav.no-source .side { flex-grow: 1; }
+body.no-nav.no-source .side { flex-grow: 5; }
 body.no-nav .drawer, body.no-source .sheet { transform: scale(0.1); opacity: 0; visibility: hidden; }
 body.no-nav .side.left .open-panel, body.no-source .side.right .open-panel { opacity: 1; visibility: visible; }
 

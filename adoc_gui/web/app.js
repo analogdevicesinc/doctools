@@ -272,9 +272,10 @@ function panel(name, open, close) {
   apply(stored !== 'false')
   open.addEventListener('click', () => apply(true))
   close.addEventListener('click', () => apply(false))
+  return apply
 }
 panel('no-nav', document.getElementById('open-nav'), document.getElementById('close-nav'))
-panel('no-source', document.getElementById('open-source'), document.getElementById('close-source'))
+const showSidePane = panel('no-source', document.getElementById('open-source'), document.getElementById('close-source'))
 
 // The structure can be shown or hidden
 function toggle(button, name, shown) {
@@ -611,6 +612,8 @@ function setFileState(text) {
     : [state.fileState, docsText()].filter(Boolean).join('  ·  ')
 }
 
+let wasRunning = false
+
 function renderDocs() {
   const { problem, build } = state.docs
   const running = build !== 'off'
@@ -619,10 +622,15 @@ function renderDocs() {
   docsButton.title = problem ?? (running ? 'Stop the documentation server' : 'Build the documentation')
   docsButton.querySelector('path').setAttribute('d', running ? STOP : PLAY)
   document.getElementById('docs-label').textContent = running ? 'Stop' : 'Build'
-  // The live view is there while the server runs
+  // The live view is there while the server runs, and is shown when it starts
   document.querySelector('.tab[data-tab=preview]').hidden = !running
-  const wanted = running && preferredTab() === 'preview' ? 'preview' : 'source'
-  if (state.tab !== wanted) selectTab(wanted, false)
+  if (running && !wasRunning) {
+    showSidePane(true)
+    selectTab('preview')
+  } else if (!running && state.tab === 'preview') {
+    selectTab('source', false)
+  }
+  wasRunning = running
   setFileState()
 }
 
@@ -1402,15 +1410,6 @@ canvas.addEventListener('scroll', () => {
 }, { passive: true })
 
 document.getElementById('preview-start').addEventListener('click', () => docsButton.click())
-
-// The tab the user chose, kept by the browser
-function preferredTab() {
-  try {
-    return localStorage.getItem('doctools.tab') === 'preview' ? 'preview' : 'source'
-  } catch {
-    return 'source'
-  }
-}
 
 // Tabs of the side pane. remember: the user chose it
 function selectTab(name, remember = true) {
