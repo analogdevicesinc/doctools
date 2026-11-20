@@ -48,6 +48,12 @@ LanguageTool: the text is sent to languagetool.org, 20 checks a minute) or
 corrections; a word can be added to the words that are not mistakes, kept by
 the browser.
 
+The text typed in a paragraph is wrapped in the source to fewer than 80
+columns, as the guidelines ask: the new line is indented as the text of the
+paragraph (two spaces in a `*` item, three in a `#.` item or a directive),
+and a role, a link or a literal is kept on one line. Only the line being
+typed is wrapped, the lines that are already there are left as they are.
+
 Changes are saved to the file as you type, and changes made to the file by
 other programs are loaded. The buttons of the top bar hide the files and the
 side pane, and switch between the light and the dark theme: as in the Doctools

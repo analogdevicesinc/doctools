@@ -598,6 +598,74 @@ function underline(model, offset, marker) {
   return { ...edit(titleEnd, end, text, titleEnd), underline: marker }
 }
 
+// Wrapping ----------------------------------------------------------------------
+
+// The text of the source is wrapped to fewer than 80 columns
+export const WIDTH = 79
+
+// A word that would be markup at the start of a line: a bullet, an
+// enumerator, a directive or a comment, an adornment
+const MARKUP_START = /^(?:[-*+•](?:\s|$)|#\.|\(?\w{1,3}[.)](?:\s|$)|\.\.(?:\s|$)|([=\-~^"'#+*:_`.])\1+(?:\s|$)|>>>|\|)/
+
+// A typed line of a paragraph that gets longer than WIDTH is broken at a
+// space before, as an editor with a text width does. The new line is
+// indented as the text of the paragraph; roles, links and literals are kept
+// on one line.
+function wrap(model, change) {
+  if (!change || change.text.includes('\n')) return change
+  const owner = leafAt(model, change.start)?.block ?? blockAt(model, change.start)
+  if (owner?.kind !== 'paragraph' || ancestor(owner, 'cell') || ancestor(owner, 'table')) return change
+
+  let source = applyEdit(model.source, change)
+  const delta = change.text.length - (change.end - change.start)
+  const moved = offset => offset >= change.end ? offset + delta : offset
+  const kept = model.leaves
+    .filter(l => l.block === owner && (l.kind === 'role' || l.kind === 'link' || l.kind === 'literal'))
+    .map(l => ({ s: moved(l.os), e: l.oe >= change.start ? l.oe + delta : l.oe }))
+  const indent = ' '.repeat(owner.s - lineStart(model.source, owner.s))
+  let caret = change.caret
+
+  for (let step = 0; step < 8; step++) {
+    const start = lineStart(source, caret)
+    const end = lineEnd(source, caret)
+    if (end - start <= WIDTH) break
+    const lead = source.slice(start, end).match(/^\s*/)[0].length
+    const breaks = []
+    for (let at = start + lead + 1; at < end; at++) {
+      if (source[at] !== ' ' || source[at - 1] === ' ') continue
+      if (kept.some(span => span.s < at && at < span.e)) continue
+      const rest = source.slice(at + 1, end).trimStart()
+      if (!rest || MARKUP_START.test(rest)) continue
+      breaks.push(at)
+    }
+    // The last place that fits, else the first one after
+    const at = breaks.filter(b => b - start <= WIDTH).at(-1) ?? breaks[0]
+    if (at === undefined) break
+    let spaces = 1
+    while (source[at + spaces] === ' ') spaces++
+    const text = '\n' + indent
+    source = source.slice(0, at) + text + source.slice(at + spaces)
+    const shift = text.length - spaces
+    if (caret > at) caret = Math.max(caret + shift, at + text.length)
+    for (const span of kept) {
+      if (span.s > at) span.s += shift
+      if (span.e > at) span.e += shift
+    }
+  }
+  if (source === applyEdit(model.source, change)) return change
+
+  // As one edit of the source of the model
+  const before = model.source
+  let from = 0
+  while (from < before.length && from < source.length && before[from] === source[from]) from++
+  from = Math.min(from, change.start)
+  let tail = 0
+  while (tail < before.length - from && tail < source.length - from &&
+    before[before.length - 1 - tail] === source[source.length - 1 - tail]) tail++
+  tail = Math.min(tail, before.length - change.end)
+  return { start: from, end: before.length - tail, text: source.slice(from, source.length - tail), caret }
+}
+
 export function insertText(model, a, b, text) {
   if (a === b && text.length === 1) {
     const heading = underline(model, a, text)
@@ -610,7 +678,7 @@ export function insertText(model, a, b, text) {
     if (value) return value
   }
   if (owner && ONE_LINE.has(owner.kind)) text = text.replace(/\s*\n\s*/g, ' ')
-  return guard(model, adorn(model, insertTextRaw(model, a, b, text)))
+  return wrap(model, guard(model, adorn(model, insertTextRaw(model, a, b, text))))
 }
 
 export function deleteBackward(model, a, b) {

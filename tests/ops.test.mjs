@@ -195,6 +195,50 @@ test('an adornment after a one-line paragraph makes it a heading', () => {
   plain('- Title\n\n|', '=')
 })
 
+test('a typed line longer than 79 columns is wrapped, indented as its text', () => {
+  const words = n => Array.from({ length: n }, (_, i) => `w${i}`).join(' ')
+  const long = words(26)
+  // Fits in 79: not wrapped; one more character: wrapped at the last space
+  const at = (marked, text) => type(marked, text).split('\n')
+  const lines = at(`${long.slice(0, 78)}|\n`, 'x')
+  assert.ok(lines.every(line => line.replace('|', '').length <= 79), lines.join('\n'))
+  assert.equal(at(`${long.slice(0, 77)}|\n`, 'x').length, 2)
+  const wrapped = at(`${long}|\n`, 'x')
+  assert.equal(wrapped.length, 3)
+  assert.ok(wrapped[0].length <= 79)
+  assert.ok(wrapped[1].endsWith('x|'))
+  // The caret follows its word to the new line
+  assert.ok(!wrapped[0].includes('|'))
+
+  // In an enumerated item: three spaces; in a bullet item: two; in a directive: three
+  const item = at(`#. ${long}|\n`, 'x')
+  assert.ok(item[1].startsWith('   w') && !item[1].startsWith('    '), item.join('\n'))
+  const bullet = at(`* ${long}|\n`, 'x')
+  assert.ok(bullet[1].startsWith('  w') && !bullet[1].startsWith('   '), bullet.join('\n'))
+  const nested = at(`#. One\n\n   * ${long}|\n`, 'x')
+  assert.ok(nested[3].startsWith('     w') && !nested[3].startsWith('      '), nested.join('\n'))
+  const note = at(`.. note::\n\n   ${long}|\n`, 'x')
+  assert.ok(note[3].startsWith('   w') && !note[3].startsWith('    '), note.join('\n'))
+
+  // Typed in the middle of the line: the end of the line goes down
+  const middle = type(`${words(5)} |${words(25)}\n`, 'x')
+  assert.ok(middle.split('\n')[0].length <= 79 && middle.split('\n')[0].includes('x|'), middle)
+})
+
+test('roles, links and literals are not broken, nor a new line made markup', () => {
+  const role = ':ref:`the guide of the installation <install>`'
+  const text = `${'a '.repeat(28)}${role} more|\n`
+  const lines = type(text, 'x').split('\n')
+  assert.ok(lines.some(line => line.includes(role)), lines.join('\n'))
+  const literal = `${'a '.repeat(30)}\`\`some long literal text\`\` end|\n`
+  assert.ok(type(literal, 'x').includes('``some long literal text``'))
+  // A line would start with '- ': broken before
+  const dash = `${'a '.repeat(37)}b - c d|\n`
+  for (const line of type(dash, 'x').split('\n').slice(1)) assert.ok(!/^\s*- /.test(line), line)
+  // Headings and options are not wrapped
+  assert.ok(!type(`${'T '.repeat(40)}|\n${'='.repeat(80)}\n`, 'x').split('\n')[0].endsWith(' '))
+})
+
 test('tabs are added, filled and removed', () => {
   const add = model => addTab(model, model.root.children.find(b => b.name === 'tab-set'))
   const tabs = '.. tab-set::\n\n   .. tab-item:: pip|\n\n      one\n'
