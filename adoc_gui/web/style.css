@@ -520,7 +520,13 @@ pre.block[data-raw='transition'] {
   background: color-mix(in srgb, var(--admonition) 20%, transparent);
 }
 
-.b-directive.card[data-name='note'] { --admonition: #00b0ff; }
+.b-directive.card[data-name='note'], .b-directive.card[data-name='video'] { --admonition: #00b0ff; }
+/* A video: its address, then its caption */
+.b-directive.card[data-name='video'] > .b-caption {
+  font: 13px/20px var(--mono);
+  color: var(--primary);
+  overflow-wrap: anywhere;
+}
 .b-directive.card[data-name='tip'], .b-directive.card[data-name='hint'] { --admonition: #00c852; }
 .b-directive.card[data-name='important'] { --admonition: #00bfa5; }
 .b-directive.card[data-name='warning'], .b-directive.card[data-name='caution'] { --admonition: #ff9100; }

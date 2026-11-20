@@ -10,7 +10,7 @@
 // Directives shown as a card
 const CARD_DIRECTIVES = new Set([
   'attention', 'caution', 'danger', 'error', 'hint', 'important', 'note', 'tip', 'warning', 'admonition',
-  'epigraph', 'highlights', 'pull-quote', 'compound', 'topic', 'sidebar', 'container'
+  'epigraph', 'highlights', 'pull-quote', 'compound', 'topic', 'sidebar', 'container', 'video'
 ])
 
 // Directives without content

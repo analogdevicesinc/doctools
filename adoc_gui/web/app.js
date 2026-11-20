@@ -1,7 +1,7 @@
 import { Parser, Language } from './vendor/web-tree-sitter.js'
 import { buildModel, leafAt, blockAt } from './model.js'
 import {
-  applyEdit, insertText, deleteBackward, deleteForward, insertParagraph, toggleInline, tableStep, openContent, intoContent, addOption, addLabel, removeSide, addTab
+  applyEdit, insertText, deleteBackward, deleteForward, insertParagraph, toggleInline, tableStep, openContent, intoContent, addOption, addLabel, removeSide, addTab, shiftItem, removeDirective
 } from './ops.js'
 import {
   render, getSelection, setSelection, markActive, showDiagnostics, selectTab as showTab, setCodeHost, offsetOf, pointOf
@@ -161,7 +161,7 @@ const INPUT = {
   insertFromDrop: () => undefined,
   insertParagraph: (m, a, b) => insertParagraph(m, a, b),
   insertLineBreak: (m, a, b) => insertParagraph(m, a, b),
-  deleteContentBackward: (m, a, b) => deleteBackward(m, a, b),
+  deleteContentBackward: (m, a, b) => deleteBackward(m, a, b, { repeat: held }),
   deleteContentForward: (m, a, b) => deleteForward(m, a, b),
   deleteByCut: (m, a, b) => deleteBackward(m, a, b),
   deleteWordBackward: (m, a, b) => deleteBackward(m, a, b),
@@ -169,6 +169,9 @@ const INPUT = {
   formatBold: (m, a, b) => toggleInline(m, a, b, 'bold'),
   formatItalic: (m, a, b) => toggleInline(m, a, b, 'italic')
 }
+
+// Backspace is held down: see deleteBackward
+let held = false
 
 // The events of the code editors are theirs
 const inCode = ev => Boolean(ev.target.closest?.('.cm-editor'))
@@ -332,9 +335,14 @@ view.addEventListener('keydown', ev => {
     }
     return
   }
+  if (ev.key === 'Backspace') held = ev.repeat
+  // Tab: the next cell of a table, or the value of an option; in a list
+  // item, the item goes in or out. It never leaves the page.
   if (ev.key === 'Tab' && !ev.ctrlKey && !ev.metaKey && !ev.altKey) {
-    selection()
-    if (stepCell(ev.shiftKey ? -1 : 1)) ev.preventDefault()
+    ev.preventDefault()
+    const { a, b } = selection()
+    const step = ev.shiftKey ? -1 : 1
+    if (!stepCell(step) && a === b) commit(shiftItem(state.model, a, step))
     return
   }
   if (!(ev.ctrlKey || ev.metaKey) || ev.altKey) return
@@ -467,6 +475,10 @@ const codes = new CodeEditors({
   select(editor) {
     codeCaret(editor)
     renderCode(true)
+  },
+  // Backspace at the very start of the code: the directive goes, with its code
+  remove(editor) {
+    commit(removeDirective(state.model, editor.code.directive))
   },
   // Up from the first line, or down from the last one: the text before or after
   leave(editor, step) {

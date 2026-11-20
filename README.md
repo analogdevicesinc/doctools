@@ -130,10 +130,11 @@ a tree that is updated incrementally can differ from a fresh one.
 | `.. _label:` | A chip in the margin, beside the block that follows. `+ label` beside a heading adds one |
 | The arguments of a directive | A caption: the title of a table or of an admonition, the language of a code block |
 | A directive without an argument or without content | Empty fields that say what goes there: type the argument, `Enter` goes to the content; `Backspace` in an emptied directive removes it |
+| Leaving and removing a directive | `Enter` on the empty line at the end of its content leaves it, to the directive around it or to the document. `Backspace` at the very start of its content removes it with its content, but not while the key is held down |
 | The options of a directive | Chips in the margin, beside the directive. The `+` below them adds one: type its name, then `:`, `Tab` or `Enter` for its value |
 | Paragraphs, `*emphasis*`, `**strong**`, ` ``literal`` ` | Text, the markup is hidden |
-| Bullet and enumerated lists | Lists, nested |
-| `note`, `warning`, `tip`, ... | A card, the content is edited as a document |
+| Bullet and enumerated lists | Lists, nested. `Tab` in an item puts it in the item before it, `Shift+Tab` takes it out, with the empty lines a nested list needs |
+| `note`, `warning`, `tip`, ..., `video` | A card, the content is edited as a document; `video` shows its address and its caption |
 | `tab-set` and `tab-item` | Tabs: a click on a title shows its tab, the title and the content are edited in place; `+` adds a tab, an emptied tab is removed with `Backspace` |
 | Roles | A chip with the name of the role and its title, or its target |
 | Links | Their text |

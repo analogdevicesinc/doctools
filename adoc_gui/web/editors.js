@@ -126,7 +126,7 @@ const same = (a, b) => {
 // The code editors of the page, one by code directive, in the order of the
 // page: they are kept while the page is rendered again, so they keep their
 // caret and their focus.
-// on: { change(editor, before, after), select(editor), leave(editor, step), undo, redo }
+// on: { change(editor, before, after), select(editor), leave(editor, step), remove(editor), undo, redo }
 export class CodeEditors {
   constructor(on) {
     this.on = on
@@ -192,11 +192,26 @@ export class CodeEditors {
     editor.view = new EditorView({
       state: EditorState.create({
         extensions: [
+          // Before the keys: whether Backspace is held down
+          EditorView.domEventHandlers({
+            keydown: ev => {
+              if (ev.key === 'Backspace') editor.held = ev.repeat
+            }
+          }),
           keymap.of([
             ...historyKeys(on),
             { key: 'ArrowUp', run: view => at(view).line.number === 1 && (on.leave(editor, -1), true) },
             { key: 'ArrowDown', run: view => at(view).line.number === at(view).doc.lines && (on.leave(editor, 1), true) },
             { key: 'Backspace', run: view => view.state.doc.length === 0 && (on.leave(editor, -1), true) },
+            {
+              key: 'Backspace',
+              run: view => {
+                const { main } = view.state.selection
+                if (!main.empty || main.head !== 0 || editor.held) return false
+                on.remove(editor)
+                return true
+              }
+            },
             indentWithTab,
             ...defaultKeymap
           ]),

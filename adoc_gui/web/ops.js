@@ -161,7 +161,7 @@ const isBlankDirective = (model, directive) => model.leaves.every(l =>
   !within(l.block, directive) || ancestor(l.block, 'options') ||
   model.source.slice(l.s, l.e).trim() === '')
 
-function removeDirective(model, directive) {
+export function removeDirective(model, directive) {
   const { source } = model
   let start = lineStart(source, directive.s)
   const reach = Math.max(contentReach(model, directive), directive.e)
@@ -227,7 +227,8 @@ const onBlankLine = (model, offset) =>
 // Take the item out of its list, its text stays as a paragraph
 function unlist(source, item, caret) {
   const ls = lineStart(source, item.marker.s)
-  const head = ls > 0 && !isBlank(lineOf(source, ls - 1)) ? '\n' : ''
+  // It keeps the indentation of its list
+  const head = (ls > 0 && !isBlank(lineOf(source, ls - 1)) ? '\n' : '') + source.slice(ls, item.marker.s)
   const first = item.children[0]
   const to = first ? first.s : Math.min(item.marker.e + 1, lineEnd(source, item.marker.e))
   return edit(ls, to, head, caret ?? ls + head.length)
@@ -345,6 +346,18 @@ function insertParagraphRaw(model, a, b) {
     }
     // After the line of a directive: go to its content
     if (owner.kind === 'directive' && a <= owner.headEnd) return openContent(model, owner)
+    // On the empty line at the end of the content of a directive: leave the
+    // directive, the line goes to the indentation of the directive
+    const outer = owner.kind === 'directive' ? owner : ancestor(owner, 'directive')
+    if (outer && a > outer.headEnd && isBlank(lineOf(source, a))) {
+      const column = outer.s - lineStart(source, outer.s)
+      const start = lineStart(source, a)
+      let next = lineEnd(source, a)
+      while (next < source.length && isBlank(lineOf(source, next + 1))) next = lineEnd(source, next + 1)
+      const follows = next < source.length ? lineOf(source, next + 1).match(/^[ \t]*/)[0].length : 0
+      if (a - start > column && follows <= column)
+        return edit(start, lineEnd(source, a), ' '.repeat(column))
+    }
     // An empty line is already a paragraph break, there is nothing to add
     return undefined
   }
@@ -598,6 +611,128 @@ function underline(model, offset, marker) {
   return { ...edit(titleEnd, end, text, titleEnd), underline: marker }
 }
 
+// Nested lists ------------------------------------------------------------------
+
+// The list item of the caret: the caret is in its text, not in a directive
+// or a table that is in the item
+function itemAt(model, offset) {
+  for (let block = leafAt(model, offset)?.block ?? blockAt(model, offset); block; block = block.parent) {
+    if (block.kind === 'item') return block.marker && offset >= block.marker.e ? block : undefined
+    if (block.kind === 'directive' || block.kind === 'table' || block.kind === 'raw') return undefined
+  }
+  return undefined
+}
+
+// Tab and Shift+Tab in a list item: the item, with what is in
+// it, goes one level in (into the item before it) or out (after the item it
+// is in). A nested list is separated by an empty line from the text before
+// it and from the outer list after it.
+export function shiftItem(model, offset, step) {
+  const item = itemAt(model, offset)
+  if (!item) return undefined
+  const { source, lineStarts } = model
+  const lines = source.split('\n')
+  const blank = i => lines[i].trim() === ''
+  const indent = i => lines[i].match(/^[ \t]*/)[0].length
+  const rowOf = at => {
+    let row = 0
+    while (row + 1 < lineStarts.length && lineStarts[row + 1] <= at) row++
+    return row
+  }
+  // The lines that start a list item: { column of the marker, of the text }
+  const items = new Map()
+  const walk = block => {
+    if (block.kind === 'item' && block.marker) {
+      const row = rowOf(block.marker.s)
+      const column = block.marker.s - lineStarts[row]
+      const first = block.children[0]
+      const text = first && rowOf(first.s) === row ? first.s - lineStarts[row] : block.marker.e - lineStarts[row] + 1
+      items.set(row, { column, text })
+    }
+    for (const child of block.children ?? []) walk(child)
+  }
+  walk(model.root)
+
+  const row = rowOf(item.marker.s)
+  const { column, text } = items.get(row)
+  const lastFilled = (from, to) => {
+    let last = to
+    while (last >= from && blank(last)) last--
+    return last
+  }
+  // The item with what is in it: the lines after it that are indented more
+  let end = row + 1
+  while (end < lines.length && (blank(end) || indent(end) > column)) end++
+  const last = lastFilled(row, end - 1)
+  const before = lastFilled(0, row - 1)
+
+  let target, delta, tight
+  // The items after it in its list: they go in it, when it goes out
+  let rest = []
+  let after = last
+  if (step > 0) {
+    // In: into the item before it, at the same level
+    let up = row - 1
+    while (up >= 0 && (blank(up) || indent(up) > column)) up--
+    const sibling = up >= 0 && indent(up) === column ? items.get(up) : undefined
+    if (!sibling || sibling.column !== column) return undefined
+    target = sibling.text
+    delta = target - column
+    // After the last item of the list that is in it already: no empty line
+    let at = before
+    while (at > up && indent(at) > target) at--
+    tight = at > up && items.get(at)?.column === target
+  } else {
+    // Out: after the item it is in
+    let up = row - 1
+    while (up >= 0 && (blank(up) || indent(up) >= column)) up--
+    const parent = up >= 0 ? items.get(up) : undefined
+    if (!parent) return undefined
+    target = parent.column
+    delta = target - column
+    let first = true
+    for (let i = up + 1; i < row; i++) if (items.get(i)?.column === column) first = false
+    // Right after the text of the item it was in: as the next item of its list
+    let simple = true
+    for (let i = up + 1, gap = false; i < row; i++) {
+      if (blank(i)) gap = true
+      else if (gap) simple = false
+    }
+    tight = first && simple
+    let to = last + 1
+    while (to < lines.length && (blank(to) || indent(to) >= column)) to++
+    after = lastFilled(last, to - 1)
+    const shift = text + delta - column
+    rest = lines.slice(last + 1, after + 1)
+    while (rest.length && rest[0].trim() === '') rest.shift()
+    rest = rest.map(line => line.trim() === '' ? '' : shift >= 0 ? ' '.repeat(shift) + line : line.slice(Math.min(-shift, line.match(/^ */)[0].length)))
+  }
+
+  const moved = lines.slice(row, last + 1).map(line =>
+    line.trim() === '' ? '' : delta >= 0 ? ' '.repeat(delta) + line : line.slice(-delta))
+  let next = after + 1
+  while (next < lines.length && blank(next)) next++
+  const follows = next < lines.length
+  // The item after it is the next item of its new list: no empty line
+  const joins = follows && !rest.length && step < 0 && items.get(next)?.column === target
+
+  const out = []
+  if (!tight) out.push('')
+  out.push(...moved)
+  if (rest.length) out.push('', ...rest)
+  if (follows && !joins) out.push('')
+
+  const start = lineStarts[before + 1] ?? source.length
+  const stop = follows ? lineStarts[next] : source.length
+  const replacement = out.join('\n') + (follows || source.endsWith('\n') ? '\n' : '')
+  // The caret stays where it is in the text
+  const line = Math.min(rowOf(offset), last) - row
+  let caret = start + (tight ? 0 : 1)
+  for (let i = 0; i < line; i++) caret += moved[i].length + 1
+  caret += Math.min(Math.max(offset - lineStarts[row + line] + delta, 0), moved[line].length)
+  return { start, end: stop, text: replacement, caret }
+}
+
 // Wrapping ----------------------------------------------------------------------
 
 // The text of the source is wrapped to fewer than 80 columns
@@ -681,7 +816,17 @@ export function insertText(model, a, b, text) {
   return wrap(model, guard(model, adorn(model, insertTextRaw(model, a, b, text))))
 }
 
-export function deleteBackward(model, a, b) {
+// The first leaf of the content of a directive, when it is text right in
+// the directive: a paragraph or code
+function contentStart(model, directive) {
+  const first = model.leaves.find(l => l.s >= directive.headEnd && within(l.block, directive) &&
+    l.block.kind !== 'caption' && !ancestor(l.block, 'options'))
+  if (!first || first.block.parent !== directive) return undefined
+  return first.block.kind === 'paragraph' || first.block.kind === 'raw' ? first : undefined
+}
+
+// repeat: the key is held down
+export function deleteBackward(model, a, b, { repeat = false } = {}) {
   // An option goes with its name: with the last character of the name, or
   // at the start of the name when it has no value
   if (a === b) {
@@ -692,10 +837,17 @@ export function deleteBackward(model, a, b) {
       if (a === item.s) return undefined
     }
   }
-  // In the head of a directive with nothing in it: remove the directive
   if (a === b) {
-    const directive = ancestor(leafAt(model, a)?.block ?? blockAt(model, a), 'directive')
-    if (directive && a <= directive.headEnd && isBlankDirective(model, directive))
+    const item = leafAt(model, a)
+    const directive = ancestor(item?.block ?? blockAt(model, a), 'directive')
+    // In a directive with nothing in it: remove the directive
+    if (directive && isBlankDirective(model, directive) &&
+        (a <= directive.headEnd || (!item && isBlank(lineOf(model.source, a)))))
+      return removeDirective(model, directive)
+    // At the very start of the content of a directive: remove the directive,
+    // with its content. Not while the key repeats: holding it to clear the
+    // first line would take the rest away.
+    if (directive && !repeat && item && a === item.s && contentStart(model, directive) === item)
       return removeDirective(model, directive)
   }
   const at = a === b ? cellAt(model, a) : undefined

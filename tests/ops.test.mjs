@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { run, modelOf } from './helper.mjs'
 import {
-  insertText, deleteBackward, deleteForward, insertParagraph, toggleInline, intoContent, addOption, tableStep, addLabel, removeSide, addTab
+  insertText, deleteBackward, deleteForward, insertParagraph, toggleInline, intoContent, addOption, tableStep, addLabel, removeSide, addTab, shiftItem
 } from '../adoc_gui/web/ops.js'
 
 const type = (marked, text) => run(marked, insertText, text)
@@ -35,7 +35,7 @@ test('backspace skips the hidden markup', () => {
 test('backspace at the start of a paragraph joins it with the one before', () => {
   assert.equal(run('one\n\n|two\n', deleteBackward), 'one|two\n')
   assert.equal(run('Title\n=====\n\n|text\n', deleteBackward), 'Title\n=====\n\n|text\n')
-  assert.equal(run('.. note::\n\n   |text\n', deleteBackward), '.. note::\n\n   |text\n')
+  assert.equal(run('.. note::\n\n   One\n\n   |Two\n', deleteBackward), '.. note::\n\n   One|Two\n')
   assert.equal(run('before\n\n.. note::\n\n   text|\n\nafter\n', deleteForward), 'before\n\n.. note::\n\n   text|\n\nafter\n')
   assert.equal(run('.. note::\n\n   one\n\n   |two\n', deleteBackward), '.. note::\n\n   one|two\n')
   assert.equal(run('* one\n\n|text\n', deleteBackward), '* one\n\n|text\n')
@@ -239,6 +239,81 @@ test('roles, links and literals are not broken, nor a new line made markup', () 
   assert.ok(!type(`${'T '.repeat(40)}|\n${'='.repeat(80)}\n`, 'x').split('\n')[0].endsWith(' '))
 })
 
+test('tab in a list item nests it, shift+tab takes it out', () => {
+  const shift = (marked, step) => run(marked, (model, a) => shiftItem(model, a, step))
+  const flat = '- Some thing\n- |Some thing\n- Some thing\n'
+  const nested = '- Some thing\n\n  - |Some thing\n\n- Some thing\n'
+  assert.equal(shift(flat, 1), nested)
+  assert.equal(shift(nested, -1), flat)
+  // Not the first item, nor an item that is not in another
+  assert.equal(shift('- |a\n- b\n', 1), '- |a\n- b\n')
+  assert.equal(shift('- a\n- |b\n', -1), '- a\n- |b\n')
+  // From anywhere in the item, the caret stays in its text
+  assert.equal(shift('- a\n- b|\n', 1), '- a\n\n  - b|\n')
+  assert.equal(shift('- a\n- one\n  tw|o\n- c\n', 1), '- a\n\n  - one\n    tw|o\n\n- c\n')
+  assert.equal(shift('- a\n\n  - one\n    tw|o\n\n- c\n', -1), '- a\n- one\n  tw|o\n- c\n')
+  // Not from a directive that is in the item
+  const inside = '- a\n- b\n\n  .. note::\n\n     Te|xt\n'
+  assert.equal(shift(inside, 1), inside)
+
+  const deep = [
+    '-  ADI Kuiper Linux = a distribution with extra',
+    '   goodies:',
+    '',
+    '   -  All drivers',
+    '   -  Boot files for designs',
+    '      targeting platforms, including:',
+    '',
+    '      -  Data acquisition boards',
+    '      -  |Xilinx platforms: ZedBoard',
+    '         and more',
+    '      -  Intel/Altera platforms',
+    '',
+    '   -  LibIIO',
+    ''
+  ].join('\n')
+  const deeper = deep.replace('      -  |Xilinx platforms: ZedBoard\n         and more\n',
+    '\n         -  |Xilinx platforms: ZedBoard\n            and more\n\n')
+  assert.equal(shift(deep, 1), deeper)
+  assert.equal(shift(deeper, -1), deep)
+  // The next one joins the nested list, without an empty line
+  const two = shift(deeper.replace('|', '').replace('-  Intel', '-  |Intel'), 1)
+  assert.ok(two.includes('         -  Xilinx platforms: ZedBoard\n            and more\n         -  |Intel/Altera platforms\n\n   -  LibIIO'), two)
+  // Out of the middle of a list: the items after it go in it
+  assert.equal(shift('- a\n\n  - b\n  - |c\n  - d\n\n- e\n', -1), '- a\n\n  - b\n\n- |c\n\n  - d\n\n- e\n')
+  // Enumerated: the text is three columns in
+  assert.equal(shift('#. a\n#. |b\n', 1), '#. a\n\n   #. |b\n')
+  // In a directive
+  assert.equal(shift('.. note::\n\n   * a\n   * |b\n', 1), '.. note::\n\n   * a\n\n     * |b\n')
+})
+
+test('enter on the empty line at the end of a directive leaves it', () => {
+  let text = run('.. note::\n\n   Text|\n\nAfter\n', insertParagraph)
+  assert.equal(text, '.. note::\n\n   Text\n\n   |\n\nAfter\n')
+  text = run(text, insertParagraph)
+  assert.equal(text, '.. note::\n\n   Text\n\n|\n\nAfter\n')
+  // To the directive it is in
+  text = run('.. tab-item:: a\n\n   .. note::\n\n      Text\n\n      |\n', insertParagraph)
+  assert.equal(text, '.. tab-item:: a\n\n   .. note::\n\n      Text\n\n   |\n')
+  assert.equal(run(text, insertParagraph), '.. tab-item:: a\n\n   .. note::\n\n      Text\n\n|\n')
+  // Not from the middle of its content
+  const middle = '.. note::\n\n   One\n\n   |\n\n   Two\n'
+  assert.equal(run(middle, insertParagraph), middle)
+})
+
+test('backspace at the start of the content removes the directive', () => {
+  assert.equal(run('Before\n\n.. note::\n\n   |Text\n   more\n\nAfter\n', deleteBackward), 'Before|\n\nAfter\n')
+  assert.equal(run('Before\n\n.. note::\n\n   |\n\nAfter\n', deleteBackward), 'Before|\n\nAfter\n')
+  assert.equal(run('Before\n\n.. collection:: T\n\n   |hdl:\n     - x\n\nAfter\n', deleteBackward), 'Before|\n\nAfter\n')
+  // The one of the caret, not the ones around it
+  assert.equal(run('.. tab-item:: a\n\n   One\n\n   .. note::\n\n      |Text\n', deleteBackward), '.. tab-item:: a\n\n   One|\n')
+  // Not while the key repeats, nor from the second paragraph, nor from a list
+  const held = 'Before\n\n.. note::\n\n   |Text\n'
+  assert.equal(run(held, (m, a, b) => deleteBackward(m, a, b, { repeat: true })), held)
+  assert.equal(run('.. note::\n\n   One\n\n   |Two\n', deleteBackward), '.. note::\n\n   One|Two\n')
+  assert.equal(run('.. note::\n\n   * |a\n', deleteBackward), '.. note::\n\n   |a\n')
+})
+
 test('tabs are added, filled and removed', () => {
   const add = model => addTab(model, model.root.children.find(b => b.name === 'tab-set'))
   const tabs = '.. tab-set::\n\n   .. tab-item:: pip|\n\n      one\n'
@@ -283,7 +358,7 @@ test('an emptied directive is removed with backspace', () => {
   assert.equal(run('a\n\n.. code-block::|\n   :linenos:\n\n   \n\nb\n', deleteBackward), 'a|\n\nb\n')
   // Not while something is written in it
   assert.equal(run('.. code-block::|\n\n   ls\n', deleteBackward), '.. code-block::|\n\n   ls\n')
-  assert.equal(run('.. note::\n\n   |text\n', deleteBackward), '.. note::\n\n   |text\n')
+  assert.equal(run('.. note::\n\n   One\n\n   |Two\n', deleteBackward), '.. note::\n\n   One|Two\n')
 })
 
 test('typing a directive from an empty line', () => {
