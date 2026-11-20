@@ -1,7 +1,9 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { run } from './helper.mjs'
-import { insertText, deleteBackward, deleteForward, insertParagraph, toggleInline } from '../adoc_gui/web/ops.js'
+import {
+  insertText, deleteBackward, deleteForward, insertParagraph, toggleInline, intoContent
+} from '../adoc_gui/web/ops.js'
 
 const type = (marked, text) => run(marked, insertText, text)
 
@@ -121,6 +123,17 @@ test('a directive is filled: its argument, then enter for its content', () => {
   assert.equal(run('.. code-block:: ba|sh\n\n   ls\n', insertParagraph), '.. code-block:: bash\n\n   |ls\n')
   assert.equal(run('.. table:: Cap|tion\n   :width: 50%\n', insertParagraph), '.. table:: Caption\n   :width: 50%\n\n   |\n')
   assert.equal(run('.. image:: a.png|\n', insertParagraph), '.. image:: a.png|\n')
+})
+
+test('down from the argument goes to the content that is not written yet', () => {
+  const down = (model, a) => intoContent(model, a)
+  assert.equal(run('.. code-block:: c|\n', down), '.. code-block:: c\n\n   |\n')
+  assert.equal(run('.. code-block::|\n\nnext\n', down), '.. code-block::\n\n   |\n\nnext\n')
+  assert.equal(run('.. code-block:: c|\n\n   \n', down), '.. code-block:: c\n\n   |\n')
+  // The caret moves by itself when there is content, or no place for it
+  assert.equal(run('.. code-block:: c|\n\n   x\n', down), '.. code-block:: c|\n\n   x\n')
+  assert.equal(run('.. image:: a|\n', down), '.. image:: a|\n')
+  assert.equal(run('Para|\n', down), 'Para|\n')
 })
 
 test('an emptied directive is removed with backspace', () => {

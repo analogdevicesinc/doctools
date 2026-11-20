@@ -1,7 +1,7 @@
 import { Parser, Language } from './vendor/web-tree-sitter.js'
 import { buildModel, leafAt } from './model.js'
 import {
-  applyEdit, insertText, deleteBackward, deleteForward, insertParagraph, toggleInline, tableStep, openContent
+  applyEdit, insertText, deleteBackward, deleteForward, insertParagraph, toggleInline, tableStep, openContent, intoContent
 } from './ops.js'
 import { render, getSelection, setSelection, markActive, showDiagnostics } from './view.js'
 import { completionAt, matching, roleQuestion } from './lsp.js'
@@ -245,6 +245,17 @@ function stepCell(step) {
 
 view.addEventListener('keydown', ev => {
   if (menuKey(ev)) return
+  // Down from the argument of a directive goes to its content, also when
+  // there is none yet
+  if (ev.key === 'ArrowDown' && !ev.shiftKey && !ev.ctrlKey && !ev.metaKey && !ev.altKey) {
+    const { a, b } = selection()
+    const edit = a === b ? intoContent(state.model, a) : undefined
+    if (edit) {
+      ev.preventDefault()
+      commit(edit)
+    }
+    return
+  }
   if (ev.key === 'Tab' && !ev.ctrlKey && !ev.metaKey && !ev.altKey) {
     selection()
     if (stepCell(ev.shiftKey ? -1 : 1)) ev.preventDefault()

@@ -72,6 +72,14 @@ export function openContent(model, directive, text = '') {
   return edit(directive.headEnd, end, head + tail, directive.headEnd + head.length)
 }
 
+// From the caption of a directive that has no content yet, go to where the
+// content is written. undefined when the caret is not there.
+export function intoContent(model, offset) {
+  const owner = leafAt(model, offset)?.block
+  if (owner?.kind !== 'caption' || !owner.parent.takesContent || hasContent(owner.parent)) return undefined
+  return openContent(model, owner.parent)
+}
+
 // A directive with nothing written in it, its options aside
 const isBlankDirective = (model, directive) => model.leaves.every(l =>
   ancestor(l.block, 'directive') !== directive || ancestor(l.block, 'options') ||

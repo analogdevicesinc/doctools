@@ -659,4 +659,12 @@ li > .diag { margin: 0 0 4px; }
 }
 .content-hint::before { content: 'content'; }
 .b-directive:has(> .placeholder) > .content-hint { display: none; }
-.b-directive > .placeholder { margin: 0; }
+
+/* The content keeps the border of its place */
+.b-directive > .placeholder, .b-directive > pre.code {
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px dashed var(--outline-variant);
+  border-radius: 8px;
+}
+.b-directive.card > .placeholder { border-color: currentColor; opacity: 0.8; }
