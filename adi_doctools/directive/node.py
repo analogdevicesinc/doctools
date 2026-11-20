@@ -39,6 +39,28 @@ class node_div(node_base):
     tagname = 'div'
     endtag = 'true'
 
+class node_carousel(node_div):
+    """Render carousel items in a two-column grid."""
+
+    def visit_latex(self, node):
+        in_minipage = self.in_minipage
+        self.body.append('\n\\par\\medskip\\noindent\n')
+        try:
+            self.in_minipage = True
+            for index, child in enumerate(node.children):
+                if index:
+                    self.body.append(
+                        '\\hfill\n' if index % 2 else
+                        '\\par\\medskip\\noindent\n')
+                self.body.append('\\begin{minipage}[t]{0.48\\linewidth}\n'
+                                 '\\vspace{0pt}\n')
+                child.walkabout(self)
+                self.body.append('\n\\end{minipage}')
+        finally:
+            self.in_minipage = in_minipage
+        self.body.append('\n\\par\\medskip\n')
+        raise nodes.SkipNode
+
 class node_input(node_base):
     tagname = 'input'
     endtag = 'false'
@@ -153,6 +175,11 @@ def node_setup(app):
             html =(node.visit, node.depart),
             latex=(node.default, node.default),
             text =(node.default, node.default))
+
+    app.add_node(node_carousel,
+        html =(node_carousel.visit, node_carousel.depart),
+        latex=(node_carousel.visit_latex, node_carousel.default),
+        text =(node_carousel.default, node_carousel.default))
 
     app.add_node(node_video_screen,
         html =(node_video_screen.visit, node_video_screen.depart),

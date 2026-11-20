@@ -24,6 +24,7 @@ from sphinx.util import logging
 from sphinx.util.docutils import SphinxDirective
 
 from .node import (
+    node_carousel,
     node_clear_content,
     node_collection,
     node_div,
@@ -1277,7 +1278,7 @@ class directive_carousel(SphinxDirective):
         classes_ = ['carousel']
         if 'classes' in self.options:
             classes_.extend(self.options.get('classes'))
-        node = node_div(classes=classes_)
+        node = node_carousel(classes=classes_)
         self.state.nested_parse(self.content, self.content_offset, node)
 
         return [node]
