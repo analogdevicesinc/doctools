@@ -103,13 +103,15 @@ a tree that is updated incrementally can differ from a fresh one.
 | Paragraphs, `*emphasis*`, `**strong**`, ` ``literal`` ` | Text, the markup is hidden |
 | Bullet and enumerated lists | Lists, nested |
 | `note`, `warning`, `tip`, ... | A card, the content is edited as a document |
+| `tab-set` and `tab-item` | Tabs: a click on a title shows its tab, the title and the content are edited in place; `+` adds a tab, an emptied tab is removed with `Backspace` |
 | Roles | A chip with the name of the role and its title, or its target |
 | Links | Their text |
 | | The `−` at the left of a chip in the margin removes the label or the option |
 | Grid tables, simple tables, `table` and `list-table` | Tables: type in the cells, `Tab` moves between them, `Enter` adds a row, `Backspace` in an empty row removes it |
 | Tables with cells that span columns or rows, `csv-table` | Their source, in a box |
 | Other directives | A box with their name, caption and options, the content as source |
-| Literal blocks, comments, targets with a link, definition and field lists | Their source, in a box |
+| Literal blocks | Their text as it is written; the `::` alone on its line is hidden |
+| Comments, targets with a link, definition and field lists | Their source, in a box |
 
 ## Development
 

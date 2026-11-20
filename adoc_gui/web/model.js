@@ -21,11 +21,14 @@ const ARGUMENT = {
   'code-block': 'language', code: 'language', sourcecode: 'language',
   image: 'path', figure: 'path', include: 'path', literalinclude: 'path',
   table: 'title', 'list-table': 'title', 'csv-table': 'title',
-  admonition: 'title', topic: 'title', sidebar: 'title'
+  admonition: 'title', topic: 'title', sidebar: 'title', 'tab-item': 'title'
 }
 
 // Directives whose content is reStructuredText
-const RST_DIRECTIVES = new Set([...CARD_DIRECTIVES, 'figure'])
+const RST_DIRECTIVES = new Set([...CARD_DIRECTIVES, 'figure', 'tab-set', 'tab-item'])
+
+// Directives without an argument
+const NO_ARGUMENT = new Set(['shell', 'tab-set', 'toctree', 'math'])
 
 import { readTable } from './table.js'
 
@@ -171,6 +174,42 @@ export function buildModel(parser, tree, source) {
     return b
   }
 
+  // Text shown as it is written, as code: a leaf per line, without the
+  // indentation that all its lines share
+  const code = (node, parent, to = node.endIndex) => {
+    const s = lineStart(node.startIndex)
+    let e = to
+    while (e < source.length && (source[e] === ' ' || source[e] === '\t')) e++
+    if (e < source.length && source[e] !== '\n') e = to
+
+    const lines = []
+    for (let at = s; at <= e; at = lineEnd(at) + 1) {
+      lines.push({ s: at, e: Math.min(lineEnd(at), e) })
+      if (lineEnd(at) >= e) break
+    }
+    const indentOf = line => source.slice(line.s, line.e).match(/^[ \t]*/)[0].length
+    const filled = lines.filter(line => source.slice(line.s, line.e).trim() !== '')
+    const indent = Math.min(...filled.map(indentOf))
+
+    const b = { kind: 'raw', type: node.type, s, e, parent, code: true, indent }
+    b.inlines = []
+    let hiddenFrom = s
+    lines.forEach((line, i) => {
+      const start = Math.min(line.s + indent, line.e)
+      if (i === 0) {
+        if (start > s) hidden.push([s, start])
+      } else {
+        const soft = { kind: 'soft', newline: true, s: hiddenFrom, e: start, os: hiddenFrom, oe: start, block: b }
+        hidden.push([soft.s, soft.e])
+        leaves.push(soft)
+        b.inlines.push(soft)
+      }
+      b.inlines.push(leaf(b, 'raw', start, line.e))
+      hiddenFrom = line.e
+    })
+    return b
+  }
+
   const heading = (node, parent) => {
     const title = node.children.find(c => c.type === 'title')
     if (!title) return raw(node, parent, undefined, undefined, { error: true })
@@ -258,7 +297,7 @@ export function buildModel(parser, tree, source) {
       if (table) return [table]
       // A table that is not read is shown as it is written
       if (/^(\+-[-+]*|=+( +=+)*)$/.test(source.slice(node.startIndex, lineEnd(node.startIndex))))
-        return [raw(node, parent, undefined, undefined, { code: true })]
+        return [code(node, parent)]
     }
     const literal = node.children.find(c => c.type === 'literal_block')
     const end = literal ? node.children[node.children.indexOf(literal) - 1].endIndex : node.endIndex
@@ -266,7 +305,7 @@ export function buildModel(parser, tree, source) {
     b.e = end
     b.inlines = inlines(b, node.children.filter(c => c !== literal), node.startIndex, end)
     if (!literal) return [b]
-    return [b, raw(literal, parent, lineStart(literal.startIndex), literal.endIndex, { code: true })]
+    return [b, code(literal, parent)]
   }
 
   const list = (node, parent) => {
@@ -346,7 +385,7 @@ export function buildModel(parser, tree, source) {
 
     if (args) {
       b.children.push(textLine('caption', { s: args.startIndex, e: args.endIndex }, b))
-    } else if (ARGUMENT[name] || !b.card) {
+    } else if (ARGUMENT[name] || (!b.card && !NO_ARGUMENT.has(name))) {
       // An empty caption, to type the argument in
       const slot = textLine('caption', { s: colons.endIndex, e: colons.endIndex }, b)
       slot.empty = true
@@ -367,7 +406,7 @@ export function buildModel(parser, tree, source) {
     if (name === 'table') {
       // The content is a grid or a simple table
       const table = textTable(content, b)
-      b.children.push(table ?? raw(content, b, lineStart(content.startIndex), content.endIndex, { code: true }))
+      b.children.push(table ?? code(content, b))
     } else if (name === 'list-table') {
       const kids = nested(content, b)
       const head = options ? source.slice(options.startIndex, options.endIndex) : ''
@@ -376,7 +415,7 @@ export function buildModel(parser, tree, source) {
     } else if (RST_DIRECTIVES.has(name)) {
       b.children.push(...nested(content, b))
     } else {
-      b.children.push(raw(content, b, lineStart(content.startIndex), content.endIndex, { code: true }))
+      b.children.push(code(content, b))
     }
     return b
   }
@@ -413,6 +452,9 @@ export function buildModel(parser, tree, source) {
       case 'enumerated_list': return [list(node, parent)]
       case 'directive': return [directive(node, parent)]
       case 'target': return [target(node, parent)]
+      // From the start of its line: the first line keeps its indentation
+      case 'literal_block':
+        return [code(node, parent)]
       // ':name:' alone on its line, as while a role is typed
       case 'field_list':
         return [oneLine(node) && /^:[^:\s]+:$/.test(source.slice(node.startIndex, node.endIndex))
@@ -445,6 +487,11 @@ export function buildModel(parser, tree, source) {
           i++
           continue
         }
+      }
+      // '::' alone on its line only says that a literal block follows
+      if (node.type === '::' && next?.type === 'literal_block') {
+        hidden.push([node.startIndex, node.endIndex])
+        continue
       }
       out.push(...convert(node, parent))
     }

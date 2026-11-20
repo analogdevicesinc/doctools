@@ -1,0 +1,348 @@
+.. _install:
+
+Installing
+==========
+
+How to do a release install, and a development install of Doctools.
+
+Guaranteed to work with Python 3.9 or newer and distributions released on or after
+20H1 (e.g., Ubuntu 20.04 LTS).
+
+.. _release-install:
+
+Release install
+---------------
+
+.. tab-set:: 
+
+   .. tab-item:: pip
+
+      .. shell::
+
+         $ python3 -m venv venv
+         $ source venv/bin/activate
+         # Ensure pip is newer than 23.0 (https://github.com/pypa/setuptools/issues/3269)
+         $ pip install pip --upgrade
+         $ pip install adi-doctools
+
+   .. tab-item:: pipx
+
+      .. shell::
+
+         $ pipx install adi-doctools
+
+   .. tab-item:: uvx
+
+      .. shell::
+
+         $ uvx --from adi-doctools adoc
+
+Test it building this documentation:
+
+.. shell::
+
+   $(cd docs ; make html)
+
+.. _mcp:
+
+MCP integration
+~~~~~~~~~~~~~~~
+
+The tool includes a slim MCP to expose the CLIs. It simply teaches the LLM of
+the tools available, analogous as a skill file. This methodology ensures the
+context window is not penalized.
+
+To configure the MCP to your AI coding harness, first install with the MCP
+add-in:
+
+.. tab-set::
+
+   .. tab-item:: pip
+
+      .. shell::
+
+         $ python3 -m venv venv
+         $ source venv/bin/activate
+         $ pip install 'adi-doctools[mcp]'
+
+   .. tab-item:: pipx
+
+      .. shell::
+
+         $ pipx install 'adi-doctools[mcp]'
+
+   .. tab-item:: uvx
+
+      .. shell::
+
+         $ uvx --from 'adi-doctools[mcp]' adoc-mcp
+
+With the tool installed, add to your favorite AI code harness:
+
+.. shell::
+
+   $ opencode mcp add adoc -- $(which adoc-mcp)
+   $ claude mcp add adoc -- $(which adoc-mcp)
+   $ codex mcp add adoc -- $(which adoc-mcp)
+   $ gemini mcp add adoc -- $(which adoc-mcp)
+
+
+.. tip::
+
+   The ``which adoc-mcp`` is to invoke the tool by the absolute path, without
+   having to explicitly activate the python virtual environment (most useful
+   for the ``pip`` install method).
+
+For coding harness without MCP support, such as `pi coding harness
+<https://pi.dev>`__, you can create a skill based on the tools descriptions at
+:git+doctools:`adi_doctools/mcp/server.py`.
+
+Using a Python virtual environment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Installing packages at user level through pip is not always recommended,
+instead, consider using a Python virtual environment (``python3-venv`` on
+ubuntu 22.04).
+
+To create and activate the environment, do before the previous instructions:
+
+.. shell::
+
+   $ python3 -m venv .venv
+   $ source .venv/bin/activate
+
+Don't create the `.venv` inside the docs/ folder, since its files will be caught
+by the Sphinx builder.
+
+Use ``deactivate`` to exit the virtual environment.
+
+For next builds, just activate the virtual environment:
+
+.. shell::
+
+   $ source .venv/bin/activate
+
+GitHub release archive
+~~~~~~~~~~~~~~~~~~~~~~
+
+Beyond PyPi, the package is also stored as GitHub releases:
+
+- | https://github.com/analogdevicesinc/doctools/releases/download/latest/adi-doctools.tar.gz
+  | latest (commit at tag bump).
+- | https://github.com/analogdevicesinc/doctools/releases/download/pre-release/adi-doctools.tar.gz
+  | pre-release (main head commit).
+- | https://github.com/analogdevicesinc/doctools/releases/download/v0.4.32/adi-doctools.tar.gz
+  | specific version.
+
+.. _vscode-support:
+
+VScode/VScodium support
+~~~~~~~~~~~~~~~~~~~~~~~
+
+There are two options for  Visual Studio Code support:
+
+- Doctools (
+  `VSCode <https://marketplace.visualstudio.com/items?itemName=gastmaier.adi-doctools>`__/
+  `VSCodium <https://open-vsx.org/extension/gastmaier/adi-doctools>`__):
+  A high level extension for most users.
+- :external+esbonio:doc:`index` (
+  `VSCode <https://marketplace.visualstudio.com/items?itemName=swyddfa.esbonio>`__/
+  `VSCodium <https://open-vsx.org/extension/swyddfa/esbonio>`__):
+  A extensively developed for sphinx.
+
+Doctools provides support to `LanguageTool <https://languagetool.org/de>`__ for
+grammar correction and GUI support for :ref:`serve sparse`.
+
+Esbonio tips
+++++++++++++
+
+Setup the virtual environment first before opening the text editor, to
+avoid triggering fallback behaviours.
+
+:ref:`serve` is able to generate Estobio pyproject.toml entry with (including
+:ref:`serve sparse`):
+
+.. shell::
+
+   ~/git-repo
+   $ adoc serve --esbonio \
+        --sparse docs/docs_guidelines docs/cli.rst | tee -a pyproject.toml
+
+.. _nvim-support:
+
+Neovim support
+~~~~~~~~~~~~~~
+
+A :git+doctools:`Neovim plugin <nvim:/>` is available, install with
+`lazy.nvim <https://github.com/folke/lazy.nvim>`__:
+
+.. code:: lua
+
+   {
+     'analogdevicesinc/doctools',
+     branch = 'nvim',
+     ft = { 'rst', 'markdown' },
+     config = function()
+       require('adi-doctools').setup()
+     end,
+   }
+
+It is also recommended to use the modern `tree-sitter <https://tree-sitter.github.io/>`__:
+
+.. code:: lua
+
+   {
+     'nvim-treesitter/nvim-treesitter',
+     branch = 'main',
+     lazy = false,
+     build = ':TSUpdate',
+     config = function()
+       require('nvim-treesitter').install({ 'rst' })
+     end,
+   }
+
+Make sure you have common parsers installed, at least:
+
+::
+
+   :TSInstall rst
+   :TSInstall markdown
+   :TSInstall yaml
+   :TSInstall json
+   :TSInstall bash
+
+You can inspect the tree with ``:InspectTree``.
+
+Alternatively to the Doctools Neovim plugin, :external+esbonio:doc:`index` is
+an extensively developed Language Server Protocol for sphinx. See
+:external+esbonio:std:ref:`integrate-nvim`.
+
+.. _latex:
+
+PDF LaTeX support
+~~~~~~~~~~~~~~~~~
+
+Beyond the HTML harmonic theme, limited LaTeX support is available.
+The LaTeX build is divided in two steps, the LaTeX files generation,
+and then the PDF generation.
+For the LaTeX files generation, install ``cairosvg`` with ``pip|pipx|uvx``.
+
+For the PDF generation, execute the same steps as provided in the
+:git+doctools:`ci/Containerfile.latex`. Without the ``tlmgr`` util, most
+distros ship the same packages suffixed with ``texlive-``, e.g.,
+``wrapfig`` -> ``texlive-wrapfig``.
+
+With the container (~1.6 GB), the end-to-end usage is:
+
+.. shell::
+
+   ~/repository
+   # pip or pipx or uvx
+   $ pip install adi-doctools[pdf]
+   # podman or docker
+   $ podman build -t adi/doctools_latex:latest \
+       -f https://raw.githubusercontent.com/analogdevicesinc/doctools/main/ci/Containerfile.latex
+   # Build latex to _build/latex
+   $ sphinx-build -M latex "docs" "docs/_build" -j auto
+   # Build pdf inside the container
+   $ podman run --rm -v "$PWD/_build/latex:/work" -w /work adi/doctools_latex:latest make
+
+Due to unicode support, ``latex_engine`` is set to ``xelatex`` internally if
+the value is Sphinx default's ``pdflatex``.
+
+If you are adding support to LaTeX for a directive or role,
+see :git+doctools:`224f5755415c <commit/224f5755415c80e0f128156246dfae0fb9083e4c+>`
+for an example on how to add 'visitors' for ``latex`` builder.
+
+.. _development-install:
+
+Development install
+-------------------
+
+Development install allows editing the source code and applying changes without
+reinstalling.
+Also extends :ref:`serve` to watch changes on the webpage source code
+(use `--dev`/`-r` option to enable this).
+
+.. _web-compiler:
+
+Install the web compiler
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you care about the web scripts (`js modules`) and style sheets (`sass`),
+install ``node.js``, ``npm`` and the ``npm`` packages below, if not, read this
+section's last paragraph.
+
+.. note::
+
+   If the ``npm`` provided by your package manager is too old and updating with
+   ``npm install npm -g`` fails, consider installing with
+   `NodeSource <https://github.com/nodesource/distributions>`_.
+
+At the repository root, install the `npm` dependencies locally:
+
+.. shell::
+
+   $ npm install rollup \
+         @rollup/plugin-terser \
+         sass \
+         --save-dev
+
+* rollup/plugin: Module bundler.
+* @rollup/plugin-terser: Minified bundle with terser.
+* sass: CSS stylesheets.
+
+If you choose to not use ``npm``, you can obtain pre-built web-scripts from the
+latest release.
+For that, just run :ref:`serve` after the repository is installed and
+confirm the prompt that will appear.
+
+Fetch third-party resources
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Fetch third-party fonts:
+
+.. shell::
+
+   $ ./ci/fetch-fonts.sh
+
+Install the repository
+~~~~~~~~~~~~~~~~~~~~~~
+
+Finally, do a symbolic installation of this repo:
+
+.. shell::
+
+   $ pip install -e . --upgrade
+
+.. caution::
+
+   If using a python virtual environment for the *requirements.txt* packages,
+   do this command with the virtual environment already activated.
+
+   Mixing pip packages inside and outside the virtual environment will cause
+   packages outside the environment to not have access to the packages inside
+   of it, breaking most CLIs.
+
+Neovim support
+~~~~~~~~~~~~~~
+
+Add to you lazyvim config the path to the branch ``nvim``:
+
+.. code:: lua
+
+   {
+     dir = '/path/to/doctools/nvim',
+     -- ...
+   }
+
+.. _removing:
+
+Removing
+--------
+
+To remove, either release or development, do:
+
+.. shell::
+
+   $ pip uninstall adi-doctools

@@ -83,7 +83,7 @@ test('other directives show their source', () => {
   assert.equal(outline(model.root),
     'document(directive:code-block(caption options(option:linenos) raw) directive:image(caption options(option:width)))')
   assert.deepEqual(texts(model), [
-    'text:bash', 'name:linenos', 'text:', 'raw:   echo hi\n     ls', 'text:a.png', 'name:width', 'text:50%'
+    'text:bash', 'name:linenos', 'text:', 'raw:echo hi', 'soft:\n   ', 'raw:  ls', 'text:a.png', 'name:width', 'text:50%'
   ])
 })
 
@@ -123,6 +123,26 @@ test('a comment that is being typed holds the caret after its space', () => {
   assert.equal(leafAt(model, 3).kind, 'raw')
 })
 
+test('a tab set holds tabs, their content is parsed', () => {
+  const source = readFileSync(new URL('./install.rst', import.meta.url), 'utf-8')
+  const model = assertCovered(source)
+  const sets = model.root.children.filter(b => b.name === 'tab-set')
+  assert.equal(sets.length, 2)
+  assert.equal(outline(sets[0]),
+    'directive:tab-set(directive:tab-item(caption directive:shell(raw)) ' +
+    'directive:tab-item(caption directive:shell(raw)) directive:tab-item(caption directive:shell(raw)))')
+  const titles = sets[0].children.map(tab => source.slice(tab.children[0].s, tab.children[0].e))
+  assert.deepEqual(titles, ['pip', 'pipx', 'uvx'])
+  // The code is shown without the indentation of the nested directives
+  const code = model.leaves.find(l => l.kind === 'raw' && source.slice(l.s, l.e).includes('pipx install adi-doctools'))
+  assert.equal(source.slice(code.s, code.e), '$ pipx install adi-doctools')
+  const lines = model.leaves.filter(l => l.block === sets[0].children[0].children[1].children[0] && l.kind === 'raw')
+  assert.deepEqual(lines.map(l => source.slice(l.s, l.e).slice(0, 12)),
+    ['$ python3 -m', '$ source ven', '# Ensure pip', '$ pip instal', '$ pip instal'])
+  // No argument to type for the set nor for the shell
+  assert.equal(sets[0].children.some(c => c.kind === 'caption'), false)
+})
+
 test('a target shows its label', () => {
   const model = assertCovered('.. _a label:\n\nTitle\n=====\n\n.. _ext: http://x.y\n\n.. _`quoted`:\n')
   assert.equal(outline(model.root), 'document(target heading1 raw target)')
@@ -132,7 +152,19 @@ test('a target shows its label', () => {
 test('a literal block follows its paragraph', () => {
   const model = assertCovered('Text::\n\n   literal\n   block\n\nAfter\n')
   assert.equal(outline(model.root), 'document(paragraph raw paragraph)')
-  assert.deepEqual(texts(model), ['text:Text::', 'raw:   literal\n   block', 'text:After'])
+  assert.deepEqual(texts(model), ['text:Text::', 'raw:literal', 'soft:\n   ', 'raw:block', 'text:After'])
+})
+
+test('a literal block after "::" alone keeps its indentation', () => {
+  const source = 'As follows:\n\n::\n\n         top\n   left  box\n\nAfter\n'
+  const model = assertCovered(source)
+  assert.equal(outline(model.root), 'document(paragraph raw paragraph)')
+  // The first line keeps what it is indented more than the others
+  assert.deepEqual(texts(model), ['text:As follows:', 'raw:      top', 'soft:\n   ', 'raw:left  box', 'text:After'])
+  assert.deepEqual(texts(assertCovered('::\n\n   a\n\n     b\n')), ['raw:a', 'soft:\n', 'raw:', 'soft:\n   ', 'raw:  b'])
+  assert.equal(model.root.children[1].code, true)
+  // Without a block after it, it is text
+  assert.ok(texts(assertCovered('::\n')).join('').includes('::'))
 })
 
 test('what is not understood is kept as source', () => {

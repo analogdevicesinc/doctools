@@ -48,6 +48,12 @@ function insertBlock(source, offset, text) {
 
 // Directives -------------------------------------------------------------------
 
+const within = (block, parent) => {
+  for (let at = block; at; at = at.parent)
+    if (at === parent) return true
+  return false
+}
+
 const hasContent = directive => directive.children.some(c => c.kind !== 'caption' && c.kind !== 'options')
 
 // Go to the content of a directive: an empty line, indented, is added for it
@@ -55,7 +61,7 @@ const hasContent = directive => directive.children.some(c => c.kind !== 'caption
 export function openContent(model, directive, text = '') {
   const { source } = model
   if (hasContent(directive)) {
-    const first = model.leaves.find(l => l.s >= directive.headEnd && ancestor(l.block, 'directive') === directive)
+    const first = model.leaves.find(l => l.s >= directive.headEnd && within(l.block, directive))
     if (!first) return undefined
     // Source shown as-is starts with its indentation
     let caret = first.s
@@ -72,11 +78,11 @@ export function openContent(model, directive, text = '') {
   return edit(directive.headEnd, end, head + tail, directive.headEnd + head.length)
 }
 
-// From the caption of a directive that has no content yet, go to where the
-// content is written. undefined when the caret is not there.
+// From the caption of a directive, go to its content, or to where it is
+// written when there is none yet. undefined when the caret is not there.
 export function intoContent(model, offset) {
   const owner = leafAt(model, offset)?.block
-  if (owner?.kind !== 'caption' || !owner.parent.takesContent || hasContent(owner.parent)) return undefined
+  if (owner?.kind !== 'caption' || !owner.parent.takesContent) return undefined
   return openContent(model, owner.parent)
 }
 
@@ -136,9 +142,23 @@ function removeOption(model, option) {
   return edit(start - 1, lineEnd(source, option.e), '', previous ? previous.e : start - 1)
 }
 
+// A new tab at the end of a tab set, the caret goes to its empty title
+export function addTab(model, tabSet) {
+  const { source } = model
+  const items = tabSet.children.filter(c => c.kind === 'directive' && c.name === 'tab-item')
+  const last = items[items.length - 1]
+  const column = last
+    ? last.s - lineStart(source, last.s)
+    : tabSet.s - lineStart(source, tabSet.s) + 3
+  const at = last ? lineEnd(source, Math.max(contentReach(model, last), last.e)) : tabSet.headEnd
+  const head = `\n\n${' '.repeat(column)}.. tab-item::`
+  const tail = lineEnd(source, at) < source.length && !isBlank(lineOf(source, at + 1)) ? '\n' : ''
+  return edit(at, at, head + tail, at + head.length)
+}
+
 // A directive with nothing written in it, its options aside
 const isBlankDirective = (model, directive) => model.leaves.every(l =>
-  ancestor(l.block, 'directive') !== directive || ancestor(l.block, 'options') ||
+  !within(l.block, directive) || ancestor(l.block, 'options') ||
   model.source.slice(l.s, l.e).trim() === '')
 
 function removeDirective(model, directive) {
@@ -176,6 +196,11 @@ function insertTextRaw(model, a, b, text) {
     // In a directive without a caption nor content: the text is its content
     if (!item && owner.kind === 'directive' && !hasContent(owner) && a <= owner.headEnd)
       return openContent(model, owner, text)
+    // On an empty line of code: the text is indented as the code
+    if (item?.kind === 'raw' && owner.code && item.s === item.e) {
+      const missing = owner.indent - (a - lineStart(source, a))
+      if (missing > 0) return edit(a, a, ' '.repeat(missing) + text)
+    }
     if (!item && continuesRaw(model, a))
       return edit(a, a, text)
     if (!item && !owner.marker)

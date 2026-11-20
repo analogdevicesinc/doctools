@@ -10,6 +10,8 @@ const TAGS = {
   table: 'table', row: 'tr', line: 'div', caption: 'div', target: 'span', options: 'span', option: 'span'
 }
 
+const UNBOXED = new Set(['table', 'list-table', 'tab-set', 'tab-item'])
+
 // Blocks that can hold side elements: the labels before them and their options
 const HOSTS = new Set(['heading', 'paragraph', 'directive'])
 
@@ -34,7 +36,7 @@ function renderLeaf(model, leaf) {
   el.dataset.e = leaf.e
   if (leaf.kind === 'soft') {
     el.className = 'soft'
-    el.textContent = ' '
+    el.textContent = leaf.newline ? '\n' : ' '
   } else {
     el.className = `leaf k-${leaf.kind}`
     if (leaf.bare) el.classList.add('bare')
@@ -67,6 +69,8 @@ function renderBlock(model, block, attached = []) {
   el.dataset.kind = block.kind
   el.dataset.type = block.name ? `${block.type} ${block.name}` : block.type
   if (block.name) el.dataset.name = block.name
+  // A directive that is not rendered as something of its own: a box with its name
+  if (block.kind === 'directive' && !block.card && !UNBOXED.has(block.name)) el.classList.add('boxed')
   if (block.kind === 'raw') el.dataset.raw = block.type
   if (block.hint) el.dataset.hint = block.hint
   el.dataset.s = block.s
@@ -108,6 +112,8 @@ function renderBlock(model, block, attached = []) {
     labels = []
   })
 
+  if (block.kind === 'directive' && block.name === 'tab-set') el.append(button('add-tab', 'Add a tab'))
+
   // A directive without content: a place to click to write it
   if (block.kind === 'directive' && block.takesContent &&
       !children.some(c => c.kind !== 'caption' && c.kind !== 'options')) {
@@ -127,6 +133,39 @@ function renderBlock(model, block, attached = []) {
 }
 
 // In the order of the source: the side elements are not where they are in it
+// The tab shown of each tab set, by the position of the set in the document
+const tabChoice = new Map()
+
+const isTab = el => el.dataset?.name === 'tab-item'
+const tabsOf = set => [...set.children].filter(isTab)
+
+// Show a tab, and the tabs it is in
+export function selectTab(root, tab) {
+  for (let el = tab; el && el !== root; el = el.parentElement) {
+    if (!isTab(el)) continue
+    const set = el.parentElement
+    const tabs = tabsOf(set)
+    tabs.forEach(other => other.classList.toggle('selected', other === el))
+    tabChoice.set(Number(set.dataset.tabs), tabs.indexOf(el))
+  }
+}
+
+// One tab of each set is shown: the one of the caret, else the one chosen before
+function showTabs(root, model, caret) {
+  root.querySelectorAll('.b-directive[data-name="tab-set"]').forEach((set, n) => {
+    set.dataset.tabs = n
+    const tabs = tabsOf(set)
+    const index = Math.min(tabChoice.get(n) ?? 0, tabs.length - 1)
+    tabs.forEach((tab, i) => tab.classList.toggle('selected', i === index))
+  })
+  if (caret === undefined) return
+  for (let block = blockAt(model, caret); block; block = block.parent) {
+    if (block.name !== 'tab-item') continue
+    const el = [...root.querySelectorAll('.b-directive[data-name="tab-item"]')].find(tab => tab.block === block)
+    if (el) selectTab(root, el)
+  }
+}
+
 const leafElements = root => [...root.querySelectorAll('.leaf, .soft')]
   .sort((a, b) => Number(a.dataset.s) - Number(b.dataset.s))
 
@@ -135,6 +174,7 @@ const leafElements = root => [...root.querySelectorAll('.leaf, .soft')]
 export function render(root, model, caret) {
   const doc = renderBlock(model, model.root)
   root.replaceChildren(doc)
+  showTabs(root, model, caret)
 
   if (caret === undefined || leafAt(model, caret))
     return
@@ -238,6 +278,9 @@ export function markActive(root, offset, scroll = false) {
       best = el
   }
   if (best) {
+    // Its tab is shown
+    const tab = best.closest('.b-directive[data-name="tab-item"]:not(.selected)')
+    if (tab) selectTab(root, best)
     best.classList.add('active')
     if (scroll) best.scrollIntoView({ block: 'nearest' })
   }

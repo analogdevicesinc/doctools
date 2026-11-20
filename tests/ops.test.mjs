@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { run, modelOf } from './helper.mjs'
 import {
-  insertText, deleteBackward, deleteForward, insertParagraph, toggleInline, intoContent, addOption, tableStep, addLabel, removeSide
+  insertText, deleteBackward, deleteForward, insertParagraph, toggleInline, intoContent, addOption, tableStep, addLabel, removeSide, addTab
 } from '../adoc_gui/web/ops.js'
 
 const type = (marked, text) => run(marked, insertText, text)
@@ -130,8 +130,10 @@ test('down from the argument goes to the content that is not written yet', () =>
   assert.equal(run('.. code-block:: c|\n', down), '.. code-block:: c\n\n   |\n')
   assert.equal(run('.. code-block::|\n\nnext\n', down), '.. code-block::\n\n   |\n\nnext\n')
   assert.equal(run('.. code-block:: c|\n\n   \n', down), '.. code-block:: c\n\n   |\n')
-  // The caret moves by itself when there is content, or no place for it
-  assert.equal(run('.. code-block:: c|\n\n   x\n', down), '.. code-block:: c|\n\n   x\n')
+  assert.equal(run('.. code-block:: c|\n\n   x\n', down), '.. code-block:: c\n\n   |x\n')
+  assert.equal(run('.. tab-set::\n\n   .. tab-item:: pi|p\n\n      .. shell::\n\n         $ ls\n', down),
+    '.. tab-set::\n\n   .. tab-item:: pip\n\n      .. shell::\n\n         |$ ls\n')
+  // The caret moves by itself when there is no place for content
   assert.equal(run('.. image:: a|\n', down), '.. image:: a|\n')
   assert.equal(run('Para|\n', down), 'Para|\n')
 })
@@ -178,6 +180,38 @@ test('labels are added to a heading and side elements are removed', () => {
   assert.equal(run('Text\n\n.. _a:\n\nTitle|\n=====\n', remove('target')), 'Text\n\n|Title\n=====\n')
   assert.equal(run('.. _a:\n.. _b:\n\nTitle|\n=====\n', remove('target')), '|.. _b:\n\nTitle\n=====\n'.replace('|.. _', '.. _|'))
   assert.equal(run('.. code-block:: c|\n   :linenos:\n   :b: 1\n\n   x\n', remove('option')), '.. code-block:: c|\n   :b: 1\n\n   x\n')
+})
+
+test('tabs are added, filled and removed', () => {
+  const add = model => addTab(model, model.root.children.find(b => b.name === 'tab-set'))
+  const tabs = '.. tab-set::\n\n   .. tab-item:: pip|\n\n      one\n'
+  assert.equal(run(tabs, add), '.. tab-set::\n\n   .. tab-item:: pip\n\n      one\n\n   .. tab-item::|\n')
+  assert.equal(run(tabs + '\nAfter\n', add),
+    '.. tab-set::\n\n   .. tab-item:: pip\n\n      one\n\n   .. tab-item::|\n\nAfter\n')
+  assert.equal(run('.. tab-set::|\n', add), '.. tab-set::\n\n   .. tab-item::|\n')
+  // The title, then the content
+  let text = type('.. tab-set::\n\n   .. tab-item::|\n', 'uv')
+  assert.equal(text, '.. tab-set::\n\n   .. tab-item:: uv|\n')
+  text = run(text, insertParagraph)
+  assert.equal(text, '.. tab-set::\n\n   .. tab-item:: uv\n\n      |\n')
+  text = type(text, 'Text')
+  assert.equal(text, '.. tab-set::\n\n   .. tab-item:: uv\n\n      Text|\n')
+  // A new tab left empty, and an emptied tab, are removed
+  assert.equal(run('.. tab-set::\n\n   .. tab-item:: a\n\n      x\n\n   .. tab-item::|\n', deleteBackward),
+    '.. tab-set::\n\n   .. tab-item:: a\n\n      x|\n')
+  assert.equal(run('.. tab-set::\n\n   .. tab-item:: a\n\n      x\n\n   .. tab-item:: |\n', deleteBackward),
+    '.. tab-set::\n\n   .. tab-item:: a\n\n      x|\n')
+})
+
+test('code is edited without the indentation its lines share', () => {
+  const code = '.. tab-set::\n\n   .. tab-item:: a\n\n      .. shell::\n\n         $ one|\n         $ two\n'
+  assert.equal(type(code, '1'), code.replace('one|', 'one1|'))
+  assert.equal(run(code, insertParagraph), code.replace('one|', 'one\n         |'))
+  assert.equal(run(code.replace('one|', 'one').replace('$ two', '|$ two'), deleteBackward), code.replace('one|\n         ', 'one|'))
+  assert.equal(run(code, deleteForward), code.replace('one|\n         ', 'one|'))
+  // An empty line of the code
+  const gap = '.. code-block:: c\n\n   a\n|\n   b\n'
+  assert.equal(type(gap, 'x'), '.. code-block:: c\n\n   a\n   x|\n   b\n')
 })
 
 test('an emptied directive is removed with backspace', () => {

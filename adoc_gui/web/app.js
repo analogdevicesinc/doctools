@@ -1,9 +1,9 @@
 import { Parser, Language } from './vendor/web-tree-sitter.js'
 import { buildModel, leafAt } from './model.js'
 import {
-  applyEdit, insertText, deleteBackward, deleteForward, insertParagraph, toggleInline, tableStep, openContent, intoContent, addOption, addLabel, removeSide
+  applyEdit, insertText, deleteBackward, deleteForward, insertParagraph, toggleInline, tableStep, openContent, intoContent, addOption, addLabel, removeSide, addTab
 } from './ops.js'
-import { render, getSelection, setSelection, markActive, showDiagnostics } from './view.js'
+import { render, getSelection, setSelection, markActive, showDiagnostics, selectTab as showTab } from './view.js'
 import { completionAt, matching, roleQuestion } from './lsp.js'
 import { SparseSelection } from './sparse.js'
 import { renderTree, foldersOf, ancestorsOf } from './nav.js'
@@ -298,7 +298,11 @@ view.addEventListener('drop', ev => ev.preventDefault())
 
 // A click on the empty content of a directive starts it
 view.addEventListener('mousedown', ev => {
-  const el = ev.target.closest?.('.content-hint, .add-option, .add-label, .remove-side')
+  // A click on the title of a tab shows the tab
+  const tab = ev.target.closest?.('.b-directive[data-name="tab-item"] > .b-caption')
+  if (tab) showTab(view, tab.parentElement)
+
+  const el = ev.target.closest?.('.content-hint, .add-option, .add-label, .remove-side, .add-tab')
   if (!el) return
   ev.preventDefault()
   view.focus()
@@ -306,6 +310,7 @@ view.addEventListener('mousedown', ev => {
   if (el.matches('.content-hint')) commit(openContent(state.model, block))
   else if (el.matches('.add-option')) commit(addOption(state.model, block))
   else if (el.matches('.add-label')) commit(addLabel(state.model, block))
+  else if (el.matches('.add-tab')) commit(addTab(state.model, block))
   else commit(removeSide(state.model, block))
 })
 

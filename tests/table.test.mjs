@@ -98,7 +98,8 @@ test('tables with spans are shown as source', () => {
   ]) {
     const model = modelOf(source)
     assert.equal(outline(model.root), 'document(raw)')
-    assert.equal(model.source.slice(model.leaves[0].s, model.leaves[0].e), source.trimEnd())
+    const lines = model.leaves.filter(l => l.kind === 'raw').map(l => model.source.slice(l.s, l.e))
+    assert.equal(lines.join('\n'), source.trimEnd())
   }
 })
 
