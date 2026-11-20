@@ -12,6 +12,10 @@ pip install -e .   # in the environment of adi-doctools
 adoc-gui doc.rst   # without a file: the index.rst of the current folder
 ```
 
+It follows Harmonic, the design system of ADI, as the Doctools theme does: its
+colours, and its fonts (Inter, Barlow, JetBrains Mono) when they are installed
+or fetched for the theme (`ci/fetch-fonts.sh`).
+
 The page has three parts:
 
 - **Files**, at the left: the `.rst` files of the documentation. A click opens

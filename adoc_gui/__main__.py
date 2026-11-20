@@ -20,6 +20,12 @@ from urllib.parse import parse_qs, urlsplit
 from .docs import Docs
 
 WEB = Path(__file__).resolve().parent / 'web'
+
+try:
+    import adi_doctools
+    FONTS = Path(adi_doctools.__file__).resolve().parent / 'theme' / 'harmonic' / 'static' / 'fonts'
+except ImportError:
+    FONTS = None
 MAX_SIZE = 16 * 1024 * 1024
 INDEX_CANDIDATES = ['index.rst', 'docs/index.rst', 'doc/index.rst', 'docs/source/index.rst', 'doc/source/index.rst']
 
@@ -130,8 +136,12 @@ def make_handler(first: Path, root: Path, docs: Docs):
                 return self.allowed() and self.reply_json(200, {'root': str(root), 'tree': list_tree(root)})
 
             relative = 'index.html' if path == '/' else path.lstrip('/')
-            target = (WEB / relative).resolve()
-            if WEB not in target.parents or not target.is_file():
+            base = WEB
+            # The fonts of Harmonic, from the Doctools theme when they were fetched
+            if relative.startswith('fonts/') and FONTS:
+                base, relative = FONTS, relative[len('fonts/'):]
+            target = (base / relative).resolve()
+            if base not in target.parents or not target.is_file():
                 return self.reply(404, b'Not found')
             content_type = mimetypes.guess_type(target.name)[0] or 'application/octet-stream'
             self.reply(200, target.read_bytes(), content_type)
