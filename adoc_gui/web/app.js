@@ -808,7 +808,6 @@ function showGitMarks() {
     mark.rows.push(row)
   }
 
-  const peeking = peek.isConnected
   const base = canvas.getBoundingClientRect()
   // At the right of the page, inside its edge
   const left = view.getBoundingClientRect().right - base.left + canvas.scrollLeft - 9
@@ -824,32 +823,36 @@ function showGitMarks() {
     bar.dataset.to = Math.max(...mark.rows) + 1
     return bar
   }))
-  if (peeking) gitLayer.append(peek)
 }
 
 // On the pointer, a bar opens to the change it is part of, to stage it, or
-// unstage it
+// unstage it: the bars of the page, and the ones of the lines of the source
 const peek = document.createElement('div')
 peek.className = 'git-peek'
 let peekTimer
 let peekHunk
+let peekKey
 
-function hunkOf(bar) {
-  const from = Number(bar.dataset.from)
-  const to = Number(bar.dataset.to)
+// from, to: the lines of the file, from 1
+function hunkAt(from, to) {
   // A removed line is between two lines: the change ends or starts there
   return hunks.find(h => !h.staged && h.start <= to + 1 && h.end >= from - 1) ??
     hunks.find(h => h.staged && h.start <= to + 1 && h.end >= from - 1)
 }
 
-function showPeek(bar) {
-  clearTimeout(peekTimer)
-  const hunk = hunkOf(bar)
+// anchor: the rectangle of the bar on the screen; side: where the change
+// opens, 'left' of the bar (the page) or 'right' of it (the source)
+function showPeek(from, to, anchor, side) {
+  keepPeek()
+  const hunk = hunkAt(from, to)
+  const key = `${side}:${hunk ? `${hunk.staged}:${hunk.index}` : from}`
+  if (key === peekKey && peek.isConnected) return
+  peekKey = key
   peekHunk = hunk
   peek.replaceChildren()
   const head = element('div', 'git-peek-head')
   if (!hunk) {
-    head.append(element('span', 'changes-at', state.dirty ? 'Not saved yet' : 'Changed since the last commit'))
+    head.append(element('span', 'git-peek-at', state.dirty ? 'Not saved yet' : 'Changed since the last commit'))
     peek.append(head)
   } else {
     head.append(element('span', 'git-peek-at', `line ${hunk.start}${hunk.staged ? ' · staged' : ''}`))
@@ -863,35 +866,71 @@ function showPeek(bar) {
     }
     peek.append(head, pre)
   }
-  peek.style.width = `${Math.min(520, view.clientWidth - 48)}px`
-  gitLayer.append(peek)
+  // The page: at the left of its bar, beside the block; the source: below
+  // the line, in the room that is left at its right
+  const room = side === 'left' ? anchor.left - 14 : window.innerWidth - anchor.left - 14
+  const width = Math.min(520, Math.max(room, 280), window.innerWidth - 16)
+  peek.style.width = `${width}px`
+  document.body.append(peek)
   peek.classList.add('open')
-  // Over the page, its right edge at the bar
-  const right = parseFloat(bar.style.left) - 6
-  peek.style.left = `${Math.max(right - peek.offsetWidth, 0)}px`
-  peek.style.top = `${parseFloat(bar.style.top)}px`
+  const left = side === 'left' ? anchor.left - 6 - width : anchor.left
+  const top = side === 'left' ? anchor.top : anchor.bottom + 2
+  peek.style.left = `${Math.min(Math.max(left, 8), window.innerWidth - width - 8)}px`
+  peek.style.top = `${Math.max(Math.min(top, window.innerHeight - peek.offsetHeight - 8), 8)}px`
 }
 
 function hidePeek(later = true) {
-  clearTimeout(peekTimer)
   const hide = () => {
+    peekTimer = undefined
     peek.classList.remove('open')
     peek.remove()
     peekHunk = undefined
+    peekKey = undefined
   }
-  if (later) peekTimer = setTimeout(hide, 250)
-  else hide()
+  if (!later) {
+    clearTimeout(peekTimer)
+    return hide()
+  }
+  // Once: the pointer that goes on moving does not keep it open
+  if (peekTimer === undefined && peek.isConnected) peekTimer = setTimeout(hide, 250)
 }
 
+function keepPeek() {
+  clearTimeout(peekTimer)
+  peekTimer = undefined
+}
+
+// The bars of the page
 gitLayer.addEventListener('mouseover', ev => {
   const bar = ev.target.closest('.git-bar')
-  if (bar) showPeek(bar)
-  else if (peek.contains(ev.target)) clearTimeout(peekTimer)
+  if (bar) showPeek(Number(bar.dataset.from), Number(bar.dataset.to), bar.getBoundingClientRect(), 'left')
 })
 gitLayer.addEventListener('mouseout', ev => {
-  if (!gitLayer.contains(ev.relatedTarget) || (!peek.contains(ev.relatedTarget) && !ev.relatedTarget?.closest?.('.git-bar')))
-    hidePeek()
+  if (!peek.contains(ev.relatedTarget) && !ev.relatedTarget?.closest?.('.git-bar')) hidePeek()
 })
+
+// The bars of the lines of the source: the space at the left of a line
+const sourceDom = source.view.dom
+sourceDom.addEventListener('mousemove', ev => {
+  const line = ev.target.closest?.('.cm-line')
+  const marked = line && /\bm-git-(added|changed|deleted)\b/.test(line.className)
+  const rect = line?.getBoundingClientRect()
+  if (!marked || ev.clientX > rect.left + 12) {
+    if (peekKey?.startsWith('right:')) hidePeek()
+    return
+  }
+  const number = source.view.state.doc.lineAt(source.view.posAtDOM(line)).number
+  showPeek(number, number, { left: rect.left, right: rect.left + 4, top: rect.top, bottom: rect.bottom }, 'right')
+})
+sourceDom.addEventListener('mouseleave', ev => {
+  if (!peek.contains(ev.relatedTarget)) hidePeek()
+})
+peek.addEventListener('mouseenter', keepPeek)
+peek.addEventListener('mouseleave', ev => {
+  if (!ev.relatedTarget?.closest?.('.git-bar')) hidePeek()
+})
+canvas.addEventListener('scroll', () => hidePeek(false), { passive: true })
+source.view.scrollDOM.addEventListener('scroll', () => hidePeek(false), { passive: true })
 peek.addEventListener('mousedown', ev => ev.preventDefault())
 peek.addEventListener('click', async ev => {
   if (!ev.target.closest('.git-peek-do') || !peekHunk) return

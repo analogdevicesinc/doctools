@@ -747,6 +747,7 @@ td > p.block, th > p.block, td > .placeholder, th > .placeholder { margin: 0; }
 #source .cm-content { padding: 0 20px 0 8px; caret-color: var(--primary); }
 /* The bars of git go in the space at the left of the lines */
 #source .cm-line { padding-left: 12px; }
+#source .cm-line[class*='m-git-'] { cursor: default; }
 .cm-editor.cm-focused { outline: none; }
 .cm-editor .cm-cursor { border-left: 2px solid var(--primary); }
 .cm-editor .cm-selectionBackground { background: color-mix(in srgb, var(--primary) 18%, transparent) !important; }
@@ -1188,8 +1189,8 @@ body.inspect .page .add-tab { opacity: 1; }
 
 /* The change of a bar, open on the pointer: over the page, from the bar */
 .git-peek {
-  position: absolute;
-  z-index: 3;
+  position: fixed;
+  z-index: 30;
   display: none;
   max-height: 320px;
   overflow: auto;

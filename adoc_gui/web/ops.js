@@ -111,10 +111,14 @@ function optionValue(model, offset) {
 export function addLabel(model, heading) {
   const { source } = model
   const at = lineStart(source, heading.s)
+  // Indented as the heading: a heading in a directive has its label in it
+  const indent = lineOf(source, at).match(/^[ \t]*/)[0]
   const head = at > 0 && !isBlank(lineOf(source, at - 1)) ? '\n' : ''
   const name = 'label'
-  const start = at + head.length + 4
-  return { start: at, end: at, text: `${head}.. _${name}:\n\n`, anchor: start, caret: start + name.length }
+  const start = at + head.length + indent.length + 4
+  return {
+    start: at, end: at, text: `${head}${indent}.. _${name}:\n\n`, anchor: start, caret: start + name.length
+  }
 }
 
 function removeTarget(model, target) {

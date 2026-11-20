@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { run, modelOf } from './helper.mjs'
+import { run, modelOf, outline } from './helper.mjs'
 import {
   insertText, deleteBackward, deleteForward, insertParagraph, toggleInline, intoContent, addOption, tableStep, addLabel, removeSide, addTab, shiftItem
 } from '../adoc_gui/web/ops.js'
@@ -312,6 +312,17 @@ test('backspace at the start of the content removes the directive', () => {
   assert.equal(run(held, (m, a, b) => deleteBackward(m, a, b, { repeat: true })), held)
   assert.equal(run('.. note::\n\n   One\n\n   |Two\n', deleteBackward), '.. note::\n\n   One|Two\n')
   assert.equal(run('.. note::\n\n   * |a\n', deleteBackward), '.. note::\n\n   |a\n')
+})
+
+test('a label added to an indented heading is indented as it', () => {
+  const source = '.. only:: html\n\n   Text.\n\n   Documentation\n   -------------\n'
+  const model = modelOf(source)
+  const find = block => block.kind === 'heading' ? block : (block.children ?? []).map(find).find(Boolean)
+  const edit = addLabel(model, find(model.root))
+  const out = source.slice(0, edit.start) + edit.text + source.slice(edit.end)
+  assert.equal(out, '.. only:: html\n\n   Text.\n\n   .. _label:\n\n   Documentation\n   -------------\n')
+  assert.equal(out.slice(edit.anchor, edit.caret), 'label')
+  assert.equal(outline(modelOf(out).root).includes('target'), true)
 })
 
 test('tabs are added, filled and removed', () => {
