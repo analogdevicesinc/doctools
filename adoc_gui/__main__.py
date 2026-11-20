@@ -173,7 +173,9 @@ def make_handler(first: Path, root: Path, docs: Docs):
                     return self.reply(400, b'Bad request')
                 return self.reply_json(200, docs.set_sparse(paths))
             if path == '/api/grammar':
-                return self.reply_json(200, docs.grammar(message.get('text') if isinstance(message, dict) else None))
+                if not isinstance(message, dict):
+                    return self.reply(400, b'Bad request')
+                return self.reply_json(200, docs.grammar(message.get('text'), message.get('mode', 'local')))
             self.reply_json(200, docs.ask(message))
 
         def log_message(self, format, *args):

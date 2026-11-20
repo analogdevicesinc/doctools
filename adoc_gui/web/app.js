@@ -230,7 +230,9 @@ function format(kind) {
 }
 
 // The buttons do not take the focus, so the selection of the page is kept
-toolbar.addEventListener('mousedown', ev => ev.preventDefault())
+toolbar.addEventListener('mousedown', ev => {
+  if (!ev.target.closest('select')) ev.preventDefault()
+})
 toolbar.addEventListener('click', ev => {
   const action = ev.target.closest('[data-action]')?.dataset.action
   if (!action) return
@@ -709,11 +711,44 @@ const checked = new Map()
 const answered = new Map()
 // false once LanguageTool is known not to work here
 let grammarWorks = true
+// Where the grammar is checked: 'local', 'cloud' or 'off'; the checks of
+// another mode are dropped
+const grammarSelect = document.getElementById('grammar')
+let grammarMode = 'local'
+let grammarRun = 0
+try {
+  grammarMode = ['local', 'cloud', 'off'].includes(localStorage.getItem('doctools.grammar'))
+    ? localStorage.getItem('doctools.grammar') : 'local'
+} catch { }
+grammarSelect.value = grammarMode
+
+function setGrammarMode(mode) {
+  grammarMode = mode
+  grammarRun++
+  grammarWorks = true
+  checked.clear()
+  answered.clear()
+  grammarProblem('')
+  try {
+    localStorage.setItem('doctools.grammar', mode)
+  } catch { }
+  showMistakes()
+}
+grammarSelect.addEventListener('change', () => setGrammarMode(grammarSelect.value))
+
+// What keeps the grammar from being checked, in the title of the selector
+function grammarProblem(message) {
+  const label = grammarSelect.parentElement
+  label.classList.toggle('problem', Boolean(message))
+  label.title = message ? `LanguageTool: ${message}` : 'Check the spelling and the grammar with LanguageTool'
+}
 
 // Rules that only add noise in documentation
 const IGNORED_RULES = new Set(['WHITESPACE_RULE', 'EN_QUOTES', 'UPPERCASE_SENTENCE_START', 'DASH_RULE'])
 
 function checkGrammar(text) {
+  if (grammarMode === 'off') return Promise.resolve({ error: 'off' })
+  const run = grammarRun
   if (!checked.has(text)) {
     if (checked.size > 2000) {
       checked.clear()
@@ -721,12 +756,16 @@ function checkGrammar(text) {
     }
     checked.set(text, fetch('api/grammar', {
       method: 'POST', headers: { 'X-Doctools': '1', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text })
+      body: JSON.stringify({ text, mode: grammarMode })
     }).then(r => r.json()).catch(() => ({ error: 'unreachable' })).then(answer => {
+      if (run !== grammarRun) return { error: 'off' }
       if (answer.error) {
         checked.delete(text)
         // What is not worth trying again
-        if (!['unreachable', 'check_failed', 'the backend did not answer'].includes(answer.error)) grammarWorks = false
+        if (!['unreachable', 'check_failed', 'the backend did not answer', 'rate_limited'].includes(answer.error)) {
+          grammarWorks = false
+          grammarProblem(answer.message ?? answer.error)
+        }
       } else {
         answer.matches = (answer.matches ?? []).filter(m => !IGNORED_RULES.has(m.ruleId))
         answered.set(text, answer)
@@ -737,6 +776,10 @@ function checkGrammar(text) {
   return checked.get(text)
 }
 
+// A spelling mistake: the category is an id locally (TYPOS), a name in the
+// cloud (Possible Typo)
+const isSpelling = match => /typo/i.test(match.category ?? '') || /MORFOLOGIK|SPELL/.test(match.ruleId ?? '')
+
 // The words that are not mistakes, kept by the browser
 let words = new Set()
 try {
@@ -744,7 +787,7 @@ try {
 } catch { }
 
 const known = (prose, match) =>
-  match.category === 'TYPOS' && words.has(prose.text.slice(match.offset, match.offset + match.length))
+  isSpelling(match) && words.has(prose.text.slice(match.offset, match.offset + match.length))
 
 function addWord(word) {
   words.add(word)
@@ -776,7 +819,13 @@ function proseBlocks(model) {
 // yet once the typing stops
 let scanTimer
 function showMistakes() {
-  if (!grammarWorks || !CSS.highlights) return
+  if (!CSS.highlights) return
+  if (grammarMode === 'off') {
+    CSS.highlights.delete('spelling')
+    CSS.highlights.delete('grammar')
+    return
+  }
+  if (!grammarWorks) return
   const spelling = new Highlight()
   const grammar = new Highlight()
   const waiting = []
@@ -797,7 +846,7 @@ function showMistakes() {
       const dom = document.createRange()
       dom.setStart(from.node, from.offset)
       dom.setEnd(to.node, to.offset)
-      ;(match.category === 'TYPOS' ? spelling : grammar).add(dom)
+      ;(isSpelling(match) ? spelling : grammar).add(dom)
     }
   }
   CSS.highlights.set('spelling', spelling)
@@ -809,14 +858,17 @@ function showMistakes() {
 // One check at a time: LanguageTool answers them in turn
 let scanning = false
 async function scan(texts) {
-  if (scanning || !grammarWorks) return
+  if (scanning || !grammarWorks || grammarMode === 'off') return
   scanning = true
+  const run = grammarRun
   try {
     for (const text of texts) {
-      if (!grammarWorks) break
+      if (!grammarWorks || run !== grammarRun) break
       const source = state.source
-      await checkGrammar(text)
+      const answer = await checkGrammar(text)
       if (state.source === source) showMistakes()
+      // The public service takes 20 checks a minute
+      if (grammarMode === 'cloud') await new Promise(resolve => setTimeout(resolve, answer.error === 'rate_limited' ? 30000 : 3000))
     }
   } finally {
     scanning = false
@@ -850,7 +902,7 @@ function grammarItems(answer, prose, offset) {
       })
     }
     if (!match.replacements.length) items.push({ kind: 'note', label: 'No suggestion' })
-    if (match.category === 'TYPOS') {
+    if (isSpelling(match)) {
       const word = prose.text.slice(match.offset, match.offset + match.length)
       items.push({ label: `Add “${word}” to the words`, run: () => addWord(word) })
     }
@@ -880,11 +932,6 @@ function menuItems(a, b) {
   if (tabSet) extra.push({ label: 'Add a tab', run: () => commit(addTab(state.model, tabSet)) })
   if (extra.length) items.push({ kind: 'separator' }, ...extra)
 
-  items.push(
-    { kind: 'separator' },
-    { label: 'Undo', keys: 'Ctrl+Z', disabled: !state.undo.length, run: () => ACTIONS.undo() },
-    { label: 'Redo', keys: 'Ctrl+Y', disabled: !state.redo.length, run: () => ACTIONS.redo() }
-  )
   return items
 }
 
@@ -917,7 +964,7 @@ view.addEventListener('contextmenu', ev => {
   }
 
   const items = menuItems(a, b)
-  const block = a === b ? proseAt(a) : undefined
+  const block = a === b && grammarMode !== 'off' ? proseAt(a) : undefined
   if (!block) return context.show(x, y, items)
 
   const prose = proseOf(state.model, block)

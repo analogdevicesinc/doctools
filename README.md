@@ -32,12 +32,15 @@ The page has three parts:
     it opens the file of that page.
 
 The right click opens a menu: bold, italic, literal, what
-can be added there (a label to a heading, an option to a directive, a tab),
-undo and redo. Shift and the right click opens the menu of the browser.
+can be added there (a label to a heading, an option to a directive, a tab).
+Shift and the right click opens the menu of the browser.
 
 The spelling and grammar mistakes of the prose are underlined, red and blue,
-from LanguageTool (`pip install language_tool_python`, needs Java; the first
-check starts it and takes a few seconds). The right click on one shows its
+from LanguageTool. The selector at the right of the toolbar picks where it
+runs: *Local* (`pip install language_tool_python`, needs Java; the first
+check starts it and takes a few seconds), *Cloud* (the public service of
+LanguageTool: the text is sent to languagetool.org, 20 checks a minute) or
+*Off*. The right click on one shows its
 corrections; a word can be added to the words that are not mistakes, kept by
 the browser.
 

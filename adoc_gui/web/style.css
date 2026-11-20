@@ -139,6 +139,28 @@ body {
 }
 
 .toolbar .icon-button { width: 36px; height: 36px; padding: 6px; border-radius: 18px; }
+.grammar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  padding: 0 4px 0 8px;
+  height: 32px;
+  border-radius: 16px;
+  color: var(--on-surface-variant);
+}
+.grammar.problem { color: var(--error); }
+.grammar:hover { background: color-mix(in srgb, var(--on-surface) 8%, transparent); }
+.grammar svg { width: 20px; height: 20px; fill: currentColor; }
+.grammar select {
+  border: none;
+  outline: none;
+  font: 500 13px/20px var(--font);
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+.grammar select:focus-visible { outline: 2px solid var(--primary); border-radius: 4px; }
 
 .divider { width: 1px; height: 20px; margin: 0 6px; background: var(--outline-variant); }
 

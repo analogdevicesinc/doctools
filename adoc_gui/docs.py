@@ -340,13 +340,14 @@ class Docs:
             return {'error': 'the documentation server is not running'}
         return self.request(message)
 
-    def grammar(self, text: str) -> dict:
-        """The grammar mistakes of a text, by LanguageTool on this machine.
-        The first check starts LanguageTool, which takes a while."""
-        if not isinstance(text, str) or len(text) > 20000:
+    def grammar(self, text: str, mode: str = 'local') -> dict:
+        """The grammar mistakes of a text, by LanguageTool: on this machine
+        (local, the first check starts it, which takes a while) or by its
+        public service (cloud)."""
+        if not isinstance(text, str) or len(text) > 20000 or mode not in ('local', 'cloud'):
             return {'error': 'not allowed'}
-        return self.request({'languageTool': 'check', 'text': text, 'mode': 'local', 'language': 'en-US'},
-                            timeout=120)
+        return self.request({'languageTool': 'check', 'text': text, 'mode': 'api' if mode == 'cloud' else 'local',
+                             'language': 'en-US'}, timeout=120)
 
     def close(self):
         process = self._process
