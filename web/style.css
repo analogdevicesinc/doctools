@@ -1,0 +1,159 @@
+/* Not styled on purpose: boxes and colours only show what each piece is */
+
+* { box-sizing: border-box; }
+
+html, body { height: 100%; margin: 0; }
+
+body {
+  display: flex;
+  flex-direction: column;
+  font: 14px/1.4 sans-serif;
+  color: #000;
+  background: #fff;
+}
+
+header, footer {
+  padding: 4px 8px;
+  border: 1px solid #000;
+  font: 12px/1.4 monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+header span { margin-left: 16px; }
+
+main { flex: 1; display: flex; min-height: 0; }
+
+.pane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid #000;
+}
+
+.pane h2 {
+  margin: 0;
+  padding: 2px 8px;
+  font: bold 12px/1.4 monospace;
+  border-bottom: 1px solid #000;
+  background: #ddd;
+}
+
+/* Document -------------------------------------------------------------------- */
+
+#view {
+  flex: 1;
+  overflow: auto;
+  padding: 8px;
+  outline: none;
+  white-space: pre-wrap;
+}
+
+.block {
+  position: relative;
+  margin: 6px 0;
+  padding: 12px 6px 4px;
+  border: 1px solid #999;
+}
+
+/* The node type of each block */
+.block::before {
+  content: attr(data-type);
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 0 3px;
+  font: 9px/11px monospace;
+  color: #fff;
+  background: #999;
+  pointer-events: none;
+  user-select: none;
+}
+
+.b-document { border: none; padding: 0; margin: 0; }
+.b-document::before { content: none; }
+
+.block.active { border-color: #06c; background: #eef5ff; }
+.block.active::before { background: #06c; }
+
+h1.block, h2.block, h3.block, h4.block, h5.block, h6.block { border-color: #c00; }
+h1.block::before, h2.block::before, h3.block::before,
+h4.block::before, h5.block::before, h6.block::before { background: #c00; }
+h1.block { font-size: 24px; }
+h2.block { font-size: 20px; }
+h3.block { font-size: 17px; }
+h4.block, h5.block, h6.block { font-size: 15px; }
+
+.b-list { border-color: #080; padding-left: 28px; }
+.b-list::before { background: #080; }
+.b-item { border-style: dashed; border-color: #080; }
+.b-item::before { background: #080; }
+
+.b-directive { border-color: #a50; background: #fff8ee; }
+.b-directive::before { background: #a50; }
+
+.b-quote { border-color: #777; margin-left: 24px; }
+
+.b-raw {
+  font: 13px/1.4 monospace;
+  white-space: pre;
+  overflow-x: auto;
+  border-color: #808;
+  background: #f6f0f6;
+}
+.b-raw::before { background: #808; }
+.b-raw.head { border-style: dotted; background: none; margin-top: 0; }
+.b-raw.code { background: #eee; border-color: #444; }
+.b-raw.code::before { background: #444; }
+.b-raw.error { border-color: #f00; background: #fee; }
+.b-raw.error::before { background: #f00; }
+
+.placeholder {
+  margin: 6px 0;
+  padding: 2px 6px;
+  min-height: 1.4em;
+  border: 1px dashed #06c;
+}
+li > .placeholder { margin: 0; }
+
+/* Inline ---------------------------------------------------------------------- */
+
+.k-strong { font-weight: bold; background: #ffe9a8; }
+.k-emphasis { font-style: italic; background: #d9f2d9; }
+.k-literal { font-family: monospace; background: #ddd; }
+.k-role { font-family: monospace; background: #cfe2ff; }
+.k-link { font-family: monospace; background: #d6f0f5; text-decoration: underline; }
+.k-markup { font-family: monospace; background: #f3d6f3; }
+.soft { color: #bbb; }
+
+/* Source ---------------------------------------------------------------------- */
+
+#source { flex: 1; position: relative; min-height: 0; }
+
+#backdrop, #code {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 8px;
+  border: none;
+  font: 13px/18px monospace;
+  white-space: pre;
+  tab-size: 8;
+  overflow: auto;
+}
+
+#backdrop { color: transparent; pointer-events: none; overflow: hidden; }
+#backdrop mark { color: transparent; }
+#backdrop mark.block { background: #dbe9ff; }
+#backdrop mark.edit { background: #ffe066; }
+
+#code {
+  width: 100%;
+  height: 100%;
+  resize: none;
+  outline: none;
+  color: #000;
+  background: transparent;
+}

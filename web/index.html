@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Doctools</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <strong>Doctools</strong>
+    <span id="file"></span>
+  </header>
+  <main>
+    <section class="pane">
+      <h2>Document</h2>
+      <div id="view" contenteditable="true" spellcheck="false"></div>
+    </section>
+    <section class="pane">
+      <h2>Source</h2>
+      <div id="source">
+        <pre id="backdrop" aria-hidden="true"></pre>
+        <textarea id="code" spellcheck="false" wrap="off"></textarea>
+      </div>
+    </section>
+  </main>
+  <footer id="status"></footer>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
