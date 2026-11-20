@@ -21,14 +21,21 @@ const ARGUMENT = {
   'code-block': 'language', code: 'language', sourcecode: 'language',
   image: 'path', figure: 'path', include: 'path', literalinclude: 'path',
   table: 'title', 'list-table': 'title', 'csv-table': 'title',
-  admonition: 'title', topic: 'title', sidebar: 'title', 'tab-item': 'title'
+  admonition: 'title', topic: 'title', sidebar: 'title', 'tab-item': 'title',
+  collapsible: 'title', card: 'title', collection: 'title', video: 'url', svg: 'path'
 }
 
 // Directives whose content is reStructuredText
-const RST_DIRECTIVES = new Set([...CARD_DIRECTIVES, 'figure', 'tab-set', 'tab-item'])
+const RST_DIRECTIVES = new Set([
+  ...CARD_DIRECTIVES, 'figure', 'tab-set', 'tab-item', 'carousel', 'collapsible', 'card', 'grid', 'flex',
+  'video', 'svg', 'description', 'hdl-parameters', 'hdl-interfaces', 'esd-warning'
+])
 
 // Directives without an argument
-const NO_ARGUMENT = new Set(['shell', 'tab-set', 'toctree', 'math'])
+const NO_ARGUMENT = new Set([
+  'shell', 'tab-set', 'toctree', 'math', 'carousel', 'grid', 'flex', 'description', 'hdl-parameters',
+  'hdl-interfaces', 'esd-warning'
+])
 
 import { readTable } from './table.js'
 

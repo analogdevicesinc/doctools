@@ -109,6 +109,7 @@ a tree that is updated incrementally can differ from a fresh one.
 | | The `−` at the left of a chip in the margin removes the label or the option |
 | Grid tables, simple tables, `table` and `list-table` | Tables: type in the cells, `Tab` moves between them, `Enter` adds a row, `Backspace` in an empty row removes it |
 | Tables with cells that span columns or rows, `csv-table` | Their source, in a box |
+| `carousel`, `collapsible`, `card`, `grid`, `flex`, `figure`, `video`, ... | A box with their name, caption and options, the content is edited as a document |
 | Other directives | A box with their name, caption and options, the content as source |
 | Literal blocks | Their text as it is written; the `::` alone on its line is hidden |
 | Comments, targets with a link, definition and field lists | Their source, in a box |

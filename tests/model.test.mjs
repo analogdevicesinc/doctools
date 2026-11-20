@@ -143,6 +143,19 @@ test('a tab set holds tabs, their content is parsed', () => {
   assert.equal(sets[0].children.some(c => c.kind === 'caption'), false)
 })
 
+test('the content of the doctools directives is parsed', () => {
+  const source = [
+    '.. carousel::', '', '   .. figure:: a.png', '', '      A *caption*.', '', '   .. image:: b.png', '',
+    '.. collapsible:: More', '', '   Hidden text.', '',
+    '.. collection:: Title', '', '   hdl:', '     - projects/x', ''
+  ].join('\n')
+  const model = assertCovered(source)
+  assert.equal(outline(model.root), 'document(' +
+    'directive:carousel(directive:figure(caption paragraph) directive:image(caption)) ' +
+    'directive:collapsible(caption paragraph) directive:collection(caption raw))')
+  assert.ok(texts(model).includes('emphasis:caption'))
+})
+
 test('a target shows its label', () => {
   const model = assertCovered('.. _a label:\n\nTitle\n=====\n\n.. _ext: http://x.y\n\n.. _`quoted`:\n')
   assert.equal(outline(model.root), 'document(target heading1 raw target)')
