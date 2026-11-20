@@ -667,7 +667,16 @@ function renderChanges({ unstaged = [], staged = [], untracked = [] }) {
         Object.assign(block.dataset, { path: file.path, hunk: String(i), header: hunk.header, staged: String(isStaged) })
         block.title = isStaged ? 'Click to unstage this change' : 'Click to stage this change'
         const range = hunk.header.match(/^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@\s?(.*)$/)
-        block.append(element('div', 'changes-at', range ? `line ${range[1]}${range[3] ? `  ${range[3]}` : ''}` : hunk.header))
+        const at = element('div', 'changes-at')
+        at.append(element('span', 'changes-where', range ? `line ${range[1]}${range[3] ? `  ${range[3]}` : ''}` : hunk.header))
+        // A change that is not staged can be thrown away; undo brings it back
+        if (!isStaged) {
+          const discard = element('button', 'changes-discard', 'Discard')
+          discard.type = 'button'
+          discard.title = 'Throw this change away (undo brings it back, for the open file)'
+          at.append(discard)
+        }
+        block.append(at)
         const pre = element('pre', 'changes-lines')
         for (const line of hunk.lines) {
           const kind = line[0] === '+' ? 'add' : line[0] === '-' ? 'del' : 'ctx'
@@ -705,6 +714,12 @@ changesList.addEventListener('click', async ev => {
     for (const path of paths) await post('api/git/stage', { path, staged }).catch(() => {})
     loadGit()
     return loadChanges()
+  }
+  const discard = ev.target.closest('.changes-discard')
+  if (discard) {
+    const hunk = discard.closest('.changes-hunk')
+    hunk.classList.add('busy')
+    return discardChange({ path: hunk.dataset.path, hunk: Number(hunk.dataset.hunk), header: hunk.dataset.header })
   }
   const whole = ev.target.closest('.changes-whole')
   if (whole) return stage({ path: whole.dataset.path, staged: whole.dataset.staged === 'true' })
@@ -862,11 +877,11 @@ function showPeek(from, to, anchor, side) {
   } else {
     head.append(element('span', 'git-peek-at', `line ${hunk.start}${hunk.staged ? ' · staged' : ''}`))
     const actions = element('span', 'git-peek-actions')
-    // A change that is not staged can be thrown away, with a second click
+    // A change that is not staged can be thrown away; undo brings it back
     if (!hunk.staged) {
       const discard = element('button', 'text-button plain git-peek-discard', 'Discard')
       discard.type = 'button'
-      discard.title = 'Throw this change away: the text goes back to the last commit'
+      discard.title = 'Throw this change away (undo brings it back)'
       actions.append(discard)
     }
     const button = element('button', `text-button git-peek-do${hunk.staged ? ' plain' : ''}`, hunk.staged ? '− Unstage' : '+ Stage')
@@ -948,13 +963,7 @@ source.view.scrollDOM.addEventListener('scroll', () => hidePeek(false), { passiv
 peek.addEventListener('mousedown', ev => ev.preventDefault())
 peek.addEventListener('click', async ev => {
   if (!peekHunk) return
-  const discard = ev.target.closest('.git-peek-discard')
-  if (discard) {
-    if (!discard.classList.contains('sure')) {
-      discard.classList.add('sure')
-      discard.textContent = 'Discard it?'
-      return
-    }
+  if (ev.target.closest('.git-peek-discard')) {
     const { index, header } = peekHunk
     hidePeek(false)
     return discardChange({ path: state.path, hunk: index, header })

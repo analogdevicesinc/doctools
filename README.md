@@ -81,12 +81,12 @@ what changed since the last commit, as an editor gutter does:
 - Bars at the right of the blocks of the page, and at the left of the lines
   of the source: green for added, blue for changed; a red mark where lines
   were removed. The pointer on a bar, of the page or of the source, opens
-  its change, with *+ Stage*, or *− Unstage* when it is staged. *Discard*,
-  clicked twice, throws away a change that is not staged; undo brings it
-  back.
+  its change, with *+ Stage*, or *− Unstage* when it is staged. *Discard*
+  throws away a change that is not staged; undo brings it back.
 - *Changes*, a tab of the side pane: the changes of the files, not staged
   and staged, as their lines. A click on a change stages it, or unstages it
-  when it is staged; `+` and `−` stage and unstage a whole file, a click
+  when it is staged; *Discard*, on the pointer, throws away a change that is
+  not staged (undo brings it back, for the open file); `+` and `−` stage and unstage a whole file, a click
   on its name opens it.
 - *Commit*, at the top of the *Changes* tab: it commits what is staged, and
   only that. The summary is the first line of the message, with
