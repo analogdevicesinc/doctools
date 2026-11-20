@@ -19,11 +19,14 @@ local RST_DIRECTIVES = set({
   'line-block', 'parsed-literal', 'epigraph', 'highlights', 'pull-quote', 'compound', 'header', 'footer',
   'meta', 'replace', 'topic', 'sidebar', 'container', 'table', 'list-table', 'class', 'role',
   'restructuredtext-test-directive',
+  -- Doctools
+  'tab-set', 'tab-item', 'carousel', 'collapsible', 'card', 'grid', 'flex', 'video', 'svg', 'description',
+  'hdl-parameters', 'hdl-interfaces', 'esd-warning',
 })
 
 -- Directives that inject other languages (skip for grammar checking)
 local CODE_DIRECTIVES = set({
-  'code', 'code-block', 'sourcecode', 'raw', 'math', 'csv-table', 'shell', 'include-template',
+  'code', 'code-block', 'sourcecode', 'raw', 'math', 'csv-table', 'shell', 'include-template', 'collection',
 })
 
 -- Directives with file path arguments - skip arguments, but check content (caption) if present

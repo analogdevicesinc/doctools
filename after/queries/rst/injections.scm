@@ -30,3 +30,39 @@
  (#set! injection.language "yaml")
  (#set! injection.combined))
 
+
+; ==========
+; directives with nested rst content
+; .. tab-set::
+;
+;    .. tab-item:: <title>
+;
+;       <rst content>
+;
+; .. carousel::
+;
+;    .. figure:: <image>
+;
+;       <caption>
+; ==========
+((directive
+  name: (type) @_type
+  body: (body
+    (content) @injection.content))
+ (#any-of? @_type
+   "tab-set" "tab-item" "carousel" "collapsible" "card" "grid" "flex"
+   "video" "svg" "description" "hdl-parameters" "hdl-interfaces" "esd-warning")
+ (#set! injection.language "rst"))
+
+; ==========
+; collection directive - yaml
+; .. collection:: <title>
+;    <yaml content>
+; ==========
+((directive
+  name: (type) @_type
+  body: (body
+    (content) @injection.content))
+ (#eq? @_type "collection")
+ (#set! injection.language "yaml")
+ (#set! injection.combined))

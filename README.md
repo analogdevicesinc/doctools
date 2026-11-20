@@ -26,8 +26,10 @@ It talks to the Sphinx Python object directly, through the same backend as the
   quick fixes as code actions and Vale vocabularies.
 - **Format**: bold, italic, headings, lists, links, references, images, tables,
   code blocks and admonitions, for reStructuredText and MyST Markdown.
-- **Language Injection**: highlight of the `shell` and `include-template`
-  directives.
+- **Language Injection**: highlight of the content of the Doctools directives:
+  bash in `shell`, YAML in `include-template` and `collection`, and
+  reStructuredText in `tab-set`, `tab-item`, `carousel`, `collapsible`, `card`,
+  `grid`, `flex` and others, down their nesting.
 - **Roles without the server**: `:DInspect` and `:DAction` for `:adi:`,
   `:dokuwiki:`, `:git-<repo>:` and your own roles.
 
