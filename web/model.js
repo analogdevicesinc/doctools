@@ -7,11 +7,14 @@
 // model does not understand becomes a 'raw' leaf with the source as-is, so no
 // content is ever dropped.
 
-// Directives whose content is reStructuredText
-const RST_DIRECTIVES = new Set([
+// Directives shown as a card
+const CARD_DIRECTIVES = new Set([
   'attention', 'caution', 'danger', 'error', 'hint', 'important', 'note', 'tip', 'warning', 'admonition',
   'epigraph', 'highlights', 'pull-quote', 'compound', 'topic', 'sidebar', 'container'
 ])
+
+// Directives whose content is reStructuredText
+const RST_DIRECTIVES = new Set([...CARD_DIRECTIVES, 'figure'])
 
 import { readTable } from './table.js'
 
@@ -155,13 +158,15 @@ export function buildModel(parser, tree, source) {
     if (!levels.includes(key)) levels.push(key)
     const b = block('heading', node, parent, { level: levels.indexOf(key) + 1 })
     b.title = { s: title.startIndex, e: title.endIndex }
+    b.marks = marks.map(mark => ({ s: mark.startIndex, e: mark.endIndex }))
     b.inlines = inlines(b, title.children, title.startIndex, title.endIndex)
     return b
   }
 
-  // The leaves of one line of a table cell, its inline markup is parsed
-  const cellLine = (range, parent) => {
-    const b = { kind: 'line', type: 'line', s: range.s, e: range.e, parent }
+  // The leaves of one line of text that the grammar leaves as it is, such as
+  // a line of a table cell: its inline markup is parsed
+  const textLine = (kind, range, parent) => {
+    const b = { kind, type: kind, s: range.s, e: range.e, parent }
     let children = []
     let subtree
     if (/[*`:_|]/.test(source.slice(range.s, range.e))) {
@@ -192,7 +197,7 @@ export function buildModel(parser, tree, source) {
       const row = { kind: 'row', type: 'row', parent: b, header: r < read.headers }
       row.children = cells.map(cell => {
         const c = { kind: 'cell', type: 'cell', parent: row, header: row.header }
-        c.children = cell.lines.map(range => cellLine(range, c))
+        c.children = cell.lines.map(range => textLine('line', range, c))
         c.s = c.children[0].s
         c.e = c.children[c.children.length - 1].e
         return c
@@ -279,27 +284,71 @@ export function buildModel(parser, tree, source) {
     }
   }
 
-  const directive = (node, parent) => {
-    const name = node.children.find(c => c.type === 'type')?.text ?? ''
-    const body = node.children.find(c => c.type === 'body')
-    const content = body?.children.find(c => c.type === 'content')
-    const b = block('directive', node, parent, { name, rst: RST_DIRECTIVES.has(name) })
+  // ':name: value' of a directive
+  const option = (field, parent) => {
+    const name = field.children.find(c => c.type === 'field_name')
+    const value = field.children.find(c => c.type === 'field_body')
+    if (!name) return raw(field, parent)
+    const b = block('option', field, parent, { name: source.slice(name.startIndex, name.endIndex) })
+    b.inlines = [leaf(b, 'name', name.startIndex, name.endIndex, field.startIndex, value ? value.startIndex : field.endIndex)]
+    if (value) b.inlines.push(leaf(b, 'text', value.startIndex, value.endIndex))
+    return b
+  }
 
-    let headEnd = node.endIndex
-    if (content) {
-      const before = body.children[body.children.indexOf(content) - 1]
-      headEnd = before ? before.endIndex : node.children.find(c => c.type === '::')?.endIndex ?? body.startIndex
+  // '.. name:: arguments', then the options and the content. The name is
+  // hidden, the arguments are the caption.
+  const directive = (node, parent) => {
+    const type = node.children.find(c => c.type === 'type')
+    const colons = node.children.find(c => c.type === '::')
+    if (!type || !colons) return raw(node, parent)
+    const name = source.slice(type.startIndex, type.endIndex)
+    const body = node.children.find(c => c.type === 'body')
+    const parts = body?.children ?? []
+    const args = parts.find(c => c.type === 'arguments')
+    const options = parts.find(c => c.type === 'options')
+    const content = parts.find(c => c.type === 'content')
+    const b = block('directive', node, parent, { name, card: CARD_DIRECTIVES.has(name) })
+    hidden.push([node.startIndex, colons.endIndex])
+    b.children = []
+
+    if (args)
+      b.children.push(textLine('caption', { s: args.startIndex, e: args.endIndex }, b))
+    if (options) {
+      const list = block('options', options, b)
+      list.children = options.children.filter(c => c.endIndex > c.startIndex).map(c =>
+        c.type === 'field' ? option(c, list) : raw(c, list))
+      b.children.push(list)
     }
-    const bare = /^\.\.[ \t]+\S+::[ \t]*$/.test(source.slice(node.startIndex, headEnd))
-    b.children = [raw(node, b, node.startIndex, headEnd, { head: true, bare })]
-    if (content && name === 'list-table') {
+    for (const part of parts)
+      if (part !== args && part !== options && part !== content && part.endIndex > part.startIndex)
+        b.children.push(raw(part, b))
+    if (!content) return b
+
+    if (name === 'table') {
+      // The content is a grid or a simple table
+      const table = textTable(content, b)
+      b.children.push(table ?? raw(content, b, lineStart(content.startIndex), content.endIndex, { code: true }))
+    } else if (name === 'list-table') {
       const kids = nested(content, b)
-      const table = listTable(kids, b, source.slice(node.startIndex, headEnd))
+      const head = options ? source.slice(options.startIndex, options.endIndex) : ''
+      const table = listTable(kids, b, head)
       b.children.push(...(table ? [table] : kids))
-    } else if (content && b.rst)
+    } else if (RST_DIRECTIVES.has(name)) {
       b.children.push(...nested(content, b))
-    else if (content)
+    } else {
       b.children.push(raw(content, b, lineStart(content.startIndex), content.endIndex, { code: true }))
+    }
+    return b
+  }
+
+  // '.. _label:', the label is shown
+  const target = (node, parent) => {
+    const name = node.children.find(c => c.type === 'name')
+    const text = name ? source.slice(name.startIndex, name.endIndex) : ''
+    if (!name || node.children.some(c => c.isNamed && c !== name) || !/^_.+:$/.test(text))
+      return raw(node, parent)
+    const b = block('target', node, parent)
+    b.inlines = [leaf(b, 'label', name.startIndex + 1, name.endIndex - 1, node.startIndex, name.endIndex)]
     return b
   }
 
@@ -312,6 +361,7 @@ export function buildModel(parser, tree, source) {
       case 'bullet_list':
       case 'enumerated_list': return [list(node, parent)]
       case 'directive': return [directive(node, parent)]
+      case 'target': return [target(node, parent)]
       case 'block_quote': {
         const b = block('quote', node, parent)
         b.children = blocks(node.children, b)

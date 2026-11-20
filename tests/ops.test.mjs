@@ -91,6 +91,26 @@ test('enter keeps the indentation of nested paragraphs and of code', () => {
   assert.equal(run('.. code-block:: bash\n\n   echo hi|\n', insertParagraph), '.. code-block:: bash\n\n   echo hi\n   |\n')
 })
 
+test('the adornments of a heading follow its title', () => {
+  assert.equal(type('Title|\n=====\n\ntext\n', ' two'), 'Title two|\n=========\n\ntext\n')
+  assert.equal(run('Title|\n=====\n', deleteBackward), 'Titl|\n====\n')
+  assert.equal(run('Ti[tl]e\n-----\n', deleteBackward), 'Ti|e\n---\n')
+  assert.equal(type('=====\nTitle|\n=====\n', 's'), '======\nTitles|\n======\n')
+  assert.equal(type('Caf|\n===\n', 'é'), 'Café|\n====\n')
+  assert.equal(run('A [big] title\n===========\n', toggleInline, 'bold'), 'A **[big]** title\n===============\n')
+  assert.equal(run('T|\n=\n', deleteBackward), '|\n=\n')
+  assert.equal(type('one\n\nTitle\n=====\n\ntw|o\n', 'x'), 'one\n\nTitle\n=====\n\ntwx|o\n')
+})
+
+test('captions, options and labels stay on one line', () => {
+  assert.equal(run('.. table:: Cap|tion\n   :width: 50%\n', insertParagraph), '.. table:: Cap|tion\n   :width: 50%\n')
+  assert.equal(run('.. table:: Caption\n   :width: 5|0%\n', insertParagraph), '.. table:: Caption\n   :width: 5|0%\n')
+  assert.equal(run('.. _la|bel:\n\nTitle\n=====\n', insertParagraph), '.. _la|bel:\n\nTitle\n=====\n')
+  assert.equal(run('.. _label|:\n\nTitle\n=====\n', insertText, '-x'), '.. _label-x|:\n\nTitle\n=====\n')
+  assert.equal(run('.. table:: Caption\n   :width: 50|%\n', insertText, '0'), '.. table:: Caption\n   :width: 500|%\n')
+  assert.equal(run('.. table:: |Caption\n', deleteBackward), '.. table:: |Caption\n')
+})
+
 test('bold wraps the selection and unwraps it', () => {
   assert.equal(run('a [word] b\n', toggleInline, 'bold'), 'a **[word]** b\n')
   assert.equal(run('a **[word]** b\n', toggleInline, 'bold'), 'a [word] b\n')

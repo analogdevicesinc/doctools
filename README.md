@@ -52,15 +52,19 @@ a tree that is updated incrementally can differ from a fresh one.
 
 | Source | Shown as |
 |--------|----------|
-| Sections | Headings, the level follows the order of the adornments |
+| Sections | Headings, the level follows the order of the adornments, which follow the length of the title |
+| `.. _label:` | A chip in the margin, beside the block that follows |
+| The arguments of a directive | A caption: the title of a table or of an admonition, the language of a code block |
+| The options of a directive | Chips in the margin, beside the directive |
 | Paragraphs, `*emphasis*`, `**strong**`, ` ``literal`` ` | Text, the markup is hidden |
 | Bullet and enumerated lists | Lists, nested |
 | `note`, `warning`, `tip`, ... | A card, the content is edited as a document |
 | Roles | A chip with the name of the role and its title, or its target |
 | Links | Their text |
-| Grid tables, simple tables and `list-table` | Tables: type in the cells, `Tab` moves between them, `Enter` adds a row, `Backspace` in an empty row removes it |
+| Grid tables, simple tables, `table` and `list-table` | Tables: type in the cells, `Tab` moves between them, `Enter` adds a row, `Backspace` in an empty row removes it |
 | Tables with cells that span columns or rows, `csv-table` | Their source, in a box |
-| Other directives, literal blocks, comments, targets, definition and field lists | Their source, in a box |
+| Other directives | A box with their name, caption and options, the content as source |
+| Literal blocks, comments, targets with a link, definition and field lists | Their source, in a box |
 
 ## Development
 

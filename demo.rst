@@ -6,8 +6,8 @@ This is a *plain* paragraph with **strong** **strong** text, ``literal`` text, a
 
 Hello there, how are you?
 
-Firgures
---------
+Figures
+-------
 
 .. figure:: https://picsum.photos/300/200
 
@@ -129,12 +129,12 @@ A grid table:
 
 A simple table:
 
-=====  ======
+====  ======
 Name   Value
-=====  ======
-one    first
-two    second
-=====  ======
+====  ======
+one   first
+two   second
+====  ======
 
 .. list-table:: A list table
    :header-rows: 1

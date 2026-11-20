@@ -72,18 +72,43 @@ test('admonition content is parsed as a document', () => {
   const source = 'Intro\n\n.. note::\n\n   First para\n   cont.\n\n   * item *one*\n\n   Second.\n\nAfter\n'
   const model = assertCovered(source)
   assert.equal(outline(model.root),
-    'document(paragraph directive:note(raw paragraph list(item(paragraph)) paragraph) paragraph)')
+    'document(paragraph directive:note(paragraph list(item(paragraph)) paragraph) paragraph)')
   assert.ok(texts(model).includes('emphasis:one'))
-  assert.ok(texts(model).includes('raw:.. note::'))
+  assert.equal(model.root.children[1].card, true)
 })
 
 test('other directives show their source', () => {
   const source = '.. code-block:: bash\n   :linenos:\n\n   echo hi\n     ls\n\n.. image:: a.png\n   :width: 50%\n'
   const model = assertCovered(source)
-  assert.equal(outline(model.root), 'document(directive:code-block(raw raw) directive:image(raw))')
+  assert.equal(outline(model.root),
+    'document(directive:code-block(caption options(option:linenos) raw) directive:image(caption options(option:width)))')
   assert.deepEqual(texts(model), [
-    'raw:.. code-block:: bash\n   :linenos:', 'raw:   echo hi\n     ls', 'raw:.. image:: a.png\n   :width: 50%'
+    'text:bash', 'name:linenos', 'raw:   echo hi\n     ls', 'text:a.png', 'name:width', 'text:50%'
   ])
+})
+
+test('the arguments of a directive are its caption, with inline markup', () => {
+  const model = assertCovered('.. admonition:: A *custom* title\n\n   text\n\n.. contents::\n\n.. figure:: a.png\n\n   Legend\n')
+  assert.equal(outline(model.root),
+    'document(directive:admonition(caption paragraph) directive:contents() directive:figure(caption paragraph))')
+  assert.deepEqual(texts(model), ['text:A ', 'emphasis:custom', 'text: title', 'text:text', 'text:a.png', 'text:Legend'])
+})
+
+test('a table directive holds a table, its caption and its options', () => {
+  const source = '.. table:: Table caption\n  :width: 65%\n  :align: center\n\n  +---+---+\n  | a | b |\n  +===+===+\n  | c | d |\n  +---+---+\n'
+  const model = assertCovered(source)
+  assert.equal(outline(model.root), 'document(directive:table(caption options(option:width option:align) ' +
+    'table(row(cell(line) cell(line)) row(cell(line) cell(line)))))')
+  const table = model.root.children[0].children[2]
+  assert.equal(table.format, 'grid')
+  assert.equal(table.indent, 2)
+  assert.equal(outline(modelOf('.. table::\n\n   not a table\n').root), 'document(directive:table(raw))')
+})
+
+test('a target shows its label', () => {
+  const model = assertCovered('.. _a label:\n\nTitle\n=====\n\n.. _ext: http://x.y\n\n.. _`quoted`:\n')
+  assert.equal(outline(model.root), 'document(target heading1 raw target)')
+  assert.deepEqual(texts(model), ['label:a label', 'text:Title', 'raw:.. _ext: http://x.y', 'label:`quoted`'])
 })
 
 test('a literal block follows its paragraph', () => {

@@ -266,31 +266,50 @@ pre.block[data-raw='transition'] {
 /* Directives ------------------------------------------------------------------ */
 
 .b-directive { margin: 0 0 12px; }
+.b-directive > pre.code { margin: 0; }
+.b-directive > table.block { margin: 0; }
+.b-directive > p.block:last-child, .b-directive > ul.block:last-child, .b-directive > ol.block:last-child { margin-bottom: 0; }
 
-/* The line of the directive, above its content */
-.b-directive > pre.head {
-  margin: 0;
-  padding: 0 4px 4px;
-  border-radius: 0;
-  font-size: 12px;
-  color: var(--outline);
-  background: none;
+/* The arguments of the directive */
+.b-caption {
+  margin: 0 0 6px;
+  font: 500 13px/20px var(--font);
+  color: var(--on-surface-variant);
 }
-.b-directive > pre.head:last-child {
+
+/* A directive that is not rendered: a tag with its name */
+.b-directive:not(.card):not([data-name='table']):not([data-name='list-table']) {
   padding: 8px 12px;
   border-radius: 12px;
-  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
 }
-.b-directive > pre.code { margin: 0; }
+.b-directive:not(.card):not([data-name='table']):not([data-name='list-table'])::before {
+  content: attr(data-name);
+  float: left;
+  margin-right: 10px;
+  padding: 0 8px;
+  border-radius: 8px;
+  font: 500 11px/20px var(--mono);
+  color: var(--on-surface-variant);
+  background: var(--surface-container-high);
+}
+.b-directive:not(.card) > .b-caption { font: 13px/20px var(--mono); color: var(--on-surface); min-height: 20px; }
+.b-directive:not(.card) > .b-caption:last-child { margin-bottom: 0; }
+.b-directive:not(.card)::after { content: ''; display: block; clear: both; }
+
+.b-directive[data-name='table'] > .b-caption, .b-directive[data-name='list-table'] > .b-caption {
+  font: 500 13px/20px var(--font);
+  color: var(--on-surface-variant);
+}
 
 /* Admonitions: a tonal card with the name as its title */
-.b-directive.rst {
-  padding: 12px 16px 4px;
+.b-directive.card {
+  padding: 12px 16px;
   border-radius: 12px;
   color: var(--on-primary-container);
   background: var(--primary-container);
 }
-.b-directive.rst::before {
+.b-directive.card::before {
   content: attr(data-name);
   display: block;
   margin-bottom: 6px;
@@ -298,28 +317,91 @@ pre.block[data-raw='transition'] {
   letter-spacing: 0.5px;
   text-transform: uppercase;
 }
-.b-directive.rst > pre.head { color: inherit; opacity: 0.7; padding: 0 0 4px; }
-.b-directive.rst > pre.head.bare { display: none; }
+.b-directive.card > .b-caption { font: 500 15px/1.6 var(--font); color: inherit; }
+.b-directive.card[data-name='admonition']::before { content: none; }
 
-.b-directive.rst[data-name='tip'], .b-directive.rst[data-name='hint'] {
+.b-directive.card[data-name='tip'], .b-directive.card[data-name='hint'] {
   color: var(--on-tertiary-container);
   background: var(--tertiary-container);
 }
-.b-directive.rst[data-name='warning'], .b-directive.rst[data-name='caution'],
-.b-directive.rst[data-name='attention'], .b-directive.rst[data-name='important'] {
+.b-directive.card[data-name='warning'], .b-directive.card[data-name='caution'],
+.b-directive.card[data-name='attention'], .b-directive.card[data-name='important'] {
   color: var(--on-warning-container);
   background: var(--warning-container);
 }
-.b-directive.rst[data-name='danger'], .b-directive.rst[data-name='error'] {
+.b-directive.card[data-name='danger'], .b-directive.card[data-name='error'] {
   color: var(--on-error-container);
   background: var(--error-container);
 }
-.b-directive.rst[data-name='topic'], .b-directive.rst[data-name='sidebar'], .b-directive.rst[data-name='container'],
-.b-directive.rst[data-name='compound'], .b-directive.rst[data-name='epigraph'],
-.b-directive.rst[data-name='highlights'], .b-directive.rst[data-name='pull-quote'] {
+.b-directive.card[data-name='topic'], .b-directive.card[data-name='sidebar'], .b-directive.card[data-name='container'],
+.b-directive.card[data-name='compound'], .b-directive.card[data-name='epigraph'],
+.b-directive.card[data-name='highlights'], .b-directive.card[data-name='pull-quote'],
+.b-directive.card[data-name='admonition'] {
   color: var(--on-surface);
   background: var(--surface-container);
 }
+
+/* Side elements: labels and options, in the margin of their block -------------- */
+
+.has-sides { position: relative; }
+
+.sides {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0 0 6px;
+  font: 400 11px/18px var(--mono);
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+/* At the top level there is room in the margin of the page */
+.b-document > .has-sides > .sides {
+  position: absolute;
+  top: 0;
+  right: 100%;
+  width: 76px;
+  min-height: 1.3em;
+  margin: 0 10px 0 0;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: flex-end;
+  justify-content: center;
+}
+.b-document > .b-directive.has-sides > .sides { justify-content: flex-start; }
+.b-document > p.has-sides > .sides { min-height: 1.6em; }
+
+.b-target, .b-option {
+  display: block;
+  max-width: 100%;
+  margin: 0;
+  padding: 0 6px;
+  border-radius: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--on-surface-variant);
+  background: var(--surface-container-high);
+}
+.b-options { display: contents; }
+
+/* The whole text when the caret or the pointer is in it */
+.sides .block.active, .sides .block:hover {
+  max-width: none;
+  overflow: visible;
+  box-shadow: var(--shadow);
+  z-index: 1;
+}
+.sides .block.active { color: var(--on-secondary-container); background: var(--secondary-container); }
+
+.b-target { font: 400 11px/18px var(--mono); white-space: nowrap; }
+.b-target .leaf::before { content: '#'; opacity: 0.6; margin-right: 1px; }
+.k-name { opacity: 0.75; }
+.k-name + .leaf { margin-left: 5px; }
+.k-name + .leaf::before { content: none; }
+
+/* A label that is not before a block it can sit beside */
+.page > .b-document > .b-target, li > .b-target, td > .b-target { display: table; margin: 0 0 6px; }
 
 /* Tables ---------------------------------------------------------------------- */
 
@@ -441,13 +523,24 @@ body.inspect .page .block::before {
 body.inspect .page .b-document, body.inspect .page tr.block { outline: none; padding-top: 0; margin: 0; }
 body.inspect .page .b-document::before, body.inspect .page tr.block::before,
 body.inspect .page table.block::before { content: none; }
-body.inspect .page .b-directive.rst > pre.head.bare { display: block; }
+body.inspect .page .sides .block { padding-top: 0; margin: 0; outline-offset: 0; }
+body.inspect .page .sides .block::before, body.inspect .page .b-caption::before { content: none; }
+body.inspect .page .b-directive::after { content: none; }
 body.inspect .page .block.active { outline: 2px solid var(--primary); }
 body.inspect .page .block.active::before { background: var(--primary); color: var(--on-primary); }
 body.inspect .page .leaf { box-shadow: inset 0 -2px var(--outline-variant); }
 body.inspect .page .soft { background: var(--surface-container-highest); }
 
 @media (max-width: 900px) {
+  .b-document > .has-sides > .sides {
+    position: static;
+    width: auto;
+    min-height: 0;
+    margin: 0 0 6px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
   .page { padding: 40px 32px 64px; }
   .canvas { padding: 8px 8px 32px; }
   .sheet { width: 50%; margin-right: 8px; }
@@ -455,3 +548,9 @@ body.inspect .page .soft { background: var(--surface-container-highest); }
 
 .icon-button:disabled { opacity: 0.38; cursor: default; }
 .icon-button:disabled::after { opacity: 0; }
+
+/* The side elements are centred on the first line of their block */
+.b-document > h1.has-sides > .sides { min-height: 36px; }
+.b-document > h2.has-sides > .sides { min-height: 29px; }
+.b-document > h3.has-sides > .sides { min-height: 23px; }
+.b-document > p.has-sides > .sides { min-height: 24px; }

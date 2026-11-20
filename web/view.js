@@ -7,8 +7,11 @@ import { leafAt, blockAt } from './model.js'
 
 const TAGS = {
   document: 'div', paragraph: 'p', item: 'li', directive: 'div', quote: 'blockquote', raw: 'pre',
-  table: 'table', row: 'tr', line: 'div'
+  table: 'table', row: 'tr', line: 'div', caption: 'div', target: 'span', options: 'span', option: 'span'
 }
+
+// Blocks that can hold side elements: the labels before them and their options
+const HOSTS = new Set(['heading', 'paragraph', 'directive'])
 
 function tagOf(block) {
   if (block.kind === 'heading') return `h${Math.min(block.level, 6)}`
@@ -41,10 +44,11 @@ function renderLeaf(model, leaf) {
   return el
 }
 
-function renderBlock(model, block) {
+// attached: the labels before the block, shown at its side
+function renderBlock(model, block, attached = []) {
   const el = document.createElement(tagOf(block))
   el.className = `block b-${block.kind}`
-  for (const flag of ['head', 'code', 'error', 'rst', 'bare'])
+  for (const flag of ['code', 'error', 'card'])
     if (block[flag]) el.classList.add(flag)
   el.dataset.kind = block.kind
   el.dataset.type = block.name ? `${block.type} ${block.name}` : block.type
@@ -54,10 +58,36 @@ function renderBlock(model, block) {
   el.dataset.e = block.e
   el.block = block
 
+  // The side elements come first, they are placed in the margin
+  const sides = attached.map(target => renderBlock(model, target))
+  const children = block.children ?? []
+  if (block.kind === 'directive')
+    sides.push(...children.filter(c => c.kind === 'options').map(c => renderBlock(model, c)))
+  if (sides.length) {
+    const holder = document.createElement('span')
+    holder.className = 'sides'
+    holder.append(...sides)
+    el.append(holder)
+    el.classList.add('has-sides')
+  }
+
   for (const leaf of block.inlines ?? [])
     el.append(renderLeaf(model, leaf))
-  for (const child of block.children ?? [])
-    el.append(renderBlock(model, child))
+
+  let labels = []
+  children.forEach((child, i) => {
+    if (block.kind === 'directive' && child.kind === 'options') return
+    // A label goes to the side of the block that follows it
+    if (child.kind === 'target') {
+      const next = children.slice(i + 1).find(c => c.kind !== 'target')
+      if (next && HOSTS.has(next.kind)) {
+        labels.push(child)
+        return
+      }
+    }
+    el.append(renderBlock(model, child, labels))
+    labels = []
+  })
 
   // An empty list item or cell still needs a place for the caret
   if ((block.kind === 'item' || block.kind === 'cell') && !block.children.length && block.marker) {
@@ -68,7 +98,9 @@ function renderBlock(model, block) {
   return el
 }
 
+// In the order of the source: the side elements are not where they are in it
 const leafElements = root => [...root.querySelectorAll('.leaf, .soft')]
+  .sort((a, b) => Number(a.dataset.s) - Number(b.dataset.s))
 
 // caret: a source offset where the caret must be able to go, an empty
 // paragraph is shown there when no text holds it

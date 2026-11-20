@@ -74,9 +74,10 @@ test('simple tables are read', () => {
 test('list tables are read', () => {
   const model = modelOf(LIST)
   assert.equal(outline(model.root),
-    'document(directive:list-table(raw table(row(cell(paragraph) cell(paragraph)) row(cell(paragraph) cell(paragraph)))))')
+    'document(directive:list-table(caption options(option:header-rows) ' +
+    'table(row(cell(paragraph) cell(paragraph)) row(cell(paragraph) cell(paragraph)))))')
   assert.deepEqual(cells(model), [['A', 'B'], ['one', 'two']])
-  assert.deepEqual(model.root.children[0].children[1].children.map(r => r.header), [true, false])
+  assert.deepEqual(findTable(model.root).children.map(r => r.header), [true, false])
 })
 
 test('cells with several lines and tables inside other blocks', () => {

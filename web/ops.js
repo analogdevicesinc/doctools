@@ -226,6 +226,42 @@ function toggleInlineRaw(model, a, b, kind) {
   return { start: from, end: to, text, caret: to + mark.length, anchor: from + mark.length }
 }
 
+// Headings --------------------------------------------------------------------
+
+// An edit of the title of a heading also makes its adornments as long as
+// the new title
+function adorn(model, change) {
+  if (!change) return change
+  const { source } = model
+  const heading = ancestor(leafAt(model, change.start)?.block ?? blockAt(model, change.start), 'heading')
+  if (!heading?.marks?.length) return change
+  const titleEnd = lineEnd(source, heading.title.s)
+  if (change.start < heading.title.s || change.end > titleEnd || change.text.includes('\n')) return change
+
+  const title = source.slice(heading.title.s, change.start) + change.text + source.slice(change.end, titleEnd)
+  const width = Math.max([...title.trim()].length, 1)
+  const pieces = [
+    ...heading.marks.map(mark => ({ s: mark.s, e: mark.e, text: source[mark.s].repeat(width) })),
+    { s: change.start, e: change.end, text: change.text, change: true }
+  ].sort((x, y) => x.s - y.s)
+
+  const start = Math.min(heading.s, pieces[0].s)
+  const end = Math.max(heading.e, pieces[pieces.length - 1].e)
+  let text = ''
+  let at = start
+  let shift = 0
+  for (const piece of pieces) {
+    text += source.slice(at, piece.s) + piece.text
+    at = piece.e
+    // What is before the title moves the caret
+    if (!piece.change && piece.s < change.start) shift += piece.text.length - (piece.e - piece.s)
+  }
+  text += source.slice(at, end)
+  const result = { start, end, text, caret: change.caret + shift }
+  if (change.anchor !== undefined) result.anchor = change.anchor + shift
+  return result
+}
+
 // Tables ----------------------------------------------------------------------
 
 function tablesOf(model) {
@@ -370,7 +406,9 @@ export function tableStep(model, offset, step) {
 }
 
 export function insertText(model, a, b, text) {
-  return guard(model, insertTextRaw(model, a, b, text))
+  const owner = leafAt(model, a)?.block
+  if (owner && ONE_LINE.has(owner.kind)) text = text.replace(/\s*\n\s*/g, ' ')
+  return guard(model, adorn(model, insertTextRaw(model, a, b, text)))
 }
 
 export function deleteBackward(model, a, b) {
@@ -384,7 +422,7 @@ export function deleteBackward(model, a, b) {
     if (!item || (a === item.s && model.leaves[model.leaves.indexOf(item) - 1]?.block !== item.block))
       return undefined
   }
-  return guard(model, deleteBackwardRaw(model, a, b))
+  return guard(model, adorn(model, deleteBackwardRaw(model, a, b)))
 }
 
 export function deleteForward(model, a, b) {
@@ -394,15 +432,20 @@ export function deleteForward(model, a, b) {
     if (!item || (a === item.e && model.leaves[model.leaves.indexOf(item) + 1]?.block !== item.block))
       return undefined
   }
-  return guard(model, deleteForwardRaw(model, a, b))
+  return guard(model, adorn(model, deleteForwardRaw(model, a, b)))
 }
 
+// Blocks that hold one line: a caption, an option, a label
+const ONE_LINE = new Set(['caption', 'option', 'target'])
+
 export function insertParagraph(model, a, b) {
+  const owner = leafAt(model, a)?.block
+  if (owner && ONE_LINE.has(owner.kind)) return undefined
   const at = cellAt(model, a)
   if (at) return a === b || cellAt(model, b)?.cell === at.cell ? insertRow(model, at) : undefined
   return guard(model, insertParagraphRaw(model, a, b))
 }
 
 export function toggleInline(model, a, b, kind) {
-  return guard(model, toggleInlineRaw(model, a, b, kind))
+  return guard(model, adorn(model, toggleInlineRaw(model, a, b, kind)))
 }
