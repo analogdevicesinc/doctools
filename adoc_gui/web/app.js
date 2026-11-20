@@ -3,7 +3,11 @@ import { buildModel, leafAt } from './model.js'
 import {
   applyEdit, insertText, deleteBackward, deleteForward, insertParagraph, toggleInline, tableStep, openContent, intoContent, addOption, addLabel, removeSide, addTab
 } from './ops.js'
-import { render, getSelection, setSelection, markActive, showDiagnostics, selectTab as showTab } from './view.js'
+import {
+  render, getSelection, setSelection, markActive, showDiagnostics, selectTab as showTab, setCodeHost
+} from './view.js'
+import { codeEdit, toSource, fromSource, sourceMarks, CODE_DIRECTIVES } from './code.js'
+import { sourceEditor, CodeEditors } from './editors.js'
 import { completionAt, matching, roleQuestion } from './lsp.js'
 import { SparseSelection } from './sparse.js'
 import { renderTree, foldersOf, ancestorsOf } from './nav.js'
@@ -13,8 +17,6 @@ const POLL_MS = 1500
 const HISTORY = 200
 
 const view = document.getElementById('view')
-const code = document.getElementById('code')
-const backdrop = document.getElementById('backdrop')
 const status = document.getElementById('status')
 const title = document.getElementById('title')
 const fileStatus = document.getElementById('file')
@@ -122,13 +124,15 @@ function restore(from, to) {
 
 // Render the page, with the warnings of the build
 function paint(caret) {
+  codes.begin()
   render(view, state.model, caret)
+  codes.end()
   showDiagnostics(view, state.model, state.docs.diagnostics)
 }
 
 function renderView(withCaret) {
   paint(withCaret ? state.caret.focus : undefined)
-  if (withCaret) {
+  if (withCaret && !focusCode(state.caret.anchor, state.caret.focus)) {
     view.focus()
     setSelection(view, state.caret.anchor, state.caret.focus)
   }
@@ -159,7 +163,11 @@ const INPUT = {
   formatItalic: (m, a, b) => toggleInline(m, a, b, 'italic')
 }
 
+// The events of the code editors are theirs
+const inCode = ev => Boolean(ev.target.closest?.('.cm-editor'))
+
 view.addEventListener('beforeinput', ev => {
+  if (inCode(ev)) return
   if (ev.inputType === 'insertCompositionText' || ev.isComposing)
     return
   ev.preventDefault()
@@ -174,10 +182,12 @@ view.addEventListener('beforeinput', ev => {
 })
 
 // Input methods edit the DOM themselves: take the result, then render again
-view.addEventListener('compositionstart', () => {
+view.addEventListener('compositionstart', ev => {
+  if (inCode(ev)) return
   state.composing = selection()
 })
 view.addEventListener('compositionend', ev => {
+  if (inCode(ev)) return
   const { a, b } = state.composing ?? selection()
   state.composing = undefined
   const edit = ev.data ? insertText(state.model, a, b, ev.data) : undefined
@@ -256,11 +266,20 @@ function stepCell(step) {
 }
 
 view.addEventListener('keydown', ev => {
-  if (menuKey(ev)) return
+  if (inCode(ev) || menuKey(ev)) return
   // Down from the argument of a directive goes to its content, also when
   // there is none yet
   if (ev.key === 'ArrowDown' && !ev.shiftKey && !ev.ctrlKey && !ev.metaKey && !ev.altKey) {
     const { a, b } = selection()
+    // The code is in its editor
+    const owner = a === b ? leafAt(state.model, a)?.block : undefined
+    const editor = owner?.kind === 'caption' && CODE_DIRECTIVES.has(owner.parent.name) && codes.of(owner.parent)
+    if (editor) {
+      ev.preventDefault()
+      editor.view.focus()
+      editor.view.dispatch({ selection: { anchor: 0 } })
+      return
+    }
     const edit = a === b ? intoContent(state.model, a) : undefined
     if (edit) {
       ev.preventDefault()
@@ -287,6 +306,7 @@ view.addEventListener('keydown', ev => {
 // Copy and cut the source of the selection, so the markup is kept
 for (const name of ['copy', 'cut']) {
   view.addEventListener(name, ev => {
+    if (inCode(ev)) return
     const { a, b } = selection()
     if (a === b) return
     ev.clipboardData.setData('text/plain', state.source.slice(a, b))
@@ -298,6 +318,7 @@ view.addEventListener('drop', ev => ev.preventDefault())
 
 // A click on the empty content of a directive starts it
 view.addEventListener('mousedown', ev => {
+  if (inCode(ev)) return
   // A click on the title of a tab shows the tab
   const tab = ev.target.closest?.('.b-directive[data-name="tab-item"] > .b-caption')
   if (tab) showTab(view, tab.parentElement)
@@ -328,76 +349,136 @@ document.addEventListener('selectionchange', () => {
 
 // Code panel --------------------------------------------------------------------
 
-const escapeHtml = text => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+const source = sourceEditor(document.getElementById('source'), {
+  change(text, selection) {
+    const edit = diff(state.source, text)
+    remember()
+    setSource(text, edit)
+    state.caret = { anchor: selection.anchor, focus: selection.head }
+    paint()
+    markActive(view, selection.head, true)
+    renderBackdrop()
+    renderStatus()
+    changed()
+  },
+  select(selection) {
+    state.caret = { anchor: selection.anchor, focus: selection.head }
+    markActive(view, selection.head, true)
+    renderBackdrop()
+    renderStatus()
+  },
+  undo: () => ACTIONS.undo(),
+  redo: () => ACTIONS.redo()
+})
 
-// Marks behind the text of the code: the block of the caret and the last edit
+// The colours of the source, made again when the source changes
+let colours = { model: undefined, marks: [] }
+
+// The marks of the source: its colours, the block of the caret, the last
+// edit and the lines of the warnings
 function renderBackdrop() {
-  const { source, lastEdit } = state
+  const { source: text, lastEdit, model } = state
+  if (colours.model !== model) colours = { model, marks: sourceMarks(model) }
+  const marks = [...colours.marks]
   const active = view.querySelector('.block.active')
-  const marks = []
-  if (active) marks.push({ s: Number(active.dataset.s), e: Number(active.dataset.e), name: 'block' })
-  if (lastEdit?.text) marks.push({ s: lastEdit.start, e: lastEdit.start + lastEdit.text.length, name: 'edit' })
-  const { lineStarts } = state.model
+  if (active) marks.push({ from: Number(active.dataset.s), to: Number(active.dataset.e), name: 'm-block' })
+  if (lastEdit?.text) marks.push({ from: lastEdit.start, to: lastEdit.start + lastEdit.text.length, name: 'm-edit' })
+  const { lineStarts } = model
   for (const item of state.docs.diagnostics) {
     const row = Math.min(Math.max(item.line - 1, 0), lineStarts.length - 1)
-    const e = row + 1 < lineStarts.length ? lineStarts[row + 1] - 1 : source.length
-    if (e > lineStarts[row]) marks.push({ s: lineStarts[row], e, name: item.severity })
+    marks.push({ from: lineStarts[row], to: lineStarts[row], line: true, name: `m-${item.severity}` })
   }
-
-  const cuts = [...new Set([0, source.length, ...marks.flatMap(m => [m.s, m.e])])]
-    .filter(i => i >= 0 && i <= source.length).sort((x, y) => x - y)
-  let html = ''
-  for (let i = 0; i + 1 < cuts.length; i++) {
-    const names = marks.filter(m => m.s <= cuts[i] && cuts[i + 1] <= m.e).map(m => m.name)
-    const text = escapeHtml(source.slice(cuts[i], cuts[i + 1]))
-    html += names.length ? `<mark class="${names.join(' ')}">${text}</mark>` : text
-  }
-  backdrop.innerHTML = html + '\n'
-  backdrop.scrollTop = code.scrollTop
-  backdrop.scrollLeft = code.scrollLeft
+  if (text === source.view.state.doc.toString()) source.setMarks(marks)
 }
 
 // follow: move the caret of the code to the one of the view
 function renderCode(follow) {
-  if (code.value !== state.source)
-    code.value = state.source
-  if (follow && document.activeElement !== code) {
+  source.setText(state.source)
+  if (follow && !source.view.hasFocus && state.tab === 'source') {
     const { anchor, focus } = state.caret
-    code.setSelectionRange(Math.min(anchor, focus), Math.max(anchor, focus))
-    const line = state.source.slice(0, focus).split('\n').length - 1
-    const height = parseFloat(getComputedStyle(code).lineHeight) || 18
-    const top = line * height
-    if (top < code.scrollTop || top > code.scrollTop + code.clientHeight - 2 * height)
-      code.scrollTop = Math.max(top - code.clientHeight / 2, 0)
+    source.select(anchor, focus)
   }
   renderBackdrop()
 }
 
-code.addEventListener('input', () => {
-  const edit = diff(state.source, code.value)
-  remember()
-  setSource(code.value, edit)
-  state.caret = { anchor: code.selectionStart, focus: code.selectionStart }
-  paint()
-  markActive(view, code.selectionStart, true)
-  renderBackdrop()
-  renderStatus()
-  changed()
-})
+// The code of the code directives ------------------------------------------------
 
-for (const name of ['keyup', 'click', 'focus']) {
-  code.addEventListener(name, () => {
-    if (document.activeElement !== code) return
-    state.caret = { anchor: code.selectionStart, focus: code.selectionEnd }
-    markActive(view, code.selectionStart, true)
-    renderBackdrop()
-    renderStatus()
-  })
-}
-code.addEventListener('scroll', () => {
-  backdrop.scrollTop = code.scrollTop
-  backdrop.scrollLeft = code.scrollLeft
+const codes = new CodeEditors({
+  change(editor, before, after) {
+    const edit = codeEdit(editor.model, editor.code, before, after)
+    if (!edit) return
+    remember()
+    setSource(applyEdit(state.source, edit), edit)
+    // Moved to the page rendered again, the editor keeps its caret
+    const { selection } = editor.view.state
+    paint()
+    keepCaret(editor, selection)
+    codeCaret(editor)
+    renderCode(true)
+    changed()
+  },
+  select(editor) {
+    codeCaret(editor)
+    renderCode(true)
+  },
+  // Up from the first line, or down from the last one: the text before or after
+  leave(editor, step) {
+    const { block, directive } = editor.code
+    const { leaves } = state.model
+    let offset
+    for (const l of leaves) {
+      if (l.block === block) continue
+      if (step < 0 && l.e <= (block?.s ?? directive.headEnd)) offset = Math.max(offset ?? l.e, l.e)
+      if (step > 0 && l.s >= (block?.e ?? directive.headEnd)) offset = Math.min(offset ?? l.s, l.s)
+    }
+    if (offset === undefined) return
+    state.caret = { anchor: offset, focus: offset }
+    renderView(true)
+    renderCode(true)
+  },
+  undo: () => ACTIONS.undo(),
+  redo: () => ACTIONS.redo()
 })
+setCodeHost((model, directive) => codes.host(model, directive))
+
+// The focus and the caret of an editor moved to the page rendered again: the
+// browser lost its selection, it is written again
+function keepCaret(editor, selection) {
+  editor.view.focus()
+  editor.view.dispatch({ selection: { anchor: selection.main.head === 0 ? Math.min(1, editor.view.state.doc.length) : 0 } })
+  editor.view.dispatch({ selection })
+}
+
+// The caret of a code editor, as the caret of the source
+function codeCaret(editor) {
+  const { doc, selection } = editor.view.state
+  const offset = pos => {
+    const line = doc.lineAt(pos)
+    return toSource(state.model, editor.code, line.number - 1, pos - line.from)
+  }
+  const { anchor, head } = selection.main
+  state.caret = editor.code.block || doc.length
+    ? { anchor: offset(anchor), focus: offset(head) }
+    : { anchor: editor.code.directive.headEnd, focus: editor.code.directive.headEnd }
+  markActive(view, state.caret.focus)
+  renderStatus()
+}
+
+// Put the focus in the code editor of a caret: false when it is not in code
+function focusCode(anchor, focus) {
+  const editor = codes.at(focus)
+  if (!editor) return false
+  const { doc } = editor.view.state
+  const pos = offset => {
+    const at = fromSource(state.model, editor.code, offset)
+    if (!at) return 0
+    const line = doc.line(Math.min(at.line + 1, doc.lines))
+    return Math.min(line.from + at.column, line.to)
+  }
+  editor.view.focus()
+  editor.view.dispatch({ selection: { anchor: pos(anchor), head: pos(focus) }, scrollIntoView: true })
+  return true
+}
 
 // Status ------------------------------------------------------------------------
 
@@ -982,7 +1063,7 @@ async function main() {
   pollDocs()
 
   // For the tests and the console
-  window.doctools = { state, view, code, openFile, preview: () => ({ ready: previewReady }) }
+  window.doctools = { state, view, code: source.view, codes, openFile, preview: () => ({ ready: previewReady }) }
 }
 
 main().catch(err => {

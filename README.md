@@ -7,7 +7,7 @@
 Edit reStructuredText in the browser, as the document and not as markup.
 
 ```
-make vendor        # once: fetch the parser
+make vendor        # once: fetch the parser, build CodeMirror (needs npm)
 pip install -e .   # in the environment of adi-doctools
 adoc-gui doc.rst   # without a file: the index.rst of the current folder
 ```
@@ -19,10 +19,14 @@ The page has three parts:
   folder selects it for the sparse build, see below.
 - **Document**, in the middle: the rendered document. Type, press Enter and
   Backspace as in a word processor; `Ctrl+B`, `Ctrl+I` and `Ctrl+E` toggle
-  bold, italic and literal; `Ctrl+Z` / `Ctrl+Y` undo and redo.
+  bold, italic and literal; `Ctrl+Z` / `Ctrl+Y` undo and redo. The code of
+  `code`, `code-block`, `sourcecode` and `shell` is edited in a code editor,
+  coloured by its language; up from its first line and down from its last
+  one leave it.
 - **Side pane**, at the right, with two tabs:
-  - *Source*: the `.rst` text, also editable. The block of the caret and the
-    last edit are highlighted.
+  - *Source*: the `.rst` text, also editable, in a code editor (CodeMirror),
+    coloured from the parsed document. The block of the caret and the last
+    edit are highlighted.
   - *Live view*: the built page of the file, from the documentation server.
     It scrolls with the document, in both directions, and a link followed in
     it opens the file of that page.
@@ -109,6 +113,7 @@ a tree that is updated incrementally can differ from a fresh one.
 | | The `−` at the left of a chip in the margin removes the label or the option |
 | Grid tables, simple tables, `table` and `list-table` | Tables: type in the cells, `Tab` moves between them, `Enter` adds a row, `Backspace` in an empty row removes it |
 | Tables with cells that span columns or rows, `csv-table` | Their source, in a box |
+| `code`, `code-block`, `sourcecode`, `shell` | A code editor, coloured by the language of the argument; the indentation of the source is not shown, and is added to what is written |
 | `carousel`, `collapsible`, `card`, `grid`, `flex`, `figure`, `video`, ... | A box with their name, caption and options, the content is edited as a document |
 | Other directives | A box with their name, caption and options, the content as source |
 | Literal blocks | Their text as it is written; the `::` alone on its line is hidden |

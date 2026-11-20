@@ -1,1 +1,16 @@
-{ "type": "module", "private": true, "scripts": { "test": "node --test tests/*.test.mjs" } }
+{
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "vendor": "esbuild tools/codemirror.js --bundle --format=esm --minify --outfile=adoc_gui/web/vendor/codemirror.js"
+  },
+  "devDependencies": {
+    "@codemirror/commands": "^6.8.0",
+    "@codemirror/language": "^6.11.0",
+    "@codemirror/legacy-modes": "^6.5.0",
+    "@codemirror/state": "^6.5.0",
+    "@codemirror/view": "^6.36.0",
+    "esbuild": "^0.25.0"
+  }
+}

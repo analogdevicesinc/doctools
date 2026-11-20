@@ -6,9 +6,11 @@ FILE ?= demo.rst
 
 .PHONY: vendor run test
 
-# The tree-sitter runtime and the reStructuredText grammar
+# The tree-sitter runtime and the reStructuredText grammar, and CodeMirror
 vendor:
 	mkdir -p $(VENDOR)
+	npm ci --no-audit --no-fund
+	npm run vendor
 	curl -fsSL -o $(VENDOR)/web-tree-sitter.js $(WTS_URL)/web-tree-sitter.js
 	curl -fsSL -o $(VENDOR)/web-tree-sitter.wasm $(WTS_URL)/web-tree-sitter.wasm
 	curl -fsSL -o $(VENDOR)/tree-sitter-rst.wasm $(RST_URL)

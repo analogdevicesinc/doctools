@@ -4,6 +4,13 @@
 // change goes through the source and the view is rendered again.
 
 import { leafAt, blockAt } from './model.js'
+import { CODE_DIRECTIVES } from './code.js'
+
+// Makes the element of the code of a code directive: (model, directive) => element
+let codeHost
+export function setCodeHost(make) {
+  codeHost = make
+}
 
 const TAGS = {
   document: 'div', paragraph: 'p', item: 'li', directive: 'div', quote: 'blockquote', raw: 'pre',
@@ -97,9 +104,11 @@ function renderBlock(model, block, attached = []) {
   for (const leaf of block.inlines ?? [])
     el.append(renderLeaf(model, leaf))
 
+  const coded = block.kind === 'directive' && codeHost && CODE_DIRECTIVES.has(block.name)
   let labels = []
   children.forEach((child, i) => {
     if (block.kind === 'directive' && child.kind === 'options') return
+    if (coded && child.kind === 'raw' && child.code) return
     // A label goes to the side of the block that follows it
     if (child.kind === 'target') {
       const next = children.slice(i + 1).find(c => c.kind !== 'target')
@@ -114,8 +123,10 @@ function renderBlock(model, block, attached = []) {
 
   if (block.kind === 'directive' && block.name === 'tab-set') el.append(button('add-tab', 'Add a tab'))
 
+  // The code is in an editor of its own
+  if (coded) el.append(codeHost(model, block))
   // A directive without content: a place to click to write it
-  if (block.kind === 'directive' && block.takesContent &&
+  else if (block.kind === 'directive' && block.takesContent &&
       !children.some(c => c.kind !== 'caption' && c.kind !== 'options')) {
     const hint = document.createElement('div')
     hint.className = 'content-hint'

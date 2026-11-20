@@ -595,32 +595,84 @@ td > p.block, th > p.block, td > .placeholder, th > .placeholder { margin: 0; }
 
 #source { flex: 1; position: relative; min-height: 0; }
 
-#backdrop, #code {
-  position: absolute;
-  inset: 0;
-  margin: 0;
-  padding: 4px 20px 20px;
-  border: none;
-  font: 13px/20px var(--mono);
-  white-space: pre;
-  tab-size: 8;
-  overflow: auto;
-}
+#source:not([hidden]) { display: flex; flex-direction: column; }
+#source .cm-editor { flex: 1; min-height: 0; background: transparent; color: var(--on-surface); }
+#source .cm-scroller { padding: 4px 0 20px; font: 13px/20px var(--mono); }
+#source .cm-content { padding: 0 20px; caret-color: var(--primary); }
+#source .cm-line { padding: 0; }
+.cm-editor.cm-focused { outline: none; }
+.cm-editor .cm-cursor { border-left: 2px solid var(--primary); }
+.cm-editor .cm-selectionBackground { background: color-mix(in srgb, var(--primary) 18%, transparent) !important; }
+.cm-editor.cm-focused .cm-selectionBackground { background: color-mix(in srgb, var(--primary) 28%, transparent) !important; }
 
-#backdrop { color: transparent; pointer-events: none; overflow: hidden; }
-#backdrop mark { color: transparent; border-radius: 3px; }
-#backdrop mark.block { background: var(--surface-container-highest); }
-#backdrop mark.edit { background: var(--primary-container); }
+/* The marks of the source */
+.m-block { background: var(--surface-container-highest); border-radius: 3px; }
+.m-edit { background: var(--primary-container); border-radius: 3px; }
+.cm-line.m-warning { box-shadow: inset 2px 0 var(--warning); background: color-mix(in srgb, var(--warning) 8%, transparent); }
+.cm-line.m-error { box-shadow: inset 2px 0 var(--error); background: color-mix(in srgb, var(--error) 8%, transparent); }
 
-#code {
-  width: 100%;
-  height: 100%;
-  resize: none;
-  outline: none;
-  color: var(--on-surface);
-  background: transparent;
-  caret-color: var(--primary);
+/* Colours of the source and of the code */
+:root {
+  --c-markup: #8a8d8f;
+  --c-heading: #0b57d0;
+  --c-directive: #8e24aa;
+  --c-role: #00796b;
+  --c-literal: #b3261e;
+  --c-link: #0b57d0;
+  --c-keyword: #8e24aa;
+  --c-string: #146c2e;
+  --c-comment: #747775;
+  --c-number: #b06000;
+  --c-def: #0b57d0;
+  --c-builtin: #00796b;
+  --c-meta: #b06000;
 }
+@media (prefers-color-scheme: dark) {
+  :root {
+    --c-markup: #8e918f;
+    --c-heading: #a8c7fa;
+    --c-directive: #e1a6f0;
+    --c-role: #80cbc4;
+    --c-literal: #f2b8b5;
+    --c-link: #a8c7fa;
+    --c-keyword: #e1a6f0;
+    --c-string: #a6d8a8;
+    --c-comment: #8e918f;
+    --c-number: #ffcc80;
+    --c-def: #a8c7fa;
+    --c-builtin: #80cbc4;
+    --c-meta: #ffcc80;
+  }
+}
+.t-markup { color: var(--c-markup); }
+.t-heading { color: var(--c-heading); font-weight: 600; }
+.t-directive { color: var(--c-directive); }
+.t-argument { color: var(--c-heading); }
+.t-field, .t-label { color: var(--c-role); }
+.t-role { color: var(--c-role); }
+.t-link { color: var(--c-link); text-decoration: underline; text-decoration-color: color-mix(in srgb, currentColor 40%, transparent); }
+.t-literal { color: var(--c-literal); }
+.t-strong { font-weight: 700; }
+.t-emphasis { font-style: italic; }
+.t-keyword { color: var(--c-keyword); }
+.t-string, .t-string-2 { color: var(--c-string); }
+.t-comment { color: var(--c-comment); font-style: italic; }
+.t-number, .t-atom { color: var(--c-number); }
+.t-def, .t-variable-2, .t-tag { color: var(--c-def); }
+.t-builtin, .t-attribute, .t-type, .t-qualifier { color: var(--c-builtin); }
+.t-meta, .t-header { color: var(--c-meta); }
+.t-positive, .t-inserted { color: var(--c-string); }
+.t-negative, .t-deleted { color: var(--c-literal); }
+
+/* The code of the code directives, in the page */
+.code-editor { margin: 0 0 12px; border-radius: 12px; background: var(--surface-container); }
+.code-editor .cm-editor { background: transparent; color: var(--on-surface); }
+.code-editor .cm-scroller { font: 13px/1.55 var(--mono); }
+.code-editor .cm-content { padding: 8px 0; caret-color: var(--primary); }
+.code-editor .cm-line { padding: 0 12px; }
+.code-editor .cm-placeholder { color: var(--outline); font-style: italic; font-family: var(--font); }
+.b-directive > .code-editor { margin: 0; border: 1px dashed var(--outline-variant); border-radius: 8px; background: none; }
+.b-directive.boxed > .code-editor { background: var(--surface-container); }
 
 /* Structure: show the tree-sitter node of each block --------------------------- */
 
@@ -727,8 +779,6 @@ li > .diag { margin: 0 0 4px; }
   text-underline-offset: 3px;
 }
 
-#backdrop mark.warning { box-shadow: inset 0 -2px var(--warning); }
-#backdrop mark.error { box-shadow: inset 0 -2px var(--error); }
 
 /* Menu and tooltip -------------------------------------------------------------- */
 
