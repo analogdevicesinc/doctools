@@ -33,6 +33,10 @@ test('backspace skips the hidden markup', () => {
 test('backspace at the start of a paragraph joins it with the one before', () => {
   assert.equal(run('one\n\n|two\n', deleteBackward), 'one|two\n')
   assert.equal(run('Title\n=====\n\n|text\n', deleteBackward), 'Title\n=====\n\n|text\n')
+  assert.equal(run('.. note::\n\n   |text\n', deleteBackward), '.. note::\n\n   |text\n')
+  assert.equal(run('before\n\n.. note::\n\n   text|\n\nafter\n', deleteForward), 'before\n\n.. note::\n\n   text|\n\nafter\n')
+  assert.equal(run('.. note::\n\n   one\n\n   |two\n', deleteBackward), '.. note::\n\n   one|two\n')
+  assert.equal(run('* one\n\n|text\n', deleteBackward), '* one\n\n|text\n')
 })
 
 test('backspace at the start of a list item takes it out of the list', () => {

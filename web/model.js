@@ -16,11 +16,7 @@ const RST_DIRECTIVES = new Set([
 import { readTable } from './table.js'
 
 const DELIMITED = { strong: 2, emphasis: 1, literal: 2 }
-const INLINE_KIND = {
-  interpreted_text: 'role',
-  reference: 'link',
-  standalone_hyperlink: 'link'
-}
+const TITLED = /^(\s*)(.+?)\s*<[^<>]+>\s*$/
 
 export function lineStartsOf(source) {
   const starts = [0]
@@ -57,8 +53,8 @@ export function buildModel(parser, tree, source) {
   const block = (kind, node, parent, extra = {}) =>
     ({ kind, type: node.type, s: node.startIndex, e: node.endIndex, parent, ...extra })
 
-  const leaf = (owner, kind, s, e, os = s, oe = e) => {
-    const item = { kind, s, e, os, oe, block: owner }
+  const leaf = (owner, kind, s, e, os = s, oe = e, extra = {}) => {
+    const item = { kind, s, e, os, oe, block: owner, ...extra }
     if (os < s) hidden.push([os, s])
     if (e < oe) hidden.push([e, oe])
     leaves.push(item)
@@ -83,6 +79,47 @@ export function buildModel(parser, tree, source) {
     if (b > at) out.push(leaf(owner, 'text', at, b))
   }
 
+  // The text shown for a role or a link: the title of 'title <target>', else
+  // all of it. from and to are the ends of the text between the delimiters.
+  const labelled = (owner, kind, node, from, to, extra) => {
+    const s = node.startIndex, e = node.endIndex
+    if (to <= from) return leaf(owner, kind, s, e, s, e, { ...extra, bare: true })
+    const titled = TITLED.exec(source.slice(from, to))
+    if (!titled) return leaf(owner, kind, from, to, s, e, extra)
+    const start = from + titled[1].length
+    return leaf(owner, kind, start, start + titled[2].length, s, e, extra)
+  }
+
+  // The leaf of a node of inline markup
+  const inline = (owner, node) => {
+    const s = node.startIndex, e = node.endIndex
+    const text = source.slice(s, e)
+    const width = DELIMITED[node.type]
+    if (width && e - s > 2 * width)
+      return leaf(owner, node.type, s + width, e - width, s, e)
+
+    if (node.type === 'interpreted_text') {
+      const content = node.children.find(c => c.type === 'interpreted_text')
+      const role = node.children.find(c => c.type === 'role')
+      const name = role ? source.slice(role.startIndex, role.endIndex).replace(/^:|:$/g, '') : ''
+      if (content && content.endIndex - content.startIndex >= 2)
+        return labelled(owner, 'role', node, content.startIndex + 1, content.endIndex - 1, { role: name })
+      return leaf(owner, 'role', s, e, s, e, { role: name, bare: true })
+    }
+
+    if (node.type === 'reference') {
+      const quoted = /^`([^`]+)`__?$/.exec(text)
+      if (quoted) return labelled(owner, 'link', node, s + 1, s + 1 + quoted[1].length)
+      const word = /^(.+?)__?$/.exec(text)
+      if (word && !text.startsWith('`')) return leaf(owner, 'link', s, s + word[1].length, s, e)
+      return leaf(owner, 'link', s, e, s, e, { bare: true })
+    }
+
+    if (node.type === 'standalone_hyperlink')
+      return leaf(owner, 'link', s, e)
+    return leaf(owner, 'markup', s, e)
+  }
+
   // The leaves of a node with inline content, from 'from' up to 'to'
   const inlines = (owner, children, from, to) => {
     // Typed spaces at the end of the line belong to the text
@@ -95,13 +132,8 @@ export function buildModel(parser, tree, source) {
     for (const child of children) {
       if (!child.isNamed || child.startIndex < at || child.endIndex > to) continue
       plain(owner, out, at, child.startIndex)
-      const width = DELIMITED[child.type]
-      const s = child.startIndex, e = child.endIndex
-      if (width && e - s > 2 * width)
-        out.push(leaf(owner, child.type, s + width, e - width, s, e))
-      else
-        out.push(leaf(owner, INLINE_KIND[child.type] ?? 'markup', s, e))
-      at = e
+      out.push(inline(owner, child))
+      at = child.endIndex
     }
     plain(owner, out, at, end)
     owner.e = Math.max(owner.e, end)
@@ -258,7 +290,8 @@ export function buildModel(parser, tree, source) {
       const before = body.children[body.children.indexOf(content) - 1]
       headEnd = before ? before.endIndex : node.children.find(c => c.type === '::')?.endIndex ?? body.startIndex
     }
-    b.children = [raw(node, b, node.startIndex, headEnd, { head: true })]
+    const bare = /^\.\.[ \t]+\S+::[ \t]*$/.test(source.slice(node.startIndex, headEnd))
+    b.children = [raw(node, b, node.startIndex, headEnd, { head: true, bare })]
     if (content && name === 'list-table') {
       const kids = nested(content, b)
       const table = listTable(kids, b, source.slice(node.startIndex, headEnd))

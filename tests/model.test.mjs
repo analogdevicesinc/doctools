@@ -34,8 +34,20 @@ test('inline markup is hidden and its text is a leaf', () => {
   const model = assertCovered(source)
   assert.deepEqual(texts(model), [
     'text:Some ', 'emphasis:em', 'text: and ', 'strong:strong', 'text: ', 'literal:lit', 'text: text ',
-    'role::ref:`a <b>`', 'text: ', 'link:`link <http://x>`_', 'text:.'
+    'role:a', 'text: ', 'link:link', 'text:.'
   ])
+  assert.equal(model.leaves.find(l => l.kind === 'role').role, 'ref')
+})
+
+test('roles and links show their title, or their target', () => {
+  const source = ':doc:`page` `text`:sup: `plain` name_ `two words`_ `anon <http://x>`__ http://y.z |sub|\n'
+  const model = assertCovered(source)
+  assert.deepEqual(texts(model), [
+    'role:page', 'text: ', 'role:text', 'text: ', 'role:plain', 'text: ', 'link:name', 'text: ',
+    'link:two words', 'text: ', 'link:anon', 'text: ', 'link:http://y.z', 'text: ', 'markup:|sub|'
+  ])
+  assert.deepEqual(model.leaves.filter(l => l.kind === 'role').map(l => l.role), ['doc', 'sup', ''])
+  assertCovered(':ref:`` and `` and `x <y>` and :a:`b <c`\n')
 })
 
 test('a line break inside a paragraph is a soft break', () => {

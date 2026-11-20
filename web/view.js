@@ -34,6 +34,8 @@ function renderLeaf(model, leaf) {
     el.textContent = ' '
   } else {
     el.className = `leaf k-${leaf.kind}`
+    if (leaf.bare) el.classList.add('bare')
+    if (leaf.role) el.dataset.role = leaf.role
     el.textContent = model.source.slice(leaf.s, leaf.e)
   }
   return el
@@ -42,10 +44,12 @@ function renderLeaf(model, leaf) {
 function renderBlock(model, block) {
   const el = document.createElement(tagOf(block))
   el.className = `block b-${block.kind}`
-  for (const flag of ['head', 'code', 'error'])
+  for (const flag of ['head', 'code', 'error', 'rst', 'bare'])
     if (block[flag]) el.classList.add(flag)
   el.dataset.kind = block.kind
   el.dataset.type = block.name ? `${block.type} ${block.name}` : block.type
+  if (block.name) el.dataset.name = block.name
+  if (block.kind === 'raw') el.dataset.raw = block.type
   el.dataset.s = block.s
   el.dataset.e = block.e
   el.block = block

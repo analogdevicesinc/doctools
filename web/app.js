@@ -13,7 +13,9 @@ const view = document.getElementById('view')
 const code = document.getElementById('code')
 const backdrop = document.getElementById('backdrop')
 const status = document.getElementById('status')
+const title = document.getElementById('title')
 const fileStatus = document.getElementById('file')
+const toolbar = document.querySelector('.toolbar')
 
 const state = {
   parser: undefined,
@@ -146,6 +148,61 @@ view.addEventListener('compositionend', ev => {
   else renderView(true)
 })
 
+// What the toolbar and the keys do
+const ACTIONS = {
+  undo: () => restore(state.undo, state.redo),
+  redo: () => restore(state.redo, state.undo),
+  bold: () => format('bold'),
+  italic: () => format('italic'),
+  code: () => format('code')
+}
+
+function format(kind) {
+  const { a, b } = selection()
+  commit(toggleInline(state.model, a, b, kind))
+}
+
+// The buttons do not take the focus, so the selection of the page is kept
+toolbar.addEventListener('mousedown', ev => ev.preventDefault())
+toolbar.addEventListener('click', ev => {
+  const action = ev.target.closest('[data-action]')?.dataset.action
+  if (!action) return
+  ACTIONS[action]()
+  view.focus()
+  renderToolbar()
+})
+
+const PRESSED = { bold: 'strong', italic: 'emphasis', code: 'literal' }
+
+function renderToolbar() {
+  const kind = leafAt(state.model, state.caret.focus)?.kind
+  for (const button of toolbar.querySelectorAll('[data-action]')) {
+    const action = button.dataset.action
+    if (PRESSED[action]) button.setAttribute('aria-pressed', String(kind === PRESSED[action]))
+    if (action === 'undo') button.disabled = !state.undo.length
+    if (action === 'redo') button.disabled = !state.redo.length
+  }
+}
+
+// The source pane and the structure can be shown or hidden
+function toggle(button, name, shown) {
+  const apply = value => {
+    document.body.classList.toggle(name, name === 'no-source' ? !value : value)
+    button.setAttribute('aria-pressed', String(value))
+    try {
+      localStorage.setItem(`doctools.${name}`, String(value))
+    } catch { }
+  }
+  let stored = null
+  try {
+    stored = localStorage.getItem(`doctools.${name}`)
+  } catch { }
+  apply(stored === null ? shown : stored === 'true')
+  button.addEventListener('click', () => apply(button.getAttribute('aria-pressed') !== 'true'))
+}
+toggle(document.getElementById('toggle-source'), 'no-source', true)
+toggle(document.getElementById('toggle-inspect'), 'inspect', false)
+
 // Tab moves between the cells of a table
 function stepCell(step) {
   const result = tableStep(state.model, state.caret.focus, step)
@@ -168,12 +225,11 @@ view.addEventListener('keydown', ev => {
   }
   if (!(ev.ctrlKey || ev.metaKey) || ev.altKey) return
   const key = ev.key.toLowerCase()
-  const { a, b } = selection()
-  if (key === 'z' && !ev.shiftKey) restore(state.undo, state.redo)
-  else if (key === 'y' || (key === 'z' && ev.shiftKey)) restore(state.redo, state.undo)
-  else if (key === 'b') commit(toggleInline(state.model, a, b, 'bold'))
-  else if (key === 'i') commit(toggleInline(state.model, a, b, 'italic'))
-  else if (key === 'e') commit(toggleInline(state.model, a, b, 'code'))
+  if (key === 'z' && !ev.shiftKey) ACTIONS.undo()
+  else if (key === 'y' || (key === 'z' && ev.shiftKey)) ACTIONS.redo()
+  else if (key === 'b') ACTIONS.bold()
+  else if (key === 'i') ACTIONS.italic()
+  else if (key === 'e') ACTIONS.code()
   else return
   ev.preventDefault()
 })
@@ -270,6 +326,7 @@ code.addEventListener('scroll', () => {
 // Status ------------------------------------------------------------------------
 
 function renderStatus() {
+  renderToolbar()
   const offset = state.caret.focus
   const path = []
   for (let node = state.tree?.rootNode.descendantForIndex(Math.max(Math.min(offset, state.source.length) - 1, 0));
@@ -293,7 +350,7 @@ let saveTimer
 
 function changed() {
   state.dirty = true
-  fileStatus.textContent = `${state.path} (modified)`
+  fileStatus.textContent = 'Saving…'
   clearTimeout(saveTimer)
   saveTimer = setTimeout(save, SAVE_DELAY_MS)
 }
@@ -308,10 +365,10 @@ async function save() {
     state.mtime = (await response.json()).mtime
     if (state.source === text) {
       state.dirty = false
-      fileStatus.textContent = `${state.path} (saved)`
+      fileStatus.textContent = 'Saved'
     }
   } catch (err) {
-    fileStatus.textContent = `${state.path} (not saved: ${err.message})`
+    fileStatus.textContent = `Not saved: ${err.message}`
   } finally {
     state.saving = false
   }
@@ -328,7 +385,7 @@ async function poll() {
         render(view, state.model)
         renderCode(false)
         renderStatus()
-        fileStatus.textContent = `${state.path} (reloaded)`
+        fileStatus.textContent = 'Reloaded from the file'
       }
       state.mtime = file.mtime
     }
@@ -347,7 +404,9 @@ async function main() {
   state.mtime = file.mtime
   setSource(file.text)
   document.title = `${file.name} - Doctools`
-  fileStatus.textContent = file.path
+  title.textContent = file.name
+  title.title = file.path
+  fileStatus.textContent = 'Saved'
   renderView(false)
   renderCode(false)
   setTimeout(poll, POLL_MS)

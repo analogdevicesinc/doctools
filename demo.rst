@@ -4,6 +4,15 @@ Doctools for dummies
 This is a *plain* paragraph with **strong** **strong** text, ``literal`` text, a
 :ref:`role <target>` and a `link <https://example.com>`_.
 
+Hello there, how are you?
+
+Firgures
+--------
+
+.. figure:: https://picsum.photos/300/200
+
+  A random image I found online
+
 Tables
 -----
 
@@ -45,6 +54,22 @@ True   True    True
      - 1.99
      - On a stick!
 
+.. table:: Table caption
+  :width: 65%
+  :widths: auto
+  :align: center
+
+  +--------------+----------------+-----------------+
+  | Header One   | Header Two     | Header Three    |
+  +==============+================+=================+
+  | Nulla 1      | Lacus 2        | Hendrerit 3     |
+  +--------------+----------------+-----------------+
+  | Dignissim 11 | Morbi 12       | Pellentesque 13 |
+  +--------------+----------------+-----------------+
+  | Donec sit 21 | Ullamcorper 22 | Quis 23         |
+  +--------------+----------------+-----------------+
+  | Phasellus 31 | Ante 32        | Tempus 33       |
+  +--------------+----------------+-----------------+
 
 Lists
 -----
@@ -126,3 +151,4 @@ A table with a cell that spans columns is shown as source:
 +-------+---------+
 | one   | first   |
 +-------+---------+
+

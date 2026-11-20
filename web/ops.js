@@ -77,6 +77,10 @@ function unlist(source, item, caret) {
   return edit(ls, to, head, caret ?? ls + head.length)
 }
 
+// Two paragraphs next to each other can be joined
+const joins = (first, second) =>
+  first !== second && first.kind === 'paragraph' && second.kind === 'paragraph' && first.parent === second.parent
+
 function deleteBackwardRaw(model, a, b) {
   const { source } = model
   if (a !== b) return edit(a, b, '')
@@ -108,10 +112,9 @@ function deleteBackwardRaw(model, a, b) {
     return edit(start, end, text, previous ? previous.e : 0)
   }
 
-  // Join with the block before when only blank space is between them
-  const from = previous ? previous.oe : 0
-  if (isBlank(source.slice(from, a).replace(/\n/g, '')) && from < a)
-    return edit(from, a, '')
+  // Join with the paragraph before, in the same container
+  if (previous && joins(previous.block, owner) && isBlank(source.slice(previous.oe, a).replace(/\n/g, '')))
+    return edit(previous.oe, a, '')
   return undefined
 }
 
@@ -130,7 +133,7 @@ function deleteForwardRaw(model, a, b) {
     if (next.kind === 'soft') return edit(next.s, next.e, '', a)
     if (next.e > next.s) return edit(next.s, after(source, next.s), '', a)
   }
-  if (isBlank(source.slice(a, next.os).replace(/\n/g, '')) && a < next.os)
+  if (item && joins(item.block, next.block) && isBlank(source.slice(a, next.os).replace(/\n/g, '')))
     return edit(a, next.os, '', a)
   return undefined
 }

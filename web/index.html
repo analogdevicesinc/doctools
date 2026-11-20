@@ -3,26 +3,55 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
   <title>Doctools</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
-    <strong>Doctools</strong>
-    <span id="file"></span>
+  <header class="app-bar">
+    <svg class="logo" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+    <div class="titles">
+      <h1 id="title">Doctools</h1>
+      <span id="file"></span>
+    </div>
+    <button class="icon-button" id="toggle-inspect" type="button" title="Show the structure" aria-pressed="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 8h-2.81c-.45-.78-1.07-1.45-1.82-1.96L17 4.41 15.59 3l-2.17 2.17C12.96 5.06 12.49 5 12 5c-.49 0-.96.06-1.41.17L8.41 3 7 4.41l1.62 1.63C7.88 6.55 7.26 7.22 6.81 8H4v2h2.09c-.05.33-.09.66-.09 1v1H4v2h2v1c0 .34.04.67.09 1H4v2h2.81c1.04 1.79 2.97 3 5.19 3s4.15-1.21 5.19-3H20v-2h-2.09c.05-.33.09-.66.09-1v-1h2v-2h-2v-1c0-.34-.04-.67-.09-1H20V8zm-6 8h-4v-2h4v2zm0-4h-4v-2h4v2z"/></svg>
+    </button>
+    <button class="icon-button" id="toggle-source" type="button" title="Show the source" aria-pressed="true">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 15h8v-2H3v2zm0 4h8v-2H3v2zm0-8h8V9H3v2zm0-6v2h8V5H3zm10 0h8v14h-8V5z"/></svg>
+    </button>
   </header>
+
+  <div class="toolbar" role="toolbar" aria-label="Format">
+    <button class="icon-button" data-action="undo" type="button" title="Undo (Ctrl+Z)">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg>
+    </button>
+    <button class="icon-button" data-action="redo" type="button" title="Redo (Ctrl+Y)">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.65 0-8.58 3.03-9.96 7.22L3.9 16c1.05-3.19 4.05-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z"/></svg>
+    </button>
+    <span class="divider" aria-hidden="true"></span>
+    <button class="icon-button" data-action="bold" type="button" title="Bold (Ctrl+B)" aria-pressed="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.6 10.79c.97-.67 1.65-1.77 1.65-2.79 0-2.26-1.75-4-4-4H7v14h7.04c2.09 0 3.71-1.7 3.71-3.79 0-1.52-.86-2.82-2.15-3.42zM10 6.5h3c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-3v-3zm3.5 9H10v-3h3.5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5z"/></svg>
+    </button>
+    <button class="icon-button" data-action="italic" type="button" title="Italic (Ctrl+I)" aria-pressed="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4v3h2.21l-3.42 8H6v3h8v-3h-2.21l3.42-8H18V4z"/></svg>
+    </button>
+    <button class="icon-button" data-action="code" type="button" title="Literal (Ctrl+E)" aria-pressed="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>
+    </button>
+  </div>
+
   <main>
-    <section class="pane">
-      <h2>Document</h2>
-      <div id="view" contenteditable="true" spellcheck="false"></div>
-    </section>
-    <section class="pane">
+    <div class="canvas">
+      <article id="view" class="page" contenteditable="true" spellcheck="false"></article>
+    </div>
+    <aside class="sheet" id="source-pane" aria-label="Source">
       <h2>Source</h2>
       <div id="source">
         <pre id="backdrop" aria-hidden="true"></pre>
-        <textarea id="code" spellcheck="false" wrap="off"></textarea>
+        <textarea id="code" spellcheck="false" wrap="off" aria-label="Source"></textarea>
       </div>
-    </section>
+    </aside>
   </main>
   <footer id="status"></footer>
   <script type="module" src="app.js"></script>

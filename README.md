@@ -5,8 +5,6 @@
 > of open-source tools and is provided without support or warranty.
 
 Edit reStructuredText in the browser, as the document and not as markup.
-It is an experiment: the look is on purpose not styled, every box shows the
-tree-sitter node it comes from.
 
 ```
 make vendor              # once: fetch the parser
@@ -21,9 +19,12 @@ The page has two panes, both editable and kept in sync:
 - **Source**: the `.rst` text. The block of the caret and the last edit are
   highlighted.
 
-The status line shows the offset, the leaf and the tree-sitter node of the
-caret, and the last edit. Changes are saved to the file as you type, and
-changes made to the file by other programs are loaded.
+Changes are saved to the file as you type, and changes made to the file by
+other programs are loaded.
+
+The buttons at the top right hide the source, and show the structure: every
+block is outlined with the tree-sitter node it comes from, and a status line
+shows the offset, the leaf and the node of the caret, and the last edit.
 
 ## How it works
 
@@ -54,8 +55,9 @@ a tree that is updated incrementally can differ from a fresh one.
 | Sections | Headings, the level follows the order of the adornments |
 | Paragraphs, `*emphasis*`, `**strong**`, ` ``literal`` ` | Text, the markup is hidden |
 | Bullet and enumerated lists | Lists, nested |
-| `note`, `warning`, `tip`, ... | A box, the content is edited as a document |
-| Roles and links | Their source, coloured |
+| `note`, `warning`, `tip`, ... | A card, the content is edited as a document |
+| Roles | A chip with the name of the role and its title, or its target |
+| Links | Their text |
 | Grid tables, simple tables and `list-table` | Tables: type in the cells, `Tab` moves between them, `Enter` adds a row, `Backspace` in an empty row removes it |
 | Tables with cells that span columns or rows, `csv-table` | Their source, in a box |
 | Other directives, literal blocks, comments, targets, definition and field lists | Their source, in a box |
