@@ -1,0 +1,85 @@
+@use "variable";
+
+@media screen {
+  .body .carousel.js {
+    position: relative;
+    overflow-x: hidden;
+    scroll-snap-type: none;
+    touch-action: pan-y;
+    cursor: grab;
+
+    &:focus-visible {
+      outline: .125em solid var(--accent-color);
+      border-radius: variable.$border-radius;
+    }
+
+    & > * {
+      --stacked: calc(var(--depth, 0) - var(--distance, 0));
+      position: relative;
+      background: var(--bg-color1);
+      transform: translateX(var(--shift, 0))
+                 perspective(40em)
+                 rotateY(calc(var(--offset, 0) * -30deg))
+                 scale(calc(1 - var(--distance, 0) * .2 - var(--stacked) * .06));
+
+      &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: var(--bg-color1);
+        opacity: min(.85, calc(var(--distance, 0) * .4 + var(--stacked) * .2));
+        pointer-events: none;
+      }
+
+      img {
+        display: block;
+        margin: 0 auto;
+      }
+    }
+
+    & > :not(.is-active),
+    & > :not(.is-active) img {
+      cursor: pointer;
+      user-select: none;
+    }
+
+    &.is-dragging {
+      cursor: grabbing;
+
+      & > *, img {
+        cursor: grabbing;
+        user-select: none;
+      }
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .body .carousel.js > * {
+    transform: translateX(var(--shift, 0));
+  }
+}
+
+.body .carousel-dots {
+  display: flex;
+  justify-content: center;
+  gap: .375em;
+  margin-bottom: 1em;
+
+  .carousel-dot {
+    --closeness: calc(1 - var(--distance, 1));
+    width: calc(.5em + var(--closeness) * .75em);
+    height: .5em;
+    border-radius: .25em;
+    background-color: color-mix(in srgb,
+                                var(--accent-color) calc(var(--closeness) * 100%),
+                                var(--text-color3));
+    opacity: calc(.35 + var(--closeness) * .65);
+  }
+}
+
+@media print {
+  .body .carousel-dots {
+    display: none;
+  }
+}

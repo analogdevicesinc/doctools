@@ -4,6 +4,7 @@ import { PageActions } from './page_actions.js'
 import { Versioned } from './versioned.js'
 import { Search } from './search.js'
 import { ContentActions } from './content_actions.js'
+import { Carousel } from './carousel.js'
 import { Zoom } from './zoom.js'
 import { Domain } from './domain.js'
 import { LLM } from './llm.js'
@@ -16,6 +17,7 @@ export default function Extra (){
     new PageActions(app)
     new Search(app)
     new ContentActions(app)
+    new Carousel(app)
     new Zoom(app)
     new Domain(app)
     new LLM(app)

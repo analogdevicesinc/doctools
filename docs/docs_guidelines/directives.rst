@@ -124,6 +124,39 @@ Renders at:
 
       More about all directives.
 
+.. _directive carousel:
+
+Carousel
+~~~~~~~~
+
+The carousel directive arranges its children, usually images and figures,
+in a carousel.
+
+.. code:: rst
+
+   .. carousel::
+      :class: [...]
+
+      .. figure:: <image>
+
+         <caption>
+
+      .. image:: <image>
+
+Renders as:
+
+.. carousel::
+
+   .. figure:: https://picsum.photos/300/200
+
+      The images are random.
+
+   .. image:: https://picsum.photos/200/300
+
+   .. figure:: https://picsum.photos/1000/500
+
+   .. image:: https://picsum.photos/500/500
+
 .. _include-template:
 
 Include template

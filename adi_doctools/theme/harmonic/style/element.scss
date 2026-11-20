@@ -581,6 +581,54 @@ hr {
     }
 }
 
+.body .carousel {
+    display: grid;
+    gap: 1em;
+    align-items: center;
+    justify-items: center;
+
+    & > * {
+        min-width: 0;
+        margin: 0;
+    }
+
+    img {
+        max-width: 100%;
+        height: auto;
+    }
+
+    figure, figcaption p {
+        margin: 0;
+    }
+}
+
+@media screen {
+    .body .carousel {
+        grid-auto-flow: column;
+        grid-auto-columns: 100%;
+        padding: .5em calc((100% - min(80%, 20em)) / 2);
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        scroll-snap-type: x mandatory;
+        mask-image: linear-gradient(to right, transparent, #000 1rem, #000 calc(100% - 1rem), transparent);
+
+        & > * {
+            scroll-snap-align: center;
+            text-align: center;
+        }
+    }
+}
+
+@media print {
+    .body .carousel {
+        grid-template-columns: repeat(auto-fit, minmax(10em, 1fr));
+
+        & > * {
+            break-inside: avoid;
+        }
+    }
+}
+
 .body .highlight-added,
 .body .highlight-modified,
 .body .highlight-deleted {

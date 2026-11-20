@@ -1260,6 +1260,29 @@ class directive_svg(SphinxDirective):
 
         return [figure_node]
 
+class directive_carousel(SphinxDirective):
+    """
+    Wraps the content in div with the carousel class.
+    """
+    option_spec: ClassVar = {
+        'class': directives.class_option,
+    }
+    has_content = True
+
+    required_arguments = 0
+    optional_arguments = 0
+
+    def run(self):
+        set_classes(self.options)
+        classes_ = ['carousel']
+        if 'classes' in self.options:
+            classes_.extend(self.options.get('classes'))
+        node = node_div(classes=classes_)
+        self.state.nested_parse(self.content, self.content_offset, node)
+
+        return [node]
+
+
 def common_setup(app):
     app.add_directive('description', directive_description)
     app.add_directive('collapsible', directive_collapsible)
@@ -1272,6 +1295,7 @@ def common_setup(app):
     app.add_directive('clear-content', directive_clear_content)
     app.add_directive('shell', directive_shell)
     app.add_directive('svg', directive_svg)
+    app.add_directive('carousel', directive_carousel)
 
     app.add_config_value('hide_collapsible_content',
                          dft_hide_collapsible_content, 'env')
