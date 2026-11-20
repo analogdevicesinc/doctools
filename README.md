@@ -128,7 +128,7 @@ a tree that is updated incrementally can differ from a fresh one.
 | Grid tables, simple tables, `table` and `list-table` | Tables: type in the cells, `Tab` moves between them, `Enter` adds a row, `Backspace` in an empty row removes it |
 | Tables with cells that span columns or rows, `csv-table` | Their source, in a box |
 | `code`, `code-block`, `sourcecode`, `shell` | A code editor, coloured by the language of the argument; the indentation of the source is not shown, and is added to what is written |
-| `carousel`, `collapsible`, `card`, `grid`, `flex`, `figure`, `video`, ... | A box with their name, caption and options, the content is edited as a document |
+| `carousel`, `collapsible`, `card`, `grid`, `flex`, `figure`, `video`, `only`, ... | A box with their name, caption and options, the content is edited as a document |
 | `rst-class` | A box with its name and the class to type, no content |
 | `rubric` | A heading that is not a section: its title, of the size of its `:heading-level:` |
 | Other directives | A box with their name, caption and options, the content as source |

@@ -143,6 +143,13 @@ test('a tab set holds tabs, their content is parsed', () => {
   assert.equal(sets[0].children.some(c => c.kind === 'caption'), false)
 })
 
+test('the content of only is parsed, its argument is the condition', () => {
+  const model = assertCovered('.. only:: html\n\n   Some **text**.\n')
+  assert.equal(outline(model.root), 'document(directive:only(caption paragraph))')
+  assert.equal(model.root.children[0].children[0].hint, 'condition')
+  assert.ok(texts(model).includes('strong:text'))
+})
+
 test('a rubric has a title and no content', () => {
   const model = assertCovered('.. rubric:: **Doctools**: docs\n   :heading-level: 1\n\nText\n')
   assert.equal(outline(model.root), 'document(directive:rubric(caption options(option:heading-level)) paragraph)')

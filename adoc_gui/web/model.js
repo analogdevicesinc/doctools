@@ -24,13 +24,13 @@ const ARGUMENT = {
   image: 'path', figure: 'path', include: 'path', literalinclude: 'path',
   table: 'title', 'list-table': 'title', 'csv-table': 'title',
   admonition: 'title', topic: 'title', sidebar: 'title', 'tab-item': 'title',
-  collapsible: 'title', card: 'title', collection: 'title', video: 'url', svg: 'path', 'rst-class': 'class', rubric: 'title'
+  collapsible: 'title', card: 'title', collection: 'title', video: 'url', svg: 'path', 'rst-class': 'class', rubric: 'title', only: 'condition'
 }
 
 // Directives whose content is reStructuredText
 const RST_DIRECTIVES = new Set([
   ...CARD_DIRECTIVES, 'figure', 'tab-set', 'tab-item', 'carousel', 'collapsible', 'card', 'grid', 'flex',
-  'video', 'svg', 'description', 'hdl-parameters', 'hdl-interfaces', 'esd-warning'
+  'video', 'svg', 'description', 'hdl-parameters', 'hdl-interfaces', 'esd-warning', 'only'
 ])
 
 // Directives without an argument
