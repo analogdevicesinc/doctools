@@ -204,6 +204,22 @@ export class CodeEditors {
             { key: 'ArrowDown', run: view => at(view).line.number === at(view).doc.lines && (on.leave(editor, 1), true) },
             { key: 'Backspace', run: view => view.state.doc.length === 0 && (on.leave(editor, -1), true) },
             {
+              // On the empty line at the end of the code: leave the code, as
+              // Enter on the empty line at the end of any directive does
+              key: 'Enter',
+              run: view => {
+                const { main } = view.state.selection
+                const { doc } = view.state
+                if (!main.empty || main.head !== doc.length || doc.lines < 2 || doc.line(doc.lines).length) return false
+                if (!doc.toString().trim()) return false
+                // The empty lines at its end go
+                const text = doc.toString().replace(/\s+$/, '')
+                view.dispatch({ changes: { from: text.length, to: doc.length }, annotations: outside.of(true) })
+                on.exit(editor)
+                return true
+              }
+            },
+            {
               key: 'Backspace',
               run: view => {
                 const { main } = view.state.selection

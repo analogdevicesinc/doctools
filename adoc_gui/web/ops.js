@@ -177,6 +177,38 @@ export function removeDirective(model, directive) {
   return edit(start, end, '', previous ? previous.e : start)
 }
 
+// Leave a directive from the end of its content: an empty line after it, at
+// its indentation, where the caret goes. The empty lines at the end of the
+// content are not kept.
+export function leaveDirective(model, directive) {
+  const { source } = model
+  const column = directive.s - lineStart(source, directive.s)
+  const last = [...model.leaves].reverse().find(l => within(l.block, directive) && source.slice(l.s, l.e).trim() !== '')
+  const from = lineEnd(source, last ? last.e : directive.headEnd)
+  let to = from
+  while (to < source.length && isBlank(lineOf(source, to + 1))) to = lineEnd(source, to + 1)
+  return edit(from, to, `\n\n${' '.repeat(column)}\n`, from + 2 + column)
+}
+
+// The directive that ends right before the caret, when the caret is at the
+// start of what follows it, or on the empty line after it: the blocks are
+// one after the other, in the same block
+function directiveBefore(model, a) {
+  const { source } = model
+  const item = leafAt(model, a)
+  if (item ? a !== item.s : !isBlank(lineOf(source, a))) return undefined
+  const owner = item ? item.block : blockAt(model, a)
+  const previous = [...model.leaves].reverse().find(l => l.e <= a && l.kind !== 'soft' && l.block !== owner)
+  if (!previous || source.slice(previous.e, a).trim() !== '') return undefined
+  // The first text of its block, which is not in the directive
+  if (item && model.leaves.some(l => l.block === owner && l.kind !== 'soft' && l.s < item.s)) return undefined
+  let found
+  for (let up = previous.block; up; up = up.parent)
+    if (up.kind === 'directive' && !within(owner, up)) found = up
+  if (!found) return undefined
+  return found.parent === (item ? owner.parent : owner) ? found : undefined
+}
+
 // The caret on an empty line below source shown as-is, such as code, and
 // indented as it: what is typed there goes on with it
 function continuesRaw(model, offset) {
@@ -908,6 +940,13 @@ export function deleteBackward(model, a, b, { repeat = false } = {}) {
     // first line would take the rest away.
     if (directive && !repeat && item && a === item.s && contentStart(model, directive) === item)
       return removeDirective(model, directive)
+    // Right after a directive: remove it, with its content; the caret stays
+    // where it is. Not while the key repeats, as above.
+    const before = repeat ? undefined : directiveBefore(model, a)
+    if (before) {
+      const removed = removeDirective(model, before)
+      return { ...removed, caret: a - (removed.end - removed.start) }
+    }
   }
   const at = a === b ? cellAt(model, a) : undefined
   if (at) {

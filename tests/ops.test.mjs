@@ -472,3 +472,40 @@ test('the level of a heading is set, text is made a heading and back', async () 
   assert.equal(at('.. note::\n\n   Te|xt\n'), undefined)
   assert.equal(at('Te|xt\nmore\n'), undefined)
 })
+
+test('a directive is left from the end of its content, to an empty line after it', async () => {
+  const { leaveDirective } = await import('../adoc_gui/web/ops.js')
+  const leave = model => leaveDirective(model, model.root.children[0])
+  assert.equal(run('.. code-block:: py\n\n   print(1)|\n\nAfter\n', leave), '.. code-block:: py\n\n   print(1)\n\n|\n\nAfter\n')
+  // The empty lines at the end of the code are not kept
+  assert.equal(run('.. code-block:: py\n\n   print(1)|\n\n\n', leave), '.. code-block:: py\n\n   print(1)\n\n|\n')
+  assert.equal(run('.. code-block:: py\n\n   print(1)|\n   \nAfter\n', leave), '.. code-block:: py\n\n   print(1)\n\n|\n\nAfter\n')
+  assert.equal(run('.. code-block:: py\n\n   print(1)|', leave), '.. code-block:: py\n\n   print(1)\n\n|\n')
+  // To the directive it is in
+  const inner = model => leaveDirective(model, model.root.children[0].children[0])
+  assert.equal(run('.. note::\n\n   .. shell::\n\n      $ls|\n\n   More\n', inner), '.. note::\n\n   .. shell::\n\n      $ls\n\n   |\n\n   More\n')
+  // What is typed there is a paragraph after the directive
+  assert.equal(type('.. code-block:: py\n\n   print(1)\n\n|\n\nAfter\n', 'x'), '.. code-block:: py\n\n   print(1)\n\nx|\n\nAfter\n')
+})
+
+test('backspace right after a directive removes the directive', () => {
+  assert.equal(run('Before\n\n.. note::\n\n   Text\n\n|After\n', deleteBackward), 'Before\n\n|After\n')
+  assert.equal(run('.. code-block:: py\n   :linenos:\n\n   print(1)\n\n|After\n', deleteBackward), '\n|After\n')
+  assert.equal(run('Before\n\n.. image:: a.png\n   :width: 5\n\n|After\n', deleteBackward), 'Before\n\n|After\n')
+  // On the empty line after it, as after leaving it
+  assert.equal(run('Before\n\n.. code-block:: py\n\n   print(1)\n\n|\n\nAfter\n', deleteBackward), 'Before\n\n|\n\nAfter\n')
+  // With what is in it
+  assert.equal(run('.. note::\n\n   .. shell::\n\n      $ls\n\n|After\n', deleteBackward), '\n|After\n')
+  // In a directive: the one before, not the one around
+  assert.equal(run('.. note::\n\n   .. shell::\n\n      $ls\n\n   |More\n', deleteBackward), '.. note::\n\n   |More\n')
+  // Not while the key is held down, nor from further in the text
+  const held = (model, a, b) => deleteBackward(model, a, b, { repeat: true })
+  assert.notEqual(run('Before\n\n.. note::\n\n   Text\n\n|After\n', held), 'Before\n\n|After\n')
+  assert.equal(run('.. note::\n\n   Text\n\nA|fter\n', deleteBackward), '.. note::\n\n   Text\n\n|fter\n')
+  assert.equal(run('.. note::\n\n   Text\n\n*a* |b\n', deleteBackward), '.. note::\n\n   Text\n\n*a*|b\n')
+  // Not across a list: the item after the one of the directive
+  const list = '* one\n\n  .. note::\n\n     Text\n\n* |two\n'
+  assert.notEqual(run(list, deleteBackward), '* one\n\n* |two\n')
+  // A paragraph after a paragraph is as before
+  assert.equal(run('One\n\n|Two\n', deleteBackward), 'One|Two\n')
+})

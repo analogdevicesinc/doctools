@@ -1,7 +1,7 @@
 import { Parser, Language } from './vendor/web-tree-sitter.js'
 import { buildModel, leafAt, blockAt } from './model.js'
 import {
-  applyEdit, insertText, deleteBackward, deleteForward, insertParagraph, toggleInline, tableStep, openContent, intoContent, addOption, addLabel, removeSide, addTab, shiftItem, removeDirective, headingAt, setHeading
+  applyEdit, insertText, deleteBackward, deleteForward, insertParagraph, toggleInline, tableStep, openContent, intoContent, addOption, addLabel, removeSide, addTab, shiftItem, removeDirective, leaveDirective, headingAt, setHeading
 } from './ops.js'
 import {
   render, getSelection, setSelection, markActive, showDiagnostics, selectTab as showTab, setCodeHost, offsetOf, pointOf,
@@ -569,6 +569,11 @@ const codes = new CodeEditors({
   // Backspace at the very start of the code: the directive goes, with its code
   remove(editor) {
     commit(removeDirective(state.model, editor.code.directive))
+  },
+  // Enter on the empty line at the end of the code: out of the directive, on
+  // an empty line after it
+  exit(editor) {
+    commit(leaveDirective(state.model, editor.code.directive))
   },
   // Up from the first line, or down from the last one: the text before or after
   leave(editor, step) {
