@@ -12,7 +12,10 @@ export function setImageUrl(make) {
   imageUrl = make
 }
 
-// The image of an image or a figure directive, as written: { src, width, align }
+// The directives that show an image: its path is their argument
+const IMAGE_DIRECTIVES = new Set(['image', 'figure', 'svg'])
+
+// The image of an image, a figure or a svg directive, as written: { src, width, align }
 function imageOf(model, block) {
   const caption = block.children.find(c => c.kind === 'caption')
   const src = (caption?.inlines ?? []).map(l => model.source.slice(l.s, l.e)).join('').trim()
@@ -322,8 +325,8 @@ function renderBlock(model, block, attached = [], old) {
     const head = inner.filter(child => child.block?.kind === 'caption' || child.block?.kind === 'options').length
     const after = []
     if (block.takesOptions) after.push(button('add-option', 'Add an option'))
-    // The image of an image or a figure: after its path and its options
-    if (block.name === 'image' || block.name === 'figure') after.push(imageElement(model, block))
+    // The image of an image, a figure or a svg: after its path and its options
+    if (IMAGE_DIRECTIVES.has(block.name)) after.push(imageElement(model, block))
     inner.splice(head, 0, ...after)
   }
   nodes.push(...el.leaves, ...inner)

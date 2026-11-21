@@ -240,7 +240,7 @@ a tree that is updated incrementally can differ from a fresh one.
 | `code`, `code-block`, `sourcecode`, `shell` | A code editor, coloured by the language of the argument; the indentation of the source is not shown, and is added to what is written |
 | `carousel`, `collapsible`, `card`, `grid`, `flex`, `figure`, `video`, `only`, ... | A box with their name, caption and options, the content is edited as a document |
 | `rst-class` | A box with its name and the class to type, no content |
-| `image`, `figure` | The image, below its path, with its `:width:`, `:scale:` and `:align:`; the path is relative to the file, or to the folder of `conf.py` when it starts with `/` |
+| `image`, `figure`, `svg` | The image, below its path, with its `:width:`, `:scale:` and `:align:`; the path is relative to the file, or to the folder of `conf.py` when it starts with `/`. The drawing of `svg` is shown as an image: its links and its effects are the ones of the built page |
 | `rubric` | A heading that is not a section: its title, of the size of its `:heading-level:` |
 | Other directives | A box with their name, caption and options, the content as source |
 | Literal blocks | Their text as it is written; the `::` alone on its line is hidden |
