@@ -107,7 +107,13 @@ changes. `adoc-gui --serve` starts it right away. While it runs:
 - A menu completes the roles, the directives and their targets while they are
   typed: `:`, `` :ref:` ``, `:external+`, `.. `. The arrows select, `Enter` or
   `Tab` accept, `Escape` closes.
-- The pointer over a role shows what it points to.
+- The pointer over a role shows what it points to. For a reference into a
+  documentation, the one of the project (`:ref:`, `:doc:`, ...) or the one of
+  an inventory (`:external+`), a card shows the title of its target, the
+  first text of it, and where it is; the same card is beside the menu, for
+  the target that is selected. The text is read from the built page, of the
+  documentation server or of the other documentation, after the card is
+  shown: only its text, the page itself is not loaded.
 - The live view shows the page of the file.
 
 **Sparse build**: check folders in the files to build only those, which makes
@@ -162,7 +168,9 @@ a tree that is updated incrementally can differ from a fresh one.
   --cached` of one change), and the commit.
 - `__main__.py` serves the page and reads and writes the `.rst` files of the
   documentation, on `127.0.0.1` only; `docs.py` runs the backend of Doctools, the same process
-  the editor extensions use.
+  the editor extensions use; `preview.py` reads the title and the first text
+  of the target of a reference from its page. Only the pages the backend
+  resolves a reference to are read.
 
 ## What is rendered
 
@@ -196,5 +204,5 @@ a tree that is updated incrementally can differ from a fresh one.
 ## Development
 
 ```
-make test   # node --test, the model and the edits
+make test   # node --test, the model and the edits; unittest, the previews
 ```

@@ -222,8 +222,8 @@ def make_handler(first: Path, root: Path, docs: Docs, repo: Git | None = None):
 
         def do_POST(self):
             path = urlsplit(self.path).path
-            if path not in ('/api/docs/start', '/api/docs/stop', '/api/docs/ask', '/api/docs/sparse', '/api/grammar',
-                            '/api/git/commit', '/api/git/stage'):
+            if path not in ('/api/docs/start', '/api/docs/stop', '/api/docs/ask', '/api/docs/preview', '/api/docs/sparse',
+                            '/api/grammar', '/api/git/commit', '/api/git/stage'):
                 return self.reply(404, b'Not found')
             if not self.allowed():
                 return
@@ -259,6 +259,8 @@ def make_handler(first: Path, root: Path, docs: Docs, repo: Git | None = None):
                 if not isinstance(message, dict):
                     return self.reply(400, b'Bad request')
                 return self.reply_json(200, docs.grammar(message.get('text'), message.get('mode', 'local')))
+            if path == '/api/docs/preview':
+                return self.reply_json(200, docs.preview(message))
             self.reply_json(200, docs.ask(message))
 
         def log_message(self, format, *args):

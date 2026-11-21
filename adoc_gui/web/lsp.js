@@ -19,7 +19,9 @@ export function completionAt(prefix, suffix = '') {
         : { completion: 'local_targets', role },
       partial,
       skip,
-      item: entry => entry.name + closing
+      item: entry => entry.name + closing,
+      // What an entry points to is shown beside it
+      preview: entry => ({ role, target: String(entry.name) })
     }
   }
 
@@ -78,10 +80,26 @@ export function matching(list, context) {
     if (at === -1) continue
     const text = context.item(entry)
     const detail = entry.display ?? entry.project ?? entry.domain ?? ''
-    ;(at === 0 ? starts : contains).push({ label: text, text, detail: String(detail ?? '') })
+    const item = { label: text, text, detail: String(detail ?? '') }
+    if (context.preview) {
+      item.preview = context.preview(entry)
+      item.uri = entry.uri
+    }
+    ;(at === 0 ? starts : contains).push(item)
   }
   return [...starts, ...contains].slice(0, LIMIT)
 }
+
+// Whether a role points into a documentation, the one of the project or the
+// one of an inventory, where there is text to show of its target: not a role
+// that makes the address of a site. target: what the role resolved to.
+export function hasPreview(role, target) {
+  return role.startsWith('external+') || !/^[a-z][\w+.-]*:\/\//i.test(target ?? '')
+}
+
+// What is shown of where a reference points to, short: the address without
+// its scheme
+export const shortTarget = target => String(target ?? '').replace(/^https?:\/\/(www\.)?/, '')
 
 // The question for the backend about the role written as 'source'
 export function roleQuestion(source) {

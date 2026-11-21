@@ -20,3 +20,4 @@ run:
 
 test:
 	node --test tests/*.test.mjs
+	python3 -m unittest discover -s tests

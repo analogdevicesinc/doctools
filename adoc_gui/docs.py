@@ -18,6 +18,9 @@ import sys
 import threading
 import time
 from pathlib import Path
+from urllib.parse import urlsplit
+
+from .preview import Previews
 
 CONF_CANDIDATES = [
     'conf.py',
@@ -85,6 +88,15 @@ def free_port(first: int) -> int:
     return first
 
 
+def docname_path(docname: str) -> str:
+    """The path of the page of a document on the documentation server."""
+    if docname == 'index':
+        return '/'
+    if docname.endswith('/index'):
+        return f'/{docname[:-len("index")]}'
+    return f'/{docname}/'
+
+
 def page_path(srcdir: str | None, file: Path) -> str | None:
     """The path of the page of a source file on the documentation server."""
     if not srcdir:
@@ -93,12 +105,7 @@ def page_path(srcdir: str | None, file: Path) -> str | None:
         relative = Path(os.path.realpath(file)).relative_to(os.path.realpath(srcdir))
     except ValueError:
         return None
-    docname = relative.with_suffix('').as_posix()
-    if docname == 'index':
-        return '/'
-    if docname.endswith('/index'):
-        return f'/{docname[:-len("index")]}'
-    return f'/{docname}/'
+    return docname_path(relative.with_suffix('').as_posix())
 
 
 class Docs:
@@ -124,6 +131,7 @@ class Docs:
         self._lock = threading.Lock()
         self._next_id = 1
         self._waiting: dict[int, tuple[threading.Event, list]] = {}
+        self._previews = Previews()
 
         if importlib.util.find_spec('adi_doctools') is None:
             self.problem = 'adi-doctools is not installed'
@@ -343,6 +351,34 @@ class Docs:
         if not self.url:
             return {'error': 'the documentation server is not running'}
         return self.request(message)
+
+    def preview(self, message: dict) -> dict:
+        """What a reference points to: { title, target, text, page, external }.
+        The reference is resolved by the backend, and only the page it gives
+        is read: one of the project, or of an inventory of the project."""
+        if (not isinstance(message, dict) or not set(message) <= {'role', 'target', 'title'}
+                or not isinstance(message.get('role'), str) or not isinstance(message.get('target'), str)):
+            return {'error': 'not allowed'}
+        answer = self.ask(message)
+        target = answer.get('target')
+        if answer.get('error') or not isinstance(target, str):
+            return {'error': answer.get('error') or 'not found'}
+        external = message['role'].startswith('external+')
+        if external:
+            url, version = target, None
+        elif '://' in target or not self.url:
+            # A role that makes an address: there is no page of a documentation to read
+            return {'title': answer.get('title'), 'target': target}
+        else:
+            docname, _, anchor = target.partition('#')
+            server = urlsplit(self.url)
+            url = f'{server.scheme}://{server.netloc}{docname_path(docname)}' + (f'#{anchor}' if anchor else '')
+            version = self.revision
+        found = self._previews.of(url, version)
+        return {
+            'title': answer.get('title') or found.get('title'), 'target': target, 'external': external,
+            'heading': found.get('title'), 'text': found.get('text'), 'page': found.get('page'),
+        }
 
     def grammar(self, text: str, mode: str = 'local') -> dict:
         """The grammar mistakes of a text, by LanguageTool: on this machine

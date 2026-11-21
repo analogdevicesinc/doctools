@@ -31,7 +31,7 @@ test('the entries are filtered by what is typed, and get their suffix', () => {
   assert.deepEqual(labels(':ex'), ['external+', 'regexp:`'])
   assert.deepEqual(labels(':zz'), [])
   const targets = matching([{ name: 'guide', display: 'Guide' }, { name: 'section-1' }], completionAt(':ref:`the <'))
-  assert.deepEqual(targets, [
+  assert.deepEqual(targets.map(({ label, text, detail }) => ({ label, text, detail })), [
     { label: 'guide>`', text: 'guide>`', detail: 'Guide' }, { label: 'section-1>`', text: 'section-1>`', detail: '' }
   ])
   assert.deepEqual(matching([{ name: 'note' }], completionAt('.. n')).map(i => i.text), ['note::'])
@@ -42,4 +42,21 @@ test('the question about a role', () => {
   assert.deepEqual(roleQuestion(':doc:`The page </a/b>`'), { role: 'doc', title: 'The page', target: '/a/b' })
   assert.deepEqual(roleQuestion(':external+sphinx:ref:`x`'), { role: 'external+sphinx:ref', target: 'x' })
   assert.equal(roleQuestion('`plain`'), undefined)
+})
+
+test('the targets of a reference have a preview, a site does not', async () => {
+  const { hasPreview, shortTarget } = await import('../adoc_gui/web/lsp.js')
+  const list = [{ name: 'install', display: 'Installing', uri: 'install#install' }]
+  const [local] = matching(list, completionAt('See :ref:`ins'))
+  assert.deepEqual(local.preview, { role: 'ref', target: 'install' })
+  assert.equal(local.uri, 'install#install')
+  const [external] = matching(list, completionAt(':external+sphinx:ref:`a title <ins'))
+  assert.deepEqual(external.preview, { role: 'external+sphinx:ref', target: 'install' })
+  assert.equal(matching([{ name: 'ref' }], completionAt(':re'))[0].preview, undefined)
+
+  assert.equal(hasPreview('ref', 'install#install'), true)
+  assert.equal(hasPreview('external+sphinx:ref', 'https://www.sphinx-doc.org/a.html#b'), true)
+  assert.equal(hasPreview('git-doctools', 'https://github.com/analogdevicesinc/doctools'), false)
+  assert.equal(shortTarget('https://www.sphinx-doc.org/a.html#b'), 'sphinx-doc.org/a.html#b')
+  assert.equal(shortTarget('install#install'), 'install#install')
 })

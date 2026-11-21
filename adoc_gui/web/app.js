@@ -9,7 +9,7 @@ import {
 } from './view.js'
 import { codeEdit, toSource, fromSource, sourceMarks, CODE_DIRECTIVES } from './code.js'
 import { sourceEditor, CodeEditors } from './editors.js'
-import { completionAt, matching, roleQuestion } from './lsp.js'
+import { completionAt, matching, roleQuestion, hasPreview, shortTarget } from './lsp.js'
 import { optionChoices, optionSpec, FLAG } from './directives.js'
 import { SparseSelection } from './sparse.js'
 import { ContextMenu } from './contextmenu.js'
@@ -29,6 +29,7 @@ const toolbar = document.querySelector('.toolbar')
 const docsButton = document.getElementById('toggle-docs')
 const menu = document.getElementById('menu')
 const tooltip = document.getElementById('tooltip')
+const card = document.getElementById('card')
 const canvas = document.querySelector('.canvas')
 const tree = document.getElementById('tree')
 const frame = document.getElementById('frame')
@@ -985,7 +986,11 @@ peek.addEventListener('mouseenter', keepPeek)
 peek.addEventListener('mouseleave', ev => {
   if (!ev.relatedTarget?.closest?.('.git-bar')) hidePeek()
 })
-canvas.addEventListener('scroll', () => hidePeek(false), { passive: true })
+canvas.addEventListener('scroll', () => {
+  hidePeek(false)
+  // The card of a role stays where the role was
+  if (cardOf && cardOf !== menu) hideCard()
+}, { passive: true })
 source.view.scrollDOM.addEventListener('scroll', () => hidePeek(false), { passive: true })
 peek.addEventListener('mousedown', ev => ev.preventDefault())
 peek.addEventListener('click', async ev => {
@@ -1209,6 +1214,7 @@ async function pollDocs(once) {
       if (docs.build === 'ready' && docs.revision !== state.docs.revision) builtAt = performance.now()
       state.docs = docs
       answers.clear()
+      previews.clear()
       showDiagnostics(view, state.model, docs.diagnostics)
       renderBackdrop()
       renderDocs()
@@ -1239,7 +1245,118 @@ const answers = new Map()
 function closeMenu() {
   completion = undefined
   menu.hidden = true
+  if (cardOf === menu) hideCard()
   flush()
+}
+
+// What a reference points to: its title, the first text of its target and
+// where it is, in a card. The text is read from the page of the target, which
+// takes a moment: the card is shown with what is known, and filled when the
+// text comes.
+const previews = new Map()
+function previewOf(question) {
+  const key = JSON.stringify(question)
+  if (!previews.has(key)) {
+    previews.set(key, post('api/docs/preview', question).catch(() => ({ error: 'no answer' })).then(answer => {
+      // Asked again when it failed
+      if (answer.error) previews.delete(key)
+      return answer
+    }))
+  }
+  return previews.get(key)
+}
+
+// What the card is shown for: the menu or the element of a role
+let cardOf
+let cardRun = 0
+let cardTimer
+
+function hideCard() {
+  clearTimeout(cardTimer)
+  cardRun++
+  cardOf = undefined
+  card.hidden = true
+}
+
+// known: { title, target, text, page } as far as it is known, waiting: the
+// text is on its way
+function fillCard(known, waiting) {
+  const part = (name, text) => {
+    const el = document.createElement('div')
+    el.className = name
+    el.textContent = text
+    return el
+  }
+  const nodes = [part('preview-title', known.title || known.heading || shortTarget(known.target))]
+  if (known.text) {
+    nodes.push(part('preview-text', known.text))
+  } else if (waiting) {
+    const wait = part('preview-wait', '')
+    wait.append(document.createElement('span'), document.createElement('span'))
+    nodes.push(wait)
+  }
+  const where = part('preview-where', '')
+  if (known.page) {
+    // The title of the page, without the name of the documentation after it
+    const page = document.createElement('span')
+    page.className = 'preview-page'
+    page.textContent = known.page.split(' — ')[0]
+    if (page.textContent !== nodes[0].textContent) where.append(page)
+  }
+  if (known.target) {
+    const target = document.createElement('span')
+    target.textContent = shortTarget(known.target)
+    where.append(target)
+  }
+  if (where.childNodes.length) nodes.push(where)
+  card.replaceChildren(...nodes)
+}
+
+// Show the card for 'owner' (the menu or the element of a role), placed by
+// place(): first with what is known, then with the text of the target
+function showCard(owner, known, question, place) {
+  const run = ++cardRun
+  cardOf = owner
+  const show = (data, waiting) => {
+    fillCard(data, waiting)
+    card.hidden = false
+    place()
+  }
+  if (!question) return show(known, false)
+  let answered = false
+  // A text that is already there, or comes at once, is shown without the wait
+  cardTimer = setTimeout(() => {
+    if (run === cardRun && !answered) show(known, true)
+  }, 120)
+  previewOf(question).then(answer => {
+    answered = true
+    if (run !== cardRun) return
+    if (answer.error) return known.title || known.target ? show(known, false) : hideCard()
+    show({ ...known, ...Object.fromEntries(Object.entries(answer).filter(([, value]) => value)) }, false)
+  })
+}
+
+// Beside the menu: at its right, or at its left when there is no room
+function placeCardAtMenu() {
+  const rect = menu.getBoundingClientRect()
+  const right = rect.right + 6 + card.offsetWidth <= window.innerWidth - 8
+  card.style.left = `${right ? rect.right + 6 : Math.max(rect.left - 6 - card.offsetWidth, 8)}px`
+  card.style.top = `${Math.max(Math.min(rect.top, window.innerHeight - card.offsetHeight - 8), 8)}px`
+}
+
+// The card of the entry of the menu that is selected, once the selection rests
+let menuCardTimer
+function showMenuCard() {
+  clearTimeout(menuCardTimer)
+  const item = completion?.items[completion.index]
+  if (!item?.preview) {
+    if (cardOf === menu) hideCard()
+    return
+  }
+  menuCardTimer = setTimeout(() => {
+    if (completion?.items[completion.index] !== item) return
+    showCard(menu, { title: item.detail, target: item.uri }, item.preview, placeCardAtMenu)
+  }, cardOf === menu ? 140 : 320)
 }
 
 // What can be completed at the caret, see completionAt
@@ -1323,6 +1440,7 @@ function renderMenu() {
     menu.style.left = `${Math.max(Math.min(rect.left, window.innerWidth - menu.offsetWidth - 8), 0)}px`
   }
   menu.querySelector('[aria-selected=true]')?.scrollIntoView({ block: 'nearest' })
+  showMenuCard()
 }
 
 async function suggest() {
@@ -1670,6 +1788,7 @@ view.addEventListener('mouseover', ev => {
   const el = ev.target.closest?.('.k-role')
   clearTimeout(hoverTimer)
   if (!el) tooltip.hidden = true
+  if (!el && cardOf && cardOf !== menu) hideCard()
   if (!el || state.docs.build === 'off') return
   hoverTimer = setTimeout(async () => {
     const leaf = state.model.leaves.find(l => l.kind === 'role' && l.s === Number(el.dataset.s))
@@ -1677,18 +1796,29 @@ view.addEventListener('mouseover', ev => {
     if (!question) return
     const answer = await ask(question)
     if (!el.isConnected || !el.matches(':hover')) return
-    tooltip.textContent = answer.error ?? [answer.title, answer.target].filter(Boolean).join('  →  ')
-    tooltip.classList.toggle('error', Boolean(answer.error))
-    tooltip.hidden = false
-    const rect = el.getBoundingClientRect()
-    tooltip.style.top = `${rect.bottom + 6}px`
-    tooltip.style.left = `${Math.max(Math.min(rect.left, window.innerWidth - tooltip.offsetWidth - 8), 0)}px`
+    // Below the role, or above it when there is no room
+    const place = box => () => {
+      const rect = el.getBoundingClientRect()
+      const below = rect.bottom + 6 + box.offsetHeight <= window.innerHeight - 8
+      box.style.top = `${below ? rect.bottom + 6 : Math.max(rect.top - 6 - box.offsetHeight, 8)}px`
+      box.style.left = `${Math.max(Math.min(rect.left, window.innerWidth - box.offsetWidth - 8), 0)}px`
+    }
+    if (answer.error || !hasPreview(question.role, answer.target)) {
+      tooltip.textContent = answer.error ?? [answer.title, answer.target].filter(Boolean).join('  →  ')
+      tooltip.classList.toggle('error', Boolean(answer.error))
+      tooltip.hidden = false
+      return place(tooltip)()
+    }
+    // A reference into a documentation: the text of its target comes after
+    showCard(el, { title: answer.title, target: answer.target }, question, place(card))
   }, 350)
 })
 view.addEventListener('mouseout', ev => {
-  if (ev.target.closest?.('.k-role')) {
+  const el = ev.target.closest?.('.k-role')
+  if (el) {
     clearTimeout(hoverTimer)
     tooltip.hidden = true
+    if (cardOf === el) hideCard()
   }
 })
 
