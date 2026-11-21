@@ -1,7 +1,7 @@
 import { Parser, Language } from './vendor/web-tree-sitter.js'
 import { buildModel, leafAt, blockAt } from './model.js'
 import {
-  applyEdit, insertText, deleteBackward, deleteForward, insertParagraph, toggleInline, tableStep, openContent, intoContent, addOption, addLabel, removeSide, addTab, shiftItem, removeDirective, leaveDirective, headingAt, setHeading
+  applyEdit, insertText, deleteBackward, deleteForward, insertParagraph, toggleInline, tableStep, openContent, intoContent, addOption, addLabel, removeSide, addTab, shiftItem, removeDirective, leaveDirective, headingAt, setHeading, addDirective, addRole, addTable
 } from './ops.js'
 import {
   render, getSelection, setSelection, markActive, showDiagnostics, selectTab as showTab, setCodeHost, offsetOf, pointOf,
@@ -13,6 +13,7 @@ import { completionAt, matching, roleQuestion, hasPreview, shortTarget } from '.
 import {
   orderRoles, filterRoles, filterLabel, roleOpen, searchTargets, referenceText, referenceQuestion, pageOf
 } from './refs.js'
+import { pickerGroups, templateOf } from './insert.js'
 import { optionChoices, optionSpec, FLAG } from './directives.js'
 import { SparseSelection } from './sparse.js'
 import { ContextMenu } from './contextmenu.js'
@@ -248,6 +249,8 @@ toolbar.addEventListener('mousedown', ev => {
   if (!ev.target.closest('select')) ev.preventDefault()
 })
 toolbar.addEventListener('click', ev => {
+  const add = ev.target.closest('[data-add]')
+  if (add) return picker.hidden || pickerKind !== add.dataset.add ? showPicker(add) : hidePicker()
   const action = ev.target.closest('[data-action]')?.dataset.action
   if (!action) return
   ACTIONS[action]()
@@ -269,6 +272,191 @@ function renderHeading() {
   headingSelect.value = String(Math.min(at?.level ?? 0, headingSelect.options.length - 1))
   // A level is the next one of the levels of the document, at most
   for (const option of headingSelect.options) option.disabled = Boolean(at) && Number(option.value) > at.max
+}
+
+// Add a directive, a role or a table: chosen below its button -------------------
+
+const picker = document.getElementById('picker')
+let pickerKind
+let pickerIndex = 0
+
+function hidePicker(focus = false) {
+  if (picker.hidden) return
+  picker.hidden = true
+  for (const button of toolbar.querySelectorAll('[data-add]')) button.setAttribute('aria-expanded', 'false')
+  if (focus) renderView(true)
+}
+
+function showPicker(button) {
+  pickerKind = button.dataset.add
+  for (const other of toolbar.querySelectorAll('[data-add]')) other.setAttribute('aria-expanded', String(other === button))
+  picker.classList.toggle('table', pickerKind === 'table')
+  picker.hidden = false
+  if (pickerKind === 'table') renderTablePicker()
+  else renderPicker(true)
+  const rect = button.getBoundingClientRect()
+  picker.style.top = `${rect.bottom + 6}px`
+  picker.style.left = `${Math.max(Math.min(rect.left, window.innerWidth - picker.offsetWidth - 8), 8)}px`
+}
+
+// The names the project has, when the documentation server runs: the ones
+// that are not known are listed too
+function projectNames(kind) {
+  if (state.docs.build === 'off') return Promise.resolve([])
+  const key = JSON.stringify({ completion: kind === 'role' ? 'roles' : 'directives' })
+  if (!answers.has(key)) answers.set(key, ask(JSON.parse(key)))
+  return answers.get(key).then(answer => Array.isArray(answer.list) ? answer.list.map(entry => entry.name) : [])
+}
+
+let pickerMore = []
+function renderPicker(first = false) {
+  let search = picker.querySelector('.picker-search')
+  if (first || !search) {
+    search = element('input', 'picker-search')
+    search.type = 'search'
+    search.spellcheck = false
+    search.autocomplete = 'off'
+    search.placeholder = pickerKind === 'role' ? 'Search the roles' : 'Search the directives'
+    search.setAttribute('aria-label', search.placeholder)
+    picker.replaceChildren(search, element('div', 'picker-list'))
+    pickerIndex = 0
+    pickerMore = []
+    const kind = pickerKind
+    projectNames(kind).then(names => {
+      if (picker.hidden || pickerKind !== kind || !names.length) return
+      pickerMore = names
+      renderPicker()
+    })
+    search.focus()
+  }
+  const groups = pickerGroups(pickerKind, pickerMore, search.value)
+  const count = groups.reduce((n, group) => n + group.items.length, 0)
+  pickerIndex = Math.max(Math.min(pickerIndex, count - 1), 0)
+  let index = 0
+  const nodes = groups.flatMap(group => {
+    const grid = element('div', 'picker-group')
+    for (const item of group.items) {
+      const el = element('button', `picker-item${index === pickerIndex ? ' selected' : ''}`)
+      el.type = 'button'
+      el.dataset.name = item.name
+      el.dataset.index = index++
+      el.append(element('span', '', item.name))
+      if (item.detail) el.append(element('span', 'detail', item.detail))
+      grid.append(el)
+    }
+    return [element('div', 'picker-title', group.title), grid]
+  })
+  const list = picker.querySelector('.picker-list')
+  list.replaceChildren(...(nodes.length ? nodes : [element('div', 'picker-empty', 'Nothing matches.')]))
+  list.querySelector('.selected')?.scrollIntoView({ block: 'nearest' })
+}
+
+// What is chosen is written at the caret of the page
+function pick(name) {
+  const kind = pickerKind
+  hidePicker()
+  const { a, b } = selection()
+  const edit = kind === 'role' ? addRole(state.model, a, b, name)
+    : addDirective(state.model, state.caret.focus, name, templateOf(name))
+  if (!edit) return setFileState(kind === 'role' ? 'Select text in one line, or none, to add a role' : 'Put the caret in the page to add a directive')
+  commit(edit)
+  // What the role points to is completed
+  if (kind === 'role') suggest()
+}
+
+picker.addEventListener('input', ev => {
+  if (!ev.target.matches('.picker-search')) return
+  pickerIndex = 0
+  renderPicker()
+})
+picker.addEventListener('keydown', ev => {
+  if (ev.key === 'Escape') {
+    ev.preventDefault()
+    return hidePicker(true)
+  }
+  if (pickerKind === 'table') return
+  const items = [...picker.querySelectorAll('.picker-item')]
+  if (ev.key === 'Enter') {
+    ev.preventDefault()
+    if (items[pickerIndex]) pick(items[pickerIndex].dataset.name)
+  } else if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {
+    ev.preventDefault()
+    if (!items.length) return
+    pickerIndex = (pickerIndex + (ev.key === 'ArrowDown' ? 1 : items.length - 1)) % items.length
+    renderPicker()
+  }
+})
+// The search keeps the focus: a click chooses
+picker.addEventListener('mousedown', ev => {
+  if (!ev.target.closest('input')) ev.preventDefault()
+})
+picker.addEventListener('click', ev => {
+  const item = ev.target.closest('.picker-item')
+  if (item) pick(item.dataset.name)
+})
+document.addEventListener('mousedown', ev => {
+  if (!picker.hidden && !picker.contains(ev.target) && !ev.target.closest?.('[data-add]')) hidePicker()
+}, true)
+window.addEventListener('resize', () => hidePicker())
+
+// A table: its size is chosen on squares, columns by rows, the first row is
+// the one of the headers; and its kind, which the browser keeps
+const TABLE_COLUMNS = 8
+const TABLE_ROWS = 6
+let tableKind = 'list'
+try {
+  if (localStorage.getItem('doctools.table') === 'grid') tableKind = 'grid'
+} catch { }
+function renderTablePicker() {
+  const box = element('div', 'picker-table')
+  const cells = element('div', 'picker-cells')
+  const size = element('div', 'picker-size', 'Choose a size')
+  const mark = (rows, columns) => {
+    for (const cell of cells.children)
+      cell.classList.toggle('on', Number(cell.dataset.row) <= rows && Number(cell.dataset.column) <= columns)
+    size.textContent = rows ? `${columns} × ${rows}` : 'Choose a size'
+  }
+  for (let row = 1; row <= TABLE_ROWS; row++) {
+    for (let column = 1; column <= TABLE_COLUMNS; column++) {
+      const cell = element('button', `picker-cell${row === 1 ? ' header' : ''}`)
+      cell.type = 'button'
+      cell.dataset.row = row
+      cell.dataset.column = column
+      cell.setAttribute('aria-label', `${column} columns, ${row} rows`)
+      cells.append(cell)
+    }
+  }
+  cells.addEventListener('mouseover', ev => {
+    const cell = ev.target.closest('.picker-cell')
+    if (cell) mark(Number(cell.dataset.row), Number(cell.dataset.column))
+  })
+  cells.addEventListener('mouseleave', () => mark(0, 0))
+  cells.addEventListener('click', ev => {
+    const cell = ev.target.closest('.picker-cell')
+    if (!cell) return
+    hidePicker()
+    const edit = addTable(state.model, state.caret.focus, tableKind, Number(cell.dataset.row), Number(cell.dataset.column))
+    if (!edit) return setFileState('Put the caret in the page to add a table')
+    commit(edit)
+  })
+  const kinds = element('div', 'picker-kinds')
+  for (const [kind, label, title] of [['list', 'List table', 'The list-table directive: a list of rows'],
+    ['grid', 'Grid table', 'A table drawn with + - |']]) {
+    const button = element('button', '', label)
+    button.type = 'button'
+    button.title = title
+    button.setAttribute('aria-pressed', String(kind === tableKind))
+    button.addEventListener('click', () => {
+      tableKind = kind
+      try {
+        localStorage.setItem('doctools.table', kind)
+      } catch { }
+      for (const other of kinds.children) other.setAttribute('aria-pressed', String(other === button))
+    })
+    kinds.append(button)
+  }
+  box.append(cells, size, kinds)
+  picker.replaceChildren(box)
 }
 
 const PRESSED = { bold: 'strong', italic: 'emphasis', code: 'literal' }

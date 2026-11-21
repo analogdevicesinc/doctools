@@ -37,7 +37,21 @@ The page has three parts:
   Backspace as in a word processor; `Ctrl+B`, `Ctrl+I` and `Ctrl+E` toggle
   bold, italic and literal; `Ctrl+Z` / `Ctrl+Y` undo and redo. The selector
   of the toolbar makes the line of the caret a heading of a level, or text
-  again; a level cannot be skipped. The code of
+  again; a level cannot be skipped. *Directive*, *Role* and *Table*, in the
+  toolbar, add one:
+  - *Directive*: the directives in groups (admonitions, images and media,
+    code, tables, layout, structure, HDL), and the others of the project
+    when the documentation server runs. The one chosen is added after the
+    block of the caret, as a block of its own, in the list item or the
+    directive the caret is in; type its argument, or its content. A tab set
+    comes with a tab, a list table with a row of headers.
+  - *Role*: the roles in groups (references, links, text), and the others
+    of the project. The one chosen is written at the caret, around the text
+    that is selected; what a reference points to is then completed.
+  - *Table*: choose its size on the squares, columns by rows with the first
+    row for the headers, and its kind, a list table or a grid table.
+
+  Search in the first two, the arrows and `Enter` choose, `Escape` closes. The code of
   `code`, `code-block`, `sourcecode` and `shell` is edited in a code editor,
   coloured by its language; up from its first line and down from its last
   one leave it.
@@ -187,6 +201,8 @@ a tree that is updated incrementally can differ from a fresh one.
   tree.
 - `web/directives.js` says what each directive takes: its argument, its
   options (a flag, a value, or one of a list of values) and its content.
+- `web/insert.js` holds the directives and the roles the toolbar adds, in
+  their groups.
 - `web/lsp.js` finds what to complete at the caret, `web/refs.js` orders and
   searches the references and writes their role.
 - `web/nav.js` shows the files and `web/sparse.js` holds the selection of the

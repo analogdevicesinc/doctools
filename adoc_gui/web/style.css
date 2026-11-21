@@ -221,6 +221,110 @@ body {
 
 .divider { width: 1px; height: 20px; margin: 0 6px; background: var(--outline-variant); }
 
+/* Add a directive, a role, a table: a button with its name, that opens what
+   to choose from */
+.add-button {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 32px;
+  padding: 0 10px 0 6px;
+  border: none;
+  border-radius: var(--radius-small);
+  font: 500 13px/20px var(--font);
+  color: var(--on-surface-variant);
+  background: none;
+  cursor: pointer;
+}
+.add-button svg { width: 20px; height: 20px; fill: currentColor; }
+.add-button:hover { background: color-mix(in srgb, var(--on-surface) 8%, transparent); }
+.add-button:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
+.add-button[aria-expanded='true'] { color: var(--primary); background: var(--secondary-container); }
+
+.picker {
+  position: fixed;
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+  width: 460px;
+  max-width: calc(100vw - 16px);
+  max-height: min(520px, calc(100dvh - 120px));
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius);
+  font: 13px/20px var(--font);
+  color: var(--on-surface);
+  background: var(--surface);
+  box-shadow: var(--shadow-raised);
+  overflow: hidden;
+}
+.picker[hidden] { display: none; }
+.picker.table { width: auto; }
+.picker-search {
+  flex: none;
+  height: 34px;
+  margin: 10px 10px 4px;
+  padding: 0 10px;
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-small);
+  font: 13px/20px var(--font);
+  color: var(--on-surface);
+  background: var(--surface);
+}
+.picker-search:focus-visible { outline: 2px solid var(--primary); outline-offset: -1px; }
+.picker-list { flex: 1; min-height: 0; overflow: auto; padding: 0 10px 10px; }
+.picker-title {
+  margin: 10px 2px 4px;
+  font: 600 11px/16px var(--font);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+}
+/* The ones of a group, side by side */
+.picker-group { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 2px 6px; }
+.picker-item {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+  height: 28px;
+  padding: 0 8px;
+  border: none;
+  border-radius: var(--radius-small);
+  text-align: left;
+  font: 12.5px/28px var(--mono);
+  color: var(--on-surface);
+  background: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.picker-item > span:first-child { flex: none; }
+.picker-item > .detail { min-width: 0; overflow: hidden; text-overflow: ellipsis; font: 11.5px/28px var(--font); color: var(--outline); }
+.picker-item:hover { background: color-mix(in srgb, var(--on-surface) 8%, transparent); }
+.picker-item.selected { color: var(--on-secondary-container); background: var(--secondary-container); }
+.picker-empty { padding: 14px 4px 6px; color: var(--outline); }
+
+/* The size of a table: the squares up to the pointer */
+.picker-table { padding: 12px; }
+.picker-cells { display: grid; grid-template-columns: repeat(8, 22px); gap: 3px; }
+.picker-cell { width: 22px; height: 18px; padding: 0; border: 1px solid var(--outline-variant); border-radius: 3px; background: none; cursor: pointer; }
+.picker-cell.header { background: var(--surface-container-high); }
+.picker-cell.on { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 22%, transparent); }
+.picker-cell.on.header { background: color-mix(in srgb, var(--primary) 45%, transparent); }
+.picker-size { margin: 8px 0; font: 500 13px/20px var(--font); color: var(--on-surface-variant); text-align: center; }
+.picker-kinds { display: flex; gap: 4px; }
+.picker-kinds button {
+  flex: 1;
+  height: 28px;
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-small);
+  font: 500 12px/20px var(--font);
+  color: var(--on-surface-variant);
+  background: none;
+  cursor: pointer;
+}
+.picker-kinds button[aria-pressed='true'] { border-color: var(--primary); color: var(--primary); background: var(--secondary-container); }
+
 /* Layout ----------------------------------------------------------------------
    The page in the middle, as wide as the window allows; the files float at
    the left edge of the window, the side pane at the right of the page.

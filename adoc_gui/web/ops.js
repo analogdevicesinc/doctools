@@ -177,6 +177,79 @@ export function removeDirective(model, directive) {
   return edit(start, end, '', previous ? previous.e : start)
 }
 
+// A new block after the block of the caret, as a block of its own, indented
+// as it: in a list item, in a directive. On an empty line, there.
+// make(indent): { text, caret }, the lines of the block, each indented, and
+// where the caret goes in them.
+function addBlock(model, offset, make) {
+  const { source } = model
+  const item = leafAt(model, offset)
+  let anchor = item ? item.block : undefined
+  // Not in a part of a block: after the whole of it
+  const PARTS = new Set(['caption', 'options', 'option', 'line', 'cell', 'row'])
+  while (anchor?.parent && (PARTS.has(anchor.kind) || PARTS.has(anchor.parent.kind) ||
+    (anchor.parent.kind === 'directive' && (anchor.kind === 'table' || (anchor.kind === 'raw' && anchor.code)))))
+    anchor = anchor.parent
+  if (!anchor) {
+    // On an empty line: there, with empty lines around it
+    const ls = lineStart(source, offset)
+    const le = lineEnd(source, offset)
+    if (!isBlank(source.slice(ls, le))) return undefined
+    const before = ls > 0 && !isBlank(lineOf(source, ls - 1)) ? '\n' : ''
+    const after = le === source.length || !isBlank(lineOf(source, le + 1)) ? '\n' : ''
+    const { text, caret } = make(source.slice(ls, le))
+    return edit(ls, le, before + text + after, ls + before.length + caret)
+  }
+  const end = anchor.kind === 'directive' ? Math.max(contentReach(model, anchor), anchor.e) : anchor.e
+  const at = lineEnd(source, Math.max(end - 1, anchor.s))
+  const after = at === source.length || !isBlank(lineOf(source, at + 1)) ? '\n' : ''
+  const { text, caret } = make(' '.repeat(anchor.s - lineStart(source, anchor.s)))
+  return edit(at, at, `\n\n${text}${after}`, at + 2 + caret)
+}
+
+// A new directive after the block of the caret. lines: what it is filled
+// with, its options and its content. The caret goes to its argument, or to
+// where its content is written.
+export function addDirective(model, offset, name, lines = []) {
+  return addBlock(model, offset, indent => {
+    const head = `${indent}.. ${name}::`
+    return { text: head + lines.map(line => line ? `\n${indent}   ${line}` : '\n').join(''), caret: head.length }
+  })
+}
+
+// A new table after the block of the caret, of rows and columns, with a row
+// of headers: a 'list' table (the list-table directive) or a 'grid' table.
+// The caret goes to its first cell.
+export function addTable(model, offset, kind, rows, columns) {
+  return addBlock(model, offset, indent => {
+    if (kind === 'grid') {
+      const width = 10
+      const line = mark => `${indent}+${`${mark.repeat(width)}+`.repeat(columns)}`
+      const cells = `${indent}|${`${' '.repeat(width)}|`.repeat(columns)}`
+      // A table of one row has no header
+      const lines = [line('-'), cells, line(rows > 1 ? '=' : '-')]
+      for (let row = 1; row < rows; row++) lines.push(cells, line('-'))
+      return { text: lines.join('\n'), caret: lines[0].length + 1 + indent.length + 2 }
+    }
+    const head = `${indent}.. list-table::\n${indent}   :header-rows: 1\n`
+    // The space after the mark of an empty cell is where its text is typed
+    const row = `\n${indent}   * - ${`\n${indent}     - `.repeat(columns - 1)}`
+    return { text: head + row.repeat(rows), caret: head.length + `\n${indent}   * - `.length }
+  })
+}
+
+// A role at the caret, around the text that is selected: the caret goes in
+// it, to write what it points to. A name that ends with '+' or '-' is the
+// start of a role, which is completed after it.
+export function addRole(model, a, b, name) {
+  const { source } = model
+  if (/[+-]$/.test(name)) return edit(a, b, `:${name}`)
+  const selected = source.slice(a, b)
+  if (selected.includes('\n') || selected.includes('`')) return undefined
+  const text = `:${name}:\`${selected}\``
+  return edit(a, b, text, a + text.length - 1)
+}
+
 // Leave a directive from the end of its content: an empty line after it, at
 // its indentation, where the caret goes. The empty lines at the end of the
 // content are not kept.
