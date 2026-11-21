@@ -309,7 +309,7 @@ const showSidePane = panel('no-source', document.getElementById('open-source'), 
 // one is shown, chosen from the bar at the bottom. The third one is named
 // after the tab of the side pane.
 const bottomBar = document.querySelector('.bottom-bar')
-const narrow = matchMedia('(max-width: 720px)')
+const narrow = matchMedia('(max-width: 1000px)')
 const MORE = {
   source: ['Source', 'M9.4 16.6 4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0 4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z'],
   preview: ['Live view', 'M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z'],

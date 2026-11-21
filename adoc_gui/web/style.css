@@ -312,7 +312,21 @@ body.no-nav .drawer, body.no-source .sheet { transform: scale(0.1); opacity: 0; 
 body.no-nav .side.left .open-panel, body.no-source .side.right .open-panel { opacity: 1; visibility: visible; }
 
 /* Tabs of the side pane */
-.tabs { display: flex; align-items: center; padding: 0 8px 0 12px; border-bottom: 1px solid var(--outline-variant); }
+/* On one line, whatever the width: they scroll when they do not fit */
+.tabs {
+  display: flex;
+  align-items: center;
+  padding: 0 8px 0 12px;
+  border-bottom: 1px solid var(--outline-variant);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tabs > * { flex: none; }
+.tab { white-space: nowrap; }
+.tabs > .close-panel { position: sticky; right: 0; background: var(--surface); }
+.drawer-head { white-space: nowrap; }
+.drawer-head > * { flex: none; }
+.drawer-head > #sparse-state { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .tab[hidden] { display: none; }
 .tab {
   position: relative;
@@ -1029,17 +1043,12 @@ body.inspect .page .soft { background: var(--surface-container-highest); }
   .page { padding: 40px 32px 64px; }
 }
 
-/* A narrow window: the page gives its place to the panels */
-@media (max-width: 1000px) {
-  :root { --page: 46vw; --edge: 8px; }
-}
-
 /* A phone, or a window as narrow: the files, the page and the side pane are
    three screens, one at a time, chosen from a bar at the bottom ------------- */
 
 .bottom-bar { display: none; }
 
-@media (max-width: 720px) {
+@media (max-width: 1000px) {
   html, body { height: 100dvh; }
   .app-bar { padding: 6px 12px 2px; }
   #docs-label { display: none; }
@@ -1064,7 +1073,7 @@ body.inspect .page .soft { background: var(--surface-container-highest); }
     flex: 1 1 auto;
     padding: 8px 8px 0;
   }
-  .page { padding: 28px 18px 64px; border-radius: var(--radius) var(--radius) 0 0; }
+  .page { max-width: 860px; padding: 28px 18px 64px; border-radius: var(--radius) var(--radius) 0 0; }
   .page h1.block { font-size: 28px; }
   .page h2.block { font-size: 24px; }
   .page h3.block { font-size: 21px; }
@@ -1078,8 +1087,7 @@ body.inspect .page .soft { background: var(--surface-container-highest); }
     visibility: visible;
   }
   .open-panel, .close-panel { display: none; }
-  .tabs { overflow-x: auto; scrollbar-width: none; }
-  .tab { flex: none; padding: 0 12px; }
+  .tab { padding: 0 12px; }
   .tree-row { height: 40px; }
 
   .bottom-bar {
