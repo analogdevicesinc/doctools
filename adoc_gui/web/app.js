@@ -15,7 +15,7 @@ import { SparseSelection } from './sparse.js'
 import { ContextMenu } from './contextmenu.js'
 import { proseOf, sourceRange } from './grammar.js'
 import { lineChanges } from './gitdiff.js'
-import { renderTree, foldersOf, ancestorsOf } from './nav.js'
+import { renderTree, foldersOf, ancestorsOf, askName, filePath, folderOf } from './nav.js'
 
 const SAVE_DELAY_MS = 400
 const POLL_MS = 1500
@@ -1937,7 +1937,8 @@ async function openFile(path) {
 // Files and sparse build ------------------------------------------------------
 
 function drawTree() {
-  if (!state.files) return
+  // Not while a name is typed in it
+  if (!state.files || naming) return
   renderTree(tree, state.files, {
     current: state.path, expanded: state.expanded, selection: state.sparse, changes: state.git.files
   })
@@ -1971,9 +1972,189 @@ function sparseChanged() {
   sparseTimer = setTimeout(() => post('api/docs/sparse', { paths: state.sparse.toArray() }).catch(() => {}), 300)
 }
 
+// New, rename, move, delete: the files of the tree ------------------------------
+
+// A name is being typed in the tree
+let naming = false
+
+const rowOf = path => [...tree.querySelectorAll('.tree-row')].find(row => row.dataset.path === path)
+
+async function typeName(options) {
+  naming = true
+  try {
+    return await askName(tree, options)
+  } finally {
+    naming = false
+    drawTree()
+  }
+}
+
+// Make, move or delete a file: what is not saved is saved first. The answer
+// of the server, undefined when it could not be done, which is said at the top.
+async function changeFiles(body) {
+  clearTimeout(saveTimer)
+  await save(true)
+  const answer = await post('api/files', body).catch(() => ({ error: 'adoc-gui is not running' }))
+  if (answer.error) {
+    setFileState(answer.error)
+    return undefined
+  }
+  await loadTree()
+  return answer
+}
+
+// A new file in a folder, '' for the top one: its name is typed, and it is opened
+async function newFile(folder = '') {
+  if (naming) return
+  if (folder && !state.expanded.has(folder)) {
+    state.expanded.add(folder)
+    store('expanded', [...state.expanded])
+    drawTree()
+  }
+  const typed = await typeName({ folder: folder ? rowOf(folder) : undefined, placeholder: 'name.rst' })
+  const path = typed && filePath(folder, typed)
+  if (!path) return
+  const answer = await changeFiles({ action: 'new', path })
+  if (answer) await openFile(answer.path)
+}
+
+// Rename a file, or move it: to is its new path. The open file stays open,
+// with its history.
+async function moveFile(path, to) {
+  if (!to || to === path) return
+  const answer = await changeFiles({ action: 'move', path, to })
+  if (!answer) return
+  if (path === state.path) {
+    state.path = answer.path
+    state.mtime = answer.mtime
+    document.title = `${answer.name} - Doctools`
+    title.textContent = answer.path
+    title.title = answer.absolute
+    history.replaceState(null, '', `#${encodeURIComponent(answer.path)}`)
+    pollDocs(true)
+  }
+  for (const folder of ancestorsOf(answer.path)) state.expanded.add(folder)
+  store('expanded', [...state.expanded])
+  drawTree()
+  loadGit()
+}
+
+// Rename: the name is typed in the row, without its folder. whole: the
+// path is typed, to move the file to another folder, made when it is not there.
+async function renameFile(path, whole = false) {
+  const row = rowOf(path)
+  if (!row || naming) return
+  const folder = folderOf(path)
+  const value = whole ? path : path.slice(folder ? folder.length + 1 : 0)
+  // The name is selected, without .rst
+  const select = [whole && folder ? folder.length + 1 : 0, value.length - '.rst'.length]
+  const typed = await typeName({ row, value, select })
+  if (typed) await moveFile(path, filePath(whole ? '' : folder, typed))
+}
+
+async function deleteFile(path) {
+  const answer = await changeFiles({ action: 'delete', path })
+  if (!answer) return
+  if (path !== state.path) return loadGit()
+  // The open file is gone: another one is shown
+  state.dirty = false
+  if (answer.open) {
+    const response = await api(answer.open)
+    if (response.ok) return show(await response.json())
+  }
+  setFileState('No file left to show')
+}
+
+document.getElementById('new-file').addEventListener('click', () => newFile(folderOf(state.path)))
+
+// The menu of a file, of a folder, or of the tree
+tree.addEventListener('contextmenu', ev => {
+  if (ev.shiftKey || ev.target.closest('.tree-input')) return
+  ev.preventDefault()
+  const row = ev.target.closest('.tree-row')
+  const path = row?.dataset.path ?? ''
+  const { clientX: x, clientY: y } = ev
+  if (!row || row.classList.contains('dir')) {
+    return context.show(x, y, [{ label: path ? `New file in ${path}` : 'New file', run: () => newFile(path) }])
+  }
+  const name = path.slice(path.lastIndexOf('/') + 1)
+  const items = [
+    { label: 'New file', run: () => newFile(folderOf(path)) },
+    { kind: 'separator' },
+    { label: 'Rename', keys: 'F2', run: () => renameFile(path) },
+    { label: 'Move to…', run: () => renameFile(path, true) },
+    { kind: 'separator' },
+    {
+      label: 'Delete',
+      kind: 'danger',
+      // Asked again, where the pointer is: a deleted file does not come back
+      run: () => context.show(x, y, [
+        { kind: 'note', label: `Delete ${name}? It cannot be undone${state.git.available ? ', but for what is committed' : ''}.` },
+        { label: `Delete ${name}`, kind: 'danger', run: () => deleteFile(path) },
+        { label: 'Keep it', run: () => {} }
+      ])
+    }
+  ]
+  context.show(x, y, items)
+})
+
+// The keys of the menu when it is not the one of the page, and F2 on the
+// open file
+document.addEventListener('keydown', ev => {
+  if (context.open && !view.contains(ev.target)) return void context.key(ev)
+  if (ev.key === 'F2' && !ev.target.closest?.('input, textarea, select')) {
+    ev.preventDefault()
+    renameFile(state.path)
+  }
+})
+
+// A file dragged to a folder, or to the tree for the top folder, moves there
+let dragged
+const dropTarget = ev => {
+  if (!dragged) return undefined
+  const row = ev.target.closest?.('.tree-row')
+  const folder = !row ? '' : row.classList.contains('dir') ? row.dataset.path : folderOf(row.dataset.path)
+  return folder === folderOf(dragged) ? undefined : { folder, el: folder ? rowOf(folder) : tree }
+}
+const clearDrop = () => {
+  for (const el of [tree, ...tree.querySelectorAll('.drop')]) el.classList.remove('drop')
+}
+tree.addEventListener('dragstart', ev => {
+  const row = ev.target.closest?.('.tree-row.file')
+  if (!row || naming) return ev.preventDefault()
+  dragged = row.dataset.path
+  row.classList.add('dragged')
+  ev.dataTransfer.effectAllowed = 'move'
+  ev.dataTransfer.setData('text/plain', dragged)
+})
+tree.addEventListener('dragover', ev => {
+  const target = dropTarget(ev)
+  clearDrop()
+  if (!target) return
+  ev.preventDefault()
+  ev.dataTransfer.dropEffect = 'move'
+  target.el?.classList.add('drop')
+})
+tree.addEventListener('dragleave', ev => {
+  if (!tree.contains(ev.relatedTarget)) clearDrop()
+})
+tree.addEventListener('drop', ev => {
+  const target = dropTarget(ev)
+  clearDrop()
+  if (!target) return
+  ev.preventDefault()
+  const path = dragged
+  moveFile(path, filePath(target.folder, path.slice(path.lastIndexOf('/') + 1)))
+})
+tree.addEventListener('dragend', () => {
+  dragged = undefined
+  clearDrop()
+  tree.querySelector('.dragged')?.classList.remove('dragged')
+})
+
 tree.addEventListener('click', ev => {
   const row = ev.target.closest('.tree-row')
-  if (!row) return
+  if (!row || row.classList.contains('naming')) return
   const { path } = row.dataset
   if (row.classList.contains('file')) return openFile(path)
   if (ev.target.closest('.check')) {

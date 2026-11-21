@@ -401,6 +401,26 @@ body.no-nav .side.left .open-panel, body.no-source .side.right .open-panel { opa
 .tree-row .name { overflow: hidden; text-overflow: ellipsis; }
 .tree-row.file .name { margin-left: 44px; }
 .tree-row.current { color: var(--on-secondary-container); background: var(--secondary-container); font-weight: 600; }
+/* The name of a file that is made, renamed or moved: typed in its row */
+.tree-input {
+  flex: 1;
+  min-width: 0;
+  height: 24px;
+  margin-left: 40px;
+  padding: 0 4px;
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-small);
+  outline: none;
+  font: 13px/20px var(--font);
+  color: var(--on-surface);
+  background: var(--surface);
+}
+.tree-row.naming, .tree-row.naming:hover { background: none; cursor: default; }
+.tree-row.naming .git-mark { display: none; }
+/* Where a dragged file goes */
+.tree-row.drop, #tree.drop { background: var(--secondary-container); }
+.tree-row.dragged { opacity: 0.5; }
+.context-item.danger { color: var(--error); }
 
 .twisty { flex: none; width: 16px; text-align: center; font-size: 10px; }
 .twisty::before { content: '▸'; }

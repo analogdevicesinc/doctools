@@ -7,6 +7,7 @@ function row(className, path, depth) {
   const el = document.createElement('div')
   el.className = `tree-row ${className}`
   el.dataset.path = path
+  el.dataset.depth = depth
   el.style.paddingLeft = `${8 + depth * 16}px`
   return el
 }
@@ -45,6 +46,8 @@ export function renderTree(container, tree, { current, expanded, selection, chan
     }
     for (const file of node.files) {
       const el = row('file', file.path, depth)
+      // Dragged to a folder to move it there
+      el.draggable = true
       if (file.path === current) el.classList.add('current')
       el.append(span('name', file.name))
       const change = changes[file.path]
@@ -61,6 +64,77 @@ export function renderTree(container, tree, { current, expanded, selection, chan
   walk(tree, 0)
   container.replaceChildren(...rows)
 }
+
+// Ask for the name of a file, in the tree: in the row of a file, in place
+// of its name, or in a new row below the row of a folder (at the top of the
+// tree without one). Resolves to what was typed, undefined when it was left
+// with Escape or without a change.
+// value: what is there to change, select: [from, to] of what is selected
+export function askName(container, { row: host, folder, value = '', select, placeholder = '' }) {
+  const input = document.createElement('input')
+  input.className = 'tree-input'
+  input.type = 'text'
+  input.spellcheck = false
+  input.autocomplete = 'off'
+  input.value = value
+  input.placeholder = placeholder
+  input.setAttribute('aria-label', 'File name')
+
+  let line, hidden
+  if (host) {
+    hidden = host.querySelector('.name')
+    hidden.hidden = true
+    hidden.after(input)
+    host.classList.add('naming')
+    host.draggable = false
+  } else {
+    line = row('file naming', '', folder ? Number(folder.dataset.depth) + 1 : 0)
+    line.append(input)
+    if (folder) folder.after(line)
+    else container.prepend(line)
+  }
+  input.focus()
+  if (select) input.setSelectionRange(select[0], select[1])
+  input.scrollIntoView({ block: 'nearest' })
+
+  return new Promise(resolve => {
+    let done = false
+    const finish = answer => {
+      if (done) return
+      done = true
+      line?.remove()
+      if (host) {
+        input.remove()
+        hidden.hidden = false
+        host.classList.remove('naming')
+        host.draggable = true
+      }
+      const typed = answer?.trim()
+      resolve(typed && typed !== value ? typed : undefined)
+    }
+    input.addEventListener('keydown', ev => {
+      ev.stopPropagation()
+      if (ev.key === 'Enter') finish(input.value)
+      else if (ev.key === 'Escape') finish()
+    })
+    // Leaving it keeps what was typed, as in a file manager
+    input.addEventListener('blur', () => finish(input.value))
+    for (const name of ['click', 'mousedown', 'dblclick', 'contextmenu'])
+      input.addEventListener(name, ev => ev.stopPropagation())
+  })
+}
+
+// The path of a file from what was typed for it: in a folder, with .rst
+// when it is not there
+export function filePath(folder, typed) {
+  const name = typed.trim().replace(/\\/g, '/').replace(/^\/+|\/+$/g, '')
+  if (!name) return undefined
+  const path = folder ? `${folder}/${name}` : name
+  return /\.rst$/i.test(path) ? path : `${path}.rst`
+}
+
+// The folder of a file
+export const folderOf = path => path.split('/').slice(0, -1).join('/')
 
 // The folders of a folder, for SparseSelection.toggle
 export function foldersOf(tree, path) {

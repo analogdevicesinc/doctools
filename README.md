@@ -24,7 +24,15 @@ The page has three parts:
 
 - **Files**, at the left: the `.rst` files of the documentation. A click opens
   a file, what is not saved of the open one is saved first. The check box of a
-  folder selects it for the sparse build, see below.
+  folder selects it for the sparse build, see below. The `+` at its top, and
+  the right click on a file, a folder or the panel, make a new file: type its
+  name in the tree, `.rst` is added, and `folder/name` makes the folder too;
+  it starts with a title from its name. The right click on a file also
+  renames it (`F2` for the open one), moves it (*Move to…*: type its path,
+  or drag the file to a folder) and deletes it, once it is confirmed. `Enter`
+  takes the name, `Escape` leaves it. The open file stays open when it is
+  renamed or moved, with its history. A folder that a file leaves empty is
+  removed.
 - **Document**, in the middle: the rendered document. Type, press Enter and
   Backspace as in a word processor; `Ctrl+B`, `Ctrl+I` and `Ctrl+E` toggle
   bold, italic and literal; `Ctrl+Z` / `Ctrl+Y` undo and redo. The selector
@@ -170,7 +178,8 @@ a tree that is updated incrementally can differ from a fresh one.
   documentation, on `127.0.0.1` only; `docs.py` runs the backend of Doctools, the same process
   the editor extensions use; `preview.py` reads the title and the first text
   of the target of a reference from its page. Only the pages the backend
-  resolves a reference to are read.
+  resolves a reference to are read. `files.py` makes, moves and deletes the
+  `.rst` files, below the folder of the documentation only.
 
 ## What is rendered
 

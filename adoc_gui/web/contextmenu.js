@@ -1,7 +1,8 @@
 // The menu of the right click: a list of actions at the pointer.
 //
 // items: [{ label, keys, run, disabled, kind }], kind: 'separator', 'note'
-// (a line of text) or 'suggestion' (a replacement, in bold)
+// (a line of text), 'suggestion' (a replacement, in bold) or 'danger' (what
+// cannot be undone)
 
 export class ContextMenu {
   constructor(el) {
@@ -70,6 +71,7 @@ export class ContextMenu {
       }
       row.className = 'context-item'
       if (item.kind === 'suggestion') row.classList.add('suggestion')
+      if (item.kind === 'danger') row.classList.add('danger')
       row.setAttribute('role', 'menuitem')
       row.dataset.index = i
       if (item.disabled) row.setAttribute('aria-disabled', 'true')

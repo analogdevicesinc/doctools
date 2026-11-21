@@ -21,6 +21,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
 from .docs import Docs
+from .files import FileError, delete_file, move_file, new_file
 from .git import Git
 
 WEB = Path(__file__).resolve().parent / 'web'
@@ -67,6 +68,18 @@ def list_tree(directory: Path, relative: str = '', depth: int = 0) -> dict:
 IMAGES = {'.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.bmp', '.avif'}
 
 
+def first_file(node: dict) -> str | None:
+    """The first file of a tree of list_tree: the ones of a folder, then the
+    ones of its folders."""
+    if node['files']:
+        return node['files'][0]['path']
+    for sub in node['dirs']:
+        found = first_file(sub)
+        if found:
+            return found
+    return None
+
+
 def conf_dir(file: Path) -> Path | None:
     """The folder of the conf.py of a file: the source folder of the docs"""
     for parent in file.parents:
@@ -76,10 +89,18 @@ def conf_dir(file: Path) -> Path | None:
 
 
 def make_handler(first: Path, root: Path, docs: Docs, repo: Git | None = None):
+    # The file shown when none is asked for: it can be renamed or deleted
+    opened = {'first': first}
+
     def resolve(relative: str | None) -> Path | None:
         """A .rst file of the root, from its path relative to the root."""
         if not relative:
-            return first
+            if not opened['first'].is_file():
+                other = first_file(list_tree(root))
+                if other is None:
+                    return None
+                opened['first'] = root / other
+            return opened['first']
         target = (root / relative).resolve()
         if root not in target.parents or target.suffix != '.rst' or not target.is_file():
             return None
@@ -100,6 +121,29 @@ def make_handler(first: Path, root: Path, docs: Docs, repo: Git | None = None):
         if root not in target.parents or target.suffix.lower() not in IMAGES or not target.is_file():
             return None
         return target
+
+    def change_files(message) -> dict:
+        """Make, move or delete a file: { action, path, to }. The answer is
+        the file, or after a deletion the path of a file to show instead."""
+        if not isinstance(message, dict):
+            return {'error': 'Bad request'}
+        action, path = message.get('action'), message.get('path')
+        try:
+            if action == 'new':
+                return {'path': new_file(root, path).relative_to(root).as_posix()}
+            if action == 'move':
+                source = (root / path).resolve() if isinstance(path, str) else None
+                target = move_file(root, path, message.get('to'))
+                if source == opened['first']:
+                    opened['first'] = target
+                return {'path': target.relative_to(root).as_posix(), 'mtime': target.stat().st_mtime_ns,
+                        'absolute': str(target), 'name': target.name}
+            if action == 'delete':
+                delete_file(root, path)
+                return {'path': None, 'open': first_file(list_tree(root))}
+        except FileError as err:
+            return {'error': str(err)}
+        return {'error': 'Bad request'}
 
     class Handler(BaseHTTPRequestHandler):
         def reply(self, status, body=b'', content_type='text/plain; charset=utf-8'):
@@ -223,7 +267,7 @@ def make_handler(first: Path, root: Path, docs: Docs, repo: Git | None = None):
         def do_POST(self):
             path = urlsplit(self.path).path
             if path not in ('/api/docs/start', '/api/docs/stop', '/api/docs/ask', '/api/docs/preview', '/api/docs/sparse',
-                            '/api/grammar', '/api/git/commit', '/api/git/stage'):
+                            '/api/grammar', '/api/git/commit', '/api/git/stage', '/api/files'):
                 return self.reply(404, b'Not found')
             if not self.allowed():
                 return
@@ -238,6 +282,8 @@ def make_handler(first: Path, root: Path, docs: Docs, repo: Git | None = None):
                 message = json.loads(text)
             except json.JSONDecodeError:
                 return self.reply(400, b'Bad request')
+            if path == '/api/files':
+                return self.reply_json(200, change_files(message))
             if path == '/api/docs/sparse':
                 paths = message.get('paths') if isinstance(message, dict) else None
                 if not isinstance(paths, list):

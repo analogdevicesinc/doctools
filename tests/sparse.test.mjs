@@ -29,3 +29,14 @@ test('taking a folder out of a selected one keeps its siblings', () => {
   assert.equal(s.stateOf('docs/guide/a'), 'none')
   assert.equal(s.stateOf('docs/guide'), 'some')
 })
+
+test('the path of a file from what is typed for it', async () => {
+  const { filePath, folderOf } = await import('../adoc_gui/web/nav.js')
+  assert.equal(filePath('', 'page'), 'page.rst')
+  assert.equal(filePath('guide', 'page.rst'), 'guide/page.rst')
+  assert.equal(filePath('guide', ' sub/page '), 'guide/sub/page.rst')
+  assert.equal(filePath('', '/a\\b.RST/'), 'a/b.RST')
+  assert.equal(filePath('guide', '  '), undefined)
+  assert.equal(folderOf('guide/sub/page.rst'), 'guide/sub')
+  assert.equal(folderOf('page.rst'), '')
+})
