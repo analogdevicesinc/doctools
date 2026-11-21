@@ -197,9 +197,19 @@ body {
   color: var(--on-surface-variant);
 }
 .grammar.problem { color: var(--error); }
-.grammar:hover { background: color-mix(in srgb, var(--on-surface) 8%, transparent); }
+.grammar:hover, .heading-level:hover { background: color-mix(in srgb, var(--on-surface) 8%, transparent); }
 .grammar svg { width: 20px; height: 20px; fill: currentColor; }
-.grammar select {
+.heading-level {
+  display: flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 4px;
+  border-radius: var(--radius-small);
+  color: var(--on-surface-variant);
+}
+.heading-level select { min-width: 104px; }
+.heading-level select:disabled { opacity: 0.38; cursor: default; }
+.grammar select, .heading-level select {
   border: none;
   outline: none;
   font: 500 13px/20px var(--font);
@@ -207,7 +217,7 @@ body {
   background: transparent;
   cursor: pointer;
 }
-.grammar select:focus-visible { outline: 2px solid var(--primary); border-radius: 4px; }
+.grammar select:focus-visible, .heading-level select:focus-visible { outline: 2px solid var(--primary); border-radius: 4px; }
 
 .divider { width: 1px; height: 20px; margin: 0 6px; background: var(--outline-variant); }
 
@@ -558,7 +568,7 @@ pre.block[data-raw='transition'] {
 .b-directive.boxed::before {
   content: attr(data-name);
   float: left;
-  margin-right: 10px;
+  margin: 0 10px 6px 0;
   padding: 0 8px;
   border-radius: 8px;
   font: 500 11px/20px var(--mono);
@@ -583,7 +593,10 @@ pre.block[data-raw='transition'] {
   border-radius: var(--radius);
   color: var(--on-surface);
   background: var(--surface);
-  overflow: hidden;
+}
+/* Rounded as the card: a label beside the card is not cut off */
+.b-directive.card::before, .b-directive.card[data-name='admonition'] > .b-caption {
+  border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0;
 }
 .b-directive.card::before {
   content: attr(data-name);
@@ -599,7 +612,6 @@ pre.block[data-raw='transition'] {
 .b-directive.card[data-name='admonition'] > .b-caption {
   margin: 0 -12px 10px;
   padding: 4px 12px;
-  border-radius: 0;
   background: color-mix(in srgb, var(--admonition) 20%, transparent);
 }
 
@@ -616,7 +628,7 @@ pre.block[data-raw='transition'] {
 .b-directive.card[data-name='danger'], .b-directive.card[data-name='attention'],
 .b-directive.card[data-name='error'] { --admonition: #ff5252; }
 
-/* Side elements: labels and options, in the margin of their block -------------- */
+/* Side elements: the labels, in the margin of their block ----------------------- */
 
 .has-sides { position: relative; }
 
@@ -647,7 +659,7 @@ pre.block[data-raw='transition'] {
 .b-document > .b-directive.has-sides > .sides { justify-content: flex-start; }
 .b-document > p.has-sides > .sides { min-height: 1.6em; }
 
-.b-target, .b-option {
+.b-target {
   display: block;
   max-width: 100%;
   margin: 0;
@@ -658,7 +670,6 @@ pre.block[data-raw='transition'] {
   color: var(--on-surface-variant);
   background: var(--surface-container-high);
 }
-.b-options { display: contents; }
 
 /* The whole text when the caret or the pointer is in it */
 .sides .block.active, .sides .block:hover {
@@ -671,9 +682,44 @@ pre.block[data-raw='transition'] {
 
 .b-target { font: 400 12px/18px var(--font); white-space: nowrap; }
 .b-target .leaf::before { content: '#'; opacity: 0.6; margin-right: 1px; }
-.k-name { opacity: 0.75; }
-.k-name + .leaf { margin-left: 5px; }
-.k-name + .leaf::before { content: none; }
+
+/* The options of a directive: below its name and its argument, one a line,
+   whatever the directive is in ------------------------------------------------ */
+
+.b-options {
+  clear: both;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  margin: 0 0 8px;
+  font: 400 12.5px/20px var(--mono);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--on-surface);
+}
+.b-options:last-child { margin-bottom: 0; }
+.b-option { display: flex; align-items: baseline; max-width: 100%; }
+.b-option > .k-name {
+  flex: none;
+  padding: 0 7px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  color: var(--on-surface-variant);
+  background: var(--surface-container-high);
+}
+.b-option.active > .k-name { color: var(--on-secondary-container); background: var(--secondary-container); }
+/* The value: what it is, where it is not written yet */
+.b-option > .k-name + .leaf { min-width: 2px; margin-left: 8px; overflow-wrap: anywhere; }
+.b-option.flag.empty > .k-name + .leaf { margin-left: 0; }
+.b-option.empty::after {
+  content: attr(data-hint);
+  order: 1;
+  font-style: italic;
+  color: var(--outline);
+  pointer-events: none;
+}
+.b-options > pre.block { margin: 0; padding: 0 7px; border: none; font: inherit; }
 
 /* A label that is not before a block it can sit beside */
 .page > .b-document > .b-target, li > .b-target, td > .b-target { display: table; margin: 0 0 6px; }
@@ -736,6 +782,8 @@ td > p.block, th > p.block, td > .placeholder, th > .placeholder { margin: 0; }
   user-select: none;
 }
 .k-role.bare, .k-link.bare { font-family: var(--mono); font-size: 0.87em; }
+/* A role that is being written shows its source: its name is in it */
+.k-role.bare::before { content: none; }
 
 /* Source ---------------------------------------------------------------------- */
 
@@ -851,8 +899,9 @@ body.inspect .page .block::before {
 body.inspect .page .b-document, body.inspect .page tr.block { outline: none; padding-top: 0; margin: 0; }
 body.inspect .page .b-document::before, body.inspect .page tr.block::before,
 body.inspect .page table.block::before { content: none; }
-body.inspect .page .sides .block { padding-top: 0; margin: 0; outline-offset: 0; }
-body.inspect .page .sides .block::before, body.inspect .page .b-caption::before { content: none; }
+body.inspect .page .sides .block, body.inspect .page .b-option { padding-top: 0; margin: 0; outline-offset: 0; }
+body.inspect .page .sides .block::before, body.inspect .page .b-caption::before,
+body.inspect .page .b-option::before { content: none; }
 body.inspect .page .b-directive::after { content: none; }
 body.inspect .page .block.error { outline-color: var(--error); }
 body.inspect .page .block.error::before { background: var(--error); }
@@ -1065,10 +1114,22 @@ li > .diag { margin: 0 0 4px; }
   background: var(--secondary-container);
 }
 
-.add-option { width: 18px; font-size: 14px; }
-.add-option::before { content: '+'; }
-.b-directive:hover > .sides > .add-option, .b-directive:has(.active) > .sides > .add-option,
-.b-directive.active > .sides > .add-option { opacity: 1; }
+/* In the corner of the directive: it takes no room */
+.b-directive { position: relative; }
+.add-option {
+  position: absolute;
+  top: 7px;
+  right: 8px;
+  z-index: 1;
+  padding: 0 7px;
+  font: 400 11px/18px var(--mono);
+  white-space: nowrap;
+}
+.add-option::before { content: '+ option'; }
+.b-directive:not(.boxed):not(.card) > .add-option { top: 1px; right: 0; }
+.b-directive.card > .add-option { top: 6px; }
+.b-directive:hover:not(:has(.b-directive:hover)) > .add-option, .b-directive.active > .add-option,
+.b-directive:has(> .active, > .b-options .active) > .add-option { opacity: 1; }
 
 .add-label { padding: 0 7px; font: 400 11px/18px var(--mono); white-space: nowrap; }
 .add-label::before { content: '+ label'; }
@@ -1076,7 +1137,7 @@ li > .diag { margin: 0 0 4px; }
 .sides:has(.active) > .add-label { opacity: 1; }
 
 /* At the left of an option or a label, to remove it */
-.sides .b-option, .sides .b-target { position: relative; }
+.sides .b-target { position: relative; }
 .remove-side { display: none; }
 .sides .remove-side {
   display: block;
@@ -1092,6 +1153,9 @@ li > .diag { margin: 0 0 4px; }
 .sides .remove-side::after { content: ''; position: absolute; top: 0; left: 100%; width: 4px; height: 100%; }
 .sides .block:hover > .remove-side { opacity: 1; }
 .remove-side:hover { color: var(--on-error-container); background: var(--error-container); }
+/* At the end of an option */
+.b-option > .remove-side { display: block; order: 2; flex: none; align-self: center; width: 18px; margin-left: 8px; font-size: 14px; }
+.b-option:hover > .remove-side, .b-option.active > .remove-side { opacity: 1; }
 
 body.inspect .page .add-option, body.inspect .page .add-label { opacity: 1; }
 
@@ -1113,6 +1177,13 @@ body.inspect .page .add-option, body.inspect .page .add-label { opacity: 1; }
 /* A tab gives its title and its content to the row of the set */
 .page .b-directive[data-name='tab-item'] { display: contents; }
 .b-directive[data-name='tab-set'] > .sides, .b-directive[data-name='tab-item'] > .sides { display: none; }
+/* The options of the set above its tabs, the ones of a tab above its content */
+.page .b-directive[data-name='tab-set'] > .b-options {
+  flex: 0 0 100%;
+  margin: 0;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--outline-variant);
+}
 
 .page .b-directive[data-name='tab-item'] > .b-caption {
   order: 1;

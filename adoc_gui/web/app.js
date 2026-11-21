@@ -1,7 +1,7 @@
 import { Parser, Language } from './vendor/web-tree-sitter.js'
 import { buildModel, leafAt, blockAt } from './model.js'
 import {
-  applyEdit, insertText, deleteBackward, deleteForward, insertParagraph, toggleInline, tableStep, openContent, intoContent, addOption, addLabel, removeSide, addTab, shiftItem, removeDirective
+  applyEdit, insertText, deleteBackward, deleteForward, insertParagraph, toggleInline, tableStep, openContent, intoContent, addOption, addLabel, removeSide, addTab, shiftItem, removeDirective, headingAt, setHeading
 } from './ops.js'
 import {
   render, getSelection, setSelection, markActive, showDiagnostics, selectTab as showTab, setCodeHost, offsetOf, pointOf,
@@ -10,6 +10,7 @@ import {
 import { codeEdit, toSource, fromSource, sourceMarks, CODE_DIRECTIVES } from './code.js'
 import { sourceEditor, CodeEditors } from './editors.js'
 import { completionAt, matching, roleQuestion } from './lsp.js'
+import { optionChoices, optionSpec, FLAG } from './directives.js'
 import { SparseSelection } from './sparse.js'
 import { ContextMenu } from './contextmenu.js'
 import { proseOf, sourceRange } from './grammar.js'
@@ -206,7 +207,7 @@ view.addEventListener('beforeinput', ev => {
     }
   }
   commit(handler(state.model, a, b, ev))
-  if (/^(insertText|insertReplacementText|deleteContent)/.test(ev.inputType)) suggest()
+  if (/^(insertText|insertReplacementText|insertParagraph|insertLineBreak|deleteContent)/.test(ev.inputType)) suggest()
   else closeMenu()
 })
 
@@ -250,9 +251,26 @@ toolbar.addEventListener('click', ev => {
   renderToolbar()
 })
 
+// Text, or a heading and its level: of the block of the caret
+const headingSelect = document.getElementById('heading-level')
+headingSelect.addEventListener('change', () => {
+  commit(setHeading(state.model, state.caret.focus, Number(headingSelect.value)))
+  view.focus()
+  renderToolbar()
+})
+
+function renderHeading() {
+  const at = headingAt(state.model, state.caret.focus)
+  headingSelect.disabled = !at
+  headingSelect.value = String(Math.min(at?.level ?? 0, headingSelect.options.length - 1))
+  // A level is the next one of the levels of the document, at most
+  for (const option of headingSelect.options) option.disabled = Boolean(at) && Number(option.value) > at.max
+}
+
 const PRESSED = { bold: 'strong', italic: 'emphasis', code: 'literal' }
 
 function renderToolbar() {
+  renderHeading()
   const kind = leafAt(state.model, state.caret.focus)?.kind
   for (const button of toolbar.querySelectorAll('[data-action]')) {
     const action = button.dataset.action
@@ -367,7 +385,8 @@ view.addEventListener('keydown', ev => {
     ev.preventDefault()
     const { a, b } = selection()
     const step = ev.shiftKey ? -1 : 1
-    if (!stepCell(step) && a === b) commit(shiftItem(state.model, a, step))
+    if (stepCell(step)) suggest()
+    else if (a === b) commit(shiftItem(state.model, a, step))
     return
   }
   if (!(ev.ctrlKey || ev.metaKey) || ev.altKey) return
@@ -407,7 +426,7 @@ view.addEventListener('mousedown', ev => {
   view.focus()
   const block = el.closest('.block').block
   if (el.matches('.content-hint')) commit(openContent(state.model, block))
-  else if (el.matches('.add-option')) commit(addOption(state.model, block))
+  else if (el.matches('.add-option')) newOption(block)
   else if (el.matches('.add-label')) commit(addLabel(state.model, block))
   else if (el.matches('.add-tab')) commit(addTab(state.model, block))
   else commit(removeSide(state.model, block))
@@ -420,7 +439,7 @@ document.addEventListener('selectionchange', () => {
   state.caret = { anchor: current.anchor, focus: current.focus }
   if (state.underlined && (current.anchor !== current.focus || current.focus !== state.underlined.caret))
     state.underlined = undefined
-  if (completion && (current.anchor !== current.focus || current.focus !== completion.caret)) closeMenu()
+  if (completion && (current.anchor !== completion.anchor || current.focus !== completion.caret)) closeMenu()
   flush()
   markActive(view, current.focus)
   renderCode(true)
@@ -582,20 +601,28 @@ const loadGitSoon = () => {
   gitTimer = setTimeout(loadGit, 300)
 }
 
+// What git knows is asked for the open file, and shown once all of it is
+// there: only the last answer counts, and never one for another file
+let gitRun = 0
 async function loadGit() {
+  clearTimeout(gitTimer)
+  const run = ++gitRun
+  const path = state.path
+  let answer, changes
   try {
-    const path = state.path
-    const answer = await (await fetch(`api/git?path=${encodeURIComponent(path)}`, { headers: { 'X-Doctools': '1' } })).json()
-    if (path !== state.path) return
-    state.git = {
-      available: Boolean(answer.available), branch: answer.branch ?? null, files: answer.files ?? {},
-      head: answer.head ?? null, staged: Boolean(answer.staged)
-    }
+    answer = await (await fetch(`api/git?path=${encodeURIComponent(path)}`, { headers: { 'X-Doctools': '1' } })).json()
+    if (run !== gitRun || path !== state.path) return
+    changes = await loadHunks(path)
   } catch {
     return
   }
+  if (run !== gitRun || path !== state.path) return
+  state.git = {
+    available: Boolean(answer.available), branch: answer.branch ?? null, files: answer.files ?? {},
+    head: answer.head ?? null, staged: Boolean(answer.staged)
+  }
+  hunks = changes ?? hunks
   gitCache = undefined
-  await loadHunks()
   drawTree()
   setFileState()
   renderBackdrop()
@@ -734,20 +761,20 @@ changesList.addEventListener('click', async ev => {
 // [{ staged, index, header, lines, start, end }], start and end: its lines in
 // the file, from 1
 let hunks = []
-async function loadHunks() {
+async function loadHunks(path) {
   let answer
   try {
     answer = await (await fetch('api/git/changes', { headers: { 'X-Doctools': '1' } })).json()
   } catch {
-    return
+    return undefined
   }
-  const of = (files, staged) => (files ?? []).filter(f => f.path === state.path).flatMap(f => f.hunks.map((hunk, index) => {
+  const of = (files, staged) => (files ?? []).filter(f => f.path === path).flatMap(f => f.hunks.map((hunk, index) => {
     const range = hunk.header.match(/^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@/)
     const start = range ? Number(range[1]) : 0
     const count = range && range[2] !== undefined ? Number(range[2]) : 1
     return { staged, index, header: hunk.header, lines: hunk.lines, start, end: start + Math.max(count, 1) - 1 }
   }))
-  hunks = [...of(answer.unstaged, false), ...of(answer.staged, true)]
+  return [...of(answer.unstaged, false), ...of(answer.staged, true)]
 }
 
 // The lines that changed, kept until the source or the commit changes
@@ -1232,6 +1259,44 @@ function completing() {
   return completion !== undefined || contextAtCaret() !== undefined
 }
 
+// The option of the caret, when the caret is in its name or in its value,
+// or when one of them is selected: what the directive takes is chosen from
+// a menu, without the documentation server. { items, start, end }
+function optionAtCaret() {
+  const { anchor, focus } = state.caret
+  const { source, model } = state
+  const leaf = leafAt(model, focus)
+  const option = leaf?.block
+  if (option?.kind !== 'option' || option.parent?.kind !== 'options') return undefined
+  const a = Math.min(anchor, focus), b = Math.max(anchor, focus)
+  const none = { items: [] }
+  if (a < leaf.s || b > leaf.e || (a !== b && (a !== leaf.s || b !== leaf.e))) return none
+  const directive = option.parent.parent.name
+  const typed = a === b ? source.slice(leaf.s, focus) : ''
+
+  if (leaf.kind !== 'name') {
+    const gap = source[leaf.s - 1] === ' ' ? '' : ' '
+    const items = optionChoices(directive, 'value', { option: option.name, typed })
+      .map(item => ({ ...item, text: gap + item.text }))
+    return { items, start: leaf.s, end: leaf.e }
+  }
+  const used = option.parent.children.filter(other => other.kind === 'option').map(other => other.name)
+  const value = option.inlines[option.inlines.length - 1]
+  const items = optionChoices(directive, 'name', { option: option.name, used, typed }).map(item => {
+    // A flag is all there is to it, the caret goes to the value of the others
+    const end = leaf.s + item.text.length
+    const caret = optionSpec(directive, item.text) === FLAG ? end : value.e + end - leaf.e
+    return { ...item, caret }
+  })
+  return { items, start: leaf.s, end: leaf.e }
+}
+
+// A new option of a directive: its name is chosen or typed
+function newOption(directive) {
+  commit(addOption(state.model, directive))
+  suggest()
+}
+
 function renderMenu() {
   menu.replaceChildren(...completion.items.map((item, i) => {
     const el = document.createElement('div')
@@ -1261,8 +1326,14 @@ function renderMenu() {
 }
 
 async function suggest() {
-  const { focus } = state.caret
+  const { anchor, focus } = state.caret
   const { source } = state
+  const option = optionAtCaret()
+  if (option) {
+    if (!option.items.length) return closeMenu()
+    completion = { ...option, index: 0, anchor, caret: focus }
+    return renderMenu()
+  }
   const context = state.docs.build === 'off' ? undefined : contextAtCaret()
   if (!context) return closeMenu()
 
@@ -1276,7 +1347,9 @@ async function suggest() {
   }
   const items = matching(answer.list, context)
   if (!items.length) return closeMenu()
-  completion = { items, index: 0, caret: focus, start: focus - context.partial.length, end: focus + context.skip }
+  completion = {
+    items, index: 0, anchor: focus, caret: focus, start: focus - context.partial.length, end: focus + context.skip
+  }
   renderMenu()
 }
 
@@ -1284,7 +1357,7 @@ function accept(index = completion.index) {
   const item = completion.items[index]
   const { start, end } = completion
   closeMenu()
-  commit({ start, end, text: item.text, caret: start + item.text.length })
+  commit({ start, end, text: item.text, caret: item.caret ?? start + item.text.length })
   suggest()
 }
 
@@ -1537,7 +1610,7 @@ function menuItems(a, b) {
   for (let up = block; up; up = up.parent) if (up.kind === 'directive') { directive = up; break }
   const extra = []
   if (heading) extra.push({ label: 'Add a label', run: () => commit(addLabel(state.model, heading)) })
-  if (directive) extra.push({ label: `Add an option to ${directive.name}`, run: () => commit(addOption(state.model, directive)) })
+  if (directive?.takesOptions) extra.push({ label: `Add an option to ${directive.name}`, run: () => newOption(directive) })
   let tabSet
   for (let up = block; up; up = up.parent) if (up.name === 'tab-set') { tabSet = up; break }
   if (tabSet) extra.push({ label: 'Add a tab', run: () => commit(addTab(state.model, tabSet)) })
@@ -1698,6 +1771,12 @@ function show(file) {
   state.dirty = false
   state.held = false
   state.docs = { ...state.docs, diagnostics: [], page: null }
+  // The last commit of the file before is not the one of this file: no
+  // changes are shown until git answers for it
+  gitRun++
+  state.git = { ...state.git, head: null }
+  hunks = []
+  gitCache = undefined
   setSource(file.text)
   state.lastEdit = undefined
   document.title = `${file.name} - Doctools`
@@ -1798,7 +1877,7 @@ async function loadTree() {
 }
 window.addEventListener('focus', () => {
   loadTree()
-  loadGit()
+  loadGitSoon()
 })
 
 // Live view ---------------------------------------------------------------------

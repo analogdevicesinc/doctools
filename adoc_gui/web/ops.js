@@ -443,6 +443,61 @@ function adorn(model, change) {
   return result
 }
 
+// The adornments of the levels of the headings of the document, in the order
+// they appear in: the character, with an 'o' before it when it is also above
+// the title. A level that is not there yet takes the first character that is
+// not used.
+function adornmentOf(model, level) {
+  const known = model.levels[level - 1]
+  if (known) return known
+  return [...UNDERLINES].find(mark => !model.levels.some(key => key.endsWith(mark)))
+}
+
+// What the block of the caret is, as a heading: { level, max, block }. level
+// is 0 for text that can be a heading: a paragraph of one line of the
+// document; max is the deepest level it can be given: one
+// more than the heading before it, a level cannot be skipped.
+// undefined for what cannot be a heading.
+export function headingAt(model, offset) {
+  const { source } = model
+  const owner = leafAt(model, offset)?.block ?? blockAt(model, offset)
+  const heading = ancestor(owner, 'heading')
+  const block = heading?.marks?.length ? heading : owner
+  const before = (block?.parent?.children ?? []).filter(other => other.kind === 'heading' && other.s < block.s).pop()
+  const max = Math.min((before?.level ?? 0) + 1, model.levels.length + 1, UNDERLINES.size)
+  if (block === heading) return { level: heading.level, max: Math.max(max, heading.level), block: heading }
+  if (owner?.kind !== 'paragraph' || owner.parent?.kind !== 'document') return undefined
+  const start = lineStart(source, owner.s)
+  if (!isBlank(source.slice(start, owner.s)) || source.slice(owner.s, owner.e).includes('\n')) return undefined
+  if (!source.slice(owner.s, lineEnd(source, owner.s)).trim()) return undefined
+  return { level: 0, max, block: owner }
+}
+
+// Make the block of the caret a heading of a level, 0 makes a heading text
+// again. The level is the one of the headings of the document that have the
+// same adornment.
+export function setHeading(model, offset, level) {
+  const { source } = model
+  const at = headingAt(model, offset)
+  if (!at || level === at.level || level < 0 || level > at.max) return undefined
+  const { block } = at
+  const title = block.title ?? { s: block.s, e: lineEnd(source, block.s) }
+  const marks = block.marks ?? []
+  const start = lineStart(source, Math.min(title.s, ...marks.map(mark => mark.s)))
+  const end = lineEnd(source, Math.max(title.e, ...marks.map(mark => mark.e)) - 1)
+  const indent = source.slice(start, Math.min(title.s, ...marks.map(mark => mark.s)))
+  const text = source.slice(title.s, lineEnd(source, title.s)).trimEnd()
+  const caret = Math.min(Math.max(offset, title.s), title.s + text.length) - title.s
+
+  // A blank line between it and what follows it
+  const tail = end < source.length && !isBlank(lineOf(source, end + 1)) ? '\n' : ''
+  if (level === 0) return edit(start, end, indent + text + tail, start + indent.length + caret)
+  const key = adornmentOf(model, level)
+  const line = indent + key[key.length - 1].repeat(Math.max([...text.trim()].length, 1))
+  const head = key.length > 1 ? `${line}\n` : ''
+  return edit(start, end, `${head}${indent}${text}\n${line}${tail}`, start + head.length + indent.length + caret)
+}
+
 // Tables ----------------------------------------------------------------------
 
 function tablesOf(model) {

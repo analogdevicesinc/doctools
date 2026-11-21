@@ -56,12 +56,12 @@ export function setCodeHost(make) {
 
 const TAGS = {
   document: 'div', paragraph: 'p', item: 'li', directive: 'div', quote: 'blockquote', raw: 'pre',
-  table: 'table', row: 'tr', line: 'div', caption: 'div', target: 'span', options: 'span', option: 'span'
+  table: 'table', row: 'tr', line: 'div', caption: 'div', target: 'span', options: 'div', option: 'div'
 }
 
 const UNBOXED = new Set(['table', 'list-table', 'tab-set', 'tab-item', 'rubric'])
 
-// Blocks that can hold side elements: the labels before them and their options
+// Blocks that can hold side elements: the labels before them
 const HOSTS = new Set(['heading', 'paragraph', 'directive'])
 
 function tagOf(block) {
@@ -124,7 +124,7 @@ function button(name, title) {
 // So an edit makes again the elements of the edited block and of the blocks
 // around it, and leaves the rest of the page as it is.
 
-const FLAGS = ['code', 'error', 'card', 'empty', 'ordered', 'header', 'takesContent']
+const FLAGS = ['code', 'error', 'card', 'empty', 'flag', 'ordered', 'header', 'takesContent', 'takesOptions']
 
 // What the element of a block is made from. The offsets are not part of it:
 // the same block further in the source has the same element.
@@ -142,18 +142,17 @@ function signature(model, block, attached) {
 }
 
 // The blocks shown in the element of a block: at its side (the labels before
-// it and its options) and in it, each with the labels attached to it
+// it) and in it, each with the labels attached to it. A directive is its
+// argument, its options, then its content, as in the source.
 function plan(block, attached) {
   const children = block.children ?? []
   const directive = block.kind === 'directive'
   const coded = directive && Boolean(codeHost) && CODE_DIRECTIVES.has(block.name)
   const sides = attached.map(target => [target, []])
-  if (directive) sides.push(...children.filter(c => c.kind === 'options').map(c => [c, []]))
 
   const body = []
   let labels = []
   children.forEach((child, i) => {
-    if (directive && child.kind === 'options') return
     // The code is in an editor of its own
     if (coded && child.kind === 'raw' && child.code) return
     // A label goes to the side of the block that follows it
@@ -280,7 +279,7 @@ function renderBlock(model, block, attached = [], old) {
   const el = old && old.localName === tag ? old : document.createElement(tag)
   if (el === old) for (const name of el.getAttributeNames()) el.removeAttribute(name)
   el.className = `block b-${block.kind}`
-  for (const flag of ['code', 'error', 'card', 'empty'])
+  for (const flag of ['code', 'error', 'card', 'empty', 'flag'])
     if (block[flag]) el.classList.add(flag)
   el.dataset.kind = block.kind
   el.dataset.type = block.name ? `${block.type} ${block.name}` : block.type
@@ -307,7 +306,6 @@ function renderBlock(model, block, attached = [], old) {
 
   // The side elements come first, they are placed in the margin
   const aside = made.slice(0, sides.length)
-  if (block.kind === 'directive') aside.push(button('add-option', 'Add an option'))
   if (block.kind === 'heading') aside.push(button('add-label', 'Add a label'))
   if (aside.length) {
     const holder = document.createElement('span')
@@ -319,10 +317,14 @@ function renderBlock(model, block, attached = [], old) {
 
   el.leaves = (block.inlines ?? []).map(leaf => renderLeaf(model, leaf))
   const inner = made.slice(sides.length)
-  // The image of an image or a figure: after its path
-  if (block.kind === 'directive' && (block.name === 'image' || block.name === 'figure')) {
-    const at = inner.findIndex(child => child.block?.kind === 'caption') + 1
-    inner.splice(at, 0, imageElement(model, block))
+  if (block.kind === 'directive') {
+    // The head of the directive: its argument, then its options
+    const head = inner.filter(child => child.block?.kind === 'caption' || child.block?.kind === 'options').length
+    const after = []
+    if (block.takesOptions) after.push(button('add-option', 'Add an option'))
+    // The image of an image or a figure: after its path and its options
+    if (block.name === 'image' || block.name === 'figure') after.push(imageElement(model, block))
+    inner.splice(head, 0, ...after)
   }
   nodes.push(...el.leaves, ...inner)
 

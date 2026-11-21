@@ -434,3 +434,41 @@ test('bold wraps the selection and unwraps it', () => {
   assert.equal(run('a [word] b\n', toggleInline, 'code'), 'a ``[word]`` b\n')
   assert.equal(run('a | b\n', toggleInline, 'bold'), 'a | b\n')
 })
+
+test('the level of a heading is set, text is made a heading and back', async () => {
+  const { headingAt, setHeading } = await import('../adoc_gui/web/ops.js')
+  const set = level => (model, a) => setHeading(model, a, level)
+  const at = marked => {
+    const found = headingAt(modelOf(marked.replace('|', '')), marked.indexOf('|'))
+    return found && [found.level, found.max]
+  }
+  const doc = 'Title\n=====\n\nSub\n---\n\n'
+  // Text takes the adornment of the level, a new level a new one
+  assert.equal(run(`${doc}Te|xt\n`, set(2)), `${doc}Te|xt\n----\n`)
+  assert.equal(run(`${doc}Te|xt\n`, set(1)), `${doc}Te|xt\n====\n`)
+  assert.equal(run(`${doc}Te|xt\n`, set(3)), `${doc}Te|xt\n~~~~\n`)
+  assert.equal(run('Te|xt\nmore\n', set(1)), 'Te|xt\nmore\n')
+  assert.equal(run('Te|xt\n', set(1)), 'Te|xt\n====\n')
+  // An empty line parts it from what follows
+  assert.equal(run(`${doc}Te|xt\n\nMore\n`, set(2)), `${doc}Te|xt\n----\n\nMore\n`)
+  // A heading changes its level, with the line above it when the level has one
+  assert.equal(run('Title\n=====\n\nSu|b\n---\n', set(1)), 'Title\n=====\n\nSu|b\n===\n')
+  assert.equal(run('=====\nTitle\n=====\n\nSub\n---\n\nTe|xt\n', set(1)), '=====\nTitle\n=====\n\nSub\n---\n\n====\nTe|xt\n====\n')
+  assert.equal(run('A\n=\n\n=====\nTit|le\n=====\n', set(1)), 'A\n=\n\nTit|le\n=====\n')
+  // The first heading is the first level
+  assert.equal(run('=====\nTit|le\n=====\n\nSub\n---\n', set(2)), '=====\nTit|le\n=====\n\nSub\n---\n')
+  // Back to text
+  assert.equal(run('Title\n=====\n\nSu|b\n---\nText\n', set(0)), 'Title\n=====\n\nSu|b\n\nText\n')
+  assert.equal(run('=====\nTit|le\n=====\n', set(0)), 'Tit|le\n')
+  // The same level, or one that would skip a level: nothing
+  assert.equal(run(`${doc}Te|xt\n`, set(4)), `${doc}Te|xt\n`)
+  assert.equal(run('Title\n=====\n\nSu|b\n---\n', set(2)), 'Title\n=====\n\nSu|b\n---\n')
+  // What can be a heading, and how deep
+  assert.deepEqual(at('Te|xt\n'), [0, 1])
+  assert.deepEqual(at(`${doc}Te|xt\n`), [0, 3])
+  assert.deepEqual(at('Title\n=====\n\nTe|xt\n\nSub\n---\n'), [0, 2])
+  assert.deepEqual(at('Title\n=====\n\nSu|b\n---\n'), [2, 2])
+  assert.equal(at('* Te|xt\n'), undefined)
+  assert.equal(at('.. note::\n\n   Te|xt\n'), undefined)
+  assert.equal(at('Te|xt\nmore\n'), undefined)
+})

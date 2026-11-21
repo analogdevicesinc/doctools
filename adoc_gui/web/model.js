@@ -7,38 +7,7 @@
 // model does not understand becomes a 'raw' leaf with the source as-is, so no
 // content is ever dropped.
 
-// Directives shown as a card
-const CARD_DIRECTIVES = new Set([
-  'attention', 'caution', 'danger', 'error', 'hint', 'important', 'note', 'tip', 'warning', 'admonition',
-  'epigraph', 'highlights', 'pull-quote', 'compound', 'topic', 'sidebar', 'container', 'video'
-])
-
-// Directives without content
-const NO_CONTENT = new Set([
-  'image', 'include', 'literalinclude', 'contents', 'sectnum', 'index', 'only-doc', 'rst-class', 'clear-content', 'rubric'
-])
-
-// What the argument of a directive is, for the directives that take one
-const ARGUMENT = {
-  'code-block': 'language', code: 'language', sourcecode: 'language',
-  image: 'path', figure: 'path', include: 'path', literalinclude: 'path',
-  table: 'title', 'list-table': 'title', 'csv-table': 'title',
-  admonition: 'title', topic: 'title', sidebar: 'title', 'tab-item': 'title',
-  collapsible: 'title', card: 'title', collection: 'title', video: 'url', svg: 'path', 'rst-class': 'class', rubric: 'title', only: 'condition'
-}
-
-// Directives whose content is reStructuredText
-const RST_DIRECTIVES = new Set([
-  ...CARD_DIRECTIVES, 'figure', 'tab-set', 'tab-item', 'carousel', 'collapsible', 'card', 'grid', 'flex',
-  'video', 'svg', 'description', 'hdl-parameters', 'hdl-interfaces', 'esd-warning', 'only'
-])
-
-// Directives without an argument
-const NO_ARGUMENT = new Set([
-  'shell', 'tab-set', 'toctree', 'math', 'carousel', 'grid', 'flex', 'description', 'hdl-parameters',
-  'hdl-interfaces', 'esd-warning', 'clear-content'
-])
-
+import { directiveSpec, optionSpec, optionHint, takesOptions, FLAG } from './directives.js'
 import { readTable } from './table.js'
 
 const DELIMITED = { strong: 2, emphasis: 1, literal: 2 }
@@ -354,12 +323,15 @@ export function buildModel(parser, tree, source) {
     }
   }
 
-  // ':name: value' of a directive
-  const option = (field, parent) => {
+  // ':name: value' of a directive: a flag has no value
+  const option = (field, parent, directive) => {
     const name = field.children.find(c => c.type === 'field_name')
     const value = field.children.find(c => c.type === 'field_body')
     if (!name) return raw(field, parent)
-    const b = block('option', field, parent, { name: source.slice(name.startIndex, name.endIndex) })
+    const label = source.slice(name.startIndex, name.endIndex)
+    const b = block('option', field, parent, { name: label })
+    if (optionSpec(directive, label) === FLAG) b.flag = true
+    else b.hint = optionHint(directive, label)
     b.inlines = [leaf(b, 'name', name.startIndex, name.endIndex, field.startIndex, value ? value.startIndex : field.endIndex)]
     if (value) {
       b.inlines.push(leaf(b, 'text', value.startIndex, value.endIndex))
@@ -383,28 +355,29 @@ export function buildModel(parser, tree, source) {
     const args = parts.find(c => c.type === 'arguments')
     const options = parts.find(c => c.type === 'options')
     const content = parts.find(c => c.type === 'content')
-    const b = block('directive', node, parent, { name, card: CARD_DIRECTIVES.has(name) })
+    const spec = directiveSpec(name)
+    const b = block('directive', node, parent, { name, card: spec.card, takesOptions: takesOptions(name) })
     hidden.push([node.startIndex, colons.endIndex])
     b.children = []
 
     // Where the content starts when there is none yet: the end of the head
     const head = options ?? args ?? colons
     b.headEnd = lineEnd(head.endIndex)
-    b.takesContent = !NO_CONTENT.has(name)
+    b.takesContent = spec.content !== false
 
     if (args) {
       b.children.push(textLine('caption', { s: args.startIndex, e: args.endIndex }, b))
-    } else if (ARGUMENT[name] || (!b.card && !NO_ARGUMENT.has(name))) {
+    } else if (spec.argument) {
       // An empty caption, to type the argument in
       const slot = textLine('caption', { s: colons.endIndex, e: colons.endIndex }, b)
       slot.empty = true
       b.children.push(slot)
     }
-    if (b.children[0]) b.children[0].hint = ARGUMENT[name] ?? 'argument'
+    if (b.children[0]) b.children[0].hint = spec.argument || 'argument'
     if (options) {
       const list = block('options', options, b)
       list.children = options.children.filter(c => c.endIndex > c.startIndex).map(c =>
-        c.type === 'field' ? option(c, list) : raw(c, list))
+        c.type === 'field' ? option(c, list, name) : raw(c, list))
       b.children.push(list)
     }
     for (const part of parts)
@@ -421,7 +394,7 @@ export function buildModel(parser, tree, source) {
       const head = options ? source.slice(options.startIndex, options.endIndex) : ''
       const table = listTable(kids, b, head)
       b.children.push(...(table ? [table] : kids))
-    } else if (RST_DIRECTIVES.has(name)) {
+    } else if (spec.content === 'rst') {
       b.children.push(...nested(content, b))
     } else {
       b.children.push(code(content, b))
@@ -510,7 +483,7 @@ export function buildModel(parser, tree, source) {
   const root = { kind: 'document', type: 'document', s: 0, e: source.length, parent: null }
   root.children = blocks(tree.rootNode.children, root)
   leaves.sort((a, b) => a.s - b.s)
-  return { root, leaves, hidden, source, lineStarts }
+  return { root, leaves, hidden, source, lineStarts, levels }
 }
 
 // The leaf that holds the caret at a source offset. At a boundary between two
