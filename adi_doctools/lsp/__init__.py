@@ -34,7 +34,7 @@ def handle_xfer(app, role, target) -> tuple:
             return (None, None, f"Reference '{target}' not found")
 
         uri = f"{docname}#{labelid}" if labelid else docname
-        return (uri, sectname, None)
+        return (uri, str(sectname) if sectname else None, None)
 
     if role == 'doc':
         if target not in app.env.titles:
@@ -59,7 +59,7 @@ def handle_xfer(app, role, target) -> tuple:
     for name, dispname, obj_type, docname, anchor, priority in domain.get_objects():
         if obj_type in objtypes and name == target:
             uri = f"{docname}#{anchor}" if anchor else docname
-            title = dispname if dispname != '-' else None
+            title = str(dispname) if dispname != '-' else None
             return (uri, title, None)
 
     return (None, None, f"Target '{target}' for role '{role}' not found")
