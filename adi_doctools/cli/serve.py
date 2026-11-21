@@ -455,9 +455,15 @@ cwd = {cwd_display}""")
             rmtree(path.join(directory, builddir_), ignore_errors=True)
 
         if self.jsonrpc:
-            from sphinx._cli.util.colour import disable_colour
+            from packaging.version import Version
+            from sphinx import __version__ as __sphinx_version__
 
             from ..lsp.logging import notify
+
+            if Version(__sphinx_version__) < Version('7.4.0'):
+                from sphinx.util.console import nocolor as disable_colour
+            else:
+                from sphinx._cli.util.colour import disable_colour
 
             disable_colour()
 
