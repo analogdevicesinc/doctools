@@ -76,6 +76,12 @@ toolbar, shows it again. The top bar switches between the light and the dark
 theme: as in the Doctools theme, the one of the system until another is
 chosen.
 
+On a phone, or in a window as narrow (720 pixels or fewer), the files, the
+page and the side pane are three screens, one at a time, chosen from a bar
+at the bottom: *Files*, *Editor*, and the third one, named after the tab of
+the side pane that is shown (*Source*, *Live view*, *References*, *Changes*).
+Opening a file, or writing a reference, shows the page.
+
 `Ctrl+C` in the terminal stops `adoc-gui`, with the documentation server and
 LanguageTool. The page says so, and goes on, with what was typed meanwhile,
 when `adoc-gui` is started again.

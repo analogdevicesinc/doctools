@@ -1034,6 +1034,96 @@ body.inspect .page .soft { background: var(--surface-container-highest); }
   :root { --page: 46vw; --edge: 8px; }
 }
 
+/* A phone, or a window as narrow: the files, the page and the side pane are
+   three screens, one at a time, chosen from a bar at the bottom ------------- */
+
+.bottom-bar { display: none; }
+
+@media (max-width: 720px) {
+  html, body { height: 100dvh; }
+  .app-bar { padding: 6px 12px 2px; }
+  #docs-label { display: none; }
+  .build-button { padding: 0 8px; }
+  #toggle-inspect { display: none; }
+
+  /* The toolbar is the one of the page: it scrolls when it does not fit */
+  .toolbar { margin: 4px 8px 0; overflow-x: auto; scrollbar-width: none; }
+  .toolbar > * { flex: none; }
+  body:not([data-screen='editor']) .toolbar { display: none; }
+  body:not([data-screen='editor']) main { margin-top: 0; }
+
+  main > .side, main > .canvas { display: none; }
+  body[data-screen='editor'] main > .canvas {
+    --bleed: 0px;
+    display: block;
+    flex: 1 1 auto;
+    padding: calc(var(--bar) + 12px) 0 0;
+  }
+  body[data-screen='files'] main > .side.left, body[data-screen='more'] main > .side.right {
+    display: flex;
+    flex: 1 1 auto;
+    padding: 8px 8px 0;
+  }
+  .page { padding: 28px 18px 64px; border-radius: var(--radius) var(--radius) 0 0; }
+  .page h1.block { font-size: 28px; }
+  .page h2.block { font-size: 24px; }
+  .page h3.block { font-size: 21px; }
+
+  /* The panels are always there, as wide as the screen */
+  body[data-screen] .drawer, body[data-screen] .sheet {
+    max-width: none;
+    border-radius: var(--radius) var(--radius) 0 0;
+    transform: none;
+    opacity: 1;
+    visibility: visible;
+  }
+  .open-panel, .close-panel { display: none; }
+  .tabs { overflow-x: auto; scrollbar-width: none; }
+  .tab { flex: none; padding: 0 12px; }
+  .tree-row { height: 40px; }
+
+  .bottom-bar {
+    display: flex;
+    position: relative;
+    z-index: 4;
+    flex: none;
+    padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--outline-variant);
+    background: var(--surface);
+  }
+  .bottom-bar button {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 2px 0;
+    border: none;
+    font: 500 11px/16px var(--font);
+    letter-spacing: 0.2px;
+    color: var(--on-surface-variant);
+    background: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* The icon, on a pill when its screen is shown */
+  .bottom-icon {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 28px;
+    border-radius: 14px;
+    transition: background-color 0.15s;
+  }
+  .bottom-icon svg { width: 22px; height: 22px; fill: currentColor; }
+  .bottom-label { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bottom-bar button[aria-current='page'] { color: var(--on-surface); font-weight: 700; }
+  .bottom-bar button[aria-current='page'] .bottom-icon { color: var(--on-secondary-container); background: var(--secondary-container); }
+  .bottom-bar button:focus-visible { outline: none; }
+  .bottom-bar button:focus-visible .bottom-icon { outline: 2px solid var(--primary); }
+}
+
 .icon-button:disabled { opacity: 0.38; cursor: default; }
 .icon-button:disabled::after { opacity: 0; }
 

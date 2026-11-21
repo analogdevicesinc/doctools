@@ -305,6 +305,42 @@ function panel(name, open, close) {
 panel('no-nav', document.getElementById('open-nav'), document.getElementById('close-nav'))
 const showSidePane = panel('no-source', document.getElementById('open-source'), document.getElementById('close-source'))
 
+// On a narrow screen the files, the page and the side pane are three screens:
+// one is shown, chosen from the bar at the bottom. The third one is named
+// after the tab of the side pane.
+const bottomBar = document.querySelector('.bottom-bar')
+const narrow = matchMedia('(max-width: 720px)')
+const MORE = {
+  source: ['Source', 'M9.4 16.6 4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0 4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z'],
+  preview: ['Live view', 'M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z'],
+  references: ['References', 'M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z'],
+  changes: ['Changes', 'M16.9 11a5 5 0 0 0-9.8 0H2v2h5.1a5 5 0 0 0 9.8 0H22v-2h-5.1zM12 15a3 3 0 1 1 0-6 3 3 0 0 1 0 6z']
+}
+function setScreen(name) {
+  document.body.dataset.screen = name
+  for (const button of bottomBar.querySelectorAll('button')) {
+    if (button.dataset.screen === name) button.setAttribute('aria-current', 'page')
+    else button.removeAttribute('aria-current')
+  }
+  if (!narrow.matches) return
+  // What is shown again takes its size
+  if (name === 'more') {
+    renderPreview()
+    if (state.tab === 'source') renderCode(true)
+  }
+  if (name === 'editor' && state.model) showGitMarks()
+}
+function renderMore() {
+  const [label, icon] = MORE[state.tab] ?? MORE.source
+  document.getElementById('more-label').textContent = label
+  document.getElementById('more-icon').setAttribute('d', icon)
+}
+bottomBar.addEventListener('click', ev => {
+  const button = ev.target.closest('button')
+  if (button) setScreen(button.dataset.screen)
+})
+setScreen('editor')
+
 // The structure can be shown or hidden
 function toggle(button, name, shown) {
   const apply = value => {
@@ -736,7 +772,7 @@ async function stage(body) {
 
 changesList.addEventListener('click', async ev => {
   const open = ev.target.closest('[data-open]')
-  if (open) return openFile(open.dataset.open)
+  if (open) return openFile(open.dataset.open).then(() => setScreen('editor'))
   const all = ev.target.closest('[data-all]')
   if (all) {
     const staged = all.dataset.all === 'staged'
@@ -2020,7 +2056,7 @@ async function newFile(folder = '') {
   const path = typed && filePath(folder, typed)
   if (!path) return
   const answer = await changeFiles({ action: 'new', path })
-  if (answer) await openFile(answer.path)
+  if (answer) await openFile(answer.path).then(() => setScreen('editor'))
 }
 
 // Rename a file, or move it: to is its new path. The open file stays open,
@@ -2161,7 +2197,7 @@ tree.addEventListener('click', ev => {
   const row = ev.target.closest('.tree-row')
   if (!row || row.classList.contains('naming')) return
   const { path } = row.dataset
-  if (row.classList.contains('file')) return openFile(path)
+  if (row.classList.contains('file')) return openFile(path).then(() => setScreen('editor'))
   if (ev.target.closest('.check')) {
     state.sparse.toggle(path, parent => foldersOf(state.files, parent))
     return sparseChanged()
@@ -2343,6 +2379,7 @@ document.getElementById('preview-start').addEventListener('click', () => docsBut
 // Tabs of the side pane. remember: the user chose it
 function selectTab(name, remember = true) {
   state.tab = name
+  renderMore()
   for (const tab of document.querySelectorAll('.tab'))
     tab.setAttribute('aria-selected', String(tab.dataset.tab === name))
   document.getElementById('source').hidden = name !== 'source'
@@ -2582,6 +2619,8 @@ refsList.addEventListener('click', ev => {
     .map(l => state.source.slice(Math.max(l.s, a), Math.min(l.e, b))).join(' ') : ''
   if (a < b && !one) return setFileState('Select text in one paragraph, or none, to write a reference')
   hideCard()
+  // It is written in the page: the page is shown
+  setScreen('editor')
   commit(insertText(state.model, a, b, referenceText(inventory, role, String(entry.name), selected)))
 })
 
