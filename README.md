@@ -123,6 +123,19 @@ changes. `adoc-gui --serve` starts it right away. While it runs:
   documentation server or of the other documentation, after the card is
   shown: only its text, the page itself is not loaded.
 - The live view shows the page of the file.
+- *References*, a tab of the side pane, lists what can be referenced, as a
+  tree: this documentation and each of its inventories, their types (the
+  roles), and the references of a type. `ref` comes first and is open, it
+  is the one to prefer, then `doc`, then the others. A documentation that is
+  closed is not read nor searched, as the inventories are at first: open the
+  ones to look in. Search by name, title or page: the types open on what
+  matches. The selector beside the search picks the types that are shown,
+  one or several. The pointer on a reference shows its card; a click writes
+  its role at the caret of the page (`` :ref:`label` ``,
+  `` :external+sphinx:ref:`label` ``), with the text that is selected there
+  as its title. A page of the project is written from the top of the
+  documentation (`` :doc:`/folder/page` ``). The browser keeps what is open
+  and the types.
 
 **Sparse build**: check folders in the files to build only those, which makes
 the first build of a large documentation much faster. *Build all* clears the
@@ -168,7 +181,8 @@ a tree that is updated incrementally can differ from a fresh one.
   tree.
 - `web/directives.js` says what each directive takes: its argument, its
   options (a flag, a value, or one of a list of values) and its content.
-- `web/lsp.js` finds what to complete at the caret.
+- `web/lsp.js` finds what to complete at the caret, `web/refs.js` orders and
+  searches the references and writes their role.
 - `web/nav.js` shows the files and `web/sparse.js` holds the selection of the
   sparse build.
 - `git.py` runs `git`: the branch, the state of the files, the text of the

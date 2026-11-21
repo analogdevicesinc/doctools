@@ -10,6 +10,9 @@ import {
 import { codeEdit, toSource, fromSource, sourceMarks, CODE_DIRECTIVES } from './code.js'
 import { sourceEditor, CodeEditors } from './editors.js'
 import { completionAt, matching, roleQuestion, hasPreview, shortTarget } from './lsp.js'
+import {
+  orderRoles, filterRoles, filterLabel, roleOpen, searchTargets, referenceText, referenceQuestion, pageOf
+} from './refs.js'
 import { optionChoices, optionSpec, FLAG } from './directives.js'
 import { SparseSelection } from './sparse.js'
 import { ContextMenu } from './contextmenu.js'
@@ -1183,10 +1186,11 @@ function renderDocs() {
   document.getElementById('docs-label').textContent = running ? 'Stop' : 'Build'
   // The live view is there while the server runs, and is shown when it starts
   document.querySelector('.tab[data-tab=preview]').hidden = !running
+  document.querySelector('.tab[data-tab=references]').hidden = !running
   if (running && !wasRunning) {
     showSidePane(true)
     selectTab('preview')
-  } else if (!running && state.tab === 'preview') {
+  } else if (!running && (state.tab === 'preview' || state.tab === 'references')) {
     selectTab('source', false)
   }
   wasRunning = running
@@ -1215,6 +1219,7 @@ async function pollDocs(once) {
       state.docs = docs
       answers.clear()
       previews.clear()
+      if (state.tab === 'references') loadReferences()
       showDiagnostics(view, state.model, docs.diagnostics)
       renderBackdrop()
       renderDocs()
@@ -2343,7 +2348,9 @@ function selectTab(name, remember = true) {
   document.getElementById('source').hidden = name !== 'source'
   document.getElementById('preview').hidden = name !== 'preview'
   document.getElementById('changes').hidden = name !== 'changes'
+  document.getElementById('references').hidden = name !== 'references'
   if (name === 'changes') loadChanges()
+  if (name === 'references') loadReferences()
   try {
     if (remember) localStorage.setItem('doctools.tab', name)
   } catch { }
@@ -2354,6 +2361,258 @@ document.querySelector('.tabs').addEventListener('click', ev => {
   const tab = ev.target.closest('.tab')
   if (tab) selectTab(tab.dataset.tab)
 })
+
+// References: what can be referenced, of the project and of its inventories ----
+//
+// One list: a documentation (the one of the project, then its inventories),
+// its types, their references. What is closed is not asked for nor searched:
+// an inventory can hold thousands of references.
+
+const refsSearch = document.getElementById('refs-search')
+const refsFilter = document.getElementById('refs-filter')
+const refsTypes = document.getElementById('refs-types')
+const refsList = document.getElementById('refs-list')
+// The references shown of a type, at most: the search narrows them
+const REFS_SHOWN = 150
+
+// What is open, and the types shown: kept by the browser.
+// open: the documentations, '' is the one of the project; toggled: the types
+// that are not as they are at first, see roleOpen; filter: the types shown,
+// all when empty
+const refsState = { open: new Set(['']), toggled: new Set(), filter: new Set() }
+try {
+  const kept = JSON.parse(localStorage.getItem('doctools.references') ?? 'null')
+  if (kept) for (const key of ['open', 'toggled', 'filter']) if (Array.isArray(kept[key])) refsState[key] = new Set(kept[key])
+} catch { }
+function keepReferences() {
+  try {
+    localStorage.setItem('doctools.references', JSON.stringify({
+      open: [...refsState.open], toggled: [...refsState.toggled], filter: [...refsState.filter]
+    }))
+  } catch { }
+}
+
+// The answers of the backend, by question: undefined while it is waited for,
+// a list, or { error }. Forgotten with each build.
+const refsData = new Map()
+let refsBuilt
+
+// An answer when it is there, asked for otherwise: the list is shown again
+// when it comes
+function refsAnswer(request) {
+  const key = JSON.stringify(request)
+  if (refsData.has(key)) return refsData.get(key)
+  refsData.set(key, undefined)
+  ask(request).then(answer => {
+    if (!refsData.has(key)) return
+    if (Array.isArray(answer.list)) refsData.set(key, answer.list)
+    else if (state.docs.build === 'ready') refsData.set(key, { error: answer.error ?? 'No answer' })
+    // Not built yet: it stays waited for, and is asked again with the build
+    else return
+    if (state.tab === 'references') renderReferences()
+  })
+  return undefined
+}
+
+const typesRequest = inventory => inventory ? { completion: 'inventory_types', inventory } : { completion: 'local_types' }
+const targetsRequest = (inventory, role) =>
+  inventory ? { completion: 'inventory_targets', inventory, role } : { completion: 'local_targets', role }
+
+function loadReferences() {
+  // A build changes what can be referenced
+  if (refsBuilt !== state.docs.revision) {
+    refsBuilt = state.docs.revision
+    refsData.clear()
+  }
+  renderReferences()
+}
+
+function refsRow(className, label, count, open) {
+  const row = element('button', className)
+  row.type = 'button'
+  row.setAttribute('role', 'treeitem')
+  row.setAttribute('aria-expanded', String(open))
+  row.append(element('span', 'refs-label', label))
+  if (count !== undefined) row.append(element('span', 'refs-count', String(count)))
+  return row
+}
+
+function renderReferences(top = refsList.scrollTop) {
+  const query = refsSearch.value.trim()
+  const inventories = refsAnswer({ completion: 'inventory' })
+  const documentations = [{ name: '', label: 'This documentation' },
+    ...(Array.isArray(inventories) ? inventories : []).map(inventory =>
+      ({ name: inventory.name, label: inventory.project ? `${inventory.name} · ${inventory.project}` : inventory.name }))]
+
+  const nodes = []
+  const known = new Map()
+  for (const documentation of documentations) {
+    const open = refsState.open.has(documentation.name)
+    const head = refsRow('refs-doc', documentation.label, undefined, open)
+    head.dataset.doc = documentation.name
+    nodes.push(head)
+    if (!open) continue
+
+    const types = refsAnswer(typesRequest(documentation.name))
+    if (!Array.isArray(types)) {
+      // Asked for: it is shown when it comes
+      if (types) nodes.push(element('div', 'refs-line error', types.error))
+      continue
+    }
+    for (const type of types) known.set(type.name, type)
+    const shown = filterRoles(types, refsState.filter)
+    let rows = 0
+    for (const type of shown) {
+      // With a search, the types are open on what matches
+      const expanded = query ? true : roleOpen(refsState.toggled, documentation.name, type.name)
+      const list = expanded ? refsAnswer(targetsRequest(documentation.name, type.name)) : undefined
+      const matches = Array.isArray(list) ? searchTargets(list, query) : undefined
+      if (query && matches && !matches.length) continue
+      const row = refsRow('refs-type', type.name, matches && query ? `${matches.length} of ${type.count}` : type.count, expanded)
+      row.dataset.doc = documentation.name
+      row.dataset.role = type.name
+      nodes.push(row)
+      rows++
+      if (!expanded) continue
+      if (!matches) {
+        if (list) nodes.push(element('div', 'refs-line error', list.error))
+        continue
+      }
+      for (const entry of matches.slice(0, REFS_SHOWN)) {
+        const item = element('button', 'refs-item')
+        item.type = 'button'
+        item.setAttribute('role', 'treeitem')
+        item.reference = { inventory: documentation.name, role: type.name, entry }
+        // The page of a reference of the project, after its name
+        const page = documentation.name ? '' : pageOf(entry.uri)
+        item.append(element('span', 'refs-title', entry.display || String(entry.name)),
+          element('span', 'refs-name', page && page !== String(entry.name) ? `${entry.name}  ·  ${page}` : String(entry.name)))
+        nodes.push(item)
+      }
+      if (matches.length > REFS_SHOWN)
+        nodes.push(element('div', 'refs-line', `${matches.length - REFS_SHOWN} more: search to see them.`))
+    }
+    if (!rows) nodes.push(element('div', 'refs-line', query ? 'No reference matches.' : 'Nothing of these types.'))
+  }
+  refsList.replaceChildren(...nodes)
+  refsList.scrollTop = top
+
+  refsTypesKnown = orderRoles([...known.values()])
+  refsFilter.textContent = filterLabel(refsState.filter)
+  refsFilter.classList.toggle('some', refsState.filter.size > 0)
+}
+
+// The search waits for the typing to rest: it reads the references of all
+// the types that are shown
+let refsSearchTimer
+refsSearch.addEventListener('input', () => {
+  clearTimeout(refsSearchTimer)
+  refsSearchTimer = setTimeout(() => renderReferences(0), 180)
+})
+
+// The types to show: the ones of the documentations that are open
+let refsTypesKnown = []
+function renderTypes() {
+  const line = (label, checked, className) => {
+    const el = element('label', className)
+    const box = document.createElement('input')
+    box.type = 'checkbox'
+    box.checked = checked
+    el.append(box, document.createTextNode(label))
+    return [el, box]
+  }
+  const [all, allBox] = line('All types', !refsState.filter.size, 'refs-all')
+  allBox.addEventListener('change', () => {
+    refsState.filter.clear()
+    changedTypes()
+  })
+  // The ones that were chosen stay, also when their documentation is closed
+  const names = orderRoles([...new Set([...refsTypesKnown.map(type => type.name), ...refsState.filter])].map(name => ({ name })))
+  refsTypes.replaceChildren(all, ...names.map(({ name }) => {
+    const [el, box] = line(name, refsState.filter.has(name))
+    box.addEventListener('change', () => {
+      if (box.checked) refsState.filter.add(name)
+      else refsState.filter.delete(name)
+      changedTypes()
+    })
+    return el
+  }))
+}
+function changedTypes() {
+  keepReferences()
+  renderTypes()
+  renderReferences(0)
+}
+function showTypes(shown) {
+  refsTypes.hidden = !shown
+  refsFilter.setAttribute('aria-expanded', String(shown))
+  if (shown) renderTypes()
+}
+refsFilter.addEventListener('click', () => showTypes(refsTypes.hidden))
+document.addEventListener('mousedown', ev => {
+  if (!refsTypes.hidden && !refsTypes.contains(ev.target) && !refsFilter.contains(ev.target)) showTypes(false)
+})
+refsTypes.addEventListener('keydown', ev => {
+  if (ev.key === 'Escape') {
+    showTypes(false)
+    refsFilter.focus()
+  }
+})
+
+// A click writes the role at the caret of the page; the text that is selected
+// there, in one block, is its title
+refsList.addEventListener('mousedown', ev => ev.preventDefault())
+refsList.addEventListener('click', ev => {
+  // A documentation or a type opens and closes
+  const node = ev.target.closest('.refs-doc, .refs-type')
+  if (node) {
+    const { doc, role } = node.dataset
+    const [set, key] = role === undefined ? [refsState.open, doc] : [refsState.toggled, `${doc}|${role}`]
+    if (set.has(key)) set.delete(key)
+    else set.add(key)
+    keepReferences()
+    return renderReferences()
+  }
+  const reference = ev.target.closest('.refs-item')?.reference
+  if (!reference) return
+  const { inventory, role, entry } = reference
+  const { a, b } = selection()
+  const one = a < b && leafAt(state.model, a)?.block === leafAt(state.model, b)?.block
+  const selected = one ? state.model.leaves.filter(l => l.kind !== 'soft' && l.e > a && l.s < b)
+    .map(l => state.source.slice(Math.max(l.s, a), Math.min(l.e, b))).join(' ') : ''
+  if (a < b && !one) return setFileState('Select text in one paragraph, or none, to write a reference')
+  hideCard()
+  commit(insertText(state.model, a, b, referenceText(inventory, role, String(entry.name), selected)))
+})
+
+// What a reference points to, beside the panel, on the pointer
+let refsTimer
+refsList.addEventListener('mouseover', ev => {
+  const row = ev.target.closest('.refs-item')
+  if (row === cardOf) return
+  clearTimeout(refsTimer)
+  if (cardOf?.classList?.contains('refs-item')) hideCard()
+  if (!row) return
+  refsTimer = setTimeout(() => {
+    if (!row.isConnected || !row.matches(':hover')) return
+    const { inventory, role, entry } = row.reference
+    showCard(row, { title: entry.display, target: entry.uri }, referenceQuestion(inventory, role, entry.name), () => {
+      const rect = row.getBoundingClientRect()
+      const pane = document.getElementById('source-pane').getBoundingClientRect()
+      const left = pane.left - 8 - card.offsetWidth
+      card.style.left = `${left >= 8 ? left : Math.min(rect.left + 24, window.innerWidth - card.offsetWidth - 8)}px`
+      const top = left >= 8 ? rect.top : rect.bottom + 4
+      card.style.top = `${Math.max(Math.min(top, window.innerHeight - card.offsetHeight - 8), 8)}px`
+    })
+  }, 350)
+})
+refsList.addEventListener('mouseleave', () => {
+  clearTimeout(refsTimer)
+  if (cardOf?.classList?.contains('refs-item')) hideCard()
+})
+refsList.addEventListener('scroll', () => {
+  if (cardOf?.classList?.contains('refs-item')) hideCard()
+}, { passive: true })
 
 async function main() {
   await Parser.init()
