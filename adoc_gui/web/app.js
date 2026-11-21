@@ -1255,7 +1255,9 @@ async function pollDocs(once) {
       state.docs = docs
       answers.clear()
       previews.clear()
-      if (state.tab === 'references') loadReferences()
+      if (docs.build === 'ready') refreshReferences()
+      // Another run of the server can be of another configuration
+      if (docs.build === 'off') refsData.clear()
       showDiagnostics(view, state.model, docs.diagnostics)
       renderBackdrop()
       renderDocs()
@@ -2430,9 +2432,10 @@ function keepReferences() {
 }
 
 // The answers of the backend, by question: undefined while it is waited for,
-// a list, or { error }. Forgotten with each build.
+// a list, or { error }. They are kept: an inventory does not change while
+// the server runs, and what the project holds is asked again after a build,
+// see refreshReferences.
 const refsData = new Map()
-let refsBuilt
 
 // An answer when it is there, asked for otherwise: the list is shown again
 // when it comes
@@ -2456,12 +2459,46 @@ const targetsRequest = (inventory, role) =>
   inventory ? { completion: 'inventory_targets', inventory, role } : { completion: 'local_targets', role }
 
 function loadReferences() {
-  // A build changes what can be referenced
-  if (refsBuilt !== state.docs.revision) {
-    refsBuilt = state.docs.revision
-    refsData.clear()
-  }
   renderReferences()
+}
+
+// After a build: what the project holds may have changed, a label added or
+// a page renamed. It is asked again behind what is shown, which changes only
+// when the answer does. The inventories are as they were read, they are not
+// asked again; what failed or was not there yet is.
+function refreshReferences() {
+  for (const [key, before] of [...refsData]) {
+    const request = JSON.parse(key)
+    if (Array.isArray(before) && !String(request.completion).startsWith('local_')) continue
+    ask(request).then(answer => {
+      if (!refsData.has(key)) return
+      const after = Array.isArray(answer.list) ? answer.list
+        // What was there is better than an answer that failed
+        : Array.isArray(before) ? before : { error: answer.error ?? 'No answer' }
+      if (JSON.stringify(after) === JSON.stringify(refsData.get(key))) return
+      refsData.set(key, after)
+      if (state.tab === 'references') renderReferences()
+    })
+  }
+}
+
+// The rows of the list are kept from one render to the next when they say
+// the same: only what changed is touched, and the list stays where it is
+function keepRows(nodes) {
+  const before = new Map()
+  for (const el of refsList.children) if (el.key !== undefined && !before.has(el.key)) before.set(el.key, el)
+  const rows = nodes.map(node => {
+    const kept = before.get(node.key)
+    if (!kept) return node
+    before.delete(node.key)
+    kept.reference = node.reference
+    return kept
+  })
+  const keep = new Set(rows)
+  for (const el of [...refsList.children]) if (!keep.has(el)) el.remove()
+  rows.forEach((row, i) => {
+    if (refsList.children[i] !== row) refsList.insertBefore(row, refsList.children[i] ?? null)
+  })
 }
 
 function refsRow(className, label, count, open) {
@@ -2531,8 +2568,14 @@ function renderReferences(top = refsList.scrollTop) {
     }
     if (!rows) nodes.push(element('div', 'refs-line', query ? 'No reference matches.' : 'Nothing of these types.'))
   }
-  refsList.replaceChildren(...nodes)
-  refsList.scrollTop = top
+  // What a row says: its kind, where it is in the tree, and its text
+  for (const node of nodes) {
+    const { inventory, role } = node.reference ?? {}
+    node.key = [node.className, node.dataset.doc ?? inventory ?? '', node.dataset.role ?? role ?? '',
+      node.getAttribute('aria-expanded') ?? '', node.textContent].join('\u0000')
+  }
+  keepRows(nodes)
+  if (refsList.scrollTop !== top) refsList.scrollTop = top
 
   refsTypesKnown = orderRoles([...known.values()])
   refsFilter.textContent = filterLabel(refsState.filter)
