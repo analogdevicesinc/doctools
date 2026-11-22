@@ -108,7 +108,7 @@ export function setCodeHost(make) {
 const TAGS = {
   document: 'div', paragraph: 'p', item: 'li', directive: 'div', quote: 'blockquote', raw: 'pre',
   table: 'table', row: 'tr', line: 'div', caption: 'div', target: 'span', options: 'div', option: 'div',
-  substitution: 'div', value: 'div'
+  substitution: 'div', value: 'div', lineblock: 'div', linerow: 'div'
 }
 
 const UNBOXED = new Set(['table', 'list-table', 'tab-set', 'tab-item', 'rubric'])

@@ -240,3 +240,49 @@ test('blockAt finds the empty list item', () => {
   assert.equal(block.kind, 'item')
   assert.equal(block.children.length, 0)
 })
+
+test('a line block is lines, their breaks are kept', async () => {
+  const { insertText, insertParagraph, deleteBackward, applyEdit } = await import('../adoc_gui/web/ops.js')
+  const source = 'Stored as:\n\n- | https://a.b/latest.tar.gz\n  | latest (commit at *tag* bump).\n- | https://a.b/pre.tar.gz\n  | pre-release.\n\n' +
+    '| Line one\n| Line two goes on\n  here\n|\n|   indented\n\nAfter\n'
+  const model = assertCovered(source)
+  assert.equal(outline(model.root),
+    'document(paragraph list(item(lineblock(linerow linerow)) item(lineblock(linerow linerow))) lineblock(linerow linerow linerow linerow) paragraph)')
+  const rows = []
+  const walk = block => {
+    if (block.kind === 'linerow') rows.push(block.inlines.map(l => `${l.kind}:${source.slice(l.s, l.e)}`).join('|'))
+    for (const child of block.children ?? []) walk(child)
+  }
+  walk(model.root)
+  assert.deepEqual(rows, [
+    'link:https://a.b/latest.tar.gz', 'text:latest (commit at |emphasis:tag|text: bump).',
+    'link:https://a.b/pre.tar.gz', 'text:pre-release.',
+    'text:Line one', 'text:Line two goes on|soft:\n  |text:here', 'text:', 'text:  indented'])
+
+  // '^' is the caret: the bars are part of the text here
+  const at = (marked, op, ...args) => {
+    const a = marked.indexOf('^')
+    const text = marked.replace('^', '')
+    const edit = op(modelOf(text), a, a, ...args)
+    if (!edit) return marked
+    const out = applyEdit(text, edit)
+    return out.slice(0, edit.caret) + '^' + out.slice(edit.caret)
+  }
+  // Enter makes a line, with the indentation of the block
+  assert.equal(at('| one^\n| two\n', insertParagraph), '| one\n| ^\n| two\n')
+  assert.equal(at('- | one^\n  | two\n', insertParagraph), '- | one\n  | ^\n  | two\n')
+  assert.equal(at('| on^e\n', insertParagraph), '| on\n| ^e\n')
+  // What is typed on an empty line comes after a space
+  assert.equal(at('| one\n|^\n', insertText, 'x'), '| one\n| x^\n')
+  assert.equal(at('| one\n| ^\n', insertText, 'x'), '| one\n| x^\n')
+  // Enter on the empty last line leaves the block
+  assert.equal(at('| one\n| ^\n\nAfter\n', insertParagraph), '| one\n\n^\n\nAfter\n')
+  assert.equal(at('- | one\n  | ^\n- two\n', insertParagraph), '- | one\n\n  ^\n\n- two\n')
+  // Backspace at the start of a line joins it to the one before
+  assert.equal(at('| one\n| ^two\n', deleteBackward), '| one^two\n')
+  assert.equal(at('- | one\n  | ^two\n', deleteBackward), '- | one^two\n')
+  assert.equal(at('| one\n|\n| ^two\n', deleteBackward), '| one\n| ^two\n')
+  assert.equal(at('| ^only\n', deleteBackward), '^only\n')
+  assert.equal(at('| ^one\n| two\n', deleteBackward), '| ^one\n| two\n')
+  assert.equal(at('| on^e\n', deleteBackward), '| o^e\n')
+})

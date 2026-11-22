@@ -1120,6 +1120,11 @@ td > p.block, th > p.block, td > .placeholder, th > .placeholder { margin: 0; }
 .k-substitution::before, .k-substitution::after { content: '|'; margin: 0 2px; opacity: 0.45; user-select: none; }
 .k-substitution.linked { text-decoration: underline; text-underline-offset: 2px; color: var(--primary); }
 
+/* A line block: its lines, one below the other */
+.b-lineblock { margin: 0 0 12px; }
+.b-linerow { min-height: 1.6em; }
+li > .b-lineblock { margin-bottom: 4px; }
+
 /* Its definition: the name, and the text that takes its place */
 .b-substitution { display: flex; align-items: baseline; gap: 8px; margin: 0 0 6px; font-size: 15px; }
 .b-substitution > .k-name {

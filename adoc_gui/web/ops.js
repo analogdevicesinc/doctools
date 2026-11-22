@@ -356,7 +356,7 @@ function insertTextRaw(model, a, b, text) {
     const owner = item ? item.block : blockAt(model, a)
     // The argument of a directive, the value of an option and the text of a
     // substitution come after a space
-    if (item && item.s === item.e && owner.empty && ['caption', 'option', 'value'].includes(owner.kind))
+    if (item && item.s === item.e && owner.empty && ['caption', 'option', 'value', 'linerow'].includes(owner.kind))
       return edit(a, a, (source[a - 1] === ' ' ? '' : ' ') + text)
     // In a directive without a caption nor content: the text is its content
     if (!item && owner.kind === 'directive' && !hasContent(owner) && a <= owner.headEnd)
@@ -477,6 +477,20 @@ function insertParagraphRaw(model, a, b) {
     const at = lineEnd(source, Math.max(heading.e - 1, heading.s))
     const blank = at === source.length || isBlank(lineOf(source, at + 1))
     return blank ? edit(at, at, '\n\n', at + 2) : edit(at, at, '\n\n\n', at + 2)
+  }
+
+  // In a line of a line block: a new line of the block, below it. On its
+  // empty last line: out of the block, to an empty line after it
+  if (owner.kind === 'linerow') {
+    const rows = owner.parent.children
+    const indent = ' '.repeat(owner.bar.s - lineStart(source, owner.bar.s))
+    if (owner.empty && rows.length > 1 && rows[rows.length - 1] === owner) {
+      const start = lineStart(source, owner.bar.s)
+      const end = lineEnd(source, owner.bar.s)
+      const tail = end < source.length && !isBlank(lineOf(source, end + 1)) ? '\n' : ''
+      return edit(start, end, `\n${indent}${tail}`, start + 1 + indent.length)
+    }
+    return edit(a, b, `\n${indent}| `)
   }
 
   // In source shown as-is: a new line with the same indentation
@@ -1068,6 +1082,20 @@ export function deleteBackward(model, a, b, { repeat = false } = {}) {
   if (a === b && model.source[a - 1] === '`' && model.source[a] === '`' &&
       /(^|[\s([{<'"\-/])(:[\w+.-]+)+:`$/.test(model.source.slice(lineStart(model.source, a), a)))
     return guard(model, edit(a - 1, a + 1, '', a - 1))
+  // At the start of a line of a line block: it joins the line before; the
+  // only line of a block is a paragraph again
+  if (a === b) {
+    const row = leafAt(model, a)?.block
+    if (row?.kind === 'linerow' && a === row.inlines[0].s) {
+      const rows = row.parent.children
+      const before = rows[rows.indexOf(row) - 1]
+      if (before) {
+        const end = before.inlines[before.inlines.length - 1].e
+        return edit(end, a, before.empty && model.source[end - 1] !== ' ' ? ' ' : '', end + (before.empty && model.source[end - 1] !== ' ' ? 1 : 0))
+      }
+      return rows.length === 1 ? edit(row.bar.s, a, '') : undefined
+    }
+  }
   // The last character of the name of a substitution: all of it goes, its
   // bars would be left behind; its definition goes with its name
   if (a === b) {

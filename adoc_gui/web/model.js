@@ -408,6 +408,32 @@ export function buildModel(parser, tree, source) {
     return b
   }
 
+  // A line block: lines that start with '| ', each is a line of the page,
+  // their breaks are kept. A line goes on, indented, on the next lines of
+  // the source; the spaces after its bar are its indentation.
+  const lineBlock = (node, parent) => {
+    const rows = node.children.filter(c => c.type === 'line')
+    if (!rows.length || rows.some(row => row.children[0]?.type !== '|')) return raw(node, parent)
+    const b = block('lineblock', node, parent)
+    b.children = rows.map(rowNode => {
+      const bar = rowNode.children[0]
+      const row = block('linerow', rowNode, b, { bar: { s: bar.startIndex, e: bar.endIndex } })
+      const from = bar.endIndex + (source[bar.endIndex] === ' ' ? 1 : 0)
+      const to = Math.max(rowNode.endIndex, from)
+      hidden.push([bar.startIndex, from])
+      row.inlines = inlines(row, rowNode.children.slice(1), from, to)
+      if (!row.inlines.length) {
+        // An empty line, to type in
+        row.inlines = [leaf(row, 'text', from, from)]
+        row.empty = true
+      }
+      row.e = Math.max(row.e, to)
+      return row
+    })
+    b.e = Math.max(b.e, ...b.children.map(row => row.e))
+    return b
+  }
+
   // '.. |name| replace:: text': the name, and the text that takes its place,
   // with its inline markup. The other substitutions (an image, a date, a
   // character) are shown as they are written.
@@ -464,6 +490,7 @@ export function buildModel(parser, tree, source) {
       case 'directive': return [directive(node, parent)]
       case 'target': return [target(node, parent)]
       case 'substitution_definition': return [substitution(node, parent)]
+      case 'line_block': return [lineBlock(node, parent)]
       // From the start of its line: the first line keeps its indentation
       case 'literal_block':
         return [code(node, parent)]
