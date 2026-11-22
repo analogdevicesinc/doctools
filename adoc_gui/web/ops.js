@@ -7,6 +7,7 @@
 
 import { leafAt, blockAt, ancestor, contentReach } from './model.js'
 import { writeTable } from './table.js'
+import { linkOf, linkText } from './links.js'
 
 const INLINE = { bold: '**', italic: '*', code: '``' }
 
@@ -236,6 +237,42 @@ export function addTable(model, offset, kind, rows, columns) {
     const row = `\n${indent}   * - ${`\n${indent}     - `.repeat(columns - 1)}`
     return { text: head + row.repeat(rows), caret: head.length + `\n${indent}   * - `.length }
   })
+}
+
+// The link of the caret or of the selection, and the text it would have:
+// { link, a, b, text }. link: the one the caret is in, or that is selected,
+// undefined when a new one is made; a and b: what it replaces.
+export function linkAt(model, a, b) {
+  const { source } = model
+  const leaf = model.leaves.find(l => l.kind === 'link' && l.os <= a && b <= l.oe && (a < l.oe || a === b))
+  const link = linkOf(model, leaf)
+  if (link) return { link, a: link.s, b: link.e, text: link.kind === 'address' ? '' : link.text }
+  const selected = source.slice(a, b)
+  if (selected.includes('\n') || selected.includes('`')) return undefined
+  return { link: undefined, a, b, text: selected.trim() }
+}
+
+// Make the selection a link, or change the one of the caret: its text and
+// its address. Without an address the link is text again. Only a link that
+// holds its address is changed: the address of the others is written in
+// another place of the document.
+export function setLink(model, a, b, text, target) {
+  const at = linkAt(model, a, b)
+  if (!at || (at.link && at.link.kind !== 'embedded' && at.link.kind !== 'address')) return undefined
+  const shown = text.replace(/\s+/g, ' ').trim()
+  const address = target.replace(/\s+/g, '')
+  if (!address) return at.link ? guard(model, edit(at.a, at.b, shown || at.link.text)) : undefined
+  const written = linkText(shown, address, at.link ? at.link.anonymous : true)
+  // The spaces of the selection stay around the link
+  const picked = model.source.slice(at.a, at.b)
+  const head = at.link ? '' : picked.match(/^\s*/)[0]
+  const tail = at.link ? '' : picked.slice(head.length).match(/\s*$/)[0]
+  // A link is parted from the letters around it, as inline markup must be
+  const word = /[\p{L}\p{N}]/u
+  const lead = !head && at.a > 0 && word.test(model.source[at.a - 1]) ? ' ' : ''
+  const trail = !tail && word.test(model.source[at.b] ?? '') ? ' ' : ''
+  return guard(model, edit(at.a, at.b, head + lead + written + trail + tail,
+    at.a + head.length + lead.length + written.length))
 }
 
 // A role at the caret, around the text that is selected: the caret goes in

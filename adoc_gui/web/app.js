@@ -1,7 +1,8 @@
 import { Parser, Language } from './vendor/web-tree-sitter.js'
 import { buildModel, leafAt, blockAt } from './model.js'
 import {
-  applyEdit, insertText, deleteBackward, deleteForward, insertParagraph, toggleInline, tableStep, openContent, intoContent, addOption, addLabel, removeSide, addTab, shiftItem, removeDirective, leaveDirective, headingAt, setHeading, addDirective, addRole, addTable
+  applyEdit, insertText, deleteBackward, deleteForward, insertParagraph, toggleInline, tableStep, openContent, intoContent, addOption, addLabel, removeSide, addTab, shiftItem, removeDirective, leaveDirective, headingAt, setHeading, addDirective, addRole, addTable,
+  linkAt, setLink
 } from './ops.js'
 import {
   render, getSelection, setSelection, markActive, showDiagnostics, selectTab as showTab, setCodeHost, offsetOf, pointOf,
@@ -15,6 +16,7 @@ import {
 } from './refs.js'
 import { pickerGroups, templateOf, ABOUT, exampleOf } from './insert.js'
 import { tutorial } from './tutorial.js'
+import { linkOf, linkAddress, isAddress } from './links.js'
 import { optionChoices, optionSpec, FLAG } from './directives.js'
 import { SparseSelection } from './sparse.js'
 import { ContextMenu } from './contextmenu.js'
@@ -169,7 +171,12 @@ function selection() {
 const INPUT = {
   insertText: (m, a, b, e) => insertText(m, a, b, e.data ?? ''),
   insertReplacementText: (m, a, b, e) => insertText(m, a, b, e.data ?? e.dataTransfer?.getData('text/plain') ?? ''),
-  insertFromPaste: (m, a, b, e) => insertText(m, a, b, (e.dataTransfer?.getData('text/plain') ?? '').replace(/\r\n?/g, '\n')),
+  insertFromPaste: (m, a, b, e) => {
+    const text = (e.dataTransfer?.getData('text/plain') ?? '').replace(/\r\n?/g, '\n')
+    // An address pasted over text makes the text a link to it
+    const picked = a < b && isAddress(text) ? linkAt(m, a, b) : undefined
+    return picked && !picked.link && picked.text ? setLink(m, a, b, picked.text, text.trim()) : insertText(m, a, b, text)
+  },
   insertFromDrop: () => undefined,
   insertParagraph: (m, a, b) => insertParagraph(m, a, b),
   insertLineBreak: (m, a, b) => insertParagraph(m, a, b),
@@ -236,7 +243,8 @@ const ACTIONS = {
   redo: () => restore(state.redo, state.undo),
   bold: () => format('bold'),
   italic: () => format('italic'),
-  code: () => format('code')
+  code: () => format('code'),
+  link: () => editLink()
 }
 
 function format(kind) {
@@ -254,6 +262,7 @@ toolbar.addEventListener('click', ev => {
   const action = ev.target.closest('[data-action]')?.dataset.action
   if (!action) return
   ACTIONS[action]()
+  if (action === 'link') return
   view.focus()
   renderToolbar()
 })
@@ -475,6 +484,116 @@ function renderTablePicker() {
   picker.replaceChildren(box)
 }
 
+// A link: its text and its address, written below it -----------------------------
+
+const linkEditor = document.getElementById('link-editor')
+
+function hideLinkEditor(focus = false) {
+  if (linkEditor.hidden) return
+  linkEditor.hidden = true
+  if (focus) renderView(true)
+}
+
+// The line of the source of an offset, from 1
+const lineOf = offset => state.source.slice(0, offset).split('\n').length
+
+// Open the editor of the link of the caret, or of a new one around the
+// selection. at: the source offsets, the ones of the caret when not given
+function editLink(at) {
+  hidePicker()
+  const { a, b } = at ?? selection()
+  const found = linkAt(state.model, a, b)
+  if (!found) return setFileState('Select text in one line, or none, to make a link')
+  const { link } = found
+  // The address of these is written elsewhere: it is shown, and gone to
+  const elsewhere = link && (link.kind === 'named' || link.kind === 'anonymous')
+  const field = (label, name, value, placeholder) => {
+    const wrap = element('label', '', label)
+    const input = document.createElement('input')
+    input.name = name
+    input.type = 'text'
+    input.value = value
+    input.placeholder = placeholder
+    input.spellcheck = false
+    input.autocomplete = 'off'
+    wrap.append(input)
+    return [wrap, input]
+  }
+  const [textField, text] = field('Text', 'text', found.text, 'What is read: the address when empty')
+  const [targetField, target] = field('Address', 'target', link?.target ?? '', 'https://…')
+  const actions = element('div', 'link-actions')
+  const button = (className, label, run) => {
+    const el = element('button', className, label)
+    el.type = 'button'
+    el.addEventListener('click', run)
+    actions.append(el)
+    return el
+  }
+  const nodes = [textField, targetField]
+  const apply = (shown, address) => {
+    const edit = setLink(state.model, a, b, shown, address)
+    hideLinkEditor()
+    if (edit) commit(edit)
+    else renderView(true)
+  }
+  if (elsewhere) {
+    text.readOnly = target.readOnly = true
+    nodes.push(element('div', 'link-note', link.at === undefined
+      ? `No address is written for this link: it needs a line “${link.kind === 'named' ? `.. _${link.text}: https://…` : '__ https://…'}”.`
+      : `Its address is written at line ${lineOf(link.at)} of the document.`))
+    if (link.at !== undefined) {
+      button('text-button plain', 'Go to it', () => {
+        hideLinkEditor()
+        const offset = state.source.indexOf(link.target, link.at)
+        state.caret = { anchor: offset, focus: offset }
+        renderView(true)
+        renderCode(true)
+      })
+    }
+  } else if (link) {
+    button('text-button plain link-remove', 'Remove the link', () => apply(text.value, ''))
+  }
+  const open = linkAddress(link?.target)
+  if (open) button('text-button plain', 'Open ↗', () => window.open(open, '_blank', 'noopener'))
+  if (!elsewhere) {
+    const done = element('button', 'build-button', link ? 'Apply' : 'Add the link')
+    done.type = 'submit'
+    actions.append(done)
+  }
+  nodes.push(actions)
+  linkEditor.replaceChildren(...nodes)
+  linkEditor.onsubmit = ev => {
+    ev.preventDefault()
+    if (elsewhere) return hideLinkEditor(true)
+    if (!target.value.trim() && !link) return target.focus()
+    apply(text.value, target.value)
+  }
+
+  // Below the link, or the caret
+  const el = link && [...view.querySelectorAll('.k-link')].find(other => Number(other.dataset.s) >= link.s && Number(other.dataset.e) <= link.e)
+  const range = window.getSelection().rangeCount && view.contains(window.getSelection().anchorNode)
+    ? window.getSelection().getRangeAt(0) : undefined
+  const rect = el?.getBoundingClientRect() ?? range?.getClientRects()[0] ?? range?.startContainer.parentElement?.getBoundingClientRect() ??
+    toolbar.querySelector('[data-action=link]').getBoundingClientRect()
+  linkEditor.hidden = false
+  const below = rect.bottom + 8 + linkEditor.offsetHeight <= window.innerHeight - 8
+  linkEditor.style.top = `${below ? rect.bottom + 8 : Math.max(rect.top - 8 - linkEditor.offsetHeight, 8)}px`
+  linkEditor.style.left = `${Math.max(Math.min(rect.left, window.innerWidth - linkEditor.offsetWidth - 8), 8)}px`
+  // What is missing: the text of a new link without one, else the address
+  const first = elsewhere ? actions.querySelector('button') : !link && !found.text ? text : target
+  first?.focus()
+  if (first === target) target.select()
+}
+linkEditor.addEventListener('keydown', ev => {
+  if (ev.key !== 'Escape') return
+  ev.preventDefault()
+  hideLinkEditor(true)
+})
+document.addEventListener('mousedown', ev => {
+  if (!linkEditor.hidden && !linkEditor.contains(ev.target) && !ev.target.closest?.('[data-action=link]')) hideLinkEditor()
+}, true)
+window.addEventListener('resize', () => hideLinkEditor())
+
 const PRESSED = { bold: 'strong', italic: 'emphasis', code: 'literal' }
 
 function renderToolbar() {
@@ -482,6 +601,7 @@ function renderToolbar() {
   const kind = leafAt(state.model, state.caret.focus)?.kind
   for (const button of toolbar.querySelectorAll('[data-action]')) {
     const action = button.dataset.action
+    if (action === 'link') button.setAttribute('aria-pressed', String(kind === 'link'))
     if (PRESSED[action]) button.setAttribute('aria-pressed', String(kind === PRESSED[action]))
     if (action === 'undo') button.disabled = !state.undo.length
     if (action === 'redo') button.disabled = !state.redo.length
@@ -655,6 +775,7 @@ view.addEventListener('keydown', ev => {
   else if (key === 'b') ACTIONS.bold()
   else if (key === 'i') ACTIONS.italic()
   else if (key === 'e') ACTIONS.code()
+  else if (key === 'k') ACTIONS.link()
   else return
   ev.preventDefault()
 })
@@ -1576,7 +1697,7 @@ function fillCard(known, waiting) {
     page.textContent = known.page.split(' — ')[0]
     if (page.textContent !== nodes[0].textContent) where.append(page)
   }
-  if (known.target) {
+  if (known.target && shortTarget(known.target) !== nodes[0].textContent) {
     const target = document.createElement('span')
     target.textContent = shortTarget(known.target)
     where.append(target)
@@ -2020,6 +2141,17 @@ function menuItems(a, b) {
   if (tabSet) extra.push({ label: 'Add a tab', run: () => commit(addTab(state.model, tabSet)) })
   if (extra.length) items.push({ kind: 'separator' }, ...extra)
 
+  // The link there: changed, opened, removed; or a new one
+  const found = linkAt(model, a, b)
+  if (found) {
+    const { link } = found
+    const open = linkAddress(link?.target)
+    const own = link && (link.kind === 'embedded' || link.kind === 'address')
+    items.push({ kind: 'separator' },
+      { label: link ? 'Edit the link…' : 'Add a link…', keys: 'Ctrl+K', run: () => editLink({ a, b }) })
+    if (open) items.push({ label: 'Open the link', keys: 'Ctrl+click', run: () => window.open(open, '_blank', 'noopener') })
+    if (own) items.push({ label: 'Remove the link', run: () => commit(setLink(state.model, a, b, link.kind === 'address' ? link.target : link.text, '')) })
+  }
   return items
 }
 
@@ -2103,6 +2235,54 @@ view.addEventListener('mouseout', ev => {
     clearTimeout(hoverTimer)
     if (cardOf === el) hideCard()
   }
+})
+
+// Hover: where a link leads; Ctrl and a click open it
+let linkTimer
+const linkOfElement = el => {
+  const leaf = state.model.leaves.find(l => l.kind === 'link' && l.s === Number(el.dataset.s) && l.e === Number(el.dataset.e))
+  return linkOf(state.model, leaf)
+}
+view.addEventListener('mouseover', ev => {
+  const el = ev.target.closest?.('.k-link')
+  clearTimeout(linkTimer)
+  if (!el && cardOf?.classList?.contains('k-link')) hideCard()
+  if (!el || !linkEditor.hidden) return
+  linkTimer = setTimeout(() => {
+    const link = el.isConnected && el.matches(':hover') ? linkOfElement(el) : undefined
+    if (!link) return
+    const place = () => {
+      const rect = el.getBoundingClientRect()
+      const below = rect.bottom + 6 + card.offsetHeight <= window.innerHeight - 8
+      card.style.top = `${below ? rect.bottom + 6 : Math.max(rect.top - 6 - card.offsetHeight, 8)}px`
+      card.style.left = `${Math.max(Math.min(rect.left, window.innerWidth - card.offsetWidth - 8), 0)}px`
+    }
+    if (!link.target) {
+      return showCard(el, {
+        kind: 'error', title: 'No address',
+        text: link.kind === 'named' ? `Nothing in the document is named “${link.text}”.` : 'The document has no address left for this link.'
+      }, undefined, place)
+    }
+    const how = linkAddress(link.target) ? 'Ctrl+click to open  ·  Ctrl+K to edit' : 'Ctrl+K to edit'
+    showCard(el, {
+      title: link.kind === 'address' ? shortTarget(link.target) : link.text || shortTarget(link.target),
+      target: link.target,
+      note: link.at === undefined ? how : `line ${lineOf(link.at)}  ·  ${how}`
+    }, undefined, place)
+  }, 350)
+})
+view.addEventListener('mouseout', ev => {
+  const el = ev.target.closest?.('.k-link')
+  if (!el) return
+  clearTimeout(linkTimer)
+  if (cardOf === el) hideCard()
+})
+view.addEventListener('click', ev => {
+  const el = (ev.ctrlKey || ev.metaKey) && ev.target.closest?.('.k-link')
+  const open = el && linkAddress(linkOfElement(el)?.target)
+  if (!open) return
+  ev.preventDefault()
+  window.open(open, '_blank', 'noopener')
 })
 
 // Hover: a mistake of the prose, what it is and what corrects it. The
