@@ -170,7 +170,11 @@ changes. `adoc-gui --serve` starts it right away. While it runs:
   and the types.
 
 **Sparse build**: check folders in the files to build only those, which makes
-the first build of a large documentation much faster. *Build all* clears the
+the first build of a large documentation much faster. A large documentation,
+of more than 150 pages, is not built whole without it being asked for: *Build*
+then offers to choose the folders first, or to build all of it, and
+`adoc-gui --serve` does not build at once, unless folders were chosen
+before. *Build all* clears the
 selection. The selection is kept by the browser, per documentation.
 
 The file is not saved, and so not built, while a role or a directive is being

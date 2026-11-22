@@ -630,7 +630,7 @@ function panel(name, open, close) {
   close.addEventListener('click', () => apply(false))
   return apply
 }
-panel('no-nav', document.getElementById('open-nav'), document.getElementById('close-nav'))
+const showFiles = panel('no-nav', document.getElementById('open-nav'), document.getElementById('close-nav'))
 const showSidePane = panel('no-source', document.getElementById('open-source'), document.getElementById('close-source'))
 
 // On a narrow screen the files, the page and the side pane are three screens:
@@ -1584,14 +1584,63 @@ function renderDocs() {
   setFileState()
 }
 
-docsButton.addEventListener('click', async () => {
-  const running = state.docs.build !== 'off'
-  if (!running) {
+async function buildDocs(start) {
+  hideLarge()
+  if (start) {
+    document.body.classList.remove('choosing')
+    drawTree()
     state.docs.build = 'building'
     renderDocs()
   }
-  await post(running ? 'api/docs/stop' : 'api/docs/start').catch(() => {})
+  await post(start ? 'api/docs/start' : 'api/docs/stop').catch(() => {})
   pollDocs(true)
+}
+
+// A large documentation takes long to build whole: the folders to build are
+// chosen first, in the files, unless all of it is asked for
+const largeDocs = document.getElementById('large-docs')
+function hideLarge() {
+  largeDocs.hidden = true
+}
+function showLarge() {
+  const actions = element('div', 'link-actions')
+  const choose = element('button', 'build-button', 'Choose the folders')
+  const all = element('button', 'text-button plain', 'Build all of it')
+  for (const button of [choose, all]) button.type = 'button'
+  choose.addEventListener('click', () => {
+    hideLarge()
+    // The files, with the boxes of their folders: then Build
+    document.body.classList.add('choosing')
+    showFiles(true)
+    setScreen('files')
+    drawTree()
+  })
+  all.addEventListener('click', () => buildDocs(true))
+  actions.append(choose, all)
+  largeDocs.replaceChildren(
+    element('strong', '', 'A large documentation'),
+    element('p', '', `It has ${state.docs.pages} pages: building all of them takes a while, each time. ` +
+      'Check the folders you work on in the files, and only those are built.'),
+    actions)
+  largeDocs.hidden = false
+  const rect = docsButton.getBoundingClientRect()
+  largeDocs.style.top = `${rect.bottom + 8}px`
+  largeDocs.style.left = `${Math.max(Math.min(rect.right - largeDocs.offsetWidth, window.innerWidth - largeDocs.offsetWidth - 8), 8)}px`
+  choose.focus()
+}
+largeDocs.addEventListener('keydown', ev => {
+  if (ev.key === 'Escape') hideLarge()
+})
+document.addEventListener('mousedown', ev => {
+  if (!largeDocs.hidden && !largeDocs.contains(ev.target) && !docsButton.contains(ev.target)) hideLarge()
+}, true)
+
+docsButton.addEventListener('click', () => {
+  const running = state.docs.build !== 'off'
+  if (!largeDocs.hidden) return hideLarge()
+  // All of a large documentation is not built without it being asked for
+  if (!running && state.docs.large && !state.sparse.size) return showLarge()
+  buildDocs(!running)
 })
 
 let docsTimer
@@ -1603,7 +1652,10 @@ async function pollDocs(once) {
     if (path === state.path && (docs.revision !== state.docs.revision || docs.build !== state.docs.build ||
         docs.page !== state.docs.page || docs.diagnostics.length !== state.docs.diagnostics.length)) {
       if (docs.build === 'ready' && docs.revision !== state.docs.revision) builtAt = performance.now()
+      // The build asked for when the editor started waits for the folders
+      const waits = docs.held && !state.docs.held && docs.build === 'off'
       state.docs = docs
+      if (waits && !state.sparse.size) showLarge()
       answers.clear()
       previews.clear()
       if (docs.build === 'ready') refreshReferences()
@@ -2506,10 +2558,11 @@ function drawTree() {
     current: state.path, expanded: state.expanded, selection: state.sparse, changes: state.git.files
   })
   const count = state.sparse.size
+  const choosing = document.body.classList.contains('choosing') && state.docs.build === 'off'
   document.getElementById('sparse-state').textContent = count
-    ? `Building ${count} folder${count > 1 ? 's' : ''}`
-    : 'Files'
-  document.getElementById('sparse-clear').hidden = !count
+    ? `${choosing ? '' : 'Building '}${count} folder${count > 1 ? 's' : ''}${choosing ? ' to build' : ''}`
+    : choosing ? 'Check the folders' : 'Files'
+  document.getElementById('sparse-clear').hidden = !count || choosing
 }
 
 const store = (name, value) => {
@@ -2744,7 +2797,7 @@ async function loadTree() {
     if (first) {
       state.expanded = new Set([...(stored('expanded') ?? []), ...ancestorsOf(state.path)])
       state.sparse = new SparseSelection(stored('sparse') ?? [])
-      if (state.sparse.size) post('api/docs/sparse', { paths: state.sparse.toArray() }).catch(() => {})
+      if (state.sparse.size) post('api/docs/sparse', { paths: state.sparse.toArray(), restored: true }).catch(() => {})
     }
     drawTree()
   } catch { }

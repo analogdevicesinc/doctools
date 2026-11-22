@@ -384,6 +384,17 @@ body {
 .picker-item.selected { color: var(--on-secondary-container); background: var(--secondary-container); }
 .picker-empty { padding: 14px 4px 6px; color: var(--outline); }
 
+/* A large documentation: the folders to build are chosen first */
+.large-docs { width: 360px; gap: 6px; padding: 14px 16px 12px; }
+.large-docs strong { font: 600 15px/20px var(--heading); }
+.large-docs p { margin: 0; color: var(--on-surface-variant); }
+.large-docs .link-actions { margin-top: 6px; }
+.large-docs .build-button { margin: 0; height: 32px; padding: 0 14px; }
+.large-docs .text-button { margin-left: auto; }
+/* The boxes of the folders, while they are to be chosen */
+body.choosing .tree-row .check { opacity: 1; border-color: var(--primary); }
+body.choosing #sparse-state { color: var(--primary); font-weight: 600; }
+
 /* A link: its text and its address, below it */
 .link-editor { width: 380px; gap: 8px; padding: 12px; }
 .link-editor label { display: grid; gap: 3px; font: 500 11px/16px var(--font); letter-spacing: 0.3px; color: var(--on-surface-variant); }

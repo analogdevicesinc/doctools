@@ -80,6 +80,11 @@ def first_file(node: dict) -> str | None:
     return None
 
 
+def count_files(node: dict) -> int:
+    """The files of a tree of list_tree."""
+    return len(node['files']) + sum(count_files(sub) for sub in node['dirs'])
+
+
 def conf_dir(file: Path) -> Path | None:
     """The folder of the conf.py of a file: the source folder of the docs"""
     for parent in file.parents:
@@ -288,7 +293,7 @@ def make_handler(first: Path, root: Path, docs: Docs, repo: Git | None = None):
                 paths = message.get('paths') if isinstance(message, dict) else None
                 if not isinstance(paths, list):
                     return self.reply(400, b'Bad request')
-                return self.reply_json(200, docs.set_sparse(paths))
+                return self.reply_json(200, docs.set_sparse(paths, restored=message.get('restored') is True))
             if path == '/api/git/commit':
                 if repo is None or not isinstance(message, dict):
                     return self.reply(400, b'Bad request')
@@ -361,6 +366,12 @@ def run(file: Path | None = None, port: int = 8300, open_browser: bool = True, s
     print(f'Editing {file}\n{url}', flush=True)
     if docs.problem:
         print(f'Documentation server not available: {docs.problem}', flush=True)
+    docs.pages = count_files(list_tree(root))
+    if docs.problem:
+        pass
+    elif serve and docs.hold():
+        print(f'Large documentation ({docs.pages} pages): not built at once, choose the folders to build in the '
+              'page, or build all of it from there', flush=True)
     elif serve:
         docs.start()
     if open_browser:

@@ -40,6 +40,10 @@ WARNING_NO_LINE = re.compile(r'^(.+?):\s*(WARNING|ERROR|CRITICAL|SEVERE):\s*(.+)
 # Time for the server to start watching the files, in seconds
 REREAD_DELAY = 2.0
 
+# A documentation of more pages is large: all of it takes long to build, the
+# folders to build are chosen first
+LARGE = 150
+
 # What the page may ask
 ALLOWED = {'role', 'target', 'title', 'completion', 'inventory'}
 
@@ -122,6 +126,10 @@ class Docs:
         self.build = 'off'
         self.url = None
         self.srcdir = None
+        # The pages of the documentation, and whether its build waits for the
+        # folders to build to be chosen: see hold
+        self.pages = 0
+        self.held = False
         self.revision = 0
         self.diagnostics: dict[str, list] = {}
         self._pending: dict[str, list] = {}
@@ -302,19 +310,43 @@ class Docs:
                 'page': page_path(self.srcdir, self.file) if self.url else None,
                 'srcdir': self.srcdir if self.url else None,
                 'sparse': self.sparse,
+                'pages': self.pages,
+                'large': self.large,
+                'held': self.held,
                 'revision': self.revision,
                 'diagnostics': self.diagnostics.get(os.path.realpath(self.file), []),
             }
 
-    def set_sparse(self, paths: list) -> dict:
-        """Build only these folders, relative to the workspace. All when empty."""
+    @property
+    def large(self) -> bool:
+        return self.pages > LARGE
+
+    def hold(self) -> bool:
+        """Whether the build that was asked for when the editor started waits:
+        a large documentation is not built whole without it being asked for.
+        It is built with the folders that the browser kept, see set_sparse,
+        or from the page."""
+        self.held = self.large and not self.sparse and not self.problem
+        return self.held
+
+    def set_sparse(self, paths: list, restored: bool = False) -> dict:
+        """Build only these folders, relative to the workspace. All when empty.
+        restored: they are the ones chosen before, that the browser kept."""
         paths = sorted({str(path).strip('/') for path in paths if isinstance(path, str) and path.strip('/')})
         with self._lock:
             changed = paths != self.sparse
             self.sparse = paths
             running = self.url is not None
+            # The folders that were chosen before, kept by the browser: the
+            # build that waited for them starts. The ones that are being
+            # chosen are built when it is asked for.
+            waited = self.held and restored and bool(paths)
+            if waited:
+                self.held = False
             if changed:
                 self.revision += 1
+        if waited and not running:
+            return self.start()
         if changed and running:
             return self.request({'server': 'update_sparse', 'sparse': paths or None}, timeout=60)
         return {'return': 'success'}
@@ -324,6 +356,7 @@ class Docs:
             return {'error': self.problem}
         if self.url:
             return {'return': 'already_running'}
+        self.held = False
         answer = self.request(
             {'server': 'start', 'sparse': self.sparse or None, 'port': free_port(self.port)}, timeout=60)
         if answer.get('return') == 'success':
