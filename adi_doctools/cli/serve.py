@@ -147,6 +147,8 @@ class Serve:
         for key, value in confoverrides.items():
             if isinstance(value, list):
                 override_args.extend(["-D", f"{key}={','.join(value)}"])
+            elif isinstance(value, bool):
+                override_args.extend(["-D", f"{key}={int(value)}"])
             else:
                 override_args.extend(["-D", f"{key}={value}"])
 
@@ -1137,7 +1139,7 @@ def compute_sparse_config(directory, sparse, verbose):
     # via "".split(','), not []. This causes config changed to be triggered
     # between subprocess and app.build() calls,
     confoverrides = {
-        'intersphinx_disabled_reftypes': [''], # Match any
+        'interref_sparse': True,
         'exclude_patterns': list(exclude_patterns),
         'suppress_warnings': suppress_warnings,
         'interref_repos': interref_repos,

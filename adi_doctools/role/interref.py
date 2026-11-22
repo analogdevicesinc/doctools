@@ -9,10 +9,17 @@ from functools import cache
 from os import environ, getenv, path
 from typing import Any
 
+from docutils import nodes
+from sphinx.addnodes import pending_xref
 from sphinx.application import Sphinx
+from sphinx.environment import BuildEnvironment
+from sphinx.ext.intersphinx import (
+    inventory_exists,
+    resolve_reference_in_inventory,
+)
 
 # For deprecation handling
-from sphinx.util import logging
+from sphinx.util import docname_join, logging
 from sphinx.util.osutil import SEP
 
 from ..lut import remote_doc, repos, source_internal_org
@@ -111,11 +118,38 @@ def interref_repos_assert(config):
                        " Is adi_doctools in the extension list?")
 
 
+def interref_sparse_resolve_xref(
+    app: Sphinx, env: BuildEnvironment, node: pending_xref,
+    contnode: nodes.TextElement
+) -> nodes.reference | None:
+    """
+    In sparse mode, resolve references missing due to the excluded docs.
+    Logically similar to intersphinx_disabled_reftypes: [''], but only
+    match to the current doc inventory.
+    """
+    if not app.config.interref_sparse or not app.config.repository:
+        return None
+
+    inv_name = app.config.repository
+    if not inventory_exists(env, inv_name):
+        return None
+
+    target = node['reftarget']
+    if node.get('refdomain') == 'std' and node['reftype'] == 'doc':
+        node['reftarget'] = docname_join(node.get('refdoc', env.docname), target)
+    res_inv = resolve_reference_in_inventory(env, inv_name, node, contnode)
+    node['reftarget'] = target
+    return res_inv
+
+
 def interref_setup(app: Sphinx) -> dict[str, Any]:
     app.add_config_value('interref_repos', [], 'env')
     app.add_config_value('interref_uri', None, 'env')
     app.add_config_value('interref_local', False, 'env')
     app.add_config_value('interref_private_repos', [], 'env')
+    app.add_config_value('interref_sparse', False, 'env', [bool])
+    app.connect('missing-reference', interref_sparse_resolve_xref,
+                priority=400)
 
     for c in ['interref_repos', 'interref_private_repos']:
         if not isinstance(getattr(app.config, c), list):
