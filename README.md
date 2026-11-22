@@ -216,7 +216,7 @@ a tree that is updated incrementally can differ from a fresh one.
 - `web/insert.js` holds the directives and the roles the toolbar adds, in
   their groups.
 - `web/tutorial.js` is the guide: its panels and their drawings.
-- `web/links.js` reads the links, of all their kinds, and writes them.
+- `web/links.js` reads the links, of all their kinds, and writes them; `web/subs.js` reads the substitutions.
 - `web/lsp.js` finds what to complete at the caret, `web/refs.js` orders and
   searches the references and writes their role.
 - `web/nav.js` shows the files and `web/sparse.js` holds the selection of the
@@ -243,6 +243,7 @@ a tree that is updated incrementally can differ from a fresh one.
 | A directive | Always in the order of the source, whatever it is in: its name and its argument, its options below them, then its content |
 | The options of a directive | One a line, below the name and the argument of the directive: the name, then the value; a flag has no value. `+ option`, in the corner of the directive, adds one: choose its name from the ones the directive takes, or type it, then `:`, `Tab` or `Enter` for its value, which is chosen too when it is one of a list (`:align:`). The `−` at its end removes it |
 | Paragraphs, `*emphasis*`, `**strong**`, ` ``literal`` ` | Text, the markup is hidden |
+| Substitutions | `\|name\|` in the text: its name, between its bars; `\|name\|_` is a link too. The pointer on one shows what takes its place, from `.. \|name\| replace:: text` in the file, or that nothing in the file says it. The definition is a line of the page: the name, and the text that takes its place, with its inline markup. *Role* in the toolbar lists the substitutions of the file, *Directive* has `replace` to define one. The other substitutions (an image, a date, a character) are shown as their source |
 | Bullet and enumerated lists | Lists, nested. `Tab` in an item puts it in the item before it, `Shift+Tab` takes it out, with the empty lines a nested list needs |
 | `note`, `warning`, `tip`, ..., `video` | A card, the content is edited as a document; `video` shows its address and its caption |
 | `tab-set` and `tab-item` | Tabs: a click on a title shows its tab, the title and the content are edited in place; `+` adds a tab, an emptied tab is removed with `Backspace` |

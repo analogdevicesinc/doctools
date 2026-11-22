@@ -275,6 +275,24 @@ export function setLink(model, a, b, text, target) {
     at.a + head.length + lead.length + written.length))
 }
 
+// A substitution at the caret: '|name|', parted from the letters around it
+export function addSubstitution(model, a, b, name) {
+  const { source } = model
+  const word = /[\p{L}\p{N}]/u
+  const lead = a > 0 && word.test(source[a - 1]) ? ' ' : ''
+  const trail = word.test(source[b] ?? '') ? ' ' : ''
+  const written = `|${name}|`
+  return guard(model, edit(a, b, lead + written + trail, a + lead.length + written.length))
+}
+
+// A new definition of a substitution, after the block of the caret: its
+// name is selected, to type it
+export function addDefinition(model, offset) {
+  const name = 'name'
+  const made = addBlock(model, offset, indent => ({ text: `${indent}.. |${name}| replace:: text`, caret: indent.length + 4 + name.length }))
+  return made && { ...made, anchor: made.caret - name.length }
+}
+
 // A role at the caret, around the text that is selected: the caret goes in
 // it, to write what it points to. A name that ends with '+' or '-' is the
 // start of a role, which is completed after it.
@@ -336,8 +354,9 @@ function insertTextRaw(model, a, b, text) {
   if (a === b) {
     const item = leafAt(model, a)
     const owner = item ? item.block : blockAt(model, a)
-    // The argument of a directive, and the value of an option, come after a space
-    if (item && item.s === item.e && owner.empty && (owner.kind === 'caption' || owner.kind === 'option'))
+    // The argument of a directive, the value of an option and the text of a
+    // substitution come after a space
+    if (item && item.s === item.e && owner.empty && ['caption', 'option', 'value'].includes(owner.kind))
       return edit(a, a, (source[a - 1] === ' ' ? '' : ' ') + text)
     // In a directive without a caption nor content: the text is its content
     if (!item && owner.kind === 'directive' && !hasContent(owner) && a <= owner.headEnd)
@@ -1011,8 +1030,8 @@ export function insertText(model, a, b, text) {
   // Right after a role, a letter or a digit would undo the role: what ends
   // inline markup is followed by a space or by punctuation. The space is
   // written with it.
-  if (a === b && /^[\p{L}\p{N}]/u.test(text) && model.source[a - 1] === '`' &&
-      model.leaves.some(l => l.kind === 'role' && !l.bare && l.oe === a))
+  if (a === b && /^[\p{L}\p{N}]/u.test(text) && /[`|_]/.test(model.source[a - 1] ?? '') &&
+      model.leaves.some(l => ((l.kind === 'role' && !l.bare) || l.kind === 'substitution') && l.oe === a))
     text = ` ${text}`
   // The colon that ends the name of an option goes to its value
   if (text === ':' && a === b && owner?.kind === 'option') {
@@ -1049,6 +1068,19 @@ export function deleteBackward(model, a, b, { repeat = false } = {}) {
   if (a === b && model.source[a - 1] === '`' && model.source[a] === '`' &&
       /(^|[\s([{<'"\-/])(:[\w+.-]+)+:`$/.test(model.source.slice(lineStart(model.source, a), a)))
     return guard(model, edit(a - 1, a + 1, '', a - 1))
+  // The last character of the name of a substitution: all of it goes, its
+  // bars would be left behind; its definition goes with its name
+  if (a === b) {
+    const item = leafAt(model, a)
+    if (item && a === item.e && item.e - item.s === 1) {
+      if (item.kind === 'substitution') return guard(model, edit(item.os, item.oe, ''))
+      if (item.kind === 'name' && item.block.kind === 'substitution') {
+        const start = lineStart(model.source, item.block.s)
+        const end = Math.min(lineEnd(model.source, item.block.e) + 1, model.source.length)
+        return edit(start, end, '', start)
+      }
+    }
+  }
   if (a === b) {
     const item = leafAt(model, a)
     const directive = ancestor(item?.block ?? blockAt(model, a), 'directive')
@@ -1093,7 +1125,7 @@ export function deleteForward(model, a, b) {
 }
 
 // Blocks that hold one line: a caption, an option, a label
-const ONE_LINE = new Set(['caption', 'option', 'target'])
+const ONE_LINE = new Set(['caption', 'option', 'target', 'substitution', 'value'])
 
 export function insertParagraph(model, a, b) {
   const owner = leafAt(model, a)?.block

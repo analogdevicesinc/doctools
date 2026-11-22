@@ -68,6 +68,12 @@ export function linkOf(model, leaf) {
   return { ...base, kind: 'anonymous', text, anonymous: true, ...pick(targets.anonymous[order.indexOf(leaf)]) }
 }
 
+// The address of a name of the document, as '|name|_' links to: { target, at }
+export function namedTarget(model, name) {
+  const targets = model.linkTargets ??= targetsOf(model.source)
+  return pick(targets.named.get(nameOf(name)))
+}
+
 const pick = found => found ? { target: found.target, at: found.at } : {}
 const isAnonymousReference = written => !EMBEDDED.test(written) && /__$/.test(written) && !isAddress(written)
 

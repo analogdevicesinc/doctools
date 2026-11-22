@@ -107,7 +107,8 @@ export function setCodeHost(make) {
 
 const TAGS = {
   document: 'div', paragraph: 'p', item: 'li', directive: 'div', quote: 'blockquote', raw: 'pre',
-  table: 'table', row: 'tr', line: 'div', caption: 'div', target: 'span', options: 'div', option: 'div'
+  table: 'table', row: 'tr', line: 'div', caption: 'div', target: 'span', options: 'div', option: 'div',
+  substitution: 'div', value: 'div'
 }
 
 const UNBOXED = new Set(['table', 'list-table', 'tab-set', 'tab-item', 'rubric'])
@@ -141,6 +142,7 @@ function renderLeaf(model, leaf) {
     el.className = `leaf k-${leaf.kind}`
     if (leaf.bare) el.classList.add('bare')
     if (leaf.role) el.dataset.role = leaf.role
+    if (leaf.linked) el.classList.add('linked')
     el.textContent = model.source.slice(leaf.s, leaf.e)
     // An empty text still has to hold the caret: a zero-width space
     if (leaf.s === leaf.e) {
@@ -184,7 +186,7 @@ function signature(model, block, attached) {
     const { source } = model
     // Its text, which can go past the block: the spaces of an empty argument
     const leaves = (block.inlines ?? [])
-      .map(l => `${l.kind}${l.role ?? ''}${l.bare ? 1 : 0}${l.newline ? 1 : 0}:${source.slice(l.s, l.e)}`).join('\u0001')
+      .map(l => `${l.kind}${l.role ?? ''}${l.bare ? 1 : 0}${l.newline ? 1 : 0}${l.linked ? 1 : 0}:${source.slice(l.s, l.e)}`).join('\u0001')
     block.sig = [block.kind, block.type, block.name ?? '', block.level ?? '', block.hint ?? '',
       FLAGS.map(flag => block[flag] ? 1 : 0).join('')].join('|') + '|' + source.slice(block.s, block.e) + '\u0002' + leaves
   }

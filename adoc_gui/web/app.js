@@ -2,7 +2,7 @@ import { Parser, Language } from './vendor/web-tree-sitter.js'
 import { buildModel, leafAt, blockAt } from './model.js'
 import {
   applyEdit, insertText, deleteBackward, deleteForward, insertParagraph, toggleInline, tableStep, openContent, intoContent, addOption, addLabel, removeSide, addTab, shiftItem, removeDirective, leaveDirective, headingAt, setHeading, addDirective, addRole, addTable,
-  linkAt, setLink
+  linkAt, setLink, addSubstitution, addDefinition
 } from './ops.js'
 import {
   render, getSelection, setSelection, markActive, showDiagnostics, selectTab as showTab, setCodeHost, offsetOf, pointOf,
@@ -16,7 +16,8 @@ import {
 } from './refs.js'
 import { pickerGroups, templateOf, ABOUT, exampleOf } from './insert.js'
 import { tutorial } from './tutorial.js'
-import { linkOf, linkAddress, isAddress } from './links.js'
+import { linkOf, linkAddress, isAddress, namedTarget } from './links.js'
+import { substitutionOf, substitutionNames } from './subs.js'
 import { optionChoices, optionSpec, FLAG } from './directives.js'
 import { SparseSelection } from './sparse.js'
 import { ContextMenu } from './contextmenu.js'
@@ -354,7 +355,7 @@ function renderPicker(first = false) {
     })
     search.focus()
   }
-  const groups = pickerGroups(pickerKind, pickerMore, search.value)
+  const groups = pickerGroups(pickerKind, pickerMore, search.value, substitutionNames(state.source))
   const count = groups.reduce((n, group) => n + group.items.length, 0)
   pickerIndex = Math.max(Math.min(pickerIndex, count - 1), 0)
   let index = 0
@@ -381,12 +382,15 @@ function pick(name) {
   const kind = pickerKind
   hidePicker()
   const { a, b } = selection()
-  const edit = kind === 'role' ? addRole(state.model, a, b, name)
-    : addDirective(state.model, state.caret.focus, name, templateOf(name))
+  // '|name|': a substitution of the document; replace: a new one
+  const edit = /^\|.+\|$/.test(name) ? addSubstitution(state.model, a, b, name.slice(1, -1))
+    : kind === 'role' ? addRole(state.model, a, b, name)
+      : name === 'replace' ? addDefinition(state.model, state.caret.focus)
+        : addDirective(state.model, state.caret.focus, name, templateOf(name))
   if (!edit) return setFileState(kind === 'role' ? 'Select text in one line, or none, to add a role' : 'Put the caret in the page to add a directive')
   commit(edit)
   // What the role points to is completed
-  if (kind === 'role') suggest()
+  if (kind === 'role' && !name.startsWith('|')) suggest()
 }
 
 picker.addEventListener('input', ev => {
@@ -2285,6 +2289,59 @@ view.addEventListener('click', ev => {
   window.open(open, '_blank', 'noopener')
 })
 
+// Hover: what a substitution is replaced by, and where it leads when it is
+// a link too
+let substitutionTimer
+const substitutionLink = el => el.classList.contains('linked')
+  ? namedTarget(state.model, el.textContent) : {}
+view.addEventListener('mouseover', ev => {
+  const el = ev.target.closest?.('.k-substitution')
+  clearTimeout(substitutionTimer)
+  if (!el && cardOf?.classList?.contains('k-substitution')) hideCard()
+  if (!el) return
+  substitutionTimer = setTimeout(() => {
+    if (!el.isConnected || !el.matches(':hover')) return
+    const name = el.textContent
+    const found = substitutionOf(state.source, name)
+    const link = substitutionLink(el)
+    const place = () => {
+      const rect = el.getBoundingClientRect()
+      const below = rect.bottom + 6 + card.offsetHeight <= window.innerHeight - 8
+      card.style.top = `${below ? rect.bottom + 6 : Math.max(rect.top - 6 - card.offsetHeight, 8)}px`
+      card.style.left = `${Math.max(Math.min(rect.left, window.innerWidth - card.offsetWidth - 8), 0)}px`
+    }
+    if (!found) {
+      return showCard(el, {
+        kind: 'error', title: `|${name}|`,
+        text: 'Not defined in this file. It can be in the configuration of the documentation, else it needs a line “.. |name| replace:: text”.'
+      }, undefined, place)
+    }
+    const notes = []
+    if (found.at !== undefined) notes.push(`line ${lineOf(found.at)}`)
+    if (found.kind === 'sphinx') notes.push('given by Sphinx')
+    if (el.classList.contains('linked')) notes.push(link.target ? (linkAddress(link.target) ? 'Ctrl+click to open' : 'a link') : 'a link, with no address in this file')
+    showCard(el, {
+      title: `|${name}|`,
+      text: found.kind === 'replace' || found.kind === 'sphinx' ? found.text : `${found.kind}: ${found.text}`,
+      target: link.target,
+      note: notes.join('  ·  ')
+    }, undefined, place)
+  }, 350)
+})
+view.addEventListener('mouseout', ev => {
+  const el = ev.target.closest?.('.k-substitution')
+  if (!el) return
+  clearTimeout(substitutionTimer)
+  if (cardOf === el) hideCard()
+})
+view.addEventListener('click', ev => {
+  const el = (ev.ctrlKey || ev.metaKey) && ev.target.closest?.('.k-substitution.linked')
+  const open = el && linkAddress(substitutionLink(el).target)
+  if (!open) return
+  ev.preventDefault()
+  window.open(open, '_blank', 'noopener')
+})
+
 // Hover: a mistake of the prose, what it is and what corrects it. The
 // underlines are not elements: the mistake is the one whose text is under
 // the pointer, once the pointer rests.
@@ -2294,7 +2351,7 @@ const mistakeAt = (x, y) => mistakes.find(({ dom }) =>
 view.addEventListener('mousemove', ev => {
   clearTimeout(mistakeTimer)
   const shown = mistakes.includes(cardOf) ? cardOf : undefined
-  if (ev.buttons || ev.target.closest?.('.k-role, .cm-editor')) return shown && hideCard()
+  if (ev.buttons || ev.target.closest?.('.k-role, .k-link, .k-substitution, .cm-editor')) return shown && hideCard()
   const found = mistakeAt(ev.clientX, ev.clientY)
   if (found === shown) return
   if (shown) hideCard()

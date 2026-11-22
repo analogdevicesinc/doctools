@@ -1095,6 +1095,34 @@ td > p.block, th > p.block, td > .placeholder, th > .placeholder { margin: 0; }
 }
 .k-markup { color: var(--on-surface-variant); }
 
+/* A substitution: its name between its bars, which are not text; a link
+   when it is one */
+.k-substitution {
+  padding: 1px 2px;
+  border-radius: var(--radius-small);
+  color: var(--on-secondary-container);
+  background: color-mix(in srgb, var(--secondary-container) 70%, transparent);
+}
+.k-substitution::before, .k-substitution::after { content: '|'; margin: 0 2px; opacity: 0.45; user-select: none; }
+.k-substitution.linked { text-decoration: underline; text-underline-offset: 2px; color: var(--primary); }
+
+/* Its definition: the name, and the text that takes its place */
+.b-substitution { display: flex; align-items: baseline; gap: 8px; margin: 0 0 6px; font-size: 15px; }
+.b-substitution > .k-name {
+  flex: none;
+  padding: 0 4px;
+  border-radius: 6px;
+  font: 12px/20px var(--mono);
+  color: var(--on-surface-variant);
+  background: var(--surface-container-high);
+  opacity: 1;
+}
+.b-substitution > .k-name::before, .b-substitution > .k-name::after { content: '|'; margin: 0 3px; opacity: 0.5; }
+.b-substitution > .b-value { flex: 1; min-width: 0; color: var(--on-surface-variant); }
+.b-substitution > .b-value::before { content: '→'; margin-right: 8px; color: var(--outline); }
+.b-value.empty::after { content: 'text'; font-style: italic; color: var(--outline); pointer-events: none; }
+.b-substitution + p.block, .b-substitution + h2.block { margin-top: 12px; }
+
 .k-link { color: var(--primary); text-decoration: underline; text-underline-offset: 2px; }
 
 /* A role: a chip with the name of the role */

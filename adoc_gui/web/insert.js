@@ -85,15 +85,25 @@ function about(name) {
 // known in a last group: [{ title, items: [{ name, detail }] }].
 // kind: 'directive' or 'role'; more: the names the backend gives; query: what
 // is searched, in the names and in what they are
-export function pickerGroups(kind, more = [], query = '') {
+// substitutions: the ones of the document, [{ name, detail }], listed with
+// the roles: they are inline too
+export function pickerGroups(kind, more = [], query = '', substitutions = []) {
   const groups = kind === 'directive'
     ? DIRECTIVE_GROUPS.map(([title, names]) => ({ title, items: names.map(name => ({ name, detail: about(name) })) }))
     : ROLE_GROUPS.map(([title, roles]) => ({ title, items: roles.map(([name, detail]) => ({ name, detail })) }))
+  if (kind === 'directive') {
+    groups.find(group => group.title === 'Structure').items.push({ name: 'replace', detail: 'a substitution: |name| is replaced by a text' })
+  } else if (substitutions.length) {
+    groups.push({
+      title: 'Substitutions',
+      items: substitutions.map(({ name, detail }) => ({ name: `|${name}|`, detail, substitution: name }))
+    })
+  }
   const known = new Set(groups.flatMap(group => group.items.map(item => item.name)))
   // A role that is the start of others is listed by its start
   const starts = [...known].filter(name => name.endsWith('+') || name.endsWith('-'))
   const others = [...new Set(more.map(String))]
-    .filter(name => !known.has(name) && !starts.some(start => name.startsWith(start)) && !/^git-|^downgit-/.test(name))
+    .filter(name => name !== 'replace' && !known.has(name) && !starts.some(start => name.startsWith(start)) && !/^git-|^downgit-/.test(name))
     .sort((x, y) => x.localeCompare(y))
   if (others.length) groups.push({ title: 'Others of the project', items: others.map(name => ({ name, detail: '' })) })
 

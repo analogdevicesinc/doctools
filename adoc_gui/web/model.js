@@ -110,6 +110,12 @@ export function buildModel(parser, tree, source) {
       return leaf(owner, 'link', s, e, s, e, { bare: true })
     }
 
+    // '|name|', a link too with '|name|_': its name, between the bars
+    if (node.type === 'substitution_reference') {
+      const named = /^\|([^|\n]+)\|(__?)?$/.exec(text)
+      if (named) return leaf(owner, 'substitution', s + 1, s + 1 + named[1].length, s, e, { linked: Boolean(named[2]) })
+    }
+
     if (node.type === 'standalone_hyperlink')
       return leaf(owner, 'link', s, e)
     return leaf(owner, 'markup', s, e)
@@ -402,6 +408,29 @@ export function buildModel(parser, tree, source) {
     return b
   }
 
+  // '.. |name| replace:: text': the name, and the text that takes its place,
+  // with its inline markup. The other substitutions (an image, a date, a
+  // character) are shown as they are written.
+  const substitution = (node, parent) => {
+    const name = node.children.find(c => c.type === 'substitution')
+    const inner = node.children.find(c => c.type === 'directive')
+    const type = inner?.children.find(c => c.type === 'type')
+    const colons = inner?.children.find(c => c.type === '::')
+    const parts = inner?.children.find(c => c.type === 'body')?.children ?? []
+    const args = parts.find(c => c.type === 'arguments')
+    if (!name || !type || !colons || source.slice(type.startIndex, type.endIndex) !== 'replace' ||
+        parts.some(c => c !== args && c.endIndex > c.startIndex) ||
+        (args && source.slice(args.startIndex, args.endIndex).includes('\n')) || name.endIndex - name.startIndex < 3)
+      return raw(node, parent)
+    const b = block('substitution', node, parent, { name: source.slice(name.startIndex + 1, name.endIndex - 1) })
+    b.inlines = [leaf(b, 'name', name.startIndex + 1, name.endIndex - 1, node.startIndex, colons.endIndex)]
+    const value = textLine('value', args ? { s: args.startIndex, e: args.endIndex } : { s: colons.endIndex, e: colons.endIndex }, b)
+    if (!args) value.empty = true
+    b.children = [value]
+    b.e = Math.max(b.e, value.e)
+    return b
+  }
+
   // '.. _label:', the label is shown
   const target = (node, parent) => {
     const name = node.children.find(c => c.type === 'name')
@@ -434,6 +463,7 @@ export function buildModel(parser, tree, source) {
       case 'enumerated_list': return [list(node, parent)]
       case 'directive': return [directive(node, parent)]
       case 'target': return [target(node, parent)]
+      case 'substitution_definition': return [substitution(node, parent)]
       // From the start of its line: the first line keeps its indentation
       case 'literal_block':
         return [code(node, parent)]

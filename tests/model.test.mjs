@@ -44,7 +44,7 @@ test('roles and links show their title, or their target', () => {
   const model = assertCovered(source)
   assert.deepEqual(texts(model), [
     'text:', 'role:page', 'text: ', 'role:text', 'text: ', 'role:plain', 'text: ', 'link:name', 'text: ',
-    'link:two words', 'text: ', 'link:anon', 'text: ', 'link:http://y.z', 'text: ', 'markup:|sub|'
+    'link:two words', 'text: ', 'link:anon', 'text: ', 'link:http://y.z', 'text: ', 'substitution:sub', 'text:'
   ])
   assert.deepEqual(model.leaves.filter(l => l.kind === 'role').map(l => l.role), ['doc', 'sup', ''])
   assertCovered(':ref:`` and `` and `x <y>` and :a:`b <c`\n')
