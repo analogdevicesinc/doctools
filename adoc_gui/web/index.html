@@ -26,6 +26,9 @@
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
       <span id="docs-label">Build</span>
     </button>
+    <button class="icon-button" id="toggle-center" type="button" title="Edit the source in the middle (F4)" aria-pressed="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.99 11 3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"/></svg>
+    </button>
     <button class="icon-button" id="open-tutorial" type="button" title="The guide: what the editor does">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 4.9 1 6v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1zm0 13.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5V8c1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5v11.5z"/></svg>
     </button>
@@ -112,6 +115,7 @@
     <div class="canvas">
       <article id="view" class="page" contenteditable="true" spellcheck="false"></article>
     </div>
+    <div class="center-source" id="center-source" hidden></div>
     <div class="side right">
       <div class="open-panel open-tabs" id="open-source" role="toolbar" aria-label="Show the side pane"></div>
       <aside class="sheet panel" id="source-pane" aria-label="Side pane">

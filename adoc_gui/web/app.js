@@ -154,7 +154,11 @@ function paint(caret) {
 
 function renderView(withCaret) {
   paint(withCaret ? state.caret.focus : undefined)
-  if (withCaret && !focusCode(state.caret.anchor, state.caret.focus)) {
+  if (withCaret && centred) {
+    // The source is the one that is written in
+    source.select(state.caret.anchor, state.caret.focus)
+    source.view.focus()
+  } else if (withCaret && !focusCode(state.caret.anchor, state.caret.focus)) {
     view.focus()
     setSelection(view, state.caret.anchor, state.caret.focus)
   }
@@ -696,6 +700,16 @@ openTabs.addEventListener('click', ev => {
 function renderOpenTabs() {
   for (const button of openTabs.children)
     button.hidden = document.querySelector(`.tab[data-tab=${button.dataset.openTab}]`).hidden
+  // The source is in the middle, and a tab came for the side pane, which had
+  // none to show
+  if (!centred || state.tab !== 'source') return
+  const other = ['preview', 'references', 'changes'].find(name => !document.querySelector(`.tab[data-tab=${name}]`).hidden)
+  if (!other) return
+  selectTab(other, false)
+  if (paneHidden) {
+    paneHidden = false
+    showSidePane(true)
+  }
 }
 // The tabs come and go: with the documentation server, with git
 new MutationObserver(renderOpenTabs).observe(document.querySelector('.tabs'), { attributes: true, attributeFilter: ['hidden'], subtree: true })
@@ -726,6 +740,57 @@ function firstVisit() {
     if (localStorage.getItem('doctools.tutorial') !== 'viewed') guide.open()
   } catch { }
 }
+
+// The source in the middle, in place of the page: the code editor is the one
+// that is written in, with the caret where it was in the page, and back. The
+// side pane keeps its other tabs.
+let centred = false
+let paneHidden = false
+const centerButton = document.getElementById('toggle-center')
+const centerSource = document.getElementById('center-source')
+const sourcePanel = document.getElementById('source')
+const sourceHome = { parent: sourcePanel.parentElement, next: sourcePanel.nextElementSibling }
+function setCentre(inSource, withCaret = true) {
+  centred = inSource
+  try {
+    localStorage.setItem('doctools.center', inSource ? 'source' : 'page')
+  } catch { }
+  document.body.classList.toggle('source-center', inSource)
+  centerButton.setAttribute('aria-pressed', String(inSource))
+  centerButton.title = inSource ? 'Edit the page in the middle (F4)' : 'Edit the source in the middle (F4)'
+  if (inSource) centerSource.append(sourcePanel)
+  else sourceHome.parent.insertBefore(sourcePanel, sourceHome.next)
+  centerSource.hidden = !inSource
+  // Its tab is not one of the side pane meanwhile: another one is shown
+  const tabOf = name => document.querySelector(`.tab[data-tab=${name}]`)
+  tabOf('source').hidden = inSource
+  const other = ['preview', 'references', 'changes'].find(name => !tabOf(name).hidden)
+  if (inSource && state.tab === 'source') {
+    if (other) {
+      selectTab(other, false)
+    } else {
+      // Nothing else to show in the side pane: it is hidden, until the page is back
+      paneHidden = !document.body.classList.contains('no-source')
+      showSidePane(false)
+    }
+  } else if (!inSource && paneHidden) {
+    paneHidden = false
+    showSidePane(true)
+    selectTab('source', false)
+  } else {
+    selectTab(state.tab, false)
+  }
+  source.view.requestMeasure()
+  if (!withCaret) return
+  if (inSource) {
+    const { anchor, focus } = state.caret
+    source.select(anchor, focus)
+    source.view.focus()
+  } else {
+    renderView(true)
+  }
+}
+centerButton.addEventListener('click', () => setCentre(!centred))
 
 // The structure can be shown or hidden
 function toggle(button, name, shown) {
@@ -928,7 +993,7 @@ function renderBackdrop() {
 // follow: move the caret of the code to the one of the view
 function renderCode(follow) {
   source.setText(state.source)
-  if (follow && !source.view.hasFocus && state.tab === 'source') {
+  if (follow && !source.view.hasFocus && (centred || state.tab === 'source')) {
     const { anchor, focus } = state.caret
     source.select(anchor, focus)
   }
@@ -2823,6 +2888,10 @@ tree.addEventListener('contextmenu', ev => {
 // open file
 document.addEventListener('keydown', ev => {
   if (context.open && !view.contains(ev.target)) return void context.key(ev)
+  if (ev.key === 'F4' && !ev.ctrlKey && !ev.altKey && !ev.metaKey) {
+    ev.preventDefault()
+    return setCentre(!centred)
+  }
   if (ev.key === 'F2' && !ev.target.closest?.('input, textarea, select')) {
     ev.preventDefault()
     renameFile(state.path)
@@ -2976,7 +3045,8 @@ let followUntil = 0
 
 function syncPreview() {
   if (state.tab !== 'preview' || !previewReady || performance.now() < followUntil) return
-  toFrame({ type: 'scroll', line: canvas.scrollTop <= 0 ? 1 : topLine(), lines: state.model.lineStarts.length })
+  const line = centred ? (source.view.scrollDOM.scrollTop <= 0 ? 1 : sourceTopLine()) : canvas.scrollTop <= 0 ? 1 : topLine()
+  toFrame({ type: 'scroll', line, lines: state.model.lineStarts.length })
 }
 
 frame.addEventListener('load', () => toFrame({ type: 'host' }))
@@ -3004,7 +3074,8 @@ window.addEventListener('message', ev => {
       }
     }
   } else if (message.type === 'scroll' && typeof message.line === 'number' && message.path === page) {
-    scrollToLine(message.line)
+    if (centred) scrollSourceTo(message.line)
+    else scrollToLine(message.line)
   }
 })
 
@@ -3063,7 +3134,18 @@ function scrollToLine(line) {
 // that is scrolled is brought to the top of the other. What is scrolled
 // here does not send the other back.
 let sourceUntil = 0
-const sourceShown = () => state.tab === 'source' && source.view.dom.offsetParent !== null
+const sourceShown = () => (centred || state.tab === 'source') && source.view.dom.offsetParent !== null
+
+// Bring a line of the source, with how far in it, to the top of the source
+function scrollSourceTo(line) {
+  const editor = source.view
+  const number = Math.min(Math.max(Math.floor(line), 1), editor.state.doc.lines)
+  const block = editor.lineBlockAt(editor.state.doc.line(number).from)
+  const top = Math.round(block.top + (line - number) * block.height)
+  if (Math.abs(editor.scrollDOM.scrollTop - top) < 1) return
+  sourceUntil = performance.now() + 300
+  editor.scrollDOM.scrollTop = top
+}
 
 // The line of the source at the top of the source pane, with how far in it
 function sourceTopLine() {
@@ -3075,15 +3157,8 @@ function sourceTopLine() {
 }
 
 function syncSource() {
-  if (!sourceShown() || performance.now() < followUntil) return
-  const editor = source.view
-  const line = canvas.scrollTop <= 0 ? 1 : topLine()
-  const number = Math.min(Math.max(Math.floor(line), 1), editor.state.doc.lines)
-  const block = editor.lineBlockAt(editor.state.doc.line(number).from)
-  const top = Math.round(block.top + (line - number) * block.height)
-  if (Math.abs(editor.scrollDOM.scrollTop - top) < 1) return
-  sourceUntil = performance.now() + 300
-  editor.scrollDOM.scrollTop = top
+  if (centred || !sourceShown() || performance.now() < followUntil) return
+  scrollSourceTo(canvas.scrollTop <= 0 ? 1 : topLine())
 }
 
 let sourceFrame = 0
@@ -3092,6 +3167,8 @@ source.view.scrollDOM.addEventListener('scroll', () => {
   sourceFrame = requestAnimationFrame(() => {
     sourceFrame = 0
     if (performance.now() < sourceUntil) return
+    // In the middle: the live view follows it, the page is not shown
+    if (centred) return syncPreview()
     // The top of the source is the top of the page
     if (source.view.scrollDOM.scrollTop <= 0) {
       followUntil = performance.now() + 400
@@ -3120,7 +3197,7 @@ function selectTab(name, remember = true) {
   renderMore()
   for (const tab of document.querySelectorAll('.tab'))
     tab.setAttribute('aria-selected', String(tab.dataset.tab === name))
-  document.getElementById('source').hidden = name !== 'source'
+  document.getElementById('source').hidden = !centred && name !== 'source'
   document.getElementById('preview').hidden = name !== 'preview'
   document.getElementById('changes').hidden = name !== 'changes'
   document.getElementById('references').hidden = name !== 'references'
@@ -3444,6 +3521,9 @@ async function main() {
   setSource('')
   show(await response.json())
   selectTab('source', false)
+  try {
+    if (localStorage.getItem('doctools.center') === 'source') setCentre(true, false)
+  } catch { }
   firstVisit()
   await loadTree()
   setTimeout(poll, POLL_MS)

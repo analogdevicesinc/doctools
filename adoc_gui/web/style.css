@@ -477,6 +477,23 @@ main { flex: 1; display: flex; min-height: 0; margin-top: calc(-1 * var(--bar));
   mask-image: linear-gradient(to bottom, transparent calc(var(--bar) - 12px), #000 calc(var(--bar) + 16px));
 }
 
+/* The source in the middle, in place of the page: see setCentre */
+.center-source {
+  position: relative;
+  z-index: 2;
+  flex: 0 1 var(--page);
+  min-width: 0;
+  display: flex;
+  margin: calc(var(--bar) + 16px) 4px 16px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.center-source[hidden] { display: none; }
+.center-source > #source { flex: 1; min-width: 0; padding-top: 4px; }
+body.source-center main > .canvas { display: none; }
+
 /* The part at a side of the page, with its panel */
 .side {
   position: relative;
@@ -1327,7 +1344,13 @@ body.inspect .page .soft { background: var(--surface-container-highest); }
   body:not([data-screen='editor']) .toolbar { display: none; }
   body:not([data-screen='editor']) main { margin-top: 0; }
 
-  main > .side, main > .canvas { display: none; }
+  main > .side, main > .canvas, main > .center-source { display: none; }
+  body[data-screen='editor'].source-center main > .center-source {
+    display: flex;
+    flex: 1 1 auto;
+    margin: calc(var(--bar) + 12px) 8px 0;
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
   body[data-screen='editor'] main > .canvas {
     --bleed: 0px;
     display: block;
