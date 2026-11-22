@@ -78,8 +78,9 @@ Shift and the right click opens the menu of the browser.
 
 The spelling and grammar mistakes of the prose are underlined, red and blue,
 from LanguageTool. The selector at the right of the toolbar picks where it
-runs: *Local* (`pip install language_tool_python`, needs Java; the first
-check starts it and takes a few seconds), *Cloud* (the public service of
+runs: *Local* (LanguageTool on this machine, needs Java; choosing it offers
+to install it when it is not, `pip install language_tool_python`, which takes
+about 2 minutes; the first check starts it and takes a few seconds), *Cloud* (the public service of
 LanguageTool: the text is sent to languagetool.org, 20 checks a minute) or
 *Off*. The pointer on one shows what it is and what corrects it, in a card;
 the right click on one shows its

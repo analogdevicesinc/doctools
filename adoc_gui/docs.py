@@ -44,6 +44,9 @@ REREAD_DELAY = 2.0
 # folders to build are chosen first
 LARGE = 150
 
+# The package of LanguageTool, for the check of the grammar on this machine
+GRAMMAR_PACKAGE = 'language_tool_python'
+
 # What the page may ask
 ALLOWED = {'role', 'target', 'title', 'completion', 'inventory'}
 
@@ -421,6 +424,33 @@ class Docs:
             return {'error': 'not allowed'}
         return self.request({'languageTool': 'check', 'text': text, 'mode': 'api' if mode == 'cloud' else 'local',
                              'language': 'en-US'}, timeout=120)
+
+    def install_grammar(self, start: bool = False, run=subprocess.run) -> dict:
+        """Install LanguageTool for the check on this machine, with pip, in
+        the environment of adoc-gui: { state, message }, state: 'idle',
+        'installing', 'done' or 'failed'. start: install it now, else only
+        say how far it is. The backend finds it at its next check."""
+        with self._lock:
+            state = getattr(self, '_install', {'state': 'idle', 'message': ''})
+            if not start or state['state'] == 'installing':
+                return dict(state)
+            self._install = {'state': 'installing', 'message': ''}
+
+        def install():
+            try:
+                done = run([sys.executable, '-m', 'pip', 'install', '--disable-pip-version-check', GRAMMAR_PACKAGE],
+                           capture_output=True, text=True, timeout=900)
+                lines = [line for line in (done.stderr or done.stdout or '').strip().splitlines() if line.strip()]
+                result = ({'state': 'done', 'message': ''} if done.returncode == 0
+                          else {'state': 'failed', 'message': ANSI.sub('', lines[-1]) if lines else 'pip failed'})
+            except (OSError, subprocess.SubprocessError) as err:
+                result = {'state': 'failed', 'message': str(err) or type(err).__name__}
+            with self._lock:
+                self._install = result
+            self.log(f"LanguageTool: {'installed' if result['state'] == 'done' else result['message']}")
+
+        threading.Thread(target=install, daemon=True).start()
+        return {'state': 'installing', 'message': ''}
 
     def close(self, wait: float = 5):
         """Stop the backend, and the programs it started (the build, LanguageTool)."""

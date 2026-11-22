@@ -57,3 +57,45 @@ class LargeDocs(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class InstallGrammar(unittest.TestCase):
+    def docs(self):
+        folder = tempfile.TemporaryDirectory()
+        self.addCleanup(folder.cleanup)
+        return Docs(Path(folder.name) / 'index.rst', log=lambda line: None)
+
+    def wait(self, docs):
+        import time
+        for _ in range(200):
+            state = docs.install_grammar()
+            if state['state'] != 'installing':
+                return state
+            time.sleep(0.01)
+        return state
+
+    def test_it_is_installed_with_pip_in_this_environment(self):
+        from types import SimpleNamespace
+        calls = []
+
+        def run(command, **options):
+            calls.append(command)
+            return SimpleNamespace(returncode=0, stdout='Successfully installed', stderr='')
+        docs = self.docs()
+        self.assertEqual(docs.install_grammar()['state'], 'idle')
+        self.assertEqual(docs.install_grammar(start=True, run=run)['state'], 'installing')
+        self.assertEqual(self.wait(docs), {'state': 'done', 'message': ''})
+        self.assertEqual(calls[0][:4], [sys.executable, '-m', 'pip', 'install'])
+        self.assertEqual(calls[0][-1], 'language_tool_python')
+
+    def test_what_pip_says_when_it_fails(self):
+        from types import SimpleNamespace
+        docs = self.docs()
+        docs.install_grammar(start=True, run=lambda command, **options: SimpleNamespace(
+            returncode=1, stdout='', stderr='line one\nerror: externally-managed-environment\n'))
+        self.assertEqual(self.wait(docs), {'state': 'failed', 'message': 'error: externally-managed-environment'})
+
+        def missing(command, **options):
+            raise OSError('no pip')
+        docs.install_grammar(start=True, run=missing)
+        self.assertEqual(self.wait(docs), {'state': 'failed', 'message': 'no pip'})

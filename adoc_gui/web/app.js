@@ -2009,7 +2009,68 @@ function setGrammarMode(mode) {
   } catch { }
   showMistakes()
 }
-grammarSelect.addEventListener('change', () => setGrammarMode(grammarSelect.value))
+grammarSelect.addEventListener('change', () => {
+  setGrammarMode(grammarSelect.value)
+  hideInstall()
+  // On this machine: LanguageTool is installed when it is not, once it is
+  // agreed to
+  if (grammarSelect.value === 'local') offerInstall()
+})
+
+// LanguageTool is not installed for the check on this machine: it can be,
+// which takes a while, and is asked first
+const grammarInstall = document.getElementById('grammar-install')
+let installTimer
+function hideInstall() {
+  clearTimeout(installTimer)
+  grammarInstall.hidden = true
+}
+function showInstall(title, text, buttons = []) {
+  const actions = element('div', 'link-actions')
+  for (const [label, className, run] of buttons) {
+    const button = element('button', className, label)
+    button.type = 'button'
+    button.addEventListener('click', run)
+    actions.append(button)
+  }
+  grammarInstall.replaceChildren(element('strong', '', title), element('p', '', text), ...(buttons.length ? [actions] : []))
+  grammarInstall.hidden = false
+  const rect = grammarSelect.parentElement.getBoundingClientRect()
+  grammarInstall.style.top = `${rect.bottom + 8}px`
+  grammarInstall.style.left = `${Math.max(Math.min(rect.left, window.innerWidth - grammarInstall.offsetWidth - 8), 8)}px`
+  actions.querySelector('button')?.focus()
+}
+const installState = start => fetch('api/grammar/install', {
+  method: 'POST', headers: { 'X-Doctools': '1' }, body: start ? '{"install":true}' : ''
+}).then(r => r.json()).catch(() => ({ state: 'failed', message: 'adoc-gui is not running' }))
+
+async function offerInstall() {
+  const run = grammarRun
+  const probe = await post('api/grammar', { text: 'Check.', mode: 'local' }).catch(() => ({}))
+  if (run !== grammarRun || probe.error !== 'not_installed') return
+  showInstall('Install LanguageTool?',
+    'The check on this machine needs LanguageTool, which is not installed. Installing it takes about 2 minutes; it needs Java to run.', [
+      ['Install', 'build-button', () => followInstall(true)],
+      ['Not now', 'text-button plain', hideInstall]
+    ])
+}
+async function followInstall(start) {
+  const answer = await installState(start)
+  if (answer.state === 'installing') {
+    showInstall('Installing LanguageTool...', 'It takes about 2 minutes. You can go on writing meanwhile.')
+    installTimer = setTimeout(() => followInstall(false), 2000)
+  } else if (answer.state === 'done') {
+    hideInstall()
+    // Checked again, with it: its first check starts it
+    if (grammarMode === 'local') setGrammarMode('local')
+  } else {
+    showInstall('LanguageTool was not installed', answer.message || 'pip did not say why.',
+      [['Close', 'text-button plain', hideInstall]])
+  }
+}
+grammarInstall.addEventListener('keydown', ev => {
+  if (ev.key === 'Escape') hideInstall()
+})
 
 // What keeps the grammar from being checked, in the title of the selector
 function grammarProblem(message) {

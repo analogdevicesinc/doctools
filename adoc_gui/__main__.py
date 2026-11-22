@@ -272,7 +272,7 @@ def make_handler(first: Path, root: Path, docs: Docs, repo: Git | None = None):
         def do_POST(self):
             path = urlsplit(self.path).path
             if path not in ('/api/docs/start', '/api/docs/stop', '/api/docs/ask', '/api/docs/preview', '/api/docs/sparse',
-                            '/api/grammar', '/api/git/commit', '/api/git/stage', '/api/files'):
+                            '/api/grammar', '/api/grammar/install', '/api/git/commit', '/api/git/stage', '/api/files'):
                 return self.reply(404, b'Not found')
             if not self.allowed():
                 return
@@ -281,6 +281,9 @@ def make_handler(first: Path, root: Path, docs: Docs, repo: Git | None = None):
                 return
             if path == '/api/docs/start':
                 return self.reply_json(200, docs.start())
+            if path == '/api/grammar/install':
+                # With a body it is installed, without one it says how far it is
+                return self.reply_json(200, docs.install_grammar(start=text.strip() == '{"install":true}'))
             if path == '/api/docs/stop':
                 return self.reply_json(200, docs.stop())
             try:
