@@ -1059,7 +1059,7 @@ def _exclude_siblings(basedir, sparse, path_parts, exclude_patterns, lpath=''):
             relative = f"{lpath}/{sibling}"
             mask = True
             for s in sparse:
-                if s.startswith(relative):
+                if s == relative or s.startswith(f"{relative}/"):
                     mask = False
             if mask:
                 exclude_patterns.add(relative)
