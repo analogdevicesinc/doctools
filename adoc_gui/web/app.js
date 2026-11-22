@@ -682,6 +682,9 @@ function renderMore() {
   const [label, icon] = MORE[state.tab] ?? MORE.source
   document.getElementById('more-label').textContent = label
   document.getElementById('more-icon').setAttribute('d', icon)
+  // The button that shows the side pane when it is hidden: the same
+  document.getElementById('open-source-icon').setAttribute('d', icon)
+  document.getElementById('open-source').title = `Show the side pane: ${label.toLowerCase()}`
 }
 bottomBar.addEventListener('click', ev => {
   const button = ev.target.closest('button')
