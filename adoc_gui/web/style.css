@@ -335,15 +335,21 @@ body {
 .picker-kinds button[aria-pressed='true'] { border-color: var(--primary); color: var(--primary); background: var(--secondary-container); }
 
 /* Layout ----------------------------------------------------------------------
-   The page in the middle, as wide as the window allows; the files float at
-   the left edge of the window, the side pane at the right of the page.
-   The page scrolls under the toolbar, and fades as it gets there. */
+   The page in the middle, as wide as it is read well when the window allows:
+   it is only narrower to leave their place to the panels that are shown.
+   The files float at the left edge of the window, the side pane at the right
+   of the page. The page scrolls under the toolbar, and fades as it gets
+   there. */
 
 :root {
   --bar: 44px;
   /* The space at the edges of the window and around the panels */
   --edge: clamp(12px, 1.6vw, 40px);
-  --page: clamp(520px, 42vw, 960px);
+  /* The page, at most */
+  --page: 960px;
+  /* The place of the panels, which the page leaves them */
+  --files: clamp(200px, 18vw, 300px);
+  --pane: clamp(300px, 30vw, 520px);
 }
 
 main { flex: 1; display: flex; min-height: 0; margin-top: calc(-1 * var(--bar)); }
@@ -368,7 +374,8 @@ main { flex: 1; display: flex; min-height: 0; margin-top: calc(-1 * var(--bar));
 /* The part at a side of the page, with its panel */
 .side {
   position: relative;
-  flex: 1 1 0;
+  /* Its place, and its part of what the page does not take */
+  flex: 1 0 var(--files);
   min-width: 0;
   display: flex;
   /* The files at the edge of the window, the side pane next to the page */
@@ -376,11 +383,13 @@ main { flex: 1; display: flex; min-height: 0; margin-top: calc(-1 * var(--bar));
   padding: calc(var(--bar) + 16px) var(--edge) 16px;
   transition: flex-grow 0.2s ease, flex-basis 0.2s ease;
 }
-/* The page stays near the middle: the files have 40% of what is left at the
-   sides of the page, the side pane 60%, and at most 20% more or less when a
-   panel is hidden */
+/* Once the page is as wide as it gets, it stays near the middle: the files
+   have 40% of what is left at its sides, the side pane 60%, and at most 20%
+   more or less when a panel is hidden */
 .side.left { flex-grow: 4; }
-.side.right { flex-grow: 6; }
+.side.right { flex-grow: 6; flex-basis: var(--pane); }
+/* A hidden panel only keeps the place of its button: the page takes the rest */
+body.no-nav .side.left, body.no-source .side.right { flex-basis: calc(40px + 2 * var(--edge)); }
 
 .panel {
   display: flex;

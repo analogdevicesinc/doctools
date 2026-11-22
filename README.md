@@ -86,7 +86,9 @@ and a role, a link or a literal is kept on one line. Only the line being
 typed is wrapped, the lines that are already there are left as they are.
 
 Changes are saved to the file as you type, and changes made to the file by
-other programs are loaded. The files float at the left of the window and the
+other programs are loaded. The page is as wide as it is read well when the
+window allows, and only narrower to leave their place to the panels that are
+shown. The files float at the left of the window and the
 side pane at the right of the page; the cross in each hides it, and a button in its corner, below the
 toolbar, shows it again. The top bar switches between the light and the dark
 theme: as in the Doctools theme, the one of the system until another is
