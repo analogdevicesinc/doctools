@@ -694,10 +694,8 @@ openTabs.addEventListener('click', ev => {
   if (button) selectTab(button.dataset.openTab)
 })
 function renderOpenTabs() {
-  for (const button of openTabs.children) {
+  for (const button of openTabs.children)
     button.hidden = document.querySelector(`.tab[data-tab=${button.dataset.openTab}]`).hidden
-    button.setAttribute('aria-pressed', String(button.dataset.openTab === state.tab))
-  }
 }
 // The tabs come and go: with the documentation server, with git
 new MutationObserver(renderOpenTabs).observe(document.querySelector('.tabs'), { attributes: true, attributeFilter: ['hidden'], subtree: true })

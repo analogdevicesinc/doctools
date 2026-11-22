@@ -528,7 +528,6 @@ body.no-nav .side.left, body.no-source .side.right { flex-basis: calc(40px + 2 *
    right to it */
 .open-tabs { display: flex; flex-direction: column; gap: 6px; color: inherit; background: none; box-shadow: none; }
 .open-tabs .icon-button { color: var(--on-surface-variant); background: var(--surface); box-shadow: var(--shadow); }
-.open-tabs .icon-button[aria-pressed='true'] { color: var(--primary); }
 .open-tabs .icon-button[hidden] { display: none; }
 .side.left .open-panel { left: var(--edge); }
 .side.right .open-panel { left: var(--edge); }
