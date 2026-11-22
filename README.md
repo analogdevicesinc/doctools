@@ -66,7 +66,7 @@ The page has three parts:
 - **Side pane**, at the right, with two tabs:
   - *Source*: the `.rst` text, also editable, in a code editor (CodeMirror),
     coloured from the parsed document. The block of the caret and the last
-    edit are highlighted.
+    edit are highlighted. It scrolls with the document, in both directions.
   - *Live view*: the built page of the file, from the documentation server;
     the tab is there while the server runs.
     It scrolls with the document, in both directions, and a link followed in

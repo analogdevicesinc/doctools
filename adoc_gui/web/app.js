@@ -3059,12 +3059,56 @@ function scrollToLine(line) {
   canvas.scrollTop += target - top - 8
 }
 
+// The source and the page scroll together: the line at the top of the one
+// that is scrolled is brought to the top of the other. What is scrolled
+// here does not send the other back.
+let sourceUntil = 0
+const sourceShown = () => state.tab === 'source' && source.view.dom.offsetParent !== null
+
+// The line of the source at the top of the source pane, with how far in it
+function sourceTopLine() {
+  const editor = source.view
+  const top = editor.scrollDOM.scrollTop
+  const block = editor.lineBlockAtHeight(top)
+  const line = editor.state.doc.lineAt(block.from).number
+  return line + (block.height > 0 ? Math.min(Math.max((top - block.top) / block.height, 0), 1) : 0)
+}
+
+function syncSource() {
+  if (!sourceShown() || performance.now() < followUntil) return
+  const editor = source.view
+  const line = canvas.scrollTop <= 0 ? 1 : topLine()
+  const number = Math.min(Math.max(Math.floor(line), 1), editor.state.doc.lines)
+  const block = editor.lineBlockAt(editor.state.doc.line(number).from)
+  const top = Math.round(block.top + (line - number) * block.height)
+  if (Math.abs(editor.scrollDOM.scrollTop - top) < 1) return
+  sourceUntil = performance.now() + 300
+  editor.scrollDOM.scrollTop = top
+}
+
+let sourceFrame = 0
+source.view.scrollDOM.addEventListener('scroll', () => {
+  if (sourceFrame || !sourceShown() || performance.now() < sourceUntil) return
+  sourceFrame = requestAnimationFrame(() => {
+    sourceFrame = 0
+    if (performance.now() < sourceUntil) return
+    // The top of the source is the top of the page
+    if (source.view.scrollDOM.scrollTop <= 0) {
+      followUntil = performance.now() + 400
+      canvas.scrollTop = 0
+    } else {
+      scrollToLine(sourceTopLine())
+    }
+  })
+}, { passive: true })
+
 let scrollFrame = 0
 canvas.addEventListener('scroll', () => {
   if (scrollFrame) return
   scrollFrame = requestAnimationFrame(() => {
     scrollFrame = 0
     syncPreview()
+    syncSource()
   })
 }, { passive: true })
 
