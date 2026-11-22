@@ -1752,7 +1752,7 @@ function fillCard(known, waiting) {
     return el
   }
   // What it is of: a mistake of the spelling or of the grammar, an error
-  card.className = `preview-card${known.kind ? ` ${known.kind}` : ''}`
+  card.className = `preview-card${known.kind ? ` card-${known.kind}` : ''}`
   const nodes = [part('preview-title', known.title || known.heading || shortTarget(known.target))]
   if (known.text) {
     nodes.push(part('preview-text', known.text))
