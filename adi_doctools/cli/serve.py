@@ -1172,7 +1172,7 @@ def serve():
 
         from adoc_gui.__main__ import run
 
-        return run(directory=Path(instance.directory), serve=True, docs_port=instance.port,
+        return run(directory=Path(instance.directory), docs_port=instance.port,
                    sparse=instance.sparse)
 
     def signal_handler(sig, frame):
