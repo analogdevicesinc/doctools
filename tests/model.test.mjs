@@ -286,3 +286,20 @@ test('a line block is lines, their breaks are kept', async () => {
   assert.equal(at('| ^one\n| two\n', deleteBackward), '| ^one\n| two\n')
   assert.equal(at('| on^e\n', deleteBackward), '| o^e\n')
 })
+
+test('the markup that is closed is the last one that opens', () => {
+  const texts = source => modelOf(source).leaves.map(l => `${l.kind}:${source.slice(l.s, l.e)}`)
+  // As it is typed: the first mark is text, not the start of all of it
+  assert.deepEqual(texts('The ``sun is very ``pretty``\n'), ['text:The ``sun is very ', 'literal:pretty', 'text:'])
+  assert.deepEqual(texts('The **sun is **pretty** now\n'), ['text:The **sun is ', 'strong:pretty', 'text: now'])
+  assert.deepEqual(texts('a *b *c* d\n'), ['text:a *b ', 'emphasis:c', 'text: d'])
+  // The rest of the line is as before
+  assert.deepEqual(texts('The ``sun is ``pretty`` and :ref:`x` then **bold**\n'),
+    ['text:The ``sun is ', 'literal:pretty', 'text: and ', 'role:x', 'text: then ', 'strong:bold', 'text:'])
+  // A mark in a word, or before a space, does not open
+  assert.deepEqual(texts('``a``b``\n'), ['text:', 'literal:a``b', 'text:'])
+  assert.deepEqual(texts('``sun is `` pretty``\n'), ['text:', 'literal:sun is `` pretty', 'text:'])
+  assert.deepEqual(texts('*a **b* c\n'), ['text:', 'emphasis:a **b', 'text: c'])
+  assert.deepEqual(texts('``one two``\n'), ['text:', 'literal:one two', 'text:'])
+  assertCovered('The ``sun is very ``pretty``\n')
+})

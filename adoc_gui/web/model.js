@@ -85,9 +85,28 @@ export function buildModel(parser, tree, source) {
     return leaf(owner, kind, start, start + titled[2].length, s, e, extra)
   }
 
-  // The leaf of a node of inline markup
-  const inline = (owner, node) => {
+  // Where the markup of a strong, emphasis or literal node starts: at its
+  // last opening mark. The grammar, as docutils, takes the longest: in
+  // 'The ``sun is very ``pretty``' all from the first mark. The one that is
+  // closed is the last one that opens, after a space and before a letter:
+  // 'pretty', as it was typed; the first mark is text, to be closed or not.
+  const lazyStart = node => {
+    const width = DELIMITED[node.type]
     const s = node.startIndex, e = node.endIndex
+    if (!width || e - s <= 2 * width) return s
+    const mark = source.slice(s, s + width)
+    for (let at = e - 2 * width - 1; at > s + width; at--) {
+      if (!source.startsWith(mark, at) || !/\s/.test(source[at - 1]) || /\s/.test(source[at + width])) continue
+      // Not a part of a longer mark, as the stars of strong in emphasis
+      if (source[at + width] === mark[0] || source[at - 1] === mark[0]) continue
+      return at
+    }
+    return s
+  }
+
+  // The leaf of a node of inline markup, from 's': see lazyStart
+  const inline = (owner, node, s = node.startIndex) => {
+    const e = node.endIndex
     const text = source.slice(s, e)
     const width = DELIMITED[node.type]
     if (width && e - s > 2 * width)
@@ -132,8 +151,9 @@ export function buildModel(parser, tree, source) {
     let at = from
     for (const child of children) {
       if (!child.isNamed || child.startIndex < at || child.endIndex > to) continue
-      plain(owner, out, at, child.startIndex)
-      out.push(inline(owner, child))
+      const start = lazyStart(child)
+      plain(owner, out, at, start)
+      out.push(inline(owner, child, start))
       at = child.endIndex
     }
     plain(owner, out, at, end)
