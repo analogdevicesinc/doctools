@@ -307,10 +307,11 @@ body {
   color: var(--on-surface);
   white-space: nowrap;
 }
-.tutorial-foot { display: flex; align-items: center; gap: 12px; padding: 8px 20px 18px; }
-.tutorial-foot .text-button { min-width: 64px; }
-.tutorial-next { margin: 0; padding: 0 18px; }
-.tutorial-dots { flex: 1; display: flex; justify-content: center; gap: 4px; }
+/* The dots in the middle, whatever the buttons at their sides say */
+.tutorial-foot { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; padding: 8px 20px 18px; }
+.tutorial-foot .text-button { min-width: 64px; justify-self: start; }
+.tutorial-next { margin: 0; padding: 0 18px; justify-self: end; }
+.tutorial-dots { display: flex; justify-content: center; gap: 4px; }
 .tutorial-dot { width: 18px; height: 18px; padding: 5px; border: none; background: none; cursor: pointer; }
 .tutorial-dot::before { content: ''; display: block; width: 8px; height: 8px; border-radius: 4px; background: var(--outline-variant); transition: background-color 0.15s; }
 .tutorial-dot[aria-current]::before { background: var(--primary); }
