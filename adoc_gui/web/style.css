@@ -260,14 +260,70 @@ body {
 }
 .picker[hidden] { display: none; }
 .picker.table { width: auto; }
+/* The guide: a few panels, one at a time ----------------------------------------- */
+
+.tutorial {
+  width: 520px;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100dvh - 24px);
+  padding: 0;
+  border: none;
+  border-radius: 14px;
+  font: 14.5px/22px var(--font);
+  color: var(--on-surface);
+  background: var(--surface);
+  box-shadow: var(--shadow-raised);
+  overflow: auto;
+}
+.tutorial::backdrop { background: rgb(16 24 32 / .45); }
+.tutorial[open] { animation: preview-in 0.16s ease-out; }
+.tutorial-close { position: absolute; top: 8px; right: 8px; width: 32px; height: 32px; padding: 4px; }
+.tutorial-art { display: grid; place-items: center; height: 180px; background: var(--surface-container-low); }
+.tutorial-art svg { width: 300px; max-width: 86%; height: 150px; }
+.tutorial-title { margin: 20px 28px 8px; font: 600 20px/26px var(--heading); }
+.tutorial-text { min-height: 148px; margin: 0 28px; color: var(--on-surface-variant); }
+.tutorial-text p { margin: 0 0 10px; }
+.tutorial-text code {
+  padding: 1px 5px;
+  border: 1px solid var(--outline-variant);
+  border-radius: 4px;
+  font: 0.87em var(--mono);
+  color: var(--on-surface);
+  white-space: nowrap;
+}
+.tutorial-foot { display: flex; align-items: center; gap: 12px; padding: 8px 20px 18px; }
+.tutorial-foot .text-button { min-width: 64px; }
+.tutorial-next { margin: 0; padding: 0 18px; }
+.tutorial-dots { flex: 1; display: flex; justify-content: center; gap: 4px; }
+.tutorial-dot { width: 18px; height: 18px; padding: 5px; border: none; background: none; cursor: pointer; }
+.tutorial-dot::before { content: ''; display: block; width: 8px; height: 8px; border-radius: 4px; background: var(--outline-variant); transition: background-color 0.15s; }
+.tutorial-dot[aria-current]::before { background: var(--primary); }
+.tutorial-dot:focus-visible { outline: 2px solid var(--primary); border-radius: 9px; }
+@media (prefers-reduced-motion: reduce) {
+  .tutorial[open] { animation: none; }
+}
+
+/* The drawings: the text, the markup, and what is pointed at */
+.tutorial-art .i-text, .picker-head .i-text { fill: var(--outline-variant); }
+.tutorial-art .i-box, .picker-head .i-box { fill: var(--secondary-container); stroke: var(--primary); stroke-width: 1.5; }
+.tutorial-art .i-mark, .picker-head .i-mark { fill: var(--primary); }
+.tutorial-art .i-name, .picker-head .i-name { fill: #ff9100; }
+.tutorial-art .i-box { fill: var(--surface); }
+.tutorial-art g .i-box { fill: var(--secondary-container); }
+.tutorial-art .i-panel { fill: var(--surface); stroke: var(--outline-variant); stroke-width: 1.5; }
+.tutorial-art .i-sel { fill: var(--secondary-container); }
+.tutorial-art .i-fill { fill: var(--primary); }
+.tutorial-art .i-on { fill: var(--on-primary); }
+.tutorial-art .i-bar { fill: var(--outline-variant); }
+.tutorial-art .i-green { fill: var(--git-added); }
+.tutorial-art .i-wavy { fill: none; stroke-width: 2; stroke-linecap: round; }
+.tutorial-art .i-red { stroke: var(--error); }
+.tutorial-art .i-blue { stroke: var(--primary); }
+
 /* What it adds, in a line, with its drawing: three colours, the text, the
    markup and its name */
 .picker-head { flex: none; display: flex; align-items: center; gap: 10px; padding: 10px 12px 0; color: var(--on-surface-variant); }
 .picker-head svg { flex: none; width: 40px; height: 40px; }
-.picker-head .i-text { fill: var(--outline-variant); }
-.picker-head .i-box { fill: var(--secondary-container); stroke: var(--primary); stroke-width: 1.5; }
-.picker-head .i-mark { fill: var(--primary); }
-.picker-head .i-name { fill: #ff9100; }
 .picker-head strong { font-weight: 600; color: var(--on-surface); }
 .picker-search {
   flex: none;

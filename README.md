@@ -20,6 +20,12 @@ It follows Harmonic, the design system of ADI, as the Doctools theme does: its
 colours, and its fonts (Inter, Barlow, JetBrains Mono) when they are installed
 or fetched for the theme (`ci/fetch-fonts.sh`).
 
+The first time it is opened, a guide says what it does, in a few panels: the
+page and its panels, the directives and the roles, the keys, the build and
+the live view, the completion and the references, the grammar, the files and
+the changes. The book in the top bar shows it again. The browser keeps that
+it was seen.
+
 The page has three parts:
 
 - **Files**, at the left: the `.rst` files of the documentation. A click opens
@@ -207,6 +213,7 @@ a tree that is updated incrementally can differ from a fresh one.
   options (a flag, a value, or one of a list of values) and its content.
 - `web/insert.js` holds the directives and the roles the toolbar adds, in
   their groups.
+- `web/tutorial.js` is the guide: its panels and their drawings.
 - `web/lsp.js` finds what to complete at the caret, `web/refs.js` orders and
   searches the references and writes their role.
 - `web/nav.js` shows the files and `web/sparse.js` holds the selection of the

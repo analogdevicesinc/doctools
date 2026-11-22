@@ -14,6 +14,7 @@ import {
   orderRoles, filterRoles, filterLabel, roleOpen, searchTargets, referenceText, referenceQuestion, pageOf
 } from './refs.js'
 import { pickerGroups, templateOf, ABOUT, exampleOf } from './insert.js'
+import { tutorial } from './tutorial.js'
 import { optionChoices, optionSpec, FLAG } from './directives.js'
 import { SparseSelection } from './sparse.js'
 import { ContextMenu } from './contextmenu.js'
@@ -544,6 +545,21 @@ bottomBar.addEventListener('click', ev => {
   if (button) setScreen(button.dataset.screen)
 })
 setScreen('editor')
+
+// The guide: shown once, to who opens the editor for the first time, and
+// from its button
+const guide = tutorial(document.getElementById('tutorial'), () => {
+  try {
+    localStorage.setItem('doctools.tutorial', 'viewed')
+  } catch { }
+  view.focus()
+})
+document.getElementById('open-tutorial').addEventListener('click', () => guide.open())
+function firstVisit() {
+  try {
+    if (localStorage.getItem('doctools.tutorial') !== 'viewed') guide.open()
+  } catch { }
+}
 
 // The structure can be shown or hidden
 function toggle(button, name, shown) {
@@ -2917,6 +2933,7 @@ async function main() {
   setSource('')
   show(await response.json())
   selectTab('source', false)
+  firstVisit()
   await loadTree()
   setTimeout(poll, POLL_MS)
   pollDocs()
