@@ -559,6 +559,26 @@ function editLink(at) {
   }
   const open = linkAddress(link?.target)
   if (open) button('text-button plain', 'Open ↗', () => window.open(open, '_blank', 'noopener'))
+  // A new link can be a reference instead, to a label or a page of a
+  // documentation: the references are shown, searched for the text; the one
+  // that is clicked is written around the selection
+  if (!link) {
+    const references = button('text-button plain', 'References', () => {
+      hideLinkEditor()
+      state.caret = { anchor: a, focus: b }
+      showSidePane(true)
+      selectTab('references')
+      setScreen('more')
+      refsSearch.value = text.value.trim()
+      renderReferences(0)
+      refsSearch.focus()
+      refsSearch.select()
+    })
+    references.title = state.docs.build === 'off'
+      ? 'Build the documentation to list what can be referenced'
+      : 'Link to a label or a page of a documentation instead'
+    references.disabled = state.docs.build === 'off'
+  }
   if (!elsewhere) {
     const done = element('button', 'build-button', link ? 'Apply' : 'Add the link')
     done.type = 'submit'

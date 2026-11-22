@@ -414,6 +414,7 @@ body.choosing #sparse-state { color: var(--primary); font-weight: 600; }
 .link-note { font: 12px/17px var(--font); color: var(--on-surface-variant); }
 .link-actions { display: flex; align-items: center; gap: 4px; margin-top: 2px; }
 .link-actions .text-button { height: 32px; }
+.link-actions .text-button:disabled { opacity: 0.45; cursor: default; }
 .link-actions .link-remove { color: var(--error); }
 .link-actions .build-button { height: 32px; margin: 0 0 0 auto; padding: 0 16px; }
 
