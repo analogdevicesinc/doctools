@@ -542,3 +542,16 @@ test('the description of a page is on its line, without content', () => {
   assert.equal(directive.takesContent, false)
   assert.equal(modelOf('.. description::\n').root.children[0].children[0].hint, 'description')
 })
+
+test('enter at the start of a paragraph makes an empty line before it, with the caret', () => {
+  // Between a directive and what follows it
+  assert.equal(run('.. note::\n\n   Text\n\n|After\n', insertParagraph), '.. note::\n\n   Text\n\n|\n\nAfter\n')
+  assert.equal(run('.. code-block:: py\n\n   x\n\n|After\n', insertParagraph), '.. code-block:: py\n\n   x\n\n|\n\nAfter\n')
+  assert.equal(run('One\n\n|Two\n', insertParagraph), 'One\n\n|\n\nTwo\n')
+  // What is typed there is a paragraph of its own
+  assert.equal(type('.. note::\n\n   Text\n\n|\n\nAfter\n', 'x'), '.. note::\n\n   Text\n\nx|\n\nAfter\n')
+  // In a directive, indented as its content
+  assert.equal(run('.. note::\n\n   One\n\n   |Two\n', insertParagraph), '.. note::\n\n   One\n\n   |\n\n   Two\n')
+  // Further in the text, the paragraph is split as before
+  assert.equal(run('One t|wo\n', insertParagraph), 'One t\n\n|wo\n')
+})

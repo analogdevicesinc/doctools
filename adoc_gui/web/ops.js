@@ -543,6 +543,10 @@ function insertParagraphRaw(model, a, b) {
 
   // Split the paragraph, the new one keeps the indentation
   const indent = ' '.repeat(owner.s - lineStart(source, owner.s))
+  // At its very start: an empty line before it, where the caret stays, to
+  // write between it and what is before, a directive or another paragraph.
+  // Empty lines are not shown: the paragraph only going down would not be seen.
+  if (a === b && a === owner.s) return edit(a, a, `\n\n${indent}`, a)
   let from = a
   while (from > owner.s && (source[from - 1] === ' ' || source[from - 1] === '\t')) from--
   let to = b
