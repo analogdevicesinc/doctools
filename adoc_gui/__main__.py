@@ -21,7 +21,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
 from .docs import Docs
-from .files import FileError, delete_file, move_file, new_file
+from .files import FileError, delete_file, move_file, new_file, sanitize
 from .git import Git
 
 WEB = Path(__file__).resolve().parent / 'web'
@@ -265,7 +265,9 @@ def make_handler(first: Path, root: Path, docs: Docs, repo: Git | None = None):
             if text is None:
                 return
             temporary = file.with_name(f'.{file.name}.doctools-tmp')
-            temporary.write_text(text, encoding='utf-8')
+            # Without the spaces at the end of the lines: the page keeps them
+            # while it is typed in, the file does not have them
+            temporary.write_text(sanitize(text), encoding='utf-8')
             os.replace(temporary, file)
             self.reply_json(200, self.file_info(file, with_text=False))
 

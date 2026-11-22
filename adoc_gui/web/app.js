@@ -1,7 +1,7 @@
 import { Parser, Language } from './vendor/web-tree-sitter.js'
 import { buildModel, leafAt, blockAt } from './model.js'
 import {
-  applyEdit, insertText, deleteBackward, deleteForward, insertParagraph, toggleInline, tableStep, openContent, intoContent, addOption, addLabel, removeSide, addTab, shiftItem, removeDirective, leaveDirective, headingAt, setHeading, addDirective, addRole, addTable,
+  applyEdit, withoutTrailing, insertText, deleteBackward, deleteForward, insertParagraph, toggleInline, tableStep, openContent, intoContent, addOption, addLabel, removeSide, addTab, shiftItem, removeDirective, leaveDirective, headingAt, setHeading, addDirective, addRole, addTable,
   linkAt, setLink, addSubstitution, addDefinition
 } from './ops.js'
 import {
@@ -1197,7 +1197,8 @@ function gitChanges() {
   const { head } = state.git
   if (head === null || head === undefined) return undefined
   if (gitCache?.source !== state.source || gitCache?.head !== head)
-    gitCache = { source: state.source, head, changes: lineChanges(head, state.source) }
+    // As the file is saved: the spaces at the end of the lines are not changes
+    gitCache = { source: state.source, head, changes: lineChanges(head, withoutTrailing(state.source)) }
   return gitCache.changes
 }
 
@@ -2569,7 +2570,7 @@ async function poll() {
       const file = await (await api(path)).json()
       if (path !== state.path) {
         // Another file was opened meanwhile
-      } else if (file.mtime !== state.mtime && !state.dirty && file.text !== state.source) {
+      } else if (file.mtime !== state.mtime && !state.dirty && file.text !== withoutTrailing(state.source)) {
         remember()
         setSource(file.text, diff(state.source, file.text))
         paint()

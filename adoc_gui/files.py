@@ -4,7 +4,32 @@ it. Only files below the root, by their path relative to it."""
 from __future__ import annotations
 
 import os
+import re
 from pathlib import Path, PurePosixPath
+
+
+TRAILING = re.compile(r'[ \t]+(?=\n|$)')
+
+
+def sanitize(text: str) -> str:
+    """A text as it is saved: without the spaces at the end of its lines."""
+    return TRAILING.sub('', text)
+
+
+def sanitize_file(file: Path) -> bool:
+    """Remove the spaces at the end of the lines of a file, True when it had
+    some. Not of what is not text."""
+    try:
+        text = file.read_text(encoding='utf-8')
+    except (OSError, UnicodeDecodeError):
+        return False
+    clean = sanitize(text)
+    if clean == text:
+        return False
+    temporary = file.with_name(f'.{file.name}.doctools-tmp')
+    temporary.write_text(clean, encoding='utf-8')
+    os.replace(temporary, file)
+    return True
 
 
 class FileError(Exception):

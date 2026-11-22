@@ -94,7 +94,10 @@ and a role, a link or a literal is kept on one line. Only the line being
 typed is wrapped, the lines that are already there are left as they are.
 
 Changes are saved to the file as you type, and changes made to the file by
-other programs are loaded. The page is as wide as it is read well when the
+other programs are loaded. The file is saved without spaces at the end of its
+lines: the page keeps the ones it needs while it is typed in, the space
+before the next word, and a file that still has some loses them before a
+change of it is staged. The page is as wide as it is read well when the
 window allows, and only narrower to leave their place to the panels that are
 shown. The files float at the left of the window and the
 side pane at the right of the page; the cross in each hides it, and a button in its corner, below the

@@ -11,6 +11,11 @@ import { linkOf, linkText } from './links.js'
 
 const INLINE = { bold: '**', italic: '*', code: '``' }
 
+// A text as it is saved: without the spaces at the end of its lines. The
+// editor keeps them while it is typed in: the space before the next word,
+// the place of the text of an empty cell.
+export const withoutTrailing = text => text.replace(/[ \t]+(?=\n|$)/g, '')
+
 export function applyEdit(source, edit) {
   return source.slice(0, edit.start) + edit.text + source.slice(edit.end)
 }
@@ -354,6 +359,10 @@ function insertTextRaw(model, a, b, text) {
   if (a === b) {
     const item = leafAt(model, a)
     const owner = item ? item.block : blockAt(model, a)
+    // In an empty list item or cell, right after its mark: the text comes
+    // after a space, which is not kept in the file
+    if (!item && owner.marker && a === owner.marker.e && (owner.kind === 'item' || owner.kind === 'cell') && !/^\s/.test(text))
+      return edit(a, a, ` ${text}`)
     // The argument of a directive, the value of an option and the text of a
     // substitution come after a space
     if (item && item.s === item.e && owner.empty && ['caption', 'option', 'value', 'linerow'].includes(owner.kind))

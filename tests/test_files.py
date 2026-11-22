@@ -69,3 +69,46 @@ class Files(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class TrailingSpaces(unittest.TestCase):
+    def test_a_text_is_saved_without_the_spaces_at_the_end_of_its_lines(self):
+        from adoc_gui.files import sanitize
+        self.assertEqual(sanitize('One  \n\n   \n* - \n  -\t\nlast '), 'One\n\n\n* -\n  -\nlast')
+        self.assertEqual(sanitize('  indented\n   code  x\n'), '  indented\n   code  x\n')
+
+    def test_a_file_loses_them(self):
+        from adoc_gui.files import sanitize_file
+        with tempfile.TemporaryDirectory() as folder:
+            file = Path(folder) / 'a.rst'
+            file.write_text('One \nTwo\n', encoding='utf-8')
+            self.assertTrue(sanitize_file(file))
+            self.assertEqual(file.read_text(encoding='utf-8'), 'One\nTwo\n')
+            self.assertFalse(sanitize_file(file))
+            binary = Path(folder) / 'b.png'
+            binary.write_bytes(b'\xff\xfe \n')
+            self.assertFalse(sanitize_file(binary))
+            self.assertEqual(binary.read_bytes(), b'\xff\xfe \n')
+
+    def test_they_are_not_staged(self):
+        import shutil
+        import subprocess
+        from adoc_gui.git import Git
+        if not shutil.which('git'):
+            self.skipTest('no git here')
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder).resolve()
+            run = lambda *args: subprocess.run(['git', '-C', str(root), *args], capture_output=True, text=True, check=True)  # noqa: E731
+            run('init', '-q')
+            run('config', 'user.email', 'a@b.c')
+            run('config', 'user.name', 'T')
+            file = root / 'a.rst'
+            file.write_text('One\nTwo\n', encoding='utf-8')
+            run('add', 'a.rst')
+            run('commit', '-q', '-m', 'first')
+            file.write_text('One \nTwo  \nThree\t\n', encoding='utf-8')
+            repo = Git(root)
+            self.assertEqual(repo.stage('a.rst', None, False), {'output': 'done'})
+            self.assertEqual(run('show', ':a.rst').stdout, 'One\nTwo\nThree\n')
+            self.assertEqual(file.read_text(encoding='utf-8'), 'One\nTwo\nThree\n')
+            self.assertEqual(run('diff', '--cached', '--check').stdout, '')

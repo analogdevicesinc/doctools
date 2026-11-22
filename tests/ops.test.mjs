@@ -555,3 +555,15 @@ test('enter at the start of a paragraph makes an empty line before it, with the 
   // Further in the text, the paragraph is split as before
   assert.equal(run('One t|wo\n', insertParagraph), 'One t\n\n|wo\n')
 })
+
+test('the spaces at the end of the lines are not saved, and not needed to type', async () => {
+  const { withoutTrailing } = await import('../adoc_gui/web/ops.js')
+  assert.equal(withoutTrailing('One  \n\n   \n* - \n  -\t\nlast '), 'One\n\n\n* -\n  -\nlast')
+  assert.equal(withoutTrailing('  indented\n   code  x\n'), '  indented\n   code  x\n')
+  // An empty item or cell without the space after its mark, as it is saved
+  assert.equal(type('* one\n*|\n', 'x'), '* one\n* x|\n')
+  assert.equal(type('#. one\n#.|\n', 'x'), '#. one\n#. x|\n')
+  assert.equal(type('.. list-table::\n\n   * -|\n     -\n', 'x'), '.. list-table::\n\n   * - x|\n     -\n')
+  assert.equal(type('.. list-table::\n\n   * - a\n     -|\n', 'x'), '.. list-table::\n\n   * - a\n     - x|\n')
+  assert.equal(type('* one\n* |\n', 'x'), '* one\n* x|\n')
+})

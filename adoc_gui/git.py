@@ -10,6 +10,8 @@ import shutil
 import subprocess
 from pathlib import Path
 
+from .files import sanitize_file
+
 TIMEOUT = 15
 
 # The letters of 'git status --porcelain', as what happened to the file
@@ -162,6 +164,9 @@ class Git:
             relative = self._relative(file)
         except ValueError:
             return {'error': 'the file is not in the repository'}
+        # Spaces at the end of lines are not staged: the file loses them first
+        if not staged and file.suffix == '.rst' and sanitize_file(file) and hunk is not None:
+            return {'error': 'the change is not there anymore'}
         if hunk is None:
             args = ['restore', '--staged', '--', relative] if staged else ['add', '--', relative]
             done = subprocess.run(['git', '-C', str(self.top), *args], capture_output=True, text=True,
