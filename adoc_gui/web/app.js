@@ -2,7 +2,7 @@ import { Parser, Language } from './vendor/web-tree-sitter.js'
 import { buildModel, leafAt, blockAt } from './model.js'
 import {
   applyEdit, withoutTrailing, insertText, deleteBackward, deleteForward, insertParagraph, toggleInline, tableStep, openContent, intoContent, addOption, addLabel, removeSide, addTab, shiftItem, removeDirective, leaveDirective, headingAt, setHeading, addDirective, addRole, addTable,
-  linkAt, setLink, addSubstitution, addDefinition
+  linkAt, setLink, addSubstitution, addDefinition, unfinishedAt
 } from './ops.js'
 import {
   render, getSelection, setSelection, markActive, showDiagnostics, selectTab as showTab, setCodeHost, offsetOf, pointOf,
@@ -1842,12 +1842,17 @@ function contextAtCaret() {
   return completionAt(source.slice(lineStart, focus), source.slice(focus, lineEnd === -1 ? source.length : lineEnd))
 }
 
-// A role or a directive is being typed: the file is not saved meanwhile, a
-// build of the half-written markup would only report it as an error
+// A role or a directive is being typed, or the directive of the caret is
+// not finished, as a note without its content yet: the file is not saved
+// meanwhile, a build of the half-written markup would only warn about what
+// is about to be written. It is saved once the caret is out of it, or the
+// page loses the focus, or nothing is typed for a while.
 function completing() {
   if (state.docs.build === 'off' || document.activeElement !== view) return false
-  return completion !== undefined || contextAtCaret() !== undefined
+  return completion !== undefined || contextAtCaret() !== undefined || unfinishedAt(state.model, state.caret.focus)
 }
+const HELD_MS = 30000
+let heldTimer
 
 // The option of the caret, when the caret is in its name or in its value,
 // or when one of them is selected: what the directive takes is chosen from
@@ -2537,9 +2542,12 @@ function flush() {
 async function save(force) {
   if (!state.dirty) return
   if (state.saving) return changed()
+  clearTimeout(heldTimer)
   if (force !== true && completing()) {
     state.held = true
-    return setFileState('Not saved while completing')
+    // Not for ever: what is typed is kept
+    heldTimer = setTimeout(() => save(true), HELD_MS)
+    return
   }
   state.held = false
   state.saving = true

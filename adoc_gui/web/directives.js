@@ -129,6 +129,13 @@ export const DIRECTIVES = {
   'hdl-build-status': { argument: false, options: { file: 'path' } }
 }
 
+// The directives that are not valid without their argument
+const REQUIRED = new Set([
+  'image', 'figure', 'svg', 'video', 'include', 'include-template', 'literalinclude', 'admonition', 'topic', 'sidebar',
+  'rubric', 'rst-class', 'only', 'tab-item', 'collapsible', 'collection', 'description'
+])
+export const requiresArgument = name => REQUIRED.has(name)
+
 // What a directive takes: { argument, options, content, card }. options is
 // undefined when any option can be given.
 export function directiveSpec(name) {

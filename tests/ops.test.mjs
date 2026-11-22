@@ -567,3 +567,32 @@ test('the spaces at the end of the lines are not saved, and not needed to type',
   assert.equal(type('.. list-table::\n\n   * - a\n     -|\n', 'x'), '.. list-table::\n\n   * - a\n     - x|\n')
   assert.equal(type('* one\n* |\n', 'x'), '* one\n* x|\n')
 })
+
+test('a directive that is still being written', async () => {
+  const { unfinishedAt } = await import('../adoc_gui/web/ops.js')
+  const at = marked => unfinishedAt(modelOf(marked.replace('|', '')), marked.indexOf('|'))
+  // Without its content yet, wherever the caret is in it
+  assert.equal(at('.. note::|\n'), true)
+  assert.equal(at('.. note::\n\n   |\n'), true)
+  assert.equal(at('.. code-block:: py|\n'), true)
+  assert.equal(at('Text\n\n.. note::\n\n   .. tip::|\n'), true)
+  // With it, it is written
+  assert.equal(at('.. note::\n\n   Text|\n'), false)
+  assert.equal(at('.. code-block:: py\n\n   x = 1|\n'), false)
+  // Out of it, it is left as it is: it is built, with its warning
+  assert.equal(at('.. note::\n\nAfter|\n'), false)
+  assert.equal(at('Be|fore\n\n.. note::\n'), false)
+  // Without the argument it needs
+  assert.equal(at('.. image::|\n'), true)
+  assert.equal(at('.. image:: a.png|\n'), false)
+  assert.equal(at('.. tab-set::\n\n   .. tab-item::\n\n      Text|\n'), true)
+  // An argument that can be left out, an option to fill: in its head only
+  assert.equal(at('.. table::|\n\n   = =\n   a b\n   = =\n'), true)
+  assert.equal(at('.. table::\n\n   = =\n   a| b\n   = =\n'), false)
+  assert.equal(at('.. image:: a.png\n   :width:|\n'), true)
+  assert.equal(at('.. image:: a.png\n   :width: 5|\n'), false)
+  assert.equal(at('.. code-block:: py\n   :caption:\n\n   x = 1|\n'), false)
+  assert.equal(at('.. code-block:: py\n   :linenos:|\n\n   x = 1\n'), false)
+  // Not in a directive
+  assert.equal(at('Text|\n'), false)
+})

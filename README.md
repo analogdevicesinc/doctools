@@ -181,9 +181,12 @@ before. *Build all* clears the
 selection. The selection is kept by the browser, per documentation.
 
 The file is not saved, and so not built, while a role or a directive is being
-completed: the half-written markup would only be reported as an error. It is
-saved once the completion is accepted, or when the caret or the focus leaves
-it.
+completed, nor while the directive of the caret is not finished: a note
+without its content yet, an image without its path, an option without its
+value. The half-written markup would only be reported as an error, as
+"Content block expected". It is saved once the completion is accepted, the
+directive has what it needs, or the caret or the focus leaves it; and in any
+case when nothing is typed for half a minute.
 
 It needs a `conf.py` at a common location (`docs/conf.py`, ...) in the
 repository of the file, or in a folder above the file.

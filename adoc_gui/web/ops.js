@@ -8,6 +8,7 @@
 import { leafAt, blockAt, ancestor, contentReach } from './model.js'
 import { writeTable } from './table.js'
 import { linkOf, linkText } from './links.js'
+import { requiresArgument } from './directives.js'
 
 const INLINE = { bold: '**', italic: '*', code: '``' }
 
@@ -90,6 +91,25 @@ export function intoContent(model, offset) {
   const owner = leafAt(model, offset)?.block
   if (owner?.kind !== 'caption' || !owner.parent.takesContent) return undefined
   return openContent(model, owner.parent)
+}
+
+// Whether the directive of the caret is still being written: it has no
+// content yet, or not the argument it needs, or the caret is in its head
+// with an argument or the value of an option to fill. A build of it would
+// only warn about what is about to be written.
+export function unfinishedAt(model, offset) {
+  const item = leafAt(model, offset)
+  const start = item?.block ?? blockAt(model, offset)
+  const directive = start.kind === 'directive' ? start : ancestor(start, 'directive')
+  if (!directive) return false
+  if (directive.takesContent && !hasContent(directive)) return true
+  const caption = directive.children.find(c => c.kind === 'caption')
+  if (caption?.empty && requiresArgument(directive.name)) return true
+  // In its head: its argument, its options
+  const head = start === directive ? offset <= directive.headEnd : start.kind === 'caption' || Boolean(ancestor(start, 'options'))
+  if (!head) return false
+  const options = directive.children.find(c => c.kind === 'options')?.children ?? []
+  return Boolean(caption?.empty) || options.some(option => option.kind === 'option' && option.empty && !option.flag)
 }
 
 // Options ----------------------------------------------------------------------
