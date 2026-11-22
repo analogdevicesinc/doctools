@@ -150,31 +150,47 @@ export function tutorial(dialog, onClose = () => {}) {
   dialog.setAttribute('aria-label', 'Guide')
   dialog.replaceChildren(close, track, foot)
 
-  // What says which panel is shown
+  // The dot of the panel that is seen: it follows the row as it scrolls
+  const dot = at => marks.forEach((mark, i) => {
+    if (i === at) mark.setAttribute('aria-current', 'step')
+    else mark.removeAttribute('aria-current')
+  })
+  // The panel the guide is at, or is going to: what its buttons say
   const mark = at => {
     index = at
-    marks.forEach((dot, i) => {
-      if (i === index) dot.setAttribute('aria-current', 'step')
-      else dot.removeAttribute('aria-current')
-    })
     slides.forEach((slide, i) => {
       slide.inert = i !== index
     })
     back.style.visibility = index ? 'visible' : 'hidden'
     next.textContent = index === SLIDES.length - 1 ? 'Start writing' : 'Next'
   }
+  const nearest = () => Math.max(Math.min(Math.round(track.scrollLeft / Math.max(track.clientWidth, 1)), SLIDES.length - 1), 0)
+  // Sliding to a panel that was asked for: the buttons already say it
+  let sliding = false
   // Slide to a panel, at once when the motion is not wanted
   function go(at, smooth = true) {
     const target = Math.max(Math.min(at, SLIDES.length - 1), 0)
     const still = !smooth || matchMedia('(prefers-reduced-motion: reduce)').matches
-    track.scrollTo({ left: slides[target].offsetLeft - slides[0].offsetLeft, behavior: still ? 'instant' : 'smooth' })
+    sliding = !still
     mark(target)
+    track.scrollTo({ left: slides[target].offsetLeft - slides[0].offsetLeft, behavior: still ? 'instant' : 'smooth' })
+    if (still) dot(target)
   }
-  // Scrolled by hand, a swipe: the panel that is nearest
+  // The row scrolls, by itself or by hand: the dot is the one of the panel
+  // that is nearest, all along; by hand, the buttons follow too
   track.addEventListener('scroll', () => {
-    const at = Math.round(track.scrollLeft / Math.max(track.clientWidth, 1))
-    if (at !== index && Math.abs(track.scrollLeft - at * track.clientWidth) < 2) mark(Math.max(Math.min(at, SLIDES.length - 1), 0))
+    const at = nearest()
+    dot(at)
+    if (sliding) sliding = Math.abs(track.scrollLeft - index * track.clientWidth) >= 2
+    else if (at !== index) mark(at)
   }, { passive: true })
+  track.addEventListener('scrollend', () => {
+    sliding = false
+    if (nearest() !== index) mark(nearest())
+  })
+  // A hand on the row takes over
+  for (const name of ['pointerdown', 'touchstart', 'wheel'])
+    track.addEventListener(name, () => { sliding = false }, { passive: true })
 
   back.addEventListener('click', () => go(index - 1))
   next.addEventListener('click', () => index === SLIDES.length - 1 ? dialog.close() : go(index + 1))
