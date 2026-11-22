@@ -1463,15 +1463,16 @@ li > .diag { margin: 0 0 4px; }
 }
 
 /* The mistakes of the prose, from LanguageTool */
+/* Underlined only: a tint behind the text is hardly seen on a dark page */
 ::highlight(spelling) {
   text-decoration: underline wavy var(--error);
-  text-decoration-thickness: 1px;
-  background-color: color-mix(in srgb, var(--error) 10%, transparent);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
 }
 ::highlight(grammar) {
   text-decoration: underline wavy var(--primary);
-  text-decoration-thickness: 1px;
-  background-color: color-mix(in srgb, var(--primary) 10%, transparent);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
 }
 
 .context-menu {
