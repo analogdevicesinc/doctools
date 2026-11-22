@@ -1,10 +1,26 @@
 {
   "text": [
-    "A Sphinx theme called *harmonic* (formerly *cosmic*) is available and\nis based on ADI\u2019s *harmonic* design language.\n",
-    "> **Tip**\n>\n> Depending on your browser and operating system shortcuts, some shortcuts may\n> collide with existing ones, due to this, the script provides many alternatives.\n\n\n`Alt+Shift+ArrowLeft` goes to the previous page and `Alt+Shift+ArrowRight`\nto the next page. Or `Alt+Shift+A` and `Alt+Shift+",
-    "As other Sphinx themes, you set doctools theme customization through the *conf.py*.\nYou add to the `html_theme_options` dictionary:\n\n```python\nhtml_theme_options = {\n    \"light_logo\": path.join(\"path\", \"to\", \"logo_light.svg\"),\n    \"dark_logo\": path.join(\"path\", \"to\", \"logo_dark.svg\"),\n    \"no_index\"",
-    "File-wide metadata are field lists at the top of the file, that\nSphinx parses into document metadata.\n\nBeyond Sphinx special metadata fields, doctools converts some metadata into HTML\nmeta tags.\nThe values and their effects are:\n\n- `no-index`: Appends an\n  \u201cnoindex\u201d meta tag\n  to the page, alternati",
-    "Some directives like `figure` and `toctree` support setting a class with the `class` option; for any directive, `rst-class` can be used, for example:\n\n```rst\n.. rst-class:: hero\n\n**Software**: The best software ever!\n=====================================\n```\n\n\nEnables a fancy landing page. Another n",
+    "A documentation page surrounded by icons, abstract.\n\n\nAnalog Devices Inc.\ndocumentation extensions, themes, and tools for multiple repositories in the\norganization.\n\nRead the Documentation guidelines for writing conventions and the directives\nand roles provided by Doctools.\nSee the Command line inte",
+    "Doctools is developed to work offline, in a local server as a rolling release\n(e.g., on GitHub Pages) and versioned in a dedicated server with orchestration.\n",
+    "For offline and local server, a `make html` suffices to generate the\ndocumentation.\n\nTo serve the build in a local server, Python built-in server can be used:\n\n```bash\n~$ python -m http.server -d /path/to/docs/_build/html\n```\n\n\nOr with hot reload using Serve:\n\n```bash\n~$ adoc serve -d /path/to/docs\n",
+    "For either rolling release or versioned, you can use the shared actions.\n\nFor push to default branch and pull requests:\n\n```yaml\non:\n  push:\n    branches:\n      - main\n      - dev\n      - dev/*\n  pull_request:\n\njobs:\n  build-doc:\n    runs-on: ubuntu-latest\n\n    steps:\n    - uses: actions/checkout@v4",
+    "For a rolling release, a workflow file is used.\nWith GitHub Actions, the following workflow file is recommended:\n\n```yaml\non:\n  push:\n    branches:\n      - main\n  pull_request:\n\njobs:\n  build-doc:\n    runs-on: ubuntu-latest\n\n    steps:\n    - uses: actions/checkout@v4\n    - uses: actions/setup-python",
+    "The live versioned version requires additional orchestration than the\nRolling release.\n\nThe versions are described in `tags.json` file on the root path\nthat can take three formats: a plain string array, a fine-grained path\nmapping, or versions containing packages.\n\nBut first, store each version in s",
+    "The simple `tags.json` is a plain array with each version/path,\ne.g., `[\"v1.1\", \"v2.2\", \"main\", \"dev\", \"\"]`\n(an empty string means there is a built doc on the root and will be named\n`main (unstable)`).\nThe first tag will be labeled with `latest`.\n\n> **Tip**\n>\n> See this repo\u2019s .github/workflows/depl",
+    "The more elaborated option takes the following format:\n\n```json\n{\n  \"path\": [\"name\", \"label\"],\n  // ...\n}\n```\n\n\nFor example:\n\n```json\n{\n  \"main\": [\"main\", \"unstable\"],\n  \"v2.0.0\": [\"v2.0.0\", \"pre-release\"],\n  \"v1.2.1\": [\"v1.2.1\", \"latest\"],\n  \"v1.2.0\": [\"v1.2.0\", \"\"],\n  \"v1.1.7\": [\"v1.1.7\", \"\"],\n  \"",
+    "For SDKs containing multiple independently built packages per version, use\nstable package IDs to associate the same package across releases:\n\n```json\n{\n  \"dev\": {\n    \"label\": \"unstable\",\n    \"packages\": {\n      \"hats\": \"core\",\n      \"shirt\": [\"T-Shirt\", \"new\"],\n      \"pants\": \"\"\n    }\n  },\n  \"main\"",
+    "GitHub Pages does not support git lfs pointers. The tool is able to convert git\nlfs pointers into GitHub raw links\n(`https://media.githubusercontent.com/media/org/repo/branch/path/to/image`), with:\n\n```bash\nexport GIT_LFS_TO_LINKS=\"true\"\nexport GIT_ORG_REPOSITORY=\"${{ github.repository }}\"\n[ \"${{ gi",
+    "If the root does not contain any built doc, add a redirect HTML file pointing\nto the main/stable version:\n\n```default\n<!DOCTYPE html>\n<html>\n  <head>\n    <meta http-equiv=\"refresh\" content=\"0; url=main/index.html\" />\n  </head>\n</html>\n```\n\n\nWith the shared action, this is not supported.\n",
+    "For In-organization references doctools, the doc shall target a specific version by suffixing\nthe target the version on the `interref_repos` variable, e.g.\n`interref_repos = ['pyadi-iio/dev', 'other-repo/v1.1']`.\n",
+    "Doctools has a continuous deployment integration pipeline that works as follows:\n\n```default\n                   \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n                \u250c\u2500\u25ba\u2502Build Doc Latest  \u251c\u2500\u2510\n                \u2502  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518 \u2502\n                \u2502                       \u2502\n\u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510 \u2502  \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510   \u2502",
+    "Below are suggested instructions for setting up `podman` on a Linux environment,\nif you wish to use it as your container engine. If you already use something else\nlike `docker`, **keep it** and skip this section.\n\nAdjust to your preference as needed, and skip the steps marked in green\nif not using W",
+    "Podman default configuration expects a local user to be able to create a user\nnamespace where multiple IDs are mapped and a compatible partition to use as\nthe storage location `graphRoot`.\n\n> **Note**\n>\n> The ideal solution is to create a local **non-root** user and storage\n> location. Podman proces",
+    "To build the container image, use your favorite container engine:\n\n```bash\n~$ cd ~/doctools# or docker, ...\n~/doctools$ podman build --tag adi/doctools:latest ci\n```\n\n\nYou may want to build the container in a host, where you have all your tools installed,\nand then deploy to a server.\nIn this case, e",
+    "At its core, the workflows are straight forward, roughly they do:\n\nThe `Tests` step:\n\n```bash\n~$ cd tests ; pytest\n```\n\n\n`Build Doc *`:\n\n```bash\n~$ cd docs ; make html\n```\n\n\nBut at a specific minimum and maximum supported environment version.\n\n`Custom Doc`:\n\n```bash\n~$ mkdir /tmp/test-pdf ; cd $_\n/t",
+    "To host your GitHub Actions Runner,\nset up your secrets:\n\n```bash\n# e.g. MyVerYSecRunnerToken\n~$ printf RUNNER_TOKEN | podman secret create public_doctools_runner_token -\n```\n\n\nThe runner token is obtained from the GUI at `github.com/<org>/<repository>/settings/actions/runners/new`.\n\nIf `github_toke",
+    "Systemd can run the runner process directly in an isolated environment using\nLinux kernel namespaces. This eliminates the `conmon` intermediate process,\ngives systemd direct ownership of the runner PID, and integrates resource\nlimits into the unit, instead of using Podman/Docker equivalents.\n\nExport",
+    "`MemoryMax=` and `CPUQuota=` require cgroup v2 controllers to be delegated\nto the user slice:\n\n```shell\n$ sudo mkdir -p /etc/systemd/system/user@.service.d\n$ cat <<EOF | sudo tee /etc/systemd/system/user@.service.d/delegate.conf\n$ [Service]\n$ Delegate=cpu cpuset io memory pids\n$ EOF\n$ sudo systemctl",
+    "Instead of passing `runner_token`, you can also pass a `github_token` to\ngenerate the `runner_token` on demand. Using the `github_token` is the\nrecommended approach because during clean-up the original `runner_token` may\nhave expired already.\n\nAlternatively, you can mount a FIFO to `/var/run/secrets",
     "How to do a release install, and a development install of Doctools.\n\nGuaranteed to work with Python 3.9 or newer and distributions released on or after\n20H1 (e.g., Ubuntu 20.04 LTS).\n",
     "```bash\n~$ python3 -m venv venv\n~$ source venv/bin/activate# Ensure pip is newer than 23.0 (https://github.com/pypa/setuptools/issues/3269)\n~$ pip install pip --upgrade\n~$ pip install adi-doctools\n```\n\n\n```bash\n~$ pipx install adi-doctools\n```\n\n\n```bash\n~$ uvx --from adi-doctools adoc\n```\n\n\nTest it ",
     "The tool includes a slim MCP to expose the CLIs. It simply teaches the LLM of\nthe tools available, analogous as a skill file. This methodology ensures the\ncontext window is not penalized.\n\nTo configure the MCP to your AI coding harness, first install with the MCP\nadd-in:\n\n```bash\n~$ python3 -m venv ",
@@ -20,17 +36,7 @@
     "Finally, do a symbolic installation of this repo:\n\n```bash\n~$ pip install -e . --upgrade\n```\n\n\n> **Caution**\n>\n> If using a python virtual environment for the *requirements.txt* packages,\n> do this command with the virtual environment already activated.\n> Mixing pip packages inside and outside the v",
     "Add to you lazyvim config the path to the branch `nvim`:\n\n```lua\n{\n  dir = '/path/to/doctools/nvim',\n  -- ...\n}\n```\n",
     "To remove, either release or development, do:\n\n```bash\n~$ pip uninstall adi-doctools\n```\n",
-    "Doctools has a continuous deployment integration pipeline that works as follows:\n\n```default\n                   \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n                \u250c\u2500\u25ba\u2502Build Doc Latest  \u251c\u2500\u2510\n                \u2502  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518 \u2502\n                \u2502                       \u2502\n\u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510 \u2502  \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510   \u2502",
-    "Below are suggested instructions for setting up `podman` on a Linux environment,\nif you wish to use it as your container engine. If you already use something else\nlike `docker`, **keep it** and skip this section.\n\nAdjust to your preference as needed, and skip the steps marked in green\nif not using W",
-    "Podman default configuration expects a local user to be able to create a user\nnamespace where multiple IDs are mapped and a compatible partition to use as\nthe storage location `graphRoot`.\n\n> **Note**\n>\n> The ideal solution is to create a local **non-root** user and storage\n> location. Podman proces",
-    "To build the container image, use your favorite container engine:\n\n```bash\n~$ cd ~/doctools# or docker, ...\n~/doctools$ podman build --tag adi/doctools:latest ci\n```\n\n\nYou may want to build the container in a host, where you have all your tools installed,\nand then deploy to a server.\nIn this case, e",
-    "At its core, the workflows are straight forward, roughly they do:\n\nThe `Tests` step:\n\n```bash\n~$ cd tests ; pytest\n```\n\n\n`Build Doc *`:\n\n```bash\n~$ cd docs ; make html\n```\n\n\nBut at a specific minimum and maximum supported environment version.\n\n`Custom Doc`:\n\n```bash\n~$ mkdir /tmp/test-pdf ; cd $_\n/t",
-    "To host your GitHub Actions Runner,\nset up your secrets:\n\n```bash\n# e.g. MyVerYSecRunnerToken\n~$ printf RUNNER_TOKEN | podman secret create public_doctools_runner_token -\n```\n\n\nThe runner token is obtained from the GUI at `github.com/<org>/<repository>/settings/actions/runners/new`.\n\nIf `github_toke",
-    "Systemd can run the runner process directly in an isolated environment using\nLinux kernel namespaces. This eliminates the `conmon` intermediate process,\ngives systemd direct ownership of the runner PID, and integrates resource\nlimits into the unit, instead of using Podman/Docker equivalents.\n\nExport",
-    "`MemoryMax=` and `CPUQuota=` require cgroup v2 controllers to be delegated\nto the user slice:\n\n```shell\n$ sudo mkdir -p /etc/systemd/system/user@.service.d\n$ cat <<EOF | sudo tee /etc/systemd/system/user@.service.d/delegate.conf\n$ [Service]\n$ Delegate=cpu cpuset io memory pids\n$ EOF\n$ sudo systemctl",
-    "Instead of passing `runner_token`, you can also pass a `github_token` to\ngenerate the `runner_token` on demand. Using the `github_token` is the\nrecommended approach because during clean-up the original `runner_token` may\nhave expired already.\n\nAlternatively, you can mount a FIFO to `/var/run/secrets",
     "Doctools is the central piece for aggregating multiple documentations together,\nexpanding the standard hierarchical, mono-repo documentation configuration.\n\nThe content is organized in three levels:\n\n- repotoc: Listing of repositories in the same organization that contain\n  documentations.\n  In gene",
-    "A documentation page surrounded by icons, abstract.\n\n\nAnalog Devices Inc.\ndocumentation extensions, themes, and tools for multiple repositories in the\norganization.\n\nRead the Documentation guidelines for writing conventions and the directives\nand roles provided by Doctools.\nSee the Command line inte",
     "The documentation is written in reStructuredText (reST) and built with Sphinx\nand Doctools for HTML and PDF output. For installation and build commands,\nsee Installing and Command line interface.\n\nSections marked sphinx work in any Sphinx documentation.\nSections marked doctools require `adi_doctools",
     "A `.rst` file is a reStructuredText document. In Sphinx, its source path\nwithout the extension is its document name (*docname*):\n`user-guide/setup.rst` becomes `user-guide/setup`. Document names are used in links and navigation.\n\nA page has a title, paragraphs, and sections, for example:\n\n```rst\n.. ",
     "Headings are marked by repeated characters. By convention, `=` is used\nfor titles and `-` for subtitles. The underline must be at least as long\nas the source heading.\nA heading creates a section and appears in the page\u2019s table of contents;\n`rubric` creates a visual heading without a section.\n",
@@ -80,6 +86,11 @@
     "A collection directive describes which pages of\nwhich repositories belong together, and can be used to generate the *doc.yml*:\n\n```bash\n~$ cd /tmp/my_doc\n/tmp/my_doc$ adoc custom-doc ~/documentation/docs/solutions/reference-designs/ad4052-ardz/index.rst\n Generated doc.yml at /tmp/my_doc/doc.yml from",
     "Suppose you edited and tested multiple docs together, it could be helpful\nto try a local inventory file first, to check references before publication.\n\nHaving this in mind, if you build the edited documentation first, and then execute\n`custom-doc`, it will consider the local inventory *objects.inv* ",
     "> **Tip**\n>\n> This feature is useful to batch build/test all tracked documentations.\n\n\nGenerates all documentations of the watched repositories\n(see adi_doctools/lut.py).\n\nTwo generation strategies are available:\n\n- monolithic: patches all docs together into a single monolithic output (default).\n- s",
+    "A Sphinx theme called *harmonic* (formerly *cosmic*) is available and\nis based on ADI\u2019s *harmonic* design language.\n",
+    "> **Tip**\n>\n> Depending on your browser and operating system shortcuts, some shortcuts may\n> collide with existing ones, due to this, the script provides many alternatives.\n\n\n`Alt+Shift+ArrowLeft` goes to the previous page and `Alt+Shift+ArrowRight`\nto the next page. Or `Alt+Shift+A` and `Alt+Shift+",
+    "As other Sphinx themes, you set doctools theme customization through the *conf.py*.\nYou add to the `html_theme_options` dictionary:\n\n```python\nhtml_theme_options = {\n    \"light_logo\": path.join(\"path\", \"to\", \"logo_light.svg\"),\n    \"dark_logo\": path.join(\"path\", \"to\", \"logo_dark.svg\"),\n    \"no_index\"",
+    "File-wide metadata are field lists at the top of the file, that\nSphinx parses into document metadata.\n\nBeyond Sphinx special metadata fields, doctools converts some metadata into HTML\nmeta tags.\nThe values and their effects are:\n\n- `no-index`: Appends an\n  \u201cnoindex\u201d meta tag\n  to the page, alternati",
+    "Some directives like `figure` and `toctree` support setting a class with the `class` option; for any directive, `rst-class` can be used, for example:\n\n```rst\n.. rst-class:: hero\n\n**Software**: The best software ever!\n=====================================\n```\n\n\nEnables a fancy landing page. Another n",
     "Doctools custom Sphinx roles allow better linking, such as git links, and\nformatting, like font coloring.\n\nBelow, every added role is explained with examples. For Sphinx\u2019s built-in roles and\nreferences, see Documentation guidelines.\n\n> **Note**\n>\n> Link-like roles use the `:role:`text <link>`` synta",
     "To print text in red or green, use `:red:`text`` and `:green:`text``.\n",
     "Use `:badge:`text`` to mark a text, for example:\n\n```rst\n.. _example-feature:\n\nExample feature :badge:`new`\n++++++++++++++++++++++++++++\n```\n\n\nIt is styled as capitalize (transforms the first character of each word to\nuppercase), on titles, they also show in the table of contents.\nExample badge: exa",
@@ -92,17 +103,6 @@
     "The ez role creates links to the Analog Devices Inc. EngineerZone support website.\nThe role syntax is `:ez:`community``, for example, `:ez:`fpga``\ngets rendered as EngineerZone.\n\nFor Linux Software Drivers, it is `:ez:`linux-software-drivers``.\n\nFor Microcontroller no-OS Drivers it is `:ez:`microcon",
     "The vendor role creates links to the vendor\u2019s website.\nThe role syntax is `:vendor:`text <path>``, for example,\n`:xilinx:`Zynq-7000 SoC Overview <support/documentation/data_sheets/ds190-Zynq-7000-Overview.pdf>``\ngets rendered\nZynq-7000 SoC Overview.\n\nThe text parameter is optional, if absent, the fi",
     "The supplier role creates links to a vendor\u2019s website search.\nThe role syntax is `:vendor:`text <path>``, for example,\n`:digikey:`AD9081-FMCA-EBZ``\ngets rendered\nAD9081-FMCA-EBZ.\n\nThe text parameter is optional.\n\nSupported vendors are: `digikey` (Digikey), `mouser` (Mouser) and\n`arrow` (Arrow).\n",
-    "Doctools is developed to work offline, in a local server as a rolling release\n(e.g., on GitHub Pages) and versioned in a dedicated server with orchestration.\n",
-    "For offline and local server, a `make html` suffices to generate the\ndocumentation.\n\nTo serve the build in a local server, Python built-in server can be used:\n\n```bash\n~$ python -m http.server -d /path/to/docs/_build/html\n```\n\n\nOr with hot reload using Serve:\n\n```bash\n~$ adoc serve -d /path/to/docs\n",
-    "For either rolling release or versioned, you can use the shared actions.\n\nFor push to default branch and pull requests:\n\n```yaml\non:\n  push:\n    branches:\n      - main\n      - dev\n      - dev/*\n  pull_request:\n\njobs:\n  build-doc:\n    runs-on: ubuntu-latest\n\n    steps:\n    - uses: actions/checkout@v4",
-    "For a rolling release, a workflow file is used.\nWith GitHub Actions, the following workflow file is recommended:\n\n```yaml\non:\n  push:\n    branches:\n      - main\n  pull_request:\n\njobs:\n  build-doc:\n    runs-on: ubuntu-latest\n\n    steps:\n    - uses: actions/checkout@v4\n    - uses: actions/setup-python",
-    "The live versioned version requires additional orchestration than the\nRolling release.\n\nThe versions are described in `tags.json` file on the root path\nthat can take three formats: a plain string array, a fine-grained path\nmapping, or versions containing packages.\n\nBut first, store each version in s",
-    "The simple `tags.json` is a plain array with each version/path,\ne.g., `[\"v1.1\", \"v2.2\", \"main\", \"dev\", \"\"]`\n(an empty string means there is a built doc on the root and will be named\n`main (unstable)`).\nThe first tag will be labeled with `latest`.\n\n> **Tip**\n>\n> See this repo\u2019s .github/workflows/depl",
-    "The more elaborated option takes the following format:\n\n```json\n{\n  \"path\": [\"name\", \"label\"],\n  // ...\n}\n```\n\n\nFor example:\n\n```json\n{\n  \"main\": [\"main\", \"unstable\"],\n  \"v2.0.0\": [\"v2.0.0\", \"pre-release\"],\n  \"v1.2.1\": [\"v1.2.1\", \"latest\"],\n  \"v1.2.0\": [\"v1.2.0\", \"\"],\n  \"v1.1.7\": [\"v1.1.7\", \"\"],\n  \"",
-    "For SDKs containing multiple independently built packages per version, use\nstable package IDs to associate the same package across releases:\n\n```json\n{\n  \"dev\": {\n    \"label\": \"unstable\",\n    \"packages\": {\n      \"hats\": \"core\",\n      \"shirt\": [\"T-Shirt\", \"new\"],\n      \"pants\": \"\"\n    }\n  },\n  \"main\"",
-    "GitHub Pages does not support git lfs pointers. The tool is able to convert git\nlfs pointers into GitHub raw links\n(`https://media.githubusercontent.com/media/org/repo/branch/path/to/image`), with:\n\n```bash\nexport GIT_LFS_TO_LINKS=\"true\"\nexport GIT_ORG_REPOSITORY=\"${{ github.repository }}\"\n[ \"${{ gi",
-    "If the root does not contain any built doc, add a redirect HTML file pointing\nto the main/stable version:\n\n```default\n<!DOCTYPE html>\n<html>\n  <head>\n    <meta http-equiv=\"refresh\" content=\"0; url=main/index.html\" />\n  </head>\n</html>\n```\n\n\nWith the shared action, this is not supported.\n",
-    "For In-organization references doctools, the doc shall target a specific version by suffixing\nthe target the version on the `interref_repos` variable, e.g.\n`interref_repos = ['pyadi-iio/dev', 'other-repo/v1.1']`.\n",
     "Configuration, extension development, and theme internals.\nFor writing pages, see Documentation guidelines; for building and\npublishing, see Command line interface and Versioned.\n",
     "Repositories have the freedom to choose the third-party extensions they want to\ninclude in their documentation.\nThey are listed in the *requirements.txt* file, and are installed with:\n\n```bash\npip install -r requirements.txt\n```\n\n\nRegister the extensions in `conf.py`.\n\nThe recommendation is to avoid",
     "Hot reload replaces page content without reloading the browser document.\nScripts that only initialize on `DOMContentLoaded` will not automatically\nprocess the replacement content.\n\nSee adi_doctools/theme/harmonic/scripts/hot_reload.js:\n`sync_scripts` tracks page scripts and `ensure_script` handles l",
@@ -144,11 +144,27 @@
     "Set `hide_collapsible_content` to `True` to hide the *collapsibles* by default.\n\nSet `monolithic` to `True` prefix paths with *<repo>*.\nThis is meant for the Custom Doc custom documents only.\n"
   ],
   "url": [
-    "theme",
-    "theme#shortcuts",
-    "theme#theme-options",
-    "theme#metadata",
-    "theme#direct-classes",
+    "",
+    "deploy",
+    "deploy#local",
+    "deploy#github-pages-deployment",
+    "deploy#rolling-release",
+    "deploy#versioned",
+    "deploy#string-array-form",
+    "deploy#fine-grained-form",
+    "deploy#package-form",
+    "deploy#git-lfs",
+    "deploy#i-don-t-want-a-doc-at-the-root",
+    "deploy#how-do-i-cross-reference-a-specific-version",
+    "ci",
+    "ci#configure-podman",
+    "ci#network-users-partitions",
+    "ci#build-the-container-image",
+    "ci#interactive-run",
+    "ci#self-hosted-runner",
+    "ci#self-hosted-cluster",
+    "ci#resource-quotas",
+    "ci#runner-token-and-github-token",
     "install",
     "install#release-install",
     "install#mcp-integration",
@@ -164,17 +180,7 @@
     "install#install-the-repository",
     "install#id3",
     "install#removing",
-    "ci",
-    "ci#configure-podman",
-    "ci#network-users-partitions",
-    "ci#build-the-container-image",
-    "ci#interactive-run",
-    "ci#self-hosted-runner",
-    "ci#self-hosted-cluster",
-    "ci#resource-quotas",
-    "ci#runner-token-and-github-token",
     "fundamentals#documentation-hierarchical-structure",
-    "",
     "docs_guidelines",
     "docs_guidelines#writing-a-page",
     "docs_guidelines#headings",
@@ -224,6 +230,11 @@
     "cli#generate-the-doc-yml-from-a-collection",
     "cli#working-with-multiple-docs",
     "cli#aggregate",
+    "theme",
+    "theme#shortcuts",
+    "theme#theme-options",
+    "theme#metadata",
+    "theme#direct-classes",
     "docs_guidelines/roles",
     "docs_guidelines/roles#color",
     "docs_guidelines/roles#badges",
@@ -236,17 +247,6 @@
     "docs_guidelines/roles#engineerzone",
     "docs_guidelines/roles#vendor",
     "docs_guidelines/roles#supplier",
-    "deploy",
-    "deploy#local",
-    "deploy#github-pages-deployment",
-    "deploy#rolling-release",
-    "deploy#versioned",
-    "deploy#string-array-form",
-    "deploy#fine-grained-form",
-    "deploy#package-form",
-    "deploy#git-lfs",
-    "deploy#i-don-t-want-a-doc-at-the-root",
-    "deploy#how-do-i-cross-reference-a-specific-version",
     "docs_guidelines/advanced",
     "docs_guidelines/advanced#third-party-extensions",
     "docs_guidelines/advanced#support-custom-javascript-in-hot-reload",
@@ -289,23 +289,94 @@
   ],
   "hierarchy": [
     [
-      "Sphinx theme"
+      "Analog Devices Doctools"
     ],
     [
-      "Sphinx theme",
-      "Shortcuts"
+      "Documentation deployment"
     ],
     [
-      "Sphinx theme",
-      "Theme options"
+      "Documentation deployment",
+      "Local"
     ],
     [
-      "Sphinx theme",
-      "Metadata"
+      "Documentation deployment",
+      "GitHub Pages deployment"
     ],
     [
-      "Sphinx theme",
-      "Direct classes"
+      "Documentation deployment",
+      "GitHub Pages deployment",
+      "Rolling release"
+    ],
+    [
+      "Documentation deployment",
+      "GitHub Pages deployment",
+      "Versioned"
+    ],
+    [
+      "Documentation deployment",
+      "GitHub Pages deployment",
+      "String array form"
+    ],
+    [
+      "Documentation deployment",
+      "GitHub Pages deployment",
+      "Fine-grained form"
+    ],
+    [
+      "Documentation deployment",
+      "GitHub Pages deployment",
+      "Package form"
+    ],
+    [
+      "Documentation deployment",
+      "GitHub Pages deployment",
+      "Git LFS"
+    ],
+    [
+      "Documentation deployment",
+      "Further notes",
+      "I don\u2019t want a doc at the root"
+    ],
+    [
+      "Documentation deployment",
+      "Further notes",
+      "How do I cross-reference a specific version?"
+    ],
+    [
+      "Continuous integration"
+    ],
+    [
+      "Continuous integration",
+      "Configure podman"
+    ],
+    [
+      "Continuous integration",
+      "Configure podman",
+      "Network users & partitions"
+    ],
+    [
+      "Continuous integration",
+      "Build the container image"
+    ],
+    [
+      "Continuous integration",
+      "Interactive run"
+    ],
+    [
+      "Continuous integration",
+      "Self-hosted runner"
+    ],
+    [
+      "Continuous integration",
+      "Self-hosted cluster"
+    ],
+    [
+      "Continuous integration",
+      "Resource quotas"
+    ],
+    [
+      "Continuous integration",
+      "Runner token and GitHub token"
     ],
     [
       "Installing"
@@ -379,47 +450,8 @@
       "Removing"
     ],
     [
-      "Continuous integration"
-    ],
-    [
-      "Continuous integration",
-      "Configure podman"
-    ],
-    [
-      "Continuous integration",
-      "Configure podman",
-      "Network users & partitions"
-    ],
-    [
-      "Continuous integration",
-      "Build the container image"
-    ],
-    [
-      "Continuous integration",
-      "Interactive run"
-    ],
-    [
-      "Continuous integration",
-      "Self-hosted runner"
-    ],
-    [
-      "Continuous integration",
-      "Self-hosted cluster"
-    ],
-    [
-      "Continuous integration",
-      "Resource quotas"
-    ],
-    [
-      "Continuous integration",
-      "Runner token and GitHub token"
-    ],
-    [
       "Fundamentals",
       "Documentation hierarchical structure"
-    ],
-    [
-      "Analog Devices Doctools"
     ],
     [
       "Documentation guidelines"
@@ -644,6 +676,25 @@
       "Aggregate"
     ],
     [
+      "Sphinx theme"
+    ],
+    [
+      "Sphinx theme",
+      "Shortcuts"
+    ],
+    [
+      "Sphinx theme",
+      "Theme options"
+    ],
+    [
+      "Sphinx theme",
+      "Metadata"
+    ],
+    [
+      "Sphinx theme",
+      "Direct classes"
+    ],
+    [
       "Documentation guidelines",
       "Custom roles"
     ],
@@ -709,57 +760,6 @@
       "Custom roles",
       "Link",
       "Supplier"
-    ],
-    [
-      "Documentation deployment"
-    ],
-    [
-      "Documentation deployment",
-      "Local"
-    ],
-    [
-      "Documentation deployment",
-      "GitHub Pages deployment"
-    ],
-    [
-      "Documentation deployment",
-      "GitHub Pages deployment",
-      "Rolling release"
-    ],
-    [
-      "Documentation deployment",
-      "GitHub Pages deployment",
-      "Versioned"
-    ],
-    [
-      "Documentation deployment",
-      "GitHub Pages deployment",
-      "String array form"
-    ],
-    [
-      "Documentation deployment",
-      "GitHub Pages deployment",
-      "Fine-grained form"
-    ],
-    [
-      "Documentation deployment",
-      "GitHub Pages deployment",
-      "Package form"
-    ],
-    [
-      "Documentation deployment",
-      "GitHub Pages deployment",
-      "Git LFS"
-    ],
-    [
-      "Documentation deployment",
-      "Further notes",
-      "I don\u2019t want a doc at the root"
-    ],
-    [
-      "Documentation deployment",
-      "Further notes",
-      "How do I cross-reference a specific version?"
     ],
     [
       "Documentation guidelines",
