@@ -35,6 +35,37 @@ export const ROLE_GROUPS = [
   ]]
 ]
 
+// What a directive and a role are, said at the top of what to choose from:
+// a directive is a block, a role is in the line. The example changes each
+// time it is shown.
+export const ABOUT = {
+  directive: {
+    text: 'Add block markup,',
+    examples: ['a note', 'a figure', 'a code block', 'a table', 'a set of tabs', 'a warning', 'a table of contents'],
+    // Lines of text, and a block between them: its name, its content
+    icon: `<rect class="i-text" x="6" y="5" width="36" height="3" rx="1.5"/>
+<rect class="i-text" x="6" y="40" width="24" height="3" rx="1.5"/>
+<rect class="i-box" x="6" y="13" width="36" height="22" rx="4"/>
+<rect class="i-name" x="11" y="18" width="11" height="3.5" rx="1.75"/>
+<rect class="i-mark" x="11" y="25" width="26" height="2.5" rx="1.25"/>
+<rect class="i-mark" x="11" y="29.5" width="17" height="2.5" rx="1.25"/>`
+  },
+  role: {
+    text: 'Add inline markup,',
+    examples: ['a reference', 'a link to a page', 'keys to press', 'a formula', 'a link to a repository', 'an abbreviation'],
+    // Lines of text, and a chip in one of them: its name, what it points to
+    icon: `<rect class="i-text" x="6" y="9" width="36" height="3" rx="1.5"/>
+<rect class="i-text" x="6" y="36" width="26" height="3" rx="1.5"/>
+<rect class="i-text" x="6" y="22.5" width="8" height="3" rx="1.5"/>
+<rect class="i-box" x="17" y="17.5" width="25" height="13" rx="6.5"/>
+<rect class="i-name" x="21.5" y="22.25" width="5" height="3.5" rx="1.75"/>
+<rect class="i-mark" x="28.5" y="22.5" width="9.5" height="3" rx="1.5"/>`
+  }
+}
+
+// The example of a kind, another one each time: 0, 1, 2, ... give them in turn
+export const exampleOf = (kind, turn) => ABOUT[kind].examples[turn % ABOUT[kind].examples.length]
+
 // What a directive is filled with when it is added: its options and its
 // content, as lines, indented as its content
 const TEMPLATES = {

@@ -106,3 +106,11 @@ test('a table is added, of rows and columns', () => {
   // In a list item, indented as its text
   assert.equal(run('* one|\n', table('grid', 1, 1)), '* one\n\n  +----------+\n  | |         |\n  +----------+\n')
 })
+
+test('what a directive and a role are, with another example each time', async () => {
+  const { ABOUT, exampleOf } = await import('../adoc_gui/web/insert.js')
+  assert.equal(`${ABOUT.directive.text} like ${exampleOf('directive', 0)}.`, 'Add block markup, like a note.')
+  assert.equal(`${ABOUT.role.text} like ${exampleOf('role', 0)}.`, 'Add inline markup, like a reference.')
+  assert.notEqual(exampleOf('role', 1), exampleOf('role', 0))
+  assert.equal(exampleOf('role', ABOUT.role.examples.length), 'a reference')
+})

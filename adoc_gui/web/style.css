@@ -260,6 +260,15 @@ body {
 }
 .picker[hidden] { display: none; }
 .picker.table { width: auto; }
+/* What it adds, in a line, with its drawing: three colours, the text, the
+   markup and its name */
+.picker-head { flex: none; display: flex; align-items: center; gap: 10px; padding: 10px 12px 0; color: var(--on-surface-variant); }
+.picker-head svg { flex: none; width: 40px; height: 40px; }
+.picker-head .i-text { fill: var(--outline-variant); }
+.picker-head .i-box { fill: var(--secondary-container); stroke: var(--primary); stroke-width: 1.5; }
+.picker-head .i-mark { fill: var(--primary); }
+.picker-head .i-name { fill: #ff9100; }
+.picker-head strong { font-weight: 600; color: var(--on-surface); }
 .picker-search {
   flex: none;
   height: 34px;

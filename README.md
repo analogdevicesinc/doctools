@@ -38,7 +38,9 @@ The page has three parts:
   bold, italic and literal; `Ctrl+Z` / `Ctrl+Y` undo and redo. The selector
   of the toolbar makes the line of the caret a heading of a level, or text
   again; a level cannot be skipped. *Directive*, *Role* and *Table*, in the
-  toolbar, add one:
+  toolbar, add one; a directive is block markup, a role is inline markup,
+  which their icons and the line at the top of what they open say, with an
+  example that changes each time:
   - *Directive*: the directives in groups (admonitions, images and media,
     code, tables, layout, structure, HDL), and the others of the project
     when the documentation server runs. The one chosen is added after the

@@ -13,7 +13,7 @@ import { completionAt, matching, roleQuestion, hasPreview, shortTarget } from '.
 import {
   orderRoles, filterRoles, filterLabel, roleOpen, searchTargets, referenceText, referenceQuestion, pageOf
 } from './refs.js'
-import { pickerGroups, templateOf } from './insert.js'
+import { pickerGroups, templateOf, ABOUT, exampleOf } from './insert.js'
 import { optionChoices, optionSpec, FLAG } from './directives.js'
 import { SparseSelection } from './sparse.js'
 import { ContextMenu } from './contextmenu.js'
@@ -308,6 +308,22 @@ function projectNames(kind) {
   return answers.get(key).then(answer => Array.isArray(answer.list) ? answer.list.map(entry => entry.name) : [])
 }
 
+// How many times each was opened: its example is another one each time
+const pickerTurns = { directive: 0, role: 0 }
+
+// 'Add block markup, like a note.', with its drawing
+function pickerHead(kind) {
+  const head = element('div', 'picker-head')
+  const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+  icon.setAttribute('viewBox', '0 0 48 48')
+  icon.setAttribute('aria-hidden', 'true')
+  icon.innerHTML = ABOUT[kind].icon
+  const line = element('span')
+  line.append(element('strong', '', ABOUT[kind].text), ` like ${exampleOf(kind, pickerTurns[kind]++)}.`)
+  head.append(icon, line)
+  return head
+}
+
 let pickerMore = []
 function renderPicker(first = false) {
   let search = picker.querySelector('.picker-search')
@@ -318,7 +334,7 @@ function renderPicker(first = false) {
     search.autocomplete = 'off'
     search.placeholder = pickerKind === 'role' ? 'Search the roles' : 'Search the directives'
     search.setAttribute('aria-label', search.placeholder)
-    picker.replaceChildren(search, element('div', 'picker-list'))
+    picker.replaceChildren(pickerHead(pickerKind), search, element('div', 'picker-list'))
     pickerIndex = 0
     pickerMore = []
     const kind = pickerKind
