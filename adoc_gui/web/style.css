@@ -273,15 +273,30 @@ body {
   color: var(--on-surface);
   background: var(--surface);
   box-shadow: var(--shadow-raised);
-  overflow: auto;
+  overflow: hidden auto;
 }
 .tutorial::backdrop { background: rgb(16 24 32 / .45); }
 .tutorial[open] { animation: preview-in 0.16s ease-out; }
-.tutorial-close { position: absolute; top: 8px; right: 8px; width: 32px; height: 32px; padding: 4px; }
+.tutorial-close { position: absolute; z-index: 1; top: 8px; right: 8px; width: 32px; height: 32px; padding: 4px; }
+/* The panels side by side: the row scrolls and snaps to one of them, and
+   fades at its sides, where a panel comes in and goes out. It is as high as
+   the highest panel, so what is below it stays where it is. */
+.tutorial-track {
+  display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+  outline: none;
+  mask-image: linear-gradient(to right, transparent, #000 36px, #000 calc(100% - 36px), transparent);
+}
+.tutorial-track::-webkit-scrollbar { display: none; }
+.tutorial-slide { flex: 0 0 100%; min-width: 0; scroll-snap-align: center; scroll-snap-stop: always; }
 .tutorial-art { display: grid; place-items: center; height: 180px; background: var(--surface-container-low); }
 .tutorial-art svg { width: 300px; max-width: 86%; height: 150px; }
-.tutorial-title { margin: 20px 28px 8px; font: 600 20px/26px var(--heading); }
-.tutorial-text { min-height: 148px; margin: 0 28px; color: var(--on-surface-variant); }
+.tutorial-title { margin: 20px 36px 8px; font: 600 20px/26px var(--heading); }
+.tutorial-text { margin: 0 36px; color: var(--on-surface-variant); }
 .tutorial-text p { margin: 0 0 10px; }
 .tutorial-text code {
   padding: 1px 5px;

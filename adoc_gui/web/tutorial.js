@@ -103,8 +103,10 @@ function paragraph(text) {
   return el
 }
 
-// The guide in a dialog: one panel at a time, with what goes to the next and
-// the previous one. Returns { open }, onClose is called when it is left.
+// The guide in a dialog: its panels side by side in a row that scrolls and
+// snaps to one of them, so going to the next one slides it in, and a swipe
+// does the same. The row is as high as its highest panel: what is below it
+// does not move. Returns { open }, onClose is called when it is left.
 export function tutorial(dialog, onClose = () => {}) {
   let index = 0
   const make = (tag, className, text) => {
@@ -113,46 +115,74 @@ export function tutorial(dialog, onClose = () => {}) {
     if (text !== undefined) el.textContent = text
     return el
   }
-  const art = make('div', 'tutorial-art')
-  const title = make('h2', 'tutorial-title')
-  title.id = 'tutorial-title'
-  const text = make('div', 'tutorial-text')
-  const dots = make('div', 'tutorial-dots')
+  const track = make('div', 'tutorial-track')
+  track.tabIndex = -1
+  const slides = SLIDES.map((slide, i) => {
+    const el = make('section', 'tutorial-slide')
+    el.setAttribute('aria-label', `${i + 1} of ${SLIDES.length}`)
+    const art = make('div', 'tutorial-art')
+    art.innerHTML = `<svg viewBox="0 0 240 120" aria-hidden="true">${slide.icon}</svg>`
+    const text = make('div', 'tutorial-text')
+    text.append(...slide.text.map(paragraph))
+    el.append(art, make('h2', 'tutorial-title', slide.title), text)
+    return el
+  })
+  track.append(...slides)
+
   const back = make('button', 'text-button plain', 'Back')
   const next = make('button', 'build-button tutorial-next')
   const close = make('button', 'icon-button tutorial-close')
   for (const button of [back, next, close]) button.type = 'button'
   close.title = 'Close the guide'
   close.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>'
+  const dots = make('div', 'tutorial-dots')
+  const marks = SLIDES.map((slide, i) => {
+    const dot = make('button', 'tutorial-dot')
+    dot.type = 'button'
+    dot.title = slide.title
+    dot.setAttribute('aria-label', `${i + 1} of ${SLIDES.length}: ${slide.title}`)
+    dot.addEventListener('click', () => go(i))
+    return dot
+  })
+  dots.append(...marks)
   const foot = make('div', 'tutorial-foot')
   foot.append(back, dots, next)
-  dialog.setAttribute('aria-labelledby', title.id)
-  dialog.replaceChildren(close, art, title, text, foot)
+  dialog.setAttribute('aria-label', 'Guide')
+  dialog.replaceChildren(close, track, foot)
 
-  const show = at => {
-    index = Math.max(Math.min(at, SLIDES.length - 1), 0)
-    const slide = SLIDES[index]
-    art.innerHTML = `<svg viewBox="0 0 240 120" aria-hidden="true">${slide.icon}</svg>`
-    title.textContent = slide.title
-    text.replaceChildren(...slide.text.map(paragraph))
-    dots.replaceChildren(...SLIDES.map((other, i) => {
-      const dot = make('button', 'tutorial-dot')
-      dot.type = 'button'
-      dot.title = other.title
-      dot.setAttribute('aria-label', `${i + 1} of ${SLIDES.length}: ${other.title}`)
+  // What says which panel is shown
+  const mark = at => {
+    index = at
+    marks.forEach((dot, i) => {
       if (i === index) dot.setAttribute('aria-current', 'step')
-      dot.addEventListener('click', () => show(i))
-      return dot
-    }))
+      else dot.removeAttribute('aria-current')
+    })
+    slides.forEach((slide, i) => {
+      slide.inert = i !== index
+    })
     back.style.visibility = index ? 'visible' : 'hidden'
     next.textContent = index === SLIDES.length - 1 ? 'Start writing' : 'Next'
   }
-  back.addEventListener('click', () => show(index - 1))
-  next.addEventListener('click', () => index === SLIDES.length - 1 ? dialog.close() : show(index + 1))
+  // Slide to a panel, at once when the motion is not wanted
+  function go(at, smooth = true) {
+    const target = Math.max(Math.min(at, SLIDES.length - 1), 0)
+    const still = !smooth || matchMedia('(prefers-reduced-motion: reduce)').matches
+    track.scrollTo({ left: slides[target].offsetLeft - slides[0].offsetLeft, behavior: still ? 'instant' : 'smooth' })
+    mark(target)
+  }
+  // Scrolled by hand, a swipe: the panel that is nearest
+  track.addEventListener('scroll', () => {
+    const at = Math.round(track.scrollLeft / Math.max(track.clientWidth, 1))
+    if (at !== index && Math.abs(track.scrollLeft - at * track.clientWidth) < 2) mark(Math.max(Math.min(at, SLIDES.length - 1), 0))
+  }, { passive: true })
+
+  back.addEventListener('click', () => go(index - 1))
+  next.addEventListener('click', () => index === SLIDES.length - 1 ? dialog.close() : go(index + 1))
   close.addEventListener('click', () => dialog.close())
   dialog.addEventListener('keydown', ev => {
-    if (ev.key === 'ArrowRight') show(index + 1)
-    else if (ev.key === 'ArrowLeft') show(index - 1)
+    if (ev.key !== 'ArrowRight' && ev.key !== 'ArrowLeft') return
+    ev.preventDefault()
+    go(index + (ev.key === 'ArrowRight' ? 1 : -1))
   })
   // A click beside it leaves it
   dialog.addEventListener('click', ev => {
@@ -162,8 +192,8 @@ export function tutorial(dialog, onClose = () => {}) {
 
   return {
     open() {
-      show(0)
       if (!dialog.open) dialog.showModal()
+      go(0, false)
       next.focus()
     }
   }
