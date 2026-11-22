@@ -678,13 +678,35 @@ function setScreen(name) {
   }
   if (name === 'editor' && state.model) showGitMarks()
 }
+// The side pane, when it is hidden: a button for each of its tabs that is
+// there, which shows the pane on that tab
+const openTabs = document.getElementById('open-source')
+for (const [name, [label, icon]] of Object.entries(MORE)) {
+  const button = element('button', 'icon-button')
+  button.type = 'button'
+  button.dataset.openTab = name
+  button.title = `Show the ${label.toLowerCase()}`
+  button.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${icon}"/></svg>`
+  openTabs.append(button)
+}
+openTabs.addEventListener('click', ev => {
+  const button = ev.target.closest('[data-open-tab]')
+  if (button) selectTab(button.dataset.openTab)
+})
+function renderOpenTabs() {
+  for (const button of openTabs.children) {
+    button.hidden = document.querySelector(`.tab[data-tab=${button.dataset.openTab}]`).hidden
+    button.setAttribute('aria-pressed', String(button.dataset.openTab === state.tab))
+  }
+}
+// The tabs come and go: with the documentation server, with git
+new MutationObserver(renderOpenTabs).observe(document.querySelector('.tabs'), { attributes: true, attributeFilter: ['hidden'], subtree: true })
+
 function renderMore() {
   const [label, icon] = MORE[state.tab] ?? MORE.source
   document.getElementById('more-label').textContent = label
   document.getElementById('more-icon').setAttribute('d', icon)
-  // The button that shows the side pane when it is hidden: the same
-  document.getElementById('open-source-icon').setAttribute('d', icon)
-  document.getElementById('open-source').title = `Show the side pane: ${label.toLowerCase()}`
+  renderOpenTabs()
 }
 bottomBar.addEventListener('click', ev => {
   const button = ev.target.closest('button')

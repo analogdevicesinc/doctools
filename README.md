@@ -101,7 +101,8 @@ change of it is staged. The page is as wide as it is read well when the
 window allows, and only narrower to leave their place to the panels that are
 shown. The files float at the left of the window and the
 side pane at the right of the page; the cross in each hides it, and a button in its corner, below the
-toolbar, shows it again. The top bar switches between the light and the dark
+toolbar, shows it again; for the side pane, a button for each of its tabs,
+to go right to it. The top bar switches between the light and the dark
 theme: as in the Doctools theme, the one of the system until another is
 chosen.
 
