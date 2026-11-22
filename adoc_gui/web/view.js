@@ -25,29 +25,77 @@ function imageOf(model, block) {
   return { src, width: options.width, scale: options.scale, align: options.align, alt: options.alt }
 }
 
-// The image, shown as it is built: not part of the text
-function imageElement(model, block) {
-  const { src, width, scale, align, alt } = imageOf(model, block)
-  const box = document.createElement('div')
-  box.className = 'figure-image'
-  box.contentEditable = 'false'
+// The caret of the page while it is rendered, undefined without one, and
+// the model that is rendered
+let caretAt
+let settleModel
+
+// Whether the path of an image is being written: the caret is in it
+function typingPath(block, caret) {
+  const caption = block.children.find(c => c.kind === 'caption')
+  return caret !== undefined && caption !== undefined && caption.s <= caret && caret <= caption.e
+}
+
+// Show an image as it is written: { src, width, scale, align, alt }. It is
+// loaded again only when its path changed, or when it was not found and
+// retry is set.
+function applyImage(box, image, retry = false) {
+  const { src, width, scale, align, alt } = image
+  box.wanted = undefined
   if (align) box.dataset.align = align
-  if (!src) return box
-  const img = document.createElement('img')
+  else delete box.dataset.align
+  let img = box.querySelector('img')
+  if (!src) {
+    img?.remove()
+    box.shown = undefined
+    box.classList.remove('missing')
+    return
+  }
+  if (!img || box.shown !== src || (retry && box.classList.contains('missing'))) {
+    img?.remove()
+    box.classList.remove('missing')
+    img = document.createElement('img')
+    img.loading = 'lazy'
+    img.draggable = false
+    img.addEventListener('error', () => {
+      box.classList.add('missing')
+      box.dataset.missing = `Image not found: ${src}`
+    })
+    img.src = imageUrl(src)
+    box.shown = src
+    box.append(img)
+  }
   img.alt = alt ?? ''
-  img.loading = 'lazy'
-  img.draggable = false
-  if (width && /^\d+(\.\d+)?(px|%|em|rem)?$/.test(width)) img.style.width = /\d$/.test(width) ? `${width}px` : width
-  else if (scale && /^\d+%?$/.test(scale)) img.style.width = `${parseInt(scale, 10)}%`
-  img.addEventListener('error', () => {
-    box.classList.add('missing')
-    box.dataset.missing = `Image not found: ${src}`
-  })
-  img.src = imageUrl(src)
-  box.append(img)
+  img.style.width = width && /^\d+(\.\d+)?(px|%|em|rem)?$/.test(width) ? (/\d$/.test(width) ? `${width}px` : width)
+    : scale && /^\d+%?$/.test(scale) ? `${parseInt(scale, 10)}%` : ''
+}
+
+// The image, shown as it is built: not part of the text. old: the one the
+// directive had. While its path is being written the image is left as it is:
+// each character would be a path that is not found. See settleImages.
+function imageElement(model, block, old) {
+  const box = old ?? document.createElement('div')
+  if (!old) {
+    box.className = 'figure-image'
+    box.contentEditable = 'false'
+  }
+  const image = imageOf(model, block)
+  if (typingPath(block, caretAt) && image.src !== box.shown) box.wanted = image
+  else applyImage(box, image)
   return box
 }
 
+// Show the images whose path was being written, once the caret is out of
+// it; caret: undefined when the page does not have the focus. retry: look
+// again for the ones that were not found, as after a build.
+export function settleImages(root, caret, retry = false) {
+  for (const box of root.querySelectorAll('.figure-image')) {
+    const block = box.parentElement?.block
+    if (box.wanted && !(block && typingPath(block, caret))) applyImage(box, box.wanted)
+    else if (retry && !box.wanted && block && box.classList.contains('missing'))
+      applyImage(box, imageOf(settleModel, block), true)
+  }
+}
 // Makes the element of the code of a code directive, from the one it had:
 // (model, directive, old) => element
 let codeHost
@@ -326,7 +374,10 @@ function renderBlock(model, block, attached = [], old) {
     const after = []
     if (block.takesOptions) after.push(button('add-option', 'Add an option'))
     // The image of an image, a figure or a svg: after its path and its options
-    if (IMAGE_DIRECTIVES.has(block.name)) after.push(imageElement(model, block))
+    if (IMAGE_DIRECTIVES.has(block.name)) {
+      el.image = imageElement(model, block, old?.image)
+      after.push(el.image)
+    }
     inner.splice(head, 0, ...after)
   }
   nodes.push(...el.leaves, ...inner)
@@ -404,6 +455,8 @@ function leafElements(root) {
 // caret: a source offset where the caret must be able to go, an empty
 // paragraph is shown there when no text holds it
 export function render(root, model, caret) {
+  caretAt = caret
+  settleModel = model
   leafCache = undefined
   for (const el of root.querySelectorAll('.caret-place')) el.remove()
   const before = root.firstElementChild
@@ -529,6 +582,7 @@ export function markActive(root, offset, scroll = false) {
 // virtual text of an editor. items: [{ line, message, severity }]
 export function showDiagnostics(root, model, items) {
   for (const el of root.querySelectorAll('.diag')) el.remove()
+  for (const el of root.querySelectorAll('.figure-image.reported')) el.classList.remove('reported')
   for (const el of root.querySelectorAll('.has-warning, .has-error')) el.classList.remove('has-warning', 'has-error')
 
   const blocks = [...root.querySelectorAll('.block')].filter(el => el.dataset.kind !== 'document')
@@ -553,6 +607,9 @@ export function showDiagnostics(root, model, items) {
     note.contentEditable = 'false'
     note.textContent = item.message
     host.classList.add(`has-${item.severity}`)
+    // The build says that the image is not there: it is not said twice
+    if (/image file not readable|not readable|cannot be read|not found/i.test(item.message))
+      host.querySelector(':scope > .figure-image')?.classList.add('reported')
     if (host.tagName === 'LI') host.append(note)
     else host.after(note)
   }

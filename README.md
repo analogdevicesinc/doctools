@@ -81,8 +81,9 @@ from LanguageTool. The selector at the right of the toolbar picks where it
 runs: *Local* (`pip install language_tool_python`, needs Java; the first
 check starts it and takes a few seconds), *Cloud* (the public service of
 LanguageTool: the text is sent to languagetool.org, 20 checks a minute) or
-*Off*. The right click on one shows its
-corrections; a word can be added to the words that are not mistakes, kept by
+*Off*. The pointer on one shows what it is and what corrects it, in a card;
+the right click on one shows its
+corrections, to choose one; a word can be added to the words that are not mistakes, kept by
 the browser.
 
 The text typed in a paragraph is wrapped in the source to fewer than 80
@@ -145,7 +146,8 @@ changes. `adoc-gui --serve` starts it right away. While it runs:
 - A menu completes the roles, the directives and their targets while they are
   typed: `:`, `` :ref:` ``, `:external+`, `.. `. The arrows select, `Enter` or
   `Tab` accept, `Escape` closes.
-- The pointer over a role shows what it points to. For a reference into a
+- The pointer over a role shows what it points to, in a card: where a role
+  that makes an address leads, or that its target is not found. For a reference into a
   documentation, the one of the project (`:ref:`, `:doc:`, ...) or the one of
   an inventory (`:external+`), a card shows the title of its target, the
   first text of it, and where it is; the same card is beside the menu, for
@@ -251,7 +253,7 @@ a tree that is updated incrementally can differ from a fresh one.
 | `code`, `code-block`, `sourcecode`, `shell` | A code editor, coloured by the language of the argument; the indentation of the source is not shown, and is added to what is written |
 | `carousel`, `collapsible`, `card`, `grid`, `flex`, `figure`, `video`, `only`, ... | A box with their name, caption and options, the content is edited as a document |
 | `rst-class` | A box with its name and the class to type, no content |
-| `image`, `figure`, `svg` | The image, below its path, with its `:width:`, `:scale:` and `:align:`; the path is relative to the file, or to the folder of `conf.py` when it starts with `/`. The drawing of `svg` is shown as an image: its links and its effects are the ones of the built page |
+| `image`, `figure`, `svg` | The image, below its path, with its `:width:`, `:scale:` and `:align:`; the path is relative to the file, or to the folder of `conf.py` when it starts with `/`. The drawing of `svg` is shown as an image: its links and its effects are the ones of the built page. While its path is written the image is left as it is, and looked for once the caret leaves the path; one that is not found is said once, by the build when it runs |
 | `rubric` | A heading that is not a section: its title, of the size of its `:heading-level:` |
 | Other directives | A box with their name, caption and options, the content as source |
 | Literal blocks | Their text as it is written; the `::` alone on its line is hidden |

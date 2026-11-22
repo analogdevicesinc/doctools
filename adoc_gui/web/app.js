@@ -5,7 +5,7 @@ import {
 } from './ops.js'
 import {
   render, getSelection, setSelection, markActive, showDiagnostics, selectTab as showTab, setCodeHost, offsetOf, pointOf,
-  setImageUrl
+  setImageUrl, settleImages
 } from './view.js'
 import { codeEdit, toSource, fromSource, sourceMarks, CODE_DIRECTIVES } from './code.js'
 import { sourceEditor, CodeEditors } from './editors.js'
@@ -33,7 +33,6 @@ const fileStatus = document.getElementById('file')
 const toolbar = document.querySelector('.toolbar')
 const docsButton = document.getElementById('toggle-docs')
 const menu = document.getElementById('menu')
-const tooltip = document.getElementById('tooltip')
 const card = document.getElementById('card')
 const canvas = document.querySelector('.canvas')
 const tree = document.getElementById('tree')
@@ -702,6 +701,8 @@ document.addEventListener('selectionchange', () => {
   if (completion && (current.anchor !== completion.anchor || current.focus !== completion.caret)) closeMenu()
   flush()
   markActive(view, current.focus)
+  // An image whose path was being written is shown once the caret left it
+  settleImages(view, current.focus)
   renderCode(true)
   renderStatus()
 })
@@ -1483,6 +1484,8 @@ async function pollDocs(once) {
       if (docs.build === 'ready') refreshReferences()
       // Another run of the server can be of another configuration
       if (docs.build === 'off') refsData.clear()
+      // A build can have made the images that were not found
+      if (docs.build === 'ready') settleImages(view, document.activeElement === view ? state.caret.focus : undefined, true)
       showDiagnostics(view, state.model, docs.diagnostics)
       renderBackdrop()
       renderDocs()
@@ -1555,6 +1558,8 @@ function fillCard(known, waiting) {
     el.textContent = text
     return el
   }
+  // What it is of: a mistake of the spelling or of the grammar, an error
+  card.className = `preview-card${known.kind ? ` ${known.kind}` : ''}`
   const nodes = [part('preview-title', known.title || known.heading || shortTarget(known.target))]
   if (known.text) {
     nodes.push(part('preview-text', known.text))
@@ -1575,6 +1580,12 @@ function fillCard(known, waiting) {
     const target = document.createElement('span')
     target.textContent = shortTarget(known.target)
     where.append(target)
+  }
+  if (known.note) {
+    const note = document.createElement('span')
+    note.className = 'preview-note'
+    note.textContent = known.note
+    where.append(note)
   }
   if (where.childNodes.length) nodes.push(where)
   card.replaceChildren(...nodes)
@@ -1767,6 +1778,7 @@ menu.addEventListener('mousedown', ev => {
   if (item && completion) accept(Number(item.dataset.index))
 })
 view.addEventListener('blur', closeMenu)
+view.addEventListener('blur', () => settleImages(view, undefined))
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') save(true)
 })
@@ -1888,7 +1900,12 @@ function proseBlocks(model) {
 // Underline the mistakes found in the prose, and check what is not checked
 // yet once the typing stops
 let scanTimer
+// The mistakes that are underlined: { dom, match, spelling }, dom: their text
+// in the page
+let mistakes = []
 function showMistakes() {
+  if (mistakes.includes(cardOf)) hideCard()
+  mistakes = []
   if (!CSS.highlights) return
   if (grammarMode === 'off') {
     CSS.highlights.delete('spelling')
@@ -1917,6 +1934,7 @@ function showMistakes() {
       dom.setStart(from.node, from.offset)
       dom.setEnd(to.node, to.offset)
       ;(isSpelling(match) ? spelling : grammar).add(dom)
+      mistakes.push({ dom, match, spelling: isSpelling(match) })
     }
   }
   CSS.highlights.set('spelling', spelling)
@@ -2055,8 +2073,7 @@ let hoverTimer
 view.addEventListener('mouseover', ev => {
   const el = ev.target.closest?.('.k-role')
   clearTimeout(hoverTimer)
-  if (!el) tooltip.hidden = true
-  if (!el && cardOf && cardOf !== menu) hideCard()
+  if (!el && cardOf?.classList?.contains('k-role')) hideCard()
   if (!el || state.docs.build === 'off') return
   hoverTimer = setTimeout(async () => {
     const leaf = state.model.leaves.find(l => l.kind === 'role' && l.s === Number(el.dataset.s))
@@ -2071,12 +2088,11 @@ view.addEventListener('mouseover', ev => {
       box.style.top = `${below ? rect.bottom + 6 : Math.max(rect.top - 6 - box.offsetHeight, 8)}px`
       box.style.left = `${Math.max(Math.min(rect.left, window.innerWidth - box.offsetWidth - 8), 0)}px`
     }
-    if (answer.error || !hasPreview(question.role, answer.target)) {
-      tooltip.textContent = answer.error ?? [answer.title, answer.target].filter(Boolean).join('  →  ')
-      tooltip.classList.toggle('error', Boolean(answer.error))
-      tooltip.hidden = false
-      return place(tooltip)()
-    }
+    if (answer.error)
+      return showCard(el, { kind: 'error', title: 'Not found', text: answer.error, page: `:${question.role}:` }, undefined, place(card))
+    // A role that makes an address: where it leads
+    if (!hasPreview(question.role, answer.target))
+      return showCard(el, { title: answer.title, target: answer.target, page: `:${question.role}:` }, undefined, place(card))
     // A reference into a documentation: the text of its target comes after
     showCard(el, { title: answer.title, target: answer.target }, question, place(card))
   }, 350)
@@ -2085,9 +2101,51 @@ view.addEventListener('mouseout', ev => {
   const el = ev.target.closest?.('.k-role')
   if (el) {
     clearTimeout(hoverTimer)
-    tooltip.hidden = true
     if (cardOf === el) hideCard()
   }
+})
+
+// Hover: a mistake of the prose, what it is and what corrects it. The
+// underlines are not elements: the mistake is the one whose text is under
+// the pointer, once the pointer rests.
+let mistakeTimer
+const mistakeAt = (x, y) => mistakes.find(({ dom }) =>
+  [...dom.getClientRects()].some(r => x >= r.left - 1 && x <= r.right + 1 && y >= r.top && y <= r.bottom + 2))
+view.addEventListener('mousemove', ev => {
+  clearTimeout(mistakeTimer)
+  const shown = mistakes.includes(cardOf) ? cardOf : undefined
+  if (ev.buttons || ev.target.closest?.('.k-role, .cm-editor')) return shown && hideCard()
+  const found = mistakeAt(ev.clientX, ev.clientY)
+  if (found === shown) return
+  if (shown) hideCard()
+  if (!found || (cardOf && cardOf !== menu)) return
+  mistakeTimer = setTimeout(() => {
+    if (!mistakes.includes(found) || context.open) return
+    const { match, spelling, dom } = found
+    const fixes = match.replacements.slice(0, 5).map(value => value || '(remove)')
+    showCard(found, {
+      kind: spelling ? 'spelling' : 'grammar',
+      title: spelling ? 'Spelling' : 'Grammar',
+      text: match.message,
+      note: fixes.length ? `${fixes.join('  ·  ')}  —  right click to correct` : 'No suggestion'
+    }, undefined, () => {
+      const rects = dom.getClientRects()
+      const rect = [...rects].find(r => ev.clientY >= r.top && ev.clientY <= r.bottom + 2) ?? rects[0]
+      if (!rect) return hideCard()
+      const below = rect.bottom + 6 + card.offsetHeight <= window.innerHeight - 8
+      card.style.top = `${below ? rect.bottom + 6 : Math.max(rect.top - 6 - card.offsetHeight, 8)}px`
+      card.style.left = `${Math.max(Math.min(rect.left, window.innerWidth - card.offsetWidth - 8), 8)}px`
+    })
+  }, 350)
+})
+// The menu of the right click takes its place
+document.addEventListener('contextmenu', () => {
+  clearTimeout(mistakeTimer)
+  if (cardOf && cardOf !== menu) hideCard()
+}, true)
+view.addEventListener('mouseleave', () => {
+  clearTimeout(mistakeTimer)
+  if (mistakes.includes(cardOf)) hideCard()
 })
 
 // File --------------------------------------------------------------------------
