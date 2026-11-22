@@ -10,7 +10,7 @@ export const DIRECTIVE_GROUPS = [
   ['Code', ['code-block', 'shell', 'literalinclude', 'math']],
   ['Tables', ['list-table', 'table', 'csv-table']],
   ['Layout', ['tab-set', 'collapsible', 'card', 'grid', 'flex', 'clear-content', 'topic', 'sidebar', 'rubric', 'rst-class']],
-  ['Structure', ['toctree', 'contents', 'include', 'include-template', 'only', 'collection', 'epigraph']],
+  ['Structure', ['toctree', 'contents', 'description', 'include', 'include-template', 'only', 'collection', 'epigraph']],
   ['HDL', ['hdl-parameters', 'hdl-interfaces', 'hdl-regmap', 'hdl-component-diagram', 'hdl-build-status', 'esd-warning']]
 ]
 

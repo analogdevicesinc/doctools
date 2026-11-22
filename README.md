@@ -245,14 +245,14 @@ a tree that is updated incrementally can differ from a fresh one.
 | Bullet and enumerated lists | Lists, nested. `Tab` in an item puts it in the item before it, `Shift+Tab` takes it out, with the empty lines a nested list needs |
 | `note`, `warning`, `tip`, ..., `video` | A card, the content is edited as a document; `video` shows its address and its caption |
 | `tab-set` and `tab-item` | Tabs: a click on a title shows its tab, the title and the content are edited in place; `+` adds a tab, an emptied tab is removed with `Backspace` |
-| Roles | A chip with the name of the role and its title, or its target |
+| Roles | A chip with the name of the role and its title, or its target. A letter or a digit typed right after a role is parted from it by a space, which the role needs to be one. `Backspace` in a role with nothing left in it removes its two quotes, then its name |
 | Links | Their text |
 | | The `−` at the left of a label removes it |
 | Grid tables, simple tables, `table` and `list-table` | Tables: type in the cells, `Tab` moves between them, `Enter` adds a row, `Backspace` in an empty row removes it |
 | Tables with cells that span columns or rows, `csv-table` | Their source, in a box |
 | `code`, `code-block`, `sourcecode`, `shell` | A code editor, coloured by the language of the argument; the indentation of the source is not shown, and is added to what is written |
 | `carousel`, `collapsible`, `card`, `grid`, `flex`, `figure`, `video`, `only`, ... | A box with their name, caption and options, the content is edited as a document |
-| `rst-class` | A box with its name and the class to type, no content |
+| `rst-class`, `description` | A box with its name and the class, or the description of the page, to type, no content |
 | `image`, `figure`, `svg` | The image, below its path, with its `:width:`, `:scale:` and `:align:`; the path is relative to the file, or to the folder of `conf.py` when it starts with `/`. The drawing of `svg` is shown as an image: its links and its effects are the ones of the built page. While its path is written the image is left as it is, and looked for once the caret leaves the path; one that is not found is said once, by the build when it runs |
 | `rubric` | A heading that is not a section: its title, of the size of its `:heading-level:` |
 | Other directives | A box with their name, caption and options, the content as source |

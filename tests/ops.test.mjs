@@ -509,3 +509,36 @@ test('backspace right after a directive removes the directive', () => {
   // A paragraph after a paragraph is as before
   assert.equal(run('One\n\n|Two\n', deleteBackward), 'One|Two\n')
 })
+
+test('what is typed right after a role is parted from it by a space', () => {
+  assert.equal(type('See :ref:`label`|\n', 'a'), 'See :ref:`label` a|\n')
+  assert.equal(type('See :ref:`the title <label>`|\n', '2'), 'See :ref:`the title <label>` 2|\n')
+  assert.equal(type('See :external+sphinx:ref:`label`|\n', 'é'), 'See :external+sphinx:ref:`label` é|\n')
+  assert.equal(type('See :ref:`label`| more\n', 'and'), 'See :ref:`label` and| more\n')
+  // Punctuation and spaces end the role as they are
+  assert.equal(type('See :ref:`label`|\n', '.'), 'See :ref:`label`.|\n')
+  assert.equal(type('See :ref:`label`|\n', ' '), 'See :ref:`label` |\n')
+  assert.equal(type('See :ref:`label`|\n', ', a'), 'See :ref:`label`, a|\n')
+  // In the role, and after other markup, as before
+  assert.equal(type('See :ref:`labe|`\n', 'l'), 'See :ref:`label|`\n')
+  assert.equal(type('See ``code``|\n', 'a').includes('`` a'), false)
+})
+
+test('backspace between the quotes of an empty role removes both', () => {
+  assert.equal(run('See :ref:`x|` here\n', deleteBackward), 'See :ref:`|` here\n')
+  assert.equal(run('See :ref:`|` here\n', deleteBackward), 'See :ref:| here\n')
+  assert.equal(run(':external+sphinx:py:func:`|`\n', deleteBackward), ':external+sphinx:py:func:|\n')
+  assert.equal(run('.. note::\n\n   (:doc:`|`)\n', deleteBackward), '.. note::\n\n   (:doc:|)\n')
+  // Then the role goes, a character at a time
+  assert.equal(run('See :ref:| here\n', deleteBackward), 'See :ref| here\n')
+  // Not other quotes
+  assert.notEqual(run('See `|` here\n', deleteBackward), 'See | here\n')
+  assert.notEqual(run('a ``|`` b\n', deleteBackward), 'a `|` b\n')
+})
+
+test('the description of a page is on its line, without content', () => {
+  const directive = modelOf('.. description:: What it is about.\n\nText\n').root.children[0]
+  assert.equal(outline(modelOf('.. description:: What it is about.\n\nText\n').root), 'document(directive:description(caption) paragraph)')
+  assert.equal(directive.takesContent, false)
+  assert.equal(modelOf('.. description::\n').root.children[0].children[0].hint, 'description')
+})

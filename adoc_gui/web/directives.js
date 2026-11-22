@@ -118,7 +118,8 @@ export const DIRECTIVES = {
   grid: { argument: false, options: { columns: 'number', widths: 'lengths', class: 'classes' }, content: 'rst' },
   flex: { argument: false, options: { class: 'classes' }, content: 'rst' },
   collection: { argument: 'title', options: { subtitle: 'text', image: 'path', label: 'label' }, content: 'code' },
-  description: { argument: false, options: {}, content: 'rst' },
+  // The description of the page: written on its line, it has nothing below it
+  description: { argument: 'description', options: {}, content: false },
   'clear-content': { argument: false, options: { side: ['left', 'right', 'both'], break: FLAG }, content: false },
   'esd-warning': { argument: false, options: {}, content: 'rst' },
   'hdl-parameters': { argument: false, options: { path: 'path' }, content: 'rst' },

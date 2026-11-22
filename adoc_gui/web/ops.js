@@ -971,6 +971,12 @@ export function insertText(model, a, b, text) {
     if (heading) return heading
   }
   const owner = leafAt(model, a)?.block
+  // Right after a role, a letter or a digit would undo the role: what ends
+  // inline markup is followed by a space or by punctuation. The space is
+  // written with it.
+  if (a === b && /^[\p{L}\p{N}]/u.test(text) && model.source[a - 1] === '`' &&
+      model.leaves.some(l => l.kind === 'role' && !l.bare && l.oe === a))
+    text = ` ${text}`
   // The colon that ends the name of an option goes to its value
   if (text === ':' && a === b && owner?.kind === 'option') {
     const value = optionValue(model, a)
@@ -1001,6 +1007,11 @@ export function deleteBackward(model, a, b, { repeat = false } = {}) {
       if (a === item.s) return undefined
     }
   }
+  // Between the quotes of a role with nothing left in it: both quotes go,
+  // one alone would be left behind
+  if (a === b && model.source[a - 1] === '`' && model.source[a] === '`' &&
+      /(^|[\s([{<'"\-/])(:[\w+.-]+)+:`$/.test(model.source.slice(lineStart(model.source, a), a)))
+    return guard(model, edit(a - 1, a + 1, '', a - 1))
   if (a === b) {
     const item = leafAt(model, a)
     const directive = ancestor(item?.block ?? blockAt(model, a), 'directive')
