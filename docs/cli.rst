@@ -61,6 +61,9 @@ All options can be listed with:
 
    $ adoc serve --help
 
+With the optional ``adi-doctools['gui']`` installed, use ``--gui`` to launch a
+full web editor see :ref:`gui-support`.
+
 To how to integrate with your IDE, please see :ref:`vscode-support` and
 :ref:`nvim-support`.
 

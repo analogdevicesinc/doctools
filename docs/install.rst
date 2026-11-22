@@ -134,6 +134,37 @@ Beyond PyPi, the package is also stored as GitHub releases:
 - | https://github.com/analogdevicesinc/doctools/releases/download/v0.4.32/adi-doctools.tar.gz
   | specific version.
 
+.. _gui-support:
+
+GUI support
+~~~~~~~~~~~
+
+An optional graphical user web interface is installed with:
+
+.. tab-set::
+
+   .. tab-item:: pip
+
+      .. shell::
+
+
+         $ pip install 'adi-doctools[gui]'
+
+
+   .. tab-item:: pipx
+
+      .. shell::
+
+         $ pipx install 'adi-doctools[gui]'
+
+   .. tab-item:: uvx
+
+      .. shell::
+
+         $ uvx --from 'adi-doctools[gui]' adoc
+
+See :ref:`serve` for more information.
+
 .. _vscode-support:
 
 VScode/VScodium support
