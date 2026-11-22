@@ -132,7 +132,8 @@ body {
   text-overflow: ellipsis;
 }
 
-#file { font: 12px/16px var(--font); color: var(--on-surface-variant); min-height: 16px; }
+/* On one line: what does not fit is cut */
+#file { font: 12px/16px var(--font); color: var(--on-surface-variant); min-height: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #file.offline { color: var(--error); font-weight: 600; }
 
 .icon-button {

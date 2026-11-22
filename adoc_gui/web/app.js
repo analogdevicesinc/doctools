@@ -1414,7 +1414,6 @@ async function discardChange(body) {
     paint()
     renderCode(false)
     renderStatus()
-    setFileState('Change discarded, undo brings it back')
   }
   loadGit()
   if (state.tab === 'changes') loadChanges()
@@ -1494,7 +1493,6 @@ commitBox.addEventListener('submit', async ev => {
   commitMessage.value = ''
   commitProblem.textContent = ''
   countSubject()
-  setFileState(`Committed ${answer.output}`)
   loadGit()
   if (state.tab === 'changes') loadChanges()
 })
@@ -1529,18 +1527,10 @@ const post = (path, body) => fetch(path, {
 
 const ask = question => post('api/docs/ask', question).catch(() => ({ error: 'no answer' }))
 
-// The branch, and what happened to the open file since the last commit
-function gitText() {
-  const { available, branch, files } = state.git
-  if (!available) return ''
-  const change = files[state.path]
-  return [branch, change && change !== 'modified' ? change : change && 'changed'].filter(Boolean).join(', ')
-}
-
 function docsText() {
   const { problem, build, diagnostics } = state.docs
   if (problem) return `Docs: ${problem}`
-  if (build === 'building') return 'Docs: building…'
+  if (build === 'building') return 'Docs: building...'
   if (build !== 'ready') return ''
   const errors = diagnostics.filter(d => d.severity === 'error').length
   const warnings = diagnostics.length - errors
@@ -1552,13 +1542,16 @@ function docsText() {
 // The server of the editor does not answer
 let offline = false
 
+// The line below the name of the file: what is wrong, or what to do, when
+// there is something to say, and the state of the build. On one line.
 function setFileState(text) {
   if (text !== undefined) state.fileState = text
   // adoc-gui was stopped: nothing is saved until it runs again
   fileStatus.classList.toggle('offline', offline)
   fileStatus.textContent = offline
-    ? 'adoc-gui is not running: the changes are not saved. Start it again, this page will go on.'
-    : [state.fileState, gitText(), docsText()].filter(Boolean).join('  ·  ')
+    ? 'adoc-gui is not running: the changes are not saved'
+    : [state.fileState, docsText()].filter(Boolean).join(' - ')
+  fileStatus.title = offline ? 'Start adoc-gui again: this page will go on, with what was typed' : fileStatus.textContent
 }
 
 let wasRunning = false
@@ -2446,7 +2439,6 @@ let saveTimer
 
 function changed() {
   state.dirty = true
-  setFileState('Saving…')
   clearTimeout(saveTimer)
   saveTimer = setTimeout(() => save(), SAVE_DELAY_MS)
 }
@@ -2474,7 +2466,8 @@ async function save(force) {
     if (path === state.path) state.mtime = (await response.json()).mtime
     if (path === state.path && state.source === text) {
       state.dirty = false
-      setFileState('Saved')
+      // What was said about it no longer holds
+      setFileState('')
     }
     loadGitSoon()
   } catch (err) {
@@ -2498,7 +2491,6 @@ async function poll() {
         paint()
         renderCode(false)
         renderStatus()
-        setFileState('Reloaded from the file')
       }
       if (path === state.path) state.mtime = file.mtime
     }
@@ -2528,7 +2520,7 @@ function show(file) {
   title.textContent = file.path
   title.title = file.absolute
   history.replaceState(null, '', `#${encodeURIComponent(file.path)}`)
-  setFileState('Saved')
+  setFileState('')
   closeMenu()
   renderView(false)
   renderCode(false)

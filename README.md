@@ -116,7 +116,6 @@ when `adoc-gui` is started again.
 When the documentation is in a git repository, `adoc-gui` runs `git` to show
 what changed since the last commit, as an editor gutter does:
 
-- The branch, and whether the open file changed, after its state at the top.
 - A letter beside the files that changed (`M`, `U` for a new file, ...), and a
   dot beside the folders that hold them.
 - Bars at the right of the blocks of the page, and at the left of the lines
