@@ -2906,9 +2906,15 @@ function renderPreview() {
     delete frame.dataset.src
     previewReady = false
   } else if (frame.dataset.src !== target) {
-    previewReady = false
     frame.dataset.src = target
-    frame.src = target
+    if (followed === page) {
+      // The live view went there by itself, by a link: it shows the page
+      followed = undefined
+      previewReady = true
+    } else {
+      previewReady = false
+      frame.src = target
+    }
   }
 }
 
@@ -2953,14 +2959,20 @@ window.addEventListener('message', ev => {
     if (message.path === page) {
       previewReady = true
       syncPreview()
-    } else if (performance.now() - builtAt < REBUILD_RESET_MS) {
-      // A full build loads the first page again: go back to the page of the file
+    } else if (performance.now() - builtAt < REBUILD_RESET_MS && document.activeElement !== frame) {
+      // A full build loads the first page again: go back to the page of the
+      // file. Not when the live view has the focus: a link was clicked in
+      // it, which a build that was just done must not undo.
       toFrame({ type: 'navigate', path: page })
     } else {
-      // A link was followed in the live view: open the file of that page
+      // A link was followed in the live view: open the file of that page.
+      // The live view is already on it: it is not loaded again.
       previewReady = false
       const path = sourceOf(message.path)
-      if (path) openFile(path)
+      if (path) {
+        followed = message.path
+        openFile(path)
+      }
     }
   } else if (message.type === 'scroll' && typeof message.line === 'number' && message.path === page) {
     scrollToLine(message.line)
@@ -2969,6 +2981,8 @@ window.addEventListener('message', ev => {
 
 const REBUILD_RESET_MS = 5000
 let builtAt = 0
+// The page a link of the live view led to, until its file is the open one
+let followed
 
 // The file of a page of the documentation, when it is one of the tree
 function sourceOf(page) {
