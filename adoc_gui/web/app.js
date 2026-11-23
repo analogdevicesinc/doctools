@@ -973,7 +973,8 @@ function renderBackdrop() {
   const { source: text, lastEdit, model } = state
   if (colours.model !== model) colours = { model, marks: sourceMarks(model) }
   const marks = [...colours.marks]
-  const active = view.querySelector('.block.active')
+  // The block of the caret of the page: not of the one that is in the source
+  const active = !centred && !source.view.hasFocus && view.querySelector('.block.active')
   if (active) marks.push({ from: Number(active.dataset.s), to: Number(active.dataset.e), name: 'm-block' })
   if (lastEdit?.text) marks.push({ from: lastEdit.start, to: lastEdit.start + lastEdit.text.length, name: 'm-edit' })
   const { lineStarts } = model

@@ -24,6 +24,9 @@
   --error-container: #feeeef;
   --on-error-container: #64060e;
   --highlight: #8e3dc7;                  /* system.highlight.medium */
+  /* What is selected, in the page and in the code: seen over the tints */
+  --selection: color-mix(in srgb, var(--primary) 26%, transparent);
+  --selection-idle: color-mix(in srgb, var(--on-surface) 12%, transparent);
   --surface: #ffffff;                    /* layout.container */
   --surface-dim: #f0f1f3;                /* layout.canvas */
   --surface-container-low: #f8f8f8;
@@ -59,6 +62,8 @@
   --error-container: #840d17;
   --on-error-container: #feeeef;
   --highlight: #d4adf0;
+  --selection: color-mix(in srgb, var(--primary) 34%, transparent);
+  --selection-idle: color-mix(in srgb, var(--on-surface) 16%, transparent);
   --surface: #101820;                    /* gray.black, the page of the Doctools theme */
   --surface-dim: #0b1117;
   --surface-container-low: #161e27;
@@ -834,7 +839,7 @@ body.inspect #status { display: block; }
   caret-color: var(--primary);
 }
 
-.page ::selection { background: var(--primary-container); color: var(--on-primary-container); }
+.page ::selection { background: var(--selection); }
 
 .block { margin: 0; }
 
@@ -1197,12 +1202,13 @@ li > .b-lineblock { margin-bottom: 4px; }
 #source .cm-line[class*='m-git-'] { cursor: default; }
 .cm-editor.cm-focused { outline: none; }
 .cm-editor .cm-cursor { border-left: 2px solid var(--primary); }
-.cm-editor .cm-selectionBackground { background: color-mix(in srgb, var(--primary) 18%, transparent) !important; }
-.cm-editor.cm-focused .cm-selectionBackground { background: color-mix(in srgb, var(--primary) 28%, transparent) !important; }
+.cm-editor .cm-selectionBackground { background: var(--selection-idle) !important; }
+.cm-editor.cm-focused .cm-selectionBackground { background: var(--selection) !important; }
+.cm-editor .cm-content ::selection { background: transparent; }
 
 /* The marks of the source */
-.m-block { background: var(--surface-container-highest); border-radius: 3px; }
-.m-edit { background: var(--primary-container); border-radius: 3px; }
+.m-block { background: var(--surface-container); border-radius: 3px; }
+.m-edit { background: color-mix(in srgb, var(--primary) 12%, transparent); border-radius: 3px; }
 .cm-line.m-warning { box-shadow: inset 2px 0 var(--warning); background: color-mix(in srgb, var(--warning) 8%, transparent); }
 .cm-line.m-error { box-shadow: inset 2px 0 var(--error); background: color-mix(in srgb, var(--error) 8%, transparent); }
 
