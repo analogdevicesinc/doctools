@@ -105,6 +105,26 @@ const caretKeys = [
 ]
 const carets = EditorState.allowMultipleSelections.of(true)
 
+// Enter at the end of the line of a directive: the new line is indented by
+// three spaces more, for its options or its content
+const DIRECTIVE_LINE = /^([ \t]*)\.\.[ \t]+[^\s:][^\s]*::(?:[ \t].*)?$/
+function directiveEnter(view) {
+  const { state } = view
+  const range = state.selection.main
+  if (state.selection.ranges.length > 1 || !range.empty) return false
+  const line = state.doc.lineAt(range.head)
+  const found = DIRECTIVE_LINE.exec(line.text)
+  if (!found || state.sliceDoc(range.head, line.to).trim()) return false
+  const insert = `\n${found[1]}   `
+  view.dispatch({
+    changes: { from: range.head, to: line.to, insert },
+    selection: { anchor: range.head + insert.length },
+    scrollIntoView: true,
+    userEvent: 'input'
+  })
+  return true
+}
+
 // What the bar of the tools hides of the source in the middle, in px
 const UNDER_BAR = 60
 
@@ -128,6 +148,7 @@ export function sourceEditor(parent, on) {
         keymap.of([
           ...historyKeys(on), ...caretKeys,
           { key: 'Alt-q', run: () => (on.fold(), true), preventDefault: true },
+          { key: 'Enter', run: directiveEnter },
           indentWithTab, ...defaultKeymap
         ]),
         carets,

@@ -43,6 +43,9 @@ role, a link or a literal is kept on one line, and no line starts with what
 would be markup there. `Shift` and the right click show the menu of the
 browser.
 
+In the source, `Enter` at the end of the line of a directive indents the new
+line by three spaces more, for its options or its content.
+
 In the source, and in the code of a code directive, `Alt+Shift+Up` and
 `Alt+Shift+Down` add a caret on the line above or below, at the same column:
 what is typed is written at all of them, as for the rows of a table. `Escape`
