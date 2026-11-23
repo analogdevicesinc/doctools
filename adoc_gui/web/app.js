@@ -156,6 +156,7 @@ function renderView(withCaret) {
   paint(withCaret ? state.caret.focus : undefined)
   if (withCaret && written === 'source' && sourceShown()) {
     // The source is the one that is written in
+    source.setText(state.source)
     source.select(state.caret.anchor, state.caret.focus)
     source.view.focus()
   } else if (withCaret && !focusCode(state.caret.anchor, state.caret.focus)) {
@@ -969,8 +970,12 @@ const source = sourceEditor(document.getElementById('source'), {
     renderBackdrop()
     renderStatus()
     changed()
+    // What is typed is completed as in the page, with one caret
+    if (source.view.hasFocus && source.view.state.selection.ranges.length === 1) suggest()
+    else closeMenu()
   },
   select(selection) {
+    if (completion && (selection.anchor !== completion.anchor || selection.head !== completion.caret)) closeMenu()
     state.caret = { anchor: selection.anchor, focus: selection.head }
     markActive(view, selection.head, true)
     renderBackdrop()
@@ -1996,7 +2001,7 @@ function contextAtCaret() {
 // is about to be written. It is saved once the caret is out of it, or the
 // page loses the focus, or nothing is typed for a while.
 function completing() {
-  if (state.docs.build === 'off' || document.activeElement !== view) return false
+  if (state.docs.build === 'off' || (document.activeElement !== view && !source.view.hasFocus)) return false
   return completion !== undefined || contextAtCaret() !== undefined || unfinishedAt(state.model, state.caret.focus)
 }
 const HELD_MS = 30000
@@ -2057,9 +2062,12 @@ function renderMenu() {
   }))
   menu.hidden = false
 
+  // At the caret: the one of the source when it is written in
   const selection = window.getSelection()
   const range = selection.rangeCount ? selection.getRangeAt(0) : undefined
-  const rect = range?.getClientRects()[0] ?? selection.anchorNode?.parentElement?.getBoundingClientRect()
+  const rect = source.view.hasFocus
+    ? source.view.coordsAtPos(source.view.state.selection.main.head)
+    : range?.getClientRects()[0] ?? selection.anchorNode?.parentElement?.getBoundingClientRect()
   if (rect) {
     const below = rect.bottom + 4 + menu.offsetHeight <= window.innerHeight
     menu.style.top = `${below ? rect.bottom + 4 : Math.max(rect.top - 4 - menu.offsetHeight, 0)}px`
@@ -2125,6 +2133,11 @@ menu.addEventListener('mousedown', ev => {
   if (item && completion) accept(Number(item.dataset.index))
 })
 view.addEventListener('blur', closeMenu)
+// The source: the keys of the menu before the ones of the editor
+source.view.dom.addEventListener('keydown', ev => {
+  if (menuKey(ev)) ev.stopPropagation()
+}, true)
+source.view.contentDOM.addEventListener('blur', closeMenu)
 view.addEventListener('blur', () => settleImages(view, undefined))
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') save(true)

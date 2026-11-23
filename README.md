@@ -184,7 +184,8 @@ changes. `adoc-gui --serve` starts it right away. While it runs:
   line, and on that line in the source.
 - A menu completes the roles, the directives and their targets while they are
   typed: `:`, `` :ref:` ``, `:external+`, `.. `. The arrows select, `Enter` or
-  `Tab` accept, `Escape` closes.
+  `Tab` accept, `Escape` closes. It is the same in the source, at its caret,
+  as are the options of a directive.
 - The pointer over a role shows what it points to, in a card: where a role
   that makes an address leads, or that its target is not found. For a reference into a
   documentation, the one of the project (`:ref:`, `:doc:`, ...) or the one of
