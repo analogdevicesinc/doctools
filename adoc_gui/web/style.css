@@ -160,6 +160,8 @@ body {
 #toggle-theme .moon, :root.dark #toggle-theme .sun { display: none; }
 :root.dark #toggle-theme .moon { display: block; }
 
+#toggle-center { padding: 7px 9px 9px 7px; }
+
 /* State layer */
 .icon-button::after {
   content: '';
@@ -476,7 +478,7 @@ main { flex: 1; display: flex; min-height: 0; margin-top: calc(-1 * var(--bar));
   min-width: 0;
   margin-left: calc(-1 * var(--bleed));
   overflow: auto;
-  padding: calc(var(--bar) + 16px) 4px 48px calc(4px + var(--bleed));
+  padding: calc(var(--bar) + 16px) 4px 16px calc(4px + var(--bleed));
   pointer-events: none;
   scrollbar-width: none;
   mask-image: linear-gradient(to bottom, transparent calc(var(--bar) - 12px), #000 calc(var(--bar) + 16px));
@@ -490,6 +492,8 @@ main { flex: 1; display: flex; min-height: 0; margin-top: calc(-1 * var(--bar));
   min-height: 100%;
   background: var(--surface);
   box-shadow: var(--shadow);
+  border-radius: var(--radius);
+  padding: 16px 8px;
 }
 .center-source[hidden], .canvas[hidden] { display: none; }
 .center-source #source .cm-editor { flex: none; height: auto; }
@@ -601,7 +605,7 @@ body.no-nav .side.left .open-panel, body.no-source .side.right .open-panel { opa
    with the button that swaps them at its start */
 .tab[data-tab='source'] { padding-left: 44px; }
 #swap-name { display: inline-block; width: 50px; text-align: left; }
-.tab-swap { position: relative; top: -1px; width: 32px; height: 32px; margin: 0 -40px 0 8px; z-index: 1; }
+.tab-swap { width: 32px; height: 32px; margin: 0 -40px 0 8px; z-index: 1; }
 .tab-swap svg { width: 18px; height: 18px; }
 .tab {
   position: relative;
@@ -1460,6 +1464,12 @@ body.inspect .page .soft { background: var(--surface-container-highest); }
   .bottom-bar button[aria-current='page'] .bottom-icon { color: var(--on-secondary-container); background: var(--secondary-container); }
   .bottom-bar button:focus-visible { outline: none; }
   .bottom-bar button:focus-visible .bottom-icon { outline: 2px solid var(--primary); }
+}
+
+@media (min-width: 1000px) {
+  .side.right .page {
+    padding: 42px 48px 56px;
+  }
 }
 
 .icon-button:disabled { opacity: 0.38; cursor: default; }
