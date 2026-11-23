@@ -498,24 +498,26 @@ main { flex: 1; display: flex; min-height: 0; margin-top: calc(-1 * var(--bar));
 .center-source[hidden], .canvas[hidden] { display: none; }
 .center-source #source .cm-editor { flex: none; height: auto; }
 .center-source #source .cm-scroller { padding: 16px 0 48px; overflow-y: visible; }
-.center-source #source .cm-content { padding: 0 6px 0 20px; }
-/* The bars of git are away from the side pane: at the right of the lines */
-.center-source #source .cm-line { padding: 0 14px 0 0; }
-.center-source #source .cm-line[class*='m-git-'] { background-position: right top; }
-.center-source #source .cm-line.m-git-added { background-image: linear-gradient(to left, var(--git-added) 3px, transparent 3px); }
-.center-source #source .cm-line.m-git-changed { background-image: linear-gradient(to left, var(--git-changed) 3px, transparent 3px); }
+.center-source #source .cm-content { padding: 0 20px; }
+.center-source #source .cm-line { padding: 0; }
+/* The bars of git are away from the side pane: at the right edge of the
+   source, over its lines, which can be longer than what is shown of them */
+#source > .source-bars { inset: 0 9px auto auto; }
 
-/* The page in the side pane, in place of the source */
+/* The page in the side pane, in place of the source. As in the middle, what
+   goes out of the page at its left is seen, over what is there: the labels,
+   the options, and their whole text on hover. */
 .sheet > .canvas {
-  --bleed: 0px;
   flex: 1;
   min-height: 0;
-  margin: 0;
-  padding: 0;
-  pointer-events: auto;
+  margin: 0 0 0 calc(-1 * var(--bleed));
+  padding: 0 0 0 var(--bleed);
+  /* It does not go sideways, over what is at its left: see the scroll of the canvas */
+  overflow-x: hidden;
   mask-image: none;
 }
-.sheet > .canvas > .page { border-radius: 0; box-shadow: none; }
+body.source-center .sheet { overflow: visible; }
+.sheet > .canvas > .page { border-radius: 0 0 var(--radius) var(--radius); box-shadow: none; }
 
 /* The part at a side of the page, with its panel */
 .side {
@@ -1402,6 +1404,8 @@ body.inspect .page .soft { background: var(--surface-container-highest); }
     flex: 1 1 auto;
     padding: calc(var(--bar) + 12px) 0 0;
   }
+  .sheet > .canvas { --bleed: 0px; }
+  body.source-center .sheet { overflow: hidden; }
   body[data-screen='files'] main > .side.left, body[data-screen='more'] main > .side.right {
     display: flex;
     flex: 1 1 auto;

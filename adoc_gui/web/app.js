@@ -785,7 +785,10 @@ function setCentre(inSource, withCaret = true) {
   centerSource.hidden = !inSource
   selectTab(state.tab, false)
   source.view.requestMeasure()
-  if (state.model) showGitMarks()
+  if (state.model) {
+    showGitMarks()
+    renderBackdrop()
+  }
   // The one in the middle shows what the other one did
   requestAnimationFrame(() => {
     const after = before === undefined ? undefined : caretTop(inSource)
@@ -1036,13 +1039,55 @@ function renderBackdrop() {
     const row = Math.min(Math.max(item.line - 1, 0), lineStarts.length - 1)
     marks.push({ from: lineStarts[row], to: lineStarts[row], line: true, name: `m-${item.severity}` })
   }
+  // In the middle the bars of git are at the right of the source: not in
+  // its lines, which can be longer than what is shown of them
+  const bars = []
   for (const [rows, name] of gitRows()) {
     for (const row of rows) {
       const at = row < 0 ? 0 : row
-      if (at < lineStarts.length) marks.push({ from: lineStarts[at], to: lineStarts[at], line: true, name })
+      if (at >= lineStarts.length) continue
+      if (centred) bars.push({ row: at, kind: name.slice('m-git-'.length) })
+      else marks.push({ from: lineStarts[at], to: lineStarts[at], line: true, name })
     }
   }
-  if (text === source.view.state.doc.toString()) source.setMarks(marks)
+  if (text !== source.view.state.doc.toString()) return
+  source.setMarks(marks)
+  showSourceBars(bars)
+}
+
+// The bars of git of the source in the middle, at its right edge: one for
+// the lines of a kind that follow each other. bars: [{ row, kind }]
+const sourceBars = document.createElement('div')
+sourceBars.className = 'git-marks source-bars'
+sourceBars.setAttribute('aria-hidden', 'true')
+document.getElementById('source').append(sourceBars)
+function showSourceBars(bars) {
+  if (!bars.length) return sourceBars.replaceChildren()
+  const editor = source.view
+  // Once the editor knows where its lines are
+  editor.requestMeasure({
+    read: () => editor.documentTop - sourceBars.parentElement.getBoundingClientRect().top,
+    write: top => {
+      const doc = editor.state.doc
+      const groups = []
+      for (const bar of [...bars].sort((a, b) => a.row - b.row)) {
+        const last = groups.at(-1)
+        if (last && last.kind === bar.kind && bar.kind !== 'deleted' && bar.row === last.to + 1) last.to = bar.row
+        else groups.push({ kind: bar.kind, from: bar.row, to: bar.row })
+      }
+      sourceBars.replaceChildren(...groups.filter(group => group.to < doc.lines).map(group => {
+        const first = editor.lineBlockAt(doc.line(group.from + 1).from)
+        const last = editor.lineBlockAt(doc.line(group.to + 1).from)
+        const el = document.createElement('div')
+        el.className = `git-bar ${group.kind}`
+        el.style.top = `${top + first.top}px`
+        el.style.height = `${group.kind === 'deleted' ? 0 : last.bottom - first.top}px`
+        el.dataset.from = group.from + 1
+        el.dataset.to = group.to + 1
+        return el
+      }))
+    }
+  })
 }
 
 // follow: move the caret of the code to the one of the view
@@ -1531,22 +1576,32 @@ gitLayer.addEventListener('mouseout', ev => {
   if (!peek.contains(ev.relatedTarget) && !ev.relatedTarget?.closest?.('.git-bar')) hidePeek()
 })
 
-// The bars of the lines of the source: the space at the left of a line, or
-// at its right in the middle
+// The bars of the source in the middle
+sourceBars.addEventListener('mouseover', ev => {
+  const bar = ev.target.closest('.git-bar')
+  if (bar) showPeek(Number(bar.dataset.from), Number(bar.dataset.to), bar.getBoundingClientRect(), 'left')
+})
+sourceBars.addEventListener('mouseout', ev => {
+  if (!peek.contains(ev.relatedTarget) && !ev.relatedTarget?.closest?.('.git-bar')) hidePeek()
+})
+
+// The bars of the lines of the source in the side pane: the space at the
+// left of a line
 const sourceDom = source.view.dom
 sourceDom.addEventListener('mousemove', ev => {
+  if (centred) return
   const line = ev.target.closest?.('.cm-line')
   const marked = line && /\bm-git-(added|changed|deleted)\b/.test(line.className)
   const rect = line?.getBoundingClientRect()
-  if (!marked || (centred ? ev.clientX < rect.right - 12 : ev.clientX > rect.left + 12)) {
-    if (peekKey?.startsWith(centred ? 'left:' : 'right:')) hidePeek()
+  if (!marked || ev.clientX > rect.left + 12) {
+    if (peekKey?.startsWith('right:')) hidePeek()
     return
   }
   const number = source.view.state.doc.lineAt(source.view.posAtDOM(line)).number
-  if (centred) showPeek(number, number, { left: rect.right - 4, right: rect.right, top: rect.top, bottom: rect.bottom }, 'left')
-  else showPeek(number, number, { left: rect.left, right: rect.left + 4, top: rect.top, bottom: rect.bottom }, 'right')
+  showPeek(number, number, { left: rect.left, right: rect.left + 4, top: rect.top, bottom: rect.bottom }, 'right')
 })
 sourceDom.addEventListener('mouseleave', ev => {
+  if (centred) return
   if (!peek.contains(ev.relatedTarget)) hidePeek()
 })
 peek.addEventListener('mouseenter', keepPeek)
@@ -2558,6 +2613,34 @@ view.addEventListener('mouseover', ev => {
   }, 350)
 })
 
+// The card below what it is about, or above it when there is no room.
+// rect: where that is on the screen, when it is asked
+const placeCard = rect => () => {
+  const at = rect()
+  if (!at) return
+  const below = at.bottom + 6 + card.offsetHeight <= window.innerHeight - 8
+  card.style.top = `${below ? at.bottom + 6 : Math.max(at.top - 6 - card.offsetHeight, 8)}px`
+  card.style.left = `${Math.max(Math.min(at.left, window.innerWidth - card.offsetWidth - 8), 0)}px`
+}
+
+// The card of a role, of the page or of the source. still: whether the
+// pointer is on it yet, once the answer came
+async function roleCard(owner, leaf, rect, still) {
+  const question = roleQuestion(state.source.slice(leaf.os, leaf.oe))
+  if (!question) return
+  const answer = await ask(question)
+  if (!still()) return
+  const place = placeCard(rect)
+  if (answer.error)
+    return showCard(owner, { kind: 'error', title: 'Not found', text: answer.error, page: `:${question.role}:` }, undefined, place)
+  const note = 'Ctrl+click to open'
+  // A role that makes an address: where it leads
+  if (!hasPreview(question.role, answer.target, answer.inventory))
+    return showCard(owner, { title: answer.title, target: answer.target, page: `:${question.role}:`, note }, undefined, place)
+  // A reference into a documentation: the text of its target comes after
+  showCard(owner, { title: answer.title, target: answer.target, note }, question, place)
+}
+
 // Ctrl and a click on a role go where it points to, as on a link: the
 // address that a role makes, as the ones of git, and the target of a
 // reference into another documentation, or into the published pages of
@@ -2612,34 +2695,6 @@ view.addEventListener('mouseout', ev => {
     if (cardOf === el) hideCard()
   }
 })
-// The card below what it is about, or above it when there is no room.
-// rect: where that is on the screen, when it is asked
-const placeCard = rect => () => {
-  const at = rect()
-  if (!at) return
-  const below = at.bottom + 6 + card.offsetHeight <= window.innerHeight - 8
-  card.style.top = `${below ? at.bottom + 6 : Math.max(at.top - 6 - card.offsetHeight, 8)}px`
-  card.style.left = `${Math.max(Math.min(at.left, window.innerWidth - card.offsetWidth - 8), 0)}px`
-}
-
-// The card of a role, of the page or of the source. still: whether the
-// pointer is on it yet, once the answer came
-async function roleCard(owner, leaf, rect, still) {
-  const question = roleQuestion(state.source.slice(leaf.os, leaf.oe))
-  if (!question) return
-  const answer = await ask(question)
-  if (!still()) return
-  const place = placeCard(rect)
-  if (answer.error)
-    return showCard(owner, { kind: 'error', title: 'Not found', text: answer.error, page: `:${question.role}:` }, undefined, place)
-  const note = 'Ctrl+click to open'
-  // A role that makes an address: where it leads
-  if (!hasPreview(question.role, answer.target, answer.inventory))
-    return showCard(owner, { title: answer.title, target: answer.target, page: `:${question.role}:`, note }, undefined, place)
-  // A reference into a documentation: the text of its target comes after
-  showCard(owner, { title: answer.title, target: answer.target, note }, question, place)
-}
-
 
 // Hover: where a link leads; Ctrl and a click open it
 let linkTimer
@@ -2657,61 +2712,6 @@ view.addEventListener('mouseover', ev => {
     if (link) linkCard(el, link, () => el.getBoundingClientRect(), 'Ctrl+K to edit')
   }, 350)
 })
-view.addEventListener('mouseout', ev => {
-  const el = ev.target.closest?.('.k-link')
-  if (!el) return
-  clearTimeout(linkTimer)
-  if (cardOf === el) hideCard()
-})
-view.addEventListener('click', ev => {
-  const el = (ev.ctrlKey || ev.metaKey) && ev.target.closest?.('.k-link')
-  const open = el && linkAddress(linkOfElement(el)?.target)
-  if (!open) return
-  ev.preventDefault()
-  window.open(open, '_blank', 'noopener')
-})
-
-// Hover: what a substitution is replaced by, and where it leads when it is
-// a link too
-let substitutionTimer
-const substitutionLink = el => el.classList.contains('linked')
-  ? namedTarget(state.model, el.textContent) : {}
-view.addEventListener('mouseover', ev => {
-  const el = ev.target.closest?.('.k-substitution')
-  clearTimeout(substitutionTimer)
-  if (!el && cardOf?.classList?.contains('k-substitution')) hideCard()
-  if (!el) return
-  substitutionTimer = setTimeout(() => {
-    if (!el.isConnected || !el.matches(':hover')) return
-    const name = el.textContent
-    const found = substitutionOf(state.source, name)
-    const link = substitutionLink(el)
-    const place = () => {
-      const rect = el.getBoundingClientRect()
-      const below = rect.bottom + 6 + card.offsetHeight <= window.innerHeight - 8
-      card.style.top = `${below ? rect.bottom + 6 : Math.max(rect.top - 6 - card.offsetHeight, 8)}px`
-      card.style.left = `${Math.max(Math.min(rect.left, window.innerWidth - card.offsetWidth - 8), 0)}px`
-    }
-    if (!found) {
-      return showCard(el, {
-        kind: 'error', title: `|${name}|`,
-        text: 'Not defined in this file. It can be in the configuration of the documentation, else it needs a line “.. |name| replace:: text”.'
-      }, undefined, place)
-    }
-    const notes = []
-    if (found.at !== undefined) notes.push(`line ${lineOf(found.at)}`)
-    if (found.kind === 'sphinx') notes.push('given by Sphinx')
-    if (el.classList.contains('linked')) notes.push(link.target ? (linkAddress(link.target) ? 'Ctrl+click to open' : 'a link') : 'a link, with no address in this file')
-    showCard(el, {
-      title: `|${name}|`,
-      text: found.kind === 'replace' || found.kind === 'sphinx' ? found.text : `${found.kind}: ${found.text}`,
-      target: link.target,
-      note: notes.join('  ·  ')
-    }, undefined, place)
-  }, 350)
-})
-view.addEventListener('mouseout', ev => {
-  const el = ev.target.closest?.('.k-substitution')
 
 // The card of a link, of the page or of the source. edit: how it is edited there
 function linkCard(owner, link, rect, edit) {
@@ -2729,20 +2729,20 @@ function linkCard(owner, link, rect, edit) {
     note: [link.at !== undefined && `line ${lineOf(link.at)}`, how].filter(Boolean).join('  ·  ')
   }, undefined, place)
 }
+view.addEventListener('mouseout', ev => {
+  const el = ev.target.closest?.('.k-link')
   if (!el) return
-  clearTimeout(substitutionTimer)
+  clearTimeout(linkTimer)
   if (cardOf === el) hideCard()
 })
 view.addEventListener('click', ev => {
-  const el = (ev.ctrlKey || ev.metaKey) && ev.target.closest?.('.k-substitution.linked')
-  const open = el && linkAddress(substitutionLink(el).target)
+  const el = (ev.ctrlKey || ev.metaKey) && ev.target.closest?.('.k-link')
+  const open = el && linkAddress(linkOfElement(el)?.target)
   if (!open) return
   ev.preventDefault()
   window.open(open, '_blank', 'noopener')
 })
 
-// Hover: a mistake of the prose, what it is and what corrects it. The
-// underlines are not elements: the mistake is the one whose text is under
 // The source has the same cards, and the same click: on the role or the
 // link that the pointer is on, in its text
 const sourceCard = {}
@@ -2805,6 +2805,61 @@ source.view.dom.addEventListener('mousedown', ev => {
   else openRole(leaf)
 }, true)
 
+// Hover: what a substitution is replaced by, and where it leads when it is
+// a link too
+let substitutionTimer
+const substitutionLink = el => el.classList.contains('linked')
+  ? namedTarget(state.model, el.textContent) : {}
+view.addEventListener('mouseover', ev => {
+  const el = ev.target.closest?.('.k-substitution')
+  clearTimeout(substitutionTimer)
+  if (!el && cardOf?.classList?.contains('k-substitution')) hideCard()
+  if (!el) return
+  substitutionTimer = setTimeout(() => {
+    if (!el.isConnected || !el.matches(':hover')) return
+    const name = el.textContent
+    const found = substitutionOf(state.source, name)
+    const link = substitutionLink(el)
+    const place = () => {
+      const rect = el.getBoundingClientRect()
+      const below = rect.bottom + 6 + card.offsetHeight <= window.innerHeight - 8
+      card.style.top = `${below ? rect.bottom + 6 : Math.max(rect.top - 6 - card.offsetHeight, 8)}px`
+      card.style.left = `${Math.max(Math.min(rect.left, window.innerWidth - card.offsetWidth - 8), 0)}px`
+    }
+    if (!found) {
+      return showCard(el, {
+        kind: 'error', title: `|${name}|`,
+        text: 'Not defined in this file. It can be in the configuration of the documentation, else it needs a line “.. |name| replace:: text”.'
+      }, undefined, place)
+    }
+    const notes = []
+    if (found.at !== undefined) notes.push(`line ${lineOf(found.at)}`)
+    if (found.kind === 'sphinx') notes.push('given by Sphinx')
+    if (el.classList.contains('linked')) notes.push(link.target ? (linkAddress(link.target) ? 'Ctrl+click to open' : 'a link') : 'a link, with no address in this file')
+    showCard(el, {
+      title: `|${name}|`,
+      text: found.kind === 'replace' || found.kind === 'sphinx' ? found.text : `${found.kind}: ${found.text}`,
+      target: link.target,
+      note: notes.join('  ·  ')
+    }, undefined, place)
+  }, 350)
+})
+view.addEventListener('mouseout', ev => {
+  const el = ev.target.closest?.('.k-substitution')
+  if (!el) return
+  clearTimeout(substitutionTimer)
+  if (cardOf === el) hideCard()
+})
+view.addEventListener('click', ev => {
+  const el = (ev.ctrlKey || ev.metaKey) && ev.target.closest?.('.k-substitution.linked')
+  const open = el && linkAddress(substitutionLink(el).target)
+  if (!open) return
+  ev.preventDefault()
+  window.open(open, '_blank', 'noopener')
+})
+
+// Hover: a mistake of the prose, what it is and what corrects it. The
+// underlines are not elements: the mistake is the one whose text is under
 // the pointer, once the pointer rests.
 let mistakeTimer
 const mistakeAt = (x, y) => mistakes.find(({ dom }) =>
@@ -3493,6 +3548,11 @@ const scrollSoon = () => {
   })
 }
 canvas.addEventListener('scroll', scrollSoon, { passive: true })
+// The page of the side pane stays in it: what is wider than it, as a table,
+// does not move it over the source
+canvas.addEventListener('scroll', () => {
+  if (centred && canvas.scrollLeft) canvas.scrollLeft = 0
+}, { passive: true })
 source.view.scrollDOM.addEventListener('scroll', scrollSoon, { passive: true })
 centerSource.addEventListener('scroll', scrollSoon, { passive: true })
 window.addEventListener('resize', scrollSoon)
