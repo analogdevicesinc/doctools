@@ -12,6 +12,9 @@ pip install -e .   # in the environment of adi-doctools
 adoc-gui doc.rst   # without a file: the index.rst of the current folder
 ```
 
+It prints the address of the page, to open in the browser: it does not open
+it.
+
 `adoc serve --gui` does the same from Doctools, with the documentation server
 started: `-d`, `--port` and `--sparse` are the ones of the server, the editor
 takes port 8300 or the next free one.

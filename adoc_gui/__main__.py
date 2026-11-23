@@ -1,10 +1,11 @@
 """Doctools GUI: edit a reStructuredText file in the browser.
 
-    adoc-gui [path/to/file.rst] [--port 8300] [--no-open] [--serve]
+    adoc-gui [path/to/file.rst] [--port 8300] [--serve]
 
-Serves the page and gives it the .rst files of the documentation of the file
-to read and write. Without a file, the index.rst of the documentation in the
-current folder is opened. Also run by `adoc serve --gui`.
+Serves the page, at the address it prints, and gives it the .rst files of the
+documentation of the file to read and write. Without a file, the index.rst of
+the documentation in the current folder is opened. Also run by
+`adoc serve --gui`.
 """
 
 from __future__ import annotations
@@ -15,7 +16,6 @@ import mimetypes
 import os
 import signal
 import sys
-import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
@@ -332,7 +332,7 @@ def find_index(directory: Path = Path('.')) -> Path | None:
     return None
 
 
-def run(file: Path | None = None, port: int = 8300, open_browser: bool = True, serve: bool = False,
+def run(file: Path | None = None, port: int = 8300, serve: bool = False,
         directory: Path = Path('.'), docs_port: int = 8080, sparse: list | None = None) -> int:
     """Edit a file in the browser, until Ctrl+C. file: else the index.rst of
     the directory. serve: start the documentation server, on docs_port (or
@@ -379,8 +379,6 @@ def run(file: Path | None = None, port: int = 8300, open_browser: bool = True, s
               'page, or build all of it from there', flush=True)
     elif serve:
         docs.start()
-    if open_browser:
-        webbrowser.open(url)
     # Stopped from the terminal, or by a signal: the same way
     def interrupt(signum, frame):
         raise KeyboardInterrupt
@@ -409,12 +407,11 @@ def main():
         prog='adoc-gui', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('file', type=Path, nargs='?', help='the .rst file to edit')
     parser.add_argument('--port', type=int, default=8300)
-    parser.add_argument('--no-open', action='store_true', help='do not open the browser')
     parser.add_argument('--serve', action='store_true', help='start the documentation server')
     args = parser.parse_args()
     if args.file is None and find_index() is None:
         sys.exit('No file given and no index.rst found, run: adoc-gui path/to/file.rst')
-    sys.exit(run(args.file, port=args.port, open_browser=not args.no_open, serve=args.serve))
+    sys.exit(run(args.file, port=args.port, serve=args.serve))
 
 
 if __name__ == '__main__':
