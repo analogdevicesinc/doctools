@@ -747,9 +747,8 @@ function setCentre(inSource, withCaret = true) {
   try {
     localStorage.setItem('doctools.center', inSource ? 'source' : 'page')
   } catch { }
-  const line = inSource ? (canvas.scrollTop <= 0 ? 1 : topLine()) : sourceTopLine()
+  const line = inSource ? (canvas.scrollTop <= 0 ? 1 : topLine()) : centerSource.scrollTop <= 0 ? 1 : sourceTopLine()
   document.body.classList.toggle('source-center', inSource)
-  centerButton.setAttribute('aria-pressed', String(inSource))
   document.getElementById('swap-name').textContent = inSource ? 'Page' : 'Source'
   openTabs.querySelector('[data-open-tab=source]').title = inSource ? 'Show the page' : 'Show the source'
   if (inSource) {
@@ -3038,7 +3037,7 @@ let followUntil = 0
 
 function syncPreview() {
   if (state.tab !== 'preview' || !previewReady || performance.now() < followUntil) return
-  const line = centred ? (source.view.scrollDOM.scrollTop <= 0 ? 1 : sourceTopLine()) : canvas.scrollTop <= 0 ? 1 : topLine()
+  const line = centred ? (sourceScroller().scrollTop <= 0 ? 1 : sourceTopLine()) : canvas.scrollTop <= 0 ? 1 : topLine()
   toFrame({ type: 'scroll', line, lines: state.model.lineStarts.length })
 }
 
@@ -3135,16 +3134,24 @@ function scrollSourceTo(line) {
   const editor = source.view
   const number = Math.min(Math.max(Math.floor(line), 1), editor.state.doc.lines)
   const block = editor.lineBlockAt(editor.state.doc.line(number).from)
-  const top = Math.round(block.top + (line - number) * block.height)
-  if (Math.abs(editor.scrollDOM.scrollTop - top) < 1) return
+  // The top of the page is the top of the source
+  const move = line <= 1 ? -sourceScroller().scrollTop
+    : Math.round(editor.documentTop + block.top + (line - number) * block.height - sourceTop())
+  if (Math.abs(move) < 1) return
   sourceUntil = performance.now() + 300
-  editor.scrollDOM.scrollTop = top
+  sourceScroller().scrollTop += move
 }
+
+// What scrolls the source: its editor, or what is around it in the middle,
+// where it is as the page is. And where its first line shown is, there
+// below the bar of the tools.
+const sourceScroller = () => centred ? centerSource : source.view.scrollDOM
+const sourceTop = () => sourceScroller().getBoundingClientRect().top + (centred ? 60 : 0)
 
 // The line of the source at the top of the source pane, with how far in it
 function sourceTopLine() {
   const editor = source.view
-  const top = editor.scrollDOM.scrollTop
+  const top = sourceTop() - editor.documentTop
   const block = editor.lineBlockAtHeight(top)
   const line = editor.state.doc.lineAt(block.from).number
   return line + (block.height > 0 ? Math.min(Math.max((top - block.top) / block.height, 0), 1) : 0)
@@ -3156,7 +3163,7 @@ function syncSource() {
 }
 
 let sourceFrame = 0
-source.view.scrollDOM.addEventListener('scroll', () => {
+const sourceScrolled = () => {
   if (sourceFrame || !sourceShown() || performance.now() < sourceUntil) return
   sourceFrame = requestAnimationFrame(() => {
     sourceFrame = 0
@@ -3165,21 +3172,23 @@ source.view.scrollDOM.addEventListener('scroll', () => {
     if (centred) syncPreview()
     if (!pageShown()) return
     // The top of the source is the top of the page
-    if (source.view.scrollDOM.scrollTop <= 0) {
+    if (sourceScroller().scrollTop <= 0) {
       followUntil = performance.now() + 400
       canvas.scrollTop = 0
     } else {
       scrollToLine(sourceTopLine())
     }
   })
-}, { passive: true })
+}
+source.view.scrollDOM.addEventListener('scroll', sourceScrolled, { passive: true })
+centerSource.addEventListener('scroll', sourceScrolled, { passive: true })
 
 // The bar of the page and of the source, which scroll together: it shows,
 // and moves, the one in the middle, and the other one follows
 const scrollBar = document.getElementById('scroll')
 const scrollThumb = scrollBar.firstElementChild
 const scrolled = () => {
-  const list = centred ? [source.view.scrollDOM, canvas] : [canvas, source.view.scrollDOM]
+  const list = centred ? [centerSource, canvas] : [canvas, source.view.scrollDOM]
   return list.find(el => el.offsetParent !== null)
 }
 function renderScroll() {
@@ -3236,10 +3245,11 @@ const scrollSoon = () => {
 }
 canvas.addEventListener('scroll', scrollSoon, { passive: true })
 source.view.scrollDOM.addEventListener('scroll', scrollSoon, { passive: true })
+centerSource.addEventListener('scroll', scrollSoon, { passive: true })
 window.addEventListener('resize', scrollSoon)
 // What they hold, and the place they have, change
 const sizes = new ResizeObserver(scrollSoon)
-for (const el of [view, canvas, source.view.contentDOM, source.view.scrollDOM]) sizes.observe(el)
+for (const el of [view, canvas, centerSource, source.view.contentDOM, source.view.scrollDOM]) sizes.observe(el)
 
 let scrollFrame = 0
 canvas.addEventListener('scroll', () => {

@@ -105,12 +105,17 @@ const caretKeys = [
 ]
 const carets = EditorState.allowMultipleSelections.of(true)
 
+// What the bar of the tools hides of the source in the middle, in px
+const UNDER_BAR = 60
+
 // Whether a position is shown in the scrolled area of the editor
 function visible(view, pos) {
   const coords = view.coordsAtPos(pos)
   if (!coords) return false
-  const box = view.scrollDOM.getBoundingClientRect()
-  return coords.top >= box.top && coords.bottom <= box.bottom
+  // In the middle, what scrolls is around the editor, and goes under the bar
+  const outer = view.dom.closest('.center-source')
+  const box = (outer ?? view.scrollDOM).getBoundingClientRect()
+  return coords.top >= box.top + (outer ? UNDER_BAR : 0) && coords.bottom <= box.bottom
 }
 
 // The source pane. on: { change(text), select({ anchor, head }), undo, redo }
@@ -123,6 +128,7 @@ export function sourceEditor(parent, on) {
         keymap.of([...historyKeys(on), ...caretKeys, indentWithTab, ...defaultKeymap]),
         carets,
         drawSelection(),
+        EditorView.scrollMargins.of(view => view.dom.closest('.center-source') ? { top: UNDER_BAR + 8, bottom: 16 } : null),
         indentUnit.of('   '),
         marks.field,
         EditorView.contentAttributes.of({ spellcheck: 'false', 'aria-label': 'Source' }),

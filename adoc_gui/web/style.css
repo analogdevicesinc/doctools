@@ -465,7 +465,7 @@ body.choosing #sparse-state { color: var(--primary); font-weight: 600; }
 
 main { flex: 1; display: flex; min-height: 0; margin-top: calc(-1 * var(--bar)); }
 
-.canvas {
+.canvas, .center-source {
   position: relative;
   /* Over the files, so what goes out of the page at its left (the labels,
      the options, and their whole text on hover) is seen: the part at the
@@ -483,22 +483,17 @@ main { flex: 1; display: flex; min-height: 0; margin-top: calc(-1 * var(--bar));
 }
 
 /* The source in the middle, in place of the page, which is in the side
-   pane: see setCentre. It takes the place of the page, and goes under the
-   bar as it does. */
-.center-source {
-  position: relative;
-  z-index: 2;
-  flex: 0 1 var(--page);
-  min-width: 0;
-  display: flex;
-  margin: 0 4px;
+   pane: see setCentre. It is as the page is: of its width, with its space
+   around and its shadow, and scrolled under the bar by what is around it. */
+.center-source > #source {
+  pointer-events: auto;
+  min-height: 100%;
   background: var(--surface);
   box-shadow: var(--shadow);
-  mask-image: linear-gradient(to bottom, transparent calc(var(--bar) - 12px), #000 calc(var(--bar) + 16px));
 }
 .center-source[hidden], .canvas[hidden] { display: none; }
-.center-source > #source { flex: 1; min-width: 0; }
-.center-source #source .cm-scroller { padding-top: calc(var(--bar) + 20px); }
+.center-source #source .cm-editor { flex: none; height: auto; }
+.center-source #source .cm-scroller { padding: 16px 0 48px; overflow-y: visible; }
 .center-source #source .cm-content { padding-left: 20px; }
 
 /* The page in the side pane, in place of the source */
@@ -601,10 +596,8 @@ body.no-nav .side.left .open-panel, body.no-source .side.right .open-panel { opa
    with the button that swaps them at its start */
 .tab[data-tab='source'] { padding-left: 44px; }
 #swap-name { display: inline-block; width: 50px; text-align: left; }
-.tab-swap { position: relative; width: 32px; height: 32px; margin: 0 -40px 0 8px; z-index: 1; }
+.tab-swap { position: relative; top: -1px; width: 32px; height: 32px; margin: 0 -40px 0 8px; z-index: 1; }
 .tab-swap svg { width: 18px; height: 18px; }
-.tab-swap[aria-pressed='true'] { color: var(--primary); }
-.tab-swap[aria-pressed='true']:not(:hover) { background: none; }
 .tab {
   position: relative;
   height: 44px;
@@ -1242,12 +1235,12 @@ li > .b-lineblock { margin-bottom: 4px; }
   min-height: 24px;
   border-radius: 4px;
   background: var(--on-surface);
-  opacity: .18;
+  opacity: .4;
   pointer-events: none;
   transition: width .12s ease, opacity .12s ease;
 }
-.scroll:hover > .scroll-thumb { width: 8px; opacity: .38; }
-.scroll.dragged > .scroll-thumb { width: 8px; opacity: .55; }
+.scroll:hover > .scroll-thumb { width: 8px; opacity: .55; }
+.scroll.dragged > .scroll-thumb { width: 8px; opacity: .7; }
 
 /* The marks of the source */
 .m-block { background: var(--surface-container); border-radius: 3px; }
@@ -1394,8 +1387,7 @@ body.inspect .page .soft { background: var(--surface-container-highest); }
   body:not([data-screen='editor']) main { margin-top: 0; }
 
   main > .side, main > .canvas, main > .center-source { display: none; }
-  body[data-screen='editor'].source-center main > .center-source { display: flex; flex: 1 1 auto; margin: 0; }
-  body[data-screen='editor'] main > .canvas {
+  body[data-screen='editor'] main > .canvas, body[data-screen='editor'] main > .center-source:not([hidden]) {
     --bleed: 0px;
     display: block;
     flex: 1 1 auto;
