@@ -741,8 +741,31 @@ const centerButton = document.getElementById('toggle-center')
 const centerSource = document.getElementById('center-source')
 const sourcePanel = document.getElementById('source')
 const sourceHome = { parent: sourcePanel.parentElement, next: sourcePanel.nextElementSibling }
+// Where the caret is on the screen, from the top: the one of the page, or
+// the one of the source. Nothing when it is not shown.
+function caretTop(inSource) {
+  let rect
+  if (inSource) {
+    rect = source.view.coordsAtPos(source.view.state.selection.main.head)
+  } else {
+    const selected = window.getSelection()
+    if (!selected.rangeCount || !view.contains(selected.focusNode)) return undefined
+    const range = document.createRange()
+    range.setStart(selected.focusNode, selected.focusOffset)
+    rect = range.getClientRects()[0]
+    if (!rect) {
+      const el = selected.focusNode.nodeType === 1 ? selected.focusNode : selected.focusNode.parentElement
+      rect = el?.getBoundingClientRect()
+    }
+  }
+  if (!rect || rect.bottom < 0 || rect.top > window.innerHeight) return undefined
+  return rect.top
+}
+
 function setCentre(inSource, withCaret = true) {
   if (centred === inSource) return
+  // The caret stays where it is on the screen, when it is shown
+  const before = withCaret ? caretTop(written === 'source') : undefined
   centred = inSource
   try {
     localStorage.setItem('doctools.center', inSource ? 'source' : 'page')
@@ -764,7 +787,9 @@ function setCentre(inSource, withCaret = true) {
   if (state.model) showGitMarks()
   // The one in the middle shows what the other one did
   requestAnimationFrame(() => {
-    if (inSource) scrollSourceTo(line)
+    const after = before === undefined ? undefined : caretTop(inSource)
+    if (after !== undefined) (inSource ? centerSource : canvas).scrollTop += after - before
+    else if (inSource) scrollSourceTo(line)
     else if (line > 1) scrollToLine(line)
   })
   if (!withCaret) return
