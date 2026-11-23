@@ -2552,27 +2552,9 @@ view.addEventListener('mouseover', ev => {
   clearTimeout(hoverTimer)
   if (!el && cardOf?.classList?.contains('k-role')) hideCard()
   if (!el || state.docs.build === 'off') return
-  hoverTimer = setTimeout(async () => {
+  hoverTimer = setTimeout(() => {
     const leaf = state.model.leaves.find(l => l.kind === 'role' && l.s === Number(el.dataset.s))
-    const question = leaf && roleQuestion(state.source.slice(leaf.os, leaf.oe))
-    if (!question) return
-    const answer = await ask(question)
-    if (!el.isConnected || !el.matches(':hover')) return
-    // Below the role, or above it when there is no room
-    const place = box => () => {
-      const rect = el.getBoundingClientRect()
-      const below = rect.bottom + 6 + box.offsetHeight <= window.innerHeight - 8
-      box.style.top = `${below ? rect.bottom + 6 : Math.max(rect.top - 6 - box.offsetHeight, 8)}px`
-      box.style.left = `${Math.max(Math.min(rect.left, window.innerWidth - box.offsetWidth - 8), 0)}px`
-    }
-    if (answer.error)
-      return showCard(el, { kind: 'error', title: 'Not found', text: answer.error, page: `:${question.role}:` }, undefined, place(card))
-    const note = 'Ctrl+click to open'
-    // A role that makes an address: where it leads
-    if (!hasPreview(question.role, answer.target, answer.inventory))
-      return showCard(el, { title: answer.title, target: answer.target, page: `:${question.role}:`, note }, undefined, place(card))
-    // A reference into a documentation: the text of its target comes after
-    showCard(el, { title: answer.title, target: answer.target, note }, question, place(card))
+    if (leaf) roleCard(el, leaf, () => el.getBoundingClientRect(), () => el.isConnected && el.matches(':hover'))
   }, 350)
 })
 
@@ -2609,7 +2591,6 @@ async function openRole(leaf) {
   // On what it labels: the next line with text
   const next = /\n(?:[ \t]*\n)*(?=[ \t]*\S)/.exec(state.source.slice(label.index + label[0].length))
   const at = next ? label.index + label[0].length + next[0].length : label.index
-  written = 'page'
   state.caret = { anchor: at, focus: at }
   renderView(true)
   renderCode(true)
@@ -2631,6 +2612,34 @@ view.addEventListener('mouseout', ev => {
     if (cardOf === el) hideCard()
   }
 })
+// The card below what it is about, or above it when there is no room.
+// rect: where that is on the screen, when it is asked
+const placeCard = rect => () => {
+  const at = rect()
+  if (!at) return
+  const below = at.bottom + 6 + card.offsetHeight <= window.innerHeight - 8
+  card.style.top = `${below ? at.bottom + 6 : Math.max(at.top - 6 - card.offsetHeight, 8)}px`
+  card.style.left = `${Math.max(Math.min(at.left, window.innerWidth - card.offsetWidth - 8), 0)}px`
+}
+
+// The card of a role, of the page or of the source. still: whether the
+// pointer is on it yet, once the answer came
+async function roleCard(owner, leaf, rect, still) {
+  const question = roleQuestion(state.source.slice(leaf.os, leaf.oe))
+  if (!question) return
+  const answer = await ask(question)
+  if (!still()) return
+  const place = placeCard(rect)
+  if (answer.error)
+    return showCard(owner, { kind: 'error', title: 'Not found', text: answer.error, page: `:${question.role}:` }, undefined, place)
+  const note = 'Ctrl+click to open'
+  // A role that makes an address: where it leads
+  if (!hasPreview(question.role, answer.target, answer.inventory))
+    return showCard(owner, { title: answer.title, target: answer.target, page: `:${question.role}:`, note }, undefined, place)
+  // A reference into a documentation: the text of its target comes after
+  showCard(owner, { title: answer.title, target: answer.target, note }, question, place)
+}
+
 
 // Hover: where a link leads; Ctrl and a click open it
 let linkTimer
@@ -2645,25 +2654,7 @@ view.addEventListener('mouseover', ev => {
   if (!el || !linkEditor.hidden) return
   linkTimer = setTimeout(() => {
     const link = el.isConnected && el.matches(':hover') ? linkOfElement(el) : undefined
-    if (!link) return
-    const place = () => {
-      const rect = el.getBoundingClientRect()
-      const below = rect.bottom + 6 + card.offsetHeight <= window.innerHeight - 8
-      card.style.top = `${below ? rect.bottom + 6 : Math.max(rect.top - 6 - card.offsetHeight, 8)}px`
-      card.style.left = `${Math.max(Math.min(rect.left, window.innerWidth - card.offsetWidth - 8), 0)}px`
-    }
-    if (!link.target) {
-      return showCard(el, {
-        kind: 'error', title: 'No address',
-        text: link.kind === 'named' ? `Nothing in the document is named “${link.text}”.` : 'The document has no address left for this link.'
-      }, undefined, place)
-    }
-    const how = linkAddress(link.target) ? 'Ctrl+click to open  ·  Ctrl+K to edit' : 'Ctrl+K to edit'
-    showCard(el, {
-      title: link.kind === 'address' ? shortTarget(link.target) : link.text || shortTarget(link.target),
-      target: link.target,
-      note: link.at === undefined ? how : `line ${lineOf(link.at)}  ·  ${how}`
-    }, undefined, place)
+    if (link) linkCard(el, link, () => el.getBoundingClientRect(), 'Ctrl+K to edit')
   }, 350)
 })
 view.addEventListener('mouseout', ev => {
@@ -2721,6 +2712,23 @@ view.addEventListener('mouseover', ev => {
 })
 view.addEventListener('mouseout', ev => {
   const el = ev.target.closest?.('.k-substitution')
+
+// The card of a link, of the page or of the source. edit: how it is edited there
+function linkCard(owner, link, rect, edit) {
+  const place = placeCard(rect)
+  if (!link.target) {
+    return showCard(owner, {
+      kind: 'error', title: 'No address',
+      text: link.kind === 'named' ? `Nothing in the document is named “${link.text}”.` : 'The document has no address left for this link.'
+    }, undefined, place)
+  }
+  const how = [linkAddress(link.target) && 'Ctrl+click to open', edit].filter(Boolean).join('  ·  ')
+  showCard(owner, {
+    title: link.kind === 'address' ? shortTarget(link.target) : link.text || shortTarget(link.target),
+    target: link.target,
+    note: [link.at !== undefined && `line ${lineOf(link.at)}`, how].filter(Boolean).join('  ·  ')
+  }, undefined, place)
+}
   if (!el) return
   clearTimeout(substitutionTimer)
   if (cardOf === el) hideCard()
@@ -2735,6 +2743,68 @@ view.addEventListener('click', ev => {
 
 // Hover: a mistake of the prose, what it is and what corrects it. The
 // underlines are not elements: the mistake is the one whose text is under
+// The source has the same cards, and the same click: on the role or the
+// link that the pointer is on, in its text
+const sourceCard = {}
+let sourceTimer
+let sourceOver
+function sourceLeafAt(ev) {
+  const editor = source.view
+  if (state.source !== editor.state.doc.toString()) return undefined
+  const at = editor.posAtCoords({ x: ev.clientX, y: ev.clientY })
+  if (at === null) return undefined
+  const leaf = state.model.leaves.find(l => (l.kind === 'role' || l.kind === 'link') && (l.os ?? l.s) <= at && at <= (l.oe ?? l.e))
+  if (!leaf) return undefined
+  // On its text, not on the rest of its line
+  const from = editor.coordsAtPos(leaf.os ?? leaf.s)
+  const to = editor.coordsAtPos(leaf.oe ?? leaf.e)
+  if (!from || !to || ev.clientY < from.top || ev.clientY > to.bottom) return undefined
+  if (from.top === to.top && (ev.clientX < from.left || ev.clientX > to.right)) return undefined
+  return leaf
+}
+const sourceRect = leaf => () => {
+  const from = source.view.coordsAtPos(leaf.os ?? leaf.s)
+  const to = source.view.coordsAtPos(leaf.oe ?? leaf.e)
+  return from && to ? { left: from.left, top: from.top, bottom: to.bottom } : undefined
+}
+const leaveSource = () => {
+  clearTimeout(sourceTimer)
+  sourceOver = undefined
+  if (cardOf === sourceCard) hideCard()
+}
+source.view.dom.addEventListener('mousemove', ev => {
+  const leaf = ev.buttons ? undefined : sourceLeafAt(ev)
+  if (leaf === sourceOver) return
+  leaveSource()
+  sourceOver = leaf
+  if (!leaf) return
+  sourceTimer = setTimeout(() => {
+    if (sourceOver !== leaf || !state.model.leaves.includes(leaf)) return
+    if (leaf.kind === 'link') {
+      const link = linkOf(state.model, leaf)
+      if (link) linkCard(sourceCard, link, sourceRect(leaf))
+    } else if (state.docs.build !== 'off') {
+      roleCard(sourceCard, leaf, sourceRect(leaf), () => sourceOver === leaf)
+    }
+  }, 350)
+})
+source.view.dom.addEventListener('mouseleave', leaveSource)
+source.view.dom.addEventListener('keydown', leaveSource)
+source.view.scrollDOM.addEventListener('scroll', leaveSource, { passive: true })
+centerSource.addEventListener('scroll', leaveSource, { passive: true })
+// Ctrl and a click: before the editor, which would add a caret there
+source.view.dom.addEventListener('mousedown', ev => {
+  const leaf = (ev.ctrlKey || ev.metaKey) && ev.button === 0 ? sourceLeafAt(ev) : undefined
+  if (!leaf) return
+  const address = leaf.kind === 'link' ? linkAddress(linkOf(state.model, leaf)?.target) : undefined
+  if (leaf.kind === 'link' && !address) return
+  ev.preventDefault()
+  ev.stopPropagation()
+  leaveSource()
+  if (address) window.open(address, '_blank', 'noopener')
+  else openRole(leaf)
+}, true)
+
 // the pointer, once the pointer rests.
 let mistakeTimer
 const mistakeAt = (x, y) => mistakes.find(({ dom }) =>

@@ -202,6 +202,8 @@ changes. `adoc-gui --serve` starts it right away. While it runs:
   makes, as the ones of git, and the target of a reference into another
   documentation, are opened in the browser; a reference into the project
   opens its file in the editor, at its label.
+  The source has the same cards, for its roles and its links, and the same
+  click.
 - The live view shows the page of the file.
 - *References*, a tab of the side pane, lists what can be referenced, as a
   tree: this documentation and each of its inventories, their types (the
