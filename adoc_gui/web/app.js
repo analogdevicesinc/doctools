@@ -1347,16 +1347,27 @@ function showGitMarks() {
     mark.rows.push(row)
   }
 
-  const base = canvas.getBoundingClientRect()
-  // At the right of the page, inside its edge
-  const left = view.getBoundingClientRect().right - base.left + canvas.scrollLeft - 9
+  // From the layout, not from the screen: the pane can be on its way in,
+  // scaled, when this is asked
+  const within = el => {
+    let left = 0, top = 0
+    for (let at = el; at && at !== canvas; at = at.offsetParent) {
+      left += at.offsetLeft
+      top += at.offsetTop
+    }
+    return { left, top }
+  }
+  // Inside the edge of the page that is away from the other pane: the right
+  // one in the middle, the left one in the side pane
+  const page = within(view)
+  const left = centred ? page.left + 6 : page.left + view.offsetWidth - 9
   gitLayer.replaceChildren(...[...marks].map(([el, mark]) => {
-    const rect = el.getBoundingClientRect()
+    const rect = { top: within(el).top, height: el.offsetHeight }
     const bar = document.createElement('div')
     const kind = mark.kinds.has('changed') || mark.kinds.size > 1 ? 'changed' : mark.kinds.has('added') ? 'added' : 'deleted'
     bar.className = `git-bar ${kind}`
     bar.style.left = `${left}px`
-    bar.style.top = `${rect.top - base.top + canvas.scrollTop}px`
+    bar.style.top = `${rect.top}px`
     bar.style.height = `${kind === 'deleted' ? 0 : rect.height}px`
     bar.dataset.from = Math.min(...mark.rows) + 1
     bar.dataset.to = Math.max(...mark.rows) + 1
@@ -1451,24 +1462,26 @@ function keepPeek() {
 // The bars of the page
 gitLayer.addEventListener('mouseover', ev => {
   const bar = ev.target.closest('.git-bar')
-  if (bar) showPeek(Number(bar.dataset.from), Number(bar.dataset.to), bar.getBoundingClientRect(), 'left')
+  if (bar) showPeek(Number(bar.dataset.from), Number(bar.dataset.to), bar.getBoundingClientRect(), centred ? 'right' : 'left')
 })
 gitLayer.addEventListener('mouseout', ev => {
   if (!peek.contains(ev.relatedTarget) && !ev.relatedTarget?.closest?.('.git-bar')) hidePeek()
 })
 
-// The bars of the lines of the source: the space at the left of a line
+// The bars of the lines of the source: the space at the left of a line, or
+// at its right in the middle
 const sourceDom = source.view.dom
 sourceDom.addEventListener('mousemove', ev => {
   const line = ev.target.closest?.('.cm-line')
   const marked = line && /\bm-git-(added|changed|deleted)\b/.test(line.className)
   const rect = line?.getBoundingClientRect()
-  if (!marked || ev.clientX > rect.left + 12) {
-    if (peekKey?.startsWith('right:')) hidePeek()
+  if (!marked || (centred ? ev.clientX < rect.right - 12 : ev.clientX > rect.left + 12)) {
+    if (peekKey?.startsWith(centred ? 'left:' : 'right:')) hidePeek()
     return
   }
   const number = source.view.state.doc.lineAt(source.view.posAtDOM(line)).number
-  showPeek(number, number, { left: rect.left, right: rect.left + 4, top: rect.top, bottom: rect.bottom }, 'right')
+  if (centred) showPeek(number, number, { left: rect.right - 4, right: rect.right, top: rect.top, bottom: rect.bottom }, 'left')
+  else showPeek(number, number, { left: rect.left, right: rect.left + 4, top: rect.top, bottom: rect.bottom }, 'right')
 })
 sourceDom.addEventListener('mouseleave', ev => {
   if (!peek.contains(ev.relatedTarget)) hidePeek()

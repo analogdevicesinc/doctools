@@ -494,7 +494,12 @@ main { flex: 1; display: flex; min-height: 0; margin-top: calc(-1 * var(--bar));
 .center-source[hidden], .canvas[hidden] { display: none; }
 .center-source #source .cm-editor { flex: none; height: auto; }
 .center-source #source .cm-scroller { padding: 16px 0 48px; overflow-y: visible; }
-.center-source #source .cm-content { padding-left: 20px; }
+.center-source #source .cm-content { padding: 0 6px 0 20px; }
+/* The bars of git are away from the side pane: at the right of the lines */
+.center-source #source .cm-line { padding: 0 14px 0 0; }
+.center-source #source .cm-line[class*='m-git-'] { background-position: right top; }
+.center-source #source .cm-line.m-git-added { background-image: linear-gradient(to left, var(--git-added) 3px, transparent 3px); }
+.center-source #source .cm-line.m-git-changed { background-image: linear-gradient(to left, var(--git-changed) 3px, transparent 3px); }
 
 /* The page in the side pane, in place of the source */
 .sheet > .canvas {
