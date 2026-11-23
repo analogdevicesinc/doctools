@@ -2494,6 +2494,9 @@ function menuItems(a, b) {
     if (open) items.push({ label: 'Open the link', keys: 'Ctrl+click', run: () => window.open(open, '_blank', 'noopener') })
     if (own) items.push({ label: 'Remove the link', run: () => commit(setLink(state.model, a, b, link.kind === 'address' ? link.target : link.text, '')) })
   }
+  // The role there: where it points to is opened, as a link is
+  const role = a === b && state.docs.build !== 'off' && model.leaves.find(l => l.kind === 'role' && l.os <= a && a <= l.oe)
+  if (role) items.push({ kind: 'separator' }, { label: 'Open what it points to', keys: 'Ctrl+click', run: () => openRole(role) })
   return items
 }
 
@@ -2564,12 +2567,62 @@ view.addEventListener('mouseover', ev => {
     }
     if (answer.error)
       return showCard(el, { kind: 'error', title: 'Not found', text: answer.error, page: `:${question.role}:` }, undefined, place(card))
+    const note = 'Ctrl+click to open'
     // A role that makes an address: where it leads
     if (!hasPreview(question.role, answer.target, answer.inventory))
-      return showCard(el, { title: answer.title, target: answer.target, page: `:${question.role}:` }, undefined, place(card))
+      return showCard(el, { title: answer.title, target: answer.target, page: `:${question.role}:`, note }, undefined, place(card))
     // A reference into a documentation: the text of its target comes after
-    showCard(el, { title: answer.title, target: answer.target }, question, place(card))
+    showCard(el, { title: answer.title, target: answer.target, note }, question, place(card))
   }, 350)
+})
+
+// Ctrl and a click on a role go where it points to, as on a link: the
+// address that a role makes, as the ones of git, and the target of a
+// reference into another documentation, or into the published pages of
+// this one, are opened in the browser. A reference into the project opens
+// its file here, at its label.
+async function openRole(leaf) {
+  const question = roleQuestion(state.source.slice(leaf.os, leaf.oe))
+  if (!question || state.docs.build === 'off') return
+  const answer = await ask(question)
+  const target = answer.target
+  if (answer.error || typeof target !== 'string') return
+  if (/^[a-z][\w+.-]*:\/\//i.test(target)) return void window.open(target, '_blank', 'noopener')
+  const [docname, anchor] = target.split('#')
+  const path = sourceOf(`/${docname}`)
+  if (!path) {
+    // Not a file of the tree: its built page
+    const page = docname === 'index' ? '/' : docname.endsWith('/index') ? `/${docname.slice(0, -5)}` : `/${docname}/`
+    if (state.docs.url) window.open(new URL(page + (anchor ? `#${anchor}` : ''), state.docs.url).href, '_blank', 'noopener')
+    return
+  }
+  hideCard()
+  await openFile(path)
+  if (state.path !== path) return
+  // The label that is referenced, else the one that makes the anchor
+  const plain = name => name.replace(/[`\\]/g, '').replace(/\s+/g, ' ').trim().toLowerCase()
+  const slug = name => plain(name).replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+  const labels = [...state.source.matchAll(/^[ \t]*\.\. _([^\n]+?):[ \t]*$/gm)]
+  const label = labels.find(found => plain(found[1]) === plain(question.target)) ??
+    (anchor ? labels.find(found => slug(found[1]) === anchor) : undefined)
+  if (!label) return
+  // On what it labels: the next line with text
+  const next = /\n(?:[ \t]*\n)*(?=[ \t]*\S)/.exec(state.source.slice(label.index + label[0].length))
+  const at = next ? label.index + label[0].length + next[0].length : label.index
+  written = 'page'
+  state.caret = { anchor: at, focus: at }
+  renderView(true)
+  renderCode(true)
+  let line = 1
+  while (line < state.model.lineStarts.length && state.model.lineStarts[line] <= label.index) line++
+  requestAnimationFrame(() => scrollToLine(line))
+}
+view.addEventListener('click', ev => {
+  const el = (ev.ctrlKey || ev.metaKey) && ev.target.closest?.('.k-role')
+  const leaf = el && state.model.leaves.find(l => l.kind === 'role' && l.s === Number(el.dataset.s))
+  if (!leaf) return
+  ev.preventDefault()
+  openRole(leaf)
 })
 view.addEventListener('mouseout', ev => {
   const el = ev.target.closest?.('.k-role')

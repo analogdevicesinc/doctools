@@ -194,6 +194,11 @@ changes. `adoc-gui --serve` starts it right away. While it runs:
   the target that is selected. The text is read from the built page, of the
   documentation server or of the other documentation, after the card is
   shown: only its text, the page itself is not loaded.
+  `Ctrl` and a click on a role go where it points to, as on a link, and so
+  does *Open what it points to* of the right click: the address that a role
+  makes, as the ones of git, and the target of a reference into another
+  documentation, are opened in the browser; a reference into the project
+  opens its file in the editor, at its label.
 - The live view shows the page of the file.
 - *References*, a tab of the side pane, lists what can be referenced, as a
   tree: this documentation and each of its inventories, their types (the
