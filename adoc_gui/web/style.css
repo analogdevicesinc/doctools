@@ -1219,7 +1219,7 @@ li > .b-lineblock { margin-bottom: 4px; }
 
 #source:not([hidden]) { display: flex; flex-direction: column; }
 #source .cm-editor { flex: 1; min-height: 0; background: transparent; color: var(--on-surface); }
-#source .cm-scroller { padding: 4px 0 20px; font: 13px/20px var(--mono); }
+#source .cm-scroller { padding: 4px 0 20px; font: 15px/22px var(--mono); }
 #source .cm-content { padding: 0 20px 0 8px; caret-color: var(--primary); }
 /* The bars of git go in the space at the left of the lines */
 #source .cm-line { padding-left: 12px; }
