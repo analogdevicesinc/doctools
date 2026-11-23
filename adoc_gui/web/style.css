@@ -1231,17 +1231,23 @@ li > .b-lineblock { margin-bottom: 4px; }
 /* The page and the source scroll together: one bar for both, at the right
    edge of the window, in place of theirs. See renderScroll. */
 #source .cm-scroller { scrollbar-width: none; }
-.scroll { position: fixed; right: 0; z-index: 3; width: 14px; touch-action: none; }
+/* Two parts: the area that takes the pointer, not seen and of one width,
+   and the bar in it, thin, which is wider and darker under the pointer */
+.scroll { position: fixed; right: 0; z-index: 3; width: 18px; touch-action: none; }
 .scroll[hidden] { display: none; }
 .scroll-thumb {
   position: absolute;
-  left: 4px;
   right: 3px;
+  width: 4px;
   min-height: 24px;
   border-radius: 4px;
-  background: color-mix(in srgb, var(--on-surface) 28%, transparent);
+  background: var(--on-surface);
+  opacity: .18;
+  pointer-events: none;
+  transition: width .12s ease, opacity .12s ease;
 }
-.scroll:hover > .scroll-thumb, .scroll.dragged > .scroll-thumb { left: 2px; right: 2px; background: color-mix(in srgb, var(--on-surface) 50%, transparent); }
+.scroll:hover > .scroll-thumb { width: 8px; opacity: .38; }
+.scroll.dragged > .scroll-thumb { width: 8px; opacity: .55; }
 
 /* The marks of the source */
 .m-block { background: var(--surface-container); border-radius: 3px; }
