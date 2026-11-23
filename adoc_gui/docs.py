@@ -10,6 +10,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import os
+import posixpath
 import re
 import signal
 import socket
@@ -67,6 +68,21 @@ def find_workspace(file: Path) -> Path | None:
         if has_conf(parent):
             return parent
     return None
+
+
+REPOSITORY = re.compile(r'''^repository\s*=\s*(['"])([\w.-]+)\1''', re.MULTILINE)
+
+
+def repository_of(srcdir: str | None) -> str | None:
+    """The repository of a documentation, from its conf.py: the name of the
+    inventory of its published pages."""
+    if not srcdir:
+        return None
+    try:
+        found = REPOSITORY.search((Path(srcdir) / 'conf.py').read_text(encoding='utf-8'))
+    except OSError:
+        return None
+    return found.group(2) if found else None
 
 
 def parse_warning(line: str) -> dict | None:
@@ -143,6 +159,8 @@ class Docs:
         self._next_id = 1
         self._waiting: dict[int, tuple[threading.Event, list]] = {}
         self._previews = Previews()
+        # What was asked to the inventory of the published pages: see _published_ask
+        self._remote: dict[str, dict] = {}
 
         if importlib.util.find_spec('adi_doctools') is None:
             self.problem = 'adi-doctools is not installed'
@@ -374,6 +392,7 @@ class Docs:
             return {'return': 'success'}
         answer = self.request({'server': 'stop'}, timeout=30)
         with self._lock:
+            self._remote = {}
             self.url = None
             self.build = 'off'
             self.diagnostics = {}
@@ -386,7 +405,82 @@ class Docs:
             return {'error': 'not allowed'}
         if not self.url:
             return {'error': 'the documentation server is not running'}
-        return self.request(message)
+        if message.get('role') == 'doc' and isinstance(message.get('target'), str):
+            message = {**message, 'target': self._docname(message['target'])}
+        answer = self.request(message)
+        own = self.published()
+        return self._with_published(message, answer, own) if own else answer
+
+    def _docname(self, target: str) -> str:
+        """The page a doc role names, as the backend knows it: from the
+        root of the documentation, or from the folder of the file."""
+        if target.startswith('/'):
+            return target.lstrip('/')
+        try:
+            folder = Path(os.path.realpath(self.file)).relative_to(os.path.realpath(self.srcdir or '')).parent.as_posix()
+        except ValueError:
+            return target
+        return posixpath.normpath(posixpath.join(folder, target))
+
+    # With only some folders built, what is in the others is missing: the
+    # references to it are not found, and are not offered. The build finds
+    # them in the inventory of the published pages of the repository, which
+    # Doctools adds for it. So does the editor: it is merged into what the
+    # project has, as if all of it was built.
+
+    def published(self) -> str | None:
+        """The name of the inventory of the published pages of the
+        repository, when only some folders are built."""
+        return repository_of(self.srcdir) if self.sparse else None
+
+    def _published_ask(self, message: dict) -> dict:
+        """An answer of the inventory of the published pages: it does not
+        change while the server runs."""
+        key = json.dumps(message, sort_keys=True)
+        answer = self._remote.get(key)
+        if answer is None:
+            answer = self.request(message)
+            if not answer.get('error'):
+                self._remote[key] = answer
+        return answer
+
+    def _with_published(self, message: dict, answer: dict, own: str) -> dict:
+        completion = message.get('completion')
+        if completion == 'inventory':
+            # It is the project: not another documentation
+            if isinstance(answer.get('list'), list):
+                return {**answer, 'list': [item for item in answer['list'] if item.get('name') != own]}
+            return answer
+        if completion == 'local_types':
+            more = self._published_ask({'completion': 'inventory_types', 'inventory': own}).get('list')
+            if not isinstance(more, list):
+                return answer
+            types = [dict(item) for item in answer.get('list') or []]
+            by_name = {item.get('name'): item for item in types}
+            for item in more:
+                known = by_name.get(item.get('name'))
+                if known is None:
+                    types.append(item)
+                else:
+                    known['count'] = max(known.get('count') or 0, item.get('count') or 0)
+            return {'list': types}
+        if completion == 'local_targets':
+            more = self._published_ask(
+                {'completion': 'inventory_targets', 'inventory': own, 'role': message.get('role')}).get('list')
+            if not isinstance(more, list):
+                return answer
+            targets = list(answer.get('list') or [])
+            names = {item.get('name') for item in targets}
+            targets += [item for item in more if item.get('name') not in names]
+            return {'list': targets} if targets else answer
+        role = message.get('role')
+        if completion or not isinstance(role, str) or not answer.get('error') or role.startswith('external+'):
+            return answer
+        # Not found in what is built
+        found = self.request({**message, 'role': f'external+{own}:{role}'})
+        if not found.get('error') and isinstance(found.get('target'), str):
+            return {**found, 'inventory': own}
+        return answer
 
     def preview(self, message: dict) -> dict:
         """What a reference points to: { title, target, text, page, external }.
@@ -400,7 +494,8 @@ class Docs:
         if answer.get('error') or not isinstance(target, str):
             return {'error': answer.get('error') or 'not found'}
         external = message['role'].startswith('external+')
-        if external:
+        if external or answer.get('inventory'):
+            # Of another documentation, or of the published pages of this one
             url, version = target, None
         elif '://' in target or not self.url:
             # A role that makes an address: there is no page of a documentation to read

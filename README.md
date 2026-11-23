@@ -206,6 +206,13 @@ then offers to choose the folders first, or to build all of it, and
 before. *Build all* clears the
 selection. The selection is kept by the browser, per documentation.
 
+What is in the folders that are not built is still referenced: as the build
+does, the editor finds it in the inventory of the published pages of the
+repository, the one that `repository` of `conf.py` names. It is merged into
+what the project has: a `:ref:`, a `:doc:` or another reference to it is
+found, with its title and its text read from the published page, and it is
+offered when a role is completed and in *References*, as if all was built.
+
 The file is not saved, and so not built, while a role or a directive is being
 completed, nor while the directive of the caret is not finished: a note
 without its content yet, an image without its path, an option without its

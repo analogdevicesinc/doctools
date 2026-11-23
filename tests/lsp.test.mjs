@@ -57,6 +57,8 @@ test('the targets of a reference have a preview, a site does not', async () => {
   assert.equal(hasPreview('ref', 'install#install'), true)
   assert.equal(hasPreview('external+sphinx:ref', 'https://www.sphinx-doc.org/a.html#b'), true)
   assert.equal(hasPreview('git-doctools', 'https://github.com/analogdevicesinc/doctools'), false)
+  // Not built, found in the inventory of the published pages
+  assert.equal(hasPreview('ref', 'https://example.com/doctools/install.html#install', 'doctools'), true)
   assert.equal(shortTarget('https://www.sphinx-doc.org/a.html#b'), 'sphinx-doc.org/a.html#b')
   assert.equal(shortTarget('install#install'), 'install#install')
 })

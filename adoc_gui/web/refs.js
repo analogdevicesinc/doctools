@@ -31,8 +31,9 @@ export function filterLabel(filter) {
 // are closed; the ones of the others are not, until they are opened
 export const roleOpen = (toggled, documentation, role) => toggled.has(`${documentation}|${role}`) !== (role === 'ref')
 
-// The page of a target of the project, from its uri 'page#id'
-export const pageOf = uri => String(uri ?? '').split('#')[0]
+// The page of a target of the project, from its uri 'page#id'. None for an
+// address: a target that is not built, found in the published pages.
+export const pageOf = uri => /^[a-z][\w+.-]*:\/\//i.test(String(uri ?? '')) ? '' : String(uri ?? '').split('#')[0]
 
 // The targets that match what is searched, in their name, their title or
 // their page: all the words, the ones whose name or title starts with the
@@ -64,6 +65,7 @@ export function referenceText(inventory, role, name, title = '') {
   return shown ? `:${prefix}${role}:\`${shown} <${target}>\`` : `:${prefix}${role}:\`${target}\``
 }
 
-// The question of the preview of a target
+// The question of the preview of a target. A page of the project is named
+// from the top of the documentation, as in referenceText.
 export const referenceQuestion = (inventory, role, name) =>
-  ({ role: inventory ? `external+${inventory}:${role}` : role, target: String(name) })
+  ({ role: inventory ? `external+${inventory}:${role}` : role, target: !inventory && role === 'doc' ? `/${name}` : String(name) })

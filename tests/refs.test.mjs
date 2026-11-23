@@ -34,7 +34,10 @@ test('the role written for a target', () => {
   assert.equal(referenceText('', 'doc', 'guide/install'), ':doc:`/guide/install`')
   assert.equal(referenceText('sphinx', 'doc', 'usage/index'), ':external+sphinx:doc:`usage/index`')
   assert.deepEqual(referenceQuestion('sphinx', 'ref', 'any-role'), { role: 'external+sphinx:ref', target: 'any-role' })
-  assert.deepEqual(referenceQuestion('', 'doc', 'install'), { role: 'doc', target: 'install' })
+  assert.deepEqual(referenceQuestion('', 'doc', 'install'), { role: 'doc', target: '/install' })
+  assert.deepEqual(referenceQuestion('', 'ref', 'install'), { role: 'ref', target: 'install' })
+  // A target that is not built, found in the published pages, has no page to show
+  assert.equal(pageOf('https://example.com/docs/deploy.html#local'), '')
 })
 
 test('the types shown, and the ones that are open', async () => {

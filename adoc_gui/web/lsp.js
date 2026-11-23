@@ -20,8 +20,9 @@ export function completionAt(prefix, suffix = '') {
       partial,
       skip,
       item: entry => entry.name + closing,
-      // What an entry points to is shown beside it
-      preview: entry => ({ role, target: String(entry.name) })
+      // What an entry points to is shown beside it. A page of the project
+      // is named from the top of the documentation.
+      preview: entry => ({ role, target: role === 'doc' ? `/${entry.name}` : String(entry.name) })
     }
   }
 
@@ -92,9 +93,10 @@ export function matching(list, context) {
 
 // Whether a role points into a documentation, the one of the project or the
 // one of an inventory, where there is text to show of its target: not a role
-// that makes the address of a site. target: what the role resolved to.
-export function hasPreview(role, target) {
-  return role.startsWith('external+') || !/^[a-z][\w+.-]*:\/\//i.test(target ?? '')
+// that makes the address of a site. target: what the role resolved to;
+// inventory: the one it was found in, when it is not in what is built.
+export function hasPreview(role, target, inventory) {
+  return role.startsWith('external+') || Boolean(inventory) || !/^[a-z][\w+.-]*:\/\//i.test(target ?? '')
 }
 
 // What is shown of where a reference points to, short: the address without

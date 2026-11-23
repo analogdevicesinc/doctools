@@ -2510,7 +2510,7 @@ view.addEventListener('mouseover', ev => {
     if (answer.error)
       return showCard(el, { kind: 'error', title: 'Not found', text: answer.error, page: `:${question.role}:` }, undefined, place(card))
     // A role that makes an address: where it leads
-    if (!hasPreview(question.role, answer.target))
+    if (!hasPreview(question.role, answer.target, answer.inventory))
       return showCard(el, { title: answer.title, target: answer.target, page: `:${question.role}:` }, undefined, place(card))
     // A reference into a documentation: the text of its target comes after
     showCard(el, { title: answer.title, target: answer.target }, question, place(card))
