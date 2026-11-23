@@ -104,7 +104,7 @@ export function createModelSelector (domain) {
   }
   const render = () => {
     const active = selected()
-    button.textContent = active?.name || 'Choose model'
+    button.textContent = active?.name || 'Model'
     button.dataset.empty = !active
     const groups = new Map()
     for (const model of models())
