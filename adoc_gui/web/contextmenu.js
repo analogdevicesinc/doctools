@@ -27,7 +27,11 @@ export class ContextMenu {
     }, true)
     window.addEventListener('blur', () => this.close())
     window.addEventListener('resize', () => this.close())
-    document.addEventListener('scroll', () => this.close(), true)
+    // But the scroll of what the click itself moved: the caret it placed is
+    // followed by the other pane
+    document.addEventListener('scroll', () => {
+      if (performance.now() - this.shown > 400) this.close()
+    }, true)
   }
 
   get open() {
@@ -39,6 +43,7 @@ export class ContextMenu {
     this.y = y
     this.onClose = onClose
     this.index = -1
+    this.shown = performance.now()
     this.el.hidden = false
     this.update(items)
   }

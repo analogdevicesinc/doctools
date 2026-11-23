@@ -28,6 +28,18 @@ written in, the toolbar works on the one that is, and they scroll together. One
 scrollbar, at the right edge of the window, is the one of both.
 The browser keeps the choice.
 
+*Fold text*, in the menu of the right click of the source, or `Alt+Q`, fills
+again the lines of the paragraph of the caret, or of the paragraphs that are
+selected, to fewer than 80 columns: the lines that are too long are broken,
+the short ones are joined. The lines are indented as the text of their
+paragraph is: by the three spaces of the content of a directive, by the
+bullet or the enumerator of a list item. Only the paragraphs are folded:
+the code, the tables, the options, the titles, the line blocks, the
+definitions, the fields, the footnotes and the comments are as they are. A
+role, a link or a literal is kept on one line, and no line starts with what
+would be markup there. `Shift` and the right click show the menu of the
+browser.
+
 In the source, and in the code of a code directive, `Alt+Shift+Up` and
 `Alt+Shift+Down` add a caret on the line above or below, at the same column:
 what is typed is written at all of them, as for the rows of a table. `Escape`

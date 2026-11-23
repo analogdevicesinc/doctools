@@ -2,7 +2,7 @@ import { Parser, Language } from './vendor/web-tree-sitter.js'
 import { buildModel, leafAt, blockAt } from './model.js'
 import {
   applyEdit, withoutTrailing, insertText, deleteBackward, deleteForward, insertParagraph, toggleInline, tableStep, openContent, intoContent, addOption, addLabel, removeSide, addTab, shiftItem, removeDirective, leaveDirective, headingAt, setHeading, addDirective, addRole, addTable,
-  linkAt, setLink, addSubstitution, addDefinition, unfinishedAt
+  linkAt, setLink, addSubstitution, addDefinition, unfinishedAt, fold
 } from './ops.js'
 import {
   render, getSelection, setSelection, markActive, showDiagnostics, selectTab as showTab, setCodeHost, offsetOf, pointOf,
@@ -154,7 +154,7 @@ function paint(caret) {
 
 function renderView(withCaret) {
   paint(withCaret ? state.caret.focus : undefined)
-  if (withCaret && centred && written === 'source') {
+  if (withCaret && written === 'source' && sourceShown()) {
     // The source is the one that is written in
     source.select(state.caret.anchor, state.caret.focus)
     source.view.focus()
@@ -977,7 +977,40 @@ const source = sourceEditor(document.getElementById('source'), {
     renderStatus()
   },
   undo: () => ACTIONS.undo(),
-  redo: () => ACTIONS.redo()
+  redo: () => ACTIONS.redo(),
+  fold: () => foldSource()
+})
+
+// Fold the text of the source: fill again the lines of the paragraphs that
+// are selected, or of the one of the caret. See fold.
+const foldChanges = () => {
+  const { from, to } = source.view.state.selection.main
+  return state.source === source.view.state.doc.toString() ? fold(state.model, from, to) : []
+}
+function foldSource() {
+  const changes = foldChanges()
+  if (changes.length) source.view.dispatch({ changes, userEvent: 'input.fold', scrollIntoView: true })
+}
+
+// The menu of the right click of the source. Shift and the right click: the
+// menu of the browser.
+source.view.dom.addEventListener('contextmenu', ev => {
+  if (ev.shiftKey) return
+  ev.preventDefault()
+  const editor = source.view
+  editor.focus()
+  // A click outside the selection puts the caret there
+  const at = editor.posAtCoords({ x: ev.clientX, y: ev.clientY })
+  const { from, to } = editor.state.selection.main
+  if (at !== null && (from === to || at < from || at > to)) editor.dispatch({ selection: { anchor: at } })
+  const selected = !editor.state.selection.main.empty
+  context.show(ev.clientX, ev.clientY, [
+    { label: selected ? 'Fold the selected text' : 'Fold text', keys: 'Alt+Q', disabled: !foldChanges().length, run: foldSource },
+    { kind: 'separator' },
+    { label: 'Cut', keys: 'Ctrl+X', disabled: !selected, run: () => document.execCommand('cut') },
+    { label: 'Copy', keys: 'Ctrl+C', disabled: !selected, run: () => document.execCommand('copy') },
+    { label: 'Select all', keys: 'Ctrl+A', run: () => editor.dispatch({ selection: { anchor: 0, head: editor.state.doc.length } }) }
+  ])
 })
 
 // The colours of the source, made again when the source changes

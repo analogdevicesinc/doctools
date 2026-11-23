@@ -1009,6 +1009,9 @@ export const WIDTH = 79
 // enumerator, a directive or a comment, an adornment
 const MARKUP_START = /^(?:[-*+•](?:\s|$)|#\.|\(?\w{1,3}[.)](?:\s|$)|\.\.(?:\s|$)|([=\-~^"'#+*:_`.])\1+(?:\s|$)|>>>|\|)/
 
+// A line that starts an item of a list
+const ITEM_START = /^[ \t]*(?:[-*+•]|#\.|\(?\w{1,3}[.)])(?:\s|$)/
+
 // A typed line of a paragraph that gets longer than WIDTH is broken at a
 // space before, as an editor with a text width does. The new line is
 // indented as the text of the paragraph; roles, links and literals are kept
@@ -1066,6 +1069,94 @@ function wrap(model, change) {
     before[before.length - 1 - tail] === source[source.length - 1 - tail]) tail++
   tail = Math.min(tail, before.length - change.end)
   return { start: from, end: before.length - tail, text: source.slice(from, source.length - tail), caret }
+}
+
+// The paragraphs from a to b, or the one at a, with their lines filled again
+// to WIDTH: the lines that are too long are broken, the short ones joined.
+// Only the paragraphs: the code, the tables, the options, the titles and the
+// line blocks are as they are. The lines after the first one are indented
+// as the text of the paragraph: by the three spaces of a directive, by the
+// bullet or the enumerator of a list item. Roles, links and literals are
+// kept on one line, and no line starts as markup would.
+// Gives the changes: [{ from, to, insert }], in the order of the source.
+// width: of the lines, for the tests.
+export function fold(model, a, b = a, width = WIDTH) {
+  const { source } = model
+  const from = Math.min(a, b)
+  const to = Math.max(a, b)
+  const owners = new Set()
+  for (const leaf of model.leaves) {
+    const owner = leaf.block
+    if (owner?.kind !== 'paragraph' || owner.e < from || owner.s > to) continue
+    // A cell of a grid or a simple table: its lines are the table
+    const cell = ancestor(owner, 'cell')
+    if (cell ? ancestor(cell, 'table')?.format !== 'list' : ancestor(owner, 'table')) continue
+    owners.add(owner)
+  }
+
+  const changes = []
+  for (const owner of [...owners].sort((x, y) => x.s - y.s)) {
+    const end = owner.s + source.slice(owner.s, owner.e).trimEnd().length
+    const kept = model.leaves
+      .filter(l => l.block === owner && !['text', 'soft', 'strong', 'emphasis'].includes(l.kind))
+      .map(l => ({ s: l.os ?? l.s, e: l.oe ?? l.e }))
+    // The words, and what is kept whole with the words it touches
+    const words = []
+    let word = ''
+    for (let at = owner.s; at < end; at++) {
+      const space = /\s/.test(source[at])
+      if (!space) word += source[at]
+      else if (kept.some(span => span.s < at && at < span.e)) word += /\s/.test(word.at(-1) ?? '') ? '' : ' '
+      else if (word) {
+        words.push(word)
+        word = ''
+      }
+    }
+    if (word) words.push(word)
+
+    const column = owner.s - lineStart(source, owner.s)
+    const indent = ' '.repeat(column)
+    // Lines that are not indented as its text: it is not what it seems to
+    // be, as a list item whose text goes on below its bullet
+    const rest = source.slice(owner.s, end).split('\n').slice(1)
+    if (rest.some(line => line.match(/^[ \t]*/)[0] !== indent)) continue
+    // The same for the lines around it, when they are not empty: the one
+    // after it, but the next item of its list, and the one before it when
+    // it is not what holds it
+    const first = lineStart(source, owner.s)
+    const after = source.slice(end, lineEnd(source, end + 1)).trim() ? source.slice(end + 1, lineEnd(source, end + 1)) : ''
+    const item = source.slice(first, owner.s).trim() && ITEM_START.test(after) && after.match(/^[ \t]*/)[0].length < column
+    if (after.trim() && !item) continue
+    const before = first > 0 ? source.slice(lineStart(source, first - 1), first - 1) : ''
+    if (before.trim() && !source.slice(first, owner.s).trim() && before.match(/^[ \t]*/)[0].length >= column) continue
+    const lines = [[]]
+    let length = column
+    for (const next of words) {
+      const line = lines.at(-1)
+      if (!line.length || length + 1 + next.length <= width) {
+        length += (line.length ? 1 : 0) + next.length
+        line.push(next)
+        continue
+      }
+      // What would be markup at the start of a line takes the word before
+      // it down with it
+      const moved = [next]
+      while (MARKUP_START.test(moved[0]) && line.length > 1) moved.unshift(line.pop())
+      if (MARKUP_START.test(moved[0])) {
+        line.push(...moved)
+        length = Infinity
+        continue
+      }
+      lines.push(moved)
+      length = column + moved.join(' ').length
+    }
+    const insert = lines.map(line => line.join(' ')).join('\n' + indent)
+    // With the spaces at the end of its last line
+    let stop = end
+    while (source[stop] === ' ' || source[stop] === '\t') stop++
+    if (insert !== source.slice(owner.s, stop)) changes.push({ from: owner.s, to: stop, insert })
+  }
+  return changes
 }
 
 export function insertText(model, a, b, text) {

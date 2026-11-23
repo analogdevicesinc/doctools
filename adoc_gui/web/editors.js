@@ -118,14 +118,18 @@ function visible(view, pos) {
   return coords.top >= box.top + (outer ? UNDER_BAR : 0) && coords.bottom <= box.bottom
 }
 
-// The source pane. on: { change(text), select({ anchor, head }), undo, redo }
+// The source pane. on: { change(text), select({ anchor, head }), undo, redo, fold }
 export function sourceEditor(parent, on) {
   const marks = markField()
   const view = new EditorView({
     parent,
     state: EditorState.create({
       extensions: [
-        keymap.of([...historyKeys(on), ...caretKeys, indentWithTab, ...defaultKeymap]),
+        keymap.of([
+          ...historyKeys(on), ...caretKeys,
+          { key: 'Alt-q', run: () => (on.fold(), true), preventDefault: true },
+          indentWithTab, ...defaultKeymap
+        ]),
         carets,
         drawSelection(),
         EditorView.scrollMargins.of(view => view.dom.closest('.center-source') ? { top: UNDER_BAR + 8, bottom: 16 } : null),

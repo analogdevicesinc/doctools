@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { run, modelOf, outline } from './helper.mjs'
 import {
-  insertText, deleteBackward, deleteForward, insertParagraph, toggleInline, intoContent, addOption, tableStep, addLabel, removeSide, addTab, shiftItem
+  insertText, deleteBackward, deleteForward, insertParagraph, toggleInline, intoContent, addOption, tableStep, addLabel, removeSide, addTab, shiftItem, fold
 } from '../adoc_gui/web/ops.js'
 
 const type = (marked, text) => run(marked, insertText, text)
@@ -595,4 +595,71 @@ test('a directive that is still being written', async () => {
   assert.equal(at('.. code-block:: py\n   :linenos:|\n\n   x = 1\n'), false)
   // Not in a directive
   assert.equal(at('Text|\n'), false)
+})
+
+// Fold: the lines of the paragraphs, filled again
+const folded = (source, a = 0, b = source.length, width) => {
+  let out = source
+  for (const change of fold(modelOf(source), a, b, width).reverse()) out = out.slice(0, change.from) + change.insert + out.slice(change.to)
+  return out
+}
+const words = (count, word = 'word') => Array(count).fill(word).join(' ')
+
+test('fold joins the short lines and breaks the long ones', () => {
+  assert.equal(folded('some\nugly\noverly long lines, or short lines.\n'), 'some ugly overly long lines, or short lines.\n')
+  const out = folded(`${words(30)}\n`)
+  assert.deepEqual(out.split('\n').map(line => line.length), [79, 69, 0])
+  // What is as it is to be is not changed
+  assert.deepEqual(fold(modelOf(out), 0, out.length), [])
+  // Only the paragraph of the caret, or the ones that are selected
+  const two = 'a\nb\n\nc\nd\n\ne\nf\n'
+  assert.equal(folded(two, 1, 1), 'a b\n\nc\nd\n\ne\nf\n')
+  assert.equal(folded(two, 7, 7), 'a\nb\n\nc d\n\ne\nf\n')
+  assert.equal(folded(two, 2, 6), 'a b\n\nc d\n\ne\nf\n')
+})
+
+test('fold indents the lines as the text of the paragraph', () => {
+  const text = words(20)
+  const lines = source => folded(source).split('\n')
+  // The bullet, the enumerator, and the paragraphs of an item
+  assert.deepEqual(lines(`* ${text}\n\n  ${text}\n`).map(line => line.slice(0, 6)), ['* word', '  word', '', '  word', '  word', ''])
+  assert.deepEqual(lines(`#. ${text}\n`).map(line => line.slice(0, 7)), ['#. word', '   word', ''])
+  assert.deepEqual(lines(`10. ${text}\n`).map(line => line.slice(0, 8)), ['10. word', '    word', ''])
+  // The content of a directive, and a list in it
+  assert.deepEqual(lines(`.. note::\n\n   ${text}\n\n   * ${text}\n`).map(line => line.slice(0, 9)),
+    ['.. note::', '', '   word w', '   word w', '', '   * word', '     word', ''])
+  // The cells of a list table
+  assert.deepEqual(lines(`.. list-table::\n\n   * - ${text}\n     - b\n`).map(line => line.slice(0, 11)),
+    ['.. list-tab', '', '   * - word', '       word', '     - b', ''])
+  // The items of a list with no line between them
+  assert.deepEqual(lines(`* ${text}\n* ${text}\n`).map(line => line.slice(0, 6)), ['* word', '  word', '* word', '  word', ''])
+})
+
+test('fold leaves what is not a paragraph', () => {
+  const text = words(30)
+  for (const source of [
+    `Text::\n\n   ${text}\n`,
+    `.. code-block:: bash\n\n   ${text}\n`,
+    `.. image:: a.png\n   :alt: ${text}\n`,
+    `${text}\n${'='.repeat(text.length)}\n`,
+    `| ${text}\n| ${text}\n`,
+    `+${'-'.repeat(160)}+\n| ${text.padEnd(158)} |\n+${'-'.repeat(160)}+\n`,
+    `.. ${text}\n`,
+    // Not an item for docutils: its text goes on below its bullet
+    `* ${text}\nmore\n`
+  ]) assert.equal(folded(source), source)
+})
+
+test('fold keeps the markup whole, and starts no line as markup', () => {
+  const role = ':ref:`a title of some words <the-label>`'
+  const out = folded(words(13) + ' ' + role + ' ``a literal of words`` ' + words(10) + '\n')
+  assert.ok(out.split('\n').some(line => line.includes(role)))
+  assert.ok(out.includes('``a literal of words``'))
+  // A dash, an enumerator: with the word before them
+  assert.equal(folded(`${words(15)} aaaa - bb\n`), `${words(15)}\naaaa - bb\n`)
+  assert.equal(folded(`${words(15)} aaaa 1. b\n`), `${words(15)}\naaaa 1. b\n`)
+  for (const width of [20, 30, 50]) {
+    const narrow = folded(`${words(8)} - ${words(8)} 1. ${words(8)} .. ${words(8)} * ${words(8)} | x === y\n`, 0, 300, width)
+    assert.ok(narrow.split('\n').slice(1).every(line => !/^(?:[-*+|]|\d+\.|\.\.|=+)(?:\s|$)/.test(line)), narrow)
+  }
 })
