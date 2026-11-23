@@ -154,7 +154,7 @@ function paint(caret) {
 
 function renderView(withCaret) {
   paint(withCaret ? state.caret.focus : undefined)
-  if (withCaret && centred) {
+  if (withCaret && centred && written === 'source') {
     // The source is the one that is written in
     source.select(state.caret.anchor, state.caret.focus)
     source.view.focus()
@@ -700,23 +700,13 @@ openTabs.addEventListener('click', ev => {
 function renderOpenTabs() {
   for (const button of openTabs.children)
     button.hidden = document.querySelector(`.tab[data-tab=${button.dataset.openTab}]`).hidden
-  // The source is in the middle, and a tab came for the side pane, which had
-  // none to show
-  if (!centred || state.tab !== 'source') return
-  const other = ['preview', 'references', 'changes'].find(name => !document.querySelector(`.tab[data-tab=${name}]`).hidden)
-  if (!other) return
-  selectTab(other, false)
-  if (paneHidden) {
-    paneHidden = false
-    showSidePane(true)
-  }
 }
 // The tabs come and go: with the documentation server, with git
 new MutationObserver(renderOpenTabs).observe(document.querySelector('.tabs'), { attributes: true, attributeFilter: ['hidden'], subtree: true })
 
 function renderMore() {
   const [label, icon] = MORE[state.tab] ?? MORE.source
-  document.getElementById('more-label').textContent = label
+  document.getElementById('more-label').textContent = centred && label === MORE.source[0] ? 'Page' : label
   document.getElementById('more-icon').setAttribute('d', icon)
   renderOpenTabs()
 }
@@ -741,47 +731,45 @@ function firstVisit() {
   } catch { }
 }
 
-// The source in the middle, in place of the page: the code editor is the one
-// that is written in, with the caret where it was in the page, and back. The
-// side pane keeps its other tabs.
+// The source and the page, swapped: the source in the middle, to be written
+// in, and the page in the side pane, in the tab of the source, which has
+// its name then. The caret is where it was in the other one.
 let centred = false
-let paneHidden = false
+// The one of the two that was written in last
+let written = 'page'
 const centerButton = document.getElementById('toggle-center')
 const centerSource = document.getElementById('center-source')
 const sourcePanel = document.getElementById('source')
 const sourceHome = { parent: sourcePanel.parentElement, next: sourcePanel.nextElementSibling }
 function setCentre(inSource, withCaret = true) {
+  if (centred === inSource) return
   centred = inSource
   try {
     localStorage.setItem('doctools.center', inSource ? 'source' : 'page')
   } catch { }
+  const line = inSource ? (canvas.scrollTop <= 0 ? 1 : topLine()) : sourceTopLine()
   document.body.classList.toggle('source-center', inSource)
   centerButton.setAttribute('aria-pressed', String(inSource))
-  centerButton.title = inSource ? 'Edit the page in the middle (F4)' : 'Edit the source in the middle (F4)'
-  if (inSource) centerSource.append(sourcePanel)
-  else sourceHome.parent.insertBefore(sourcePanel, sourceHome.next)
-  centerSource.hidden = !inSource
-  // Its tab is not one of the side pane meanwhile: another one is shown
-  const tabOf = name => document.querySelector(`.tab[data-tab=${name}]`)
-  tabOf('source').hidden = inSource
-  const other = ['preview', 'references', 'changes'].find(name => !tabOf(name).hidden)
-  if (inSource && state.tab === 'source') {
-    if (other) {
-      selectTab(other, false)
-    } else {
-      // Nothing else to show in the side pane: it is hidden, until the page is back
-      paneHidden = !document.body.classList.contains('no-source')
-      showSidePane(false)
-    }
-  } else if (!inSource && paneHidden) {
-    paneHidden = false
-    showSidePane(true)
-    selectTab('source', false)
+  document.getElementById('swap-name').textContent = inSource ? 'Page' : 'Source'
+  openTabs.querySelector('[data-open-tab=source]').title = inSource ? 'Show the page' : 'Show the source'
+  if (inSource) {
+    centerSource.append(sourcePanel)
+    sourceHome.parent.insertBefore(canvas, sourceHome.next)
   } else {
-    selectTab(state.tab, false)
+    centerSource.before(canvas)
+    sourceHome.parent.insertBefore(sourcePanel, sourceHome.next)
   }
+  centerSource.hidden = !inSource
+  selectTab(state.tab, false)
   source.view.requestMeasure()
+  if (state.model) showGitMarks()
+  // The one in the middle shows what the other one did
+  requestAnimationFrame(() => {
+    if (inSource) scrollSourceTo(line)
+    else if (line > 1) scrollToLine(line)
+  })
   if (!withCaret) return
+  written = inSource ? 'source' : 'page'
   if (inSource) {
     const { anchor, focus } = state.caret
     source.select(anchor, focus)
@@ -791,6 +779,10 @@ function setCentre(inSource, withCaret = true) {
   }
 }
 centerButton.addEventListener('click', () => setCentre(!centred))
+document.addEventListener('focusin', ev => {
+  if (view.contains(ev.target)) written = 'page'
+  else if (sourcePanel.contains(ev.target)) written = 'source'
+})
 
 // The structure can be shown or hidden
 function toggle(button, name, shown) {
@@ -974,7 +966,7 @@ function renderBackdrop() {
   if (colours.model !== model) colours = { model, marks: sourceMarks(model) }
   const marks = [...colours.marks]
   // The block of the caret of the page: not of the one that is in the source
-  const active = !centred && !source.view.hasFocus && view.querySelector('.block.active')
+  const active = !source.view.hasFocus && view.querySelector('.block.active')
   if (active) marks.push({ from: Number(active.dataset.s), to: Number(active.dataset.e), name: 'm-block' })
   if (lastEdit?.text) marks.push({ from: lastEdit.start, to: lastEdit.start + lastEdit.text.length, name: 'm-edit' })
   const { lineStarts } = model
@@ -3076,7 +3068,7 @@ window.addEventListener('message', ev => {
     }
   } else if (message.type === 'scroll' && typeof message.line === 'number' && message.path === page) {
     if (centred) scrollSourceTo(message.line)
-    else scrollToLine(message.line)
+    if (pageShown()) scrollToLine(message.line)
   }
 })
 
@@ -3136,6 +3128,7 @@ function scrollToLine(line) {
 // here does not send the other back.
 let sourceUntil = 0
 const sourceShown = () => (centred || state.tab === 'source') && source.view.dom.offsetParent !== null
+const pageShown = () => canvas.offsetParent !== null
 
 // Bring a line of the source, with how far in it, to the top of the source
 function scrollSourceTo(line) {
@@ -3158,7 +3151,7 @@ function sourceTopLine() {
 }
 
 function syncSource() {
-  if (centred || !sourceShown() || performance.now() < followUntil) return
+  if (!sourceShown() || performance.now() < followUntil) return
   scrollSourceTo(canvas.scrollTop <= 0 ? 1 : topLine())
 }
 
@@ -3168,8 +3161,9 @@ source.view.scrollDOM.addEventListener('scroll', () => {
   sourceFrame = requestAnimationFrame(() => {
     sourceFrame = 0
     if (performance.now() < sourceUntil) return
-    // In the middle: the live view follows it, the page is not shown
-    if (centred) return syncPreview()
+    // In the middle: the live view follows it
+    if (centred) syncPreview()
+    if (!pageShown()) return
     // The top of the source is the top of the page
     if (source.view.scrollDOM.scrollTop <= 0) {
       followUntil = performance.now() + 400
@@ -3198,7 +3192,9 @@ function selectTab(name, remember = true) {
   renderMore()
   for (const tab of document.querySelectorAll('.tab'))
     tab.setAttribute('aria-selected', String(tab.dataset.tab === name))
-  document.getElementById('source').hidden = !centred && name !== 'source'
+  // The tab of the source is the one of the page when they are swapped
+  sourcePanel.hidden = !centred && name !== 'source'
+  canvas.hidden = centred && name !== 'source'
   document.getElementById('preview').hidden = name !== 'preview'
   document.getElementById('changes').hidden = name !== 'changes'
   document.getElementById('references').hidden = name !== 'references'

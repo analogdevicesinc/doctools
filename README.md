@@ -20,11 +20,12 @@ It follows Harmonic, the design system of ADI, as the Doctools theme does: its
 colours, and its fonts (Inter, Barlow, JetBrains Mono) when they are installed
 or fetched for the theme (`ci/fetch-fonts.sh`).
 
-The arrows in the top bar, or `F4`, put the source in the middle, in place of
-the page, for who writes reStructuredText as it is: the code editor is then
-the one that is written in, with the caret, or the selection, where it was in
-the page, and back. The toolbar works on it too, the live view follows it, and
-the side pane keeps its other tabs. The browser keeps the choice.
+The arrows in the tab of the source, or `F4`, swap the source and the page,
+for who writes reStructuredText as it is: the source takes the middle, in the
+place of the page, and the page takes the tab, which is named *Page* then.
+The caret, or the selection, is where it was in the other one. Both can be
+written in, the toolbar works on the one that is, and they scroll together.
+The browser keeps the choice.
 
 In the source, and in the code of a code directive, `Alt+Shift+Up` and
 `Alt+Shift+Down` add a caret on the line above or below, at the same column:

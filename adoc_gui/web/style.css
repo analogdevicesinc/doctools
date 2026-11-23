@@ -482,22 +482,36 @@ main { flex: 1; display: flex; min-height: 0; margin-top: calc(-1 * var(--bar));
   mask-image: linear-gradient(to bottom, transparent calc(var(--bar) - 12px), #000 calc(var(--bar) + 16px));
 }
 
-/* The source in the middle, in place of the page: see setCentre */
+/* The source in the middle, in place of the page, which is in the side
+   pane: see setCentre. It takes the place of the page, and goes under the
+   bar as it does. */
 .center-source {
   position: relative;
   z-index: 2;
   flex: 0 1 var(--page);
   min-width: 0;
   display: flex;
-  margin: calc(var(--bar) + 16px) 4px 16px;
-  border-radius: var(--radius);
+  margin: 0 4px;
   background: var(--surface);
   box-shadow: var(--shadow);
-  overflow: hidden;
+  mask-image: linear-gradient(to bottom, transparent calc(var(--bar) - 12px), #000 calc(var(--bar) + 16px));
 }
-.center-source[hidden] { display: none; }
-.center-source > #source { flex: 1; min-width: 0; padding-top: 4px; }
-body.source-center main > .canvas { display: none; }
+.center-source[hidden], .canvas[hidden] { display: none; }
+.center-source > #source { flex: 1; min-width: 0; }
+.center-source #source .cm-scroller { padding-top: calc(var(--bar) + 20px); }
+.center-source #source .cm-content { padding-left: 20px; }
+
+/* The page in the side pane, in place of the source */
+.sheet > .canvas {
+  --bleed: 0px;
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  pointer-events: auto;
+  mask-image: none;
+}
+.sheet > .canvas > .page { border-radius: 0; box-shadow: none; }
 
 /* The part at a side of the page, with its panel */
 .side {
@@ -582,7 +596,15 @@ body.no-nav .side.left .open-panel, body.no-source .side.right .open-panel { opa
 .drawer-head { white-space: nowrap; }
 .drawer-head > * { flex: none; }
 .drawer-head > #sparse-state { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-.tab[hidden] { display: none; }
+.tab[hidden], .tab[hidden] + .tab-swap { display: none; }
+/* The tab of the source, or of the page when they are swapped: of one width,
+   with the button that swaps them at its end */
+.tab[data-tab='source'] { padding-right: 44px; }
+#swap-name { display: inline-block; width: 50px; text-align: left; }
+.tab-swap { width: 32px; height: 32px; margin: 0 4px 0 -40px; z-index: 1; }
+.tab-swap svg { width: 18px; height: 18px; }
+.tab-swap[aria-pressed='true'] { color: var(--primary); }
+.tab-swap[aria-pressed='true']:not(:hover) { background: none; }
 .tab {
   position: relative;
   height: 44px;
@@ -1351,12 +1373,7 @@ body.inspect .page .soft { background: var(--surface-container-highest); }
   body:not([data-screen='editor']) main { margin-top: 0; }
 
   main > .side, main > .canvas, main > .center-source { display: none; }
-  body[data-screen='editor'].source-center main > .center-source {
-    display: flex;
-    flex: 1 1 auto;
-    margin: calc(var(--bar) + 12px) 8px 0;
-    border-radius: var(--radius) var(--radius) 0 0;
-  }
+  body[data-screen='editor'].source-center main > .center-source { display: flex; flex: 1 1 auto; margin: 0; }
   body[data-screen='editor'] main > .canvas {
     --bleed: 0px;
     display: block;
