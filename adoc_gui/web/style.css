@@ -478,7 +478,7 @@ main { flex: 1; display: flex; min-height: 0; margin-top: calc(-1 * var(--bar));
   overflow: auto;
   padding: calc(var(--bar) + 16px) 4px 48px calc(4px + var(--bleed));
   pointer-events: none;
-  scrollbar-width: thin;
+  scrollbar-width: none;
   mask-image: linear-gradient(to bottom, transparent calc(var(--bar) - 12px), #000 calc(var(--bar) + 16px));
 }
 
@@ -596,12 +596,12 @@ body.no-nav .side.left .open-panel, body.no-source .side.right .open-panel { opa
 .drawer-head { white-space: nowrap; }
 .drawer-head > * { flex: none; }
 .drawer-head > #sparse-state { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-.tab[hidden], .tab[hidden] + .tab-swap { display: none; }
+.tab[hidden] { display: none; }
 /* The tab of the source, or of the page when they are swapped: of one width,
-   with the button that swaps them at its end */
-.tab[data-tab='source'] { padding-right: 44px; }
+   with the button that swaps them at its start */
+.tab[data-tab='source'] { padding-left: 44px; }
 #swap-name { display: inline-block; width: 50px; text-align: left; }
-.tab-swap { width: 32px; height: 32px; margin: 0 4px 0 -40px; z-index: 1; }
+.tab-swap { position: relative; width: 32px; height: 32px; margin: 0 -40px 0 8px; z-index: 1; }
 .tab-swap svg { width: 18px; height: 18px; }
 .tab-swap[aria-pressed='true'] { color: var(--primary); }
 .tab-swap[aria-pressed='true']:not(:hover) { background: none; }
@@ -1227,6 +1227,21 @@ li > .b-lineblock { margin-bottom: 4px; }
 .cm-editor .cm-selectionBackground { background: var(--selection-idle) !important; }
 .cm-editor.cm-focused .cm-selectionBackground { background: var(--selection) !important; }
 .cm-editor .cm-content ::selection { background: transparent; }
+
+/* The page and the source scroll together: one bar for both, at the right
+   edge of the window, in place of theirs. See renderScroll. */
+#source .cm-scroller { scrollbar-width: none; }
+.scroll { position: fixed; right: 0; z-index: 3; width: 14px; touch-action: none; }
+.scroll[hidden] { display: none; }
+.scroll-thumb {
+  position: absolute;
+  left: 4px;
+  right: 3px;
+  min-height: 24px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--on-surface) 28%, transparent);
+}
+.scroll:hover > .scroll-thumb, .scroll.dragged > .scroll-thumb { left: 2px; right: 2px; background: color-mix(in srgb, var(--on-surface) 50%, transparent); }
 
 /* The marks of the source */
 .m-block { background: var(--surface-container); border-radius: 3px; }

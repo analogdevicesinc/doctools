@@ -3174,6 +3174,73 @@ source.view.scrollDOM.addEventListener('scroll', () => {
   })
 }, { passive: true })
 
+// The bar of the page and of the source, which scroll together: it shows,
+// and moves, the one in the middle, and the other one follows
+const scrollBar = document.getElementById('scroll')
+const scrollThumb = scrollBar.firstElementChild
+const scrolled = () => {
+  const list = centred ? [source.view.scrollDOM, canvas] : [canvas, source.view.scrollDOM]
+  return list.find(el => el.offsetParent !== null)
+}
+function renderScroll() {
+  const el = scrolled()
+  const range = el ? el.scrollHeight - el.clientHeight : 0
+  scrollBar.hidden = range <= 0
+  if (range <= 0) return
+  const box = el.getBoundingClientRect()
+  // The one in the middle goes under the bar of the tools
+  const top = el.closest('.side') ? box.top : box.top + 56
+  const track = box.bottom - top
+  const size = Math.max(24, track * el.clientHeight / el.scrollHeight)
+  scrollBar.style.top = `${top}px`
+  scrollBar.style.height = `${track}px`
+  scrollThumb.style.height = `${size}px`
+  scrollThumb.style.top = `${(track - size) * el.scrollTop / range}px`
+}
+scrollBar.addEventListener('pointerdown', ev => {
+  const el = scrolled()
+  if (!el) return
+  ev.preventDefault()
+  const range = el.scrollHeight - el.clientHeight
+  const free = scrollBar.clientHeight - scrollThumb.offsetHeight
+  const box = scrollThumb.getBoundingClientRect()
+  // Out of the thumb: its middle comes to the pointer
+  const grip = ev.clientY >= box.top && ev.clientY <= box.bottom ? ev.clientY - box.top : box.height / 2
+  const move = at => {
+    const y = at.clientY - scrollBar.getBoundingClientRect().top - grip
+    el.scrollTop = free > 0 ? range * Math.min(Math.max(y / free, 0), 1) : 0
+  }
+  move(ev)
+  scrollBar.classList.add('dragged')
+  scrollBar.setPointerCapture(ev.pointerId)
+  const end = () => {
+    scrollBar.classList.remove('dragged')
+    scrollBar.removeEventListener('pointermove', move)
+    scrollBar.removeEventListener('pointerup', end)
+    scrollBar.removeEventListener('pointercancel', end)
+  }
+  scrollBar.addEventListener('pointermove', move)
+  scrollBar.addEventListener('pointerup', end)
+  scrollBar.addEventListener('pointercancel', end)
+})
+scrollBar.addEventListener('wheel', ev => {
+  const el = scrolled()
+  if (el) el.scrollTop += ev.deltaY
+}, { passive: true })
+let barFrame = 0
+const scrollSoon = () => {
+  barFrame ||= requestAnimationFrame(() => {
+    barFrame = 0
+    renderScroll()
+  })
+}
+canvas.addEventListener('scroll', scrollSoon, { passive: true })
+source.view.scrollDOM.addEventListener('scroll', scrollSoon, { passive: true })
+window.addEventListener('resize', scrollSoon)
+// What they hold, and the place they have, change
+const sizes = new ResizeObserver(scrollSoon)
+for (const el of [view, canvas, source.view.contentDOM, source.view.scrollDOM]) sizes.observe(el)
+
 let scrollFrame = 0
 canvas.addEventListener('scroll', () => {
   if (scrollFrame) return
