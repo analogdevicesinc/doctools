@@ -112,6 +112,13 @@ the right click on one shows its
 corrections, to choose one; a word can be added to the words that are not mistakes, kept by
 the browser.
 
+A check is work, for this machine when it runs here, so it is spared: only
+what is shown of the page is checked, with about a screen around it, a
+second and a half after the last change or once the scroll stops, one text
+at a time with a rest between them, and not while the window is not looked
+at. A text is checked once; a check that failed is asked again 30 seconds
+later.
+
 The text typed in a paragraph is wrapped in the source to fewer than 80
 columns, as the guidelines ask: the new line is indented as the text of the
 paragraph (two spaces in a `*` item, three in a `#.` item or a directive),

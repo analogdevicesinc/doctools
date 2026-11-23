@@ -2306,8 +2306,34 @@ function proseBlocks(model) {
 }
 
 // Underline the mistakes found in the prose, and check what is not checked
-// yet once the typing stops
+// yet once the typing stops. A check is work, for this machine when it is
+// done here: only what is shown of the page is checked, about a screen
+// around it, a while after the last change, one text at a time with a rest
+// between them, and not while the window is not looked at.
+const CHECK_IDLE_MS = 1500
+const CHECK_REST_MS = 250
+// A check that failed is not asked again at once
+const CHECK_RETRY_MS = 30000
+let retryAt = 0
 let scanTimer
+
+// The part of the source that is shown in the page, with a screen before
+// and after it: [from, to]. Nothing when the page is not shown.
+function shownSource() {
+  if (canvas.offsetParent === null || document.hidden) return undefined
+  const box = canvas.getBoundingClientRect()
+  const top = box.top - box.height
+  const bottom = box.bottom + box.height
+  let from, to
+  for (const el of view.querySelectorAll('.b-document > .block')) {
+    const rect = el.getBoundingClientRect()
+    if (rect.bottom < top) continue
+    if (rect.top > bottom) break
+    from ??= Number(el.dataset.s)
+    to = Number(el.dataset.e)
+  }
+  return from === undefined ? undefined : [from, to]
+}
 // The mistakes that are underlined: { dom, match, spelling }, dom: their text
 // in the page
 let mistakes = []
@@ -2324,12 +2350,13 @@ function showMistakes() {
   const spelling = new Highlight()
   const grammar = new Highlight()
   const waiting = []
+  const shown = shownSource()
   for (const block of proseBlocks(state.model)) {
     const prose = proseOf(state.model, block)
     if (!prose.text.trim()) continue
     const answer = answered.get(prose.text)
     if (!answer) {
-      if (!checked.has(prose.text)) waiting.push(prose.text)
+      if (!checked.has(prose.text) && shown && block.e >= shown[0] && block.s <= shown[1]) waiting.push(prose.text)
       continue
     }
     for (const match of answer.matches) {
@@ -2348,8 +2375,19 @@ function showMistakes() {
   CSS.highlights.set('spelling', spelling)
   CSS.highlights.set('grammar', grammar)
   clearTimeout(scanTimer)
-  if (waiting.length) scanTimer = setTimeout(() => scan(waiting), 800)
+  if (waiting.length) scanTimer = setTimeout(() => scan(waiting), Math.max(CHECK_IDLE_MS, retryAt - performance.now()))
 }
+// What comes into the page is checked once the scroll stops, and what
+// waited when the window is looked at again
+let scrollCheck
+canvas.addEventListener('scroll', () => {
+  if (grammarMode === 'off' || !grammarWorks) return
+  clearTimeout(scrollCheck)
+  scrollCheck = setTimeout(showMistakes, 400)
+}, { passive: true })
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && state.model) showMistakes()
+})
 
 // One check at a time: LanguageTool answers them in turn
 let scanning = false
@@ -2358,13 +2396,17 @@ async function scan(texts) {
   scanning = true
   const run = grammarRun
   try {
+    const source = state.source
     for (const text of texts) {
-      if (!grammarWorks || run !== grammarRun) break
-      const source = state.source
+      // What was to be checked is not there anymore, or is not looked at:
+      // it is asked again, for what is there then
+      if (!grammarWorks || run !== grammarRun || state.source !== source || document.hidden) break
       const answer = await checkGrammar(text)
+      if (answer.error && answer.error !== 'off') retryAt = performance.now() + CHECK_RETRY_MS
       if (state.source === source) showMistakes()
       // The public service takes 20 checks a minute
-      if (grammarMode === 'cloud') await new Promise(resolve => setTimeout(resolve, answer.error === 'rate_limited' ? 30000 : 3000))
+      const rest = grammarMode === 'cloud' ? (answer.error === 'rate_limited' ? 30000 : 3000) : CHECK_REST_MS
+      await new Promise(resolve => setTimeout(resolve, rest))
     }
   } finally {
     scanning = false
