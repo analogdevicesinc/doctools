@@ -72,6 +72,39 @@ const historyKeys = ({ undo, redo }) => [
   { key: 'Mod-Shift-z', run: () => (redo(), true), preventDefault: true }
 ]
 
+// One more caret on the line above, or below, of each caret, at its column:
+// what is typed is written at all of them. Escape leaves only the first.
+const addCaret = forward => view => {
+  const { state } = view
+  let selection = state.selection
+  let added
+  for (const range of state.selection.ranges) {
+    const line = state.doc.lineAt(range.head)
+    if (forward ? line.to >= state.doc.length : line.from <= 0) continue
+    // A wrapped line is more than one row: go on to the next line
+    let at = range
+    for (;;) {
+      const next = view.moveVertically(at, forward)
+      if (next.head === at.head) break
+      at = next
+      if (at.head >= line.from && at.head <= line.to) continue
+      if (!selection.ranges.some(other => other.head === at.head)) {
+        selection = selection.addRange(at, false)
+        added = at.head
+      }
+      break
+    }
+  }
+  if (added === undefined) return false
+  view.dispatch({ selection, effects: EditorView.scrollIntoView(added) })
+  return true
+}
+const caretKeys = [
+  { key: 'Alt-Shift-ArrowUp', run: addCaret(false), preventDefault: true },
+  { key: 'Alt-Shift-ArrowDown', run: addCaret(true), preventDefault: true }
+]
+const carets = EditorState.allowMultipleSelections.of(true)
+
 // Whether a position is shown in the scrolled area of the editor
 function visible(view, pos) {
   const coords = view.coordsAtPos(pos)
@@ -87,7 +120,8 @@ export function sourceEditor(parent, on) {
     parent,
     state: EditorState.create({
       extensions: [
-        keymap.of([...historyKeys(on), indentWithTab, ...defaultKeymap]),
+        keymap.of([...historyKeys(on), ...caretKeys, indentWithTab, ...defaultKeymap]),
+        carets,
         drawSelection(),
         indentUnit.of('   '),
         marks.field,
@@ -200,6 +234,7 @@ export class CodeEditors {
           }),
           keymap.of([
             ...historyKeys(on),
+            ...caretKeys,
             { key: 'ArrowUp', run: view => at(view).line.number === 1 && (on.leave(editor, -1), true) },
             { key: 'ArrowDown', run: view => at(view).line.number === at(view).doc.lines && (on.leave(editor, 1), true) },
             { key: 'Backspace', run: view => view.state.doc.length === 0 && (on.leave(editor, -1), true) },
@@ -231,6 +266,7 @@ export class CodeEditors {
             indentWithTab,
             ...defaultKeymap
           ]),
+          carets,
           drawSelection(),
           placeholder('code'),
           editor.colours.of([]),

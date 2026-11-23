@@ -26,6 +26,11 @@ the one that is written in, with the caret, or the selection, where it was in
 the page, and back. The toolbar works on it too, the live view follows it, and
 the side pane keeps its other tabs. The browser keeps the choice.
 
+In the source, and in the code of a code directive, `Alt+Shift+Up` and
+`Alt+Shift+Down` add a caret on the line above or below, at the same column:
+what is typed is written at all of them, as for the rows of a table. `Escape`
+leaves only the first.
+
 The first time it is opened, a guide says what it does, in a few panels: the
 page and its panels, the directives and the roles, the keys, the build and
 the live view, the completion and the references, the grammar, the files and
