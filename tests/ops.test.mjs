@@ -225,6 +225,40 @@ test('a typed line longer than 79 columns is wrapped, indented as its text', () 
   assert.ok(middle.split('\n')[0].length <= 79 && middle.split('\n')[0].includes('x|'), middle)
 })
 
+test('typing in the middle of a paragraph fills it again, no word is left alone on a line', () => {
+  const typeAll = (marked, text) => {
+    let out = marked
+    for (const ch of text) out = type(out, ch)
+    return out
+  }
+  const paragraph = 'Before this paragraph.\n\nThe first line is as it is.\nThe files are installed |under */lib/firmware* and the driver defers to probe if\n' +
+    'its requested firmware file is missing. Check the kernel log for the name of the\nfile that it looks for.\n\nAfter it.\n'
+  const typed = 'and loaded by the kernel at boot time when the device is found '
+  const out = typeAll(paragraph, typed)
+  const lines = out.replace('|', '').split('\n')
+  assert.ok(lines.every(line => line.length <= 79), out)
+  // The words are the same, in the same order, and the caret after the typed text
+  const flat = s => s.replace(/\s+/g, ' ').trim()
+  assert.equal(flat(out.replace('|', '')), flat(paragraph.replace('|', typed)))
+  assert.ok(out.includes('found |under'), out)
+  // No line with one word, the lines before and the other paragraphs as they are
+  assert.ok(lines.slice(3, -4).every(line => line.trim().includes(' ')), out)
+  assert.ok(out.startsWith('Before this paragraph.\n\nThe first line is as it is.\nThe files are installed and'), out)
+  assert.ok(out.endsWith('\n\nAfter it.\n'), out)
+
+  // In a list item and a directive: the lines indented as its text
+  const item = typeAll(`- ${'w '.repeat(30)}|end\n  ${'v '.repeat(30)}tail\n`, 'x'.repeat(12) + ' ').split('\n')
+  assert.ok(item.slice(1).every(line => !line || line.startsWith('  ') && !line.startsWith('   ')), item.join('\n'))
+  const note = typeAll(`.. note::\n\n   ${'w '.repeat(30)}|end\n   ${'v '.repeat(30)}tail\n`, 'x'.repeat(12) + ' ').split('\n')
+  assert.ok(note.slice(2).every(line => !line || line.startsWith('   ') && !line.startsWith('    ')), note.join('\n'))
+  assert.ok(note.every(line => line.replace('|', '').length <= 79), note.join('\n'))
+
+  // A role stays on one line
+  const role = ':ref:`the guide of the installation <install>`'
+  const kept = typeAll(`${'a '.repeat(20)}|b ${role} ${'c '.repeat(10)}\n`, 'x'.repeat(20) + ' ')
+  assert.ok(kept.split('\n').some(line => line.includes(role)), kept)
+})
+
 test('roles, links and literals are not broken, nor a new line made markup', () => {
   const role = ':ref:`the guide of the installation <install>`'
   const text = `${'a '.repeat(28)}${role} more|\n`

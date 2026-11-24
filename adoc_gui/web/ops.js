@@ -1012,11 +1012,132 @@ const MARKUP_START = /^(?:[-*+•](?:\s|$)|#\.|\(?\w{1,3}[.)](?:\s|$)|\.\.(?:\s|
 // A line that starts an item of a list
 const ITEM_START = /^[ \t]*(?:[-*+•]|#\.|\(?\w{1,3}[.)])(?:\s|$)/
 
-// A typed line of a paragraph that gets longer than WIDTH is broken at a
-// space before, as an editor with a text width does. The new line is
-// indented as the text of the paragraph; roles, links and literals are kept
-// on one line.
+// A typed line of a paragraph that gets longer than WIDTH is filled again
+// with the rest of the paragraph, as an editor that formats its paragraphs
+// does: the words that do not fit go down to the next line, and the lines
+// below are joined, so that typing in the middle of a paragraph does not
+// leave a word on each line. The lines before the one typed are as they
+// are. The lines are indented as the text of the paragraph; roles, links
+// and literals are kept on one line, and no line starts as markup would.
+// When the lines of the paragraph are not indented as its text, only the
+// line typed is broken.
 function wrap(model, change) {
+  const filled = refill(model, change)
+  if (filled !== undefined) return filled
+  return breakLine(model, change)
+}
+
+// The source after the change, with the paragraph filled from the line of
+// the caret to its end; undefined when it cannot be filled
+function refill(model, change) {
+  if (!change || change.text.includes('\n')) return change
+  const owner = leafAt(model, change.start)?.block ?? blockAt(model, change.start)
+  if (owner?.kind !== 'paragraph' || ancestor(owner, 'cell') || ancestor(owner, 'table')) return change
+
+  const edited = applyEdit(model.source, change)
+  const delta = change.text.length - (change.end - change.start)
+  const moved = offset => offset >= change.end ? offset + delta : offset
+  const caret = change.caret
+  const start = lineStart(edited, caret)
+  if (lineEnd(edited, caret) - start <= WIDTH) return change
+
+  const indent = ' '.repeat(owner.s - lineStart(model.source, owner.s))
+  const ownerStart = moved(owner.s)
+  const ownerEnd = moved(owner.s + model.source.slice(owner.s, owner.e).trimEnd().length)
+  if (caret < ownerStart || caret > ownerEnd) return undefined
+  // The lines after the first one are indented as its text, else the
+  // paragraph is not what it seems to be: only the line is broken
+  const lines = edited.slice(ownerStart, ownerEnd).split('\n').slice(1)
+  if (lines.some(line => line.match(/^[ \t]*/)[0] !== indent)) return undefined
+
+  // From the text of the line of the caret to the end of the paragraph
+  let from = Math.max(start, ownerStart)
+  while (from < caret && (edited[from] === ' ' || edited[from] === '\t')) from++
+  const column = from - lineStart(edited, from)
+  const kept = model.leaves
+    .filter(l => l.block === owner && !['text', 'soft', 'strong', 'emphasis'].includes(l.kind))
+    .map(l => ({ s: moved(l.os ?? l.s), e: (l.oe ?? l.e) >= change.start ? (l.oe ?? l.e) + delta : (l.oe ?? l.e) }))
+
+  // The words, what is kept whole with the words it touches; and where the
+  // caret is in them: after how many characters that are not spaces, and
+  // whether a space is right before it
+  const words = []
+  let word = ''
+  let visible = 0
+  let caretVisible = 0
+  let caretAfterSpace = false
+  for (let at = from; at < ownerEnd; at++) {
+    if (at === caret) {
+      caretVisible = visible
+      caretAfterSpace = at > from && /\s/.test(edited[at - 1])
+    }
+    const space = /\s/.test(edited[at])
+    if (!space) {
+      word += edited[at]
+      visible++
+    } else if (kept.some(span => span.s < at && at < span.e)) {
+      word += /\s/.test(word.at(-1) ?? '') ? '' : ' '
+    } else if (word) {
+      words.push(word)
+      word = ''
+    }
+  }
+  if (caret >= ownerEnd) {
+    caretVisible = visible
+    caretAfterSpace = caret > from && /\s/.test(edited[caret - 1])
+  }
+  if (word) words.push(word)
+  if (!words.length) return change
+
+  const filled = [[]]
+  let length = column
+  for (const next of words) {
+    const line = filled.at(-1)
+    if (!line.length || length + 1 + next.length <= WIDTH) {
+      length += (line.length ? 1 : 0) + next.length
+      line.push(next)
+      continue
+    }
+    // What would be markup at the start of a line takes the word before
+    // it down with it
+    const down = [next]
+    while (MARKUP_START.test(down[0]) && line.length > 1) down.unshift(line.pop())
+    if (MARKUP_START.test(down[0])) {
+      line.push(...down)
+      length = Infinity
+      continue
+    }
+    filled.push(down)
+    length = indent.length + down.join(' ').length
+  }
+  let text = filled.map(line => line.join(' ')).join('\n' + indent)
+  // A space typed at the end of the paragraph stays, to type the next word
+  if (caret >= ownerEnd && caretAfterSpace) text += ' '
+
+  // The caret: after as many characters that are not spaces, and after the
+  // space that follows them when it was after a space
+  let place = 0
+  for (let count = 0; place < text.length && count < caretVisible; place++)
+    if (!/\s/.test(text[place])) count++
+  if (caretAfterSpace) while (place < text.length && /\s/.test(text[place])) place++
+
+  const source = edited.slice(0, from) + text + edited.slice(ownerEnd)
+  const newCaret = from + place
+  // As one edit of the source of the model
+  const before = model.source
+  let head = 0
+  while (head < before.length && head < source.length && before[head] === source[head]) head++
+  head = Math.min(head, change.start)
+  let tail = 0
+  while (tail < before.length - head && tail < source.length - head &&
+    before[before.length - 1 - tail] === source[source.length - 1 - tail]) tail++
+  tail = Math.min(tail, before.length - change.end)
+  return { start: head, end: before.length - tail, text: source.slice(head, source.length - tail), caret: newCaret }
+}
+
+// The line of the caret broken at a space before WIDTH, the rest of the
+// paragraph as it is
+function breakLine(model, change) {
   if (!change || change.text.includes('\n')) return change
   const owner = leafAt(model, change.start)?.block ?? blockAt(model, change.start)
   if (owner?.kind !== 'paragraph' || ancestor(owner, 'cell') || ancestor(owner, 'table')) return change
