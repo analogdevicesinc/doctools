@@ -8,6 +8,7 @@ import { Carousel } from './carousel.js'
 import { Zoom } from './zoom.js'
 import { Domain } from './domain.js'
 import { LLM } from './llm.js'
+import { Footer } from './footer.js'
 
 export default function Extra (){
   new Polyfill(app)
@@ -21,6 +22,7 @@ export default function Extra (){
     new Zoom(app)
     new Domain(app)
     new LLM(app)
+    new Footer(app)
   }
 
   if (document.readyState === 'loading')

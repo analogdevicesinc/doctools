@@ -47,17 +47,13 @@
 @media (min-width: variable.$screen-1) {
 
     .body {
-        min-height: calc(100vh - 7rem);
-    }
-
-    .body-header + .body {
-        min-height: calc(100vh - 8.5rem);
+        min-height: calc(100vh - 7.25rem);
     }
 }
 
 @media (max-width: variable.$screen-1) {
     .body {
-        min-height: calc(100vh - 11.25rem);
+        min-height: calc(100vh - 7.25rem - var(--chat-composer-height, 0px));
     }
 }
 

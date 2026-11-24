@@ -15,7 +15,8 @@
   --vv-bottom: 0px;
   --vv-height: 100vh;
   --chat-body-top: calc(var(--vv-top) + var(--chat-header-height));
-  --chat-body-bottom: calc(var(--vv-bottom) + var(--chat-composer-height));
+  --chat-bottom: calc(var(--vv-bottom) + var(--footer-inset, 0px));
+  --chat-body-bottom: calc(var(--chat-bottom) + var(--chat-composer-height));
   --llm-sidebar-width: 100%;
   --llm-sidebar-left: 0px;
 }
@@ -433,7 +434,7 @@ $chat-resize: left .2s ease, width .2s ease, padding .2s ease;
 
   .chat-tray {
     top: var(--chat-body-top);
-    bottom: var(--vv-bottom);
+    bottom: var(--chat-bottom);
     z-index: 2;
     overflow-y: auto;
     overscroll-behavior: contain;
@@ -1018,7 +1019,7 @@ $chat-resize: left .2s ease, width .2s ease, padding .2s ease;
 }
 
 .chat-composer {
-  bottom: var(--vv-bottom);
+  bottom: var(--chat-bottom);
   z-index: 4;
   display: flex;
   flex-direction: column;
