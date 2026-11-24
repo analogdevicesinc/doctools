@@ -26,6 +26,7 @@ class Repo(TypedDict):
     topic: dict[str, str] | None
     extra: tuple[str, list[str], bool] | None
     parent: str | None
+    proprietary: bool | None
 
 
 class LUT(TypedDict):
@@ -238,6 +239,34 @@ repos = {
         branch='main',
         visibility='public'
     ),
+    'edgebench': Repo(
+        pathname='',
+        name='EdgeBench',
+        description='Benchmarking framework for evaluating performance on edge computing platforms.',
+        category='tool',
+        branch='',
+        visibility='public',
+        proprietary=True
+    ),
+    'evaluation-studio': Repo(
+        pathname='',
+        name='Evaluation Studio',
+        description='Desktop application for evaluating products, with plug-in hardware support, register control, data capture, and analysis.',
+        category='tool',
+        branch='',
+        visibility='public',
+        proprietary=True
+    ),
+    'codefusion-studio': Repo(
+        pathname='',
+        name='CodeFusion Studio',
+        description='Integrated development environment for embedded software development on ADI platforms.',
+        category='tool',
+        branch='',
+        visibility='public',
+        proprietary=True
+    ),
+
     'doctools': Repo(
         pathname='docs',
         name='Doctools',
@@ -271,6 +300,11 @@ modules = Modules(
     javascript=['extra.umd.js'],
     stylesheet=['extra.min.css']
 )
+
+
+def open_repos() -> dict[str, Repo]:
+    """Repositories with sources and docs hosted on GitHub."""
+    return {k: v for k, v in repos.items() if not v.get('proprietary')}
 
 
 def get_lut():

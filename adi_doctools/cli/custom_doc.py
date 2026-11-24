@@ -28,6 +28,7 @@ from adi_doctools import __version__
 from ..directive.common import collection_parse_content, directive_collection
 from ..lut import (
     get_lut,
+    open_repos,
     remote_alt,
     remote_doc,
     source_hostname,
@@ -41,7 +42,7 @@ logger = logging.getLogger(__name__)
 
 no_parallel = True
 lut = get_lut()
-repos = lut['repos']
+repos = open_repos()
 
 default_config = {
     'repository': None,

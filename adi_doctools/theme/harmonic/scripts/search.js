@@ -1004,7 +1004,7 @@ export class Search {
 
     if (!this.parent.state.standalone)
       for (const [key, value] of Object.entries(this.parent.state.metadata.repotoc)) {
-        if (value.visibility === 'hidden')
+        if (value.visibility === 'hidden' || value.proprietary)
           continue
         this.include_item(key, value['name'], alphanumeric.shift())
       }

@@ -5,8 +5,10 @@ from pathlib import Path
 
 from lxml import html as lxml_html
 
-from ..lut import repos
+from ..lut import open_repos
 from .aux_html2md import HTMLToMarkdown, find_main_content
+
+repos = open_repos()
 
 HEADING_TAGS = frozenset(('h1', 'h2', 'h3', 'h4', 'h5', 'h6'))
 

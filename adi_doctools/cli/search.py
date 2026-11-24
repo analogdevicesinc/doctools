@@ -26,7 +26,7 @@ from packaging.version import Version
 from sphinx import __version__ as __sphinx_version__
 from sphinx.ext.intersphinx._load import _InvConfig
 
-from ..lut import remote_doc, repos, source_hostname_raw
+from ..lut import open_repos, remote_doc, source_hostname_raw
 from .argument_parser import get_arguments_search
 from .aux_html2md import convert_html_to_markdown
 from .logging import BLUE, DIM, NC, RESET
@@ -58,6 +58,8 @@ if Version(__sphinx_version__) < Version('9.0.0'):
     from sphinx.ext.intersphinx._load import _fetch_inventory
 else:
     from sphinx.ext.intersphinx._load import _fetch_inventory_data, _load_inventory
+
+repos = open_repos()
 
 logger = logging.getLogger(__name__)
 

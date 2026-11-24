@@ -6,7 +6,7 @@ from os import environ, mkdir, pardir, path
 
 from sphinx.util.osutil import SEP
 
-from ..lut import get_lut
+from ..lut import get_lut, open_repos
 from .argument_parser import get_arguments_aggregate
 from .logging import FAIL, NC
 
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 dry_run = True
 no_parallel = True
 lut = get_lut()
-repos = {k: v for k, v in lut['repos'].items() if v['visibility'] != 'hidden'}
+repos = {k: v for k, v in open_repos().items() if v['visibility'] != 'hidden'}
 
 
 class pr:

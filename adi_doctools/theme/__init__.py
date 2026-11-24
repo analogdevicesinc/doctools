@@ -80,8 +80,12 @@ def build_finished(app, exc):
             if 'alt' in app.lut['repos'][key]:
                 repos[key]['alt'] = app.lut['repos'][key]['alt']
             # Miscellaneous expansions
-            repos[key]['url_doc'] = app.lut['remote_doc'] + key
-            repos[key]['url_source'] = app.lut['remote_https'].format(key)
+            if app.lut['repos'][key].get('proprietary'):
+                repos[key]['proprietary'] = True
+                repos[key]['url_doc'] = f"{app.lut['remote_alt']}{key}/"
+            else:
+                repos[key]['url_doc'] = app.lut['remote_doc'] + key
+                repos[key]['url_source'] = app.lut['remote_https'].format(key)
             if 'topic' in app.lut['repos'][key]:
                 repos[key]['topic'] = app.lut['repos'][key]['topic']
         metadata = {'repotoc': repos}

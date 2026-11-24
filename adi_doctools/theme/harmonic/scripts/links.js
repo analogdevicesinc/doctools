@@ -62,7 +62,8 @@ export class Links {
       if (!('name' in value) || value.visibility === 'hidden')
         continue
 
-      let base = key == this.parent.state.repository ?
+      let base = value.proprietary ? value.url_doc :
+                 key == this.parent.state.repository ?
                  self_link : (
                    is_mirror && this.parent.state.metadata.repotoc[key].hasOwnProperty('alt') ?
                      `${prefix}${this.parent.state.metadata.repotoc[key].alt}/` : `${prefix}${key}/`
