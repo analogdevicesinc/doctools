@@ -48,7 +48,7 @@
 }
 
 .repotoc-tree {
-    @include mixin_icons.icons(("heart", "chip", "binary", "flow", "stack", "tools"));
+    @include mixin_icons.icons(("chip", "binary", "flow", "stack", "tools"));
 
     a.landing-page {
         display: inline-flex;
@@ -76,10 +76,6 @@
 
     .cards-links {
         margin-bottom: .5em;
-    }
-
-    .heart::before {
-        mask-image: var(--icon-heart);
     }
 
     .ext-developer::before {

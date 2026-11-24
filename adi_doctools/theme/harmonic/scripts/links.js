@@ -94,7 +94,6 @@ export class Links {
       this.$.linksOverlay.push(elem.cloneNode(true))
     })
 
-    const _canonical = this.parent.state.metadata.remote_doc
     const _developer = this.parent.state.metadata.remote_alt
     let link_newsroom = DOM.new('a', {
       'innerText': 'Newsroom',
@@ -120,16 +119,11 @@ export class Links {
       'target': '_blank',
       'className': 'landing-page ext-developer'
     })
-    let link_os_landing =  DOM.new('a', {
-      'innerText': 'Open source',
-      'href': _canonical,
-      'className': 'landing-page heart'
-    })
 
     let cards_links = DOM.new('div', {
       'className': 'cards-links'
     })
-    cards_links.append(link_newsroom, link_drivers, link_solutions, link_events, link_os_landing)
+    cards_links.append(link_newsroom, link_drivers, link_solutions, link_events)
     if ($.repotocTreeOverlay) {
       DOM.removeChilds($.repotocTreeOverlay)
       let container = DOM.new('div', {
