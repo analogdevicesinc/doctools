@@ -227,6 +227,24 @@ class Git:
             return None
         return git(self.top, 'show', f'HEAD:{relative}')
 
+    def log(self, limit: int = 50) -> list[dict]:
+        """The last commits, as git log --oneline with their whole message:
+        [{ hash, short, subject, body, author, date }], date relative to now"""
+        if not self.top:
+            return []
+        out = git(self.top, 'log', f'-n{limit}', '--format=%H%x1f%h%x1f%s%x1f%an%x1f%ar%x1f%b%x1e')
+        if not out:
+            return []
+        commits = []
+        for record in out.split('\x1e'):
+            fields = record.lstrip('\n').split('\x1f')
+            if len(fields) != 6:
+                continue
+            full, short, subject, author, date, body = fields
+            commits.append({'hash': full, 'short': short, 'subject': subject, 'author': author, 'date': date,
+                            'body': body.strip('\n')})
+        return commits
+
     def staged(self) -> bool:
         """Whether something is staged"""
         if not self.top:

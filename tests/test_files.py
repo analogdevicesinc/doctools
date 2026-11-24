@@ -90,6 +90,31 @@ class TrailingSpaces(unittest.TestCase):
             self.assertFalse(sanitize_file(binary))
             self.assertEqual(binary.read_bytes(), b'\xff\xfe \n')
 
+    def test_the_log_has_the_commits_with_their_messages(self):
+        import shutil
+        import subprocess
+        from adoc_gui.git import Git
+        if not shutil.which('git'):
+            self.skipTest('no git here')
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder).resolve()
+            run = lambda *args: subprocess.run(['git', '-C', str(root), *args], capture_output=True, text=True, check=True)  # noqa: E731
+            run('init', '-q')
+            run('config', 'user.email', 'a@b.c')
+            run('config', 'user.name', 'T')
+            self.assertEqual(Git(root).log(), [])
+            (root / 'a.rst').write_text('One\n', encoding='utf-8')
+            run('add', 'a.rst')
+            run('commit', '-q', '-m', 'first')
+            (root / 'a.rst').write_text('Two\n', encoding='utf-8')
+            run('commit', '-q', '-a', '-m', 'second: the summary\n\nThe body,\nin two lines.')
+            log = Git(root).log()
+            self.assertEqual([c['subject'] for c in log], ['second: the summary', 'first'])
+            self.assertEqual(log[0]['body'], 'The body,\nin two lines.')
+            self.assertEqual(log[1]['body'], '')
+            self.assertEqual(log[0]['author'], 'T')
+            self.assertTrue(log[0]['hash'].startswith(log[0]['short']))
+
     def test_they_are_not_staged(self):
         import shutil
         import subprocess

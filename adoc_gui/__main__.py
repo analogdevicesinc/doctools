@@ -235,6 +235,12 @@ def make_handler(first: Path, root: Path, docs: Docs, repo: Git | None = None):
                     file = resolve(query['path'][0])
                     answer['head'] = repo.head(file) if file else None
                 return self.reply_json(200, answer)
+            if path == '/api/git/log':
+                if not self.allowed():
+                    return None
+                if repo is None or not repo.available:
+                    return self.reply_json(200, {'commits': []})
+                return self.reply_json(200, {'commits': repo.log()})
             if path == '/api/git/changes':
                 if not self.allowed():
                     return None

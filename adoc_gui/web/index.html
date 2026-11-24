@@ -132,16 +132,19 @@
       <form id="commit-box" class="commit-box">
         <label for="commit-subject" id="commit-title">Commit</label>
         <div class="commit-subject">
-          <input id="commit-subject" type="text" spellcheck="true" autocomplete="off" placeholder="Summary: what changed">
-          <span id="commit-count" title="Keep the summary short: 50 characters, at most 72"></span>
+          <input id="commit-subject" type="text" spellcheck="true" autocomplete="off" placeholder="Summary: what changed" title="The summary: up to the line, 50 characters">
         </div>
-        <textarea id="commit-message" rows="4" spellcheck="true" placeholder="Why, and how (optional)"></textarea>
+        <textarea id="commit-message" rows="4" spellcheck="true" wrap="off" placeholder="Why, and how" title="The body: lines up to the line, 70 characters"></textarea>
         <div class="commit-actions">
           <label class="commit-signoff" title="Add a Signed-off-by line (git commit -s)"><input id="commit-signoff" type="checkbox"> Sign off</label>
           <span id="commit-problem"></span>
           <button class="build-button" id="commit-do" type="submit">Commit</button>
         </div>
       </form>
+        <details id="commit-log" class="commit-log">
+          <summary>Previous commits</summary>
+          <ol id="commit-log-list"></ol>
+        </details>
         <div id="changes-list"></div>
       </div>
       <div id="references" role="tabpanel" hidden>

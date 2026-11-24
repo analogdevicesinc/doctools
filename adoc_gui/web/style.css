@@ -1925,32 +1925,65 @@ body.inspect .page .add-tab { opacity: 1; }
 .commit-subject input {
   flex: 1;
   min-width: 0;
-  padding: 8px 40px 8px 8px;
+  padding: 8px;
   border: 1px solid var(--outline-variant);
   border-radius: var(--radius-small);
-  font: 600 14px/20px var(--font);
+  font: 600 13px/20px var(--mono);
   color: var(--on-surface);
-  background: var(--surface);
+  background-color: var(--surface);
   outline: none;
 }
 .commit-subject input:focus { border-color: var(--primary); }
-#commit-count { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font: 11px/16px var(--mono); color: var(--outline); }
-#commit-count.warn { color: var(--warning); }
-#commit-count.long { color: var(--error); font-weight: 600; }
+/* A ruler at the column the lines should stay within: the summary at 50, the
+   body at 70; past it, the ruler and what is at its right are tinted. The
+   columns are the ones of the monospace font: --ruler is set from the page,
+   --ruler-scroll follows the text when it scrolls sideways */
+.commit-subject input, .commit-box textarea {
+  --ruler-at: calc(9px + var(--ruler, 50) * 1ch - var(--ruler-scroll, 0px));
+  --ruler-line: var(--outline-variant);
+  --ruler-past: transparent;
+  background-image: linear-gradient(to right, transparent var(--ruler-at), var(--ruler-line) var(--ruler-at),
+    var(--ruler-line) calc(var(--ruler-at) + 1px), var(--ruler-past) calc(var(--ruler-at) + 1px));
+  background-repeat: no-repeat;
+}
+.commit-subject input.over, .commit-box textarea.over {
+  --ruler-line: var(--warning);
+  --ruler-past: color-mix(in srgb, var(--warning) 9%, transparent);
+}
 .commit-signoff { display: flex; align-items: center; gap: 6px; font: 13px/20px var(--font); color: var(--on-surface-variant); cursor: pointer; user-select: none; }
 .commit-signoff input { margin: 0; accent-color: var(--primary); }
 .commit-box textarea {
   resize: vertical;
+  white-space: pre;
+  overflow-x: auto;
   padding: 8px;
   border: 1px solid var(--outline-variant);
   border-radius: var(--radius-small);
-  font: 13px/20px var(--mono);
+  font: 12px/20px var(--mono);
   color: var(--on-surface);
-  background: var(--surface-container-low);
+  background-color: var(--surface-container-low);
   outline: none;
 }
 .commit-box textarea:focus { border-color: var(--primary); }
 .commit-actions { display: flex; align-items: center; gap: 8px; }
+
+/* The commits before, as git log --oneline: a click shows the whole message */
+.commit-log { padding: 8px 0; border-bottom: 1px solid var(--outline-variant); }
+.commit-log > summary { font: 600 13px/20px var(--font); color: var(--on-surface-variant); cursor: pointer; user-select: none; }
+.commit-log ol { list-style: none; margin: 6px 0 0; padding: 0; max-height: 320px; overflow: auto; }
+.commit-entry > summary {
+  display: flex; gap: 8px; padding: 2px 4px; border-radius: var(--radius-small);
+  font: 12px/20px var(--mono); color: var(--on-surface); cursor: pointer; list-style: none;
+}
+.commit-entry > summary::-webkit-details-marker { display: none; }
+.commit-entry > summary:hover { background: var(--surface-container-low); }
+.commit-hash { flex: none; color: var(--primary); }
+.commit-line { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.commit-entry[open] .commit-line { white-space: normal; }
+.commit-detail { margin: 2px 0 8px 4px; padding-left: 10px; border-left: 2px solid var(--outline-variant); }
+.commit-meta { font: 11px/18px var(--mono); color: var(--outline); }
+.commit-body { margin: 4px 0 0; font: 12px/18px var(--mono); color: var(--on-surface-variant); white-space: pre-wrap; overflow-wrap: anywhere; }
+.commit-log-empty { font-size: 12px; color: var(--outline); }
 #commit-problem { flex: 1; font-size: 12px; color: var(--error); }
 .text-button.plain { border-color: transparent; }
 

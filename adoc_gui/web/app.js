@@ -1249,6 +1249,7 @@ async function loadChanges() {
   }
   if (run !== changesRun) return
   renderChanges(answer)
+  loadLog()
 }
 
 function element(tag, className, text) {
@@ -1658,7 +1659,6 @@ const commitSubject = document.getElementById('commit-subject')
 const commitMessage = document.getElementById('commit-message')
 const commitProblem = document.getElementById('commit-problem')
 const commitSignoff = document.getElementById('commit-signoff')
-const commitCount = document.getElementById('commit-count')
 try {
   commitSignoff.checked = localStorage.getItem('doctools.signoff') !== 'false'
 } catch {
@@ -1670,13 +1670,19 @@ commitSignoff.addEventListener('change', () => {
   } catch { }
 })
 
-// The length of the summary: short is better, past 72 it is too long
-function countSubject() {
-  const length = [...commitSubject.value].length
-  commitCount.textContent = length ? String(length) : ''
-  commitCount.className = length > 72 ? 'long' : length > 50 ? 'warn' : ''
+// A ruler at the column the lines should stay within, tinted past it: the
+// summary at 50 columns, the lines of the body at 70
+const RULERS = [[commitSubject, 50], [commitMessage, 70]]
+function rulers() {
+  for (const [el, columns] of RULERS) {
+    el.style.setProperty('--ruler', String(columns))
+    el.style.setProperty('--ruler-scroll', `${el.scrollLeft}px`)
+    el.classList.toggle('over', el.value.split('\n').some(line => [...line].length > columns))
+  }
 }
-commitSubject.addEventListener('input', countSubject)
+for (const [el] of RULERS)
+  for (const type of ['input', 'scroll', 'keyup', 'pointerup', 'focus']) el.addEventListener(type, rulers)
+rulers()
 // Enter in the summary goes to the body, a line pasted in it is split
 commitSubject.addEventListener('keydown', ev => {
   if (ev.key === 'Enter' && (ev.ctrlKey || ev.metaKey)) commitBox.requestSubmit()
@@ -1692,7 +1698,7 @@ commitSubject.addEventListener('paste', ev => {
   const [first, ...rest] = text.replace(/\r\n?/g, '\n').split('\n')
   commitSubject.value = first
   commitMessage.value = rest.join('\n').replace(/^\n+/, '')
-  countSubject()
+  rulers()
 })
 
 commitMessage.addEventListener('keydown', ev => {
@@ -1724,10 +1730,47 @@ commitBox.addEventListener('submit', async ev => {
   commitSubject.value = ''
   commitMessage.value = ''
   commitProblem.textContent = ''
-  countSubject()
+  rulers()
   loadGit()
+  loadLog()
   if (state.tab === 'changes') loadChanges()
 })
+
+// The commits before, as git log --oneline; a click on one shows its whole
+// message. Read when the list is opened, and after a commit
+const commitLog = document.getElementById('commit-log')
+const commitLogList = document.getElementById('commit-log-list')
+let logRun = 0
+async function loadLog() {
+  if (!commitLog.open) return
+  const run = ++logRun
+  let answer
+  try {
+    answer = await (await fetch('api/git/log', { headers: { 'X-Doctools': '1' } })).json()
+  } catch {
+    return
+  }
+  if (run !== logRun) return
+  const commits = Array.isArray(answer.commits) ? answer.commits : []
+  const opened = new Set([...commitLogList.querySelectorAll('.commit-entry[open]')].map(el => el.dataset.hash))
+  commitLogList.replaceChildren(...commits.map(commit => {
+    const entry = element('details', 'commit-entry')
+    entry.dataset.hash = commit.hash
+    entry.open = opened.has(commit.hash)
+    const line = element('summary')
+    line.append(element('span', 'commit-hash', commit.short), element('span', 'commit-line', commit.subject))
+    line.title = commit.subject
+    const detail = element('div', 'commit-detail')
+    detail.append(element('div', 'commit-meta', `${commit.author} · ${commit.date}`))
+    if (commit.body) detail.append(element('pre', 'commit-body', commit.body))
+    entry.append(line, detail)
+    const item = element('li')
+    item.append(entry)
+    return item
+  }))
+  if (!commits.length) commitLogList.replaceChildren(element('li', 'commit-log-empty', 'No commits yet'))
+}
+commitLog.addEventListener('toggle', loadLog)
 
 // Status ------------------------------------------------------------------------
 
