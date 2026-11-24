@@ -48,16 +48,70 @@
     size-adjust: 75%;
 }
 
+@font-face {
+    font-family: "Barlow Fallback";
+    src: local("Arial"), local("Liberation Sans"), local("Helvetica"), local("Arimo");
+    size-adjust: 96.61%;
+    ascent-override: 103.51%;
+    descent-override: 20.70%;
+    line-gap-override: 0%;
+}
+
+@font-face {
+    font-family: "Barlow Fallback DejaVu";
+    src: local("DejaVu Sans");
+    size-adjust: 83.19%;
+    ascent-override: 120.21%;
+    descent-override: 24.04%;
+    line-gap-override: 0%;
+}
+
+@font-face {
+    font-family: "Inter Fallback";
+    src: local("Arial"), local("Liberation Sans"), local("Helvetica"), local("Arimo");
+    size-adjust: 107.85%;
+    ascent-override: 89.82%;
+    descent-override: 22.37%;
+    line-gap-override: 0%;
+}
+
+@font-face {
+    font-family: "Inter Fallback DejaVu";
+    src: local("DejaVu Sans");
+    size-adjust: 92.86%;
+    ascent-override: 104.32%;
+    descent-override: 25.98%;
+    line-gap-override: 0%;
+}
+
+@font-face {
+    font-family: "JetBrainsMono Fallback";
+    src: local("DejaVu Sans Mono"), local("Menlo"), local("Liberation Mono"), local("Cousine"), local("Courier New");
+    size-adjust: 75%;
+    ascent-override: 102.35%;
+    descent-override: 30.10%;
+    line-gap-override: 0%;
+}
+
+@font-face {
+    font-family: "JetBrainsMono Fallback Consolas";
+    src: local("Consolas");
+    size-adjust: 81.85%;
+    ascent-override: 93.47%;
+    descent-override: 27.49%;
+    line-gap-override: 0%;
+}
+
 body {
-    font-family: Inter, sans-serif;
+    font-family: Inter, "Inter Fallback", "Inter Fallback DejaVu", sans-serif;
 }
 
 pre, code {
-    font-family: JetBrainsMono, monospace;
+    font-family: JetBrainsMono, "JetBrainsMono Fallback", "JetBrainsMono Fallback Consolas", monospace;
 }
 
 .body :is(h1, h2, h3, h4, h5, h6) {
-    font-family: Barlow, sans-serif;
+    font-family: Barlow, "Barlow Fallback", "Barlow Fallback DejaVu", sans-serif;
     font-weight: 500;
     margin: 0;
     padding: 1em 0 .4em 0;
@@ -88,7 +142,7 @@ pre, code {
 }
 
 .sphinxsidebar .caption-text {
-    font-family: Barlow, sans-serif;
+    font-family: Barlow, "Barlow Fallback", "Barlow Fallback DejaVu", sans-serif;
     font-weight: 600;
     font-size: 1.1em;
 }

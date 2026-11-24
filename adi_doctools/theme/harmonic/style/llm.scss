@@ -530,7 +530,7 @@ $chat-resize: left .2s ease, width .2s ease, padding .2s ease;
   }
 
   .chat-greeting-title {
-    font-family: Barlow, sans-serif;
+    font-family: Barlow, "Barlow Fallback", "Barlow Fallback DejaVu", sans-serif;
     font-size: 1.75em;
     font-weight: 600;
     color: var(--text-color3);
@@ -773,7 +773,7 @@ $chat-resize: left .2s ease, width .2s ease, padding .2s ease;
 
   .block[data-block="heading"] > .line {
     margin: 0;
-    font-family: Barlow, sans-serif;
+    font-family: Barlow, "Barlow Fallback", "Barlow Fallback DejaVu", sans-serif;
     font-weight: 500;
     font-size: 1.15em;
   }
@@ -858,7 +858,7 @@ $chat-resize: left .2s ease, width .2s ease, padding .2s ease;
   .block-source {
     margin: 0;
     padding: .5rem .75rem;
-    font-family: JetBrainsMono, monospace;
+    font-family: JetBrainsMono, "JetBrainsMono Fallback", "JetBrainsMono Fallback Consolas", monospace;
     white-space: pre;
   }
 
@@ -920,7 +920,7 @@ $chat-resize: left .2s ease, width .2s ease, padding .2s ease;
   }
 
   .md code {
-    font-family: JetBrainsMono, monospace;
+    font-family: JetBrainsMono, "JetBrainsMono Fallback", "JetBrainsMono Fallback Consolas", monospace;
     padding: 0 .2em .1em;
     border: 1px solid rgba(125, 125, 125, 0.15);
     background: rgba(125, 125, 125, 0.025);
