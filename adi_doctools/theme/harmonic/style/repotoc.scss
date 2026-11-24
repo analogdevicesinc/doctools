@@ -20,15 +20,8 @@
         transition: row-gap .25s ease;
 
         a {
-            border: 1px solid rgba(125,125,125,.5);
-            border-radius: variable.$border-radius;
-            transition: border ease .125s;
             padding: 1em !important;
             width: 100%;
-
-            &:hover {
-                border-color: rgba(125,125,125,1) !important;
-            }
         }
     }
 }
@@ -42,7 +35,6 @@
         box-sizing: border-box;
         padding: .5em;
         margin-left: 0;
-        border: 1px solid rgba(125,125,125,.5);
 
         &:before {
             display: none;
@@ -56,7 +48,7 @@
 }
 
 .repotoc-tree {
-    @include mixin_icons.icons(("heart"));
+    @include mixin_icons.icons(("heart", "chip", "binary", "flow", "stack", "tools"));
 
     a.landing-page {
         display: inline-flex;
@@ -102,24 +94,101 @@
 
         a {
             justify-self: stretch;
+            box-sizing: border-box;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            justify-content: flex-start;
+            gap: .375em;
+            background: var(--bg-color1);
+            border: 1px solid rgba(125,125,125,.5);
+            border-radius: variable.$border-radius;
+            transition: box-shadow ease .125s, border-color ease .125s;
 
             &:hover {
-                border-color: rgba(125,125,125,1) !important;
+                box-shadow: 0 .2rem .5rem rgba(0,0,0,.1), 0 0 .0625rem rgba(0,0,0,.2);
+                border-color: var(--accent-color) !important;
+            }
+            &:active {
+                box-shadow: none;
+            }
+            &:focus-visible {
+                outline: 2px solid var(--accent-color);
+                outline-offset: -2px;
             }
         }
     }
 
+    .head {
+        display: flex;
+        align-items: center;
+        gap: .5em;
+        min-width: 0;
+    }
+
+    .icon {
+        flex: none;
+        --fg: #101820;
+        --fg-dark: var(--text-color1);
+        --bg: #f0f1f3;
+        --bg-dark: #293038;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        padding: 4px;
+        box-sizing: border-box;
+        border-radius: 4px;
+        color: color-mix(in srgb, var(--fg-dark) calc(var(--is-dark-theme, 0) * 100%), var(--fg));
+        background: color-mix(in srgb, var(--bg-dark) calc(var(--is-dark-theme, 0) * 100%), var(--bg));
+
+        &:is([data-category="driver"], [data-category="library"]) {
+            --fg: #16744d;
+            --fg-dark: #6fcea6;
+            --bg: #e4f6ef;
+            --bg-dark: #114a32;
+        }
+
+        &:is([data-category="hdl"], [data-category="sdk"]) {
+            --fg: #8e3dc7;
+            --fg-dark: #d4adf0;
+            --bg: #f6eefc;
+            --bg-dark: #431c5f;
+        }
+
+        &::before {
+            content: '';
+            flex: none;
+            width: 20px;
+            height: 20px;
+            background-color: currentColor;
+            mask-image: var(--icon-flow);
+            mask-repeat: no-repeat;
+            mask-size: contain;
+        }
+
+        &:is([data-category="driver"], [data-category="library"])::before {
+            mask-image: var(--icon-chip);
+        }
+        &[data-category="hdl"]::before {
+            mask-image: var(--icon-binary);
+        }
+        &[data-category="tool"]::before {
+            mask-image: var(--icon-tools);
+        }
+        &[data-category="sdk"]::before {
+            mask-image: var(--icon-stack);
+        }
+    }
+
     .title {
-        font-size: 1em;
+        font-size: 1.1em;
         color: var(--accent-color);
-        margin-bottom: .5em;
     }
     .subtitle {
         font-size: 0.9em;
-        color: var(--text-color2);
+        color: var(--text-color3);
     }
 }
 
@@ -142,5 +211,5 @@
 }
 
 #input-show-repotoc:checked ~ div.repotoc-tree .cards {
-    row-gap: 1em;
+    row-gap: .75em;
 }

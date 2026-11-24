@@ -6,6 +6,7 @@ $hmc-color-blue-300: #92befc;
 $hmc-color-purple-700: #8e3dc7;
 $hmc-color-purple-500: #b16ee0;
 $hmc-color-purple-300: #d4adf0;
+$hmc-radius-100: 0.25rem;
 $hmc-radius-200: 0.5rem;
 $hmc-radius-300: 0.75rem;
 $hmc-radius-400: 1rem;
@@ -37,6 +38,7 @@ $accent-color-light: $hmc-color-blue-700;
 $accent-color-dark: $hmc-color-blue-300;
 $accent-color-code-light: $hmc-color-purple-700;
 $accent-color-code-dark: $hmc-color-purple-300;
+$border-radius-short: $hmc-radius-100;
 $border-radius: $hmc-radius-200;
 $border-radius-extra: $hmc-radius-400;
 

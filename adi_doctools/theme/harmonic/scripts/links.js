@@ -71,18 +71,22 @@ export class Links {
         'href': base,
         'className': this.parent.state.repository === key ? 'current' : '',
       })
+      const category = value['category'] || 'system'
+      entry.dataset.category = category
+      let head = DOM.new('div', {'className': 'head'})
+      let icon = DOM.new('span', {'className': 'icon'})
+      icon.dataset.category = category
+      icon.setAttribute('aria-hidden', 'true')
       let name = DOM.new('div', {
         'innerText': value['name'],
         'className': 'title'
       })
+      head.append(icon, name)
       let desc = DOM.new('div', {
         'innerText': value['description'],
         'className': 'subtitle'
       })
-      let spacer = DOM.new('div')
-      entry.append(name)
-      entry.append(desc)
-      entry.append(spacer)
+      entry.append(head, desc)
       this.$.linksSidebar.push(entry)
     }
 
