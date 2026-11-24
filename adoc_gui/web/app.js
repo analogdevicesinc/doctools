@@ -2137,6 +2137,51 @@ function optionAtCaret() {
   return { items, start: leaf.s, end: leaf.e }
 }
 
+// The path of an image being typed, after an image, a figure or an svg
+// directive: its folders and its images are chosen from a menu, without the
+// documentation server. { request, partial, start, end } or undefined
+const IMAGE_LINE = /^[ \t]*\.\.[ \t]+(image|figure|svg)::[ \t]+(\S*)$/
+function imagePathAtCaret() {
+  const { anchor, focus } = state.caret
+  if (anchor !== focus || !state.path) return undefined
+  const { source } = state
+  const lineStart = source.lastIndexOf('\n', focus - 1) + 1
+  let lineEnd = source.indexOf('\n', focus)
+  if (lineEnd === -1) lineEnd = source.length
+  const found = IMAGE_LINE.exec(source.slice(lineStart, focus))
+  // The rest of the path, after the caret, is replaced
+  const rest = /^\S*/.exec(source.slice(focus, lineEnd))[0]
+  if (!found || source.slice(focus + rest.length, lineEnd).trim()) return undefined
+  const typed = found[2]
+  const partial = typed.slice(typed.lastIndexOf('/') + 1)
+  return { kind: found[1], typed, partial, start: focus - partial.length, end: focus + rest.length }
+}
+const pathAnswers = new Map()
+async function imagePathItems(at) {
+  const folder = at.typed.slice(0, at.typed.length - at.partial.length)
+  const key = JSON.stringify([state.path, folder, at.kind === 'svg'])
+  if (!pathAnswers.has(key)) {
+    const query = new URLSearchParams({ from: state.path, typed: folder, kind: at.kind })
+    pathAnswers.set(key, fetch(`api/paths?${query}`, { headers: { 'X-Doctools': '1' } })
+      .then(response => response.json()).catch(() => ({ dirs: [], files: [] })))
+    // The files change: asked again a while later
+    setTimeout(() => pathAnswers.delete(key), 10000)
+  }
+  const answer = await pathAnswers.get(key)
+  const typed = at.partial.toLowerCase()
+  const entries = [
+    ...(answer.dirs ?? []).map(name => ({ name, dir: true })),
+    ...(answer.files ?? []).map(name => ({ name, dir: false })),
+    // The folder above, last: what is in this one is what is looked for
+    ...(answer.up ? [{ name: '..', dir: true }] : [])
+  ].filter(entry => entry.name.toLowerCase().startsWith(typed) && entry.name !== at.partial)
+  return entries.slice(0, 50).map(entry => ({
+    label: entry.dir ? `${entry.name}/` : entry.name,
+    text: entry.dir ? `${entry.name}/` : entry.name,
+    detail: entry.dir ? 'folder' : ''
+  }))
+}
+
 // A new option of a directive: its name is chosen or typed
 function newOption(directive) {
   commit(addOption(state.model, directive))
@@ -2182,6 +2227,14 @@ async function suggest() {
   if (option) {
     if (!option.items.length) return closeMenu()
     completion = { ...option, index: 0, anchor, caret: focus }
+    return renderMenu()
+  }
+  const image = imagePathAtCaret()
+  if (image) {
+    const items = await imagePathItems(image)
+    if (state.caret.focus !== focus || state.source !== source) return
+    if (!items.length) return closeMenu()
+    completion = { items, index: 0, anchor: focus, caret: focus, start: image.start, end: image.end }
     return renderMenu()
   }
   const context = state.docs.build === 'off' ? undefined : contextAtCaret()

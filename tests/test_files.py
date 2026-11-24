@@ -137,3 +137,40 @@ class TrailingSpaces(unittest.TestCase):
             self.assertEqual(run('show', ':a.rst').stdout, 'One\nTwo\nThree\n')
             self.assertEqual(file.read_text(encoding='utf-8'), 'One\nTwo\nThree\n')
             self.assertEqual(run('diff', '--cached', '--check').stdout, '')
+
+
+class ImagePaths(unittest.TestCase):
+    def setUp(self):
+        from adoc_gui.files import image_entries
+        self.entries = image_entries
+        folder = tempfile.TemporaryDirectory()
+        self.addCleanup(folder.cleanup)
+        self.root = Path(folder.name).resolve()
+        for name in ['docs/conf.py', 'docs/guide/page.rst', 'docs/guide/a.png', 'docs/guide/b.svg', 'docs/guide/notes.txt',
+                     'docs/images/logo.PNG', 'docs/images/deep/x.svg', 'docs/.hidden/y.png', 'docs/node_modules/z.png']:
+            (self.root / name).parent.mkdir(parents=True, exist_ok=True)
+            (self.root / name).write_text('')
+        self.page = self.root / 'docs/guide'
+        self.top = self.root / 'docs'
+
+    def ask(self, typed, suffixes=('.png', '.svg')):
+        return self.entries(self.root, self.page, self.top, typed, set(suffixes))
+
+    def test_the_folder_of_the_file_and_the_ones_above(self):
+        self.assertEqual(self.ask(''), {'dirs': [], 'files': ['a.png', 'b.svg'], 'up': True})
+        self.assertEqual(self.ask('../'), {'dirs': ['guide', 'images'], 'files': [], 'up': True})
+        self.assertEqual(self.ask('../images/'), {'dirs': ['deep'], 'files': ['logo.PNG'], 'up': True})
+        # What is typed of the name is the menu's to match
+        self.assertEqual(self.ask('../images/lo'), self.ask('../images/'))
+        # Of a kind: an svg directive takes svg files
+        self.assertEqual(self.ask('', ('.svg',))['files'], ['b.svg'])
+
+    def test_from_the_folder_of_the_conf(self):
+        self.assertEqual(self.ask('/'), {'dirs': ['guide', 'images'], 'files': [], 'up': False})
+        self.assertEqual(self.ask('/images/deep/')['files'], ['x.svg'])
+
+    def test_nothing_out_of_the_root(self):
+        self.assertEqual(self.ask('../../'), {'dirs': ['docs'], 'files': [], 'up': False})
+        self.assertEqual(self.ask('../../../'), {'dirs': [], 'files': [], 'up': False})
+        self.assertEqual(self.ask('/../../'), {'dirs': [], 'files': [], 'up': False})
+        self.assertEqual(self.ask('nowhere/'), {'dirs': [], 'files': [], 'up': False})

@@ -43,6 +43,12 @@ role, a link or a literal is kept on one line, and no line starts with what
 would be markup there. `Shift` and the right click show the menu of the
 browser.
 
+The path of an `image`, a `figure` or an `svg` is completed while it is
+typed, in the page and in the source, without the documentation server: a
+menu has the folders and the images of the folder typed so far, from the
+folder of the file, or from the one of `conf.py` after a `/`, and `..` last.
+A folder that is chosen shows what is in it.
+
 In the source, `Enter` at the end of the line of a directive indents the new
 line by three spaces more, for its options or its content.
 

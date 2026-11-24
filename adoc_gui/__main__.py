@@ -21,7 +21,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
 from .docs import Docs
-from .files import FileError, delete_file, move_file, new_file, sanitize
+from .files import FileError, delete_file, image_entries, move_file, new_file, sanitize
 from .git import Git
 
 WEB = Path(__file__).resolve().parent / 'web'
@@ -127,6 +127,14 @@ def make_handler(first: Path, root: Path, docs: Docs, repo: Git | None = None):
             return None
         return target
 
+    def image_paths(rst: str | None, typed: str | None, kind: str | None) -> dict:
+        """What an image path being typed in a file can go on with."""
+        page = resolve(rst)
+        if page is None or not isinstance(typed, str) or len(typed) > 400:
+            return {'dirs': [], 'files': [], 'up': False}
+        suffixes = {'.svg'} if kind == 'svg' else IMAGES
+        return image_entries(root, page.parent, conf_dir(page) or root, typed, suffixes)
+
     def change_files(message) -> dict:
         """Make, move or delete a file: { action, path, to }. The answer is
         the file, or after a deletion the path of a file to show instead."""
@@ -224,6 +232,12 @@ def make_handler(first: Path, root: Path, docs: Docs, repo: Git | None = None):
                     return self.reply(404, b'Not found')
                 content_type = mimetypes.guess_type(target.name)[0] or 'application/octet-stream'
                 return self.reply(200, target.read_bytes(), content_type)
+            if path == '/api/paths':
+                if not self.allowed():
+                    return None
+                query = parse_qs(urlsplit(self.path).query)
+                return self.reply_json(200, image_paths(
+                    query.get('from', [None])[0], query.get('typed', [''])[0], query.get('kind', [None])[0]))
             if path == '/api/git':
                 if not self.allowed():
                     return None

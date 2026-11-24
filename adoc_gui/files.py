@@ -118,3 +118,40 @@ def delete_file(root: Path, relative) -> Path:
         raise FileError(err.strerror or str(err)) from err
     tidy(root, source.parent)
     return source
+
+
+# What is not listed among the images to choose: the build, the tools
+HIDDEN_FOLDERS = {'node_modules', 'venv', 'env', '__pycache__'}
+MAX_ENTRIES = 400
+
+
+def image_entries(root: Path, folder: Path, top: Path, typed: str, suffixes) -> dict:
+    """The folders and the images to choose from for an image path being
+    typed: in the folder of what is typed, relative to folder, or to top
+    when it starts with '/' (the folder of conf.py). { dirs, files, up },
+    up: whether '..' is still in root. Nothing out of root."""
+    head = typed.rpartition('/')[0]
+    base = top if typed.startswith('/') else folder
+    where = (base / head.lstrip('/')).resolve()
+    none = {'dirs': [], 'files': [], 'up': False}
+    if where != root and root not in where.parents:
+        return none
+    try:
+        entries = sorted(os.scandir(where), key=lambda entry: entry.name.lower())
+    except OSError:
+        return none
+    dirs, files = [], []
+    for entry in entries:
+        name = entry.name
+        if name.startswith('.') or name in HIDDEN_FOLDERS:
+            continue
+        try:
+            if entry.is_dir():
+                dirs.append(name)
+            elif Path(name).suffix.lower() in suffixes:
+                files.append(name)
+        except OSError:
+            continue
+        if len(dirs) + len(files) >= MAX_ENTRIES:
+            break
+    return {'dirs': dirs, 'files': files, 'up': where != root and not typed.startswith('/')}
