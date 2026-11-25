@@ -1,2 +1,2 @@
-https://github.com/analogdevicesinc/doctools/releases/download/latest/adi-doctools.tar.gz
+adi-doctools
 sphinx

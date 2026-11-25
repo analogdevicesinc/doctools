@@ -12,15 +12,11 @@ Guarantee to work with Python newer than 3.8 and distros released on or after 20
 
 ## Release install
 
-Ensure pip is newer than 23.0 [1]:
-```
-pip install pip --upgrade
-```
 Install the documentation tools, which will fetch this repository release:
 ```
-(cd docs ; pip install -r requirements.txt)
+pip install adi-doctools --upgrade
 ```
-Build the documentation with Sphinx:
+For testing, build the documentation with Sphinx:
 ```
 (cd docs ; make html)
 ```
@@ -32,8 +28,8 @@ In summary, the `serve` allows to live reload the documentation when editing
 the docs, and `aggregate` to generate an aggregated documentation of the multiple
 repositories.
 
-[1] There is a [known bug](https://github.com/pypa/setuptools/issues/3269)
-with pip shipped with Ubuntu 22.04
+Note: it is not guarantee that the `main` branch builds cleanly with latest
+release, since it contains commits for the next release.
 
 ### Using a Python virtual environment
 
