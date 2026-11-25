@@ -224,6 +224,9 @@ jobs:
         tag: ${{ inputs.tag }}
         path: html
 
+    # https://github.com/actions/deploy-pages/issues/451
+    - run: sleep 10
+
     - uses: actions/deploy-pages@v5
       id: deployment
 
