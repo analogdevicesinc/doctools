@@ -52,7 +52,7 @@ static_common_path = path.join(theme_path, 'static_common')
 static_core_path = path.join(theme_path, 'static_core')
 dev_pool_val = b""
 
-common_paths = [".", "docs", path.join("doc", "source"), path.join("doc", "sphinx", "source")]
+common_paths = [".", "docs", "doc", path.join("doc", "source"), path.join("doc", "sphinx", "source")]
 
 
 def find_confdir(directory):
