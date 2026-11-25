@@ -391,7 +391,9 @@ def run(file: Path | None = None, port: int = 8300, serve: bool = False,
     print(f'Editing {file}\n{url}', flush=True)
     if docs.problem:
         print(f'Documentation server not available: {docs.problem}', flush=True)
-    docs.pages = count_files(list_tree(root))
+    # Not the other .rst files of the repository, as the ones of its tests
+    sources = conf_dir(file)
+    docs.pages = count_files(list_tree(sources if sources and (sources == root or root in sources.parents) else root))
     if docs.problem:
         pass
     elif serve and docs.hold():
