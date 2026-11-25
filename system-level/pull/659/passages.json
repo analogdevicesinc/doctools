@@ -1,0 +1,220 @@
+{
+  "text": [
+    "- ADI DataX Tools for Precision Wideband System Design\n  This is a work in progress.\n",
+    "> **Note**\n>\n> This is a work in progress.\n",
+    "Analog Devices manufactures a dizzying array of products from simple, 2-terminal shunt voltage references to some of the most complicated communication and instrumentation devices in existence. ADCs, DACs, and sensors comprise a large subset of this space, and devices from the slow, jellybean LM75 t",
+    "This tutorial is also designed to be presented as a live, hands-on workshop; a slide deck is provided here:\n\n> **Download**\n>\n> `Slide Deck: ADI\u2019s Software Infrastructure for designing with ADCs, DACs, and Sensors`\n",
+    "- Raspberry Pi 5 + power supply + SD card\n- ADALM-MMSC board (contains the AD4080 and a pre-programmed MAX32666FTHR microcontroller running the IIO server)\n- ADALM2000 board (Multi-function USB instrument)\n- Two micro-USB cables (one for the ADALM2000, one for the ADALM-MMSC)\n- Jumper wires: the ADA",
+    "The ADALM-MMSC is powered and read over its USB connection, so no firmware programming or additional power supply is needed; the board ships with the IIO server firmware already loaded. (Firmware upgrade instructions are in the ADALM-MMSC documentation.)\n\nThe complete setup is shown in Figure 1. Con",
+    "> **Important**\n>\n> The setup installs several software packages, it is recommended to use a dedicated SD card for this exercise to avoid conflicts or overwriting anything important.\n\n\nWrite the ADI Kuiper Linux image onto the SD card. Directions and the image download are available at:\n\nAnalog Devi",
+    "Run everything as your normal user, not as root. Only the commands that need `sudo` have it.\n",
+    "Kuiper Linux 2 already ships the ADI libraries (libiio, libm2k, pyadi-iio, numpy, Scopy). The workshop also needs a Python GUI toolkit and a few tools for creating the virtual environment and building genalyzer.\n\n```default\nsudo apt-get update\nsudo apt-get install -y python3-venv python3-tk pkg-conf",
+    "> **Note**\n>\n> This workshop is still in progress. To be sure the exercises work, get them from the ftc24-ws repository instead of the folder described below, and skip the rest of this step:\n> git clone https://github.com/cristina-suteu/ftc24-ws.git ~/Desktop/tools-for-pw\n\n\nThe exercises are not a s",
+    "You should already be in the workshop directory. If not:\n\n```default\ncd ~/Desktop/tools-for-pw\n```\n\n\nCreate the environment:\n\n```default\npython3 -m venv --system-site-packages .venv\n```\n\n\n- `python3 -m venv .venv` creates a private Python environment in the `.venv` folder.\n- `--system-site-packages`",
+    "Genalyzer is a C library with Python bindings. It isn\u2019t packaged for this image, so we compile version v0.1.7 from source.\n\nDownload the source:\n\n```default\ngit clone --branch v0.1.7 --depth 1 https://github.com/analogdevicesinc/genalyzer /tmp/genalyzer\n```\n\n\n- `--branch v0.1.7` picks the version th",
+    "Thonny is the editor for the Python exercises (Exercise 3). We install it inside the virtual environment from Step 3, so that it runs on the venv\u2019s Python and can find genalyzer, matplotlib and obspy without any extra configuration.\n\n```default\n~/Desktop/tools-for-pw/.venv/bin/python3 -m pip install",
+    "VS Code is the editor for the C exercise (Exercise 4).\n\nDownload the ARM64 `.deb` package from https://code.visualstudio.com/download in a browser. It is saved in the `Downloads` folder. Then install it from there:\n\n```default\ncd ~/Downloads\nsudo apt install ./code_*_arm64.deb\n```\n\n\n- `cd ~/Download",
+    "> **Todo**\n>\n> Describe installing the workshop with a Debian package, once the package is available.\n",
+    "Multiple examples require running Linux commands. For those, open the terminal using `Ctrl + Alt + T` key combination.\n",
+    "Communication with the various data converter sources and sinks is done through the Industrial I/O (IIO) framework. This framework is used for communicating with devices that are in some sense an ADC or DAC, and is the backbone of many of the tools we will use in this workshop. An important concept ",
+    "Scopy is a GUI application that provides the test instrument interfaces to the ADALM2000, as well as custom instruments for other hardware, such as the AD-SWIOT1L-SL Software-configurable Analog and Digital I/O with 10BASE-T1L. When  no board-specific control panel is available, a debug interface pr",
+    "Most examples in this workshop are Python scripts. Thonny is a Python IDE and will allow you to edit and run them easily. In the setup, Thonny was installed in the workshop\u2019s Python virtual environment, which has all the required packages. Open a terminal and run:\n\n```default\nthonny\n```\n\n\nWait for t",
+    "This is the \u201chello world\u201d of the ADALM-MMSC: connect to it, capture some samples, and look at them. Start generating a sine wave using Scopy. In Thonny, load\n**Desktop/tools-for-pw-system-design/hello_hw/hello_ad4080.py**\nand click Run:\n\nThe script connects to the ADALM-MMSC using pyadi-iio, with no",
+    "In the previous exercise the signal came from Scopy, and the result was judged by eye. Here the script generates a known test signal and measures how the ADALM-MMSC reproduces it. Stop the ADALM2000 waveform generator and close Scopy, because this demo will generate\na signal programmatically. In Tho",
+    "The ADALM-MMSC does not have to deliver all 40 MSPS. Its AD4080 includes a digital filter that decimates the data to a lower rate, and the simplest option is the sinc1 filter. It is cheap and fast, but not a brick-wall filter: signals above the new, lower Nyquist frequency are only attenuated, and w",
+    "A seismic signal is slow, only a few hertz, while the AD4080 samples at 40 MSPS, so the ADALM-MMSC\u2019s digital filter does the work of bringing the data rate down to something suitable.\n\nIn Thonny, load and run **Desktop/tools-for-pw-system-design/hello_seismograph/seismograph.py**:\n\nThe script uses O",
+    "The libiio has language bindings for C, C#, Python, and MATLAB. This exercise will show how to use libiio in C.\n\nThe program reads the Raspberry Pi\u2019s CPU temperature through libiio. It is the same sensor you saw as `cpu_thermal` in the `local:` context in Exercise 1. Every libiio program follows the",
+    "IIOD (IIO Daemon) is a program that creates libiio network contexts (`ip:...`) that are bound to any kind of context (could be `local:`, `usb:`, `serial:`, etc.), acting like a middleman between the two, forwarding commands and data both ways. It is a great tool in managing connectivity in projects ",
+    "> **Attention**\n>\n> Work-in-progress, not all content available at the\n> wiki\n> has been imported yet.\n\n\nSoftware, documentation and reference designs for Analog Devices\nproducts.\n\nThe System Level documentation provides developers using Analog Devices\nproducts with software and documentation, inclu",
+    "Reference Designs\n\nReference designs combining mixed signal hardware, software and\nalgorithms.\n\nProducts\n\nEvaluation boards, embedded processors and lab tools for hardware\ndevelopment.\n\nADC Platforms\n\nIntegrated evaluation and demonstration platforms for data converter\nsystems.\n\nApplication Software",
+    "Kuiper\n\nDebian-based Linux distribution with tools and drivers for evaluation\nhardware.\n\nKernel and devicetrees\n\nBuild guides for the Linux kernel and devicetrees across supported\nplatforms.\n\nLinux drivers\n\nLinux kernel drivers for connecting devices and accessing their\nfunctionality.\n\nSoftware\n\nLib",
+    "Tutorials & Workshops\n\nHands-on tutorials and workshops covering mixed signal basics and\nsystem design.\n\nUniversity Program\n\nLearning tools and practical courses for the next generation of design\nengineers.\n"
+  ],
+  "url": [
+    "learning#system-design",
+    "learning/sw_infrastructure",
+    "learning/sw_infrastructure#introduction",
+    "learning/sw_infrastructure#slide-deck",
+    "learning/sw_infrastructure#materials",
+    "learning/sw_infrastructure#hardware-setup",
+    "learning/sw_infrastructure#software-setup",
+    "learning/sw_infrastructure#option-1-manual-setup",
+    "learning/sw_infrastructure#step-1-install-system-packages",
+    "learning/sw_infrastructure#step-2-get-the-exercises",
+    "learning/sw_infrastructure#step-3-create-the-python-virtual-environment",
+    "learning/sw_infrastructure#step-4-build-and-install-genalyzer",
+    "learning/sw_infrastructure#step-5-install-thonny-in-the-venv",
+    "learning/sw_infrastructure#step-6-install-vs-code",
+    "learning/sw_infrastructure#option-2-debian-package",
+    "learning/sw_infrastructure#exercise-1-command-line",
+    "learning/sw_infrastructure#iio-info",
+    "learning/sw_infrastructure#exercise-2-scopy-2-0",
+    "learning/sw_infrastructure#exercise-3-python-and-the-thonny-ide",
+    "learning/sw_infrastructure#simple-sine-wave-from-the-adalm2000-to-the-ad4080",
+    "learning/sw_infrastructure#performance-metrics-with-genalyzer",
+    "learning/sw_infrastructure#sinc1-frequency-response",
+    "learning/sw_infrastructure#obspy",
+    "learning/sw_infrastructure#exercise-4-using-libiio-in-c",
+    "learning/sw_infrastructure#appendix-a-iiod-and-context-forwarding",
+    "",
+    "#apps-solutions",
+    "#firmware-software",
+    "#learning"
+  ],
+  "hierarchy": [
+    [
+      "Learning! Tutorials, Workshops, Etc",
+      "System Design"
+    ],
+    [
+      "Learning! Tutorials, Workshops, Etc",
+      "ADI DataX Tools for Precision Wideband System Design"
+    ],
+    [
+      "Learning! Tutorials, Workshops, Etc",
+      "ADI DataX Tools for Precision Wideband System Design",
+      "Introduction"
+    ],
+    [
+      "Learning! Tutorials, Workshops, Etc",
+      "ADI DataX Tools for Precision Wideband System Design",
+      "Slide Deck"
+    ],
+    [
+      "Learning! Tutorials, Workshops, Etc",
+      "ADI DataX Tools for Precision Wideband System Design",
+      "Slide Deck",
+      "Materials"
+    ],
+    [
+      "Learning! Tutorials, Workshops, Etc",
+      "ADI DataX Tools for Precision Wideband System Design",
+      "Hardware setup"
+    ],
+    [
+      "Learning! Tutorials, Workshops, Etc",
+      "ADI DataX Tools for Precision Wideband System Design",
+      "Software Setup"
+    ],
+    [
+      "Learning! Tutorials, Workshops, Etc",
+      "ADI DataX Tools for Precision Wideband System Design",
+      "Software Setup",
+      "Option 1: Manual setup"
+    ],
+    [
+      "Learning! Tutorials, Workshops, Etc",
+      "ADI DataX Tools for Precision Wideband System Design",
+      "Software Setup",
+      "Option 1: Manual setup",
+      "Step 1: Install system packages"
+    ],
+    [
+      "Learning! Tutorials, Workshops, Etc",
+      "ADI DataX Tools for Precision Wideband System Design",
+      "Software Setup",
+      "Option 1: Manual setup",
+      "Step 2: Get the exercises"
+    ],
+    [
+      "Learning! Tutorials, Workshops, Etc",
+      "ADI DataX Tools for Precision Wideband System Design",
+      "Software Setup",
+      "Option 1: Manual setup",
+      "Step 3: Create the Python virtual environment"
+    ],
+    [
+      "Learning! Tutorials, Workshops, Etc",
+      "ADI DataX Tools for Precision Wideband System Design",
+      "Software Setup",
+      "Option 1: Manual setup",
+      "Step 4: Build and install genalyzer"
+    ],
+    [
+      "Learning! Tutorials, Workshops, Etc",
+      "ADI DataX Tools for Precision Wideband System Design",
+      "Software Setup",
+      "Option 1: Manual setup",
+      "Step 5: Install Thonny in the venv"
+    ],
+    [
+      "Learning! Tutorials, Workshops, Etc",
+      "ADI DataX Tools for Precision Wideband System Design",
+      "Software Setup",
+      "Option 1: Manual setup",
+      "Step 6: Install VS Code"
+    ],
+    [
+      "Learning! Tutorials, Workshops, Etc",
+      "ADI DataX Tools for Precision Wideband System Design",
+      "Software Setup",
+      "Option 2: Debian package"
+    ],
+    [
+      "Learning! Tutorials, Workshops, Etc",
+      "ADI DataX Tools for Precision Wideband System Design",
+      "Exercise 1: Command line"
+    ],
+    [
+      "Learning! Tutorials, Workshops, Etc",
+      "ADI DataX Tools for Precision Wideband System Design",
+      "Exercise 1: Command line",
+      "IIO Info"
+    ],
+    [
+      "Learning! Tutorials, Workshops, Etc",
+      "ADI DataX Tools for Precision Wideband System Design",
+      "Exercise 2: Scopy (2.0!)"
+    ],
+    [
+      "Learning! Tutorials, Workshops, Etc",
+      "ADI DataX Tools for Precision Wideband System Design",
+      "Exercise 3: Python and the Thonny IDE"
+    ],
+    [
+      "Learning! Tutorials, Workshops, Etc",
+      "ADI DataX Tools for Precision Wideband System Design",
+      "Simple sine wave from the ADALM2000 to the AD4080"
+    ],
+    [
+      "Learning! Tutorials, Workshops, Etc",
+      "ADI DataX Tools for Precision Wideband System Design",
+      "Performance metrics with Genalyzer"
+    ],
+    [
+      "Learning! Tutorials, Workshops, Etc",
+      "ADI DataX Tools for Precision Wideband System Design",
+      "Sinc1 frequency response"
+    ],
+    [
+      "Learning! Tutorials, Workshops, Etc",
+      "ADI DataX Tools for Precision Wideband System Design",
+      "ObsPy"
+    ],
+    [
+      "Learning! Tutorials, Workshops, Etc",
+      "ADI DataX Tools for Precision Wideband System Design",
+      "Exercise 4: Using libiio in C"
+    ],
+    [
+      "Learning! Tutorials, Workshops, Etc",
+      "ADI DataX Tools for Precision Wideband System Design",
+      "Appendix A: IIOD and context forwarding"
+    ],
+    [
+      "System Level Documentation"
+    ],
+    [
+      "System Level Documentation",
+      "Apps & Solutions"
+    ],
+    [
+      "System Level Documentation",
+      "Firmware & Software"
+    ],
+    [
+      "System Level Documentation",
+      "Learning"
+    ]
+  ]
+}
