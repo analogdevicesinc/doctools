@@ -17,6 +17,8 @@ test('what is completed at the caret', () => {
   assert.deepEqual(at(':external+sphinx:re'), { request: { completion: 'inventory_types', inventory: 'sphinx' }, partial: 're', skip: 0 })
   assert.deepEqual(at(':external+sphinx:ref:`au'),
     { request: { completion: 'inventory_targets', inventory: 'sphinx', role: 'ref' }, partial: 'au', skip: 0 })
+  assert.deepEqual(at('See :py:fu'), { request: { completion: 'roles' }, partial: 'py:fu', skip: 0 })
+  assert.deepEqual(at('See :py:func:`sphinx.app'), { request: { completion: 'local_targets', role: 'py:func' }, partial: 'sphinx.app', skip: 0 })
   assert.deepEqual(at('   .. no'), { request: { completion: 'directives' }, partial: 'no', skip: 0 })
   assert.equal(at('.. note::'), undefined)
   assert.equal(at('plain text'), undefined)

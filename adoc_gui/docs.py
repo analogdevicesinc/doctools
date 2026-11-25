@@ -408,8 +408,27 @@ class Docs:
         if message.get('role') == 'doc' and isinstance(message.get('target'), str):
             message = {**message, 'target': self._docname(message['target'])}
         answer = self.request(message)
+        if message.get('completion') == 'roles':
+            answer = self._with_domain_roles(answer)
         own = self.published()
         return self._with_published(message, answer, own) if own else answer
+
+    def _with_domain_roles(self, answer: dict) -> dict:
+        """The backend gives the roles of the standard domain and of docutils
+        only, not py:func, rst:dir, ...: they come from the local types."""
+        if not isinstance(answer.get('list'), list):
+            return answer
+        types = self.request({'completion': 'local_types'}).get('list')
+        if not isinstance(types, list):
+            return answer
+        roles = list(answer['list'])
+        names = {item.get('name') for item in roles}
+        for item in types:
+            name = item.get('name')
+            if isinstance(name, str) and ':' in name and name not in names:
+                roles.append({'name': name, 'partial': False})
+                names.add(name)
+        return {**answer, 'list': roles}
 
     def _docname(self, target: str) -> str:
         """The page a doc role names, as the backend knows it: from the

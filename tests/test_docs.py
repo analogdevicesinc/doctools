@@ -203,3 +203,20 @@ class PublishedPages(unittest.TestCase):
         answer = docs.preview({'role': 'doc', 'target': '/install'})
         self.assertEqual(read, ['https://example.com/doctools/install.html'])
         self.assertEqual((answer['title'], answer['text'], answer['external']), ('Install', 'How to.', False))
+
+
+class DomainRoles(unittest.TestCase):
+    def test_the_roles_of_the_domains_are_added(self):
+        folder = tempfile.TemporaryDirectory()
+        self.addCleanup(folder.cleanup)
+        docs = Docs(Path(folder.name) / 'index.rst', log=lambda line: None)
+        docs.problem = None
+        docs.url = 'http://127.0.0.1:8080'
+
+        def request(message, timeout=20):
+            if message.get('completion') == 'roles':
+                return {'list': [{'name': 'ref', 'partial': False}, {'name': 'external+', 'partial': True}]}
+            return {'list': [{'name': 'ref'}, {'name': 'py:func'}, {'name': 'confval'}, {'name': 'py:class'}]}
+        docs.request = request
+        self.assertEqual([item['name'] for item in docs.ask({'completion': 'roles'})['list']],
+                         ['ref', 'external+', 'py:func', 'py:class'])

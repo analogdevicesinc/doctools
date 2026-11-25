@@ -50,8 +50,8 @@ export function completionAt(prefix, suffix = '') {
   if (match)
     return { request: { completion: 'inventory' }, partial: match[1], skip: skipOf(':'), item: entry => entry.name + ':' }
 
-  // :[caret]
-  match = /(?:^|\s):([\w+-]*)$/.exec(prefix)
+  // :[caret], :py:[caret]
+  match = /(?:^|\s):((?:[\w+-]+:)?[\w+-]*)$/.exec(prefix)
   if (match) {
     return {
       request: { completion: 'roles' },
