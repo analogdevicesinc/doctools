@@ -165,12 +165,19 @@ runs:
         }
         EOF
 
-        [[ -f ~/.pi/agent/settings.json ]] || cat <<'EOF' > ~/.pi/agent/settings.json
+        if [[ -f ~/.pi/agent/settings.json ]]; then
+          tmp=$(mktemp --suffix=.json)
+          jq '.shellCommandPrefix = ((.shellCommandPrefix // "") + "\nunset PORTKEY_API_KEY; ")
+              | .defaultTools = ((.defaultTools // []) - ["+codemode"] + ["+codemode"])' ~/.pi/agent/settings.json > $tmp
+          mv $tmp ~/.pi/agent/settings.json
+        else
+          cat <<'EOF' > ~/.pi/agent/settings.json
         {
             "shellCommandPrefix": "unset PORTKEY_API_KEY; ",
             "defaultTools": ["+codemode"]
         }
         EOF
+        fi
 
         py_venv="${{ inputs.py-venv }}/bin/activate"
         sh_source="${{ inputs.sh-source }}"
