@@ -1,30 +1,31 @@
 {
   "text": [
-    "Step-by-step walkthroughs on real hardware. Each one has the same layout, see\nUse case template.\n\n- Use case: Configure a device with the GUI\n  Goal\n  What you need\n  Steps\n  Result\n  Troubleshooting\n  Next steps\n\n  - Goal\n  - What you need\n  - Steps\n  - Result\n  - Troubleshooting\n  - Next steps\n- U",
-    "Copy this page into a new folder under `use-cases/` and fill it in.\n",
-    "One or two sentences: what the reader will have at the end.\n",
-    "|Item|Details|\n|Board / carrier|`<board name, revision>`|\n|Evaluation board / part|`<part number, and the evaluation board or Click>`|\n|Cables and power|`<cables, power supply>`|\n|Host|Linux machine with Analog Attach installed|\n|Software versions|`<Analog Attach, kernel tree and branch, board image",
-    "Full walkthrough\n\n> **Video**\n>\n> Video\n> Full walkthrough\n",
-    "Text, command, expected output.\n\n![](../_images/placeholder.svg)\n\n*Figure 2 Caption*\n\n\n```bash\nanalog-attach <command>\n```\n",
-    "`<Repeat for every step.>`\n",
-    "What success looks like: output, a photo of the working setup, and the final\n`.dtso`.\n",
-    "Problems specific to this use case.\n",
-    "Links to related use cases and guide chapters.\n",
-    "The GUI is served by the CLI and opened in a browser. Every action in the GUI\nruns an `analog-attach` command, and the console at the bottom of the page\nshows each one, so what you do in the GUI you can also do on the command line.\n\n- Starting\n- Workspace\n- Adding devices\n- Editing\n- Validate, build",
-    "Attaching a part to a Linux board means writing a devicetree overlay: finding\nthe part\u2019s binding in the kernel, the bus it sits on in the board\u2019s\ndevicetree, every property the binding requires and the values it allows,\nthen compiling the overlay, copying it to the board and finding out at boot\nwhet",
-    "|Interface|Best for|Guide|\n|GUI (`analog-attach gui`)|A first project, exploring a part\u2019s properties, and seeing the devicetree and the validation findings as you edit|GUI Guide|\n|CLI|Working in a terminal or over SSH, scripts and CI, and repeating a configuration on several boards|CLI Guide|\n|Eithe",
-    "- Search the kernel\u2019s bindings for a part (`list devices`), and the buses\n  of your board it can sit on (`list parent`).\n- Add a device with the properties its binding requires, asked one by one,\n  with suggestions, or copied from the binding\u2019s example or from an overlay of\n  the kernel tree.\n- Vali",
-    "Analog Attach runs on Linux, with Node.js 22 or newer and the tools listed in\nInstallation. It was developed and tested on Ubuntu. The install\nhints it prints cover Debian and Ubuntu, Fedora, Arch and openSUSE.\n",
-    "Add an ADXL345 accelerometer to a Raspberry Pi 4 by asking an AI agent in a\nterminal: Claude Code, with the `analog-attach-linux` skill, runs the\n`analog-attach` commands, and you answer its questions and approve the\ndeploy. At the end the overlay is on the board and the acceleration reads back\nover",
+    "A project is a folder with a `.analog-attach/` folder in it. Its settings\ntell Analog Attach which Linux kernel tree has the bindings, which board\ndevicetree the overlay is for, and which overlay file to edit. This page shows\nhow to set them up and change them from the command line. Every setting, i",
+    "On a terminal, run `analog-attach` with no arguments in the project folder.\nIt checks the tools, then asks for what is still missing, one step at a time,\nand saves each answer as you give it:\n\n```text\n$ cd ~/work/rpi4-adxl345\n$ analog-attach\n? What does this project target?\n\u276f Linux device tree overl",
+    "The same setup, one command at a time. This is the way to do it in a script.\n\n1. Choose the backend:\n  analog-attach config backend linux\n2. Point to the Linux kernel tree. This also builds the binding caches, which\n  takes about a minute:\n  $ analog-attach config linux ~/linux\n  Indexing device bin",
+    "`config` alone shows every setting, its value and where the value comes\nfrom, then the variables of the build and deploy scripts (see\nVariables). Required settings are marked `*`:\n\n```text\n$ analog-attach config\nLocal:  ~/work/rpi4-adxl345/.analog-attach/config.json\nGlobal: ~/.config/analog-attach/c",
+    "```bash\nanalog-attach config overlay-syntax reference     # set it in this project\nanalog-attach config overlay-syntax --reset       # back to the default\nanalog-attach config interview false --global     # a default for all your projects\n```\n\n\n- A value is checked when you set it. A value outside t",
+    "The binding caches are built when you set `linux`, and never again on their\nown. After you update the kernel tree (for example with `git pull`) or\ninstall another dt-schema, rebuild them:\n\n```text\n$ analog-attach config --reload\nIndexing device bindings and compiling binding schemas...\nIndexed 23309",
+    "`build` and `deploy` run commands of the project: `AA_BUILD` and\n`AA_DEPLOY`, by default the scripts `./aa_build.sh` and `./aa_deploy.sh`\nthat `init` writes. The preprocessor of the base devicetree is a third one,\n`AA_PREPROCESS_COMMAND`. These commands get their input in environment\nvariables. `con",
+    "- Creating and reading the workfile: create the overlay and read it.\n- Devices: add the first device.\n",
+    "The words this guide uses, with a short definition each. The GUI and CLI\nguides use them the same way.\n",
+    "A *project* is a directory that contains a `.analog-attach/` folder. The tool\nfinds it by walking up from the current directory to the nearest directory that\nhas one. If none is found, the current directory is used.\n\nThe project\u2019s settings are stored in `.analog-attach/config.json`. A second,\noption",
+    "The *Linux tree* (the `linux` setting) is a kernel source tree, the one your\nboard runs. Analog Attach takes two things from it: the *bindings*, YAML files\nin `Documentation/devicetree/bindings/` that say which properties each\ndevice takes, and the includes the devicetrees use.\n\nThe *base devicetree",
+    "The *workfile* is the devicetree overlay (a `.dtso` file) that you build up\nwith `add` and `update`. The `workfile` setting names it, and\n`analog-attach init` creates it. See Workfile.\n\nA devicetree is a tree of *nodes*, one per device or bus, each with\n*properties*. A device node sits under the bus",
+    "*Validation* checks the nodes of the overlay, as they sit in the base\ndevicetree, against the bindings of the Linux tree with dt-validate (from\ndt-schema): required properties, types, allowed values and ranges. Analog\nAttach adds its own checks: addresses and chip selects that clash or don\u2019t fit\nthe",
+    "*Build* compiles the workfile with `dtc` into an overlay blob (`.dtbo`) in\nthe project\u2019s `build/` folder. For a board that boots one devicetree and has\nno overlay support, set `output` to `devicetree`: the build then writes the\nbase devicetree with the overlay applied (`.dts`) and compiles it (`.dtb",
+    "Every command accepts `--json`. It then prints one line of JSON on standard\noutput instead of text: `ok` says whether the command did what was asked,\n`message` and `error_type` say why not, and the rest is the command\u2019s\nanswer (the properties of a node, the findings of validation). The text output\ni",
+    "Add an ADXL345 accelerometer to a Raspberry Pi 4 with the GUI: set up the\nproject, add the part and its interrupt, validate, build and deploy the\noverlay, and read the acceleration back over the network.\n",
     "|Item|Details|\n|Board / carrier|Raspberry Pi 4 Model B, running ADI Kuiper|\n|Evaluation board / part|MikroElektronika Accel Click (ADXL345), set for I2C at address `0x1d` with its jumpers|\n|Click|Raspberry Pi header|Wiring|Five jumper wires from the Click to the Pi\u2019s 40-pin header:    Click Raspberr",
-    "With the Pi off, connect the Click as in the table above.\n",
-    "```bash\nanalog-attach skill install analog-attach-linux\n```\n\n\nThis copies the skill to `~/.claude/skills/analog-attach-linux/`, where\nClaude Code finds it. See Working with AI Agents.\n",
-    "```bash\nmkdir -p ~/work/rpi4-adxl345 && cd ~/work/rpi4-adxl345\nclaude\n```\n\n\nThe project can be new: the agent sets it up. It asks for the kernel tree and\nthe board rather than guessing them. Answer `~/linux` and\n`bcm2711-rpi-4-b.dts`, or set the project up first (see\nConfiguration).\n",
-    "Type, for example:\n\nAdd an ADXL345 accelerometer on the Raspberry Pi\u2019s I2C bus at 0x1d,\ninterrupt on GPIO 27 rising edge, then validate and build.\n\nThe agent runs `analog-attach` commands with `--json` and reads their\nanswers. Claude Code shows each command and asks before it runs one you\nhaven\u2019t al",
-    "Deploy copies the overlay to the Pi and **reboots it**, so the agent asks\nfirst. Tell it the Pi\u2019s address and password, for example *deploy it to\n10.42.0.196, user analog*. It then runs:\n\n```bash\nanalog-attach --json config var BOARD_IP 10.42.0.196\nBOARD_PASSWORD=\u2026 analog-attach --json deploy\n```\n\n\n",
+    "With the Pi off, connect the Click as in the table above. On the Pi 4,\nGPIO 2 and 3 are the I2C bus labelled `i2c1` and `i2c_arm` in its\ndevicetree.\n",
+    "```bash\nmkdir -p ~/work/rpi4-adxl345 && cd ~/work/rpi4-adxl345\nanalog-attach gui\n```\n\n\nThe browser opens on the **Project setup** (see The project setup):\n|Step|Value|\n|Ecosystem|**Linux**|\n|Linux tree|`~/linux`, from the trees the step found|\n|Base devicetree|`bcm2711-rpi-4-b.dts` (type `rpi-4` in ",
+    "1. Click **\uff0b Add Device** and type `adxl345`. Click `adi,adxl345`.\n2. **Bus**: **i2c_arm \u00b7 i2c1** (`/soc/i2c@7e804000`).\n3. **Address**: `1d`.\n4. Keep **Turn i2c1 on** ticked: the bus is disabled in the Pi 4\u2019s base\n  devicetree, and the overlay enables it.\n5. Leave **Name** and **Label** empty, and ",
+    "The new node opens in the node card. Its required `interrupt-parent` and\n`interrupts` are missing, and validation says so.\n\n1. `interrupt-parent`: pick `gpio`.\n2. `interrupts`: `27` in the first cell and `IRQ_TYPE_EDGE_RISING` in\n  the second.\n\n\nEach change is written to the overlay as you make it (",
+    "The GUI validates after every change. The header now says `Valid`, and the\n**Validation** tab of the right column has no errors. Had the bus been left\noff, a warning there would say that Linux won\u2019t probe the device (see\nValidate, build and deploy).\n",
+    "1. Click **Build Overlay**. The console ends with `Built overlay.dtbo`.\n2. Open the settings (the gear), the **Project** tab, and set `BOARD_IP` to\n  the Pi\u2019s address, `10.42.0.196`; the default is `analog.local`.\n  `BOARD_USER` stays `analog`. See Set the target.\n3. Click **Deploy**, and type the p",
     "When the Pi is back, the ADXL345 is an IIO device:\n\n```bash\niio_info -u ip:10.42.0.196 | grep -A3 adxl345\n```\n\n\nlists `adxl345` with its channels `accel_x`, `accel_y` and `accel_z`.\nRead the raw values on the Pi:\n\n```text\n$ ssh analog@10.42.0.196\n$ cd /sys/bus/iio/devices/iio:device0     # the devic",
-    "- **The agent doesn\u2019t use analog-attach.** Check that the skill is installed\n  (`analog-attach skill install` lists it as `installed`), and start\n  `claude` again after installing it.\n- **The agent guesses the wiring.** Say the bus, address and interrupt in the\n  prompt, as above, and check what it ",
-    "- Use case: GUI with an AI agent: an agent in the GUI, as its Assistant.\n- Working with AI Agents: the skill, and what the agent does on its own.\n",
+    "- **No adxl345 in iio_info.** On the Pi, `sudo i2cdetect -y 1` should show\n  `UU` at `1d`. A number at `53` means the Click\u2019s address jumper is the\n  other way: set `reg` to `0x53` in the node card, then build and deploy\n  again. Nothing at all: check the wiring.\n- **Deploy can\u2019t reach the Pi.** `an",
+    "- Use case: Configure a device with the CLI only: the same from the command line.\n- Use case: GUI with an AI agent: the GUI with its Assistant, on another board.\n- GUI Guide: the GUI in detail.\n",
     "Add an ADXL345 accelerometer to a Raspberry Pi 4 from the command line, with\nno GUI: write the overlay, validate it, build it, deploy it to the board, and\nread the acceleration back over the network.\n",
     "|Item|Details|\n|Board / carrier|Raspberry Pi 4 Model B, running ADI Kuiper|\n|Evaluation board / part|MikroElektronika Accel Click (ADXL345), set for I2C at address `0x1d` with its jumpers|\n|Click|Raspberry Pi header|Wiring|Five jumper wires from the Click to the Pi\u2019s 40-pin header:    Click Raspberr",
     "With the Pi off, connect the Click as in the table above. On the Pi 4,\nGPIO 2 and 3 are the I2C bus the kernel calls `i2c1`, labelled `i2c_arm`\nin its devicetree.\n",
@@ -49,6 +50,47 @@
     "The AD5593R probes at boot, its DAC drives IO0 and its ADC reads it back on\nIO1: writing 2048 to `out_voltage0_raw` reads about 2044 on\n`in_voltage1_raw`.\n\n![](https://github.com/analogdevicesinc/analog-attach/raw/doc_resources/resources/aa-alif-scopy.png)\n\n*Figure 5 Scopy\u2019s Data Logger following th",
     "- **Deploy says \u201cTarget did not respond\u201d.** SW4 is not fully on SE, or the\n  board needs a power cycle: set SW4 to SE, unplug and plug the PRG USB cable,\n  and deploy again.\n- **The console shows nothing.** SW4 must be on U2 for the Linux console, and\n  only one program can have `/dev/ttyACM0` open:",
     "- Use case template, to write up another board or part.\n",
+    "A device is added to the overlay from the compatibles of the Linux tree: one\nper binding. The GUI writes it with `analog-attach add`, then opens it so\nyou can set its properties.\n\nThe example adds an ADXL345 accelerometer to the I2C bus of a Raspberry Pi 4\n(`/soc/i2c@7e804000`, labelled `i2c1` and `",
+    "1. Optional: open the bus in the device tree first (type `i2c_arm` in its\n  search box, then click the bus). The panel then preselects it as the\n  device\u2019s bus, when the device can go there.\n2. Click **\uff0b Add Device**, above the device tree. The **Add a device** panel\n  opens. The first time, it read",
+    "On the right, the panel shows the compatible picked and the fields of the new\nnode. Under them, a preview shows the node as it will be written, and follows\nwhat you type.\n\n****Start from****\n:   Shown when there is something to copy. **Empty node** (the default) starts\n:   with what the binding requ",
+    "The panel closes, the new node opens in the node card, and the device tree\nshows it tagged **new**. Required properties with only one possible value, or\nwith a default, are set at once.\n\nThe required properties still to set are listed first, empty and marked in\nred. Set them, and any others you need",
+    "- **Start from an overlay of the Linux tree**: the project setup\u2019s\n  **Import Overlay** (see The project setup) makes a new workfile from\n  one, with all its devices. Later, the console\u2019s command line does the same,\n  for example `import <overlay>`. Import writes a new file and makes it the\n  projec",
+    "The node card, in the middle of the workspace, shows the node you opened and\nchanges it. Each change is one `analog-attach` command (`update`,\n`delete`, `rename`, `move`, `enable` or `disable`), written to the\noverlay as soon as you make it. The console shows each command.\n\n![](https://github.com/an",
+    "- Click it in the device tree.\n- Click a reference (`&gpio`) or a label in the overlay, on the right.\n- Click an error in the Validation list.\n- Click **go to <label>** under a field that holds a label, to open the node\n  it names. The node opened this way has **\u2190 back to <name>**, to go back\n  one ",
+    "The properties are listed in one column, each with a field for its value:\n\n- The properties the binding requires come first, marked `*`. Those still to\n  set are empty and marked in red, until you give them a value. For a device\n  with `interrupts`, `interrupt-parent` comes just before it, since it\n",
+    "Type in the field. The change is written when you leave the field, or press\nEnter. The field matches the property\u2019s type:\n\n- **A number or text** is one field. While you type a number, its other\n  form is shown greyed at the right (`29` shows `0x1d`, `0x1d` shows\n  `29`); what you type is what is wr",
+    "1. Click **\uff0b Add Property** under the properties.\n2. On the left, the list has the binding\u2019s properties not set yet, the\n  required ones first and tagged **required**. Numbered properties\n  (`pinctrl-0`) are tagged **numbered**. Type in the filter to find one,\n  for example `supply`, and click it.\n3",
+    "A node whose binding has child nodes (the channels of an ADC, for example)\nhas a **Child nodes** section, or **Channels**, under its properties. It lists\nthe children, each with its number of properties: click one to open it.\n\nTo add one, pick its name in the list (the next free one is preselected, ",
+    "The **Enabled** switch sets the node\u2019s `status` to `okay` or\n`disabled`. It works on base nodes too: to turn off `spidev@0` so that\nyour device can take its chip select, open it and turn **Enabled** off. The\nchange goes to the overlay. A disabled node is tagged **off** in the device\ntree.\n",
+    "These are offered on nodes that the overlay added.\n\n****Rename Node****\n:   Changes the node\u2019s **Name** and **Unit address**. The unit address is hex,\n:   and it sets `reg` too: renaming `accelerometer@1d` to\n:   `accelerometer@53` moves the device to address `0x53`. The label is\n:   shown but can\u2019t",
+    "The workfile is the devicetree overlay that Analog Attach creates and edits.\nWhich file it is, is decided by the `workfile` setting\n(Configuration file).\n",
+    "1. The `workfile` setting names the file. Set it with\n  `analog-attach config workfile <name>` or when answering the questions of\n  a bare `analog-attach` run.\n2. `analog-attach init` checks that the Linux kernel tree and the base\n  devicetree are configured and load correctly. It does not read or v",
+    "- Every command that changes the workfile rewrites the **whole file**, printed\n  from the parsed tree and indented with tabs.\n- **Comments and the original layout are not kept.** A comment you add by hand\n  is dropped the next time a command writes the file.\n- The workfile can\u2019t contain preprocessor",
+    "The `overlay-syntax` setting selects how the overlay is printed. It applies\nto the whole file on every write, whatever syntax the file was in.\n|Value|Output|\n|`fragment` (default)|`fragment@<n> { target = <&label>; __overlay__ { ... }; };` inside `/ { ... };`. A target given by path uses `target-pat",
+    "The overlay of the examples in the CLI Guide: an ADXL345 at `0x1d`\non the I2C bus `i2c_arm` of a Raspberry Pi 4, its interrupt on GPIO 27,\nrising edge, and the bus enabled. It is what these commands write, with\n`overlay-syntax` `fragment`:\n\n```bash\nanalog-attach add adi,adxl345 --parent i2c_arm --na",
+    "The header has three buttons: **Validate**, **Build Overlay** and **Deploy**.\nEach runs the `analog-attach` command of the same name, with its output in\nthe console.\n",
+    "You don\u2019t need to click **Validate** to check the overlay: after each change,\nthe GUI runs dt-validate on it again. While it works, the status in the\nheader says `Validating\u2026`; then it says `Valid`, `Valid \u00b7 1 warning` or\n`2 errors`.\n\nWhat dt-validate finds is shown in several places:\n\n- **Validatio",
+    "1. Click **Build Overlay**. The button says **Build Devicetree** when the\n  `output` setting is `devicetree`.\n2. If dt-validate found errors, the GUI asks first: the build compiles the\n  overlay all the same, but the kernel may not probe what is wrong. Click\n  **Build Anyway** to go on.\n3. The conso",
+    "**Deploy** runs the project\u2019s deploy command, `AA_DEPLOY`, which by default\nis the project\u2019s `./aa_deploy.sh`. That script copies the build to a\nRaspberry Pi running Kuiper, over SSH, and reboots it: an overlay into the\nboot folder\u2019s `overlays/`, with `dtoverlay=<name>` added to\n`config.txt`, or wit",
+    "What Build and Deploy run, and for which board, is set in the settings: the\ngear in the header, then the **Project** tab.\n",
+    "The project\u2019s own variables, given to the build and deploy commands in their\nenvironment. When **Create Overlay** wrote `aa_deploy.sh`, it also set the\nthree variables the script uses, to Kuiper\u2019s defaults:\n|Variable|Default|Meaning|\n|`BOARD_IP`|`analog.local`|The board\u2019s address or host name|\n|`BOA",
+    "The commands the CLI runs, each a shell command of one or more lines, run\nwith `sh` in the project folder:\n\n- `AA_BUILD`: what **Build** runs. Default: `./aa_build.sh`, which\n  compiles with `dtc`.\n- `AA_DEPLOY`: what **Deploy** runs. Default: `./aa_deploy.sh`.\n- `AA_PREPROCESS_COMMAND`: what prepro",
+    "What the CLI gives the commands, worked out from the settings, read-only:\nfor example `AA_OUTPUT` (the `output` setting), `AA_DTSO` (the\nworkfile), `AA_DTBO` (the `.dtbo` to write) and `AA_BUILD_DIR` (the\nbuild folder). Click **\u24d8** on a row for what it holds and which commands get\nit.\n\nSee Validate,",
+    "Once the project is set up (see The project setup), the GUI shows the\nworkspace of a Linux project: a header, three columns, and a console at the\nbottom.\n\n![](https://github.com/analogdevicesinc/analog-attach/raw/doc_resources/resources/gui-workspace.png)\n\n*Figure 1 The workspace of a Raspberry Pi 4",
+    "From left to right:\n\n- The **project folder**.\n- The **base devicetree**, for example `\u2302 bcm2711-rpi-4-b`. Click it to\n  pick another base devicetree.\n- The **status** of the overlay: `Updating\u2026` while a change is written,\n  `Validating\u2026` while dt-validate checks it, then `Valid`,\n  `Valid \u00b7 2 warni",
+    "The left column shows the devicetree as it is with the overlay applied to the\nbase devicetree.\n\n- Each node shows its name and its label (`&i2c1`). A node the overlay adds\n  is tagged **new**, a base node it changes **changed**, and a disabled node\n  **off**. A red number counts the validation error",
+    "The middle column shows the node you opened: its properties, its child nodes\nand its actions. With no node open, it says\n`Select a node to see its properties`. See Editing.\n",
+    "The right column is folded to a narrow ribbon at first. Click the ribbon to\nopen it, and **\u00bb** to fold it again. Drag its left edge to change its width;\ndouble-click the edge to reset it. It has three tabs:\n\n****Overlay \u00b7 Validation****\n:   The overlay as saved, with the lines of the last change hig",
+    "The console at the bottom shows every command the GUI runs, and what the CLI\nanswered. Build and deploy write their output there as it comes.\n\n- Under it, the command line takes any `analog-attach` command, as on a\n  terminal, without the `analog-attach`: for example\n  `list devices adxl` or `read i",
+    "The gear in the header opens **Settings**, with two tabs.\n\nThe **Project** tab holds this project\u2019s settings, as `analog-attach config`\nhas them, by category:\n\n- Each setting has its field, **Save** and **Reset** (back to the default).\n  Click **\u24d8** for what a setting does. If the CLI refuses a valu",
+    "The **\u2726 Assistant** tab, or the **\u2726 Assistant** button in the console bar,\nopens a chat. Tell it what to change in your own words, for example\n*add an ADXL345 on i2c_arm at 0x1d* or *why does validate fail?*. It runs\n`analog-attach` commands for you, and nothing else. Each command shows in\nthe chat ",
+    "Everything the GUI does is available from the command line, with no browser.\nEvery command accepts `--json` for machine-readable output.\n\n- Configuration\n- Creating and reading the workfile\n- Devices\n- Properties\n- Validate, build and deploy\n- Scripting\n- Shell completion\n- Error reporting\n\n\nThe pag",
+    "```bash\nanalog-attach --help              # the commands\nanalog-attach add --help          # one command, with examples\nanalog-attach help add            # the same\nanalog-attach --help --all        # the help of every command\n```\n",
+    "Commands that take a node accept three forms:\n|Form|Example|Means|\n|Label|`accel`, `i2c_arm`|The node with that label, in the base devicetree or the overlay.|\n|Label-first|`i2c_arm/adxl345@1d`|The child `adxl345@1d` of the node labelled `i2c_arm`.|\n|Absolute|`/soc/i2c@7e804000/adxl345@1d`|The node a",
+    "The workfile is the overlay that Analog Attach edits for you. This page shows\nhow to create it and read it from the command line. How the file is made and\nwhat it contains is described in Workfile.\n",
+    "The project needs the `linux` and `devicetree` settings first (see\nConfiguration).\n\n1. Name the workfile and set up the project:\n  analog-attach config workfile <name>.dtso\n  Running `analog-attach` with no arguments in a terminal asks for the\n  same information step by step.\n2. Create it:\n  analog-",
+    "The kernel tree may already have an overlay for your device. `list overlay`\nfinds the overlays that add it, and says whether they fit the board:\n\n```text\n$ analog-attach list overlay adi,adxl345\ni2c-sensor-overlay.dts  compatible (family: brcm,bcm2835 \u2192 raspberrypi)\n```\n\n\n`import` makes a new workfi",
+    "```bash\nanalog-attach read\nanalog-attach read <node>\nanalog-attach read <node> <property>\n```\n\n\n`read` alone prints the whole overlay:\n\n```text\n$ analog-attach read\n/dts-v1/;\n/plugin/;\n/ {\n     fragment@0 {\n             target = <&i2c_arm>;\n             __overlay__ {\n                     status = \"o",
     "This page shows how to find a device in the kernel\u2019s bindings, add it to the\noverlay on the right bus, and then rename, move, turn off or remove nodes. How\nto set the properties of a node is in Properties.\n\nThe running example adds an ADXL345 accelerometer (`adi,adxl345`) at I2C\naddress `0x1d` on th",
     "`list devices` searches the compatible strings of the kernel tree\u2019s\nbindings. Give it part of the part number:\n\n```text\n$ analog-attach list devices adxl\nadi,adxl312  iio/accel\nadi,adxl313  iio/accel\nadi,adxl314  iio/accel\nadi,adxl345  iio/accel\nadi,adxl346  iio/accel\n\u2026\n```\n\n\nThe second column is th",
     "`list parent` lists the nodes of the base devicetree the device can sit on:\nfor the ADXL345, which has an SPI and an I2C interface, every SPI and I2C\ncontroller. Each is shown by its label, ready for `--parent`, then its\npath:\n\n```text\n$ analog-attach list parent adi,adxl345\nspi     /soc/spi@7e20400",
@@ -60,58 +102,6 @@
     "`rename` changes a node\u2019s name. A name without `@` keeps the unit address;\na name with one changes it, and `reg` follows:\n\n```text\n$ analog-attach rename accel adxl345\nRenamed accel to adxl345 in /home/user/work/rpi4-adxl345/overlay.dtso\n$ analog-attach rename accel adxl345@53\nreg first cell set to ",
     "```text\n$ analog-attach delete accel interrupts\nRemoved interrupts from accel in /home/user/work/rpi4-adxl345/overlay.dtso\n$ analog-attach delete accel\nDeleted accel from /home/user/work/rpi4-adxl345/overlay.dtso\n```\n\n\nA node with children, and the whole overlay (`delete` with no path), are\nonly pre",
     "- Properties: set `interrupt-parent` and `interrupts`.\n- Validate, build and deploy: check, build and deploy the overlay.\n",
-    "Every action in the GUI runs an `analog-attach` command, so the problems it\nreports are the ones described in Error reporting.\n\nThe GUI of a Linux project shows no pop-up notifications. A problem is said\nwhere it happened, and the console has the full answer of the CLI.\n",
-    "- **Under a field.** A value the CLI refuses (a property, a setting, a project\n  variable) keeps what you typed, marked, with the reason under the field.\n  The message goes away at your next edit.\n- **In a panel or a dialog.** Add a device, Rename Node, Move Node and the\n  Deploy dialog say what is ",
-    "What dt-validate finds is not a refusal: the change is written, and the\nfindings are shown in the header\u2019s status (`2 errors`), in the Validation\nlist under the overlay, as a count on the node in the device tree, and under\nthe field of the property they are about. See Validate, build and deploy.\n",
-    "In the project setup, a value the CLI refuses is shown in its step, with the\nCLI\u2019s message, and the step stays until you give another. For a Linux tree,\na folder inside a tree is refused, and the step offers the tree\u2019s root:\nclick **Use It**.\n\nLater, the settings are changed in the Project tab of th",
-    "Build and deploy write their output to the console as it comes. A failure\nends with `\u2718 Not built: the build refused, above`,\n`\u2718 Not deployed: the deploy refused, above`, or\n`\u2718 exited with <code>`. The reason is in the lines above it: for example a\nmissing `aa_build.sh`, a variable that is not set, o",
-    "`analog-attach gui` writes its problems in the terminal. The most common is\na port that is taken:\n\n```none\nPort 5177 on 127.0.0.1 is in use (another analog-attach gui?): pick another with --port, or --port 0 for any free one\n```\n\n\nThis only happens with `--port`: without it, the GUI takes another fr",
-    "The page needs the `analog-attach gui` that served it. If that has stopped\n(you pressed Ctrl+C, or closed its terminal), the page stays open but\ncan\u2019t do anything:\n\n- An action shows its command in the console, and no answer comes. The error\n  is only in the browser\u2019s own developer console (a failed",
-    "Add an ADXL345 accelerometer to a Raspberry Pi 4 with the GUI: set up the\nproject, add the part and its interrupt, validate, build and deploy the\noverlay, and read the acceleration back over the network.\n",
-    "|Item|Details|\n|Board / carrier|Raspberry Pi 4 Model B, running ADI Kuiper|\n|Evaluation board / part|MikroElektronika Accel Click (ADXL345), set for I2C at address `0x1d` with its jumpers|\n|Click|Raspberry Pi header|Wiring|Five jumper wires from the Click to the Pi\u2019s 40-pin header:    Click Raspberr",
-    "With the Pi off, connect the Click as in the table above. On the Pi 4,\nGPIO 2 and 3 are the I2C bus labelled `i2c1` and `i2c_arm` in its\ndevicetree.\n",
-    "```bash\nmkdir -p ~/work/rpi4-adxl345 && cd ~/work/rpi4-adxl345\nanalog-attach gui\n```\n\n\nThe browser opens on the **Project setup** (see The project setup):\n|Step|Value|\n|Ecosystem|**Linux**|\n|Linux tree|`~/linux`, from the trees the step found|\n|Base devicetree|`bcm2711-rpi-4-b.dts` (type `rpi-4` in ",
-    "1. Click **\uff0b Add Device** and type `adxl345`. Click `adi,adxl345`.\n2. **Bus**: **i2c_arm \u00b7 i2c1** (`/soc/i2c@7e804000`).\n3. **Address**: `1d`.\n4. Keep **Turn i2c1 on** ticked: the bus is disabled in the Pi 4\u2019s base\n  devicetree, and the overlay enables it.\n5. Leave **Name** and **Label** empty, and ",
-    "The new node opens in the node card. Its required `interrupt-parent` and\n`interrupts` are missing, and validation says so.\n\n1. `interrupt-parent`: pick `gpio`.\n2. `interrupts`: `27` in the first cell and `IRQ_TYPE_EDGE_RISING` in\n  the second.\n\n\nEach change is written to the overlay as you make it (",
-    "The GUI validates after every change. The header now says `Valid`, and the\n**Validation** tab of the right column has no errors. Had the bus been left\noff, a warning there would say that Linux won\u2019t probe the device (see\nValidate, build and deploy).\n",
-    "1. Click **Build Overlay**. The console ends with `Built overlay.dtbo`.\n2. Open the settings (the gear), the **Project** tab, and set `BOARD_IP` to\n  the Pi\u2019s address, `10.42.0.196`; the default is `analog.local`.\n  `BOARD_USER` stays `analog`. See Set the target.\n3. Click **Deploy**, and type the p",
-    "When the Pi is back, the ADXL345 is an IIO device:\n\n```bash\niio_info -u ip:10.42.0.196 | grep -A3 adxl345\n```\n\n\nlists `adxl345` with its channels `accel_x`, `accel_y` and `accel_z`.\nRead the raw values on the Pi:\n\n```text\n$ ssh analog@10.42.0.196\n$ cd /sys/bus/iio/devices/iio:device0     # the devic",
-    "- **No adxl345 in iio_info.** On the Pi, `sudo i2cdetect -y 1` should show\n  `UU` at `1d`. A number at `53` means the Click\u2019s address jumper is the\n  other way: set `reg` to `0x53` in the node card, then build and deploy\n  again. Nothing at all: check the wiring.\n- **Deploy can\u2019t reach the Pi.** `an",
-    "- Use case: Configure a device with the CLI only: the same from the command line.\n- Use case: GUI with an AI agent: the GUI with its Assistant, on another board.\n- GUI Guide: the GUI in detail.\n",
-    "Common problems, with the message you see and the fix. How the CLI reports\nproblems in general is in Error reporting and\nError reporting. The examples use the project of the\nCLI Guide, in `~/work/rpi4-adxl345`.\n",
-    "```text\n$ analog-attach validate\nConfiguration errors:\n  compat-index.json not found or unreadable in /home/user/work/rpi4-adxl345/.analog-attach/linux\n  validation.json not found or unreadable in /home/user/work/rpi4-adxl345/.analog-attach/linux/validation-cache\n\nRun 'analog-attach config --reload'",
-    "The tools come from your system, not from the package (see\nInstallation). Each command checks them and names the one to install:\n\n```text\n$ analog-attach validate\nAA_PREPROCESS_COMMAND: cpp not found on PATH (needed to preprocess /home/user/linux/arch/arm/boot/dts/broadcom/bcm2711-rpi-4-b.dts) \u2014 The",
-    "```text\n$ analog-attach validate\naccel:\n  warning: (node): parent i2c@7e804000 is not enabled (status \"disabled\"): Linux won't probe adxl345@1d\n    note: Enable it: enable /soc/i2c@7e804000\nNo errors! (1 warning(s))\n```\n\n\nThe overlay builds, but the kernel won\u2019t probe the device, because its bus is\n",
-    "```text\n$ analog-attach validate\ndevicetree: preprocessing /home/user/work/rpi4-adxl345/board/my-rpi4.dts failed:\n/home/user/work/rpi4-adxl345/board/my-rpi4.dts:1:10: fatal error: bcm2711-rpi-4-b.dts: No such file or directory\n    1 | #include \"bcm2711-rpi-4-b.dts\"\n      |          ^~~~~~~~~~~~~~~~~",
-    "The starter `aa_deploy.sh` first logs in to the board over SSH. When the\nboard doesn\u2019t answer, the deploy stops before it copies anything:\n\n```text\n$ analog-attach deploy\nDeploying /home/user/work/rpi4-adxl345/build/overlay.dtbo with AA_DEPLOY\nChecking analog@analog.local\naa_deploy.sh: analog@analog",
-    "The overlay validates and deploys, but the board has no device: no IIO device\nappears, and `i2cdetect` on the board shows a number instead of `UU` at\nthe address the device answers on, and nothing at the address in the\noverlay. Validation checks the overlay against the bindings, not against the\nhard",
-    "If something doesn\u2019t work and this guide doesn\u2019t help, you can:\n\n- create a new issue on\n  GitHub, or\n- open a question or thread on\n  EngineerZone.\n\n\nInclude:\n\n- the output of `analog-attach --version`, and your Linux distribution and\n  `node --version`;\n- the command that failed, as you typed it (",
-    "The workfile is the overlay that Analog Attach edits for you. This page shows\nhow to create it and read it from the command line. How the file is made and\nwhat it contains is described in Workfile.\n",
-    "The project needs the `linux` and `devicetree` settings first (see\nConfiguration).\n\n1. Name the workfile and set up the project:\n  analog-attach config workfile <name>.dtso\n  Running `analog-attach` with no arguments in a terminal asks for the\n  same information step by step.\n2. Create it:\n  analog-",
-    "The kernel tree may already have an overlay for your device. `list overlay`\nfinds the overlays that add it, and says whether they fit the board:\n\n```text\n$ analog-attach list overlay adi,adxl345\ni2c-sensor-overlay.dts  compatible (family: brcm,bcm2835 \u2192 raspberrypi)\n```\n\n\n`import` makes a new workfi",
-    "```bash\nanalog-attach read\nanalog-attach read <node>\nanalog-attach read <node> <property>\n```\n\n\n`read` alone prints the whole overlay:\n\n```text\n$ analog-attach read\n/dts-v1/;\n/plugin/;\n/ {\n     fragment@0 {\n             target = <&i2c_arm>;\n             __overlay__ {\n                     status = \"o",
-    "The node card, in the middle of the workspace, shows the node you opened and\nchanges it. Each change is one `analog-attach` command (`update`,\n`delete`, `rename`, `move`, `enable` or `disable`), written to the\noverlay as soon as you make it. The console shows each command.\n\n![](https://github.com/an",
-    "- Click it in the device tree.\n- Click a reference (`&gpio`) or a label in the overlay, on the right.\n- Click an error in the Validation list.\n- Click **go to <label>** under a field that holds a label, to open the node\n  it names. The node opened this way has **\u2190 back to <name>**, to go back\n  one ",
-    "The properties are listed in one column, each with a field for its value:\n\n- The properties the binding requires come first, marked `*`. Those still to\n  set are empty and marked in red, until you give them a value. For a device\n  with `interrupts`, `interrupt-parent` comes just before it, since it\n",
-    "Type in the field. The change is written when you leave the field, or press\nEnter. The field matches the property\u2019s type:\n\n- **A number or text** is one field. While you type a number, its other\n  form is shown greyed at the right (`29` shows `0x1d`, `0x1d` shows\n  `29`); what you type is what is wr",
-    "1. Click **\uff0b Add Property** under the properties.\n2. On the left, the list has the binding\u2019s properties not set yet, the\n  required ones first and tagged **required**. Numbered properties\n  (`pinctrl-0`) are tagged **numbered**. Type in the filter to find one,\n  for example `supply`, and click it.\n3",
-    "A node whose binding has child nodes (the channels of an ADC, for example)\nhas a **Child nodes** section, or **Channels**, under its properties. It lists\nthe children, each with its number of properties: click one to open it.\n\nTo add one, pick its name in the list (the next free one is preselected, ",
-    "The **Enabled** switch sets the node\u2019s `status` to `okay` or\n`disabled`. It works on base nodes too: to turn off `spidev@0` so that\nyour device can take its chip select, open it and turn **Enabled** off. The\nchange goes to the overlay. A disabled node is tagged **off** in the device\ntree.\n",
-    "These are offered on nodes that the overlay added.\n\n****Rename Node****\n:   Changes the node\u2019s **Name** and **Unit address**. The unit address is hex,\n:   and it sets `reg` too: renaming `accelerometer@1d` to\n:   `accelerometer@53` moves the device to address `0x53`. The label is\n:   shown but can\u2019t",
-    "When the device\u2019s properties are set (see Properties), check the\noverlay against the bindings, compile it, and copy it to the board.\n",
-    "`validate` runs dt-validate on the nodes the overlay writes, as they sit in\nthe base devicetree. It also checks addresses and chip selects, references\nthat name no node, and devices on a disabled bus:\n\n```text\n$ analog-attach validate\naccel:\n  error: (node): {'compatible': ['adi,adxl345'], 'reg': [[",
-    "`validate` alone doesn\u2019t check the properties the overlay sets on base nodes\n(such as `status` or `clock-frequency` on `i2c_arm`). `--full` also\nvalidates the base devicetree with the overlay applied, and reports what the\noverlay adds or sets there. It takes a few seconds:\n\n```text\n$ analog-attach v",
-    "`build` runs the project\u2019s `AA_BUILD` command in the project folder, by\ndefault the script `./aa_build.sh` that `init` wrote. The starter script\ncompiles the overlay with `dtc` into a `.dtbo` in the `build` folder,\nnamed after the overlay:\n\n```text\n$ analog-attach build\nBuilding /home/user/work/rpi4",
-    "- Edit `aa_build.sh`: it is yours. `analog-attach init --restore build`\n  writes the starter again.\n- Run another command: `analog-attach config var AA_BUILD \"make overlay\"`.\n  `config var AA_BUILD --reset` goes back to the script.\n- Write the output elsewhere: `analog-attach config build-dir out`.\n",
-    "Some boards (Zynq boards such as the Cora Z7S) boot one complete devicetree\nand don\u2019t load overlays. For them, set:\n\n```bash\nanalog-attach config output devicetree\n```\n\n\n`build` then writes the base devicetree with the overlay applied,\n`build/overlay.dts`, preprocesses it, and the starter script com",
-    "`deploy` runs the project\u2019s `AA_DEPLOY` command, by default the script\n`./aa_deploy.sh` that `init` wrote. The starter script is for a Raspberry\nPi running Kuiper, reached over SSH. It:\n\n1. checks that the board answers;\n2. copies the `.dtbo` into the `overlays/` folder of the boot partition;\n3. add",
-    "For a board that isn\u2019t a Raspberry Pi running Kuiper, edit `aa_deploy.sh`, or\nrun another command:\n\n```bash\nanalog-attach config var AA_DEPLOY \"./flash-board.sh\"\n```\n\n\n`analog-attach init --restore deploy` writes the starter script again.\n",
-    "- Scripting: run the same steps from a script or CI.\n- Error reporting: what the messages and exit status mean.\n",
-    "The workfile is the devicetree overlay that Analog Attach creates and edits.\nWhich file it is, is decided by the `workfile` setting\n(Configuration file).\n",
-    "1. The `workfile` setting names the file. Set it with\n  `analog-attach config workfile <name>` or when answering the questions of\n  a bare `analog-attach` run.\n2. `analog-attach init` checks that the Linux kernel tree and the base\n  devicetree are configured and load correctly. It does not read or v",
-    "- Every command that changes the workfile rewrites the **whole file**, printed\n  from the parsed tree and indented with tabs.\n- **Comments and the original layout are not kept.** A comment you add by hand\n  is dropped the next time a command writes the file.\n- The workfile can\u2019t contain preprocessor",
-    "The `overlay-syntax` setting selects how the overlay is printed. It applies\nto the whole file on every write, whatever syntax the file was in.\n|Value|Output|\n|`fragment` (default)|`fragment@<n> { target = <&label>; __overlay__ { ... }; };` inside `/ { ... };`. A target given by path uses `target-pat",
-    "The overlay of the examples in the CLI Guide: an ADXL345 at `0x1d`\non the I2C bus `i2c_arm` of a Raspberry Pi 4, its interrupt on GPIO 27,\nrising edge, and the bus enabled. It is what these commands write, with\n`overlay-syntax` `fragment`:\n\n```bash\nanalog-attach add adi,adxl345 --parent i2c_arm --na",
     "Once a device is in the overlay (see Devices), its properties say\nhow it is wired: its address, its interrupt line, its GPIOs, its supplies. This\npage shows how to find what a node needs, what values a property can take, and\nhow to set and remove them.\n\nThe running example finishes the ADXL345 that ",
     "`list property` lists the properties the node\u2019s binding defines, with their\ntypes. `set` marks those the node has, `required` those it must have:\n\n```text\n$ analog-attach list property accel\ncompatible        (set, required)  enum(\"adi,adxl346\", \"adi,adxl345\" | adi,adxl345 | adi,adxl375)\nreg        ",
     "`list value` lists the values that fit, each ready to pass to `update`. For\na reference such as `interrupt-parent`, those are the nodes of the base and\nthe overlay that can be named:\n\n```text\n$ analog-attach list value accel interrupt-parent\ngpio   gpio \u2014 interrupt controller, #interrupt-cells = <2>",
@@ -123,20 +113,16 @@
     "```text\n$ analog-attach delete accel wakeup-source\nRemoved wakeup-source from accel in /home/user/work/rpi4-adxl345/overlay.dtso\n```\n\n\n`delete` removes what the overlay sets. A property of the base devicetree\nstays as the base has it.\n",
     "With shell completion installed, Tab completes node paths, property\nnames and values from the binding and the board, for example after\n`analog-attach update accel interrupt-parent`. See Shell completion.\n",
     "Validate, build and deploy: check the overlay against the bindings, then\nbuild and deploy it.\n",
-    "With `--json`, every command answers with one JSON object, for scripts, CI\njobs, the GUI and AI agents. This page describes that answer: the fields every\nanswer has, the exit status, which stream gets what, and the fields of each\ncommand\u2019s result. How to use it from a script is in Scripting; the\nerr",
-    "`--json` can be anywhere on the command line before a `--`:\n`analog-attach --json read accel` and `analog-attach read accel --json` are\nthe same. In JSON mode the CLI never asks a question.\n",
-    "|Stream|What it gets|\n|Standard output|At most one line: the JSON answer. Nothing else.|\n|Standard error|Notes and warnings (the bus `add` picked, an address clash, a cache out of date), the progress of long steps, the output of the `build` and `deploy` commands, and input errors. This is free text:",
-    "|Status|When|Standard output|\n|0|The command answered: a success, a refusal, or a configuration error. Also `--help` and `--version`.|The JSON answer (`--help` and `--version` print text).|\n|1|The command failed without answering (an unexpected error).|Nothing, or what the command wrote before faili",
-    "Every answer is a JSON object with these fields, and the command\u2019s own fields\nnext to them:\n|Field|Type|Meaning|\n|`ok`|boolean|`true` when the command did what was asked, `false` when it refused.|\n|`message`|string|What happened, in words: `\"Added adxl345@1d (label: accel)\"`, or why it refused. For ",
-    "When the project isn\u2019t set up for the command (a setting missing or invalid,\nthe workfile missing, a tool missing), the command refuses with two more\nfields: `errors`, one entry per problem, and `hints`, how to fix them.\n`error_type` is the first problem\u2019s:\n\n```json\n{\"ok\": false, \"message\": \"Missing",
-    "`error_type` is one of a fixed list, the same for every backend, so that a\nscript can act on the case rather than on the wording. Those the Linux backend\ngives:\n|`error_type`|Case|\n|`not-found`|A node, property, parent, overlay, example or variable that isn\u2019t there.|\n|`ambiguous`|Several overlays ha",
-    "The fields each command adds to `ok`, `message` and `severity` on\nsuccess. The schema file named in each row has the details.\n|Command|Fields|Schema|\n|`config`|`configs`: one entry per setting (`field_name`, `category`, `description`, `type`, `required`, `default`, `value`, `source`); `variables`: o",
-    "```text\n$ analog-attach --json read accel reg\n{\"ok\":true,\"message\":\"Read reg of accel\",\"severity\":\"info\",\"kind\":\"property\",\"key\":\"reg\",\"type\":{\"kind\":\"array\",\"items\":{\"kind\":\"number\",\"subtype\":\"int\"},\"min_items\":1,\"max_items\":1},\"value\":[29],\"source\":\"overlay\",\"written\":[\"0x1d\"],\"description\":\"Chip ",
-    "A device is added to the overlay from the compatibles of the Linux tree: one\nper binding. The GUI writes it with `analog-attach add`, then opens it so\nyou can set its properties.\n\nThe example adds an ADXL345 accelerometer to the I2C bus of a Raspberry Pi 4\n(`/soc/i2c@7e804000`, labelled `i2c1` and `",
-    "1. Optional: open the bus in the device tree first (type `i2c_arm` in its\n  search box, then click the bus). The panel then preselects it as the\n  device\u2019s bus, when the device can go there.\n2. Click **\uff0b Add Device**, above the device tree. The **Add a device** panel\n  opens. The first time, it read",
-    "On the right, the panel shows the compatible picked and the fields of the new\nnode. Under them, a preview shows the node as it will be written, and follows\nwhat you type.\n\n****Start from****\n:   Shown when there is something to copy. **Empty node** (the default) starts\n:   with what the binding requ",
-    "The panel closes, the new node opens in the node card, and the device tree\nshows it tagged **new**. Required properties with only one possible value, or\nwith a default, are set at once.\n\nThe required properties still to set are listed first, empty and marked in\nred. Set them, and any others you need",
-    "- **Start from an overlay of the Linux tree**: the project setup\u2019s\n  **Import Overlay** (see The project setup) makes a new workfile from\n  one, with all its devices. Later, the console\u2019s command line does the same,\n  for example `import <overlay>`. Import writes a new file and makes it the\n  projec",
+    "When the device\u2019s properties are set (see Properties), check the\noverlay against the bindings, compile it, and copy it to the board.\n",
+    "`validate` runs dt-validate on the nodes the overlay writes, as they sit in\nthe base devicetree. It also checks addresses and chip selects, references\nthat name no node, and devices on a disabled bus:\n\n```text\n$ analog-attach validate\naccel:\n  error: (node): {'compatible': ['adi,adxl345'], 'reg': [[",
+    "`validate` alone doesn\u2019t check the properties the overlay sets on base nodes\n(such as `status` or `clock-frequency` on `i2c_arm`). `--full` also\nvalidates the base devicetree with the overlay applied, and reports what the\noverlay adds or sets there. It takes a few seconds:\n\n```text\n$ analog-attach v",
+    "`build` runs the project\u2019s `AA_BUILD` command in the project folder, by\ndefault the script `./aa_build.sh` that `init` wrote. The starter script\ncompiles the overlay with `dtc` into a `.dtbo` in the `build` folder,\nnamed after the overlay:\n\n```text\n$ analog-attach build\nBuilding /home/user/work/rpi4",
+    "- Edit `aa_build.sh`: it is yours. `analog-attach init --restore build`\n  writes the starter again.\n- Run another command: `analog-attach config var AA_BUILD \"make overlay\"`.\n  `config var AA_BUILD --reset` goes back to the script.\n- Write the output elsewhere: `analog-attach config build-dir out`.\n",
+    "Some boards (Zynq boards such as the Cora Z7S) boot one complete devicetree\nand don\u2019t load overlays. For them, set:\n\n```bash\nanalog-attach config output devicetree\n```\n\n\n`build` then writes the base devicetree with the overlay applied,\n`build/overlay.dts`, preprocesses it, and the starter script com",
+    "`deploy` runs the project\u2019s `AA_DEPLOY` command, by default the script\n`./aa_deploy.sh` that `init` wrote. The starter script is for a Raspberry\nPi running Kuiper, reached over SSH. It:\n\n1. checks that the board answers;\n2. copies the `.dtbo` into the `overlays/` folder of the boot partition;\n3. add",
+    "For a board that isn\u2019t a Raspberry Pi running Kuiper, edit `aa_deploy.sh`, or\nrun another command:\n\n```bash\nanalog-attach config var AA_DEPLOY \"./flash-board.sh\"\n```\n\n\n`analog-attach init --restore deploy` writes the starter script again.\n",
+    "- Scripting: run the same steps from a script or CI.\n- Error reporting: what the messages and exit status mean.\n",
+    "Analog Attach is a command line tool, with a GUI that runs locally in your\nbrowser, for attaching devices to Linux boards through devicetree overlays. It\nworks with any device that has a Linux driver and a devicetree binding. It\nwrites the overlay for you, validates it against the bindings of your L",
     "Analog Attach can complete commands, options and values when you press\nTab. For example, it completes command names, the options of a command,\nthe devices of `add`, the nodes and properties of `update`, and the values\nof `config` settings. Candidates come from the project\u2019s configuration and\nworkfil",
     "Run:\n\n```bash\nanalog-attach completion --install\n```\n\n\nThe shell is taken from the `SHELL` environment variable. To choose one\nexplicitly:\n\n```bash\nanalog-attach completion bash --install\nanalog-attach completion zsh --install\nanalog-attach completion fish --install\n```\n\n\n`--install` writes one file",
     "Add this line to `~/.zshrc` before the call to `compinit`:\n\n```bash\nfpath=(~/.local/share/zsh/site-functions $fpath)\n```\n",
@@ -144,70 +130,6 @@
     "To enable completion in the current shell only, source the script instead:\n\n```bash\nsource <(analog-attach completion bash)   # bash\nsource <(analog-attach completion zsh)    # zsh\nanalog-attach completion fish | source    # fish\n```\n\n\nTo keep it, add the line to your shell\u2019s startup file.\n",
     "Type `analog-attach` followed by a space and press Tab twice. The list\nof commands should appear. Then try `analog-attach config <Tab>`.\n\n![](https://github.com/analogdevicesinc/analog-attach/raw/doc_resources/resources/cli-completion.png)\n\n*Figure 1 Shell completion of a path*\n",
     "```bash\nanalog-attach completion --uninstall\n```\n\n\nThis removes the file that `--install` wrote. If you added an `fpath` line\nto `~/.zshrc`, remove it by hand.\n",
-    "Once the project is set up (see The project setup), the GUI shows the\nworkspace of a Linux project: a header, three columns, and a console at the\nbottom.\n\n![](https://github.com/analogdevicesinc/analog-attach/raw/doc_resources/resources/gui-workspace.png)\n\n*Figure 1 The workspace of a Raspberry Pi 4",
-    "From left to right:\n\n- The **project folder**.\n- The **base devicetree**, for example `\u2302 bcm2711-rpi-4-b`. Click it to\n  pick another base devicetree.\n- The **status** of the overlay: `Updating\u2026` while a change is written,\n  `Validating\u2026` while dt-validate checks it, then `Valid`,\n  `Valid \u00b7 2 warni",
-    "The left column shows the devicetree as it is with the overlay applied to the\nbase devicetree.\n\n- Each node shows its name and its label (`&i2c1`). A node the overlay adds\n  is tagged **new**, a base node it changes **changed**, and a disabled node\n  **off**. A red number counts the validation error",
-    "The middle column shows the node you opened: its properties, its child nodes\nand its actions. With no node open, it says\n`Select a node to see its properties`. See Editing.\n",
-    "The right column is folded to a narrow ribbon at first. Click the ribbon to\nopen it, and **\u00bb** to fold it again. Drag its left edge to change its width;\ndouble-click the edge to reset it. It has three tabs:\n\n****Overlay \u00b7 Validation****\n:   The overlay as saved, with the lines of the last change hig",
-    "The console at the bottom shows every command the GUI runs, and what the CLI\nanswered. Build and deploy write their output there as it comes.\n\n- Under it, the command line takes any `analog-attach` command, as on a\n  terminal, without the `analog-attach`: for example\n  `list devices adxl` or `read i",
-    "The gear in the header opens **Settings**, with two tabs.\n\nThe **Project** tab holds this project\u2019s settings, as `analog-attach config`\nhas them, by category:\n\n- Each setting has its field, **Save** and **Reset** (back to the default).\n  Click **\u24d8** for what a setting does. If the CLI refuses a valu",
-    "The **\u2726 Assistant** tab, or the **\u2726 Assistant** button in the console bar,\nopens a chat. Tell it what to change in your own words, for example\n*add an ADXL345 on i2c_arm at 0x1d* or *why does validate fail?*. It runs\n`analog-attach` commands for you, and nothing else. Each command shows in\nthe chat ",
-    "The header has three buttons: **Validate**, **Build Overlay** and **Deploy**.\nEach runs the `analog-attach` command of the same name, with its output in\nthe console.\n",
-    "You don\u2019t need to click **Validate** to check the overlay: after each change,\nthe GUI runs dt-validate on it again. While it works, the status in the\nheader says `Validating\u2026`; then it says `Valid`, `Valid \u00b7 1 warning` or\n`2 errors`.\n\nWhat dt-validate finds is shown in several places:\n\n- **Validatio",
-    "1. Click **Build Overlay**. The button says **Build Devicetree** when the\n  `output` setting is `devicetree`.\n2. If dt-validate found errors, the GUI asks first: the build compiles the\n  overlay all the same, but the kernel may not probe what is wrong. Click\n  **Build Anyway** to go on.\n3. The conso",
-    "**Deploy** runs the project\u2019s deploy command, `AA_DEPLOY`, which by default\nis the project\u2019s `./aa_deploy.sh`. That script copies the build to a\nRaspberry Pi running Kuiper, over SSH, and reboots it: an overlay into the\nboot folder\u2019s `overlays/`, with `dtoverlay=<name>` added to\n`config.txt`, or wit",
-    "What Build and Deploy run, and for which board, is set in the settings: the\ngear in the header, then the **Project** tab.\n",
-    "The project\u2019s own variables, given to the build and deploy commands in their\nenvironment. When **Create Overlay** wrote `aa_deploy.sh`, it also set the\nthree variables the script uses, to Kuiper\u2019s defaults:\n|Variable|Default|Meaning|\n|`BOARD_IP`|`analog.local`|The board\u2019s address or host name|\n|`BOA",
-    "The commands the CLI runs, each a shell command of one or more lines, run\nwith `sh` in the project folder:\n\n- `AA_BUILD`: what **Build** runs. Default: `./aa_build.sh`, which\n  compiles with `dtc`.\n- `AA_DEPLOY`: what **Deploy** runs. Default: `./aa_deploy.sh`.\n- `AA_PREPROCESS_COMMAND`: what prepro",
-    "What the CLI gives the commands, worked out from the settings, read-only:\nfor example `AA_OUTPUT` (the `output` setting), `AA_DTSO` (the\nworkfile), `AA_DTBO` (the `.dtbo` to write) and `AA_BUILD_DIR` (the\nbuild folder). Click **\u24d8** on a row for what it holds and which commands get\nit.\n\nSee Validate,",
-    "The GUI is a page in your browser, served by the `analog-attach` CLI on your\nown machine. Each GUI belongs to one project: the folder you start it in.\n",
-    "1. Open a terminal in the project folder. For a new project, make an empty\n  folder first:\n  mkdir ~/rpi-adxl345\n  cd ~/rpi-adxl345\n2. Run:\n  analog-attach gui\n  The CLI prints where the page is, then opens it in your default browser:\n  analog-attach GUI on http://127.0.0.1:5177  (project: /home/use",
-    "The page is served on `127.0.0.1` only, so only your own machine can reach\nit. Without `--port`, the GUI uses port 5177. If 5177 is taken (for example,\nby another open GUI), it takes the first free port of the 20 after it, else any\nfree port. The URL printed always tells you which.\n\nTo choose the po",
-    "Press Ctrl+C in the terminal where the GUI runs. The CLI prints\n`Stopped the GUI at <url>` and exits. Close the browser tab too: the page\ncan\u2019t do anything without its server.\n\nThe GUI saves each change as you make it, in the project\u2019s settings and its\nworkfile, so there is nothing to save before yo",
-    "A folder with no project settings yet, or one without a workfile, opens on\nthe **Project setup**. It has the same steps as the guided setup of the CLI.\nEach step saves one setting with `analog-attach config`. If the CLI refuses\na value, the step shows why, and you can correct it. The steps are liste",
-    "**Browse\u2026** opens your desktop\u2019s file dialog: the desktop portal\u2019s file\nchooser, else `zenity`, `kdialog` or `yad` (on macOS, its own dialog).\nWhere none of them can open, Browse\u2026 opens the GUI\u2019s built-in picker and says\nwhy. To always use the built-in picker, open the settings (the gear in the\nhead",
-    "The GUI only answers on `127.0.0.1`. To use it from another computer, for\nexample when the Linux tree is on a build server, forward the port over SSH.\n\n1. On your computer, connect with the same port number on both sides:\n  ssh -L 5177:127.0.0.1:5177 user@build-server\n  The port must be the same on ",
-    "Analog Attach is a command line tool, with a GUI that runs locally in your\nbrowser, for attaching devices to Linux boards through devicetree overlays. It\nworks with any device that has a Linux driver and a devicetree binding. It\nwrites the overlay for you, validates it against the bindings of your L",
-    "|Requirement|Why it is needed|How to install|\n|Node.js 22 or newer|Runs the CLI and the GUI server|From your distribution if it ships 22 or newer, else from nodejs.org (or `nvm install 22`). Check with `node --version`.|\n|Linux kernel source tree|Provides the bindings and includes used for validatio",
-    "Analog Attach is **not** published to the npm registry. The npm package is\nattached to each GitHub release.\n\n1. Open the v0.2.0 release.\n2. Download `analog-attach-cli-0.2.0.tgz` from the *Assets* section.\n3. Install it with npm:\n  npm install -g ./analog-attach-cli-0.2.0.tgz\n\n\nThis puts the `analog",
-    "```text\n$ analog-attach --version\n0.2.0\n```\n\n\n`analog-attach --help` lists the commands. To check the tools as well, run\n`analog-attach` with no arguments in a new folder: the guided setup asks for\nthe backend, then checks `dtc`, `cpp` and dt-schema. Stop it there with\nCtrl-C if you only wanted the ",
-    "To update, download the `.tgz` of the new release and install it the same\nway. It replaces the installed version:\n\n```bash\nnpm install -g ./analog-attach-cli-<version>.tgz\n```\n\n\nIf you installed the AI agent skill, install it again so it matches the new\nversion: `analog-attach skill install analog-a",
-    "See Working with AI Agents.\n",
-    "From an installed Analog Attach (see Installation) to an overlay on\nthe board, with the CLI. The example adds an ADXL345 accelerometer\n(`adi,adxl345`) to a Raspberry Pi 4 running Kuiper: on the I2C bus\n`i2c_arm` (also labelled `i2c1`) at address `0x1d`, with its interrupt on\nGPIO 27, rising edge. Th",
-    "Analog Attach reads its settings from JSON files. You normally change them with\n`analog-attach config` rather than by editing the files.\n",
-    "|File|Location|Purpose|\n|Local (project)|`.analog-attach/config.json` in the project root|Settings of this project. Only this file holds `backend`.|\n|Global (user)|`$XDG_CONFIG_HOME/analog-attach/config.json`, or `~/.config/analog-attach/config.json` if `XDG_CONFIG_HOME` is unset, empty or relative|",
-    "`.analog-attach/` is created by the first command that writes a setting of\nthe project: `analog-attach config <key> <value>` (usually\n`config backend linux`), the guided setup (`analog-attach` with no\narguments), which saves each answer with `config`, or the GUI\u2019s project\nsetup, which does the same.",
-    "Each file is one JSON object. `backend` is at the top level, and the settings\nof the Linux backend are in an object named `linux`, with the project\u2019s\nvariables in it. The file `init` leaves in the project of the\nCLI Guide:\n\n```json\n{\n  \"backend\": \"linux\",\n  \"linux\": {\n    \"linux\": \"/home/user/linux\"",
-    "The value of a setting is the local file\u2019s, else the global file\u2019s, else the\ndefault. `analog-attach config <key>` shows the value and where it comes from\n(`local`, `global`, `default` or `unset`).\n\n`backend` and the variables belong to the project: they are not allowed in\nthe global file.\n",
-    "Required. The ecosystem the project targets. In v0.2.0 the only value is\n`linux` (Linux devicetree overlays).\n",
-    "|Key|Type|Required|Default|Meaning|\n|`linux`|directory|yes|none|Path to the Linux kernel source tree. Setting it builds the binding caches.|\n|`devicetree`|file|yes|none|Path to the base devicetree (`.dts`) of the target.|\n|`workfile`|file|no|none|The overlay (`.dtso`) that `init` creates and the com",
-    "`build` and `deploy` don\u2019t have settings of their own: they run commands\nof the project, and the board is described by variables. The `variables`\nobject of the `linux` section holds them. It is written by\n`analog-attach config var` (and by `init`, for the starter deploy script),\nand only in the proj",
-    "`deploy` runs `AA_DEPLOY`, by default the `aa_deploy.sh` that `init`\nwrites. The starter copies the build to a Raspberry Pi running Kuiper with\n`ssh`, `scp` and `sshpass`, logging in as `BOARD_USER` at\n`BOARD_IP` with the password `BOARD_PASSWORD`, then reboots it. For\nanother board, or another way ",
-    "```bash\nanalog-attach config                          # show every setting and variable\nanalog-attach config <key>                    # show one setting\nanalog-attach config <key> <value>            # set it in the project file\nanalog-attach config <key> <value> --global   # set it in the global fil",
-    "`.analog-attach/linux/` holds the binding caches (`compat-index.json` and\n`validation-cache/`), the preprocessed base devicetree and scratch files of\nvalidation and build. It can be deleted. Until the caches are built again,\ncommands stop with a configuration error:\n\n```text\n$ analog-attach validate",
-    "The words this guide uses, with a short definition each. The GUI and CLI\nguides use them the same way.\n",
-    "A *project* is a directory that contains a `.analog-attach/` folder. The tool\nfinds it by walking up from the current directory to the nearest directory that\nhas one. If none is found, the current directory is used.\n\nThe project\u2019s settings are stored in `.analog-attach/config.json`. A second,\noption",
-    "The *Linux tree* (the `linux` setting) is a kernel source tree, the one your\nboard runs. Analog Attach takes two things from it: the *bindings*, YAML files\nin `Documentation/devicetree/bindings/` that say which properties each\ndevice takes, and the includes the devicetrees use.\n\nThe *base devicetree",
-    "The *workfile* is the devicetree overlay (a `.dtso` file) that you build up\nwith `add` and `update`. The `workfile` setting names it, and\n`analog-attach init` creates it. See Workfile.\n\nA devicetree is a tree of *nodes*, one per device or bus, each with\n*properties*. A device node sits under the bus",
-    "*Validation* checks the nodes of the overlay, as they sit in the base\ndevicetree, against the bindings of the Linux tree with dt-validate (from\ndt-schema): required properties, types, allowed values and ranges. Analog\nAttach adds its own checks: addresses and chip selects that clash or don\u2019t fit\nthe",
-    "*Build* compiles the workfile with `dtc` into an overlay blob (`.dtbo`) in\nthe project\u2019s `build/` folder. For a board that boots one devicetree and has\nno overlay support, set `output` to `devicetree`: the build then writes the\nbase devicetree with the overlay applied (`.dts`) and compiles it (`.dtb",
-    "Every command accepts `--json`. It then prints one line of JSON on standard\noutput instead of text: `ok` says whether the command did what was asked,\n`message` and `error_type` say why not, and the rest is the command\u2019s\nanswer (the properties of a node, the findings of validation). The text output\ni",
-    "A project is a folder with a `.analog-attach/` folder in it. Its settings\ntell Analog Attach which Linux kernel tree has the bindings, which board\ndevicetree the overlay is for, and which overlay file to edit. This page shows\nhow to set them up and change them from the command line. Every setting, i",
-    "On a terminal, run `analog-attach` with no arguments in the project folder.\nIt checks the tools, then asks for what is still missing, one step at a time,\nand saves each answer as you give it:\n\n```text\n$ cd ~/work/rpi4-adxl345\n$ analog-attach\n? What does this project target?\n\u276f Linux device tree overl",
-    "The same setup, one command at a time. This is the way to do it in a script.\n\n1. Choose the backend:\n  analog-attach config backend linux\n2. Point to the Linux kernel tree. This also builds the binding caches, which\n  takes about a minute:\n  $ analog-attach config linux ~/linux\n  Indexing device bin",
-    "`config` alone shows every setting, its value and where the value comes\nfrom, then the variables of the build and deploy scripts (see\nVariables). Required settings are marked `*`:\n\n```text\n$ analog-attach config\nLocal:  ~/work/rpi4-adxl345/.analog-attach/config.json\nGlobal: ~/.config/analog-attach/c",
-    "```bash\nanalog-attach config overlay-syntax reference     # set it in this project\nanalog-attach config overlay-syntax --reset       # back to the default\nanalog-attach config interview false --global     # a default for all your projects\n```\n\n\n- A value is checked when you set it. A value outside t",
-    "The binding caches are built when you set `linux`, and never again on their\nown. After you update the kernel tree (for example with `git pull`) or\ninstall another dt-schema, rebuild them:\n\n```text\n$ analog-attach config --reload\nIndexing device bindings and compiling binding schemas...\nIndexed 23309",
-    "`build` and `deploy` run commands of the project: `AA_BUILD` and\n`AA_DEPLOY`, by default the scripts `./aa_build.sh` and `./aa_deploy.sh`\nthat `init` writes. The preprocessor of the base devicetree is a third one,\n`AA_PREPROCESS_COMMAND`. These commands get their input in environment\nvariables. `con",
-    "- Creating and reading the workfile: create the overlay and read it.\n- Devices: add the first device.\n",
-    "Analog Attach can be driven by an AI agent. The agent runs the same\n`analog-attach` commands you would, reads their `--json` answers, and asks\nyou what only you know: which part you have and how it is wired. The skill is\nwritten and tested for **Claude Code**; it can also be installed for Codex CLI\n",
-    "A *skill* is a set of instructions the agent loads when a task needs it: here,\nhow to use the CLI, in which order, and what to ask the user. The package\nships one skill for each backend; in v0.2.0 that is `analog-attach-linux`.\n\n```bash\nanalog-attach skill install analog-attach-linux\n```\n\n\n`skill in",
-    "The agent never runs a bare `analog-attach` (the guided setup is for a\nperson). It runs every command with `--json` and reads the one line of JSON\neach prints (see JSON protocol): `ok` says whether the command\ndid what was asked, and a refusal or a configuration error says why, with a\nhint the agent",
-    "The agent edits the workfile on its own: every change is one command, which\nyou can read, and undo with another. What touches the board is yours to\napprove:\n\n- **Deploy.** The starter `aa_deploy.sh` copies the build to the board and\n  **reboots it**. The skill tells the agent to ask you first.\n- **T",
-    "- Use case: GUI with an AI agent\n- Use case: CLI with an AI agent\n",
-    "Everything the GUI does is available from the command line, with no browser.\nEvery command accepts `--json` for machine-readable output.\n\n- Configuration\n- Creating and reading the workfile\n- Devices\n- Properties\n- Validate, build and deploy\n- Scripting\n- Shell completion\n- Error reporting\n\n\nThe pag",
-    "```bash\nanalog-attach --help              # the commands\nanalog-attach add --help          # one command, with examples\nanalog-attach help add            # the same\nanalog-attach --help --all        # the help of every command\n```\n",
-    "Commands that take a node accept three forms:\n|Form|Example|Means|\n|Label|`accel`, `i2c_arm`|The node with that label, in the base devicetree or the overlay.|\n|Label-first|`i2c_arm/adxl345@1d`|The child `adxl345@1d` of the node labelled `i2c_arm`.|\n|Absolute|`/soc/i2c@7e804000/adxl345@1d`|The node a",
     "- Commands\n- JSON protocol\n- Workfile\n- Configuration file\n\n\n- Commands: every command, with its arguments, options and\n  examples.\n- JSON protocol: what `--json` prints, for scripts and agents.\n- Workfile: how the overlay file is created and written.\n- Configuration file: the settings files, every ",
     "Every command of `analog-attach` with the Linux backend, with its arguments\nand options. The task-oriented guide is CLI Guide; the `--json`\noutput of each command is summarized in JSON protocol.\n\n`analog-attach <command> --help` prints the same information with examples,\nand `analog-attach --help --",
     "- `<path>` is a node: a label (`accel`), a label then child names\n  (`i2c_arm/adxl345@1d`) or an absolute path (`/soc/i2c@7e804000`). See\n  Naming nodes.\n- `[\u2026]` is optional. Options can be given anywhere after the command name, and\n  an option\u2019s value either as the next argument or after `=`\n  (`--",
@@ -230,6 +152,21 @@
     "```text\nanalog-attach completion [<shell>] [--install | --uninstall]\n```\n\n\nPrints the shell completion script for `bash`, `zsh` or `fish` (default:\nthe shell `$SHELL` names), or installs or removes it.\n|Option|Meaning|\n|`--install`|Install the script where the shell loads it, in your home folder.|\n|",
     "```text\nanalog-attach gui [--port <port>] [--server-only]\n```\n\n\nOpens the GUI for the project in the current folder, in the browser. Serves it\non `127.0.0.1` until stopped with Ctrl-C.\n|Option|Meaning|\n|`--port <port>`|The port. Default: 5177, or the next free one; `0` for any free port.|\n|`--server",
     "```text\nanalog-attach skill install [<name>] [--agent <agent>] [--force]\nanalog-attach skill uninstall [<name>] [--agent <agent>]\n```\n\n\nInstalls or removes the backend\u2019s skill for an AI agent. The Linux backend\u2019s\nskill is `analog-attach-linux`. Without a name, lists the skills and whether\neach is in",
+    "Analog Attach reads its settings from JSON files. You normally change them with\n`analog-attach config` rather than by editing the files.\n",
+    "|File|Location|Purpose|\n|Local (project)|`.analog-attach/config.json` in the project root|Settings of this project. Only this file holds `backend`.|\n|Global (user)|`$XDG_CONFIG_HOME/analog-attach/config.json`, or `~/.config/analog-attach/config.json` if `XDG_CONFIG_HOME` is unset, empty or relative|",
+    "`.analog-attach/` is created by the first command that writes a setting of\nthe project: `analog-attach config <key> <value>` (usually\n`config backend linux`), the guided setup (`analog-attach` with no\narguments), which saves each answer with `config`, or the GUI\u2019s project\nsetup, which does the same.",
+    "Each file is one JSON object. `backend` is at the top level, and the settings\nof the Linux backend are in an object named `linux`, with the project\u2019s\nvariables in it. The file `init` leaves in the project of the\nCLI Guide:\n\n```json\n{\n  \"backend\": \"linux\",\n  \"linux\": {\n    \"linux\": \"/home/user/linux\"",
+    "The value of a setting is the local file\u2019s, else the global file\u2019s, else the\ndefault. `analog-attach config <key>` shows the value and where it comes from\n(`local`, `global`, `default` or `unset`).\n\n`backend` and the variables belong to the project: they are not allowed in\nthe global file.\n",
+    "Required. The ecosystem the project targets. In v0.2.0 the only value is\n`linux` (Linux devicetree overlays).\n",
+    "|Key|Type|Required|Default|Meaning|\n|`linux`|directory|yes|none|Path to the Linux kernel source tree. Setting it builds the binding caches.|\n|`devicetree`|file|yes|none|Path to the base devicetree (`.dts`) of the target.|\n|`workfile`|file|no|none|The overlay (`.dtso`) that `init` creates and the com",
+    "`build` and `deploy` don\u2019t have settings of their own: they run commands\nof the project, and the board is described by variables. The `variables`\nobject of the `linux` section holds them. It is written by\n`analog-attach config var` (and by `init`, for the starter deploy script),\nand only in the proj",
+    "`deploy` runs `AA_DEPLOY`, by default the `aa_deploy.sh` that `init`\nwrites. The starter copies the build to a Raspberry Pi running Kuiper with\n`ssh`, `scp` and `sshpass`, logging in as `BOARD_USER` at\n`BOARD_IP` with the password `BOARD_PASSWORD`, then reboots it. For\nanother board, or another way ",
+    "```bash\nanalog-attach config                          # show every setting and variable\nanalog-attach config <key>                    # show one setting\nanalog-attach config <key> <value>            # set it in the project file\nanalog-attach config <key> <value> --global   # set it in the global fil",
+    "`.analog-attach/linux/` holds the binding caches (`compat-index.json` and\n`validation-cache/`), the preprocessed base devicetree and scratch files of\nvalidation and build. It can be deleted. Until the caches are built again,\ncommands stop with a configuration error:\n\n```text\n$ analog-attach validate",
+    "Attaching a part to a Linux board means writing a devicetree overlay: finding\nthe part\u2019s binding in the kernel, the bus it sits on in the board\u2019s\ndevicetree, every property the binding requires and the values it allows,\nthen compiling the overlay, copying it to the board and finding out at boot\nwhet",
+    "|Interface|Best for|Guide|\n|GUI (`analog-attach gui`)|A first project, exploring a part\u2019s properties, and seeing the devicetree and the validation findings as you edit|GUI Guide|\n|CLI|Working in a terminal or over SSH, scripts and CI, and repeating a configuration on several boards|CLI Guide|\n|Eithe",
+    "- Search the kernel\u2019s bindings for a part (`list devices`), and the buses\n  of your board it can sit on (`list parent`).\n- Add a device with the properties its binding requires, asked one by one,\n  with suggestions, or copied from the binding\u2019s example or from an overlay of\n  the kernel tree.\n- Vali",
+    "Analog Attach runs on Linux, with Node.js 22 or newer and the tools listed in\nInstallation. It was developed and tested on Ubuntu. The install\nhints it prints cover Debian and Ubuntu, Fedora, Arch and openSUSE.\n",
     "Every command can run unattended: in a shell script, a Makefile, a CI job or an\nAI agent. This page shows how to get machine-readable answers and how to tell\nsuccess from failure. The format itself is in JSON protocol.\n",
     "A command only asks questions when both its standard input and its standard\noutput are a terminal, and `--json` isn\u2019t given. Piped, redirected or with\n`--json`, it never waits for input:\n\n- `add` puts the node under the `--parent` you give (or the first valid\n  bus), and lists the missing required p",
     "Add `--json` anywhere on the command line. The command then writes exactly\none line of JSON to standard output:\n\n```text\n$ analog-attach --json add adi,adxl345 --parent i2c_arm --name adxl345@1d --label accel\n{\"ok\":true,\"message\":\"Added adxl345@1d (label: accel)\",\"severity\":\"info\",\"key\":\"adxl345@1d\"",
@@ -239,37 +176,101 @@
     "`validate` exits with 0 whatever it finds. Fail the job on the number of\nerrors:\n\n```bash\n#!/bin/sh\nset -e\ncd overlay-project\nresult=$(analog-attach --json validate)\necho \"$result\" | jq -r '.errors[] | \"error: \\(.path | join(\"/\")): \\(.message)\"'\necho \"$result\" | jq -r '.warnings[] | \"warning: \\(.pat",
     "`deploy` takes secrets from its environment. Pass the password there, never\non the command line of `config`:\n\n```bash\nBOARD_PASSWORD=\"$PI_PASSWORD\" analog-attach --json deploy\n```\n\n\nWithout it, `deploy` is refused with `error_type` `missing-setting` and\nan `errors` entry naming `BOARD_PASSWORD`.\n",
     "The same commands are what an AI coding agent runs. `analog-attach skill\ninstall` teaches Claude Code, Codex CLI or Gemini CLI how to use them. See\nWorking with AI Agents.\n",
+    "From an installed Analog Attach (see Installation) to an overlay on\nthe board, with the CLI. The example adds an ADXL345 accelerometer\n(`adi,adxl345`) to a Raspberry Pi 4 running Kuiper: on the I2C bus\n`i2c_arm` (also labelled `i2c1`) at address `0x1d`, with its interrupt on\nGPIO 27, rising edge. Th",
     "This page explains how the CLI tells you that something went wrong, and how to\nact on it in a script.\n",
     "|Kind|What it is|Where it is written|Exit status|\n|Input error|The command line itself is malformed: an unknown command, flag or setting key, or a missing or extra argument.|Standard error|2|\n|Refusal|The command line is valid but the command can\u2019t do what it asks: for example a device with no bindi",
     "When a name isn\u2019t known (a setting, a device type), the message suggests the\nclosest names. A setting key that doesn\u2019t exist is an input error (exit status\n2):\n\n```text\n$ analog-attach config backnd\nUnknown config field: backnd. Did you mean backend? Valid fields: backend, linux, devicetree, workfil",
-    "With `--json` the command writes at most one line of JSON to standard output.\nA refusal looks like this:\n\n```text\n$ analog-attach --json add adi,adxl999\n{\"ok\":false,\"message\":\"Unknown compatible 'adi,adxl999'. Did you mean adi,ad7999, adi,adxl359, adi,ad7949? See: analog-attach list devices\",\"severi"
+    "With `--json` the command writes at most one line of JSON to standard output.\nA refusal looks like this:\n\n```text\n$ analog-attach --json add adi,adxl999\n{\"ok\":false,\"message\":\"Unknown compatible 'adi,adxl999'. Did you mean adi,ad7999, adi,adxl359, adi,ad7949? See: analog-attach list devices\",\"severi",
+    "Common problems, with the message you see and the fix. How the CLI reports\nproblems in general is in Error reporting and\nError reporting. The examples use the project of the\nCLI Guide, in `~/work/rpi4-adxl345`.\n",
+    "```text\n$ analog-attach validate\nConfiguration errors:\n  compat-index.json not found or unreadable in /home/user/work/rpi4-adxl345/.analog-attach/linux\n  validation.json not found or unreadable in /home/user/work/rpi4-adxl345/.analog-attach/linux/validation-cache\n\nRun 'analog-attach config --reload'",
+    "The tools come from your system, not from the package (see\nInstallation). Each command checks them and names the one to install:\n\n```text\n$ analog-attach validate\nAA_PREPROCESS_COMMAND: cpp not found on PATH (needed to preprocess /home/user/linux/arch/arm/boot/dts/broadcom/bcm2711-rpi-4-b.dts) \u2014 The",
+    "```text\n$ analog-attach validate\naccel:\n  warning: (node): parent i2c@7e804000 is not enabled (status \"disabled\"): Linux won't probe adxl345@1d\n    note: Enable it: enable /soc/i2c@7e804000\nNo errors! (1 warning(s))\n```\n\n\nThe overlay builds, but the kernel won\u2019t probe the device, because its bus is\n",
+    "```text\n$ analog-attach validate\ndevicetree: preprocessing /home/user/work/rpi4-adxl345/board/my-rpi4.dts failed:\n/home/user/work/rpi4-adxl345/board/my-rpi4.dts:1:10: fatal error: bcm2711-rpi-4-b.dts: No such file or directory\n    1 | #include \"bcm2711-rpi-4-b.dts\"\n      |          ^~~~~~~~~~~~~~~~~",
+    "The starter `aa_deploy.sh` first logs in to the board over SSH. When the\nboard doesn\u2019t answer, the deploy stops before it copies anything:\n\n```text\n$ analog-attach deploy\nDeploying /home/user/work/rpi4-adxl345/build/overlay.dtbo with AA_DEPLOY\nChecking analog@analog.local\naa_deploy.sh: analog@analog",
+    "The overlay validates and deploys, but the board has no device: no IIO device\nappears, and `i2cdetect` on the board shows a number instead of `UU` at\nthe address the device answers on, and nothing at the address in the\noverlay. Validation checks the overlay against the bindings, not against the\nhard",
+    "If something doesn\u2019t work and this guide doesn\u2019t help, you can:\n\n- create a new issue on\n  GitHub, or\n- open a question or thread on\n  EngineerZone.\n\n\nInclude:\n\n- the output of `analog-attach --version`, and your Linux distribution and\n  `node --version`;\n- the command that failed, as you typed it (",
+    "Step-by-step walkthroughs on real hardware. Each one has the same layout, see\nUse case template.\n\n- Use case: Configure a device with the GUI\n  Goal\n  What you need\n  Steps\n  Result\n  Troubleshooting\n  Next steps\n\n  - Goal\n  - What you need\n  - Steps\n  - Result\n  - Troubleshooting\n  - Next steps\n- U",
+    "|Requirement|Why it is needed|How to install|\n|Node.js 22 or newer|Runs the CLI and the GUI server|From your distribution if it ships 22 or newer, else from nodejs.org (or `nvm install 22`). Check with `node --version`.|\n|Linux kernel source tree|Provides the bindings and includes used for validatio",
+    "Analog Attach is **not** published to the npm registry. The npm package is\nattached to each GitHub release.\n\n1. Open the v0.2.0 release.\n2. Download `analog-attach-cli-0.2.0.tgz` from the *Assets* section.\n3. Install it with npm:\n  npm install -g ./analog-attach-cli-0.2.0.tgz\n\n\nThis puts the `analog",
+    "```text\n$ analog-attach --version\n0.2.0\n```\n\n\n`analog-attach --help` lists the commands. To check the tools as well, run\n`analog-attach` with no arguments in a new folder: the guided setup asks for\nthe backend, then checks `dtc`, `cpp` and dt-schema. Stop it there with\nCtrl-C if you only wanted the ",
+    "To update, download the `.tgz` of the new release and install it the same\nway. It replaces the installed version:\n\n```bash\nnpm install -g ./analog-attach-cli-<version>.tgz\n```\n\n\nIf you installed the AI agent skill, install it again so it matches the new\nversion: `analog-attach skill install analog-a",
+    "See Working with AI Agents.\n",
+    "Every action in the GUI runs an `analog-attach` command, so the problems it\nreports are the ones described in Error reporting.\n\nThe GUI of a Linux project shows no pop-up notifications. A problem is said\nwhere it happened, and the console has the full answer of the CLI.\n",
+    "- **Under a field.** A value the CLI refuses (a property, a setting, a project\n  variable) keeps what you typed, marked, with the reason under the field.\n  The message goes away at your next edit.\n- **In a panel or a dialog.** Add a device, Rename Node, Move Node and the\n  Deploy dialog say what is ",
+    "What dt-validate finds is not a refusal: the change is written, and the\nfindings are shown in the header\u2019s status (`2 errors`), in the Validation\nlist under the overlay, as a count on the node in the device tree, and under\nthe field of the property they are about. See Validate, build and deploy.\n",
+    "In the project setup, a value the CLI refuses is shown in its step, with the\nCLI\u2019s message, and the step stays until you give another. For a Linux tree,\na folder inside a tree is refused, and the step offers the tree\u2019s root:\nclick **Use It**.\n\nLater, the settings are changed in the Project tab of th",
+    "Build and deploy write their output to the console as it comes. A failure\nends with `\u2718 Not built: the build refused, above`,\n`\u2718 Not deployed: the deploy refused, above`, or\n`\u2718 exited with <code>`. The reason is in the lines above it: for example a\nmissing `aa_build.sh`, a variable that is not set, o",
+    "`analog-attach gui` writes its problems in the terminal. The most common is\na port that is taken:\n\n```none\nPort 5177 on 127.0.0.1 is in use (another analog-attach gui?): pick another with --port, or --port 0 for any free one\n```\n\n\nThis only happens with `--port`: without it, the GUI takes another fr",
+    "The page needs the `analog-attach gui` that served it. If that has stopped\n(you pressed Ctrl+C, or closed its terminal), the page stays open but\ncan\u2019t do anything:\n\n- An action shows its command in the console, and no answer comes. The error\n  is only in the browser\u2019s own developer console (a failed",
+    "With `--json`, every command answers with one JSON object, for scripts, CI\njobs, the GUI and AI agents. This page describes that answer: the fields every\nanswer has, the exit status, which stream gets what, and the fields of each\ncommand\u2019s result. How to use it from a script is in Scripting; the\nerr",
+    "`--json` can be anywhere on the command line before a `--`:\n`analog-attach --json read accel` and `analog-attach read accel --json` are\nthe same. In JSON mode the CLI never asks a question.\n",
+    "|Stream|What it gets|\n|Standard output|At most one line: the JSON answer. Nothing else.|\n|Standard error|Notes and warnings (the bus `add` picked, an address clash, a cache out of date), the progress of long steps, the output of the `build` and `deploy` commands, and input errors. This is free text:",
+    "|Status|When|Standard output|\n|0|The command answered: a success, a refusal, or a configuration error. Also `--help` and `--version`.|The JSON answer (`--help` and `--version` print text).|\n|1|The command failed without answering (an unexpected error).|Nothing, or what the command wrote before faili",
+    "Every answer is a JSON object with these fields, and the command\u2019s own fields\nnext to them:\n|Field|Type|Meaning|\n|`ok`|boolean|`true` when the command did what was asked, `false` when it refused.|\n|`message`|string|What happened, in words: `\"Added adxl345@1d (label: accel)\"`, or why it refused. For ",
+    "When the project isn\u2019t set up for the command (a setting missing or invalid,\nthe workfile missing, a tool missing), the command refuses with two more\nfields: `errors`, one entry per problem, and `hints`, how to fix them.\n`error_type` is the first problem\u2019s:\n\n```json\n{\"ok\": false, \"message\": \"Missing",
+    "`error_type` is one of a fixed list, the same for every backend, so that a\nscript can act on the case rather than on the wording. Those the Linux backend\ngives:\n|`error_type`|Case|\n|`not-found`|A node, property, parent, overlay, example or variable that isn\u2019t there.|\n|`ambiguous`|Several overlays ha",
+    "The fields each command adds to `ok`, `message` and `severity` on\nsuccess. The schema file named in each row has the details.\n|Command|Fields|Schema|\n|`config`|`configs`: one entry per setting (`field_name`, `category`, `description`, `type`, `required`, `default`, `value`, `source`); `variables`: o",
+    "```text\n$ analog-attach --json read accel reg\n{\"ok\":true,\"message\":\"Read reg of accel\",\"severity\":\"info\",\"kind\":\"property\",\"key\":\"reg\",\"type\":{\"kind\":\"array\",\"items\":{\"kind\":\"number\",\"subtype\":\"int\"},\"min_items\":1,\"max_items\":1},\"value\":[29],\"source\":\"overlay\",\"written\":[\"0x1d\"],\"description\":\"Chip ",
+    "Analog Attach can be driven by an AI agent. The agent runs the same\n`analog-attach` commands you would, reads their `--json` answers, and asks\nyou what only you know: which part you have and how it is wired. The skill is\nwritten and tested for **Claude Code**; it can also be installed for Codex CLI\n",
+    "A *skill* is a set of instructions the agent loads when a task needs it: here,\nhow to use the CLI, in which order, and what to ask the user. The package\nships one skill for each backend; in v0.2.0 that is `analog-attach-linux`.\n\n```bash\nanalog-attach skill install analog-attach-linux\n```\n\n\n`skill in",
+    "The agent never runs a bare `analog-attach` (the guided setup is for a\nperson). It runs every command with `--json` and reads the one line of JSON\neach prints (see JSON protocol): `ok` says whether the command\ndid what was asked, and a refusal or a configuration error says why, with a\nhint the agent",
+    "The agent edits the workfile on its own: every change is one command, which\nyou can read, and undo with another. What touches the board is yours to\napprove:\n\n- **Deploy.** The starter `aa_deploy.sh` copies the build to the board and\n  **reboots it**. The skill tells the agent to ask you first.\n- **T",
+    "- Use case: GUI with an AI agent\n- Use case: CLI with an AI agent\n",
+    "The GUI is a page in your browser, served by the `analog-attach` CLI on your\nown machine. Each GUI belongs to one project: the folder you start it in.\n",
+    "1. Open a terminal in the project folder. For a new project, make an empty\n  folder first:\n  mkdir ~/rpi-adxl345\n  cd ~/rpi-adxl345\n2. Run:\n  analog-attach gui\n  The CLI prints where the page is, then opens it in your default browser:\n  analog-attach GUI on http://127.0.0.1:5177  (project: /home/use",
+    "The page is served on `127.0.0.1` only, so only your own machine can reach\nit. Without `--port`, the GUI uses port 5177. If 5177 is taken (for example,\nby another open GUI), it takes the first free port of the 20 after it, else any\nfree port. The URL printed always tells you which.\n\nTo choose the po",
+    "Press Ctrl+C in the terminal where the GUI runs. The CLI prints\n`Stopped the GUI at <url>` and exits. Close the browser tab too: the page\ncan\u2019t do anything without its server.\n\nThe GUI saves each change as you make it, in the project\u2019s settings and its\nworkfile, so there is nothing to save before yo",
+    "A folder with no project settings yet, or one without a workfile, opens on\nthe **Project setup**. It has the same steps as the guided setup of the CLI.\nEach step saves one setting with `analog-attach config`. If the CLI refuses\na value, the step shows why, and you can correct it. The steps are liste",
+    "**Browse\u2026** opens your desktop\u2019s file dialog: the desktop portal\u2019s file\nchooser, else `zenity`, `kdialog` or `yad` (on macOS, its own dialog).\nWhere none of them can open, Browse\u2026 opens the GUI\u2019s built-in picker and says\nwhy. To always use the built-in picker, open the settings (the gear in the\nhead",
+    "The GUI only answers on `127.0.0.1`. To use it from another computer, for\nexample when the Linux tree is on a build server, forward the port over SSH.\n\n1. On your computer, connect with the same port number on both sides:\n  ssh -L 5177:127.0.0.1:5177 user@build-server\n  The port must be the same on ",
+    "The GUI is served by the CLI and opened in a browser. Every action in the GUI\nruns an `analog-attach` command, and the console at the bottom of the page\nshows each one, so what you do in the GUI you can also do on the command line.\n\n- Starting\n- Workspace\n- Adding devices\n- Editing\n- Validate, build",
+    "Add an ADXL345 accelerometer to a Raspberry Pi 4 by asking an AI agent in a\nterminal: Claude Code, with the `analog-attach-linux` skill, runs the\n`analog-attach` commands, and you answer its questions and approve the\ndeploy. At the end the overlay is on the board and the acceleration reads back\nover",
+    "|Item|Details|\n|Board / carrier|Raspberry Pi 4 Model B, running ADI Kuiper|\n|Evaluation board / part|MikroElektronika Accel Click (ADXL345), set for I2C at address `0x1d` with its jumpers|\n|Click|Raspberry Pi header|Wiring|Five jumper wires from the Click to the Pi\u2019s 40-pin header:    Click Raspberr",
+    "With the Pi off, connect the Click as in the table above.\n",
+    "```bash\nanalog-attach skill install analog-attach-linux\n```\n\n\nThis copies the skill to `~/.claude/skills/analog-attach-linux/`, where\nClaude Code finds it. See Working with AI Agents.\n",
+    "```bash\nmkdir -p ~/work/rpi4-adxl345 && cd ~/work/rpi4-adxl345\nclaude\n```\n\n\nThe project can be new: the agent sets it up. It asks for the kernel tree and\nthe board rather than guessing them. Answer `~/linux` and\n`bcm2711-rpi-4-b.dts`, or set the project up first (see\nConfiguration).\n",
+    "Type, for example:\n\nAdd an ADXL345 accelerometer on the Raspberry Pi\u2019s I2C bus at 0x1d,\ninterrupt on GPIO 27 rising edge, then validate and build.\n\nThe agent runs `analog-attach` commands with `--json` and reads their\nanswers. Claude Code shows each command and asks before it runs one you\nhaven\u2019t al",
+    "Deploy copies the overlay to the Pi and **reboots it**, so the agent asks\nfirst. Tell it the Pi\u2019s address and password, for example *deploy it to\n10.42.0.196, user analog*. It then runs:\n\n```bash\nanalog-attach --json config var BOARD_IP 10.42.0.196\nBOARD_PASSWORD=\u2026 analog-attach --json deploy\n```\n\n\n",
+    "When the Pi is back, the ADXL345 is an IIO device:\n\n```bash\niio_info -u ip:10.42.0.196 | grep -A3 adxl345\n```\n\n\nlists `adxl345` with its channels `accel_x`, `accel_y` and `accel_z`.\nRead the raw values on the Pi:\n\n```text\n$ ssh analog@10.42.0.196\n$ cd /sys/bus/iio/devices/iio:device0     # the devic",
+    "- **The agent doesn\u2019t use analog-attach.** Check that the skill is installed\n  (`analog-attach skill install` lists it as `installed`), and start\n  `claude` again after installing it.\n- **The agent guesses the wiring.** Say the bus, address and interrupt in the\n  prompt, as above, and check what it ",
+    "- Use case: GUI with an AI agent: an agent in the GUI, as its Assistant.\n- Working with AI Agents: the skill, and what the agent does on its own.\n",
+    "Copy this page into a new folder under `use-cases/` and fill it in.\n",
+    "One or two sentences: what the reader will have at the end.\n",
+    "|Item|Details|\n|Board / carrier|`<board name, revision>`|\n|Evaluation board / part|`<part number, and the evaluation board or Click>`|\n|Cables and power|`<cables, power supply>`|\n|Host|Linux machine with Analog Attach installed|\n|Software versions|`<Analog Attach, kernel tree and branch, board image",
+    "Full walkthrough\n\n> **Video**\n>\n> Video\n> Full walkthrough\n",
+    "Text, command, expected output.\n\n![](../_images/placeholder.svg)\n\n*Figure 2 Caption*\n\n\n```bash\nanalog-attach <command>\n```\n",
+    "`<Repeat for every step.>`\n",
+    "What success looks like: output, a photo of the working setup, and the final\n`.dtso`.\n",
+    "Problems specific to this use case.\n",
+    "Links to related use cases and guide chapters.\n"
   ],
   "url": [
-    "use-cases",
-    "use-cases/template",
-    "use-cases/template#goal",
-    "use-cases/template#what-you-need",
-    "use-cases/template#walkthrough-video",
-    "use-cases/template#step-1-title",
-    "use-cases/template#step-2-title",
-    "use-cases/template#result",
-    "use-cases/template#troubleshooting",
-    "use-cases/template#next-steps",
-    "ui-guide",
-    "introduction#what-is-analog-attach",
-    "introduction#ways-to-use-it",
-    "introduction#key-features",
-    "introduction#supported-platforms",
-    "use-cases/linux/cli-ai-agent#goal",
-    "use-cases/linux/cli-ai-agent#what-you-need",
-    "use-cases/linux/cli-ai-agent#step-1-wire-the-click",
-    "use-cases/linux/cli-ai-agent#step-2-install-the-skill",
-    "use-cases/linux/cli-ai-agent#step-3-start-the-agent-in-the-project-folder",
-    "use-cases/linux/cli-ai-agent#step-4-ask-for-the-device",
-    "use-cases/linux/cli-ai-agent#step-5-deploy",
-    "use-cases/linux/cli-ai-agent#result",
-    "use-cases/linux/cli-ai-agent#troubleshooting",
-    "use-cases/linux/cli-ai-agent#next-steps",
+    "cli-guide/configuration",
+    "cli-guide/configuration#the-guided-setup",
+    "cli-guide/configuration#set-up-a-project-with-commands",
+    "cli-guide/configuration#show-the-settings",
+    "cli-guide/configuration#change-reset-and-share-settings",
+    "cli-guide/configuration#rebuild-the-binding-caches",
+    "cli-guide/configuration#variables",
+    "cli-guide/configuration#next-steps",
+    "concepts",
+    "concepts#project-and-settings",
+    "concepts#linux-tree-base-devicetree-and-bindings",
+    "concepts#workfile-and-overlay",
+    "concepts#validation",
+    "concepts#build-and-deploy",
+    "concepts#json-protocol",
+    "use-cases/linux/ui#goal",
+    "use-cases/linux/ui#what-you-need",
+    "use-cases/linux/ui#step-1-wire-the-click",
+    "use-cases/linux/ui#step-2-start-the-gui-and-set-up-the-project",
+    "use-cases/linux/ui#step-3-add-the-adxl345",
+    "use-cases/linux/ui#step-4-set-the-interrupt",
+    "use-cases/linux/ui#step-5-validate",
+    "use-cases/linux/ui#step-6-build-and-deploy",
+    "use-cases/linux/ui#result",
+    "use-cases/linux/ui#troubleshooting",
+    "use-cases/linux/ui#next-steps",
     "use-cases/linux/cli#goal",
     "use-cases/linux/cli#what-you-need",
     "use-cases/linux/cli#step-1-wire-the-click",
@@ -294,6 +295,47 @@
     "use-cases/linux/ui-ai-agent#result",
     "use-cases/linux/ui-ai-agent#troubleshooting",
     "use-cases/linux/ui-ai-agent#next-steps",
+    "ui-guide/linux/adding-devices",
+    "ui-guide/linux/adding-devices#find-the-device",
+    "ui-guide/linux/adding-devices#place-it",
+    "ui-guide/linux/adding-devices#after-adding",
+    "ui-guide/linux/adding-devices#other-ways-to-add",
+    "ui-guide/linux/editing",
+    "ui-guide/linux/editing#open-a-node",
+    "ui-guide/linux/editing#properties",
+    "ui-guide/linux/editing#change-a-value",
+    "ui-guide/linux/editing#add-a-property",
+    "ui-guide/linux/editing#child-nodes",
+    "ui-guide/linux/editing#enable-or-disable-a-node",
+    "ui-guide/linux/editing#rename-move-and-delete",
+    "reference/linux/workfile",
+    "reference/linux/workfile#how-the-workfile-is-created",
+    "reference/linux/workfile#how-the-workfile-is-written-afterwards",
+    "reference/linux/workfile#overlay-syntax",
+    "reference/linux/workfile#a-complete-workfile",
+    "ui-guide/linux/validate-build-deploy",
+    "ui-guide/linux/validate-build-deploy#validate",
+    "ui-guide/linux/validate-build-deploy#build",
+    "ui-guide/linux/validate-build-deploy#deploy",
+    "ui-guide/linux/validate-build-deploy#set-the-target",
+    "ui-guide/linux/validate-build-deploy#project-variables",
+    "ui-guide/linux/validate-build-deploy#commands",
+    "ui-guide/linux/validate-build-deploy#system-variables",
+    "ui-guide/linux/workspace",
+    "ui-guide/linux/workspace#the-header",
+    "ui-guide/linux/workspace#the-device-tree",
+    "ui-guide/linux/workspace#the-node-card",
+    "ui-guide/linux/workspace#the-right-column",
+    "ui-guide/linux/workspace#the-console",
+    "ui-guide/linux/workspace#settings-and-preferences",
+    "ui-guide/linux/workspace#the-assistant",
+    "cli-guide",
+    "cli-guide#getting-help",
+    "cli-guide#naming-nodes",
+    "cli-guide/linux/workfile",
+    "cli-guide/linux/workfile#create-the-workfile",
+    "cli-guide/linux/workfile#start-from-an-overlay-of-the-linux-tree",
+    "cli-guide/linux/workfile#read-the-workfile",
     "cli-guide/linux/devices",
     "cli-guide/linux/devices#find-the-device",
     "cli-guide/linux/devices#find-the-bus",
@@ -305,58 +347,6 @@
     "cli-guide/linux/devices#rename-and-move-a-node",
     "cli-guide/linux/devices#delete-nodes-and-properties",
     "cli-guide/linux/devices#next-steps",
-    "ui-guide/error-reporting",
-    "ui-guide/error-reporting#where-messages-appear",
-    "ui-guide/error-reporting#validation-errors-and-warnings",
-    "ui-guide/error-reporting#configuration-errors",
-    "ui-guide/error-reporting#build-and-deploy-failures",
-    "ui-guide/error-reporting#when-the-gui-can-t-start",
-    "ui-guide/error-reporting#when-the-server-has-stopped",
-    "use-cases/linux/ui#goal",
-    "use-cases/linux/ui#what-you-need",
-    "use-cases/linux/ui#step-1-wire-the-click",
-    "use-cases/linux/ui#step-2-start-the-gui-and-set-up-the-project",
-    "use-cases/linux/ui#step-3-add-the-adxl345",
-    "use-cases/linux/ui#step-4-set-the-interrupt",
-    "use-cases/linux/ui#step-5-validate",
-    "use-cases/linux/ui#step-6-build-and-deploy",
-    "use-cases/linux/ui#result",
-    "use-cases/linux/ui#troubleshooting",
-    "use-cases/linux/ui#next-steps",
-    "troubleshooting",
-    "troubleshooting#the-binding-caches-are-missing-or-out-of-date",
-    "troubleshooting#cpp-dtc-or-dt-schema-is-not-found",
-    "troubleshooting#the-device-is-on-a-disabled-bus",
-    "troubleshooting#an-include-of-the-base-devicetree-is-not-found",
-    "troubleshooting#deploy-can-t-reach-the-board",
-    "troubleshooting#the-device-doesn-t-probe-wrong-address",
-    "troubleshooting#reporting-a-problem",
-    "cli-guide/linux/workfile",
-    "cli-guide/linux/workfile#create-the-workfile",
-    "cli-guide/linux/workfile#start-from-an-overlay-of-the-linux-tree",
-    "cli-guide/linux/workfile#read-the-workfile",
-    "ui-guide/linux/editing",
-    "ui-guide/linux/editing#open-a-node",
-    "ui-guide/linux/editing#properties",
-    "ui-guide/linux/editing#change-a-value",
-    "ui-guide/linux/editing#add-a-property",
-    "ui-guide/linux/editing#child-nodes",
-    "ui-guide/linux/editing#enable-or-disable-a-node",
-    "ui-guide/linux/editing#rename-move-and-delete",
-    "cli-guide/linux/validate-build-deploy",
-    "cli-guide/linux/validate-build-deploy#validate",
-    "cli-guide/linux/validate-build-deploy#check-the-whole-devicetree",
-    "cli-guide/linux/validate-build-deploy#build",
-    "cli-guide/linux/validate-build-deploy#change-the-build",
-    "cli-guide/linux/validate-build-deploy#a-full-devicetree-instead-of-an-overlay",
-    "cli-guide/linux/validate-build-deploy#deploy",
-    "cli-guide/linux/validate-build-deploy#deploy-another-way",
-    "cli-guide/linux/validate-build-deploy#next-steps",
-    "reference/linux/workfile",
-    "reference/linux/workfile#how-the-workfile-is-created",
-    "reference/linux/workfile#how-the-workfile-is-written-afterwards",
-    "reference/linux/workfile#overlay-syntax",
-    "reference/linux/workfile#a-complete-workfile",
     "cli-guide/linux/properties",
     "cli-guide/linux/properties#what-a-node-can-have",
     "cli-guide/linux/properties#what-values-a-property-can-take",
@@ -368,20 +358,16 @@
     "cli-guide/linux/properties#remove-a-property",
     "cli-guide/linux/properties#let-the-shell-complete-it",
     "cli-guide/linux/properties#next-steps",
-    "reference/json-protocol",
-    "reference/json-protocol#turning-it-on",
-    "reference/json-protocol#streams",
-    "reference/json-protocol#exit-status",
-    "reference/json-protocol#the-answer",
-    "reference/json-protocol#configuration-errors",
-    "reference/json-protocol#error-types",
-    "reference/json-protocol#results-by-command",
-    "reference/json-protocol#examples",
-    "ui-guide/linux/adding-devices",
-    "ui-guide/linux/adding-devices#find-the-device",
-    "ui-guide/linux/adding-devices#place-it",
-    "ui-guide/linux/adding-devices#after-adding",
-    "ui-guide/linux/adding-devices#other-ways-to-add",
+    "cli-guide/linux/validate-build-deploy",
+    "cli-guide/linux/validate-build-deploy#validate",
+    "cli-guide/linux/validate-build-deploy#check-the-whole-devicetree",
+    "cli-guide/linux/validate-build-deploy#build",
+    "cli-guide/linux/validate-build-deploy#change-the-build",
+    "cli-guide/linux/validate-build-deploy#a-full-devicetree-instead-of-an-overlay",
+    "cli-guide/linux/validate-build-deploy#deploy",
+    "cli-guide/linux/validate-build-deploy#deploy-another-way",
+    "cli-guide/linux/validate-build-deploy#next-steps",
+    "",
     "cli-guide/shell-completion",
     "cli-guide/shell-completion#install-the-completion",
     "cli-guide/shell-completion#zsh",
@@ -389,70 +375,6 @@
     "cli-guide/shell-completion#try-it-without-installing",
     "cli-guide/shell-completion#check-that-it-works",
     "cli-guide/shell-completion#remove-the-completion",
-    "ui-guide/linux/workspace",
-    "ui-guide/linux/workspace#the-header",
-    "ui-guide/linux/workspace#the-device-tree",
-    "ui-guide/linux/workspace#the-node-card",
-    "ui-guide/linux/workspace#the-right-column",
-    "ui-guide/linux/workspace#the-console",
-    "ui-guide/linux/workspace#settings-and-preferences",
-    "ui-guide/linux/workspace#the-assistant",
-    "ui-guide/linux/validate-build-deploy",
-    "ui-guide/linux/validate-build-deploy#validate",
-    "ui-guide/linux/validate-build-deploy#build",
-    "ui-guide/linux/validate-build-deploy#deploy",
-    "ui-guide/linux/validate-build-deploy#set-the-target",
-    "ui-guide/linux/validate-build-deploy#project-variables",
-    "ui-guide/linux/validate-build-deploy#commands",
-    "ui-guide/linux/validate-build-deploy#system-variables",
-    "ui-guide/starting",
-    "ui-guide/starting#start-the-gui",
-    "ui-guide/starting#the-port",
-    "ui-guide/starting#stop-the-gui",
-    "ui-guide/starting#the-project-setup",
-    "ui-guide/starting#choosing-files",
-    "ui-guide/starting#using-the-gui-from-another-machine",
-    "",
-    "install#requirements",
-    "install#getting-the-package",
-    "install#verify-the-installation",
-    "install#updating-and-uninstalling",
-    "install#installing-the-ai-agent-skills-optional",
-    "quick-start",
-    "reference/configuration-file",
-    "reference/configuration-file#where-the-files-are",
-    "reference/configuration-file#how-the-project-folder-is-created",
-    "reference/configuration-file#file-format",
-    "reference/configuration-file#precedence",
-    "reference/configuration-file#backend",
-    "reference/configuration-file#linux-settings",
-    "reference/configuration-file#variables",
-    "reference/configuration-file#deploy",
-    "reference/configuration-file#managing-settings-from-the-cli",
-    "reference/configuration-file#other-files-in-analog-attach",
-    "concepts",
-    "concepts#project-and-settings",
-    "concepts#linux-tree-base-devicetree-and-bindings",
-    "concepts#workfile-and-overlay",
-    "concepts#validation",
-    "concepts#build-and-deploy",
-    "concepts#json-protocol",
-    "cli-guide/configuration",
-    "cli-guide/configuration#the-guided-setup",
-    "cli-guide/configuration#set-up-a-project-with-commands",
-    "cli-guide/configuration#show-the-settings",
-    "cli-guide/configuration#change-reset-and-share-settings",
-    "cli-guide/configuration#rebuild-the-binding-caches",
-    "cli-guide/configuration#variables",
-    "cli-guide/configuration#next-steps",
-    "ai-agents",
-    "ai-agents#installing-the-skills",
-    "ai-agents#how-an-agent-uses-analog-attach",
-    "ai-agents#what-you-confirm",
-    "ai-agents#use-cases",
-    "cli-guide",
-    "cli-guide#getting-help",
-    "cli-guide#naming-nodes",
     "reference",
     "reference/commands",
     "reference/commands#conventions",
@@ -475,6 +397,21 @@
     "reference/commands#completion",
     "reference/commands#gui",
     "reference/commands#skill",
+    "reference/configuration-file",
+    "reference/configuration-file#where-the-files-are",
+    "reference/configuration-file#how-the-project-folder-is-created",
+    "reference/configuration-file#file-format",
+    "reference/configuration-file#precedence",
+    "reference/configuration-file#backend",
+    "reference/configuration-file#linux-settings",
+    "reference/configuration-file#variables",
+    "reference/configuration-file#deploy",
+    "reference/configuration-file#managing-settings-from-the-cli",
+    "reference/configuration-file#other-files-in-analog-attach",
+    "introduction#what-is-analog-attach",
+    "introduction#ways-to-use-it",
+    "introduction#key-features",
+    "introduction#supported-platforms",
     "cli-guide/scripting",
     "cli-guide/scripting#runs-that-don-t-ask",
     "cli-guide/scripting#json-output",
@@ -484,133 +421,200 @@
     "cli-guide/scripting#validate-in-ci",
     "cli-guide/scripting#deploy-from-a-script",
     "cli-guide/scripting#ai-agents",
+    "quick-start",
     "cli-guide/error-reporting",
     "cli-guide/error-reporting#kinds-of-problems",
     "cli-guide/error-reporting#messages",
-    "cli-guide/error-reporting#errors-with-json"
+    "cli-guide/error-reporting#errors-with-json",
+    "troubleshooting",
+    "troubleshooting#the-binding-caches-are-missing-or-out-of-date",
+    "troubleshooting#cpp-dtc-or-dt-schema-is-not-found",
+    "troubleshooting#the-device-is-on-a-disabled-bus",
+    "troubleshooting#an-include-of-the-base-devicetree-is-not-found",
+    "troubleshooting#deploy-can-t-reach-the-board",
+    "troubleshooting#the-device-doesn-t-probe-wrong-address",
+    "troubleshooting#reporting-a-problem",
+    "use-cases",
+    "install#requirements",
+    "install#getting-the-package",
+    "install#verify-the-installation",
+    "install#updating-and-uninstalling",
+    "install#installing-the-ai-agent-skills-optional",
+    "ui-guide/error-reporting",
+    "ui-guide/error-reporting#where-messages-appear",
+    "ui-guide/error-reporting#validation-errors-and-warnings",
+    "ui-guide/error-reporting#configuration-errors",
+    "ui-guide/error-reporting#build-and-deploy-failures",
+    "ui-guide/error-reporting#when-the-gui-can-t-start",
+    "ui-guide/error-reporting#when-the-server-has-stopped",
+    "reference/json-protocol",
+    "reference/json-protocol#turning-it-on",
+    "reference/json-protocol#streams",
+    "reference/json-protocol#exit-status",
+    "reference/json-protocol#the-answer",
+    "reference/json-protocol#configuration-errors",
+    "reference/json-protocol#error-types",
+    "reference/json-protocol#results-by-command",
+    "reference/json-protocol#examples",
+    "ai-agents",
+    "ai-agents#installing-the-skills",
+    "ai-agents#how-an-agent-uses-analog-attach",
+    "ai-agents#what-you-confirm",
+    "ai-agents#use-cases",
+    "ui-guide/starting",
+    "ui-guide/starting#start-the-gui",
+    "ui-guide/starting#the-port",
+    "ui-guide/starting#stop-the-gui",
+    "ui-guide/starting#the-project-setup",
+    "ui-guide/starting#choosing-files",
+    "ui-guide/starting#using-the-gui-from-another-machine",
+    "ui-guide",
+    "use-cases/linux/cli-ai-agent#goal",
+    "use-cases/linux/cli-ai-agent#what-you-need",
+    "use-cases/linux/cli-ai-agent#step-1-wire-the-click",
+    "use-cases/linux/cli-ai-agent#step-2-install-the-skill",
+    "use-cases/linux/cli-ai-agent#step-3-start-the-agent-in-the-project-folder",
+    "use-cases/linux/cli-ai-agent#step-4-ask-for-the-device",
+    "use-cases/linux/cli-ai-agent#step-5-deploy",
+    "use-cases/linux/cli-ai-agent#result",
+    "use-cases/linux/cli-ai-agent#troubleshooting",
+    "use-cases/linux/cli-ai-agent#next-steps",
+    "use-cases/template",
+    "use-cases/template#goal",
+    "use-cases/template#what-you-need",
+    "use-cases/template#walkthrough-video",
+    "use-cases/template#step-1-title",
+    "use-cases/template#step-2-title",
+    "use-cases/template#result",
+    "use-cases/template#troubleshooting",
+    "use-cases/template#next-steps"
   ],
   "hierarchy": [
     [
-      "Use Cases"
+      "CLI Guide",
+      "Configuration"
     ],
     [
-      "Use Cases",
-      "Use case template"
+      "CLI Guide",
+      "Configuration",
+      "The guided setup"
     ],
     [
-      "Use Cases",
-      "Use case template",
-      "Goal"
+      "CLI Guide",
+      "Configuration",
+      "Set up a project with commands"
     ],
     [
-      "Use Cases",
-      "Use case template",
-      "What you need"
+      "CLI Guide",
+      "Configuration",
+      "Show the settings"
     ],
     [
-      "Use Cases",
-      "Use case template",
-      "Walkthrough video"
+      "CLI Guide",
+      "Configuration",
+      "Change, reset and share settings"
     ],
     [
-      "Use Cases",
-      "Use case template",
-      "Steps",
-      "Step 1: <title>"
+      "CLI Guide",
+      "Configuration",
+      "Rebuild the binding caches"
     ],
     [
-      "Use Cases",
-      "Use case template",
-      "Steps",
-      "Step 2: <title>"
+      "CLI Guide",
+      "Configuration",
+      "Variables"
     ],
     [
-      "Use Cases",
-      "Use case template",
-      "Result"
-    ],
-    [
-      "Use Cases",
-      "Use case template",
-      "Troubleshooting"
-    ],
-    [
-      "Use Cases",
-      "Use case template",
+      "CLI Guide",
+      "Configuration",
       "Next steps"
     ],
     [
-      "GUI Guide"
+      "Concepts"
     ],
     [
-      "Introduction",
-      "What is Analog Attach"
+      "Concepts",
+      "Project and settings"
     ],
     [
-      "Introduction",
-      "Ways to use it"
+      "Concepts",
+      "Linux tree, base devicetree and bindings"
     ],
     [
-      "Introduction",
-      "Key features"
+      "Concepts",
+      "Workfile and overlay"
     ],
     [
-      "Introduction",
-      "Supported platforms"
+      "Concepts",
+      "Validation"
+    ],
+    [
+      "Concepts",
+      "Build and deploy"
+    ],
+    [
+      "Concepts",
+      "JSON protocol"
     ],
     [
       "Use Cases",
-      "Use case: CLI with an AI agent",
+      "Use case: Configure a device with the GUI",
       "Goal"
     ],
     [
       "Use Cases",
-      "Use case: CLI with an AI agent",
+      "Use case: Configure a device with the GUI",
       "What you need"
     ],
     [
       "Use Cases",
-      "Use case: CLI with an AI agent",
+      "Use case: Configure a device with the GUI",
       "Steps",
       "Step 1: Wire the Click"
     ],
     [
       "Use Cases",
-      "Use case: CLI with an AI agent",
+      "Use case: Configure a device with the GUI",
       "Steps",
-      "Step 2: Install the skill"
+      "Step 2: Start the GUI and set up the project"
     ],
     [
       "Use Cases",
-      "Use case: CLI with an AI agent",
+      "Use case: Configure a device with the GUI",
       "Steps",
-      "Step 3: Start the agent in the project folder"
+      "Step 3: Add the ADXL345"
     ],
     [
       "Use Cases",
-      "Use case: CLI with an AI agent",
+      "Use case: Configure a device with the GUI",
       "Steps",
-      "Step 4: Ask for the device"
+      "Step 4: Set the interrupt"
     ],
     [
       "Use Cases",
-      "Use case: CLI with an AI agent",
+      "Use case: Configure a device with the GUI",
       "Steps",
-      "Step 5: Deploy"
+      "Step 5: Validate"
     ],
     [
       "Use Cases",
-      "Use case: CLI with an AI agent",
+      "Use case: Configure a device with the GUI",
+      "Steps",
+      "Step 6: Build and deploy"
+    ],
+    [
+      "Use Cases",
+      "Use case: Configure a device with the GUI",
       "Result"
     ],
     [
       "Use Cases",
-      "Use case: CLI with an AI agent",
+      "Use case: Configure a device with the GUI",
       "Troubleshooting"
     ],
     [
       "Use Cases",
-      "Use case: CLI with an AI agent",
+      "Use case: Configure a device with the GUI",
       "Next steps"
     ],
     [
@@ -747,6 +751,206 @@
       "Next steps"
     ],
     [
+      "GUI Guide",
+      "Adding devices"
+    ],
+    [
+      "GUI Guide",
+      "Adding devices",
+      "Find the device"
+    ],
+    [
+      "GUI Guide",
+      "Adding devices",
+      "Place it"
+    ],
+    [
+      "GUI Guide",
+      "Adding devices",
+      "After adding"
+    ],
+    [
+      "GUI Guide",
+      "Adding devices",
+      "Other ways to add"
+    ],
+    [
+      "GUI Guide",
+      "Editing"
+    ],
+    [
+      "GUI Guide",
+      "Editing",
+      "Open a node"
+    ],
+    [
+      "GUI Guide",
+      "Editing",
+      "Properties"
+    ],
+    [
+      "GUI Guide",
+      "Editing",
+      "Properties",
+      "Change a value"
+    ],
+    [
+      "GUI Guide",
+      "Editing",
+      "Properties",
+      "Add a property"
+    ],
+    [
+      "GUI Guide",
+      "Editing",
+      "Child nodes"
+    ],
+    [
+      "GUI Guide",
+      "Editing",
+      "Enable or disable a node"
+    ],
+    [
+      "GUI Guide",
+      "Editing",
+      "Rename, move and delete"
+    ],
+    [
+      "Reference",
+      "Workfile"
+    ],
+    [
+      "Reference",
+      "Workfile",
+      "How the workfile is created"
+    ],
+    [
+      "Reference",
+      "Workfile",
+      "How the workfile is written afterwards"
+    ],
+    [
+      "Reference",
+      "Workfile",
+      "Overlay syntax"
+    ],
+    [
+      "Reference",
+      "Workfile",
+      "A complete workfile"
+    ],
+    [
+      "GUI Guide",
+      "Validate, build and deploy"
+    ],
+    [
+      "GUI Guide",
+      "Validate, build and deploy",
+      "Validate"
+    ],
+    [
+      "GUI Guide",
+      "Validate, build and deploy",
+      "Build"
+    ],
+    [
+      "GUI Guide",
+      "Validate, build and deploy",
+      "Deploy"
+    ],
+    [
+      "GUI Guide",
+      "Validate, build and deploy",
+      "Set the target"
+    ],
+    [
+      "GUI Guide",
+      "Validate, build and deploy",
+      "Set the target",
+      "Project variables"
+    ],
+    [
+      "GUI Guide",
+      "Validate, build and deploy",
+      "Set the target",
+      "Commands"
+    ],
+    [
+      "GUI Guide",
+      "Validate, build and deploy",
+      "Set the target",
+      "System variables"
+    ],
+    [
+      "GUI Guide",
+      "Workspace"
+    ],
+    [
+      "GUI Guide",
+      "Workspace",
+      "The header"
+    ],
+    [
+      "GUI Guide",
+      "Workspace",
+      "The device tree"
+    ],
+    [
+      "GUI Guide",
+      "Workspace",
+      "The node card"
+    ],
+    [
+      "GUI Guide",
+      "Workspace",
+      "The right column"
+    ],
+    [
+      "GUI Guide",
+      "Workspace",
+      "The console"
+    ],
+    [
+      "GUI Guide",
+      "Workspace",
+      "Settings and preferences"
+    ],
+    [
+      "GUI Guide",
+      "Workspace",
+      "The assistant"
+    ],
+    [
+      "CLI Guide"
+    ],
+    [
+      "CLI Guide",
+      "Getting help"
+    ],
+    [
+      "CLI Guide",
+      "Naming nodes"
+    ],
+    [
+      "CLI Guide",
+      "Creating and reading the workfile"
+    ],
+    [
+      "CLI Guide",
+      "Creating and reading the workfile",
+      "Create the workfile"
+    ],
+    [
+      "CLI Guide",
+      "Creating and reading the workfile",
+      "Start from an overlay of the Linux tree"
+    ],
+    [
+      "CLI Guide",
+      "Creating and reading the workfile",
+      "Read the workfile"
+    ],
+    [
       "CLI Guide",
       "Devices"
     ],
@@ -801,264 +1005,6 @@
       "CLI Guide",
       "Devices",
       "Next steps"
-    ],
-    [
-      "GUI Guide",
-      "Error reporting"
-    ],
-    [
-      "GUI Guide",
-      "Error reporting",
-      "Where messages appear"
-    ],
-    [
-      "GUI Guide",
-      "Error reporting",
-      "Validation errors and warnings"
-    ],
-    [
-      "GUI Guide",
-      "Error reporting",
-      "Configuration errors"
-    ],
-    [
-      "GUI Guide",
-      "Error reporting",
-      "Build and deploy failures"
-    ],
-    [
-      "GUI Guide",
-      "Error reporting",
-      "When the GUI can\u2019t start"
-    ],
-    [
-      "GUI Guide",
-      "Error reporting",
-      "When the server has stopped"
-    ],
-    [
-      "Use Cases",
-      "Use case: Configure a device with the GUI",
-      "Goal"
-    ],
-    [
-      "Use Cases",
-      "Use case: Configure a device with the GUI",
-      "What you need"
-    ],
-    [
-      "Use Cases",
-      "Use case: Configure a device with the GUI",
-      "Steps",
-      "Step 1: Wire the Click"
-    ],
-    [
-      "Use Cases",
-      "Use case: Configure a device with the GUI",
-      "Steps",
-      "Step 2: Start the GUI and set up the project"
-    ],
-    [
-      "Use Cases",
-      "Use case: Configure a device with the GUI",
-      "Steps",
-      "Step 3: Add the ADXL345"
-    ],
-    [
-      "Use Cases",
-      "Use case: Configure a device with the GUI",
-      "Steps",
-      "Step 4: Set the interrupt"
-    ],
-    [
-      "Use Cases",
-      "Use case: Configure a device with the GUI",
-      "Steps",
-      "Step 5: Validate"
-    ],
-    [
-      "Use Cases",
-      "Use case: Configure a device with the GUI",
-      "Steps",
-      "Step 6: Build and deploy"
-    ],
-    [
-      "Use Cases",
-      "Use case: Configure a device with the GUI",
-      "Result"
-    ],
-    [
-      "Use Cases",
-      "Use case: Configure a device with the GUI",
-      "Troubleshooting"
-    ],
-    [
-      "Use Cases",
-      "Use case: Configure a device with the GUI",
-      "Next steps"
-    ],
-    [
-      "Troubleshooting"
-    ],
-    [
-      "Troubleshooting",
-      "The binding caches are missing or out of date"
-    ],
-    [
-      "Troubleshooting",
-      "cpp, dtc or dt-schema is not found"
-    ],
-    [
-      "Troubleshooting",
-      "The device is on a disabled bus"
-    ],
-    [
-      "Troubleshooting",
-      "An include of the base devicetree is not found"
-    ],
-    [
-      "Troubleshooting",
-      "Deploy can\u2019t reach the board"
-    ],
-    [
-      "Troubleshooting",
-      "The device doesn\u2019t probe: wrong address"
-    ],
-    [
-      "Troubleshooting",
-      "Reporting a problem"
-    ],
-    [
-      "CLI Guide",
-      "Creating and reading the workfile"
-    ],
-    [
-      "CLI Guide",
-      "Creating and reading the workfile",
-      "Create the workfile"
-    ],
-    [
-      "CLI Guide",
-      "Creating and reading the workfile",
-      "Start from an overlay of the Linux tree"
-    ],
-    [
-      "CLI Guide",
-      "Creating and reading the workfile",
-      "Read the workfile"
-    ],
-    [
-      "GUI Guide",
-      "Editing"
-    ],
-    [
-      "GUI Guide",
-      "Editing",
-      "Open a node"
-    ],
-    [
-      "GUI Guide",
-      "Editing",
-      "Properties"
-    ],
-    [
-      "GUI Guide",
-      "Editing",
-      "Properties",
-      "Change a value"
-    ],
-    [
-      "GUI Guide",
-      "Editing",
-      "Properties",
-      "Add a property"
-    ],
-    [
-      "GUI Guide",
-      "Editing",
-      "Child nodes"
-    ],
-    [
-      "GUI Guide",
-      "Editing",
-      "Enable or disable a node"
-    ],
-    [
-      "GUI Guide",
-      "Editing",
-      "Rename, move and delete"
-    ],
-    [
-      "CLI Guide",
-      "Validate, build and deploy"
-    ],
-    [
-      "CLI Guide",
-      "Validate, build and deploy",
-      "Validate"
-    ],
-    [
-      "CLI Guide",
-      "Validate, build and deploy",
-      "Validate",
-      "Check the whole devicetree"
-    ],
-    [
-      "CLI Guide",
-      "Validate, build and deploy",
-      "Build"
-    ],
-    [
-      "CLI Guide",
-      "Validate, build and deploy",
-      "Build",
-      "Change the build"
-    ],
-    [
-      "CLI Guide",
-      "Validate, build and deploy",
-      "Build",
-      "A full devicetree instead of an overlay"
-    ],
-    [
-      "CLI Guide",
-      "Validate, build and deploy",
-      "Deploy"
-    ],
-    [
-      "CLI Guide",
-      "Validate, build and deploy",
-      "Deploy",
-      "Deploy another way"
-    ],
-    [
-      "CLI Guide",
-      "Validate, build and deploy",
-      "Next steps"
-    ],
-    [
-      "Reference",
-      "Workfile"
-    ],
-    [
-      "Reference",
-      "Workfile",
-      "How the workfile is created"
-    ],
-    [
-      "Reference",
-      "Workfile",
-      "How the workfile is written afterwards"
-    ],
-    [
-      "Reference",
-      "Workfile",
-      "Overlay syntax"
-    ],
-    [
-      "Reference",
-      "Workfile",
-      "A complete workfile"
     ],
     [
       "CLI Guide",
@@ -1119,74 +1065,55 @@
       "Next steps"
     ],
     [
-      "Reference",
-      "JSON protocol"
+      "CLI Guide",
+      "Validate, build and deploy"
     ],
     [
-      "Reference",
-      "JSON protocol",
-      "Turning it on"
+      "CLI Guide",
+      "Validate, build and deploy",
+      "Validate"
     ],
     [
-      "Reference",
-      "JSON protocol",
-      "Streams"
+      "CLI Guide",
+      "Validate, build and deploy",
+      "Validate",
+      "Check the whole devicetree"
     ],
     [
-      "Reference",
-      "JSON protocol",
-      "Exit status"
+      "CLI Guide",
+      "Validate, build and deploy",
+      "Build"
     ],
     [
-      "Reference",
-      "JSON protocol",
-      "The answer"
+      "CLI Guide",
+      "Validate, build and deploy",
+      "Build",
+      "Change the build"
     ],
     [
-      "Reference",
-      "JSON protocol",
-      "The answer",
-      "Configuration errors"
+      "CLI Guide",
+      "Validate, build and deploy",
+      "Build",
+      "A full devicetree instead of an overlay"
     ],
     [
-      "Reference",
-      "JSON protocol",
-      "The answer",
-      "Error types"
+      "CLI Guide",
+      "Validate, build and deploy",
+      "Deploy"
     ],
     [
-      "Reference",
-      "JSON protocol",
-      "Results by command"
+      "CLI Guide",
+      "Validate, build and deploy",
+      "Deploy",
+      "Deploy another way"
     ],
     [
-      "Reference",
-      "JSON protocol",
-      "Examples"
+      "CLI Guide",
+      "Validate, build and deploy",
+      "Next steps"
     ],
     [
-      "GUI Guide",
-      "Adding devices"
-    ],
-    [
-      "GUI Guide",
-      "Adding devices",
-      "Find the device"
-    ],
-    [
-      "GUI Guide",
-      "Adding devices",
-      "Place it"
-    ],
-    [
-      "GUI Guide",
-      "Adding devices",
-      "After adding"
-    ],
-    [
-      "GUI Guide",
-      "Adding devices",
-      "Other ways to add"
+      "Analog Attach"
     ],
     [
       "CLI Guide",
@@ -1223,302 +1150,6 @@
       "CLI Guide",
       "Shell completion",
       "Remove the completion"
-    ],
-    [
-      "GUI Guide",
-      "Workspace"
-    ],
-    [
-      "GUI Guide",
-      "Workspace",
-      "The header"
-    ],
-    [
-      "GUI Guide",
-      "Workspace",
-      "The device tree"
-    ],
-    [
-      "GUI Guide",
-      "Workspace",
-      "The node card"
-    ],
-    [
-      "GUI Guide",
-      "Workspace",
-      "The right column"
-    ],
-    [
-      "GUI Guide",
-      "Workspace",
-      "The console"
-    ],
-    [
-      "GUI Guide",
-      "Workspace",
-      "Settings and preferences"
-    ],
-    [
-      "GUI Guide",
-      "Workspace",
-      "The assistant"
-    ],
-    [
-      "GUI Guide",
-      "Validate, build and deploy"
-    ],
-    [
-      "GUI Guide",
-      "Validate, build and deploy",
-      "Validate"
-    ],
-    [
-      "GUI Guide",
-      "Validate, build and deploy",
-      "Build"
-    ],
-    [
-      "GUI Guide",
-      "Validate, build and deploy",
-      "Deploy"
-    ],
-    [
-      "GUI Guide",
-      "Validate, build and deploy",
-      "Set the target"
-    ],
-    [
-      "GUI Guide",
-      "Validate, build and deploy",
-      "Set the target",
-      "Project variables"
-    ],
-    [
-      "GUI Guide",
-      "Validate, build and deploy",
-      "Set the target",
-      "Commands"
-    ],
-    [
-      "GUI Guide",
-      "Validate, build and deploy",
-      "Set the target",
-      "System variables"
-    ],
-    [
-      "GUI Guide",
-      "Starting"
-    ],
-    [
-      "GUI Guide",
-      "Starting",
-      "Start the GUI"
-    ],
-    [
-      "GUI Guide",
-      "Starting",
-      "Start the GUI",
-      "The port"
-    ],
-    [
-      "GUI Guide",
-      "Starting",
-      "Stop the GUI"
-    ],
-    [
-      "GUI Guide",
-      "Starting",
-      "The project setup"
-    ],
-    [
-      "GUI Guide",
-      "Starting",
-      "The project setup",
-      "Choosing files"
-    ],
-    [
-      "GUI Guide",
-      "Starting",
-      "Using the GUI from another machine"
-    ],
-    [
-      "Analog Attach"
-    ],
-    [
-      "Installation",
-      "Requirements"
-    ],
-    [
-      "Installation",
-      "Getting the package"
-    ],
-    [
-      "Installation",
-      "Verify the installation"
-    ],
-    [
-      "Installation",
-      "Updating and uninstalling"
-    ],
-    [
-      "Installation",
-      "Installing the AI agent skills (optional)"
-    ],
-    [
-      "Quick Start"
-    ],
-    [
-      "Reference",
-      "Configuration file"
-    ],
-    [
-      "Reference",
-      "Configuration file",
-      "Where the files are"
-    ],
-    [
-      "Reference",
-      "Configuration file",
-      "How the project folder is created"
-    ],
-    [
-      "Reference",
-      "Configuration file",
-      "File format"
-    ],
-    [
-      "Reference",
-      "Configuration file",
-      "Precedence"
-    ],
-    [
-      "Reference",
-      "Configuration file",
-      "Settings",
-      "backend"
-    ],
-    [
-      "Reference",
-      "Configuration file",
-      "Settings",
-      "Linux settings"
-    ],
-    [
-      "Reference",
-      "Configuration file",
-      "Variables"
-    ],
-    [
-      "Reference",
-      "Configuration file",
-      "Variables",
-      "Deploy"
-    ],
-    [
-      "Reference",
-      "Configuration file",
-      "Managing settings from the CLI"
-    ],
-    [
-      "Reference",
-      "Configuration file",
-      "Other files in .analog-attach/"
-    ],
-    [
-      "Concepts"
-    ],
-    [
-      "Concepts",
-      "Project and settings"
-    ],
-    [
-      "Concepts",
-      "Linux tree, base devicetree and bindings"
-    ],
-    [
-      "Concepts",
-      "Workfile and overlay"
-    ],
-    [
-      "Concepts",
-      "Validation"
-    ],
-    [
-      "Concepts",
-      "Build and deploy"
-    ],
-    [
-      "Concepts",
-      "JSON protocol"
-    ],
-    [
-      "CLI Guide",
-      "Configuration"
-    ],
-    [
-      "CLI Guide",
-      "Configuration",
-      "The guided setup"
-    ],
-    [
-      "CLI Guide",
-      "Configuration",
-      "Set up a project with commands"
-    ],
-    [
-      "CLI Guide",
-      "Configuration",
-      "Show the settings"
-    ],
-    [
-      "CLI Guide",
-      "Configuration",
-      "Change, reset and share settings"
-    ],
-    [
-      "CLI Guide",
-      "Configuration",
-      "Rebuild the binding caches"
-    ],
-    [
-      "CLI Guide",
-      "Configuration",
-      "Variables"
-    ],
-    [
-      "CLI Guide",
-      "Configuration",
-      "Next steps"
-    ],
-    [
-      "Working with AI Agents"
-    ],
-    [
-      "Working with AI Agents",
-      "Installing the skills"
-    ],
-    [
-      "Working with AI Agents",
-      "How an agent uses Analog Attach"
-    ],
-    [
-      "Working with AI Agents",
-      "What you confirm"
-    ],
-    [
-      "Working with AI Agents",
-      "Use cases"
-    ],
-    [
-      "CLI Guide"
-    ],
-    [
-      "CLI Guide",
-      "Getting help"
-    ],
-    [
-      "CLI Guide",
-      "Naming nodes"
     ],
     [
       "Reference"
@@ -1629,6 +1260,79 @@
       "skill"
     ],
     [
+      "Reference",
+      "Configuration file"
+    ],
+    [
+      "Reference",
+      "Configuration file",
+      "Where the files are"
+    ],
+    [
+      "Reference",
+      "Configuration file",
+      "How the project folder is created"
+    ],
+    [
+      "Reference",
+      "Configuration file",
+      "File format"
+    ],
+    [
+      "Reference",
+      "Configuration file",
+      "Precedence"
+    ],
+    [
+      "Reference",
+      "Configuration file",
+      "Settings",
+      "backend"
+    ],
+    [
+      "Reference",
+      "Configuration file",
+      "Settings",
+      "Linux settings"
+    ],
+    [
+      "Reference",
+      "Configuration file",
+      "Variables"
+    ],
+    [
+      "Reference",
+      "Configuration file",
+      "Variables",
+      "Deploy"
+    ],
+    [
+      "Reference",
+      "Configuration file",
+      "Managing settings from the CLI"
+    ],
+    [
+      "Reference",
+      "Configuration file",
+      "Other files in .analog-attach/"
+    ],
+    [
+      "Introduction",
+      "What is Analog Attach"
+    ],
+    [
+      "Introduction",
+      "Ways to use it"
+    ],
+    [
+      "Introduction",
+      "Key features"
+    ],
+    [
+      "Introduction",
+      "Supported platforms"
+    ],
+    [
       "CLI Guide",
       "Scripting"
     ],
@@ -1673,6 +1377,9 @@
       "AI agents"
     ],
     [
+      "Quick Start"
+    ],
+    [
       "CLI Guide",
       "Error reporting"
     ],
@@ -1690,6 +1397,299 @@
       "CLI Guide",
       "Error reporting",
       "Errors with --json"
+    ],
+    [
+      "Troubleshooting"
+    ],
+    [
+      "Troubleshooting",
+      "The binding caches are missing or out of date"
+    ],
+    [
+      "Troubleshooting",
+      "cpp, dtc or dt-schema is not found"
+    ],
+    [
+      "Troubleshooting",
+      "The device is on a disabled bus"
+    ],
+    [
+      "Troubleshooting",
+      "An include of the base devicetree is not found"
+    ],
+    [
+      "Troubleshooting",
+      "Deploy can\u2019t reach the board"
+    ],
+    [
+      "Troubleshooting",
+      "The device doesn\u2019t probe: wrong address"
+    ],
+    [
+      "Troubleshooting",
+      "Reporting a problem"
+    ],
+    [
+      "Use Cases"
+    ],
+    [
+      "Installation",
+      "Requirements"
+    ],
+    [
+      "Installation",
+      "Getting the package"
+    ],
+    [
+      "Installation",
+      "Verify the installation"
+    ],
+    [
+      "Installation",
+      "Updating and uninstalling"
+    ],
+    [
+      "Installation",
+      "Installing the AI agent skills (optional)"
+    ],
+    [
+      "GUI Guide",
+      "Error reporting"
+    ],
+    [
+      "GUI Guide",
+      "Error reporting",
+      "Where messages appear"
+    ],
+    [
+      "GUI Guide",
+      "Error reporting",
+      "Validation errors and warnings"
+    ],
+    [
+      "GUI Guide",
+      "Error reporting",
+      "Configuration errors"
+    ],
+    [
+      "GUI Guide",
+      "Error reporting",
+      "Build and deploy failures"
+    ],
+    [
+      "GUI Guide",
+      "Error reporting",
+      "When the GUI can\u2019t start"
+    ],
+    [
+      "GUI Guide",
+      "Error reporting",
+      "When the server has stopped"
+    ],
+    [
+      "Reference",
+      "JSON protocol"
+    ],
+    [
+      "Reference",
+      "JSON protocol",
+      "Turning it on"
+    ],
+    [
+      "Reference",
+      "JSON protocol",
+      "Streams"
+    ],
+    [
+      "Reference",
+      "JSON protocol",
+      "Exit status"
+    ],
+    [
+      "Reference",
+      "JSON protocol",
+      "The answer"
+    ],
+    [
+      "Reference",
+      "JSON protocol",
+      "The answer",
+      "Configuration errors"
+    ],
+    [
+      "Reference",
+      "JSON protocol",
+      "The answer",
+      "Error types"
+    ],
+    [
+      "Reference",
+      "JSON protocol",
+      "Results by command"
+    ],
+    [
+      "Reference",
+      "JSON protocol",
+      "Examples"
+    ],
+    [
+      "Working with AI Agents"
+    ],
+    [
+      "Working with AI Agents",
+      "Installing the skills"
+    ],
+    [
+      "Working with AI Agents",
+      "How an agent uses Analog Attach"
+    ],
+    [
+      "Working with AI Agents",
+      "What you confirm"
+    ],
+    [
+      "Working with AI Agents",
+      "Use cases"
+    ],
+    [
+      "GUI Guide",
+      "Starting"
+    ],
+    [
+      "GUI Guide",
+      "Starting",
+      "Start the GUI"
+    ],
+    [
+      "GUI Guide",
+      "Starting",
+      "Start the GUI",
+      "The port"
+    ],
+    [
+      "GUI Guide",
+      "Starting",
+      "Stop the GUI"
+    ],
+    [
+      "GUI Guide",
+      "Starting",
+      "The project setup"
+    ],
+    [
+      "GUI Guide",
+      "Starting",
+      "The project setup",
+      "Choosing files"
+    ],
+    [
+      "GUI Guide",
+      "Starting",
+      "Using the GUI from another machine"
+    ],
+    [
+      "GUI Guide"
+    ],
+    [
+      "Use Cases",
+      "Use case: CLI with an AI agent",
+      "Goal"
+    ],
+    [
+      "Use Cases",
+      "Use case: CLI with an AI agent",
+      "What you need"
+    ],
+    [
+      "Use Cases",
+      "Use case: CLI with an AI agent",
+      "Steps",
+      "Step 1: Wire the Click"
+    ],
+    [
+      "Use Cases",
+      "Use case: CLI with an AI agent",
+      "Steps",
+      "Step 2: Install the skill"
+    ],
+    [
+      "Use Cases",
+      "Use case: CLI with an AI agent",
+      "Steps",
+      "Step 3: Start the agent in the project folder"
+    ],
+    [
+      "Use Cases",
+      "Use case: CLI with an AI agent",
+      "Steps",
+      "Step 4: Ask for the device"
+    ],
+    [
+      "Use Cases",
+      "Use case: CLI with an AI agent",
+      "Steps",
+      "Step 5: Deploy"
+    ],
+    [
+      "Use Cases",
+      "Use case: CLI with an AI agent",
+      "Result"
+    ],
+    [
+      "Use Cases",
+      "Use case: CLI with an AI agent",
+      "Troubleshooting"
+    ],
+    [
+      "Use Cases",
+      "Use case: CLI with an AI agent",
+      "Next steps"
+    ],
+    [
+      "Use Cases",
+      "Use case template"
+    ],
+    [
+      "Use Cases",
+      "Use case template",
+      "Goal"
+    ],
+    [
+      "Use Cases",
+      "Use case template",
+      "What you need"
+    ],
+    [
+      "Use Cases",
+      "Use case template",
+      "Walkthrough video"
+    ],
+    [
+      "Use Cases",
+      "Use case template",
+      "Steps",
+      "Step 1: <title>"
+    ],
+    [
+      "Use Cases",
+      "Use case template",
+      "Steps",
+      "Step 2: <title>"
+    ],
+    [
+      "Use Cases",
+      "Use case template",
+      "Result"
+    ],
+    [
+      "Use Cases",
+      "Use case template",
+      "Troubleshooting"
+    ],
+    [
+      "Use Cases",
+      "Use case template",
+      "Next steps"
     ]
   ]
 }
